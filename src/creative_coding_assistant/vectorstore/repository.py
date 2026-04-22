@@ -75,5 +75,25 @@ class ChromaRepository:
             metadata=metadatas[0] if metadatas else {},
         )
 
+    def list(self, where: dict[str, object] | None = None) -> tuple[
+        StoredVectorRecord,
+        ...
+    ]:
+        result = self.collection.get(
+            where=where,
+            include=["documents", "metadatas"],
+        )
+        ids = result.get("ids") or []
+        documents = result.get("documents") or []
+        metadatas = result.get("metadatas") or []
+        return tuple(
+            StoredVectorRecord(
+                id=record_id,
+                document=documents[index] if index < len(documents) else None,
+                metadata=metadatas[index] if index < len(metadatas) else {},
+            )
+            for index, record_id in enumerate(ids)
+        )
+
     def count(self) -> int:
         return int(self.collection.count())
