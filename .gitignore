@@ -1,0 +1,30 @@
+.DS_Store
+.idea/
+.venv/
+node_modules/
+__pycache__/
+*.py[cod]
+*.log
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Starter/reference material stays local and out of the new app surface.
+codex_starter_pack/
+
+# Runtime data is persisted locally; keep only directory placeholders.
+data/chroma/
+!data/chroma/
+data/chroma/*
+!data/chroma/.gitkeep
+data/artifacts/
+!data/artifacts/
+data/artifacts/*
+!data/artifacts/.gitkeep
+
+# Local environment files.
+.env
+.env.*
+!.env.example
