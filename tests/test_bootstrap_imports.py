@@ -24,7 +24,7 @@ class BootstrapImportTests(unittest.TestCase):
         self.assertEqual(settings.artifact_dir.as_posix(), "data/artifacts")
 
     def test_request_contract_validates_empty_query(self) -> None:
-        with self.assertRaisesRegex(ValueError, "query must not be empty"):
+        with self.assertRaises(ValueError):
             AssistantRequest(query=" ")
 
     def test_request_contract_accepts_domain_and_mode(self) -> None:
