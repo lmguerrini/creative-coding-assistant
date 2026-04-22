@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "creative-coding-assistant"
+version = "0.1.0"
+description = "Python-first Creative Coding Assistant with Streamlit V1 client."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "chromadb>=0.5",
+  "pydantic>=2.11",
+  "pydantic-settings>=2.9",
+  "streamlit>=1.44",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+  "ruff>=0.8",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["creative_coding_assistant*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+norecursedirs = [
+  ".git",
+  ".idea",
+  ".venv",
+  "codex_starter_pack",
+  "data",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+src = ["src", "tests", "clients", "scripts"]
+exclude = [
+  ".git",
+  ".idea",
+  ".venv",
+  "codex_starter_pack",
+  "data/chroma",
+  "data/artifacts",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
