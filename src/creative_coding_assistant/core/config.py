@@ -1,36 +1,38 @@
-"""Application settings for the bootstrap foundation."""
+"""Application settings."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-import os
 from pathlib import Path
 
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-@dataclass(frozen=True)
-class Settings:
-    """Runtime settings that avoid side effects during import."""
 
-    app_name: str = "Creative Coding Assistant"
-    environment: str = "local"
-    log_level: str = "INFO"
-    chroma_persist_dir: Path = Path("data/chroma")
-    artifact_dir: Path = Path("data/artifacts")
-    default_domain: str = "three_js"
-    default_mode: str = "generate"
+class Settings(BaseSettings):
+    """Runtime settings loaded from environment variables."""
+
+    app_name: str = Field(default="Creative Coding Assistant")
+    environment: str = Field(default="local")
+    log_level: str = Field(default="INFO")
+    chroma_persist_dir: Path = Field(default=Path("data/chroma"))
+    artifact_dir: Path = Field(default=Path("data/artifacts"))
+    default_domain: str = Field(default="three_js")
+    default_mode: str = Field(default="generate")
+
+    model_config = SettingsConfigDict(
+        env_prefix="CCA_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    @field_validator("log_level")
+    @classmethod
+    def normalize_log_level(cls, value: str) -> str:
+        return value.strip().upper()
 
 
 def load_settings() -> Settings:
-    """Load settings from environment variables with conservative defaults."""
+    """Load settings without creating external resources."""
 
-    return Settings(
-        app_name=os.getenv("CCA_APP_NAME", Settings.app_name),
-        environment=os.getenv("CCA_ENVIRONMENT", Settings.environment),
-        log_level=os.getenv("CCA_LOG_LEVEL", Settings.log_level).upper(),
-        chroma_persist_dir=Path(
-            os.getenv("CCA_CHROMA_PERSIST_DIR", str(Settings.chroma_persist_dir))
-        ),
-        artifact_dir=Path(os.getenv("CCA_ARTIFACT_DIR", str(Settings.artifact_dir))),
-        default_domain=os.getenv("CCA_DEFAULT_DOMAIN", Settings.default_domain),
-        default_mode=os.getenv("CCA_DEFAULT_MODE", Settings.default_mode),
-    )
+    return Settings()

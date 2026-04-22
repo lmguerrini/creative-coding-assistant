@@ -3,12 +3,19 @@
 from __future__ import annotations
 
 import logging
+import sys
+
+from loguru import logger
 
 
 def configure_logging(level: str = "INFO") -> None:
-    """Configure root logging for local development and Streamlit runs."""
+    """Configure Loguru while keeping stdlib log records visible."""
 
-    logging.basicConfig(
-        level=getattr(logging, level.upper(), logging.INFO),
-        format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    normalized_level = level.upper()
+    logging.basicConfig(level=getattr(logging, normalized_level, logging.INFO))
+    logger.remove()
+    logger.add(
+        sys.stderr,
+        level=normalized_level,
+        format="{time:YYYY-MM-DD HH:mm:ss} {level} {name} {message}",
     )
