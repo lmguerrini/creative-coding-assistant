@@ -1,27 +1,26 @@
 # Creative Coding Assistant
 
-Production-minded assistant for creative coding and generative visuals.
+Creative Coding Assistant is a Python-first assistant for generative visuals,
+interactive sketches, and graphics programming workflows.
 
-The implementation root is this outer `creative_coding_assistant/` directory.
-`codex_starter_pack/` is retained only as local starter/reference material.
+The initial client is Streamlit. The backend is structured so another client,
+such as a TypeScript web app, can use the same service layer later.
 
-## Bootstrap Scope
+## V1 Scope
 
-This branch establishes the project foundation only:
+The first version focuses on:
 
-- root project metadata
-- canonical project docs in `docs/`
-- backend package skeleton under `src/`
-- Streamlit V1 client placeholder under `clients/streamlit/`
-- tests, scripts, and runtime data directories
-- exclusions for starter/reference material
+- Three.js
+- React Three Fiber
+- p5.js
+- GLSL
 
-Product features such as Chroma repositories, memory behavior, RAG sync,
-assistant modes, preview rendering, live evaluation, and analytics are planned
-for follow-up feature branches.
+Core capabilities are planned around official-documentation retrieval,
+multi-turn project memory, streaming responses, controlled previews, live
+evaluation, and analytics.
 
-## Reference Material
+## Architecture
 
-The old implementation remains under `codex_starter_pack/old_project/` as
-reference-only material. It is excluded from package discovery, test collection,
-linting, and the application import path.
+Persistent application data is stored in Chroma collections separated by
+concern. The Streamlit client stays thin and calls frontend-agnostic backend
+services under `src/creative_coding_assistant/`.
