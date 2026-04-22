@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, Field
 
-class StreamEventType(str, Enum):
+
+class StreamEventType(StrEnum):
     STATUS = "status"
     MEMORY = "memory"
     RETRIEVAL = "retrieval"
@@ -20,12 +21,9 @@ class StreamEventType(str, Enum):
     ERROR = "error"
 
 
-@dataclass(frozen=True)
-class StreamEvent:
-    event_type: StreamEventType
-    sequence: int
-    payload: dict[str, Any] = field(default_factory=dict)
+class StreamEvent(BaseModel):
+    model_config = ConfigDict(frozen=True)
 
-    def __post_init__(self) -> None:
-        if self.sequence < 0:
-            raise ValueError("Stream event sequence must be zero or greater.")
+    event_type: StreamEventType
+    sequence: int = Field(ge=0)
+    payload: dict[str, Any] = Field(default_factory=dict)

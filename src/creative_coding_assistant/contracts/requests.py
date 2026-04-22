@@ -2,20 +2,21 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from creative_coding_assistant.contracts.events import StreamEvent
 
 
-class CreativeCodingDomain(str, Enum):
+class CreativeCodingDomain(StrEnum):
     THREE_JS = "three_js"
     REACT_THREE_FIBER = "react_three_fiber"
     P5_JS = "p5_js"
     GLSL = "glsl"
 
 
-class AssistantMode(str, Enum):
+class AssistantMode(StrEnum):
     GENERATE = "generate"
     EXPLAIN = "explain"
     DEBUG = "debug"
@@ -24,24 +25,25 @@ class AssistantMode(str, Enum):
     PREVIEW = "preview"
 
 
-@dataclass(frozen=True)
-class AssistantRequest:
-    query: str
+class AssistantRequest(BaseModel):
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    query: str = Field(min_length=1)
     conversation_id: str | None = None
     project_id: str | None = None
     domain: CreativeCodingDomain | None = None
     mode: AssistantMode = AssistantMode.GENERATE
 
-    def __post_init__(self) -> None:
-        if not self.query.strip():
+    @field_validator("query")
+    @classmethod
+    def validate_query(cls, value: str) -> str:
+        if not value.strip():
             raise ValueError("Assistant request query must not be empty.")
+        return value
 
 
-@dataclass(frozen=True)
-class AssistantResponse:
-    answer: str
-    events: tuple[StreamEvent, ...] = field(default_factory=tuple)
+class AssistantResponse(BaseModel):
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    def __post_init__(self) -> None:
-        if not self.answer.strip():
-            raise ValueError("Assistant response answer must not be empty.")
+    answer: str = Field(min_length=1)
+    events: tuple[StreamEvent, ...] = Field(default_factory=tuple)
