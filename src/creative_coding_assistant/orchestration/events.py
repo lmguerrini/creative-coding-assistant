@@ -19,6 +19,12 @@ class StreamEventBuilder:
             {"code": code, "message": message, **details},
         )
 
+    def memory(self, *, code: str, message: str, **details: Any) -> StreamEvent:
+        return self._event(
+            StreamEventType.MEMORY,
+            {"code": code, "message": message, **details},
+        )
+
     def token_delta(self, text: str) -> StreamEvent:
         return self._event(StreamEventType.TOKEN_DELTA, {"text": text})
 

@@ -14,6 +14,10 @@ from creative_coding_assistant.contracts import (
 )
 from creative_coding_assistant.core import Settings, load_settings
 from creative_coding_assistant.orchestration.events import StreamEventBuilder
+from creative_coding_assistant.orchestration.memory import (
+    MemoryGateway,
+    build_memory_context_request,
+)
 from creative_coding_assistant.orchestration.retrieval import (
     RetrievalGateway,
     build_retrieval_context_request,
@@ -31,10 +35,12 @@ class AssistantService:
         *,
         settings: Settings | None = None,
         route_fn: RouteFn = route_request,
+        memory_gateway: MemoryGateway | None = None,
         retrieval_gateway: RetrievalGateway | None = None,
     ) -> None:
         self.settings = settings or load_settings()
         self._route_fn = route_fn
+        self._memory_gateway = memory_gateway
         self._retrieval_gateway = retrieval_gateway
 
     def stream(self, request: AssistantRequest) -> Iterator[StreamEvent]:
@@ -52,6 +58,25 @@ class AssistantService:
             message="Route selected.",
             route=route_payload,
         )
+
+        memory_request = None
+        if self._memory_gateway is not None:
+            memory_request = build_memory_context_request(request, decision)
+
+        if memory_request is not None and self._memory_gateway is not None:
+            memory_payload = memory_request.model_dump(mode="json")
+            logger.bind(route=decision.route.value).info("assistant_memory_requested")
+            yield builder.memory(
+                code="memory_requested",
+                message="Memory context requested.",
+                request=memory_payload,
+            )
+            memory_context = self._memory_gateway.retrieve_context(memory_request)
+            yield builder.memory(
+                code="memory_completed",
+                message="Memory context prepared.",
+                context=memory_context.model_dump(mode="json"),
+            )
 
         retrieval_request = None
         retrieval_context = None
