@@ -12,6 +12,7 @@ class StreamEventType(StrEnum):
     STATUS = "status"
     MEMORY = "memory"
     RETRIEVAL = "retrieval"
+    CONTEXT = "context"
     TOOL_START = "tool_start"
     TOOL_RESULT = "tool_result"
     TOKEN_DELTA = "token_delta"
