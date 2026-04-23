@@ -26,6 +26,10 @@ from creative_coding_assistant.orchestration.prompt_inputs import (
     PromptInputBuilder,
     build_prompt_input_request,
 )
+from creative_coding_assistant.orchestration.prompt_templates import (
+    PromptRenderer,
+    build_rendered_prompt_request,
+)
 from creative_coding_assistant.orchestration.retrieval import (
     RetrievalGateway,
     build_retrieval_context_request,
@@ -47,6 +51,7 @@ class AssistantService:
         retrieval_gateway: RetrievalGateway | None = None,
         context_assembler: ContextAssembler | None = None,
         prompt_input_builder: PromptInputBuilder | None = None,
+        prompt_renderer: PromptRenderer | None = None,
     ) -> None:
         self.settings = settings or load_settings()
         self._route_fn = route_fn
@@ -54,6 +59,7 @@ class AssistantService:
         self._retrieval_gateway = retrieval_gateway
         self._context_assembler = context_assembler
         self._prompt_input_builder = prompt_input_builder
+        self._prompt_renderer = prompt_renderer
 
     def stream(self, request: AssistantRequest) -> Iterator[StreamEvent]:
         """Yield the current backend event flow for one assistant request."""
@@ -113,6 +119,7 @@ class AssistantService:
                 context=retrieval_context.model_dump(mode="json"),
             )
 
+        assembled_context = None
         context_request = None
         if self._context_assembler is not None:
             context_request = build_assembled_context_request(
@@ -129,6 +136,7 @@ class AssistantService:
                 context=assembled_context.model_dump(mode="json"),
             )
 
+        prompt_inputs = None
         if self._prompt_input_builder is not None:
             prompt_input_request = build_prompt_input_request(
                 assistant_request=request,
@@ -140,6 +148,18 @@ class AssistantService:
                 code="prompt_inputs_prepared",
                 message="Prompt inputs prepared.",
                 prompt_input=prompt_inputs.model_dump(mode="json"),
+            )
+
+        if prompt_inputs is not None and self._prompt_renderer is not None:
+            rendered_prompt_request = build_rendered_prompt_request(
+                route_decision=decision,
+                prompt_input=prompt_inputs,
+            )
+            rendered_prompt = self._prompt_renderer.render(rendered_prompt_request)
+            yield builder.prompt_rendered(
+                code="prompt_rendered",
+                message="Rendered prompt prepared.",
+                rendered_prompt=rendered_prompt.model_dump(mode="json"),
             )
 
         answer = _build_shell_answer(decision)

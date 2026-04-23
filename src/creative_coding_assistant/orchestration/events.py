@@ -52,6 +52,18 @@ class StreamEventBuilder:
             {"code": code, "message": message, **details},
         )
 
+    def prompt_rendered(
+        self,
+        *,
+        code: str,
+        message: str,
+        **details: Any,
+    ) -> StreamEvent:
+        return self._event(
+            StreamEventType.PROMPT_RENDERED,
+            {"code": code, "message": message, **details},
+        )
+
     def final(self, *, answer: str, **details: Any) -> StreamEvent:
         return self._event(
             StreamEventType.FINAL,
