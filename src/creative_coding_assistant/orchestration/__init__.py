@@ -35,6 +35,16 @@ from creative_coding_assistant.orchestration.prompt_inputs import (
     StructuredPromptInputBuilder,
     build_prompt_input_request,
 )
+from creative_coding_assistant.orchestration.prompt_templates import (
+    JinjaPromptRenderer,
+    PromptRenderer,
+    RenderedPromptRequest,
+    RenderedPromptResponse,
+    RenderedPromptRole,
+    RenderedPromptSection,
+    RenderedPromptSectionName,
+    build_rendered_prompt_request,
+)
 from creative_coding_assistant.orchestration.retrieval import (
     DEFAULT_RETRIEVAL_LIMIT,
     KnowledgeBaseRetrievalAdapter,
@@ -81,6 +91,11 @@ __all__ = [
     "PromptUserInput",
     "ProjectMemoryContext",
     "RecentConversationTurn",
+    "RenderedPromptRequest",
+    "RenderedPromptResponse",
+    "RenderedPromptRole",
+    "RenderedPromptSection",
+    "RenderedPromptSectionName",
     "RouteCapability",
     "RouteDecision",
     "RouteName",
@@ -93,9 +108,12 @@ __all__ = [
     "RetrievalGateway",
     "StreamEventBuilder",
     "StructuredPromptInputBuilder",
+    "JinjaPromptRenderer",
+    "PromptRenderer",
     "build_assembled_context_request",
     "build_memory_context_request",
     "build_prompt_input_request",
+    "build_rendered_prompt_request",
     "build_retrieval_context_request",
     "route_request",
 ]
