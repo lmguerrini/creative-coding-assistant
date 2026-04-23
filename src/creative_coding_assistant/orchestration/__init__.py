@@ -1,5 +1,13 @@
 """Assistant orchestration and explicit routing."""
 
+from creative_coding_assistant.orchestration.context import (
+    AssembledContextRequest,
+    AssembledContextResponse,
+    AssembledContextSummary,
+    ContextAssembler,
+    OrchestrationContextAssembler,
+    build_assembled_context_request,
+)
 from creative_coding_assistant.orchestration.events import StreamEventBuilder
 from creative_coding_assistant.orchestration.memory import (
     DEFAULT_RECENT_TURN_LIMIT,
@@ -34,7 +42,11 @@ from creative_coding_assistant.orchestration.service import AssistantService
 
 __all__ = [
     "AssistantService",
+    "AssembledContextRequest",
+    "AssembledContextResponse",
+    "AssembledContextSummary",
     "ChromaMemoryAdapter",
+    "ContextAssembler",
     "ConversationSummaryContext",
     "DEFAULT_RECENT_TURN_LIMIT",
     "DEFAULT_RETRIEVAL_LIMIT",
@@ -48,6 +60,7 @@ __all__ = [
     "RouteCapability",
     "RouteDecision",
     "RouteName",
+    "OrchestrationContextAssembler",
     "RetrievedKnowledgeChunk",
     "RetrievalContextFilter",
     "RetrievalContextRequest",
@@ -55,6 +68,7 @@ __all__ = [
     "RetrievalContextSource",
     "RetrievalGateway",
     "StreamEventBuilder",
+    "build_assembled_context_request",
     "build_memory_context_request",
     "build_retrieval_context_request",
     "route_request",
