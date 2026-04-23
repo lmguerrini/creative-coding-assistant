@@ -22,6 +22,10 @@ from creative_coding_assistant.orchestration.memory import (
     MemoryGateway,
     build_memory_context_request,
 )
+from creative_coding_assistant.orchestration.prompt_inputs import (
+    PromptInputBuilder,
+    build_prompt_input_request,
+)
 from creative_coding_assistant.orchestration.retrieval import (
     RetrievalGateway,
     build_retrieval_context_request,
@@ -42,12 +46,14 @@ class AssistantService:
         memory_gateway: MemoryGateway | None = None,
         retrieval_gateway: RetrievalGateway | None = None,
         context_assembler: ContextAssembler | None = None,
+        prompt_input_builder: PromptInputBuilder | None = None,
     ) -> None:
         self.settings = settings or load_settings()
         self._route_fn = route_fn
         self._memory_gateway = memory_gateway
         self._retrieval_gateway = retrieval_gateway
         self._context_assembler = context_assembler
+        self._prompt_input_builder = prompt_input_builder
 
     def stream(self, request: AssistantRequest) -> Iterator[StreamEvent]:
         """Yield the current backend event flow for one assistant request."""
@@ -121,6 +127,19 @@ class AssistantService:
                 code="context_assembled",
                 message="Combined context prepared.",
                 context=assembled_context.model_dump(mode="json"),
+            )
+
+        if self._prompt_input_builder is not None:
+            prompt_input_request = build_prompt_input_request(
+                assistant_request=request,
+                route_decision=decision,
+                assembled_context=assembled_context,
+            )
+            prompt_inputs = self._prompt_input_builder.build(prompt_input_request)
+            yield builder.prompt_input(
+                code="prompt_inputs_prepared",
+                message="Prompt inputs prepared.",
+                prompt_input=prompt_inputs.model_dump(mode="json"),
             )
 
         answer = _build_shell_answer(decision)
