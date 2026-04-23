@@ -1,0 +1,139 @@
+"""Orchestration-facing retrieval boundary contracts and adapters."""
+
+from __future__ import annotations
+
+from enum import StrEnum
+from typing import Protocol
+
+from loguru import logger
+from pydantic import BaseModel, ConfigDict, Field
+
+from creative_coding_assistant.contracts import AssistantRequest, CreativeCodingDomain
+from creative_coding_assistant.orchestration.routing import (
+    RouteCapability,
+    RouteDecision,
+    RouteName,
+)
+from creative_coding_assistant.rag.retrieval import (
+    KnowledgeBaseRetrievalFilter,
+    KnowledgeBaseRetrievalRequest,
+    KnowledgeBaseRetriever,
+)
+from creative_coding_assistant.rag.sources import OfficialSourceType
+
+DEFAULT_RETRIEVAL_LIMIT = 5
+
+
+class RetrievalContextSource(StrEnum):
+    OFFICIAL_KB = "official_kb"
+
+
+class RetrievalContextFilter(BaseModel):
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    domain: CreativeCodingDomain | None = None
+    source_id: str | None = Field(default=None, min_length=1)
+    source_type: OfficialSourceType | None = None
+    publisher: str | None = Field(default=None, min_length=1)
+
+
+class RetrievalContextRequest(BaseModel):
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    query: str = Field(min_length=1)
+    route: RouteName
+    limit: int = Field(default=DEFAULT_RETRIEVAL_LIMIT, ge=1, le=20)
+    filters: RetrievalContextFilter = Field(default_factory=RetrievalContextFilter)
+
+
+class RetrievedKnowledgeChunk(BaseModel):
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    source_id: str = Field(min_length=1)
+    domain: CreativeCodingDomain
+    source_type: OfficialSourceType
+    publisher: str = Field(min_length=1)
+    registry_title: str = Field(min_length=1)
+    document_title: str = Field(min_length=1)
+    source_url: str = Field(min_length=1)
+    resolved_url: str | None = None
+    chunk_index: int = Field(ge=0)
+    excerpt: str = Field(min_length=1)
+    score: float = Field(ge=0, le=1)
+
+
+class RetrievalContextResponse(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    request: RetrievalContextRequest
+    source: RetrievalContextSource = RetrievalContextSource.OFFICIAL_KB
+    chunks: tuple[RetrievedKnowledgeChunk, ...] = Field(default_factory=tuple)
+
+
+class RetrievalGateway(Protocol):
+    def retrieve_context(
+        self,
+        request: RetrievalContextRequest,
+    ) -> RetrievalContextResponse:
+        """Return orchestration-facing retrieval context for a single request."""
+
+
+class KnowledgeBaseRetrievalAdapter:
+    """Adapt KB retrieval outputs into orchestration-facing context results."""
+
+    def __init__(self, *, retriever: KnowledgeBaseRetriever) -> None:
+        self._retriever = retriever
+
+    def retrieve_context(
+        self,
+        request: RetrievalContextRequest,
+    ) -> RetrievalContextResponse:
+        retrieval_request = KnowledgeBaseRetrievalRequest(
+            query=request.query,
+            limit=request.limit,
+            filters=KnowledgeBaseRetrievalFilter(
+                domain=request.filters.domain,
+                source_id=request.filters.source_id,
+                source_type=request.filters.source_type,
+                publisher=request.filters.publisher,
+            ),
+        )
+        retrieval_response = self._retriever.search(retrieval_request)
+        chunks = tuple(
+            RetrievedKnowledgeChunk(
+                source_id=result.source_id,
+                domain=result.domain,
+                source_type=result.source_type,
+                publisher=result.publisher,
+                registry_title=result.registry_title,
+                document_title=result.document_title,
+                source_url=result.source_url,
+                resolved_url=result.resolved_url,
+                chunk_index=result.chunk_index,
+                excerpt=result.text,
+                score=result.score,
+            )
+            for result in retrieval_response.results
+        )
+        logger.info(
+            "Built orchestration retrieval context with {} chunk(s)",
+            len(chunks),
+        )
+        return RetrievalContextResponse(request=request, chunks=chunks)
+
+
+def build_retrieval_context_request(
+    assistant_request: AssistantRequest,
+    route_decision: RouteDecision,
+    *,
+    limit: int = DEFAULT_RETRIEVAL_LIMIT,
+) -> RetrievalContextRequest | None:
+    if RouteCapability.OFFICIAL_DOCS not in route_decision.capabilities:
+        return None
+
+    return RetrievalContextRequest(
+        query=assistant_request.query,
+        route=route_decision.route,
+        limit=limit,
+        filters=RetrievalContextFilter(domain=assistant_request.domain),
+    )
