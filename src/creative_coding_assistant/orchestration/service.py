@@ -13,6 +13,10 @@ from creative_coding_assistant.contracts import (
     StreamEventType,
 )
 from creative_coding_assistant.core import Settings, load_settings
+from creative_coding_assistant.orchestration.context import (
+    ContextAssembler,
+    build_assembled_context_request,
+)
 from creative_coding_assistant.orchestration.events import StreamEventBuilder
 from creative_coding_assistant.orchestration.memory import (
     MemoryGateway,
@@ -37,11 +41,13 @@ class AssistantService:
         route_fn: RouteFn = route_request,
         memory_gateway: MemoryGateway | None = None,
         retrieval_gateway: RetrievalGateway | None = None,
+        context_assembler: ContextAssembler | None = None,
     ) -> None:
         self.settings = settings or load_settings()
         self._route_fn = route_fn
         self._memory_gateway = memory_gateway
         self._retrieval_gateway = retrieval_gateway
+        self._context_assembler = context_assembler
 
     def stream(self, request: AssistantRequest) -> Iterator[StreamEvent]:
         """Yield the current backend event flow for one assistant request."""
@@ -60,6 +66,7 @@ class AssistantService:
         )
 
         memory_request = None
+        memory_context = None
         if self._memory_gateway is not None:
             memory_request = build_memory_context_request(request, decision)
 
@@ -98,6 +105,22 @@ class AssistantService:
                 code="retrieval_completed",
                 message="Retrieval context prepared.",
                 context=retrieval_context.model_dump(mode="json"),
+            )
+
+        context_request = None
+        if self._context_assembler is not None:
+            context_request = build_assembled_context_request(
+                route_decision=decision,
+                memory_context=memory_context,
+                retrieval_context=retrieval_context,
+            )
+
+        if context_request is not None and self._context_assembler is not None:
+            assembled_context = self._context_assembler.assemble(context_request)
+            yield builder.context(
+                code="context_assembled",
+                message="Combined context prepared.",
+                context=assembled_context.model_dump(mode="json"),
             )
 
         answer = _build_shell_answer(decision)

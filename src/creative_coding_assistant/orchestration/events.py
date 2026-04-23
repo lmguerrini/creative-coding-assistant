@@ -34,6 +34,12 @@ class StreamEventBuilder:
             {"code": code, "message": message, **details},
         )
 
+    def context(self, *, code: str, message: str, **details: Any) -> StreamEvent:
+        return self._event(
+            StreamEventType.CONTEXT,
+            {"code": code, "message": message, **details},
+        )
+
     def final(self, *, answer: str, **details: Any) -> StreamEvent:
         return self._event(
             StreamEventType.FINAL,
