@@ -22,6 +22,12 @@ class StreamEventBuilder:
     def token_delta(self, text: str) -> StreamEvent:
         return self._event(StreamEventType.TOKEN_DELTA, {"text": text})
 
+    def retrieval(self, *, code: str, message: str, **details: Any) -> StreamEvent:
+        return self._event(
+            StreamEventType.RETRIEVAL,
+            {"code": code, "message": message, **details},
+        )
+
     def final(self, *, answer: str, **details: Any) -> StreamEvent:
         return self._event(
             StreamEventType.FINAL,

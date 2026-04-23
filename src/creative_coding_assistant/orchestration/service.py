@@ -14,6 +14,10 @@ from creative_coding_assistant.contracts import (
 )
 from creative_coding_assistant.core import Settings, load_settings
 from creative_coding_assistant.orchestration.events import StreamEventBuilder
+from creative_coding_assistant.orchestration.retrieval import (
+    RetrievalGateway,
+    build_retrieval_context_request,
+)
 from creative_coding_assistant.orchestration.routing import RouteDecision, route_request
 
 RouteFn = Callable[[AssistantRequest], RouteDecision]
@@ -27,9 +31,11 @@ class AssistantService:
         *,
         settings: Settings | None = None,
         route_fn: RouteFn = route_request,
+        retrieval_gateway: RetrievalGateway | None = None,
     ) -> None:
         self.settings = settings or load_settings()
         self._route_fn = route_fn
+        self._retrieval_gateway = retrieval_gateway
 
     def stream(self, request: AssistantRequest) -> Iterator[StreamEvent]:
         """Yield the current backend event flow for one assistant request."""
@@ -46,6 +52,28 @@ class AssistantService:
             message="Route selected.",
             route=route_payload,
         )
+
+        retrieval_request = None
+        retrieval_context = None
+        if self._retrieval_gateway is not None:
+            retrieval_request = build_retrieval_context_request(request, decision)
+
+        if retrieval_request is not None and self._retrieval_gateway is not None:
+            retrieval_payload = retrieval_request.model_dump(mode="json")
+            logger.bind(route=decision.route.value).info("assistant_retrieval_requested")
+            yield builder.retrieval(
+                code="retrieval_requested",
+                message="Retrieval context requested.",
+                request=retrieval_payload,
+            )
+            retrieval_context = self._retrieval_gateway.retrieve_context(
+                retrieval_request
+            )
+            yield builder.retrieval(
+                code="retrieval_completed",
+                message="Retrieval context prepared.",
+                context=retrieval_context.model_dump(mode="json"),
+            )
 
         answer = _build_shell_answer(decision)
         yield builder.final(answer=answer, route=route_payload)
