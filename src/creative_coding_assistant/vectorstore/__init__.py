@@ -16,6 +16,7 @@ from creative_coding_assistant.vectorstore.ids import VectorRecordKind, make_rec
 from creative_coding_assistant.vectorstore.metadata import ChromaRecordMetadata
 from creative_coding_assistant.vectorstore.repository import (
     ChromaRepository,
+    QueryMatchRecord,
     StoredVectorRecord,
     VectorRecord,
 )
@@ -25,6 +26,7 @@ __all__ = [
     "ChromaRecordMetadata",
     "ChromaRepository",
     "CollectionDefinition",
+    "QueryMatchRecord",
     "StoredVectorRecord",
     "VectorRecord",
     "VectorRecordKind",

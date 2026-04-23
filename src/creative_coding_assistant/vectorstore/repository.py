@@ -39,6 +39,15 @@ class StoredVectorRecord(BaseModel):
     metadata: dict[str, MetadataValue]
 
 
+class QueryMatchRecord(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    id: str
+    document: str | None
+    metadata: dict[str, MetadataValue]
+    distance: float
+
+
 class ChromaRepository:
     """Thin wrapper that keeps Chroma calls behind a stable local API."""
 
@@ -91,6 +100,38 @@ class ChromaRepository:
                 id=record_id,
                 document=documents[index] if index < len(documents) else None,
                 metadata=metadatas[index] if index < len(metadatas) else {},
+            )
+            for index, record_id in enumerate(ids)
+        )
+
+    def query(
+        self,
+        *,
+        embedding: list[float],
+        limit: int,
+        where: dict[str, object] | None = None,
+    ) -> tuple[QueryMatchRecord, ...]:
+        if not embedding:
+            raise ValueError("Query embedding must not be empty.")
+        if limit < 1:
+            raise ValueError("Query limit must be at least 1.")
+
+        result = self.collection.query(
+            query_embeddings=[embedding],
+            n_results=limit,
+            where=where,
+            include=["documents", "metadatas", "distances"],
+        )
+        ids = (result.get("ids") or [[]])[0]
+        documents = (result.get("documents") or [[]])[0]
+        metadatas = (result.get("metadatas") or [[]])[0]
+        distances = (result.get("distances") or [[]])[0]
+        return tuple(
+            QueryMatchRecord(
+                id=record_id,
+                document=documents[index] if index < len(documents) else None,
+                metadata=metadatas[index] if index < len(metadatas) else {},
+                distance=float(distances[index]) if index < len(distances) else 0.0,
             )
             for index, record_id in enumerate(ids)
         )
