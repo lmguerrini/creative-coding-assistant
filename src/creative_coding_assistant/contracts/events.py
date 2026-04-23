@@ -14,6 +14,7 @@ class StreamEventType(StrEnum):
     RETRIEVAL = "retrieval"
     CONTEXT = "context"
     PROMPT_INPUT = "prompt_input"
+    PROMPT_RENDERED = "prompt_rendered"
     TOOL_START = "tool_start"
     TOOL_RESULT = "tool_result"
     TOKEN_DELTA = "token_delta"
