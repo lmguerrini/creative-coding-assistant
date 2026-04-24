@@ -5,7 +5,8 @@ from __future__ import annotations
 from functools import lru_cache
 from uuid import uuid4
 
-from clients.streamlit.helpers import (
+from creative_coding_assistant.app import build_assistant_service
+from creative_coding_assistant.clients import (
     ChatHistoryEntry,
     StreamRenderState,
     assistant_history_entry,
@@ -15,8 +16,6 @@ from clients.streamlit.helpers import (
     default_mode,
     reduce_stream_event,
 )
-
-from creative_coding_assistant.app import build_assistant_service
 from creative_coding_assistant.contracts import AssistantMode, CreativeCodingDomain
 from creative_coding_assistant.core import load_settings
 
@@ -177,5 +176,7 @@ def _format_domain(domain: CreativeCodingDomain) -> str:
 
 def _format_mode(mode: AssistantMode) -> str:
     return _MODE_LABELS[mode]
+
+
 if __name__ == "__main__":
     main()

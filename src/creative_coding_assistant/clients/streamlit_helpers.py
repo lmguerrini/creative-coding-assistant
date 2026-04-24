@@ -97,9 +97,7 @@ def build_provider_warning(settings: Settings) -> str | None:
         settings.default_generation_provider is GenerationProviderName.OPENAI
         and not settings.has_openai_api_key
     ):
-        return (
-            "Set OPENAI_API_KEY or CCA_OPENAI_API_KEY to enable live generation."
-        )
+        return "Set OPENAI_API_KEY or CCA_OPENAI_API_KEY to enable live generation."
     return None
 
 
@@ -128,10 +126,7 @@ def reduce_stream_event(
     if event.event_type is StreamEventType.FINAL:
         answer = _payload_text(event, key="answer") or state.answer_text
         return state.model_copy(
-            update={
-                "final_answer": answer,
-                "status_message": None,
-            }
+            update={"final_answer": answer, "status_message": None}
         )
 
     return state
