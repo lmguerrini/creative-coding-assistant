@@ -22,11 +22,16 @@ def build_generation_provider(
 ) -> GenerationProvider:
     resolved_settings = settings or load_settings()
     provider_name = resolved_settings.default_generation_provider
+    provider_value = (
+        provider_name.value
+        if isinstance(provider_name, GenerationProviderName)
+        else str(provider_name)
+    )
 
     if provider_name is GenerationProviderName.OPENAI:
-        logger.info("Configured generation provider: {}", provider_name.value)
+        logger.info("Configured generation provider: {}", provider_value)
         return OpenAIGenerationProvider(settings=resolved_settings)
 
     raise UnsupportedGenerationProviderError(
-        f"Unsupported generation provider: {provider_name.value}"
+        f"Unsupported generation provider: {provider_value}"
     )
