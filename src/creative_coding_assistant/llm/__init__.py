@@ -1,5 +1,9 @@
 """Provider-agnostic generation contracts and future LLM adapters."""
 
+from creative_coding_assistant.llm.factory import (
+    UnsupportedGenerationProviderError,
+    build_generation_provider,
+)
 from creative_coding_assistant.llm.generation import (
     GeneratedOutput,
     GenerationDelta,
@@ -39,5 +43,7 @@ __all__ = [
     "GenerationStreamEvent",
     "OpenAIGenerationProvider",
     "RenderedPromptGenerationBuilder",
+    "UnsupportedGenerationProviderError",
+    "build_generation_provider",
     "build_generation_request",
 ]
