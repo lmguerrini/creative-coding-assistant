@@ -19,7 +19,6 @@ from creative_coding_assistant.llm.generation import (
     build_generation_request,
 )
 from creative_coding_assistant.llm.openai_adapter import (
-    DEFAULT_OPENAI_MODEL,
     OpenAIGenerationProvider,
 )
 
@@ -40,6 +39,5 @@ __all__ = [
     "GenerationStreamEvent",
     "OpenAIGenerationProvider",
     "RenderedPromptGenerationBuilder",
-    "DEFAULT_OPENAI_MODEL",
     "build_generation_request",
 ]

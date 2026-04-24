@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import os
 from collections.abc import Iterable, Iterator
 from typing import Any
 
 from loguru import logger
 
+from creative_coding_assistant.core import Settings, load_settings
 from creative_coding_assistant.llm.generation import (
     GeneratedOutput,
     GenerationDelta,
@@ -23,8 +23,6 @@ from creative_coding_assistant.llm.generation import (
     GenerationStreamEvent,
 )
 
-DEFAULT_OPENAI_MODEL = "gpt-5-mini"
-
 
 class OpenAIGenerationProvider(GenerationProvider):
     """Translate provider-neutral generation input into OpenAI Responses calls."""
@@ -32,11 +30,13 @@ class OpenAIGenerationProvider(GenerationProvider):
     def __init__(
         self,
         *,
-        model: str = DEFAULT_OPENAI_MODEL,
+        settings: Settings | None = None,
+        model: str | None = None,
         api_key: str | None = None,
         client: Any | None = None,
     ) -> None:
-        self._model = model
+        self._settings = settings or load_settings()
+        self._model = model or self._settings.openai_model
         self._api_key = api_key
         self._client = client
 
@@ -152,7 +152,8 @@ def _build_openai_client(*, api_key: str | None) -> Any:
     except ImportError as exc:  # pragma: no cover - depends on local env
         raise RuntimeError("The OpenAI SDK is not installed.") from exc
 
-    resolved_api_key = api_key or os.getenv("OPENAI_API_KEY")
+    settings = load_settings()
+    resolved_api_key = api_key or settings.get_openai_api_key()
     if not resolved_api_key:
         raise RuntimeError("OPENAI_API_KEY is not set.")
     return OpenAI(api_key=resolved_api_key)
