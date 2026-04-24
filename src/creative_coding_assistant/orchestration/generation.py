@@ -7,7 +7,7 @@ from typing import Protocol, Self
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from creative_coding_assistant.llm import (
+from creative_coding_assistant.llm.generation import (
     GenerationInput,
     GenerationInputBuilder,
     RenderedPromptGenerationBuilder,

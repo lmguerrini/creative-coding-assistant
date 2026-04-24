@@ -1,129 +1,87 @@
 """Assistant orchestration and explicit routing."""
 
-from creative_coding_assistant.orchestration.context import (
-    AssembledContextRequest,
-    AssembledContextResponse,
-    AssembledContextSummary,
-    ContextAssembler,
-    OrchestrationContextAssembler,
-    build_assembled_context_request,
-)
-from creative_coding_assistant.orchestration.events import StreamEventBuilder
-from creative_coding_assistant.orchestration.generation import (
-    LlmGenerationAdapter,
-    ProviderGenerationGateway,
-    ProviderGenerationRequest,
-    build_provider_generation_request,
-)
-from creative_coding_assistant.orchestration.memory import (
-    DEFAULT_RECENT_TURN_LIMIT,
-    ChromaMemoryAdapter,
-    ConversationSummaryContext,
-    MemoryContextRequest,
-    MemoryContextResponse,
-    MemoryContextSource,
-    MemoryGateway,
-    ProjectMemoryContext,
-    RecentConversationTurn,
-    build_memory_context_request,
-)
-from creative_coding_assistant.orchestration.prompt_inputs import (
-    PromptConversationTurnInput,
-    PromptInputBuilder,
-    PromptInputRequest,
-    PromptInputResponse,
-    PromptKnowledgeChunkInput,
-    PromptMemoryInput,
-    PromptProjectMemoryInput,
-    PromptRetrievalInput,
-    PromptRunningSummaryInput,
-    PromptUserInput,
-    StructuredPromptInputBuilder,
-    build_prompt_input_request,
-)
-from creative_coding_assistant.orchestration.prompt_templates import (
-    JinjaPromptRenderer,
-    PromptRenderer,
-    RenderedPromptRequest,
-    RenderedPromptResponse,
-    RenderedPromptRole,
-    RenderedPromptSection,
-    RenderedPromptSectionName,
-    build_rendered_prompt_request,
-)
-from creative_coding_assistant.orchestration.retrieval import (
-    DEFAULT_RETRIEVAL_LIMIT,
-    KnowledgeBaseRetrievalAdapter,
-    RetrievalContextFilter,
-    RetrievalContextRequest,
-    RetrievalContextResponse,
-    RetrievalContextSource,
-    RetrievalGateway,
-    RetrievedKnowledgeChunk,
-    build_retrieval_context_request,
-)
-from creative_coding_assistant.orchestration.routing import (
-    RouteCapability,
-    RouteDecision,
-    RouteName,
-    route_request,
-)
-from creative_coding_assistant.orchestration.service import AssistantService
+from __future__ import annotations
 
-__all__ = [
-    "AssistantService",
-    "AssembledContextRequest",
-    "AssembledContextResponse",
-    "AssembledContextSummary",
-    "ChromaMemoryAdapter",
-    "ContextAssembler",
-    "ConversationSummaryContext",
-    "DEFAULT_RECENT_TURN_LIMIT",
-    "DEFAULT_RETRIEVAL_LIMIT",
-    "KnowledgeBaseRetrievalAdapter",
-    "LlmGenerationAdapter",
-    "MemoryContextRequest",
-    "MemoryContextResponse",
-    "MemoryContextSource",
-    "MemoryGateway",
-    "PromptConversationTurnInput",
-    "PromptInputBuilder",
-    "PromptInputRequest",
-    "PromptInputResponse",
-    "PromptKnowledgeChunkInput",
-    "PromptMemoryInput",
-    "PromptProjectMemoryInput",
-    "PromptRetrievalInput",
-    "PromptRunningSummaryInput",
-    "PromptUserInput",
-    "ProjectMemoryContext",
-    "ProviderGenerationGateway",
-    "ProviderGenerationRequest",
-    "RecentConversationTurn",
-    "RenderedPromptRequest",
-    "RenderedPromptResponse",
-    "RenderedPromptRole",
-    "RenderedPromptSection",
-    "RenderedPromptSectionName",
-    "RouteCapability",
-    "RouteDecision",
-    "RouteName",
-    "OrchestrationContextAssembler",
-    "RetrievedKnowledgeChunk",
-    "RetrievalContextFilter",
-    "RetrievalContextRequest",
-    "RetrievalContextResponse",
-    "RetrievalContextSource",
-    "RetrievalGateway",
-    "StreamEventBuilder",
-    "StructuredPromptInputBuilder",
-    "JinjaPromptRenderer",
-    "PromptRenderer",
-    "build_assembled_context_request",
-    "build_memory_context_request",
-    "build_provider_generation_request",
-    "build_prompt_input_request",
-    "build_rendered_prompt_request",
-    "build_retrieval_context_request",
-    "route_request",
-]
+from importlib import import_module
+
+_CTX = "creative_coding_assistant.orchestration.context"
+_EVENTS = "creative_coding_assistant.orchestration.events"
+_GEN = "creative_coding_assistant.orchestration.generation"
+_MEM = "creative_coding_assistant.orchestration.memory"
+_PROMPT_INPUTS = "creative_coding_assistant.orchestration.prompt_inputs"
+_PROMPT_TEMPLATES = "creative_coding_assistant.orchestration.prompt_templates"
+_RETRIEVAL = "creative_coding_assistant.orchestration.retrieval"
+_ROUTING = "creative_coding_assistant.orchestration.routing"
+_SERVICE = "creative_coding_assistant.orchestration.service"
+
+_EXPORT_MAP = {
+    "AssistantService": _SERVICE,
+    "AssembledContextRequest": _CTX,
+    "AssembledContextResponse": _CTX,
+    "AssembledContextSummary": _CTX,
+    "ChromaMemoryAdapter": _MEM,
+    "ContextAssembler": _CTX,
+    "ConversationSummaryContext": _MEM,
+    "DEFAULT_RECENT_TURN_LIMIT": _MEM,
+    "DEFAULT_RETRIEVAL_LIMIT": _RETRIEVAL,
+    "KnowledgeBaseRetrievalAdapter": _RETRIEVAL,
+    "LlmGenerationAdapter": _GEN,
+    "MemoryContextRequest": _MEM,
+    "MemoryContextResponse": _MEM,
+    "MemoryContextSource": _MEM,
+    "MemoryGateway": _MEM,
+    "OrchestrationContextAssembler": _CTX,
+    "ProjectMemoryContext": _MEM,
+    "PromptConversationTurnInput": _PROMPT_INPUTS,
+    "PromptInputBuilder": _PROMPT_INPUTS,
+    "PromptInputRequest": _PROMPT_INPUTS,
+    "PromptInputResponse": _PROMPT_INPUTS,
+    "PromptKnowledgeChunkInput": _PROMPT_INPUTS,
+    "PromptMemoryInput": _PROMPT_INPUTS,
+    "PromptProjectMemoryInput": _PROMPT_INPUTS,
+    "PromptRetrievalInput": _PROMPT_INPUTS,
+    "PromptRenderer": _PROMPT_TEMPLATES,
+    "PromptRunningSummaryInput": _PROMPT_INPUTS,
+    "PromptUserInput": _PROMPT_INPUTS,
+    "ProviderGenerationGateway": _GEN,
+    "ProviderGenerationRequest": _GEN,
+    "RecentConversationTurn": _MEM,
+    "RenderedPromptRequest": _PROMPT_TEMPLATES,
+    "RenderedPromptResponse": _PROMPT_TEMPLATES,
+    "RenderedPromptRole": _PROMPT_TEMPLATES,
+    "RenderedPromptSection": _PROMPT_TEMPLATES,
+    "RenderedPromptSectionName": _PROMPT_TEMPLATES,
+    "RetrievalContextFilter": _RETRIEVAL,
+    "RetrievalContextRequest": _RETRIEVAL,
+    "RetrievalContextResponse": _RETRIEVAL,
+    "RetrievalContextSource": _RETRIEVAL,
+    "RetrievalGateway": _RETRIEVAL,
+    "RetrievedKnowledgeChunk": _RETRIEVAL,
+    "RouteCapability": _ROUTING,
+    "RouteDecision": _ROUTING,
+    "RouteName": _ROUTING,
+    "StreamEventBuilder": _EVENTS,
+    "StructuredPromptInputBuilder": _PROMPT_INPUTS,
+    "JinjaPromptRenderer": _PROMPT_TEMPLATES,
+    "build_assembled_context_request": _CTX,
+    "build_memory_context_request": _MEM,
+    "build_prompt_input_request": _PROMPT_INPUTS,
+    "build_provider_generation_request": _GEN,
+    "build_rendered_prompt_request": _PROMPT_TEMPLATES,
+    "build_retrieval_context_request": _RETRIEVAL,
+    "route_request": _ROUTING,
+}
+
+__all__ = list(_EXPORT_MAP)
+
+
+def __getattr__(name: str) -> object:
+    module_name = _EXPORT_MAP.get(name)
+    if module_name is None:
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        )
+    module = import_module(module_name)
+    value = getattr(module, name)
+    globals()[name] = value
+    return value

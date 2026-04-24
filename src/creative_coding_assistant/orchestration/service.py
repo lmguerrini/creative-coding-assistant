@@ -13,10 +13,10 @@ from creative_coding_assistant.contracts import (
     StreamEventType,
 )
 from creative_coding_assistant.core import Settings, load_settings
-from creative_coding_assistant.llm import (
+from creative_coding_assistant.llm.factory import build_generation_provider
+from creative_coding_assistant.llm.generation import (
     GenerationEventType,
     GenerationProvider,
-    build_generation_provider,
 )
 from creative_coding_assistant.orchestration.context import (
     ContextAssembler,

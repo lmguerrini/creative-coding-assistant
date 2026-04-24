@@ -7,21 +7,27 @@ from typing import Any
 from loguru import logger
 
 from creative_coding_assistant.core import Settings, load_settings
-from creative_coding_assistant.llm import GenerationProvider
+from creative_coding_assistant.llm.generation import GenerationProvider
 from creative_coding_assistant.memory import (
     ConversationSummaryRepository,
     ConversationTurnRepository,
     ProjectMemoryRepository,
 )
-from creative_coding_assistant.orchestration import (
-    AssistantService,
-    ChromaMemoryAdapter,
-    JinjaPromptRenderer,
-    KnowledgeBaseRetrievalAdapter,
-    LlmGenerationAdapter,
+from creative_coding_assistant.orchestration.context import (
     OrchestrationContextAssembler,
+)
+from creative_coding_assistant.orchestration.generation import LlmGenerationAdapter
+from creative_coding_assistant.orchestration.memory import ChromaMemoryAdapter
+from creative_coding_assistant.orchestration.prompt_inputs import (
     StructuredPromptInputBuilder,
 )
+from creative_coding_assistant.orchestration.prompt_templates import (
+    JinjaPromptRenderer,
+)
+from creative_coding_assistant.orchestration.retrieval import (
+    KnowledgeBaseRetrievalAdapter,
+)
+from creative_coding_assistant.orchestration.service import AssistantService
 from creative_coding_assistant.rag.retrieval import (
     KnowledgeBaseRetriever,
     QueryEmbedder,
