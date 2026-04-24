@@ -10,6 +10,7 @@ from creative_coding_assistant.contracts import (
 from creative_coding_assistant.llm import (
     GenerationMessageName,
     GenerationMessageRole,
+    GenerationProvider,
 )
 from creative_coding_assistant.memory import ConversationRole, ProjectMemoryKind
 from creative_coding_assistant.orchestration import (
@@ -102,6 +103,7 @@ class RenderedPromptToProviderBoundaryTests(unittest.TestCase):
             prompt_input_builder=StructuredPromptInputBuilder(),
             prompt_renderer=JinjaPromptRenderer(),
             generation_gateway=LlmGenerationAdapter(),
+            generation_provider=_IdleGenerationProvider(),
         )
         request = AssistantRequest(
             query="Explain the scene setup.",
@@ -297,6 +299,12 @@ class _FakeRetrievalGateway:
     ) -> RetrievalContextResponse:
         del request
         return self.response
+
+
+class _IdleGenerationProvider(GenerationProvider):
+    def stream(self, request: object):
+        del request
+        return iter(())
 
 
 if __name__ == "__main__":
