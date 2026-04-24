@@ -13,7 +13,11 @@ from creative_coding_assistant.contracts import (
     StreamEventType,
 )
 from creative_coding_assistant.core import Settings, load_settings
-from creative_coding_assistant.llm import GenerationEventType, GenerationProvider
+from creative_coding_assistant.llm import (
+    GenerationEventType,
+    GenerationProvider,
+    build_generation_provider,
+)
 from creative_coding_assistant.orchestration.context import (
     ContextAssembler,
     build_assembled_context_request,
@@ -68,7 +72,11 @@ class AssistantService:
         self._prompt_input_builder = prompt_input_builder
         self._prompt_renderer = prompt_renderer
         self._generation_gateway = generation_gateway
-        self._generation_provider = generation_provider
+        self._generation_provider = _resolve_generation_provider(
+            settings=self.settings,
+            generation_gateway=generation_gateway,
+            generation_provider=generation_provider,
+        )
 
     def stream(self, request: AssistantRequest) -> Iterator[StreamEvent]:
         """Yield the current backend event flow for one assistant request."""
@@ -294,3 +302,18 @@ def _stream_provider_generation(
         )
 
     return None
+
+
+def _resolve_generation_provider(
+    *,
+    settings: Settings,
+    generation_gateway: ProviderGenerationGateway | None,
+    generation_provider: GenerationProvider | None,
+) -> GenerationProvider | None:
+    if generation_provider is not None:
+        return generation_provider
+
+    if generation_gateway is None:
+        return None
+
+    return build_generation_provider(settings)
