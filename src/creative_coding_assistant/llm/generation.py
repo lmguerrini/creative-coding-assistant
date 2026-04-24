@@ -72,7 +72,7 @@ class GenerationInput(BaseModel):
 
 
 class GenerationDelta(BaseModel):
-    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+    model_config = ConfigDict(frozen=True)
 
     index: int = Field(ge=0)
     role: GenerationMessageRole = GenerationMessageRole.ASSISTANT
