@@ -64,6 +64,18 @@ class StreamEventBuilder:
             {"code": code, "message": message, **details},
         )
 
+    def generation_input(
+        self,
+        *,
+        code: str,
+        message: str,
+        **details: Any,
+    ) -> StreamEvent:
+        return self._event(
+            StreamEventType.GENERATION_INPUT,
+            {"code": code, "message": message, **details},
+        )
+
     def final(self, *, answer: str, **details: Any) -> StreamEvent:
         return self._event(
             StreamEventType.FINAL,

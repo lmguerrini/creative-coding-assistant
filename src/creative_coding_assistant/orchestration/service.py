@@ -18,6 +18,10 @@ from creative_coding_assistant.orchestration.context import (
     build_assembled_context_request,
 )
 from creative_coding_assistant.orchestration.events import StreamEventBuilder
+from creative_coding_assistant.orchestration.generation import (
+    ProviderGenerationGateway,
+    build_provider_generation_request,
+)
 from creative_coding_assistant.orchestration.memory import (
     MemoryGateway,
     build_memory_context_request,
@@ -52,6 +56,7 @@ class AssistantService:
         context_assembler: ContextAssembler | None = None,
         prompt_input_builder: PromptInputBuilder | None = None,
         prompt_renderer: PromptRenderer | None = None,
+        generation_gateway: ProviderGenerationGateway | None = None,
     ) -> None:
         self.settings = settings or load_settings()
         self._route_fn = route_fn
@@ -60,6 +65,7 @@ class AssistantService:
         self._context_assembler = context_assembler
         self._prompt_input_builder = prompt_input_builder
         self._prompt_renderer = prompt_renderer
+        self._generation_gateway = generation_gateway
 
     def stream(self, request: AssistantRequest) -> Iterator[StreamEvent]:
         """Yield the current backend event flow for one assistant request."""
@@ -161,6 +167,20 @@ class AssistantService:
                 message="Rendered prompt prepared.",
                 rendered_prompt=rendered_prompt.model_dump(mode="json"),
             )
+
+            if self._generation_gateway is not None:
+                generation_request = build_provider_generation_request(
+                    route_decision=decision,
+                    rendered_prompt=rendered_prompt,
+                )
+                generation_input = self._generation_gateway.prepare_generation(
+                    generation_request
+                )
+                yield builder.generation_input(
+                    code="generation_input_prepared",
+                    message="Provider generation input prepared.",
+                    generation_input=generation_input.model_dump(mode="json"),
+                )
 
         answer = _build_shell_answer(decision)
         yield builder.final(answer=answer, route=route_payload)
