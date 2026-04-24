@@ -9,6 +9,12 @@ from creative_coding_assistant.orchestration.context import (
     build_assembled_context_request,
 )
 from creative_coding_assistant.orchestration.events import StreamEventBuilder
+from creative_coding_assistant.orchestration.generation import (
+    LlmGenerationAdapter,
+    ProviderGenerationGateway,
+    ProviderGenerationRequest,
+    build_provider_generation_request,
+)
 from creative_coding_assistant.orchestration.memory import (
     DEFAULT_RECENT_TURN_LIMIT,
     ChromaMemoryAdapter,
@@ -75,6 +81,7 @@ __all__ = [
     "DEFAULT_RECENT_TURN_LIMIT",
     "DEFAULT_RETRIEVAL_LIMIT",
     "KnowledgeBaseRetrievalAdapter",
+    "LlmGenerationAdapter",
     "MemoryContextRequest",
     "MemoryContextResponse",
     "MemoryContextSource",
@@ -90,6 +97,8 @@ __all__ = [
     "PromptRunningSummaryInput",
     "PromptUserInput",
     "ProjectMemoryContext",
+    "ProviderGenerationGateway",
+    "ProviderGenerationRequest",
     "RecentConversationTurn",
     "RenderedPromptRequest",
     "RenderedPromptResponse",
@@ -112,6 +121,7 @@ __all__ = [
     "PromptRenderer",
     "build_assembled_context_request",
     "build_memory_context_request",
+    "build_provider_generation_request",
     "build_prompt_input_request",
     "build_rendered_prompt_request",
     "build_retrieval_context_request",
