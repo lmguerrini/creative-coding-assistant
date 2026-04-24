@@ -1,6 +1,6 @@
 import unittest
 
-from clients.streamlit.helpers import (
+from creative_coding_assistant.clients import (
     ChatHistoryEntry,
     StreamRenderState,
     assistant_history_entry,
@@ -10,7 +10,6 @@ from clients.streamlit.helpers import (
     default_mode,
     reduce_stream_event,
 )
-
 from creative_coding_assistant.contracts import (
     AssistantMode,
     CreativeCodingDomain,
