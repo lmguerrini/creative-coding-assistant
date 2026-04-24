@@ -44,7 +44,7 @@ def build_assistant_service(
     client = create_chroma_client(settings=resolved_settings)
     ensure_project_collections(client)
 
-    memory_gateway = _build_memory_gateway(client)
+    memory_gateway = _build_memory_gateway(client=client)
     retrieval_gateway = _build_retrieval_gateway(client, query_embedder)
     service = AssistantService(
         settings=resolved_settings,
