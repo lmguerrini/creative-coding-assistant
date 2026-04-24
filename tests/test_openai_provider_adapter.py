@@ -8,8 +8,8 @@ from creative_coding_assistant.contracts import (
     CreativeCodingDomain,
     StreamEventType,
 )
+from creative_coding_assistant.core import Settings
 from creative_coding_assistant.llm import (
-    DEFAULT_OPENAI_MODEL,
     GenerationEventType,
     GenerationFinishReason,
     OpenAIGenerationProvider,
@@ -95,7 +95,10 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
             ),
         )
         client = _FakeOpenAIClient(stream_events=stream_events)
-        provider = OpenAIGenerationProvider(client=client)
+        provider = OpenAIGenerationProvider(
+            settings=Settings(openai_model="gpt-5-mini"),
+            client=client,
+        )
 
         events = tuple(provider.stream(_generation_input(stream=True)))
 
@@ -114,7 +117,7 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
             "Use documented camera settings.",
         )
         self.assertTrue(client.last_kwargs["stream"])
-        self.assertEqual(client.last_kwargs["model"], DEFAULT_OPENAI_MODEL)
+        self.assertEqual(client.last_kwargs["model"], "gpt-5-mini")
 
     def test_provider_maps_error_events(self) -> None:
         stream_events = (
