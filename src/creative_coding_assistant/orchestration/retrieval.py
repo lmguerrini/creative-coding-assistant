@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from enum import StrEnum
 from typing import Protocol
 
 from loguru import logger
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from creative_coding_assistant.contracts import AssistantRequest, CreativeCodingDomain
 from creative_coding_assistant.orchestration.routing import (
@@ -32,9 +33,62 @@ class RetrievalContextFilter(BaseModel):
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
     domain: CreativeCodingDomain | None = None
+    domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
     source_id: str | None = Field(default=None, min_length=1)
     source_type: OfficialSourceType | None = None
     publisher: str | None = Field(default=None, min_length=1)
+
+    @field_validator("domains", mode="before")
+    @classmethod
+    def normalize_domains(
+        cls,
+        value: Sequence[CreativeCodingDomain | str] | CreativeCodingDomain | str | None,
+    ) -> tuple[CreativeCodingDomain, ...]:
+        if value is None:
+            return ()
+        if isinstance(value, CreativeCodingDomain):
+            return (value,)
+        if isinstance(value, str):
+            return (CreativeCodingDomain(value.strip()),)
+
+        normalized: list[CreativeCodingDomain] = []
+        for item in value:
+            domain = (
+                item
+                if isinstance(item, CreativeCodingDomain)
+                else CreativeCodingDomain(str(item).strip())
+            )
+            if domain not in normalized:
+                normalized.append(domain)
+        return tuple(normalized)
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_legacy_domain_fields(cls, value: object) -> object:
+        if not isinstance(value, dict):
+            return value
+
+        normalized = dict(value)
+        domain = normalized.get("domain")
+        domains = normalized.get("domains")
+
+        if domain is not None and not domains:
+            normalized["domains"] = (domain,)
+
+        return normalized
+
+    @model_validator(mode="after")
+    def validate_domain_alignment(self) -> RetrievalContextFilter:
+        if self.domain is None and len(self.domains) == 1:
+            object.__setattr__(self, "domain", self.domains[0])
+
+        if self.domain is not None and self.domain not in self.domains:
+            raise ValueError(
+                "Retrieval context domain must be included in domains "
+                "when both are provided."
+            )
+
+        return self
 
 
 class RetrievalContextRequest(BaseModel):
@@ -93,6 +147,7 @@ class KnowledgeBaseRetrievalAdapter:
             limit=request.limit,
             filters=KnowledgeBaseRetrievalFilter(
                 domain=request.filters.domain,
+                domains=request.filters.domains,
                 source_id=request.filters.source_id,
                 source_type=request.filters.source_type,
                 publisher=request.filters.publisher,
@@ -135,5 +190,8 @@ def build_retrieval_context_request(
         query=assistant_request.query,
         route=route_decision.route,
         limit=limit,
-        filters=RetrievalContextFilter(domain=assistant_request.domain),
+        filters=RetrievalContextFilter(
+            domain=assistant_request.domain,
+            domains=assistant_request.domains,
+        ),
     )
