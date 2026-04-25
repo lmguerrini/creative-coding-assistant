@@ -4,6 +4,11 @@ from creative_coding_assistant.rag.sync.chunking import (
     ChunkingPolicy,
     OfficialSourceChunker,
 )
+from creative_coding_assistant.rag.sync.embedding import (
+    ChunkEmbedder,
+    OpenAIChunkEmbedder,
+)
+from creative_coding_assistant.rag.sync.factory import build_chunk_embedder
 from creative_coding_assistant.rag.sync.fetcher import (
     OfficialSourceFetcher,
     SourceTransport,
@@ -22,12 +27,15 @@ from creative_coding_assistant.rag.sync.models import (
 from creative_coding_assistant.rag.sync.normalize import OfficialSourceNormalizer
 
 __all__ = [
+    "build_chunk_embedder",
+    "ChunkEmbedder",
     "ChunkingPolicy",
     "FetchedSourceDocument",
     "OfficialKnowledgeBaseIndexer",
     "NormalizedSourceDocument",
     "OfficialSourceChunk",
     "OfficialSourceChunker",
+    "OpenAIChunkEmbedder",
     "OfficialSourceFetcher",
     "OfficialSourceSyncRequest",
     "OfficialSourceNormalizer",

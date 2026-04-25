@@ -7,6 +7,7 @@ from typing import Any
 
 from loguru import logger
 
+from creative_coding_assistant.rag.sync.embedding import ChunkEmbedder
 from creative_coding_assistant.rag.sync.models import OfficialSourceChunk
 from creative_coding_assistant.vectorstore import (
     ChromaCollection,
@@ -31,22 +32,41 @@ class OfficialKnowledgeBaseIndexer:
         chunks: Sequence[OfficialSourceChunk],
         embeddings: Sequence[list[float]],
     ) -> tuple[str, ...]:
+        records = self.build_vector_records(chunks, embeddings)
+        if not records:
+            return ()
+
+        self._repository.upsert(records)
+        logger.info(
+            "Indexed {} official KB chunks for source '{}'",
+            len(records),
+            records[0].metadata.source_id,
+        )
+        return tuple(record.id for record in records)
+
+    def embed_and_upsert_chunks(
+        self,
+        chunks: Sequence[OfficialSourceChunk],
+        *,
+        embedder: ChunkEmbedder,
+    ) -> tuple[str, ...]:
+        embeddings = embedder.embed_chunks(chunks)
+        return self.upsert_chunks(chunks, embeddings)
+
+    def build_vector_records(
+        self,
+        chunks: Sequence[OfficialSourceChunk],
+        embeddings: Sequence[list[float]],
+    ) -> tuple[VectorRecord, ...]:
         if len(chunks) != len(embeddings):
             raise ValueError("Official KB chunks and embeddings must align one-to-one.")
         if not chunks:
             return ()
 
-        records = [
+        return tuple(
             self._build_vector_record(chunk=chunk, embedding=embedding)
             for chunk, embedding in zip(chunks, embeddings, strict=True)
-        ]
-        self._repository.upsert(records)
-        logger.info(
-            "Indexed {} official KB chunks for source '{}'",
-            len(records),
-            chunks[0].source_id,
         )
-        return tuple(record.id for record in records)
 
     def list_source_chunks(self, source_id: str):
         return self._repository.list(where={"source_id": source_id})
