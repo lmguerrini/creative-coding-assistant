@@ -31,6 +31,7 @@ from creative_coding_assistant.orchestration.service import AssistantService
 from creative_coding_assistant.rag.retrieval import (
     KnowledgeBaseRetriever,
     QueryEmbedder,
+    build_query_embedder,
 )
 from creative_coding_assistant.vectorstore import (
     create_chroma_client,
@@ -50,8 +51,13 @@ def build_assistant_service(
     client = create_chroma_client(settings=resolved_settings)
     ensure_project_collections(client)
 
+    resolved_query_embedder = (
+        query_embedder
+        if query_embedder is not None
+        else build_query_embedder(resolved_settings)
+    )
     memory_gateway = _build_memory_gateway(client=client)
-    retrieval_gateway = _build_retrieval_gateway(client, query_embedder)
+    retrieval_gateway = _build_retrieval_gateway(client, resolved_query_embedder)
     service = AssistantService(
         settings=resolved_settings,
         memory_gateway=memory_gateway,
