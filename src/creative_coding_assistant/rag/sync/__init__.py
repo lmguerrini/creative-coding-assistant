@@ -25,6 +25,10 @@ from creative_coding_assistant.rag.sync.models import (
     SourceContentFormat,
 )
 from creative_coding_assistant.rag.sync.normalize import OfficialSourceNormalizer
+from creative_coding_assistant.rag.sync.runner import (
+    OfficialKnowledgeBaseSyncResult,
+    OfficialKnowledgeBaseSyncRunner,
+)
 
 __all__ = [
     "build_chunk_embedder",
@@ -37,6 +41,8 @@ __all__ = [
     "OfficialSourceChunker",
     "OpenAIChunkEmbedder",
     "OfficialSourceFetcher",
+    "OfficialKnowledgeBaseSyncResult",
+    "OfficialKnowledgeBaseSyncRunner",
     "OfficialSourceSyncRequest",
     "OfficialSourceNormalizer",
     "SourceTransport",
