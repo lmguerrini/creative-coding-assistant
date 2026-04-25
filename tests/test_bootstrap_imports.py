@@ -35,7 +35,52 @@ class BootstrapImportTests(unittest.TestCase):
         )
 
         self.assertEqual(request.domain, CreativeCodingDomain.THREE_JS)
+        self.assertEqual(request.domains, (CreativeCodingDomain.THREE_JS,))
         self.assertEqual(request.mode, AssistantMode.GENERATE)
+
+    def test_request_contract_accepts_empty_domains(self) -> None:
+        request = AssistantRequest(
+            query="Help me choose the right domain.",
+            domains=(),
+        )
+
+        self.assertIsNone(request.domain)
+        self.assertEqual(request.domains, ())
+
+    def test_request_contract_syncs_single_domain_list_to_legacy_field(self) -> None:
+        request = AssistantRequest(
+            query="Explain this shader setup.",
+            domains=(CreativeCodingDomain.GLSL,),
+        )
+
+        self.assertEqual(request.domain, CreativeCodingDomain.GLSL)
+        self.assertEqual(request.domains, (CreativeCodingDomain.GLSL,))
+
+    def test_request_contract_accepts_multiple_domains(self) -> None:
+        request = AssistantRequest(
+            query="How do R3F and GLSL work together?",
+            domains=(
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
+        )
+
+        self.assertIsNone(request.domain)
+        self.assertEqual(
+            request.domains,
+            (
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
+        )
+
+    def test_request_contract_rejects_misaligned_domain_and_domains(self) -> None:
+        with self.assertRaisesRegex(ValueError, "domain must be included in domains"):
+            AssistantRequest(
+                query="Explain this setup.",
+                domain=CreativeCodingDomain.THREE_JS,
+                domains=(CreativeCodingDomain.GLSL,),
+            )
 
     def test_stream_event_contract_validates_sequence(self) -> None:
         event = StreamEvent(

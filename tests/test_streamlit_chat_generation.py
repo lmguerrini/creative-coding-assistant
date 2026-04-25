@@ -11,6 +11,7 @@ from creative_coding_assistant.clients import (
     default_mode,
     reduce_stream_event,
     resolve_request_domain,
+    resolve_request_domains,
 )
 from creative_coding_assistant.contracts import (
     AssistantMode,
@@ -75,6 +76,7 @@ class StreamlitChatGenerationTests(unittest.TestCase):
         self.assertEqual(request.query, "Explain the shader noise pattern.")
         self.assertEqual(request.conversation_id, "conversation-123")
         self.assertEqual(request.domain, CreativeCodingDomain.GLSL)
+        self.assertEqual(request.domains, (CreativeCodingDomain.GLSL,))
         self.assertEqual(request.mode, AssistantMode.EXPLAIN)
 
     def test_default_domain_selection_includes_all_domains(self) -> None:
@@ -84,24 +86,33 @@ class StreamlitChatGenerationTests(unittest.TestCase):
         )
 
     def test_resolve_request_domain_returns_none_for_multiple_domains(self) -> None:
-        settings = Settings(default_domain=CreativeCodingDomain.THREE_JS)
-
         resolved = resolve_request_domain(
             (
                 CreativeCodingDomain.REACT_THREE_FIBER,
                 CreativeCodingDomain.GLSL,
-            ),
-            settings=settings,
+            )
         )
 
         self.assertIsNone(resolved)
 
     def test_resolve_request_domain_returns_none_for_empty_selection(self) -> None:
-        settings = Settings(default_domain=CreativeCodingDomain.THREE_JS)
-
-        resolved = resolve_request_domain((), settings=settings)
+        resolved = resolve_request_domain(())
 
         self.assertIsNone(resolved)
+
+    def test_resolve_request_domains_defaults_to_configured_domain(self) -> None:
+        settings = Settings(default_domain=CreativeCodingDomain.GLSL)
+
+        resolved = resolve_request_domains(None, settings=settings)
+
+        self.assertEqual(resolved, (CreativeCodingDomain.GLSL,))
+
+    def test_resolve_request_domains_preserves_empty_selection(self) -> None:
+        settings = Settings(default_domain=CreativeCodingDomain.THREE_JS)
+
+        resolved = resolve_request_domains((), settings=settings)
+
+        self.assertEqual(resolved, ())
 
     def test_build_chat_request_leaves_domain_unconstrained_for_multi_select(
         self,
@@ -120,6 +131,13 @@ class StreamlitChatGenerationTests(unittest.TestCase):
         )
 
         self.assertIsNone(request.domain)
+        self.assertEqual(
+            request.domains,
+            (
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
+        )
 
     def test_reduce_stream_event_tracks_pipeline_progress_and_tokens(self) -> None:
         state = StreamRenderState()
