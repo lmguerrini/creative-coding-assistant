@@ -71,6 +71,62 @@ class RetrievalFoundationTests(unittest.TestCase):
             self.assertEqual(response.results[0].domain, CreativeCodingDomain.P5_JS)
             self.assertEqual(response.results[0].source_id, "p5_reference")
 
+    def test_retriever_treats_empty_domains_as_unconstrained(self) -> None:
+        with _kb_client() as client:
+            _seed_kb_records(client)
+            retriever = KnowledgeBaseRetriever(
+                client=client,
+                embedder=_FakeQueryEmbedder({"creative code": [1.0, 0.0, 0.0]}),
+            )
+
+            response = retriever.search(
+                KnowledgeBaseRetrievalRequest(
+                    query="creative code",
+                    limit=3,
+                    filters=KnowledgeBaseRetrievalFilter(domains=()),
+                )
+            )
+
+            self.assertEqual(len(response.results), 3)
+            self.assertEqual(
+                {result.domain for result in response.results},
+                {
+                    CreativeCodingDomain.THREE_JS,
+                    CreativeCodingDomain.P5_JS,
+                    CreativeCodingDomain.GLSL,
+                },
+            )
+
+    def test_retriever_applies_multi_domain_filter(self) -> None:
+        with _kb_client() as client:
+            _seed_kb_records(client)
+            retriever = KnowledgeBaseRetriever(
+                client=client,
+                embedder=_FakeQueryEmbedder({"creative code": [1.0, 0.0, 0.0]}),
+            )
+
+            response = retriever.search(
+                KnowledgeBaseRetrievalRequest(
+                    query="creative code",
+                    limit=3,
+                    filters=KnowledgeBaseRetrievalFilter(
+                        domains=(
+                            CreativeCodingDomain.P5_JS,
+                            CreativeCodingDomain.GLSL,
+                        )
+                    ),
+                )
+            )
+
+            self.assertEqual(len(response.results), 2)
+            self.assertEqual(
+                {result.domain for result in response.results},
+                {
+                    CreativeCodingDomain.P5_JS,
+                    CreativeCodingDomain.GLSL,
+                },
+            )
+
     def test_retriever_applies_source_filter(self) -> None:
         with _kb_client() as client:
             _seed_kb_records(client)

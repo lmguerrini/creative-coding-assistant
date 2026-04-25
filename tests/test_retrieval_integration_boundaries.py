@@ -10,6 +10,7 @@ from creative_coding_assistant.contracts import (
 from creative_coding_assistant.orchestration import (
     AssistantService,
     KnowledgeBaseRetrievalAdapter,
+    RetrievalContextFilter,
     RetrievalContextRequest,
     RetrievalContextResponse,
     RetrievalContextSource,
@@ -53,6 +54,42 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
         self.assertEqual(
             retrieval_request.filters.domain,
             CreativeCodingDomain.THREE_JS,
+        )
+        self.assertEqual(
+            retrieval_request.filters.domains,
+            (CreativeCodingDomain.THREE_JS,),
+        )
+
+    def test_build_retrieval_request_uses_multi_domain_filters(self) -> None:
+        assistant_request = AssistantRequest(
+            query="Explain how R3F and GLSL fit together.",
+            domains=(
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
+            mode=AssistantMode.EXPLAIN,
+        )
+        route_decision = RouteDecision(
+            route=RouteName.EXPLAIN,
+            mode=AssistantMode.EXPLAIN,
+            domain=None,
+            capabilities=(RouteCapability.OFFICIAL_DOCS,),
+        )
+
+        retrieval_request = build_retrieval_context_request(
+            assistant_request,
+            route_decision,
+        )
+
+        self.assertIsNotNone(retrieval_request)
+        assert retrieval_request is not None
+        self.assertIsNone(retrieval_request.filters.domain)
+        self.assertEqual(
+            retrieval_request.filters.domains,
+            (
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
         )
 
     def test_build_retrieval_request_skips_routes_without_docs_capability(self) -> None:
@@ -106,10 +143,45 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
 
         self.assertEqual(len(fake_retriever.requests), 1)
         self.assertEqual(fake_retriever.requests[0].query, "camera")
+        self.assertEqual(
+            fake_retriever.requests[0].filters.domains,
+            (),
+        )
         self.assertEqual(context.source, RetrievalContextSource.OFFICIAL_KB)
         self.assertEqual(
             context.chunks[0].excerpt,
             "PerspectiveCamera defines frustum settings.",
+        )
+
+    def test_retrieval_adapter_preserves_multi_domain_filters(self) -> None:
+        fake_retriever = _FakeRetriever(
+            response=KnowledgeBaseRetrievalResponse(
+                request=KnowledgeBaseRetrievalRequest(query="placeholder"),
+                results=(),
+            )
+        )
+        adapter = KnowledgeBaseRetrievalAdapter(retriever=fake_retriever)
+        request = RetrievalContextRequest(
+            query="shaders",
+            route=RouteName.EXPLAIN,
+            filters=RetrievalContextFilter(
+                domains=(
+                    CreativeCodingDomain.REACT_THREE_FIBER,
+                    CreativeCodingDomain.GLSL,
+                ),
+            ),
+        )
+
+        adapter.retrieve_context(request)
+
+        self.assertEqual(len(fake_retriever.requests), 1)
+        self.assertIsNone(fake_retriever.requests[0].filters.domain)
+        self.assertEqual(
+            fake_retriever.requests[0].filters.domains,
+            (
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
         )
 
     def test_service_emits_retrieval_events_when_gateway_present(self) -> None:
@@ -163,6 +235,43 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
         self.assertEqual(
             gateway.requests[0].filters.domain,
             CreativeCodingDomain.THREE_JS,
+        )
+        self.assertEqual(
+            gateway.requests[0].filters.domains,
+            (CreativeCodingDomain.THREE_JS,),
+        )
+
+    def test_service_preserves_multi_domain_retrieval_filters(self) -> None:
+        retrieval_context = RetrievalContextResponse(
+            request=RetrievalContextRequest(
+                query="Explain shaders.",
+                route=RouteName.EXPLAIN,
+            ),
+        )
+        gateway = _FakeGateway(response=retrieval_context)
+        service = AssistantService(
+            route_fn=_route_with_docs,
+            retrieval_gateway=gateway,
+        )
+        request = AssistantRequest(
+            query="Explain how R3F and GLSL work together.",
+            domains=(
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
+            mode=AssistantMode.EXPLAIN,
+        )
+
+        tuple(service.stream(request))
+
+        self.assertEqual(len(gateway.requests), 1)
+        self.assertIsNone(gateway.requests[0].filters.domain)
+        self.assertEqual(
+            gateway.requests[0].filters.domains,
+            (
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
         )
 
     def test_assistant_service_skips_retrieval_without_docs_capability(self) -> None:
