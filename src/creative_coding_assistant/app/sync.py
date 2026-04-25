@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Sequence
+from enum import StrEnum
 
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field
@@ -36,8 +38,36 @@ class OfficialKnowledgeBaseBatchSyncResult(BaseModel):
 
     source_ids: tuple[str, ...] = Field(default_factory=tuple)
     results: tuple[OfficialKnowledgeBaseSyncResult, ...] = Field(default_factory=tuple)
+    failed_source_ids: tuple[str, ...] = Field(default_factory=tuple)
     total_chunks: int = Field(ge=0)
     total_records: int = Field(ge=0)
+
+    @property
+    def failed_count(self) -> int:
+        return len(self.failed_source_ids)
+
+    @property
+    def succeeded_count(self) -> int:
+        return len(self.results)
+
+    def summary_payload(self) -> dict[str, object]:
+        return {
+            "source_ids": list(self.source_ids),
+            "succeeded_source_ids": [
+                result.request.source_id for result in self.results
+            ],
+            "failed_source_ids": list(self.failed_source_ids),
+            "total_chunks": self.total_chunks,
+            "total_records": self.total_records,
+        }
+
+    def summary_json(self) -> str:
+        return json.dumps(self.summary_payload(), sort_keys=True)
+
+
+class SyncFailureMode(StrEnum):
+    FAIL_FAST = "fail_fast"
+    CONTINUE = "continue"
 
 
 def resolve_sync_source_ids(source_ids: Sequence[str] | None) -> tuple[str, ...]:
@@ -95,6 +125,7 @@ def sync_official_sources(
     transport: SourceTransport | None = None,
     chunk_embedder: ChunkEmbedder | None = None,
     runner: OfficialKnowledgeBaseSyncRunner | None = None,
+    failure_mode: SyncFailureMode = SyncFailureMode.FAIL_FAST,
 ) -> OfficialKnowledgeBaseBatchSyncResult:
     """Run the official KB sync pipeline for approved sources."""
 
@@ -110,6 +141,7 @@ def sync_official_sources(
     )
 
     results: list[OfficialKnowledgeBaseSyncResult] = []
+    failed_source_ids: list[str] = []
     for index, source_id in enumerate(resolved_source_ids, start=1):
         logger.info(
             "Syncing official KB source '{}' ({}/{})",
@@ -117,17 +149,27 @@ def sync_official_sources(
             index,
             len(resolved_source_ids),
         )
-        results.append(resolved_runner.run(default_sync_request(source_id)))
+        try:
+            results.append(resolved_runner.run(default_sync_request(source_id)))
+        except Exception:
+            if failure_mode is SyncFailureMode.FAIL_FAST:
+                raise
+            logger.exception("Official KB sync failed for source '{}'", source_id)
+            failed_source_ids.append(source_id)
 
     batch_result = OfficialKnowledgeBaseBatchSyncResult(
         source_ids=resolved_source_ids,
         results=tuple(results),
+        failed_source_ids=tuple(failed_source_ids),
         total_chunks=sum(len(result.chunks) for result in results),
         total_records=sum(len(result.record_ids) for result in results),
     )
     logger.info(
-        "Completed official KB sync for {} source(s), {} chunk(s), {} record(s)",
+        "Completed official KB sync for {} source(s), {} success, {} failed, "
+        "{} chunk(s), {} record(s)",
         len(batch_result.source_ids),
+        batch_result.succeeded_count,
+        batch_result.failed_count,
         batch_result.total_chunks,
         batch_result.total_records,
     )
