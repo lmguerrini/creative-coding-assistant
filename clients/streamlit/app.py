@@ -12,7 +12,7 @@ from creative_coding_assistant.clients import (
     assistant_history_entry,
     build_chat_request,
     build_provider_warning,
-    default_domain,
+    default_domain_selection,
     default_mode,
     reduce_stream_event,
 )
@@ -52,10 +52,10 @@ def main() -> None:
     _ensure_session_state()
 
     with st.sidebar:
-        selected_domain = st.selectbox(
-            "Domain",
+        selected_domains = st.multiselect(
+            "Domains",
             options=list(CreativeCodingDomain),
-            index=list(CreativeCodingDomain).index(default_domain(settings)),
+            default=list(default_domain_selection()),
             format_func=_format_domain,
         )
         selected_mode = st.selectbox(
@@ -81,7 +81,7 @@ def main() -> None:
     if prompt:
         _run_chat_turn(
             prompt=prompt,
-            domain=selected_domain,
+            domains=selected_domains,
             mode=selected_mode,
         )
 
@@ -103,7 +103,7 @@ def _render_history() -> None:
 def _run_chat_turn(
     *,
     prompt: str,
-    domain: CreativeCodingDomain,
+    domains: list[CreativeCodingDomain],
     mode: AssistantMode,
 ) -> None:
     import streamlit as st
@@ -117,7 +117,7 @@ def _run_chat_turn(
         query=prompt,
         conversation_id=st.session_state[_CONVERSATION_ID_KEY],
         settings=load_settings(),
-        domain=domain,
+        domains=domains,
         mode=mode,
     )
 
