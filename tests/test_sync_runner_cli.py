@@ -1,5 +1,6 @@
 import unittest
 from datetime import UTC, datetime
+from io import StringIO
 from unittest.mock import patch
 
 from creative_coding_assistant.app import (
@@ -8,7 +9,8 @@ from creative_coding_assistant.app import (
     resolve_sync_source_ids,
     sync_official_sources,
 )
-from creative_coding_assistant.app.sync_cli import main
+from creative_coding_assistant.app.sync import SyncFailureMode
+from creative_coding_assistant.app.sync_cli import build_sync_parser, main
 from creative_coding_assistant.core import Settings
 from creative_coding_assistant.rag.sources import (
     approved_official_sources,
@@ -83,6 +85,50 @@ class SyncRunnerCliTests(unittest.TestCase):
             ("three_docs", "p5_reference"),
         )
 
+    def test_sync_official_sources_continues_after_runner_failure(self) -> None:
+        runner = _PartiallyFailingRunner(failing_source_id="p5_reference")
+
+        result = sync_official_sources(
+            source_ids=("three_docs", "p5_reference"),
+            runner=runner,
+            failure_mode=SyncFailureMode.CONTINUE,
+        )
+
+        self.assertEqual(result.source_ids, ("three_docs", "p5_reference"))
+        self.assertEqual(result.failed_source_ids, ("p5_reference",))
+        self.assertEqual(result.succeeded_count, 1)
+        self.assertEqual(result.failed_count, 1)
+
+    def test_sync_batch_result_exposes_structured_summary(self) -> None:
+        result = OfficialKnowledgeBaseBatchSyncResult(
+            source_ids=("three_docs", "p5_reference"),
+            failed_source_ids=("p5_reference",),
+            total_chunks=1,
+            total_records=1,
+        )
+
+        self.assertEqual(
+            result.summary_payload(),
+            {
+                "source_ids": ["three_docs", "p5_reference"],
+                "succeeded_source_ids": [],
+                "failed_source_ids": ["p5_reference"],
+                "total_chunks": 1,
+                "total_records": 1,
+            },
+        )
+
+    def test_sync_parser_accepts_all_and_option_flags(self) -> None:
+        parser = build_sync_parser()
+
+        args = parser.parse_args(
+            ["--all", "--continue-on-error", "--summary-format", "json"]
+        )
+
+        self.assertTrue(args.all)
+        self.assertTrue(args.continue_on_error)
+        self.assertEqual(args.summary_format, "json")
+
     def test_cli_main_passes_selected_sources(self) -> None:
         settings = Settings(log_level="DEBUG", openai_api_key="sk-test-secret")
         batch_result = OfficialKnowledgeBaseBatchSyncResult(
@@ -109,6 +155,7 @@ class SyncRunnerCliTests(unittest.TestCase):
         sync_sources.assert_called_once_with(
             source_ids=["three_docs"],
             settings=settings,
+            failure_mode=SyncFailureMode.FAIL_FAST,
         )
 
     def test_cli_main_returns_config_error_code(self) -> None:
@@ -131,6 +178,60 @@ class SyncRunnerCliTests(unittest.TestCase):
 
         self.assertEqual(exit_code, 2)
 
+    def test_cli_main_supports_all_and_continue_mode(self) -> None:
+        settings = Settings(log_level="INFO", openai_api_key="sk-test-secret")
+        batch_result = OfficialKnowledgeBaseBatchSyncResult(
+            source_ids=("three_docs", "p5_reference"),
+            failed_source_ids=("p5_reference",),
+            total_chunks=1,
+            total_records=1,
+        )
+
+        with patch(
+            "creative_coding_assistant.app.sync_cli.load_settings",
+            return_value=settings,
+        ):
+            with patch(
+                "creative_coding_assistant.app.sync_cli.configure_logging",
+            ):
+                with patch(
+                    "creative_coding_assistant.app.sync_cli.sync_official_sources",
+                    return_value=batch_result,
+                ) as sync_sources:
+                    exit_code = main(["--all", "--continue-on-error"])
+
+        self.assertEqual(exit_code, 1)
+        sync_sources.assert_called_once_with(
+            source_ids=None,
+            settings=settings,
+            failure_mode=SyncFailureMode.CONTINUE,
+        )
+
+    def test_cli_main_emits_json_summary_when_requested(self) -> None:
+        settings = Settings(log_level="INFO", openai_api_key="sk-test-secret")
+        batch_result = OfficialKnowledgeBaseBatchSyncResult(
+            source_ids=("three_docs",),
+            total_chunks=1,
+            total_records=1,
+        )
+
+        with patch(
+            "creative_coding_assistant.app.sync_cli.load_settings",
+            return_value=settings,
+        ):
+            with patch(
+                "creative_coding_assistant.app.sync_cli.configure_logging",
+            ):
+                with patch(
+                    "creative_coding_assistant.app.sync_cli.sync_official_sources",
+                    return_value=batch_result,
+                ):
+                    with patch("sys.stdout", new=StringIO()) as stdout:
+                        exit_code = main(["--all", "--summary-format", "json"])
+
+        self.assertEqual(exit_code, 0)
+        self.assertIn('"source_ids": ["three_docs"]', stdout.getvalue())
+
 
 class _FakeRunner:
     def __init__(self) -> None:
@@ -141,6 +242,21 @@ class _FakeRunner:
         request: OfficialSourceSyncRequest,
     ) -> OfficialKnowledgeBaseSyncResult:
         self.requests.append(request)
+        return _sync_result(request)
+
+
+class _PartiallyFailingRunner(_FakeRunner):
+    def __init__(self, *, failing_source_id: str) -> None:
+        super().__init__()
+        self._failing_source_id = failing_source_id
+
+    def run(
+        self,
+        request: OfficialSourceSyncRequest,
+    ) -> OfficialKnowledgeBaseSyncResult:
+        self.requests.append(request)
+        if request.source_id == self._failing_source_id:
+            raise RuntimeError(f"Sync failed for {request.source_id}")
         return _sync_result(request)
 
 
