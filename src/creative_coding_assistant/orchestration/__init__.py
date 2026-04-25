@@ -24,6 +24,7 @@ _EXPORT_MAP = {
     "ConversationSummaryContext": _MEM,
     "DEFAULT_RECENT_TURN_LIMIT": _MEM,
     "DEFAULT_RETRIEVAL_LIMIT": _RETRIEVAL,
+    "DomainSelectionShape": _ROUTING,
     "KnowledgeBaseRetrievalAdapter": _RETRIEVAL,
     "LlmGenerationAdapter": _GEN,
     "MemoryContextRequest": _MEM,
