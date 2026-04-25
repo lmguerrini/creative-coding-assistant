@@ -7,11 +7,11 @@ from creative_coding_assistant.llm import GenerationProvider, OpenAIGenerationPr
 
 
 class ServiceBootstrapCompositionTests(unittest.TestCase):
-    def test_build_service_composes_stack_without_retrieval_embedder(self) -> None:
+    def test_build_service_skips_retrieval_without_embedding_config(self) -> None:
         settings = Settings(
             default_generation_provider=GenerationProviderName.OPENAI,
             openai_model="gpt-5-mini",
-            openai_api_key="sk-test-secret",
+            openai_api_key=None,
         )
         fake_client = _FakeChromaClient()
 
@@ -25,10 +25,18 @@ class ServiceBootstrapCompositionTests(unittest.TestCase):
                     "Provider API client should not be constructed during bootstrap."
                 ),
             ) as build_openai_client:
-                service = build_assistant_service(settings=settings)
+                with patch(
+                    "creative_coding_assistant.rag.retrieval.openai_embedder._build_openai_client",
+                    side_effect=AssertionError(
+                        "Embedder API client should not be constructed "
+                        "during bootstrap."
+                    ),
+                ) as build_embedder_client:
+                    service = build_assistant_service(settings=settings)
 
         create_client.assert_called_once_with(settings=settings)
         build_openai_client.assert_not_called()
+        build_embedder_client.assert_not_called()
         self.assertIsNotNone(service._memory_gateway)
         self.assertIsNone(service._retrieval_gateway)
         self.assertIsNotNone(service._context_assembler)
@@ -38,7 +46,32 @@ class ServiceBootstrapCompositionTests(unittest.TestCase):
         self.assertIsInstance(service._generation_provider, OpenAIGenerationProvider)
         self.assertGreaterEqual(len(fake_client.collection_names), 6)
 
-    def test_build_service_composes_retrieval_when_embedder_is_provided(self) -> None:
+    def test_build_service_composes_retrieval_from_settings_when_configured(
+        self,
+    ) -> None:
+        settings = Settings(
+            default_generation_provider=GenerationProviderName.OPENAI,
+            openai_model="gpt-5-mini",
+            openai_api_key="sk-test-secret",
+        )
+        fake_client = _FakeChromaClient()
+
+        with patch(
+            "creative_coding_assistant.app.bootstrap.create_chroma_client",
+            return_value=fake_client,
+        ):
+            with patch(
+                "creative_coding_assistant.rag.retrieval.openai_embedder._build_openai_client",
+                side_effect=AssertionError(
+                    "Embedder API client should not be constructed during bootstrap."
+                ),
+            ) as build_embedder_client:
+                service = build_assistant_service(settings=settings)
+
+        self.assertIsNotNone(service._retrieval_gateway)
+        build_embedder_client.assert_not_called()
+
+    def test_build_service_preserves_explicit_query_embedder(self) -> None:
         settings = Settings(
             default_generation_provider=GenerationProviderName.OPENAI,
             openai_model="gpt-5-mini",
