@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import Any
 
 from loguru import logger
 
+from creative_coding_assistant.rag.retrieval.embedder import QueryEmbedder
 from creative_coding_assistant.rag.retrieval.filters import build_kb_where_filter
 from creative_coding_assistant.rag.retrieval.models import (
     KnowledgeBaseRetrievalRequest,
@@ -19,11 +20,6 @@ from creative_coding_assistant.vectorstore import (
     QueryMatchRecord,
     get_collection_definition,
 )
-
-
-class QueryEmbedder(Protocol):
-    def embed_query(self, text: str) -> list[float]:
-        """Return an embedding vector for a retrieval query."""
 
 
 class KnowledgeBaseRetriever:
