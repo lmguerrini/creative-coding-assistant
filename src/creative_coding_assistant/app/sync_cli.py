@@ -7,7 +7,7 @@ from collections.abc import Sequence
 
 from loguru import logger
 
-from creative_coding_assistant.app.sync import sync_official_sources
+from creative_coding_assistant.app.sync import SyncFailureMode, sync_official_sources
 from creative_coding_assistant.core import load_settings
 from creative_coding_assistant.core.logging import configure_logging
 
@@ -22,20 +22,43 @@ def build_sync_parser() -> argparse.ArgumentParser:
         dest="source_ids",
         help="Approved official source ID to sync. Repeat to sync multiple sources.",
     )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Sync all approved official sources.",
+    )
+    parser.add_argument(
+        "--continue-on-error",
+        action="store_true",
+        help="Continue syncing remaining approved sources after one source fails.",
+    )
+    parser.add_argument(
+        "--summary-format",
+        choices=("log", "json"),
+        default="log",
+        help="How to emit the final sync summary.",
+    )
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_sync_parser()
     args = parser.parse_args(argv)
+    if args.all and args.source_ids:
+        parser.error("Use either --all or --source-id, not both.")
 
     settings = load_settings()
     configure_logging(settings.log_level)
 
     try:
         result = sync_official_sources(
-            source_ids=args.source_ids,
+            source_ids=None if args.all else args.source_ids,
             settings=settings,
+            failure_mode=(
+                SyncFailureMode.CONTINUE
+                if args.continue_on_error
+                else SyncFailureMode.FAIL_FAST
+            ),
         )
     except (RuntimeError, ValueError) as exc:
         logger.error(str(exc))
@@ -44,13 +67,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         logger.exception("Official KB sync failed.")
         return 1
 
-    logger.info(
-        "Synced {} source(s), {} chunk(s), {} record(s)",
-        len(result.source_ids),
-        result.total_chunks,
-        result.total_records,
-    )
-    return 0
+    if args.summary_format == "json":
+        print(result.summary_json())
+    else:
+        logger.info(
+            "Synced {} source(s), {} success, {} failed, {} chunk(s), {} record(s)",
+            len(result.source_ids),
+            result.succeeded_count,
+            result.failed_count,
+            result.total_chunks,
+            result.total_records,
+        )
+    return 1 if result.failed_count else 0
 
 
 if __name__ == "__main__":  # pragma: no cover
