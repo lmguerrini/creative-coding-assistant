@@ -7,8 +7,10 @@ from creative_coding_assistant.clients import (
     build_chat_request,
     build_provider_warning,
     default_domain,
+    default_domain_selection,
     default_mode,
     reduce_stream_event,
+    resolve_request_domain,
 )
 from creative_coding_assistant.contracts import (
     AssistantMode,
@@ -66,7 +68,7 @@ class StreamlitChatGenerationTests(unittest.TestCase):
             query="Explain the shader noise pattern.",
             conversation_id="conversation-123",
             settings=settings,
-            domain=CreativeCodingDomain.GLSL,
+            domains=(CreativeCodingDomain.GLSL,),
             mode=AssistantMode.EXPLAIN,
         )
 
@@ -74,6 +76,50 @@ class StreamlitChatGenerationTests(unittest.TestCase):
         self.assertEqual(request.conversation_id, "conversation-123")
         self.assertEqual(request.domain, CreativeCodingDomain.GLSL)
         self.assertEqual(request.mode, AssistantMode.EXPLAIN)
+
+    def test_default_domain_selection_includes_all_domains(self) -> None:
+        self.assertEqual(
+            default_domain_selection(),
+            tuple(CreativeCodingDomain),
+        )
+
+    def test_resolve_request_domain_returns_none_for_multiple_domains(self) -> None:
+        settings = Settings(default_domain=CreativeCodingDomain.THREE_JS)
+
+        resolved = resolve_request_domain(
+            (
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
+            settings=settings,
+        )
+
+        self.assertIsNone(resolved)
+
+    def test_resolve_request_domain_returns_none_for_empty_selection(self) -> None:
+        settings = Settings(default_domain=CreativeCodingDomain.THREE_JS)
+
+        resolved = resolve_request_domain((), settings=settings)
+
+        self.assertIsNone(resolved)
+
+    def test_build_chat_request_leaves_domain_unconstrained_for_multi_select(
+        self,
+    ) -> None:
+        settings = Settings()
+
+        request = build_chat_request(
+            query="Explain how R3F and GLSL fit together.",
+            conversation_id="conversation-456",
+            settings=settings,
+            domains=(
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
+            mode=AssistantMode.EXPLAIN,
+        )
+
+        self.assertIsNone(request.domain)
 
     def test_reduce_stream_event_tracks_pipeline_progress_and_tokens(self) -> None:
         state = StreamRenderState()
