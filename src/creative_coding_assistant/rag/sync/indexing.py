@@ -33,6 +33,12 @@ class OfficialKnowledgeBaseIndexer:
         embeddings: Sequence[list[float]],
     ) -> tuple[str, ...]:
         records = self.build_vector_records(chunks, embeddings)
+        return self.upsert_records(records)
+
+    def upsert_records(
+        self,
+        records: Sequence[VectorRecord],
+    ) -> tuple[str, ...]:
         if not records:
             return ()
 
