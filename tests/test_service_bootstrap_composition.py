@@ -26,7 +26,7 @@ class ServiceBootstrapCompositionTests(unittest.TestCase):
                 ),
             ) as build_openai_client:
                 with patch(
-                    "creative_coding_assistant.rag.retrieval.openai_embedder._build_openai_client",
+                    "creative_coding_assistant.rag.embeddings.openai._build_openai_client",
                     side_effect=AssertionError(
                         "Embedder API client should not be constructed "
                         "during bootstrap."
@@ -61,7 +61,7 @@ class ServiceBootstrapCompositionTests(unittest.TestCase):
             return_value=fake_client,
         ):
             with patch(
-                "creative_coding_assistant.rag.retrieval.openai_embedder._build_openai_client",
+                "creative_coding_assistant.rag.embeddings.openai._build_openai_client",
                 side_effect=AssertionError(
                     "Embedder API client should not be constructed during bootstrap."
                 ),

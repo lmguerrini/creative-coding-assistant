@@ -54,7 +54,7 @@ class QueryEmbedderFoundationTests(unittest.TestCase):
             [
                 {
                     "model": "text-embedding-3-large",
-                    "input": "camera guidance",
+                    "input": ["camera guidance"],
                 }
             ],
         )
