@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -57,7 +58,7 @@ def build_chat_request(
     query: str,
     conversation_id: str,
     settings: Settings,
-    domain: CreativeCodingDomain | None = None,
+    domains: Sequence[CreativeCodingDomain] | None = None,
     mode: AssistantMode | None = None,
 ) -> AssistantRequest:
     """Build one assistant request from UI input and runtime defaults."""
@@ -65,7 +66,7 @@ def build_chat_request(
     return AssistantRequest(
         query=query,
         conversation_id=conversation_id,
-        domain=domain or default_domain(settings),
+        domain=resolve_request_domain(domains, settings=settings),
         mode=mode or default_mode(settings),
     )
 
@@ -80,6 +81,12 @@ def default_domain(settings: Settings) -> CreativeCodingDomain:
     )
 
 
+def default_domain_selection() -> tuple[CreativeCodingDomain, ...]:
+    """Return the default UI domain selection for Streamlit."""
+
+    return tuple(CreativeCodingDomain)
+
+
 def default_mode(settings: Settings) -> AssistantMode:
     """Resolve the configured default mode safely for the client."""
 
@@ -88,6 +95,20 @@ def default_mode(settings: Settings) -> AssistantMode:
         raw_value=settings.default_mode,
         fallback=AssistantMode.GENERATE,
     )
+
+
+def resolve_request_domain(
+    domains: Sequence[CreativeCodingDomain] | None,
+    *,
+    settings: Settings,
+) -> CreativeCodingDomain | None:
+    """Resolve UI domain selection into the current single-domain request field."""
+
+    if domains is None:
+        return default_domain(settings)
+    if len(domains) == 1:
+        return domains[0]
+    return None
 
 
 def build_provider_warning(settings: Settings) -> str | None:
