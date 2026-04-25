@@ -27,6 +27,10 @@ class Settings(BaseSettings):
         default=GenerationProviderName.OPENAI
     )
     openai_model: str = Field(default="gpt-5-mini", min_length=1)
+    openai_embedding_model: str = Field(
+        default="text-embedding-3-small",
+        min_length=1,
+    )
     openai_api_key: SecretStr | None = Field(
         default=None,
         validation_alias=AliasChoices("OPENAI_API_KEY", "CCA_OPENAI_API_KEY"),
@@ -50,6 +54,11 @@ class Settings(BaseSettings):
     def normalize_openai_model(cls, value: str) -> str:
         return value.strip()
 
+    @field_validator("openai_embedding_model")
+    @classmethod
+    def normalize_openai_embedding_model(cls, value: str) -> str:
+        return value.strip()
+
     @field_validator("openai_api_key", mode="before")
     @classmethod
     def normalize_openai_api_key(
@@ -69,6 +78,10 @@ class Settings(BaseSettings):
     @property
     def has_openai_api_key(self) -> bool:
         return self.get_openai_api_key() is not None
+
+    @property
+    def has_openai_embedding_config(self) -> bool:
+        return self.has_openai_api_key and bool(self.openai_embedding_model)
 
     def get_openai_api_key(self) -> str | None:
         if self.openai_api_key is None:
