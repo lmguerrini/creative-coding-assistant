@@ -11,6 +11,7 @@ from creative_coding_assistant.clients.streamlit_helpers import (
     default_mode,
     reduce_stream_event,
     resolve_request_domain,
+    resolve_request_domains,
 )
 
 __all__ = [
@@ -24,4 +25,5 @@ __all__ = [
     "default_mode",
     "reduce_stream_event",
     "resolve_request_domain",
+    "resolve_request_domains",
 ]

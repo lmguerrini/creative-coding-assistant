@@ -63,10 +63,12 @@ def build_chat_request(
 ) -> AssistantRequest:
     """Build one assistant request from UI input and runtime defaults."""
 
+    resolved_domains = resolve_request_domains(domains, settings=settings)
     return AssistantRequest(
         query=query,
         conversation_id=conversation_id,
-        domain=resolve_request_domain(domains, settings=settings),
+        domain=resolve_request_domain(resolved_domains),
+        domains=resolved_domains,
         mode=mode or default_mode(settings),
     )
 
@@ -98,17 +100,25 @@ def default_mode(settings: Settings) -> AssistantMode:
 
 
 def resolve_request_domain(
-    domains: Sequence[CreativeCodingDomain] | None,
-    *,
-    settings: Settings,
+    domains: Sequence[CreativeCodingDomain],
 ) -> CreativeCodingDomain | None:
-    """Resolve UI domain selection into the current single-domain request field."""
+    """Resolve domain selections into the current legacy single-domain field."""
 
-    if domains is None:
-        return default_domain(settings)
     if len(domains) == 1:
         return domains[0]
     return None
+
+
+def resolve_request_domains(
+    domains: Sequence[CreativeCodingDomain] | None,
+    *,
+    settings: Settings,
+) -> tuple[CreativeCodingDomain, ...]:
+    """Resolve UI selections into the first-class multi-domain request field."""
+
+    if domains is None:
+        return (default_domain(settings),)
+    return tuple(dict.fromkeys(domains))
 
 
 def build_provider_warning(settings: Settings) -> str | None:
