@@ -127,7 +127,7 @@ def sync_official_sources(
 ) -> OfficialKnowledgeBaseBatchSyncResult:
     """Run the official KB sync pipeline for approved sources."""
 
-    from creative_coding_assistant.app.sync_service import (
+    from creative_coding_assistant.app.sync_bootstrap import (
         build_official_kb_sync_service,
     )
 

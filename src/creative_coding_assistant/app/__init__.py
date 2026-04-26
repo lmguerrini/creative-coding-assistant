@@ -7,10 +7,8 @@ from creative_coding_assistant.app.sync import (
     resolve_sync_source_ids,
     sync_official_sources,
 )
-from creative_coding_assistant.app.sync_service import (
-    OfficialKBSyncService,
-    build_official_kb_sync_service,
-)
+from creative_coding_assistant.app.sync_bootstrap import build_official_kb_sync_service
+from creative_coding_assistant.app.sync_service import OfficialKBSyncService
 
 __all__ = [
     "build_assistant_service",
