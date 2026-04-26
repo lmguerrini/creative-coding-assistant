@@ -18,8 +18,6 @@ from creative_coding_assistant.clients import (
     build_provider_warning,
     context_empty_message,
     context_expander_label,
-    default_domain_selection,
-    default_mode,
     domain_selection_summary,
     generation_input_empty_message,
     generation_input_expander_label,
@@ -29,6 +27,8 @@ from creative_coding_assistant.clients import (
     prompt_visibility_expander_label,
     prompt_visibility_meta,
     reduce_stream_event,
+    resolve_session_domain_selection,
+    resolve_session_mode,
     retrieval_empty_message,
     retrieval_expander_label,
 )
@@ -37,6 +37,8 @@ from creative_coding_assistant.core import load_settings
 
 _CHAT_HISTORY_KEY = "chat_history"
 _CONVERSATION_ID_KEY = "conversation_id"
+_DOMAIN_SELECTION_KEY = "selected_domains"
+_MODE_SELECTION_KEY = "selected_mode"
 
 _DOMAIN_LABELS = {
     CreativeCodingDomain.THREE_JS: "Three.js",
@@ -65,7 +67,7 @@ def main() -> None:
     st.title(settings.app_name)
     st.caption("Three.js, React Three Fiber, p5.js, and GLSL chat support.")
 
-    _ensure_session_state()
+    _ensure_session_state(settings)
 
     with st.sidebar:
         st.markdown("**Session controls**")
@@ -74,10 +76,10 @@ def main() -> None:
             selected_domains = st.multiselect(
                 "Knowledge scope",
                 options=list(CreativeCodingDomain),
-                default=list(default_domain_selection()),
                 format_func=_format_domain,
                 label_visibility="collapsed",
                 placeholder="Select one or more domains",
+                key=_DOMAIN_SELECTION_KEY,
             )
             st.caption(domain_selection_summary(selected_domains))
         with _section_container():
@@ -85,9 +87,9 @@ def main() -> None:
             selected_mode = st.selectbox(
                 "Primary intent",
                 options=list(AssistantMode),
-                index=list(AssistantMode).index(default_mode(settings)),
                 format_func=_format_mode,
                 label_visibility="collapsed",
+                key=_MODE_SELECTION_KEY,
             )
             st.caption(mode_selection_summary(selected_mode).title())
         st.divider()
@@ -453,13 +455,22 @@ def _render_generation_input_visibility(
                 st.markdown(item.snippet)
 
 
-def _ensure_session_state() -> None:
+def _ensure_session_state(settings) -> None:
     import streamlit as st
 
     if _CHAT_HISTORY_KEY not in st.session_state:
         st.session_state[_CHAT_HISTORY_KEY] = []
     if _CONVERSATION_ID_KEY not in st.session_state:
         st.session_state[_CONVERSATION_ID_KEY] = uuid4().hex
+    st.session_state[_DOMAIN_SELECTION_KEY] = list(
+        resolve_session_domain_selection(
+            st.session_state.get(_DOMAIN_SELECTION_KEY)
+        )
+    )
+    st.session_state[_MODE_SELECTION_KEY] = resolve_session_mode(
+        st.session_state.get(_MODE_SELECTION_KEY),
+        settings=settings,
+    )
 
 
 def _reset_chat_state() -> None:
