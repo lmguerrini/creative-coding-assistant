@@ -75,11 +75,11 @@ def main() -> None:
     _ensure_session_state(settings)
 
     with st.sidebar:
-        st.markdown("**Session controls**")
+        st.markdown("**Chat session**")
         with _section_container():
-            st.markdown("**Knowledge scope**")
+            st.markdown("**Domains**")
             selected_domains = st.multiselect(
-                "Knowledge scope",
+                "Domains",
                 options=list(CreativeCodingDomain),
                 format_func=_format_domain,
                 label_visibility="collapsed",
@@ -88,25 +88,25 @@ def main() -> None:
             )
             st.caption(domain_selection_summary(selected_domains))
         with _section_container():
-            st.markdown("**Primary intent**")
+            st.markdown("**Mode**")
             selected_mode = st.selectbox(
-                "Primary intent",
+                "Mode",
                 options=list(AssistantMode),
                 format_func=_format_mode,
                 label_visibility="collapsed",
                 key=_MODE_SELECTION_KEY,
             )
-            st.caption(mode_selection_summary(selected_mode).title())
+            st.caption(f"Mode: {mode_selection_summary(selected_mode)}")
         with _section_container():
-            st.markdown("**Response trace**")
+            st.markdown("**Trace detail**")
             trace_visibility = st.selectbox(
-                "Response trace",
+                "Trace detail",
                 options=list(TraceVisibilityLevel),
                 format_func=_format_trace_visibility,
                 label_visibility="collapsed",
                 key=_TRACE_VISIBILITY_KEY,
             )
-            st.caption(trace_visibility_summary(trace_visibility).title())
+            st.caption(f"Trace detail: {trace_visibility_summary(trace_visibility)}")
         st.divider()
         if st.button("Clear chat", use_container_width=True):
             _reset_chat_state()
@@ -269,7 +269,7 @@ def _render_visibility_trace(
     outer = placeholder.container() if placeholder is not None else st.container()
     with outer:
         with _section_container():
-            st.caption("Response trace")
+            st.caption(f"Trace: {trace_visibility_summary(trace_visibility)}")
             if "memory" in visible_sections:
                 _render_context_visibility(
                     kind="memory",
