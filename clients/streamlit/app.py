@@ -20,9 +20,11 @@ from creative_coding_assistant.clients import (
     context_expander_label,
     default_domain_selection,
     default_mode,
+    domain_selection_summary,
     generation_input_empty_message,
     generation_input_expander_label,
     generation_input_meta,
+    mode_selection_summary,
     prompt_visibility_empty_message,
     prompt_visibility_expander_label,
     prompt_visibility_meta,
@@ -66,18 +68,29 @@ def main() -> None:
     _ensure_session_state()
 
     with st.sidebar:
-        selected_domains = st.multiselect(
-            "Domains",
-            options=list(CreativeCodingDomain),
-            default=list(default_domain_selection()),
-            format_func=_format_domain,
-        )
-        selected_mode = st.selectbox(
-            "Mode",
-            options=list(AssistantMode),
-            index=list(AssistantMode).index(default_mode(settings)),
-            format_func=_format_mode,
-        )
+        st.markdown("**Session controls**")
+        with _section_container():
+            st.markdown("**Knowledge scope**")
+            selected_domains = st.multiselect(
+                "Knowledge scope",
+                options=list(CreativeCodingDomain),
+                default=list(default_domain_selection()),
+                format_func=_format_domain,
+                label_visibility="collapsed",
+                placeholder="Select one or more domains",
+            )
+            st.caption(domain_selection_summary(selected_domains))
+        with _section_container():
+            st.markdown("**Primary intent**")
+            selected_mode = st.selectbox(
+                "Primary intent",
+                options=list(AssistantMode),
+                index=list(AssistantMode).index(default_mode(settings)),
+                format_func=_format_mode,
+                label_visibility="collapsed",
+            )
+            st.caption(mode_selection_summary(selected_mode).title())
+        st.divider()
         if st.button("Clear chat", use_container_width=True):
             _reset_chat_state()
             st.rerun()
@@ -112,33 +125,19 @@ def _render_history() -> None:
         entry = ChatHistoryEntry.model_validate(raw_entry)
         with st.chat_message(entry.role):
             st.markdown(entry.content)
-            _render_context_visibility(
-                kind="memory",
-                context_items=entry.memory_items,
-                context_state=entry.memory_state,
-            )
-            _render_retrieval_context(
+            _render_visibility_trace(
+                memory_items=entry.memory_items,
+                memory_state=entry.memory_state,
                 retrieval_items=entry.retrieval_items,
                 retrieval_state=entry.retrieval_state,
-            )
-            _render_context_visibility(
-                kind="context",
                 context_items=entry.context_items,
                 context_state=entry.context_state,
-            )
-            _render_prompt_visibility(
-                kind="prompt_input",
-                summary=entry.prompt_input_summary,
-                visibility_state=entry.prompt_input_state,
-            )
-            _render_prompt_visibility(
-                kind="rendered_prompt",
-                summary=entry.rendered_prompt_summary,
-                visibility_state=entry.rendered_prompt_state,
-            )
-            _render_generation_input_visibility(
-                summary=entry.generation_input_summary,
-                visibility_state=entry.generation_input_state,
+                prompt_input_summary=entry.prompt_input_summary,
+                prompt_input_state=entry.prompt_input_state,
+                rendered_prompt_summary=entry.rendered_prompt_summary,
+                rendered_prompt_state=entry.rendered_prompt_state,
+                generation_input_summary=entry.generation_input_summary,
+                generation_input_state=entry.generation_input_state,
             )
 
 
@@ -167,12 +166,7 @@ def _run_chat_turn(
         status_placeholder = st.empty()
         answer_placeholder = st.empty()
         error_placeholder = st.empty()
-        memory_placeholder = st.empty()
-        retrieval_placeholder = st.empty()
-        context_placeholder = st.empty()
-        prompt_input_placeholder = st.empty()
-        rendered_prompt_placeholder = st.empty()
-        generation_input_placeholder = st.empty()
+        visibility_placeholder = st.empty()
         state = StreamRenderState()
 
         try:
@@ -189,39 +183,20 @@ def _run_chat_turn(
                 if state.error_message is not None:
                     error_placeholder.error(state.error_message)
 
-                _render_context_visibility(
-                    kind="memory",
-                    context_items=state.memory_items,
-                    context_state=state.memory_state,
-                    placeholder=memory_placeholder,
-                )
-                _render_retrieval_context(
+                _render_visibility_trace(
+                    memory_items=state.memory_items,
+                    memory_state=state.memory_state,
                     retrieval_items=state.retrieval_items,
                     retrieval_state=state.retrieval_state,
-                    placeholder=retrieval_placeholder,
-                )
-                _render_context_visibility(
-                    kind="context",
                     context_items=state.context_items,
                     context_state=state.context_state,
-                    placeholder=context_placeholder,
-                )
-                _render_prompt_visibility(
-                    kind="prompt_input",
-                    summary=state.prompt_input_summary,
-                    visibility_state=state.prompt_input_state,
-                    placeholder=prompt_input_placeholder,
-                )
-                _render_prompt_visibility(
-                    kind="rendered_prompt",
-                    summary=state.rendered_prompt_summary,
-                    visibility_state=state.rendered_prompt_state,
-                    placeholder=rendered_prompt_placeholder,
-                )
-                _render_generation_input_visibility(
-                    summary=state.generation_input_summary,
-                    visibility_state=state.generation_input_state,
-                    placeholder=generation_input_placeholder,
+                    prompt_input_summary=state.prompt_input_summary,
+                    prompt_input_state=state.prompt_input_state,
+                    rendered_prompt_summary=state.rendered_prompt_summary,
+                    rendered_prompt_state=state.rendered_prompt_state,
+                    generation_input_summary=state.generation_input_summary,
+                    generation_input_state=state.generation_input_state,
+                    placeholder=visibility_placeholder,
                 )
         except Exception:
             state = state.model_copy(
@@ -235,6 +210,71 @@ def _run_chat_turn(
         st.session_state[_CHAT_HISTORY_KEY].append(
             assistant_entry.model_dump(mode="json")
         )
+
+
+def _render_visibility_trace(
+    *,
+    memory_items: tuple[ContextDisplayItem, ...],
+    memory_state: str,
+    retrieval_items: tuple[RetrievalDisplayItem, ...],
+    retrieval_state: str,
+    context_items: tuple[ContextDisplayItem, ...],
+    context_state: str,
+    prompt_input_summary: PromptVisibilitySummary | None,
+    prompt_input_state: str,
+    rendered_prompt_summary: PromptVisibilitySummary | None,
+    rendered_prompt_state: str,
+    generation_input_summary: GenerationInputVisibilitySummary | None,
+    generation_input_state: str,
+    placeholder=None,
+) -> None:
+    import streamlit as st
+
+    states = (
+        memory_state,
+        retrieval_state,
+        context_state,
+        prompt_input_state,
+        rendered_prompt_state,
+        generation_input_state,
+    )
+    if all(state == "unknown" for state in states):
+        if placeholder is not None:
+            placeholder.empty()
+        return
+
+    outer = placeholder.container() if placeholder is not None else st.container()
+    with outer:
+        with _section_container():
+            st.caption("Response trace")
+            _render_context_visibility(
+                kind="memory",
+                context_items=memory_items,
+                context_state=memory_state,
+            )
+            _render_retrieval_context(
+                retrieval_items=retrieval_items,
+                retrieval_state=retrieval_state,
+            )
+            _render_context_visibility(
+                kind="context",
+                context_items=context_items,
+                context_state=context_state,
+            )
+            _render_prompt_visibility(
+                kind="prompt_input",
+                summary=prompt_input_summary,
+                visibility_state=prompt_input_state,
+            )
+            _render_prompt_visibility(
+                kind="rendered_prompt",
+                summary=rendered_prompt_summary,
+                visibility_state=rendered_prompt_state,
+            )
+            _render_generation_input_visibility(
+                summary=generation_input_summary,
+                visibility_state=generation_input_state,
+            )
 
 
 def _render_retrieval_context(
@@ -427,6 +467,15 @@ def _reset_chat_state() -> None:
 
     st.session_state[_CHAT_HISTORY_KEY] = []
     st.session_state[_CONVERSATION_ID_KEY] = uuid4().hex
+
+
+def _section_container():
+    import streamlit as st
+
+    try:
+        return st.container(border=True)
+    except TypeError:
+        return st.container()
 
 
 def _format_domain(domain: CreativeCodingDomain) -> str:
