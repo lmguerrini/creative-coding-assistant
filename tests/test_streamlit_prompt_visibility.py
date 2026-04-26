@@ -213,7 +213,7 @@ class StreamlitPromptVisibilityTests(unittest.TestCase):
                 visibility_state="available",
                 summary=summary,
             ),
-            "Prompt input summary (1 item)",
+            "Prompt inputs (1 item)",
         )
         self.assertEqual(
             prompt_visibility_meta(summary),
@@ -224,7 +224,7 @@ class StreamlitPromptVisibilityTests(unittest.TestCase):
                 kind="rendered_prompt",
                 visibility_state="empty",
             ),
-            "No rendered prompt summary was available for this response.",
+            "No rendered prompt was available for this response.",
         )
         self.assertIsNone(
             prompt_visibility_empty_message(

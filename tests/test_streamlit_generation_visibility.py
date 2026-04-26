@@ -146,7 +146,7 @@ class StreamlitGenerationVisibilityTests(unittest.TestCase):
                 visibility_state="available",
                 summary=summary,
             ),
-            "Generation input summary (2 messages)",
+            "Generation input (2 messages)",
         )
         self.assertEqual(
             generation_input_meta(summary),
@@ -154,7 +154,7 @@ class StreamlitGenerationVisibilityTests(unittest.TestCase):
         )
         self.assertEqual(
             generation_input_empty_message(visibility_state="empty"),
-            "No generation input summary was available for this response.",
+            "No generation input was available for this response.",
         )
         self.assertIsNone(
             generation_input_empty_message(visibility_state="unknown")

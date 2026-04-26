@@ -10,6 +10,8 @@ from creative_coding_assistant.clients import (
     default_domain,
     default_domain_selection,
     default_mode,
+    domain_selection_summary,
+    mode_selection_summary,
     reduce_stream_event,
     resolve_request_domain,
     resolve_request_domains,
@@ -86,6 +88,29 @@ class StreamlitChatGenerationTests(unittest.TestCase):
         self.assertEqual(
             default_domain_selection(),
             tuple(CreativeCodingDomain),
+        )
+
+    def test_sidebar_selection_summaries_are_readable(self) -> None:
+        self.assertEqual(
+            domain_selection_summary(tuple(CreativeCodingDomain)),
+            "Selected: all 4 domains",
+        )
+        self.assertEqual(
+            domain_selection_summary(
+                (
+                    CreativeCodingDomain.REACT_THREE_FIBER,
+                    CreativeCodingDomain.GLSL,
+                )
+            ),
+            "Selected: React Three Fiber, GLSL",
+        )
+        self.assertEqual(
+            domain_selection_summary(()),
+            "Selected: none (unconstrained)",
+        )
+        self.assertEqual(
+            mode_selection_summary(AssistantMode.EXPLAIN),
+            "Primary mode: explain",
         )
 
     def test_resolve_request_domain_returns_none_for_multiple_domains(self) -> None:
@@ -314,7 +339,7 @@ class StreamlitChatGenerationTests(unittest.TestCase):
             retrieval_state="available",
         )
 
-        self.assertEqual(label, "Retrieved context (1 chunk)")
+        self.assertEqual(label, "Retrieval context (1 chunk)")
         self.assertEqual(
             retrieval_empty_message("empty"),
             "No retrieval context was found for this response.",
