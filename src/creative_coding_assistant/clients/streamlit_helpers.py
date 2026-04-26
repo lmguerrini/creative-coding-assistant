@@ -12,6 +12,10 @@ from creative_coding_assistant.clients.streamlit_context_visibility import (
     context_updates_from_event,
     memory_updates_from_event,
 )
+from creative_coding_assistant.clients.streamlit_generation_visibility import (
+    GenerationInputVisibilitySummary,
+    generation_input_updates_from_event,
+)
 from creative_coding_assistant.clients.streamlit_prompt_visibility import (
     PromptVisibilitySummary,
     prompt_input_updates_from_event,
@@ -56,6 +60,8 @@ class ChatHistoryEntry(BaseModel):
     prompt_input_state: Literal["unknown", "empty", "available"] = "unknown"
     rendered_prompt_summary: PromptVisibilitySummary | None = None
     rendered_prompt_state: Literal["unknown", "empty", "available"] = "unknown"
+    generation_input_summary: GenerationInputVisibilitySummary | None = None
+    generation_input_state: Literal["unknown", "empty", "available"] = "unknown"
 
 
 class RetrievalDisplayItem(BaseModel):
@@ -90,6 +96,8 @@ class StreamRenderState(BaseModel):
     prompt_input_state: Literal["unknown", "empty", "available"] = "unknown"
     rendered_prompt_summary: PromptVisibilitySummary | None = None
     rendered_prompt_state: Literal["unknown", "empty", "available"] = "unknown"
+    generation_input_summary: GenerationInputVisibilitySummary | None = None
+    generation_input_state: Literal["unknown", "empty", "available"] = "unknown"
 
     @property
     def answer_text(self) -> str:
@@ -196,6 +204,8 @@ def reduce_stream_event(
             updates.update(prompt_input_updates_from_event(event))
         if event.event_type is StreamEventType.PROMPT_RENDERED:
             updates.update(rendered_prompt_updates_from_event(event))
+        if event.event_type is StreamEventType.GENERATION_INPUT:
+            updates.update(generation_input_updates_from_event(event))
         if not updates:
             return state
         return state.model_copy(update=updates)
@@ -238,6 +248,8 @@ def assistant_history_entry(state: StreamRenderState) -> ChatHistoryEntry:
         prompt_input_state=state.prompt_input_state,
         rendered_prompt_summary=state.rendered_prompt_summary,
         rendered_prompt_state=state.rendered_prompt_state,
+        generation_input_summary=state.generation_input_summary,
+        generation_input_state=state.generation_input_state,
     )
 
 
