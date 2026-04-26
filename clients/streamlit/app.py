@@ -9,6 +9,7 @@ from creative_coding_assistant.app import build_assistant_service
 from creative_coding_assistant.clients import (
     ChatHistoryEntry,
     ContextDisplayItem,
+    GenerationInputVisibilitySummary,
     PromptVisibilitySummary,
     RetrievalDisplayItem,
     StreamRenderState,
@@ -19,6 +20,9 @@ from creative_coding_assistant.clients import (
     context_expander_label,
     default_domain_selection,
     default_mode,
+    generation_input_empty_message,
+    generation_input_expander_label,
+    generation_input_meta,
     prompt_visibility_empty_message,
     prompt_visibility_expander_label,
     prompt_visibility_meta,
@@ -132,6 +136,10 @@ def _render_history() -> None:
                 summary=entry.rendered_prompt_summary,
                 visibility_state=entry.rendered_prompt_state,
             )
+            _render_generation_input_visibility(
+                summary=entry.generation_input_summary,
+                visibility_state=entry.generation_input_state,
+            )
 
 
 def _run_chat_turn(
@@ -164,6 +172,7 @@ def _run_chat_turn(
         context_placeholder = st.empty()
         prompt_input_placeholder = st.empty()
         rendered_prompt_placeholder = st.empty()
+        generation_input_placeholder = st.empty()
         state = StreamRenderState()
 
         try:
@@ -208,6 +217,11 @@ def _run_chat_turn(
                     summary=state.rendered_prompt_summary,
                     visibility_state=state.rendered_prompt_state,
                     placeholder=rendered_prompt_placeholder,
+                )
+                _render_generation_input_visibility(
+                    summary=state.generation_input_summary,
+                    visibility_state=state.generation_input_state,
+                    placeholder=generation_input_placeholder,
                 )
         except Exception:
             state = state.model_copy(
@@ -355,6 +369,47 @@ def _render_prompt_visibility(
                 st.markdown(f"**{item.label}**")
                 if meta_parts:
                     st.caption(" | ".join(meta_parts))
+                st.markdown(item.snippet)
+
+
+def _render_generation_input_visibility(
+    *,
+    summary: GenerationInputVisibilitySummary | None,
+    visibility_state: str,
+    placeholder=None,
+) -> None:
+    import streamlit as st
+
+    if visibility_state == "unknown":
+        if placeholder is not None:
+            placeholder.empty()
+        return
+
+    container = placeholder.container() if placeholder is not None else st.container()
+    with container:
+        with st.expander(
+            generation_input_expander_label(
+                visibility_state=visibility_state,
+                summary=summary,
+            ),
+            expanded=False,
+        ):
+            empty_message = generation_input_empty_message(
+                visibility_state=visibility_state,
+            )
+            if empty_message is not None:
+                st.caption(empty_message)
+                return
+
+            meta = generation_input_meta(summary)
+            if meta is not None:
+                st.caption(meta)
+
+            assert summary is not None
+            for item in summary.items:
+                st.markdown(f"**{item.label}**")
+                if item.role is not None:
+                    st.caption(item.role)
                 st.markdown(item.snippet)
 
 
