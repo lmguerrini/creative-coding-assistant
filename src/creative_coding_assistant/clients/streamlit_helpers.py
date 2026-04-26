@@ -7,6 +7,11 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from creative_coding_assistant.clients.streamlit_context_visibility import (
+    ContextDisplayItem,
+    context_updates_from_event,
+    memory_updates_from_event,
+)
 from creative_coding_assistant.contracts import (
     AssistantMode,
     AssistantRequest,
@@ -36,8 +41,12 @@ class ChatHistoryEntry(BaseModel):
 
     role: Literal["user", "assistant"]
     content: str = Field(min_length=1)
+    memory_items: tuple[ContextDisplayItem, ...] = Field(default_factory=tuple)
+    memory_state: Literal["unknown", "empty", "available"] = "unknown"
     retrieval_items: tuple[RetrievalDisplayItem, ...] = Field(default_factory=tuple)
     retrieval_state: Literal["unknown", "empty", "available"] = "unknown"
+    context_items: tuple[ContextDisplayItem, ...] = Field(default_factory=tuple)
+    context_state: Literal["unknown", "empty", "available"] = "unknown"
 
 
 class RetrievalDisplayItem(BaseModel):
@@ -62,8 +71,12 @@ class StreamRenderState(BaseModel):
     streamed_text: str = ""
     final_answer: str | None = None
     error_message: str | None = None
+    memory_items: tuple[ContextDisplayItem, ...] = Field(default_factory=tuple)
+    memory_state: Literal["unknown", "empty", "available"] = "unknown"
     retrieval_items: tuple[RetrievalDisplayItem, ...] = Field(default_factory=tuple)
     retrieval_state: Literal["unknown", "empty", "available"] = "unknown"
+    context_items: tuple[ContextDisplayItem, ...] = Field(default_factory=tuple)
+    context_state: Literal["unknown", "empty", "available"] = "unknown"
 
     @property
     def answer_text(self) -> str:
@@ -160,8 +173,12 @@ def reduce_stream_event(
         updates: dict[str, object] = {}
         if message is not None:
             updates["status_message"] = message
+        if event.event_type is StreamEventType.MEMORY:
+            updates.update(memory_updates_from_event(event))
         if event.event_type is StreamEventType.RETRIEVAL:
             updates.update(_retrieval_updates(event))
+        if event.event_type is StreamEventType.CONTEXT:
+            updates.update(context_updates_from_event(event))
         if not updates:
             return state
         return state.model_copy(update=updates)
@@ -194,8 +211,12 @@ def assistant_history_entry(state: StreamRenderState) -> ChatHistoryEntry:
     return ChatHistoryEntry(
         role="assistant",
         content=content,
+        memory_items=state.memory_items,
+        memory_state=state.memory_state,
         retrieval_items=state.retrieval_items,
         retrieval_state=state.retrieval_state,
+        context_items=state.context_items,
+        context_state=state.context_state,
     )
 
 

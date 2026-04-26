@@ -1,5 +1,10 @@
 """Client-facing helper modules."""
 
+from creative_coding_assistant.clients.streamlit_context_visibility import (
+    ContextDisplayItem,
+    context_empty_message,
+    context_expander_label,
+)
 from creative_coding_assistant.clients.streamlit_helpers import (
     ChatHistoryEntry,
     RetrievalDisplayItem,
@@ -19,11 +24,14 @@ from creative_coding_assistant.clients.streamlit_helpers import (
 
 __all__ = [
     "ChatHistoryEntry",
+    "ContextDisplayItem",
     "RetrievalDisplayItem",
     "StreamRenderState",
     "assistant_history_entry",
     "build_chat_request",
     "build_provider_warning",
+    "context_empty_message",
+    "context_expander_label",
     "default_domain",
     "default_domain_selection",
     "default_mode",
