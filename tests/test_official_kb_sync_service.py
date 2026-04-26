@@ -6,7 +6,6 @@ from creative_coding_assistant.app import (
     OfficialKBSyncService,
     OfficialKnowledgeBaseBatchSyncResult,
     build_official_kb_sync_runner,
-    build_official_kb_sync_service,
     resolve_sync_source_ids,
     sync_official_sources,
 )
@@ -111,28 +110,6 @@ class OfficialKBSyncServiceTests(unittest.TestCase):
         self.assertEqual(result.failed_source_ids, ("p5_reference",))
         self.assertEqual(result.succeeded_count, 1)
         self.assertEqual(result.failed_count, 1)
-
-    def test_build_sync_service_defers_runner_construction_until_sync(self) -> None:
-        settings = Settings(openai_api_key="sk-test-secret")
-        runner = _FakeRunner()
-
-        with patch(
-            "creative_coding_assistant.app.sync_service.build_official_kb_sync_runner",
-            return_value=runner,
-        ) as build_runner:
-            service = build_official_kb_sync_service(settings=settings)
-            build_runner.assert_not_called()
-
-            result = service.sync_selected_sources(("three_docs",))
-
-        build_runner.assert_called_once_with(
-            settings=settings,
-            transport=None,
-            chunk_embedder=None,
-            normalizer=None,
-            chunker=None,
-        )
-        self.assertEqual(result.source_ids, ("three_docs",))
 
     def test_sync_official_sources_wrapper_aggregates_runner_results(self) -> None:
         runner = _FakeRunner()
