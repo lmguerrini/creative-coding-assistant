@@ -218,17 +218,20 @@ def domain_selection_summary(
     """Return a short, readable sidebar summary for selected domains."""
 
     if not domains:
-        return "Selected: none (unconstrained)"
+        return "No domain filter"
     if len(domains) == len(CreativeCodingDomain):
-        return f"Selected: all {len(domains)} domains"
+        return f"All {len(domains)} domains selected"
 
-    return f"Selected: {', '.join(_domain_display_name(domain) for domain in domains)}"
+    return (
+        f"{len(domains)} selected: "
+        f"{', '.join(_domain_display_name(domain) for domain in domains)}"
+    )
 
 
 def mode_selection_summary(mode: AssistantMode) -> str:
     """Return a short sidebar summary for the active primary mode."""
 
-    return f"Primary mode: {mode.value.replace('_', ' ')}"
+    return mode.value.replace("_", " ").title()
 
 
 def build_provider_warning(settings: Settings) -> str | None:

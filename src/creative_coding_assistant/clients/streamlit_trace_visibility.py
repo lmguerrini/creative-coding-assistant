@@ -48,10 +48,10 @@ def trace_visibility_summary(
     """Return a short sidebar summary for the active trace density setting."""
 
     if level is TraceVisibilityLevel.MINIMAL:
-        return "Trace view: minimal"
+        return "Retrieval only"
     if level is TraceVisibilityLevel.FULL:
-        return "Trace view: full"
-    return "Trace view: standard"
+        return "Full internal chain"
+    return "Context chain"
 
 
 def trace_sections_for_level(
@@ -71,4 +71,3 @@ def trace_sections_for_level(
             "generation_input",
         )
     return ("memory", "retrieval", "context")
-
