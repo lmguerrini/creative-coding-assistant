@@ -8,11 +8,14 @@ from uuid import uuid4
 from creative_coding_assistant.app import build_assistant_service
 from creative_coding_assistant.clients import (
     ChatHistoryEntry,
+    ContextDisplayItem,
     RetrievalDisplayItem,
     StreamRenderState,
     assistant_history_entry,
     build_chat_request,
     build_provider_warning,
+    context_empty_message,
+    context_expander_label,
     default_domain_selection,
     default_mode,
     reduce_stream_event,
@@ -101,9 +104,19 @@ def _render_history() -> None:
         entry = ChatHistoryEntry.model_validate(raw_entry)
         with st.chat_message(entry.role):
             st.markdown(entry.content)
+            _render_context_visibility(
+                kind="memory",
+                context_items=entry.memory_items,
+                context_state=entry.memory_state,
+            )
             _render_retrieval_context(
                 retrieval_items=entry.retrieval_items,
                 retrieval_state=entry.retrieval_state,
+            )
+            _render_context_visibility(
+                kind="context",
+                context_items=entry.context_items,
+                context_state=entry.context_state,
             )
 
 
@@ -132,7 +145,9 @@ def _run_chat_turn(
         status_placeholder = st.empty()
         answer_placeholder = st.empty()
         error_placeholder = st.empty()
+        memory_placeholder = st.empty()
         retrieval_placeholder = st.empty()
+        context_placeholder = st.empty()
         state = StreamRenderState()
 
         try:
@@ -149,10 +164,22 @@ def _run_chat_turn(
                 if state.error_message is not None:
                     error_placeholder.error(state.error_message)
 
+                _render_context_visibility(
+                    kind="memory",
+                    context_items=state.memory_items,
+                    context_state=state.memory_state,
+                    placeholder=memory_placeholder,
+                )
                 _render_retrieval_context(
                     retrieval_items=state.retrieval_items,
                     retrieval_state=state.retrieval_state,
                     placeholder=retrieval_placeholder,
+                )
+                _render_context_visibility(
+                    kind="context",
+                    context_items=state.context_items,
+                    context_state=state.context_state,
+                    placeholder=context_placeholder,
                 )
         except Exception:
             state = state.model_copy(
@@ -205,6 +232,51 @@ def _render_retrieval_context(
 
                 st.markdown(f"**{label}**")
                 st.caption(" | ".join(meta_parts))
+                st.markdown(item.snippet)
+
+
+def _render_context_visibility(
+    *,
+    kind: str,
+    context_items: tuple[ContextDisplayItem, ...],
+    context_state: str,
+    placeholder=None,
+) -> None:
+    import streamlit as st
+
+    if context_state == "unknown":
+        if placeholder is not None:
+            placeholder.empty()
+        return
+
+    container = placeholder.container() if placeholder is not None else st.container()
+    with container:
+        with st.expander(
+            context_expander_label(
+                kind=kind,
+                items=context_items,
+                visibility_state=context_state,
+            ),
+            expanded=False,
+        ):
+            empty_message = context_empty_message(
+                kind=kind,
+                visibility_state=context_state,
+            )
+            if empty_message is not None:
+                st.caption(empty_message)
+                return
+
+            for item in context_items:
+                meta_parts = []
+                if item.source_id is not None:
+                    meta_parts.append(item.source_id)
+                if item.domain is not None:
+                    meta_parts.append(_format_domain(item.domain))
+
+                st.markdown(f"**{item.label}**")
+                if meta_parts:
+                    st.caption(" | ".join(meta_parts))
                 st.markdown(item.snippet)
 
 
