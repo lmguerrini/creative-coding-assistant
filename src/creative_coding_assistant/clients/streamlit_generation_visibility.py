@@ -54,7 +54,7 @@ def generation_input_expander_label(
     visibility_state: VisibilityState,
     summary: GenerationInputVisibilitySummary | None,
 ) -> str:
-    title = "Generation input summary"
+    title = "Generation input"
     if visibility_state == "available" and summary is not None:
         count = summary.message_count
         suffix = "s" if count != 1 else ""
@@ -69,7 +69,7 @@ def generation_input_empty_message(
     if visibility_state == "unknown":
         return None
     if visibility_state == "empty":
-        return "No generation input summary was available for this response."
+        return "No generation input was available for this response."
     return None
 
 

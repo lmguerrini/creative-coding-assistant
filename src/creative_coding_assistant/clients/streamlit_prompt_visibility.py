@@ -73,11 +73,7 @@ def prompt_visibility_expander_label(
     visibility_state: VisibilityState,
     summary: PromptVisibilitySummary | None,
 ) -> str:
-    title = (
-        "Prompt input summary"
-        if kind == "prompt_input"
-        else "Rendered prompt summary"
-    )
+    title = "Prompt inputs" if kind == "prompt_input" else "Rendered prompt"
     if visibility_state == "available" and summary is not None:
         count = len(summary.items)
         suffix = "s" if count != 1 else ""
@@ -94,8 +90,8 @@ def prompt_visibility_empty_message(
         return None
     if visibility_state == "empty":
         if kind == "prompt_input":
-            return "No prompt input summary was available for this response."
-        return "No rendered prompt summary was available for this response."
+            return "No prompt inputs were available for this response."
+        return "No rendered prompt was available for this response."
     return None
 
 

@@ -172,6 +172,25 @@ def resolve_request_domains(
     return tuple(dict.fromkeys(domains))
 
 
+def domain_selection_summary(
+    domains: Sequence[CreativeCodingDomain],
+) -> str:
+    """Return a short, readable sidebar summary for selected domains."""
+
+    if not domains:
+        return "Selected: none (unconstrained)"
+    if len(domains) == len(CreativeCodingDomain):
+        return f"Selected: all {len(domains)} domains"
+
+    return f"Selected: {', '.join(_domain_display_name(domain) for domain in domains)}"
+
+
+def mode_selection_summary(mode: AssistantMode) -> str:
+    """Return a short sidebar summary for the active primary mode."""
+
+    return f"Primary mode: {mode.value.replace('_', ' ')}"
+
+
 def build_provider_warning(settings: Settings) -> str | None:
     """Return a user-safe generation readiness warning when needed."""
 
@@ -261,8 +280,8 @@ def retrieval_expander_label(
     if retrieval_state == "available":
         count = len(retrieval_items)
         suffix = "s" if count != 1 else ""
-        return f"Retrieved context ({count} chunk{suffix})"
-    return "Retrieved context"
+        return f"Retrieval context ({count} chunk{suffix})"
+    return "Retrieval context"
 
 
 def retrieval_empty_message(
@@ -280,6 +299,16 @@ def _coerce_enum(*, enum_cls: type, raw_value: str, fallback: object) -> object:
         return enum_cls(str(raw_value).strip())
     except ValueError:
         return fallback
+
+
+def _domain_display_name(domain: CreativeCodingDomain) -> str:
+    if domain is CreativeCodingDomain.THREE_JS:
+        return "Three.js"
+    if domain is CreativeCodingDomain.REACT_THREE_FIBER:
+        return "React Three Fiber"
+    if domain is CreativeCodingDomain.P5_JS:
+        return "p5.js"
+    return "GLSL"
 
 
 def _payload_text(event: StreamEvent, *, key: str) -> str | None:
