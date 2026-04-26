@@ -39,6 +39,13 @@ from creative_coding_assistant.clients.streamlit_prompt_visibility import (
     prompt_visibility_expander_label,
     prompt_visibility_meta,
 )
+from creative_coding_assistant.clients.streamlit_trace_visibility import (
+    TraceVisibilityLevel,
+    default_trace_visibility,
+    resolve_session_trace_visibility,
+    trace_sections_for_level,
+    trace_visibility_summary,
+)
 
 __all__ = [
     "ChatHistoryEntry",
@@ -49,6 +56,7 @@ __all__ = [
     "PromptVisibilitySummary",
     "RetrievalDisplayItem",
     "StreamRenderState",
+    "TraceVisibilityLevel",
     "assistant_history_entry",
     "build_chat_request",
     "build_provider_warning",
@@ -57,6 +65,7 @@ __all__ = [
     "default_domain",
     "default_domain_selection",
     "default_mode",
+    "default_trace_visibility",
     "domain_selection_summary",
     "mode_selection_summary",
     "prompt_visibility_empty_message",
@@ -68,8 +77,11 @@ __all__ = [
     "reduce_stream_event",
     "resolve_session_domain_selection",
     "resolve_session_mode",
+    "resolve_session_trace_visibility",
     "retrieval_empty_message",
     "retrieval_expander_label",
     "resolve_request_domain",
     "resolve_request_domains",
+    "trace_sections_for_level",
+    "trace_visibility_summary",
 ]
