@@ -12,6 +12,11 @@ from creative_coding_assistant.clients.streamlit_context_visibility import (
     context_updates_from_event,
     memory_updates_from_event,
 )
+from creative_coding_assistant.clients.streamlit_prompt_visibility import (
+    PromptVisibilitySummary,
+    prompt_input_updates_from_event,
+    rendered_prompt_updates_from_event,
+)
 from creative_coding_assistant.contracts import (
     AssistantMode,
     AssistantRequest,
@@ -47,6 +52,10 @@ class ChatHistoryEntry(BaseModel):
     retrieval_state: Literal["unknown", "empty", "available"] = "unknown"
     context_items: tuple[ContextDisplayItem, ...] = Field(default_factory=tuple)
     context_state: Literal["unknown", "empty", "available"] = "unknown"
+    prompt_input_summary: PromptVisibilitySummary | None = None
+    prompt_input_state: Literal["unknown", "empty", "available"] = "unknown"
+    rendered_prompt_summary: PromptVisibilitySummary | None = None
+    rendered_prompt_state: Literal["unknown", "empty", "available"] = "unknown"
 
 
 class RetrievalDisplayItem(BaseModel):
@@ -77,6 +86,10 @@ class StreamRenderState(BaseModel):
     retrieval_state: Literal["unknown", "empty", "available"] = "unknown"
     context_items: tuple[ContextDisplayItem, ...] = Field(default_factory=tuple)
     context_state: Literal["unknown", "empty", "available"] = "unknown"
+    prompt_input_summary: PromptVisibilitySummary | None = None
+    prompt_input_state: Literal["unknown", "empty", "available"] = "unknown"
+    rendered_prompt_summary: PromptVisibilitySummary | None = None
+    rendered_prompt_state: Literal["unknown", "empty", "available"] = "unknown"
 
     @property
     def answer_text(self) -> str:
@@ -179,6 +192,10 @@ def reduce_stream_event(
             updates.update(_retrieval_updates(event))
         if event.event_type is StreamEventType.CONTEXT:
             updates.update(context_updates_from_event(event))
+        if event.event_type is StreamEventType.PROMPT_INPUT:
+            updates.update(prompt_input_updates_from_event(event))
+        if event.event_type is StreamEventType.PROMPT_RENDERED:
+            updates.update(rendered_prompt_updates_from_event(event))
         if not updates:
             return state
         return state.model_copy(update=updates)
@@ -217,6 +234,10 @@ def assistant_history_entry(state: StreamRenderState) -> ChatHistoryEntry:
         retrieval_state=state.retrieval_state,
         context_items=state.context_items,
         context_state=state.context_state,
+        prompt_input_summary=state.prompt_input_summary,
+        prompt_input_state=state.prompt_input_state,
+        rendered_prompt_summary=state.rendered_prompt_summary,
+        rendered_prompt_state=state.rendered_prompt_state,
     )
 
 

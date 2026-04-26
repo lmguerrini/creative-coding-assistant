@@ -21,10 +21,19 @@ from creative_coding_assistant.clients.streamlit_helpers import (
     retrieval_empty_message,
     retrieval_expander_label,
 )
+from creative_coding_assistant.clients.streamlit_prompt_visibility import (
+    PromptDisplayItem,
+    PromptVisibilitySummary,
+    prompt_visibility_empty_message,
+    prompt_visibility_expander_label,
+    prompt_visibility_meta,
+)
 
 __all__ = [
     "ChatHistoryEntry",
     "ContextDisplayItem",
+    "PromptDisplayItem",
+    "PromptVisibilitySummary",
     "RetrievalDisplayItem",
     "StreamRenderState",
     "assistant_history_entry",
@@ -35,6 +44,9 @@ __all__ = [
     "default_domain",
     "default_domain_selection",
     "default_mode",
+    "prompt_visibility_empty_message",
+    "prompt_visibility_expander_label",
+    "prompt_visibility_meta",
     "reduce_stream_event",
     "retrieval_empty_message",
     "retrieval_expander_label",
