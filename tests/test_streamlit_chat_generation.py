@@ -15,6 +15,8 @@ from creative_coding_assistant.clients import (
     reduce_stream_event,
     resolve_request_domain,
     resolve_request_domains,
+    resolve_session_domain_selection,
+    resolve_session_mode,
     retrieval_empty_message,
     retrieval_expander_label,
 )
@@ -88,6 +90,54 @@ class StreamlitChatGenerationTests(unittest.TestCase):
         self.assertEqual(
             default_domain_selection(),
             tuple(CreativeCodingDomain),
+        )
+
+    def test_resolve_session_domain_selection_defaults_to_all_domains(self) -> None:
+        self.assertEqual(
+            resolve_session_domain_selection(None),
+            tuple(CreativeCodingDomain),
+        )
+
+    def test_resolve_session_domain_selection_preserves_empty_selection(self) -> None:
+        self.assertEqual(resolve_session_domain_selection(()), ())
+
+    def test_resolve_session_domain_selection_filters_invalid_values(self) -> None:
+        self.assertEqual(
+            resolve_session_domain_selection(
+                (
+                    CreativeCodingDomain.GLSL,
+                    "invalid_domain",
+                    "three_js",
+                )
+            ),
+            (
+                CreativeCodingDomain.GLSL,
+                CreativeCodingDomain.THREE_JS,
+            ),
+        )
+
+    def test_resolve_session_domain_selection_falls_back_when_all_are_invalid(
+        self,
+    ) -> None:
+        self.assertEqual(
+            resolve_session_domain_selection(("invalid_domain", "still_invalid")),
+            tuple(CreativeCodingDomain),
+        )
+
+    def test_resolve_session_mode_defaults_and_falls_back_safely(self) -> None:
+        settings = Settings(default_mode=AssistantMode.DEBUG)
+
+        self.assertEqual(
+            resolve_session_mode(None, settings=settings),
+            AssistantMode.DEBUG,
+        )
+        self.assertEqual(
+            resolve_session_mode("explain", settings=settings),
+            AssistantMode.EXPLAIN,
+        )
+        self.assertEqual(
+            resolve_session_mode("invalid_mode", settings=settings),
+            AssistantMode.DEBUG,
         )
 
     def test_sidebar_selection_summaries_are_readable(self) -> None:
