@@ -9,6 +9,7 @@ from creative_coding_assistant.app import build_assistant_service
 from creative_coding_assistant.clients import (
     ChatHistoryEntry,
     ContextDisplayItem,
+    PromptVisibilitySummary,
     RetrievalDisplayItem,
     StreamRenderState,
     assistant_history_entry,
@@ -18,6 +19,9 @@ from creative_coding_assistant.clients import (
     context_expander_label,
     default_domain_selection,
     default_mode,
+    prompt_visibility_empty_message,
+    prompt_visibility_expander_label,
+    prompt_visibility_meta,
     reduce_stream_event,
     retrieval_empty_message,
     retrieval_expander_label,
@@ -118,6 +122,16 @@ def _render_history() -> None:
                 context_items=entry.context_items,
                 context_state=entry.context_state,
             )
+            _render_prompt_visibility(
+                kind="prompt_input",
+                summary=entry.prompt_input_summary,
+                visibility_state=entry.prompt_input_state,
+            )
+            _render_prompt_visibility(
+                kind="rendered_prompt",
+                summary=entry.rendered_prompt_summary,
+                visibility_state=entry.rendered_prompt_state,
+            )
 
 
 def _run_chat_turn(
@@ -148,6 +162,8 @@ def _run_chat_turn(
         memory_placeholder = st.empty()
         retrieval_placeholder = st.empty()
         context_placeholder = st.empty()
+        prompt_input_placeholder = st.empty()
+        rendered_prompt_placeholder = st.empty()
         state = StreamRenderState()
 
         try:
@@ -180,6 +196,18 @@ def _run_chat_turn(
                     context_items=state.context_items,
                     context_state=state.context_state,
                     placeholder=context_placeholder,
+                )
+                _render_prompt_visibility(
+                    kind="prompt_input",
+                    summary=state.prompt_input_summary,
+                    visibility_state=state.prompt_input_state,
+                    placeholder=prompt_input_placeholder,
+                )
+                _render_prompt_visibility(
+                    kind="rendered_prompt",
+                    summary=state.rendered_prompt_summary,
+                    visibility_state=state.rendered_prompt_state,
+                    placeholder=rendered_prompt_placeholder,
                 )
         except Exception:
             state = state.model_copy(
@@ -268,6 +296,56 @@ def _render_context_visibility(
                 return
 
             for item in context_items:
+                meta_parts = []
+                if item.source_id is not None:
+                    meta_parts.append(item.source_id)
+                if item.domain is not None:
+                    meta_parts.append(_format_domain(item.domain))
+
+                st.markdown(f"**{item.label}**")
+                if meta_parts:
+                    st.caption(" | ".join(meta_parts))
+                st.markdown(item.snippet)
+
+
+def _render_prompt_visibility(
+    *,
+    kind: str,
+    summary: PromptVisibilitySummary | None,
+    visibility_state: str,
+    placeholder=None,
+) -> None:
+    import streamlit as st
+
+    if visibility_state == "unknown":
+        if placeholder is not None:
+            placeholder.empty()
+        return
+
+    container = placeholder.container() if placeholder is not None else st.container()
+    with container:
+        with st.expander(
+            prompt_visibility_expander_label(
+                kind=kind,
+                visibility_state=visibility_state,
+                summary=summary,
+            ),
+            expanded=False,
+        ):
+            empty_message = prompt_visibility_empty_message(
+                kind=kind,
+                visibility_state=visibility_state,
+            )
+            if empty_message is not None:
+                st.caption(empty_message)
+                return
+
+            meta = prompt_visibility_meta(summary)
+            if meta is not None:
+                st.caption(meta)
+
+            assert summary is not None
+            for item in summary.items:
                 meta_parts = []
                 if item.source_id is not None:
                     meta_parts.append(item.source_id)
