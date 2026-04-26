@@ -36,6 +36,21 @@ class ChatHistoryEntry(BaseModel):
 
     role: Literal["user", "assistant"]
     content: str = Field(min_length=1)
+    retrieval_items: tuple[RetrievalDisplayItem, ...] = Field(default_factory=tuple)
+    retrieval_state: Literal["unknown", "empty", "available"] = "unknown"
+
+
+class RetrievalDisplayItem(BaseModel):
+    """Small retrieval payload shape safe to render in the Streamlit UI."""
+
+    model_config = ConfigDict(frozen=True)
+
+    source_id: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    domain: CreativeCodingDomain
+    score: float | None = Field(default=None, ge=0, le=1)
+    distance: float | None = Field(default=None, ge=0)
+    snippet: str = Field(min_length=1)
 
 
 class StreamRenderState(BaseModel):
@@ -47,6 +62,8 @@ class StreamRenderState(BaseModel):
     streamed_text: str = ""
     final_answer: str | None = None
     error_message: str | None = None
+    retrieval_items: tuple[RetrievalDisplayItem, ...] = Field(default_factory=tuple)
+    retrieval_state: Literal["unknown", "empty", "available"] = "unknown"
 
     @property
     def answer_text(self) -> str:
@@ -140,9 +157,14 @@ def reduce_stream_event(
 
     if event.event_type in _STATUS_EVENT_TYPES:
         message = _payload_text(event, key="message")
-        if message is None:
+        updates: dict[str, object] = {}
+        if message is not None:
+            updates["status_message"] = message
+        if event.event_type is StreamEventType.RETRIEVAL:
+            updates.update(_retrieval_updates(event))
+        if not updates:
             return state
-        return state.model_copy(update={"status_message": message})
+        return state.model_copy(update=updates)
 
     if event.event_type is StreamEventType.TOKEN_DELTA:
         delta = _payload_text(event, key="text") or ""
@@ -169,7 +191,34 @@ def assistant_history_entry(state: StreamRenderState) -> ChatHistoryEntry:
     content = state.final_answer or state.streamed_text or state.error_message
     if not content:
         content = "No response was generated."
-    return ChatHistoryEntry(role="assistant", content=content)
+    return ChatHistoryEntry(
+        role="assistant",
+        content=content,
+        retrieval_items=state.retrieval_items,
+        retrieval_state=state.retrieval_state,
+    )
+
+
+def retrieval_expander_label(
+    retrieval_items: Sequence[RetrievalDisplayItem],
+    *,
+    retrieval_state: Literal["unknown", "empty", "available"],
+) -> str:
+    if retrieval_state == "available":
+        count = len(retrieval_items)
+        suffix = "s" if count != 1 else ""
+        return f"Retrieved context ({count} chunk{suffix})"
+    return "Retrieved context"
+
+
+def retrieval_empty_message(
+    retrieval_state: Literal["unknown", "empty", "available"],
+) -> str | None:
+    if retrieval_state == "empty":
+        return "No retrieval context was found for this response."
+    if retrieval_state == "unknown":
+        return None
+    return None
 
 
 def _coerce_enum(*, enum_cls: type, raw_value: str, fallback: object) -> object:
@@ -185,3 +234,80 @@ def _payload_text(event: StreamEvent, *, key: str) -> str | None:
         return None
     text = str(value)
     return text or None
+
+
+def _retrieval_updates(event: StreamEvent) -> dict[str, object]:
+    if event.payload.get("code") != "retrieval_completed":
+        return {}
+
+    raw_context = event.payload.get("context")
+    if not isinstance(raw_context, dict):
+        return {"retrieval_items": (), "retrieval_state": "empty"}
+
+    raw_chunks = raw_context.get("chunks")
+    if not isinstance(raw_chunks, list) or not raw_chunks:
+        return {"retrieval_items": (), "retrieval_state": "empty"}
+
+    retrieval_items = tuple(
+        item
+        for item in (
+            _build_retrieval_item(raw_chunk)
+            for raw_chunk in raw_chunks
+            if isinstance(raw_chunk, dict)
+        )
+        if item is not None
+    )
+    if not retrieval_items:
+        return {"retrieval_items": (), "retrieval_state": "empty"}
+    return {
+        "retrieval_items": retrieval_items,
+        "retrieval_state": "available",
+    }
+
+
+def _build_retrieval_item(raw_chunk: dict[str, object]) -> RetrievalDisplayItem | None:
+    source_id = _clean_text(raw_chunk.get("source_id"))
+    title = (
+        _clean_text(raw_chunk.get("document_title"))
+        or _clean_text(raw_chunk.get("registry_title"))
+        or source_id
+    )
+    domain_value = _clean_text(raw_chunk.get("domain"))
+    excerpt = _clean_text(raw_chunk.get("excerpt"))
+    if source_id is None or title is None or domain_value is None or excerpt is None:
+        return None
+
+    try:
+        domain = CreativeCodingDomain(domain_value)
+    except ValueError:
+        return None
+
+    return RetrievalDisplayItem(
+        source_id=source_id,
+        title=title,
+        domain=domain,
+        score=_coerce_float(raw_chunk.get("score")),
+        distance=_coerce_float(raw_chunk.get("distance")),
+        snippet=_truncate_preview(excerpt),
+    )
+
+
+def _clean_text(value: object) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def _coerce_float(value: object) -> float | None:
+    if value is None:
+        return None
+    return float(value)
+
+
+def _truncate_preview(text: str, *, limit: int = 180) -> str:
+    compact_text = " ".join(text.split())
+    if len(compact_text) <= limit:
+        return compact_text
+    truncated = compact_text[: limit - 3].rstrip()
+    return f"{truncated}..."
