@@ -8,6 +8,7 @@ from uuid import uuid4
 from creative_coding_assistant.app import build_assistant_service
 from creative_coding_assistant.clients import (
     ChatHistoryEntry,
+    RetrievalDisplayItem,
     StreamRenderState,
     assistant_history_entry,
     build_chat_request,
@@ -15,6 +16,8 @@ from creative_coding_assistant.clients import (
     default_domain_selection,
     default_mode,
     reduce_stream_event,
+    retrieval_empty_message,
+    retrieval_expander_label,
 )
 from creative_coding_assistant.contracts import AssistantMode, CreativeCodingDomain
 from creative_coding_assistant.core import load_settings
@@ -98,6 +101,10 @@ def _render_history() -> None:
         entry = ChatHistoryEntry.model_validate(raw_entry)
         with st.chat_message(entry.role):
             st.markdown(entry.content)
+            _render_retrieval_context(
+                retrieval_items=entry.retrieval_items,
+                retrieval_state=entry.retrieval_state,
+            )
 
 
 def _run_chat_turn(
@@ -125,6 +132,7 @@ def _run_chat_turn(
         status_placeholder = st.empty()
         answer_placeholder = st.empty()
         error_placeholder = st.empty()
+        retrieval_placeholder = st.empty()
         state = StreamRenderState()
 
         try:
@@ -140,6 +148,12 @@ def _run_chat_turn(
 
                 if state.error_message is not None:
                     error_placeholder.error(state.error_message)
+
+                _render_retrieval_context(
+                    retrieval_items=state.retrieval_items,
+                    retrieval_state=state.retrieval_state,
+                    placeholder=retrieval_placeholder,
+                )
         except Exception:
             state = state.model_copy(
                 update={"error_message": "Assistant request failed unexpectedly."}
@@ -152,6 +166,46 @@ def _run_chat_turn(
         st.session_state[_CHAT_HISTORY_KEY].append(
             assistant_entry.model_dump(mode="json")
         )
+
+
+def _render_retrieval_context(
+    *,
+    retrieval_items: tuple[RetrievalDisplayItem, ...],
+    retrieval_state: str,
+    placeholder=None,
+) -> None:
+    import streamlit as st
+
+    if retrieval_state == "unknown":
+        if placeholder is not None:
+            placeholder.empty()
+        return
+
+    container = placeholder.container() if placeholder is not None else st.container()
+    with container:
+        with st.expander(
+            retrieval_expander_label(
+                retrieval_items,
+                retrieval_state=retrieval_state,
+            ),
+            expanded=False,
+        ):
+            empty_message = retrieval_empty_message(retrieval_state)
+            if empty_message is not None:
+                st.caption(empty_message)
+                return
+
+            for item in retrieval_items:
+                label = item.title
+                meta_parts = [item.source_id, _format_domain(item.domain)]
+                if item.score is not None:
+                    meta_parts.append(f"score {item.score:.3f}")
+                elif item.distance is not None:
+                    meta_parts.append(f"distance {item.distance:.3f}")
+
+                st.markdown(f"**{label}**")
+                st.caption(" | ".join(meta_parts))
+                st.markdown(item.snippet)
 
 
 def _ensure_session_state() -> None:
