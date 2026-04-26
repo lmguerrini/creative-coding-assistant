@@ -27,6 +27,8 @@ from creative_coding_assistant.clients.streamlit_helpers import (
     reduce_stream_event,
     resolve_request_domain,
     resolve_request_domains,
+    resolve_session_domain_selection,
+    resolve_session_mode,
     retrieval_empty_message,
     retrieval_expander_label,
 )
@@ -64,6 +66,8 @@ __all__ = [
     "generation_input_expander_label",
     "generation_input_meta",
     "reduce_stream_event",
+    "resolve_session_domain_selection",
+    "resolve_session_mode",
     "retrieval_empty_message",
     "retrieval_expander_label",
     "resolve_request_domain",

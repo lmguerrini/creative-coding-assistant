@@ -172,6 +172,46 @@ def resolve_request_domains(
     return tuple(dict.fromkeys(domains))
 
 
+def resolve_session_domain_selection(
+    domains: Sequence[object] | None,
+) -> tuple[CreativeCodingDomain, ...]:
+    """Resolve stored UI domain selections with safe fallback behavior."""
+
+    if domains is None:
+        return default_domain_selection()
+    if not domains:
+        return ()
+
+    resolved_domains = tuple(
+        dict.fromkeys(
+            domain
+            for domain in (_coerce_domain(value) for value in domains)
+            if domain is not None
+        )
+    )
+    if resolved_domains:
+        return resolved_domains
+    return default_domain_selection()
+
+
+def resolve_session_mode(
+    mode: object | None,
+    *,
+    settings: Settings,
+) -> AssistantMode:
+    """Resolve a stored UI mode selection with safe fallback behavior."""
+
+    if isinstance(mode, AssistantMode):
+        return mode
+    if mode is None:
+        return default_mode(settings)
+    return _coerce_enum(
+        enum_cls=AssistantMode,
+        raw_value=str(mode),
+        fallback=default_mode(settings),
+    )
+
+
 def domain_selection_summary(
     domains: Sequence[CreativeCodingDomain],
 ) -> str:
@@ -309,6 +349,17 @@ def _domain_display_name(domain: CreativeCodingDomain) -> str:
     if domain is CreativeCodingDomain.P5_JS:
         return "p5.js"
     return "GLSL"
+
+
+def _coerce_domain(value: object) -> CreativeCodingDomain | None:
+    if isinstance(value, CreativeCodingDomain):
+        return value
+    if value is None:
+        return None
+    try:
+        return CreativeCodingDomain(str(value).strip())
+    except ValueError:
+        return None
 
 
 def _payload_text(event: StreamEvent, *, key: str) -> str | None:
