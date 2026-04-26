@@ -2,6 +2,7 @@ import unittest
 
 from creative_coding_assistant.clients import (
     ChatHistoryEntry,
+    RetrievalDisplayItem,
     StreamRenderState,
     assistant_history_entry,
     build_chat_request,
@@ -12,6 +13,8 @@ from creative_coding_assistant.clients import (
     reduce_stream_event,
     resolve_request_domain,
     resolve_request_domains,
+    retrieval_empty_message,
+    retrieval_expander_label,
 )
 from creative_coding_assistant.contracts import (
     AssistantMode,
@@ -201,6 +204,68 @@ class StreamlitChatGenerationTests(unittest.TestCase):
 
         self.assertEqual(state.error_message, "Provider request failed.")
 
+    def test_reduce_stream_event_extracts_retrieval_visibility(self) -> None:
+        state = reduce_stream_event(
+            StreamRenderState(),
+            StreamEvent(
+                event_type=StreamEventType.RETRIEVAL,
+                sequence=5,
+                payload={
+                    "code": "retrieval_completed",
+                    "message": "Retrieval context prepared.",
+                    "context": {
+                        "chunks": [
+                            {
+                                "source_id": "three_docs",
+                                "domain": "three_js",
+                                "registry_title": "three.js Documentation",
+                                "document_title": "PerspectiveCamera",
+                                "excerpt": (
+                                    "PerspectiveCamera defines a viewing frustum "
+                                    "that is widely used for scene rendering."
+                                ),
+                                "score": 0.82,
+                            }
+                        ]
+                    },
+                },
+            ),
+        )
+
+        self.assertEqual(state.retrieval_state, "available")
+        self.assertEqual(
+            state.retrieval_items,
+            (
+                RetrievalDisplayItem(
+                    source_id="three_docs",
+                    title="PerspectiveCamera",
+                    domain=CreativeCodingDomain.THREE_JS,
+                    score=0.82,
+                    snippet=(
+                        "PerspectiveCamera defines a viewing frustum that is "
+                        "widely used for scene rendering."
+                    ),
+                ),
+            ),
+        )
+
+    def test_reduce_stream_event_marks_empty_retrieval_context(self) -> None:
+        state = reduce_stream_event(
+            StreamRenderState(),
+            StreamEvent(
+                event_type=StreamEventType.RETRIEVAL,
+                sequence=6,
+                payload={
+                    "code": "retrieval_completed",
+                    "message": "Retrieval context prepared.",
+                    "context": {"chunks": []},
+                },
+            ),
+        )
+
+        self.assertEqual(state.retrieval_state, "empty")
+        self.assertEqual(state.retrieval_items, ())
+
     def test_assistant_history_entry_prefers_final_answer(self) -> None:
         state = StreamRenderState(
             streamed_text="Partial answer",
@@ -214,6 +279,47 @@ class StreamlitChatGenerationTests(unittest.TestCase):
             entry,
             ChatHistoryEntry(role="assistant", content="Final answer"),
         )
+
+    def test_assistant_history_entry_preserves_retrieval_visibility(self) -> None:
+        state = StreamRenderState(
+            final_answer="Final answer",
+            retrieval_state="available",
+            retrieval_items=(
+                RetrievalDisplayItem(
+                    source_id="three_docs",
+                    title="PerspectiveCamera",
+                    domain=CreativeCodingDomain.THREE_JS,
+                    score=0.82,
+                    snippet="Camera setup details.",
+                ),
+            ),
+        )
+
+        entry = assistant_history_entry(state)
+
+        self.assertEqual(entry.retrieval_state, "available")
+        self.assertEqual(len(entry.retrieval_items), 1)
+
+    def test_retrieval_expander_helpers_handle_empty_and_available_states(self) -> None:
+        label = retrieval_expander_label(
+            (
+                RetrievalDisplayItem(
+                    source_id="three_docs",
+                    title="PerspectiveCamera",
+                    domain=CreativeCodingDomain.THREE_JS,
+                    score=0.82,
+                    snippet="Camera setup details.",
+                ),
+            ),
+            retrieval_state="available",
+        )
+
+        self.assertEqual(label, "Retrieved context (1 chunk)")
+        self.assertEqual(
+            retrieval_empty_message("empty"),
+            "No retrieval context was found for this response.",
+        )
+        self.assertIsNone(retrieval_empty_message("unknown"))
 
     def test_assistant_history_entry_falls_back_to_error(self) -> None:
         entry = assistant_history_entry(
