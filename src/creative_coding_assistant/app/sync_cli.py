@@ -8,7 +8,7 @@ from collections.abc import Sequence
 from loguru import logger
 
 from creative_coding_assistant.app.sync import SyncFailureMode
-from creative_coding_assistant.app.sync_service import build_official_kb_sync_service
+from creative_coding_assistant.app.sync_bootstrap import build_official_kb_sync_service
 from creative_coding_assistant.core import load_settings
 from creative_coding_assistant.core.logging import configure_logging
 
