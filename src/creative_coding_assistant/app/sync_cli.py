@@ -7,7 +7,8 @@ from collections.abc import Sequence
 
 from loguru import logger
 
-from creative_coding_assistant.app.sync import SyncFailureMode, sync_official_sources
+from creative_coding_assistant.app.sync import SyncFailureMode
+from creative_coding_assistant.app.sync_service import build_official_kb_sync_service
 from creative_coding_assistant.core import load_settings
 from creative_coding_assistant.core.logging import configure_logging
 
@@ -51,14 +52,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     configure_logging(settings.log_level)
 
     try:
-        result = sync_official_sources(
-            source_ids=None if args.all else args.source_ids,
+        service = build_official_kb_sync_service(
             settings=settings,
             failure_mode=(
                 SyncFailureMode.CONTINUE
                 if args.continue_on_error
                 else SyncFailureMode.FAIL_FAST
             ),
+        )
+        result = (
+            service.sync_all_sources()
+            if args.all or not args.source_ids
+            else service.sync_selected_sources(args.source_ids)
         )
     except (RuntimeError, ValueError) as exc:
         logger.error(str(exc))
