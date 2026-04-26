@@ -60,15 +60,15 @@ class StreamlitTraceVisibilityTests(unittest.TestCase):
     def test_trace_visibility_summary_is_readable(self) -> None:
         self.assertEqual(
             trace_visibility_summary(TraceVisibilityLevel.MINIMAL),
-            "Trace view: minimal",
+            "Retrieval only",
         )
         self.assertEqual(
             trace_visibility_summary(TraceVisibilityLevel.STANDARD),
-            "Trace view: standard",
+            "Context chain",
         )
         self.assertEqual(
             trace_visibility_summary(TraceVisibilityLevel.FULL),
-            "Trace view: full",
+            "Full internal chain",
         )
 
 

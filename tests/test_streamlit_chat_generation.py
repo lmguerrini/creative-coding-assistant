@@ -143,7 +143,7 @@ class StreamlitChatGenerationTests(unittest.TestCase):
     def test_sidebar_selection_summaries_are_readable(self) -> None:
         self.assertEqual(
             domain_selection_summary(tuple(CreativeCodingDomain)),
-            "Selected: all 4 domains",
+            "All 4 domains selected",
         )
         self.assertEqual(
             domain_selection_summary(
@@ -152,15 +152,15 @@ class StreamlitChatGenerationTests(unittest.TestCase):
                     CreativeCodingDomain.GLSL,
                 )
             ),
-            "Selected: React Three Fiber, GLSL",
+            "2 selected: React Three Fiber, GLSL",
         )
         self.assertEqual(
             domain_selection_summary(()),
-            "Selected: none (unconstrained)",
+            "No domain filter",
         )
         self.assertEqual(
             mode_selection_summary(AssistantMode.EXPLAIN),
-            "Primary mode: explain",
+            "Explain",
         )
 
     def test_resolve_request_domain_returns_none_for_multiple_domains(self) -> None:
