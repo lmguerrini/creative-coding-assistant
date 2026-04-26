@@ -6,7 +6,6 @@ import json
 from collections.abc import Sequence
 from enum import StrEnum
 
-from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.core import Settings, load_settings
@@ -25,7 +24,6 @@ from creative_coding_assistant.rag.sync import (
     SourceTransport,
     UrllibSourceTransport,
     build_chunk_embedder,
-    default_sync_request,
 )
 from creative_coding_assistant.vectorstore import (
     create_chroma_client,
@@ -129,48 +127,18 @@ def sync_official_sources(
 ) -> OfficialKnowledgeBaseBatchSyncResult:
     """Run the official KB sync pipeline for approved sources."""
 
-    resolved_source_ids = resolve_sync_source_ids(source_ids)
-    resolved_runner = (
-        runner
-        if runner is not None
-        else build_official_kb_sync_runner(
-            settings=settings,
-            transport=transport,
-            chunk_embedder=chunk_embedder,
-        )
+    from creative_coding_assistant.app.sync_service import (
+        build_official_kb_sync_service,
     )
 
-    results: list[OfficialKnowledgeBaseSyncResult] = []
-    failed_source_ids: list[str] = []
-    for index, source_id in enumerate(resolved_source_ids, start=1):
-        logger.info(
-            "Syncing official KB source '{}' ({}/{})",
-            source_id,
-            index,
-            len(resolved_source_ids),
-        )
-        try:
-            results.append(resolved_runner.run(default_sync_request(source_id)))
-        except Exception:
-            if failure_mode is SyncFailureMode.FAIL_FAST:
-                raise
-            logger.exception("Official KB sync failed for source '{}'", source_id)
-            failed_source_ids.append(source_id)
+    service = build_official_kb_sync_service(
+        settings=settings,
+        transport=transport,
+        chunk_embedder=chunk_embedder,
+        failure_mode=failure_mode,
+        runner=runner,
+    )
 
-    batch_result = OfficialKnowledgeBaseBatchSyncResult(
-        source_ids=resolved_source_ids,
-        results=tuple(results),
-        failed_source_ids=tuple(failed_source_ids),
-        total_chunks=sum(len(result.chunks) for result in results),
-        total_records=sum(len(result.record_ids) for result in results),
-    )
-    logger.info(
-        "Completed official KB sync for {} source(s), {} success, {} failed, "
-        "{} chunk(s), {} record(s)",
-        len(batch_result.source_ids),
-        batch_result.succeeded_count,
-        batch_result.failed_count,
-        batch_result.total_chunks,
-        batch_result.total_records,
-    )
-    return batch_result
+    if source_ids:
+        return service.sync_selected_sources(source_ids)
+    return service.sync_all_sources()
