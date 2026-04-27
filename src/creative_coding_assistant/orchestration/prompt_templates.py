@@ -23,8 +23,10 @@ Domain: unspecified
 Use the provided context sections as working context. Keep responses grounded in
 the structured inputs that follow.
 When you provide code, place each runnable snippet in a fenced code block with
-an explicit language tag such as ```html, ```javascript, ```glsl, or ```jsx.
-Keep explanation outside code fences.
+an explicit language tag such as ```html, ```javascript, ```jsx, ```glsl, or
+```python.
+Do not leave runnable code unfenced.
+Keep explanation, notes, and setup guidance outside code fences.
 """.strip()
 
 _USER_TEMPLATE = """
