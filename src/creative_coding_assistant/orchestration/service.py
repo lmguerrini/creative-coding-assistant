@@ -92,6 +92,20 @@ class AssistantService:
             for event in self._stream_events(request):
                 streamed_events.append(event)
                 yield event
+        except Exception as exc:
+            logger.bind(
+                mode=request.mode.value,
+                domain=request.domain.value if request.domain is not None else None,
+                domains=[domain.value for domain in request.domains],
+                conversation_id=request.conversation_id,
+                project_id=request.project_id,
+                error_type=type(exc).__name__,
+            ).exception(
+                "assistant_request_failed_unexpectedly: {}: {}",
+                type(exc).__name__,
+                exc,
+            )
+            raise
         finally:
             _record_live_session(
                 recorder=self._eval_recorder,
