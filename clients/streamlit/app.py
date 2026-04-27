@@ -14,6 +14,7 @@ from creative_coding_assistant.clients import (
     RetrievalDisplayItem,
     StreamRenderState,
     TraceVisibilityLevel,
+    answer_working_message,
     assistant_history_entry,
     build_chat_request,
     build_provider_warning,
@@ -33,6 +34,7 @@ from creative_coding_assistant.clients import (
     resolve_session_trace_visibility,
     retrieval_empty_message,
     retrieval_expander_label,
+    split_answer_segments,
     trace_sections_for_level,
     trace_visibility_summary,
 )
@@ -142,7 +144,10 @@ def _render_history(*, trace_visibility: TraceVisibilityLevel) -> None:
     for raw_entry in st.session_state[_CHAT_HISTORY_KEY]:
         entry = ChatHistoryEntry.model_validate(raw_entry)
         with st.chat_message(entry.role):
-            st.markdown(entry.content)
+            _render_answer_body(
+                text=entry.content,
+                streaming=False,
+            )
             _render_visibility_trace(
                 memory_items=entry.memory_items,
                 memory_state=entry.memory_state,
@@ -197,8 +202,12 @@ def _run_chat_turn(
                 else:
                     status_placeholder.empty()
 
-                if state.answer_text:
-                    answer_placeholder.markdown(state.answer_text)
+                _render_answer_area(
+                    placeholder=answer_placeholder,
+                    text=state.answer_text,
+                    status_message=state.status_message,
+                    streaming=state.final_answer is None,
+                )
 
                 if state.error_message is not None:
                     error_placeholder.error(state.error_message)
@@ -227,7 +236,12 @@ def _run_chat_turn(
 
         assistant_entry = assistant_history_entry(state)
         if assistant_entry.content and not state.answer_text:
-            answer_placeholder.markdown(assistant_entry.content)
+            _render_answer_area(
+                placeholder=answer_placeholder,
+                text=assistant_entry.content,
+                status_message=None,
+                streaming=False,
+            )
         st.session_state[_CHAT_HISTORY_KEY].append(
             assistant_entry.model_dump(mode="json")
         )
@@ -480,6 +494,57 @@ def _render_generation_input_visibility(
                 if item.role is not None:
                     st.caption(item.role)
                 st.markdown(item.snippet)
+
+
+def _render_answer_area(
+    *,
+    placeholder,
+    text: str,
+    status_message: str | None,
+    streaming: bool,
+) -> None:
+    import streamlit as st
+
+    placeholder.empty()
+    working_message = answer_working_message(
+        status_message=status_message,
+        has_content=bool(text),
+    )
+    if not text:
+        if working_message is not None:
+            placeholder.markdown(f"_{working_message}_")
+        return
+
+    with placeholder.container():
+        _render_answer_body(text=text, streaming=streaming)
+        if streaming and text:
+            st.caption("Response is still arriving.")
+
+
+def _render_answer_body(*, text: str, streaming: bool) -> None:
+    import streamlit as st
+
+    segments = split_answer_segments(
+        text,
+        allow_unclosed_code_block=streaming,
+    )
+    if not segments:
+        st.markdown(text)
+        return
+
+    for index, segment in enumerate(segments):
+        if segment.kind == "code":
+            st.code(
+                segment.content,
+                language=segment.language,
+            )
+            continue
+
+        prose = segment.content
+        is_last_segment = index == len(segments) - 1
+        if streaming and is_last_segment:
+            prose = f"{prose}\n\n▌"
+        st.markdown(prose)
 
 
 def _ensure_session_state(settings) -> None:
