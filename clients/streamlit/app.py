@@ -46,6 +46,10 @@ _CONVERSATION_ID_KEY = "conversation_id"
 _DOMAIN_SELECTION_KEY = "selected_domains"
 _MODE_SELECTION_KEY = "selected_mode"
 _TRACE_VISIBILITY_KEY = "trace_visibility"
+_ANSWER_PHASE_STATUSES = {
+    "Preparing response...",
+    "Receiving response...",
+}
 
 _DOMAIN_LABELS = {
     CreativeCodingDomain.THREE_JS: "Three.js",
@@ -197,7 +201,10 @@ def _run_chat_turn(
         try:
             for event in _get_assistant_service().stream(request):
                 state = reduce_stream_event(state, event)
-                if state.status_message is not None:
+                if (
+                    state.status_message is not None
+                    and state.status_message not in _ANSWER_PHASE_STATUSES
+                ):
                     status_placeholder.caption(state.status_message)
                 else:
                     status_placeholder.empty()
@@ -503,8 +510,6 @@ def _render_answer_area(
     status_message: str | None,
     streaming: bool,
 ) -> None:
-    import streamlit as st
-
     placeholder.empty()
     working_message = answer_working_message(
         status_message=status_message,
@@ -517,8 +522,6 @@ def _render_answer_area(
 
     with placeholder.container():
         _render_answer_body(text=text, streaming=streaming)
-        if streaming and text:
-            st.caption("Response is still arriving.")
 
 
 def _render_answer_body(*, text: str, streaming: bool) -> None:
@@ -532,7 +535,7 @@ def _render_answer_body(*, text: str, streaming: bool) -> None:
         st.markdown(text)
         return
 
-    for index, segment in enumerate(segments):
+    for segment in segments:
         if segment.kind == "code":
             st.code(
                 segment.content,
@@ -541,10 +544,10 @@ def _render_answer_body(*, text: str, streaming: bool) -> None:
             continue
 
         prose = segment.content
-        is_last_segment = index == len(segments) - 1
-        if streaming and is_last_segment:
-            prose = f"{prose}\n\n▌"
         st.markdown(prose)
+
+    if streaming:
+        st.markdown("▌")
 
 
 def _ensure_session_state(settings) -> None:

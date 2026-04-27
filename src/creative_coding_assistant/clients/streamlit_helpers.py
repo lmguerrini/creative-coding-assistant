@@ -268,7 +268,7 @@ def reduce_stream_event(
             updates.update(rendered_prompt_updates_from_event(event))
         if event.event_type is StreamEventType.GENERATION_INPUT:
             updates.update(generation_input_updates_from_event(event))
-            updates["status_message"] = "Generating response..."
+            updates["status_message"] = "Preparing response..."
         if not updates:
             return state
         return state.model_copy(update=updates)
@@ -278,7 +278,7 @@ def reduce_stream_event(
         return state.model_copy(
             update={
                 "streamed_text": f"{state.streamed_text}{delta}",
-                "status_message": "Streaming response...",
+                "status_message": "Receiving response...",
             }
         )
 
