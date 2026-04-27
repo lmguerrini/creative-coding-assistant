@@ -22,6 +22,10 @@ from creative_coding_assistant.orchestration.context import (
 )
 from creative_coding_assistant.orchestration.generation import LlmGenerationAdapter
 from creative_coding_assistant.orchestration.memory import ChromaMemoryAdapter
+from creative_coding_assistant.orchestration.memory_recording import (
+    ChromaConversationMemoryRecorder,
+    ConversationMemoryRecorder,
+)
 from creative_coding_assistant.orchestration.prompt_inputs import (
     StructuredPromptInputBuilder,
 )
@@ -32,6 +36,7 @@ from creative_coding_assistant.orchestration.retrieval import (
     KnowledgeBaseRetrievalAdapter,
 )
 from creative_coding_assistant.orchestration.service import AssistantService
+from creative_coding_assistant.rag.embeddings import OpenAIEmbeddingClient
 from creative_coding_assistant.rag.retrieval import (
     KnowledgeBaseRetriever,
     QueryEmbedder,
@@ -49,6 +54,7 @@ def build_assistant_service(
     query_embedder: QueryEmbedder | None = None,
     generation_provider: GenerationProvider | None = None,
     eval_recorder: LiveSessionRecorder | None = None,
+    memory_recorder: ConversationMemoryRecorder | None = None,
 ) -> AssistantService:
     """Compose the current assistant service stack from settings and local wiring."""
 
@@ -66,6 +72,11 @@ def build_assistant_service(
         if eval_recorder is not None
         else build_live_session_eval_recorder(resolved_settings)
     )
+    resolved_memory_recorder = (
+        memory_recorder
+        if memory_recorder is not None
+        else _build_memory_recorder(client=client, settings=resolved_settings)
+    )
     memory_gateway = _build_memory_gateway(client=client)
     retrieval_gateway = _build_retrieval_gateway(client, resolved_query_embedder)
     service = AssistantService(
@@ -78,13 +89,15 @@ def build_assistant_service(
         generation_gateway=LlmGenerationAdapter(),
         generation_provider=generation_provider,
         eval_recorder=resolved_eval_recorder,
+        memory_recorder=resolved_memory_recorder,
     )
     logger.info(
         "Composed assistant service with retrieval={}, explicit_provider={}, "
-        "eval_recorder={}",
+        "eval_recorder={}, memory_recorder={}",
         retrieval_gateway is not None,
         generation_provider is not None,
         resolved_eval_recorder is not None,
+        resolved_memory_recorder is not None,
     )
     return service
 
@@ -94,6 +107,20 @@ def _build_memory_gateway(*, client: Any) -> ChromaMemoryAdapter:
         turn_repository=ConversationTurnRepository(client=client),
         summary_repository=ConversationSummaryRepository(client=client),
         project_memory_repository=ProjectMemoryRepository(client=client),
+    )
+
+
+def _build_memory_recorder(
+    *,
+    client: Any,
+    settings: Settings,
+) -> ChromaConversationMemoryRecorder | None:
+    if not settings.has_openai_embedding_config:
+        return None
+
+    return ChromaConversationMemoryRecorder(
+        turn_repository=ConversationTurnRepository(client=client),
+        embedder=OpenAIEmbeddingClient(settings=settings),
     )
 
 

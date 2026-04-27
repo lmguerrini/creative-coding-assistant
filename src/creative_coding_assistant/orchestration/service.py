@@ -33,6 +33,9 @@ from creative_coding_assistant.orchestration.memory import (
     MemoryGateway,
     build_memory_context_request,
 )
+from creative_coding_assistant.orchestration.memory_recording import (
+    ConversationMemoryRecorder,
+)
 from creative_coding_assistant.orchestration.prompt_inputs import (
     PromptInputBuilder,
     build_prompt_input_request,
@@ -66,6 +69,7 @@ class AssistantService:
         generation_gateway: ProviderGenerationGateway | None = None,
         generation_provider: GenerationProvider | None = None,
         eval_recorder: LiveSessionRecorder | None = None,
+        memory_recorder: ConversationMemoryRecorder | None = None,
     ) -> None:
         self.settings = settings or load_settings()
         self._route_fn = route_fn
@@ -81,6 +85,7 @@ class AssistantService:
             generation_provider=generation_provider,
         )
         self._eval_recorder = eval_recorder
+        self._memory_recorder = memory_recorder
 
     def stream(self, request: AssistantRequest) -> Iterator[StreamEvent]:
         """Yield the current backend event flow for one assistant request."""
@@ -107,12 +112,20 @@ class AssistantService:
             )
             raise
         finally:
+            completed_at = _utcnow()
             _record_live_session(
                 recorder=self._eval_recorder,
                 request=request,
                 events=tuple(streamed_events),
                 started_at=started_at,
-                completed_at=_utcnow(),
+                completed_at=completed_at,
+            )
+            _record_conversation_memory(
+                recorder=self._memory_recorder,
+                request=request,
+                events=tuple(streamed_events),
+                started_at=started_at,
+                completed_at=completed_at,
             )
 
     def _stream_events(self, request: AssistantRequest) -> Iterator[StreamEvent]:
@@ -282,6 +295,35 @@ def _record_live_session(
         )
     except Exception:
         logger.exception("live_session_eval_recording_failed")
+
+
+def _record_conversation_memory(
+    *,
+    recorder: ConversationMemoryRecorder | None,
+    request: AssistantRequest,
+    events: tuple[StreamEvent, ...],
+    started_at: datetime,
+    completed_at: datetime,
+) -> None:
+    if recorder is None or not events or request.conversation_id is None:
+        return
+
+    if any(event.event_type is StreamEventType.ERROR for event in events):
+        return
+
+    try:
+        final_event = _last_final_event(events)
+        answer = str(final_event.payload.get("answer", "")).strip()
+        if not answer:
+            return
+        recorder.record_turns(
+            request=request,
+            answer=answer,
+            started_at=started_at,
+            completed_at=completed_at,
+        )
+    except Exception:
+        logger.exception("conversation_memory_recording_failed")
 
 
 def _utcnow() -> datetime:
