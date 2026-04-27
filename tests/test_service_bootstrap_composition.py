@@ -38,6 +38,7 @@ class ServiceBootstrapCompositionTests(unittest.TestCase):
         build_openai_client.assert_not_called()
         build_embedder_client.assert_not_called()
         self.assertIsNotNone(service._memory_gateway)
+        self.assertIsNone(service._memory_recorder)
         self.assertIsNone(service._retrieval_gateway)
         self.assertIsNotNone(service._context_assembler)
         self.assertIsNotNone(service._prompt_input_builder)
@@ -69,6 +70,7 @@ class ServiceBootstrapCompositionTests(unittest.TestCase):
                 service = build_assistant_service(settings=settings)
 
         self.assertIsNotNone(service._retrieval_gateway)
+        self.assertIsNotNone(service._memory_recorder)
         build_embedder_client.assert_not_called()
 
     def test_build_service_preserves_explicit_query_embedder(self) -> None:

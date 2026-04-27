@@ -245,9 +245,28 @@ class StreamlitChatGenerationTests(unittest.TestCase):
             ),
         )
 
-        self.assertEqual(state.status_message, "Request accepted.")
+        self.assertEqual(state.status_message, "Streaming response...")
         self.assertEqual(state.answer_text, "Hello world")
         self.assertIsNone(state.final_answer)
+
+    def test_reduce_stream_event_shows_generation_progress_status(self) -> None:
+        state = reduce_stream_event(
+            StreamRenderState(),
+            StreamEvent(
+                event_type=StreamEventType.GENERATION_INPUT,
+                sequence=0,
+                payload={
+                    "code": "generation_input_prepared",
+                    "message": "Provider generation input prepared.",
+                    "generation_input": {
+                        "request": {"route": "generate", "stream": True},
+                        "messages": [],
+                    },
+                },
+            ),
+        )
+
+        self.assertEqual(state.status_message, "Generating response...")
 
     def test_reduce_stream_event_prefers_final_answer(self) -> None:
         state = StreamRenderState(streamed_text="Partial answer")
