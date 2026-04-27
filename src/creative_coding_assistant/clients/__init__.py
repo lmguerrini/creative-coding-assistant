@@ -1,5 +1,10 @@
 """Client-facing helper modules."""
 
+from creative_coding_assistant.clients.streamlit_answer_rendering import (
+    AnswerSegment,
+    answer_working_message,
+    split_answer_segments,
+)
 from creative_coding_assistant.clients.streamlit_context_visibility import (
     ContextDisplayItem,
     context_empty_message,
@@ -48,6 +53,7 @@ from creative_coding_assistant.clients.streamlit_trace_visibility import (
 )
 
 __all__ = [
+    "AnswerSegment",
     "ChatHistoryEntry",
     "ContextDisplayItem",
     "GenerationInputDisplayItem",
@@ -57,6 +63,7 @@ __all__ = [
     "RetrievalDisplayItem",
     "StreamRenderState",
     "TraceVisibilityLevel",
+    "answer_working_message",
     "assistant_history_entry",
     "build_chat_request",
     "build_provider_warning",
@@ -84,4 +91,5 @@ __all__ = [
     "resolve_request_domains",
     "trace_sections_for_level",
     "trace_visibility_summary",
+    "split_answer_segments",
 ]
