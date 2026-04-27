@@ -268,6 +268,7 @@ def reduce_stream_event(
             updates.update(rendered_prompt_updates_from_event(event))
         if event.event_type is StreamEventType.GENERATION_INPUT:
             updates.update(generation_input_updates_from_event(event))
+            updates["status_message"] = "Generating response..."
         if not updates:
             return state
         return state.model_copy(update=updates)
@@ -275,7 +276,10 @@ def reduce_stream_event(
     if event.event_type is StreamEventType.TOKEN_DELTA:
         delta = _payload_text(event, key="text") or ""
         return state.model_copy(
-            update={"streamed_text": f"{state.streamed_text}{delta}"}
+            update={
+                "streamed_text": f"{state.streamed_text}{delta}",
+                "status_message": "Streaming response...",
+            }
         )
 
     if event.event_type is StreamEventType.ERROR:
