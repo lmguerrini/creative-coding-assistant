@@ -7,6 +7,12 @@ from creative_coding_assistant.contracts import (
     CreativeCodingDomain,
     StreamEventType,
 )
+from creative_coding_assistant.llm.generation import (
+    GeneratedOutput,
+    GenerationEventType,
+    GenerationResponse,
+    GenerationStreamEvent,
+)
 from creative_coding_assistant.memory import ConversationRole, ProjectMemoryKind
 from creative_coding_assistant.orchestration import (
     AssembledContextResponse,
@@ -14,6 +20,7 @@ from creative_coding_assistant.orchestration import (
     AssistantService,
     ConversationSummaryContext,
     JinjaPromptRenderer,
+    LlmGenerationAdapter,
     MemoryContextRequest,
     MemoryContextResponse,
     MemoryContextSource,
@@ -113,6 +120,58 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         self.assertEqual(rendered.sections[0].name, RenderedPromptSectionName.SYSTEM)
         self.assertEqual(rendered.sections[1].name, RenderedPromptSectionName.USER)
 
+    def test_renderer_skips_empty_memory_section(self) -> None:
+        renderer = JinjaPromptRenderer()
+        assistant_request = AssistantRequest(
+            query="Create a simple rotating cube in three.js",
+            conversation_id="conversation-1",
+            mode=AssistantMode.GENERATE,
+        )
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=assistant_request,
+                route_decision=RouteDecision(
+                    route=RouteName.GENERATE,
+                    mode=AssistantMode.GENERATE,
+                    capabilities=(RouteCapability.MEMORY_CONTEXT,),
+                ),
+                assembled_context=AssembledContextResponse(
+                    request=build_assembled_context_request(
+                        route_decision=RouteDecision(
+                            route=RouteName.GENERATE,
+                            mode=AssistantMode.GENERATE,
+                            capabilities=(RouteCapability.MEMORY_CONTEXT,),
+                        ),
+                        memory_context=_empty_memory_context(),
+                        retrieval_context=None,
+                    ),
+                    summary=AssembledContextSummary(
+                        recent_turn_count=0,
+                        has_running_summary=False,
+                        project_memory_count=0,
+                        retrieval_chunk_count=0,
+                    ),
+                    memory_context=_empty_memory_context(),
+                    retrieval_context=None,
+                ),
+            )
+        )
+
+        rendered = renderer.render(
+            build_rendered_prompt_request(
+                route_decision=RouteName.GENERATE,
+                prompt_input=prompt_input,
+            )
+        )
+
+        self.assertEqual(
+            [section.name for section in rendered.sections],
+            [
+                RenderedPromptSectionName.SYSTEM,
+                RenderedPromptSectionName.USER,
+            ],
+        )
+
     def test_service_emits_rendered_prompt_event_when_renderer_present(self) -> None:
         service = AssistantService(
             route_fn=_route_with_memory_and_docs,
@@ -153,6 +212,36 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         self.assertEqual(rendered_prompt["sections"][0]["name"], "system")
         self.assertEqual(rendered_prompt["sections"][1]["name"], "user")
 
+    def test_service_generates_answer_with_empty_memory_and_retrieval(self) -> None:
+        service = AssistantService(
+            route_fn=_route_generate_with_memory_and_docs,
+            memory_gateway=_FakeMemoryGateway(response=_empty_memory_context()),
+            retrieval_gateway=_FakeRetrievalGateway(response=_empty_retrieval_context()),
+            context_assembler=OrchestrationContextAssembler(),
+            prompt_input_builder=StructuredPromptInputBuilder(),
+            prompt_renderer=JinjaPromptRenderer(),
+            generation_gateway=LlmGenerationAdapter(),
+            generation_provider=_CompletedGenerationProvider(
+                answer="Use `requestAnimationFrame` and rotate the mesh on the y-axis."
+            ),
+        )
+        request = AssistantRequest(
+            query="Create a simple rotating cube in three.js",
+            conversation_id="conversation-1",
+            domain=CreativeCodingDomain.THREE_JS,
+            mode=AssistantMode.GENERATE,
+        )
+
+        events = tuple(service.stream(request))
+        event_types = [event.event_type for event in events]
+
+        self.assertIn(StreamEventType.PROMPT_RENDERED, event_types)
+        self.assertIn(StreamEventType.GENERATION_INPUT, event_types)
+        self.assertEqual(
+            events[-1].payload["answer"],
+            "Use `requestAnimationFrame` and rotate the mesh on the y-axis.",
+        )
+
 
 def _route_decision() -> RouteDecision:
     return RouteDecision(
@@ -168,6 +257,18 @@ def _route_decision() -> RouteDecision:
 def _route_with_memory_and_docs(request: AssistantRequest) -> RouteDecision:
     return RouteDecision(
         route=RouteName.EXPLAIN,
+        mode=request.mode,
+        domain=request.domain,
+        capabilities=(
+            RouteCapability.MEMORY_CONTEXT,
+            RouteCapability.OFFICIAL_DOCS,
+        ),
+    )
+
+
+def _route_generate_with_memory_and_docs(request: AssistantRequest) -> RouteDecision:
+    return RouteDecision(
+        route=RouteName.GENERATE,
         mode=request.mode,
         domain=request.domain,
         capabilities=(
@@ -257,6 +358,19 @@ def _memory_context() -> MemoryContextResponse:
     )
 
 
+def _empty_memory_context() -> MemoryContextResponse:
+    return MemoryContextResponse(
+        request=MemoryContextRequest(
+            route=RouteName.GENERATE,
+            conversation_id="conversation-1",
+        ),
+        source=MemoryContextSource.CHROMA_MEMORY,
+        recent_turns=(),
+        running_summary=None,
+        project_memories=(),
+    )
+
+
 def _retrieval_context() -> RetrievalContextResponse:
     return RetrievalContextResponse(
         request=RetrievalContextRequest(
@@ -279,6 +393,17 @@ def _retrieval_context() -> RetrievalContextResponse:
                 score=0.83,
             ),
         ),
+    )
+
+
+def _empty_retrieval_context() -> RetrievalContextResponse:
+    return RetrievalContextResponse(
+        request=RetrievalContextRequest(
+            query="Create a simple rotating cube in three.js",
+            route=RouteName.GENERATE,
+        ),
+        source=RetrievalContextSource.OFFICIAL_KB,
+        chunks=(),
     )
 
 
@@ -308,6 +433,23 @@ class _FakeRetrievalGateway:
     ) -> RetrievalContextResponse:
         del request
         return self.response
+
+
+class _CompletedGenerationProvider:
+    def __init__(self, *, answer: str) -> None:
+        self._answer = answer
+
+    def stream(self, request):
+        yield GenerationStreamEvent(
+            event_type=GenerationEventType.COMPLETED,
+            response=GenerationResponse(
+                request=request,
+                output=GeneratedOutput(
+                    content=self._answer,
+                    finish_reason="stop",
+                ),
+            ),
+        )
 
 
 if __name__ == "__main__":

@@ -45,7 +45,7 @@ from creative_coding_assistant.rag.sources import OfficialSourceType
 
 class ProviderConfigSettingsTests(unittest.TestCase):
     def test_settings_defaults_include_provider_and_openai_model(self) -> None:
-        settings = Settings()
+        settings = Settings(_env_file=None)
 
         self.assertEqual(
             settings.default_generation_provider,

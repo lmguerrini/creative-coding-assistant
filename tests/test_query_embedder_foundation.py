@@ -11,7 +11,7 @@ from creative_coding_assistant.rag.retrieval import (
 class QueryEmbedderFoundationTests(unittest.TestCase):
     def test_settings_expose_openai_embedding_defaults(self) -> None:
         with patch.dict("os.environ", {}, clear=True):
-            settings = Settings()
+            settings = Settings(_env_file=None)
 
         self.assertEqual(settings.openai_embedding_model, "text-embedding-3-small")
         self.assertFalse(settings.has_openai_embedding_config)
