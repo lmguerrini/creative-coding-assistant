@@ -245,7 +245,7 @@ class StreamlitChatGenerationTests(unittest.TestCase):
             ),
         )
 
-        self.assertEqual(state.status_message, "Streaming response...")
+        self.assertEqual(state.status_message, "Receiving response...")
         self.assertEqual(state.answer_text, "Hello world")
         self.assertIsNone(state.final_answer)
 
@@ -266,7 +266,7 @@ class StreamlitChatGenerationTests(unittest.TestCase):
             ),
         )
 
-        self.assertEqual(state.status_message, "Generating response...")
+        self.assertEqual(state.status_message, "Preparing response...")
 
     def test_reduce_stream_event_prefers_final_answer(self) -> None:
         state = StreamRenderState(streamed_text="Partial answer")
