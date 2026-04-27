@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterator
+from datetime import UTC, datetime
 
 from loguru import logger
 
@@ -13,6 +14,7 @@ from creative_coding_assistant.contracts import (
     StreamEventType,
 )
 from creative_coding_assistant.core import Settings, load_settings
+from creative_coding_assistant.eval import LiveSessionRecorder
 from creative_coding_assistant.llm.factory import build_generation_provider
 from creative_coding_assistant.llm.generation import (
     GenerationEventType,
@@ -63,6 +65,7 @@ class AssistantService:
         prompt_renderer: PromptRenderer | None = None,
         generation_gateway: ProviderGenerationGateway | None = None,
         generation_provider: GenerationProvider | None = None,
+        eval_recorder: LiveSessionRecorder | None = None,
     ) -> None:
         self.settings = settings or load_settings()
         self._route_fn = route_fn
@@ -77,10 +80,28 @@ class AssistantService:
             generation_gateway=generation_gateway,
             generation_provider=generation_provider,
         )
+        self._eval_recorder = eval_recorder
 
     def stream(self, request: AssistantRequest) -> Iterator[StreamEvent]:
         """Yield the current backend event flow for one assistant request."""
 
+        started_at = _utcnow()
+        streamed_events: list[StreamEvent] = []
+
+        try:
+            for event in self._stream_events(request):
+                streamed_events.append(event)
+                yield event
+        finally:
+            _record_live_session(
+                recorder=self._eval_recorder,
+                request=request,
+                events=tuple(streamed_events),
+                started_at=started_at,
+                completed_at=_utcnow(),
+            )
+
+    def _stream_events(self, request: AssistantRequest) -> Iterator[StreamEvent]:
         builder = StreamEventBuilder()
         logger.info("assistant_request_received")
         yield builder.status(code="request_received", message="Request accepted.")
@@ -225,6 +246,32 @@ def _last_final_event(events: tuple[StreamEvent, ...]) -> StreamEvent:
         if event.event_type == StreamEventType.FINAL:
             return event
     raise RuntimeError("Assistant stream completed without a final event.")
+
+
+def _record_live_session(
+    *,
+    recorder: LiveSessionRecorder | None,
+    request: AssistantRequest,
+    events: tuple[StreamEvent, ...],
+    started_at: datetime,
+    completed_at: datetime,
+) -> None:
+    if recorder is None or not events:
+        return
+
+    try:
+        recorder.record(
+            request=request,
+            events=events,
+            started_at=started_at,
+            completed_at=completed_at,
+        )
+    except Exception:
+        logger.exception("live_session_eval_recording_failed")
+
+
+def _utcnow() -> datetime:
+    return datetime.now(UTC)
 
 
 def _build_shell_answer(decision: RouteDecision) -> str:
