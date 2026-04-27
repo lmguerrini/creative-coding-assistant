@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO")
     chroma_persist_dir: Path = Field(default=Path("data/chroma"))
     artifact_dir: Path = Field(default=Path("data/artifacts"))
+    eval_data_path: Path = Field(default=Path("data/eval/live_sessions.jsonl"))
     default_domain: str = Field(default="three_js")
     default_mode: str = Field(default="generate")
     default_generation_provider: GenerationProviderName = Field(

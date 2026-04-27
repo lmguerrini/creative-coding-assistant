@@ -24,6 +24,10 @@ data/artifacts/
 !data/artifacts/
 data/artifacts/*
 !data/artifacts/.gitkeep
+data/eval/
+!data/eval/
+data/eval/*
+!data/eval/.gitkeep
 
 # Local environment files.
 .env
