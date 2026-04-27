@@ -86,6 +86,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         )
         self.assertEqual(response.sections[0].role, RenderedPromptRole.SYSTEM)
         self.assertIn("Route: explain", response.sections[0].content)
+        self.assertIn("fenced code block", response.sections[0].content)
         self.assertIn("User Request:", response.sections[1].content)
         self.assertIn(
             "Keep the motion restrained.",
