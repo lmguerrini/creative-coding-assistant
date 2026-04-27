@@ -141,28 +141,28 @@ class JinjaPromptRenderer:
         ]
 
         if request.prompt_input.memory_input is not None:
-            sections.append(
-                self._render_section(
-                    role=RenderedPromptRole.CONTEXT,
-                    name=RenderedPromptSectionName.MEMORY,
-                    template=_MEMORY_TEMPLATE,
-                    request=request,
-                )
+            memory_section = self._render_section(
+                role=RenderedPromptRole.CONTEXT,
+                name=RenderedPromptSectionName.MEMORY,
+                template=_MEMORY_TEMPLATE,
+                request=request,
             )
+            if memory_section is not None:
+                sections.append(memory_section)
 
         if request.prompt_input.retrieval_input is not None:
-            sections.append(
-                self._render_section(
-                    role=RenderedPromptRole.CONTEXT,
-                    name=RenderedPromptSectionName.RETRIEVAL,
-                    template=_RETRIEVAL_TEMPLATE,
-                    request=request,
-                )
+            retrieval_section = self._render_section(
+                role=RenderedPromptRole.CONTEXT,
+                name=RenderedPromptSectionName.RETRIEVAL,
+                template=_RETRIEVAL_TEMPLATE,
+                request=request,
             )
+            if retrieval_section is not None:
+                sections.append(retrieval_section)
 
         rendered = RenderedPromptResponse(
             request=request,
-            sections=tuple(section for section in sections if section.content),
+            sections=tuple(sections),
         )
         logger.info(
             "Rendered prompt with {} section(s) for route '{}'",
@@ -178,7 +178,7 @@ class JinjaPromptRenderer:
         name: RenderedPromptSectionName,
         template: str,
         request: RenderedPromptRequest,
-    ) -> RenderedPromptSection:
+    ) -> RenderedPromptSection | None:
         content = self._environment.from_string(template).render(
             route=request.route,
             prompt_input=request.prompt_input,
@@ -186,6 +186,13 @@ class JinjaPromptRenderer:
         normalized = "\n".join(
             line.rstrip() for line in content.splitlines() if line.strip()
         ).strip()
+        if not normalized:
+            logger.info(
+                "Skipped empty rendered prompt section '{}' for route '{}'",
+                name.value,
+                request.route.value,
+            )
+            return None
         return RenderedPromptSection(role=role, name=name, content=normalized)
 
 
