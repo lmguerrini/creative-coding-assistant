@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.eval.live_session import LiveSessionEvalSample
 
-DEFAULT_RAGAS_METRICS: tuple[str, ...] = (
+SUPPORTED_RAGAS_METRICS: tuple[str, ...] = (
+    "context_precision",
     "faithfulness",
     "answer_relevancy",
-    "context_precision",
 )
+DEFAULT_RAGAS_METRICS: tuple[str, ...] = ("context_precision",)
 
 
 class RagasLiveEvalRow(BaseModel):
@@ -80,8 +82,13 @@ def load_live_session_samples(path: Path) -> tuple[LiveSessionEvalSample, ...]:
 
 def select_ragas_live_eval_rows(
     samples: tuple[LiveSessionEvalSample, ...] | list[LiveSessionEvalSample],
+    *,
+    limit: int | None = None,
 ) -> RagasLiveEvalSelection:
     """Select live samples that have enough data for honest RAG evaluation."""
+
+    if limit is not None and limit < 1:
+        raise ValueError("RAGAs live eval limit must be at least 1.")
 
     rows: list[RagasLiveEvalRow] = []
     skipped: list[RagasSkippedSample] = []
@@ -91,6 +98,15 @@ def select_ragas_live_eval_rows(
                 RagasSkippedSample(
                     sample_id=sample.sample_id,
                     reason="missing_retrieved_contexts",
+                )
+            )
+            continue
+
+        if limit is not None and len(rows) >= limit:
+            skipped.append(
+                RagasSkippedSample(
+                    sample_id=sample.sample_id,
+                    reason="limit_exceeded",
                 )
             )
             continue
@@ -120,3 +136,32 @@ def select_ragas_live_eval_rows(
         rows=tuple(rows),
         skipped=tuple(skipped),
     )
+
+
+def resolve_ragas_metric_names(
+    metric_names: Sequence[str] | None,
+) -> tuple[str, ...]:
+    """Resolve and validate requested RAGAs metric names."""
+
+    requested = DEFAULT_RAGAS_METRICS if metric_names is None else tuple(metric_names)
+    resolved: list[str] = []
+    unsupported: list[str] = []
+    for metric_name in requested:
+        normalized = metric_name.strip()
+        if normalized not in SUPPORTED_RAGAS_METRICS:
+            unsupported.append(metric_name)
+            continue
+        if normalized not in resolved:
+            resolved.append(normalized)
+
+    if unsupported:
+        supported = ", ".join(SUPPORTED_RAGAS_METRICS)
+        unknown = ", ".join(unsupported)
+        raise ValueError(
+            f"Unsupported RAGAs metric(s): {unknown}. Supported: {supported}."
+        )
+
+    if not resolved:
+        raise ValueError("At least one RAGAs metric must be selected.")
+
+    return tuple(resolved)

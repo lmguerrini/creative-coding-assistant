@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     eval_ragas_results_path: Path = Field(
         default=Path("data/eval/ragas_results.jsonl")
     )
+    eval_ragas_model: str = Field(default="gpt-4o-mini", min_length=1)
+    eval_ragas_timeout_seconds: int = Field(default=180, ge=1)
+    eval_ragas_max_retries: int = Field(default=2, ge=0)
+    eval_ragas_max_workers: int = Field(default=2, ge=1)
     default_domain: str = Field(default="three_js")
     default_mode: str = Field(default="generate")
     default_generation_provider: GenerationProviderName = Field(
@@ -61,6 +65,11 @@ class Settings(BaseSettings):
     @field_validator("openai_embedding_model")
     @classmethod
     def normalize_openai_embedding_model(cls, value: str) -> str:
+        return value.strip()
+
+    @field_validator("eval_ragas_model")
+    @classmethod
+    def normalize_eval_ragas_model(cls, value: str) -> str:
         return value.strip()
 
     @field_validator("openai_api_key", mode="before")
