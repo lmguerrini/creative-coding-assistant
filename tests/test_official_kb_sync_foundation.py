@@ -2,6 +2,7 @@ import tempfile
 import unittest
 from datetime import UTC, datetime
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.rag.sources import OfficialSourceType
@@ -16,11 +17,35 @@ from creative_coding_assistant.rag.sync import (
     OfficialSourceSyncRequest,
     SourceContentFormat,
     TransportResponse,
+    UrllibSourceTransport,
 )
 from creative_coding_assistant.vectorstore import create_chroma_client
 
 
 class OfficialKnowledgeBaseSyncFoundationTests(unittest.TestCase):
+    def test_urllib_transport_sends_browser_like_headers(self) -> None:
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.__exit__.return_value = None
+        response.headers.get_content_charset.return_value = "utf-8"
+        response.headers.get_content_type.return_value = "text/html"
+        response.read.return_value = b"<html><body>Docs</body></html>"
+        response.geturl.return_value = "https://p5js.org/reference/"
+        response.status = 200
+
+        with patch(
+            "creative_coding_assistant.rag.sync.fetcher.urlopen",
+            return_value=response,
+        ) as urlopen_mock:
+            result = UrllibSourceTransport().fetch("https://p5js.org/reference/")
+
+        request = urlopen_mock.call_args.args[0]
+        self.assertIn("Mozilla/5.0", request.headers["User-agent"])
+        self.assertIn("text/html", request.headers["Accept"])
+        self.assertEqual(request.headers["Accept-language"], "en-US,en;q=0.9")
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.content_type, "text/html")
+
     def test_fetcher_requires_registered_source_id(self) -> None:
         fetcher = OfficialSourceFetcher(transport=_FakeTransport({}))
         request = OfficialSourceSyncRequest(
