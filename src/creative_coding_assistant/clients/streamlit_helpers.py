@@ -103,6 +103,10 @@ class StreamRenderState(BaseModel):
     def answer_text(self) -> str:
         return self.final_answer or self.streamed_text
 
+    @property
+    def is_streaming_answer(self) -> bool:
+        return self.final_answer is None and self.error_message is None
+
 
 def build_chat_request(
     *,

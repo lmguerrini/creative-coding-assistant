@@ -248,6 +248,7 @@ class StreamlitChatGenerationTests(unittest.TestCase):
         self.assertEqual(state.status_message, "Receiving response...")
         self.assertEqual(state.answer_text, "Hello world")
         self.assertIsNone(state.final_answer)
+        self.assertTrue(state.is_streaming_answer)
 
     def test_reduce_stream_event_shows_generation_progress_status(self) -> None:
         state = reduce_stream_event(
@@ -283,6 +284,7 @@ class StreamlitChatGenerationTests(unittest.TestCase):
         self.assertEqual(state.final_answer, "Completed answer")
         self.assertEqual(state.answer_text, "Completed answer")
         self.assertIsNone(state.status_message)
+        self.assertFalse(state.is_streaming_answer)
 
     def test_reduce_stream_event_records_error_message(self) -> None:
         state = StreamRenderState()

@@ -213,7 +213,7 @@ def _run_chat_turn(
                     placeholder=answer_placeholder,
                     text=state.answer_text,
                     status_message=state.status_message,
-                    streaming=state.final_answer is None,
+                    streaming=state.is_streaming_answer,
                 )
 
                 if state.error_message is not None:
@@ -242,7 +242,7 @@ def _run_chat_turn(
             error_placeholder.error(state.error_message)
 
         assistant_entry = assistant_history_entry(state)
-        if assistant_entry.content and not state.answer_text:
+        if assistant_entry.content:
             _render_answer_area(
                 placeholder=answer_placeholder,
                 text=assistant_entry.content,
@@ -364,7 +364,7 @@ def _render_retrieval_context(
 
                 st.markdown(f"**{label}**")
                 st.caption(" | ".join(meta_parts))
-                st.markdown(item.snippet)
+                _render_trace_text(item.snippet)
 
 
 def _render_context_visibility(
@@ -409,7 +409,7 @@ def _render_context_visibility(
                 st.markdown(f"**{item.label}**")
                 if meta_parts:
                     st.caption(" | ".join(meta_parts))
-                st.markdown(item.snippet)
+                _render_trace_text(item.snippet)
 
 
 def _render_prompt_visibility(
@@ -459,7 +459,7 @@ def _render_prompt_visibility(
                 st.markdown(f"**{item.label}**")
                 if meta_parts:
                     st.caption(" | ".join(meta_parts))
-                st.markdown(item.snippet)
+                _render_trace_text(item.snippet)
 
 
 def _render_generation_input_visibility(
@@ -500,7 +500,7 @@ def _render_generation_input_visibility(
                 st.markdown(f"**{item.label}**")
                 if item.role is not None:
                     st.caption(item.role)
-                st.markdown(item.snippet)
+                _render_trace_text(item.snippet)
 
 
 def _render_answer_area(
@@ -548,6 +548,10 @@ def _render_answer_body(*, text: str, streaming: bool) -> None:
 
     if streaming:
         st.markdown("▌")
+
+
+def _render_trace_text(text: str) -> None:
+    _render_answer_body(text=text, streaming=False)
 
 
 def _ensure_session_state(settings) -> None:
