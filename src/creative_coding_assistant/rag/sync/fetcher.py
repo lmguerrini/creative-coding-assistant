@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from typing import Protocol
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field
@@ -36,9 +36,23 @@ class SourceTransport(Protocol):
 class UrllibSourceTransport:
     """Simple HTTP transport kept behind a narrow local interface."""
 
+    _REQUEST_HEADERS = {
+        "User-Agent": (
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0 Safari/537.36"
+        ),
+        "Accept": (
+            "text/html,application/xhtml+xml,application/xml;q=0.9,"
+            "text/plain;q=0.8,*/*;q=0.5"
+        ),
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+
     def fetch(self, url: str) -> TransportResponse:
         try:
-            with urlopen(url) as response:  # noqa: S310
+            request = Request(url, headers=self._REQUEST_HEADERS)
+            with urlopen(request) as response:  # noqa: S310
                 charset = response.headers.get_content_charset() or "utf-8"
                 content = response.read().decode(charset, errors="replace")
                 return TransportResponse(
