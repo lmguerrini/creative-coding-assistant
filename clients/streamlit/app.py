@@ -150,7 +150,7 @@ def _render_history(*, trace_visibility: TraceVisibilityLevel) -> None:
         with st.chat_message(entry.role):
             _render_answer_body(
                 text=entry.content,
-                streaming=False,
+                allow_unclosed_code_block=False,
             )
             _render_visibility_trace(
                 memory_items=entry.memory_items,
@@ -213,7 +213,7 @@ def _run_chat_turn(
                     placeholder=answer_placeholder,
                     text=state.answer_text,
                     status_message=state.status_message,
-                    streaming=state.is_streaming_answer,
+                    allow_unclosed_code_block=state.is_streaming_answer,
                 )
 
                 if state.error_message is not None:
@@ -247,7 +247,7 @@ def _run_chat_turn(
                 placeholder=answer_placeholder,
                 text=assistant_entry.content,
                 status_message=None,
-                streaming=False,
+                allow_unclosed_code_block=False,
             )
         st.session_state[_CHAT_HISTORY_KEY].append(
             assistant_entry.model_dump(mode="json")
@@ -508,7 +508,7 @@ def _render_answer_area(
     placeholder,
     text: str,
     status_message: str | None,
-    streaming: bool,
+    allow_unclosed_code_block: bool,
 ) -> None:
     placeholder.empty()
     working_message = answer_working_message(
@@ -521,15 +521,18 @@ def _render_answer_area(
         return
 
     with placeholder.container():
-        _render_answer_body(text=text, streaming=streaming)
+        _render_answer_body(
+            text=text,
+            allow_unclosed_code_block=allow_unclosed_code_block,
+        )
 
 
-def _render_answer_body(*, text: str, streaming: bool) -> None:
+def _render_answer_body(*, text: str, allow_unclosed_code_block: bool) -> None:
     import streamlit as st
 
     segments = split_answer_segments(
         text,
-        allow_unclosed_code_block=streaming,
+        allow_unclosed_code_block=allow_unclosed_code_block,
     )
     if not segments:
         st.markdown(text)
@@ -546,12 +549,9 @@ def _render_answer_body(*, text: str, streaming: bool) -> None:
         prose = segment.content
         st.markdown(prose)
 
-    if streaming:
-        st.markdown("▌")
-
 
 def _render_trace_text(text: str) -> None:
-    _render_answer_body(text=text, streaming=False)
+    _render_answer_body(text=text, allow_unclosed_code_block=False)
 
 
 def _ensure_session_state(settings) -> None:
