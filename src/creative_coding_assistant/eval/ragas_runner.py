@@ -189,6 +189,7 @@ def run_ragas_live_eval(
     output_path: Path,
     metric_names: Sequence[str] | None = DEFAULT_RAGAS_METRICS,
     limit: int | None = None,
+    latest: int | None = None,
     evaluator_config: RagasEvaluatorConfig | None = None,
     backend: RagasEvaluationBackend | None = None,
     run_id: str | None = None,
@@ -197,7 +198,7 @@ def run_ragas_live_eval(
     """Run manual RAGAs evaluation over recorded live-session samples."""
 
     samples = load_live_session_samples(input_path)
-    selection = select_ragas_live_eval_rows(samples, limit=limit)
+    selection = select_ragas_live_eval_rows(samples, limit=limit, latest=latest)
     resolved_run_id = run_id or uuid4().hex
     resolved_evaluated_at = evaluated_at or datetime.now(UTC)
     resolved_metrics = resolve_ragas_metric_names(metric_names)

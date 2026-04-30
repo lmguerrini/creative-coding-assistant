@@ -45,6 +45,14 @@ def build_ragas_eval_parser() -> argparse.ArgumentParser:
         help="Evaluate only the first N eligible samples.",
     )
     parser.add_argument(
+        "--latest",
+        type=_positive_int,
+        help=(
+            "Evaluate the newest N eligible samples. "
+            "Takes precedence over --limit."
+        ),
+    )
+    parser.add_argument(
         "--metric",
         action="append",
         choices=SUPPORTED_RAGAS_METRICS,
@@ -71,6 +79,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             output_path=output_path,
             metric_names=tuple(args.metric) if args.metric else None,
             limit=args.limit,
+            latest=args.latest,
             evaluator_config=RagasEvaluatorConfig(
                 model=settings.eval_ragas_model,
                 embedding_model=settings.openai_embedding_model,

@@ -84,13 +84,16 @@ def select_ragas_live_eval_rows(
     samples: tuple[LiveSessionEvalSample, ...] | list[LiveSessionEvalSample],
     *,
     limit: int | None = None,
+    latest: int | None = None,
 ) -> RagasLiveEvalSelection:
     """Select live samples that have enough data for honest RAG evaluation."""
 
     if limit is not None and limit < 1:
         raise ValueError("RAGAs live eval limit must be at least 1.")
+    if latest is not None and latest < 1:
+        raise ValueError("RAGAs live eval latest count must be at least 1.")
 
-    rows: list[RagasLiveEvalRow] = []
+    eligible_rows: list[RagasLiveEvalRow] = []
     skipped: list[RagasSkippedSample] = []
     for sample in samples:
         if not sample.retrieved_contexts:
@@ -102,16 +105,7 @@ def select_ragas_live_eval_rows(
             )
             continue
 
-        if limit is not None and len(rows) >= limit:
-            skipped.append(
-                RagasSkippedSample(
-                    sample_id=sample.sample_id,
-                    reason="limit_exceeded",
-                )
-            )
-            continue
-
-        rows.append(
+        eligible_rows.append(
             RagasLiveEvalRow(
                 sample_id=sample.sample_id,
                 user_input=sample.question,
@@ -131,6 +125,29 @@ def select_ragas_live_eval_rows(
                 ),
             )
         )
+
+    selection_limit = latest if latest is not None else limit
+    if selection_limit is None:
+        rows = eligible_rows
+    elif latest is not None:
+        rows = eligible_rows[-selection_limit:]
+        skipped.extend(
+            RagasSkippedSample(
+                sample_id=row.sample_id,
+                reason="limit_exceeded",
+            )
+            for row in eligible_rows[:-selection_limit]
+        )
+    else:
+        rows = eligible_rows[:selection_limit]
+        skipped.extend(
+            RagasSkippedSample(
+                sample_id=row.sample_id,
+                reason="limit_exceeded",
+            )
+            for row in eligible_rows[selection_limit:]
+        )
+
     return RagasLiveEvalSelection(
         total_samples=len(samples),
         rows=tuple(rows),
