@@ -9,19 +9,37 @@ from jinja2 import Environment, StrictUndefined
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from creative_coding_assistant.orchestration.prompt_inputs import PromptInputResponse
-from creative_coding_assistant.orchestration.routing import RouteDecision, RouteName
+from creative_coding_assistant.contracts import CreativeCodingDomain
+from creative_coding_assistant.orchestration.prompt_inputs import (
+    PromptInputResponse,
+    PromptUserInput,
+)
+from creative_coding_assistant.orchestration.routing import (
+    DomainSelectionShape,
+    RouteDecision,
+    RouteName,
+)
 
 _SYSTEM_TEMPLATE = """
 Route: {{ route.value }}
 Mode: {{ prompt_input.user_input.mode.value }}
-{% if prompt_input.user_input.domain is not none -%}
-Domain: {{ prompt_input.user_input.domain.value }}
-{% else -%}
-Domain: unspecified
+Domain Scope: {{ domain_scope_label(prompt_input.user_input) }}
+{% if prompt_input.user_input.domains -%}
+Selected Domains:
+{% for domain in prompt_input.user_input.domains -%}
+- {{ domain.value }}
+{% endfor %}
 {% endif %}
 Use the provided context sections as working context. Keep responses grounded in
 the structured inputs that follow.
+Route Guidance:
+{% for instruction in route_guidance_lines(route) -%}
+- {{ instruction }}
+{% endfor %}
+Domain Discipline:
+{% for instruction in domain_guidance_lines(prompt_input.user_input) -%}
+- {{ instruction }}
+{% endfor %}
 When you provide code, place each runnable snippet in a fenced code block with
 an explicit language tag such as ```html, ```javascript, ```jsx, ```glsl, or
 ```python.
@@ -125,6 +143,11 @@ class JinjaPromptRenderer:
             lstrip_blocks=True,
             undefined=StrictUndefined,
         )
+        self._environment.globals.update(
+            route_guidance_lines=_route_guidance_lines,
+            domain_guidance_lines=_domain_guidance_lines,
+            domain_scope_label=_domain_scope_label,
+        )
 
     def render(
         self,
@@ -212,3 +235,96 @@ def build_rendered_prompt_request(
         else route_decision.route
     )
     return RenderedPromptRequest(route=route, prompt_input=prompt_input)
+
+
+def _route_guidance_lines(route: RouteName) -> tuple[str, ...]:
+    if route is RouteName.GENERATE:
+        return (
+            "Lead with a concrete implementation that satisfies the request.",
+            "Default to runnable code first and keep supporting prose concise.",
+        )
+    if route is RouteName.EXPLAIN:
+        return (
+            "Explain the relevant concepts and cause-and-effect clearly.",
+            "Use short code snippets only when they sharpen the explanation.",
+        )
+    if route is RouteName.DEBUG:
+        return (
+            "Identify the most likely failure mode before proposing changes.",
+            "Prefer the smallest plausible fix plus a direct verification step.",
+        )
+    if route is RouteName.DESIGN:
+        return (
+            "Focus on structure, tradeoffs, and the recommended approach first.",
+            "Keep implementation details scoped to the design choices that matter.",
+        )
+    if route is RouteName.REVIEW:
+        return (
+            "Review the request directly and list concrete findings first.",
+            "Call out bugs, risks, regressions, and missing tests before suggestions.",
+        )
+    return (
+        "Describe the intended artifact and the implementation path that supports it.",
+        "Do not invent rendered output that has not actually been produced.",
+    )
+
+
+def _domain_guidance_lines(user_input: PromptUserInput) -> tuple[str, ...]:
+    if user_input.domain_selection is DomainSelectionShape.NONE:
+        return (
+            "Infer the relevant domain from the request and provided context only.",
+            "Do not drift into unrelated frameworks or libraries without a clear need.",
+        )
+
+    guidance = [
+        (
+            "Stay within the selected domain set and avoid introducing "
+            "unselected ecosystems."
+        )
+    ]
+
+    if user_input.domain_selection is DomainSelectionShape.SINGLE:
+        guidance.append(
+            "Prefer the selected ecosystem's APIs, terminology, and examples."
+        )
+    else:
+        guidance.append(
+            "Bridge domains only when the request actually spans them, and name "
+            "which domain each major API belongs to when that reduces ambiguity."
+        )
+
+    for domain in user_input.domains:
+        guidance.append(_domain_preference_line(domain))
+
+    return tuple(guidance)
+
+
+def _domain_scope_label(user_input: PromptUserInput) -> str:
+    if user_input.domain_selection is DomainSelectionShape.NONE:
+        return "inferred from request"
+    if user_input.domain_selection is DomainSelectionShape.SINGLE:
+        assert user_input.domain is not None
+        return user_input.domain.value
+    return "multi-domain selection"
+
+
+def _domain_preference_line(domain: CreativeCodingDomain) -> str:
+    if domain is CreativeCodingDomain.THREE_JS:
+        return (
+            "Prefer plain Three.js patterns over React wrappers unless the user "
+            "explicitly asks for React Three Fiber."
+        )
+    if domain is CreativeCodingDomain.REACT_THREE_FIBER:
+        return (
+            "Prefer React Three Fiber components and hooks; only drop to raw "
+            "Three.js APIs when the low-level concept matters."
+        )
+    if domain is CreativeCodingDomain.P5_JS:
+        return (
+            "Prefer p5.js sketch structure such as setup(), draw(), and concise "
+            "runnable examples."
+        )
+    return (
+        "Prefer concrete shader snippets and shader terminology over host-framework "
+        "setup details."
+    )
