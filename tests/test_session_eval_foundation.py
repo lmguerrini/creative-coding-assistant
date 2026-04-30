@@ -108,6 +108,60 @@ class SessionEvalFoundationTests(unittest.TestCase):
         self.assertEqual(sample.retrieved_contexts, ())
         self.assertEqual(sample.route.route, RouteName.GENERATE)
 
+    def test_build_live_session_sample_prefers_assembled_context_over_raw_retrieval(
+        self,
+    ) -> None:
+        request = AssistantRequest(
+            query="Create a simple rotating cube in three.js.",
+            conversation_id="conversation-ctx",
+            project_id="project-ctx",
+            domains=(
+                CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+            mode=AssistantMode.GENERATE,
+        )
+
+        sample = build_live_session_sample(
+            request=request,
+            events=_trace_events_with_assembled_context(
+                answer="Use a mesh with BoxGeometry and animate rotation.",
+            ),
+            started_at=datetime(2026, 4, 27, 10, 30, tzinfo=UTC),
+            completed_at=datetime(2026, 4, 27, 10, 30, 2, tzinfo=UTC),
+            sample_id="sample-assembled",
+        )
+
+        assert sample is not None
+        self.assertEqual(
+            [context.source_id for context in sample.retrieved_contexts],
+            ["three_box_geometry", "r3f_introduction"],
+        )
+        self.assertNotIn(
+            "three_examples",
+            [context.source_id for context in sample.retrieved_contexts],
+        )
+        self.assertNotIn(
+            "three_docs",
+            [context.source_id for context in sample.retrieved_contexts],
+        )
+        self.assertEqual(
+            sample.model_dump(mode="json")["retrieved_contexts"][0].keys(),
+            {
+                "source_id",
+                "domain",
+                "source_type",
+                "publisher",
+                "registry_title",
+                "document_title",
+                "source_url",
+                "resolved_url",
+                "chunk_index",
+                "excerpt",
+                "score",
+            },
+        )
+
     def test_jsonl_live_session_recorder_appends_records(self) -> None:
         request = AssistantRequest(
             query="Debug the fragment shader.",
@@ -268,6 +322,242 @@ def _trace_events(*, answer: str) -> tuple[StreamEvent, ...]:
         StreamEvent(
             event_type=StreamEventType.FINAL,
             sequence=3,
+            payload={"answer": answer},
+        ),
+    )
+
+
+def _trace_events_with_assembled_context(*, answer: str) -> tuple[StreamEvent, ...]:
+    return (
+        StreamEvent(
+            event_type=StreamEventType.STATUS,
+            sequence=0,
+            payload={"message": "Request accepted."},
+        ),
+        StreamEvent(
+            event_type=StreamEventType.STATUS,
+            sequence=1,
+            payload={
+                "code": "route_selected",
+                "message": "Route selected.",
+                "route": RouteDecision(
+                    route=RouteName.GENERATE,
+                    mode=AssistantMode.GENERATE,
+                    domains=(
+                        CreativeCodingDomain.THREE_JS,
+                        CreativeCodingDomain.REACT_THREE_FIBER,
+                    ),
+                    capabilities=(
+                        RouteCapability.OFFICIAL_DOCS,
+                        RouteCapability.LIVE_EVALUATION,
+                    ),
+                ).model_dump(mode="json"),
+            },
+        ),
+        StreamEvent(
+            event_type=StreamEventType.RETRIEVAL,
+            sequence=2,
+            payload={
+                "code": "retrieval_completed",
+                "message": "Retrieval context prepared.",
+                "context": {
+                    "request": {
+                        "query": "Create a simple rotating cube in three.js.",
+                        "route": "generate",
+                        "limit": 5,
+                        "filters": {
+                            "domain": None,
+                            "domains": ["three_js", "react_three_fiber"],
+                            "source_id": None,
+                            "source_type": None,
+                            "publisher": None,
+                        },
+                    },
+                    "source": "official_kb",
+                    "chunks": [
+                        {
+                            "source_id": "three_examples",
+                            "domain": "three_js",
+                            "source_type": "examples",
+                            "publisher": "three.js",
+                            "registry_title": "three.js examples",
+                            "document_title": "three.js examples",
+                            "source_url": "https://threejs.org/examples/",
+                            "resolved_url": None,
+                            "chunk_index": 0,
+                            "excerpt": "Select an example from the sidebar.",
+                            "score": 0.98,
+                        },
+                        {
+                            "source_id": "three_docs",
+                            "domain": "three_js",
+                            "source_type": "api_reference",
+                            "publisher": "three.js",
+                            "registry_title": "three.js Documentation",
+                            "document_title": "three.js docs",
+                            "source_url": "https://threejs.org/docs/",
+                            "resolved_url": "https://threejs.org/docs/",
+                            "chunk_index": 0,
+                            "excerpt": (
+                                "Object3D and BufferGeometry index page content."
+                            ),
+                            "score": 0.97,
+                        },
+                    ],
+                },
+            },
+        ),
+        StreamEvent(
+            event_type=StreamEventType.CONTEXT,
+            sequence=3,
+            payload={
+                "code": "context_assembled",
+                "message": "Combined context prepared.",
+                "context": {
+                    "request": {
+                        "route": "generate",
+                        "memory_context": None,
+                        "retrieval_context": {
+                            "request": {
+                                "query": "Create a simple rotating cube in three.js.",
+                                "route": "generate",
+                                "limit": 5,
+                                "filters": {
+                                    "domain": None,
+                                    "domains": [
+                                        "three_js",
+                                        "react_three_fiber",
+                                    ],
+                                    "source_id": None,
+                                    "source_type": None,
+                                    "publisher": None,
+                                },
+                            },
+                            "source": "official_kb",
+                            "chunks": [
+                                {
+                                    "source_id": "three_box_geometry",
+                                    "domain": "three_js",
+                                    "source_type": "api_reference",
+                                    "publisher": "three.js",
+                                    "registry_title": "BoxGeometry - three.js docs",
+                                    "document_title": "BoxGeometry",
+                                    "source_url": (
+                                        "https://threejs.org/docs/#api/en/geometries/"
+                                        "BoxGeometry"
+                                    ),
+                                    "resolved_url": (
+                                        "https://threejs.org/docs/#api/en/geometries/"
+                                        "BoxGeometry"
+                                    ),
+                                    "chunk_index": 0,
+                                    "excerpt": (
+                                        "BoxGeometry is a geometry class for a "
+                                        "rectangular cuboid."
+                                    ),
+                                    "score": 0.74,
+                                },
+                                {
+                                    "source_id": "r3f_introduction",
+                                    "domain": "react_three_fiber",
+                                    "source_type": "guide",
+                                    "publisher": "pmndrs",
+                                    "registry_title": (
+                                        "Introduction - React Three Fiber"
+                                    ),
+                                    "document_title": (
+                                        "Introduction - React Three Fiber"
+                                    ),
+                                    "source_url": (
+                                        "https://r3f.docs.pmnd.rs/getting-started/"
+                                        "introduction"
+                                    ),
+                                    "resolved_url": None,
+                                    "chunk_index": 3,
+                                    "excerpt": (
+                                        "function Box(props) { useFrame(() => "
+                                        "meshRef.current.rotation.x += 0.01) }"
+                                    ),
+                                    "score": 0.72,
+                                },
+                            ],
+                        },
+                    },
+                    "summary": {
+                        "recent_turn_count": 0,
+                        "has_running_summary": False,
+                        "project_memory_count": 0,
+                        "retrieval_chunk_count": 2,
+                    },
+                    "memory_context": None,
+                    "retrieval_context": {
+                        "request": {
+                            "query": "Create a simple rotating cube in three.js.",
+                            "route": "generate",
+                            "limit": 5,
+                            "filters": {
+                                "domain": None,
+                                "domains": ["three_js", "react_three_fiber"],
+                                "source_id": None,
+                                "source_type": None,
+                                "publisher": None,
+                            },
+                        },
+                        "source": "official_kb",
+                        "chunks": [
+                            {
+                                "source_id": "three_box_geometry",
+                                "domain": "three_js",
+                                "source_type": "api_reference",
+                                "publisher": "three.js",
+                                "registry_title": "BoxGeometry - three.js docs",
+                                "document_title": "BoxGeometry",
+                                "source_url": (
+                                    "https://threejs.org/docs/#api/en/geometries/"
+                                    "BoxGeometry"
+                                ),
+                                "resolved_url": (
+                                    "https://threejs.org/docs/#api/en/geometries/"
+                                    "BoxGeometry"
+                                ),
+                                "chunk_index": 0,
+                                "excerpt": (
+                                    "BoxGeometry is a geometry class for a rectangular "
+                                    "cuboid."
+                                ),
+                                "score": 0.74,
+                            },
+                            {
+                                "source_id": "r3f_introduction",
+                                "domain": "react_three_fiber",
+                                "source_type": "guide",
+                                "publisher": "pmndrs",
+                                "registry_title": (
+                                    "Introduction - React Three Fiber"
+                                ),
+                                "document_title": (
+                                    "Introduction - React Three Fiber"
+                                ),
+                                "source_url": (
+                                    "https://r3f.docs.pmnd.rs/getting-started/"
+                                    "introduction"
+                                ),
+                                "resolved_url": None,
+                                "chunk_index": 3,
+                                "excerpt": (
+                                    "function Box(props) { useFrame(() => "
+                                    "meshRef.current.rotation.x += 0.01) }"
+                                ),
+                                "score": 0.72,
+                            },
+                        ],
+                    },
+                },
+            },
+        ),
+        StreamEvent(
+            event_type=StreamEventType.FINAL,
+            sequence=4,
             payload={"answer": answer},
         ),
     )
