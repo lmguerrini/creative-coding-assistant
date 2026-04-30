@@ -369,6 +369,203 @@ class RetrievalFoundationTests(unittest.TestCase):
         self.assertEqual(len(filtered), 1)
         self.assertEqual(filtered[0].source_id, "three_docs")
 
+    def test_three_js_query_excludes_unrelated_p5_candidates(self) -> None:
+        results = (
+            _result(
+                source_id="r3f_introduction",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="Introduction - React Three Fiber",
+                document_title="Introduction - React Three Fiber",
+                text="Set up a Canvas and render a rotating Box mesh.",
+                score=0.95,
+                distance=0.05,
+                domain=CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+            _result(
+                source_id="p5_examples",
+                source_type=OfficialSourceType.EXAMPLES,
+                registry_title="Examples",
+                document_title="Examples",
+                text="A p5.js moving circle sketch with background clearing.",
+                score=0.94,
+                distance=0.06,
+                domain=CreativeCodingDomain.P5_JS,
+            ),
+            _result(
+                source_id="r3f_canvas_api",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="Canvas - React Three Fiber",
+                document_title="Canvas - React Three Fiber",
+                text="Canvas configures the renderer for three.js scenes.",
+                score=0.93,
+                distance=0.07,
+                domain=CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+        )
+
+        filtered = select_retrieval_results(
+            results,
+            limit=3,
+            query="Create a simple rotating cube in three.js",
+        )
+
+        self.assertEqual(
+            [result.source_id for result in filtered],
+            ["r3f_introduction", "r3f_canvas_api"],
+        )
+
+    def test_r3f_query_stays_react_three_fiber_focused(self) -> None:
+        results = (
+            _result(
+                source_id="r3f_hooks_api",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="Hooks - React Three Fiber",
+                document_title="Hooks - React Three Fiber",
+                text="useFrame executes code every rendered frame.",
+                score=0.95,
+                distance=0.05,
+                domain=CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+            _result(
+                source_id="p5_reference",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="p5.js Reference",
+                document_title="p5.js Reference",
+                text="draw() runs repeatedly to animate a sketch.",
+                score=0.94,
+                distance=0.06,
+                domain=CreativeCodingDomain.P5_JS,
+            ),
+            _result(
+                source_id="three_box_geometry",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="BoxGeometry - three.js docs",
+                document_title="BoxGeometry",
+                text="BoxGeometry creates a rectangular cuboid.",
+                score=0.93,
+                distance=0.07,
+                domain=CreativeCodingDomain.THREE_JS,
+            ),
+        )
+
+        filtered = select_retrieval_results(
+            results,
+            limit=3,
+            query="What is useFrame in React Three Fiber",
+        )
+
+        self.assertEqual(
+            [result.source_id for result in filtered],
+            ["r3f_hooks_api", "three_box_geometry"],
+        )
+
+    def test_p5_query_keeps_p5_candidates(self) -> None:
+        results = (
+            _result(
+                source_id="p5_reference",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="p5.js Reference",
+                document_title="p5.js Reference",
+                text="draw() runs repeatedly to animate a sketch.",
+                score=0.95,
+                distance=0.05,
+                domain=CreativeCodingDomain.P5_JS,
+            ),
+            _result(
+                source_id="r3f_hooks_api",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="Hooks - React Three Fiber",
+                document_title="Hooks - React Three Fiber",
+                text="useFrame executes code every rendered frame.",
+                score=0.94,
+                distance=0.06,
+                domain=CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+        )
+
+        filtered = select_retrieval_results(
+            results,
+            limit=2,
+            query="Create a simple p5.js sketch with a moving circle",
+        )
+
+        self.assertEqual(
+            [result.source_id for result in filtered],
+            ["p5_reference"],
+        )
+
+    def test_glsl_query_keeps_glsl_candidates(self) -> None:
+        results = (
+            _result(
+                source_id="glsl_language_spec_460",
+                source_type=OfficialSourceType.SPECIFICATION,
+                registry_title="GLSL 4.60 Specification",
+                document_title="GLSL 4.60 Specification",
+                text="A fragment shader writes the final color output.",
+                score=0.95,
+                distance=0.05,
+                domain=CreativeCodingDomain.GLSL,
+            ),
+            _result(
+                source_id="three_box_geometry",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="BoxGeometry - three.js docs",
+                document_title="BoxGeometry",
+                text="BoxGeometry creates a rectangular cuboid.",
+                score=0.94,
+                distance=0.06,
+                domain=CreativeCodingDomain.THREE_JS,
+            ),
+        )
+
+        filtered = select_retrieval_results(
+            results,
+            limit=2,
+            query="Write a basic GLSL fragment shader",
+        )
+
+        self.assertEqual(
+            [result.source_id for result in filtered],
+            ["glsl_language_spec_460"],
+        )
+
+    def test_domain_filter_falls_back_when_narrowing_would_remove_everything(
+        self,
+    ) -> None:
+        results = (
+            _result(
+                source_id="p5_reference",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="p5.js Reference",
+                document_title="p5.js Reference",
+                text="draw() runs repeatedly to animate a sketch.",
+                score=0.95,
+                distance=0.05,
+                domain=CreativeCodingDomain.P5_JS,
+            ),
+            _result(
+                source_id="p5_examples",
+                source_type=OfficialSourceType.EXAMPLES,
+                registry_title="Examples",
+                document_title="Examples",
+                text="JSON data drives a moving circle example.",
+                score=0.94,
+                distance=0.06,
+                domain=CreativeCodingDomain.P5_JS,
+            ),
+        )
+
+        filtered = select_retrieval_results(
+            results,
+            limit=2,
+            query="Create a simple rotating cube in three.js",
+        )
+
+        self.assertEqual(
+            [result.source_id for result in filtered],
+            ["p5_reference", "p5_examples"],
+        )
+
     def test_dedup_removes_near_duplicate_chunks_from_same_source(self) -> None:
         results = (
             _result(
@@ -694,17 +891,20 @@ def _result(
     text: str,
     score: float,
     distance: float,
+    domain: CreativeCodingDomain = CreativeCodingDomain.THREE_JS,
+    publisher: str = "three.js",
+    source_url: str = "https://threejs.org/docs/",
 ) -> KnowledgeBaseSearchResult:
     return KnowledgeBaseSearchResult(
         record_id=f"record:{source_id}",
         source_id=source_id,
-        domain=CreativeCodingDomain.THREE_JS,
+        domain=domain,
         source_type=source_type,
-        publisher="three.js",
+        publisher=publisher,
         registry_title=registry_title,
         document_title=document_title,
-        source_url="https://threejs.org/docs/",
-        resolved_url="https://threejs.org/docs/",
+        source_url=source_url,
+        resolved_url=source_url,
         chunk_index=0,
         text=text,
         char_count=len(text),
