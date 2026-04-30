@@ -97,11 +97,11 @@ class OfficialKnowledgeBaseSourceRegistryTests(unittest.TestCase):
 
         self.assertEqual(
             {source.url.split("/")[2] for source in sources},
-            {"wikis.khronos.org"},
+            {"registry.khronos.org"},
         )
         self.assertTrue(
             all(
-                extra_url.split("/")[2] == "wikis.khronos.org"
+                extra_url.split("/")[2] == "registry.khronos.org"
                 for source in sources
                 for extra_url in source.additional_urls
             )
