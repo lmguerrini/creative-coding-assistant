@@ -15,8 +15,16 @@ from creative_coding_assistant.rag.retrieval.postprocess import (
     select_retrieval_results,
 )
 from creative_coding_assistant.rag.sources import OfficialSourceType
-from creative_coding_assistant.rag.sync import OfficialKnowledgeBaseIndexer
-from creative_coding_assistant.rag.sync.models import OfficialSourceChunk
+from creative_coding_assistant.rag.sync import (
+    OfficialKnowledgeBaseIndexer,
+    OfficialSourceChunker,
+    OfficialSourceNormalizer,
+)
+from creative_coding_assistant.rag.sync.models import (
+    FetchedSourceDocument,
+    OfficialSourceChunk,
+    SourceContentFormat,
+)
 from creative_coding_assistant.vectorstore import (
     ChromaCollection,
     ChromaRecordMetadata,
@@ -733,6 +741,131 @@ class RetrievalFoundationTests(unittest.TestCase):
             self.assertEqual(response.results[0].source_id, "three_box_geometry")
             self.assertIn("boxgeometry", response.results[0].text.lower())
 
+    def test_p5_retrieval_returns_code_heavy_chunks_after_ingestion_cleanup(
+        self,
+    ) -> None:
+        with _kb_client() as client:
+            indexer = OfficialKnowledgeBaseIndexer(client=client)
+            chunks = _chunks_from_html(
+                source_id="p5_examples",
+                domain=CreativeCodingDomain.P5_JS,
+                source_type=OfficialSourceType.EXAMPLES,
+                publisher="p5.js",
+                registry_title="p5.js Runnable Examples",
+                source_url="https://p5js.org/examples/calculating-values-constrain/",
+                raw_html="""
+                <html>
+                  <head><title>Constrain</title></head>
+                  <body>
+                    <nav>Skip to main content Menu Reference Tutorials</nav>
+                    <main>
+                      <p>Move a circle while keeping it inside a box.</p>
+                      <pre>
+function draw() {
+  background(220);
+  circle(x, y, 40);
+}
+                      </pre>
+                    </main>
+                    <footer>Edited and maintained by p5.js Contributors.</footer>
+                  </body>
+                </html>
+                """,
+            )
+            indexer.upsert_chunks(chunks, [[1.0, 0.0, 0.0]] * len(chunks))
+            retriever = KnowledgeBaseRetriever(
+                client=client,
+                embedder=_FakeQueryEmbedder(
+                    {
+                        "Create a simple p5.js sketch with a moving circle": [
+                            1.0,
+                            0.0,
+                            0.0,
+                        ]
+                    }
+                ),
+            )
+
+            response = retriever.search(
+                KnowledgeBaseRetrievalRequest(
+                    query="Create a simple p5.js sketch with a moving circle",
+                    filters=KnowledgeBaseRetrievalFilter(
+                        domain=CreativeCodingDomain.P5_JS
+                    ),
+                )
+            )
+
+            self.assertGreaterEqual(len(response.results), 1)
+            self.assertTrue(
+                any("circle(" in result.text.lower() for result in response.results)
+            )
+            self.assertTrue(
+                all(
+                    "skip to main content" not in result.text.lower()
+                    for result in response.results
+                )
+            )
+
+    def test_glsl_retrieval_returns_shader_like_chunks_after_ingestion_cleanup(
+        self,
+    ) -> None:
+        with _kb_client() as client:
+            indexer = OfficialKnowledgeBaseIndexer(client=client)
+            chunks = _chunks_from_html(
+                source_id="glsl_language_spec_460",
+                domain=CreativeCodingDomain.GLSL,
+                source_type=OfficialSourceType.GUIDE,
+                publisher="Khronos Group",
+                registry_title="OpenGL Wiki: Fragment Shader Guide",
+                source_url="https://wikis.khronos.org/opengl/Fragment_Shader",
+                raw_html="""
+                <html>
+                  <head><title>Fragment Shader</title></head>
+                  <body>
+                    <main>
+                      <p>A fragment shader writes a color for each fragment.</p>
+                      <pre>
+void main() {
+  gl_FragColor = vec4(vec3(0.2, 0.4, 1.0), 1.0);
+}
+                      </pre>
+                    </main>
+                    <footer>Retrieved from Khronos Wiki</footer>
+                  </body>
+                </html>
+                """,
+            )
+            indexer.upsert_chunks(chunks, [[0.0, 0.0, 1.0]] * len(chunks))
+            retriever = KnowledgeBaseRetriever(
+                client=client,
+                embedder=_FakeQueryEmbedder(
+                    {"Write a basic GLSL fragment shader": [0.0, 0.0, 1.0]}
+                ),
+            )
+
+            response = retriever.search(
+                KnowledgeBaseRetrievalRequest(
+                    query="Write a basic GLSL fragment shader",
+                    filters=KnowledgeBaseRetrievalFilter(
+                        domain=CreativeCodingDomain.GLSL
+                    ),
+                )
+            )
+
+            self.assertGreaterEqual(len(response.results), 1)
+            self.assertTrue(
+                any(
+                    "gl_fragcolor" in result.text.lower()
+                    for result in response.results
+                )
+            )
+            self.assertTrue(
+                all(
+                    "retrieved from" not in result.text.lower()
+                    for result in response.results
+                )
+            )
+
 
 def _seed_kb_records(client) -> None:
     indexer = OfficialKnowledgeBaseIndexer(client=client)
@@ -849,6 +982,32 @@ def _seed_low_value_kb_records(client) -> None:
         [0.98, 0.0, 0.0],
     )
     indexer.upsert_chunks(chunks, embeddings)
+
+
+def _chunks_from_html(
+    *,
+    source_id: str,
+    domain: CreativeCodingDomain,
+    source_type: OfficialSourceType,
+    publisher: str,
+    registry_title: str,
+    source_url: str,
+    raw_html: str,
+) -> tuple[OfficialSourceChunk, ...]:
+    fetched_document = FetchedSourceDocument.from_content(
+        source_id=source_id,
+        domain=domain,
+        source_type=source_type,
+        registry_title=registry_title,
+        publisher=publisher,
+        source_url=source_url,
+        resolved_url=source_url,
+        fetched_at=_time(),
+        content_format=SourceContentFormat.HTML,
+        raw_content=raw_html,
+    )
+    normalized = OfficialSourceNormalizer().normalize(fetched_document)
+    return OfficialSourceChunker().chunk(normalized)
 
 
 def _chunk(
