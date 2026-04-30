@@ -79,6 +79,51 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
             ["missing_retrieved_contexts", "limit_exceeded"],
         )
 
+    def test_select_ragas_rows_latest_uses_newest_eligible_samples(self) -> None:
+        selection = select_ragas_live_eval_rows(
+            (
+                _sample(sample_id="eligible-1", with_context=True),
+                _sample(sample_id="missing-context", with_context=False),
+                _sample(sample_id="eligible-2", with_context=True),
+                _sample(sample_id="eligible-3", with_context=True),
+            ),
+            latest=2,
+        )
+
+        self.assertEqual(selection.total_samples, 4)
+        self.assertEqual(selection.eligible_samples, 2)
+        self.assertEqual(
+            [row.sample_id for row in selection.rows],
+            ["eligible-2", "eligible-3"],
+        )
+        self.assertEqual(
+            [(skipped.sample_id, skipped.reason) for skipped in selection.skipped],
+            [
+                ("missing-context", "missing_retrieved_contexts"),
+                ("eligible-1", "limit_exceeded"),
+            ],
+        )
+
+    def test_select_ragas_rows_latest_takes_precedence_over_limit(self) -> None:
+        selection = select_ragas_live_eval_rows(
+            (
+                _sample(sample_id="eligible-1", with_context=True),
+                _sample(sample_id="eligible-2", with_context=True),
+                _sample(sample_id="eligible-3", with_context=True),
+            ),
+            limit=1,
+            latest=2,
+        )
+
+        self.assertEqual(
+            [row.sample_id for row in selection.rows],
+            ["eligible-2", "eligible-3"],
+        )
+        self.assertEqual(
+            [(skipped.sample_id, skipped.reason) for skipped in selection.skipped],
+            [("eligible-1", "limit_exceeded")],
+        )
+
     def test_resolve_ragas_metric_names_deduplicates_and_validates(self) -> None:
         self.assertIn("answer_relevancy", SUPPORTED_RAGAS_METRICS)
         self.assertEqual(resolve_ragas_metric_names(None), DEFAULT_RAGAS_METRICS)
@@ -144,6 +189,50 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
         self.assertNotIn("response", payload)
         self.assertNotIn("retrieved_contexts", payload)
         self.assertNotIn("embedding", json.dumps(payload))
+
+    def test_run_ragas_live_eval_latest_keeps_summary_counts_correct(self) -> None:
+        with TemporaryDirectory() as temp_dir:
+            input_path = Path(temp_dir) / "live_sessions.jsonl"
+            output_path = Path(temp_dir) / "ragas_results.jsonl"
+            input_path.write_text(
+                "\n".join(
+                    (
+                        _sample(sample_id="sample-1", with_context=True)
+                        .model_dump_json(),
+                        _sample(sample_id="sample-2", with_context=False)
+                        .model_dump_json(),
+                        _sample(sample_id="sample-3", with_context=True)
+                        .model_dump_json(),
+                        _sample(sample_id="sample-4", with_context=True)
+                        .model_dump_json(),
+                    )
+                ),
+                encoding="utf-8",
+            )
+
+            result = run_ragas_live_eval(
+                input_path=input_path,
+                output_path=output_path,
+                latest=2,
+                backend=_FakeRagasBackend(),
+                run_id="run-latest",
+                evaluated_at=datetime(2026, 4, 29, 12, 0, tzinfo=UTC),
+            )
+
+        self.assertEqual(result.total_samples, 4)
+        self.assertEqual(result.eligible_samples, 2)
+        self.assertEqual(result.skipped_samples, 2)
+        self.assertEqual(
+            [row.sample_id for row in result.result_rows],
+            ["sample-3", "sample-4"],
+        )
+        self.assertEqual(
+            [(skipped.sample_id, skipped.reason) for skipped in result.skipped],
+            [
+                ("sample-2", "missing_retrieved_contexts"),
+                ("sample-1", "limit_exceeded"),
+            ],
+        )
 
     def test_run_ragas_live_eval_records_metric_failures(self) -> None:
         with TemporaryDirectory() as temp_dir:
@@ -244,6 +333,36 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
         self.assertEqual(evaluator_config.timeout_seconds, 30)
         self.assertEqual(evaluator_config.max_retries, 1)
         self.assertEqual(evaluator_config.max_workers, 1)
+
+    def test_ragas_cli_passes_latest_selection(self) -> None:
+        result = RagasLiveEvalRunResult(
+            run_id="run-latest",
+            input_path=Path("data/eval/live_sessions.jsonl"),
+            output_path=Path("data/eval/ragas_results.jsonl"),
+            total_samples=4,
+            eligible_samples=2,
+            skipped_samples=2,
+            metrics=DEFAULT_RAGAS_METRICS,
+            metric_failures=0,
+            result_rows=(),
+            skipped=(),
+        )
+
+        with (
+            patch(
+                "creative_coding_assistant.eval.ragas_cli.load_settings",
+                return_value=Settings(),
+            ),
+            patch(
+                "creative_coding_assistant.eval.ragas_cli.run_ragas_live_eval",
+                return_value=result,
+            ) as run_mock,
+        ):
+            exit_code = ragas_cli_main(("--limit", "1", "--latest", "2"))
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(run_mock.call_args.kwargs["limit"], 1)
+        self.assertEqual(run_mock.call_args.kwargs["latest"], 2)
 
     def test_ragas_cli_reports_missing_optional_dependency(self) -> None:
         with (
