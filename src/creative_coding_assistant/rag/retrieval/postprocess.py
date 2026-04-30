@@ -10,6 +10,10 @@ from creative_coding_assistant.rag.retrieval.models import KnowledgeBaseSearchRe
 
 _GENERIC_EXAMPLE_PHRASES: tuple[str, ...] = (
     "select an example from the sidebar",
+    (
+        "skip to main content menu reference tutorials examples contribute "
+        "community about start coding donate"
+    ),
     "three.js examples three.js examples",
 )
 _GENERIC_DOC_INDEX_PHRASES: tuple[str, ...] = (
@@ -29,6 +33,7 @@ _GENERIC_MANUAL_PHRASES: tuple[str, ...] = (
 )
 _DEDUP_TEXT_PREFIX_LENGTH = 280
 _DEDUP_SIMILARITY_THRESHOLD = 0.80
+_MAX_RESULTS_PER_SOURCE = 2
 _INLINE_TYPE_ANNOTATION_PATTERN = re.compile(
     r"\b[a-z_][a-z0-9_]*\s*:\s*[^,)=\]}]+"
 )
@@ -46,7 +51,7 @@ def select_retrieval_results(
     filtered = tuple(result for result in results if not _is_low_value_chunk(result))
     if filtered:
         deduplicated = _deduplicate_results(filtered)
-        return deduplicated[:limit]
+        return _apply_source_diversity(deduplicated, limit=limit)
     return tuple(results[:limit])
 
 
@@ -97,6 +102,37 @@ def _deduplicate_results(
         previews.setdefault(result.source_id, []).append(preview)
 
     return tuple(kept)
+
+
+def _apply_source_diversity(
+    results: Sequence[KnowledgeBaseSearchResult],
+    *,
+    limit: int,
+) -> tuple[KnowledgeBaseSearchResult, ...]:
+    kept, _ = _take_source_limited_results(results, limit=limit)
+    return kept
+
+
+def _take_source_limited_results(
+    results: Sequence[KnowledgeBaseSearchResult],
+    *,
+    limit: int,
+    existing_counts: dict[str, int] | None = None,
+) -> tuple[tuple[KnowledgeBaseSearchResult, ...], dict[str, int]]:
+    kept: list[KnowledgeBaseSearchResult] = []
+    counts = dict(existing_counts or {})
+
+    for result in results:
+        source_count = counts.get(result.source_id, 0)
+        if source_count >= _MAX_RESULTS_PER_SOURCE:
+            continue
+
+        kept.append(result)
+        counts[result.source_id] = source_count + 1
+        if len(kept) >= limit:
+            break
+
+    return tuple(kept), counts
 
 
 def _is_near_duplicate(left: str, right: str) -> bool:
