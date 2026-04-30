@@ -92,6 +92,152 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
             ),
         )
 
+    def test_build_retrieval_request_prefers_explicit_query_domain_over_ui_domains(
+        self,
+    ) -> None:
+        assistant_request = AssistantRequest(
+            query="Create a p5.js sketch with a bouncing ball.",
+            domains=(
+                CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+            mode=AssistantMode.GENERATE,
+        )
+        route_decision = RouteDecision(
+            route=RouteName.GENERATE,
+            mode=AssistantMode.GENERATE,
+            capabilities=(RouteCapability.OFFICIAL_DOCS,),
+        )
+
+        retrieval_request = build_retrieval_context_request(
+            assistant_request,
+            route_decision,
+        )
+
+        self.assertIsNotNone(retrieval_request)
+        assert retrieval_request is not None
+        self.assertEqual(retrieval_request.filters.domain, CreativeCodingDomain.P5_JS)
+        self.assertEqual(
+            retrieval_request.filters.domains,
+            (CreativeCodingDomain.P5_JS,),
+        )
+
+    def test_build_retrieval_request_detects_explicit_three_js_domain(self) -> None:
+        assistant_request = AssistantRequest(
+            query="Create a rotating cube in three.js.",
+            domains=(
+                CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+            mode=AssistantMode.GENERATE,
+        )
+        route_decision = RouteDecision(
+            route=RouteName.GENERATE,
+            mode=AssistantMode.GENERATE,
+            capabilities=(RouteCapability.OFFICIAL_DOCS,),
+        )
+
+        retrieval_request = build_retrieval_context_request(
+            assistant_request,
+            route_decision,
+        )
+
+        self.assertIsNotNone(retrieval_request)
+        assert retrieval_request is not None
+        self.assertEqual(
+            retrieval_request.filters.domain,
+            CreativeCodingDomain.THREE_JS,
+        )
+        self.assertEqual(
+            retrieval_request.filters.domains,
+            (CreativeCodingDomain.THREE_JS,),
+        )
+
+    def test_build_retrieval_request_detects_multi_domain_query_intent(self) -> None:
+        assistant_request = AssistantRequest(
+            query="Create a shader material in react three fiber using GLSL.",
+            domains=(CreativeCodingDomain.THREE_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        route_decision = RouteDecision(
+            route=RouteName.GENERATE,
+            mode=AssistantMode.GENERATE,
+            capabilities=(RouteCapability.OFFICIAL_DOCS,),
+        )
+
+        retrieval_request = build_retrieval_context_request(
+            assistant_request,
+            route_decision,
+        )
+
+        self.assertIsNotNone(retrieval_request)
+        assert retrieval_request is not None
+        self.assertIsNone(retrieval_request.filters.domain)
+        self.assertEqual(
+            retrieval_request.filters.domains,
+            (
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
+        )
+
+    def test_build_retrieval_request_uses_ui_domains_when_query_is_ambiguous(
+        self,
+    ) -> None:
+        assistant_request = AssistantRequest(
+            query="Create a rotating cube.",
+            domains=(
+                CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+            mode=AssistantMode.GENERATE,
+        )
+        route_decision = RouteDecision(
+            route=RouteName.GENERATE,
+            mode=AssistantMode.GENERATE,
+            capabilities=(RouteCapability.OFFICIAL_DOCS,),
+        )
+
+        retrieval_request = build_retrieval_context_request(
+            assistant_request,
+            route_decision,
+        )
+
+        self.assertIsNotNone(retrieval_request)
+        assert retrieval_request is not None
+        self.assertIsNone(retrieval_request.filters.domain)
+        self.assertEqual(
+            retrieval_request.filters.domains,
+            (
+                CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+        )
+
+    def test_build_retrieval_request_preserves_empty_ui_selection_when_ambiguous(
+        self,
+    ) -> None:
+        assistant_request = AssistantRequest(
+            query="Create a rotating cube.",
+            domains=(),
+            mode=AssistantMode.GENERATE,
+        )
+        route_decision = RouteDecision(
+            route=RouteName.GENERATE,
+            mode=AssistantMode.GENERATE,
+            capabilities=(RouteCapability.OFFICIAL_DOCS,),
+        )
+
+        retrieval_request = build_retrieval_context_request(
+            assistant_request,
+            route_decision,
+        )
+
+        self.assertIsNotNone(retrieval_request)
+        assert retrieval_request is not None
+        self.assertIsNone(retrieval_request.filters.domain)
+        self.assertEqual(retrieval_request.filters.domains, ())
+
     def test_build_retrieval_request_skips_routes_without_docs_capability(self) -> None:
         assistant_request = AssistantRequest(query="Summarize this sketch.")
         route_decision = RouteDecision(
@@ -272,6 +418,38 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
                 CreativeCodingDomain.REACT_THREE_FIBER,
                 CreativeCodingDomain.GLSL,
             ),
+        )
+
+    def test_service_prefers_explicit_query_domain_over_ui_domain_selection(
+        self,
+    ) -> None:
+        retrieval_context = RetrievalContextResponse(
+            request=RetrievalContextRequest(
+                query="Create a p5.js sketch with a bouncing ball.",
+                route=RouteName.GENERATE,
+            ),
+        )
+        gateway = _FakeGateway(response=retrieval_context)
+        service = AssistantService(
+            route_fn=_route_with_docs,
+            retrieval_gateway=gateway,
+        )
+        request = AssistantRequest(
+            query="Create a p5.js sketch with a bouncing ball.",
+            domains=(
+                CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+            mode=AssistantMode.GENERATE,
+        )
+
+        tuple(service.stream(request))
+
+        self.assertEqual(len(gateway.requests), 1)
+        self.assertEqual(gateway.requests[0].filters.domain, CreativeCodingDomain.P5_JS)
+        self.assertEqual(
+            gateway.requests[0].filters.domains,
+            (CreativeCodingDomain.P5_JS,),
         )
 
     def test_assistant_service_skips_retrieval_without_docs_capability(self) -> None:
