@@ -56,6 +56,29 @@ class OfficialKnowledgeBaseSourceRegistryTests(unittest.TestCase):
         self.assertEqual(source.domain, CreativeCodingDomain.P5_JS)
         self.assertEqual(source.source_type, OfficialSourceType.API_REFERENCE)
 
+    def test_glsl_mdn_examples_source_is_registered_with_expected_metadata(
+        self,
+    ) -> None:
+        source = get_official_source("glsl_mdn_webgl_examples")
+
+        self.assertEqual(source.domain, CreativeCodingDomain.GLSL)
+        self.assertEqual(source.publisher, "MDN")
+        self.assertEqual(source.source_type, OfficialSourceType.EXAMPLES)
+        self.assertEqual(
+            source.url,
+            (
+                "https://developer.mozilla.org/en-US/docs/Web/API/"
+                "WebGL_API/By_example/Hello_GLSL"
+            ),
+        )
+        self.assertEqual(
+            source.additional_urls,
+            (
+                "https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/By_example/Textures_from_code",
+                "https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Using_shaders_to_apply_color_in_WebGL",
+            ),
+        )
+
     def test_source_lookup_rejects_unknown_source(self) -> None:
         with self.assertRaises(ValueError):
             get_official_source("unknown_source")
@@ -92,16 +115,17 @@ class OfficialKnowledgeBaseSourceRegistryTests(unittest.TestCase):
                 allowed_path_prefixes=("/docs/",),
             )
 
-    def test_glsl_sources_use_khronos_registry(self) -> None:
+    def test_glsl_sources_use_approved_registry_and_mdn_hosts(self) -> None:
         sources = approved_sources_for_domain(CreativeCodingDomain.GLSL)
 
         self.assertEqual(
             {source.url.split("/")[2] for source in sources},
-            {"registry.khronos.org"},
+            {"developer.mozilla.org", "registry.khronos.org"},
         )
         self.assertTrue(
             all(
-                extra_url.split("/")[2] == "registry.khronos.org"
+                extra_url.split("/")[2]
+                in {"developer.mozilla.org", "registry.khronos.org"}
                 for source in sources
                 for extra_url in source.additional_urls
             )
