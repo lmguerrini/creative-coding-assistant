@@ -10,6 +10,10 @@ from creative_coding_assistant.rag.retrieval import (
     KnowledgeBaseRetrievalRequest,
     KnowledgeBaseRetriever,
 )
+from creative_coding_assistant.rag.retrieval.models import KnowledgeBaseSearchResult
+from creative_coding_assistant.rag.retrieval.postprocess import (
+    select_retrieval_results,
+)
 from creative_coding_assistant.rag.sources import OfficialSourceType
 from creative_coding_assistant.rag.sync import OfficialKnowledgeBaseIndexer
 from creative_coding_assistant.rag.sync.models import OfficialSourceChunk
@@ -182,6 +186,94 @@ class RetrievalFoundationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "must not be empty"):
                 retriever.search(KnowledgeBaseRetrievalRequest(query="bad query"))
 
+    def test_filter_removes_generic_landing_chunks_and_keeps_useful_docs(self) -> None:
+        results = (
+            _result(
+                source_id="three_examples",
+                source_type=OfficialSourceType.EXAMPLES,
+                registry_title="three.js examples",
+                document_title="three.js examples three.js examples",
+                text=(
+                    "three.js examples three.js examples "
+                    "Select an example from the sidebar"
+                ),
+                score=0.9,
+                distance=0.1,
+            ),
+            _result(
+                source_id="three_docs",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="three.js docs",
+                document_title="three.js docs",
+                text=(
+                    "BoxGeometry is a geometry class for a rectangular cuboid "
+                    "with width, height, and depth parameters."
+                ),
+                score=0.8,
+                distance=0.2,
+            ),
+            _result(
+                source_id="three_manual",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="three.js manual",
+                document_title="three.js manual",
+                text="three.js manual docs manual en fr ru 中文 日本語",
+                score=0.7,
+                distance=0.3,
+            ),
+        )
+
+        filtered = select_retrieval_results(results, limit=3)
+
+        self.assertEqual(len(filtered), 1)
+        self.assertEqual(filtered[0].source_id, "three_docs")
+
+    def test_filter_falls_back_to_original_results_when_all_are_filtered(self) -> None:
+        results = (
+            _result(
+                source_id="three_examples",
+                source_type=OfficialSourceType.EXAMPLES,
+                registry_title="three.js examples",
+                document_title="three.js examples three.js examples",
+                text=(
+                    "three.js examples three.js examples "
+                    "Select an example from the sidebar"
+                ),
+                score=0.9,
+                distance=0.1,
+            ),
+            _result(
+                source_id="three_manual",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="three.js manual",
+                document_title="three.js manual",
+                text="three.js manual docs manual en fr ru 中文 日本語",
+                score=0.7,
+                distance=0.3,
+            ),
+        )
+
+        filtered = select_retrieval_results(results, limit=1)
+
+        self.assertEqual(len(filtered), 1)
+        self.assertEqual(filtered[0].source_id, "three_examples")
+
+    def test_retriever_overfetches_to_replace_filtered_generic_hits(self) -> None:
+        with _kb_client() as client:
+            _seed_low_value_kb_records(client)
+            retriever = KnowledgeBaseRetriever(
+                client=client,
+                embedder=_FakeQueryEmbedder({"rotating cube": [1.0, 0.0, 0.0]}),
+            )
+
+            response = retriever.search(
+                KnowledgeBaseRetrievalRequest(query="rotating cube", limit=2)
+            )
+
+            self.assertEqual(len(response.results), 1)
+            self.assertEqual(response.results[0].source_id, "three_box_geometry")
+            self.assertIn("boxgeometry", response.results[0].text.lower())
+
 
 def _seed_kb_records(client) -> None:
     indexer = OfficialKnowledgeBaseIndexer(client=client)
@@ -247,6 +339,59 @@ def _seed_non_kb_record(client) -> None:
     )
 
 
+def _seed_low_value_kb_records(client) -> None:
+    indexer = OfficialKnowledgeBaseIndexer(client=client)
+    chunks = (
+        _chunk(
+            source_id="three_examples",
+            domain=CreativeCodingDomain.THREE_JS,
+            source_type=OfficialSourceType.EXAMPLES,
+            publisher="three.js",
+            registry_title="three.js examples",
+            document_title="three.js examples three.js examples",
+            source_url="https://threejs.org/examples/",
+            text=(
+                "three.js examples three.js examples "
+                "Select an example from the sidebar"
+            ),
+        ),
+        _chunk(
+            source_id="three_docs",
+            domain=CreativeCodingDomain.THREE_JS,
+            source_type=OfficialSourceType.API_REFERENCE,
+            publisher="three.js",
+            registry_title="three.js docs",
+            document_title="three.js docs",
+            source_url="https://threejs.org/docs/",
+            text=(
+                "three.js docs docs manual AnimationAction BufferGeometry "
+                "Object3D UniformsGroup"
+            ),
+        ),
+        _chunk(
+            source_id="three_box_geometry",
+            domain=CreativeCodingDomain.THREE_JS,
+            source_type=OfficialSourceType.API_REFERENCE,
+            publisher="three.js",
+            registry_title="BoxGeometry - three.js docs",
+            document_title="BoxGeometry",
+            source_url=(
+                "https://threejs.org/docs/#api/en/geometries/BoxGeometry"
+            ),
+            text=(
+                "BoxGeometry is a geometry class for a rectangular cuboid with "
+                "width, height, and depth parameters."
+            ),
+        ),
+    )
+    embeddings = (
+        [1.0, 0.0, 0.0],
+        [0.99, 0.0, 0.0],
+        [0.98, 0.0, 0.0],
+    )
+    indexer.upsert_chunks(chunks, embeddings)
+
+
 def _chunk(
     *,
     source_id: str,
@@ -254,6 +399,7 @@ def _chunk(
     source_type: OfficialSourceType,
     publisher: str,
     registry_title: str,
+    document_title: str | None = None,
     source_url: str,
     text: str,
 ) -> OfficialSourceChunk:
@@ -268,12 +414,42 @@ def _chunk(
         source_url=source_url,
         resolved_url=source_url,
         fetched_at=_time(),
-        document_title=registry_title,
+        document_title=document_title or registry_title,
         content_hash=content_hash,
         chunk_index=0,
         text=text,
         chunk_hash=chunk_hash,
         char_count=len(text),
+    )
+
+
+def _result(
+    *,
+    source_id: str,
+    source_type: OfficialSourceType,
+    registry_title: str,
+    document_title: str,
+    text: str,
+    score: float,
+    distance: float,
+) -> KnowledgeBaseSearchResult:
+    return KnowledgeBaseSearchResult(
+        record_id=f"record:{source_id}",
+        source_id=source_id,
+        domain=CreativeCodingDomain.THREE_JS,
+        source_type=source_type,
+        publisher="three.js",
+        registry_title=registry_title,
+        document_title=document_title,
+        source_url="https://threejs.org/docs/",
+        resolved_url="https://threejs.org/docs/",
+        chunk_index=0,
+        text=text,
+        char_count=len(text),
+        content_hash=_digest(source_id + document_title),
+        chunk_hash=_digest(text),
+        distance=distance,
+        score=score,
     )
 
 
