@@ -26,7 +26,7 @@ OFFICIAL_HOSTS_BY_DOMAIN: dict[CreativeCodingDomain, tuple[str, ...]] = {
     CreativeCodingDomain.THREE_JS: ("threejs.org",),
     CreativeCodingDomain.REACT_THREE_FIBER: ("r3f.docs.pmnd.rs",),
     CreativeCodingDomain.P5_JS: ("p5js.org",),
-    CreativeCodingDomain.GLSL: ("registry.khronos.org",),
+    CreativeCodingDomain.GLSL: ("registry.khronos.org", "wikis.khronos.org"),
 }
 
 
@@ -42,6 +42,7 @@ class OfficialSource(BaseModel):
     approval_status: SourceApprovalStatus = SourceApprovalStatus.APPROVED
     priority: int = Field(ge=1)
     allowed_path_prefixes: tuple[str, ...] = Field(min_length=1)
+    additional_urls: tuple[str, ...] = Field(default_factory=tuple)
     tags: tuple[str, ...] = Field(default_factory=tuple)
 
     @field_validator("url")
@@ -60,6 +61,17 @@ class OfficialSource(BaseModel):
                 raise ValueError("Allowed path prefixes must start with '/'.")
         return value
 
+    @field_validator("additional_urls")
+    @classmethod
+    def validate_additional_urls(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        for url in value:
+            parsed = urlparse(url)
+            if parsed.scheme != "https" or not parsed.netloc:
+                raise ValueError(
+                    "Additional official source URLs must be absolute HTTPS URLs."
+                )
+        return value
+
     @field_validator("tags")
     @classmethod
     def validate_tags(cls, value: tuple[str, ...]) -> tuple[str, ...]:
@@ -70,16 +82,21 @@ class OfficialSource(BaseModel):
 
     @model_validator(mode="after")
     def validate_official_scope(self) -> Self:
-        parsed = urlparse(self.url)
         allowed_hosts = OFFICIAL_HOSTS_BY_DOMAIN[self.domain]
-        if parsed.hostname not in allowed_hosts:
-            raise ValueError("Official source host is not approved for this domain.")
+        for url in (self.url, *self.additional_urls):
+            parsed = urlparse(url)
+            if parsed.hostname not in allowed_hosts:
+                raise ValueError(
+                    "Official source host is not approved for this domain."
+                )
 
-        path_is_allowed = any(
-            parsed.path.startswith(prefix) for prefix in self.allowed_path_prefixes
-        )
-        if not path_is_allowed:
-            raise ValueError("Official source URL is outside its approved path scope.")
+            path_is_allowed = any(
+                parsed.path.startswith(prefix) for prefix in self.allowed_path_prefixes
+            )
+            if not path_is_allowed:
+                raise ValueError(
+                    "Official source URL is outside its approved path scope."
+                )
 
         return self
 
@@ -172,60 +189,88 @@ APPROVED_OFFICIAL_SOURCES: tuple[OfficialSource, ...] = _validate_source_registr
     OfficialSource(
         source_id="p5_reference",
         domain=CreativeCodingDomain.P5_JS,
-        title="p5.js Reference",
+        title="p5.js Core Sketch Reference",
         publisher="p5.js",
-        url="https://p5js.org/reference/",
+        url="https://p5js.org/reference/p5/setup/",
         source_type=OfficialSourceType.API_REFERENCE,
         priority=10,
-        allowed_path_prefixes=("/reference/",),
-        tags=("reference", "api", "creative-coding"),
+        allowed_path_prefixes=("/reference/p5/",),
+        additional_urls=(
+            "https://p5js.org/reference/p5/draw/",
+            "https://p5js.org/reference/p5/createCanvas/",
+            "https://p5js.org/reference/p5/background/",
+            "https://p5js.org/reference/p5/circle/",
+            "https://p5js.org/reference/p5/ellipse/",
+            "https://p5js.org/reference/p5/fill/",
+            "https://p5js.org/reference/p5/frameCount/",
+            "https://p5js.org/reference/p5/mouseX/",
+            "https://p5js.org/reference/p5/mouseY/",
+            "https://p5js.org/reference/p5/random/",
+        ),
+        tags=("reference", "api", "sketch"),
     ),
     OfficialSource(
         source_id="p5_tutorials",
         domain=CreativeCodingDomain.P5_JS,
-        title="p5.js Tutorials",
+        title="p5.js Motion Tutorials",
         publisher="p5.js",
-        url="https://p5js.org/tutorials/",
+        url="https://p5js.org/tutorials/get-started/",
         source_type=OfficialSourceType.GUIDE,
         priority=20,
         allowed_path_prefixes=("/tutorials/",),
-        tags=("guide", "learning", "creative-coding"),
+        additional_urls=(
+            "https://p5js.org/tutorials/variables-and-change",
+            "https://p5js.org/tutorials/conditionals-and-interactivity/",
+        ),
+        tags=("guide", "animation", "creative-coding"),
     ),
     OfficialSource(
         source_id="p5_examples",
         domain=CreativeCodingDomain.P5_JS,
-        title="p5.js Examples",
+        title="p5.js Runnable Examples",
         publisher="p5.js",
-        url="https://p5js.org/examples/",
+        url="https://p5js.org/examples/calculating-values-constrain/",
         source_type=OfficialSourceType.EXAMPLES,
         priority=30,
         allowed_path_prefixes=("/examples/",),
-        tags=("examples", "patterns", "creative-coding"),
+        additional_urls=(
+            "https://p5js.org/examples/animation-and-variables-drawing-lines/",
+            "https://p5js.org/examples/angles-and-motion-sine-cosine/",
+            "https://p5js.org/examples/games-circle-clicker/",
+        ),
+        tags=("examples", "patterns", "animation"),
     ),
     OfficialSource(
         source_id="glsl_language_spec_460",
         domain=CreativeCodingDomain.GLSL,
-        title="OpenGL Shading Language 4.60 Specification",
+        title="OpenGL Wiki: OpenGL Shading Language",
         publisher="Khronos Group",
-        url="https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.html",
-        source_type=OfficialSourceType.SPECIFICATION,
+        url="https://wikis.khronos.org/opengl/OpenGL_Shading_Language",
+        source_type=OfficialSourceType.GUIDE,
         priority=10,
-        allowed_path_prefixes=("/OpenGL/specs/gl/",),
-        tags=("specification", "opengl", "glsl"),
+        allowed_path_prefixes=("/opengl/",),
+        additional_urls=(
+            "https://wikis.khronos.org/opengl/Core_Language_%28GLSL%29",
+            "https://wikis.khronos.org/opengl/Type_Qualifier_%28GLSL%29",
+            "https://wikis.khronos.org/opengl/Built-in_Variable_%28GLSL%29",
+        ),
+        tags=("guide", "opengl", "glsl"),
     ),
     OfficialSource(
         source_id="glsl_es_language_spec_320",
         domain=CreativeCodingDomain.GLSL,
-        title="OpenGL ES Shading Language 3.20 Specification",
+        title="OpenGL Wiki: Fragment Shader Guide",
         publisher="Khronos Group",
-        url=(
-            "https://registry.khronos.org/OpenGL/specs/es/3.2/"
-            "GLSL_ES_Specification_3.20.html"
-        ),
-        source_type=OfficialSourceType.SPECIFICATION,
+        url="https://wikis.khronos.org/opengl/Fragment_Shader",
+        source_type=OfficialSourceType.GUIDE,
         priority=20,
-        allowed_path_prefixes=("/OpenGL/specs/es/3.2/",),
-        tags=("specification", "opengl-es", "glsl-es"),
+        allowed_path_prefixes=("/opengl/",),
+        additional_urls=(
+            "https://wikis.khronos.org/opengl/Shader",
+            "https://wikis.khronos.org/opengl/Shader_Compilation",
+            "https://wikis.khronos.org/opengl/GLSL_%3A_common_mistakes",
+        ),
+        tags=("guide", "fragment-shader", "glsl"),
     ),
 ))
 
