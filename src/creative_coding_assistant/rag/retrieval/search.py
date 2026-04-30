@@ -13,6 +13,9 @@ from creative_coding_assistant.rag.retrieval.models import (
     KnowledgeBaseRetrievalResponse,
     KnowledgeBaseSearchResult,
 )
+from creative_coding_assistant.rag.retrieval.postprocess import (
+    select_retrieval_results,
+)
 from creative_coding_assistant.rag.sources import OfficialSourceType
 from creative_coding_assistant.vectorstore import (
     ChromaCollection,
@@ -20,6 +23,9 @@ from creative_coding_assistant.vectorstore import (
     QueryMatchRecord,
     get_collection_definition,
 )
+
+_RETRIEVAL_CANDIDATE_MULTIPLIER = 3
+_MAX_RETRIEVAL_CANDIDATES = 20
 
 
 class KnowledgeBaseRetriever:
@@ -38,14 +44,16 @@ class KnowledgeBaseRetriever:
         where = build_kb_where_filter(request.filters)
         matches = self._repository.query(
             embedding=query_embedding,
-            limit=request.limit,
+            limit=self._candidate_limit(request.limit),
             where=where,
         )
-        results = tuple(self._build_result(match) for match in matches)
+        raw_results = tuple(self._build_result(match) for match in matches)
+        results = select_retrieval_results(raw_results, limit=request.limit)
         logger.info(
-            "Retrieved {} KB chunk(s) for query '{}'",
+            "Retrieved {} KB chunk(s) for query '{}' after filtering {} raw match(es)",
             len(results),
             request.query,
+            len(raw_results),
         )
         return KnowledgeBaseRetrievalResponse(request=request, results=results)
 
@@ -83,3 +91,6 @@ class KnowledgeBaseRetriever:
             distance=distance,
             score=1.0 / (1.0 + distance),
         )
+
+    def _candidate_limit(self, limit: int) -> int:
+        return min(limit * _RETRIEVAL_CANDIDATE_MULTIPLIER, _MAX_RETRIEVAL_CANDIDATES)
