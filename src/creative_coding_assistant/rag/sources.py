@@ -26,7 +26,7 @@ OFFICIAL_HOSTS_BY_DOMAIN: dict[CreativeCodingDomain, tuple[str, ...]] = {
     CreativeCodingDomain.THREE_JS: ("threejs.org",),
     CreativeCodingDomain.REACT_THREE_FIBER: ("r3f.docs.pmnd.rs",),
     CreativeCodingDomain.P5_JS: ("p5js.org",),
-    CreativeCodingDomain.GLSL: ("registry.khronos.org", "wikis.khronos.org"),
+    CreativeCodingDomain.GLSL: ("registry.khronos.org",),
 }
 
 
@@ -243,34 +243,27 @@ APPROVED_OFFICIAL_SOURCES: tuple[OfficialSource, ...] = _validate_source_registr
     OfficialSource(
         source_id="glsl_language_spec_460",
         domain=CreativeCodingDomain.GLSL,
-        title="OpenGL Wiki: OpenGL Shading Language",
+        title="OpenGL Shading Language 4.60 Specification",
         publisher="Khronos Group",
-        url="https://wikis.khronos.org/opengl/OpenGL_Shading_Language",
-        source_type=OfficialSourceType.GUIDE,
+        url="https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.html",
+        source_type=OfficialSourceType.SPECIFICATION,
         priority=10,
-        allowed_path_prefixes=("/opengl/",),
-        additional_urls=(
-            "https://wikis.khronos.org/opengl/Core_Language_%28GLSL%29",
-            "https://wikis.khronos.org/opengl/Type_Qualifier_%28GLSL%29",
-            "https://wikis.khronos.org/opengl/Built-in_Variable_%28GLSL%29",
-        ),
-        tags=("guide", "opengl", "glsl"),
+        allowed_path_prefixes=("/OpenGL/specs/gl/",),
+        tags=("specification", "opengl", "glsl"),
     ),
     OfficialSource(
         source_id="glsl_es_language_spec_320",
         domain=CreativeCodingDomain.GLSL,
-        title="OpenGL Wiki: Fragment Shader Guide",
+        title="OpenGL ES Shading Language 3.20 Specification",
         publisher="Khronos Group",
-        url="https://wikis.khronos.org/opengl/Fragment_Shader",
-        source_type=OfficialSourceType.GUIDE,
-        priority=20,
-        allowed_path_prefixes=("/opengl/",),
-        additional_urls=(
-            "https://wikis.khronos.org/opengl/Shader",
-            "https://wikis.khronos.org/opengl/Shader_Compilation",
-            "https://wikis.khronos.org/opengl/GLSL_%3A_common_mistakes",
+        url=(
+            "https://registry.khronos.org/OpenGL/specs/es/3.2/"
+            "GLSL_ES_Specification_3.20.html"
         ),
-        tags=("guide", "fragment-shader", "glsl"),
+        source_type=OfficialSourceType.SPECIFICATION,
+        priority=20,
+        allowed_path_prefixes=("/OpenGL/specs/es/3.2/",),
+        tags=("specification", "opengl-es", "glsl-es"),
     ),
 ))
 
