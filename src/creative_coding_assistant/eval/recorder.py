@@ -94,7 +94,7 @@ def build_live_session_sample(
         return None
 
     route_decision = _extract_route_decision(events)
-    retrieval_context = _extract_retrieval_context(events)
+    retrieved_contexts = _extract_recorded_retrieved_contexts(events)
     resolved_recorded_at = recorded_at or datetime.now(UTC)
     resolved_route = LiveSessionRouteMetadata(
         route=(route_decision.route if route_decision is not None else None),
@@ -112,14 +112,6 @@ def build_live_session_sample(
             route_decision.capabilities if route_decision is not None else ()
         ),
     )
-    retrieved_contexts = (
-        tuple(
-            LiveSessionRetrievedContext.from_chunk(chunk)
-            for chunk in retrieval_context.chunks
-        )
-        if retrieval_context is not None
-        else ()
-    )
     return LiveSessionEvalSample(
         sample_id=sample_id or uuid4().hex,
         question=request.query,
@@ -131,6 +123,23 @@ def build_live_session_sample(
         started_at=started_at,
         completed_at=completed_at,
         recorded_at=resolved_recorded_at,
+    )
+
+
+def _extract_recorded_retrieved_contexts(
+    events: Sequence[StreamEvent],
+) -> tuple[LiveSessionRetrievedContext, ...]:
+    assembled_contexts = _extract_assembled_retrieved_contexts(events)
+    if assembled_contexts is not None:
+        return assembled_contexts
+
+    retrieval_context = _extract_retrieval_context(events)
+    if retrieval_context is None:
+        return ()
+
+    return tuple(
+        LiveSessionRetrievedContext.from_chunk(chunk)
+        for chunk in retrieval_context.chunks
     )
 
 
@@ -162,6 +171,32 @@ def _extract_retrieval_context(
     if not isinstance(raw_context, dict):
         return None
     return RetrievalContextResponse.model_validate(raw_context)
+
+
+def _extract_assembled_retrieved_contexts(
+    events: Sequence[StreamEvent],
+) -> tuple[LiveSessionRetrievedContext, ...] | None:
+    context_event = _last_event(
+        events,
+        event_type="context",
+        code="context_assembled",
+    )
+    if context_event is None:
+        return None
+
+    raw_context = context_event.payload.get("context")
+    if not isinstance(raw_context, dict):
+        return ()
+
+    raw_retrieval_context = raw_context.get("retrieval_context")
+    if not isinstance(raw_retrieval_context, dict):
+        return ()
+
+    retrieval_context = RetrievalContextResponse.model_validate(raw_retrieval_context)
+    return tuple(
+        LiveSessionRetrievedContext.from_chunk(chunk)
+        for chunk in retrieval_context.chunks
+    )
 
 
 def _last_event(
