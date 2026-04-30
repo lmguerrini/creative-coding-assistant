@@ -39,7 +39,8 @@ _BLOCK_TAGS = {
     "tr",
     "ul",
 }
-_SKIPPED_TAGS = {"noscript", "script", "style"}
+_CODE_TAGS = {"pre"}
+_SKIPPED_TAGS = {"aside", "footer", "nav", "noscript", "script", "style"}
 
 
 class _HtmlTextExtractor(HTMLParser):
@@ -48,6 +49,7 @@ class _HtmlTextExtractor(HTMLParser):
         self._text_parts: list[str] = []
         self._title_parts: list[str] = []
         self._skip_depth = 0
+        self._code_depth = 0
         self._in_title = False
 
     @property
@@ -65,6 +67,9 @@ class _HtmlTextExtractor(HTMLParser):
             return
         if tag == "title":
             self._in_title = True
+        if tag in _CODE_TAGS:
+            self._code_depth += 1
+            self._text_parts.append("\n```text\n")
         if tag in _BLOCK_TAGS:
             self._text_parts.append("\n")
 
@@ -74,6 +79,9 @@ class _HtmlTextExtractor(HTMLParser):
             return
         if tag == "title":
             self._in_title = False
+        if tag in _CODE_TAGS and self._code_depth > 0:
+            self._code_depth -= 1
+            self._text_parts.append("\n```\n")
         if tag in _BLOCK_TAGS:
             self._text_parts.append("\n")
 
@@ -124,7 +132,10 @@ class OfficialSourceNormalizer:
         paragraphs: list[str] = []
         current_lines: list[str] = []
         for raw_line in raw_content.replace("\xa0", " ").splitlines():
-            normalized_line = " ".join(raw_line.split())
+            if raw_line.strip().startswith("```"):
+                normalized_line = raw_line.strip()
+            else:
+                normalized_line = " ".join(raw_line.split())
             if normalized_line:
                 current_lines.append(normalized_line)
                 continue
