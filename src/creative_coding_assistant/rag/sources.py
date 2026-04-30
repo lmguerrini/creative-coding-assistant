@@ -26,7 +26,7 @@ OFFICIAL_HOSTS_BY_DOMAIN: dict[CreativeCodingDomain, tuple[str, ...]] = {
     CreativeCodingDomain.THREE_JS: ("threejs.org",),
     CreativeCodingDomain.REACT_THREE_FIBER: ("r3f.docs.pmnd.rs",),
     CreativeCodingDomain.P5_JS: ("p5js.org",),
-    CreativeCodingDomain.GLSL: ("registry.khronos.org",),
+    CreativeCodingDomain.GLSL: ("registry.khronos.org", "developer.mozilla.org"),
 }
 
 
@@ -250,6 +250,24 @@ APPROVED_OFFICIAL_SOURCES: tuple[OfficialSource, ...] = _validate_source_registr
         priority=10,
         allowed_path_prefixes=("/OpenGL/specs/gl/",),
         tags=("specification", "opengl", "glsl"),
+    ),
+    OfficialSource(
+        source_id="glsl_mdn_webgl_examples",
+        domain=CreativeCodingDomain.GLSL,
+        title="MDN WebGL GLSL Examples",
+        publisher="MDN",
+        url="https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/By_example/Hello_GLSL",
+        source_type=OfficialSourceType.EXAMPLES,
+        priority=15,
+        allowed_path_prefixes=(
+            "/en-US/docs/Web/API/WebGL_API/By_example/",
+            "/en-US/docs/Web/API/WebGL_API/Tutorial/",
+        ),
+        additional_urls=(
+            "https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/By_example/Textures_from_code",
+            "https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Using_shaders_to_apply_color_in_WebGL",
+        ),
+        tags=("examples", "fragment-shader", "webgl"),
     ),
     OfficialSource(
         source_id="glsl_es_language_spec_320",
