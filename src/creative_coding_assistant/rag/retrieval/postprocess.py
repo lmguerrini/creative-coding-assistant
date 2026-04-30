@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
+from difflib import SequenceMatcher
 
 from creative_coding_assistant.rag.retrieval.models import KnowledgeBaseSearchResult
 
@@ -25,6 +27,13 @@ _GENERIC_MANUAL_PHRASES: tuple[str, ...] = (
     "中文",
     "日本語",
 )
+_DEDUP_TEXT_PREFIX_LENGTH = 280
+_DEDUP_SIMILARITY_THRESHOLD = 0.80
+_INLINE_TYPE_ANNOTATION_PATTERN = re.compile(
+    r"\b[a-z_][a-z0-9_]*\s*:\s*[^,)=\]}]+"
+)
+_ANGLE_BRACKET_PATTERN = re.compile(r"<[^>]+>")
+_NON_ALPHANUMERIC_PATTERN = re.compile(r"[^a-z0-9]+")
 
 
 def select_retrieval_results(
@@ -36,7 +45,8 @@ def select_retrieval_results(
 
     filtered = tuple(result for result in results if not _is_low_value_chunk(result))
     if filtered:
-        return filtered[:limit]
+        deduplicated = _deduplicate_results(filtered)
+        return deduplicated[:limit]
     return tuple(results[:limit])
 
 
@@ -68,5 +78,44 @@ def _contains_any(text: str, phrases: Sequence[str]) -> bool:
     return any(phrase in text for phrase in phrases)
 
 
+def _deduplicate_results(
+    results: Sequence[KnowledgeBaseSearchResult],
+) -> tuple[KnowledgeBaseSearchResult, ...]:
+    kept: list[KnowledgeBaseSearchResult] = []
+    previews: dict[str, list[str]] = {}
+
+    for result in results:
+        preview = _normalized_preview(result.text)
+        seen_previews = previews.get(result.source_id, [])
+        if any(
+            _is_near_duplicate(preview, seen_preview)
+            for seen_preview in seen_previews
+        ):
+            continue
+
+        kept.append(result)
+        previews.setdefault(result.source_id, []).append(preview)
+
+    return tuple(kept)
+
+
+def _is_near_duplicate(left: str, right: str) -> bool:
+    if left == right:
+        return True
+    return SequenceMatcher(a=left, b=right).ratio() >= _DEDUP_SIMILARITY_THRESHOLD
+
+
+def _normalized_preview(value: str) -> str:
+    return _normalize_dedup_text(value)[:_DEDUP_TEXT_PREFIX_LENGTH]
+
+
 def _normalize_text(value: str) -> str:
     return " ".join(value.lower().split())
+
+
+def _normalize_dedup_text(value: str) -> str:
+    normalized = _normalize_text(value)
+    without_types = _INLINE_TYPE_ANNOTATION_PATTERN.sub(" ", normalized)
+    without_tags = _ANGLE_BRACKET_PATTERN.sub(" ", without_types)
+    alphanumeric = _NON_ALPHANUMERIC_PATTERN.sub(" ", without_tags)
+    return " ".join(alphanumeric.split())
