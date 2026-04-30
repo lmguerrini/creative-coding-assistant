@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Protocol, Self
 
 from loguru import logger
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from creative_coding_assistant.contracts import (
     AssistantMode,
@@ -14,7 +15,11 @@ from creative_coding_assistant.contracts import (
 )
 from creative_coding_assistant.memory import ConversationRole, ProjectMemoryKind
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
-from creative_coding_assistant.orchestration.routing import RouteDecision, RouteName
+from creative_coding_assistant.orchestration.routing import (
+    DomainSelectionShape,
+    RouteDecision,
+    RouteName,
+)
 from creative_coding_assistant.rag.sources import OfficialSourceType
 
 
@@ -24,6 +29,65 @@ class PromptUserInput(BaseModel):
     query: str = Field(min_length=1)
     mode: AssistantMode
     domain: CreativeCodingDomain | None = None
+    domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
+    domain_selection: DomainSelectionShape = DomainSelectionShape.NONE
+
+    @field_validator("domains", mode="before")
+    @classmethod
+    def normalize_domains(
+        cls,
+        value: Sequence[CreativeCodingDomain | str] | CreativeCodingDomain | str | None,
+    ) -> tuple[CreativeCodingDomain, ...]:
+        if value is None:
+            return ()
+        if isinstance(value, CreativeCodingDomain):
+            return (value,)
+        if isinstance(value, str):
+            return (CreativeCodingDomain(value.strip()),)
+
+        normalized: list[CreativeCodingDomain] = []
+        for item in value:
+            domain = (
+                item
+                if isinstance(item, CreativeCodingDomain)
+                else CreativeCodingDomain(str(item).strip())
+            )
+            if domain not in normalized:
+                normalized.append(domain)
+        return tuple(normalized)
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_legacy_domain_fields(cls, value: object) -> object:
+        if not isinstance(value, dict):
+            return value
+
+        normalized = dict(value)
+        domain = normalized.get("domain")
+        domains = normalized.get("domains")
+
+        if domain is not None and not domains:
+            normalized["domains"] = (domain,)
+
+        return normalized
+
+    @model_validator(mode="after")
+    def validate_domain_alignment(self) -> PromptUserInput:
+        if self.domain is None and len(self.domains) == 1:
+            object.__setattr__(self, "domain", self.domains[0])
+
+        if self.domain is not None and self.domain not in self.domains:
+            raise ValueError(
+                "Prompt user input domain must be included in domains "
+                "when both are provided."
+            )
+
+        object.__setattr__(
+            self,
+            "domain_selection",
+            _selection_shape_for_domains(self.domains),
+        )
+        return self
 
 
 class PromptConversationTurnInput(BaseModel):
@@ -188,6 +252,7 @@ class StructuredPromptInputBuilder:
                 query=request.assistant_request.query,
                 mode=request.assistant_request.mode,
                 domain=request.assistant_request.domain,
+                domains=request.assistant_request.domains,
             ),
             memory_input=memory_input,
             retrieval_input=retrieval_input,
@@ -211,3 +276,13 @@ def build_prompt_input_request(
         assistant_request=assistant_request,
         assembled_context=assembled_context,
     )
+
+
+def _selection_shape_for_domains(
+    domains: tuple[CreativeCodingDomain, ...],
+) -> DomainSelectionShape:
+    if not domains:
+        return DomainSelectionShape.NONE
+    if len(domains) == 1:
+        return DomainSelectionShape.SINGLE
+    return DomainSelectionShape.MULTI
