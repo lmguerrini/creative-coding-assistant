@@ -345,6 +345,95 @@ class StreamlitChatGenerationTests(unittest.TestCase):
             ),
         )
 
+    def test_reduce_stream_event_tracks_trace_domains_from_route_and_retrieval(
+        self,
+    ) -> None:
+        state = reduce_stream_event(
+            StreamRenderState(),
+            StreamEvent(
+                event_type=StreamEventType.STATUS,
+                sequence=4,
+                payload={
+                    "code": "route_selected",
+                    "message": "Route selected.",
+                    "route": {
+                        "route": "generate",
+                        "domains": ["three_js", "react_three_fiber"],
+                    },
+                },
+            ),
+        )
+        state = reduce_stream_event(
+            state,
+            StreamEvent(
+                event_type=StreamEventType.RETRIEVAL,
+                sequence=5,
+                payload={
+                    "code": "retrieval_requested",
+                    "message": "Retrieval context requested.",
+                    "request": {
+                        "query": "Create a p5.js sketch with a bouncing ball.",
+                        "filters": {
+                            "domain": "p5_js",
+                            "domains": ["p5_js"],
+                        },
+                    },
+                },
+            ),
+        )
+
+        self.assertEqual(
+            state.ui_domains,
+            (
+                CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+        )
+        self.assertEqual(
+            state.detected_domains,
+            (CreativeCodingDomain.P5_JS,),
+        )
+        self.assertEqual(
+            state.retrieval_domains,
+            (CreativeCodingDomain.P5_JS,),
+        )
+
+    def test_reduce_stream_event_tracks_multi_domain_query_detection(self) -> None:
+        state = reduce_stream_event(
+            StreamRenderState(),
+            StreamEvent(
+                event_type=StreamEventType.RETRIEVAL,
+                sequence=5,
+                payload={
+                    "code": "retrieval_requested",
+                    "message": "Retrieval context requested.",
+                    "request": {
+                        "query": (
+                            "Create a shader material in react three fiber using GLSL."
+                        ),
+                        "filters": {
+                            "domains": ["react_three_fiber", "glsl"],
+                        },
+                    },
+                },
+            ),
+        )
+
+        self.assertEqual(
+            state.detected_domains,
+            (
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
+        )
+        self.assertEqual(
+            state.retrieval_domains,
+            (
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
+        )
+
     def test_reduce_stream_event_marks_empty_retrieval_context(self) -> None:
         state = reduce_stream_event(
             StreamRenderState(),
@@ -379,6 +468,9 @@ class StreamlitChatGenerationTests(unittest.TestCase):
     def test_assistant_history_entry_preserves_retrieval_visibility(self) -> None:
         state = StreamRenderState(
             final_answer="Final answer",
+            ui_domains=(CreativeCodingDomain.THREE_JS,),
+            detected_domains=(CreativeCodingDomain.P5_JS,),
+            retrieval_domains=(CreativeCodingDomain.P5_JS,),
             retrieval_state="available",
             retrieval_items=(
                 RetrievalDisplayItem(
@@ -393,6 +485,9 @@ class StreamlitChatGenerationTests(unittest.TestCase):
 
         entry = assistant_history_entry(state)
 
+        self.assertEqual(entry.ui_domains, (CreativeCodingDomain.THREE_JS,))
+        self.assertEqual(entry.detected_domains, (CreativeCodingDomain.P5_JS,))
+        self.assertEqual(entry.retrieval_domains, (CreativeCodingDomain.P5_JS,))
         self.assertEqual(entry.retrieval_state, "available")
         self.assertEqual(len(entry.retrieval_items), 1)
 
