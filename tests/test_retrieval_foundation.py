@@ -42,7 +42,7 @@ class RetrievalFoundationTests(unittest.TestCase):
             )
 
             self.assertEqual(len(response.results), 2)
-            self.assertEqual(response.results[0].source_id, "three_docs")
+            self.assertEqual(response.results[0].source_id, "three_camera_guide")
             self.assertEqual(response.results[0].domain, CreativeCodingDomain.THREE_JS)
             self.assertEqual(
                 response.results[0].source_type,
@@ -169,7 +169,7 @@ class RetrievalFoundationTests(unittest.TestCase):
             )
 
             self.assertEqual(len(response.results), 1)
-            self.assertEqual(response.results[0].source_id, "three_docs")
+            self.assertEqual(response.results[0].source_id, "three_camera_guide")
             self.assertNotEqual(
                 response.results[0].record_id,
                 "project_memory:project_memory:v1:manual",
@@ -201,10 +201,10 @@ class RetrievalFoundationTests(unittest.TestCase):
                 distance=0.1,
             ),
             _result(
-                source_id="three_docs",
+                source_id="three_box_geometry",
                 source_type=OfficialSourceType.API_REFERENCE,
-                registry_title="three.js docs",
-                document_title="three.js docs",
+                registry_title="BoxGeometry - three.js docs",
+                document_title="BoxGeometry",
                 text=(
                     "BoxGeometry is a geometry class for a rectangular cuboid "
                     "with width, height, and depth parameters."
@@ -226,7 +226,7 @@ class RetrievalFoundationTests(unittest.TestCase):
         filtered = select_retrieval_results(results, limit=3)
 
         self.assertEqual(len(filtered), 1)
-        self.assertEqual(filtered[0].source_id, "three_docs")
+        self.assertEqual(filtered[0].source_id, "three_box_geometry")
 
     def test_filter_falls_back_to_original_results_when_all_are_filtered(self) -> None:
         results = (
@@ -287,6 +287,87 @@ class RetrievalFoundationTests(unittest.TestCase):
 
         self.assertEqual(len(filtered), 1)
         self.assertEqual(filtered[0].source_id, "p5_reference")
+
+    def test_hard_filter_removes_known_low_value_source_ids_when_alternatives_exist(
+        self,
+    ) -> None:
+        results = (
+            _result(
+                source_id="three_docs",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="three.js docs",
+                document_title="three.js docs",
+                text="PerspectiveCamera defines a frustum projection camera.",
+                score=0.95,
+                distance=0.05,
+            ),
+            _result(
+                source_id="three_manual",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="three.js manual",
+                document_title="three.js manual",
+                text="Lighting changes how meshes react to materials.",
+                score=0.94,
+                distance=0.06,
+            ),
+            _result(
+                source_id="three_box_geometry",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="BoxGeometry - three.js docs",
+                document_title="BoxGeometry",
+                text=(
+                    "BoxGeometry is a geometry class for a rectangular cuboid "
+                    "with width, height, and depth parameters."
+                ),
+                score=0.93,
+                distance=0.07,
+            ),
+            _result(
+                source_id="r3f_hooks_api",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="Hooks - React Three Fiber",
+                document_title="Hooks - React Three Fiber",
+                text="useFrame lets you run code every rendered frame.",
+                score=0.92,
+                distance=0.08,
+            ),
+        )
+
+        filtered = select_retrieval_results(results, limit=4)
+
+        self.assertEqual(
+            [result.source_id for result in filtered],
+            ["three_box_geometry", "r3f_hooks_api"],
+        )
+
+    def test_hard_filter_falls_back_to_pre_filter_candidates_when_all_are_removed(
+        self,
+    ) -> None:
+        results = (
+            _result(
+                source_id="three_docs",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="three.js docs",
+                document_title="three.js docs",
+                text="PerspectiveCamera defines a frustum projection camera.",
+                score=0.95,
+                distance=0.05,
+            ),
+            _result(
+                source_id="three_manual",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="three.js manual",
+                document_title="three.js manual",
+                text="three.js manual docs manual en fr ru 中文 日本語",
+                score=0.94,
+                distance=0.06,
+            ),
+        )
+
+        filtered = select_retrieval_results(results, limit=2)
+
+        self.assertEqual(len(filtered), 1)
+        self.assertEqual(filtered[0].source_id, "three_docs")
 
     def test_dedup_removes_near_duplicate_chunks_from_same_source(self) -> None:
         results = (
@@ -439,193 +520,6 @@ class RetrievalFoundationTests(unittest.TestCase):
             ["r3f_introduction", "r3f_hooks_api"],
         )
 
-    def test_source_diversity_caps_repeated_source_results(self) -> None:
-        results = (
-            _result(
-                source_id="r3f_introduction",
-                source_type=OfficialSourceType.GUIDE,
-                registry_title="Introduction - React Three Fiber",
-                document_title="Introduction - React Three Fiber",
-                text="First introduction chunk about scene setup.",
-                score=0.95,
-                distance=0.05,
-            ),
-            _result(
-                source_id="r3f_introduction",
-                source_type=OfficialSourceType.GUIDE,
-                registry_title="Introduction - React Three Fiber",
-                document_title="Introduction - React Three Fiber",
-                text="Second introduction chunk about animation loops.",
-                score=0.94,
-                distance=0.06,
-            ),
-            _result(
-                source_id="r3f_introduction",
-                source_type=OfficialSourceType.GUIDE,
-                registry_title="Introduction - React Three Fiber",
-                document_title="Introduction - React Three Fiber",
-                text="Third introduction chunk about event handlers.",
-                score=0.93,
-                distance=0.07,
-            ),
-            _result(
-                source_id="r3f_hooks_api",
-                source_type=OfficialSourceType.API_REFERENCE,
-                registry_title="Hooks - React Three Fiber",
-                document_title="Hooks - React Three Fiber",
-                text="useFrame lets you run code every rendered frame.",
-                score=0.92,
-                distance=0.08,
-            ),
-            _result(
-                source_id="r3f_canvas_api",
-                source_type=OfficialSourceType.API_REFERENCE,
-                registry_title="Canvas - React Three Fiber",
-                document_title="Canvas - React Three Fiber",
-                text="Canvas configures the renderer and scene root.",
-                score=0.91,
-                distance=0.09,
-            ),
-        )
-
-        selected = select_retrieval_results(results, limit=5)
-
-        self.assertEqual(len(selected), 4)
-        self.assertEqual(
-            [result.source_id for result in selected],
-            [
-                "r3f_introduction",
-                "r3f_introduction",
-                "r3f_hooks_api",
-                "r3f_canvas_api",
-            ],
-        )
-
-    def test_source_diversity_prefers_later_distinct_sources_when_available(
-        self,
-    ) -> None:
-        results = (
-            _result(
-                source_id="r3f_introduction",
-                source_type=OfficialSourceType.GUIDE,
-                registry_title="Introduction - React Three Fiber",
-                document_title="Introduction - React Three Fiber",
-                text="Scene setup basics for a rotating mesh.",
-                score=0.97,
-                distance=0.03,
-            ),
-            _result(
-                source_id="r3f_introduction",
-                source_type=OfficialSourceType.GUIDE,
-                registry_title="Introduction - React Three Fiber",
-                document_title="Introduction - React Three Fiber",
-                text="Animating a mesh with useFrame and refs.",
-                score=0.96,
-                distance=0.04,
-            ),
-            _result(
-                source_id="r3f_introduction",
-                source_type=OfficialSourceType.GUIDE,
-                registry_title="Introduction - React Three Fiber",
-                document_title="Introduction - React Three Fiber",
-                text="Pointer events and local component state.",
-                score=0.95,
-                distance=0.05,
-            ),
-            _result(
-                source_id="r3f_hooks_api",
-                source_type=OfficialSourceType.API_REFERENCE,
-                registry_title="Hooks - React Three Fiber",
-                document_title="Hooks - React Three Fiber",
-                text="useFrame lets you run code every rendered frame.",
-                score=0.94,
-                distance=0.06,
-            ),
-        )
-
-        selected = select_retrieval_results(results, limit=3)
-
-        self.assertEqual(
-            [result.source_id for result in selected],
-            [
-                "r3f_introduction",
-                "r3f_introduction",
-                "r3f_hooks_api",
-            ],
-        )
-
-    def test_source_diversity_keeps_useful_single_source_sets(self) -> None:
-        results = (
-            _result(
-                source_id="r3f_hooks_api",
-                source_type=OfficialSourceType.API_REFERENCE,
-                registry_title="Hooks - React Three Fiber",
-                document_title="Hooks - React Three Fiber",
-                text="useFrame lets you run code every rendered frame.",
-                score=0.95,
-                distance=0.05,
-            ),
-            _result(
-                source_id="r3f_hooks_api",
-                source_type=OfficialSourceType.API_REFERENCE,
-                registry_title="Hooks - React Three Fiber",
-                document_title="Hooks - React Three Fiber",
-                text="Priority values control hook execution order.",
-                score=0.94,
-                distance=0.06,
-            ),
-        )
-
-        selected = select_retrieval_results(results, limit=5)
-
-        self.assertEqual(len(selected), 2)
-        self.assertEqual(
-            [result.source_id for result in selected],
-            ["r3f_hooks_api", "r3f_hooks_api"],
-        )
-
-    def test_source_diversity_allows_fewer_results_without_crashing(self) -> None:
-        results = (
-            _result(
-                source_id="r3f_introduction",
-                source_type=OfficialSourceType.GUIDE,
-                registry_title="Introduction - React Three Fiber",
-                document_title="Introduction - React Three Fiber",
-                text="Scene setup with Canvas and lights.",
-                score=0.95,
-                distance=0.05,
-            ),
-            _result(
-                source_id="r3f_introduction",
-                source_type=OfficialSourceType.GUIDE,
-                registry_title="Introduction - React Three Fiber",
-                document_title="Introduction - React Three Fiber",
-                text="Animating rotation with useFrame and refs.",
-                score=0.94,
-                distance=0.06,
-            ),
-            _result(
-                source_id="r3f_introduction",
-                source_type=OfficialSourceType.GUIDE,
-                registry_title="Introduction - React Three Fiber",
-                document_title="Introduction - React Three Fiber",
-                text="Handling pointer hover and click state.",
-                score=0.93,
-                distance=0.07,
-            ),
-        )
-
-        selected = select_retrieval_results(results, limit=5)
-
-        self.assertEqual(len(selected), 2)
-        self.assertEqual(
-            [result.text for result in selected],
-            [
-                "Scene setup with Canvas and lights.",
-                "Animating rotation with useFrame and refs.",
-            ],
-        )
-
     def test_retriever_overfetches_to_replace_filtered_generic_hits(self) -> None:
         with _kb_client() as client:
             _seed_low_value_kb_records(client)
@@ -647,12 +541,12 @@ def _seed_kb_records(client) -> None:
     indexer = OfficialKnowledgeBaseIndexer(client=client)
     chunks = (
         _chunk(
-            source_id="three_docs",
+            source_id="three_camera_guide",
             domain=CreativeCodingDomain.THREE_JS,
             source_type=OfficialSourceType.API_REFERENCE,
             publisher="three.js",
-            registry_title="three.js Documentation",
-            source_url="https://threejs.org/docs/",
+            registry_title="Camera Guide - three.js docs",
+            source_url="https://threejs.org/docs/#manual/en/introduction/Creating-a-scene",
             text="Camera setup covers perspective cameras and scene framing.",
         ),
         _chunk(
