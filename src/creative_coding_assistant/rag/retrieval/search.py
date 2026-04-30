@@ -48,7 +48,11 @@ class KnowledgeBaseRetriever:
             where=where,
         )
         raw_results = tuple(self._build_result(match) for match in matches)
-        results = select_retrieval_results(raw_results, limit=request.limit)
+        results = select_retrieval_results(
+            raw_results,
+            limit=request.limit,
+            query=request.query,
+        )
         logger.info(
             "Retrieved {} KB chunk(s) for query '{}' after filtering {} raw match(es)",
             len(results),

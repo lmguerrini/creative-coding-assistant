@@ -6,6 +6,7 @@ import re
 from collections.abc import Sequence
 from difflib import SequenceMatcher
 
+from creative_coding_assistant.rag.retrieval.domain_intent import detect_domain_intent
 from creative_coding_assistant.rag.retrieval.models import KnowledgeBaseSearchResult
 
 _GENERIC_EXAMPLE_PHRASES: tuple[str, ...] = (
@@ -51,6 +52,7 @@ def select_retrieval_results(
     results: Sequence[KnowledgeBaseSearchResult],
     *,
     limit: int,
+    query: str | None = None,
 ) -> tuple[KnowledgeBaseSearchResult, ...]:
     """Filter low-value retrieval hits while preserving a safe fallback."""
 
@@ -65,7 +67,8 @@ def select_retrieval_results(
     filtered_candidates = filtered or candidates
 
     deduplicated = _deduplicate_results(filtered_candidates)
-    return deduplicated[:limit]
+    domain_filtered = _apply_domain_intent_filter(deduplicated, query=query)
+    return domain_filtered[:limit]
 
 
 def _is_low_value_chunk(result: KnowledgeBaseSearchResult) -> bool:
@@ -115,6 +118,24 @@ def _deduplicate_results(
         previews.setdefault(result.source_id, []).append(preview)
 
     return tuple(kept)
+
+
+def _apply_domain_intent_filter(
+    results: Sequence[KnowledgeBaseSearchResult],
+    *,
+    query: str | None,
+) -> tuple[KnowledgeBaseSearchResult, ...]:
+    if query is None:
+        return tuple(results)
+
+    intent = detect_domain_intent(query)
+    if intent is None:
+        return tuple(results)
+
+    narrowed = tuple(
+        result for result in results if result.domain in intent.allowed_domains
+    )
+    return narrowed or tuple(results)
 
 
 def _is_near_duplicate(left: str, right: str) -> bool:
