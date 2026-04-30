@@ -258,6 +258,157 @@ class RetrievalFoundationTests(unittest.TestCase):
         self.assertEqual(len(filtered), 1)
         self.assertEqual(filtered[0].source_id, "three_examples")
 
+    def test_dedup_removes_near_duplicate_chunks_from_same_source(self) -> None:
+        results = (
+            _result(
+                source_id="r3f_introduction",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="Introduction - React Three Fiber",
+                document_title="Introduction - React Three Fiber",
+                text=(
+                    "function Box(props) { const meshRef = useRef(null) "
+                    "const [hovered, setHover] = useState(false) "
+                    "useFrame((state, delta) => (meshRef.current.rotation.x += delta)) "
+                    "return <mesh /> }"
+                ),
+                score=0.9,
+                distance=0.1,
+            ),
+            _result(
+                source_id="r3f_introduction",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="Introduction - React Three Fiber",
+                document_title="Introduction - React Three Fiber",
+                text=(
+                    "function Box(props) { const meshRef = useRef(null) "
+                    "const [hovered, setHover] = useState(false) "
+                    "useFrame((state, delta) => (meshRef.current.rotation.x += delta)) "
+                    "return <mesh/> }"
+                ),
+                score=0.89,
+                distance=0.11,
+            ),
+            _result(
+                source_id="r3f_hooks_api",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="Hooks - React Three Fiber",
+                document_title="Hooks - React Three Fiber",
+                text=(
+                    "This hook allows you to execute code on every rendered frame."
+                ),
+                score=0.8,
+                distance=0.2,
+            ),
+        )
+
+        deduplicated = select_retrieval_results(results, limit=3)
+
+        self.assertEqual(len(deduplicated), 2)
+        self.assertEqual(
+            [result.source_id for result in deduplicated],
+            ["r3f_introduction", "r3f_hooks_api"],
+        )
+
+    def test_dedup_preserves_non_duplicate_chunks_and_order(self) -> None:
+        results = (
+            _result(
+                source_id="r3f_hooks_api",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="Hooks - React Three Fiber",
+                document_title="Hooks - React Three Fiber",
+                text=(
+                    "This hook allows you to execute code on every rendered frame."
+                ),
+                score=0.9,
+                distance=0.1,
+            ),
+            _result(
+                source_id="r3f_hooks_api",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="Hooks - React Three Fiber",
+                document_title="Hooks - React Three Fiber",
+                text=(
+                    "Callbacks will be executed in order of ascending priority "
+                    "values, lowest first and highest last."
+                ),
+                score=0.85,
+                distance=0.15,
+            ),
+            _result(
+                source_id="r3f_canvas_api",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="Canvas - React Three Fiber",
+                document_title="Canvas - React Three Fiber",
+                text="The Canvas object is your portal into three.js.",
+                score=0.8,
+                distance=0.2,
+            ),
+        )
+
+        deduplicated = select_retrieval_results(results, limit=3)
+
+        self.assertEqual(len(deduplicated), 3)
+        self.assertEqual(
+            [result.source_id for result in deduplicated],
+            ["r3f_hooks_api", "r3f_hooks_api", "r3f_canvas_api"],
+        )
+
+    def test_dedup_removes_typed_and_untyped_variants_from_same_source(self) -> None:
+        results = (
+            _result(
+                source_id="r3f_introduction",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="Introduction - React Three Fiber",
+                document_title="Introduction - React Three Fiber",
+                text=(
+                    "function Box(props) { const meshRef = useRef(null) "
+                    "const [hovered, setHover] = useState(false) "
+                    "const [active, setActive] = useState(false) "
+                    "useFrame((state, delta) => "
+                    "(meshRef.current.rotation.x += delta)) "
+                    "return <mesh /> }"
+                ),
+                score=0.9,
+                distance=0.1,
+            ),
+            _result(
+                source_id="r3f_introduction",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="Introduction - React Three Fiber",
+                document_title="Introduction - React Three Fiber",
+                text=(
+                    "function Box(props: ThreeElements['mesh']) { "
+                    "const meshRef = useRef<THREE.Mesh>(null!) "
+                    "const [hovered, setHover] = useState(false) "
+                    "const [active, setActive] = useState(false) "
+                    "useFrame((state, delta) => "
+                    "(meshRef.current.rotation.x += delta)) "
+                    "return <mesh /> }"
+                ),
+                score=0.89,
+                distance=0.11,
+            ),
+            _result(
+                source_id="r3f_hooks_api",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="Hooks - React Three Fiber",
+                document_title="Hooks - React Three Fiber",
+                text=(
+                    "This hook allows you to execute code on every rendered frame."
+                ),
+                score=0.8,
+                distance=0.2,
+            ),
+        )
+
+        deduplicated = select_retrieval_results(results, limit=3)
+
+        self.assertEqual(len(deduplicated), 2)
+        self.assertEqual(
+            [result.source_id for result in deduplicated],
+            ["r3f_introduction", "r3f_hooks_api"],
+        )
+
     def test_retriever_overfetches_to_replace_filtered_generic_hits(self) -> None:
         with _kb_client() as client:
             _seed_low_value_kb_records(client)
