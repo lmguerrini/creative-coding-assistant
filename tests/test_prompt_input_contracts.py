@@ -13,6 +13,7 @@ from creative_coding_assistant.orchestration import (
     AssembledContextSummary,
     AssistantService,
     ConversationSummaryContext,
+    DomainSelectionShape,
     MemoryContextRequest,
     MemoryContextResponse,
     MemoryContextSource,
@@ -99,6 +100,42 @@ class PromptInputContractsTests(unittest.TestCase):
         self.assertEqual(response.user_input.query, "Start a shader study.")
         self.assertIsNone(response.memory_input)
         self.assertIsNone(response.retrieval_input)
+
+    def test_prompt_input_builder_preserves_multi_domain_selection(self) -> None:
+        builder = StructuredPromptInputBuilder()
+        assistant_request = AssistantRequest(
+            query="Explain how React Three Fiber and GLSL fit together.",
+            domains=(
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
+            mode=AssistantMode.EXPLAIN,
+        )
+        request = build_prompt_input_request(
+            assistant_request=assistant_request,
+            route_decision=RouteDecision(
+                route=RouteName.EXPLAIN,
+                mode=AssistantMode.EXPLAIN,
+                domains=assistant_request.domains,
+                capabilities=(RouteCapability.OFFICIAL_DOCS,),
+            ),
+            assembled_context=None,
+        )
+
+        response = builder.build(request)
+
+        self.assertIsNone(response.user_input.domain)
+        self.assertEqual(
+            response.user_input.domains,
+            (
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
+        )
+        self.assertEqual(
+            response.user_input.domain_selection,
+            DomainSelectionShape.MULTI,
+        )
 
     def test_service_emits_prompt_input_event_when_builder_present(self) -> None:
         service = AssistantService(

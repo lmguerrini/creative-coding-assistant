@@ -125,6 +125,52 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         self.assertEqual(len(rendered.sections), 2)
         self.assertEqual(rendered.sections[0].name, RenderedPromptSectionName.SYSTEM)
         self.assertEqual(rendered.sections[1].name, RenderedPromptSectionName.USER)
+        self.assertIn(
+            "Lead with a concrete implementation",
+            rendered.sections[0].content,
+        )
+
+    def test_renderer_adds_multi_domain_discipline_guidance(self) -> None:
+        renderer = JinjaPromptRenderer()
+        assistant_request = AssistantRequest(
+            query="Explain how React Three Fiber and GLSL fit together.",
+            domains=(
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
+            mode=AssistantMode.EXPLAIN,
+        )
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=assistant_request,
+                route_decision=RouteDecision(
+                    route=RouteName.EXPLAIN,
+                    mode=AssistantMode.EXPLAIN,
+                    domains=assistant_request.domains,
+                    capabilities=(RouteCapability.OFFICIAL_DOCS,),
+                ),
+                assembled_context=None,
+            )
+        )
+
+        rendered = renderer.render(
+            build_rendered_prompt_request(
+                route_decision=RouteName.EXPLAIN,
+                prompt_input=prompt_input,
+            )
+        )
+
+        system_section = rendered.sections[0].content
+        self.assertIn("Domain Scope: multi-domain selection", system_section)
+        self.assertIn("Selected Domains:", system_section)
+        self.assertIn("- react_three_fiber", system_section)
+        self.assertIn("- glsl", system_section)
+        self.assertIn(
+            "Bridge domains only when the request actually spans them",
+            system_section,
+        )
+        self.assertIn("Prefer React Three Fiber components and hooks", system_section)
+        self.assertIn("Prefer concrete shader snippets", system_section)
 
     def test_renderer_skips_empty_memory_section(self) -> None:
         renderer = JinjaPromptRenderer()
