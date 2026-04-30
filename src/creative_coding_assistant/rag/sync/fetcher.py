@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import html
+import re
 from datetime import UTC, datetime
 from typing import Protocol
 from urllib.error import HTTPError, URLError
@@ -80,9 +82,14 @@ class OfficialSourceFetcher:
         request: OfficialSourceSyncRequest,
     ) -> FetchedSourceDocument:
         source = get_official_source(request.source_id)
-        response = self._transport.fetch(source.url)
-        self._validate_response(source, response)
-        content_format = self._resolve_content_format(response.content_type)
+        responses = tuple(
+            self._fetch_response(source, url) for url in source_urls(source)
+        )
+        content_format = self._resolve_content_format(
+            tuple(response.content_type for response in responses)
+        )
+        response = responses[0]
+        raw_content = self._build_raw_content(source=source, responses=responses)
 
         document = FetchedSourceDocument.from_content(
             source_id=source.source_id,
@@ -94,14 +101,23 @@ class OfficialSourceFetcher:
             resolved_url=response.resolved_url,
             fetched_at=request.requested_at,
             content_format=content_format,
-            raw_content=response.content,
+            raw_content=raw_content,
         )
         logger.info(
-            "Fetched official KB source '{}' from {}",
+            "Fetched official KB source '{}' from {} page(s)",
             source.source_id,
-            response.resolved_url,
+            len(responses),
         )
         return document
+
+    def _fetch_response(
+        self,
+        source: OfficialSource,
+        url: str,
+    ) -> TransportResponse:
+        response = self._transport.fetch(url)
+        self._validate_response(source, response)
+        return response
 
     def _validate_response(
         self,
@@ -121,13 +137,89 @@ class OfficialSourceFetcher:
         if not path_is_allowed:
             raise ValueError("Fetched source resolved outside the approved path scope.")
 
-    def _resolve_content_format(self, content_type: str) -> SourceContentFormat:
-        normalized = content_type.split(";", maxsplit=1)[0].strip().lower()
-        if normalized in {"text/html", "application/xhtml+xml"}:
+    def _resolve_content_format(
+        self,
+        content_types: tuple[str, ...],
+    ) -> SourceContentFormat:
+        normalized_content_types = tuple(
+            content_type.split(";", maxsplit=1)[0].strip().lower()
+            for content_type in content_types
+        )
+        if all(
+            content_type in {"text/html", "application/xhtml+xml"}
+            for content_type in normalized_content_types
+        ):
             return SourceContentFormat.HTML
-        if normalized == "text/plain":
+        if all(
+            content_type == "text/plain"
+            for content_type in normalized_content_types
+        ):
             return SourceContentFormat.TEXT
-        raise ValueError(f"Unsupported official source content type: {content_type}")
+        values = ", ".join(content_types)
+        raise ValueError(f"Unsupported official source content type(s): {values}")
+
+    def _build_raw_content(
+        self,
+        *,
+        source: OfficialSource,
+        responses: tuple[TransportResponse, ...],
+    ) -> str:
+        if len(responses) == 1:
+            return responses[0].content
+
+        sections = []
+        for response in responses:
+            title = _extract_html_title(response.content) or response.resolved_url
+            body = _extract_html_body(response.content)
+            sections.append(
+                "\n".join(
+                    (
+                        "<section>",
+                        f"<h1>Page: {html.escape(title)}</h1>",
+                        body,
+                        "</section>",
+                    )
+                )
+            )
+
+        return "\n".join(
+            (
+                "<html>",
+                "<head>",
+                f"<title>{html.escape(source.title)}</title>",
+                "</head>",
+                "<body>",
+                *sections,
+                "</body>",
+                "</html>",
+            )
+        )
+
+
+def source_urls(source: OfficialSource) -> tuple[str, ...]:
+    return (source.url, *source.additional_urls)
+
+
+def _extract_html_title(content: str) -> str:
+    match = re.search(
+        r"<title[^>]*>(.*?)</title>",
+        content,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if not match:
+        return ""
+    return " ".join(match.group(1).split())
+
+
+def _extract_html_body(content: str) -> str:
+    match = re.search(
+        r"<body[^>]*>(.*)</body>",
+        content,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if match:
+        return match.group(1)
+    return content
 
 
 def default_sync_request(source_id: str) -> OfficialSourceSyncRequest:
