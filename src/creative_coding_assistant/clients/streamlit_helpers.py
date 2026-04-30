@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 from typing import Literal
 
@@ -41,6 +42,34 @@ _STATUS_EVENT_TYPES = frozenset(
         StreamEventType.GENERATION_INPUT,
     }
 )
+_WHITESPACE_PATTERN = re.compile(r"\s+")
+_THREE_JS_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\bthree(?:\.js|js|\s+js)\b"),
+)
+_REACT_THREE_FIBER_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\breact\s+three\s+fiber\b"),
+    re.compile(r"@react-three/fiber"),
+    re.compile(r"\br3f\b"),
+    re.compile(r"\buseframe\b"),
+)
+_P5_JS_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\bp5(?:\.js|js)?\b"),
+)
+_GLSL_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\bglsl\b"),
+    re.compile(r"\bfragment\s+shader\b"),
+    re.compile(r"\bvertex\s+shader\b"),
+    re.compile(r"\bshader\b"),
+)
+_TRACE_QUERY_PATTERNS: tuple[
+    tuple[CreativeCodingDomain, tuple[re.Pattern[str], ...]],
+    ...,
+] = (
+    (CreativeCodingDomain.THREE_JS, _THREE_JS_PATTERNS),
+    (CreativeCodingDomain.REACT_THREE_FIBER, _REACT_THREE_FIBER_PATTERNS),
+    (CreativeCodingDomain.P5_JS, _P5_JS_PATTERNS),
+    (CreativeCodingDomain.GLSL, _GLSL_PATTERNS),
+)
 
 
 class ChatHistoryEntry(BaseModel):
@@ -50,6 +79,9 @@ class ChatHistoryEntry(BaseModel):
 
     role: Literal["user", "assistant"]
     content: str = Field(min_length=1)
+    ui_domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
+    detected_domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
+    retrieval_domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
     memory_items: tuple[ContextDisplayItem, ...] = Field(default_factory=tuple)
     memory_state: Literal["unknown", "empty", "available"] = "unknown"
     retrieval_items: tuple[RetrievalDisplayItem, ...] = Field(default_factory=tuple)
@@ -86,6 +118,9 @@ class StreamRenderState(BaseModel):
     streamed_text: str = ""
     final_answer: str | None = None
     error_message: str | None = None
+    ui_domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
+    detected_domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
+    retrieval_domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
     memory_items: tuple[ContextDisplayItem, ...] = Field(default_factory=tuple)
     memory_state: Literal["unknown", "empty", "available"] = "unknown"
     retrieval_items: tuple[RetrievalDisplayItem, ...] = Field(default_factory=tuple)
@@ -260,6 +295,7 @@ def reduce_stream_event(
         updates: dict[str, object] = {}
         if message is not None:
             updates["status_message"] = message
+        updates.update(_trace_domain_updates(event))
         if event.event_type is StreamEventType.MEMORY:
             updates.update(memory_updates_from_event(event))
         if event.event_type is StreamEventType.RETRIEVAL:
@@ -308,6 +344,9 @@ def assistant_history_entry(state: StreamRenderState) -> ChatHistoryEntry:
     return ChatHistoryEntry(
         role="assistant",
         content=content,
+        ui_domains=state.ui_domains,
+        detected_domains=state.detected_domains,
+        retrieval_domains=state.retrieval_domains,
         memory_items=state.memory_items,
         memory_state=state.memory_state,
         retrieval_items=state.retrieval_items,
@@ -408,6 +447,68 @@ def _retrieval_updates(event: StreamEvent) -> dict[str, object]:
         "retrieval_items": retrieval_items,
         "retrieval_state": "available",
     }
+
+
+def _trace_domain_updates(event: StreamEvent) -> dict[str, object]:
+    if event.payload.get("code") == "route_selected":
+        raw_route = event.payload.get("route")
+        if not isinstance(raw_route, dict):
+            return {}
+        return {"ui_domains": _domains_from_payload(raw_route)}
+
+    if event.payload.get("code") == "retrieval_requested":
+        raw_request = event.payload.get("request")
+        if not isinstance(raw_request, dict):
+            return {}
+
+        query = _clean_text(raw_request.get("query")) or ""
+        raw_filters = raw_request.get("filters")
+        retrieval_domains = (
+            _domains_from_payload(raw_filters)
+            if isinstance(raw_filters, dict)
+            else ()
+        )
+        return {
+            "detected_domains": _detect_query_domains(query),
+            "retrieval_domains": retrieval_domains,
+        }
+
+    return {}
+
+
+def _domains_from_payload(
+    raw_payload: dict[str, object],
+) -> tuple[CreativeCodingDomain, ...]:
+    raw_domains = raw_payload.get("domains")
+    if isinstance(raw_domains, list):
+        domains = tuple(
+            domain
+            for domain in (_coerce_domain(raw_value) for raw_value in raw_domains)
+            if domain is not None
+        )
+        if domains:
+            return domains
+
+    domain = _coerce_domain(raw_payload.get("domain"))
+    if domain is not None:
+        return (domain,)
+    return ()
+
+
+def _detect_query_domains(query: str) -> tuple[CreativeCodingDomain, ...]:
+    normalized = _normalize_query(query)
+    if not normalized:
+        return ()
+
+    detected: list[CreativeCodingDomain] = []
+    for domain, patterns in _TRACE_QUERY_PATTERNS:
+        if any(pattern.search(normalized) for pattern in patterns):
+            detected.append(domain)
+    return tuple(detected)
+
+
+def _normalize_query(value: str) -> str:
+    return _WHITESPACE_PATTERN.sub(" ", value.strip().lower())
 
 
 def _build_retrieval_item(raw_chunk: dict[str, object]) -> RetrievalDisplayItem | None:

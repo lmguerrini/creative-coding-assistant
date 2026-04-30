@@ -153,6 +153,9 @@ def _render_history(*, trace_visibility: TraceVisibilityLevel) -> None:
                 allow_unclosed_code_block=False,
             )
             _render_visibility_trace(
+                ui_domains=entry.ui_domains,
+                detected_domains=entry.detected_domains,
+                retrieval_domains=entry.retrieval_domains,
                 memory_items=entry.memory_items,
                 memory_state=entry.memory_state,
                 retrieval_items=entry.retrieval_items,
@@ -220,6 +223,9 @@ def _run_chat_turn(
                     error_placeholder.error(state.error_message)
 
                 _render_visibility_trace(
+                    ui_domains=state.ui_domains,
+                    detected_domains=state.detected_domains,
+                    retrieval_domains=state.retrieval_domains,
                     memory_items=state.memory_items,
                     memory_state=state.memory_state,
                     retrieval_items=state.retrieval_items,
@@ -256,6 +262,9 @@ def _run_chat_turn(
 
 def _render_visibility_trace(
     *,
+    ui_domains: tuple[CreativeCodingDomain, ...],
+    detected_domains: tuple[CreativeCodingDomain, ...],
+    retrieval_domains: tuple[CreativeCodingDomain, ...],
     memory_items: tuple[ContextDisplayItem, ...],
     memory_state: str,
     retrieval_items: tuple[RetrievalDisplayItem, ...],
@@ -291,6 +300,13 @@ def _render_visibility_trace(
     with outer:
         with _section_container():
             st.caption(f"Trace: {trace_visibility_summary(trace_visibility)}")
+            _render_debug_trace(
+                ui_domains=ui_domains,
+                detected_domains=detected_domains,
+                retrieval_domains=retrieval_domains,
+                retrieval_items=retrieval_items,
+                context_items=context_items,
+            )
             if "memory" in visible_sections:
                 _render_context_visibility(
                     kind="memory",
@@ -325,6 +341,61 @@ def _render_visibility_trace(
                     summary=generation_input_summary,
                     visibility_state=generation_input_state,
                 )
+
+
+def _render_debug_trace(
+    *,
+    ui_domains: tuple[CreativeCodingDomain, ...],
+    detected_domains: tuple[CreativeCodingDomain, ...],
+    retrieval_domains: tuple[CreativeCodingDomain, ...],
+    retrieval_items: tuple[RetrievalDisplayItem, ...],
+    context_items: tuple[ContextDisplayItem, ...],
+) -> None:
+    import streamlit as st
+
+    if not (
+        ui_domains
+        or detected_domains
+        or retrieval_domains
+        or retrieval_items
+        or context_items
+    ):
+        return
+
+    with st.expander("Trace", expanded=False):
+        st.markdown("**Domains**")
+        st.caption(f"UI selected: {_format_domain_list(ui_domains)}")
+        st.caption(f"Detected from query: {_format_domain_list(detected_domains)}")
+        st.caption(f"Used for retrieval: {_format_domain_list(retrieval_domains)}")
+
+        st.markdown("**Retrieval results**")
+        if retrieval_items:
+            for item in retrieval_items[:5]:
+                meta_parts = [item.source_id, _format_domain(item.domain)]
+                if item.score is not None:
+                    meta_parts.append(f"score {item.score:.3f}")
+                elif item.distance is not None:
+                    meta_parts.append(f"distance {item.distance:.3f}")
+                st.markdown(f"**{item.title}**")
+                st.caption(" | ".join(meta_parts))
+                _render_trace_text(item.snippet)
+        else:
+            st.caption("No retrieval results were available.")
+
+        st.markdown("**Assembled context**")
+        if context_items:
+            for item in context_items[:5]:
+                meta_parts = []
+                if item.source_id is not None:
+                    meta_parts.append(item.source_id)
+                if item.domain is not None:
+                    meta_parts.append(_format_domain(item.domain))
+                st.markdown(f"**{item.label}**")
+                if meta_parts:
+                    st.caption(" | ".join(meta_parts))
+                _render_trace_text(item.snippet)
+        else:
+            st.caption("No assembled context items were available.")
 
 
 def _render_retrieval_context(
@@ -365,6 +436,12 @@ def _render_retrieval_context(
                 st.markdown(f"**{label}**")
                 st.caption(" | ".join(meta_parts))
                 _render_trace_text(item.snippet)
+
+
+def _format_domain_list(domains: tuple[CreativeCodingDomain, ...]) -> str:
+    if not domains:
+        return "None"
+    return ", ".join(_format_domain(domain) for domain in domains)
 
 
 def _render_context_visibility(
