@@ -4,9 +4,73 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.rag.sync.models import (
     NormalizedSourceDocument,
     OfficialSourceChunk,
+)
+
+_DROPPED_SECTION_PREFIXES = (
+    "bibliography",
+    "external links",
+    "image:",
+    "next step",
+    "previous step",
+    "related examples",
+    "related references",
+    "resources",
+    "retrieved from",
+    "see also",
+)
+_NAVIGATION_PHRASES = (
+    "edited and maintained by",
+    "licensed under cc by",
+    "menu reference tutorials",
+    "skip to main content",
+    "you can find the code history",
+)
+_P5_CODE_MARKERS = (
+    "function draw",
+    "function setup",
+    "background(",
+    "circle(",
+    "createcanvas(",
+    "draw()",
+    "ellipse(",
+    "fill(",
+    "framecount",
+    "mousex",
+    "mousey",
+    "random(",
+    "setup()",
+    "stroke(",
+)
+_P5_TECHNICAL_MARKERS = _P5_CODE_MARKERS + (
+    "animation",
+    "canvas",
+    "interactive",
+    "sketch",
+)
+_GLSL_CODE_MARKERS = (
+    "#version",
+    "fragcolor",
+    "gl_fragcolor",
+    "gl_position",
+    "precision ",
+    "sampler2d",
+    "uniform ",
+    "varying ",
+    "vec2",
+    "vec3",
+    "vec4",
+    "void main",
+)
+_GLSL_TECHNICAL_MARKERS = _GLSL_CODE_MARKERS + (
+    "fragment shader",
+    "shader stage",
+    "type qualifier",
+    "uniform",
+    "vertex shader",
 )
 
 
@@ -27,8 +91,7 @@ class OfficialSourceChunker:
         self,
         document: NormalizedSourceDocument,
     ) -> tuple[OfficialSourceChunk, ...]:
-        paragraphs = [part.strip() for part in document.normalized_text.split("\n\n")]
-        content_parts = [part for part in paragraphs if part]
+        content_parts = self._prepare_content_parts(document)
         if not content_parts:
             return ()
 
@@ -38,6 +101,11 @@ class OfficialSourceChunker:
 
         for paragraph in content_parts:
             for piece in self._split_paragraph(paragraph):
+                if self._should_break_before(piece) and current_parts:
+                    chunk_texts.append("\n\n".join(current_parts))
+                    current_parts = []
+                    current_size = 0
+
                 if not current_parts:
                     current_parts = [piece]
                     current_size = len(piece)
@@ -56,7 +124,11 @@ class OfficialSourceChunker:
         if current_parts:
             chunk_texts.append("\n\n".join(current_parts))
 
-        merged_texts = self._merge_small_tail(chunk_texts)
+        merged_texts = tuple(
+            text
+            for text in self._merge_small_tail(chunk_texts)
+            if self._should_keep_chunk(document, text)
+        )
         return tuple(
             OfficialSourceChunk.from_text(
                 normalized_document=document,
@@ -64,6 +136,17 @@ class OfficialSourceChunker:
                 text=text,
             )
             for index, text in enumerate(merged_texts)
+        )
+
+    def _prepare_content_parts(
+        self,
+        document: NormalizedSourceDocument,
+    ) -> tuple[str, ...]:
+        paragraphs = [part.strip() for part in document.normalized_text.split("\n\n")]
+        return tuple(
+            paragraph
+            for paragraph in paragraphs
+            if paragraph and not self._should_drop_paragraph(document, paragraph)
         )
 
     def _split_paragraph(self, paragraph: str) -> tuple[str, ...]:
@@ -114,3 +197,43 @@ class OfficialSourceChunker:
         if len(merged) <= self._policy.max_chars:
             return tuple([*chunk_texts[:-2], merged])
         return tuple(chunk_texts)
+
+    def _should_break_before(self, piece: str) -> bool:
+        return piece.startswith("Page: ")
+
+    def _should_drop_paragraph(
+        self,
+        document: NormalizedSourceDocument,
+        paragraph: str,
+    ) -> bool:
+        normalized = " ".join(paragraph.lower().split())
+        if any(normalized.startswith(prefix) for prefix in _DROPPED_SECTION_PREFIXES):
+            return True
+        if any(phrase in normalized for phrase in _NAVIGATION_PHRASES):
+            return True
+        if (
+            document.domain == CreativeCodingDomain.GLSL
+            and len(normalized) > 900
+            and not self._contains_any(normalized, _GLSL_TECHNICAL_MARKERS)
+        ):
+            return True
+        return False
+
+    def _should_keep_chunk(
+        self,
+        document: NormalizedSourceDocument,
+        text: str,
+    ) -> bool:
+        normalized = " ".join(text.lower().split())
+        if not normalized or any(
+            phrase in normalized for phrase in _NAVIGATION_PHRASES
+        ):
+            return False
+        if document.domain == CreativeCodingDomain.P5_JS:
+            return self._contains_any(normalized, _P5_TECHNICAL_MARKERS)
+        if document.domain == CreativeCodingDomain.GLSL:
+            return self._contains_any(normalized, _GLSL_TECHNICAL_MARKERS)
+        return True
+
+    def _contains_any(self, text: str, markers: tuple[str, ...]) -> bool:
+        return any(marker in text for marker in markers)
