@@ -29,6 +29,9 @@ from creative_coding_assistant.rag.sources import OfficialSourceType
 
 DEFAULT_RETRIEVAL_LIMIT = 5
 _P5_EXAMPLE_SCORE_BOOST = 0.08
+_P5_WEAK_REFERENCE_SCORE_PENALTY = 0.06
+_P5_VERY_SHORT_REFERENCE_CHARS = 80
+_P5_HEADING_LIKE_REFERENCE_CHARS = 140
 _P5_EXAMPLE_MARKERS = (
     "function setup(",
     "function draw(",
@@ -40,6 +43,7 @@ _P5_EXAMPLE_MARKERS = (
     "const ",
     "var ",
 )
+_P5_HEADING_DETAIL_MARKERS = (".", ";", "{", "}", "=", "\n")
 
 
 class RetrievalContextSource(StrEnum):
@@ -251,9 +255,9 @@ def _rank_retrieval_results(
     ranked: list[tuple[int, KnowledgeBaseSearchResult]] = []
     changed = False
     for index, result in enumerate(results):
-        boosted = _boost_p5_example_result(result)
-        changed = changed or boosted.score != result.score
-        ranked.append((index, boosted))
+        adjusted = _adjust_p5_generate_result_score(result)
+        changed = changed or adjusted.score != result.score
+        ranked.append((index, adjusted))
 
     if not changed:
         return results
@@ -262,17 +266,35 @@ def _rank_retrieval_results(
     return tuple(result for _, result in ranked)
 
 
-def _boost_p5_example_result(
+def _adjust_p5_generate_result_score(
     result: KnowledgeBaseSearchResult,
 ) -> KnowledgeBaseSearchResult:
     if result.domain is not CreativeCodingDomain.P5_JS:
         return result
-    if not _looks_like_p5_example_chunk(result.text):
+
+    if _looks_like_p5_example_chunk(result.text):
+        adjusted_score = min(1.0, result.score + _P5_EXAMPLE_SCORE_BOOST)
+    elif _looks_like_weak_p5_reference_chunk(result.text):
+        adjusted_score = max(0.0, result.score - _P5_WEAK_REFERENCE_SCORE_PENALTY)
+    else:
         return result
 
-    boosted_score = min(1.0, result.score + _P5_EXAMPLE_SCORE_BOOST)
-    return result.model_copy(update={"score": boosted_score})
+    return result.model_copy(update={"score": adjusted_score})
 
 
 def _looks_like_p5_example_chunk(text: str) -> bool:
     return any(marker in text for marker in _P5_EXAMPLE_MARKERS)
+
+
+def _looks_like_weak_p5_reference_chunk(text: str) -> bool:
+    if _looks_like_p5_example_chunk(text):
+        return False
+
+    compact_text = " ".join(text.split())
+    if len(compact_text) <= _P5_VERY_SHORT_REFERENCE_CHARS:
+        return True
+
+    return (
+        len(compact_text) <= _P5_HEADING_LIKE_REFERENCE_CHARS
+        and not any(marker in compact_text for marker in _P5_HEADING_DETAIL_MARKERS)
+    )
