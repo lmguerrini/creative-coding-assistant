@@ -91,6 +91,14 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             "Do not leave runnable code unfenced.",
             response.sections[0].content,
         )
+        self.assertIn(
+            "Keep the answer focused on the user's request",
+            response.sections[0].content,
+        )
+        self.assertIn(
+            "Prefer practical creative-coding examples",
+            response.sections[0].content,
+        )
         self.assertIn("```python", response.sections[0].content)
         self.assertIn("User Request:", response.sections[1].content)
         self.assertIn(
@@ -126,8 +134,93 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         self.assertEqual(rendered.sections[0].name, RenderedPromptSectionName.SYSTEM)
         self.assertEqual(rendered.sections[1].name, RenderedPromptSectionName.USER)
         self.assertIn(
-            "Lead with a concrete implementation",
+            "Lead with runnable code first",
             rendered.sections[0].content,
+        )
+        self.assertIn(
+            (
+                "Keep explanation short and add setup or run notes only when "
+                "they are useful."
+            ),
+            rendered.sections[0].content,
+        )
+        self.assertIn(
+            "Avoid long conceptual sections unless the user explicitly asks for them.",
+            rendered.sections[0].content,
+        )
+
+    def test_renderer_uses_explanation_first_guidance_for_explain_mode(self) -> None:
+        renderer = JinjaPromptRenderer()
+        prompt_input = build_prompt_input_request(
+            assistant_request=AssistantRequest(
+                query="Explain how fog works in Three.js.",
+                mode=AssistantMode.EXPLAIN,
+            ),
+            route_decision=RouteDecision(
+                route=RouteName.EXPLAIN,
+                mode=AssistantMode.EXPLAIN,
+                capabilities=(RouteCapability.OFFICIAL_DOCS,),
+            ),
+            assembled_context=None,
+        )
+        prompt_input_response = StructuredPromptInputBuilder().build(prompt_input)
+
+        rendered = renderer.render(
+            build_rendered_prompt_request(
+                route_decision=RouteName.EXPLAIN,
+                prompt_input=prompt_input_response,
+            )
+        )
+
+        system_section = rendered.sections[0].content
+        self.assertIn(
+            "Lead with conceptual clarity and explain the cause-and-effect first.",
+            system_section,
+        )
+        self.assertIn(
+            "Use concise code snippets only when they sharpen the explanation.",
+            system_section,
+        )
+        self.assertIn(
+            "Avoid full runnable projects unless the user explicitly asks for them.",
+            system_section,
+        )
+
+    def test_renderer_uses_issue_fix_why_guidance_for_debug_mode(self) -> None:
+        renderer = JinjaPromptRenderer()
+        prompt_input = build_prompt_input_request(
+            assistant_request=AssistantRequest(
+                query="Why is my shader black?",
+                mode=AssistantMode.DEBUG,
+            ),
+            route_decision=RouteDecision(
+                route=RouteName.DEBUG,
+                mode=AssistantMode.DEBUG,
+                capabilities=(RouteCapability.OFFICIAL_DOCS,),
+            ),
+            assembled_context=None,
+        )
+        prompt_input_response = StructuredPromptInputBuilder().build(prompt_input)
+
+        rendered = renderer.render(
+            build_rendered_prompt_request(
+                route_decision=RouteName.DEBUG,
+                prompt_input=prompt_input_response,
+            )
+        )
+
+        system_section = rendered.sections[0].content
+        self.assertIn(
+            "Lead with the most likely issue before proposing changes.",
+            system_section,
+        )
+        self.assertIn(
+            "Structure the response as Issue, Fix, and Why it works.",
+            system_section,
+        )
+        self.assertIn(
+            "briefly ask for the missing code or error",
+            system_section,
         )
 
     def test_renderer_adds_multi_domain_discipline_guidance(self) -> None:
