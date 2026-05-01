@@ -42,6 +42,14 @@ UI Selected Domains:
 - {{ domain.value }}
 {% endfor %}
 {% endif %}
+{% if prompt_input.user_input.is_follow_up -%}
+Follow-Up Request:
+- Treat the current request as a continuation or modification of the immediately
+  previous working turn.
+- Use the compact prior turn pair only as short-term working context.
+- Let the current request and effective domains override stale details from
+  earlier context.
+{% endif %}
 Use the provided context sections as working context. Keep responses grounded in
 the structured inputs that follow.
 Global Guardrails:
@@ -75,9 +83,14 @@ Running Summary:
 
 {% endif -%}
 {% if prompt_input.memory_input.recent_turns -%}
+{% if prompt_input.user_input.is_follow_up -%}
+Immediate Prior Turn Pair:
+{% else -%}
 Recent Turns:
+{% endif %}
 {% for turn in prompt_input.memory_input.recent_turns -%}
-- {{ turn.role.value }}[{{ turn.turn_index }}]: {{ turn.content }}
+- {{ turn.role.value }}[{{ turn.turn_index }}]:
+{{ turn.content }}
 {% endfor %}
 
 {% endif -%}
