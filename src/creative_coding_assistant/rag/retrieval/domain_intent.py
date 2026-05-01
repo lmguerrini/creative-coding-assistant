@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
@@ -73,6 +74,38 @@ def detect_domain_intent(query: str) -> DomainIntent | None:
         primary_domain=primary_domain,
         allowed_domains=(primary_domain, *related_domains),
     )
+
+
+def detect_explicit_query_domains(query: str) -> tuple[CreativeCodingDomain, ...]:
+    """Return all explicitly named query domains in stable enum order."""
+
+    normalized_query = _normalize_query(query)
+    if not normalized_query:
+        return ()
+
+    scores = [
+        (domain, _score_domain(normalized_query, patterns))
+        for domain, patterns in _INTENT_PATTERNS
+    ]
+    return tuple(domain for domain, score in scores if score > 0)
+
+
+def resolve_effective_query_domains(
+    *,
+    query: str,
+    selected_domains: Sequence[CreativeCodingDomain],
+) -> tuple[CreativeCodingDomain, ...]:
+    """Prefer explicit query domains and otherwise preserve selected domains."""
+
+    explicit_domains = detect_explicit_query_domains(query)
+    if explicit_domains:
+        return explicit_domains
+
+    normalized: list[CreativeCodingDomain] = []
+    for domain in selected_domains:
+        if domain not in normalized:
+            normalized.append(domain)
+    return tuple(normalized)
 
 
 def _normalize_query(value: str) -> str:

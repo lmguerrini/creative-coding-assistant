@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from collections.abc import Sequence
 from enum import StrEnum
 from typing import Protocol
@@ -21,37 +20,13 @@ from creative_coding_assistant.rag.retrieval import (
     KnowledgeBaseRetrievalRequest,
     KnowledgeBaseRetriever,
 )
+from creative_coding_assistant.rag.retrieval.domain_intent import (
+    detect_explicit_query_domains,
+    resolve_effective_query_domains,
+)
 from creative_coding_assistant.rag.sources import OfficialSourceType
 
 DEFAULT_RETRIEVAL_LIMIT = 5
-_WHITESPACE_PATTERN = re.compile(r"\s+")
-_THREE_JS_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
-    (re.compile(r"\bthree(?:\.js|js|\s+js)\b"), 3),
-)
-_REACT_THREE_FIBER_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
-    (re.compile(r"\breact\s+three\s+fiber\b"), 3),
-    (re.compile(r"@react-three/fiber"), 3),
-    (re.compile(r"\br3f\b"), 3),
-    (re.compile(r"\buseframe\b"), 2),
-)
-_P5_JS_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
-    (re.compile(r"\bp5(?:\.js|js)?\b"), 3),
-)
-_GLSL_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
-    (re.compile(r"\bglsl\b"), 3),
-    (re.compile(r"\bfragment\s+shader\b"), 2),
-    (re.compile(r"\bvertex\s+shader\b"), 2),
-    (re.compile(r"\bshader\b"), 1),
-)
-_EXPLICIT_DOMAIN_PATTERNS: tuple[
-    tuple[CreativeCodingDomain, tuple[tuple[re.Pattern[str], int], ...]],
-    ...,
-] = (
-    (CreativeCodingDomain.THREE_JS, _THREE_JS_PATTERNS),
-    (CreativeCodingDomain.REACT_THREE_FIBER, _REACT_THREE_FIBER_PATTERNS),
-    (CreativeCodingDomain.P5_JS, _P5_JS_PATTERNS),
-    (CreativeCodingDomain.GLSL, _GLSL_PATTERNS),
-)
 
 
 class RetrievalContextSource(StrEnum):
@@ -230,7 +205,7 @@ def build_retrieval_context_request(
 def _resolve_retrieval_domains(
     assistant_request: AssistantRequest,
 ) -> tuple[CreativeCodingDomain | None, tuple[CreativeCodingDomain, ...]]:
-    query_domains = _detect_explicit_query_domains(assistant_request.query)
+    query_domains = detect_explicit_query_domains(assistant_request.query)
     if not query_domains:
         return assistant_request.domain, assistant_request.domains
 
@@ -239,30 +214,10 @@ def _resolve_retrieval_domains(
         [domain.value for domain in query_domains],
         [domain.value for domain in assistant_request.domains],
     )
-    if len(query_domains) == 1:
-        return query_domains[0], query_domains
-    return None, query_domains
-
-
-def _detect_explicit_query_domains(query: str) -> tuple[CreativeCodingDomain, ...]:
-    normalized_query = _normalize_query(query)
-    if not normalized_query:
-        return ()
-
-    scores = [
-        (domain, _score_domain(normalized_query, patterns))
-        for domain, patterns in _EXPLICIT_DOMAIN_PATTERNS
-    ]
-    detected = tuple(domain for domain, score in scores if score > 0)
-    return detected
-
-
-def _normalize_query(value: str) -> str:
-    return _WHITESPACE_PATTERN.sub(" ", value.strip().lower())
-
-
-def _score_domain(
-    query: str,
-    patterns: tuple[tuple[re.Pattern[str], int], ...],
-) -> int:
-    return sum(weight for pattern, weight in patterns if pattern.search(query))
+    effective_domains = resolve_effective_query_domains(
+        query=assistant_request.query,
+        selected_domains=assistant_request.domains,
+    )
+    if len(effective_domains) == 1:
+        return effective_domains[0], effective_domains
+    return None, effective_domains
