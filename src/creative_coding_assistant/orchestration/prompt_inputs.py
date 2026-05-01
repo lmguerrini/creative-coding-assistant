@@ -20,6 +20,10 @@ from creative_coding_assistant.orchestration.routing import (
     RouteDecision,
     RouteName,
 )
+from creative_coding_assistant.rag.retrieval.domain_intent import (
+    detect_explicit_query_domains,
+    resolve_effective_query_domains,
+)
 from creative_coding_assistant.rag.sources import OfficialSourceType
 
 
@@ -30,9 +34,20 @@ class PromptUserInput(BaseModel):
     mode: AssistantMode
     domain: CreativeCodingDomain | None = None
     domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
+    ui_selected_domains: tuple[CreativeCodingDomain, ...] = Field(
+        default_factory=tuple
+    )
+    detected_domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
+    effective_domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
     domain_selection: DomainSelectionShape = DomainSelectionShape.NONE
 
-    @field_validator("domains", mode="before")
+    @field_validator(
+        "domains",
+        "ui_selected_domains",
+        "detected_domains",
+        "effective_domains",
+        mode="before",
+    )
     @classmethod
     def normalize_domains(
         cls,
@@ -65,18 +80,42 @@ class PromptUserInput(BaseModel):
         normalized = dict(value)
         domain = normalized.get("domain")
         domains = normalized.get("domains")
+        ui_selected_domains = normalized.get("ui_selected_domains")
+        effective_domains = normalized.get("effective_domains")
 
-        if domain is not None and not domains:
+        if domains and not ui_selected_domains:
+            normalized["ui_selected_domains"] = domains
+
+        if domains and not effective_domains:
+            normalized["effective_domains"] = domains
+
+        if effective_domains and not domains:
+            normalized["domains"] = effective_domains
+
+        if domain is not None and not normalized.get("domains"):
             normalized["domains"] = (domain,)
+        if domain is not None and not normalized.get("ui_selected_domains"):
+            normalized["ui_selected_domains"] = (domain,)
+        if domain is not None and not normalized.get("effective_domains"):
+            normalized["effective_domains"] = (domain,)
 
         return normalized
 
     @model_validator(mode="after")
     def validate_domain_alignment(self) -> PromptUserInput:
-        if self.domain is None and len(self.domains) == 1:
-            object.__setattr__(self, "domain", self.domains[0])
+        if not self.domains and self.effective_domains:
+            object.__setattr__(self, "domains", self.effective_domains)
 
-        if self.domain is not None and self.domain not in self.domains:
+        if not self.effective_domains and self.domains:
+            object.__setattr__(self, "effective_domains", self.domains)
+
+        if not self.ui_selected_domains and self.domains:
+            object.__setattr__(self, "ui_selected_domains", self.domains)
+
+        if self.domain is None and len(self.effective_domains) == 1:
+            object.__setattr__(self, "domain", self.effective_domains[0])
+
+        if self.domain is not None and self.domain not in self.effective_domains:
             raise ValueError(
                 "Prompt user input domain must be included in domains "
                 "when both are provided."
@@ -85,7 +124,7 @@ class PromptUserInput(BaseModel):
         object.__setattr__(
             self,
             "domain_selection",
-            _selection_shape_for_domains(self.domains),
+            _selection_shape_for_domains(self.effective_domains),
         )
         return self
 
@@ -187,6 +226,14 @@ class StructuredPromptInputBuilder:
         request: PromptInputRequest,
     ) -> PromptInputResponse:
         assembled_context = request.assembled_context
+        ui_selected_domains = request.assistant_request.domains
+        detected_domains = detect_explicit_query_domains(
+            request.assistant_request.query
+        )
+        effective_domains = resolve_effective_query_domains(
+            query=request.assistant_request.query,
+            selected_domains=ui_selected_domains,
+        )
         memory_input = None
         retrieval_input = None
 
@@ -251,8 +298,15 @@ class StructuredPromptInputBuilder:
             user_input=PromptUserInput(
                 query=request.assistant_request.query,
                 mode=request.assistant_request.mode,
-                domain=request.assistant_request.domain,
-                domains=request.assistant_request.domains,
+                domain=(
+                    effective_domains[0]
+                    if len(effective_domains) == 1
+                    else None
+                ),
+                domains=effective_domains,
+                ui_selected_domains=ui_selected_domains,
+                detected_domains=detected_domains,
+                effective_domains=effective_domains,
             ),
             memory_input=memory_input,
             retrieval_input=retrieval_input,
