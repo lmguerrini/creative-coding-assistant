@@ -101,6 +101,41 @@ class ProviderGenerationContractsTests(unittest.TestCase):
             generation_input.messages[3].content,
         )
 
+    def test_generation_builder_accepts_empty_retrieval_context(self) -> None:
+        prompt_input_request = build_prompt_input_request(
+            assistant_request=AssistantRequest(
+                query="Explain the scene setup.",
+                domain=CreativeCodingDomain.THREE_JS,
+                mode=AssistantMode.EXPLAIN,
+            ),
+            route_decision=_route_decision(),
+            assembled_context=_assembled_context(
+                retrieval_context=_empty_retrieval_context()
+            ),
+        )
+        prompt_input = StructuredPromptInputBuilder().build(prompt_input_request)
+        rendered_prompt = JinjaPromptRenderer().render(
+            build_rendered_prompt_request(
+                route_decision=_route_decision(),
+                prompt_input=prompt_input,
+            )
+        )
+        generation_input = RenderedPromptGenerationBuilder().build(
+            build_generation_request(
+                route_decision=_route_decision(),
+                rendered_prompt=rendered_prompt,
+            )
+        )
+
+        retrieval_messages = tuple(
+            message
+            for message in generation_input.messages
+            if message.name is GenerationMessageName.RETRIEVAL
+        )
+        self.assertEqual(len(retrieval_messages), 1)
+        self.assertIn("Official Knowledge Base:", retrieval_messages[0].content)
+        self.assertNotIn("PerspectiveCamera controls", retrieval_messages[0].content)
+
     def test_generation_stream_event_accepts_delta_payload(self) -> None:
         event = GenerationStreamEvent(
             event_type=GenerationEventType.DELTA,
@@ -212,23 +247,27 @@ def _rendered_prompt():
     )
 
 
-def _assembled_context() -> AssembledContextResponse:
+def _assembled_context(
+    *,
+    retrieval_context: RetrievalContextResponse | None = None,
+) -> AssembledContextResponse:
     request = build_assembled_context_request(
         route_decision=_route_decision(),
         memory_context=_memory_context(),
-        retrieval_context=_retrieval_context(),
+        retrieval_context=retrieval_context or _retrieval_context(),
     )
     assert request is not None
+    resolved_retrieval_context = retrieval_context or _retrieval_context()
     return AssembledContextResponse(
         request=request,
         summary=AssembledContextSummary(
             recent_turn_count=2,
             has_running_summary=True,
             project_memory_count=2,
-            retrieval_chunk_count=1,
+            retrieval_chunk_count=len(resolved_retrieval_context.chunks),
         ),
         memory_context=_memory_context(),
-        retrieval_context=_retrieval_context(),
+        retrieval_context=resolved_retrieval_context,
     )
 
 
@@ -300,6 +339,17 @@ def _retrieval_context() -> RetrievalContextResponse:
                 score=0.83,
             ),
         ),
+    )
+
+
+def _empty_retrieval_context() -> RetrievalContextResponse:
+    return RetrievalContextResponse(
+        request=RetrievalContextRequest(
+            query="Explain the scene setup.",
+            route=RouteName.EXPLAIN,
+        ),
+        source=RetrievalContextSource.OFFICIAL_KB,
+        chunks=(),
     )
 
 

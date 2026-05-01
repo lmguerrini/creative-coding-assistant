@@ -143,6 +143,49 @@ class RenderedPromptToProviderBoundaryTests(unittest.TestCase):
         self.assertEqual(generation_input["messages"][2]["name"], "memory")
         self.assertEqual(generation_input["messages"][3]["name"], "retrieval")
 
+    def test_service_continues_generation_when_retrieval_fails(self) -> None:
+        service = AssistantService(
+            route_fn=_route_with_memory_and_docs,
+            memory_gateway=_FakeMemoryGateway(response=_memory_context()),
+            retrieval_gateway=_FailingRetrievalGateway(),
+            context_assembler=OrchestrationContextAssembler(),
+            prompt_input_builder=StructuredPromptInputBuilder(),
+            prompt_renderer=JinjaPromptRenderer(),
+            generation_gateway=LlmGenerationAdapter(),
+            generation_provider=_IdleGenerationProvider(),
+        )
+        request = AssistantRequest(
+            query="Explain the scene setup.",
+            conversation_id="conversation-1",
+            project_id="project-1",
+            domain=CreativeCodingDomain.THREE_JS,
+            mode=AssistantMode.EXPLAIN,
+        )
+
+        events = tuple(service.stream(request))
+
+        self.assertEqual(
+            [event.event_type for event in events],
+            [
+                StreamEventType.STATUS,
+                StreamEventType.STATUS,
+                StreamEventType.MEMORY,
+                StreamEventType.MEMORY,
+                StreamEventType.RETRIEVAL,
+                StreamEventType.RETRIEVAL,
+                StreamEventType.CONTEXT,
+                StreamEventType.PROMPT_INPUT,
+                StreamEventType.PROMPT_RENDERED,
+                StreamEventType.GENERATION_INPUT,
+                StreamEventType.FINAL,
+            ],
+        )
+        retrieval_context = events[5].payload["context"]
+        self.assertEqual(retrieval_context["chunks"], [])
+        assembled_context = events[6].payload["context"]
+        self.assertEqual(assembled_context["summary"]["retrieval_chunk_count"], 0)
+        self.assertEqual(events[9].payload["code"], "generation_input_prepared")
+
 
 def _route_decision() -> RouteDecision:
     return RouteDecision(
@@ -303,6 +346,15 @@ class _FakeRetrievalGateway:
     ) -> RetrievalContextResponse:
         del request
         return self.response
+
+
+class _FailingRetrievalGateway:
+    def retrieve_context(
+        self,
+        request: RetrievalContextRequest,
+    ) -> RetrievalContextResponse:
+        del request
+        raise RuntimeError("retrieval unavailable")
 
 
 class _IdleGenerationProvider(GenerationProvider):
