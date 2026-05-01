@@ -330,6 +330,96 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
             ),
         )
 
+    def test_retrieval_adapter_boosts_example_like_p5_chunks_for_generate(
+        self,
+    ) -> None:
+        fake_retriever = _FakeRetriever(
+            response=KnowledgeBaseRetrievalResponse(
+                request=KnowledgeBaseRetrievalRequest(query="placeholder"),
+                results=(
+                    _kb_result(
+                        record_id="p5-reference",
+                        source_id="p5_reference",
+                        domain=CreativeCodingDomain.P5_JS,
+                        text="Reference text describing shape drawing on the canvas.",
+                        score=0.82,
+                    ),
+                    _kb_result(
+                        record_id="p5-example",
+                        source_id="p5_examples",
+                        domain=CreativeCodingDomain.P5_JS,
+                        text=(
+                            "function setup() {\n"
+                            "  createCanvas(400, 400);\n"
+                            "}\n"
+                            "function draw() {\n"
+                            "  background(220);\n"
+                            "  ellipse(200, 200, 40, 40);\n"
+                            "}"
+                        ),
+                        score=0.76,
+                    ),
+                ),
+            )
+        )
+        adapter = KnowledgeBaseRetrievalAdapter(retriever=fake_retriever)
+        request = RetrievalContextRequest(
+            query="Create a bouncing ball in p5.js",
+            route=RouteName.GENERATE,
+            filters=RetrievalContextFilter(domain=CreativeCodingDomain.P5_JS),
+        )
+
+        context = adapter.retrieve_context(request)
+
+        self.assertEqual(context.chunks[0].source_id, "p5_examples")
+        self.assertIn("function setup()", context.chunks[0].excerpt)
+        self.assertGreater(context.chunks[0].score, context.chunks[1].score)
+
+    def test_retrieval_adapter_does_not_boost_non_p5_domains(self) -> None:
+        for domain in (
+            CreativeCodingDomain.THREE_JS,
+            CreativeCodingDomain.GLSL,
+        ):
+            with self.subTest(domain=domain):
+                fake_retriever = _FakeRetriever(
+                    response=KnowledgeBaseRetrievalResponse(
+                        request=KnowledgeBaseRetrievalRequest(query="placeholder"),
+                        results=(
+                            _kb_result(
+                                record_id=f"{domain.value}-reference",
+                                source_id=f"{domain.value}_reference",
+                                domain=domain,
+                                text="Generic reference text for this domain.",
+                                score=0.82,
+                            ),
+                            _kb_result(
+                                record_id=f"{domain.value}-code",
+                                source_id=f"{domain.value}_code",
+                                domain=domain,
+                                text="const value = 1;\nlet speed = value;",
+                                score=0.76,
+                            ),
+                        ),
+                    )
+                )
+                adapter = KnowledgeBaseRetrievalAdapter(retriever=fake_retriever)
+                request = RetrievalContextRequest(
+                    query="Create a small sketch.",
+                    route=RouteName.GENERATE,
+                    filters=RetrievalContextFilter(domain=domain),
+                )
+
+                context = adapter.retrieve_context(request)
+
+                self.assertEqual(
+                    [chunk.source_id for chunk in context.chunks],
+                    [f"{domain.value}_reference", f"{domain.value}_code"],
+                )
+                self.assertEqual(
+                    [chunk.score for chunk in context.chunks],
+                    [0.82, 0.76],
+                )
+
     def test_service_emits_retrieval_events_when_gateway_present(self) -> None:
         retrieval_context = RetrievalContextResponse(
             request=RetrievalContextRequest(
@@ -500,6 +590,34 @@ def _route_without_docs(request: AssistantRequest) -> RouteDecision:
 
 def _digest(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _kb_result(
+    *,
+    record_id: str,
+    source_id: str,
+    domain: CreativeCodingDomain,
+    text: str,
+    score: float,
+) -> KnowledgeBaseSearchResult:
+    return KnowledgeBaseSearchResult(
+        record_id=f"kb_official_docs:official_doc_chunk:v1:{record_id}",
+        source_id=source_id,
+        domain=domain,
+        source_type=OfficialSourceType.EXAMPLES,
+        publisher=domain.value,
+        registry_title=f"{domain.value} docs",
+        document_title="Example",
+        source_url="https://example.test/docs",
+        resolved_url="https://example.test/docs",
+        chunk_index=0,
+        text=text,
+        char_count=len(text),
+        content_hash=_digest(f"{record_id}:content"),
+        chunk_hash=_digest(f"{record_id}:chunk"),
+        distance=0.1,
+        score=score,
+    )
 
 
 class _FakeRetriever:
