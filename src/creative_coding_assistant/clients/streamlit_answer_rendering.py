@@ -12,6 +12,8 @@ class AnswerSegment:
     kind: Literal["prose", "code"]
     content: str
     language: str | None = None
+    suggested_filename: str | None = None
+    mime_type: str | None = None
 
 
 def split_answer_segments(
@@ -33,7 +35,7 @@ def split_answer_segments(
             segments.append(segment)
             continue
         segments.extend(_split_unfenced_code_segments(segment.content))
-    return tuple(segments)
+    return _annotate_code_segments(segments)
 
 
 def _split_fenced_answer_segments(
@@ -309,6 +311,78 @@ def _looks_like_javascript_block(content: str, lines: list[str]) -> bool:
 
 def _normalize_prose_lines(lines: list[str]) -> str:
     return "\n".join(lines).strip()
+
+
+def _annotate_code_segments(
+    segments: list[AnswerSegment],
+) -> tuple[AnswerSegment, ...]:
+    annotated: list[AnswerSegment] = []
+    code_index = 0
+
+    for segment in segments:
+        if segment.kind != "code":
+            annotated.append(segment)
+            continue
+
+        code_index += 1
+        language = segment.language
+        annotated.append(
+            AnswerSegment(
+                kind=segment.kind,
+                content=segment.content,
+                language=language,
+                suggested_filename=_suggested_filename(language, code_index),
+                mime_type=_suggested_mime_type(language),
+            )
+        )
+
+    return tuple(annotated)
+
+
+def _suggested_filename(language: str | None, code_index: int) -> str:
+    extension = _language_extension(language)
+    return f"snippet-{code_index}.{extension}"
+
+
+def _suggested_mime_type(language: str | None) -> str:
+    normalized = _normalize_language(language)
+    if normalized == "html":
+        return "text/html"
+    if normalized in {"javascript", "jsx"}:
+        return "text/javascript"
+    if normalized == "glsl":
+        return "text/plain"
+    if normalized == "python":
+        return "text/x-python"
+    return "text/plain"
+
+
+def _language_extension(language: str | None) -> str:
+    normalized = _normalize_language(language)
+    if normalized == "html":
+        return "html"
+    if normalized == "javascript":
+        return "js"
+    if normalized == "jsx":
+        return "jsx"
+    if normalized == "glsl":
+        return "glsl"
+    if normalized == "python":
+        return "py"
+    return "txt"
+
+
+def _normalize_language(language: str | None) -> str:
+    if language is None:
+        return ""
+    normalized = language.strip().lower()
+    if normalized in {"js", "javascript"}:
+        return "javascript"
+    if normalized in {"htm", "html"}:
+        return "html"
+    if normalized in {"py", "python"}:
+        return "python"
+    return normalized
 
 
 def answer_working_message(
