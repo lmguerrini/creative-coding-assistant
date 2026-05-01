@@ -56,6 +56,21 @@ class OfficialKnowledgeBaseSourceRegistryTests(unittest.TestCase):
         self.assertEqual(source.domain, CreativeCodingDomain.P5_JS)
         self.assertEqual(source.source_type, OfficialSourceType.API_REFERENCE)
 
+    def test_three_manual_includes_practical_scene_guides(self) -> None:
+        source = get_official_source("three_manual")
+
+        self.assertEqual(source.domain, CreativeCodingDomain.THREE_JS)
+        self.assertEqual(source.source_type, OfficialSourceType.GUIDE)
+        self.assertEqual(
+            source.additional_urls,
+            (
+                "https://threejs.org/manual/en/fundamentals.html",
+                "https://threejs.org/manual/en/responsive.html",
+                "https://threejs.org/manual/en/cameras.html",
+                "https://threejs.org/manual/en/lights.html",
+            ),
+        )
+
     def test_glsl_mdn_examples_source_is_registered_with_expected_metadata(
         self,
     ) -> None:

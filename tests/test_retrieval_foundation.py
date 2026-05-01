@@ -377,7 +377,7 @@ class RetrievalFoundationTests(unittest.TestCase):
         self.assertEqual(len(filtered), 1)
         self.assertEqual(filtered[0].source_id, "three_docs")
 
-    def test_three_js_query_excludes_unrelated_p5_candidates(self) -> None:
+    def test_three_js_query_prioritizes_three_js_candidates(self) -> None:
         results = (
             _result(
                 source_id="r3f_introduction",
@@ -390,13 +390,23 @@ class RetrievalFoundationTests(unittest.TestCase):
                 domain=CreativeCodingDomain.REACT_THREE_FIBER,
             ),
             _result(
+                source_id="three_box_geometry",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="BoxGeometry - three.js docs",
+                document_title="BoxGeometry",
+                text="BoxGeometry creates a rectangular cuboid for a Three.js mesh.",
+                score=0.94,
+                distance=0.06,
+                domain=CreativeCodingDomain.THREE_JS,
+            ),
+            _result(
                 source_id="p5_examples",
                 source_type=OfficialSourceType.EXAMPLES,
                 registry_title="Examples",
                 document_title="Examples",
                 text="A p5.js moving circle sketch with background clearing.",
-                score=0.94,
-                distance=0.06,
+                score=0.93,
+                distance=0.07,
                 domain=CreativeCodingDomain.P5_JS,
             ),
             _result(
@@ -405,8 +415,8 @@ class RetrievalFoundationTests(unittest.TestCase):
                 registry_title="Canvas - React Three Fiber",
                 document_title="Canvas - React Three Fiber",
                 text="Canvas configures the renderer for three.js scenes.",
-                score=0.93,
-                distance=0.07,
+                score=0.92,
+                distance=0.08,
                 domain=CreativeCodingDomain.REACT_THREE_FIBER,
             ),
         )
@@ -419,7 +429,47 @@ class RetrievalFoundationTests(unittest.TestCase):
 
         self.assertEqual(
             [result.source_id for result in filtered],
-            ["r3f_introduction", "r3f_canvas_api"],
+            ["three_box_geometry"],
+        )
+
+    def test_three_js_query_keeps_primary_domain_before_hard_source_filter(
+        self,
+    ) -> None:
+        results = (
+            _result(
+                source_id="r3f_introduction",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="Introduction - React Three Fiber",
+                document_title="Introduction - React Three Fiber",
+                text="Set up a Canvas and render a rotating Box mesh.",
+                score=0.95,
+                distance=0.05,
+                domain=CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+            _result(
+                source_id="three_manual",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="three.js Manual",
+                document_title="Fundamentals",
+                text=(
+                    "Create a Scene, PerspectiveCamera, WebGLRenderer, "
+                    "BoxGeometry, MeshBasicMaterial, and animate a cube."
+                ),
+                score=0.90,
+                distance=0.10,
+                domain=CreativeCodingDomain.THREE_JS,
+            ),
+        )
+
+        filtered = select_retrieval_results(
+            results,
+            limit=2,
+            query="Create a simple rotating cube in three.js",
+        )
+
+        self.assertEqual(
+            [result.source_id for result in filtered],
+            ["three_manual"],
         )
 
     def test_r3f_query_stays_react_three_fiber_focused(self) -> None:
@@ -464,7 +514,7 @@ class RetrievalFoundationTests(unittest.TestCase):
 
         self.assertEqual(
             [result.source_id for result in filtered],
-            ["r3f_hooks_api", "three_box_geometry"],
+            ["r3f_hooks_api"],
         )
 
     def test_p5_query_keeps_p5_candidates(self) -> None:
@@ -535,6 +585,51 @@ class RetrievalFoundationTests(unittest.TestCase):
         self.assertEqual(
             [result.source_id for result in filtered],
             ["glsl_language_spec_460"],
+        )
+
+    def test_mixed_r3f_glsl_query_keeps_both_explicit_domains(self) -> None:
+        results = (
+            _result(
+                source_id="glsl_mdn_webgl_examples",
+                source_type=OfficialSourceType.EXAMPLES,
+                registry_title="MDN WebGL GLSL Examples",
+                document_title="Hello GLSL",
+                text="void main() { gl_FragColor = vec4(1.0); }",
+                score=0.95,
+                distance=0.05,
+                domain=CreativeCodingDomain.GLSL,
+            ),
+            _result(
+                source_id="r3f_hooks_api",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="Hooks - React Three Fiber",
+                document_title="Hooks - React Three Fiber",
+                text="useFrame executes code every rendered frame.",
+                score=0.94,
+                distance=0.06,
+                domain=CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+            _result(
+                source_id="p5_reference",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="p5.js Reference",
+                document_title="p5.js Reference",
+                text="draw() runs repeatedly to animate a sketch.",
+                score=0.93,
+                distance=0.07,
+                domain=CreativeCodingDomain.P5_JS,
+            ),
+        )
+
+        filtered = select_retrieval_results(
+            results,
+            limit=3,
+            query="Create a shader material in react three fiber using GLSL.",
+        )
+
+        self.assertEqual(
+            [result.source_id for result in filtered],
+            ["glsl_mdn_webgl_examples", "r3f_hooks_api"],
         )
 
     def test_domain_filter_falls_back_when_narrowing_would_remove_everything(
