@@ -162,7 +162,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
 
         system_section = rendered.sections[0].content
         self.assertIn("Domain Scope: multi-domain selection", system_section)
-        self.assertIn("Selected Domains:", system_section)
+        self.assertIn("Effective Domains:", system_section)
         self.assertIn("- react_three_fiber", system_section)
         self.assertIn("- glsl", system_section)
         self.assertIn(
@@ -171,6 +171,99 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         )
         self.assertIn("Prefer React Three Fiber components and hooks", system_section)
         self.assertIn("Prefer concrete shader snippets", system_section)
+
+    def test_renderer_prioritizes_explicit_query_domain_over_ui_selection(self) -> None:
+        renderer = JinjaPromptRenderer()
+        assistant_request = AssistantRequest(
+            query="Create a p5.js sketch with a bouncing ball.",
+            domains=(
+                CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+            mode=AssistantMode.GENERATE,
+        )
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=assistant_request,
+                route_decision=RouteDecision(
+                    route=RouteName.GENERATE,
+                    mode=AssistantMode.GENERATE,
+                    domains=assistant_request.domains,
+                    capabilities=(RouteCapability.OFFICIAL_DOCS,),
+                ),
+                assembled_context=None,
+            )
+        )
+
+        rendered = renderer.render(
+            build_rendered_prompt_request(
+                route_decision=RouteName.GENERATE,
+                prompt_input=prompt_input,
+            )
+        )
+
+        system_section = rendered.sections[0].content
+        self.assertIn("Domain Scope: p5_js", system_section)
+        self.assertIn("Effective Domains:", system_section)
+        self.assertIn("Detected Query Domains:", system_section)
+        self.assertIn("UI Selected Domains:", system_section)
+        self.assertIn("- p5_js", system_section)
+        self.assertIn("- three_js", system_section)
+        self.assertIn("- react_three_fiber", system_section)
+        self.assertIn(
+            "Prioritize the explicitly detected query domains",
+            system_section,
+        )
+        self.assertIn(
+            "Prefer p5.js sketch structure such as setup(), draw()",
+            system_section,
+        )
+        self.assertNotIn(
+            "Prefer plain Three.js patterns over React wrappers",
+            system_section,
+        )
+        self.assertNotIn(
+            "Prefer React Three Fiber components and hooks",
+            system_section,
+        )
+
+    def test_renderer_uses_ui_selected_domains_when_query_is_ambiguous(self) -> None:
+        renderer = JinjaPromptRenderer()
+        assistant_request = AssistantRequest(
+            query="Create a rotating cube.",
+            domains=(
+                CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+            mode=AssistantMode.GENERATE,
+        )
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=assistant_request,
+                route_decision=RouteDecision(
+                    route=RouteName.GENERATE,
+                    mode=AssistantMode.GENERATE,
+                    domains=assistant_request.domains,
+                    capabilities=(RouteCapability.OFFICIAL_DOCS,),
+                ),
+                assembled_context=None,
+            )
+        )
+
+        rendered = renderer.render(
+            build_rendered_prompt_request(
+                route_decision=RouteName.GENERATE,
+                prompt_input=prompt_input,
+            )
+        )
+
+        system_section = rendered.sections[0].content
+        self.assertIn("Domain Scope: multi-domain selection", system_section)
+        self.assertIn("Effective Domains:", system_section)
+        self.assertIn("- three_js", system_section)
+        self.assertIn("- react_three_fiber", system_section)
+        self.assertNotIn("Detected Query Domains:", system_section)
+        self.assertNotIn("UI Selected Domains:", system_section)
 
     def test_renderer_skips_empty_memory_section(self) -> None:
         renderer = JinjaPromptRenderer()

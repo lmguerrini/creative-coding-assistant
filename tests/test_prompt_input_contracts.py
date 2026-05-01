@@ -136,6 +136,96 @@ class PromptInputContractsTests(unittest.TestCase):
             response.user_input.domain_selection,
             DomainSelectionShape.MULTI,
         )
+        self.assertEqual(
+            response.user_input.ui_selected_domains,
+            (
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
+        )
+        self.assertEqual(
+            response.user_input.effective_domains,
+            (
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.GLSL,
+            ),
+        )
+
+    def test_prompt_input_builder_prefers_explicit_query_domain_over_ui_selection(
+        self,
+    ) -> None:
+        builder = StructuredPromptInputBuilder()
+        assistant_request = AssistantRequest(
+            query="Create a p5.js sketch with a bouncing ball.",
+            domains=(
+                CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+            mode=AssistantMode.GENERATE,
+        )
+        request = build_prompt_input_request(
+            assistant_request=assistant_request,
+            route_decision=RouteDecision(
+                route=RouteName.GENERATE,
+                mode=AssistantMode.GENERATE,
+                domains=assistant_request.domains,
+                capabilities=(RouteCapability.OFFICIAL_DOCS,),
+            ),
+            assembled_context=None,
+        )
+
+        response = builder.build(request)
+
+        self.assertEqual(response.user_input.domain, CreativeCodingDomain.P5_JS)
+        self.assertEqual(
+            response.user_input.ui_selected_domains,
+            (
+                CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+        )
+        self.assertEqual(
+            response.user_input.detected_domains,
+            (CreativeCodingDomain.P5_JS,),
+        )
+        self.assertEqual(
+            response.user_input.effective_domains,
+            (CreativeCodingDomain.P5_JS,),
+        )
+
+    def test_prompt_input_builder_uses_ui_selection_when_query_is_ambiguous(
+        self,
+    ) -> None:
+        builder = StructuredPromptInputBuilder()
+        assistant_request = AssistantRequest(
+            query="Create a rotating cube.",
+            domains=(
+                CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+            mode=AssistantMode.GENERATE,
+        )
+        request = build_prompt_input_request(
+            assistant_request=assistant_request,
+            route_decision=RouteDecision(
+                route=RouteName.GENERATE,
+                mode=AssistantMode.GENERATE,
+                domains=assistant_request.domains,
+                capabilities=(RouteCapability.OFFICIAL_DOCS,),
+            ),
+            assembled_context=None,
+        )
+
+        response = builder.build(request)
+
+        self.assertEqual(response.user_input.detected_domains, ())
+        self.assertEqual(
+            response.user_input.effective_domains,
+            (
+                CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+        )
 
     def test_service_emits_prompt_input_event_when_builder_present(self) -> None:
         service = AssistantService(
