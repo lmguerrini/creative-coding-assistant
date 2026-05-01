@@ -107,6 +107,11 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             "The user prefers restrained motion and calm palettes.",
             response.sections[2].content,
         )
+        self.assertIn("Session Memory:", response.sections[2].content)
+        self.assertIn(
+            "User continued the project.",
+            response.sections[2].content,
+        )
         self.assertIn(
             "PerspectiveCamera controls field of view and aspect ratio.",
             response.sections[3].content,
@@ -401,6 +406,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             system_section,
         )
         self.assertIn("Immediate Prior Turn Pair:", memory_section)
+        self.assertNotIn("Session Memory:", memory_section)
         self.assertIn("Relevant code excerpt:", memory_section)
         self.assertIn("```html", memory_section)
         self.assertIn("requestAnimationFrame", memory_section)

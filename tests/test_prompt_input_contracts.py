@@ -76,6 +76,15 @@ class PromptInputContractsTests(unittest.TestCase):
         assert response.retrieval_input is not None
         self.assertFalse(response.user_input.is_follow_up)
         self.assertEqual(len(response.memory_input.recent_turns), 0)
+        self.assertEqual(len(response.memory_input.session_summaries), 2)
+        self.assertEqual(
+            response.memory_input.session_summaries[0].summary,
+            "User continued the project.",
+        )
+        self.assertEqual(
+            response.memory_input.session_summaries[1].summary,
+            "Assistant responded with implementation guidance.",
+        )
         self.assertEqual(
             response.memory_input.running_summary.content,
             "The user prefers restrained motion and calm palettes.",
@@ -122,10 +131,45 @@ class PromptInputContractsTests(unittest.TestCase):
         self.assertIn("Relevant code excerpt:", assistant_turn)
         self.assertIn("```html", assistant_turn)
         self.assertIn("requestAnimationFrame", assistant_turn)
+        self.assertEqual(len(response.memory_input.session_summaries), 2)
         self.assertLess(
             len(assistant_turn),
             len(_LONG_CODE_ANSWER),
         )
+
+    def test_prompt_input_builder_caps_session_memory_summaries_at_five(
+        self,
+    ) -> None:
+        builder = StructuredPromptInputBuilder()
+        assistant_request = AssistantRequest(
+            query="Explain the current project direction.",
+            domain=CreativeCodingDomain.P5_JS,
+            mode=AssistantMode.EXPLAIN,
+        )
+        request = build_prompt_input_request(
+            assistant_request=assistant_request,
+            route_decision=RouteDecision(
+                route=RouteName.EXPLAIN,
+                mode=AssistantMode.EXPLAIN,
+                domain=CreativeCodingDomain.P5_JS,
+                capabilities=(RouteCapability.MEMORY_CONTEXT,),
+            ),
+            assembled_context=_assembled_context(
+                route=RouteName.EXPLAIN,
+                memory_context=_memory_context_with_many_turns(),
+                retrieval_context=None,
+            ),
+        )
+
+        response = builder.build(request)
+
+        assert response.memory_input is not None
+        self.assertEqual(len(response.memory_input.session_summaries), 5)
+        summaries = tuple(
+            item.summary for item in response.memory_input.session_summaries
+        )
+        self.assertNotIn("User requested Three.js rotating cube.", summaries)
+        self.assertIn("Assistant generated p5.js sketch.", summaries)
 
     def test_prompt_input_builder_supports_user_only_flow(self) -> None:
         builder = StructuredPromptInputBuilder()
@@ -501,6 +545,71 @@ def _memory_context_with_code_answer() -> MemoryContextResponse:
             content="The conversation is building a basic Three.js cube scene.",
             created_at=_time(),
             covered_turn_count=2,
+        ),
+        project_memories=(),
+    )
+
+
+def _memory_context_with_many_turns() -> MemoryContextResponse:
+    turns = (
+        RecentConversationTurn(
+            turn_index=0,
+            role=ConversationRole.USER,
+            content="Create a rotating cube in three.js.",
+            created_at=_time(),
+            mode=AssistantMode.GENERATE,
+        ),
+        RecentConversationTurn(
+            turn_index=1,
+            role=ConversationRole.ASSISTANT,
+            content="Use a Three.js scene with a box mesh.",
+            created_at=_time(),
+            mode=AssistantMode.GENERATE,
+        ),
+        RecentConversationTurn(
+            turn_index=2,
+            role=ConversationRole.USER,
+            content="Convert it to p5.js.",
+            created_at=_time(),
+            mode=AssistantMode.GENERATE,
+        ),
+        RecentConversationTurn(
+            turn_index=3,
+            role=ConversationRole.ASSISTANT,
+            content=(
+                "```javascript\nfunction setup() { createCanvas(400, 400); }\n"
+                "function draw() { background(220); }\n```"
+            ),
+            created_at=_time(),
+            mode=AssistantMode.GENERATE,
+        ),
+        RecentConversationTurn(
+            turn_index=4,
+            role=ConversationRole.USER,
+            content="Explain the shader idea in GLSL.",
+            created_at=_time(),
+            mode=AssistantMode.EXPLAIN,
+        ),
+        RecentConversationTurn(
+            turn_index=5,
+            role=ConversationRole.ASSISTANT,
+            content="GLSL shaders run on the GPU and compute fragment color.",
+            created_at=_time(),
+            mode=AssistantMode.EXPLAIN,
+        ),
+    )
+    return MemoryContextResponse(
+        request=MemoryContextRequest(
+            route=RouteName.EXPLAIN,
+            conversation_id="conversation-1",
+            project_id="project-1",
+        ),
+        source=MemoryContextSource.CHROMA_MEMORY,
+        recent_turns=turns,
+        running_summary=ConversationSummaryContext(
+            content="The conversation spans Three.js, p5.js, and GLSL experiments.",
+            created_at=_time(),
+            covered_turn_count=6,
         ),
         project_memories=(),
     )
