@@ -19,6 +19,7 @@ class AnswerSegment:
 def split_answer_segments(
     text: str,
     *,
+    query: str | None = None,
     allow_unclosed_code_block: bool = False,
 ) -> tuple[AnswerSegment, ...]:
     """Split assistant markdown into prose and code segments."""
@@ -35,7 +36,7 @@ def split_answer_segments(
             segments.append(segment)
             continue
         segments.extend(_split_unfenced_code_segments(segment.content))
-    return _annotate_code_segments(segments)
+    return _annotate_code_segments(segments, query=query)
 
 
 def _split_fenced_answer_segments(
@@ -315,23 +316,29 @@ def _normalize_prose_lines(lines: list[str]) -> str:
 
 def _annotate_code_segments(
     segments: list[AnswerSegment],
+    *,
+    query: str | None,
 ) -> tuple[AnswerSegment, ...]:
     annotated: list[AnswerSegment] = []
-    code_index = 0
+    filename_counts: dict[str, int] = {}
 
     for segment in segments:
         if segment.kind != "code":
             annotated.append(segment)
             continue
 
-        code_index += 1
         language = segment.language
+        filename = _suggested_filename(
+            language=language,
+            query=query,
+            filename_counts=filename_counts,
+        )
         annotated.append(
             AnswerSegment(
                 kind=segment.kind,
                 content=segment.content,
                 language=language,
-                suggested_filename=_suggested_filename(language, code_index),
+                suggested_filename=filename,
                 mime_type=_suggested_mime_type(language),
             )
         )
@@ -339,9 +346,19 @@ def _annotate_code_segments(
     return tuple(annotated)
 
 
-def _suggested_filename(language: str | None, code_index: int) -> str:
-    extension = _language_extension(language)
-    return f"snippet-{code_index}.{extension}"
+def _suggested_filename(
+    *,
+    language: str | None,
+    query: str | None,
+    filename_counts: dict[str, int],
+) -> str:
+    base_name, extension = _inferred_filename_parts(language=language, query=query)
+    filename = f"{base_name}.{extension}"
+    seen_count = filename_counts.get(filename, 0) + 1
+    filename_counts[filename] = seen_count
+    if seen_count == 1:
+        return filename
+    return f"{base_name}-{seen_count}.{extension}"
 
 
 def _suggested_mime_type(language: str | None) -> str:
@@ -370,6 +387,75 @@ def _language_extension(language: str | None) -> str:
     if normalized == "python":
         return "py"
     return "txt"
+
+
+def _inferred_filename_parts(
+    *,
+    language: str | None,
+    query: str | None,
+) -> tuple[str, str]:
+    normalized_language = _normalize_language(language)
+    query_override = _query_filename_override(query, normalized_language)
+    if query_override is not None:
+        return query_override
+    return _language_default_filename_parts(normalized_language)
+
+
+def _query_filename_override(
+    query: str | None,
+    normalized_language: str,
+) -> tuple[str, str] | None:
+    if not query:
+        return None
+
+    normalized_query = query.strip().lower()
+
+    if (
+        "fragment shader" in normalized_query
+        and normalized_language in {"glsl", ""}
+    ):
+        return ("fragment", "glsl")
+    if "vertex shader" in normalized_query and normalized_language in {"glsl", ""}:
+        return ("vertex", "glsl")
+    if (
+        any(
+            marker in normalized_query
+            for marker in ("react three fiber", "@react-three/fiber", "r3f")
+        )
+        and normalized_language in {"jsx", "javascript", ""}
+    ):
+        return ("App", "jsx")
+    if any(marker in normalized_query for marker in ("p5.js", "p5js", " sketch")) or (
+        normalized_query.startswith("sketch")
+    ):
+        if normalized_language in {"javascript", ""}:
+            return ("sketch", "js")
+    if any(
+        marker in normalized_query
+        for marker in ("shader", "glsl")
+    ) and normalized_language in {"glsl", ""}:
+        return ("shader", "glsl")
+    if any(
+        marker in normalized_query
+        for marker in ("three.js", "threejs", "three js")
+    ) and normalized_language in {"html", "javascript", ""}:
+        return ("index", "html")
+
+    return None
+
+
+def _language_default_filename_parts(normalized_language: str) -> tuple[str, str]:
+    if normalized_language == "html":
+        return ("index", "html")
+    if normalized_language == "javascript":
+        return ("script", "js")
+    if normalized_language == "jsx":
+        return ("App", "jsx")
+    if normalized_language == "glsl":
+        return ("shader", "glsl")
+    if normalized_language == "python":
+        return ("main", "py")
+    return ("snippet", "txt")
 
 
 def _normalize_language(language: str | None) -> str:
