@@ -44,6 +44,10 @@ UI Selected Domains:
 {% endif %}
 Use the provided context sections as working context. Keep responses grounded in
 the structured inputs that follow.
+Global Guardrails:
+{% for instruction in global_guardrail_lines() -%}
+- {{ instruction }}
+{% endfor %}
 Route Guidance:
 {% for instruction in route_guidance_lines(route) -%}
 - {{ instruction }}
@@ -156,6 +160,7 @@ class JinjaPromptRenderer:
             undefined=StrictUndefined,
         )
         self._environment.globals.update(
+            global_guardrail_lines=_global_guardrail_lines,
             route_guidance_lines=_route_guidance_lines,
             domain_guidance_lines=_domain_guidance_lines,
             effective_domain_scope_label=_effective_domain_scope_label,
@@ -253,18 +258,28 @@ def build_rendered_prompt_request(
 def _route_guidance_lines(route: RouteName) -> tuple[str, ...]:
     if route is RouteName.GENERATE:
         return (
-            "Lead with a concrete implementation that satisfies the request.",
-            "Default to runnable code first and keep supporting prose concise.",
+            "Lead with runnable code first when the request calls for implementation.",
+            (
+                "Keep explanation short and add setup or run notes only when "
+                "they are useful."
+            ),
+            "Avoid long conceptual sections unless the user explicitly asks for them.",
         )
     if route is RouteName.EXPLAIN:
         return (
-            "Explain the relevant concepts and cause-and-effect clearly.",
-            "Use short code snippets only when they sharpen the explanation.",
+            "Lead with conceptual clarity and explain the cause-and-effect first.",
+            "Use concise code snippets only when they sharpen the explanation.",
+            "Avoid full runnable projects unless the user explicitly asks for them.",
         )
     if route is RouteName.DEBUG:
         return (
-            "Identify the most likely failure mode before proposing changes.",
-            "Prefer the smallest plausible fix plus a direct verification step.",
+            "Lead with the most likely issue before proposing changes.",
+            "Structure the response as Issue, Fix, and Why it works.",
+            (
+                "Provide corrected code or patch-style guidance, and briefly ask "
+                "for the missing code or error if the user did not supply enough "
+                "context."
+            ),
         )
     if route is RouteName.DESIGN:
         return (
@@ -279,6 +294,21 @@ def _route_guidance_lines(route: RouteName) -> tuple[str, ...]:
     return (
         "Describe the intended artifact and the implementation path that supports it.",
         "Do not invent rendered output that has not actually been produced.",
+    )
+
+
+def _global_guardrail_lines() -> tuple[str, ...]:
+    return (
+        (
+            "Keep the answer focused on the user's request and avoid "
+            "unnecessary verbosity."
+        ),
+        "Prefer practical creative-coding examples over abstract discussion.",
+        "Keep code blocks clean and runnable when code is requested.",
+        (
+            "Do not mix frameworks unless the user asks for it or the effective "
+            "domains require it."
+        ),
     )
 
 
