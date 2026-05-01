@@ -159,38 +159,13 @@ class KnowledgeBaseRetrievalAdapter:
         self,
         request: RetrievalContextRequest,
     ) -> RetrievalContextResponse:
-        retrieval_request = KnowledgeBaseRetrievalRequest(
-            query=request.query,
-            limit=request.limit,
-            filters=KnowledgeBaseRetrievalFilter(
-                domain=request.filters.domain,
-                domains=request.filters.domains,
-                source_id=request.filters.source_id,
-                source_type=request.filters.source_type,
-                publisher=request.filters.publisher,
-            ),
-        )
+        retrieval_request = _build_kb_retrieval_request(request)
         retrieval_response = self._retriever.search(retrieval_request)
         ranked_results = _rank_retrieval_results(
             retrieval_response.results,
             request=request,
         )
-        chunks = tuple(
-            RetrievedKnowledgeChunk(
-                source_id=result.source_id,
-                domain=result.domain,
-                source_type=result.source_type,
-                publisher=result.publisher,
-                registry_title=result.registry_title,
-                document_title=result.document_title,
-                source_url=result.source_url,
-                resolved_url=result.resolved_url,
-                chunk_index=result.chunk_index,
-                excerpt=result.text,
-                score=result.score,
-            )
-            for result in ranked_results
-        )
+        chunks = tuple(_build_retrieved_chunk(result) for result in ranked_results)
         logger.info(
             "Built orchestration retrieval context with {} chunk(s)",
             len(chunks),
@@ -216,6 +191,40 @@ def build_retrieval_context_request(
             domain=domain,
             domains=domains,
         ),
+    )
+
+
+def _build_kb_retrieval_request(
+    request: RetrievalContextRequest,
+) -> KnowledgeBaseRetrievalRequest:
+    return KnowledgeBaseRetrievalRequest(
+        query=request.query,
+        limit=request.limit,
+        filters=KnowledgeBaseRetrievalFilter(
+            domain=request.filters.domain,
+            domains=request.filters.domains,
+            source_id=request.filters.source_id,
+            source_type=request.filters.source_type,
+            publisher=request.filters.publisher,
+        ),
+    )
+
+
+def _build_retrieved_chunk(
+    result: KnowledgeBaseSearchResult,
+) -> RetrievedKnowledgeChunk:
+    return RetrievedKnowledgeChunk(
+        source_id=result.source_id,
+        domain=result.domain,
+        source_type=result.source_type,
+        publisher=result.publisher,
+        registry_title=result.registry_title,
+        document_title=result.document_title,
+        source_url=result.source_url,
+        resolved_url=result.resolved_url,
+        chunk_index=result.chunk_index,
+        excerpt=result.text,
+        score=result.score,
     )
 
 
