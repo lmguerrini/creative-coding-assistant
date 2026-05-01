@@ -19,6 +19,7 @@ from creative_coding_assistant.rag.retrieval import (
     KnowledgeBaseRetrievalFilter,
     KnowledgeBaseRetrievalRequest,
     KnowledgeBaseRetriever,
+    KnowledgeBaseSearchResult,
 )
 from creative_coding_assistant.rag.retrieval.domain_intent import (
     detect_explicit_query_domains,
@@ -27,6 +28,18 @@ from creative_coding_assistant.rag.retrieval.domain_intent import (
 from creative_coding_assistant.rag.sources import OfficialSourceType
 
 DEFAULT_RETRIEVAL_LIMIT = 5
+_P5_EXAMPLE_SCORE_BOOST = 0.08
+_P5_EXAMPLE_MARKERS = (
+    "function setup(",
+    "function draw(",
+    "createCanvas(",
+    "ellipse(",
+    "rect(",
+    "background(",
+    "let ",
+    "const ",
+    "var ",
+)
 
 
 class RetrievalContextSource(StrEnum):
@@ -158,6 +171,10 @@ class KnowledgeBaseRetrievalAdapter:
             ),
         )
         retrieval_response = self._retriever.search(retrieval_request)
+        ranked_results = _rank_retrieval_results(
+            retrieval_response.results,
+            request=request,
+        )
         chunks = tuple(
             RetrievedKnowledgeChunk(
                 source_id=result.source_id,
@@ -172,7 +189,7 @@ class KnowledgeBaseRetrievalAdapter:
                 excerpt=result.text,
                 score=result.score,
             )
-            for result in retrieval_response.results
+            for result in ranked_results
         )
         logger.info(
             "Built orchestration retrieval context with {} chunk(s)",
@@ -221,3 +238,41 @@ def _resolve_retrieval_domains(
     if len(effective_domains) == 1:
         return effective_domains[0], effective_domains
     return None, effective_domains
+
+
+def _rank_retrieval_results(
+    results: tuple[KnowledgeBaseSearchResult, ...],
+    *,
+    request: RetrievalContextRequest,
+) -> tuple[KnowledgeBaseSearchResult, ...]:
+    if request.route is not RouteName.GENERATE:
+        return results
+
+    ranked: list[tuple[int, KnowledgeBaseSearchResult]] = []
+    changed = False
+    for index, result in enumerate(results):
+        boosted = _boost_p5_example_result(result)
+        changed = changed or boosted.score != result.score
+        ranked.append((index, boosted))
+
+    if not changed:
+        return results
+
+    ranked.sort(key=lambda item: (-item[1].score, item[0]))
+    return tuple(result for _, result in ranked)
+
+
+def _boost_p5_example_result(
+    result: KnowledgeBaseSearchResult,
+) -> KnowledgeBaseSearchResult:
+    if result.domain is not CreativeCodingDomain.P5_JS:
+        return result
+    if not _looks_like_p5_example_chunk(result.text):
+        return result
+
+    boosted_score = min(1.0, result.score + _P5_EXAMPLE_SCORE_BOOST)
+    return result.model_copy(update={"score": boosted_score})
+
+
+def _looks_like_p5_example_chunk(text: str) -> bool:
+    return any(marker in text for marker in _P5_EXAMPLE_MARKERS)
