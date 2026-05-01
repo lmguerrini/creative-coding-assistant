@@ -18,7 +18,7 @@ class StreamlitAnswerRenderingTests(unittest.TestCase):
         self.assertEqual(segments[1].kind, "code")
         self.assertEqual(segments[1].language, "html")
         self.assertEqual(segments[1].content, "<div>Hello</div>")
-        self.assertEqual(segments[1].suggested_filename, "snippet-1.html")
+        self.assertEqual(segments[1].suggested_filename, "index.html")
         self.assertEqual(segments[1].mime_type, "text/html")
         self.assertEqual(segments[2].kind, "prose")
         self.assertEqual(segments[2].content, "Next steps.")
@@ -34,7 +34,7 @@ class StreamlitAnswerRenderingTests(unittest.TestCase):
         self.assertEqual(segments[1].kind, "code")
         self.assertEqual(segments[1].language, "javascript")
         self.assertEqual(segments[1].content, "const cube = new THREE.Mesh();")
-        self.assertEqual(segments[1].suggested_filename, "snippet-1.js")
+        self.assertEqual(segments[1].suggested_filename, "script.js")
 
     def test_split_answer_segments_detects_unfenced_html_document(self) -> None:
         segments = split_answer_segments(
@@ -58,7 +58,7 @@ class StreamlitAnswerRenderingTests(unittest.TestCase):
         self.assertEqual(segments[1].language, "html")
         self.assertIn("<!DOCTYPE html>", segments[1].content)
         self.assertIn("const scene = new THREE.Scene();", segments[1].content)
-        self.assertEqual(segments[1].suggested_filename, "snippet-1.html")
+        self.assertEqual(segments[1].suggested_filename, "index.html")
         self.assertEqual(segments[2].kind, "prose")
         self.assertEqual(
             segments[2].content,
@@ -80,7 +80,7 @@ class StreamlitAnswerRenderingTests(unittest.TestCase):
         self.assertEqual(segments[0].kind, "prose")
         self.assertEqual(segments[1].kind, "code")
         self.assertEqual(segments[1].language, "javascript")
-        self.assertEqual(segments[1].suggested_filename, "snippet-1.js")
+        self.assertEqual(segments[1].suggested_filename, "script.js")
         self.assertEqual(segments[2].kind, "prose")
         self.assertTrue(segments[2].content.startswith("Notes:"))
 
@@ -95,18 +95,68 @@ class StreamlitAnswerRenderingTests(unittest.TestCase):
         )
 
         self.assertEqual(jsx_segments[0].language, "jsx")
-        self.assertEqual(jsx_segments[0].suggested_filename, "snippet-1.jsx")
+        self.assertEqual(jsx_segments[0].suggested_filename, "App.jsx")
         self.assertEqual(jsx_segments[0].mime_type, "text/javascript")
         self.assertEqual(glsl_segments[0].language, "glsl")
-        self.assertEqual(glsl_segments[0].suggested_filename, "snippet-1.glsl")
+        self.assertEqual(glsl_segments[0].suggested_filename, "shader.glsl")
         self.assertEqual(glsl_segments[0].mime_type, "text/plain")
 
     def test_split_answer_segments_uses_txt_fallback_for_unknown_language(self) -> None:
         segments = split_answer_segments("```mermaid\ngraph TD;\nA-->B;\n```")
 
         self.assertEqual(segments[0].language, "mermaid")
-        self.assertEqual(segments[0].suggested_filename, "snippet-1.txt")
+        self.assertEqual(segments[0].suggested_filename, "snippet.txt")
         self.assertEqual(segments[0].mime_type, "text/plain")
+
+    def test_split_answer_segments_uses_three_js_query_for_html_filename(self) -> None:
+        segments = split_answer_segments(
+            "```html\n<canvas></canvas>\n```",
+            query="Create a simple rotating cube in three.js",
+        )
+
+        self.assertEqual(segments[0].suggested_filename, "index.html")
+
+    def test_split_answer_segments_uses_p5_query_for_sketch_filename(self) -> None:
+        segments = split_answer_segments(
+            "```javascript\nfunction draw() {}\n```",
+            query="Create a simple p5.js sketch with a moving circle",
+        )
+
+        self.assertEqual(segments[0].suggested_filename, "sketch.js")
+
+    def test_split_answer_segments_uses_r3f_query_for_app_filename(self) -> None:
+        segments = split_answer_segments(
+            "```jsx\nexport default function Scene() { return null; }\n```",
+            query="Create a scene in React Three Fiber",
+        )
+
+        self.assertEqual(segments[0].suggested_filename, "App.jsx")
+
+    def test_split_answer_segments_uses_glsl_query_for_shader_filename(self) -> None:
+        segments = split_answer_segments(
+            "```glsl\nvoid main() { gl_FragColor = vec4(1.0); }\n```",
+            query="Write a basic GLSL shader",
+        )
+
+        self.assertEqual(segments[0].suggested_filename, "shader.glsl")
+
+    def test_split_answer_segments_uses_fragment_shader_query_override(self) -> None:
+        segments = split_answer_segments(
+            "```glsl\nvoid main() { gl_FragColor = vec4(1.0); }\n```",
+            query="Write a fragment shader with a color gradient",
+        )
+
+        self.assertEqual(segments[0].suggested_filename, "fragment.glsl")
+
+    def test_split_answer_segments_stabilizes_multiple_code_block_names(self) -> None:
+        segments = split_answer_segments(
+            "```glsl\nvoid main() { gl_FragColor = vec4(1.0); }\n```\n\n"
+            "```glsl\nvoid main() { gl_FragColor = vec4(0.5); }\n```",
+            query="Write a GLSL shader",
+        )
+
+        self.assertEqual(segments[0].suggested_filename, "shader.glsl")
+        self.assertEqual(segments[1].suggested_filename, "shader-2.glsl")
 
     def test_answer_working_message_uses_clear_neutral_copy(self) -> None:
         self.assertEqual(
