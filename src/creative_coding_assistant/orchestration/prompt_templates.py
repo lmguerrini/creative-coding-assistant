@@ -94,6 +94,14 @@ Recent Turns:
 {% endfor %}
 
 {% endif -%}
+{% if not prompt_input.user_input.is_follow_up
+   and prompt_input.memory_input.session_summaries -%}
+Session Memory:
+{% for item in prompt_input.memory_input.session_summaries -%}
+- {{ item.summary }}
+{% endfor %}
+
+{% endif -%}
 {% if prompt_input.memory_input.project_memories -%}
 Project Memory:
 {% for memory in prompt_input.memory_input.project_memories -%}
