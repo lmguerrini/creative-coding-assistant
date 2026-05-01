@@ -6,7 +6,10 @@ import re
 from collections.abc import Sequence
 from difflib import SequenceMatcher
 
-from creative_coding_assistant.rag.retrieval.domain_intent import detect_domain_intent
+from creative_coding_assistant.rag.retrieval.domain_intent import (
+    detect_domain_intent,
+    detect_explicit_query_domains,
+)
 from creative_coding_assistant.rag.retrieval.models import KnowledgeBaseSearchResult
 
 _GENERIC_EXAMPLE_PHRASES: tuple[str, ...] = (
@@ -56,19 +59,19 @@ def select_retrieval_results(
 ) -> tuple[KnowledgeBaseSearchResult, ...]:
     """Filter low-value retrieval hits while preserving a safe fallback."""
 
+    domain_candidates = _apply_domain_intent_filter(results, query=query)
     source_filtered = tuple(
         result
-        for result in results
+        for result in domain_candidates
         if result.source_id not in _HARD_FILTERED_SOURCE_IDS
     )
-    candidates = source_filtered or tuple(results)
+    candidates = source_filtered or domain_candidates
 
     filtered = tuple(result for result in candidates if not _is_low_value_chunk(result))
     filtered_candidates = filtered or candidates
 
     deduplicated = _deduplicate_results(filtered_candidates)
-    domain_filtered = _apply_domain_intent_filter(deduplicated, query=query)
-    return domain_filtered[:limit]
+    return deduplicated[:limit]
 
 
 def _is_low_value_chunk(result: KnowledgeBaseSearchResult) -> bool:
@@ -128,9 +131,22 @@ def _apply_domain_intent_filter(
     if query is None:
         return tuple(results)
 
+    explicit_domains = detect_explicit_query_domains(query)
+    if len(explicit_domains) > 1:
+        narrowed = tuple(
+            result for result in results if result.domain in explicit_domains
+        )
+        return narrowed or tuple(results)
+
     intent = detect_domain_intent(query)
     if intent is None:
         return tuple(results)
+
+    primary_results = tuple(
+        result for result in results if result.domain == intent.primary_domain
+    )
+    if primary_results:
+        return primary_results
 
     narrowed = tuple(
         result for result in results if result.domain in intent.allowed_domains
