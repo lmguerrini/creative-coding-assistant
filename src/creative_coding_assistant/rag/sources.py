@@ -140,6 +140,12 @@ APPROVED_OFFICIAL_SOURCES: tuple[OfficialSource, ...] = _validate_source_registr
         source_type=OfficialSourceType.GUIDE,
         priority=20,
         allowed_path_prefixes=("/manual/",),
+        additional_urls=(
+            "https://threejs.org/manual/en/fundamentals.html",
+            "https://threejs.org/manual/en/responsive.html",
+            "https://threejs.org/manual/en/cameras.html",
+            "https://threejs.org/manual/en/lights.html",
+        ),
         tags=("guide", "fundamentals", "webgl"),
     ),
     OfficialSource(
