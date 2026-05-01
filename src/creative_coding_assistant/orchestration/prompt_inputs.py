@@ -155,11 +155,22 @@ class PromptProjectMemoryInput(BaseModel):
     source: str = Field(min_length=1)
 
 
+class PromptSessionMemorySummaryInput(BaseModel):
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    summary: str = Field(min_length=1)
+    detected_domain: CreativeCodingDomain | None = None
+    code_present: bool = False
+
+
 class PromptMemoryInput(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     recent_turns: tuple[PromptConversationTurnInput, ...] = Field(default_factory=tuple)
     running_summary: PromptRunningSummaryInput | None = None
+    session_summaries: tuple[PromptSessionMemorySummaryInput, ...] = Field(
+        default_factory=tuple
+    )
     project_memories: tuple[PromptProjectMemoryInput, ...] = Field(
         default_factory=tuple
     )
@@ -260,6 +271,9 @@ class StructuredPromptInputBuilder:
                     )
                     if memory_context.running_summary is not None
                     else None
+                ),
+                session_summaries=_build_session_memory_summaries(
+                    memory_context.recent_turns
                 ),
                 project_memories=tuple(
                     PromptProjectMemoryInput(
@@ -365,6 +379,32 @@ _MAX_ASSISTANT_TEXT_CHARS = 280
 _MAX_CODE_BLOCK_CHARS = 700
 _CODE_BLOCK_HEAD_CHARS = 380
 _CODE_BLOCK_TAIL_CHARS = 280
+_MAX_SESSION_MEMORY_SUMMARIES = 5
+_CODE_SIGNAL_PATTERNS = (
+    re.compile(r"```"),
+    re.compile(r"\bfunction\s+\w+\s*\("),
+    re.compile(r"\b(?:const|let|var)\s+\w+"),
+    re.compile(r"\bcreateCanvas\s*\("),
+    re.compile(r"\bellipse\s*\("),
+    re.compile(r"\brect\s*\("),
+    re.compile(r"\bbackground\s*\("),
+    re.compile(r"\bTHREE\."),
+    re.compile(r"\bgl_FragColor\b"),
+    re.compile(r"@react-three/fiber"),
+)
+_ACTION_PATTERNS = (
+    ("convert", re.compile(r"\bconvert\b")),
+    ("debug", re.compile(r"\b(?:debug|fix|error|broken|issue)\b")),
+    ("explain", re.compile(r"\b(?:explain|why|how|what)\b")),
+    ("create", re.compile(r"\b(?:create|build|generate|make|sketch)\b")),
+)
+_TOPIC_PATTERNS = (
+    ("bouncing ball", re.compile(r"\bbouncing ball\b")),
+    ("rotating cube", re.compile(r"\brotating cube\b")),
+    ("orbitcontrols setup", re.compile(r"\borbitcontrols\b")),
+    ("shader", re.compile(r"\bshader\b")),
+    ("sketch", re.compile(r"\bsketch\b")),
+)
 
 
 def _looks_like_follow_up_query(query: str) -> bool:
@@ -394,6 +434,39 @@ def _build_prompt_recent_turns(
         )
         for turn in selected_turns
     )
+
+
+def _build_session_memory_summaries(
+    recent_turns: tuple[RecentConversationTurn, ...],
+) -> tuple[PromptSessionMemorySummaryInput, ...]:
+    summaries: list[PromptSessionMemorySummaryInput] = []
+    fallback_domain: CreativeCodingDomain | None = None
+
+    for turn in recent_turns:
+        detected_domain = _detect_summary_domain(
+            turn.content,
+            fallback_domain=fallback_domain,
+        )
+        code_present = _has_code_signal(turn.content)
+        summary = _summarize_turn(
+            turn,
+            detected_domain=detected_domain,
+            code_present=code_present,
+        )
+        if summary is None:
+            continue
+
+        summaries.append(
+            PromptSessionMemorySummaryInput(
+                summary=summary,
+                detected_domain=detected_domain,
+                code_present=code_present,
+            )
+        )
+        if detected_domain is not None:
+            fallback_domain = detected_domain
+
+    return tuple(summaries[-_MAX_SESSION_MEMORY_SUMMARIES:])
 
 
 def _select_recent_turn_pair(
@@ -471,3 +544,141 @@ def _truncate_code_excerpt(code: str) -> str:
     head = code[:_CODE_BLOCK_HEAD_CHARS].rstrip()
     tail = code[-_CODE_BLOCK_TAIL_CHARS :].lstrip()
     return f"{head}\n...\n{tail}"
+
+
+def _detect_summary_domain(
+    content: str,
+    *,
+    fallback_domain: CreativeCodingDomain | None,
+) -> CreativeCodingDomain | None:
+    detected_domains = detect_explicit_query_domains(content)
+    if detected_domains:
+        return detected_domains[0]
+    return fallback_domain
+
+
+def _has_code_signal(content: str) -> bool:
+    return any(pattern.search(content) is not None for pattern in _CODE_SIGNAL_PATTERNS)
+
+
+def _summarize_turn(
+    turn: RecentConversationTurn,
+    *,
+    detected_domain: CreativeCodingDomain | None,
+    code_present: bool,
+) -> str | None:
+    action = _detect_summary_action(turn.content)
+    topic = _detect_summary_topic(turn.content)
+    domain_label = _domain_summary_label(detected_domain)
+
+    if turn.role is ConversationRole.USER:
+        if action == "convert" and domain_label is not None:
+            return f"User asked to convert the project to {domain_label}."
+        if action == "debug":
+            return _compose_summary(
+                prefix="User asked to debug",
+                topic=topic,
+                domain_label=domain_label,
+            )
+        if action == "explain":
+            if topic is not None:
+                return _compose_summary(
+                    prefix="User asked for",
+                    topic=f"{topic} explanation",
+                    domain_label=domain_label,
+                )
+            return _compose_summary(
+                prefix="User asked for",
+                topic="explanation",
+                domain_label=domain_label,
+            )
+        if action == "create":
+            return _compose_summary(
+                prefix="User requested",
+                topic=topic or "project work",
+                domain_label=domain_label,
+            )
+        return _compose_summary(
+            prefix="User continued",
+            topic=topic or "the project",
+            domain_label=domain_label,
+        )
+
+    if code_present:
+        return _compose_summary(
+            prefix="Assistant generated",
+            topic=topic or _default_generated_topic(detected_domain),
+            domain_label=domain_label,
+        )
+    if action == "debug":
+        return _compose_summary(
+            prefix="Assistant discussed debugging",
+            topic=topic,
+            domain_label=domain_label,
+        )
+    if action == "explain":
+        return _compose_summary(
+            prefix="Assistant explained",
+            topic=topic or "the concept",
+            domain_label=domain_label,
+        )
+    return _compose_summary(
+        prefix="Assistant responded with",
+        topic=topic or "implementation guidance",
+        domain_label=domain_label,
+    )
+
+
+def _detect_summary_action(content: str) -> str | None:
+    normalized = content.lower()
+    for label, pattern in _ACTION_PATTERNS:
+        if pattern.search(normalized) is not None:
+            return label
+    return None
+
+
+def _detect_summary_topic(content: str) -> str | None:
+    normalized = content.lower()
+    for label, pattern in _TOPIC_PATTERNS:
+        if pattern.search(normalized) is not None:
+            return label
+    return None
+
+
+def _compose_summary(
+    *,
+    prefix: str,
+    topic: str | None,
+    domain_label: str | None,
+) -> str:
+    if topic is not None and domain_label is not None:
+        return f"{prefix} {domain_label} {topic}."
+    if topic is not None:
+        return f"{prefix} {topic}."
+    if domain_label is not None:
+        return f"{prefix} {domain_label} work."
+    return f"{prefix} the current task."
+
+
+def _domain_summary_label(domain: CreativeCodingDomain | None) -> str | None:
+    if domain is None:
+        return None
+    if domain is CreativeCodingDomain.THREE_JS:
+        return "Three.js"
+    if domain is CreativeCodingDomain.REACT_THREE_FIBER:
+        return "React Three Fiber"
+    if domain is CreativeCodingDomain.P5_JS:
+        return "p5.js"
+    return "GLSL"
+
+
+def _default_generated_topic(domain: CreativeCodingDomain | None) -> str:
+    if domain is CreativeCodingDomain.P5_JS:
+        return "sketch"
+    if domain is CreativeCodingDomain.GLSL:
+        return "shader code"
+    if domain is CreativeCodingDomain.REACT_THREE_FIBER:
+        return "component code"
+    if domain is CreativeCodingDomain.THREE_JS:
+        return "scene code"
+    return "code"
