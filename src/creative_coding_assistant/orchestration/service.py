@@ -21,6 +21,7 @@ from creative_coding_assistant.llm.generation import (
     GenerationProvider,
 )
 from creative_coding_assistant.orchestration.context import (
+    AssembledContextResponse,
     ContextAssembler,
     build_assembled_context_request,
 )
@@ -30,6 +31,7 @@ from creative_coding_assistant.orchestration.generation import (
     build_provider_generation_request,
 )
 from creative_coding_assistant.orchestration.memory import (
+    MemoryContextResponse,
     MemoryGateway,
     build_memory_context_request,
 )
@@ -38,13 +40,16 @@ from creative_coding_assistant.orchestration.memory_recording import (
 )
 from creative_coding_assistant.orchestration.prompt_inputs import (
     PromptInputBuilder,
+    PromptInputResponse,
     build_prompt_input_request,
 )
 from creative_coding_assistant.orchestration.prompt_templates import (
     PromptRenderer,
+    RenderedPromptResponse,
     build_rendered_prompt_request,
 )
 from creative_coding_assistant.orchestration.retrieval import (
+    RetrievalContextResponse,
     RetrievalGateway,
     build_retrieval_context_request,
 )
@@ -113,149 +118,235 @@ class AssistantService:
             raise
         finally:
             completed_at = _utcnow()
-            _record_live_session(
-                recorder=self._eval_recorder,
+            _record_stream_completion(
+                eval_recorder=self._eval_recorder,
+                memory_recorder=self._memory_recorder,
                 request=request,
                 events=tuple(streamed_events),
                 started_at=started_at,
                 completed_at=completed_at,
-            )
-            _record_conversation_memory(
-                recorder=self._memory_recorder,
-                request=request,
-                events=tuple(streamed_events),
-                started_at=started_at,
-                completed_at=completed_at,
-            )
+        )
 
     def _stream_events(self, request: AssistantRequest) -> Iterator[StreamEvent]:
         builder = StreamEventBuilder()
-        logger.info("assistant_request_received")
-        yield builder.status(code="request_received", message="Request accepted.")
+        yield from _stream_request_received(builder)
 
         decision = self._route_fn(request)
         route_payload = decision.model_dump(mode="json")
-        logger.bind(route=decision.route.value).info("assistant_route_selected")
-        yield builder.status(
-            code="route_selected",
-            message="Route selected.",
-            route=route_payload,
+        yield from _stream_route_selected(
+            builder=builder,
+            decision=decision,
+            route_payload=route_payload,
         )
 
-        memory_request = None
-        memory_context = None
-        if self._memory_gateway is not None:
-            memory_request = build_memory_context_request(request, decision)
+        memory_context = yield from self._stream_memory_context(
+            builder=builder,
+            request=request,
+            decision=decision,
+        )
 
-        if memory_request is not None and self._memory_gateway is not None:
-            memory_payload = memory_request.model_dump(mode="json")
-            logger.bind(route=decision.route.value).info("assistant_memory_requested")
-            yield builder.memory(
-                code="memory_requested",
-                message="Memory context requested.",
-                request=memory_payload,
-            )
-            memory_context = self._memory_gateway.retrieve_context(memory_request)
-            yield builder.memory(
-                code="memory_completed",
-                message="Memory context prepared.",
-                context=memory_context.model_dump(mode="json"),
-            )
+        retrieval_context = yield from self._stream_retrieval_context(
+            builder=builder,
+            request=request,
+            decision=decision,
+        )
 
-        retrieval_request = None
-        retrieval_context = None
-        if self._retrieval_gateway is not None:
-            retrieval_request = build_retrieval_context_request(request, decision)
+        assembled_context = yield from self._stream_assembled_context(
+            builder=builder,
+            decision=decision,
+            memory_context=memory_context,
+            retrieval_context=retrieval_context,
+        )
 
-        if retrieval_request is not None and self._retrieval_gateway is not None:
-            retrieval_payload = retrieval_request.model_dump(mode="json")
-            logger.bind(route=decision.route.value).info("assistant_retrieval_requested")
-            yield builder.retrieval(
-                code="retrieval_requested",
-                message="Retrieval context requested.",
-                request=retrieval_payload,
-            )
-            retrieval_context = self._retrieval_gateway.retrieve_context(
-                retrieval_request
-            )
-            yield builder.retrieval(
-                code="retrieval_completed",
-                message="Retrieval context prepared.",
-                context=retrieval_context.model_dump(mode="json"),
-            )
+        prompt_inputs = yield from self._stream_prompt_inputs(
+            builder=builder,
+            request=request,
+            decision=decision,
+            assembled_context=assembled_context,
+        )
 
-        assembled_context = None
-        context_request = None
-        if self._context_assembler is not None:
-            context_request = build_assembled_context_request(
-                route_decision=decision,
-                memory_context=memory_context,
-                retrieval_context=retrieval_context,
+        rendered_prompt = yield from self._stream_rendered_prompt(
+            builder=builder,
+            decision=decision,
+            prompt_inputs=prompt_inputs,
+        )
+        generation_result = yield from self._stream_generation(
+            builder=builder,
+            decision=decision,
+            rendered_prompt=rendered_prompt,
+        )
+        if generation_result is not None:
+            yield builder.final(
+                answer=generation_result.answer,
+                route=route_payload,
             )
-
-        if context_request is not None and self._context_assembler is not None:
-            assembled_context = self._context_assembler.assemble(context_request)
-            yield builder.context(
-                code="context_assembled",
-                message="Combined context prepared.",
-                context=assembled_context.model_dump(mode="json"),
-            )
-
-        prompt_inputs = None
-        if self._prompt_input_builder is not None:
-            prompt_input_request = build_prompt_input_request(
-                assistant_request=request,
-                route_decision=decision,
-                assembled_context=assembled_context,
-            )
-            prompt_inputs = self._prompt_input_builder.build(prompt_input_request)
-            yield builder.prompt_input(
-                code="prompt_inputs_prepared",
-                message="Prompt inputs prepared.",
-                prompt_input=prompt_inputs.model_dump(mode="json"),
-            )
-
-        if prompt_inputs is not None and self._prompt_renderer is not None:
-            rendered_prompt_request = build_rendered_prompt_request(
-                route_decision=decision,
-                prompt_input=prompt_inputs,
-            )
-            rendered_prompt = self._prompt_renderer.render(rendered_prompt_request)
-            yield builder.prompt_rendered(
-                code="prompt_rendered",
-                message="Rendered prompt prepared.",
-                rendered_prompt=rendered_prompt.model_dump(mode="json"),
-            )
-
-            if self._generation_gateway is not None:
-                generation_request = build_provider_generation_request(
-                    route_decision=decision,
-                    rendered_prompt=rendered_prompt,
-                )
-                generation_input = self._generation_gateway.prepare_generation(
-                    generation_request
-                )
-                yield builder.generation_input(
-                    code="generation_input_prepared",
-                    message="Provider generation input prepared.",
-                    generation_input=generation_input.model_dump(mode="json"),
-                )
-
-                generation_result = _stream_provider_generation(
-                    builder=builder,
-                    generation_provider=self._generation_provider,
-                    generation_input=generation_input,
-                )
-                if generation_result is not None:
-                    yield from generation_result.events
-                    yield builder.final(
-                        answer=generation_result.answer,
-                        route=route_payload,
-                    )
-                    return
+            return
 
         answer = _build_shell_answer(decision)
         yield builder.final(answer=answer, route=route_payload)
+
+    def _stream_memory_context(
+        self,
+        *,
+        builder: StreamEventBuilder,
+        request: AssistantRequest,
+        decision: RouteDecision,
+    ) -> Iterator[StreamEvent | MemoryContextResponse | None]:
+        if self._memory_gateway is None:
+            return None
+
+        memory_request = build_memory_context_request(request, decision)
+        if memory_request is None:
+            return None
+
+        memory_payload = memory_request.model_dump(mode="json")
+        logger.bind(route=decision.route.value).info("assistant_memory_requested")
+        yield builder.memory(
+            code="memory_requested",
+            message="Memory context requested.",
+            request=memory_payload,
+        )
+        memory_context = self._memory_gateway.retrieve_context(memory_request)
+        yield builder.memory(
+            code="memory_completed",
+            message="Memory context prepared.",
+            context=memory_context.model_dump(mode="json"),
+        )
+        return memory_context
+
+    def _stream_retrieval_context(
+        self,
+        *,
+        builder: StreamEventBuilder,
+        request: AssistantRequest,
+        decision: RouteDecision,
+    ) -> Iterator[StreamEvent | RetrievalContextResponse | None]:
+        if self._retrieval_gateway is None:
+            return None
+
+        retrieval_request = build_retrieval_context_request(request, decision)
+        if retrieval_request is None:
+            return None
+
+        retrieval_payload = retrieval_request.model_dump(mode="json")
+        logger.bind(route=decision.route.value).info("assistant_retrieval_requested")
+        yield builder.retrieval(
+            code="retrieval_requested",
+            message="Retrieval context requested.",
+            request=retrieval_payload,
+        )
+        retrieval_context = self._retrieval_gateway.retrieve_context(
+            retrieval_request
+        )
+        yield builder.retrieval(
+            code="retrieval_completed",
+            message="Retrieval context prepared.",
+            context=retrieval_context.model_dump(mode="json"),
+        )
+        return retrieval_context
+
+    def _stream_assembled_context(
+        self,
+        *,
+        builder: StreamEventBuilder,
+        decision: RouteDecision,
+        memory_context: MemoryContextResponse | None,
+        retrieval_context: RetrievalContextResponse | None,
+    ) -> Iterator[StreamEvent | AssembledContextResponse | None]:
+        if self._context_assembler is None:
+            return None
+
+        context_request = build_assembled_context_request(
+            route_decision=decision,
+            memory_context=memory_context,
+            retrieval_context=retrieval_context,
+        )
+        assembled_context = self._context_assembler.assemble(context_request)
+        yield builder.context(
+            code="context_assembled",
+            message="Combined context prepared.",
+            context=assembled_context.model_dump(mode="json"),
+        )
+        return assembled_context
+
+    def _stream_prompt_inputs(
+        self,
+        *,
+        builder: StreamEventBuilder,
+        request: AssistantRequest,
+        decision: RouteDecision,
+        assembled_context: AssembledContextResponse | None,
+    ) -> Iterator[StreamEvent | PromptInputResponse | None]:
+        if self._prompt_input_builder is None:
+            return None
+
+        prompt_input_request = build_prompt_input_request(
+            assistant_request=request,
+            route_decision=decision,
+            assembled_context=assembled_context,
+        )
+        prompt_inputs = self._prompt_input_builder.build(prompt_input_request)
+        yield builder.prompt_input(
+            code="prompt_inputs_prepared",
+            message="Prompt inputs prepared.",
+            prompt_input=prompt_inputs.model_dump(mode="json"),
+        )
+        return prompt_inputs
+
+    def _stream_rendered_prompt(
+        self,
+        *,
+        builder: StreamEventBuilder,
+        decision: RouteDecision,
+        prompt_inputs: PromptInputResponse | None,
+    ) -> Iterator[StreamEvent | RenderedPromptResponse | None]:
+        if prompt_inputs is None or self._prompt_renderer is None:
+            return None
+
+        rendered_prompt_request = build_rendered_prompt_request(
+            route_decision=decision,
+            prompt_input=prompt_inputs,
+        )
+        rendered_prompt = self._prompt_renderer.render(rendered_prompt_request)
+        yield builder.prompt_rendered(
+            code="prompt_rendered",
+            message="Rendered prompt prepared.",
+            rendered_prompt=rendered_prompt.model_dump(mode="json"),
+        )
+        return rendered_prompt
+
+    def _stream_generation(
+        self,
+        *,
+        builder: StreamEventBuilder,
+        decision: RouteDecision,
+        rendered_prompt: RenderedPromptResponse | None,
+    ) -> Iterator[StreamEvent | _GenerationResult | None]:
+        if rendered_prompt is None or self._generation_gateway is None:
+            return None
+
+        generation_request = build_provider_generation_request(
+            route_decision=decision,
+            rendered_prompt=rendered_prompt,
+        )
+        generation_input = self._generation_gateway.prepare_generation(
+            generation_request
+        )
+        yield builder.generation_input(
+            code="generation_input_prepared",
+            message="Provider generation input prepared.",
+            generation_input=generation_input.model_dump(mode="json"),
+        )
+
+        generation_result = _stream_provider_generation(
+            builder=builder,
+            generation_provider=self._generation_provider,
+            generation_input=generation_input,
+        )
+        if generation_result is None:
+            return None
+        yield from generation_result.events
+        return generation_result
 
     def respond(self, request: AssistantRequest) -> AssistantResponse:
         """Collect streamed events into a final response object."""
@@ -273,6 +364,50 @@ def _last_final_event(events: tuple[StreamEvent, ...]) -> StreamEvent:
         if event.event_type == StreamEventType.FINAL:
             return event
     raise RuntimeError("Assistant stream completed without a final event.")
+
+
+def _stream_request_received(builder: StreamEventBuilder) -> Iterator[StreamEvent]:
+    logger.info("assistant_request_received")
+    yield builder.status(code="request_received", message="Request accepted.")
+
+
+def _stream_route_selected(
+    *,
+    builder: StreamEventBuilder,
+    decision: RouteDecision,
+    route_payload: dict[str, object],
+) -> Iterator[StreamEvent]:
+    logger.bind(route=decision.route.value).info("assistant_route_selected")
+    yield builder.status(
+        code="route_selected",
+        message="Route selected.",
+        route=route_payload,
+    )
+
+
+def _record_stream_completion(
+    *,
+    eval_recorder: LiveSessionRecorder | None,
+    memory_recorder: ConversationMemoryRecorder | None,
+    request: AssistantRequest,
+    events: tuple[StreamEvent, ...],
+    started_at: datetime,
+    completed_at: datetime,
+) -> None:
+    _record_live_session(
+        recorder=eval_recorder,
+        request=request,
+        events=events,
+        started_at=started_at,
+        completed_at=completed_at,
+    )
+    _record_conversation_memory(
+        recorder=memory_recorder,
+        request=request,
+        events=events,
+        started_at=started_at,
+        completed_at=completed_at,
+    )
 
 
 def _record_live_session(
