@@ -145,12 +145,14 @@ def _get_assistant_service():
 def _render_history(*, trace_visibility: TraceVisibilityLevel) -> None:
     import streamlit as st
 
-    for raw_entry in st.session_state[_CHAT_HISTORY_KEY]:
+    for index, raw_entry in enumerate(st.session_state[_CHAT_HISTORY_KEY]):
         entry = ChatHistoryEntry.model_validate(raw_entry)
         with st.chat_message(entry.role):
             _render_answer_body(
                 text=entry.content,
                 allow_unclosed_code_block=False,
+                show_downloads=entry.role == "assistant",
+                download_key_prefix=f"history-{index}",
             )
             _render_visibility_trace(
                 ui_domains=entry.ui_domains,
@@ -254,6 +256,10 @@ def _run_chat_turn(
                 text=assistant_entry.content,
                 status_message=None,
                 allow_unclosed_code_block=False,
+                show_downloads=True,
+                download_key_prefix=(
+                    f"live-{len(st.session_state[_CHAT_HISTORY_KEY])}"
+                ),
             )
         st.session_state[_CHAT_HISTORY_KEY].append(
             assistant_entry.model_dump(mode="json")
@@ -586,6 +592,8 @@ def _render_answer_area(
     text: str,
     status_message: str | None,
     allow_unclosed_code_block: bool,
+    show_downloads: bool = False,
+    download_key_prefix: str | None = None,
 ) -> None:
     placeholder.empty()
     working_message = answer_working_message(
@@ -601,10 +609,18 @@ def _render_answer_area(
         _render_answer_body(
             text=text,
             allow_unclosed_code_block=allow_unclosed_code_block,
+            show_downloads=show_downloads,
+            download_key_prefix=download_key_prefix,
         )
 
 
-def _render_answer_body(*, text: str, allow_unclosed_code_block: bool) -> None:
+def _render_answer_body(
+    *,
+    text: str,
+    allow_unclosed_code_block: bool,
+    show_downloads: bool = False,
+    download_key_prefix: str | None = None,
+) -> None:
     import streamlit as st
 
     segments = split_answer_segments(
@@ -615,12 +631,22 @@ def _render_answer_body(*, text: str, allow_unclosed_code_block: bool) -> None:
         st.markdown(text)
         return
 
+    code_index = 0
     for segment in segments:
         if segment.kind == "code":
+            code_index += 1
             st.code(
                 segment.content,
                 language=segment.language,
             )
+            if show_downloads and segment.suggested_filename is not None:
+                st.download_button(
+                    label=f"Download {segment.suggested_filename}",
+                    data=segment.content,
+                    file_name=segment.suggested_filename,
+                    mime=segment.mime_type or "text/plain",
+                    key=f"{download_key_prefix or 'answer'}-{code_index}",
+                )
             continue
 
         prose = segment.content
@@ -628,7 +654,11 @@ def _render_answer_body(*, text: str, allow_unclosed_code_block: bool) -> None:
 
 
 def _render_trace_text(text: str) -> None:
-    _render_answer_body(text=text, allow_unclosed_code_block=False)
+    _render_answer_body(
+        text=text,
+        allow_unclosed_code_block=False,
+        show_downloads=False,
+    )
 
 
 def _ensure_session_state(settings) -> None:
