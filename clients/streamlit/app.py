@@ -94,6 +94,8 @@ def main() -> None:
                 key=_DOMAIN_SELECTION_KEY,
             )
             st.caption(domain_selection_summary(selected_domains))
+            if not selected_domains:
+                st.info("Using all domains (no filter applied)")
         with _section_container():
             st.markdown("**Mode**")
             selected_mode = st.selectbox(
