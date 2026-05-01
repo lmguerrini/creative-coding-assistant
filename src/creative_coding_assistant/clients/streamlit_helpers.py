@@ -70,6 +70,42 @@ _TRACE_QUERY_PATTERNS: tuple[
     (CreativeCodingDomain.P5_JS, _P5_JS_PATTERNS),
     (CreativeCodingDomain.GLSL, _GLSL_PATTERNS),
 )
+_USER_SAFE_NETWORK_ERROR_MESSAGE = (
+    "Connection issue: unable to reach the model. Please check your internet or "
+    "API configuration."
+)
+_USER_SAFE_RETRIEVAL_ERROR_MESSAGE = (
+    "Knowledge base temporarily unavailable. Generating response without retrieval."
+)
+_USER_SAFE_UNKNOWN_ERROR_MESSAGE = (
+    "Something went wrong while generating the response. Please try again."
+)
+_NETWORK_ERROR_CLASS_NAMES = frozenset(
+    {
+        "APIConnectionError",
+        "APITimeoutError",
+        "ConnectError",
+        "ConnectTimeout",
+        "ReadError",
+        "ReadTimeout",
+        "TimeoutError",
+        "TimeoutException",
+        "gaierror",
+    }
+)
+_OPENAI_BOUNDARY_MODULE_PREFIXES = (
+    "creative_coding_assistant.llm.openai_adapter",
+    "creative_coding_assistant.rag.embeddings.openai",
+    "creative_coding_assistant.rag.retrieval.openai_embedder",
+    "openai",
+    "httpx",
+    "httpcore",
+)
+_RETRIEVAL_MODULE_PREFIXES = (
+    "creative_coding_assistant.orchestration.retrieval",
+    "creative_coding_assistant.rag.retrieval",
+    "creative_coding_assistant.rag.embeddings",
+)
 
 
 class ChatHistoryEntry(BaseModel):
@@ -284,6 +320,17 @@ def build_provider_warning(settings: Settings) -> str | None:
     return None
 
 
+def user_safe_assistant_error_message(error: BaseException) -> str:
+    """Map backend exceptions to short UI-safe text."""
+
+    modules = tuple(_exception_modules(error))
+    if _is_network_or_api_failure(error, modules=modules):
+        return _USER_SAFE_NETWORK_ERROR_MESSAGE
+    if _is_retrieval_failure(modules=modules):
+        return _USER_SAFE_RETRIEVAL_ERROR_MESSAGE
+    return _USER_SAFE_UNKNOWN_ERROR_MESSAGE
+
+
 def reduce_stream_event(
     state: StreamRenderState,
     event: StreamEvent,
@@ -410,6 +457,52 @@ def _coerce_domain(value: object) -> CreativeCodingDomain | None:
         return CreativeCodingDomain(str(value).strip())
     except ValueError:
         return None
+
+
+def _is_network_or_api_failure(
+    error: BaseException,
+    *,
+    modules: tuple[str, ...],
+) -> bool:
+    for chained_error in _exception_chain(error):
+        class_name = type(chained_error).__name__
+        normalized_name = class_name.lower()
+        if class_name in _NETWORK_ERROR_CLASS_NAMES:
+            return True
+        if "connection" in normalized_name or "timeout" in normalized_name:
+            return True
+
+    return any(
+        module.startswith(_OPENAI_BOUNDARY_MODULE_PREFIXES) for module in modules
+    )
+
+
+def _is_retrieval_failure(*, modules: tuple[str, ...]) -> bool:
+    return any(module.startswith(_RETRIEVAL_MODULE_PREFIXES) for module in modules)
+
+
+def _exception_chain(error: BaseException) -> tuple[BaseException, ...]:
+    errors: list[BaseException] = []
+    current: BaseException | None = error
+    seen: set[int] = set()
+    while current is not None and id(current) not in seen:
+        errors.append(current)
+        seen.add(id(current))
+        current = current.__cause__ or current.__context__
+    return tuple(errors)
+
+
+def _exception_modules(error: BaseException) -> tuple[str, ...]:
+    modules: list[str] = []
+    for chained_error in _exception_chain(error):
+        modules.append(type(chained_error).__module__)
+        traceback = chained_error.__traceback__
+        while traceback is not None:
+            module = traceback.tb_frame.f_globals.get("__name__")
+            if isinstance(module, str):
+                modules.append(module)
+            traceback = traceback.tb_next
+    return tuple(module for module in modules if module)
 
 
 def _payload_text(event: StreamEvent, *, key: str) -> str | None:

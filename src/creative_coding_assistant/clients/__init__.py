@@ -36,6 +36,7 @@ from creative_coding_assistant.clients.streamlit_helpers import (
     resolve_session_mode,
     retrieval_empty_message,
     retrieval_expander_label,
+    user_safe_assistant_error_message,
 )
 from creative_coding_assistant.clients.streamlit_prompt_visibility import (
     PromptDisplayItem,
@@ -92,4 +93,5 @@ __all__ = [
     "trace_sections_for_level",
     "trace_visibility_summary",
     "split_answer_segments",
+    "user_safe_assistant_error_message",
 ]

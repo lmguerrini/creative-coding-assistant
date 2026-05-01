@@ -37,6 +37,7 @@ from creative_coding_assistant.clients import (
     split_answer_segments,
     trace_sections_for_level,
     trace_visibility_summary,
+    user_safe_assistant_error_message,
 )
 from creative_coding_assistant.contracts import AssistantMode, CreativeCodingDomain
 from creative_coding_assistant.core import load_settings
@@ -243,9 +244,9 @@ def _run_chat_turn(
                     trace_visibility=trace_visibility,
                     placeholder=visibility_placeholder,
                 )
-        except Exception:
+        except Exception as exc:
             state = state.model_copy(
-                update={"error_message": "Assistant request failed unexpectedly."}
+                update={"error_message": user_safe_assistant_error_message(exc)}
             )
             error_placeholder.error(state.error_message)
 
