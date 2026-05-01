@@ -16,7 +16,11 @@ from creative_coding_assistant.contracts import (
 )
 from creative_coding_assistant.memory import ConversationRole, ProjectMemoryKind
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
-from creative_coding_assistant.orchestration.memory import RecentConversationTurn
+from creative_coding_assistant.orchestration.memory import (
+    MemoryContextResponse,
+    RecentConversationTurn,
+)
+from creative_coding_assistant.orchestration.retrieval import RetrievalContextResponse
 from creative_coding_assistant.orchestration.routing import (
     DomainSelectionShape,
     RouteDecision,
@@ -240,89 +244,25 @@ class StructuredPromptInputBuilder:
         request: PromptInputRequest,
     ) -> PromptInputResponse:
         assembled_context = request.assembled_context
-        ui_selected_domains = request.assistant_request.domains
-        detected_domains = detect_explicit_query_domains(
-            request.assistant_request.query
-        )
-        effective_domains = resolve_effective_query_domains(
+        memory_input = _build_memory_input(
             query=request.assistant_request.query,
-            selected_domains=ui_selected_domains,
+            memory_context=(
+                assembled_context.memory_context
+                if assembled_context is not None
+                else None
+            ),
         )
-        is_follow_up = _looks_like_follow_up_query(request.assistant_request.query)
-        memory_input = None
-        retrieval_input = None
-
-        if (
-            assembled_context is not None
-            and assembled_context.memory_context is not None
-        ):
-            memory_context = assembled_context.memory_context
-            memory_input = PromptMemoryInput(
-                recent_turns=_build_prompt_recent_turns(
-                    query=request.assistant_request.query,
-                    recent_turns=memory_context.recent_turns,
-                ),
-                running_summary=(
-                    PromptRunningSummaryInput(
-                        content=memory_context.running_summary.content,
-                        covered_turn_count=(
-                            memory_context.running_summary.covered_turn_count
-                        ),
-                    )
-                    if memory_context.running_summary is not None
-                    else None
-                ),
-                session_summaries=_build_session_memory_summaries(
-                    memory_context.recent_turns
-                ),
-                project_memories=tuple(
-                    PromptProjectMemoryInput(
-                        memory_kind=memory.memory_kind,
-                        content=memory.content,
-                        source=memory.source,
-                    )
-                    for memory in memory_context.project_memories
-                ),
+        retrieval_input = _build_retrieval_input(
+            retrieval_context=(
+                assembled_context.retrieval_context
+                if assembled_context is not None
+                else None
             )
-
-        if (
-            assembled_context is not None
-            and assembled_context.retrieval_context is not None
-        ):
-            retrieval_context = assembled_context.retrieval_context
-            retrieval_input = PromptRetrievalInput(
-                chunks=tuple(
-                    PromptKnowledgeChunkInput(
-                        source_id=chunk.source_id,
-                        domain=chunk.domain,
-                        source_type=chunk.source_type,
-                        publisher=chunk.publisher,
-                        registry_title=chunk.registry_title,
-                        document_title=chunk.document_title,
-                        source_url=chunk.source_url,
-                        excerpt=chunk.excerpt,
-                        score=chunk.score,
-                    )
-                    for chunk in retrieval_context.chunks
-                )
-            )
+        )
 
         prompt_input = PromptInputResponse(
             request=request,
-            user_input=PromptUserInput(
-                query=request.assistant_request.query,
-                mode=request.assistant_request.mode,
-                domain=(
-                    effective_domains[0]
-                    if len(effective_domains) == 1
-                    else None
-                ),
-                domains=effective_domains,
-                ui_selected_domains=ui_selected_domains,
-                detected_domains=detected_domains,
-                effective_domains=effective_domains,
-                is_follow_up=is_follow_up,
-            ),
+            user_input=_build_user_input(request.assistant_request),
             memory_input=memory_input,
             retrieval_input=retrieval_input,
         )
@@ -344,6 +284,95 @@ def build_prompt_input_request(
         route=route_decision.route,
         assistant_request=assistant_request,
         assembled_context=assembled_context,
+    )
+
+
+def _build_user_input(assistant_request: AssistantRequest) -> PromptUserInput:
+    ui_selected_domains = assistant_request.domains
+    detected_domains = detect_explicit_query_domains(assistant_request.query)
+    effective_domains = resolve_effective_query_domains(
+        query=assistant_request.query,
+        selected_domains=ui_selected_domains,
+    )
+    return PromptUserInput(
+        query=assistant_request.query,
+        mode=assistant_request.mode,
+        domain=effective_domains[0] if len(effective_domains) == 1 else None,
+        domains=effective_domains,
+        ui_selected_domains=ui_selected_domains,
+        detected_domains=detected_domains,
+        effective_domains=effective_domains,
+        is_follow_up=_looks_like_follow_up_query(assistant_request.query),
+    )
+
+
+def _build_memory_input(
+    *,
+    query: str,
+    memory_context: MemoryContextResponse | None,
+) -> PromptMemoryInput | None:
+    if memory_context is None:
+        return None
+
+    return PromptMemoryInput(
+        recent_turns=_build_prompt_recent_turns(
+            query=query,
+            recent_turns=memory_context.recent_turns,
+        ),
+        running_summary=_build_running_summary_input(memory_context),
+        session_summaries=_build_session_memory_summaries(
+            memory_context.recent_turns
+        ),
+        project_memories=_build_project_memory_inputs(memory_context),
+    )
+
+
+def _build_running_summary_input(
+    memory_context: MemoryContextResponse,
+) -> PromptRunningSummaryInput | None:
+    if memory_context.running_summary is None:
+        return None
+    return PromptRunningSummaryInput(
+        content=memory_context.running_summary.content,
+        covered_turn_count=memory_context.running_summary.covered_turn_count,
+    )
+
+
+def _build_project_memory_inputs(
+    memory_context: MemoryContextResponse,
+) -> tuple[PromptProjectMemoryInput, ...]:
+    return tuple(
+        PromptProjectMemoryInput(
+            memory_kind=memory.memory_kind,
+            content=memory.content,
+            source=memory.source,
+        )
+        for memory in memory_context.project_memories
+    )
+
+
+def _build_retrieval_input(
+    *,
+    retrieval_context: RetrievalContextResponse | None,
+) -> PromptRetrievalInput | None:
+    if retrieval_context is None:
+        return None
+
+    return PromptRetrievalInput(
+        chunks=tuple(
+            PromptKnowledgeChunkInput(
+                source_id=chunk.source_id,
+                domain=chunk.domain,
+                source_type=chunk.source_type,
+                publisher=chunk.publisher,
+                registry_title=chunk.registry_title,
+                document_title=chunk.document_title,
+                source_url=chunk.source_url,
+                excerpt=chunk.excerpt,
+                score=chunk.score,
+            )
+            for chunk in retrieval_context.chunks
+        )
     )
 
 

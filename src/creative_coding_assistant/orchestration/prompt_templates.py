@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol, Self
 
@@ -134,6 +135,13 @@ class RenderedPromptSectionName(StrEnum):
     RETRIEVAL = "retrieval"
 
 
+@dataclass(frozen=True)
+class _PromptSectionSpec:
+    role: RenderedPromptRole
+    name: RenderedPromptSectionName
+    template: str
+
+
 class RenderedPromptSection(BaseModel):
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -192,44 +200,18 @@ class JinjaPromptRenderer:
         self,
         request: RenderedPromptRequest,
     ) -> RenderedPromptResponse:
-        sections = [
-            self._render_section(
-                role=RenderedPromptRole.SYSTEM,
-                name=RenderedPromptSectionName.SYSTEM,
-                template=_SYSTEM_TEMPLATE,
-                request=request,
-            ),
-            self._render_section(
-                role=RenderedPromptRole.USER,
-                name=RenderedPromptSectionName.USER,
-                template=_USER_TEMPLATE,
-                request=request,
-            ),
-        ]
-
-        if request.prompt_input.memory_input is not None:
-            memory_section = self._render_section(
-                role=RenderedPromptRole.CONTEXT,
-                name=RenderedPromptSectionName.MEMORY,
-                template=_MEMORY_TEMPLATE,
-                request=request,
+        sections = tuple(
+            section
+            for section in (
+                self._render_section(spec=spec, request=request)
+                for spec in _section_specs_for_request(request)
             )
-            if memory_section is not None:
-                sections.append(memory_section)
-
-        if request.prompt_input.retrieval_input is not None:
-            retrieval_section = self._render_section(
-                role=RenderedPromptRole.CONTEXT,
-                name=RenderedPromptSectionName.RETRIEVAL,
-                template=_RETRIEVAL_TEMPLATE,
-                request=request,
-            )
-            if retrieval_section is not None:
-                sections.append(retrieval_section)
+            if section is not None
+        )
 
         rendered = RenderedPromptResponse(
             request=request,
-            sections=tuple(sections),
+            sections=sections,
         )
         logger.info(
             "Rendered prompt with {} section(s) for route '{}'",
@@ -241,12 +223,10 @@ class JinjaPromptRenderer:
     def _render_section(
         self,
         *,
-        role: RenderedPromptRole,
-        name: RenderedPromptSectionName,
-        template: str,
+        spec: _PromptSectionSpec,
         request: RenderedPromptRequest,
     ) -> RenderedPromptSection | None:
-        content = self._environment.from_string(template).render(
+        content = self._environment.from_string(spec.template).render(
             route=request.route,
             prompt_input=request.prompt_input,
         )
@@ -256,11 +236,49 @@ class JinjaPromptRenderer:
         if not normalized:
             logger.info(
                 "Skipped empty rendered prompt section '{}' for route '{}'",
-                name.value,
+                spec.name.value,
                 request.route.value,
             )
             return None
-        return RenderedPromptSection(role=role, name=name, content=normalized)
+        return RenderedPromptSection(
+            role=spec.role,
+            name=spec.name,
+            content=normalized,
+        )
+
+
+def _section_specs_for_request(
+    request: RenderedPromptRequest,
+) -> tuple[_PromptSectionSpec, ...]:
+    specs = [
+        _PromptSectionSpec(
+            role=RenderedPromptRole.SYSTEM,
+            name=RenderedPromptSectionName.SYSTEM,
+            template=_SYSTEM_TEMPLATE,
+        ),
+        _PromptSectionSpec(
+            role=RenderedPromptRole.USER,
+            name=RenderedPromptSectionName.USER,
+            template=_USER_TEMPLATE,
+        ),
+    ]
+    if request.prompt_input.memory_input is not None:
+        specs.append(
+            _PromptSectionSpec(
+                role=RenderedPromptRole.CONTEXT,
+                name=RenderedPromptSectionName.MEMORY,
+                template=_MEMORY_TEMPLATE,
+            )
+        )
+    if request.prompt_input.retrieval_input is not None:
+        specs.append(
+            _PromptSectionSpec(
+                role=RenderedPromptRole.CONTEXT,
+                name=RenderedPromptSectionName.RETRIEVAL,
+                template=_RETRIEVAL_TEMPLATE,
+            )
+        )
+    return tuple(specs)
 
 
 def build_rendered_prompt_request(
