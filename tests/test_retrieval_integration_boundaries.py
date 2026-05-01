@@ -375,6 +375,94 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
         self.assertIn("function setup()", context.chunks[0].excerpt)
         self.assertGreater(context.chunks[0].score, context.chunks[1].score)
 
+    def test_retrieval_adapter_prioritizes_p5_examples_over_weak_reference_chunks(
+        self,
+    ) -> None:
+        fake_retriever = _FakeRetriever(
+            response=KnowledgeBaseRetrievalResponse(
+                request=KnowledgeBaseRetrievalRequest(query="placeholder"),
+                results=(
+                    _kb_result(
+                        record_id="p5-weak-reference",
+                        source_id="p5_reference",
+                        domain=CreativeCodingDomain.P5_JS,
+                        text="ellipse circle rect line mouseX mouseY",
+                        score=0.94,
+                    ),
+                    _kb_result(
+                        record_id="p5-code-example",
+                        source_id="p5_examples",
+                        domain=CreativeCodingDomain.P5_JS,
+                        text=(
+                            "function setup() {\n"
+                            "  createCanvas(400, 400);\n"
+                            "}\n"
+                            "function draw() {\n"
+                            "  background(20);\n"
+                            "  ellipse(x, y, 40, 40);\n"
+                            "  x += speed;\n"
+                            "}"
+                        ),
+                        score=0.86,
+                    ),
+                ),
+            )
+        )
+        adapter = KnowledgeBaseRetrievalAdapter(retriever=fake_retriever)
+        request = RetrievalContextRequest(
+            query="Create a bouncing ball in p5.js",
+            route=RouteName.GENERATE,
+            filters=RetrievalContextFilter(domain=CreativeCodingDomain.P5_JS),
+        )
+
+        context = adapter.retrieve_context(request)
+
+        self.assertEqual(
+            [chunk.source_id for chunk in context.chunks],
+            ["p5_examples", "p5_reference"],
+        )
+        self.assertIn("createCanvas(400, 400)", context.chunks[0].excerpt)
+        self.assertGreater(context.chunks[0].score, context.chunks[1].score)
+
+    def test_retrieval_adapter_does_not_adjust_p5_reference_chunks_for_explain(
+        self,
+    ) -> None:
+        fake_retriever = _FakeRetriever(
+            response=KnowledgeBaseRetrievalResponse(
+                request=KnowledgeBaseRetrievalRequest(query="placeholder"),
+                results=(
+                    _kb_result(
+                        record_id="p5-weak-reference",
+                        source_id="p5_reference",
+                        domain=CreativeCodingDomain.P5_JS,
+                        text="ellipse circle rect line mouseX mouseY",
+                        score=0.94,
+                    ),
+                    _kb_result(
+                        record_id="p5-code-example",
+                        source_id="p5_examples",
+                        domain=CreativeCodingDomain.P5_JS,
+                        text="function setup() {\n  createCanvas(400, 400);\n}",
+                        score=0.86,
+                    ),
+                ),
+            )
+        )
+        adapter = KnowledgeBaseRetrievalAdapter(retriever=fake_retriever)
+        request = RetrievalContextRequest(
+            query="Explain p5.js drawing functions.",
+            route=RouteName.EXPLAIN,
+            filters=RetrievalContextFilter(domain=CreativeCodingDomain.P5_JS),
+        )
+
+        context = adapter.retrieve_context(request)
+
+        self.assertEqual(
+            [chunk.source_id for chunk in context.chunks],
+            ["p5_reference", "p5_examples"],
+        )
+        self.assertEqual([chunk.score for chunk in context.chunks], [0.94, 0.86])
+
     def test_retrieval_adapter_does_not_boost_non_p5_domains(self) -> None:
         for domain in (
             CreativeCodingDomain.THREE_JS,
