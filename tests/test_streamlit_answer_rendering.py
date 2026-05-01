@@ -18,6 +18,8 @@ class StreamlitAnswerRenderingTests(unittest.TestCase):
         self.assertEqual(segments[1].kind, "code")
         self.assertEqual(segments[1].language, "html")
         self.assertEqual(segments[1].content, "<div>Hello</div>")
+        self.assertEqual(segments[1].suggested_filename, "snippet-1.html")
+        self.assertEqual(segments[1].mime_type, "text/html")
         self.assertEqual(segments[2].kind, "prose")
         self.assertEqual(segments[2].content, "Next steps.")
 
@@ -32,6 +34,7 @@ class StreamlitAnswerRenderingTests(unittest.TestCase):
         self.assertEqual(segments[1].kind, "code")
         self.assertEqual(segments[1].language, "javascript")
         self.assertEqual(segments[1].content, "const cube = new THREE.Mesh();")
+        self.assertEqual(segments[1].suggested_filename, "snippet-1.js")
 
     def test_split_answer_segments_detects_unfenced_html_document(self) -> None:
         segments = split_answer_segments(
@@ -55,6 +58,7 @@ class StreamlitAnswerRenderingTests(unittest.TestCase):
         self.assertEqual(segments[1].language, "html")
         self.assertIn("<!DOCTYPE html>", segments[1].content)
         self.assertIn("const scene = new THREE.Scene();", segments[1].content)
+        self.assertEqual(segments[1].suggested_filename, "snippet-1.html")
         self.assertEqual(segments[2].kind, "prose")
         self.assertEqual(
             segments[2].content,
@@ -76,8 +80,33 @@ class StreamlitAnswerRenderingTests(unittest.TestCase):
         self.assertEqual(segments[0].kind, "prose")
         self.assertEqual(segments[1].kind, "code")
         self.assertEqual(segments[1].language, "javascript")
+        self.assertEqual(segments[1].suggested_filename, "snippet-1.js")
         self.assertEqual(segments[2].kind, "prose")
         self.assertTrue(segments[2].content.startswith("Notes:"))
+
+    def test_split_answer_segments_assigns_jsx_and_glsl_filenames(self) -> None:
+        jsx_segments = split_answer_segments(
+            "```jsx\nimport { Canvas } from '@react-three/fiber';\n"
+            "function Scene() {\n  return <Canvas />;\n}\n```"
+        )
+        glsl_segments = split_answer_segments(
+            "```glsl\nprecision mediump float;\nvoid main() {\n"
+            "  gl_FragColor = vec4(1.0);\n}\n```"
+        )
+
+        self.assertEqual(jsx_segments[0].language, "jsx")
+        self.assertEqual(jsx_segments[0].suggested_filename, "snippet-1.jsx")
+        self.assertEqual(jsx_segments[0].mime_type, "text/javascript")
+        self.assertEqual(glsl_segments[0].language, "glsl")
+        self.assertEqual(glsl_segments[0].suggested_filename, "snippet-1.glsl")
+        self.assertEqual(glsl_segments[0].mime_type, "text/plain")
+
+    def test_split_answer_segments_uses_txt_fallback_for_unknown_language(self) -> None:
+        segments = split_answer_segments("```mermaid\ngraph TD;\nA-->B;\n```")
+
+        self.assertEqual(segments[0].language, "mermaid")
+        self.assertEqual(segments[0].suggested_filename, "snippet-1.txt")
+        self.assertEqual(segments[0].mime_type, "text/plain")
 
     def test_answer_working_message_uses_clear_neutral_copy(self) -> None:
         self.assertEqual(
