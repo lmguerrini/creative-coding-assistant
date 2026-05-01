@@ -86,7 +86,11 @@ class RenderedPromptToProviderBoundaryTests(unittest.TestCase):
             generation_input.messages[1].content,
         )
         self.assertIn(
-            "Keep the motion restrained.",
+            "The user prefers restrained motion and calm palettes.",
+            generation_input.messages[2].content,
+        )
+        self.assertIn(
+            "Prefer restrained palettes.",
             generation_input.messages[2].content,
         )
         self.assertIn(

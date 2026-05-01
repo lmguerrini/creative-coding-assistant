@@ -35,6 +35,8 @@ from creative_coding_assistant.orchestration import (
 )
 from creative_coding_assistant.rag.sources import OfficialSourceType
 
+_UNSET = object()
+
 
 class PromptInputContractsTests(unittest.TestCase):
     def test_prompt_input_request_rejects_misaligned_context_route(self) -> None:
@@ -72,7 +74,8 @@ class PromptInputContractsTests(unittest.TestCase):
         self.assertIsNotNone(response.retrieval_input)
         assert response.memory_input is not None
         assert response.retrieval_input is not None
-        self.assertEqual(len(response.memory_input.recent_turns), 2)
+        self.assertFalse(response.user_input.is_follow_up)
+        self.assertEqual(len(response.memory_input.recent_turns), 0)
         self.assertEqual(
             response.memory_input.running_summary.content,
             "The user prefers restrained motion and calm palettes.",
@@ -80,6 +83,48 @@ class PromptInputContractsTests(unittest.TestCase):
         self.assertEqual(
             response.retrieval_input.chunks[0].document_title,
             "PerspectiveCamera",
+        )
+
+    def test_prompt_input_builder_keeps_compact_prior_pair_for_follow_up(
+        self,
+    ) -> None:
+        builder = StructuredPromptInputBuilder()
+        assistant_request = AssistantRequest(
+            query="Now make it rotate faster and add a blue material.",
+            domain=CreativeCodingDomain.THREE_JS,
+            mode=AssistantMode.GENERATE,
+        )
+        request = build_prompt_input_request(
+            assistant_request=assistant_request,
+            route_decision=RouteDecision(
+                route=RouteName.GENERATE,
+                mode=AssistantMode.GENERATE,
+                domain=CreativeCodingDomain.THREE_JS,
+                capabilities=(RouteCapability.MEMORY_CONTEXT,),
+            ),
+            assembled_context=_assembled_context(
+                route=RouteName.GENERATE,
+                memory_context=_memory_context_with_code_answer(),
+                retrieval_context=None,
+            ),
+        )
+
+        response = builder.build(request)
+
+        assert response.memory_input is not None
+        self.assertTrue(response.user_input.is_follow_up)
+        self.assertEqual(len(response.memory_input.recent_turns), 2)
+        self.assertEqual(
+            response.memory_input.recent_turns[0].content,
+            "Create a simple rotating cube in three.js.",
+        )
+        assistant_turn = response.memory_input.recent_turns[1].content
+        self.assertIn("Relevant code excerpt:", assistant_turn)
+        self.assertIn("```html", assistant_turn)
+        self.assertIn("requestAnimationFrame", assistant_turn)
+        self.assertLess(
+            len(assistant_turn),
+            len(_LONG_CODE_ANSWER),
         )
 
     def test_prompt_input_builder_supports_user_only_flow(self) -> None:
@@ -227,6 +272,44 @@ class PromptInputContractsTests(unittest.TestCase):
             ),
         )
 
+    def test_prompt_input_builder_keeps_explicit_new_domain_over_previous_memory(
+        self,
+    ) -> None:
+        builder = StructuredPromptInputBuilder()
+        assistant_request = AssistantRequest(
+            query="Convert this to p5.js.",
+            domains=(
+                CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.REACT_THREE_FIBER,
+            ),
+            mode=AssistantMode.GENERATE,
+        )
+        request = build_prompt_input_request(
+            assistant_request=assistant_request,
+            route_decision=RouteDecision(
+                route=RouteName.GENERATE,
+                mode=AssistantMode.GENERATE,
+                domains=assistant_request.domains,
+                capabilities=(RouteCapability.MEMORY_CONTEXT,),
+            ),
+            assembled_context=_assembled_context(
+                route=RouteName.GENERATE,
+                memory_context=_memory_context_with_code_answer(),
+                retrieval_context=None,
+            ),
+        )
+
+        response = builder.build(request)
+
+        self.assertTrue(response.user_input.is_follow_up)
+        self.assertEqual(response.user_input.domain, CreativeCodingDomain.P5_JS)
+        self.assertEqual(
+            response.user_input.effective_domains,
+            (CreativeCodingDomain.P5_JS,),
+        )
+        assert response.memory_input is not None
+        self.assertEqual(len(response.memory_input.recent_turns), 2)
+
     def test_service_emits_prompt_input_event_when_builder_present(self) -> None:
         service = AssistantService(
             route_fn=_route_with_memory_and_docs,
@@ -265,7 +348,7 @@ class PromptInputContractsTests(unittest.TestCase):
             prompt_input["user_input"]["query"],
             "Explain the scene setup.",
         )
-        self.assertEqual(len(prompt_input["memory_input"]["recent_turns"]), 2)
+        self.assertEqual(len(prompt_input["memory_input"]["recent_turns"]), 0)
         self.assertEqual(len(prompt_input["retrieval_input"]["chunks"]), 1)
 
 
@@ -292,7 +375,18 @@ def _route_with_memory_and_docs(request: AssistantRequest) -> RouteDecision:
     )
 
 
-def _assembled_context(*, route: RouteName) -> AssembledContextResponse:
+def _assembled_context(
+    *,
+    route: RouteName,
+    memory_context: MemoryContextResponse | None = None,
+    retrieval_context: RetrievalContextResponse | None | object = _UNSET,
+) -> AssembledContextResponse:
+    memory_context = _memory_context() if memory_context is None else memory_context
+    retrieval_context = (
+        _retrieval_context()
+        if retrieval_context is _UNSET
+        else retrieval_context
+    )
     request = build_assembled_context_request(
         route_decision=RouteDecision(
             route=route,
@@ -302,20 +396,34 @@ def _assembled_context(*, route: RouteName) -> AssembledContextResponse:
                 RouteCapability.OFFICIAL_DOCS,
             ),
         ),
-        memory_context=_memory_context(),
-        retrieval_context=_retrieval_context(),
+        memory_context=memory_context,
+        retrieval_context=retrieval_context,
     )
     assert request is not None
     return AssembledContextResponse(
         request=request,
         summary=AssembledContextSummary(
-            recent_turn_count=2,
-            has_running_summary=True,
-            project_memory_count=2,
-            retrieval_chunk_count=1,
+            recent_turn_count=(
+                len(memory_context.recent_turns) if memory_context is not None else 0
+            ),
+            has_running_summary=(
+                memory_context.running_summary is not None
+                if memory_context is not None
+                else False
+            ),
+            project_memory_count=(
+                len(memory_context.project_memories)
+                if memory_context is not None
+                else 0
+            ),
+            retrieval_chunk_count=(
+                len(retrieval_context.chunks)
+                if retrieval_context is not None
+                else 0
+            ),
         ),
-        memory_context=_memory_context(),
-        retrieval_context=_retrieval_context(),
+        memory_context=memory_context,
+        retrieval_context=retrieval_context,
     )
 
 
@@ -365,6 +473,39 @@ def _memory_context() -> MemoryContextResponse:
     )
 
 
+def _memory_context_with_code_answer() -> MemoryContextResponse:
+    return MemoryContextResponse(
+        request=MemoryContextRequest(
+            route=RouteName.GENERATE,
+            conversation_id="conversation-1",
+            project_id="project-1",
+        ),
+        source=MemoryContextSource.CHROMA_MEMORY,
+        recent_turns=(
+            RecentConversationTurn(
+                turn_index=0,
+                role=ConversationRole.USER,
+                content="Create a simple rotating cube in three.js.",
+                created_at=_time(),
+                mode=AssistantMode.GENERATE,
+            ),
+            RecentConversationTurn(
+                turn_index=1,
+                role=ConversationRole.ASSISTANT,
+                content=_LONG_CODE_ANSWER,
+                created_at=_time(),
+                mode=AssistantMode.GENERATE,
+            ),
+        ),
+        running_summary=ConversationSummaryContext(
+            content="The conversation is building a basic Three.js cube scene.",
+            created_at=_time(),
+            covered_turn_count=2,
+        ),
+        project_memories=(),
+    )
+
+
 def _retrieval_context() -> RetrievalContextResponse:
     return RetrievalContextResponse(
         request=RetrievalContextRequest(
@@ -392,6 +533,63 @@ def _retrieval_context() -> RetrievalContextResponse:
 
 def _time() -> datetime:
     return datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+
+
+_LONG_CODE_ANSWER = """
+Use this HTML file as the starting point for the rotating cube.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Rotating cube</title>
+    <style>
+      body { margin: 0; overflow: hidden; }
+      canvas { display: block; }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three";
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000,
+      );
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      const geometry = new THREE.BoxGeometry();
+      const material = new THREE.MeshStandardMaterial({ color: 0x44aa88 });
+      const cube = new THREE.Mesh(geometry, material);
+      scene.add(cube);
+
+      const light = new THREE.DirectionalLight(0xffffff, 1.5);
+      light.position.set(2, 3, 4);
+      scene.add(light);
+
+      camera.position.z = 4;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        cube.rotation.x += 0.01;
+        cube.rotation.y += 0.015;
+        renderer.render(scene, camera);
+      }
+
+      animate();
+    </script>
+  </body>
+</html>
+```
+
+You can extend it with controls later.
+""".strip()
 
 
 class _FakeMemoryGateway:

@@ -44,6 +44,8 @@ from creative_coding_assistant.orchestration import (
 )
 from creative_coding_assistant.rag.sources import OfficialSourceType
 
+_UNSET = object()
+
 
 class PromptTemplateFoundationTests(unittest.TestCase):
     def test_rendered_prompt_request_rejects_misaligned_route(self) -> None:
@@ -102,7 +104,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         self.assertIn("```python", response.sections[0].content)
         self.assertIn("User Request:", response.sections[1].content)
         self.assertIn(
-            "Keep the motion restrained.",
+            "The user prefers restrained motion and calm palettes.",
             response.sections[2].content,
         )
         self.assertIn(
@@ -358,6 +360,51 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         self.assertNotIn("Detected Query Domains:", system_section)
         self.assertNotIn("UI Selected Domains:", system_section)
 
+    def test_renderer_marks_follow_up_and_renders_compact_prior_turn_pair(
+        self,
+    ) -> None:
+        renderer = JinjaPromptRenderer()
+        assistant_request = AssistantRequest(
+            query="Now make it rotate faster and add a blue material.",
+            domain=CreativeCodingDomain.THREE_JS,
+            mode=AssistantMode.GENERATE,
+        )
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=assistant_request,
+                route_decision=RouteDecision(
+                    route=RouteName.GENERATE,
+                    mode=AssistantMode.GENERATE,
+                    domain=CreativeCodingDomain.THREE_JS,
+                    capabilities=(RouteCapability.MEMORY_CONTEXT,),
+                ),
+                assembled_context=_assembled_context(
+                    route=RouteName.GENERATE,
+                    memory_context=_memory_context_with_code_answer(),
+                    retrieval_context=None,
+                ),
+            )
+        )
+
+        rendered = renderer.render(
+            build_rendered_prompt_request(
+                route_decision=RouteName.GENERATE,
+                prompt_input=prompt_input,
+            )
+        )
+
+        system_section = rendered.sections[0].content
+        memory_section = rendered.sections[2].content
+        self.assertIn("Follow-Up Request:", system_section)
+        self.assertIn(
+            "Let the current request and effective domains override stale details",
+            system_section,
+        )
+        self.assertIn("Immediate Prior Turn Pair:", memory_section)
+        self.assertIn("Relevant code excerpt:", memory_section)
+        self.assertIn("```html", memory_section)
+        self.assertIn("requestAnimationFrame", memory_section)
+
     def test_renderer_skips_empty_memory_section(self) -> None:
         renderer = JinjaPromptRenderer()
         assistant_request = AssistantRequest(
@@ -530,23 +577,55 @@ def _prompt_input():
     return StructuredPromptInputBuilder().build(prompt_input_request)
 
 
-def _assembled_context() -> AssembledContextResponse:
+def _assembled_context(
+    *,
+    route: RouteName = RouteName.EXPLAIN,
+    memory_context: MemoryContextResponse | None = None,
+    retrieval_context: RetrievalContextResponse | None | object = _UNSET,
+) -> AssembledContextResponse:
+    memory_context = _memory_context() if memory_context is None else memory_context
+    retrieval_context = (
+        _retrieval_context()
+        if retrieval_context is _UNSET
+        else retrieval_context
+    )
     request = build_assembled_context_request(
-        route_decision=_route_decision(),
-        memory_context=_memory_context(),
-        retrieval_context=_retrieval_context(),
+        route_decision=RouteDecision(
+            route=route,
+            mode=AssistantMode.EXPLAIN,
+            capabilities=(
+                RouteCapability.MEMORY_CONTEXT,
+                RouteCapability.OFFICIAL_DOCS,
+            ),
+        ),
+        memory_context=memory_context,
+        retrieval_context=retrieval_context,
     )
     assert request is not None
     return AssembledContextResponse(
         request=request,
         summary=AssembledContextSummary(
-            recent_turn_count=2,
-            has_running_summary=True,
-            project_memory_count=2,
-            retrieval_chunk_count=1,
+            recent_turn_count=(
+                len(memory_context.recent_turns) if memory_context is not None else 0
+            ),
+            has_running_summary=(
+                memory_context.running_summary is not None
+                if memory_context is not None
+                else False
+            ),
+            project_memory_count=(
+                len(memory_context.project_memories)
+                if memory_context is not None
+                else 0
+            ),
+            retrieval_chunk_count=(
+                len(retrieval_context.chunks)
+                if retrieval_context is not None
+                else 0
+            ),
         ),
-        memory_context=_memory_context(),
-        retrieval_context=_retrieval_context(),
+        memory_context=memory_context,
+        retrieval_context=retrieval_context,
     )
 
 
@@ -593,6 +672,39 @@ def _memory_context() -> MemoryContextResponse:
                 source="user",
             ),
         ),
+    )
+
+
+def _memory_context_with_code_answer() -> MemoryContextResponse:
+    return MemoryContextResponse(
+        request=MemoryContextRequest(
+            route=RouteName.GENERATE,
+            conversation_id="conversation-1",
+            project_id="project-1",
+        ),
+        source=MemoryContextSource.CHROMA_MEMORY,
+        recent_turns=(
+            RecentConversationTurn(
+                turn_index=0,
+                role=ConversationRole.USER,
+                content="Create a simple rotating cube in three.js.",
+                created_at=_time(),
+                mode=AssistantMode.GENERATE,
+            ),
+            RecentConversationTurn(
+                turn_index=1,
+                role=ConversationRole.ASSISTANT,
+                content=_LONG_CODE_ANSWER,
+                created_at=_time(),
+                mode=AssistantMode.GENERATE,
+            ),
+        ),
+        running_summary=ConversationSummaryContext(
+            content="The conversation is building a basic Three.js cube scene.",
+            created_at=_time(),
+            covered_turn_count=2,
+        ),
+        project_memories=(),
     )
 
 
@@ -647,6 +759,59 @@ def _empty_retrieval_context() -> RetrievalContextResponse:
 
 def _time() -> datetime:
     return datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+
+
+_LONG_CODE_ANSWER = """
+Use this HTML file as the starting point for the rotating cube.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Rotating cube</title>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three";
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000,
+      );
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      const geometry = new THREE.BoxGeometry();
+      const material = new THREE.MeshStandardMaterial({ color: 0x44aa88 });
+      const cube = new THREE.Mesh(geometry, material);
+      scene.add(cube);
+
+      const light = new THREE.DirectionalLight(0xffffff, 1.5);
+      light.position.set(2, 3, 4);
+      scene.add(light);
+
+      camera.position.z = 4;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        cube.rotation.x += 0.01;
+        cube.rotation.y += 0.015;
+        renderer.render(scene, camera);
+      }
+
+      animate();
+    </script>
+  </body>
+</html>
+```
+
+You can extend it with controls later.
+""".strip()
 
 
 class _FakeMemoryGateway:
