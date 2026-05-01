@@ -23,10 +23,22 @@ from creative_coding_assistant.orchestration.routing import (
 _SYSTEM_TEMPLATE = """
 Route: {{ route.value }}
 Mode: {{ prompt_input.user_input.mode.value }}
-Domain Scope: {{ domain_scope_label(prompt_input.user_input) }}
-{% if prompt_input.user_input.domains -%}
-Selected Domains:
-{% for domain in prompt_input.user_input.domains -%}
+Domain Scope: {{ effective_domain_scope_label(prompt_input.user_input) }}
+{% if prompt_input.user_input.effective_domains -%}
+Effective Domains:
+{% for domain in prompt_input.user_input.effective_domains -%}
+- {{ domain.value }}
+{% endfor %}
+{% endif %}
+{% if prompt_input.user_input.detected_domains -%}
+Detected Query Domains:
+{% for domain in prompt_input.user_input.detected_domains -%}
+- {{ domain.value }}
+{% endfor %}
+{% endif %}
+{% if show_ui_selected_domains(prompt_input.user_input) -%}
+UI Selected Domains:
+{% for domain in prompt_input.user_input.ui_selected_domains -%}
 - {{ domain.value }}
 {% endfor %}
 {% endif %}
@@ -146,7 +158,8 @@ class JinjaPromptRenderer:
         self._environment.globals.update(
             route_guidance_lines=_route_guidance_lines,
             domain_guidance_lines=_domain_guidance_lines,
-            domain_scope_label=_domain_scope_label,
+            effective_domain_scope_label=_effective_domain_scope_label,
+            show_ui_selected_domains=_show_ui_selected_domains,
         )
 
     def render(
@@ -276,16 +289,25 @@ def _domain_guidance_lines(user_input: PromptUserInput) -> tuple[str, ...]:
             "Do not drift into unrelated frameworks or libraries without a clear need.",
         )
 
-    guidance = [
-        (
-            "Stay within the selected domain set and avoid introducing "
-            "unselected ecosystems."
+    guidance: list[str] = []
+
+    if (
+        user_input.detected_domains
+        and user_input.detected_domains != user_input.ui_selected_domains
+    ):
+        guidance.append(
+            "Prioritize the explicitly detected query domains over any broader "
+            "selected UI scope."
         )
-    ]
+
+    guidance.append(
+        "Stay within the effective domain set and avoid introducing unrelated "
+        "ecosystems."
+    )
 
     if user_input.domain_selection is DomainSelectionShape.SINGLE:
         guidance.append(
-            "Prefer the selected ecosystem's APIs, terminology, and examples."
+            "Prefer the effective ecosystem's APIs, terminology, and examples."
         )
     else:
         guidance.append(
@@ -293,19 +315,26 @@ def _domain_guidance_lines(user_input: PromptUserInput) -> tuple[str, ...]:
             "which domain each major API belongs to when that reduces ambiguity."
         )
 
-    for domain in user_input.domains:
+    for domain in user_input.effective_domains:
         guidance.append(_domain_preference_line(domain))
 
     return tuple(guidance)
 
 
-def _domain_scope_label(user_input: PromptUserInput) -> str:
+def _effective_domain_scope_label(user_input: PromptUserInput) -> str:
     if user_input.domain_selection is DomainSelectionShape.NONE:
         return "inferred from request"
     if user_input.domain_selection is DomainSelectionShape.SINGLE:
         assert user_input.domain is not None
         return user_input.domain.value
     return "multi-domain selection"
+
+
+def _show_ui_selected_domains(user_input: PromptUserInput) -> bool:
+    return bool(
+        user_input.ui_selected_domains
+        and user_input.ui_selected_domains != user_input.effective_domains
+    )
 
 
 def _domain_preference_line(domain: CreativeCodingDomain) -> str:
