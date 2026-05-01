@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from collections.abc import Sequence
 from typing import Literal
 
@@ -30,6 +29,9 @@ from creative_coding_assistant.contracts import (
     StreamEventType,
 )
 from creative_coding_assistant.core import GenerationProviderName, Settings
+from creative_coding_assistant.rag.retrieval.domain_intent import (
+    detect_explicit_query_domains,
+)
 
 _STATUS_EVENT_TYPES = frozenset(
     {
@@ -42,35 +44,6 @@ _STATUS_EVENT_TYPES = frozenset(
         StreamEventType.GENERATION_INPUT,
     }
 )
-_WHITESPACE_PATTERN = re.compile(r"\s+")
-_THREE_JS_PATTERNS: tuple[re.Pattern[str], ...] = (
-    re.compile(r"\bthree(?:\.js|js|\s+js)\b"),
-)
-_REACT_THREE_FIBER_PATTERNS: tuple[re.Pattern[str], ...] = (
-    re.compile(r"\breact\s+three\s+fiber\b"),
-    re.compile(r"@react-three/fiber"),
-    re.compile(r"\br3f\b"),
-    re.compile(r"\buseframe\b"),
-)
-_P5_JS_PATTERNS: tuple[re.Pattern[str], ...] = (
-    re.compile(r"\bp5(?:\.js|js)?\b"),
-)
-_GLSL_PATTERNS: tuple[re.Pattern[str], ...] = (
-    re.compile(r"\bglsl\b"),
-    re.compile(r"\bfragment\s+shader\b"),
-    re.compile(r"\bvertex\s+shader\b"),
-    re.compile(r"\bshader\b"),
-)
-_TRACE_QUERY_PATTERNS: tuple[
-    tuple[CreativeCodingDomain, tuple[re.Pattern[str], ...]],
-    ...,
-] = (
-    (CreativeCodingDomain.THREE_JS, _THREE_JS_PATTERNS),
-    (CreativeCodingDomain.REACT_THREE_FIBER, _REACT_THREE_FIBER_PATTERNS),
-    (CreativeCodingDomain.P5_JS, _P5_JS_PATTERNS),
-    (CreativeCodingDomain.GLSL, _GLSL_PATTERNS),
-)
-
 
 class ChatHistoryEntry(BaseModel):
     """Minimal chat history shape stored in Streamlit session state."""
@@ -469,7 +442,7 @@ def _trace_domain_updates(event: StreamEvent) -> dict[str, object]:
             else ()
         )
         return {
-            "detected_domains": _detect_query_domains(query),
+            "detected_domains": detect_explicit_query_domains(query),
             "retrieval_domains": retrieval_domains,
         }
 
@@ -493,22 +466,6 @@ def _domains_from_payload(
     if domain is not None:
         return (domain,)
     return ()
-
-
-def _detect_query_domains(query: str) -> tuple[CreativeCodingDomain, ...]:
-    normalized = _normalize_query(query)
-    if not normalized:
-        return ()
-
-    detected: list[CreativeCodingDomain] = []
-    for domain, patterns in _TRACE_QUERY_PATTERNS:
-        if any(pattern.search(normalized) for pattern in patterns):
-            detected.append(domain)
-    return tuple(detected)
-
-
-def _normalize_query(value: str) -> str:
-    return _WHITESPACE_PATTERN.sub(" ", value.strip().lower())
 
 
 def _build_retrieval_item(raw_chunk: dict[str, object]) -> RetrievalDisplayItem | None:
