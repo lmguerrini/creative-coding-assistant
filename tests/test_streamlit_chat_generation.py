@@ -19,6 +19,7 @@ from creative_coding_assistant.clients import (
     resolve_session_mode,
     retrieval_empty_message,
     retrieval_expander_label,
+    user_safe_assistant_error_message,
 )
 from creative_coding_assistant.contracts import (
     AssistantMode,
@@ -68,6 +69,47 @@ class StreamlitChatGenerationTests(unittest.TestCase):
         )
 
         self.assertIsNone(build_provider_warning(settings))
+
+    def test_user_safe_error_message_handles_network_failures(self) -> None:
+        class APIConnectionError(Exception):
+            pass
+
+        APIConnectionError.__module__ = "openai"
+
+        message = user_safe_assistant_error_message(APIConnectionError("secret-url"))
+
+        self.assertEqual(
+            message,
+            "Connection issue: unable to reach the model. Please check your "
+            "internet or API configuration.",
+        )
+        self.assertNotIn("secret-url", message)
+
+    def test_user_safe_error_message_handles_retrieval_failures(self) -> None:
+        class RetrievalFailure(Exception):
+            pass
+
+        RetrievalFailure.__module__ = "creative_coding_assistant.rag.retrieval.search"
+
+        message = user_safe_assistant_error_message(RetrievalFailure("raw details"))
+
+        self.assertEqual(
+            message,
+            "Knowledge base temporarily unavailable. Generating response without "
+            "retrieval.",
+        )
+        self.assertNotIn("raw details", message)
+
+    def test_user_safe_error_message_handles_unknown_failures(self) -> None:
+        message = user_safe_assistant_error_message(
+            ValueError("sk-secret-never-show")
+        )
+
+        self.assertEqual(
+            message,
+            "Something went wrong while generating the response. Please try again.",
+        )
+        self.assertNotIn("sk-secret-never-show", message)
 
     def test_build_chat_request_uses_ui_selection_and_conversation_id(self) -> None:
         settings = Settings()
