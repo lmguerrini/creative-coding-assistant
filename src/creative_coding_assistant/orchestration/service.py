@@ -45,6 +45,7 @@ from creative_coding_assistant.orchestration.prompt_templates import (
     build_rendered_prompt_request,
 )
 from creative_coding_assistant.orchestration.retrieval import (
+    RetrievalContextResponse,
     RetrievalGateway,
     build_retrieval_context_request,
 )
@@ -175,9 +176,23 @@ class AssistantService:
                 message="Retrieval context requested.",
                 request=retrieval_payload,
             )
-            retrieval_context = self._retrieval_gateway.retrieve_context(
-                retrieval_request
-            )
+            try:
+                retrieval_context = self._retrieval_gateway.retrieve_context(
+                    retrieval_request
+                )
+            except Exception as exc:
+                logger.bind(
+                    route=decision.route.value,
+                    error_type=type(exc).__name__,
+                ).exception(
+                    "assistant_retrieval_failed_using_empty_context: {}: {}",
+                    type(exc).__name__,
+                    exc,
+                )
+                retrieval_context = RetrievalContextResponse(
+                    request=retrieval_request,
+                    chunks=(),
+                )
             yield builder.retrieval(
                 code="retrieval_completed",
                 message="Retrieval context prepared.",
