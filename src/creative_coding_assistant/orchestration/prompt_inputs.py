@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 from typing import Protocol, Self
 
@@ -15,6 +16,7 @@ from creative_coding_assistant.contracts import (
 )
 from creative_coding_assistant.memory import ConversationRole, ProjectMemoryKind
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
+from creative_coding_assistant.orchestration.memory import RecentConversationTurn
 from creative_coding_assistant.orchestration.routing import (
     DomainSelectionShape,
     RouteDecision,
@@ -40,6 +42,7 @@ class PromptUserInput(BaseModel):
     detected_domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
     effective_domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
     domain_selection: DomainSelectionShape = DomainSelectionShape.NONE
+    is_follow_up: bool = False
 
     @field_validator(
         "domains",
@@ -234,6 +237,7 @@ class StructuredPromptInputBuilder:
             query=request.assistant_request.query,
             selected_domains=ui_selected_domains,
         )
+        is_follow_up = _looks_like_follow_up_query(request.assistant_request.query)
         memory_input = None
         retrieval_input = None
 
@@ -243,13 +247,9 @@ class StructuredPromptInputBuilder:
         ):
             memory_context = assembled_context.memory_context
             memory_input = PromptMemoryInput(
-                recent_turns=tuple(
-                    PromptConversationTurnInput(
-                        turn_index=turn.turn_index,
-                        role=turn.role,
-                        content=turn.content,
-                    )
-                    for turn in memory_context.recent_turns
+                recent_turns=_build_prompt_recent_turns(
+                    query=request.assistant_request.query,
+                    recent_turns=memory_context.recent_turns,
                 ),
                 running_summary=(
                     PromptRunningSummaryInput(
@@ -307,6 +307,7 @@ class StructuredPromptInputBuilder:
                 ui_selected_domains=ui_selected_domains,
                 detected_domains=detected_domains,
                 effective_domains=effective_domains,
+                is_follow_up=is_follow_up,
             ),
             memory_input=memory_input,
             retrieval_input=retrieval_input,
@@ -340,3 +341,133 @@ def _selection_shape_for_domains(
     if len(domains) == 1:
         return DomainSelectionShape.SINGLE
     return DomainSelectionShape.MULTI
+
+
+_FOLLOW_UP_PHRASE_PATTERNS = (
+    re.compile(r"\buse the previous\b"),
+    re.compile(r"\bsame code\b"),
+    re.compile(r"\bprevious code\b"),
+    re.compile(r"\bcontinue from the previous\b"),
+    re.compile(r"\bcontinue from previous\b"),
+    re.compile(r"\bmodify it\b"),
+    re.compile(r"\bmake it\b"),
+    re.compile(r"\bchange it\b"),
+)
+_FOLLOW_UP_COMMAND_PATTERN = re.compile(
+    r"^(?:now\s+)?(?:continue|modify|change|make|add|remove|convert)\b"
+)
+_FENCED_CODE_BLOCK_PATTERN = re.compile(
+    r"```(?P<language>[^\n`]*)\n(?P<code>.*?)```",
+    re.DOTALL,
+)
+_MAX_USER_TURN_CHARS = 220
+_MAX_ASSISTANT_TEXT_CHARS = 280
+_MAX_CODE_BLOCK_CHARS = 700
+_CODE_BLOCK_HEAD_CHARS = 380
+_CODE_BLOCK_TAIL_CHARS = 280
+
+
+def _looks_like_follow_up_query(query: str) -> bool:
+    normalized = _collapse_whitespace(query).lower()
+    if _FOLLOW_UP_COMMAND_PATTERN.search(normalized):
+        return True
+    return any(
+        pattern.search(normalized) is not None
+        for pattern in _FOLLOW_UP_PHRASE_PATTERNS
+    )
+
+
+def _build_prompt_recent_turns(
+    *,
+    query: str,
+    recent_turns: tuple[RecentConversationTurn, ...],
+) -> tuple[PromptConversationTurnInput, ...]:
+    if not _looks_like_follow_up_query(query):
+        return ()
+
+    selected_turns = _select_recent_turn_pair(recent_turns)
+    return tuple(
+        PromptConversationTurnInput(
+            turn_index=turn.turn_index,
+            role=turn.role,
+            content=_compact_turn_content(turn),
+        )
+        for turn in selected_turns
+    )
+
+
+def _select_recent_turn_pair(
+    recent_turns: tuple[RecentConversationTurn, ...],
+) -> tuple[RecentConversationTurn, ...]:
+    if not recent_turns:
+        return ()
+
+    assistant_index = None
+    for index in range(len(recent_turns) - 1, -1, -1):
+        if recent_turns[index].role is ConversationRole.ASSISTANT:
+            assistant_index = index
+            break
+
+    if assistant_index is None:
+        return recent_turns[-1:]
+
+    for index in range(assistant_index - 1, -1, -1):
+        if recent_turns[index].role is ConversationRole.USER:
+            return recent_turns[index : assistant_index + 1]
+
+    return recent_turns[assistant_index : assistant_index + 1]
+
+
+def _compact_turn_content(turn: RecentConversationTurn) -> str:
+    if turn.role is ConversationRole.USER:
+        return _truncate_text(_collapse_whitespace(turn.content), _MAX_USER_TURN_CHARS)
+    return _compact_assistant_turn_content(turn.content)
+
+
+def _compact_assistant_turn_content(content: str) -> str:
+    code_match = _select_primary_code_block(content)
+    if code_match is None:
+        return _truncate_text(_collapse_whitespace(content), _MAX_ASSISTANT_TEXT_CHARS)
+
+    prose = _truncate_text(
+        _collapse_whitespace(_FENCED_CODE_BLOCK_PATTERN.sub(" ", content)),
+        _MAX_ASSISTANT_TEXT_CHARS,
+    )
+    language = code_match.group("language").strip()
+    code = code_match.group("code").strip()
+    compact_code = _truncate_code_excerpt(code)
+    if language:
+        code_fence = f"```{language}\n{compact_code}\n```"
+    else:
+        code_fence = f"```\n{compact_code}\n```"
+
+    if prose:
+        return f"{prose}\nRelevant code excerpt:\n{code_fence}"
+    return f"Relevant code excerpt:\n{code_fence}"
+
+
+def _select_primary_code_block(content: str) -> re.Match[str] | None:
+    matches = list(_FENCED_CODE_BLOCK_PATTERN.finditer(content))
+    if not matches:
+        return None
+    return max(matches, key=lambda match: len(match.group("code").strip()))
+
+
+def _collapse_whitespace(value: str) -> str:
+    return re.sub(r"\s+", " ", value).strip()
+
+
+def _truncate_text(value: str, limit: int) -> str:
+    if len(value) <= limit:
+        return value
+    truncated = value[: limit - 1].rstrip()
+    return f"{truncated}..."
+
+
+def _truncate_code_excerpt(code: str) -> str:
+    if len(code) <= _MAX_CODE_BLOCK_CHARS:
+        return code
+
+    head = code[:_CODE_BLOCK_HEAD_CHARS].rstrip()
+    tail = code[-_CODE_BLOCK_TAIL_CHARS :].lstrip()
+    return f"{head}\n...\n{tail}"
