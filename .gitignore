@@ -15,6 +15,9 @@ htmlcov/
 # Starter/reference material stays local and out of the new app surface.
 codex_starter_pack/
 
+# Internal planning and Codex/development notes stay local.
+docs/
+
 # Runtime data is persisted locally; keep only directory placeholders.
 data/chroma/
 !data/chroma/
