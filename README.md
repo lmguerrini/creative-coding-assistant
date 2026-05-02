@@ -9,6 +9,47 @@ The project is currently in a pre-agent phase. The V1 app is feature-complete
 for interactive chat, domain-aware retrieval, short-term memory, trace
 visibility, and local evaluation workflows.
 
+![Streamlit chat preview](assets/preview.png)
+
+## Project Structure
+
+```text
+.
+├── clients/
+│   └── streamlit/
+│       └── app.py                # Streamlit UI entry point
+├── src/
+│   └── creative_coding_assistant/
+│       ├── orchestration/        # Service pipeline: memory, retrieval, prompt, generation
+│       ├── rag/                  # Knowledge base, indexing, retrieval logic
+│       ├── llm/                  # Provider adapters (OpenAI)
+│       ├── eval/                 # RAG evaluation (RAGAs, live sessions)
+│       └── clients/              # Streamlit helpers and rendering logic
+├── tests/                        # Pytest test suite
+├── scripts/                      # CLI utilities (KB sync, eval runs)
+├── data/                         # Local runtime data (Chroma, eval logs)
+├── assets/                       # README images (screenshots)
+├── README.md
+└── pyproject.toml
+```
+
+## Architecture
+
+- `clients/streamlit/`: thin Streamlit chat client and UI rendering.
+- `src/creative_coding_assistant/orchestration/`: request routing, memory
+  assembly, retrieval orchestration, prompt input construction, prompt
+  rendering, provider-boundary preparation, and streamed service events.
+- `src/creative_coding_assistant/rag/`: official source registry, KB sync,
+  chunking, embedding, retrieval, filtering, deduplication, and deterministic
+  post-processing.
+- `src/creative_coding_assistant/llm/`: provider-neutral generation contracts
+  and OpenAI generation adapter.
+- `src/creative_coding_assistant/eval/`: live session recorder and manual RAGAs
+  evaluation runner over recorded real app usage.
+
+Local application data is stored under `data/`, including Chroma collections
+and evaluation JSONL outputs. Runtime data is not intended to be committed.
+
 ## Supported Domains
 
 - Three.js
@@ -38,23 +79,6 @@ visibility, and local evaluation workflows.
   retrieval failures.
 - Retrieval fallback so generation can continue when the knowledge base is
   temporarily unavailable.
-
-## Architecture
-
-- `clients/streamlit/`: thin Streamlit chat client and UI rendering.
-- `src/creative_coding_assistant/orchestration/`: request routing, memory
-  assembly, retrieval orchestration, prompt input construction, prompt
-  rendering, provider-boundary preparation, and streamed service events.
-- `src/creative_coding_assistant/rag/`: official source registry, KB sync,
-  chunking, embedding, retrieval, filtering, deduplication, and deterministic
-  post-processing.
-- `src/creative_coding_assistant/llm/`: provider-neutral generation contracts
-  and OpenAI generation adapter.
-- `src/creative_coding_assistant/eval/`: live session recorder and manual RAGAs
-  evaluation runner over recorded real app usage.
-
-Local application data is stored under `data/`, including Chroma collections
-and evaluation JSONL outputs. Runtime data is not intended to be committed.
 
 ## Setup
 
@@ -120,8 +144,6 @@ Sync selected sources:
   --source-id glsl_mdn_webgl_examples
 ```
 
-For more details, see `docs/sync.md`.
-
 ## Evaluation
 
 Live app sessions are recorded locally for later retrieval evaluation. RAGAs is
@@ -144,8 +166,6 @@ Or use the helper:
 scripts/run_eval_latest.sh 4
 ```
 
-For the retrieval evaluation workflow, see `docs/eval_pipeline.md`.
-
 ## Validation
 
 Run the project checks from the repository root:
@@ -156,25 +176,62 @@ Run the project checks from the repository root:
 .venv/bin/python -m compileall -q src clients tests scripts
 ```
 
-Current freeze validation status: V1 feature-complete and ready for the final
-integration branch.
+## Demo (Example Usage)
 
-## Project Status
+These examples highlight different capabilities of the assistant, including code generation, multi-domain reasoning, memory, and UI controls.
 
-V1 is feature-complete for the pre-agent phase:
+**Controls:**
+- **Domains:** restrict retrieval to specific technologies
+- **Mode:** generate, explain, or debug code
+- **Trace detail:** control visibility of retrieval and prompt context
 
-- Streamlit chat client.
-- Domain-aware multi-domain retrieval.
-- Official KB sync and local Chroma retrieval.
-- Short-term follow-up memory and session summaries.
-- Trace/debug visibility for retrieval and prompt context.
-- Code-oriented answer rendering and downloads.
-- Manual live-session RAGAs evaluation workflow.
+### 1. Beginner explanation + code
+**Domains:** All (no filter)  
+**Mode:** Generate  
+**Trace detail:** Medium  
 
-## Future Work
+**Prompt:**
+> What is creative coding? Explain it clearly and include a minimal Three.js example.
 
-- Agent/tools layer for multi-step creative coding workflows.
-- Next.js frontend to replace or complement Streamlit.
-- Live creative-code previews for generated sketches and scenes.
-- Expanded domains beyond Three.js, React Three Fiber, p5.js, and GLSL.
-- Advanced RAG evaluation, broader metrics, and visual analytics.
+### 2. Visual generation (p5.js)
+**Domains:** p5.js  
+**Mode:** Generate  
+**Trace detail:** Medium  
+
+**Prompt:**
+> Create a generative sketch in p5.js with animated circles reacting to noise.
+
+### 3. Three.js basic scene
+**Domains:** Three.js  
+**Mode:** Generate  
+**Trace detail:** Medium  
+
+**Prompt:**
+> Create a rotating cube in Three.js with basic lighting.
+
+### 4. Shader example (GLSL)
+**Domains:** GLSL  
+**Mode:** Generate  
+**Trace detail:** High  
+
+**Prompt:**
+> Create a simple fragment shader that generates a gradient animation.
+
+### 5. Multi-domain example
+**Domains:** React Three Fiber + GLSL  
+**Mode:** Generate  
+**Trace detail:** High  
+
+**Prompt:**
+> Create a shader material in React Three Fiber using GLSL.
+
+### 6. Follow-up interaction (memory)
+**Domains:** Three.js  
+**Mode:** Generate  
+**Trace detail:** Medium  
+
+**Prompt 1:**
+> Create a rotating cube in Three.js.
+
+**Prompt 2:**
+> Make it faster and change the color to red.
