@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from functools import lru_cache
 from uuid import uuid4
 
@@ -10,6 +11,7 @@ from creative_coding_assistant.clients import (
     ChatHistoryEntry,
     ContextDisplayItem,
     GenerationInputVisibilitySummary,
+    PromptDisplayItem,
     PromptVisibilitySummary,
     RetrievalDisplayItem,
     StreamRenderState,
@@ -379,30 +381,13 @@ def _render_debug_trace(
 
         st.markdown("**Retrieval results**")
         if retrieval_items:
-            for item in retrieval_items[:5]:
-                meta_parts = [item.source_id, _format_domain(item.domain)]
-                if item.score is not None:
-                    meta_parts.append(f"score {item.score:.3f}")
-                elif item.distance is not None:
-                    meta_parts.append(f"distance {item.distance:.3f}")
-                st.markdown(f"**{item.title}**")
-                st.caption(" | ".join(meta_parts))
-                _render_trace_text(item.snippet)
+            _render_retrieval_items(retrieval_items, limit=5)
         else:
             st.caption("No retrieval results were available.")
 
         st.markdown("**Assembled context**")
         if context_items:
-            for item in context_items[:5]:
-                meta_parts = []
-                if item.source_id is not None:
-                    meta_parts.append(item.source_id)
-                if item.domain is not None:
-                    meta_parts.append(_format_domain(item.domain))
-                st.markdown(f"**{item.label}**")
-                if meta_parts:
-                    st.caption(" | ".join(meta_parts))
-                _render_trace_text(item.snippet)
+            _render_display_items(context_items, limit=5)
         else:
             st.caption("No assembled context items were available.")
 
@@ -434,17 +419,7 @@ def _render_retrieval_context(
                 st.caption(empty_message)
                 return
 
-            for item in retrieval_items:
-                label = item.title
-                meta_parts = [item.source_id, _format_domain(item.domain)]
-                if item.score is not None:
-                    meta_parts.append(f"score {item.score:.3f}")
-                elif item.distance is not None:
-                    meta_parts.append(f"distance {item.distance:.3f}")
-
-                st.markdown(f"**{label}**")
-                st.caption(" | ".join(meta_parts))
-                _render_trace_text(item.snippet)
+            _render_retrieval_items(retrieval_items)
 
 
 def _format_domain_list(domains: tuple[CreativeCodingDomain, ...]) -> str:
@@ -485,17 +460,7 @@ def _render_context_visibility(
                 st.caption(empty_message)
                 return
 
-            for item in context_items:
-                meta_parts = []
-                if item.source_id is not None:
-                    meta_parts.append(item.source_id)
-                if item.domain is not None:
-                    meta_parts.append(_format_domain(item.domain))
-
-                st.markdown(f"**{item.label}**")
-                if meta_parts:
-                    st.caption(" | ".join(meta_parts))
-                _render_trace_text(item.snippet)
+            _render_display_items(context_items)
 
 
 def _render_prompt_visibility(
@@ -535,17 +500,7 @@ def _render_prompt_visibility(
                 st.caption(meta)
 
             assert summary is not None
-            for item in summary.items:
-                meta_parts = []
-                if item.source_id is not None:
-                    meta_parts.append(item.source_id)
-                if item.domain is not None:
-                    meta_parts.append(_format_domain(item.domain))
-
-                st.markdown(f"**{item.label}**")
-                if meta_parts:
-                    st.caption(" | ".join(meta_parts))
-                _render_trace_text(item.snippet)
+            _render_display_items(summary.items)
 
 
 def _render_generation_input_visibility(
@@ -587,6 +542,51 @@ def _render_generation_input_visibility(
                 if item.role is not None:
                     st.caption(item.role)
                 _render_trace_text(item.snippet)
+
+
+def _render_retrieval_items(
+    retrieval_items: Sequence[RetrievalDisplayItem],
+    *,
+    limit: int | None = None,
+) -> None:
+    import streamlit as st
+
+    for item in retrieval_items[:limit]:
+        meta_parts = [item.source_id, _format_domain(item.domain)]
+        if item.score is not None:
+            meta_parts.append(f"score {item.score:.3f}")
+        elif item.distance is not None:
+            meta_parts.append(f"distance {item.distance:.3f}")
+
+        st.markdown(f"**{item.title}**")
+        st.caption(" | ".join(meta_parts))
+        _render_trace_text(item.snippet)
+
+
+def _render_display_items(
+    items: Sequence[ContextDisplayItem | PromptDisplayItem],
+    *,
+    limit: int | None = None,
+) -> None:
+    import streamlit as st
+
+    for item in items[:limit]:
+        meta_parts = _display_item_meta_parts(item)
+        st.markdown(f"**{item.label}**")
+        if meta_parts:
+            st.caption(" | ".join(meta_parts))
+        _render_trace_text(item.snippet)
+
+
+def _display_item_meta_parts(
+    item: ContextDisplayItem | PromptDisplayItem,
+) -> list[str]:
+    meta_parts = []
+    if item.source_id is not None:
+        meta_parts.append(item.source_id)
+    if item.domain is not None:
+        meta_parts.append(_format_domain(item.domain))
+    return meta_parts
 
 
 def _render_answer_area(
