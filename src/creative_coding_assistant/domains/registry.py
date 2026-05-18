@@ -22,6 +22,13 @@ SUPPORTED_DOMAINS: tuple[DomainInfo, ...] = (
     DomainInfo(CreativeCodingDomain.PROCESSING, "Processing", "processing"),
     DomainInfo(CreativeCodingDomain.CANVAS_2D, "Canvas 2D", "canvas_2d"),
     DomainInfo(CreativeCodingDomain.WEBGPU_WGSL, "WebGPU/WGSL", "webgpu_wgsl"),
+    DomainInfo(CreativeCodingDomain.GSAP, "GSAP", "gsap"),
+    DomainInfo(CreativeCodingDomain.TONE_JS, "Tone.js", "tone_js"),
+    DomainInfo(CreativeCodingDomain.PIXI_JS, "PixiJS", "pixi_js"),
+    DomainInfo(CreativeCodingDomain.MATTER_JS, "Matter.js", "matter_js"),
+    DomainInfo(CreativeCodingDomain.RAPIER, "Rapier", "rapier"),
+    DomainInfo(CreativeCodingDomain.HYDRA, "Hydra", "hydra"),
+    DomainInfo(CreativeCodingDomain.SHADERTOY, "Shadertoy", "shadertoy"),
 )
 
 

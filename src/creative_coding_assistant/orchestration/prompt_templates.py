@@ -437,7 +437,46 @@ def _domain_preference_line(domain: CreativeCodingDomain) -> str:
             "Prefer standard CanvasRenderingContext2D APIs, clear canvas setup, "
             "and requestAnimationFrame for browser animation."
         )
+    if domain is CreativeCodingDomain.WEBGPU_WGSL:
+        return (
+            "Prefer WebGPU host setup and WGSL shader syntax; do not substitute "
+            "GLSL unless the user explicitly asks for it."
+        )
+    if domain is CreativeCodingDomain.GSAP:
+        return (
+            "Prefer GSAP tweens and timelines such as gsap.to() and "
+            "gsap.timeline() for browser animation sequencing."
+        )
+    if domain is CreativeCodingDomain.TONE_JS:
+        return (
+            "Prefer Tone.js Transport, synth, sampler, and signal APIs, and "
+            "mention browser audio start requirements when relevant."
+        )
+    if domain is CreativeCodingDomain.PIXI_JS:
+        return (
+            "Prefer PixiJS Application, stage, ticker, Graphics, Sprite, and "
+            "renderer terminology for 2D WebGL/WebGPU work."
+        )
+    if domain is CreativeCodingDomain.MATTER_JS:
+        return (
+            "Prefer Matter.js Engine, World, Bodies, Runner, constraints, and "
+            "clear physics-step structure."
+        )
+    if domain is CreativeCodingDomain.RAPIER:
+        return (
+            "Prefer Rapier rigid bodies, colliders, joints, and world stepping; "
+            "do not substitute Matter.js unless the user asks for it."
+        )
+    if domain is CreativeCodingDomain.HYDRA:
+        return (
+            "Prefer Hydra live-coding chains using sources, oscillators, "
+            "modulation, and concise video-synth examples."
+        )
+    if domain is CreativeCodingDomain.SHADERTOY:
+        return (
+            "Prefer Shadertoy GLSL structure with mainImage(), fragCoord, iTime, "
+            "and iResolution."
+        )
     return (
-        "Prefer WebGPU host setup and WGSL shader syntax; do not substitute GLSL "
-        "unless the user explicitly asks for it."
+        "Prefer the selected domain's official APIs, terminology, and examples."
     )

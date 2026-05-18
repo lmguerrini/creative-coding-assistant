@@ -104,7 +104,7 @@ class BootstrapImportTests(unittest.TestCase):
             ),
         )
 
-    def test_active_domain_values_match_v1_scope(self) -> None:
+    def test_active_domain_values_match_supported_scope(self) -> None:
         self.assertEqual(
             get_supported_domain_values(),
             (
@@ -115,6 +115,13 @@ class BootstrapImportTests(unittest.TestCase):
                 "processing",
                 "canvas_2d",
                 "webgpu_wgsl",
+                "gsap",
+                "tone_js",
+                "pixi_js",
+                "matter_js",
+                "rapier",
+                "hydra",
+                "shadertoy",
             ),
         )
 

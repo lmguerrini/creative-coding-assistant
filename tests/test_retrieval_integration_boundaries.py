@@ -226,6 +226,46 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
                     (expected_domain,),
                 )
 
+    def test_build_retrieval_request_detects_second_v2_query_domain(self) -> None:
+        cases = (
+            ("Animate with GSAP timelines.", CreativeCodingDomain.GSAP),
+            ("Create a Tone.js sampler patch.", CreativeCodingDomain.TONE_JS),
+            ("Build a PixiJS sprite scene.", CreativeCodingDomain.PIXI_JS),
+            ("Create Matter.js physics bodies.", CreativeCodingDomain.MATTER_JS),
+            ("Use Rapier physics colliders.", CreativeCodingDomain.RAPIER),
+            ("Create a Hydra video synth sketch.", CreativeCodingDomain.HYDRA),
+            ("Write a Shadertoy mainImage shader.", CreativeCodingDomain.SHADERTOY),
+        )
+
+        for query, expected_domain in cases:
+            with self.subTest(query=query):
+                assistant_request = AssistantRequest(
+                    query=query,
+                    domains=(
+                        CreativeCodingDomain.THREE_JS,
+                        CreativeCodingDomain.REACT_THREE_FIBER,
+                    ),
+                    mode=AssistantMode.GENERATE,
+                )
+                route_decision = RouteDecision(
+                    route=RouteName.GENERATE,
+                    mode=AssistantMode.GENERATE,
+                    capabilities=(RouteCapability.OFFICIAL_DOCS,),
+                )
+
+                retrieval_request = build_retrieval_context_request(
+                    assistant_request,
+                    route_decision,
+                )
+
+                self.assertIsNotNone(retrieval_request)
+                assert retrieval_request is not None
+                self.assertEqual(retrieval_request.filters.domain, expected_domain)
+                self.assertEqual(
+                    retrieval_request.filters.domains,
+                    (expected_domain,),
+                )
+
     def test_build_retrieval_request_uses_ui_domains_when_query_is_ambiguous(
         self,
     ) -> None:

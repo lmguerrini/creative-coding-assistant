@@ -27,6 +27,13 @@ class OfficialKnowledgeBaseSourceRegistryTests(unittest.TestCase):
                 CreativeCodingDomain.PROCESSING,
                 CreativeCodingDomain.CANVAS_2D,
                 CreativeCodingDomain.WEBGPU_WGSL,
+                CreativeCodingDomain.GSAP,
+                CreativeCodingDomain.TONE_JS,
+                CreativeCodingDomain.PIXI_JS,
+                CreativeCodingDomain.MATTER_JS,
+                CreativeCodingDomain.RAPIER,
+                CreativeCodingDomain.HYDRA,
+                CreativeCodingDomain.SHADERTOY,
             ),
         )
 
@@ -188,6 +195,89 @@ class OfficialKnowledgeBaseSourceRegistryTests(unittest.TestCase):
                 "developer.mozilla.org",
                 "www.w3.org",
             },
+        }
+
+        for domain, hosts in expected_hosts.items():
+            with self.subTest(domain=domain):
+                sources = approved_sources_for_domain(domain)
+                self.assertGreater(len(sources), 0)
+                self.assertEqual(
+                    {source.url.split("/")[2] for source in sources},
+                    hosts,
+                )
+
+    def test_second_v2_domain_sources_are_registered_with_expected_metadata(
+        self,
+    ) -> None:
+        cases = (
+            (
+                "gsap_docs",
+                CreativeCodingDomain.GSAP,
+                "GSAP",
+                "https://gsap.com/docs/v3/",
+                OfficialSourceType.API_REFERENCE,
+            ),
+            (
+                "tone_js_docs",
+                CreativeCodingDomain.TONE_JS,
+                "Tone.js",
+                "https://tonejs.github.io/docs/15.1.22/index.html",
+                OfficialSourceType.API_REFERENCE,
+            ),
+            (
+                "pixi_js_guides",
+                CreativeCodingDomain.PIXI_JS,
+                "PixiJS",
+                "https://pixijs.com/8.x/guides/getting-started/intro",
+                OfficialSourceType.GUIDE,
+            ),
+            (
+                "matter_js_docs",
+                CreativeCodingDomain.MATTER_JS,
+                "Matter.js",
+                "https://www.brm.io/matter-js/docs/",
+                OfficialSourceType.API_REFERENCE,
+            ),
+            (
+                "rapier_js_getting_started",
+                CreativeCodingDomain.RAPIER,
+                "Dimforge",
+                "https://rapier.rs/docs/user_guides/templates/getting_started_js/",
+                OfficialSourceType.GUIDE,
+            ),
+            (
+                "hydra_docs",
+                CreativeCodingDomain.HYDRA,
+                "Hydra",
+                "https://hydra.ojack.xyz/docs",
+                OfficialSourceType.GUIDE,
+            ),
+            (
+                "shadertoy_howto",
+                CreativeCodingDomain.SHADERTOY,
+                "Shadertoy",
+                "https://www.shadertoy.com/howto",
+                OfficialSourceType.GUIDE,
+            ),
+        )
+
+        for source_id, domain, publisher, url, source_type in cases:
+            with self.subTest(source_id=source_id):
+                source = get_official_source(source_id)
+                self.assertEqual(source.domain, domain)
+                self.assertEqual(source.publisher, publisher)
+                self.assertEqual(source.url, url)
+                self.assertEqual(source.source_type, source_type)
+
+    def test_second_v2_domain_sources_use_approved_hosts(self) -> None:
+        expected_hosts = {
+            CreativeCodingDomain.GSAP: {"gsap.com"},
+            CreativeCodingDomain.TONE_JS: {"tonejs.github.io"},
+            CreativeCodingDomain.PIXI_JS: {"pixijs.com"},
+            CreativeCodingDomain.MATTER_JS: {"www.brm.io"},
+            CreativeCodingDomain.RAPIER: {"rapier.rs"},
+            CreativeCodingDomain.HYDRA: {"hydra.ojack.xyz"},
+            CreativeCodingDomain.SHADERTOY: {"www.shadertoy.com"},
         }
 
         for domain, hosts in expected_hosts.items():

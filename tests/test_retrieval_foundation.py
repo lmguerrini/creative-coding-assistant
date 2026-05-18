@@ -207,6 +207,49 @@ class RetrievalFoundationTests(unittest.TestCase):
             with self.subTest(query=query):
                 self.assertEqual(detect_explicit_query_domains(query), ())
 
+    def test_detects_second_v2_explicit_query_domains(self) -> None:
+        cases = (
+            ("Animate a timeline with GSAP.", (CreativeCodingDomain.GSAP,)),
+            ("Create a Tone.js synth sequence.", (CreativeCodingDomain.TONE_JS,)),
+            ("Build a PixiJS particle renderer.", (CreativeCodingDomain.PIXI_JS,)),
+            (
+                "Use Matter.js bodies and constraints.",
+                (CreativeCodingDomain.MATTER_JS,),
+            ),
+            (
+                "Use Rapier physics for rigid bodies.",
+                (CreativeCodingDomain.RAPIER,),
+            ),
+            (
+                "Create a Hydra synth modulation chain.",
+                (CreativeCodingDomain.HYDRA,),
+            ),
+            (
+                "Write a Shadertoy mainImage shader.",
+                (CreativeCodingDomain.SHADERTOY,),
+            ),
+        )
+
+        for query, expected_domains in cases:
+            with self.subTest(query=query):
+                self.assertEqual(
+                    detect_explicit_query_domains(query),
+                    expected_domains,
+                )
+
+    def test_query_detection_avoids_broad_second_v2_false_positives(self) -> None:
+        cases = (
+            "Adjust the tone of the color palette.",
+            "This matter should stay in project notes.",
+            "The hydra myth inspired the shape.",
+            "A rapier sword appears in the concept art.",
+            "Use a pixie-like glow.",
+        )
+
+        for query in cases:
+            with self.subTest(query=query):
+                self.assertEqual(detect_explicit_query_domains(query), ())
+
     def test_retriever_uses_only_kb_collection(self) -> None:
         with _kb_client() as client:
             _seed_kb_records(client)

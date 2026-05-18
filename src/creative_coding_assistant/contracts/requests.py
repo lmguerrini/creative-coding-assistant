@@ -18,6 +18,13 @@ class CreativeCodingDomain(StrEnum):
     PROCESSING = "processing"
     CANVAS_2D = "canvas_2d"
     WEBGPU_WGSL = "webgpu_wgsl"
+    GSAP = "gsap"
+    TONE_JS = "tone_js"
+    PIXI_JS = "pixi_js"
+    MATTER_JS = "matter_js"
+    RAPIER = "rapier"
+    HYDRA = "hydra"
+    SHADERTOY = "shadertoy"
 
 
 class AssistantMode(StrEnum):

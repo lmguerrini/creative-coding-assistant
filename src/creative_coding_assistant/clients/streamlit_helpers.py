@@ -425,7 +425,23 @@ def _domain_display_name(domain: CreativeCodingDomain) -> str:
         return "Processing"
     if domain is CreativeCodingDomain.CANVAS_2D:
         return "Canvas 2D"
-    return "WebGPU/WGSL"
+    if domain is CreativeCodingDomain.WEBGPU_WGSL:
+        return "WebGPU/WGSL"
+    if domain is CreativeCodingDomain.GSAP:
+        return "GSAP"
+    if domain is CreativeCodingDomain.TONE_JS:
+        return "Tone.js"
+    if domain is CreativeCodingDomain.PIXI_JS:
+        return "PixiJS"
+    if domain is CreativeCodingDomain.MATTER_JS:
+        return "Matter.js"
+    if domain is CreativeCodingDomain.RAPIER:
+        return "Rapier"
+    if domain is CreativeCodingDomain.HYDRA:
+        return "Hydra"
+    if domain is CreativeCodingDomain.SHADERTOY:
+        return "Shadertoy"
+    return domain.value
 
 
 def _coerce_domain(value: object) -> CreativeCodingDomain | None:

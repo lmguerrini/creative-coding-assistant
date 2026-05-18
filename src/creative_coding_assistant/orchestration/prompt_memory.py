@@ -348,7 +348,23 @@ def _domain_summary_label(domain: CreativeCodingDomain | None) -> str | None:
         return "Processing"
     if domain is CreativeCodingDomain.CANVAS_2D:
         return "Canvas 2D"
-    return "WebGPU/WGSL"
+    if domain is CreativeCodingDomain.WEBGPU_WGSL:
+        return "WebGPU/WGSL"
+    if domain is CreativeCodingDomain.GSAP:
+        return "GSAP"
+    if domain is CreativeCodingDomain.TONE_JS:
+        return "Tone.js"
+    if domain is CreativeCodingDomain.PIXI_JS:
+        return "PixiJS"
+    if domain is CreativeCodingDomain.MATTER_JS:
+        return "Matter.js"
+    if domain is CreativeCodingDomain.RAPIER:
+        return "Rapier"
+    if domain is CreativeCodingDomain.HYDRA:
+        return "Hydra"
+    if domain is CreativeCodingDomain.SHADERTOY:
+        return "Shadertoy"
+    return domain.value
 
 
 def _default_generated_topic(domain: CreativeCodingDomain | None) -> str:
@@ -362,6 +378,20 @@ def _default_generated_topic(domain: CreativeCodingDomain | None) -> str:
         return "canvas sketch"
     if domain is CreativeCodingDomain.WEBGPU_WGSL:
         return "WebGPU/WGSL code"
+    if domain is CreativeCodingDomain.GSAP:
+        return "animation code"
+    if domain is CreativeCodingDomain.TONE_JS:
+        return "audio code"
+    if domain is CreativeCodingDomain.PIXI_JS:
+        return "rendering code"
+    if domain is CreativeCodingDomain.MATTER_JS:
+        return "physics code"
+    if domain is CreativeCodingDomain.RAPIER:
+        return "physics code"
+    if domain is CreativeCodingDomain.HYDRA:
+        return "live-coding sketch"
+    if domain is CreativeCodingDomain.SHADERTOY:
+        return "shader code"
     if domain is CreativeCodingDomain.REACT_THREE_FIBER:
         return "component code"
     if domain is CreativeCodingDomain.THREE_JS:

@@ -407,6 +407,57 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             system_section,
         )
 
+    def test_renderer_adds_second_v2_domain_guidance(self) -> None:
+        renderer = JinjaPromptRenderer()
+        assistant_request = AssistantRequest(
+            query="Compare the selected creative coding environments.",
+            domains=(
+                CreativeCodingDomain.GSAP,
+                CreativeCodingDomain.TONE_JS,
+                CreativeCodingDomain.PIXI_JS,
+                CreativeCodingDomain.MATTER_JS,
+                CreativeCodingDomain.RAPIER,
+                CreativeCodingDomain.HYDRA,
+                CreativeCodingDomain.SHADERTOY,
+            ),
+            mode=AssistantMode.EXPLAIN,
+        )
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=assistant_request,
+                route_decision=RouteDecision(
+                    route=RouteName.EXPLAIN,
+                    mode=AssistantMode.EXPLAIN,
+                    domains=assistant_request.domains,
+                    capabilities=(RouteCapability.OFFICIAL_DOCS,),
+                ),
+                assembled_context=None,
+            )
+        )
+
+        rendered = renderer.render(
+            build_rendered_prompt_request(
+                route_decision=RouteName.EXPLAIN,
+                prompt_input=prompt_input,
+            )
+        )
+
+        system_section = rendered.sections[0].content
+        self.assertIn("- gsap", system_section)
+        self.assertIn("- tone_js", system_section)
+        self.assertIn("- pixi_js", system_section)
+        self.assertIn("- matter_js", system_section)
+        self.assertIn("- rapier", system_section)
+        self.assertIn("- hydra", system_section)
+        self.assertIn("- shadertoy", system_section)
+        self.assertIn("Prefer GSAP tweens and timelines", system_section)
+        self.assertIn("Prefer Tone.js Transport", system_section)
+        self.assertIn("Prefer PixiJS Application", system_section)
+        self.assertIn("Prefer Matter.js Engine", system_section)
+        self.assertIn("Prefer Rapier rigid bodies", system_section)
+        self.assertIn("Prefer Hydra live-coding chains", system_section)
+        self.assertIn("Prefer Shadertoy GLSL structure", system_section)
+
     def test_renderer_marks_follow_up_and_renders_compact_prior_turn_pair(
         self,
     ) -> None:

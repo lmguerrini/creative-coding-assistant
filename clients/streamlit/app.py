@@ -62,6 +62,13 @@ _DOMAIN_LABELS = {
     CreativeCodingDomain.PROCESSING: "Processing",
     CreativeCodingDomain.CANVAS_2D: "Canvas 2D",
     CreativeCodingDomain.WEBGPU_WGSL: "WebGPU/WGSL",
+    CreativeCodingDomain.GSAP: "GSAP",
+    CreativeCodingDomain.TONE_JS: "Tone.js",
+    CreativeCodingDomain.PIXI_JS: "PixiJS",
+    CreativeCodingDomain.MATTER_JS: "Matter.js",
+    CreativeCodingDomain.RAPIER: "Rapier",
+    CreativeCodingDomain.HYDRA: "Hydra",
+    CreativeCodingDomain.SHADERTOY: "Shadertoy",
 }
 
 _MODE_LABELS = {
@@ -83,8 +90,8 @@ def main() -> None:
     st.set_page_config(page_title=settings.app_name, page_icon=":art:")
     st.title(settings.app_name)
     st.caption(
-        "Three.js, React Three Fiber, p5.js, GLSL, Processing, Canvas 2D, "
-        "and WebGPU/WGSL chat support."
+        "Creative coding chat support across 3D, shaders, animation, audio, "
+        "physics, rendering, and live-coding domains."
     )
 
     _ensure_session_state(settings)

@@ -45,6 +45,55 @@ _WEBGPU_WGSL_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
     (re.compile(r"\bgpucanvascontext\b"), 2),
     (re.compile(r"\bgpudevice\b"), 2),
 )
+_GSAP_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bgsap\b"), 3),
+    (re.compile(r"\bgreensock\b"), 3),
+    (re.compile(r"\bgsap\.(?:to|from|fromto|timeline|set)\b"), 3),
+)
+_TONE_JS_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\btone\.js\b"), 3),
+    (re.compile(r"\btonejs\b"), 3),
+    (re.compile(r"\btone\.(?:synth|transport|sequence|player|start)\b"), 3),
+    (re.compile(r"\bnew\s+tone\."), 3),
+)
+_PIXI_JS_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bpixi\.js\b"), 3),
+    (re.compile(r"\bpixijs\b"), 3),
+    (re.compile(r"\bpixi\.(?:application|graphics|sprite|container|assets)\b"), 3),
+)
+_MATTER_JS_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bmatter\.js\b"), 3),
+    (re.compile(r"\bmatterjs\b"), 3),
+    (
+        re.compile(
+            r"\bmatter\.(?:engine|world|bodies|body|runner|composite|constraint)\b"
+        ),
+        3,
+    ),
+)
+_RAPIER_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"@dimforge/rapier(?:2d|3d)?"), 3),
+    (re.compile(r"\brapier\.rs\b"), 3),
+    (
+        re.compile(
+            r"\brapier\s+(?:physics|rigid\s+bodies|colliders?|world|js|"
+            r"javascript|2d|3d)\b"
+        ),
+        3,
+    ),
+    (re.compile(r"\brapier(?:2d|3d)\b"), 3),
+)
+_HYDRA_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bhydra(?:-synth|\s+synth|\s+video\s+synth)\b"), 3),
+    (re.compile(r"\bhydra\.ojack\b"), 3),
+    (re.compile(r"\bhydra\s+(?:osc|src|modulate|live\s+coding|sketch)\b"), 3),
+)
+_SHADERTOY_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bshadertoy\b"), 3),
+    (re.compile(r"\bmainimage\s*\("), 3),
+    (re.compile(r"\bfragcoord\b"), 2),
+    (re.compile(r"\bi(?:time|resolution|mouse|channel0)\b"), 2),
+)
 _INTENT_PATTERNS: tuple[
     tuple[CreativeCodingDomain, tuple[tuple[re.Pattern[str], int], ...]],
     ...,
@@ -56,6 +105,13 @@ _INTENT_PATTERNS: tuple[
     (CreativeCodingDomain.PROCESSING, _PROCESSING_PATTERNS),
     (CreativeCodingDomain.CANVAS_2D, _CANVAS_2D_PATTERNS),
     (CreativeCodingDomain.WEBGPU_WGSL, _WEBGPU_WGSL_PATTERNS),
+    (CreativeCodingDomain.GSAP, _GSAP_PATTERNS),
+    (CreativeCodingDomain.TONE_JS, _TONE_JS_PATTERNS),
+    (CreativeCodingDomain.PIXI_JS, _PIXI_JS_PATTERNS),
+    (CreativeCodingDomain.MATTER_JS, _MATTER_JS_PATTERNS),
+    (CreativeCodingDomain.RAPIER, _RAPIER_PATTERNS),
+    (CreativeCodingDomain.HYDRA, _HYDRA_PATTERNS),
+    (CreativeCodingDomain.SHADERTOY, _SHADERTOY_PATTERNS),
 )
 _RELATED_DOMAIN_FALLBACKS: dict[
     CreativeCodingDomain,
