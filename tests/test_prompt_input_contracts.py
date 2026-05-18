@@ -204,6 +204,42 @@ class PromptInputContractsTests(unittest.TestCase):
         self.assertIn("User requested GSAP project work.", summaries)
         self.assertIn("Assistant generated GSAP animation code.", summaries)
 
+    def test_prompt_input_builder_labels_third_v2_session_memory_domains(
+        self,
+    ) -> None:
+        builder = StructuredPromptInputBuilder()
+        assistant_request = AssistantRequest(
+            query="Explain the current TouchDesigner network.",
+            domain=CreativeCodingDomain.TOUCHDESIGNER,
+            mode=AssistantMode.EXPLAIN,
+        )
+        request = build_prompt_input_request(
+            assistant_request=assistant_request,
+            route_decision=RouteDecision(
+                route=RouteName.EXPLAIN,
+                mode=AssistantMode.EXPLAIN,
+                domain=CreativeCodingDomain.TOUCHDESIGNER,
+                capabilities=(RouteCapability.MEMORY_CONTEXT,),
+            ),
+            assembled_context=_assembled_context(
+                route=RouteName.EXPLAIN,
+                memory_context=_memory_context_with_touchdesigner_turns(),
+                retrieval_context=None,
+            ),
+        )
+
+        response = builder.build(request)
+
+        assert response.memory_input is not None
+        summaries = tuple(
+            item.summary for item in response.memory_input.session_summaries
+        )
+        self.assertIn("User requested TouchDesigner project work.", summaries)
+        self.assertIn(
+            "Assistant generated TouchDesigner operator network guidance.",
+            summaries,
+        )
+
     def test_prompt_input_builder_supports_user_only_flow(self) -> None:
         builder = StructuredPromptInputBuilder()
         assistant_request = AssistantRequest(query="Start a shader study.")
@@ -606,6 +642,40 @@ def _memory_context_with_gsap_turns() -> MemoryContextResponse:
                     "```javascript\n"
                     "const tl = gsap.timeline();\n"
                     "tl.to('.box', { x: 100, duration: 1 });\n"
+                    "```"
+                ),
+                created_at=_time(),
+                mode=AssistantMode.GENERATE,
+            ),
+        ),
+        running_summary=None,
+        project_memories=(),
+    )
+
+
+def _memory_context_with_touchdesigner_turns() -> MemoryContextResponse:
+    return MemoryContextResponse(
+        request=MemoryContextRequest(
+            route=RouteName.EXPLAIN,
+            conversation_id="conversation-1",
+            project_id="project-1",
+        ),
+        source=MemoryContextSource.CHROMA_MEMORY,
+        recent_turns=(
+            RecentConversationTurn(
+                turn_index=0,
+                role=ConversationRole.USER,
+                content="Create a TouchDesigner TOP operator network.",
+                created_at=_time(),
+                mode=AssistantMode.GENERATE,
+            ),
+            RecentConversationTurn(
+                turn_index=1,
+                role=ConversationRole.ASSISTANT,
+                content=(
+                    "```text\n"
+                    "TouchDesigner network: Movie File In TOP -> Level TOP -> "
+                    "Composite TOP\n"
                     "```"
                 ),
                 created_at=_time(),

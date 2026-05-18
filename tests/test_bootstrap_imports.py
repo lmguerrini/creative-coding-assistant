@@ -122,6 +122,14 @@ class BootstrapImportTests(unittest.TestCase):
                 "rapier",
                 "hydra",
                 "shadertoy",
+                "touchdesigner",
+                "houdini",
+                "blender_geometry_nodes",
+                "unity",
+                "unreal",
+                "max_msp",
+                "notch",
+                "vvvv",
             ),
         )
 

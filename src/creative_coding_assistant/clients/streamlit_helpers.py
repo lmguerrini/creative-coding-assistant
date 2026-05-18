@@ -441,6 +441,22 @@ def _domain_display_name(domain: CreativeCodingDomain) -> str:
         return "Hydra"
     if domain is CreativeCodingDomain.SHADERTOY:
         return "Shadertoy"
+    if domain is CreativeCodingDomain.TOUCHDESIGNER:
+        return "TouchDesigner"
+    if domain is CreativeCodingDomain.HOUDINI:
+        return "Houdini"
+    if domain is CreativeCodingDomain.BLENDER_GEOMETRY_NODES:
+        return "Blender / Geometry Nodes"
+    if domain is CreativeCodingDomain.UNITY:
+        return "Unity"
+    if domain is CreativeCodingDomain.UNREAL:
+        return "Unreal"
+    if domain is CreativeCodingDomain.MAX_MSP:
+        return "Max/MSP"
+    if domain is CreativeCodingDomain.NOTCH:
+        return "Notch"
+    if domain is CreativeCodingDomain.VVVV:
+        return "VVVV"
     return domain.value
 
 

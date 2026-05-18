@@ -458,6 +458,69 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         self.assertIn("Prefer Hydra live-coding chains", system_section)
         self.assertIn("Prefer Shadertoy GLSL structure", system_section)
 
+    def test_renderer_adds_third_v2_workflow_domain_guidance(self) -> None:
+        renderer = JinjaPromptRenderer()
+        assistant_request = AssistantRequest(
+            query="Compare the selected creative coding tool workflows.",
+            domains=(
+                CreativeCodingDomain.TOUCHDESIGNER,
+                CreativeCodingDomain.HOUDINI,
+                CreativeCodingDomain.BLENDER_GEOMETRY_NODES,
+                CreativeCodingDomain.UNITY,
+                CreativeCodingDomain.UNREAL,
+                CreativeCodingDomain.MAX_MSP,
+                CreativeCodingDomain.NOTCH,
+                CreativeCodingDomain.VVVV,
+            ),
+            mode=AssistantMode.EXPLAIN,
+        )
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=assistant_request,
+                route_decision=RouteDecision(
+                    route=RouteName.EXPLAIN,
+                    mode=AssistantMode.EXPLAIN,
+                    domains=assistant_request.domains,
+                    capabilities=(RouteCapability.OFFICIAL_DOCS,),
+                ),
+                assembled_context=None,
+            )
+        )
+
+        rendered = renderer.render(
+            build_rendered_prompt_request(
+                route_decision=RouteName.EXPLAIN,
+                prompt_input=prompt_input,
+            )
+        )
+
+        system_section = rendered.sections[0].content
+        self.assertIn("- touchdesigner", system_section)
+        self.assertIn("- houdini", system_section)
+        self.assertIn("- blender_geometry_nodes", system_section)
+        self.assertIn("- unity", system_section)
+        self.assertIn("- unreal", system_section)
+        self.assertIn("- max_msp", system_section)
+        self.assertIn("- notch", system_section)
+        self.assertIn("- vvvv", system_section)
+        self.assertIn(
+            "Treat TouchDesigner as an external workflow domain",
+            system_section,
+        )
+        self.assertIn(
+            "Treat Houdini as an external procedural workflow",
+            system_section,
+        )
+        self.assertIn("Treat Blender Geometry Nodes as an external DCC", system_section)
+        self.assertIn("Treat Unity as an external engine workflow", system_section)
+        self.assertIn("Treat Unreal as an external engine workflow", system_section)
+        self.assertIn("Treat Max/MSP as an external visual patching", system_section)
+        self.assertIn("Treat Notch as an external realtime VFX", system_section)
+        self.assertIn(
+            "Treat vvvv gamma as an external visual programming",
+            system_section,
+        )
+
     def test_renderer_marks_follow_up_and_renders_compact_prior_turn_pair(
         self,
     ) -> None:

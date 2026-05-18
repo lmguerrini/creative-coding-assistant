@@ -250,6 +250,49 @@ class RetrievalFoundationTests(unittest.TestCase):
             with self.subTest(query=query):
                 self.assertEqual(detect_explicit_query_domains(query), ())
 
+    def test_detects_third_v2_explicit_query_domains(self) -> None:
+        cases = (
+            (
+                "Build a TouchDesigner CHOP operator network.",
+                (CreativeCodingDomain.TOUCHDESIGNER,),
+            ),
+            ("Create a Houdini SOP network.", (CreativeCodingDomain.HOUDINI,)),
+            (
+                "Use Blender Geometry Nodes for instancing.",
+                (CreativeCodingDomain.BLENDER_GEOMETRY_NODES,),
+            ),
+            ("Create a Unity GameObject setup.", (CreativeCodingDomain.UNITY,)),
+            (
+                "Build an Unreal Engine Blueprint graph.",
+                (CreativeCodingDomain.UNREAL,),
+            ),
+            ("Create a Max/MSP signal patch.", (CreativeCodingDomain.MAX_MSP,)),
+            ("Export a Notch VFX Block.", (CreativeCodingDomain.NOTCH,)),
+            ("Build this in vvvv gamma.", (CreativeCodingDomain.VVVV,)),
+        )
+
+        for query, expected_domains in cases:
+            with self.subTest(query=query):
+                self.assertEqual(
+                    detect_explicit_query_domains(query),
+                    expected_domains,
+                )
+
+    def test_query_detection_avoids_broad_third_v2_false_positives(self) -> None:
+        cases = (
+            "Touch the designer layout gently.",
+            "Use a blender for smoothies.",
+            "Keep the team in unity.",
+            "These are unreal expectations.",
+            "Set the max width to 400 pixels.",
+            "Cut a notch in the wooden frame.",
+            "The gray book belongs on the shelf.",
+        )
+
+        for query in cases:
+            with self.subTest(query=query):
+                self.assertEqual(detect_explicit_query_domains(query), ())
+
     def test_retriever_uses_only_kb_collection(self) -> None:
         with _kb_client() as client:
             _seed_kb_records(client)

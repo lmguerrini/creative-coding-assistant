@@ -29,6 +29,18 @@ SUPPORTED_DOMAINS: tuple[DomainInfo, ...] = (
     DomainInfo(CreativeCodingDomain.RAPIER, "Rapier", "rapier"),
     DomainInfo(CreativeCodingDomain.HYDRA, "Hydra", "hydra"),
     DomainInfo(CreativeCodingDomain.SHADERTOY, "Shadertoy", "shadertoy"),
+    DomainInfo(CreativeCodingDomain.TOUCHDESIGNER, "TouchDesigner", "touchdesigner"),
+    DomainInfo(CreativeCodingDomain.HOUDINI, "Houdini", "houdini"),
+    DomainInfo(
+        CreativeCodingDomain.BLENDER_GEOMETRY_NODES,
+        "Blender / Geometry Nodes",
+        "blender_geometry_nodes",
+    ),
+    DomainInfo(CreativeCodingDomain.UNITY, "Unity", "unity"),
+    DomainInfo(CreativeCodingDomain.UNREAL, "Unreal", "unreal"),
+    DomainInfo(CreativeCodingDomain.MAX_MSP, "Max/MSP", "max_msp"),
+    DomainInfo(CreativeCodingDomain.NOTCH, "Notch", "notch"),
+    DomainInfo(CreativeCodingDomain.VVVV, "VVVV", "vvvv"),
 )
 
 

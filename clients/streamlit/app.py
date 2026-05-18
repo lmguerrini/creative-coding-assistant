@@ -69,6 +69,14 @@ _DOMAIN_LABELS = {
     CreativeCodingDomain.RAPIER: "Rapier",
     CreativeCodingDomain.HYDRA: "Hydra",
     CreativeCodingDomain.SHADERTOY: "Shadertoy",
+    CreativeCodingDomain.TOUCHDESIGNER: "TouchDesigner",
+    CreativeCodingDomain.HOUDINI: "Houdini",
+    CreativeCodingDomain.BLENDER_GEOMETRY_NODES: "Blender / Geometry Nodes",
+    CreativeCodingDomain.UNITY: "Unity",
+    CreativeCodingDomain.UNREAL: "Unreal",
+    CreativeCodingDomain.MAX_MSP: "Max/MSP",
+    CreativeCodingDomain.NOTCH: "Notch",
+    CreativeCodingDomain.VVVV: "VVVV",
 }
 
 _MODE_LABELS = {
@@ -91,7 +99,7 @@ def main() -> None:
     st.title(settings.app_name)
     st.caption(
         "Creative coding chat support across 3D, shaders, animation, audio, "
-        "physics, rendering, and live-coding domains."
+        "physics, rendering, live-coding, engines, and procedural tool domains."
     )
 
     _ensure_session_state(settings)

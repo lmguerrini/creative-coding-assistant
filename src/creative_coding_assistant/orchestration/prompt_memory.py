@@ -364,6 +364,22 @@ def _domain_summary_label(domain: CreativeCodingDomain | None) -> str | None:
         return "Hydra"
     if domain is CreativeCodingDomain.SHADERTOY:
         return "Shadertoy"
+    if domain is CreativeCodingDomain.TOUCHDESIGNER:
+        return "TouchDesigner"
+    if domain is CreativeCodingDomain.HOUDINI:
+        return "Houdini"
+    if domain is CreativeCodingDomain.BLENDER_GEOMETRY_NODES:
+        return "Blender / Geometry Nodes"
+    if domain is CreativeCodingDomain.UNITY:
+        return "Unity"
+    if domain is CreativeCodingDomain.UNREAL:
+        return "Unreal"
+    if domain is CreativeCodingDomain.MAX_MSP:
+        return "Max/MSP"
+    if domain is CreativeCodingDomain.NOTCH:
+        return "Notch"
+    if domain is CreativeCodingDomain.VVVV:
+        return "VVVV"
     return domain.value
 
 
@@ -392,6 +408,22 @@ def _default_generated_topic(domain: CreativeCodingDomain | None) -> str:
         return "live-coding sketch"
     if domain is CreativeCodingDomain.SHADERTOY:
         return "shader code"
+    if domain is CreativeCodingDomain.TOUCHDESIGNER:
+        return "operator network guidance"
+    if domain is CreativeCodingDomain.HOUDINI:
+        return "procedural workflow guidance"
+    if domain is CreativeCodingDomain.BLENDER_GEOMETRY_NODES:
+        return "geometry nodes guidance"
+    if domain is CreativeCodingDomain.UNITY:
+        return "engine workflow guidance"
+    if domain is CreativeCodingDomain.UNREAL:
+        return "engine workflow guidance"
+    if domain is CreativeCodingDomain.MAX_MSP:
+        return "patching guidance"
+    if domain is CreativeCodingDomain.NOTCH:
+        return "realtime VFX workflow guidance"
+    if domain is CreativeCodingDomain.VVVV:
+        return "visual programming guidance"
     if domain is CreativeCodingDomain.REACT_THREE_FIBER:
         return "component code"
     if domain is CreativeCodingDomain.THREE_JS:

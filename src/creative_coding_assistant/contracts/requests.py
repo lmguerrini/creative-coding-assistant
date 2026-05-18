@@ -25,6 +25,14 @@ class CreativeCodingDomain(StrEnum):
     RAPIER = "rapier"
     HYDRA = "hydra"
     SHADERTOY = "shadertoy"
+    TOUCHDESIGNER = "touchdesigner"
+    HOUDINI = "houdini"
+    BLENDER_GEOMETRY_NODES = "blender_geometry_nodes"
+    UNITY = "unity"
+    UNREAL = "unreal"
+    MAX_MSP = "max_msp"
+    NOTCH = "notch"
+    VVVV = "vvvv"
 
 
 class AssistantMode(StrEnum):

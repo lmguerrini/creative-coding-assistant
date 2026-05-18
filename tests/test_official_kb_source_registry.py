@@ -34,6 +34,14 @@ class OfficialKnowledgeBaseSourceRegistryTests(unittest.TestCase):
                 CreativeCodingDomain.RAPIER,
                 CreativeCodingDomain.HYDRA,
                 CreativeCodingDomain.SHADERTOY,
+                CreativeCodingDomain.TOUCHDESIGNER,
+                CreativeCodingDomain.HOUDINI,
+                CreativeCodingDomain.BLENDER_GEOMETRY_NODES,
+                CreativeCodingDomain.UNITY,
+                CreativeCodingDomain.UNREAL,
+                CreativeCodingDomain.MAX_MSP,
+                CreativeCodingDomain.NOTCH,
+                CreativeCodingDomain.VVVV,
             ),
         )
 
@@ -278,6 +286,89 @@ class OfficialKnowledgeBaseSourceRegistryTests(unittest.TestCase):
             CreativeCodingDomain.RAPIER: {"rapier.rs"},
             CreativeCodingDomain.HYDRA: {"hydra.ojack.xyz"},
             CreativeCodingDomain.SHADERTOY: {"www.shadertoy.com"},
+        }
+
+        for domain, hosts in expected_hosts.items():
+            with self.subTest(domain=domain):
+                sources = approved_sources_for_domain(domain)
+                self.assertGreater(len(sources), 0)
+                self.assertEqual(
+                    {source.url.split("/")[2] for source in sources},
+                    hosts,
+                )
+
+    def test_third_v2_domain_sources_are_registered_with_expected_metadata(
+        self,
+    ) -> None:
+        cases = (
+            (
+                "touchdesigner_user_guide",
+                CreativeCodingDomain.TOUCHDESIGNER,
+                "Derivative",
+                "https://derivative.ca/UserGuide/Getting_started",
+            ),
+            (
+                "houdini_docs",
+                CreativeCodingDomain.HOUDINI,
+                "SideFX",
+                "https://www.sidefx.com/docs/houdini/",
+            ),
+            (
+                "blender_geometry_nodes_manual",
+                CreativeCodingDomain.BLENDER_GEOMETRY_NODES,
+                "Blender Foundation",
+                "https://docs.blender.org/manual/en/latest/modeling/geometry_nodes/index.html",
+            ),
+            (
+                "unity_manual",
+                CreativeCodingDomain.UNITY,
+                "Unity",
+                "https://docs.unity3d.com/Manual/index.html",
+            ),
+            (
+                "unreal_engine_docs",
+                CreativeCodingDomain.UNREAL,
+                "Epic Games",
+                "https://dev.epicgames.com/documentation/en-us/unreal-engine/get-started",
+            ),
+            (
+                "max_msp_docs",
+                CreativeCodingDomain.MAX_MSP,
+                "Cycling '74",
+                "https://docs.cycling74.com/",
+            ),
+            (
+                "notch_manual",
+                CreativeCodingDomain.NOTCH,
+                "Notch",
+                "https://manual.notch.one/1.0/en/docs/",
+            ),
+            (
+                "vvvv_gamma_docs",
+                CreativeCodingDomain.VVVV,
+                "vvvv",
+                "https://thegraybook.vvvv.org/",
+            ),
+        )
+
+        for source_id, domain, publisher, url in cases:
+            with self.subTest(source_id=source_id):
+                source = get_official_source(source_id)
+                self.assertEqual(source.domain, domain)
+                self.assertEqual(source.publisher, publisher)
+                self.assertEqual(source.url, url)
+                self.assertEqual(source.source_type, OfficialSourceType.GUIDE)
+
+    def test_third_v2_domain_sources_use_approved_hosts(self) -> None:
+        expected_hosts = {
+            CreativeCodingDomain.TOUCHDESIGNER: {"derivative.ca"},
+            CreativeCodingDomain.HOUDINI: {"www.sidefx.com"},
+            CreativeCodingDomain.BLENDER_GEOMETRY_NODES: {"docs.blender.org"},
+            CreativeCodingDomain.UNITY: {"docs.unity3d.com"},
+            CreativeCodingDomain.UNREAL: {"dev.epicgames.com"},
+            CreativeCodingDomain.MAX_MSP: {"docs.cycling74.com"},
+            CreativeCodingDomain.NOTCH: {"manual.notch.one"},
+            CreativeCodingDomain.VVVV: {"thegraybook.vvvv.org"},
         }
 
         for domain, hosts in expected_hosts.items():

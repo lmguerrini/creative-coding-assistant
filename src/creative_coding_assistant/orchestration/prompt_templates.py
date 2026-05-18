@@ -477,6 +477,48 @@ def _domain_preference_line(domain: CreativeCodingDomain) -> str:
             "Prefer Shadertoy GLSL structure with mainImage(), fragCoord, iTime, "
             "and iResolution."
         )
+    if domain is CreativeCodingDomain.TOUCHDESIGNER:
+        return (
+            "Treat TouchDesigner as an external workflow domain; prefer operator "
+            "families such as TOPs, CHOPs, DATs, COMPs, and node-network guidance."
+        )
+    if domain is CreativeCodingDomain.HOUDINI:
+        return (
+            "Treat Houdini as an external procedural workflow domain; prefer SOP, "
+            "VOP, DOP, LOP, VEX, HDA, and node graph terminology."
+        )
+    if domain is CreativeCodingDomain.BLENDER_GEOMETRY_NODES:
+        return (
+            "Treat Blender Geometry Nodes as an external DCC workflow domain; "
+            "prefer modifiers, node trees, fields, attributes, and Blender manual "
+            "terminology."
+        )
+    if domain is CreativeCodingDomain.UNITY:
+        return (
+            "Treat Unity as an external engine workflow domain; prefer scenes, "
+            "GameObjects, components, prefabs, C# scripts, URP, and HDRP guidance."
+        )
+    if domain is CreativeCodingDomain.UNREAL:
+        return (
+            "Treat Unreal as an external engine workflow domain; prefer Unreal "
+            "Editor, Blueprint, C++, Niagara, PCG, Nanite, and Lumen terminology."
+        )
+    if domain is CreativeCodingDomain.MAX_MSP:
+        return (
+            "Treat Max/MSP as an external visual patching domain; prefer patchers, "
+            "objects, MSP signal flow, Jitter matrices, Gen, and Max terminology."
+        )
+    if domain is CreativeCodingDomain.NOTCH:
+        return (
+            "Treat Notch as an external realtime VFX workflow domain; prefer "
+            "Builder, nodegraph, blocks, exposed parameters, and media-server "
+            "pipeline guidance."
+        )
+    if domain is CreativeCodingDomain.VVVV:
+        return (
+            "Treat vvvv gamma as an external visual programming domain; prefer VL "
+            "patches, nodes, pins, links, Skia, Stride, and gamma terminology."
+        )
     return (
         "Prefer the selected domain's official APIs, terminology, and examples."
     )

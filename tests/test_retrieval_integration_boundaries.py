@@ -266,6 +266,53 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
                     (expected_domain,),
                 )
 
+    def test_build_retrieval_request_detects_third_v2_query_domain(self) -> None:
+        cases = (
+            (
+                "Create a TouchDesigner TOP operator network.",
+                CreativeCodingDomain.TOUCHDESIGNER,
+            ),
+            ("Create a Houdini VEX setup.", CreativeCodingDomain.HOUDINI),
+            (
+                "Create a Blender Geometry Nodes field setup.",
+                CreativeCodingDomain.BLENDER_GEOMETRY_NODES,
+            ),
+            ("Create a Unity prefab workflow.", CreativeCodingDomain.UNITY),
+            ("Create an Unreal Engine Niagara effect.", CreativeCodingDomain.UNREAL),
+            ("Create a Max/MSP audio patch.", CreativeCodingDomain.MAX_MSP),
+            ("Create a Notch Builder nodegraph.", CreativeCodingDomain.NOTCH),
+            ("Create a vvvv gamma patch.", CreativeCodingDomain.VVVV),
+        )
+
+        for query, expected_domain in cases:
+            with self.subTest(query=query):
+                assistant_request = AssistantRequest(
+                    query=query,
+                    domains=(
+                        CreativeCodingDomain.THREE_JS,
+                        CreativeCodingDomain.REACT_THREE_FIBER,
+                    ),
+                    mode=AssistantMode.GENERATE,
+                )
+                route_decision = RouteDecision(
+                    route=RouteName.GENERATE,
+                    mode=AssistantMode.GENERATE,
+                    capabilities=(RouteCapability.OFFICIAL_DOCS,),
+                )
+
+                retrieval_request = build_retrieval_context_request(
+                    assistant_request,
+                    route_decision,
+                )
+
+                self.assertIsNotNone(retrieval_request)
+                assert retrieval_request is not None
+                self.assertEqual(retrieval_request.filters.domain, expected_domain)
+                self.assertEqual(
+                    retrieval_request.filters.domains,
+                    (expected_domain,),
+                )
+
     def test_build_retrieval_request_uses_ui_domains_when_query_is_ambiguous(
         self,
     ) -> None:

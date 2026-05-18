@@ -94,6 +94,67 @@ _SHADERTOY_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
     (re.compile(r"\bfragcoord\b"), 2),
     (re.compile(r"\bi(?:time|resolution|mouse|channel0)\b"), 2),
 )
+_TOUCHDESIGNER_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\btouchdesigner\b"), 3),
+    (re.compile(r"\btouch\s+designer\b"), 3),
+    (re.compile(r"\bderivative\.ca\b"), 3),
+    (re.compile(r"\b(?:chop|top|dat|comp|pop)\s+(?:operator|network|family)\b"), 2),
+)
+_HOUDINI_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bhoudini\b"), 3),
+    (re.compile(r"\bsidefx\b"), 3),
+    (re.compile(r"\bvex\b"), 2),
+    (re.compile(r"\bhda\b"), 2),
+    (re.compile(r"\b(?:sop|dop|vop|lop)\s+(?:network|node|solver)\b"), 2),
+)
+_BLENDER_GEOMETRY_NODES_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bgeometry\s+nodes?\b"), 3),
+    (re.compile(r"\bgeo\s+nodes?\b"), 3),
+    (re.compile(r"\bblender\s+(?:scene|mesh|modifier|shader|python|bpy)\b"), 3),
+    (re.compile(r"\bbpy\b"), 2),
+)
+_UNITY_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (
+        re.compile(
+            r"\bunity\s+(?:engine|editor|scene|script|c#|shader|urp|hdrp|"
+            r"gameobject|prefab)\b"
+        ),
+        3,
+    ),
+    (re.compile(r"\bunityengine\b"), 3),
+    (re.compile(r"\bgameobject\b"), 2),
+    (re.compile(r"\bmonobehaviou?r\b"), 2),
+    (re.compile(r"\bscriptableobject\b"), 2),
+)
+_UNREAL_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bunreal\s+engine\b"), 3),
+    (re.compile(r"\bue\s*5\b"), 3),
+    (re.compile(r"\bue5\b"), 3),
+    (re.compile(r"\bunreal\s+blueprints?\b"), 3),
+    (re.compile(r"\bblueprint\s+(?:visual\s+scripting|class|node|graph)\b"), 2),
+    (re.compile(r"\b(?:nanite|lumen|niagara)\b"), 2),
+)
+_MAX_MSP_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bmax/msp\b"), 3),
+    (re.compile(r"\bmax\s+msp\b"), 3),
+    (re.compile(r"\bcycling\s*'?74\b"), 3),
+    (re.compile(r"\bmsp\s+(?:patch|object|signal|tutorial)\b"), 2),
+    (re.compile(r"\bmax\s+(?:patcher|object|external|gen~|jitter)\b"), 2),
+    (re.compile(r"\bgen~\b"), 2),
+    (re.compile(r"\bjitter\s+matrix\b"), 2),
+)
+_NOTCH_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bnotch\s+(?:builder|vfx|rfx|block|blocks|node|manual)\b"), 3),
+    (re.compile(r"\bnotchvfx\b"), 3),
+    (re.compile(r"\bvfx\s+blocks?\b"), 2),
+    (re.compile(r"\bnotchlc\b"), 2),
+)
+_VVVV_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bvvvv\b"), 3),
+    (re.compile(r"\bvvvv\s+gamma\b"), 3),
+    (re.compile(r"\bthegraybook\.vvvv\.org\b"), 3),
+    (re.compile(r"\bvl\.(?:skia|stride|corelib)\b"), 2),
+)
 _INTENT_PATTERNS: tuple[
     tuple[CreativeCodingDomain, tuple[tuple[re.Pattern[str], int], ...]],
     ...,
@@ -112,6 +173,17 @@ _INTENT_PATTERNS: tuple[
     (CreativeCodingDomain.RAPIER, _RAPIER_PATTERNS),
     (CreativeCodingDomain.HYDRA, _HYDRA_PATTERNS),
     (CreativeCodingDomain.SHADERTOY, _SHADERTOY_PATTERNS),
+    (CreativeCodingDomain.TOUCHDESIGNER, _TOUCHDESIGNER_PATTERNS),
+    (CreativeCodingDomain.HOUDINI, _HOUDINI_PATTERNS),
+    (
+        CreativeCodingDomain.BLENDER_GEOMETRY_NODES,
+        _BLENDER_GEOMETRY_NODES_PATTERNS,
+    ),
+    (CreativeCodingDomain.UNITY, _UNITY_PATTERNS),
+    (CreativeCodingDomain.UNREAL, _UNREAL_PATTERNS),
+    (CreativeCodingDomain.MAX_MSP, _MAX_MSP_PATTERNS),
+    (CreativeCodingDomain.NOTCH, _NOTCH_PATTERNS),
+    (CreativeCodingDomain.VVVV, _VVVV_PATTERNS),
 )
 _RELATED_DOMAIN_FALLBACKS: dict[
     CreativeCodingDomain,
