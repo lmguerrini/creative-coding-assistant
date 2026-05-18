@@ -56,6 +56,9 @@ and evaluation JSONL outputs. Runtime data is not intended to be committed.
 - React Three Fiber
 - p5.js
 - GLSL
+- Processing
+- Canvas 2D
+- WebGPU/WGSL
 
 ## Core V1 Features
 
@@ -141,7 +144,11 @@ Sync selected sources:
   --source-id three_docs \
   --source-id r3f_canvas_api \
   --source-id p5_examples \
-  --source-id glsl_mdn_webgl_examples
+  --source-id glsl_mdn_webgl_examples \
+  --source-id processing_reference \
+  --source-id canvas2d_context_api \
+  --source-id webgpu_mdn_api \
+  --source-id wgsl_spec
 ```
 
 ## Evaluation

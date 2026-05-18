@@ -16,7 +16,7 @@ from creative_coding_assistant.rag import (
 
 
 class OfficialKnowledgeBaseSourceRegistryTests(unittest.TestCase):
-    def test_registry_covers_all_v1_domains(self) -> None:
+    def test_registry_covers_all_supported_domains(self) -> None:
         self.assertEqual(
             official_source_domains(),
             (
@@ -24,6 +24,9 @@ class OfficialKnowledgeBaseSourceRegistryTests(unittest.TestCase):
                 CreativeCodingDomain.REACT_THREE_FIBER,
                 CreativeCodingDomain.P5_JS,
                 CreativeCodingDomain.GLSL,
+                CreativeCodingDomain.PROCESSING,
+                CreativeCodingDomain.CANVAS_2D,
+                CreativeCodingDomain.WEBGPU_WGSL,
             ),
         )
 
@@ -145,6 +148,56 @@ class OfficialKnowledgeBaseSourceRegistryTests(unittest.TestCase):
                 for extra_url in source.additional_urls
             )
         )
+
+    def test_first_v2_domain_sources_are_registered_with_expected_metadata(
+        self,
+    ) -> None:
+        processing = get_official_source("processing_reference")
+        canvas = get_official_source("canvas2d_context_api")
+        webgpu = get_official_source("webgpu_mdn_api")
+        wgsl = get_official_source("wgsl_spec")
+
+        self.assertEqual(processing.domain, CreativeCodingDomain.PROCESSING)
+        self.assertEqual(processing.url, "https://processing.org/reference/")
+        self.assertEqual(processing.source_type, OfficialSourceType.API_REFERENCE)
+
+        self.assertEqual(canvas.domain, CreativeCodingDomain.CANVAS_2D)
+        self.assertEqual(canvas.publisher, "MDN")
+        self.assertEqual(
+            canvas.url,
+            "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D",
+        )
+
+        self.assertEqual(webgpu.domain, CreativeCodingDomain.WEBGPU_WGSL)
+        self.assertEqual(webgpu.publisher, "MDN")
+        self.assertEqual(
+            webgpu.url,
+            "https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API",
+        )
+
+        self.assertEqual(wgsl.domain, CreativeCodingDomain.WEBGPU_WGSL)
+        self.assertEqual(wgsl.publisher, "W3C")
+        self.assertEqual(wgsl.source_type, OfficialSourceType.SPECIFICATION)
+        self.assertEqual(wgsl.url, "https://www.w3.org/TR/WGSL/")
+
+    def test_first_v2_domain_sources_use_approved_hosts(self) -> None:
+        expected_hosts = {
+            CreativeCodingDomain.PROCESSING: {"processing.org"},
+            CreativeCodingDomain.CANVAS_2D: {"developer.mozilla.org"},
+            CreativeCodingDomain.WEBGPU_WGSL: {
+                "developer.mozilla.org",
+                "www.w3.org",
+            },
+        }
+
+        for domain, hosts in expected_hosts.items():
+            with self.subTest(domain=domain):
+                sources = approved_sources_for_domain(domain)
+                self.assertGreater(len(sources), 0)
+                self.assertEqual(
+                    {source.url.split("/")[2] for source in sources},
+                    hosts,
+                )
 
 
 if __name__ == "__main__":

@@ -422,7 +422,22 @@ def _domain_preference_line(domain: CreativeCodingDomain) -> str:
             "Prefer p5.js sketch structure such as setup(), draw(), and concise "
             "runnable examples."
         )
+    if domain is CreativeCodingDomain.GLSL:
+        return (
+            "Prefer concrete shader snippets and shader terminology over "
+            "host-framework setup details."
+        )
+    if domain is CreativeCodingDomain.PROCESSING:
+        return (
+            "Prefer Processing sketch structure such as setup(), draw(), size(), "
+            "and concise PDE-style examples."
+        )
+    if domain is CreativeCodingDomain.CANVAS_2D:
+        return (
+            "Prefer standard CanvasRenderingContext2D APIs, clear canvas setup, "
+            "and requestAnimationFrame for browser animation."
+        )
     return (
-        "Prefer concrete shader snippets and shader terminology over host-framework "
-        "setup details."
+        "Prefer WebGPU host setup and WGSL shader syntax; do not substitute GLSL "
+        "unless the user explicitly asks for it."
     )

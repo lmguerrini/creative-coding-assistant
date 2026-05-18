@@ -112,6 +112,9 @@ class BootstrapImportTests(unittest.TestCase):
                 "react_three_fiber",
                 "p5_js",
                 "glsl",
+                "processing",
+                "canvas_2d",
+                "webgpu_wgsl",
             ),
         )
 

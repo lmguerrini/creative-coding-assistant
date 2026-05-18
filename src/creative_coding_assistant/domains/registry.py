@@ -19,6 +19,9 @@ SUPPORTED_DOMAINS: tuple[DomainInfo, ...] = (
     DomainInfo(CreativeCodingDomain.REACT_THREE_FIBER, "React Three Fiber", "r3f"),
     DomainInfo(CreativeCodingDomain.P5_JS, "p5.js", "p5_js"),
     DomainInfo(CreativeCodingDomain.GLSL, "GLSL", "glsl"),
+    DomainInfo(CreativeCodingDomain.PROCESSING, "Processing", "processing"),
+    DomainInfo(CreativeCodingDomain.CANVAS_2D, "Canvas 2D", "canvas_2d"),
+    DomainInfo(CreativeCodingDomain.WEBGPU_WGSL, "WebGPU/WGSL", "webgpu_wgsl"),
 )
 
 

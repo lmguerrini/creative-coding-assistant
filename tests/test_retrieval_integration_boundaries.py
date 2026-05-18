@@ -181,6 +181,51 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
             ),
         )
 
+    def test_build_retrieval_request_detects_first_v2_query_domain(self) -> None:
+        cases = (
+            (
+                "Create a Processing sketch with arcs.",
+                CreativeCodingDomain.PROCESSING,
+            ),
+            (
+                "Create a Canvas 2D particle field.",
+                CreativeCodingDomain.CANVAS_2D,
+            ),
+            (
+                "Create a WebGPU render pipeline with WGSL.",
+                CreativeCodingDomain.WEBGPU_WGSL,
+            ),
+        )
+
+        for query, expected_domain in cases:
+            with self.subTest(query=query):
+                assistant_request = AssistantRequest(
+                    query=query,
+                    domains=(
+                        CreativeCodingDomain.THREE_JS,
+                        CreativeCodingDomain.REACT_THREE_FIBER,
+                    ),
+                    mode=AssistantMode.GENERATE,
+                )
+                route_decision = RouteDecision(
+                    route=RouteName.GENERATE,
+                    mode=AssistantMode.GENERATE,
+                    capabilities=(RouteCapability.OFFICIAL_DOCS,),
+                )
+
+                retrieval_request = build_retrieval_context_request(
+                    assistant_request,
+                    route_decision,
+                )
+
+                self.assertIsNotNone(retrieval_request)
+                assert retrieval_request is not None
+                self.assertEqual(retrieval_request.filters.domain, expected_domain)
+                self.assertEqual(
+                    retrieval_request.filters.domains,
+                    (expected_domain,),
+                )
+
     def test_build_retrieval_request_uses_ui_domains_when_query_is_ambiguous(
         self,
     ) -> None:

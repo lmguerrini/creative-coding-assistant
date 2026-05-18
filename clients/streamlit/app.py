@@ -59,6 +59,9 @@ _DOMAIN_LABELS = {
     CreativeCodingDomain.REACT_THREE_FIBER: "React Three Fiber",
     CreativeCodingDomain.P5_JS: "p5.js",
     CreativeCodingDomain.GLSL: "GLSL",
+    CreativeCodingDomain.PROCESSING: "Processing",
+    CreativeCodingDomain.CANVAS_2D: "Canvas 2D",
+    CreativeCodingDomain.WEBGPU_WGSL: "WebGPU/WGSL",
 }
 
 _MODE_LABELS = {
@@ -79,7 +82,10 @@ def main() -> None:
     settings = load_settings()
     st.set_page_config(page_title=settings.app_name, page_icon=":art:")
     st.title(settings.app_name)
-    st.caption("Three.js, React Three Fiber, p5.js, and GLSL chat support.")
+    st.caption(
+        "Three.js, React Three Fiber, p5.js, GLSL, Processing, Canvas 2D, "
+        "and WebGPU/WGSL chat support."
+    )
 
     _ensure_session_state(settings)
 

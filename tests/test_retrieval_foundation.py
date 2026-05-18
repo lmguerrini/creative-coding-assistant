@@ -10,6 +10,9 @@ from creative_coding_assistant.rag.retrieval import (
     KnowledgeBaseRetrievalRequest,
     KnowledgeBaseRetriever,
 )
+from creative_coding_assistant.rag.retrieval.domain_intent import (
+    detect_explicit_query_domains,
+)
 from creative_coding_assistant.rag.retrieval.models import KnowledgeBaseSearchResult
 from creative_coding_assistant.rag.retrieval.postprocess import (
     select_retrieval_results,
@@ -162,6 +165,47 @@ class RetrievalFoundationTests(unittest.TestCase):
                 "glsl_language_spec_460",
             )
             self.assertEqual(response.results[0].publisher, "Khronos Group")
+
+    def test_detects_first_v2_explicit_query_domains(self) -> None:
+        cases = (
+            (
+                "Create a Processing sketch with a bouncing trail.",
+                (CreativeCodingDomain.PROCESSING,),
+            ),
+            (
+                "Use Canvas 2D to draw animated particles.",
+                (CreativeCodingDomain.CANVAS_2D,),
+            ),
+            (
+                "Write a WebGPU pipeline with a WGSL shader.",
+                (CreativeCodingDomain.WEBGPU_WGSL,),
+            ),
+            (
+                "Compare CanvasRenderingContext2D and WebGPU setup.",
+                (
+                    CreativeCodingDomain.CANVAS_2D,
+                    CreativeCodingDomain.WEBGPU_WGSL,
+                ),
+            ),
+        )
+
+        for query, expected_domains in cases:
+            with self.subTest(query=query):
+                self.assertEqual(
+                    detect_explicit_query_domains(query),
+                    expected_domains,
+                )
+
+    def test_query_detection_avoids_broad_first_v2_false_positives(self) -> None:
+        cases = (
+            "Use an image processing pipeline before drawing.",
+            "Put this control on a canvas next to the sidebar.",
+            "Why is my shader black?",
+        )
+
+        for query in cases:
+            with self.subTest(query=query):
+                self.assertEqual(detect_explicit_query_domains(query), ())
 
     def test_retriever_uses_only_kb_collection(self) -> None:
         with _kb_client() as client:

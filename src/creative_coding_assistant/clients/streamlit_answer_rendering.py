@@ -175,6 +175,8 @@ def _detect_unfenced_code_language(lines: list[str]) -> str | None:
 
     if _looks_like_html_document(content):
         return "html"
+    if _looks_like_wgsl_block(content):
+        return "wgsl"
     if _looks_like_glsl_block(content):
         return "glsl"
     if _looks_like_jsx_block(content):
@@ -199,6 +201,8 @@ def _looks_like_codeish_line(line: str) -> bool:
     if stripped.startswith(("export ", "return ", "renderer.", "scene.", "camera.")):
         return True
     if stripped.startswith(("precision ", "uniform ", "varying ", "void main")):
+        return True
+    if stripped.startswith(("@fragment", "@vertex", "@compute", "fn ")):
         return True
     if stripped.startswith(("def ", "from ", "print(", "if __name__ == ")):
         return True
@@ -258,6 +262,12 @@ def _looks_like_glsl_block(content: str) -> bool:
             marker in content
             for marker in ("gl_FragColor", "gl_Position", "precision ", "uniform ")
         )
+    )
+
+
+def _looks_like_wgsl_block(content: str) -> bool:
+    return "fn " in content and any(
+        marker in content for marker in ("@fragment", "@vertex", "@compute")
     )
 
 
@@ -367,6 +377,8 @@ def _suggested_mime_type(language: str | None) -> str:
         return "text/html"
     if normalized in {"javascript", "jsx"}:
         return "text/javascript"
+    if normalized in {"pde", "wgsl"}:
+        return "text/plain"
     if normalized == "glsl":
         return "text/plain"
     if normalized == "python":
@@ -382,6 +394,10 @@ def _language_extension(language: str | None) -> str:
         return "js"
     if normalized == "jsx":
         return "jsx"
+    if normalized == "pde":
+        return "pde"
+    if normalized == "wgsl":
+        return "wgsl"
     if normalized == "glsl":
         return "glsl"
     if normalized == "python":
@@ -425,11 +441,28 @@ def _query_filename_override(
         and normalized_language in {"jsx", "javascript", ""}
     ):
         return ("App", "jsx")
+    if any(
+        marker in normalized_query
+        for marker in ("processing sketch", "processing code", "processing java")
+    ):
+        if normalized_language in {"java", "pde", ""}:
+            return ("sketch", "pde")
     if any(marker in normalized_query for marker in ("p5.js", "p5js", " sketch")) or (
         normalized_query.startswith("sketch")
     ):
         if normalized_language in {"javascript", ""}:
             return ("sketch", "js")
+    if (
+        "canvas 2d" in normalized_query
+        or "canvasrenderingcontext2d" in normalized_query
+    ):
+        if normalized_language in {"javascript", ""}:
+            return ("sketch", "js")
+    if any(marker in normalized_query for marker in ("webgpu", "wgsl")):
+        if normalized_language in {"wgsl", ""}:
+            return ("shader", "wgsl")
+        if normalized_language == "javascript":
+            return ("main", "js")
     if any(
         marker in normalized_query
         for marker in ("shader", "glsl")
@@ -451,6 +484,10 @@ def _language_default_filename_parts(normalized_language: str) -> tuple[str, str
         return ("script", "js")
     if normalized_language == "jsx":
         return ("App", "jsx")
+    if normalized_language == "pde":
+        return ("sketch", "pde")
+    if normalized_language == "wgsl":
+        return ("shader", "wgsl")
     if normalized_language == "glsl":
         return ("shader", "glsl")
     if normalized_language == "python":
@@ -468,6 +505,8 @@ def _normalize_language(language: str | None) -> str:
         return "html"
     if normalized in {"py", "python"}:
         return "python"
+    if normalized in {"processing", "pde"}:
+        return "pde"
     return normalized
 
 

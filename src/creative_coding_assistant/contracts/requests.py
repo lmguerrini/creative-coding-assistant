@@ -15,6 +15,9 @@ class CreativeCodingDomain(StrEnum):
     REACT_THREE_FIBER = "react_three_fiber"
     P5_JS = "p5_js"
     GLSL = "glsl"
+    PROCESSING = "processing"
+    CANVAS_2D = "canvas_2d"
+    WEBGPU_WGSL = "webgpu_wgsl"
 
 
 class AssistantMode(StrEnum):

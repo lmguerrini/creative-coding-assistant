@@ -25,7 +25,25 @@ _GLSL_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
     (re.compile(r"\bglsl\b"), 3),
     (re.compile(r"\bfragment\s+shader\b"), 2),
     (re.compile(r"\bvertex\s+shader\b"), 2),
-    (re.compile(r"\bshader\b"), 1),
+)
+_PROCESSING_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bprocessing\.org\b"), 3),
+    (re.compile(r"\bprocessing\s+(?:sketch|code|java|reference|api)\b"), 3),
+    (re.compile(r"\bpde\s+(?:sketch|file|code)\b"), 2),
+    (re.compile(r"\.pde\b"), 2),
+)
+_CANVAS_2D_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bcanvasrenderingcontext2d\b"), 3),
+    (re.compile(r"\bcanvas\s*2d\b"), 3),
+    (re.compile(r"\b2d\s+canvas\b"), 3),
+    (re.compile(r"\bgetcontext\([\"']2d[\"']\)"), 2),
+)
+_WEBGPU_WGSL_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bwebgpu\b"), 3),
+    (re.compile(r"\bwgsl\b"), 3),
+    (re.compile(r"\bnavigator\.gpu\b"), 3),
+    (re.compile(r"\bgpucanvascontext\b"), 2),
+    (re.compile(r"\bgpudevice\b"), 2),
 )
 _INTENT_PATTERNS: tuple[
     tuple[CreativeCodingDomain, tuple[tuple[re.Pattern[str], int], ...]],
@@ -35,6 +53,9 @@ _INTENT_PATTERNS: tuple[
     (CreativeCodingDomain.REACT_THREE_FIBER, _REACT_THREE_FIBER_PATTERNS),
     (CreativeCodingDomain.P5_JS, _P5_JS_PATTERNS),
     (CreativeCodingDomain.GLSL, _GLSL_PATTERNS),
+    (CreativeCodingDomain.PROCESSING, _PROCESSING_PATTERNS),
+    (CreativeCodingDomain.CANVAS_2D, _CANVAS_2D_PATTERNS),
+    (CreativeCodingDomain.WEBGPU_WGSL, _WEBGPU_WGSL_PATTERNS),
 )
 _RELATED_DOMAIN_FALLBACKS: dict[
     CreativeCodingDomain,

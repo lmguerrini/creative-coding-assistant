@@ -419,7 +419,13 @@ def _domain_display_name(domain: CreativeCodingDomain) -> str:
         return "React Three Fiber"
     if domain is CreativeCodingDomain.P5_JS:
         return "p5.js"
-    return "GLSL"
+    if domain is CreativeCodingDomain.GLSL:
+        return "GLSL"
+    if domain is CreativeCodingDomain.PROCESSING:
+        return "Processing"
+    if domain is CreativeCodingDomain.CANVAS_2D:
+        return "Canvas 2D"
+    return "WebGPU/WGSL"
 
 
 def _coerce_domain(value: object) -> CreativeCodingDomain | None:

@@ -342,7 +342,13 @@ def _domain_summary_label(domain: CreativeCodingDomain | None) -> str | None:
         return "React Three Fiber"
     if domain is CreativeCodingDomain.P5_JS:
         return "p5.js"
-    return "GLSL"
+    if domain is CreativeCodingDomain.GLSL:
+        return "GLSL"
+    if domain is CreativeCodingDomain.PROCESSING:
+        return "Processing"
+    if domain is CreativeCodingDomain.CANVAS_2D:
+        return "Canvas 2D"
+    return "WebGPU/WGSL"
 
 
 def _default_generated_topic(domain: CreativeCodingDomain | None) -> str:
@@ -350,6 +356,12 @@ def _default_generated_topic(domain: CreativeCodingDomain | None) -> str:
         return "sketch"
     if domain is CreativeCodingDomain.GLSL:
         return "shader code"
+    if domain is CreativeCodingDomain.PROCESSING:
+        return "sketch"
+    if domain is CreativeCodingDomain.CANVAS_2D:
+        return "canvas sketch"
+    if domain is CreativeCodingDomain.WEBGPU_WGSL:
+        return "WebGPU/WGSL code"
     if domain is CreativeCodingDomain.REACT_THREE_FIBER:
         return "component code"
     if domain is CreativeCodingDomain.THREE_JS:

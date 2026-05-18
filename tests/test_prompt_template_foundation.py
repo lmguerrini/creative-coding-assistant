@@ -365,6 +365,48 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         self.assertNotIn("Detected Query Domains:", system_section)
         self.assertNotIn("UI Selected Domains:", system_section)
 
+    def test_renderer_adds_first_v2_domain_guidance(self) -> None:
+        renderer = JinjaPromptRenderer()
+        assistant_request = AssistantRequest(
+            query="Compare the selected creative coding environments.",
+            domains=(
+                CreativeCodingDomain.PROCESSING,
+                CreativeCodingDomain.CANVAS_2D,
+                CreativeCodingDomain.WEBGPU_WGSL,
+            ),
+            mode=AssistantMode.EXPLAIN,
+        )
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=assistant_request,
+                route_decision=RouteDecision(
+                    route=RouteName.EXPLAIN,
+                    mode=AssistantMode.EXPLAIN,
+                    domains=assistant_request.domains,
+                    capabilities=(RouteCapability.OFFICIAL_DOCS,),
+                ),
+                assembled_context=None,
+            )
+        )
+
+        rendered = renderer.render(
+            build_rendered_prompt_request(
+                route_decision=RouteName.EXPLAIN,
+                prompt_input=prompt_input,
+            )
+        )
+
+        system_section = rendered.sections[0].content
+        self.assertIn("- processing", system_section)
+        self.assertIn("- canvas_2d", system_section)
+        self.assertIn("- webgpu_wgsl", system_section)
+        self.assertIn("Prefer Processing sketch structure", system_section)
+        self.assertIn("Prefer standard CanvasRenderingContext2D APIs", system_section)
+        self.assertIn(
+            "Prefer WebGPU host setup and WGSL shader syntax",
+            system_section,
+        )
+
     def test_renderer_marks_follow_up_and_renders_compact_prior_turn_pair(
         self,
     ) -> None:

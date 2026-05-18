@@ -101,6 +101,23 @@ class StreamlitAnswerRenderingTests(unittest.TestCase):
         self.assertEqual(glsl_segments[0].suggested_filename, "shader.glsl")
         self.assertEqual(glsl_segments[0].mime_type, "text/plain")
 
+    def test_split_answer_segments_assigns_first_v2_domain_filenames(self) -> None:
+        processing_segments = split_answer_segments(
+            "```java\nvoid setup() { size(400, 400); }\n"
+            "void draw() { ellipse(200, 200, 80, 80); }\n```",
+            query="Create a Processing sketch",
+        )
+        wgsl_segments = split_answer_segments(
+            "```wgsl\n@fragment\nfn fs_main() -> @location(0) vec4f {\n"
+            "  return vec4f(1.0);\n}\n```",
+            query="Create a WebGPU shader in WGSL",
+        )
+
+        self.assertEqual(processing_segments[0].suggested_filename, "sketch.pde")
+        self.assertEqual(processing_segments[0].mime_type, "text/plain")
+        self.assertEqual(wgsl_segments[0].suggested_filename, "shader.wgsl")
+        self.assertEqual(wgsl_segments[0].mime_type, "text/plain")
+
     def test_split_answer_segments_uses_txt_fallback_for_unknown_language(self) -> None:
         segments = split_answer_segments("```mermaid\ngraph TD;\nA-->B;\n```")
 
