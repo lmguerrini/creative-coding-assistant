@@ -67,6 +67,13 @@ SUPPORTED_DOMAINS: tuple[DomainInfo, ...] = (
         "Unreal Blueprints",
         "unreal_blueprints",
     ),
+    DomainInfo(CreativeCodingDomain.ABLETON_LIVE, "Ableton Live", "ableton_live"),
+    DomainInfo(CreativeCodingDomain.VCV_RACK, "VCV Rack", "vcv_rack"),
+    DomainInfo(CreativeCodingDomain.GODOT, "Godot", "godot"),
+    DomainInfo(CreativeCodingDomain.RESOLUME, "Resolume", "resolume"),
+    DomainInfo(CreativeCodingDomain.MADMAPPER, "MadMapper", "madmapper"),
+    DomainInfo(CreativeCodingDomain.CABLES_GL, "Cables.gl", "cables_gl"),
+    DomainInfo(CreativeCodingDomain.PURE_DATA, "Pure Data", "pure_data"),
 )
 
 

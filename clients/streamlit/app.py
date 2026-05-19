@@ -91,6 +91,13 @@ _DOMAIN_LABELS = {
     CreativeCodingDomain.RUNWAY: "Runway",
     CreativeCodingDomain.BLENDER_PYTHON_API: "Blender Python API",
     CreativeCodingDomain.UNREAL_BLUEPRINTS: "Unreal Blueprints",
+    CreativeCodingDomain.ABLETON_LIVE: "Ableton Live",
+    CreativeCodingDomain.VCV_RACK: "VCV Rack",
+    CreativeCodingDomain.GODOT: "Godot",
+    CreativeCodingDomain.RESOLUME: "Resolume",
+    CreativeCodingDomain.MADMAPPER: "MadMapper",
+    CreativeCodingDomain.CABLES_GL: "Cables.gl",
+    CreativeCodingDomain.PURE_DATA: "Pure Data",
 }
 
 _MODE_LABELS = {

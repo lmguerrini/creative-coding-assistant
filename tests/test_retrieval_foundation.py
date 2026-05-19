@@ -364,6 +364,45 @@ class RetrievalFoundationTests(unittest.TestCase):
             with self.subTest(query=query):
                 self.assertEqual(detect_explicit_query_domains(query), ())
 
+    def test_detects_fifth_v2_explicit_query_domains(self) -> None:
+        cases = (
+            ("Build this in Ableton Live.", (CreativeCodingDomain.ABLETON_LIVE,)),
+            (
+                "Create a VCV Rack Eurorack patch.",
+                (CreativeCodingDomain.VCV_RACK,),
+            ),
+            ("Use Godot Engine and GDScript.", (CreativeCodingDomain.GODOT,)),
+            ("Route clips in Resolume Arena.", (CreativeCodingDomain.RESOLUME,)),
+            (
+                "Set up MadMapper projection mapping surfaces.",
+                (CreativeCodingDomain.MADMAPPER,),
+            ),
+            ("Create a cables.gl operator graph.", (CreativeCodingDomain.CABLES_GL,)),
+            ("Build a Pure Data patch.", (CreativeCodingDomain.PURE_DATA,)),
+        )
+
+        for query, expected_domains in cases:
+            with self.subTest(query=query):
+                self.assertEqual(
+                    detect_explicit_query_domains(query),
+                    expected_domains,
+                )
+
+    def test_query_detection_avoids_broad_fifth_v2_false_positives(self) -> None:
+        cases = (
+            "Play the clip live in the browser.",
+            "Put the rack next to the table.",
+            "The cables are tangled behind the monitor.",
+            "Use pure data from the analytics export.",
+            "This patch fixes a Python bug.",
+            "Map the projection of the dataset.",
+            "The god ray effect is subtle.",
+        )
+
+        for query in cases:
+            with self.subTest(query=query):
+                self.assertEqual(detect_explicit_query_domains(query), ())
+
     def test_retriever_uses_only_kb_collection(self) -> None:
         with _kb_client() as client:
             _seed_kb_records(client)

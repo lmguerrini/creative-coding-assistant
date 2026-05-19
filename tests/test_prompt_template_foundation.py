@@ -593,6 +593,57 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         self.assertIn("Treat Blender Python as an external DCC", system_section)
         self.assertIn("Treat Unreal Blueprints as an external", system_section)
 
+    def test_renderer_adds_fifth_v2_domain_guidance(self) -> None:
+        renderer = JinjaPromptRenderer()
+        assistant_request = AssistantRequest(
+            query="Compare the selected AV and patching workflows.",
+            domains=(
+                CreativeCodingDomain.ABLETON_LIVE,
+                CreativeCodingDomain.VCV_RACK,
+                CreativeCodingDomain.GODOT,
+                CreativeCodingDomain.RESOLUME,
+                CreativeCodingDomain.MADMAPPER,
+                CreativeCodingDomain.CABLES_GL,
+                CreativeCodingDomain.PURE_DATA,
+            ),
+            mode=AssistantMode.EXPLAIN,
+        )
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=assistant_request,
+                route_decision=RouteDecision(
+                    route=RouteName.EXPLAIN,
+                    mode=AssistantMode.EXPLAIN,
+                    domains=assistant_request.domains,
+                    capabilities=(RouteCapability.OFFICIAL_DOCS,),
+                ),
+                assembled_context=None,
+            )
+        )
+
+        rendered = renderer.render(
+            build_rendered_prompt_request(
+                route_decision=RouteName.EXPLAIN,
+                prompt_input=prompt_input,
+            )
+        )
+
+        system_section = rendered.sections[0].content
+        self.assertIn("- ableton_live", system_section)
+        self.assertIn("- vcv_rack", system_section)
+        self.assertIn("- godot", system_section)
+        self.assertIn("- resolume", system_section)
+        self.assertIn("- madmapper", system_section)
+        self.assertIn("- cables_gl", system_section)
+        self.assertIn("- pure_data", system_section)
+        self.assertIn("Treat Ableton Live as an external DAW", system_section)
+        self.assertIn("Treat VCV Rack as an external modular", system_section)
+        self.assertIn("Treat Godot as an external game-engine", system_section)
+        self.assertIn("Treat Resolume as an external AV/VJ", system_section)
+        self.assertIn("Treat MadMapper as an external projection", system_section)
+        self.assertIn("Treat Cables.gl as an external realtime", system_section)
+        self.assertIn("Treat Pure Data as an external visual patching", system_section)
+
     def test_renderer_marks_follow_up_and_renders_compact_prior_turn_pair(
         self,
     ) -> None:

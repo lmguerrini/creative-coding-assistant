@@ -47,6 +47,13 @@ class CreativeCodingDomain(StrEnum):
     RUNWAY = "runway"
     BLENDER_PYTHON_API = "blender_python_api"
     UNREAL_BLUEPRINTS = "unreal_blueprints"
+    ABLETON_LIVE = "ableton_live"
+    VCV_RACK = "vcv_rack"
+    GODOT = "godot"
+    RESOLUME = "resolume"
+    MADMAPPER = "madmapper"
+    CABLES_GL = "cables_gl"
+    PURE_DATA = "pure_data"
 
 
 class AssistantMode(StrEnum):

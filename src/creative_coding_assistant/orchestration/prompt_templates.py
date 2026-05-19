@@ -598,6 +598,48 @@ def _domain_preference_line(domain: CreativeCodingDomain) -> str:
             "prefer Blueprint classes, graphs, nodes, events, pins, variables, and "
             "Unreal Editor workflow terminology."
         )
+    if domain is CreativeCodingDomain.ABLETON_LIVE:
+        return (
+            "Treat Ableton Live as an external DAW workflow domain; prefer clips, "
+            "Session View, Arrangement View, devices, racks, automation, and Max "
+            "for Live terminology."
+        )
+    if domain is CreativeCodingDomain.VCV_RACK:
+        return (
+            "Treat VCV Rack as an external modular synthesis domain; prefer "
+            "modules, patch cables, CV/Gate, oscillators, filters, sequencers, "
+            "and Eurorack signal-flow terminology."
+        )
+    if domain is CreativeCodingDomain.GODOT:
+        return (
+            "Treat Godot as an external game-engine workflow domain; prefer "
+            "scenes, nodes, resources, GDScript, signals, scripts, and editor "
+            "workflow terminology."
+        )
+    if domain is CreativeCodingDomain.RESOLUME:
+        return (
+            "Treat Resolume as an external AV/VJ workflow domain; prefer "
+            "compositions, decks, layers, clips, effects, BPM sync, output "
+            "routing, slices, and Advanced Output terminology."
+        )
+    if domain is CreativeCodingDomain.MADMAPPER:
+        return (
+            "Treat MadMapper as an external projection-mapping workflow domain; "
+            "prefer surfaces, quads, masks, materials, media, DMX/Art-Net, "
+            "fixtures, and calibration terminology."
+        )
+    if domain is CreativeCodingDomain.CABLES_GL:
+        return (
+            "Treat Cables.gl as an external realtime visual patching domain; "
+            "prefer patches, operators, ports, op graphs, variables, timelines, "
+            "WebGL, and export terminology."
+        )
+    if domain is CreativeCodingDomain.PURE_DATA:
+        return (
+            "Treat Pure Data as an external visual patching/audio domain; prefer "
+            "patches, objects, messages, inlets, outlets, DSP graphs, abstractions, "
+            "and signal/message-flow terminology."
+        )
     return (
         "Prefer the selected domain's official APIs, terminology, and examples."
     )

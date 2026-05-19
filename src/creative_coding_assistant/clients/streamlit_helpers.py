@@ -485,6 +485,20 @@ def _domain_display_name(domain: CreativeCodingDomain) -> str:
         return "Blender Python API"
     if domain is CreativeCodingDomain.UNREAL_BLUEPRINTS:
         return "Unreal Blueprints"
+    if domain is CreativeCodingDomain.ABLETON_LIVE:
+        return "Ableton Live"
+    if domain is CreativeCodingDomain.VCV_RACK:
+        return "VCV Rack"
+    if domain is CreativeCodingDomain.GODOT:
+        return "Godot"
+    if domain is CreativeCodingDomain.RESOLUME:
+        return "Resolume"
+    if domain is CreativeCodingDomain.MADMAPPER:
+        return "MadMapper"
+    if domain is CreativeCodingDomain.CABLES_GL:
+        return "Cables.gl"
+    if domain is CreativeCodingDomain.PURE_DATA:
+        return "Pure Data"
     return domain.value
 
 

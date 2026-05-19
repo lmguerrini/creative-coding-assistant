@@ -378,6 +378,49 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
                     (expected_domain,),
                 )
 
+    def test_build_retrieval_request_detects_fifth_v2_query_domain(self) -> None:
+        cases = (
+            (
+                "Create an Ableton Live clip workflow.",
+                CreativeCodingDomain.ABLETON_LIVE,
+            ),
+            ("Create a VCV Rack CV/Gate patch.", CreativeCodingDomain.VCV_RACK),
+            ("Create a Godot Engine scene.", CreativeCodingDomain.GODOT),
+            ("Create a Resolume Arena composition.", CreativeCodingDomain.RESOLUME),
+            ("Create a MadMapper surface setup.", CreativeCodingDomain.MADMAPPER),
+            ("Create a cables.gl patch graph.", CreativeCodingDomain.CABLES_GL),
+            ("Create a Pure Data DSP patch.", CreativeCodingDomain.PURE_DATA),
+        )
+
+        for query, expected_domain in cases:
+            with self.subTest(query=query):
+                assistant_request = AssistantRequest(
+                    query=query,
+                    domains=(
+                        CreativeCodingDomain.THREE_JS,
+                        CreativeCodingDomain.REACT_THREE_FIBER,
+                    ),
+                    mode=AssistantMode.GENERATE,
+                )
+                route_decision = RouteDecision(
+                    route=RouteName.GENERATE,
+                    mode=AssistantMode.GENERATE,
+                    capabilities=(RouteCapability.OFFICIAL_DOCS,),
+                )
+
+                retrieval_request = build_retrieval_context_request(
+                    assistant_request,
+                    route_decision,
+                )
+
+                self.assertIsNotNone(retrieval_request)
+                assert retrieval_request is not None
+                self.assertEqual(retrieval_request.filters.domain, expected_domain)
+                self.assertEqual(
+                    retrieval_request.filters.domains,
+                    (expected_domain,),
+                )
+
     def test_build_retrieval_request_uses_ui_domains_when_query_is_ambiguous(
         self,
     ) -> None:

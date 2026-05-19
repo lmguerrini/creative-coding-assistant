@@ -260,6 +260,54 @@ _UNREAL_BLUEPRINTS_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
     (re.compile(r"\bunreal\s+.*\bblueprint\s+(?:class|node|graph|api)\b"), 3),
     (re.compile(r"\bblueprint\s+visual\s+scripting\b"), 3),
 )
+_ABLETON_LIVE_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bableton\s+live\b"), 3),
+    (re.compile(r"\bableton\b"), 3),
+    (re.compile(r"\bmax\s+for\s+live\b"), 3),
+    (re.compile(r"\blive\s+(?:set|clip|session\s+view|arrangement\s+view)\b"), 2),
+)
+_VCV_RACK_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bvcv\s+rack\b"), 3),
+    (re.compile(r"\bvcvrack\b"), 3),
+    (re.compile(r"\beurorack\s+(?:patch|module|modular|synth|vcv)\b"), 2),
+    (re.compile(r"\bcv\s*/\s*gate\b"), 2),
+    (re.compile(r"\bcv\s+gate\b"), 2),
+)
+_GODOT_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bgodot\b"), 3),
+    (re.compile(r"\bgodot\s+engine\b"), 3),
+    (re.compile(r"\bgdscript\b"), 3),
+    (re.compile(r"\bnode2d\b"), 2),
+    (re.compile(r"\bscene\s+tree\b"), 2),
+)
+_RESOLUME_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bresolume\b"), 3),
+    (re.compile(r"\bresolume\s+(?:arena|avenue|wire)\b"), 3),
+    (re.compile(r"\bdxv3?\s+codec\b"), 2),
+)
+_MADMAPPER_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bmadmapper\b"), 3),
+    (re.compile(r"\bmad\s+mapper\b"), 3),
+    (re.compile(r"\bmadmapper\s+(?:surface|surfaces|quad|mapping)\b"), 3),
+    (re.compile(r"\bprojection\s+mapping\s+in\s+madmapper\b"), 3),
+)
+_CABLES_GL_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bcables\.gl\b"), 3),
+    (re.compile(r"\bcables\s+gl\b"), 3),
+    (re.compile(r"\bcables\s+(?:patch|operator|operators|ops|op|graph)\b"), 3),
+)
+_PURE_DATA_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (
+        re.compile(
+            r"\bpure\s+data\s+(?:patch|patching|object|message|external|"
+            r"abstraction|dsp|audio)\b"
+        ),
+        3,
+    ),
+    (re.compile(r"\bpuredata\b"), 3),
+    (re.compile(r"\bpd\s+(?:patch|object|message|external|abstraction)\b"), 3),
+    (re.compile(r"\.pd\b"), 2),
+)
 _INTENT_PATTERNS: tuple[
     tuple[CreativeCodingDomain, tuple[tuple[re.Pattern[str], int], ...]],
     ...,
@@ -306,6 +354,13 @@ _INTENT_PATTERNS: tuple[
     (CreativeCodingDomain.RUNWAY, _RUNWAY_PATTERNS),
     (CreativeCodingDomain.BLENDER_PYTHON_API, _BLENDER_PYTHON_API_PATTERNS),
     (CreativeCodingDomain.UNREAL_BLUEPRINTS, _UNREAL_BLUEPRINTS_PATTERNS),
+    (CreativeCodingDomain.ABLETON_LIVE, _ABLETON_LIVE_PATTERNS),
+    (CreativeCodingDomain.VCV_RACK, _VCV_RACK_PATTERNS),
+    (CreativeCodingDomain.GODOT, _GODOT_PATTERNS),
+    (CreativeCodingDomain.RESOLUME, _RESOLUME_PATTERNS),
+    (CreativeCodingDomain.MADMAPPER, _MADMAPPER_PATTERNS),
+    (CreativeCodingDomain.CABLES_GL, _CABLES_GL_PATTERNS),
+    (CreativeCodingDomain.PURE_DATA, _PURE_DATA_PATTERNS),
 )
 _RELATED_DOMAIN_FALLBACKS: dict[
     CreativeCodingDomain,

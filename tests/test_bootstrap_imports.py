@@ -144,6 +144,13 @@ class BootstrapImportTests(unittest.TestCase):
                 "runway",
                 "blender_python_api",
                 "unreal_blueprints",
+                "ableton_live",
+                "vcv_rack",
+                "godot",
+                "resolume",
+                "madmapper",
+                "cables_gl",
+                "pure_data",
             ),
         )
 

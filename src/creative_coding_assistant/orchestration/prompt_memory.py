@@ -408,6 +408,20 @@ def _domain_summary_label(domain: CreativeCodingDomain | None) -> str | None:
         return "Blender Python API"
     if domain is CreativeCodingDomain.UNREAL_BLUEPRINTS:
         return "Unreal Blueprints"
+    if domain is CreativeCodingDomain.ABLETON_LIVE:
+        return "Ableton Live"
+    if domain is CreativeCodingDomain.VCV_RACK:
+        return "VCV Rack"
+    if domain is CreativeCodingDomain.GODOT:
+        return "Godot"
+    if domain is CreativeCodingDomain.RESOLUME:
+        return "Resolume"
+    if domain is CreativeCodingDomain.MADMAPPER:
+        return "MadMapper"
+    if domain is CreativeCodingDomain.CABLES_GL:
+        return "Cables.gl"
+    if domain is CreativeCodingDomain.PURE_DATA:
+        return "Pure Data"
     return domain.value
 
 
@@ -480,6 +494,20 @@ def _default_generated_topic(domain: CreativeCodingDomain | None) -> str:
         return "Blender scripting guidance"
     if domain is CreativeCodingDomain.UNREAL_BLUEPRINTS:
         return "Blueprint workflow guidance"
+    if domain is CreativeCodingDomain.ABLETON_LIVE:
+        return "DAW workflow guidance"
+    if domain is CreativeCodingDomain.VCV_RACK:
+        return "modular synthesis guidance"
+    if domain is CreativeCodingDomain.GODOT:
+        return "engine workflow guidance"
+    if domain is CreativeCodingDomain.RESOLUME:
+        return "AV workflow guidance"
+    if domain is CreativeCodingDomain.MADMAPPER:
+        return "projection mapping guidance"
+    if domain is CreativeCodingDomain.CABLES_GL:
+        return "visual patching guidance"
+    if domain is CreativeCodingDomain.PURE_DATA:
+        return "patching guidance"
     if domain is CreativeCodingDomain.REACT_THREE_FIBER:
         return "component code"
     if domain is CreativeCodingDomain.THREE_JS:

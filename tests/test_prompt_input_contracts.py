@@ -276,6 +276,42 @@ class PromptInputContractsTests(unittest.TestCase):
             summaries,
         )
 
+    def test_prompt_input_builder_labels_fifth_v2_session_memory_domains(
+        self,
+    ) -> None:
+        builder = StructuredPromptInputBuilder()
+        assistant_request = AssistantRequest(
+            query="Explain the current Ableton Live set.",
+            domain=CreativeCodingDomain.ABLETON_LIVE,
+            mode=AssistantMode.EXPLAIN,
+        )
+        request = build_prompt_input_request(
+            assistant_request=assistant_request,
+            route_decision=RouteDecision(
+                route=RouteName.EXPLAIN,
+                mode=AssistantMode.EXPLAIN,
+                domain=CreativeCodingDomain.ABLETON_LIVE,
+                capabilities=(RouteCapability.MEMORY_CONTEXT,),
+            ),
+            assembled_context=_assembled_context(
+                route=RouteName.EXPLAIN,
+                memory_context=_memory_context_with_ableton_turns(),
+                retrieval_context=None,
+            ),
+        )
+
+        response = builder.build(request)
+
+        assert response.memory_input is not None
+        summaries = tuple(
+            item.summary for item in response.memory_input.session_summaries
+        )
+        self.assertIn("User requested Ableton Live project work.", summaries)
+        self.assertIn(
+            "Assistant generated Ableton Live DAW workflow guidance.",
+            summaries,
+        )
+
     def test_prompt_input_builder_supports_user_only_flow(self) -> None:
         builder = StructuredPromptInputBuilder()
         assistant_request = AssistantRequest(query="Start a shader study.")
@@ -746,6 +782,40 @@ def _memory_context_with_comfyui_turns() -> MemoryContextResponse:
                     "```text\n"
                     "ComfyUI workflow: Load Checkpoint -> KSampler -> "
                     "VAE Decode -> Save Image\n"
+                    "```"
+                ),
+                created_at=_time(),
+                mode=AssistantMode.GENERATE,
+            ),
+        ),
+        running_summary=None,
+        project_memories=(),
+    )
+
+
+def _memory_context_with_ableton_turns() -> MemoryContextResponse:
+    return MemoryContextResponse(
+        request=MemoryContextRequest(
+            route=RouteName.EXPLAIN,
+            conversation_id="conversation-1",
+            project_id="project-1",
+        ),
+        source=MemoryContextSource.CHROMA_MEMORY,
+        recent_turns=(
+            RecentConversationTurn(
+                turn_index=0,
+                role=ConversationRole.USER,
+                content="Create an Ableton Live Session View workflow.",
+                created_at=_time(),
+                mode=AssistantMode.GENERATE,
+            ),
+            RecentConversationTurn(
+                turn_index=1,
+                role=ConversationRole.ASSISTANT,
+                content=(
+                    "```text\n"
+                    "Ableton Live workflow: clips -> scenes -> racks -> "
+                    "automation lanes\n"
                     "```"
                 ),
                 created_at=_time(),

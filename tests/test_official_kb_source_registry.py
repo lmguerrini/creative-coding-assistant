@@ -56,6 +56,13 @@ class OfficialKnowledgeBaseSourceRegistryTests(unittest.TestCase):
                 CreativeCodingDomain.RUNWAY,
                 CreativeCodingDomain.BLENDER_PYTHON_API,
                 CreativeCodingDomain.UNREAL_BLUEPRINTS,
+                CreativeCodingDomain.ABLETON_LIVE,
+                CreativeCodingDomain.VCV_RACK,
+                CreativeCodingDomain.GODOT,
+                CreativeCodingDomain.RESOLUME,
+                CreativeCodingDomain.MADMAPPER,
+                CreativeCodingDomain.CABLES_GL,
+                CreativeCodingDomain.PURE_DATA,
             ),
         )
 
@@ -529,6 +536,82 @@ class OfficialKnowledgeBaseSourceRegistryTests(unittest.TestCase):
                         for source in sources
                         for url in (source.url, *source.additional_urls)
                     },
+                    hosts,
+                )
+
+    def test_fifth_v2_domain_sources_are_registered_with_expected_metadata(
+        self,
+    ) -> None:
+        cases = (
+            (
+                "ableton_live_manual",
+                CreativeCodingDomain.ABLETON_LIVE,
+                "Ableton",
+                "https://www.ableton.com/en/live-manual/12/welcome-to-live/",
+            ),
+            (
+                "vcv_rack_manual",
+                CreativeCodingDomain.VCV_RACK,
+                "VCV Rack",
+                "https://vcvrack.com/manual/index",
+            ),
+            (
+                "godot_docs",
+                CreativeCodingDomain.GODOT,
+                "Godot Engine",
+                "https://docs.godotengine.org/en/stable/",
+            ),
+            (
+                "resolume_arena_manual",
+                CreativeCodingDomain.RESOLUME,
+                "Resolume",
+                "https://www.resolume.com/support/en/arena/manual",
+            ),
+            (
+                "madmapper_docs",
+                CreativeCodingDomain.MADMAPPER,
+                "MadMapper",
+                "https://docs.madmapper.com/",
+            ),
+            (
+                "cables_gl_docs",
+                CreativeCodingDomain.CABLES_GL,
+                "Cables.gl",
+                "https://cables.gl/docs/docs",
+            ),
+            (
+                "pure_data_manual",
+                CreativeCodingDomain.PURE_DATA,
+                "Pd Community Site",
+                "https://puredata.info/docs/manuals/pd",
+            ),
+        )
+
+        for source_id, domain, publisher, url in cases:
+            with self.subTest(source_id=source_id):
+                source = get_official_source(source_id)
+                self.assertEqual(source.domain, domain)
+                self.assertEqual(source.publisher, publisher)
+                self.assertEqual(source.url, url)
+                self.assertEqual(source.source_type, OfficialSourceType.GUIDE)
+
+    def test_fifth_v2_domain_sources_use_approved_hosts(self) -> None:
+        expected_hosts = {
+            CreativeCodingDomain.ABLETON_LIVE: {"www.ableton.com"},
+            CreativeCodingDomain.VCV_RACK: {"vcvrack.com"},
+            CreativeCodingDomain.GODOT: {"docs.godotengine.org"},
+            CreativeCodingDomain.RESOLUME: {"www.resolume.com"},
+            CreativeCodingDomain.MADMAPPER: {"docs.madmapper.com"},
+            CreativeCodingDomain.CABLES_GL: {"cables.gl"},
+            CreativeCodingDomain.PURE_DATA: {"puredata.info"},
+        }
+
+        for domain, hosts in expected_hosts.items():
+            with self.subTest(domain=domain):
+                sources = approved_sources_for_domain(domain)
+                self.assertGreater(len(sources), 0)
+                self.assertEqual(
+                    {source.url.split("/")[2] for source in sources},
                     hosts,
                 )
 
