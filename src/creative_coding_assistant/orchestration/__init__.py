@@ -13,8 +13,10 @@ _PROMPT_TEMPLATES = "creative_coding_assistant.orchestration.prompt_templates"
 _RETRIEVAL = "creative_coding_assistant.orchestration.retrieval"
 _ROUTING = "creative_coding_assistant.orchestration.routing"
 _SERVICE = "creative_coding_assistant.orchestration.service"
+_WORKFLOW = "creative_coding_assistant.orchestration.workflow"
 
 _EXPORT_MAP = {
+    "AssistantWorkflowState": _WORKFLOW,
     "AssistantService": _SERVICE,
     "AssembledContextRequest": _CTX,
     "AssembledContextResponse": _CTX,
@@ -63,14 +65,25 @@ _EXPORT_MAP = {
     "RouteName": _ROUTING,
     "StreamEventBuilder": _EVENTS,
     "StructuredPromptInputBuilder": _PROMPT_INPUTS,
+    "WORKFLOW_STEP_ORDER": _WORKFLOW,
+    "WorkflowEventMetadata": _WORKFLOW,
+    "WorkflowStatus": _WORKFLOW,
+    "WorkflowStep": _WORKFLOW,
     "JinjaPromptRenderer": _PROMPT_TEMPLATES,
+    "begin_assistant_workflow": _WORKFLOW,
     "build_assembled_context_request": _CTX,
     "build_memory_context_request": _MEM,
     "build_prompt_input_request": _PROMPT_INPUTS,
     "build_provider_generation_request": _GEN,
     "build_rendered_prompt_request": _PROMPT_TEMPLATES,
     "build_retrieval_context_request": _RETRIEVAL,
+    "complete_workflow_step": _WORKFLOW,
+    "fail_workflow": _WORKFLOW,
+    "finish_workflow": _WORKFLOW,
+    "next_workflow_step": _WORKFLOW,
     "route_request": _ROUTING,
+    "skip_workflow_step": _WORKFLOW,
+    "start_workflow_step": _WORKFLOW,
 }
 
 __all__ = list(_EXPORT_MAP)

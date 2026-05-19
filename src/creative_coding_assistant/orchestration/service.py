@@ -54,6 +54,14 @@ from creative_coding_assistant.orchestration.retrieval import (
     build_retrieval_context_request,
 )
 from creative_coding_assistant.orchestration.routing import RouteDecision, route_request
+from creative_coding_assistant.orchestration.workflow import (
+    WorkflowStep,
+    begin_assistant_workflow,
+    complete_workflow_step,
+    finish_workflow,
+    skip_workflow_step,
+    start_workflow_step,
+)
 
 RouteFn = Callable[[AssistantRequest], RouteDecision]
 
@@ -129,8 +137,16 @@ class AssistantService:
 
     def _stream_events(self, request: AssistantRequest) -> Iterator[StreamEvent]:
         builder = StreamEventBuilder()
-        yield from _stream_request_received(builder)
+        workflow_state = begin_assistant_workflow(request)
 
+        workflow_state = start_workflow_step(workflow_state, WorkflowStep.INTAKE)
+        yield from _stream_request_received(builder)
+        workflow_state = complete_workflow_step(
+            workflow_state,
+            WorkflowStep.INTAKE,
+        )
+
+        workflow_state = start_workflow_step(workflow_state, WorkflowStep.ROUTING)
         decision = self._route_fn(request)
         route_payload = decision.model_dump(mode="json")
         yield from _stream_route_selected(
@@ -138,44 +154,139 @@ class AssistantService:
             decision=decision,
             route_payload=route_payload,
         )
+        workflow_state = complete_workflow_step(
+            workflow_state,
+            WorkflowStep.ROUTING,
+            route_decision=decision,
+        )
 
+        workflow_state = start_workflow_step(workflow_state, WorkflowStep.MEMORY)
         memory_context = yield from self._stream_memory_context(
             builder=builder,
             request=request,
             decision=decision,
         )
+        if memory_context is None:
+            workflow_state = skip_workflow_step(workflow_state, WorkflowStep.MEMORY)
+        else:
+            workflow_state = complete_workflow_step(
+                workflow_state,
+                WorkflowStep.MEMORY,
+                memory_context=memory_context,
+            )
 
+        workflow_state = start_workflow_step(workflow_state, WorkflowStep.RETRIEVAL)
         retrieval_context = yield from self._stream_retrieval_context(
             builder=builder,
             request=request,
             decision=decision,
         )
+        if retrieval_context is None:
+            workflow_state = skip_workflow_step(
+                workflow_state,
+                WorkflowStep.RETRIEVAL,
+            )
+        else:
+            workflow_state = complete_workflow_step(
+                workflow_state,
+                WorkflowStep.RETRIEVAL,
+                retrieval_context=retrieval_context,
+            )
 
+        workflow_state = start_workflow_step(
+            workflow_state,
+            WorkflowStep.CONTEXT_ASSEMBLY,
+        )
         assembled_context = yield from self._stream_assembled_context(
             builder=builder,
             decision=decision,
             memory_context=memory_context,
             retrieval_context=retrieval_context,
         )
+        if assembled_context is None:
+            workflow_state = skip_workflow_step(
+                workflow_state,
+                WorkflowStep.CONTEXT_ASSEMBLY,
+            )
+        else:
+            workflow_state = complete_workflow_step(
+                workflow_state,
+                WorkflowStep.CONTEXT_ASSEMBLY,
+                assembled_context=assembled_context,
+            )
 
+        workflow_state = start_workflow_step(
+            workflow_state,
+            WorkflowStep.PROMPT_INPUT,
+        )
         prompt_inputs = yield from self._stream_prompt_inputs(
             builder=builder,
             request=request,
             decision=decision,
             assembled_context=assembled_context,
         )
+        if prompt_inputs is None:
+            workflow_state = skip_workflow_step(
+                workflow_state,
+                WorkflowStep.PROMPT_INPUT,
+            )
+        else:
+            workflow_state = complete_workflow_step(
+                workflow_state,
+                WorkflowStep.PROMPT_INPUT,
+                prompt_input=prompt_inputs,
+            )
 
+        workflow_state = start_workflow_step(
+            workflow_state,
+            WorkflowStep.PROMPT_RENDERING,
+        )
         rendered_prompt = yield from self._stream_rendered_prompt(
             builder=builder,
             decision=decision,
             prompt_inputs=prompt_inputs,
         )
+        if rendered_prompt is None:
+            workflow_state = skip_workflow_step(
+                workflow_state,
+                WorkflowStep.PROMPT_RENDERING,
+            )
+        else:
+            workflow_state = complete_workflow_step(
+                workflow_state,
+                WorkflowStep.PROMPT_RENDERING,
+                rendered_prompt=rendered_prompt,
+            )
+
+        workflow_state = start_workflow_step(workflow_state, WorkflowStep.GENERATION)
         generation_result = yield from self._stream_generation(
             builder=builder,
             decision=decision,
             rendered_prompt=rendered_prompt,
         )
+        if generation_result is None:
+            workflow_state = skip_workflow_step(
+                workflow_state,
+                WorkflowStep.GENERATION,
+            )
+        else:
+            workflow_state = complete_workflow_step(
+                workflow_state,
+                WorkflowStep.GENERATION,
+            )
+
+        workflow_state = start_workflow_step(workflow_state, WorkflowStep.REVIEW)
+        workflow_state = skip_workflow_step(workflow_state, WorkflowStep.REVIEW)
+
         if generation_result is not None:
+            workflow_state = start_workflow_step(
+                workflow_state,
+                WorkflowStep.FINALIZATION,
+            )
+            workflow_state = finish_workflow(
+                workflow_state,
+                final_answer=generation_result.answer,
+            )
             yield builder.final(
                 answer=generation_result.answer,
                 route=route_payload,
@@ -183,6 +294,11 @@ class AssistantService:
             return
 
         answer = _build_shell_answer(decision)
+        workflow_state = start_workflow_step(
+            workflow_state,
+            WorkflowStep.FINALIZATION,
+        )
+        workflow_state = finish_workflow(workflow_state, final_answer=answer)
         yield builder.final(answer=answer, route=route_payload)
 
     def _stream_memory_context(
