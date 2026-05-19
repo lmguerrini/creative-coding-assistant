@@ -10,19 +10,19 @@ This document describes the real LangGraph workflow currently executed by the ba
 
 ## Current Implemented Flow
 
-The graph is compiled once in `AssistantService.__init__()` and executed through `graph.stream(..., stream_mode="custom")`. Control flow is currently linear. Routing affects data and downstream step behavior, but it does not change graph edges yet.
+The graph is compiled once in `AssistantService.__init__()` and executed through `graph.stream(..., stream_mode="custom")`. Control flow is linear until `review`, where the graph now applies a bounded quality gate. Passing outputs continue to `finalization`; failing outputs enter one `refinement` attempt and loop back to `generation`.
 
 In the diagrams below:
 
 - solid green nodes are implemented runtime nodes
-- the amber node is an implemented placeholder that currently skips
+- the blue diamond is the implemented conditional quality gate
 - purple dashed nodes and edges are future-only extension points
 
 ```mermaid
 flowchart TB
     classDef boundary fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px;
     classDef implemented fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
-    classDef placeholder fill:#FFF8E1,stroke:#B7791F,color:#7C2D12,stroke-width:1.5px;
+    classDef gate fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
     classDef terminal fill:#E3F2FD,stroke:#1565C0,color:#0D47A1,stroke-width:1.5px;
 
     start([START])
@@ -50,16 +50,19 @@ flowchart TB
     subgraph phase_4["Phase 4: Answer production"]
         direction TB
         generation["Generation<br/>prepare provider input<br/>stream tokens<br/>store generation_result"]
-        review["Review placeholder<br/>currently always skipped"]
+        review{{"Review quality gate<br/>deterministic checks<br/>records review_result"}}
+        refinement["Refinement<br/>append guidance<br/>increment refinement_count<br/>max one attempt"]
         finalization["Finalization<br/>resolve final answer<br/>emit final<br/>finish_workflow()"]
     end
 
-    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> review --> finalization --> finish
+    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> review
+    review -->|"pass or max retry"| finalization --> finish
+    review -->|"needs refinement and count < 1"| refinement --> generation
 
     class start boundary
     class finish terminal
-    class intake,routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,finalization implemented
-    class review placeholder
+    class intake,routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,refinement,finalization implemented
+    class review gate
 ```
 
 The raw Mermaid source for the implemented graph is also available in [workflow_graph.mmd](/Users/k/Desktop/CC/the_turing_college/extra_projects/creative_coding_assistant/docs/workflow_graph.mmd).
@@ -77,15 +80,18 @@ The raw Mermaid source for the implemented graph is also available in [workflow_
 7. `prompt_rendering`
 8. `generation`
 9. `review`
-10. `finalization`
+10. `refinement`
+11. `finalization`
 
 Current transition rules:
 
 - `START -> intake`
-- Each node points to the next node in `ASSISTANT_WORKFLOW_NODE_ORDER`
+- Nodes point linearly from `intake` through `review`
+- `review -> finalization` when the review passes or the refinement limit is reached
+- `review -> refinement` when the review fails and `refinement_count < 1`
+- `refinement -> generation`
 - `finalization -> END`
-- There are no conditional edges yet
-- There are no graph loops yet
+- The only graph loop is the bounded `refinement -> generation -> review` loop
 - Failures currently propagate as exceptions instead of traversing an explicit failure edge
 
 Node responsibilities:
@@ -98,7 +104,8 @@ Node responsibilities:
 - `prompt_input`: builds prompt inputs when a prompt input builder is configured
 - `prompt_rendering`: renders the final provider prompt when prompt inputs exist
 - `generation`: prepares provider input, forwards generation stream events, and stores the transient `generation_result`
-- `review`: exists as a stable insertion point but currently does no work and always skips
+- `review`: runs deterministic quality checks, stores `review_result`, and selects the next graph edge
+- `refinement`: appends refinement guidance to the rendered prompt, increments `refinement_count`, and sends control back to `generation`
 - `finalization`: resolves the final answer from `generation_result.answer` or the shell fallback, emits the `final` event, and marks the workflow completed
 
 ## Workflow State Lifecycle
@@ -112,6 +119,7 @@ There are two layers of runtime state.
 - Moves one step at a time through `start_workflow_step()`
 - Resolves each step through `complete_workflow_step()` or `skip_workflow_step()`
 - Stores durable outputs such as `route_decision`, `memory_context`, `retrieval_context`, `assembled_context`, `prompt_input`, `rendered_prompt`, and `final_answer`
+- Stores review metadata through `review_result` and `refinement_count`
 - Reaches terminal completion only through `finish_workflow()` while `FINALIZATION` is active
 - Supports `fail_workflow()`, but that path is not yet wired into the LangGraph runtime
 
@@ -125,7 +133,8 @@ There are two layers of runtime state.
 Important current behavior:
 
 - Optional steps skip when their gateway or input is missing
-- `review` is always skipped today
+- `review` always runs and records a deterministic review result
+- `refinement` runs at most once and only after a failed review
 - `generation_result` is not persisted into `AssistantWorkflowState`; only `final_answer` is
 - `WorkflowEventMetadata` exists on the state model but is not yet attached to emitted stream events
 
@@ -167,6 +176,7 @@ What actually flows through the stream:
 - `prompt_input` emits `prompt_input`
 - `prompt_rendering` emits `prompt_rendered`
 - `generation` emits `generation_input`, `token_delta`, and possibly `error`
+- `review` and `refinement` currently update graph state without emitting stream events
 - `finalization` emits `final`
 
 Important stream guarantees:
@@ -180,10 +190,10 @@ Important stream guarantees:
 
 Current implemented flow:
 
-- Linear graph
-- No conditional routing edges
+- Linear path until `review`
+- Conditional review edge
+- Bounded one-attempt refinement loop
 - No tool nodes
-- No review loop
 - No preview pipeline
 - No HITL checkpoints
 - No explicit failure node
@@ -193,7 +203,7 @@ Future extension points can be added incrementally without replacing the current
 ```mermaid
 flowchart TB
     classDef implemented fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
-    classDef placeholder fill:#FFF8E1,stroke:#B7791F,color:#7C2D12,stroke-width:1.5px;
+    classDef gate fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
     classDef future fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px,stroke-dasharray: 6 4;
 
     subgraph current_path["Current implemented path"]
@@ -205,9 +215,12 @@ flowchart TB
         prompt_input["Prompt input"]
         prompt_rendering["Prompt rendering"]
         generation["Generation"]
-        review["Review placeholder"]
+        review{{"Review quality gate"}}
+        refinement["Refinement<br/>max one attempt"]
         finalization["Finalization"]
-        routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> review --> finalization
+        routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> review
+        review -->|"pass or max retry"| finalization
+        review -->|"needs refinement"| refinement --> generation
     end
 
     subgraph future_tools["Future tool insertion points"]
@@ -238,15 +251,15 @@ flowchart TB
     review -. human approval .-> hitl
     hitl -. rejoin .-> finalization
 
-    class routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,finalization implemented
-    class review placeholder
+    class routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,refinement,finalization implemented
+    class review gate
     class tool_gate,tool_loop,preview,retry,hitl future
 ```
 
 Conservative insertion points:
 
 - Tools: the least disruptive gate is immediately after `routing`, because route capabilities already exist there; a richer tool loop can also sit between `prompt_rendering` and `generation`
-- Review loops: the current `review` placeholder is the natural anchor for a future retry loop back to `prompt_input` or `generation`
+- Review loops: the current `review` gate is the natural anchor for richer future retry loops back to `prompt_input` or `generation`
 - Preview pipeline: a preview branch can sit after `generation` and before `review` so preview artifacts can be inspected without changing the request/response contract
 - HITL checkpoints: the safest first checkpoint is between `review` and `finalization`, where a human can approve, edit, or reject a nearly complete result
 
@@ -255,7 +268,7 @@ Conservative insertion points:
 - Failure handling is still exception-based at the graph boundary; there is no explicit `FAILED` graph path yet
 - `WorkflowEventMetadata` is modeled but not emitted with stream events
 - Route selection does not currently alter graph control flow
-- `review` is a placeholder, not a live evaluation step
+- `review` is deterministic and intentionally lightweight; it is not an LLM evaluator
 - Stream event types such as `tool_start`, `tool_result`, `preview_artifact`, and `eval_update` exist in contracts but are not emitted by the current graph
 
 ## Validation Pointers

@@ -1,7 +1,7 @@
 flowchart TB
     classDef boundary fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px;
     classDef implemented fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
-    classDef placeholder fill:#FFF8E1,stroke:#B7791F,color:#7C2D12,stroke-width:1.5px;
+    classDef gate fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
     classDef terminal fill:#E3F2FD,stroke:#1565C0,color:#0D47A1,stroke-width:1.5px;
 
     start([START])
@@ -29,13 +29,16 @@ flowchart TB
     subgraph phase_4["Phase 4: Answer production"]
         direction TB
         generation["Generation<br/>prepare provider input<br/>stream tokens<br/>store generation_result"]
-        review["Review placeholder<br/>currently always skipped"]
+        review{{"Review quality gate<br/>deterministic checks<br/>records review_result"}}
+        refinement["Refinement<br/>append guidance<br/>increment refinement_count<br/>max one attempt"]
         finalization["Finalization<br/>resolve final answer<br/>emit final<br/>finish_workflow()"]
     end
 
-    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> review --> finalization --> finish
+    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> review
+    review -->|"pass or max retry"| finalization --> finish
+    review -->|"needs refinement and count < 1"| refinement --> generation
 
     class start boundary
     class finish terminal
-    class intake,routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,finalization implemented
-    class review placeholder
+    class intake,routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,refinement,finalization implemented
+    class review gate

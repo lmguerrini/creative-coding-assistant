@@ -16,6 +16,7 @@ from creative_coding_assistant.orchestration import (
     fail_workflow,
     finish_workflow,
     next_workflow_step,
+    restart_workflow_step,
     skip_workflow_step,
     start_workflow_step,
 )
@@ -117,9 +118,23 @@ class WorkflowFoundationTests(unittest.TestCase):
         self.assertEqual(next_workflow_step(WorkflowStep.INTAKE), WorkflowStep.ROUTING)
         self.assertEqual(
             next_workflow_step(WorkflowStep.REVIEW),
+            WorkflowStep.REFINEMENT,
+        )
+        self.assertEqual(
+            next_workflow_step(WorkflowStep.REFINEMENT),
             WorkflowStep.FINALIZATION,
         )
         self.assertIsNone(next_workflow_step(WorkflowStep.FINALIZATION))
+
+    def test_workflow_step_can_be_restarted_for_bounded_graph_retries(self) -> None:
+        state = begin_assistant_workflow(AssistantRequest(query="Explain shaders."))
+        state = start_workflow_step(state, WorkflowStep.GENERATION)
+        state = complete_workflow_step(state, WorkflowStep.GENERATION)
+
+        restarted_state = restart_workflow_step(state, WorkflowStep.GENERATION)
+
+        self.assertEqual(restarted_state.current_step, WorkflowStep.GENERATION)
+        self.assertEqual(restarted_state.completed_steps, (WorkflowStep.GENERATION,))
 
     def test_service_stream_event_sequence_remains_backward_compatible(self) -> None:
         service = AssistantService()

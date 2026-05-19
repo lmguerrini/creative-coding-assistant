@@ -12,6 +12,7 @@ from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
     AssistantService,
     AssistantWorkflowRuntime,
+    WorkflowReviewOutcome,
     WorkflowStatus,
     WorkflowStep,
     build_assistant_workflow_graph,
@@ -40,6 +41,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "prompt_rendering",
                 "generation",
                 "review",
+                "refinement",
                 "finalization",
             ),
         )
@@ -90,6 +92,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 WorkflowStep.INTAKE,
                 WorkflowStep.ROUTING,
                 WorkflowStep.GENERATION,
+                WorkflowStep.REVIEW,
                 WorkflowStep.FINALIZATION,
             ),
         )
@@ -101,9 +104,13 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 WorkflowStep.CONTEXT_ASSEMBLY,
                 WorkflowStep.PROMPT_INPUT,
                 WorkflowStep.PROMPT_RENDERING,
-                WorkflowStep.REVIEW,
             ),
         )
+        self.assertEqual(
+            workflow_state.review_result.outcome,
+            WorkflowReviewOutcome.PASS,
+        )
+        self.assertEqual(workflow_state.refinement_count, 0)
 
     def test_graph_streams_generation_custom_events_in_sequence(self) -> None:
         graph = build_assistant_workflow_graph()
@@ -133,6 +140,103 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(events[4].payload["text"], "answer")
         self.assertEqual(events[5].payload["answer"], "Graph answer")
 
+    def test_review_failure_runs_one_refinement_attempt(self) -> None:
+        graph = build_assistant_workflow_graph()
+        generation = _SequentialGeneration(
+            "This answer does not include fenced code.",
+            "```javascript\nconsole.log('refined');\n```",
+        )
+
+        final_state = graph.invoke(
+            build_initial_workflow_graph_state(
+                _request(query="Write code for a Three.js scene.")
+            ),
+            context={
+                "runtime": _runtime(stream_generation=generation.stream)
+            },
+        )
+
+        workflow_state = final_state["workflow_state"]
+        self.assertEqual(generation.calls, 2)
+        self.assertEqual(workflow_state.status, WorkflowStatus.COMPLETED)
+        self.assertEqual(
+            workflow_state.final_answer,
+            "```javascript\nconsole.log('refined');\n```",
+        )
+        self.assertEqual(
+            workflow_state.review_result.outcome,
+            WorkflowReviewOutcome.PASS,
+        )
+        self.assertEqual(workflow_state.refinement_count, 1)
+        self.assertIn(WorkflowStep.REFINEMENT, workflow_state.completed_steps)
+
+    def test_review_refinement_is_bounded_to_one_attempt(self) -> None:
+        graph = build_assistant_workflow_graph()
+        generation = _SequentialGeneration(
+            "Still no fenced code.",
+            "Still no fenced code after retry.",
+        )
+
+        final_state = graph.invoke(
+            build_initial_workflow_graph_state(
+                _request(query="Write code for a Three.js scene.")
+            ),
+            context={
+                "runtime": _runtime(stream_generation=generation.stream)
+            },
+        )
+
+        workflow_state = final_state["workflow_state"]
+        self.assertEqual(generation.calls, 2)
+        self.assertEqual(workflow_state.status, WorkflowStatus.COMPLETED)
+        self.assertEqual(
+            workflow_state.final_answer,
+            "Still no fenced code after retry.",
+        )
+        self.assertEqual(
+            workflow_state.review_result.outcome,
+            WorkflowReviewOutcome.NEEDS_REFINEMENT,
+        )
+        self.assertEqual(
+            workflow_state.review_result.reasons,
+            ("missing_code_block",),
+        )
+        self.assertEqual(workflow_state.refinement_count, 1)
+
+    def test_refinement_stream_preserves_existing_event_shapes(self) -> None:
+        graph = build_assistant_workflow_graph()
+        generation = _SequentialGeneration(
+            "This answer does not include fenced code.",
+            "```javascript\nconsole.log('refined');\n```",
+        )
+
+        events = tuple(
+            stream_assistant_workflow_events(
+                graph=graph,
+                request=_request(query="Write code for a Three.js scene."),
+                runtime=_runtime(stream_generation=generation.stream),
+            )
+        )
+
+        self.assertEqual(
+            [event.event_type for event in events],
+            [
+                StreamEventType.STATUS,
+                StreamEventType.STATUS,
+                StreamEventType.GENERATION_INPUT,
+                StreamEventType.TOKEN_DELTA,
+                StreamEventType.GENERATION_INPUT,
+                StreamEventType.TOKEN_DELTA,
+                StreamEventType.FINAL,
+            ],
+        )
+        self.assertEqual([event.sequence for event in events], list(range(7)))
+        self.assertEqual(generation.calls, 2)
+        self.assertEqual(
+            events[-1].payload["answer"],
+            "```javascript\nconsole.log('refined');\n```",
+        )
+
     def test_graph_propagates_node_failures_to_service_boundary(self) -> None:
         graph = build_assistant_workflow_graph()
 
@@ -161,11 +265,15 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         )
 
 
-def _request() -> AssistantRequest:
+def _request(
+    *,
+    query: str = "Generate a Three.js scene.",
+    mode: AssistantMode = AssistantMode.GENERATE,
+) -> AssistantRequest:
     return AssistantRequest(
-        query="Generate a Three.js scene.",
+        query=query,
         domain=CreativeCodingDomain.THREE_JS,
-        mode=AssistantMode.GENERATE,
+        mode=mode,
     )
 
 
@@ -256,6 +364,29 @@ def _shell_answer(decision: RouteDecision) -> str:
 class _FakeGenerationResult:
     def __init__(self, *, answer: str) -> None:
         self.answer = answer
+
+
+class _SequentialGeneration:
+    def __init__(self, *answers: str) -> None:
+        self._answers = answers
+        self.calls = 0
+
+    def stream(
+        self,
+        *,
+        builder: StreamEventBuilder,
+        **kwargs: object,
+    ) -> Iterator[StreamEvent]:
+        del kwargs
+        answer_index = min(self.calls, len(self._answers) - 1)
+        answer = self._answers[answer_index]
+        self.calls += 1
+        yield builder.generation_input(
+            code="generation_input_prepared",
+            message="Provider generation input prepared.",
+        )
+        yield builder.token_delta(answer)
+        return _FakeGenerationResult(answer=answer)
 
 
 if __name__ == "__main__":

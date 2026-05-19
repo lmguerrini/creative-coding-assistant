@@ -15,6 +15,9 @@ from creative_coding_assistant.orchestration.prompt_templates import (
 )
 from creative_coding_assistant.orchestration.retrieval import RetrievalContextResponse
 from creative_coding_assistant.orchestration.routing import RouteDecision
+from creative_coding_assistant.orchestration.workflow_review import (
+    WorkflowReviewResult,
+)
 
 
 class WorkflowStep(StrEnum):
@@ -27,6 +30,7 @@ class WorkflowStep(StrEnum):
     PROMPT_RENDERING = "prompt_rendering"
     GENERATION = "generation"
     REVIEW = "review"
+    REFINEMENT = "refinement"
     FINALIZATION = "finalization"
 
 
@@ -46,6 +50,7 @@ WORKFLOW_STEP_ORDER: tuple[WorkflowStep, ...] = (
     WorkflowStep.PROMPT_RENDERING,
     WorkflowStep.GENERATION,
     WorkflowStep.REVIEW,
+    WorkflowStep.REFINEMENT,
     WorkflowStep.FINALIZATION,
 )
 
@@ -81,6 +86,8 @@ class AssistantWorkflowState(BaseModel):
     assembled_context: AssembledContextResponse | None = None
     prompt_input: PromptInputResponse | None = None
     rendered_prompt: RenderedPromptResponse | None = None
+    review_result: WorkflowReviewResult | None = None
+    refinement_count: int = 0
     final_answer: str | None = None
     error_message: str | None = None
 
@@ -114,6 +121,17 @@ def start_workflow_step(
         raise ValueError("Cannot start a workflow step while another step is active.")
     if step in state.completed_steps or step in state.skipped_steps:
         raise ValueError(f"Workflow step already resolved: {step.value}")
+    return state.model_copy(update={"current_step": step})
+
+
+def restart_workflow_step(
+    state: AssistantWorkflowState,
+    step: WorkflowStep,
+) -> AssistantWorkflowState:
+    if state.is_terminal:
+        raise ValueError("Cannot restart a workflow step after terminal state.")
+    if state.current_step is not None:
+        raise ValueError("Cannot restart a workflow step while another step is active.")
     return state.model_copy(update={"current_step": step})
 
 

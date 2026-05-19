@@ -15,6 +15,7 @@ _ROUTING = "creative_coding_assistant.orchestration.routing"
 _SERVICE = "creative_coding_assistant.orchestration.service"
 _WORKFLOW = "creative_coding_assistant.orchestration.workflow"
 _WORKFLOW_GRAPH = "creative_coding_assistant.orchestration.workflow_graph"
+_WORKFLOW_REVIEW = "creative_coding_assistant.orchestration.workflow_review"
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -70,7 +71,10 @@ _EXPORT_MAP = {
     "StreamEventBuilder": _EVENTS,
     "StructuredPromptInputBuilder": _PROMPT_INPUTS,
     "WORKFLOW_STEP_ORDER": _WORKFLOW,
+    "MAX_WORKFLOW_REFINEMENT_COUNT": _WORKFLOW_REVIEW,
     "WorkflowEventMetadata": _WORKFLOW,
+    "WorkflowReviewOutcome": _WORKFLOW_REVIEW,
+    "WorkflowReviewResult": _WORKFLOW_REVIEW,
     "WorkflowStatus": _WORKFLOW,
     "WorkflowStep": _WORKFLOW,
     "JinjaPromptRenderer": _PROMPT_TEMPLATES,
@@ -87,6 +91,8 @@ _EXPORT_MAP = {
     "fail_workflow": _WORKFLOW,
     "finish_workflow": _WORKFLOW,
     "next_workflow_step": _WORKFLOW,
+    "restart_workflow_step": _WORKFLOW,
+    "review_assistant_answer": _WORKFLOW_REVIEW,
     "route_request": _ROUTING,
     "skip_workflow_step": _WORKFLOW,
     "stream_assistant_workflow_events": _WORKFLOW_GRAPH,

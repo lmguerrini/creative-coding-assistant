@@ -12,6 +12,12 @@ from langgraph.runtime import Runtime
 
 from creative_coding_assistant.contracts import AssistantRequest, StreamEvent
 from creative_coding_assistant.orchestration.events import StreamEventBuilder
+from creative_coding_assistant.orchestration.prompt_templates import (
+    RenderedPromptResponse,
+    RenderedPromptRole,
+    RenderedPromptSection,
+    RenderedPromptSectionName,
+)
 from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.workflow import (
     AssistantWorkflowState,
@@ -19,8 +25,15 @@ from creative_coding_assistant.orchestration.workflow import (
     begin_assistant_workflow,
     complete_workflow_step,
     finish_workflow,
+    restart_workflow_step,
     skip_workflow_step,
     start_workflow_step,
+)
+from creative_coding_assistant.orchestration.workflow_review import (
+    MAX_WORKFLOW_REFINEMENT_COUNT,
+    WorkflowReviewOutcome,
+    WorkflowReviewResult,
+    review_assistant_answer,
 )
 
 
@@ -31,7 +44,7 @@ class GenerationResultLike(Protocol):
 class AssistantWorkflowGraphState(TypedDict, total=False):
     workflow_state: AssistantWorkflowState
     route_payload: dict[str, object]
-    generation_result: GenerationResultLike
+    generation_result: GenerationResultLike | None
 
 
 class AssistantWorkflowGraphContext(TypedDict):
@@ -65,6 +78,7 @@ ASSISTANT_WORKFLOW_NODE_ORDER: tuple[str, ...] = (
     "prompt_rendering",
     "generation",
     "review",
+    "refinement",
     "finalization",
 )
 
@@ -89,13 +103,24 @@ def build_assistant_workflow_graph() -> Any:
     graph.add_node("prompt_rendering", _prompt_rendering_node)
     graph.add_node("generation", _generation_node)
     graph.add_node("review", _review_node)
+    graph.add_node("refinement", _refinement_node)
     graph.add_node("finalization", _finalization_node)
 
     graph.add_edge(START, "intake")
-    for index in range(len(ASSISTANT_WORKFLOW_NODE_ORDER) - 1):
+    review_index = ASSISTANT_WORKFLOW_NODE_ORDER.index("review")
+    for index in range(review_index):
         current_node = ASSISTANT_WORKFLOW_NODE_ORDER[index]
         next_node = ASSISTANT_WORKFLOW_NODE_ORDER[index + 1]
         graph.add_edge(current_node, next_node)
+    graph.add_conditional_edges(
+        "review",
+        _next_node_after_review,
+        {
+            "finalization": "finalization",
+            "refinement": "refinement",
+        },
+    )
+    graph.add_edge("refinement", "generation")
     graph.add_edge("finalization", END)
     return graph.compile()
 
@@ -330,9 +355,10 @@ def _generation_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
 ) -> AssistantWorkflowGraphState:
-    workflow_state = start_workflow_step(
+    workflow_state = _start_graph_workflow_step(
         _workflow_state(state),
         WorkflowStep.GENERATION,
+        allow_reentry=True,
     )
     runtime_context = _runtime(runtime)
     generation_result = _emit_streaming_step(
@@ -362,16 +388,55 @@ def _review_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
 ) -> AssistantWorkflowGraphState:
+    workflow_state = _start_graph_workflow_step(
+        _workflow_state(state),
+        WorkflowStep.REVIEW,
+        allow_reentry=True,
+    )
+    runtime_context = _runtime(runtime)
+    review_result = review_assistant_answer(
+        request=workflow_state.request,
+        answer=_answer_for_review(
+            state=state,
+            workflow_state=workflow_state,
+            runtime=runtime_context,
+        ),
+        refinement_count=workflow_state.refinement_count,
+    )
+    return {
+        "workflow_state": complete_workflow_step(
+            workflow_state,
+            WorkflowStep.REVIEW,
+            review_result=review_result,
+        )
+    }
+
+
+def _refinement_node(
+    state: AssistantWorkflowGraphState,
+    runtime: Runtime[AssistantWorkflowGraphContext],
+) -> AssistantWorkflowGraphState:
     del runtime
     workflow_state = start_workflow_step(
         _workflow_state(state),
-        WorkflowStep.REVIEW,
+        WorkflowStep.REFINEMENT,
+    )
+    review_result = workflow_state.review_result
+    if review_result is None:
+        raise ValueError("Workflow review result is not available for refinement.")
+
+    refined_prompt = _append_refinement_guidance(
+        rendered_prompt=workflow_state.rendered_prompt,
+        review_result=review_result,
     )
     return {
-        "workflow_state": skip_workflow_step(
+        "workflow_state": complete_workflow_step(
             workflow_state,
-            WorkflowStep.REVIEW,
-        )
+            WorkflowStep.REFINEMENT,
+            rendered_prompt=refined_prompt,
+            refinement_count=workflow_state.refinement_count + 1,
+        ),
+        "generation_result": None,
     }
 
 
@@ -398,6 +463,65 @@ def _finalization_node(
         )
     )
     return {"workflow_state": final_state}
+
+
+def _next_node_after_review(state: AssistantWorkflowGraphState) -> str:
+    workflow_state = _workflow_state(state)
+    review_result = workflow_state.review_result
+    if review_result is None:
+        raise ValueError("Workflow review result is not available.")
+    if (
+        review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
+        and workflow_state.refinement_count < MAX_WORKFLOW_REFINEMENT_COUNT
+    ):
+        return "refinement"
+    return "finalization"
+
+
+def _start_graph_workflow_step(
+    state: AssistantWorkflowState,
+    step: WorkflowStep,
+    *,
+    allow_reentry: bool = False,
+) -> AssistantWorkflowState:
+    if allow_reentry and (step in state.completed_steps or step in state.skipped_steps):
+        return restart_workflow_step(state, step)
+    return start_workflow_step(state, step)
+
+
+def _answer_for_review(
+    *,
+    state: AssistantWorkflowGraphState,
+    workflow_state: AssistantWorkflowState,
+    runtime: AssistantWorkflowRuntime,
+) -> str:
+    generation_result = state.get("generation_result")
+    if generation_result is not None:
+        return generation_result.answer
+    return runtime.build_shell_answer(_route_decision(workflow_state))
+
+
+def _append_refinement_guidance(
+    *,
+    rendered_prompt: RenderedPromptResponse | None,
+    review_result: WorkflowReviewResult,
+) -> RenderedPromptResponse | None:
+    if rendered_prompt is None:
+        return None
+    reasons = ", ".join(review_result.reasons) or "quality gate did not pass"
+    refinement_section = RenderedPromptSection(
+        role=RenderedPromptRole.SYSTEM,
+        name=RenderedPromptSectionName.SYSTEM,
+        content=(
+            "Refinement guidance:\n"
+            "- Revise the previous answer before finalization.\n"
+            f"- Address review issue(s): {reasons}.\n"
+            "- Preserve the original user request and existing context."
+        ),
+    )
+    return rendered_prompt.model_copy(
+        update={"sections": (*rendered_prompt.sections, refinement_section)}
+    )
 
 
 def _emit_streaming_step(step: Iterator[object]) -> object:
