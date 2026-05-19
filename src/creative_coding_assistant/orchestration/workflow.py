@@ -64,8 +64,8 @@ class WorkflowEventMetadata(BaseModel):
 class AssistantWorkflowState(BaseModel):
     """Explicit state for one assistant workflow run.
 
-    The state intentionally mirrors the existing deterministic pipeline without
-    introducing graph runtime dependencies.
+    The state intentionally mirrors the existing deterministic pipeline while
+    remaining small enough to move through graph runtime nodes.
     """
 
     model_config = ConfigDict(frozen=True)

@@ -14,8 +14,12 @@ _RETRIEVAL = "creative_coding_assistant.orchestration.retrieval"
 _ROUTING = "creative_coding_assistant.orchestration.routing"
 _SERVICE = "creative_coding_assistant.orchestration.service"
 _WORKFLOW = "creative_coding_assistant.orchestration.workflow"
+_WORKFLOW_GRAPH = "creative_coding_assistant.orchestration.workflow_graph"
 
 _EXPORT_MAP = {
+    "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
+    "AssistantWorkflowGraphState": _WORKFLOW_GRAPH,
+    "AssistantWorkflowRuntime": _WORKFLOW_GRAPH,
     "AssistantWorkflowState": _WORKFLOW,
     "AssistantService": _SERVICE,
     "AssembledContextRequest": _CTX,
@@ -71,6 +75,8 @@ _EXPORT_MAP = {
     "WorkflowStep": _WORKFLOW,
     "JinjaPromptRenderer": _PROMPT_TEMPLATES,
     "begin_assistant_workflow": _WORKFLOW,
+    "build_assistant_workflow_graph": _WORKFLOW_GRAPH,
+    "build_initial_workflow_graph_state": _WORKFLOW_GRAPH,
     "build_assembled_context_request": _CTX,
     "build_memory_context_request": _MEM,
     "build_prompt_input_request": _PROMPT_INPUTS,
@@ -83,6 +89,7 @@ _EXPORT_MAP = {
     "next_workflow_step": _WORKFLOW,
     "route_request": _ROUTING,
     "skip_workflow_step": _WORKFLOW,
+    "stream_assistant_workflow_events": _WORKFLOW_GRAPH,
     "start_workflow_step": _WORKFLOW,
 }
 
