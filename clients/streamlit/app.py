@@ -43,6 +43,7 @@ from creative_coding_assistant.clients import (
 )
 from creative_coding_assistant.contracts import AssistantMode, CreativeCodingDomain
 from creative_coding_assistant.core import load_settings
+from creative_coding_assistant.domains import get_domain_label
 
 _CHAT_HISTORY_KEY = "chat_history"
 _CONVERSATION_ID_KEY = "conversation_id"
@@ -52,52 +53,6 @@ _TRACE_VISIBILITY_KEY = "trace_visibility"
 _ANSWER_PHASE_STATUSES = {
     "Preparing response...",
     "Receiving response...",
-}
-
-_DOMAIN_LABELS = {
-    CreativeCodingDomain.THREE_JS: "Three.js",
-    CreativeCodingDomain.REACT_THREE_FIBER: "React Three Fiber",
-    CreativeCodingDomain.P5_JS: "p5.js",
-    CreativeCodingDomain.GLSL: "GLSL",
-    CreativeCodingDomain.PROCESSING: "Processing",
-    CreativeCodingDomain.CANVAS_2D: "Canvas 2D",
-    CreativeCodingDomain.WEBGPU_WGSL: "WebGPU/WGSL",
-    CreativeCodingDomain.GSAP: "GSAP",
-    CreativeCodingDomain.TONE_JS: "Tone.js",
-    CreativeCodingDomain.PIXI_JS: "PixiJS",
-    CreativeCodingDomain.MATTER_JS: "Matter.js",
-    CreativeCodingDomain.RAPIER: "Rapier",
-    CreativeCodingDomain.HYDRA: "Hydra",
-    CreativeCodingDomain.SHADERTOY: "Shadertoy",
-    CreativeCodingDomain.TOUCHDESIGNER: "TouchDesigner",
-    CreativeCodingDomain.HOUDINI: "Houdini",
-    CreativeCodingDomain.BLENDER_GEOMETRY_NODES: "Blender / Geometry Nodes",
-    CreativeCodingDomain.UNITY: "Unity",
-    CreativeCodingDomain.UNREAL: "Unreal",
-    CreativeCodingDomain.MAX_MSP: "Max/MSP",
-    CreativeCodingDomain.NOTCH: "Notch",
-    CreativeCodingDomain.VVVV: "VVVV",
-    CreativeCodingDomain.OPENFRAMEWORKS: "openFrameworks",
-    CreativeCodingDomain.OPENRNDR: "OPENRNDR",
-    CreativeCodingDomain.SUPERCOLLIDER: "SuperCollider",
-    CreativeCodingDomain.SONIC_PI: "Sonic Pi",
-    CreativeCodingDomain.TIDALCYCLES: "TidalCycles",
-    CreativeCodingDomain.WEB_AUDIO_API: "Web Audio API",
-    CreativeCodingDomain.P5_SOUND: "p5.sound",
-    CreativeCodingDomain.ML5_JS: "ml5.js",
-    CreativeCodingDomain.TENSORFLOW_JS: "TensorFlow.js",
-    CreativeCodingDomain.COMFYUI: "ComfyUI",
-    CreativeCodingDomain.STABLE_DIFFUSION_WORKFLOWS: "Stable Diffusion workflows",
-    CreativeCodingDomain.RUNWAY: "Runway",
-    CreativeCodingDomain.BLENDER_PYTHON_API: "Blender Python API",
-    CreativeCodingDomain.UNREAL_BLUEPRINTS: "Unreal Blueprints",
-    CreativeCodingDomain.ABLETON_LIVE: "Ableton Live",
-    CreativeCodingDomain.VCV_RACK: "VCV Rack",
-    CreativeCodingDomain.GODOT: "Godot",
-    CreativeCodingDomain.RESOLUME: "Resolume",
-    CreativeCodingDomain.MADMAPPER: "MadMapper",
-    CreativeCodingDomain.CABLES_GL: "Cables.gl",
-    CreativeCodingDomain.PURE_DATA: "Pure Data",
 }
 
 _MODE_LABELS = {
@@ -745,7 +700,7 @@ def _section_container():
 
 
 def _format_domain(domain: CreativeCodingDomain) -> str:
-    return _DOMAIN_LABELS[domain]
+    return get_domain_label(domain)
 
 
 def _format_mode(mode: AssistantMode) -> str:

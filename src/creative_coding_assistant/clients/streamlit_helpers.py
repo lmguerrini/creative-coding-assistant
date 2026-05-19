@@ -29,6 +29,7 @@ from creative_coding_assistant.contracts import (
     StreamEventType,
 )
 from creative_coding_assistant.core import GenerationProviderName, Settings
+from creative_coding_assistant.domains import get_domain_label
 from creative_coding_assistant.rag.retrieval.domain_intent import (
     detect_explicit_query_domains,
 )
@@ -413,93 +414,7 @@ def _coerce_enum(*, enum_cls: type, raw_value: str, fallback: object) -> object:
 
 
 def _domain_display_name(domain: CreativeCodingDomain) -> str:
-    if domain is CreativeCodingDomain.THREE_JS:
-        return "Three.js"
-    if domain is CreativeCodingDomain.REACT_THREE_FIBER:
-        return "React Three Fiber"
-    if domain is CreativeCodingDomain.P5_JS:
-        return "p5.js"
-    if domain is CreativeCodingDomain.GLSL:
-        return "GLSL"
-    if domain is CreativeCodingDomain.PROCESSING:
-        return "Processing"
-    if domain is CreativeCodingDomain.CANVAS_2D:
-        return "Canvas 2D"
-    if domain is CreativeCodingDomain.WEBGPU_WGSL:
-        return "WebGPU/WGSL"
-    if domain is CreativeCodingDomain.GSAP:
-        return "GSAP"
-    if domain is CreativeCodingDomain.TONE_JS:
-        return "Tone.js"
-    if domain is CreativeCodingDomain.PIXI_JS:
-        return "PixiJS"
-    if domain is CreativeCodingDomain.MATTER_JS:
-        return "Matter.js"
-    if domain is CreativeCodingDomain.RAPIER:
-        return "Rapier"
-    if domain is CreativeCodingDomain.HYDRA:
-        return "Hydra"
-    if domain is CreativeCodingDomain.SHADERTOY:
-        return "Shadertoy"
-    if domain is CreativeCodingDomain.TOUCHDESIGNER:
-        return "TouchDesigner"
-    if domain is CreativeCodingDomain.HOUDINI:
-        return "Houdini"
-    if domain is CreativeCodingDomain.BLENDER_GEOMETRY_NODES:
-        return "Blender / Geometry Nodes"
-    if domain is CreativeCodingDomain.UNITY:
-        return "Unity"
-    if domain is CreativeCodingDomain.UNREAL:
-        return "Unreal"
-    if domain is CreativeCodingDomain.MAX_MSP:
-        return "Max/MSP"
-    if domain is CreativeCodingDomain.NOTCH:
-        return "Notch"
-    if domain is CreativeCodingDomain.VVVV:
-        return "VVVV"
-    if domain is CreativeCodingDomain.OPENFRAMEWORKS:
-        return "openFrameworks"
-    if domain is CreativeCodingDomain.OPENRNDR:
-        return "OPENRNDR"
-    if domain is CreativeCodingDomain.SUPERCOLLIDER:
-        return "SuperCollider"
-    if domain is CreativeCodingDomain.SONIC_PI:
-        return "Sonic Pi"
-    if domain is CreativeCodingDomain.TIDALCYCLES:
-        return "TidalCycles"
-    if domain is CreativeCodingDomain.WEB_AUDIO_API:
-        return "Web Audio API"
-    if domain is CreativeCodingDomain.P5_SOUND:
-        return "p5.sound"
-    if domain is CreativeCodingDomain.ML5_JS:
-        return "ml5.js"
-    if domain is CreativeCodingDomain.TENSORFLOW_JS:
-        return "TensorFlow.js"
-    if domain is CreativeCodingDomain.COMFYUI:
-        return "ComfyUI"
-    if domain is CreativeCodingDomain.STABLE_DIFFUSION_WORKFLOWS:
-        return "Stable Diffusion workflows"
-    if domain is CreativeCodingDomain.RUNWAY:
-        return "Runway"
-    if domain is CreativeCodingDomain.BLENDER_PYTHON_API:
-        return "Blender Python API"
-    if domain is CreativeCodingDomain.UNREAL_BLUEPRINTS:
-        return "Unreal Blueprints"
-    if domain is CreativeCodingDomain.ABLETON_LIVE:
-        return "Ableton Live"
-    if domain is CreativeCodingDomain.VCV_RACK:
-        return "VCV Rack"
-    if domain is CreativeCodingDomain.GODOT:
-        return "Godot"
-    if domain is CreativeCodingDomain.RESOLUME:
-        return "Resolume"
-    if domain is CreativeCodingDomain.MADMAPPER:
-        return "MadMapper"
-    if domain is CreativeCodingDomain.CABLES_GL:
-        return "Cables.gl"
-    if domain is CreativeCodingDomain.PURE_DATA:
-        return "Pure Data"
-    return domain.value
+    return get_domain_label(domain)
 
 
 def _coerce_domain(value: object) -> CreativeCodingDomain | None:
