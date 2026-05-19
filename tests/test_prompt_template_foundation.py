@@ -521,6 +521,78 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             system_section,
         )
 
+    def test_renderer_adds_fourth_v2_domain_guidance(self) -> None:
+        renderer = JinjaPromptRenderer()
+        assistant_request = AssistantRequest(
+            query="Compare the selected creative coding and AI workflows.",
+            domains=(
+                CreativeCodingDomain.OPENFRAMEWORKS,
+                CreativeCodingDomain.OPENRNDR,
+                CreativeCodingDomain.SUPERCOLLIDER,
+                CreativeCodingDomain.SONIC_PI,
+                CreativeCodingDomain.TIDALCYCLES,
+                CreativeCodingDomain.WEB_AUDIO_API,
+                CreativeCodingDomain.P5_SOUND,
+                CreativeCodingDomain.ML5_JS,
+                CreativeCodingDomain.TENSORFLOW_JS,
+                CreativeCodingDomain.COMFYUI,
+                CreativeCodingDomain.STABLE_DIFFUSION_WORKFLOWS,
+                CreativeCodingDomain.RUNWAY,
+                CreativeCodingDomain.BLENDER_PYTHON_API,
+                CreativeCodingDomain.UNREAL_BLUEPRINTS,
+            ),
+            mode=AssistantMode.EXPLAIN,
+        )
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=assistant_request,
+                route_decision=RouteDecision(
+                    route=RouteName.EXPLAIN,
+                    mode=AssistantMode.EXPLAIN,
+                    domains=assistant_request.domains,
+                    capabilities=(RouteCapability.OFFICIAL_DOCS,),
+                ),
+                assembled_context=None,
+            )
+        )
+
+        rendered = renderer.render(
+            build_rendered_prompt_request(
+                route_decision=RouteName.EXPLAIN,
+                prompt_input=prompt_input,
+            )
+        )
+
+        system_section = rendered.sections[0].content
+        self.assertIn("- openframeworks", system_section)
+        self.assertIn("- openrndr", system_section)
+        self.assertIn("- supercollider", system_section)
+        self.assertIn("- sonic_pi", system_section)
+        self.assertIn("- tidalcycles", system_section)
+        self.assertIn("- web_audio_api", system_section)
+        self.assertIn("- p5_sound", system_section)
+        self.assertIn("- ml5_js", system_section)
+        self.assertIn("- tensorflow_js", system_section)
+        self.assertIn("- comfyui", system_section)
+        self.assertIn("- stable_diffusion_workflows", system_section)
+        self.assertIn("- runway", system_section)
+        self.assertIn("- blender_python_api", system_section)
+        self.assertIn("- unreal_blueprints", system_section)
+        self.assertIn("Treat openFrameworks as an external native C++", system_section)
+        self.assertIn("Treat OPENRNDR as an external Kotlin", system_section)
+        self.assertIn("Treat SuperCollider as an external audio", system_section)
+        self.assertIn("Treat Sonic Pi as an external live-coding", system_section)
+        self.assertIn("Treat TidalCycles as an external pattern", system_section)
+        self.assertIn("Prefer standard Web Audio API graph", system_section)
+        self.assertIn("Prefer p5.sound APIs", system_section)
+        self.assertIn("Prefer ml5.js browser ML APIs", system_section)
+        self.assertIn("Prefer TensorFlow.js APIs", system_section)
+        self.assertIn("Treat ComfyUI as an external node-based", system_section)
+        self.assertIn("Treat Stable Diffusion as an external", system_section)
+        self.assertIn("Treat Runway as an external creative AI", system_section)
+        self.assertIn("Treat Blender Python as an external DCC", system_section)
+        self.assertIn("Treat Unreal Blueprints as an external", system_section)
+
     def test_renderer_marks_follow_up_and_renders_compact_prior_turn_pair(
         self,
     ) -> None:

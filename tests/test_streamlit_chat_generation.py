@@ -185,7 +185,7 @@ class StreamlitChatGenerationTests(unittest.TestCase):
     def test_sidebar_selection_summaries_are_readable(self) -> None:
         self.assertEqual(
             domain_selection_summary(tuple(CreativeCodingDomain)),
-            "All 22 domains selected",
+            "All 36 domains selected",
         )
         self.assertEqual(
             domain_selection_summary(
@@ -225,6 +225,16 @@ class StreamlitChatGenerationTests(unittest.TestCase):
                 )
             ),
             "3 selected: TouchDesigner, Houdini, Blender / Geometry Nodes",
+        )
+        self.assertEqual(
+            domain_selection_summary(
+                (
+                    CreativeCodingDomain.OPENFRAMEWORKS,
+                    CreativeCodingDomain.WEB_AUDIO_API,
+                    CreativeCodingDomain.COMFYUI,
+                )
+            ),
+            "3 selected: openFrameworks, Web Audio API, ComfyUI",
         )
         self.assertEqual(
             domain_selection_summary(()),

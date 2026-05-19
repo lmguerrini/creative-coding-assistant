@@ -41,6 +41,32 @@ SUPPORTED_DOMAINS: tuple[DomainInfo, ...] = (
     DomainInfo(CreativeCodingDomain.MAX_MSP, "Max/MSP", "max_msp"),
     DomainInfo(CreativeCodingDomain.NOTCH, "Notch", "notch"),
     DomainInfo(CreativeCodingDomain.VVVV, "VVVV", "vvvv"),
+    DomainInfo(CreativeCodingDomain.OPENFRAMEWORKS, "openFrameworks", "openframeworks"),
+    DomainInfo(CreativeCodingDomain.OPENRNDR, "OPENRNDR", "openrndr"),
+    DomainInfo(CreativeCodingDomain.SUPERCOLLIDER, "SuperCollider", "supercollider"),
+    DomainInfo(CreativeCodingDomain.SONIC_PI, "Sonic Pi", "sonic_pi"),
+    DomainInfo(CreativeCodingDomain.TIDALCYCLES, "TidalCycles", "tidalcycles"),
+    DomainInfo(CreativeCodingDomain.WEB_AUDIO_API, "Web Audio API", "web_audio_api"),
+    DomainInfo(CreativeCodingDomain.P5_SOUND, "p5.sound", "p5_sound"),
+    DomainInfo(CreativeCodingDomain.ML5_JS, "ml5.js", "ml5_js"),
+    DomainInfo(CreativeCodingDomain.TENSORFLOW_JS, "TensorFlow.js", "tensorflow_js"),
+    DomainInfo(CreativeCodingDomain.COMFYUI, "ComfyUI", "comfyui"),
+    DomainInfo(
+        CreativeCodingDomain.STABLE_DIFFUSION_WORKFLOWS,
+        "Stable Diffusion workflows",
+        "stable_diffusion_workflows",
+    ),
+    DomainInfo(CreativeCodingDomain.RUNWAY, "Runway", "runway"),
+    DomainInfo(
+        CreativeCodingDomain.BLENDER_PYTHON_API,
+        "Blender Python API",
+        "blender_python_api",
+    ),
+    DomainInfo(
+        CreativeCodingDomain.UNREAL_BLUEPRINTS,
+        "Unreal Blueprints",
+        "unreal_blueprints",
+    ),
 )
 
 

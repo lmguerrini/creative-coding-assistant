@@ -19,7 +19,7 @@ _REACT_THREE_FIBER_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
     (re.compile(r"\buseframe\b"), 2),
 )
 _P5_JS_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
-    (re.compile(r"\bp5(?:\.js|js)?\b"), 3),
+    (re.compile(r"\bp5(?:\.js|js)?\b(?!\.sound)"), 3),
 )
 _GLSL_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
     (re.compile(r"\bglsl\b"), 3),
@@ -110,8 +110,7 @@ _HOUDINI_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
 _BLENDER_GEOMETRY_NODES_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
     (re.compile(r"\bgeometry\s+nodes?\b"), 3),
     (re.compile(r"\bgeo\s+nodes?\b"), 3),
-    (re.compile(r"\bblender\s+(?:scene|mesh|modifier|shader|python|bpy)\b"), 3),
-    (re.compile(r"\bbpy\b"), 2),
+    (re.compile(r"\bblender\s+(?:scene|mesh|modifier|shader|node\s+tree)\b"), 3),
 )
 _UNITY_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
     (
@@ -130,8 +129,6 @@ _UNREAL_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
     (re.compile(r"\bunreal\s+engine\b"), 3),
     (re.compile(r"\bue\s*5\b"), 3),
     (re.compile(r"\bue5\b"), 3),
-    (re.compile(r"\bunreal\s+blueprints?\b"), 3),
-    (re.compile(r"\bblueprint\s+(?:visual\s+scripting|class|node|graph)\b"), 2),
     (re.compile(r"\b(?:nanite|lumen|niagara)\b"), 2),
 )
 _MAX_MSP_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
@@ -154,6 +151,114 @@ _VVVV_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
     (re.compile(r"\bvvvv\s+gamma\b"), 3),
     (re.compile(r"\bthegraybook\.vvvv\.org\b"), 3),
     (re.compile(r"\bvl\.(?:skia|stride|corelib)\b"), 2),
+)
+_OPENFRAMEWORKS_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bopenframeworks\b"), 3),
+    (re.compile(r"\bopenframeworks\.cc\b"), 3),
+    (re.compile(r"\bofx[a-z0-9_]+\b"), 2),
+)
+_OPENRNDR_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bopenrndr\b"), 3),
+    (re.compile(r"\bguide\.openrndr\.org\b"), 3),
+    (re.compile(r"\borg\.openrndr\b"), 3),
+)
+_SUPERCOLLIDER_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bsupercollider\b"), 3),
+    (re.compile(r"\bsclang\b"), 3),
+    (re.compile(r"\bscsynth\b"), 3),
+    (re.compile(r"\bsynthdef\b"), 2),
+)
+_SONIC_PI_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bsonic(?:\s+pi|-pi|_pi)\b"), 3),
+    (re.compile(r"\bsonic-pi\.net\b"), 3),
+    (re.compile(r"\blive_loop\b"), 2),
+)
+_TIDALCYCLES_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\btidalcycles\b"), 3),
+    (re.compile(r"\btidalcycles\.org\b"), 3),
+    (
+        re.compile(
+            r"\btidal\s+cycles?\s+(?:pattern|live\s+coding|haskell|"
+            r"mini-notation|superdirt)\b"
+        ),
+        3,
+    ),
+    (re.compile(r"\bsuperdirt\b"), 2),
+)
+_WEB_AUDIO_API_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bweb\s+audio\s+api\b"), 3),
+    (re.compile(r"\baudiocontext\b"), 3),
+    (re.compile(r"\bofflineaudiocontext\b"), 3),
+    (re.compile(r"\baudioworklet\b"), 3),
+    (re.compile(r"\b(?:oscillator|gain|analyser|convolver)node\b"), 2),
+)
+_P5_SOUND_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bp5\.sound\b"), 3),
+    (re.compile(r"\bp5sound\b"), 3),
+    (re.compile(r"\bp5\.soundfile\b"), 3),
+    (re.compile(r"\bloadsound\s*\("), 2),
+)
+_ML5_JS_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bml5\.js\b"), 3),
+    (re.compile(r"\bml5js\b"), 3),
+    (
+        re.compile(
+            r"\bml5\.(?:bodypose|handpose|facemesh|imageclassifier|"
+            r"soundclassifier|neuralnetwork)\b"
+        ),
+        3,
+    ),
+)
+_TENSORFLOW_JS_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\btensorflow\.js\b"), 3),
+    (re.compile(r"\btensorflowjs\b"), 3),
+    (re.compile(r"\btfjs\b"), 3),
+    (
+        re.compile(
+            r"\btf\.(?:tensor|sequential|loadlayersmodel|browser|layers|train)\b"
+        ),
+        3,
+    ),
+)
+_COMFYUI_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bcomfyui\b"), 3),
+    (re.compile(r"\bcomfy\s+ui\b"), 3),
+    (re.compile(r"\bcomfy\s+(?:workflow|node|nodes|graph)\b"), 3),
+)
+_STABLE_DIFFUSION_WORKFLOWS_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bstable\s+diffusion\b"), 3),
+    (re.compile(r"\bsdxl\b"), 3),
+    (re.compile(r"\bsd\s*1\.5\b"), 2),
+    (
+        re.compile(
+            r"\bdiffusers\s+(?:stable\s+diffusion|pipeline|workflow)\b"
+        ),
+        3,
+    ),
+    (re.compile(r"\bcontrolnet\b"), 2),
+)
+_RUNWAY_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\brunwayml\b"), 3),
+    (re.compile(r"\bdocs\.dev\.runwayml\.com\b"), 3),
+    (
+        re.compile(
+            r"\brunway\s+(?:api|gen-?\d|video|generation|text-to-video|"
+            r"image-to-video)\b"
+        ),
+        3,
+    ),
+)
+_BLENDER_PYTHON_API_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bblender\s+python\b"), 3),
+    (re.compile(r"\bblender\s+api\b"), 3),
+    (re.compile(r"\bbpy\.(?:data|ops|types|context|props)\b"), 3),
+    (re.compile(r"\bpython\s+script(?:ing)?\s+in\s+blender\b"), 3),
+)
+_UNREAL_BLUEPRINTS_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
+    (re.compile(r"\bunreal\s+blueprints?\b"), 3),
+    (re.compile(r"\bblueprints?\s+in\s+unreal\b"), 3),
+    (re.compile(r"\bunreal\s+.*\bblueprint\s+(?:class|node|graph|api)\b"), 3),
+    (re.compile(r"\bblueprint\s+visual\s+scripting\b"), 3),
 )
 _INTENT_PATTERNS: tuple[
     tuple[CreativeCodingDomain, tuple[tuple[re.Pattern[str], int], ...]],
@@ -184,6 +289,23 @@ _INTENT_PATTERNS: tuple[
     (CreativeCodingDomain.MAX_MSP, _MAX_MSP_PATTERNS),
     (CreativeCodingDomain.NOTCH, _NOTCH_PATTERNS),
     (CreativeCodingDomain.VVVV, _VVVV_PATTERNS),
+    (CreativeCodingDomain.OPENFRAMEWORKS, _OPENFRAMEWORKS_PATTERNS),
+    (CreativeCodingDomain.OPENRNDR, _OPENRNDR_PATTERNS),
+    (CreativeCodingDomain.SUPERCOLLIDER, _SUPERCOLLIDER_PATTERNS),
+    (CreativeCodingDomain.SONIC_PI, _SONIC_PI_PATTERNS),
+    (CreativeCodingDomain.TIDALCYCLES, _TIDALCYCLES_PATTERNS),
+    (CreativeCodingDomain.WEB_AUDIO_API, _WEB_AUDIO_API_PATTERNS),
+    (CreativeCodingDomain.P5_SOUND, _P5_SOUND_PATTERNS),
+    (CreativeCodingDomain.ML5_JS, _ML5_JS_PATTERNS),
+    (CreativeCodingDomain.TENSORFLOW_JS, _TENSORFLOW_JS_PATTERNS),
+    (CreativeCodingDomain.COMFYUI, _COMFYUI_PATTERNS),
+    (
+        CreativeCodingDomain.STABLE_DIFFUSION_WORKFLOWS,
+        _STABLE_DIFFUSION_WORKFLOWS_PATTERNS,
+    ),
+    (CreativeCodingDomain.RUNWAY, _RUNWAY_PATTERNS),
+    (CreativeCodingDomain.BLENDER_PYTHON_API, _BLENDER_PYTHON_API_PATTERNS),
+    (CreativeCodingDomain.UNREAL_BLUEPRINTS, _UNREAL_BLUEPRINTS_PATTERNS),
 )
 _RELATED_DOMAIN_FALLBACKS: dict[
     CreativeCodingDomain,

@@ -380,6 +380,34 @@ def _domain_summary_label(domain: CreativeCodingDomain | None) -> str | None:
         return "Notch"
     if domain is CreativeCodingDomain.VVVV:
         return "VVVV"
+    if domain is CreativeCodingDomain.OPENFRAMEWORKS:
+        return "openFrameworks"
+    if domain is CreativeCodingDomain.OPENRNDR:
+        return "OPENRNDR"
+    if domain is CreativeCodingDomain.SUPERCOLLIDER:
+        return "SuperCollider"
+    if domain is CreativeCodingDomain.SONIC_PI:
+        return "Sonic Pi"
+    if domain is CreativeCodingDomain.TIDALCYCLES:
+        return "TidalCycles"
+    if domain is CreativeCodingDomain.WEB_AUDIO_API:
+        return "Web Audio API"
+    if domain is CreativeCodingDomain.P5_SOUND:
+        return "p5.sound"
+    if domain is CreativeCodingDomain.ML5_JS:
+        return "ml5.js"
+    if domain is CreativeCodingDomain.TENSORFLOW_JS:
+        return "TensorFlow.js"
+    if domain is CreativeCodingDomain.COMFYUI:
+        return "ComfyUI"
+    if domain is CreativeCodingDomain.STABLE_DIFFUSION_WORKFLOWS:
+        return "Stable Diffusion workflows"
+    if domain is CreativeCodingDomain.RUNWAY:
+        return "Runway"
+    if domain is CreativeCodingDomain.BLENDER_PYTHON_API:
+        return "Blender Python API"
+    if domain is CreativeCodingDomain.UNREAL_BLUEPRINTS:
+        return "Unreal Blueprints"
     return domain.value
 
 
@@ -424,6 +452,34 @@ def _default_generated_topic(domain: CreativeCodingDomain | None) -> str:
         return "realtime VFX workflow guidance"
     if domain is CreativeCodingDomain.VVVV:
         return "visual programming guidance"
+    if domain is CreativeCodingDomain.OPENFRAMEWORKS:
+        return "creative coding framework guidance"
+    if domain is CreativeCodingDomain.OPENRNDR:
+        return "creative coding framework guidance"
+    if domain is CreativeCodingDomain.SUPERCOLLIDER:
+        return "audio live-coding guidance"
+    if domain is CreativeCodingDomain.SONIC_PI:
+        return "audio live-coding guidance"
+    if domain is CreativeCodingDomain.TIDALCYCLES:
+        return "pattern live-coding guidance"
+    if domain is CreativeCodingDomain.WEB_AUDIO_API:
+        return "browser audio code"
+    if domain is CreativeCodingDomain.P5_SOUND:
+        return "p5.sound audio code"
+    if domain is CreativeCodingDomain.ML5_JS:
+        return "browser ML code"
+    if domain is CreativeCodingDomain.TENSORFLOW_JS:
+        return "browser ML code"
+    if domain is CreativeCodingDomain.COMFYUI:
+        return "node workflow guidance"
+    if domain is CreativeCodingDomain.STABLE_DIFFUSION_WORKFLOWS:
+        return "diffusion workflow guidance"
+    if domain is CreativeCodingDomain.RUNWAY:
+        return "creative AI workflow guidance"
+    if domain is CreativeCodingDomain.BLENDER_PYTHON_API:
+        return "Blender scripting guidance"
+    if domain is CreativeCodingDomain.UNREAL_BLUEPRINTS:
+        return "Blueprint workflow guidance"
     if domain is CreativeCodingDomain.REACT_THREE_FIBER:
         return "component code"
     if domain is CreativeCodingDomain.THREE_JS:

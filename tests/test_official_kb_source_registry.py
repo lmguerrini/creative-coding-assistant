@@ -42,6 +42,20 @@ class OfficialKnowledgeBaseSourceRegistryTests(unittest.TestCase):
                 CreativeCodingDomain.MAX_MSP,
                 CreativeCodingDomain.NOTCH,
                 CreativeCodingDomain.VVVV,
+                CreativeCodingDomain.OPENFRAMEWORKS,
+                CreativeCodingDomain.OPENRNDR,
+                CreativeCodingDomain.SUPERCOLLIDER,
+                CreativeCodingDomain.SONIC_PI,
+                CreativeCodingDomain.TIDALCYCLES,
+                CreativeCodingDomain.WEB_AUDIO_API,
+                CreativeCodingDomain.P5_SOUND,
+                CreativeCodingDomain.ML5_JS,
+                CreativeCodingDomain.TENSORFLOW_JS,
+                CreativeCodingDomain.COMFYUI,
+                CreativeCodingDomain.STABLE_DIFFUSION_WORKFLOWS,
+                CreativeCodingDomain.RUNWAY,
+                CreativeCodingDomain.BLENDER_PYTHON_API,
+                CreativeCodingDomain.UNREAL_BLUEPRINTS,
             ),
         )
 
@@ -377,6 +391,144 @@ class OfficialKnowledgeBaseSourceRegistryTests(unittest.TestCase):
                 self.assertGreater(len(sources), 0)
                 self.assertEqual(
                     {source.url.split("/")[2] for source in sources},
+                    hosts,
+                )
+
+    def test_fourth_v2_domain_sources_are_registered_with_expected_metadata(
+        self,
+    ) -> None:
+        cases = (
+            (
+                "openframeworks_docs",
+                CreativeCodingDomain.OPENFRAMEWORKS,
+                "openFrameworks",
+                "https://openframeworks.cc/documentation/",
+            ),
+            (
+                "openrndr_guide",
+                CreativeCodingDomain.OPENRNDR,
+                "OPENRNDR",
+                "https://guide.openrndr.org/",
+            ),
+            (
+                "supercollider_help",
+                CreativeCodingDomain.SUPERCOLLIDER,
+                "SuperCollider",
+                "https://docs.supercollider.online/",
+            ),
+            (
+                "sonic_pi_tutorial",
+                CreativeCodingDomain.SONIC_PI,
+                "Sonic Pi",
+                "https://sonic-pi.net/tutorial.html",
+            ),
+            (
+                "tidalcycles_docs",
+                CreativeCodingDomain.TIDALCYCLES,
+                "TidalCycles",
+                "https://tidalcycles.org/docs/",
+            ),
+            (
+                "web_audio_mdn_api",
+                CreativeCodingDomain.WEB_AUDIO_API,
+                "MDN",
+                "https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API",
+            ),
+            (
+                "p5_sound_reference",
+                CreativeCodingDomain.P5_SOUND,
+                "p5.js",
+                "https://p5js.org/reference/p5.sound/",
+            ),
+            (
+                "ml5_js_learn",
+                CreativeCodingDomain.ML5_JS,
+                "ml5.js",
+                "https://ml5js.org/learn",
+            ),
+            (
+                "tensorflow_js_guide",
+                CreativeCodingDomain.TENSORFLOW_JS,
+                "TensorFlow",
+                "https://www.tensorflow.org/js/guide",
+            ),
+            (
+                "comfyui_docs",
+                CreativeCodingDomain.COMFYUI,
+                "ComfyUI",
+                "https://docs.comfy.org/index",
+            ),
+            (
+                "stable_diffusion_diffusers",
+                CreativeCodingDomain.STABLE_DIFFUSION_WORKFLOWS,
+                "Hugging Face Diffusers",
+                (
+                    "https://huggingface.co/docs/diffusers/api/pipelines/"
+                    "stable_diffusion/overview"
+                ),
+            ),
+            (
+                "runway_api_docs",
+                CreativeCodingDomain.RUNWAY,
+                "Runway",
+                "https://docs.dev.runwayml.com/",
+            ),
+            (
+                "blender_python_api",
+                CreativeCodingDomain.BLENDER_PYTHON_API,
+                "Blender Foundation",
+                "https://docs.blender.org/api/current/",
+            ),
+            (
+                "unreal_blueprints_docs",
+                CreativeCodingDomain.UNREAL_BLUEPRINTS,
+                "Epic Games",
+                (
+                    "https://dev.epicgames.com/documentation/en-us/"
+                    "unreal-engine/introduction-to-blueprints"
+                ),
+            ),
+        )
+
+        for source_id, domain, publisher, url in cases:
+            with self.subTest(source_id=source_id):
+                source = get_official_source(source_id)
+                self.assertEqual(source.domain, domain)
+                self.assertEqual(source.publisher, publisher)
+                self.assertEqual(source.url, url)
+                self.assertGreaterEqual(source.priority, 1)
+
+    def test_fourth_v2_domain_sources_use_approved_hosts(self) -> None:
+        expected_hosts = {
+            CreativeCodingDomain.OPENFRAMEWORKS: {"openframeworks.cc"},
+            CreativeCodingDomain.OPENRNDR: {"guide.openrndr.org"},
+            CreativeCodingDomain.SUPERCOLLIDER: {"docs.supercollider.online"},
+            CreativeCodingDomain.SONIC_PI: {"sonic-pi.net"},
+            CreativeCodingDomain.TIDALCYCLES: {"tidalcycles.org"},
+            CreativeCodingDomain.WEB_AUDIO_API: {"developer.mozilla.org"},
+            CreativeCodingDomain.P5_SOUND: {"p5js.org"},
+            CreativeCodingDomain.ML5_JS: {"ml5js.org"},
+            CreativeCodingDomain.TENSORFLOW_JS: {
+                "www.tensorflow.org",
+                "js.tensorflow.org",
+            },
+            CreativeCodingDomain.COMFYUI: {"docs.comfy.org"},
+            CreativeCodingDomain.STABLE_DIFFUSION_WORKFLOWS: {"huggingface.co"},
+            CreativeCodingDomain.RUNWAY: {"docs.dev.runwayml.com"},
+            CreativeCodingDomain.BLENDER_PYTHON_API: {"docs.blender.org"},
+            CreativeCodingDomain.UNREAL_BLUEPRINTS: {"dev.epicgames.com"},
+        }
+
+        for domain, hosts in expected_hosts.items():
+            with self.subTest(domain=domain):
+                sources = approved_sources_for_domain(domain)
+                self.assertGreater(len(sources), 0)
+                self.assertEqual(
+                    {
+                        url.split("/")[2]
+                        for source in sources
+                        for url in (source.url, *source.additional_urls)
+                    },
                     hosts,
                 )
 

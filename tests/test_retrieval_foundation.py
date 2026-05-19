@@ -263,7 +263,7 @@ class RetrievalFoundationTests(unittest.TestCase):
             ),
             ("Create a Unity GameObject setup.", (CreativeCodingDomain.UNITY,)),
             (
-                "Build an Unreal Engine Blueprint graph.",
+                "Build an Unreal Engine Niagara effect.",
                 (CreativeCodingDomain.UNREAL,),
             ),
             ("Create a Max/MSP signal patch.", (CreativeCodingDomain.MAX_MSP,)),
@@ -287,6 +287,77 @@ class RetrievalFoundationTests(unittest.TestCase):
             "Set the max width to 400 pixels.",
             "Cut a notch in the wooden frame.",
             "The gray book belongs on the shelf.",
+        )
+
+        for query in cases:
+            with self.subTest(query=query):
+                self.assertEqual(detect_explicit_query_domains(query), ())
+
+    def test_detects_fourth_v2_explicit_query_domains(self) -> None:
+        cases = (
+            (
+                "Create an openFrameworks ofxCv sketch.",
+                (CreativeCodingDomain.OPENFRAMEWORKS,),
+            ),
+            ("Create an OPENRNDR Program.", (CreativeCodingDomain.OPENRNDR,)),
+            (
+                "Write a SuperCollider SynthDef.",
+                (CreativeCodingDomain.SUPERCOLLIDER,),
+            ),
+            ("Create a Sonic Pi live_loop.", (CreativeCodingDomain.SONIC_PI,)),
+            (
+                "Write a TidalCycles pattern for SuperDirt.",
+                (CreativeCodingDomain.TIDALCYCLES,),
+            ),
+            (
+                "Build a Web Audio API AudioContext graph.",
+                (CreativeCodingDomain.WEB_AUDIO_API,),
+            ),
+            ("Load audio with p5.sound.", (CreativeCodingDomain.P5_SOUND,)),
+            ("Use ml5.js BodyPose.", (CreativeCodingDomain.ML5_JS,)),
+            (
+                "Create a TensorFlow.js tf.tensor model.",
+                (CreativeCodingDomain.TENSORFLOW_JS,),
+            ),
+            (
+                "Design a ComfyUI node workflow.",
+                (CreativeCodingDomain.COMFYUI,),
+            ),
+            (
+                "Create a Stable Diffusion ControlNet workflow.",
+                (CreativeCodingDomain.STABLE_DIFFUSION_WORKFLOWS,),
+            ),
+            (
+                "Use Runway Gen-3 video generation.",
+                (CreativeCodingDomain.RUNWAY,),
+            ),
+            (
+                "Use Blender Python bpy.ops to create meshes.",
+                (CreativeCodingDomain.BLENDER_PYTHON_API,),
+            ),
+            (
+                "Create an Unreal Blueprint graph.",
+                (CreativeCodingDomain.UNREAL_BLUEPRINTS,),
+            ),
+        )
+
+        for query, expected_domains in cases:
+            with self.subTest(query=query):
+                self.assertEqual(
+                    detect_explicit_query_domains(query),
+                    expected_domains,
+                )
+
+    def test_query_detection_avoids_broad_fourth_v2_false_positives(self) -> None:
+        cases = (
+            "Open the framework settings panel.",
+            "Use a sonic texture near the pi symbols.",
+            "The tidal cycles of the ocean are changing.",
+            "Add audio context to the meeting notes.",
+            "The runway model walks across the scene.",
+            "Use stable camera motion and diffusion blur.",
+            "Blend Python snippets into the notes.",
+            "Sketch a blueprint graph for architecture.",
         )
 
         for query in cases:

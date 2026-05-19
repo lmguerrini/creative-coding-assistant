@@ -313,6 +313,71 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
                     (expected_domain,),
                 )
 
+    def test_build_retrieval_request_detects_fourth_v2_query_domain(self) -> None:
+        cases = (
+            (
+                "Create an openFrameworks ofxGui sketch.",
+                CreativeCodingDomain.OPENFRAMEWORKS,
+            ),
+            ("Create an OPENRNDR drawing program.", CreativeCodingDomain.OPENRNDR),
+            ("Create a SuperCollider SynthDef.", CreativeCodingDomain.SUPERCOLLIDER),
+            ("Create a Sonic Pi live_loop.", CreativeCodingDomain.SONIC_PI),
+            (
+                "Create a TidalCycles mini-notation pattern.",
+                CreativeCodingDomain.TIDALCYCLES,
+            ),
+            ("Create a Web Audio API graph.", CreativeCodingDomain.WEB_AUDIO_API),
+            ("Create a p5.sound sampler sketch.", CreativeCodingDomain.P5_SOUND),
+            ("Create an ml5.js HandPose sketch.", CreativeCodingDomain.ML5_JS),
+            (
+                "Create a TensorFlow.js model.",
+                CreativeCodingDomain.TENSORFLOW_JS,
+            ),
+            ("Create a ComfyUI workflow.", CreativeCodingDomain.COMFYUI),
+            (
+                "Create a Stable Diffusion LoRA workflow.",
+                CreativeCodingDomain.STABLE_DIFFUSION_WORKFLOWS,
+            ),
+            ("Create a Runway API video workflow.", CreativeCodingDomain.RUNWAY),
+            (
+                "Create a Blender Python API script.",
+                CreativeCodingDomain.BLENDER_PYTHON_API,
+            ),
+            (
+                "Create an Unreal Blueprint class graph.",
+                CreativeCodingDomain.UNREAL_BLUEPRINTS,
+            ),
+        )
+
+        for query, expected_domain in cases:
+            with self.subTest(query=query):
+                assistant_request = AssistantRequest(
+                    query=query,
+                    domains=(
+                        CreativeCodingDomain.THREE_JS,
+                        CreativeCodingDomain.REACT_THREE_FIBER,
+                    ),
+                    mode=AssistantMode.GENERATE,
+                )
+                route_decision = RouteDecision(
+                    route=RouteName.GENERATE,
+                    mode=AssistantMode.GENERATE,
+                    capabilities=(RouteCapability.OFFICIAL_DOCS,),
+                )
+
+                retrieval_request = build_retrieval_context_request(
+                    assistant_request,
+                    route_decision,
+                )
+
+                self.assertIsNotNone(retrieval_request)
+                assert retrieval_request is not None
+                self.assertEqual(retrieval_request.filters.domain, expected_domain)
+                self.assertEqual(
+                    retrieval_request.filters.domains,
+                    (expected_domain,),
+                )
+
     def test_build_retrieval_request_uses_ui_domains_when_query_is_ambiguous(
         self,
     ) -> None:

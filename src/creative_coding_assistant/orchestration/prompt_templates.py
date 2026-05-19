@@ -519,6 +519,85 @@ def _domain_preference_line(domain: CreativeCodingDomain) -> str:
             "Treat vvvv gamma as an external visual programming domain; prefer VL "
             "patches, nodes, pins, links, Skia, Stride, and gamma terminology."
         )
+    if domain is CreativeCodingDomain.OPENFRAMEWORKS:
+        return (
+            "Treat openFrameworks as an external native C++ creative-coding "
+            "framework; prefer ofApp, setup(), update(), draw(), ofx addons, and "
+            "graphics/audio/video pipeline terminology."
+        )
+    if domain is CreativeCodingDomain.OPENRNDR:
+        return (
+            "Treat OPENRNDR as an external Kotlin creative-coding framework; "
+            "prefer Program, Drawer, extensions, shade styles, and render-target "
+            "terminology."
+        )
+    if domain is CreativeCodingDomain.SUPERCOLLIDER:
+        return (
+            "Treat SuperCollider as an external audio live-coding domain; prefer "
+            "sclang, SynthDef, UGens, patterns, buses, and server/client "
+            "terminology."
+        )
+    if domain is CreativeCodingDomain.SONIC_PI:
+        return (
+            "Treat Sonic Pi as an external live-coding music domain; prefer "
+            "live_loop, synths, samples, FX, cues, and concise Ruby-like examples."
+        )
+    if domain is CreativeCodingDomain.TIDALCYCLES:
+        return (
+            "Treat TidalCycles as an external pattern live-coding domain; prefer "
+            "mini-notation, patterns, cycles, Haskell syntax, and SuperDirt "
+            "terminology."
+        )
+    if domain is CreativeCodingDomain.WEB_AUDIO_API:
+        return (
+            "Prefer standard Web Audio API graph terminology such as AudioContext, "
+            "AudioNode, GainNode, OscillatorNode, AudioWorklet, and scheduling."
+        )
+    if domain is CreativeCodingDomain.P5_SOUND:
+        return (
+            "Prefer p5.sound APIs such as loadSound(), p5.SoundFile, oscillators, "
+            "envelopes, FFT, and p5 sketch preload/setup/draw structure."
+        )
+    if domain is CreativeCodingDomain.ML5_JS:
+        return (
+            "Prefer ml5.js browser ML APIs and model names such as BodyPose, "
+            "HandPose, FaceMesh, ImageClassifier, SoundClassifier, and "
+            "NeuralNetwork."
+        )
+    if domain is CreativeCodingDomain.TENSORFLOW_JS:
+        return (
+            "Prefer TensorFlow.js APIs such as tf.tensor(), Layers, model loading, "
+            "training, browser execution, and Node.js execution when relevant."
+        )
+    if domain is CreativeCodingDomain.COMFYUI:
+        return (
+            "Treat ComfyUI as an external node-based generative AI workflow "
+            "domain; prefer nodes, models, samplers, latents, conditioning, and "
+            "workflow JSON terminology."
+        )
+    if domain is CreativeCodingDomain.STABLE_DIFFUSION_WORKFLOWS:
+        return (
+            "Treat Stable Diffusion as an external generative AI workflow domain; "
+            "prefer checkpoints, prompts, samplers, schedulers, LoRA, ControlNet, "
+            "and Diffusers pipeline terminology."
+        )
+    if domain is CreativeCodingDomain.RUNWAY:
+        return (
+            "Treat Runway as an external creative AI platform/API domain; prefer "
+            "generation tasks, assets, prompts, model versions, and API workflow "
+            "terminology."
+        )
+    if domain is CreativeCodingDomain.BLENDER_PYTHON_API:
+        return (
+            "Treat Blender Python as an external DCC scripting domain; prefer bpy, "
+            "operators, data blocks, context, properties, and addon structure."
+        )
+    if domain is CreativeCodingDomain.UNREAL_BLUEPRINTS:
+        return (
+            "Treat Unreal Blueprints as an external visual scripting domain; "
+            "prefer Blueprint classes, graphs, nodes, events, pins, variables, and "
+            "Unreal Editor workflow terminology."
+        )
     return (
         "Prefer the selected domain's official APIs, terminology, and examples."
     )

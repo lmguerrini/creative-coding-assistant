@@ -77,6 +77,20 @@ _DOMAIN_LABELS = {
     CreativeCodingDomain.MAX_MSP: "Max/MSP",
     CreativeCodingDomain.NOTCH: "Notch",
     CreativeCodingDomain.VVVV: "VVVV",
+    CreativeCodingDomain.OPENFRAMEWORKS: "openFrameworks",
+    CreativeCodingDomain.OPENRNDR: "OPENRNDR",
+    CreativeCodingDomain.SUPERCOLLIDER: "SuperCollider",
+    CreativeCodingDomain.SONIC_PI: "Sonic Pi",
+    CreativeCodingDomain.TIDALCYCLES: "TidalCycles",
+    CreativeCodingDomain.WEB_AUDIO_API: "Web Audio API",
+    CreativeCodingDomain.P5_SOUND: "p5.sound",
+    CreativeCodingDomain.ML5_JS: "ml5.js",
+    CreativeCodingDomain.TENSORFLOW_JS: "TensorFlow.js",
+    CreativeCodingDomain.COMFYUI: "ComfyUI",
+    CreativeCodingDomain.STABLE_DIFFUSION_WORKFLOWS: "Stable Diffusion workflows",
+    CreativeCodingDomain.RUNWAY: "Runway",
+    CreativeCodingDomain.BLENDER_PYTHON_API: "Blender Python API",
+    CreativeCodingDomain.UNREAL_BLUEPRINTS: "Unreal Blueprints",
 }
 
 _MODE_LABELS = {
@@ -99,7 +113,8 @@ def main() -> None:
     st.title(settings.app_name)
     st.caption(
         "Creative coding chat support across 3D, shaders, animation, audio, "
-        "physics, rendering, live-coding, engines, and procedural tool domains."
+        "physics, rendering, live-coding, AI, engines, and procedural tool "
+        "domains."
     )
 
     _ensure_session_state(settings)

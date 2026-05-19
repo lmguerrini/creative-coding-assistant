@@ -33,6 +33,20 @@ class CreativeCodingDomain(StrEnum):
     MAX_MSP = "max_msp"
     NOTCH = "notch"
     VVVV = "vvvv"
+    OPENFRAMEWORKS = "openframeworks"
+    OPENRNDR = "openrndr"
+    SUPERCOLLIDER = "supercollider"
+    SONIC_PI = "sonic_pi"
+    TIDALCYCLES = "tidalcycles"
+    WEB_AUDIO_API = "web_audio_api"
+    P5_SOUND = "p5_sound"
+    ML5_JS = "ml5_js"
+    TENSORFLOW_JS = "tensorflow_js"
+    COMFYUI = "comfyui"
+    STABLE_DIFFUSION_WORKFLOWS = "stable_diffusion_workflows"
+    RUNWAY = "runway"
+    BLENDER_PYTHON_API = "blender_python_api"
+    UNREAL_BLUEPRINTS = "unreal_blueprints"
 
 
 class AssistantMode(StrEnum):
