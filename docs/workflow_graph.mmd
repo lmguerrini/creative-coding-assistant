@@ -1,0 +1,15 @@
+flowchart LR
+    start([START])
+    intake["intake<br/>start INTAKE<br/>emit status: request_received<br/>complete INTAKE"]
+    routing["routing<br/>start ROUTING<br/>route request<br/>emit status: route_selected<br/>store route_decision + route_payload"]
+    memory["memory<br/>start MEMORY<br/>run memory step<br/>complete or skip"]
+    retrieval["retrieval<br/>start RETRIEVAL<br/>run retrieval step<br/>complete or skip"]
+    context_assembly["context_assembly<br/>start CONTEXT_ASSEMBLY<br/>assemble context<br/>complete or skip"]
+    prompt_input["prompt_input<br/>start PROMPT_INPUT<br/>build prompt inputs<br/>complete or skip"]
+    prompt_rendering["prompt_rendering<br/>start PROMPT_RENDERING<br/>render prompt<br/>complete or skip"]
+    generation["generation<br/>start GENERATION<br/>prepare input and stream tokens<br/>complete or skip<br/>store generation_result"]
+    review["review<br/>start REVIEW<br/>currently skip REVIEW"]
+    finalization["finalization<br/>start FINALIZATION<br/>choose answer<br/>emit FINAL<br/>finish_workflow()"]
+    finish([END])
+
+    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> review --> finalization --> finish
