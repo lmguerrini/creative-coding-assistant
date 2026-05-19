@@ -23,6 +23,22 @@ class DomainCategory(StrEnum):
     PROJECTION_MAPPING = "projection_mapping"
 
 
+_DOMAIN_CATEGORY_LABELS: dict[DomainCategory, str] = {
+    DomainCategory.WEB_CREATIVE_CODING: "Web Creative Coding",
+    DomainCategory.SHADERS_GPU: "Shader / GPU",
+    DomainCategory.ANIMATION: "Animation",
+    DomainCategory.PHYSICS: "Physics",
+    DomainCategory.AUDIO_LIVE_CODING: "Audio / Music Tech",
+    DomainCategory.AV_VJ: "Realtime Visuals / AV",
+    DomainCategory.DCC_PROCEDURAL: "Procedural / DCC",
+    DomainCategory.GAME_ENGINES: "Game Engines",
+    DomainCategory.CREATIVE_AI: "AI Creative Tools",
+    DomainCategory.VISUAL_PATCHING: "Visual Patching",
+    DomainCategory.MODULAR_SYNTHESIS: "Modular Synthesis",
+    DomainCategory.PROJECTION_MAPPING: "Projection Mapping",
+}
+
+
 @dataclass(frozen=True)
 class DomainInfo:
     value: CreativeCodingDomain
@@ -574,6 +590,28 @@ def get_domain_slug(domain: CreativeCodingDomain) -> str:
 
 def get_domain_category(domain: CreativeCodingDomain) -> DomainCategory:
     return get_domain_info(domain).category
+
+
+def get_domain_category_label(category: DomainCategory) -> str:
+    return _DOMAIN_CATEGORY_LABELS[category]
+
+
+def get_domain_categories() -> tuple[DomainCategory, ...]:
+    """Return categories in first-use registry order."""
+
+    categories: list[DomainCategory] = []
+    for domain in SUPPORTED_DOMAINS:
+        if domain.category not in categories:
+            categories.append(domain.category)
+    return tuple(categories)
+
+
+def get_domains_for_category(
+    category: DomainCategory,
+) -> tuple[CreativeCodingDomain, ...]:
+    return tuple(
+        domain.value for domain in SUPPORTED_DOMAINS if domain.category is category
+    )
 
 
 def get_domain_prompt_guidance(domain: CreativeCodingDomain) -> str:

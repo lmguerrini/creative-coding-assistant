@@ -2,6 +2,7 @@ import unittest
 
 from creative_coding_assistant.clients import (
     ChatHistoryEntry,
+    DomainCategoryDisplayGroup,
     RetrievalDisplayItem,
     StreamRenderState,
     assistant_history_entry,
@@ -10,8 +11,10 @@ from creative_coding_assistant.clients import (
     default_domain,
     default_domain_selection,
     default_mode,
+    domain_category_groups,
     domain_selection_summary,
     mode_selection_summary,
+    ordered_domain_selection,
     reduce_stream_event,
     resolve_request_domain,
     resolve_request_domains,
@@ -28,6 +31,7 @@ from creative_coding_assistant.contracts import (
     StreamEventType,
 )
 from creative_coding_assistant.core import GenerationProviderName, Settings
+from creative_coding_assistant.domains import DomainCategory
 
 
 class StreamlitChatGenerationTests(unittest.TestCase):
@@ -128,16 +132,21 @@ class StreamlitChatGenerationTests(unittest.TestCase):
         self.assertEqual(request.domains, (CreativeCodingDomain.GLSL,))
         self.assertEqual(request.mode, AssistantMode.EXPLAIN)
 
-    def test_default_domain_selection_includes_all_domains(self) -> None:
+    def test_default_domain_selection_uses_small_core_domain_set(self) -> None:
         self.assertEqual(
             default_domain_selection(),
-            tuple(CreativeCodingDomain),
+            (
+                CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.REACT_THREE_FIBER,
+                CreativeCodingDomain.P5_JS,
+                CreativeCodingDomain.GLSL,
+            ),
         )
 
-    def test_resolve_session_domain_selection_defaults_to_all_domains(self) -> None:
+    def test_resolve_session_domain_selection_defaults_to_core_domains(self) -> None:
         self.assertEqual(
             resolve_session_domain_selection(None),
-            tuple(CreativeCodingDomain),
+            default_domain_selection(),
         )
 
     def test_resolve_session_domain_selection_preserves_empty_selection(self) -> None:
@@ -153,8 +162,8 @@ class StreamlitChatGenerationTests(unittest.TestCase):
                 )
             ),
             (
-                CreativeCodingDomain.GLSL,
                 CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.GLSL,
             ),
         )
 
@@ -163,7 +172,60 @@ class StreamlitChatGenerationTests(unittest.TestCase):
     ) -> None:
         self.assertEqual(
             resolve_session_domain_selection(("invalid_domain", "still_invalid")),
-            tuple(CreativeCodingDomain),
+            default_domain_selection(),
+        )
+
+    def test_domain_category_groups_cover_all_domains_in_registry_order(self) -> None:
+        groups = domain_category_groups()
+
+        self.assertEqual(
+            groups[0],
+            DomainCategoryDisplayGroup(
+                category=DomainCategory.WEB_CREATIVE_CODING,
+                label="Web Creative Coding",
+                domains=(
+                    CreativeCodingDomain.THREE_JS,
+                    CreativeCodingDomain.REACT_THREE_FIBER,
+                    CreativeCodingDomain.P5_JS,
+                    CreativeCodingDomain.PROCESSING,
+                    CreativeCodingDomain.CANVAS_2D,
+                    CreativeCodingDomain.PIXI_JS,
+                    CreativeCodingDomain.OPENFRAMEWORKS,
+                    CreativeCodingDomain.OPENRNDR,
+                ),
+            ),
+        )
+        self.assertEqual(
+            groups[1],
+            DomainCategoryDisplayGroup(
+                category=DomainCategory.SHADERS_GPU,
+                label="Shader / GPU",
+                domains=(
+                    CreativeCodingDomain.GLSL,
+                    CreativeCodingDomain.WEBGPU_WGSL,
+                    CreativeCodingDomain.SHADERTOY,
+                ),
+            ),
+        )
+        grouped_domains = tuple(domain for group in groups for domain in group.domains)
+        self.assertEqual(len(grouped_domains), len(CreativeCodingDomain))
+        self.assertEqual(set(grouped_domains), set(CreativeCodingDomain))
+
+    def test_ordered_domain_selection_uses_registry_order(self) -> None:
+        self.assertEqual(
+            ordered_domain_selection(
+                (
+                    CreativeCodingDomain.PURE_DATA,
+                    CreativeCodingDomain.GLSL,
+                    CreativeCodingDomain.THREE_JS,
+                    CreativeCodingDomain.GLSL,
+                )
+            ),
+            (
+                CreativeCodingDomain.THREE_JS,
+                CreativeCodingDomain.GLSL,
+                CreativeCodingDomain.PURE_DATA,
+            ),
         )
 
     def test_resolve_session_mode_defaults_and_falls_back_safely(self) -> None:
@@ -185,7 +247,7 @@ class StreamlitChatGenerationTests(unittest.TestCase):
     def test_sidebar_selection_summaries_are_readable(self) -> None:
         self.assertEqual(
             domain_selection_summary(tuple(CreativeCodingDomain)),
-            "All 43 domains selected",
+            "All 43 domains selected across 12 categories",
         )
         self.assertEqual(
             domain_selection_summary(
@@ -194,7 +256,7 @@ class StreamlitChatGenerationTests(unittest.TestCase):
                     CreativeCodingDomain.GLSL,
                 )
             ),
-            "2 selected: React Three Fiber, GLSL",
+            "2 selected: React Three Fiber, GLSL (Web Creative Coding, Shader / GPU)",
         )
         self.assertEqual(
             domain_selection_summary(
@@ -204,7 +266,10 @@ class StreamlitChatGenerationTests(unittest.TestCase):
                     CreativeCodingDomain.WEBGPU_WGSL,
                 )
             ),
-            "3 selected: Processing, Canvas 2D, WebGPU/WGSL",
+            (
+                "3 selected: Processing, Canvas 2D, WebGPU/WGSL "
+                "(Web Creative Coding, Shader / GPU)"
+            ),
         )
         self.assertEqual(
             domain_selection_summary(
@@ -214,7 +279,10 @@ class StreamlitChatGenerationTests(unittest.TestCase):
                     CreativeCodingDomain.PIXI_JS,
                 )
             ),
-            "3 selected: GSAP, Tone.js, PixiJS",
+            (
+                "3 selected: GSAP, Tone.js, PixiJS "
+                "(Animation, Audio / Music Tech, Web Creative Coding)"
+            ),
         )
         self.assertEqual(
             domain_selection_summary(
@@ -224,7 +292,10 @@ class StreamlitChatGenerationTests(unittest.TestCase):
                     CreativeCodingDomain.BLENDER_GEOMETRY_NODES,
                 )
             ),
-            "3 selected: TouchDesigner, Houdini, Blender / Geometry Nodes",
+            (
+                "3 selected: TouchDesigner, Houdini, Blender / Geometry Nodes "
+                "(Visual Patching, Procedural / DCC)"
+            ),
         )
         self.assertEqual(
             domain_selection_summary(
@@ -234,7 +305,10 @@ class StreamlitChatGenerationTests(unittest.TestCase):
                     CreativeCodingDomain.COMFYUI,
                 )
             ),
-            "3 selected: openFrameworks, Web Audio API, ComfyUI",
+            (
+                "3 selected: openFrameworks, Web Audio API, ComfyUI "
+                "(Web Creative Coding, Audio / Music Tech, AI Creative Tools)"
+            ),
         )
         self.assertEqual(
             domain_selection_summary(
@@ -244,11 +318,14 @@ class StreamlitChatGenerationTests(unittest.TestCase):
                     CreativeCodingDomain.PURE_DATA,
                 )
             ),
-            "3 selected: Ableton Live, VCV Rack, Pure Data",
+            (
+                "3 selected: Ableton Live, VCV Rack, Pure Data "
+                "(Audio / Music Tech, Modular Synthesis, Visual Patching)"
+            ),
         )
         self.assertEqual(
             domain_selection_summary(()),
-            "No domain filter",
+            "No domain filter (all domains eligible)",
         )
         self.assertEqual(
             mode_selection_summary(AssistantMode.EXPLAIN),

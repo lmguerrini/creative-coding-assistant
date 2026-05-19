@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -29,7 +30,15 @@ from creative_coding_assistant.contracts import (
     StreamEventType,
 )
 from creative_coding_assistant.core import GenerationProviderName, Settings
-from creative_coding_assistant.domains import get_domain_label
+from creative_coding_assistant.domains import (
+    SUPPORTED_DOMAINS,
+    DomainCategory,
+    get_domain_categories,
+    get_domain_category,
+    get_domain_category_label,
+    get_domain_label,
+    get_domains_for_category,
+)
 from creative_coding_assistant.rag.retrieval.domain_intent import (
     detect_explicit_query_domains,
 )
@@ -81,6 +90,12 @@ _RETRIEVAL_MODULE_PREFIXES = (
     "creative_coding_assistant.rag.retrieval",
     "creative_coding_assistant.rag.embeddings",
 )
+_DEFAULT_DOMAIN_SELECTION = (
+    CreativeCodingDomain.THREE_JS,
+    CreativeCodingDomain.REACT_THREE_FIBER,
+    CreativeCodingDomain.P5_JS,
+    CreativeCodingDomain.GLSL,
+)
 
 
 class ChatHistoryEntry(BaseModel):
@@ -118,6 +133,15 @@ class RetrievalDisplayItem(BaseModel):
     score: float | None = Field(default=None, ge=0, le=1)
     distance: float | None = Field(default=None, ge=0)
     snippet: str = Field(min_length=1)
+
+
+@dataclass(frozen=True)
+class DomainCategoryDisplayGroup:
+    """Category bucket for scalable Streamlit domain selection."""
+
+    category: DomainCategory
+    label: str
+    domains: tuple[CreativeCodingDomain, ...]
 
 
 class StreamRenderState(BaseModel):
@@ -187,7 +211,20 @@ def default_domain(settings: Settings) -> CreativeCodingDomain:
 def default_domain_selection() -> tuple[CreativeCodingDomain, ...]:
     """Return the default UI domain selection for Streamlit."""
 
-    return tuple(CreativeCodingDomain)
+    return _DEFAULT_DOMAIN_SELECTION
+
+
+def domain_category_groups() -> tuple[DomainCategoryDisplayGroup, ...]:
+    """Return selectable domain groups in registry category order."""
+
+    return tuple(
+        DomainCategoryDisplayGroup(
+            category=category,
+            label=get_domain_category_label(category),
+            domains=get_domains_for_category(category),
+        )
+        for category in get_domain_categories()
+    )
 
 
 def default_mode(settings: Settings) -> AssistantMode:
@@ -239,9 +276,21 @@ def resolve_session_domain_selection(
             if domain is not None
         )
     )
-    if resolved_domains:
-        return resolved_domains
+    ordered_domains = ordered_domain_selection(resolved_domains)
+    if ordered_domains:
+        return ordered_domains
     return default_domain_selection()
+
+
+def ordered_domain_selection(
+    domains: Sequence[CreativeCodingDomain],
+) -> tuple[CreativeCodingDomain, ...]:
+    """Normalize selected domains to registry order without changing emptiness."""
+
+    selected_domains = frozenset(domains)
+    return tuple(
+        domain.value for domain in SUPPORTED_DOMAINS if domain.value in selected_domains
+    )
 
 
 def resolve_session_mode(
@@ -267,14 +316,31 @@ def domain_selection_summary(
 ) -> str:
     """Return a short, readable sidebar summary for selected domains."""
 
-    if not domains:
-        return "No domain filter"
-    if len(domains) == len(CreativeCodingDomain):
-        return f"All {len(domains)} domains selected"
+    selected_domains = ordered_domain_selection(domains)
+
+    if not selected_domains:
+        return "No domain filter (all domains eligible)"
+    if len(selected_domains) == len(CreativeCodingDomain):
+        return (
+            f"All {len(selected_domains)} domains selected across "
+            f"{len(get_domain_categories())} categories"
+        )
+
+    category_labels = _category_labels_for_domains(selected_domains)
+    category_text = ", ".join(category_labels)
+
+    if len(selected_domains) <= 5:
+        domain_text = ", ".join(
+            _domain_display_name(domain) for domain in selected_domains
+        )
+        return f"{len(selected_domains)} selected: {domain_text} ({category_text})"
+
+    if len(category_labels) == 1:
+        return f"{len(selected_domains)} selected in {category_text}"
 
     return (
-        f"{len(domains)} selected: "
-        f"{', '.join(_domain_display_name(domain) for domain in domains)}"
+        f"{len(selected_domains)} selected across "
+        f"{len(category_labels)} categories: {category_text}"
     )
 
 
@@ -415,6 +481,17 @@ def _coerce_enum(*, enum_cls: type, raw_value: str, fallback: object) -> object:
 
 def _domain_display_name(domain: CreativeCodingDomain) -> str:
     return get_domain_label(domain)
+
+
+def _category_labels_for_domains(
+    domains: Sequence[CreativeCodingDomain],
+) -> tuple[str, ...]:
+    categories: list[DomainCategory] = []
+    for domain in domains:
+        category = get_domain_category(domain)
+        if category not in categories:
+            categories.append(category)
+    return tuple(get_domain_category_label(category) for category in categories)
 
 
 def _coerce_domain(value: object) -> CreativeCodingDomain | None:

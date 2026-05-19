@@ -22,11 +22,14 @@ from creative_coding_assistant.clients import (
     build_provider_warning,
     context_empty_message,
     context_expander_label,
+    default_domain_selection,
+    domain_category_groups,
     domain_selection_summary,
     generation_input_empty_message,
     generation_input_expander_label,
     generation_input_meta,
     mode_selection_summary,
+    ordered_domain_selection,
     prompt_visibility_empty_message,
     prompt_visibility_expander_label,
     prompt_visibility_meta,
@@ -48,6 +51,8 @@ from creative_coding_assistant.domains import get_domain_label
 _CHAT_HISTORY_KEY = "chat_history"
 _CONVERSATION_ID_KEY = "conversation_id"
 _DOMAIN_SELECTION_KEY = "selected_domains"
+_DOMAIN_CATEGORY_ALL_KEY_PREFIX = "domain_category_all"
+_DOMAIN_CATEGORY_DOMAINS_KEY_PREFIX = "domain_category_domains"
 _MODE_SELECTION_KEY = "selected_mode"
 _TRACE_VISIBILITY_KEY = "trace_visibility"
 _ANSWER_PHASE_STATUSES = {
@@ -85,14 +90,7 @@ def main() -> None:
         st.markdown("**Chat session**")
         with _section_container():
             st.markdown("**Domains**")
-            selected_domains = st.multiselect(
-                "Domains",
-                options=list(CreativeCodingDomain),
-                format_func=_format_domain,
-                label_visibility="collapsed",
-                placeholder="Select one or more domains",
-                key=_DOMAIN_SELECTION_KEY,
-            )
+            selected_domains = _render_domain_selection()
             st.caption(domain_selection_summary(selected_domains))
             if not selected_domains:
                 st.info("Using all domains (no filter applied)")
@@ -138,6 +136,67 @@ def main() -> None:
             mode=selected_mode,
             trace_visibility=trace_visibility,
         )
+
+
+def _render_domain_selection() -> list[CreativeCodingDomain]:
+    import streamlit as st
+
+    current_selection = tuple(
+        resolve_session_domain_selection(st.session_state.get(_DOMAIN_SELECTION_KEY))
+    )
+
+    action_columns = st.columns(2)
+    if action_columns[0].button(
+        "Core defaults",
+        key="domain_core_defaults",
+        use_container_width=True,
+    ):
+        _set_domain_selection(default_domain_selection())
+        st.rerun()
+    if action_columns[1].button(
+        "Clear filter",
+        key="domain_clear_filter",
+        use_container_width=True,
+    ):
+        _set_domain_selection(())
+        st.rerun()
+
+    selected_domains: list[CreativeCodingDomain] = []
+    for group in domain_category_groups():
+        group_selection = tuple(
+            domain for domain in group.domains if domain in current_selection
+        )
+        with st.expander(
+            group.label,
+            expanded=bool(group_selection),
+        ):
+            select_all = st.checkbox(
+                "Select all in category",
+                value=len(group_selection) == len(group.domains),
+                key=_domain_category_all_key(group.category.value),
+            )
+            if select_all:
+                selected_domains.extend(group.domains)
+                st.caption(f"All {len(group.domains)} domains selected.")
+                continue
+
+            selected_in_category = st.multiselect(
+                "Domains",
+                options=list(group.domains),
+                default=list(group_selection),
+                format_func=_format_domain,
+                label_visibility="collapsed",
+                placeholder="Select domains in this category",
+                key=_domain_category_domains_key(group.category.value),
+            )
+            selected_domains.extend(selected_in_category)
+            st.caption(
+                f"{len(selected_in_category)} of {len(group.domains)} domains selected."
+            )
+
+    resolved_domains = list(ordered_domain_selection(selected_domains))
+    st.session_state[_DOMAIN_SELECTION_KEY] = resolved_domains
+    return resolved_domains
 
 
 @lru_cache(maxsize=1)
@@ -681,6 +740,24 @@ def _ensure_session_state(settings) -> None:
     st.session_state[_TRACE_VISIBILITY_KEY] = resolve_session_trace_visibility(
         st.session_state.get(_TRACE_VISIBILITY_KEY)
     )
+
+
+def _set_domain_selection(domains: Sequence[CreativeCodingDomain]) -> None:
+    import streamlit as st
+
+    for group in domain_category_groups():
+        st.session_state.pop(_domain_category_all_key(group.category.value), None)
+        st.session_state.pop(_domain_category_domains_key(group.category.value), None)
+
+    st.session_state[_DOMAIN_SELECTION_KEY] = list(ordered_domain_selection(domains))
+
+
+def _domain_category_all_key(category_value: str) -> str:
+    return f"{_DOMAIN_CATEGORY_ALL_KEY_PREFIX}_{category_value}"
+
+
+def _domain_category_domains_key(category_value: str) -> str:
+    return f"{_DOMAIN_CATEGORY_DOMAINS_KEY_PREFIX}_{category_value}"
 
 
 def _reset_chat_state() -> None:

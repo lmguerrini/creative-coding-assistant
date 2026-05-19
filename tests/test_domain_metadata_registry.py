@@ -4,13 +4,16 @@ from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.domains import (
     SUPPORTED_DOMAINS,
     DomainCategory,
+    get_domain_categories,
     get_domain_category,
+    get_domain_category_label,
     get_domain_default_topic,
     get_domain_info,
     get_domain_label,
     get_domain_memory_label,
     get_domain_prompt_guidance,
     get_domain_slug,
+    get_domains_for_category,
     get_supported_domain_values,
 )
 from creative_coding_assistant.rag.sources import official_source_domains
@@ -256,6 +259,48 @@ class DomainMetadataRegistryTests(unittest.TestCase):
             with self.subTest(domain=info.value):
                 self.assertIsInstance(info.category, DomainCategory)
                 self.assertEqual(get_domain_category(info.value), info.category)
+
+    def test_category_labels_and_groups_are_registry_backed(self) -> None:
+        self.assertEqual(
+            get_domain_categories(),
+            (
+                DomainCategory.WEB_CREATIVE_CODING,
+                DomainCategory.SHADERS_GPU,
+                DomainCategory.ANIMATION,
+                DomainCategory.AUDIO_LIVE_CODING,
+                DomainCategory.PHYSICS,
+                DomainCategory.AV_VJ,
+                DomainCategory.VISUAL_PATCHING,
+                DomainCategory.DCC_PROCEDURAL,
+                DomainCategory.GAME_ENGINES,
+                DomainCategory.CREATIVE_AI,
+                DomainCategory.MODULAR_SYNTHESIS,
+                DomainCategory.PROJECTION_MAPPING,
+            ),
+        )
+        self.assertEqual(
+            get_domain_category_label(DomainCategory.WEB_CREATIVE_CODING),
+            "Web Creative Coding",
+        )
+        self.assertEqual(
+            get_domain_category_label(DomainCategory.SHADERS_GPU),
+            "Shader / GPU",
+        )
+        self.assertEqual(
+            get_domains_for_category(DomainCategory.SHADERS_GPU),
+            (
+                CreativeCodingDomain.GLSL,
+                CreativeCodingDomain.WEBGPU_WGSL,
+                CreativeCodingDomain.SHADERTOY,
+            ),
+        )
+        grouped_domains = tuple(
+            domain
+            for category in get_domain_categories()
+            for domain in get_domains_for_category(category)
+        )
+        self.assertEqual(len(grouped_domains), len(CreativeCodingDomain))
+        self.assertEqual(set(grouped_domains), set(CreativeCodingDomain))
 
     def test_prompt_guidance_is_registered_for_every_domain(self) -> None:
         for domain, expected_snippet in _EXPECTED_PROMPT_GUIDANCE_SNIPPETS:
