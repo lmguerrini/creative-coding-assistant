@@ -12,22 +12,54 @@ This document describes the real LangGraph workflow currently executed by the ba
 
 The graph is compiled once in `AssistantService.__init__()` and executed through `graph.stream(..., stream_mode="custom")`. Control flow is currently linear. Routing affects data and downstream step behavior, but it does not change graph edges yet.
 
+In the diagrams below:
+
+- solid green nodes are implemented runtime nodes
+- the amber node is an implemented placeholder that currently skips
+- purple dashed nodes and edges are future-only extension points
+
 ```mermaid
-flowchart LR
+flowchart TB
+    classDef boundary fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px;
+    classDef implemented fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
+    classDef placeholder fill:#FFF8E1,stroke:#B7791F,color:#7C2D12,stroke-width:1.5px;
+    classDef terminal fill:#E3F2FD,stroke:#1565C0,color:#0D47A1,stroke-width:1.5px;
+
     start([START])
-    intake["intake<br/>start INTAKE<br/>emit status: request_received<br/>complete INTAKE"]
-    routing["routing<br/>start ROUTING<br/>route request<br/>emit status: route_selected<br/>store route_decision + route_payload"]
-    memory["memory<br/>start MEMORY<br/>run memory step<br/>complete or skip"]
-    retrieval["retrieval<br/>start RETRIEVAL<br/>run retrieval step<br/>complete or skip"]
-    context_assembly["context_assembly<br/>start CONTEXT_ASSEMBLY<br/>assemble context<br/>complete or skip"]
-    prompt_input["prompt_input<br/>start PROMPT_INPUT<br/>build prompt inputs<br/>complete or skip"]
-    prompt_rendering["prompt_rendering<br/>start PROMPT_RENDERING<br/>render prompt<br/>complete or skip"]
-    generation["generation<br/>start GENERATION<br/>prepare input and stream tokens<br/>complete or skip<br/>store generation_result"]
-    review["review<br/>start REVIEW<br/>currently skip REVIEW"]
-    finalization["finalization<br/>start FINALIZATION<br/>choose answer<br/>emit FINAL<br/>finish_workflow()"]
     finish([END])
 
+    subgraph phase_1["Phase 1: Intake and routing"]
+        direction TB
+        intake["Intake<br/>emit status: request_received"]
+        routing["Routing<br/>select route<br/>store route_decision + route_payload<br/>emit status: route_selected"]
+    end
+
+    subgraph phase_2["Phase 2: Context preparation"]
+        direction TB
+        memory["Memory<br/>retrieve memory context<br/>complete or skip"]
+        retrieval["Retrieval<br/>retrieve KB context<br/>complete or skip"]
+        context_assembly["Context assembly<br/>combine memory + retrieval<br/>complete or skip"]
+    end
+
+    subgraph phase_3["Phase 3: Prompt preparation"]
+        direction TB
+        prompt_input["Prompt input<br/>build prompt inputs<br/>complete or skip"]
+        prompt_rendering["Prompt rendering<br/>render provider prompt<br/>complete or skip"]
+    end
+
+    subgraph phase_4["Phase 4: Answer production"]
+        direction TB
+        generation["Generation<br/>prepare provider input<br/>stream tokens<br/>store generation_result"]
+        review["Review placeholder<br/>currently always skipped"]
+        finalization["Finalization<br/>resolve final answer<br/>emit final<br/>finish_workflow()"]
+    end
+
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> review --> finalization --> finish
+
+    class start boundary
+    class finish terminal
+    class intake,routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,finalization implemented
+    class review placeholder
 ```
 
 The raw Mermaid source for the implemented graph is also available in [workflow_graph.mmd](/Users/k/Desktop/CC/the_turing_college/extra_projects/creative_coding_assistant/docs/workflow_graph.mmd).
@@ -159,34 +191,56 @@ Current implemented flow:
 Future extension points can be added incrementally without replacing the current graph shape.
 
 ```mermaid
-flowchart LR
-    routing[routing]
-    memory[memory]
-    retrieval[retrieval]
-    context_assembly[context_assembly]
-    prompt_input[prompt_input]
-    prompt_rendering[prompt_rendering]
-    generation[generation]
-    review[review]
-    finalization[finalization]
+flowchart TB
+    classDef implemented fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
+    classDef placeholder fill:#FFF8E1,stroke:#B7791F,color:#7C2D12,stroke-width:1.5px;
+    classDef future fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px,stroke-dasharray: 6 4;
 
-    tool_gate{{future tool gate}}
-    tool_loop{{future tool loop}}
-    preview[future preview pipeline]
-    hitl{{future HITL checkpoint}}
-    retry{{future review loop}}
+    subgraph current_path["Current implemented path"]
+        direction TB
+        routing["Routing"]
+        memory["Memory"]
+        retrieval["Retrieval"]
+        context_assembly["Context assembly"]
+        prompt_input["Prompt input"]
+        prompt_rendering["Prompt rendering"]
+        generation["Generation"]
+        review["Review placeholder"]
+        finalization["Finalization"]
+        routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> review --> finalization
+    end
 
-    routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> review --> finalization
+    subgraph future_tools["Future tool insertion points"]
+        direction TB
+        tool_gate{{Tool gate<br/>after routing}}
+        tool_loop{{Tool planning / execution loop<br/>before generation}}
+    end
+
+    subgraph future_preview["Future preview pipeline"]
+        direction TB
+        preview["Preview pipeline<br/>artifact build / render / capture"]
+    end
+
+    subgraph future_refinement["Future refinement and approval"]
+        direction TB
+        retry{{Review / refinement loop}}
+        hitl{{HITL checkpoint}}
+    end
+
     routing -. capability-based branch .-> tool_gate
     tool_gate -. rejoin .-> memory
-    prompt_rendering -. optional tool planning/execution .-> tool_loop
+    prompt_rendering -. optional tool loop .-> tool_loop
     tool_loop -. rejoin .-> generation
-    generation -. preview mode .-> preview
+    generation -. preview mode branch .-> preview
     preview -. rejoin .-> review
-    review -. correction loop .-> retry
-    retry -. back to prompt/generation .-> prompt_input
-    review -. approval required .-> hitl
+    review -. refinement loop .-> retry
+    retry -. back to prompt preparation .-> prompt_input
+    review -. human approval .-> hitl
     hitl -. rejoin .-> finalization
+
+    class routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,finalization implemented
+    class review placeholder
+    class tool_gate,tool_loop,preview,retry,hitl future
 ```
 
 Conservative insertion points:
