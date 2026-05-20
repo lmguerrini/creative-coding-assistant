@@ -9,9 +9,16 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from creative_coding_assistant.app.rebuild import (
+    OfficialKnowledgeBaseRebuildPlan,
+    build_official_kb_rebuild_plan,
+    resolve_rebuild_source_ids,
+)
+from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.core import Settings, load_settings
 from creative_coding_assistant.rag import (
     OfficialSourceHealthSnapshot,
+    OfficialSourceSyncMetadata,
     SourceHealthStatus,
 )
 from creative_coding_assistant.rag.sources import (
@@ -102,6 +109,53 @@ class OfficialKnowledgeBaseBatchSyncResult(BaseModel):
             ],
             "failed_source_ids": list(self.failed_source_ids),
         }
+
+    def sync_metadata_by_source(self) -> dict[str, OfficialSourceSyncMetadata]:
+        return {
+            result.request.source_id: result.sync_metadata
+            for result in self.results
+            if result.sync_metadata is not None
+        }
+
+    def rebuild_plan(
+        self,
+        *,
+        source_ids: Sequence[str] | None = None,
+        domains: Sequence[CreativeCodingDomain | str] | None = None,
+        checked_at: datetime | None = None,
+        stale_only: bool = False,
+        include_refresh_recommended: bool = True,
+        include_sync_failed: bool = True,
+    ) -> OfficialKnowledgeBaseRebuildPlan:
+        return build_official_kb_rebuild_plan(
+            source_ids=source_ids,
+            domains=domains,
+            sync_metadata_by_source=self.sync_metadata_by_source(),
+            checked_at=checked_at,
+            stale_only=stale_only,
+            include_refresh_recommended=include_refresh_recommended,
+            include_sync_failed=include_sync_failed,
+        )
+
+    def rebuild_source_ids(
+        self,
+        *,
+        source_ids: Sequence[str] | None = None,
+        domains: Sequence[CreativeCodingDomain | str] | None = None,
+        checked_at: datetime | None = None,
+        stale_only: bool = False,
+        include_refresh_recommended: bool = True,
+        include_sync_failed: bool = True,
+    ) -> tuple[str, ...]:
+        return resolve_rebuild_source_ids(
+            source_ids=source_ids,
+            domains=domains,
+            sync_metadata_by_source=self.sync_metadata_by_source(),
+            checked_at=checked_at,
+            stale_only=stale_only,
+            include_refresh_recommended=include_refresh_recommended,
+            include_sync_failed=include_sync_failed,
+        )
 
 
 class SyncFailureMode(StrEnum):

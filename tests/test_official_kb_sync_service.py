@@ -160,6 +160,23 @@ class OfficialKBSyncServiceTests(unittest.TestCase):
             },
         )
 
+    def test_sync_batch_result_builds_rebuild_plan_from_sync_metadata(self) -> None:
+        runner = _FakeRunner()
+        service = OfficialKBSyncService(runner=runner)
+
+        result = service.sync_selected_sources(("three_docs",))
+        plan = result.rebuild_plan(
+            checked_at=datetime(2026, 3, 5, 12, 0, tzinfo=UTC),
+            include_refresh_recommended=False,
+        )
+
+        self.assertEqual(plan.source_ids, ())
+        stale_plan = result.rebuild_plan(
+            checked_at=datetime(2026, 7, 1, 12, 0, tzinfo=UTC),
+            stale_only=True,
+        )
+        self.assertEqual(stale_plan.source_ids, ("three_docs",))
+
 
 class _FakeRunner:
     def __init__(self) -> None:
