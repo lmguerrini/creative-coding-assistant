@@ -3,3 +3,4 @@ coverage/
 node_modules/
 out/
 tsconfig.tsbuildinfo
+tsconfig.typecheck.tsbuildinfo
