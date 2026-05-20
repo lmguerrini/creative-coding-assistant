@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from creative_coding_assistant.contracts import StreamEvent, StreamEventType
+from creative_coding_assistant.preview import PreviewResult
 from creative_coding_assistant.tools import ToolRequest, ToolResult, ToolStatus
 
 
@@ -94,6 +95,18 @@ class StreamEventBuilder:
             {
                 "status": result.status.value,
                 "tool_name": result.tool_name,
+                "result": result.model_dump(mode="json"),
+                **details,
+            },
+        )
+
+    def preview_artifact(self, result: PreviewResult, **details: Any) -> StreamEvent:
+        return self._event(
+            StreamEventType.PREVIEW_ARTIFACT,
+            {
+                "status": result.status.value,
+                "preview_id": result.preview_id,
+                "artifact_id": result.artifact_id,
                 "result": result.model_dump(mode="json"),
                 **details,
             },
