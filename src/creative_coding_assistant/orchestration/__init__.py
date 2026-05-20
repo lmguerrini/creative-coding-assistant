@@ -73,6 +73,7 @@ _EXPORT_MAP = {
     "WORKFLOW_STEP_ORDER": _WORKFLOW,
     "MAX_WORKFLOW_REFINEMENT_COUNT": _WORKFLOW_REVIEW,
     "WorkflowEventMetadata": _WORKFLOW,
+    "WorkflowFailureInfo": _WORKFLOW,
     "WorkflowReviewOutcome": _WORKFLOW_REVIEW,
     "WorkflowReviewResult": _WORKFLOW_REVIEW,
     "WorkflowStatus": _WORKFLOW,

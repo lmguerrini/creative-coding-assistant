@@ -32,6 +32,7 @@ class WorkflowStep(StrEnum):
     REVIEW = "review"
     REFINEMENT = "refinement"
     FINALIZATION = "finalization"
+    FAILURE = "failure"
 
 
 class WorkflowStatus(StrEnum):
@@ -66,6 +67,16 @@ class WorkflowEventMetadata(BaseModel):
     skipped_steps: tuple[WorkflowStep, ...] = ()
 
 
+class WorkflowFailureInfo(BaseModel):
+    """Typed metadata for terminal workflow failures."""
+
+    model_config = ConfigDict(frozen=True)
+
+    step: WorkflowStep
+    code: str
+    message: str
+
+
 class AssistantWorkflowState(BaseModel):
     """Explicit state for one assistant workflow run.
 
@@ -88,6 +99,7 @@ class AssistantWorkflowState(BaseModel):
     rendered_prompt: RenderedPromptResponse | None = None
     review_result: WorkflowReviewResult | None = None
     refinement_count: int = 0
+    failure_info: WorkflowFailureInfo | None = None
     final_answer: str | None = None
     error_message: str | None = None
 
@@ -182,12 +194,16 @@ def fail_workflow(
     state: AssistantWorkflowState,
     *,
     error_message: str,
+    failure_info: WorkflowFailureInfo | None = None,
+    final_answer: str | None = None,
 ) -> AssistantWorkflowState:
     return state.model_copy(
         update={
             "status": WorkflowStatus.FAILED,
             "current_step": None,
             "error_message": error_message,
+            "failure_info": failure_info,
+            "final_answer": final_answer,
         }
     )
 

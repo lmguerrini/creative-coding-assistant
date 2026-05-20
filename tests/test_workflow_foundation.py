@@ -9,6 +9,7 @@ from creative_coding_assistant.contracts import (
 from creative_coding_assistant.orchestration import (
     WORKFLOW_STEP_ORDER,
     AssistantService,
+    WorkflowFailureInfo,
     WorkflowStatus,
     WorkflowStep,
     begin_assistant_workflow,
@@ -104,13 +105,25 @@ class WorkflowFoundationTests(unittest.TestCase):
     def test_workflow_can_enter_failed_terminal_state(self) -> None:
         state = begin_assistant_workflow(AssistantRequest(query="Explain shaders."))
         state = start_workflow_step(state, WorkflowStep.GENERATION)
+        failure_info = WorkflowFailureInfo(
+            step=WorkflowStep.GENERATION,
+            code="provider_unavailable",
+            message="Provider failed.",
+        )
 
-        failed_state = fail_workflow(state, error_message="Provider failed.")
+        failed_state = fail_workflow(
+            state,
+            error_message="Provider failed.",
+            failure_info=failure_info,
+            final_answer="Generation failed (provider_unavailable): Provider failed.",
+        )
 
         self.assertTrue(failed_state.is_terminal)
         self.assertEqual(failed_state.status, WorkflowStatus.FAILED)
         self.assertIsNone(failed_state.current_step)
         self.assertEqual(failed_state.error_message, "Provider failed.")
+        self.assertEqual(failed_state.failure_info, failure_info)
+        self.assertIn("Generation failed", failed_state.final_answer)
 
     def test_workflow_step_order_is_explicit_for_future_graphs(self) -> None:
         self.assertEqual(WORKFLOW_STEP_ORDER[0], WorkflowStep.INTAKE)

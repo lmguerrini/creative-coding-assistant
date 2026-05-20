@@ -2,6 +2,7 @@ flowchart TB
     classDef boundary fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px;
     classDef implemented fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
     classDef gate fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
+    classDef failure fill:#FEE2E2,stroke:#B91C1C,color:#7F1D1D,stroke-width:1.5px;
     classDef terminal fill:#E3F2FD,stroke:#1565C0,color:#0D47A1,stroke-width:1.5px;
 
     start([START])
@@ -32,13 +33,27 @@ flowchart TB
         review{{"Review quality gate<br/>deterministic checks<br/>records review_result"}}
         refinement["Refinement<br/>append guidance<br/>increment refinement_count<br/>max one attempt"]
         finalization["Finalization<br/>resolve final answer<br/>emit final<br/>finish_workflow()"]
+        failure["Failure<br/>emit final failure answer<br/>mark workflow FAILED"]
     end
 
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> review
     review -->|"pass or max retry"| finalization --> finish
     review -->|"needs refinement and count < 1"| refinement --> generation
+    intake -. caught error .-> failure
+    routing -. caught error .-> failure
+    memory -. caught error .-> failure
+    retrieval -. caught error .-> failure
+    context_assembly -. caught error .-> failure
+    prompt_input -. caught error .-> failure
+    prompt_rendering -. caught error .-> failure
+    generation -. provider or node error .-> failure
+    review -. caught error .-> failure
+    refinement -. caught error .-> failure
+    finalization -. caught error .-> failure
+    failure --> finish
 
     class start boundary
     class finish terminal
     class intake,routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,refinement,finalization implemented
     class review gate
+    class failure failure

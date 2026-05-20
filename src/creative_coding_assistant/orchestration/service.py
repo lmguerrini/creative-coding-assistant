@@ -456,9 +456,18 @@ def _build_shell_answer(decision: RouteDecision) -> str:
 
 
 class _GenerationResult:
-    def __init__(self, *, answer: str, events: tuple[StreamEvent, ...]) -> None:
+    def __init__(
+        self,
+        *,
+        answer: str,
+        events: tuple[StreamEvent, ...],
+        error_code: str | None = None,
+        error_message: str | None = None,
+    ) -> None:
         self.answer = answer
         self.events = events
+        self.error_code = error_code
+        self.error_message = error_message
 
 
 def _stream_provider_generation(
@@ -520,6 +529,8 @@ def _stream_provider_generation(
         return _GenerationResult(
             answer=f"Generation failed ({code}): {message}",
             events=tuple(streamed_events),
+            error_code=code,
+            error_message=message,
         )
 
     return None

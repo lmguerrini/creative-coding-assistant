@@ -223,12 +223,9 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
 
         self.assertEqual(events[10].event_type, StreamEventType.ERROR)
         self.assertEqual(events[10].payload["code"], "provider_unavailable")
-        self.assertEqual(events[11].event_type, StreamEventType.GENERATION_INPUT)
-        self.assertEqual(events[12].event_type, StreamEventType.ERROR)
-        self.assertEqual(events[12].payload["code"], "provider_unavailable")
-        self.assertEqual(events[13].event_type, StreamEventType.FINAL)
-        self.assertIn("Generation failed", events[13].payload["answer"])
-        self.assertIn("provider_unavailable", events[13].payload["answer"])
+        self.assertEqual(events[11].event_type, StreamEventType.FINAL)
+        self.assertIn("Generation failed", events[11].payload["answer"])
+        self.assertIn("provider_unavailable", events[11].payload["answer"])
 
 
 def _assistant_request() -> AssistantRequest:

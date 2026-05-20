@@ -12,6 +12,7 @@ from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
     AssistantService,
     AssistantWorkflowRuntime,
+    WorkflowFailureInfo,
     WorkflowReviewOutcome,
     WorkflowStatus,
     WorkflowStep,
@@ -43,6 +44,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "review",
                 "refinement",
                 "finalization",
+                "failure",
             ),
         )
 
@@ -237,17 +239,86 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             "```javascript\nconsole.log('refined');\n```",
         )
 
-    def test_graph_propagates_node_failures_to_service_boundary(self) -> None:
+    def test_graph_routes_routing_failures_to_terminal_failure_path(self) -> None:
         graph = build_assistant_workflow_graph()
+        request = _request()
 
-        with self.assertRaisesRegex(RuntimeError, "route failed"):
-            tuple(
-                stream_assistant_workflow_events(
-                    graph=graph,
-                    request=_request(),
-                    runtime=_runtime(route_fn=_failing_route),
-                )
+        events = tuple(
+            stream_assistant_workflow_events(
+                graph=graph,
+                request=request,
+                runtime=_runtime(route_fn=_failing_route),
             )
+        )
+        final_state = graph.invoke(
+            build_initial_workflow_graph_state(request),
+            context={"runtime": _runtime(route_fn=_failing_route)},
+        )
+
+        self.assertEqual(
+            [event.event_type for event in events],
+            [
+                StreamEventType.STATUS,
+                StreamEventType.ERROR,
+                StreamEventType.FINAL,
+            ],
+        )
+        self.assertEqual(events[1].payload["code"], "workflow_routing_failed")
+        self.assertIn("route failed", events[2].payload["answer"])
+        self.assertEqual(final_state["workflow_state"].status, WorkflowStatus.FAILED)
+        self.assertEqual(
+            final_state["workflow_state"].failure_info,
+            WorkflowFailureInfo(
+                step=WorkflowStep.ROUTING,
+                code="workflow_routing_failed",
+                message="route failed",
+            ),
+        )
+
+    def test_graph_routes_provider_failures_to_terminal_failure_path(self) -> None:
+        graph = build_assistant_workflow_graph()
+        request = _request(mode=AssistantMode.EXPLAIN, query="Explain the scene setup.")
+
+        events = tuple(
+            stream_assistant_workflow_events(
+                graph=graph,
+                request=request,
+                runtime=_runtime(stream_generation=_stream_failed_generation),
+            )
+        )
+        final_state = graph.invoke(
+            build_initial_workflow_graph_state(request),
+            context={"runtime": _runtime(stream_generation=_stream_failed_generation)},
+        )
+
+        self.assertEqual(
+            [event.event_type for event in events],
+            [
+                StreamEventType.STATUS,
+                StreamEventType.STATUS,
+                StreamEventType.GENERATION_INPUT,
+                StreamEventType.ERROR,
+                StreamEventType.FINAL,
+            ],
+        )
+        self.assertEqual(events[3].payload["code"], "provider_unavailable")
+        self.assertIn("Generation failed", events[4].payload["answer"])
+        workflow_state = final_state["workflow_state"]
+        self.assertEqual(workflow_state.status, WorkflowStatus.FAILED)
+        self.assertEqual(
+            workflow_state.failure_info,
+            WorkflowFailureInfo(
+                step=WorkflowStep.GENERATION,
+                code="provider_unavailable",
+                message="Provider unavailable.",
+            ),
+        )
+        self.assertEqual(
+            workflow_state.final_answer,
+            "Generation failed (provider_unavailable): Provider unavailable.",
+        )
+        self.assertEqual(workflow_state.review_result, None)
+        self.assertEqual(workflow_state.refinement_count, 0)
 
     def test_assistant_service_executes_via_compiled_graph(self) -> None:
         service = AssistantService()
@@ -357,13 +428,42 @@ def _stream_completed_generation(
     return _FakeGenerationResult(answer="Graph answer")
 
 
+def _stream_failed_generation(
+    *,
+    builder: StreamEventBuilder,
+    **kwargs: object,
+) -> Iterator[StreamEvent]:
+    del kwargs
+    yield builder.generation_input(
+        code="generation_input_prepared",
+        message="Provider generation input prepared.",
+    )
+    yield builder.error(
+        code="provider_unavailable",
+        message="Provider unavailable.",
+    )
+    return _FakeGenerationResult(
+        answer="Generation failed (provider_unavailable): Provider unavailable.",
+        error_code="provider_unavailable",
+        error_message="Provider unavailable.",
+    )
+
+
 def _shell_answer(decision: RouteDecision) -> str:
     return f"Shell answer for {decision.route.value} route."
 
 
 class _FakeGenerationResult:
-    def __init__(self, *, answer: str) -> None:
+    def __init__(
+        self,
+        *,
+        answer: str,
+        error_code: str | None = None,
+        error_message: str | None = None,
+    ) -> None:
         self.answer = answer
+        self.error_code = error_code
+        self.error_message = error_message
 
 
 class _SequentialGeneration:

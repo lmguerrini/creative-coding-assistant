@@ -10,12 +10,13 @@ This document describes the real LangGraph workflow currently executed by the ba
 
 ## Current Implemented Flow
 
-The graph is compiled once in `AssistantService.__init__()` and executed through `graph.stream(..., stream_mode="custom")`. Control flow is linear until `review`, where the graph now applies a bounded quality gate. Passing outputs continue to `finalization`; failing outputs enter one `refinement` attempt and loop back to `generation`.
+The graph is compiled once in `AssistantService.__init__()` and executed through `graph.stream(..., stream_mode="custom")`. Control flow is linear until `review`, where the graph now applies a bounded quality gate. Passing outputs continue to `finalization`; failing outputs enter one `refinement` attempt and loop back to `generation`. Explicit provider failures and caught node errors route into a terminal `failure` node.
 
 In the diagrams below:
 
 - solid green nodes are implemented runtime nodes
 - the blue diamond is the implemented conditional quality gate
+- the red node is the implemented terminal failure path
 - purple dashed nodes and edges are future-only extension points
 
 ```mermaid
@@ -23,6 +24,7 @@ flowchart TB
     classDef boundary fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px;
     classDef implemented fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
     classDef gate fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
+    classDef failure fill:#FEE2E2,stroke:#B91C1C,color:#7F1D1D,stroke-width:1.5px;
     classDef terminal fill:#E3F2FD,stroke:#1565C0,color:#0D47A1,stroke-width:1.5px;
 
     start([START])
@@ -53,16 +55,30 @@ flowchart TB
         review{{"Review quality gate<br/>deterministic checks<br/>records review_result"}}
         refinement["Refinement<br/>append guidance<br/>increment refinement_count<br/>max one attempt"]
         finalization["Finalization<br/>resolve final answer<br/>emit final<br/>finish_workflow()"]
+        failure["Failure<br/>emit final failure answer<br/>mark workflow FAILED"]
     end
 
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> review
     review -->|"pass or max retry"| finalization --> finish
     review -->|"needs refinement and count < 1"| refinement --> generation
+    intake -. caught error .-> failure
+    routing -. caught error .-> failure
+    memory -. caught error .-> failure
+    retrieval -. caught error .-> failure
+    context_assembly -. caught error .-> failure
+    prompt_input -. caught error .-> failure
+    prompt_rendering -. caught error .-> failure
+    generation -. provider or node error .-> failure
+    review -. caught error .-> failure
+    refinement -. caught error .-> failure
+    finalization -. caught error .-> failure
+    failure --> finish
 
     class start boundary
     class finish terminal
     class intake,routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,refinement,finalization implemented
     class review gate
+    class failure failure
 ```
 
 The raw Mermaid source for the implemented graph is also available in [workflow_graph.mmd](/Users/k/Desktop/CC/the_turing_college/extra_projects/creative_coding_assistant/docs/workflow_graph.mmd).
@@ -82,6 +98,7 @@ The raw Mermaid source for the implemented graph is also available in [workflow_
 9. `review`
 10. `refinement`
 11. `finalization`
+12. `failure`
 
 Current transition rules:
 
@@ -90,9 +107,10 @@ Current transition rules:
 - `review -> finalization` when the review passes or the refinement limit is reached
 - `review -> refinement` when the review fails and `refinement_count < 1`
 - `refinement -> generation`
-- `finalization -> END`
+- Any node can route to `failure` when it records `pending_failure`
+- `finalization -> END` on success
+- `failure -> END`
 - The only graph loop is the bounded `refinement -> generation -> review` loop
-- Failures currently propagate as exceptions instead of traversing an explicit failure edge
 
 Node responsibilities:
 
@@ -107,6 +125,7 @@ Node responsibilities:
 - `review`: runs deterministic quality checks, stores `review_result`, and selects the next graph edge
 - `refinement`: appends refinement guidance to the rendered prompt, increments `refinement_count`, and sends control back to `generation`
 - `finalization`: resolves the final answer from `generation_result.answer` or the shell fallback, emits the `final` event, and marks the workflow completed
+- `failure`: emits a terminal failure answer, marks `WorkflowStatus.FAILED`, and closes the graph cleanly after explicit provider failures or caught node exceptions
 
 ## Workflow State Lifecycle
 
@@ -120,14 +139,16 @@ There are two layers of runtime state.
 - Resolves each step through `complete_workflow_step()` or `skip_workflow_step()`
 - Stores durable outputs such as `route_decision`, `memory_context`, `retrieval_context`, `assembled_context`, `prompt_input`, `rendered_prompt`, and `final_answer`
 - Stores review metadata through `review_result` and `refinement_count`
+- Stores typed failure metadata through `failure_info`
 - Reaches terminal completion only through `finish_workflow()` while `FINALIZATION` is active
-- Supports `fail_workflow()`, but that path is not yet wired into the LangGraph runtime
+- Reaches terminal failure through `fail_workflow()` in the `failure` node
 
 `AssistantWorkflowGraphState` is the LangGraph transport state:
 
 - Always carries `workflow_state`
 - Also carries `route_payload` for final event rendering
 - Also carries `generation_result` as an ephemeral object needed by `finalization`
+- Also carries `pending_failure` and `failure_event_emitted` while the graph is transitioning into the failure node
 - Keeps the graph runtime small without forcing all transient objects into the Pydantic workflow model
 
 Important current behavior:
@@ -135,6 +156,7 @@ Important current behavior:
 - Optional steps skip when their gateway or input is missing
 - `review` always runs and records a deterministic review result
 - `refinement` runs at most once and only after a failed review
+- Explicit provider errors bypass `review` and route directly to `failure`
 - `generation_result` is not persisted into `AssistantWorkflowState`; only `final_answer` is
 - `WorkflowEventMetadata` exists on the state model but is not yet attached to emitted stream events
 
@@ -178,6 +200,7 @@ What actually flows through the stream:
 - `generation` emits `generation_input`, `token_delta`, and possibly `error`
 - `review` and `refinement` currently update graph state without emitting stream events
 - `finalization` emits `final`
+- `failure` emits `final` and may emit `error` if the failing node did not already emit one
 
 Important stream guarantees:
 
@@ -193,10 +216,10 @@ Current implemented flow:
 - Linear path until `review`
 - Conditional review edge
 - Bounded one-attempt refinement loop
+- Explicit failure node and failure transitions
 - No tool nodes
 - No preview pipeline
 - No HITL checkpoints
-- No explicit failure node
 
 Future extension points can be added incrementally without replacing the current graph shape.
 
@@ -204,6 +227,7 @@ Future extension points can be added incrementally without replacing the current
 flowchart TB
     classDef implemented fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
     classDef gate fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
+    classDef failure fill:#FEE2E2,stroke:#B91C1C,color:#7F1D1D,stroke-width:1.5px;
     classDef future fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px,stroke-dasharray: 6 4;
 
     subgraph current_path["Current implemented path"]
@@ -218,9 +242,12 @@ flowchart TB
         review{{"Review quality gate"}}
         refinement["Refinement<br/>max one attempt"]
         finalization["Finalization"]
+        failure["Failure"]
         routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> review
         review -->|"pass or max retry"| finalization
         review -->|"needs refinement"| refinement --> generation
+        generation -. provider error .-> failure
+        routing -. node error .-> failure
     end
 
     subgraph future_tools["Future tool insertion points"]
@@ -253,6 +280,7 @@ flowchart TB
 
     class routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,refinement,finalization implemented
     class review gate
+    class failure failure
     class tool_gate,tool_loop,preview,retry,hitl future
 ```
 
@@ -265,10 +293,10 @@ Conservative insertion points:
 
 ## Known Limits In The Current Runtime
 
-- Failure handling is still exception-based at the graph boundary; there is no explicit `FAILED` graph path yet
 - `WorkflowEventMetadata` is modeled but not emitted with stream events
 - Route selection does not currently alter graph control flow
 - `review` is deterministic and intentionally lightweight; it is not an LLM evaluator
+- Unexpected failures are normalized into the workflow only when a node catches them and records `pending_failure`
 - Stream event types such as `tool_start`, `tool_result`, `preview_artifact`, and `eval_update` exist in contracts but are not emitted by the current graph
 
 ## Validation Pointers
@@ -283,5 +311,5 @@ Those tests currently verify:
 - explicit step ordering
 - state completion and skipped-step behavior
 - compiled graph execution
-- failure propagation
+- terminal failure routing and failed workflow state
 - stream ordering and event-shape compatibility
