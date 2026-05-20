@@ -4,11 +4,16 @@ from __future__ import annotations
 
 import json
 from collections.abc import Sequence
+from datetime import UTC, datetime
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.core import Settings, load_settings
+from creative_coding_assistant.rag import (
+    OfficialSourceHealthSnapshot,
+    SourceHealthStatus,
+)
 from creative_coding_assistant.rag.sources import (
     approved_official_sources,
     get_official_source,
@@ -61,6 +66,42 @@ class OfficialKnowledgeBaseBatchSyncResult(BaseModel):
 
     def summary_json(self) -> str:
         return json.dumps(self.summary_payload(), sort_keys=True)
+
+    def source_health_snapshots(
+        self,
+        *,
+        checked_at: datetime | None = None,
+    ) -> tuple[OfficialSourceHealthSnapshot, ...]:
+        resolved_checked_at = checked_at or datetime.now(tz=UTC)
+        return tuple(
+            result.health_snapshot(checked_at=resolved_checked_at)
+            for result in self.results
+        )
+
+    def health_summary_payload(
+        self,
+        *,
+        checked_at: datetime | None = None,
+    ) -> dict[str, object]:
+        snapshots = self.source_health_snapshots(checked_at=checked_at)
+        return {
+            "healthy_source_ids": [
+                snapshot.source.source_id
+                for snapshot in snapshots
+                if snapshot.health_status is SourceHealthStatus.HEALTHY
+            ],
+            "stale_source_ids": [
+                snapshot.source.source_id
+                for snapshot in snapshots
+                if snapshot.health_status is SourceHealthStatus.STALE
+            ],
+            "refresh_recommended_source_ids": [
+                snapshot.source.source_id
+                for snapshot in snapshots
+                if snapshot.refresh_recommended
+            ],
+            "failed_source_ids": list(self.failed_source_ids),
+        }
 
 
 class SyncFailureMode(StrEnum):

@@ -142,6 +142,24 @@ class OfficialKBSyncServiceTests(unittest.TestCase):
             },
         )
 
+    def test_sync_batch_result_exposes_health_summary(self) -> None:
+        runner = _FakeRunner()
+        service = OfficialKBSyncService(runner=runner)
+
+        result = service.sync_selected_sources(("three_docs",))
+
+        self.assertEqual(
+            result.health_summary_payload(
+                checked_at=datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
+            ),
+            {
+                "healthy_source_ids": ["three_docs"],
+                "stale_source_ids": [],
+                "refresh_recommended_source_ids": [],
+                "failed_source_ids": [],
+            },
+        )
+
 
 class _FakeRunner:
     def __init__(self) -> None:

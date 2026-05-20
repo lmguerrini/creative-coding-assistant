@@ -1,5 +1,8 @@
 """Official knowledge-base sync contracts and implementation boundaries."""
 
+from creative_coding_assistant.rag.source_health import (
+    OfficialSourceSyncMetadata,
+)
 from creative_coding_assistant.rag.sync.chunking import (
     ChunkingPolicy,
     OfficialSourceChunker,
@@ -37,6 +40,7 @@ __all__ = [
     "FetchedSourceDocument",
     "OfficialKnowledgeBaseIndexer",
     "NormalizedSourceDocument",
+    "OfficialSourceSyncMetadata",
     "OfficialSourceChunk",
     "OfficialSourceChunker",
     "OpenAIChunkEmbedder",

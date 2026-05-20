@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
+from creative_coding_assistant.rag import SourceHealthStatus, SourceSyncStatus
 from creative_coding_assistant.rag.sync import (
     ChunkingPolicy,
     OfficialKnowledgeBaseIndexer,
@@ -42,6 +43,16 @@ class OfficialKnowledgeBaseSyncRunnerTests(unittest.TestCase):
             self.assertEqual(len(result.embeddings), len(result.chunks))
             self.assertEqual(len(result.vector_records), len(result.chunks))
             self.assertEqual(len(result.record_ids), len(result.chunks))
+            assert result.sync_metadata is not None
+            self.assertEqual(
+                result.sync_metadata.sync_status,
+                SourceSyncStatus.SUCCEEDED,
+            )
+            self.assertEqual(result.sync_metadata.chunk_count, len(result.chunks))
+            self.assertEqual(
+                result.sync_metadata.record_count,
+                len(result.record_ids),
+            )
             self.assertEqual(
                 result.vector_records[0].embedding,
                 [1.0, 0.0, 0.0],
@@ -50,6 +61,10 @@ class OfficialKnowledgeBaseSyncRunnerTests(unittest.TestCase):
                 result.vector_records[0].metadata.source_id,
                 "three_docs",
             )
+            snapshot = result.health_snapshot(
+                checked_at=datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
+            )
+            self.assertEqual(snapshot.health_status, SourceHealthStatus.HEALTHY)
             stored_records = OfficialKnowledgeBaseIndexer(
                 client=client
             ).list_source_chunks(

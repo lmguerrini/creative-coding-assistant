@@ -1,5 +1,16 @@
 """Official knowledge-base source governance."""
 
+from creative_coding_assistant.rag.source_health import (
+    OfficialSourceHealthMetadata,
+    OfficialSourceHealthSnapshot,
+    OfficialSourceSyncMetadata,
+    SourceFreshnessPolicy,
+    SourceFreshnessStatus,
+    SourceHealthStatus,
+    SourceSyncStatus,
+    build_official_source_health_metadata,
+    evaluate_official_source_health,
+)
 from creative_coding_assistant.rag.sources import (
     APPROVED_OFFICIAL_SOURCES,
     OFFICIAL_HOSTS_BY_DOMAIN,
@@ -16,10 +27,19 @@ __all__ = [
     "APPROVED_OFFICIAL_SOURCES",
     "OFFICIAL_HOSTS_BY_DOMAIN",
     "OfficialSource",
+    "OfficialSourceHealthMetadata",
+    "OfficialSourceHealthSnapshot",
+    "OfficialSourceSyncMetadata",
     "OfficialSourceType",
+    "SourceFreshnessPolicy",
+    "SourceFreshnessStatus",
     "SourceApprovalStatus",
+    "SourceHealthStatus",
+    "SourceSyncStatus",
     "approved_official_sources",
     "approved_sources_for_domain",
+    "build_official_source_health_metadata",
+    "evaluate_official_source_health",
     "get_official_source",
     "official_source_domains",
 ]

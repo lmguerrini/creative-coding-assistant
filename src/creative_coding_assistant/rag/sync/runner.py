@@ -3,8 +3,13 @@
 from __future__ import annotations
 
 from loguru import logger
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from creative_coding_assistant.rag.source_health import (
+    OfficialSourceHealthSnapshot,
+    OfficialSourceSyncMetadata,
+    evaluate_official_source_health,
+)
 from creative_coding_assistant.rag.sync.chunking import OfficialSourceChunker
 from creative_coding_assistant.rag.sync.embedding import ChunkEmbedder
 from creative_coding_assistant.rag.sync.fetcher import OfficialSourceFetcher
@@ -29,6 +34,41 @@ class OfficialKnowledgeBaseSyncResult(BaseModel):
     embeddings: tuple[tuple[float, ...], ...] = Field(default_factory=tuple)
     vector_records: tuple[VectorRecord, ...] = Field(default_factory=tuple)
     record_ids: tuple[str, ...] = Field(default_factory=tuple)
+    sync_metadata: OfficialSourceSyncMetadata | None = None
+
+    @model_validator(mode="after")
+    def populate_sync_metadata(self) -> OfficialKnowledgeBaseSyncResult:
+        if self.sync_metadata is not None:
+            return self
+
+        object.__setattr__(
+            self,
+            "sync_metadata",
+            OfficialSourceSyncMetadata.from_success(
+                source_id=self.fetched_document.source_id,
+                requested_at=self.request.requested_at,
+                last_synced_at=self.fetched_document.fetched_at,
+                source_url=self.fetched_document.source_url,
+                resolved_url=self.fetched_document.resolved_url,
+                domain=self.fetched_document.domain,
+                source_type=self.fetched_document.source_type,
+                content_hash=self.normalized_document.content_hash,
+                chunk_count=len(self.chunks),
+                record_count=len(self.record_ids),
+            ),
+        )
+        return self
+
+    def health_snapshot(
+        self,
+        *,
+        checked_at,
+    ) -> OfficialSourceHealthSnapshot:
+        return evaluate_official_source_health(
+            self.fetched_document.source_id,
+            sync_metadata=self.sync_metadata,
+            checked_at=checked_at,
+        )
 
 
 class OfficialKnowledgeBaseSyncRunner:
