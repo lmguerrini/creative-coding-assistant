@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from creative_coding_assistant.contracts import StreamEvent, StreamEventType
+from creative_coding_assistant.tools import ToolRequest, ToolResult, ToolStatus
 
 
 class StreamEventBuilder:
@@ -74,6 +75,28 @@ class StreamEventBuilder:
         return self._event(
             StreamEventType.GENERATION_INPUT,
             {"code": code, "message": message, **details},
+        )
+
+    def tool_start(self, request: ToolRequest, **details: Any) -> StreamEvent:
+        return self._event(
+            StreamEventType.TOOL_START,
+            {
+                "status": ToolStatus.RUNNING.value,
+                "tool_name": request.tool_name,
+                "request": request.model_dump(mode="json"),
+                **details,
+            },
+        )
+
+    def tool_result(self, result: ToolResult, **details: Any) -> StreamEvent:
+        return self._event(
+            StreamEventType.TOOL_RESULT,
+            {
+                "status": result.status.value,
+                "tool_name": result.tool_name,
+                "result": result.model_dump(mode="json"),
+                **details,
+            },
         )
 
     def final(self, *, answer: str, **details: Any) -> StreamEvent:
