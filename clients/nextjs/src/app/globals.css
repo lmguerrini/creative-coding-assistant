@@ -1,0 +1,39 @@
+:root {
+  color-scheme: dark;
+  --background: #080a0d;
+  --foreground: #eef2f4;
+  --muted: #99a5ad;
+  --line: rgba(221, 232, 238, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family:
+    "IBM Plex Sans",
+    "Aptos",
+    "Segoe UI",
+    sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
