@@ -116,7 +116,7 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
         id: "preview-manifest",
         title: "preview-request.json",
         type: "preview",
-        summary: "Typed preview request linking renderer capability to artifact v1."
+        summary: "Browser target, renderer identity, and artifact v1 linkage."
       },
       {
         id: "session-notes",
@@ -131,7 +131,7 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
       status: "Pending",
       artifactName: "webgpu-particle-field.ts",
       summary:
-        "Preview contracts are ready; renderer execution will attach in a later branch.",
+        "Staged frame for particle density, palette balance, and projection-scale motion.",
       renderer: "preview.noop",
       latency: "--",
       version: "v1"
