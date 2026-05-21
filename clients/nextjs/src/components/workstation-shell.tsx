@@ -31,10 +31,21 @@ import type {
   InspectorTabName,
   WorkflowStepState
 } from "@/lib/assistant-client";
+import {
+  streamAssistantEvents as streamBackendAssistantEvents,
+  workflowNodeFromAssistantStreamEvent,
+  type AssistantStreamEvent,
+  type AssistantStreamRequest
+} from "@/lib/assistant-stream";
 
 type WorkstationShellProps = {
   snapshot: AssistantWorkspaceSnapshot;
+  streamAssistantEvents?: AssistantStreamClient;
 };
+
+type AssistantStreamClient = (
+  request: AssistantStreamRequest
+) => AsyncIterable<AssistantStreamEvent>;
 
 const inspectorTabIcons = {
   Overview: Sparkles,
@@ -49,7 +60,10 @@ type WorkspaceWorkflow = AssistantWorkspaceSnapshot["workflow"];
 
 const mockWorkflowIntervalMs = 850;
 
-export function WorkstationShell({ snapshot }: WorkstationShellProps) {
+export function WorkstationShell({
+  snapshot,
+  streamAssistantEvents = streamBackendAssistantEvents
+}: WorkstationShellProps) {
   const [messages, setMessages] = useState(snapshot.messages);
   const [composerValue, setComposerValue] = useState("");
   const [activeTab, setActiveTab] = useState<InspectorTabName>(
@@ -66,6 +80,9 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
     getInitialWorkflowIndex(snapshot.workflow.steps)
   );
   const [workflowRunId, setWorkflowRunId] = useState(0);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamError, setStreamError] = useState<string | null>(null);
+  const [streamEvents, setStreamEvents] = useState(snapshot.debug.events);
   const chatLogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -129,14 +146,31 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
       status: isPreviewOpen ? "Preview open" : "Ready when opened",
       trigger: `Preview ${previewArtifact.title}`
     },
-    workflow
+    workflow,
+    debug: {
+      ...snapshot.debug,
+      status: isStreaming
+        ? "Streaming backend"
+        : streamError
+          ? "Backend fallback"
+          : snapshot.debug.status,
+      events: streamEvents
+    }
   };
   const activeTabSummary =
     interactiveSnapshot.inspectorTabs.find((tab) => tab.label === activeTab)
       ?.summary ?? "";
-  const isComposerReady = Boolean(composerValue.trim());
+  const isComposerReady = Boolean(composerValue.trim()) && !isStreaming;
+  const streamState = isStreaming ? "streaming" : streamError ? "fallback" : "idle";
+  const composerStateLabel = isStreaming
+    ? "Streaming backend events"
+    : streamError
+      ? "Backend fallback active"
+      : isComposerReady
+        ? "Ready to stream"
+        : "Type to stream backend";
 
-  function handleComposerSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleComposerSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const prompt = composerValue.trim();
@@ -146,24 +180,126 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
     }
 
     const timestamp = formatMessageTime();
+    const assistantPlaceholder: AssistantMessage = {
+      role: "assistant",
+      time: timestamp,
+      content: "Connecting to backend stream..."
+    };
     const newMessages: AssistantMessage[] = [
       {
         role: "user",
         time: timestamp,
         content: prompt
       },
-      {
-        role: "assistant",
-        time: timestamp,
-        content: buildMockAssistantReply(prompt, activeArtifact.title)
-      }
+      assistantPlaceholder
     ];
 
     setMessages((currentMessages) => [...currentMessages, ...newMessages]);
     setComposerValue("");
     setWorkflowProgressIndex(0);
-    setWorkflowRunId((currentRunId) => currentRunId + 1);
+    setWorkflowRunId(0);
+    setStreamError(null);
+    setStreamEvents([]);
+    setIsStreaming(true);
     setActiveTab("Overview");
+
+    let streamedAnswer = "";
+
+    try {
+      for await (const streamEvent of streamAssistantEvents({
+        conversationId: "local-nextjs-session",
+        domain: "webgpu_wgsl",
+        mode: "generate",
+        projectId: "local-nextjs-workspace",
+        query: prompt
+      })) {
+        applyStreamEventToWorkspace(streamEvent);
+
+        if (streamEvent.event_type === "token_delta") {
+          const delta = readPayloadText(streamEvent, "text");
+          if (delta) {
+            streamedAnswer += delta;
+            updateLatestAssistantMessage(streamedAnswer);
+          }
+        }
+
+        if (streamEvent.event_type === "final") {
+          const answer = readPayloadText(streamEvent, "answer");
+          if (answer) {
+            streamedAnswer = answer;
+            updateLatestAssistantMessage(answer);
+          }
+        }
+
+        if (streamEvent.event_type === "error") {
+          const message =
+            readPayloadText(streamEvent, "message") ?? "Backend stream failed.";
+          setStreamError(message);
+          updateLatestAssistantMessage(`Backend stream error: ${message}`);
+        }
+      }
+    } catch {
+      const fallbackMessage = `Backend stream unavailable; showing local fallback. ${buildMockAssistantReply(
+        prompt,
+        activeArtifact.title
+      )}`;
+      setStreamError("Backend stream unavailable. Showing local fallback.");
+      updateLatestAssistantMessage(fallbackMessage);
+      setWorkflowProgressIndex(0);
+      setWorkflowRunId((currentRunId) => currentRunId + 1);
+    } finally {
+      setIsStreaming(false);
+    }
+  }
+
+  function applyStreamEventToWorkspace(streamEvent: AssistantStreamEvent) {
+    setStreamEvents((currentEvents) => [
+      ...currentEvents,
+      {
+        code: `${streamEvent.sequence}:${streamEvent.event_type}`,
+        label: streamEvent.event_type,
+        detail:
+          readPayloadText(streamEvent, "message") ??
+          readPayloadText(streamEvent, "answer") ??
+          readPayloadText(streamEvent, "text") ??
+          "Backend stream event received."
+      }
+    ]);
+
+    const workflowNode = workflowNodeFromAssistantStreamEvent(streamEvent);
+    if (workflowNode) {
+      setWorkflowProgressIndex(
+        getWorkflowNodeIndex(snapshot.workflow.steps, workflowNode)
+      );
+    }
+
+    if (streamEvent.event_type === "preview_artifact") {
+      const artifactId = readPayloadText(streamEvent, "artifact_id");
+      if (
+        artifactId &&
+        snapshot.artifacts.some((artifact) => artifact.id === artifactId)
+      ) {
+        setPreviewArtifactId(artifactId);
+      }
+      setIsPreviewOpen(true);
+    }
+  }
+
+  function updateLatestAssistantMessage(content: string) {
+    setMessages((currentMessages) => {
+      const nextMessages = [...currentMessages];
+      const assistantIndex = findLatestAssistantMessageIndex(nextMessages);
+
+      if (assistantIndex < 0) {
+        return currentMessages;
+      }
+
+      nextMessages[assistantIndex] = {
+        ...nextMessages[assistantIndex],
+        content
+      };
+      return nextMessages;
+    });
   }
 
   function handleArtifactAction(action: ArtifactAction, artifact: ArtifactSummary) {
@@ -189,6 +325,7 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
       className="workstation"
       data-active-tab={activeTab.toLowerCase()}
       data-preview={isPreviewOpen ? "open" : "closed"}
+      data-stream-state={streamState}
     >
       <header className="topbar">
         <div className="brand">
@@ -201,8 +338,18 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
           </div>
         </div>
 
-        <div className="sessionStatus" aria-label="Current session">
-          <span>{interactiveSnapshot.workflow.status}</span>
+        <div
+          className="sessionStatus"
+          aria-label="Current session"
+          data-state={streamState}
+        >
+          <span>
+            {isStreaming
+              ? "Streaming"
+              : streamError
+                ? "Fallback"
+                : interactiveSnapshot.workflow.status}
+          </span>
           <strong>{interactiveSnapshot.workflow.currentStep}</strong>
         </div>
 
@@ -280,7 +427,7 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
                 value={composerValue}
               />
               <span className="composerState" aria-live="polite">
-                {isComposerReady ? "Ready to send" : "Type to activate send"}
+                {composerStateLabel}
               </span>
               <button
                 aria-label="Send prompt"
@@ -807,6 +954,24 @@ function getWorkflowProgress(steps: WorkflowStepState[]): WorkflowProgressSummar
     reached,
     total
   };
+}
+
+function findLatestAssistantMessageIndex(messages: AssistantMessage[]) {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    if (messages[index].role === "assistant") {
+      return index;
+    }
+  }
+
+  return -1;
+}
+
+function readPayloadText(
+  event: AssistantStreamEvent,
+  key: string
+): string | undefined {
+  const value = event.payload[key];
+  return typeof value === "string" ? value : undefined;
 }
 
 function formatMessageTime() {

@@ -1,4 +1,10 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  within
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { WorkstationShell } from "./workstation-shell";
 import {
@@ -6,6 +12,7 @@ import {
   type AssistantWorkspaceSnapshot,
   type InspectorTabName
 } from "@/lib/assistant-client";
+import type { AssistantStreamEvent } from "@/lib/assistant-stream";
 
 function snapshotWithActiveTab(
   activeTab: InspectorTabName
@@ -19,6 +26,18 @@ function snapshotWithActiveTab(
       active: tab.label === activeTab
     }))
   };
+}
+
+async function* streamEvents(
+  events: AssistantStreamEvent[]
+): AsyncGenerator<AssistantStreamEvent> {
+  for (const event of events) {
+    yield event;
+  }
+}
+
+async function* failingStream(): AsyncGenerator<AssistantStreamEvent> {
+  throw new Error("offline");
 }
 
 describe("WorkstationShell", () => {
@@ -91,26 +110,117 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("tabpanel", { name: "Retrieval inspector" })).toBeVisible();
   });
 
-  it("sends a prompt, appends a mock response, and starts workflow progress", () => {
-    vi.useFakeTimers();
-    render(<WorkstationShell snapshot={getLocalWorkspaceSnapshot()} />);
+  it("streams backend events into the conversation and workflow state", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "status",
+          sequence: 0,
+          payload: { code: "request_received", message: "Request accepted." }
+        },
+        {
+          event_type: "status",
+          sequence: 1,
+          payload: { code: "route_selected", message: "Route selected." }
+        },
+        {
+          event_type: "token_delta",
+          sequence: 2,
+          payload: { text: "Streaming " }
+        },
+        {
+          event_type: "token_delta",
+          sequence: 3,
+          payload: { text: "answer." }
+        },
+        {
+          event_type: "preview_artifact",
+          sequence: 4,
+          payload: { artifact_id: "preview-manifest", status: "ready" }
+        },
+        {
+          event_type: "final",
+          sequence: 5,
+          payload: { answer: "Final backend answer." }
+        }
+      ])
+    );
+
+    render(
+      <WorkstationShell
+        snapshot={getLocalWorkspaceSnapshot()}
+        streamAssistantEvents={backendStream}
+      />
+    );
 
     const promptInput = screen.getByLabelText("Assistant prompt");
     const sendButton = screen.getByRole("button", { name: "Send prompt" });
 
     expect(sendButton).toBeDisabled();
     expect(sendButton).toHaveAttribute("data-ready", "false");
-    expect(screen.getByText("Type to activate send")).toBeVisible();
+    expect(screen.getByText("Type to stream backend")).toBeVisible();
 
     fireEvent.change(promptInput, {
       target: { value: "Make the low-frequency motion calmer." }
     });
     expect(sendButton).toHaveAttribute("data-ready", "true");
-    expect(screen.getByText("Ready to send")).toBeVisible();
+    expect(screen.getByText("Ready to stream")).toBeVisible();
 
     fireEvent.click(sendButton);
 
     expect(promptInput).toHaveValue("");
+    expect(await screen.findByText("Final backend answer.")).toBeVisible();
+    expect(backendStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conversationId: "local-nextjs-session",
+        domain: "webgpu_wgsl",
+        mode: "generate",
+        projectId: "local-nextjs-workspace",
+        query: "Make the low-frequency motion calmer."
+      })
+    );
+    expect(screen.getByLabelText("Current session")).toHaveTextContent(
+      "Finalization"
+    );
+    expect(
+      screen.getByRole("progressbar", { name: "Overview workflow progress" })
+    ).toHaveAttribute("aria-valuenow", "11");
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    expect(within(preview).getByText("preview-request.json")).toBeVisible();
+    expect(preview.querySelector("details")).toHaveAttribute("open");
+  });
+
+  it("falls back to the local mock path when the backend stream is unavailable", async () => {
+    vi.useFakeTimers();
+    render(
+      <WorkstationShell
+        snapshot={getLocalWorkspaceSnapshot()}
+        streamAssistantEvents={failingStream}
+      />
+    );
+
+    const promptInput = screen.getByLabelText("Assistant prompt");
+    const sendButton = screen.getByRole("button", { name: "Send prompt" });
+
+    expect(sendButton).toBeDisabled();
+    expect(sendButton).toHaveAttribute("data-ready", "false");
+    expect(screen.getByText("Type to stream backend")).toBeVisible();
+
+    fireEvent.change(promptInput, {
+      target: { value: "Make the low-frequency motion calmer." }
+    });
+    expect(sendButton).toHaveAttribute("data-ready", "true");
+    expect(screen.getByText("Ready to stream")).toBeVisible();
+
+    fireEvent.click(sendButton);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(promptInput).toHaveValue("");
+    expect(screen.getByText(/Backend stream unavailable/)).toBeVisible();
     const userMessage = screen
       .getByText("Make the low-frequency motion calmer.")
       .closest("article");
@@ -121,6 +231,7 @@ describe("WorkstationShell", () => {
     expect(userMessage).toHaveAttribute("data-fresh", "true");
     expect(assistantMessage).toHaveAttribute("data-fresh", "true");
     expect(screen.getByLabelText("Current session")).toHaveTextContent("Intake");
+    expect(screen.getByText("Backend fallback active")).toBeVisible();
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
     ).toHaveAttribute("aria-valuenow", "1");
@@ -133,6 +244,42 @@ describe("WorkstationShell", () => {
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
     ).toHaveAttribute("aria-valuenow", "2");
+  });
+
+  it("surfaces backend error events without losing the user message", async () => {
+    render(
+      <WorkstationShell
+        snapshot={getLocalWorkspaceSnapshot()}
+        streamAssistantEvents={() =>
+          streamEvents([
+            {
+              event_type: "status",
+              sequence: 0,
+              payload: { code: "request_received", message: "Request accepted." }
+            },
+            {
+              event_type: "error",
+              sequence: 1,
+              payload: {
+                code: "provider_unavailable",
+                message: "Provider unavailable."
+              }
+            }
+          ])
+        }
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Generate a reactive sketch." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(screen.getByText("Generate a reactive sketch.")).toBeVisible();
+    expect(
+      await screen.findByText("Backend stream error: Provider unavailable.")
+    ).toBeVisible();
+    expect(screen.getByText("Backend fallback active")).toBeVisible();
   });
 
   it("keeps preview available, on demand, and collapsible in the main column", () => {

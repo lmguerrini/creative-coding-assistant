@@ -184,6 +184,16 @@ a {
   text-transform: uppercase;
 }
 
+.sessionStatus[data-state="streaming"] span {
+  background: rgba(76, 215, 200, 0.13);
+  color: var(--teal);
+}
+
+.sessionStatus[data-state="fallback"] span {
+  background: rgba(243, 184, 82, 0.14);
+  color: var(--amber);
+}
+
 .sessionStatus strong {
   min-width: 0;
   overflow: hidden;
