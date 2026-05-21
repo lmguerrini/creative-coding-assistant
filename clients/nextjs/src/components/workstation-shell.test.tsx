@@ -1,5 +1,5 @@
-import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { WorkstationShell } from "./workstation-shell";
 import {
   getLocalWorkspaceSnapshot,
@@ -22,6 +22,10 @@ function snapshotWithActiveTab(
 }
 
 describe("WorkstationShell", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("renders the three-zone creative workspace shell", () => {
     render(<WorkstationShell snapshot={getLocalWorkspaceSnapshot()} />);
 
@@ -57,17 +61,102 @@ describe("WorkstationShell", () => {
     expect(screen.queryByRole("tab", { name: "Review" })).not.toBeInTheDocument();
   });
 
+  it("switches inspector tabs without stacking panels", () => {
+    render(<WorkstationShell snapshot={getLocalWorkspaceSnapshot()} />);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Code" }));
+
+    expect(screen.getByRole("tab", { name: "Code" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
+    expect(screen.getByRole("tabpanel", { name: "Code inspector" })).toBeVisible();
+    expect(screen.queryByRole("tabpanel", { name: "Overview inspector" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Retrieval" }));
+
+    expect(screen.getByRole("tab", { name: "Retrieval" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
+    expect(screen.getByRole("tabpanel", { name: "Retrieval inspector" })).toBeVisible();
+  });
+
+  it("sends a prompt, appends a mock response, and starts workflow progress", () => {
+    vi.useFakeTimers();
+    render(<WorkstationShell snapshot={getLocalWorkspaceSnapshot()} />);
+
+    const promptInput = screen.getByLabelText("Assistant prompt");
+    const sendButton = screen.getByRole("button", { name: "Send prompt" });
+
+    expect(sendButton).toBeDisabled();
+
+    fireEvent.change(promptInput, {
+      target: { value: "Make the low-frequency motion calmer." }
+    });
+    fireEvent.click(sendButton);
+
+    expect(promptInput).toHaveValue("");
+    expect(screen.getByText("Make the low-frequency motion calmer.")).toBeVisible();
+    expect(screen.getByText(/Mock orchestration pass started/)).toBeVisible();
+    expect(screen.getByLabelText("Current session")).toHaveTextContent("Intake");
+
+    act(() => {
+      vi.advanceTimersByTime(850);
+    });
+
+    expect(screen.getByLabelText("Current session")).toHaveTextContent("Routing");
+  });
+
   it("keeps preview available, on demand, and collapsible in the main column", () => {
     render(<WorkstationShell snapshot={getLocalWorkspaceSnapshot()} />);
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const details = preview.querySelector("details");
+    const summary = within(preview).getByText("Preview available").closest("summary");
 
     expect(within(preview).getByText("Preview available")).toBeVisible();
     expect(within(preview).getByText("webgpu-particle-field.ts")).toBeVisible();
     expect(within(preview).getByText("Ready when opened")).toBeVisible();
     expect(within(preview).getByText("preview.noop")).not.toBeVisible();
-    expect(preview.querySelector("details")).not.toHaveAttribute("open");
+    expect(details).not.toHaveAttribute("open");
     expect(screen.queryByRole("tabpanel", { name: "Preview inspector" })).not.toBeInTheDocument();
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+
+    expect(details).toHaveAttribute("open");
+    expect(summary).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("opens artifacts, highlights the active artifact, and targets preview actions", () => {
+    render(<WorkstationShell snapshot={getLocalWorkspaceSnapshot()} />);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open projection-notes.md" }));
+
+    expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
+      "projection-notes.md"
+    );
+    expect(screen.getByLabelText("projection-notes.md artifact")).toHaveAttribute(
+      "data-active",
+      "true"
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Preview preview-request.json" }));
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+
+    expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(within(preview).getByText("preview-request.json")).toBeVisible();
+    expect(within(preview).getByText("Preview open")).toBeVisible();
+    expect(within(preview).getByText("preview.noop")).toBeVisible();
+    expect(preview.querySelector("details")).toHaveAttribute("open");
   });
 
   it("uses the full inspector panel for code when Code is active", () => {

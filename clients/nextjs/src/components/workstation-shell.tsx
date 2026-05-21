@@ -1,3 +1,13 @@
+"use client";
+
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type MouseEvent,
+  type SyntheticEvent
+} from "react";
 import {
   Activity,
   Boxes,
@@ -14,9 +24,12 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type {
+  ArtifactAction,
   ArtifactSummary,
+  AssistantMessage,
   AssistantWorkspaceSnapshot,
-  InspectorTabName
+  InspectorTabName,
+  WorkflowStepState
 } from "@/lib/assistant-client";
 
 type WorkstationShellProps = {
@@ -31,12 +44,144 @@ const inspectorTabIcons = {
   Retrieval: TerminalSquare
 } satisfies Record<InspectorTabName, LucideIcon>;
 
+type WorkflowState = WorkflowStepState["state"];
+type WorkspaceWorkflow = AssistantWorkspaceSnapshot["workflow"];
+
+const mockWorkflowIntervalMs = 850;
+
 export function WorkstationShell({ snapshot }: WorkstationShellProps) {
-  const activeArtifact = snapshot.artifacts[0];
-  const activeTab =
-    snapshot.inspectorTabs.find((tab) => tab.active)?.label ?? "Overview";
+  const [messages, setMessages] = useState(snapshot.messages);
+  const [composerValue, setComposerValue] = useState("");
+  const [activeTab, setActiveTab] = useState<InspectorTabName>(
+    getInitialActiveTab(snapshot)
+  );
+  const [activeArtifactId, setActiveArtifactId] = useState(
+    snapshot.artifacts[0]?.id ?? ""
+  );
+  const [previewArtifactId, setPreviewArtifactId] = useState(
+    getInitialPreviewArtifactId(snapshot)
+  );
+  const [isPreviewOpen, setIsPreviewOpen] = useState(snapshot.preview.active);
+  const [workflowProgressIndex, setWorkflowProgressIndex] = useState(
+    getInitialWorkflowIndex(snapshot.workflow.steps)
+  );
+  const [workflowRunId, setWorkflowRunId] = useState(0);
+  const chatLogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const chatLog = chatLogRef.current;
+
+    if (chatLog) {
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+  }, [messages.length]);
+
+  useEffect(() => {
+    if (workflowRunId === 0) {
+      return undefined;
+    }
+
+    const finalizationIndex = getWorkflowNodeIndex(
+      snapshot.workflow.steps,
+      "finalization"
+    );
+    const timer = window.setInterval(() => {
+      setWorkflowProgressIndex((currentIndex) => {
+        if (currentIndex >= finalizationIndex) {
+          window.clearInterval(timer);
+          return currentIndex;
+        }
+
+        return currentIndex + 1;
+      });
+    }, mockWorkflowIntervalMs);
+
+    return () => window.clearInterval(timer);
+  }, [snapshot.workflow.steps, workflowRunId]);
+
+  const activeArtifact =
+    snapshot.artifacts.find((artifact) => artifact.id === activeArtifactId) ??
+    snapshot.artifacts[0];
+  const previewArtifact =
+    snapshot.artifacts.find((artifact) => artifact.id === previewArtifactId) ??
+    activeArtifact;
+  const workflow = buildInteractiveWorkflow(
+    snapshot.workflow,
+    workflowProgressIndex
+  );
+  const interactiveSnapshot: AssistantWorkspaceSnapshot = {
+    ...snapshot,
+    code:
+      activeArtifact.type === "code"
+        ? { ...snapshot.code, title: activeArtifact.title }
+        : snapshot.code,
+    inspectorTabs: snapshot.inspectorTabs.map((tab) => ({
+      ...tab,
+      active: tab.label === activeTab,
+      badge: tab.label === "Artifacts" ? String(snapshot.artifacts.length) : tab.badge
+    })),
+    messages,
+    preview: {
+      ...snapshot.preview,
+      active: isPreviewOpen,
+      artifactName: previewArtifact.title,
+      collapsed: !isPreviewOpen,
+      status: isPreviewOpen ? "Preview open" : "Ready when opened",
+      trigger: `Preview ${previewArtifact.title}`
+    },
+    workflow
+  };
   const activeTabSummary =
-    snapshot.inspectorTabs.find((tab) => tab.label === activeTab)?.summary ?? "";
+    interactiveSnapshot.inspectorTabs.find((tab) => tab.label === activeTab)
+      ?.summary ?? "";
+
+  function handleComposerSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const prompt = composerValue.trim();
+
+    if (!prompt) {
+      return;
+    }
+
+    const timestamp = formatMessageTime();
+    const newMessages: AssistantMessage[] = [
+      {
+        role: "user",
+        time: timestamp,
+        content: prompt
+      },
+      {
+        role: "assistant",
+        time: timestamp,
+        content: buildMockAssistantReply(prompt, activeArtifact.title)
+      }
+    ];
+
+    setMessages((currentMessages) => [...currentMessages, ...newMessages]);
+    setComposerValue("");
+    setWorkflowProgressIndex(0);
+    setWorkflowRunId((currentRunId) => currentRunId + 1);
+    setActiveTab("Overview");
+  }
+
+  function handleArtifactAction(action: ArtifactAction, artifact: ArtifactSummary) {
+    setActiveArtifactId(artifact.id);
+
+    if (action === "Open") {
+      setActiveTab(artifact.type === "code" ? "Code" : "Artifacts");
+      return;
+    }
+
+    if (action === "Preview") {
+      setPreviewArtifactId(artifact.id);
+      setIsPreviewOpen(true);
+      setActiveTab("Overview");
+      return;
+    }
+
+    setActiveTab("Artifacts");
+  }
 
   return (
     <main className="workstation">
@@ -52,8 +197,8 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
         </div>
 
         <div className="sessionStatus" aria-label="Current session">
-          <span>{snapshot.workflow.status}</span>
-          <strong>{snapshot.workflow.currentStep}</strong>
+          <span>{interactiveSnapshot.workflow.status}</span>
+          <strong>{interactiveSnapshot.workflow.currentStep}</strong>
         </div>
 
         <div className="topbarActions" aria-label="Workspace actions">
@@ -90,12 +235,18 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
               </div>
             </header>
 
-            <div className="chatLog">
-              {snapshot.messages.map((message) => (
+            <div
+              aria-label="Conversation"
+              aria-live="polite"
+              className="chatLog"
+              ref={chatLogRef}
+              role="log"
+            >
+              {interactiveSnapshot.messages.map((message) => (
                 <article
                   className="message"
                   data-role={message.role}
-                  key={`${message.role}-${message.time}`}
+                  key={`${message.role}-${message.time}-${message.content}`}
                 >
                   <div className="messageMeta">
                     <span>{message.role}</span>
@@ -106,19 +257,29 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
               ))}
             </div>
 
-            <form className="composer">
+            <form className="composer" onSubmit={handleComposerSubmit}>
               <textarea
                 aria-label="Assistant prompt"
+                onChange={(event) => setComposerValue(event.currentTarget.value)}
                 placeholder="Ask for a denser particle field, a softer palette, or a preview pass."
+                value={composerValue}
               />
-              <button className="sendButton" type="button" aria-label="Send prompt">
+              <button
+                aria-label="Send prompt"
+                className="sendButton"
+                disabled={!composerValue.trim()}
+                type="submit"
+              >
                 <SendHorizontal size={18} />
               </button>
             </form>
           </section>
 
-          {snapshot.preview.available ? (
-            <PreviewShelf snapshot={snapshot} />
+          {interactiveSnapshot.preview.available ? (
+            <PreviewShelf
+              onToggle={setIsPreviewOpen}
+              snapshot={interactiveSnapshot}
+            />
           ) : null}
         </div>
 
@@ -139,7 +300,7 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
           </header>
 
           <div className="inspectorTabs" role="tablist" aria-label="Inspector tabs">
-            {snapshot.inspectorTabs.map((tab) => {
+            {interactiveSnapshot.inspectorTabs.map((tab) => {
               const Icon = inspectorTabIcons[tab.label];
 
               return (
@@ -149,6 +310,7 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
                   aria-selected={tab.active}
                   id={`${tab.label.toLowerCase()}-inspector-tab`}
                   key={tab.label}
+                  onClick={() => setActiveTab(tab.label)}
                   role="tab"
                   tabIndex={tab.active ? 0 : -1}
                   title={tab.summary}
@@ -162,18 +324,44 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
             })}
           </div>
 
-          <InspectorPanel activeTab={activeTab} snapshot={snapshot} />
+          <InspectorPanel
+            activeArtifact={activeArtifact}
+            activeArtifactId={activeArtifactId}
+            activeTab={activeTab}
+            onArtifactAction={handleArtifactAction}
+            snapshot={interactiveSnapshot}
+          />
         </aside>
       </section>
     </main>
   );
 }
 
-function PreviewShelf({ snapshot }: WorkstationShellProps) {
+type PreviewShelfProps = WorkstationShellProps & {
+  onToggle: (isOpen: boolean) => void;
+};
+
+function PreviewShelf({ onToggle, snapshot }: PreviewShelfProps) {
+  function handleSummaryClick(event: MouseEvent<HTMLElement>) {
+    event.preventDefault();
+    onToggle(!snapshot.preview.active);
+  }
+
+  function handleToggle(event: SyntheticEvent<HTMLDetailsElement>) {
+    onToggle(event.currentTarget.open);
+  }
+
   return (
     <section className="previewZone" aria-label="Preview workspace">
-      <details className="previewShelf" open={!snapshot.preview.collapsed}>
-        <summary>
+      <details
+        className="previewShelf"
+        onToggle={handleToggle}
+        open={snapshot.preview.active}
+      >
+        <summary
+          aria-expanded={snapshot.preview.active}
+          onClick={handleSummaryClick}
+        >
           <span className="previewSummaryIcon" aria-hidden="true">
             <Play size={16} />
           </span>
@@ -210,11 +398,20 @@ function PreviewShelf({ snapshot }: WorkstationShellProps) {
 }
 
 type InspectorPanelProps = {
+  activeArtifact: ArtifactSummary;
+  activeArtifactId: string;
   activeTab: InspectorTabName;
+  onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
   snapshot: AssistantWorkspaceSnapshot;
 };
 
-function InspectorPanel({ activeTab, snapshot }: InspectorPanelProps) {
+function InspectorPanel({
+  activeArtifact,
+  activeArtifactId,
+  activeTab,
+  onArtifactAction,
+  snapshot
+}: InspectorPanelProps) {
   if (activeTab === "Code") {
     return <CodeInspector snapshot={snapshot} />;
   }
@@ -224,17 +421,26 @@ function InspectorPanel({ activeTab, snapshot }: InspectorPanelProps) {
   }
 
   if (activeTab === "Artifacts") {
-    return <ArtifactsInspector artifacts={snapshot.artifacts} />;
+    return (
+      <ArtifactsInspector
+        activeArtifactId={activeArtifactId}
+        artifacts={snapshot.artifacts}
+        onArtifactAction={onArtifactAction}
+      />
+    );
   }
 
   if (activeTab === "Retrieval") {
     return <RetrievalInspector snapshot={snapshot} />;
   }
 
-  return <OverviewInspector snapshot={snapshot} />;
+  return <OverviewInspector activeArtifact={activeArtifact} snapshot={snapshot} />;
 }
 
-function OverviewInspector({ snapshot }: WorkstationShellProps) {
+function OverviewInspector({
+  activeArtifact,
+  snapshot
+}: WorkstationShellProps & { activeArtifact: ArtifactSummary }) {
   const activeStep = snapshot.workflow.steps.find((step) => step.state === "active");
 
   return (
@@ -260,7 +466,12 @@ function OverviewInspector({ snapshot }: WorkstationShellProps) {
           </header>
           <div className="miniWorkflow" aria-label="Minimal live workflow state">
             {snapshot.workflow.steps.map((step) => (
-              <div className="miniStep" data-state={step.state} key={step.nodeId}>
+              <div
+                aria-current={step.state === "active" ? "step" : undefined}
+                className="miniStep"
+                data-state={step.state}
+                key={step.nodeId}
+              >
                 <span aria-hidden="true" />
                 <strong>{step.displayLabel}</strong>
               </div>
@@ -270,7 +481,7 @@ function OverviewInspector({ snapshot }: WorkstationShellProps) {
         <div className="overviewTile" role="group" aria-label="Artifacts summary">
           <span>Artifacts</span>
           <strong>{snapshot.artifacts.length}</strong>
-          <p>{snapshot.artifacts[0].title}</p>
+          <p>{activeArtifact.title}</p>
         </div>
         <div className="overviewTile" role="group" aria-label="Preview summary">
           <span>Preview</span>
@@ -325,13 +536,18 @@ function WorkflowInspector({ snapshot }: WorkstationShellProps) {
         role="group"
       >
         {snapshot.workflow.steps.map((step, index) => (
-          <article className="workflowNode" data-state={step.state} key={step.nodeId}>
+          <article
+            aria-current={step.state === "active" ? "step" : undefined}
+            className="workflowNode"
+            data-state={step.state}
+            key={step.nodeId}
+          >
             <span className="nodeIndex">{String(index + 1).padStart(2, "0")}</span>
             <div>
               <strong>{step.displayLabel}</strong>
               <p>
                 <code>{step.nodeId}</code>
-                <span>{step.state}</span>
+                <span>{formatWorkflowState(step.state)}</span>
               </p>
               <small>{step.detail}</small>
             </div>
@@ -346,7 +562,17 @@ function WorkflowInspector({ snapshot }: WorkstationShellProps) {
   );
 }
 
-function ArtifactsInspector({ artifacts }: { artifacts: ArtifactSummary[] }) {
+type ArtifactsInspectorProps = {
+  activeArtifactId: string;
+  artifacts: ArtifactSummary[];
+  onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+};
+
+function ArtifactsInspector({
+  activeArtifactId,
+  artifacts,
+  onArtifactAction
+}: ArtifactsInspectorProps) {
   return (
     <section
       aria-label="Artifacts inspector"
@@ -356,7 +582,12 @@ function ArtifactsInspector({ artifacts }: { artifacts: ArtifactSummary[] }) {
     >
       <div className="artifactList">
         {artifacts.map((artifact) => (
-          <ArtifactCard artifact={artifact} key={artifact.id} />
+          <ArtifactCard
+            artifact={artifact}
+            isActive={artifact.id === activeArtifactId}
+            key={artifact.id}
+            onArtifactAction={onArtifactAction}
+          />
         ))}
       </div>
     </section>
@@ -383,9 +614,24 @@ function RetrievalInspector({ snapshot }: WorkstationShellProps) {
   );
 }
 
-function ArtifactCard({ artifact }: { artifact: ArtifactSummary }) {
+type ArtifactCardProps = {
+  artifact: ArtifactSummary;
+  isActive: boolean;
+  onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+};
+
+function ArtifactCard({
+  artifact,
+  isActive,
+  onArtifactAction
+}: ArtifactCardProps) {
   return (
-    <article className="artifactItem">
+    <article
+      aria-current={isActive ? "true" : undefined}
+      aria-label={`${artifact.title} artifact`}
+      className="artifactItem"
+      data-active={isActive}
+    >
       <div className="artifactItemHeader">
         <div>
           <strong>{artifact.title}</strong>
@@ -400,6 +646,7 @@ function ArtifactCard({ artifact }: { artifact: ArtifactSummary }) {
         {artifact.actions.map((action) => (
           <button
             key={action}
+            onClick={() => onArtifactAction(action, artifact)}
             type="button"
             aria-label={`${action} ${artifact.title}`}
           >
@@ -409,6 +656,96 @@ function ArtifactCard({ artifact }: { artifact: ArtifactSummary }) {
       </div>
     </article>
   );
+}
+
+function getInitialActiveTab(snapshot: AssistantWorkspaceSnapshot): InspectorTabName {
+  return snapshot.inspectorTabs.find((tab) => tab.active)?.label ?? "Overview";
+}
+
+function getInitialPreviewArtifactId(snapshot: AssistantWorkspaceSnapshot): string {
+  return (
+    snapshot.artifacts.find(
+      (artifact) => artifact.title === snapshot.preview.artifactName
+    )?.id ??
+    snapshot.artifacts[0]?.id ??
+    ""
+  );
+}
+
+function getInitialWorkflowIndex(steps: WorkflowStepState[]) {
+  const activeIndex = steps.findIndex((step) => step.state === "active");
+
+  return activeIndex >= 0 ? activeIndex : 0;
+}
+
+function getWorkflowNodeIndex(
+  steps: WorkflowStepState[],
+  nodeId: WorkflowStepState["nodeId"]
+) {
+  const nodeIndex = steps.findIndex((step) => step.nodeId === nodeId);
+
+  return nodeIndex >= 0 ? nodeIndex : Math.max(steps.length - 1, 0);
+}
+
+function buildInteractiveWorkflow(
+  workflow: WorkspaceWorkflow,
+  progressIndex: number
+): WorkspaceWorkflow {
+  const finalizationIndex = getWorkflowNodeIndex(workflow.steps, "finalization");
+  const boundedProgressIndex = Math.min(
+    Math.max(progressIndex, 0),
+    finalizationIndex
+  );
+  const steps = workflow.steps.map((step, index) => {
+    if (step.nodeId === "failure") {
+      return { ...step, state: "branch" as WorkflowState };
+    }
+
+    if (index < boundedProgressIndex) {
+      return {
+        ...step,
+        state: step.state === "skipped" ? "skipped" : ("complete" as WorkflowState)
+      };
+    }
+
+    if (index === boundedProgressIndex) {
+      return { ...step, state: "active" as WorkflowState };
+    }
+
+    return { ...step, state: "queued" as WorkflowState };
+  });
+  const currentStep =
+    steps.find((step) => step.state === "active") ?? steps[boundedProgressIndex];
+
+  return {
+    ...workflow,
+    currentNode: currentStep.nodeId,
+    currentStep: currentStep.displayLabel,
+    status: boundedProgressIndex >= finalizationIndex ? "Complete" : "Running",
+    steps
+  };
+}
+
+function formatWorkflowState(state: WorkflowState) {
+  return state === "queued" ? "pending" : state;
+}
+
+function formatMessageTime() {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    hour12: false,
+    minute: "2-digit"
+  }).format(new Date());
+}
+
+function buildMockAssistantReply(prompt: string, artifactTitle: string) {
+  const trimmedPrompt = prompt.trim();
+  const promptSummary =
+    trimmedPrompt.length > 88
+      ? `${trimmedPrompt.slice(0, 85).trim()}...`
+      : trimmedPrompt;
+
+  return `Mock orchestration pass started for "${promptSummary}". I kept ${artifactTitle} active and advanced the workflow locally without contacting the backend.`;
 }
 
 export const workstationIcons = {
