@@ -3,8 +3,10 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within
 } from "@testing-library/react";
+import type { ComponentProps } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { WorkstationShell } from "./workstation-shell";
 import {
@@ -13,6 +15,11 @@ import {
   type InspectorTabName
 } from "@/lib/assistant-client";
 import type { AssistantStreamEvent } from "@/lib/assistant-stream";
+import {
+  createWorkspaceSessionRecord,
+  type WorkspacePersistenceClient,
+  type WorkspacePersistenceSaveResult
+} from "@/lib/workspace-persistence";
 
 function snapshotWithActiveTab(
   activeTab: InspectorTabName
@@ -40,13 +47,33 @@ async function* failingStream(): AsyncGenerator<AssistantStreamEvent> {
   throw new Error("offline");
 }
 
+function createNoopPersistenceClient(): WorkspacePersistenceClient {
+  return {
+    load: vi.fn(() => new Promise<null>(() => undefined)),
+    save: vi.fn(async () => ({ target: "local" as const }))
+  };
+}
+
+function renderShell(
+  snapshot: AssistantWorkspaceSnapshot = getLocalWorkspaceSnapshot(),
+  props: Partial<ComponentProps<typeof WorkstationShell>> = {}
+) {
+  return render(
+    <WorkstationShell
+      snapshot={snapshot}
+      persistenceClient={createNoopPersistenceClient()}
+      {...props}
+    />
+  );
+}
+
 describe("WorkstationShell", () => {
   afterEach(() => {
     vi.useRealTimers();
   });
 
   it("renders the three-zone creative workspace shell", () => {
-    render(<WorkstationShell snapshot={getLocalWorkspaceSnapshot()} />);
+    renderShell();
 
     expect(screen.getByText("Creative Coding Assistant")).toBeVisible();
     expect(screen.getByRole("region", { name: "Creative session" })).toBeVisible();
@@ -59,7 +86,7 @@ describe("WorkstationShell", () => {
   });
 
   it("defaults to a single Overview inspector panel", () => {
-    render(<WorkstationShell snapshot={getLocalWorkspaceSnapshot()} />);
+    renderShell();
 
     for (const tab of ["Overview", "Code", "Workflow", "Artifacts", "Retrieval"]) {
       expect(screen.getByRole("tab", { name: tab })).toBeVisible();
@@ -84,7 +111,7 @@ describe("WorkstationShell", () => {
   });
 
   it("switches inspector tabs without stacking panels", () => {
-    render(<WorkstationShell snapshot={getLocalWorkspaceSnapshot()} />);
+    renderShell();
 
     fireEvent.click(screen.getByRole("tab", { name: "Code" }));
 
@@ -146,12 +173,7 @@ describe("WorkstationShell", () => {
       ])
     );
 
-    render(
-      <WorkstationShell
-        snapshot={getLocalWorkspaceSnapshot()}
-        streamAssistantEvents={backendStream}
-      />
-    );
+    renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
 
     const promptInput = screen.getByLabelText("Assistant prompt");
     const sendButton = screen.getByRole("button", { name: "Send prompt" });
@@ -193,12 +215,7 @@ describe("WorkstationShell", () => {
 
   it("falls back to the local mock path when the backend stream is unavailable", async () => {
     vi.useFakeTimers();
-    render(
-      <WorkstationShell
-        snapshot={getLocalWorkspaceSnapshot()}
-        streamAssistantEvents={failingStream}
-      />
-    );
+    renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: failingStream });
 
     const promptInput = screen.getByLabelText("Assistant prompt");
     const sendButton = screen.getByRole("button", { name: "Send prompt" });
@@ -247,10 +264,8 @@ describe("WorkstationShell", () => {
   });
 
   it("surfaces backend error events without losing the user message", async () => {
-    render(
-      <WorkstationShell
-        snapshot={getLocalWorkspaceSnapshot()}
-        streamAssistantEvents={() =>
+    renderShell(getLocalWorkspaceSnapshot(), {
+      streamAssistantEvents: () =>
           streamEvents([
             {
               event_type: "status",
@@ -266,9 +281,7 @@ describe("WorkstationShell", () => {
               }
             }
           ])
-        }
-      />
-    );
+    });
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Generate a reactive sketch." }
@@ -283,7 +296,7 @@ describe("WorkstationShell", () => {
   });
 
   it("keeps preview available, on demand, and collapsible in the main column", () => {
-    render(<WorkstationShell snapshot={getLocalWorkspaceSnapshot()} />);
+    renderShell();
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
     const details = preview.querySelector("details");
@@ -306,7 +319,7 @@ describe("WorkstationShell", () => {
   });
 
   it("opens artifacts, highlights the active artifact, and targets preview actions", () => {
-    render(<WorkstationShell snapshot={getLocalWorkspaceSnapshot()} />);
+    renderShell();
 
     fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
     fireEvent.click(screen.getByRole("button", { name: "Open webgpu-particle-field.ts" }));
@@ -349,7 +362,7 @@ describe("WorkstationShell", () => {
   });
 
   it("uses the full inspector panel for code when Code is active", () => {
-    render(<WorkstationShell snapshot={snapshotWithActiveTab("Code")} />);
+    renderShell(snapshotWithActiveTab("Code"));
 
     expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
     const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
@@ -365,7 +378,7 @@ describe("WorkstationShell", () => {
   });
 
   it("shows an elegant workflow inspector with live graph states", () => {
-    render(<WorkstationShell snapshot={snapshotWithActiveTab("Workflow")} />);
+    renderShell(snapshotWithActiveTab("Workflow"));
 
     expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
     expect(screen.getByRole("tabpanel", { name: "Workflow inspector" })).toBeVisible();
@@ -390,5 +403,108 @@ describe("WorkstationShell", () => {
       screen.getByText("Real retry edge: refinement -> generation, bounded by review state.")
     ).toBeVisible();
     expect(screen.queryByRole("tab", { name: "Review" })).not.toBeInTheDocument();
+  });
+
+  it("restores a persisted workspace session on mount", async () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const persistedRecord = {
+      ...createWorkspaceSessionRecord({
+        activeArtifactId: "session-notes",
+        activeInspectorTab: "Artifacts",
+        previewArtifactId: "preview-manifest",
+        previewOpen: true,
+        snapshot
+      }),
+      messages: [
+        {
+          role: "user",
+          time: "12:00",
+          content: "Persist this workspace."
+        },
+        {
+          role: "assistant",
+          time: "12:01",
+          content: "Workspace restored."
+        }
+      ],
+      title: "Restored projection session",
+      workspace: {
+        name: "Restored projection session",
+        focus: "Restored audio field"
+      }
+    } satisfies ReturnType<typeof createWorkspaceSessionRecord>;
+    const persistenceClient: WorkspacePersistenceClient = {
+      load: vi.fn(async () => persistedRecord),
+      save: vi.fn(async () => ({ target: "remote" as const }))
+    };
+
+    renderShell(snapshot, { persistenceClient });
+
+    expect(await screen.findByText("Workspace restored.")).toBeVisible();
+    expect(screen.getByText("Restored projection session")).toBeVisible();
+    expect(screen.getByRole("tab", { name: "Artifacts" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
+      "projection-notes.md"
+    );
+    expect(screen.getByRole("region", { name: "Preview workspace" })).toHaveTextContent(
+      "Preview open"
+    );
+    expect(screen.getByText("Session restored")).toBeVisible();
+    expect(persistenceClient.save).not.toHaveBeenCalled();
+  });
+
+  it("saves workspace state changes after persistence is ready", async () => {
+    const persistenceClient: WorkspacePersistenceClient = {
+      load: vi.fn(async () => null),
+      save: vi.fn(async () => ({ target: "remote" as const }))
+    };
+
+    renderShell(getLocalWorkspaceSnapshot(), { persistenceClient });
+
+    expect(await screen.findByText("Session saved")).toBeVisible();
+    fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
+
+    await waitFor(() => {
+      expect(persistenceClient.save).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          activeInspectorTab: "Artifacts",
+          sessionId: "local-nextjs-session",
+          userId: "local-user"
+        })
+      );
+    });
+  });
+
+  it("falls back when persistence load and save calls hang", async () => {
+    vi.useFakeTimers();
+    const persistenceClient: WorkspacePersistenceClient = {
+      load: vi.fn(() => new Promise<null>(() => undefined)),
+      save: vi.fn(
+        () => new Promise<WorkspacePersistenceSaveResult>(() => undefined)
+      )
+    };
+
+    renderShell(getLocalWorkspaceSnapshot(), { persistenceClient });
+
+    expect(screen.getByText("Restoring session")).toBeVisible();
+
+    await act(async () => {
+      vi.advanceTimersByTime(1501);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("Saving session")).toBeVisible();
+
+    await act(async () => {
+      vi.advanceTimersByTime(1500);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("Saved locally")).toBeVisible();
   });
 });

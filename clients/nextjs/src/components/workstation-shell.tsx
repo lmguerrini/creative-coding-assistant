@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type FormEvent,
@@ -37,10 +38,18 @@ import {
   type AssistantStreamEvent,
   type AssistantStreamRequest
 } from "@/lib/assistant-stream";
+import {
+  createWorkspacePersistenceClient,
+  createWorkspaceSessionRecord,
+  fingerprintWorkspaceSessionRecord,
+  snapshotFromWorkspaceSessionRecord,
+  type WorkspacePersistenceClient
+} from "@/lib/workspace-persistence";
 
 type WorkstationShellProps = {
   snapshot: AssistantWorkspaceSnapshot;
   streamAssistantEvents?: AssistantStreamClient;
+  persistenceClient?: WorkspacePersistenceClient;
 };
 
 type AssistantStreamClient = (
@@ -57,33 +66,67 @@ const inspectorTabIcons = {
 
 type WorkflowState = WorkflowStepState["state"];
 type WorkspaceWorkflow = AssistantWorkspaceSnapshot["workflow"];
+type WorkspacePersistenceState =
+  | "loading"
+  | "ready"
+  | "restored"
+  | "saving"
+  | "saved"
+  | "local"
+  | "unavailable";
 
 const mockWorkflowIntervalMs = 850;
+const defaultWorkspacePersistenceClient = createWorkspacePersistenceClient();
+const persistenceStateLabels = {
+  loading: "Restoring session",
+  ready: "Local session ready",
+  restored: "Session restored",
+  saving: "Saving session",
+  saved: "Session saved",
+  local: "Saved locally",
+  unavailable: "Persistence offline"
+} satisfies Record<WorkspacePersistenceState, string>;
 
 export function WorkstationShell({
-  snapshot,
-  streamAssistantEvents = streamBackendAssistantEvents
+  snapshot: initialSnapshot,
+  streamAssistantEvents = streamBackendAssistantEvents,
+  persistenceClient = defaultWorkspacePersistenceClient
 }: WorkstationShellProps) {
-  const [messages, setMessages] = useState(snapshot.messages);
+  const [snapshot, setSnapshot] = useState(initialSnapshot);
+  const [messages, setMessages] = useState(initialSnapshot.messages);
   const [composerValue, setComposerValue] = useState("");
   const [activeTab, setActiveTab] = useState<InspectorTabName>(
-    getInitialActiveTab(snapshot)
+    getInitialActiveTab(initialSnapshot)
   );
   const [activeArtifactId, setActiveArtifactId] = useState(
-    snapshot.artifacts[0]?.id ?? ""
+    initialSnapshot.artifacts[0]?.id ?? ""
   );
   const [previewArtifactId, setPreviewArtifactId] = useState(
-    getInitialPreviewArtifactId(snapshot)
+    getInitialPreviewArtifactId(initialSnapshot)
   );
-  const [isPreviewOpen, setIsPreviewOpen] = useState(snapshot.preview.active);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(
+    initialSnapshot.preview.active
+  );
   const [workflowProgressIndex, setWorkflowProgressIndex] = useState(
-    getInitialWorkflowIndex(snapshot.workflow.steps)
+    getInitialWorkflowIndex(initialSnapshot.workflow.steps)
   );
   const [workflowRunId, setWorkflowRunId] = useState(0);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamError, setStreamError] = useState<string | null>(null);
-  const [streamEvents, setStreamEvents] = useState(snapshot.debug.events);
+  const [streamEvents, setStreamEvents] = useState(initialSnapshot.debug.events);
+  const [persistenceState, setPersistenceState] =
+    useState<WorkspacePersistenceState>("loading");
   const chatLogRef = useRef<HTMLDivElement>(null);
+  const isShellMountedRef = useRef(true);
+  const hasLoadedPersistenceRef = useRef(false);
+  const lastPersistedFingerprintRef = useRef<string | null>(null);
+  const skipNextPersistenceSaveRef = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      isShellMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const chatLog = chatLogRef.current;
@@ -116,47 +159,143 @@ export function WorkstationShell({
     return () => window.clearInterval(timer);
   }, [snapshot.workflow.steps, workflowRunId]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function restoreWorkspaceSession() {
+      try {
+        const restoredSession = await withPersistenceTimeout(
+          persistenceClient.load(),
+          null,
+          1500
+        );
+        if (!isMounted) {
+          return;
+        }
+
+        if (restoredSession) {
+          const restoredSnapshot = snapshotFromWorkspaceSessionRecord(
+            initialSnapshot,
+            restoredSession
+          );
+          setSnapshot(restoredSnapshot);
+          setMessages(restoredSnapshot.messages);
+          setActiveTab(restoredSession.activeInspectorTab);
+          setActiveArtifactId(
+            restoredSession.activeArtifactId ||
+              restoredSnapshot.artifacts[0]?.id ||
+              ""
+          );
+          setPreviewArtifactId(
+            restoredSession.previewArtifactId ||
+              getInitialPreviewArtifactId(restoredSnapshot)
+          );
+          setIsPreviewOpen(restoredSession.previewOpen);
+          setWorkflowProgressIndex(
+            getWorkflowNodeIndex(
+              restoredSnapshot.workflow.steps,
+              restoredSnapshot.workflow.currentNode
+            )
+          );
+          setStreamEvents(restoredSnapshot.debug.events);
+          lastPersistedFingerprintRef.current =
+            fingerprintWorkspaceSessionRecord(restoredSession);
+          skipNextPersistenceSaveRef.current = true;
+          setPersistenceState("restored");
+          return;
+        }
+
+        setPersistenceState("ready");
+      } catch {
+        if (isMounted) {
+          setPersistenceState("unavailable");
+        }
+      } finally {
+        hasLoadedPersistenceRef.current = true;
+      }
+    }
+
+    restoreWorkspaceSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initialSnapshot, persistenceClient]);
+
   const activeArtifact =
     snapshot.artifacts.find((artifact) => artifact.id === activeArtifactId) ??
     snapshot.artifacts[0];
   const previewArtifact =
     snapshot.artifacts.find((artifact) => artifact.id === previewArtifactId) ??
     activeArtifact;
-  const workflow = buildInteractiveWorkflow(
-    snapshot.workflow,
-    workflowProgressIndex
+  const workflow = useMemo(
+    () => buildInteractiveWorkflow(snapshot.workflow, workflowProgressIndex),
+    [snapshot.workflow, workflowProgressIndex]
   );
-  const interactiveSnapshot: AssistantWorkspaceSnapshot = {
-    ...snapshot,
-    code:
-      activeArtifact.type === "code"
-        ? { ...snapshot.code, title: activeArtifact.title }
-        : snapshot.code,
-    inspectorTabs: snapshot.inspectorTabs.map((tab) => ({
-      ...tab,
-      active: tab.label === activeTab,
-      badge: tab.label === "Artifacts" ? String(snapshot.artifacts.length) : tab.badge
-    })),
-    messages,
-    preview: {
-      ...snapshot.preview,
-      active: isPreviewOpen,
-      artifactName: previewArtifact.title,
-      collapsed: !isPreviewOpen,
-      status: isPreviewOpen ? "Preview open" : "Ready when opened",
-      trigger: `Preview ${previewArtifact.title}`
-    },
-    workflow,
-    debug: {
-      ...snapshot.debug,
-      status: isStreaming
-        ? "Streaming backend"
-        : streamError
-          ? "Backend fallback"
-          : snapshot.debug.status,
-      events: streamEvents
-    }
-  };
+  const interactiveSnapshot: AssistantWorkspaceSnapshot = useMemo(
+    () => ({
+      ...snapshot,
+      code:
+        activeArtifact.type === "code"
+          ? { ...snapshot.code, title: activeArtifact.title }
+          : snapshot.code,
+      inspectorTabs: snapshot.inspectorTabs.map((tab) => ({
+        ...tab,
+        active: tab.label === activeTab,
+        badge:
+          tab.label === "Artifacts" ? String(snapshot.artifacts.length) : tab.badge
+      })),
+      messages,
+      preview: {
+        ...snapshot.preview,
+        active: isPreviewOpen,
+        artifactName: previewArtifact.title,
+        collapsed: !isPreviewOpen,
+        status: isPreviewOpen ? "Preview open" : "Ready when opened",
+        trigger: `Preview ${previewArtifact.title}`
+      },
+      workflow,
+      debug: {
+        ...snapshot.debug,
+        status: isStreaming
+          ? "Streaming backend"
+          : streamError
+            ? "Backend fallback"
+            : snapshot.debug.status,
+        events: streamEvents
+      }
+    }),
+    [
+      activeArtifact.title,
+      activeArtifact.type,
+      activeTab,
+      isPreviewOpen,
+      isStreaming,
+      messages,
+      previewArtifact.title,
+      snapshot,
+      streamError,
+      streamEvents,
+      workflow
+    ]
+  );
+  const persistenceRecord = useMemo(
+    () =>
+      createWorkspaceSessionRecord({
+        activeArtifactId,
+        activeInspectorTab: activeTab,
+        previewArtifactId,
+        previewOpen: isPreviewOpen,
+        snapshot: interactiveSnapshot
+      }),
+    [
+      activeArtifactId,
+      activeTab,
+      interactiveSnapshot,
+      isPreviewOpen,
+      previewArtifactId
+    ]
+  );
   const activeTabSummary =
     interactiveSnapshot.inspectorTabs.find((tab) => tab.label === activeTab)
       ?.summary ?? "";
@@ -169,6 +308,46 @@ export function WorkstationShell({
       : isComposerReady
         ? "Ready to stream"
         : "Type to stream backend";
+  const persistenceStatusLabel =
+    persistenceStateLabels[persistenceState] ?? "Local session ready";
+
+  useEffect(() => {
+    if (!hasLoadedPersistenceRef.current || persistenceState === "saving") {
+      return undefined;
+    }
+
+    const fingerprint = fingerprintWorkspaceSessionRecord(persistenceRecord);
+    if (skipNextPersistenceSaveRef.current) {
+      skipNextPersistenceSaveRef.current = false;
+      lastPersistedFingerprintRef.current = fingerprint;
+      return undefined;
+    }
+
+    if (lastPersistedFingerprintRef.current === fingerprint) {
+      return undefined;
+    }
+
+    lastPersistedFingerprintRef.current = fingerprint;
+    setPersistenceState("saving");
+    withPersistenceTimeout(
+      persistenceClient.save(persistenceRecord),
+      { target: "local" },
+      1500
+    )
+      .then((result) => {
+        if (!isShellMountedRef.current) {
+          return;
+        }
+
+        setPersistenceState(result.target === "remote" ? "saved" : "local");
+      })
+      .catch(() => {
+        if (isShellMountedRef.current) {
+          setPersistenceState("unavailable");
+        }
+      });
+    return undefined;
+  }, [persistenceClient, persistenceRecord, persistenceState]);
 
   async function handleComposerSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -388,7 +567,7 @@ export function WorkstationShell({
               >
                 <span>Active artifact</span>
                 <strong>{activeArtifact.title}</strong>
-                <small>Selected</small>
+                <small aria-live="polite">{persistenceStatusLabel}</small>
               </div>
             </header>
 
@@ -990,6 +1169,22 @@ function buildMockAssistantReply(prompt: string, artifactTitle: string) {
       : trimmedPrompt;
 
   return `Mock orchestration pass started for "${promptSummary}". I kept ${artifactTitle} active and advanced the workflow locally without contacting the backend.`;
+}
+
+function withPersistenceTimeout<T>(
+  promise: Promise<T>,
+  fallback: T,
+  timeoutMs: number
+): Promise<T> {
+  return new Promise((resolve) => {
+    const timeoutId = window.setTimeout(() => {
+      resolve(fallback);
+    }, timeoutMs);
+
+    promise
+      .then(resolve, () => resolve(fallback))
+      .finally(() => window.clearTimeout(timeoutId));
+  });
 }
 
 export const workstationIcons = {
