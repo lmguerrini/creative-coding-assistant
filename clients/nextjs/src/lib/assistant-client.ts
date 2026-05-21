@@ -88,7 +88,16 @@ export type DebugEventSummary = {
   detail: string;
 };
 
+export type AssistantWorkspaceSession = {
+  userId: string;
+  sessionId: string;
+  projectId: string;
+  title: string;
+  updatedAt?: string;
+};
+
 export type AssistantWorkspaceSnapshot = {
+  session: AssistantWorkspaceSession;
   workspace: {
     name: string;
     focus: string;
@@ -126,6 +135,12 @@ export function createAssistantClient(): AssistantFrontendClient {
 
 export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
   return {
+    session: {
+      userId: "local-user",
+      sessionId: "local-nextjs-session",
+      projectId: "local-nextjs-workspace",
+      title: "Session workspace"
+    },
     workspace: {
       name: "Session workspace",
       focus: "WebGPU kinetic field"

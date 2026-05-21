@@ -5,6 +5,11 @@ describe("assistant frontend client", () => {
   it("provides a typed local workspace snapshot", () => {
     const snapshot = getLocalWorkspaceSnapshot();
 
+    expect(snapshot.session).toMatchObject({
+      userId: "local-user",
+      sessionId: "local-nextjs-session",
+      projectId: "local-nextjs-workspace"
+    });
     expect(snapshot.inspectorTabs.map((tab) => tab.label)).toEqual([
       "Overview",
       "Code",
