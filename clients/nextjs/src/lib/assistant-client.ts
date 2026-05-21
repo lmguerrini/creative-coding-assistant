@@ -1,11 +1,36 @@
-export type AssistantModeState = {
-  label: "Generate" | "Preview" | "Review";
+export type InspectorTabName =
+  | "Overview"
+  | "Code"
+  | "Workflow"
+  | "Artifacts"
+  | "Retrieval";
+
+export type InspectorTabState = {
+  label: InspectorTabName;
   active: boolean;
+  summary: string;
+  badge?: string;
 };
 
+export type WorkflowNodeId =
+  | "intake"
+  | "routing"
+  | "memory"
+  | "retrieval"
+  | "context_assembly"
+  | "prompt_input"
+  | "prompt_rendering"
+  | "generation"
+  | "review"
+  | "refinement"
+  | "finalization"
+  | "failure";
+
 export type WorkflowStepState = {
-  name: string;
-  state: "complete" | "active" | "queued";
+  nodeId: WorkflowNodeId;
+  displayLabel: string;
+  state: "complete" | "active" | "queued" | "skipped" | "branch";
+  detail: string;
 };
 
 export type AssistantMessage = {
@@ -14,22 +39,47 @@ export type AssistantMessage = {
   content: string;
 };
 
+export type ArtifactAction = "Open" | "Preview" | "Copy" | "Export";
+
 export type ArtifactSummary = {
   id: string;
   title: string;
   type: "code" | "preview" | "export";
+  language: string;
+  status: string;
   summary: string;
+  actions: ArtifactAction[];
 };
 
 export type PreviewSummary = {
+  available: boolean;
+  active: boolean;
+  collapsed: boolean;
   title: string;
   target: string;
   status: string;
   artifactName: string;
   summary: string;
   renderer: string;
-  latency: string;
+  trigger: string;
   version: string;
+};
+
+export type CodeSummary = {
+  title: string;
+  language: string;
+  status: string;
+  excerpt: string[];
+};
+
+export type RetrievalSourceSummary = {
+  title: string;
+  detail: string;
+};
+
+export type RetrievalSummary = {
+  status: string;
+  sources: RetrievalSourceSummary[];
 };
 
 export type DebugEventSummary = {
@@ -41,16 +91,20 @@ export type DebugEventSummary = {
 export type AssistantWorkspaceSnapshot = {
   workspace: {
     name: string;
+    focus: string;
   };
-  modes: AssistantModeState[];
+  inspectorTabs: InspectorTabState[];
   messages: AssistantMessage[];
   workflow: {
     status: string;
+    currentNode: WorkflowNodeId;
     currentStep: string;
     steps: WorkflowStepState[];
   };
   artifacts: ArtifactSummary[];
   preview: PreviewSummary;
+  code: CodeSummary;
+  retrieval: RetrievalSummary;
   debug: {
     traceId: string;
     status: string;
@@ -73,12 +127,40 @@ export function createAssistantClient(): AssistantFrontendClient {
 export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
   return {
     workspace: {
-      name: "Session workspace / WebGPU kinetic field"
+      name: "Session workspace",
+      focus: "WebGPU kinetic field"
     },
-    modes: [
-      { label: "Generate", active: true },
-      { label: "Preview", active: false },
-      { label: "Review", active: false }
+    inspectorTabs: [
+      {
+        label: "Overview",
+        active: true,
+        summary: "Live creative session summary",
+        badge: "Live"
+      },
+      {
+        label: "Code",
+        active: false,
+        summary: "Generated sketch source",
+        badge: "TS"
+      },
+      {
+        label: "Workflow",
+        active: false,
+        summary: "LangGraph-style orchestration",
+        badge: "Running"
+      },
+      {
+        label: "Artifacts",
+        active: false,
+        summary: "Generated outputs",
+        badge: "3"
+      },
+      {
+        label: "Retrieval",
+        active: false,
+        summary: "Creative references",
+        badge: "2"
+      }
     ],
     messages: [
       {
@@ -91,18 +173,86 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
         role: "assistant",
         time: "09:25",
         content:
-          "Drafting a WebGPU sketch with a stable simulation pass, palette controls, and a previewable browser target."
+          "Drafting a WebGPU sketch with stable simulation passes, palette controls, and an artifact that can be opened or previewed on demand."
       }
     ],
     workflow: {
       status: "Running",
-      currentStep: "Generation pipeline",
+      currentNode: "generation",
+      currentStep: "Generation",
       steps: [
-        { name: "Routing", state: "complete" },
-        { name: "Retrieval", state: "complete" },
-        { name: "Generation", state: "active" },
-        { name: "Preview request", state: "queued" },
-        { name: "Review", state: "queued" }
+        {
+          nodeId: "intake",
+          displayLabel: "Intake",
+          state: "complete",
+          detail: "Request received and normalized."
+        },
+        {
+          nodeId: "routing",
+          displayLabel: "Routing",
+          state: "complete",
+          detail: "Generate route selected."
+        },
+        {
+          nodeId: "memory",
+          displayLabel: "Memory",
+          state: "skipped",
+          detail: "No local session memories applied."
+        },
+        {
+          nodeId: "retrieval",
+          displayLabel: "Retrieval",
+          state: "complete",
+          detail: "Creative references resolved."
+        },
+        {
+          nodeId: "context_assembly",
+          displayLabel: "Context assembly",
+          state: "complete",
+          detail: "Memory and retrieval context prepared."
+        },
+        {
+          nodeId: "prompt_input",
+          displayLabel: "Prompt input",
+          state: "complete",
+          detail: "Prompt inputs structured for rendering."
+        },
+        {
+          nodeId: "prompt_rendering",
+          displayLabel: "Prompt rendering",
+          state: "complete",
+          detail: "Provider prompt assembled."
+        },
+        {
+          nodeId: "generation",
+          displayLabel: "Generation",
+          state: "active",
+          detail: "Generated sketch artifact is being drafted."
+        },
+        {
+          nodeId: "review",
+          displayLabel: "Review",
+          state: "queued",
+          detail: "Internal quality gate before finalization."
+        },
+        {
+          nodeId: "refinement",
+          displayLabel: "Refinement",
+          state: "queued",
+          detail: "Retry loop back to generation if review needs changes."
+        },
+        {
+          nodeId: "finalization",
+          displayLabel: "Finalization",
+          state: "queued",
+          detail: "Final response emitted when workflow completes."
+        },
+        {
+          nodeId: "failure",
+          displayLabel: "Failure",
+          state: "branch",
+          detail: "Terminal branch used only when a graph node fails."
+        }
       ]
     },
     artifacts: [
@@ -110,35 +260,74 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
         id: "source-sketch",
         title: "webgpu-particle-field.ts",
         type: "code",
-        summary: "Primary generated sketch artifact with browser preview target."
+        language: "TypeScript",
+        status: "Draft",
+        summary: "Primary generated sketch artifact with a browser preview target.",
+        actions: ["Open", "Preview", "Copy"]
       },
       {
         id: "preview-manifest",
         title: "preview-request.json",
         type: "preview",
-        summary: "Browser target, renderer identity, and artifact v1 linkage."
+        language: "JSON",
+        status: "Queued",
+        summary: "Renderer identity, browser sandbox target, and artifact v1 linkage.",
+        actions: ["Open", "Preview"]
       },
       {
         id: "session-notes",
         title: "projection-notes.md",
         type: "export",
-        summary: "Design constraints for projection scale, motion density, and palette."
+        language: "Markdown",
+        status: "Ready",
+        summary: "Projection scale, motion density, and palette constraints.",
+        actions: ["Open", "Export"]
       }
     ],
     preview: {
-      title: "Preview",
+      available: true,
+      active: false,
+      collapsed: true,
+      title: "Preview available",
       target: "Browser sandbox / WebGPU WGSL",
-      status: "Pending",
+      status: "Ready when opened",
       artifactName: "webgpu-particle-field.ts",
       summary:
-        "Staged frame for particle density, palette balance, and projection-scale motion.",
+        "Launches from the artifact action to inspect particle density, palette balance, and projection-scale motion.",
       renderer: "preview.noop",
-      latency: "--",
+      trigger: "Preview webgpu-particle-field.ts",
       version: "v1"
+    },
+    code: {
+      title: "webgpu-particle-field.ts",
+      language: "TypeScript + WGSL",
+      status: "Draft artifact",
+      excerpt: [
+        "const lowBand = audio.sampleBand('low');",
+        "const field = curlNoise({ scale: 0.42, time });",
+        "particles.integrate({ field, damping: 0.92 });",
+        "particles.applyAudioForce({ band: lowBand, gain: 0.18 });",
+        "palette.blend({ warmth: 0.34, bloom: 0.62 });",
+        "renderer.present({ palette, projectionScale });",
+        "preview.exportFrame({ artifact: 'webgpu-particle-field.ts' });"
+      ]
+    },
+    retrieval: {
+      status: "Grounded",
+      sources: [
+        {
+          title: "Projection wall motion constraints",
+          detail: "Prefer broad velocity fields and avoid high-frequency flicker."
+        },
+        {
+          title: "WebGPU particle pass notes",
+          detail: "Keep compute and render passes isolated for preview stability."
+        }
+      ]
     },
     debug: {
       traceId: "trace.local.nextjs-foundation",
-      status: "Live",
+      status: "Contextual",
       events: [
         {
           code: "route_selected",
