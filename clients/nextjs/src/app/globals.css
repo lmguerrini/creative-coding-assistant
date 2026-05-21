@@ -15,6 +15,7 @@
   --coral: #ff7a66;
   --blue: #7ca7ff;
   --green: #79d38b;
+  --glow-teal: 0 0 0 1px rgba(76, 215, 200, 0.3), 0 0 28px rgba(76, 215, 200, 0.14);
   --shadow: 0 24px 80px rgba(0, 0, 0, 0.44);
 }
 
@@ -307,6 +308,17 @@ a {
   border: 1px solid var(--line);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.045);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+.sessionMetric[data-active="true"] {
+  border-color: rgba(76, 215, 200, 0.32);
+  background:
+    linear-gradient(135deg, rgba(76, 215, 200, 0.1), transparent 70%),
+    rgba(255, 255, 255, 0.045);
 }
 
 .sessionMetric span,
@@ -323,6 +335,17 @@ a {
   color: var(--foreground);
   font-size: 14px;
   line-height: 1.25;
+}
+
+.sessionMetric small {
+  width: fit-content;
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: var(--teal);
+  background: rgba(76, 215, 200, 0.12);
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
 }
 
 .chatLog {
@@ -342,6 +365,10 @@ a {
   border: 1px solid var(--line);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.045);
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
 }
 
 .message[data-role="user"] {
@@ -352,6 +379,24 @@ a {
 
 .message[data-role="assistant"] {
   border-color: rgba(76, 215, 200, 0.22);
+}
+
+.message[data-fresh="true"] {
+  animation: messageArrive 260ms ease-out;
+}
+
+.message[data-fresh="true"][data-role="assistant"] {
+  border-color: rgba(76, 215, 200, 0.46);
+  background:
+    linear-gradient(135deg, rgba(76, 215, 200, 0.1), transparent 65%),
+    rgba(255, 255, 255, 0.045);
+}
+
+.message[data-fresh="true"][data-role="user"] {
+  border-color: rgba(124, 167, 255, 0.46);
+  background:
+    linear-gradient(135deg, rgba(124, 167, 255, 0.12), transparent 70%),
+    rgba(124, 167, 255, 0.08);
 }
 
 .messageMeta {
@@ -366,6 +411,7 @@ a {
 }
 
 .composer {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 10px;
@@ -379,6 +425,15 @@ a {
   padding: 13px 14px;
   background: rgba(255, 255, 255, 0.045);
   color: var(--foreground);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+.composer[data-ready="true"] textarea {
+  border-color: rgba(76, 215, 200, 0.34);
+  box-shadow: inset 0 0 0 1px rgba(76, 215, 200, 0.08);
 }
 
 .composer textarea::placeholder {
@@ -395,12 +450,42 @@ a {
   color: #04100e;
   background: var(--teal);
   cursor: pointer;
+  transition:
+    box-shadow 180ms ease,
+    opacity 180ms ease,
+    transform 180ms ease,
+    background 180ms ease;
+}
+
+.sendButton[data-ready="true"] {
+  box-shadow: var(--glow-teal);
+}
+
+.sendButton[data-ready="true"]:hover {
+  transform: translateY(-1px);
+  background: #6fe2d6;
 }
 
 .sendButton:disabled {
   color: var(--muted);
   background: rgba(255, 255, 255, 0.12);
   opacity: 0.68;
+}
+
+.composerState {
+  position: absolute;
+  right: 58px;
+  bottom: 9px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.composer[data-ready="true"] .composerState {
+  color: var(--teal);
 }
 
 .previewZone {
@@ -417,6 +502,11 @@ a {
 
 .previewShelf[open] {
   border-color: rgba(76, 215, 200, 0.3);
+  box-shadow: var(--glow-teal), var(--shadow);
+}
+
+.previewShelf[data-state="open"] summary {
+  background: rgba(76, 215, 200, 0.055);
 }
 
 .previewShelf summary {
@@ -459,6 +549,14 @@ a {
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.previewShelf[data-state="open"] summary small {
+  color: var(--teal);
+  transform: translateX(-2px);
 }
 
 .previewBody {
@@ -563,6 +661,7 @@ a {
 }
 
 .inspectorTabs button {
+  position: relative;
   display: grid;
   min-width: 0;
   place-items: center;
@@ -574,12 +673,45 @@ a {
   color: var(--muted-strong);
   background: rgba(255, 255, 255, 0.035);
   cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.inspectorTabs button::after {
+  position: absolute;
+  right: 12px;
+  bottom: 7px;
+  left: 12px;
+  height: 2px;
+  border-radius: 999px;
+  content: "";
+  background: transparent;
+  transform: scaleX(0.35);
+  transition:
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.inspectorTabs button:hover {
+  border-color: rgba(76, 215, 200, 0.28);
+  color: var(--foreground);
+  transform: translateY(-1px);
 }
 
 .inspectorTabs button[aria-selected="true"] {
   border-color: rgba(76, 215, 200, 0.42);
   color: var(--foreground);
   background: rgba(76, 215, 200, 0.12);
+  box-shadow: 0 12px 30px rgba(76, 215, 200, 0.12);
+}
+
+.inspectorTabs button[aria-selected="true"]::after {
+  background: var(--teal);
+  transform: scaleX(1);
 }
 
 .inspectorTabs span {
@@ -593,7 +725,20 @@ a {
 }
 
 .inspectorTabs small {
-  display: none;
+  display: block;
+  min-width: 20px;
+  padding: 2px 5px;
+  border-radius: 999px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.065);
+  font-size: 9px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.inspectorTabs button[aria-selected="true"] small {
+  color: #061412;
+  background: var(--teal);
 }
 
 .inspectorPanel {
@@ -601,6 +746,7 @@ a {
   overflow: auto;
   padding: 13px;
   border-top: 1px solid var(--line);
+  animation: revealPanel 180ms ease-out;
 }
 
 .overviewPanel {
@@ -638,6 +784,9 @@ a {
   display: grid;
   gap: 5px;
   padding: 12px;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease;
 }
 
 .overviewWorkflowTile {
@@ -669,6 +818,7 @@ a {
   gap: 9px;
   color: var(--muted-strong);
   font-size: 12px;
+  transition: color 180ms ease;
 }
 
 .miniStep span {
@@ -682,6 +832,10 @@ a {
   background: var(--green);
 }
 
+.miniStep[data-state="complete"] strong {
+  color: rgba(191, 203, 207, 0.9);
+}
+
 .miniStep[data-state="skipped"] span {
   background: var(--blue);
 }
@@ -690,6 +844,14 @@ a {
   background: var(--teal);
   box-shadow: 0 0 0 4px rgba(76, 215, 200, 0.14);
   animation: pulseNode 1.8s ease-in-out infinite;
+}
+
+.miniStep[data-state="active"] strong {
+  color: var(--foreground);
+}
+
+.miniStep[data-state="queued"] {
+  color: rgba(140, 154, 160, 0.72);
 }
 
 .miniStep[data-state="branch"] span {
@@ -718,6 +880,13 @@ a {
   gap: 10px;
 }
 
+.codePanel[data-opened-artifact] .codePanelHeader {
+  border: 1px solid rgba(76, 215, 200, 0.18);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(76, 215, 200, 0.065);
+}
+
 .codePanel pre {
   min-height: 0;
   overflow: auto;
@@ -735,6 +904,26 @@ a {
   display: grid;
   align-content: start;
   gap: 13px;
+}
+
+.workflowProgress {
+  position: relative;
+  height: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.workflowProgress span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, rgba(121, 211, 139, 0.9), rgba(76, 215, 200, 0.95)),
+    var(--teal);
+  box-shadow: 0 0 16px rgba(76, 215, 200, 0.22);
+  transition: width 320ms ease;
 }
 
 .workflowGraph {
@@ -763,10 +952,16 @@ a {
   border: 1px solid var(--line);
   border-radius: 15px;
   background: rgba(255, 255, 255, 0.04);
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
 }
 
 .workflowNode[data-state="complete"] {
   border-color: rgba(121, 211, 139, 0.28);
+  background: rgba(121, 211, 139, 0.055);
 }
 
 .workflowNode[data-state="skipped"] {
@@ -777,6 +972,8 @@ a {
 .workflowNode[data-state="active"] {
   border-color: rgba(76, 215, 200, 0.42);
   background: rgba(76, 215, 200, 0.08);
+  box-shadow: var(--glow-teal);
+  transform: translateX(2px);
 }
 
 .workflowNode[data-state="active"] .nodeIndex {
@@ -784,7 +981,7 @@ a {
 }
 
 .workflowNode[data-state="queued"] {
-  opacity: 0.72;
+  opacity: 0.58;
 }
 
 .workflowNode[data-state="branch"] {
@@ -807,6 +1004,7 @@ a {
 .workflowNode p span {
   color: var(--muted);
   font-size: 11px;
+  font-weight: 850;
   text-transform: uppercase;
 }
 
@@ -885,6 +1083,14 @@ a {
   gap: 10px;
 }
 
+.artifactBadges {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
 .artifactItem strong {
   display: block;
   color: var(--foreground);
@@ -900,12 +1106,22 @@ a {
 }
 
 .artifactType {
-  flex: 0 0 auto;
   margin-top: 0;
   padding: 4px 7px;
   border-radius: 999px;
   color: var(--amber);
   background: rgba(243, 184, 82, 0.1);
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.artifactSelected {
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #061412;
+  background: var(--teal);
+  box-shadow: 0 0 18px rgba(76, 215, 200, 0.18);
   font-size: 10px;
   font-weight: 850;
   text-transform: uppercase;
@@ -927,11 +1143,18 @@ a {
   cursor: pointer;
   font-size: 11px;
   font-weight: 750;
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
 }
 
 .artifactActions button:hover {
   border-color: rgba(76, 215, 200, 0.35);
   color: var(--teal);
+  background: rgba(76, 215, 200, 0.08);
+  transform: translateY(-1px);
 }
 
 .retrievalItem {
@@ -948,6 +1171,30 @@ a {
 
   50% {
     box-shadow: 0 0 0 8px rgba(76, 215, 200, 0);
+  }
+}
+
+@keyframes messageArrive {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes revealPanel {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

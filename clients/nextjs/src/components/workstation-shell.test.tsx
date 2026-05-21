@@ -56,6 +56,9 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("group", { name: "Artifacts summary" })).toBeVisible();
     expect(screen.getByRole("group", { name: "Preview summary" })).toBeVisible();
     expect(screen.getByRole("group", { name: "Retrieval summary" })).toBeVisible();
+    expect(
+      screen.getByRole("progressbar", { name: "Overview workflow progress" })
+    ).toHaveAttribute("aria-valuetext", "8 of 11 workflow nodes reached");
     expect(screen.queryByRole("tabpanel", { name: "Code inspector" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Preview" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Review" })).not.toBeInTheDocument();
@@ -68,6 +71,10 @@ describe("WorkstationShell", () => {
 
     expect(screen.getByRole("tab", { name: "Code" })).toHaveAttribute(
       "aria-selected",
+      "true"
+    );
+    expect(screen.getByRole("tab", { name: "Code" })).toHaveAttribute(
+      "data-active",
       "true"
     );
     expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
@@ -92,22 +99,40 @@ describe("WorkstationShell", () => {
     const sendButton = screen.getByRole("button", { name: "Send prompt" });
 
     expect(sendButton).toBeDisabled();
+    expect(sendButton).toHaveAttribute("data-ready", "false");
+    expect(screen.getByText("Type to activate send")).toBeVisible();
 
     fireEvent.change(promptInput, {
       target: { value: "Make the low-frequency motion calmer." }
     });
+    expect(sendButton).toHaveAttribute("data-ready", "true");
+    expect(screen.getByText("Ready to send")).toBeVisible();
+
     fireEvent.click(sendButton);
 
     expect(promptInput).toHaveValue("");
-    expect(screen.getByText("Make the low-frequency motion calmer.")).toBeVisible();
-    expect(screen.getByText(/Mock orchestration pass started/)).toBeVisible();
+    const userMessage = screen
+      .getByText("Make the low-frequency motion calmer.")
+      .closest("article");
+    const assistantMessage = screen
+      .getByText(/Mock orchestration pass started/)
+      .closest("article");
+
+    expect(userMessage).toHaveAttribute("data-fresh", "true");
+    expect(assistantMessage).toHaveAttribute("data-fresh", "true");
     expect(screen.getByLabelText("Current session")).toHaveTextContent("Intake");
+    expect(
+      screen.getByRole("progressbar", { name: "Overview workflow progress" })
+    ).toHaveAttribute("aria-valuenow", "1");
 
     act(() => {
       vi.advanceTimersByTime(850);
     });
 
     expect(screen.getByLabelText("Current session")).toHaveTextContent("Routing");
+    expect(
+      screen.getByRole("progressbar", { name: "Overview workflow progress" })
+    ).toHaveAttribute("aria-valuenow", "2");
   });
 
   it("keeps preview available, on demand, and collapsible in the main column", () => {
@@ -122,12 +147,14 @@ describe("WorkstationShell", () => {
     expect(within(preview).getByText("Ready when opened")).toBeVisible();
     expect(within(preview).getByText("preview.noop")).not.toBeVisible();
     expect(details).not.toHaveAttribute("open");
+    expect(details).toHaveAttribute("data-state", "closed");
     expect(screen.queryByRole("tabpanel", { name: "Preview inspector" })).not.toBeInTheDocument();
 
     expect(summary).not.toBeNull();
     fireEvent.click(summary as HTMLElement);
 
     expect(details).toHaveAttribute("open");
+    expect(details).toHaveAttribute("data-state", "open");
     expect(summary).toHaveAttribute("aria-expanded", "true");
   });
 
@@ -135,15 +162,29 @@ describe("WorkstationShell", () => {
     render(<WorkstationShell snapshot={getLocalWorkspaceSnapshot()} />);
 
     fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open webgpu-particle-field.ts" }));
+
+    const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
+
+    expect(screen.getByRole("tab", { name: "Code" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(codePanel).toHaveAttribute(
+      "data-opened-artifact",
+      "webgpu-particle-field.ts"
+    );
+
+    fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
     fireEvent.click(screen.getByRole("button", { name: "Open projection-notes.md" }));
 
     expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
       "projection-notes.md"
     );
-    expect(screen.getByLabelText("projection-notes.md artifact")).toHaveAttribute(
-      "data-active",
-      "true"
-    );
+    const selectedArtifact = screen.getByLabelText("projection-notes.md artifact");
+
+    expect(selectedArtifact).toHaveAttribute("data-active", "true");
+    expect(within(selectedArtifact).getByText("Selected")).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "Preview preview-request.json" }));
 
@@ -157,6 +198,7 @@ describe("WorkstationShell", () => {
     expect(within(preview).getByText("Preview open")).toBeVisible();
     expect(within(preview).getByText("preview.noop")).toBeVisible();
     expect(preview.querySelector("details")).toHaveAttribute("open");
+    expect(preview.querySelector("details")).toHaveAttribute("data-state", "open");
   });
 
   it("uses the full inspector panel for code when Code is active", () => {
@@ -185,7 +227,14 @@ describe("WorkstationShell", () => {
     });
 
     expect(graph).toBeVisible();
+    expect(
+      screen.getByRole("progressbar", { name: "Workflow inspector progress" })
+    ).toHaveAttribute("aria-valuetext", "8 of 11 workflow nodes reached");
     expect(within(graph).getByText("Generation")).toBeVisible();
+    expect(within(graph).getByText("Generation").closest("article")).toHaveAttribute(
+      "aria-current",
+      "step"
+    );
     expect(within(graph).getByText("context_assembly")).toBeVisible();
     expect(within(graph).getByText("prompt_rendering")).toBeVisible();
     expect(within(graph).getByText("failure")).toBeVisible();

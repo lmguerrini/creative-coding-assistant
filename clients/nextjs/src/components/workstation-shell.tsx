@@ -134,6 +134,7 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
   const activeTabSummary =
     interactiveSnapshot.inspectorTabs.find((tab) => tab.label === activeTab)
       ?.summary ?? "";
+  const isComposerReady = Boolean(composerValue.trim());
 
   function handleComposerSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -184,7 +185,11 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
   }
 
   return (
-    <main className="workstation">
+    <main
+      className="workstation"
+      data-active-tab={activeTab.toLowerCase()}
+      data-preview={isPreviewOpen ? "open" : "closed"}
+    >
       <header className="topbar">
         <div className="brand">
           <div className="brandMark" aria-hidden="true">
@@ -229,9 +234,14 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
                   workspace flow.
                 </p>
               </div>
-              <div className="sessionMetric" aria-label="Active artifact">
+              <div
+                className="sessionMetric"
+                aria-label="Active artifact"
+                data-active="true"
+              >
                 <span>Active artifact</span>
                 <strong>{activeArtifact.title}</strong>
+                <small>Selected</small>
               </div>
             </header>
 
@@ -242,9 +252,10 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
               ref={chatLogRef}
               role="log"
             >
-              {interactiveSnapshot.messages.map((message) => (
+              {interactiveSnapshot.messages.map((message, index) => (
                 <article
                   className="message"
+                  data-fresh={index >= snapshot.messages.length ? "true" : undefined}
                   data-role={message.role}
                   key={`${message.role}-${message.time}-${message.content}`}
                 >
@@ -257,17 +268,26 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
               ))}
             </div>
 
-            <form className="composer" onSubmit={handleComposerSubmit}>
+            <form
+              className="composer"
+              data-ready={isComposerReady}
+              onSubmit={handleComposerSubmit}
+            >
               <textarea
                 aria-label="Assistant prompt"
                 onChange={(event) => setComposerValue(event.currentTarget.value)}
                 placeholder="Ask for a denser particle field, a softer palette, or a preview pass."
                 value={composerValue}
               />
+              <span className="composerState" aria-live="polite">
+                {isComposerReady ? "Ready to send" : "Type to activate send"}
+              </span>
               <button
                 aria-label="Send prompt"
                 className="sendButton"
-                disabled={!composerValue.trim()}
+                data-ready={isComposerReady}
+                disabled={!isComposerReady}
+                title={isComposerReady ? "Send prompt" : "Type a prompt to send"}
                 type="submit"
               >
                 <SendHorizontal size={18} />
@@ -308,6 +328,7 @@ export function WorkstationShell({ snapshot }: WorkstationShellProps) {
                   aria-controls={`${tab.label.toLowerCase()}-inspector-panel`}
                   aria-label={tab.label}
                   aria-selected={tab.active}
+                  data-active={tab.active}
                   id={`${tab.label.toLowerCase()}-inspector-tab`}
                   key={tab.label}
                   onClick={() => setActiveTab(tab.label)}
@@ -355,6 +376,7 @@ function PreviewShelf({ onToggle, snapshot }: PreviewShelfProps) {
     <section className="previewZone" aria-label="Preview workspace">
       <details
         className="previewShelf"
+        data-state={snapshot.preview.active ? "open" : "closed"}
         onToggle={handleToggle}
         open={snapshot.preview.active}
       >
@@ -442,6 +464,7 @@ function OverviewInspector({
   snapshot
 }: WorkstationShellProps & { activeArtifact: ArtifactSummary }) {
   const activeStep = snapshot.workflow.steps.find((step) => step.state === "active");
+  const workflowProgress = getWorkflowProgress(snapshot.workflow.steps);
 
   return (
     <section
@@ -464,6 +487,10 @@ function OverviewInspector({
             </div>
             <span className="liveDot" aria-hidden="true" />
           </header>
+          <WorkflowProgress
+            label="Overview workflow progress"
+            progress={workflowProgress}
+          />
           <div className="miniWorkflow" aria-label="Minimal live workflow state">
             {snapshot.workflow.steps.map((step) => (
               <div
@@ -503,6 +530,7 @@ function CodeInspector({ snapshot }: WorkstationShellProps) {
     <section
       aria-label="Code inspector"
       className="inspectorPanel codePanel"
+      data-opened-artifact={snapshot.code.title}
       id="code-inspector-panel"
       role="tabpanel"
     >
@@ -513,7 +541,7 @@ function CodeInspector({ snapshot }: WorkstationShellProps) {
             {snapshot.code.language} / {snapshot.code.status}
           </span>
         </div>
-        <span className="artifactType">code</span>
+        <span className="artifactType">Opened artifact</span>
       </header>
       <pre>
         <code>{snapshot.code.excerpt.join("\n")}</code>
@@ -523,6 +551,8 @@ function CodeInspector({ snapshot }: WorkstationShellProps) {
 }
 
 function WorkflowInspector({ snapshot }: WorkstationShellProps) {
+  const workflowProgress = getWorkflowProgress(snapshot.workflow.steps);
+
   return (
     <section
       aria-label="Workflow inspector"
@@ -530,6 +560,10 @@ function WorkflowInspector({ snapshot }: WorkstationShellProps) {
       id="workflow-inspector-panel"
       role="tabpanel"
     >
+      <WorkflowProgress
+        label="Workflow inspector progress"
+        progress={workflowProgress}
+      />
       <div
         aria-label="LangGraph workflow visualization"
         className="workflowGraph"
@@ -639,7 +673,10 @@ function ArtifactCard({
             {artifact.language} / {artifact.status}
           </span>
         </div>
-        <span className="artifactType">{artifact.type}</span>
+        <div className="artifactBadges">
+          {isActive ? <span className="artifactSelected">Selected</span> : null}
+          <span className="artifactType">{artifact.type}</span>
+        </div>
       </div>
       <p>{artifact.summary}</p>
       <div className="artifactActions">
@@ -655,6 +692,34 @@ function ArtifactCard({
         ))}
       </div>
     </article>
+  );
+}
+
+type WorkflowProgressSummary = {
+  percent: number;
+  reached: number;
+  total: number;
+};
+
+function WorkflowProgress({
+  label,
+  progress
+}: {
+  label: string;
+  progress: WorkflowProgressSummary;
+}) {
+  return (
+    <div
+      aria-label={label}
+      aria-valuemax={progress.total}
+      aria-valuemin={0}
+      aria-valuenow={progress.reached}
+      aria-valuetext={`${progress.reached} of ${progress.total} workflow nodes reached`}
+      className="workflowProgress"
+      role="progressbar"
+    >
+      <span style={{ width: `${progress.percent}%` }} />
+    </div>
   );
 }
 
@@ -728,6 +793,20 @@ function buildInteractiveWorkflow(
 
 function formatWorkflowState(state: WorkflowState) {
   return state === "queued" ? "pending" : state;
+}
+
+function getWorkflowProgress(steps: WorkflowStepState[]): WorkflowProgressSummary {
+  const visibleSteps = steps.filter((step) => step.state !== "branch");
+  const reached = visibleSteps.filter((step) =>
+    ["active", "complete", "skipped"].includes(step.state)
+  ).length;
+  const total = Math.max(visibleSteps.length, 1);
+
+  return {
+    percent: Math.round((reached / total) * 100),
+    reached,
+    total
+  };
 }
 
 function formatMessageTime() {
