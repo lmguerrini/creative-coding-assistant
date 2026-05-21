@@ -69,6 +69,10 @@ button {
   border: 0;
 }
 
+button:disabled {
+  cursor: not-allowed;
+}
+
 button:focus-visible,
 textarea:focus-visible,
 summary:focus-visible {
@@ -393,6 +397,12 @@ a {
   cursor: pointer;
 }
 
+.sendButton:disabled {
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.12);
+  opacity: 0.68;
+}
+
 .previewZone {
   min-height: 0;
 }
@@ -400,6 +410,13 @@ a {
 .previewShelf {
   overflow: hidden;
   border-radius: 18px;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.previewShelf[open] {
+  border-color: rgba(76, 215, 200, 0.3);
 }
 
 .previewShelf summary {
@@ -449,6 +466,7 @@ a {
   grid-template-columns: minmax(180px, 0.45fr) minmax(0, 1fr);
   gap: 12px;
   padding: 0 14px 14px;
+  animation: revealPreview 180ms ease-out;
 }
 
 .previewFrame {
@@ -607,6 +625,7 @@ a {
   border-radius: 999px;
   background: var(--teal);
   box-shadow: 0 0 0 5px rgba(76, 215, 200, 0.12);
+  animation: pulseNode 1.8s ease-in-out infinite;
 }
 
 .overviewGrid {
@@ -670,6 +689,7 @@ a {
 .miniStep[data-state="active"] span {
   background: var(--teal);
   box-shadow: 0 0 0 4px rgba(76, 215, 200, 0.14);
+  animation: pulseNode 1.8s ease-in-out infinite;
 }
 
 .miniStep[data-state="branch"] span {
@@ -842,6 +862,20 @@ a {
   display: grid;
   gap: 9px;
   padding: 11px;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    opacity 180ms ease;
+}
+
+.artifactItem[data-active="true"] {
+  border-color: rgba(76, 215, 200, 0.42);
+  background: rgba(76, 215, 200, 0.08);
+}
+
+.artifactItem[data-active="true"] .artifactType {
+  color: var(--teal);
+  background: rgba(76, 215, 200, 0.12);
 }
 
 .artifactItemHeader {
@@ -914,6 +948,29 @@ a {
 
   50% {
     box-shadow: 0 0 0 8px rgba(76, 215, 200, 0);
+  }
+}
+
+@keyframes revealPreview {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
   }
 }
 
