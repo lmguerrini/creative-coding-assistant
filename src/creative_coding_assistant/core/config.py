@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO")
     chroma_persist_dir: Path = Field(default=Path("data/chroma"))
     artifact_dir: Path = Field(default=Path("data/artifacts"))
+    workspace_session_db_path: Path = Field(
+        default=Path("data/workspace_sessions.sqlite3")
+    )
     eval_data_path: Path = Field(default=Path("data/eval/live_sessions.jsonl"))
     eval_ragas_results_path: Path = Field(
         default=Path("data/eval/ragas_results.jsonl")
