@@ -49,6 +49,15 @@ async function* failingStream(): AsyncGenerator<AssistantStreamEvent> {
   throw new Error("offline");
 }
 
+function createDeferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((nextResolve) => {
+    resolve = nextResolve;
+  });
+
+  return { promise, resolve };
+}
+
 function runtimeWorkflowEvent({
   answer,
   at,
@@ -295,13 +304,13 @@ describe("WorkstationShell", () => {
 
     expect(sendButton).toBeDisabled();
     expect(sendButton).toHaveAttribute("data-ready", "false");
-    expect(screen.getByText("Type to stream backend")).toBeVisible();
+    expect(screen.getByText("Type a prompt to begin")).toBeVisible();
 
     fireEvent.change(promptInput, {
       target: { value: "Make the low-frequency motion calmer." }
     });
     expect(sendButton).toHaveAttribute("data-ready", "true");
-    expect(screen.getByText("Ready to stream")).toBeVisible();
+    expect(screen.getByText("Ready to generate")).toBeVisible();
 
     fireEvent.click(sendButton);
 
@@ -328,6 +337,63 @@ describe("WorkstationShell", () => {
     expect(preview.querySelector("details")).toHaveAttribute("open");
   });
 
+  it("shows connecting and live generation states during a streamed response", async () => {
+    const beforeTokens = createDeferred<void>();
+    const beforeFinal = createDeferred<void>();
+    const backendStream = vi.fn(async function* () {
+      yield {
+        event_type: "status",
+        sequence: 0,
+        payload: { code: "request_received", message: "Request accepted." }
+      } satisfies AssistantStreamEvent;
+      await beforeTokens.promise;
+      yield {
+        event_type: "token_delta",
+        sequence: 1,
+        payload: { text: "Live draft" }
+      } satisfies AssistantStreamEvent;
+      await beforeFinal.promise;
+      yield {
+        event_type: "final",
+        sequence: 2,
+        payload: { answer: "Live draft completed." }
+      } satisfies AssistantStreamEvent;
+    });
+
+    renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Generate a calmer draft." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(await screen.findByText("Opening the live response...")).toBeVisible();
+    expect(screen.getByText("Request accepted.")).toBeVisible();
+    expect(screen.getByText("Opening live response")).toBeVisible();
+    expect(screen.getByRole("log", { name: "Conversation" })).toHaveAttribute(
+      "aria-busy",
+      "true"
+    );
+
+    beforeTokens.resolve();
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("Live draft")).toBeVisible();
+    expect(screen.getByText("Generating response")).toBeVisible();
+    expect(screen.getAllByText("Live").length).toBeGreaterThan(0);
+
+    beforeFinal.resolve();
+
+    expect(await screen.findByText("Live draft completed.")).toBeVisible();
+    expect(screen.getByRole("log", { name: "Conversation" })).toHaveAttribute(
+      "aria-busy",
+      "false"
+    );
+  });
+
   it("falls back to the local mock path when the backend stream is unavailable", async () => {
     vi.useFakeTimers();
     renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: failingStream });
@@ -337,13 +403,13 @@ describe("WorkstationShell", () => {
 
     expect(sendButton).toBeDisabled();
     expect(sendButton).toHaveAttribute("data-ready", "false");
-    expect(screen.getByText("Type to stream backend")).toBeVisible();
+    expect(screen.getByText("Type a prompt to begin")).toBeVisible();
 
     fireEvent.change(promptInput, {
       target: { value: "Make the low-frequency motion calmer." }
     });
     expect(sendButton).toHaveAttribute("data-ready", "true");
-    expect(screen.getByText("Ready to stream")).toBeVisible();
+    expect(screen.getByText("Ready to generate")).toBeVisible();
 
     fireEvent.click(sendButton);
 
@@ -363,7 +429,7 @@ describe("WorkstationShell", () => {
     expect(userMessage).toHaveAttribute("data-fresh", "true");
     expect(assistantMessage).toHaveAttribute("data-fresh", "true");
     expect(screen.getByLabelText("Current session")).toHaveTextContent("Intake");
-    expect(screen.getByText("Backend fallback active")).toBeVisible();
+    expect(screen.getByText("Stream interrupted")).toBeVisible();
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
     ).toHaveAttribute("aria-valuenow", "1");
@@ -407,7 +473,7 @@ describe("WorkstationShell", () => {
     expect(
       await screen.findByText("Backend stream error: Provider unavailable.")
     ).toBeVisible();
-    expect(screen.getByText("Backend fallback active")).toBeVisible();
+    expect(screen.getByText("Stream interrupted")).toBeVisible();
   });
 
   it("keeps preview available, on demand, and collapsible in the main column", () => {

@@ -360,6 +360,10 @@ a {
   line-height: 1.48;
 }
 
+.message p {
+  white-space: pre-wrap;
+}
+
 .sessionHeader p {
   max-width: 560px;
   margin-top: 12px;
@@ -447,6 +451,31 @@ a {
   border-color: rgba(76, 215, 200, 0.22);
 }
 
+.message[data-role="assistant"][data-stream-phase="connecting"],
+.message[data-role="assistant"][data-stream-phase="thinking"],
+.message[data-role="assistant"][data-stream-phase="streaming"] {
+  border-color: rgba(76, 215, 200, 0.38);
+  background:
+    linear-gradient(135deg, rgba(76, 215, 200, 0.08), transparent 62%),
+    rgba(255, 255, 255, 0.045);
+}
+
+.message[data-role="assistant"][data-stream-phase="streaming"] {
+  box-shadow: inset 0 0 0 1px rgba(76, 215, 200, 0.12);
+}
+
+.message[data-role="assistant"][data-stream-phase="error"] {
+  border-color: rgba(255, 122, 102, 0.34);
+  background: rgba(255, 122, 102, 0.08);
+}
+
+.message[data-role="assistant"][data-stream-phase="fallback"] {
+  border-color: rgba(243, 184, 82, 0.3);
+  background:
+    linear-gradient(135deg, rgba(243, 184, 82, 0.08), transparent 62%),
+    rgba(255, 255, 255, 0.045);
+}
+
 .message[data-fresh="true"] {
   animation: messageArrive 260ms ease-out;
 }
@@ -474,6 +503,84 @@ a {
   font-size: 11px;
   line-height: 1.2;
   text-transform: uppercase;
+}
+
+.messageMetaDetail {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.messageMetaDetail small,
+.messageActivity small {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.messageMetaDetail small {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted-strong);
+}
+
+.messageMetaDetail small[data-phase="streaming"],
+.messageMetaDetail small[data-phase="thinking"],
+.messageMetaDetail small[data-phase="connecting"] {
+  background: rgba(76, 215, 200, 0.14);
+  color: var(--teal);
+}
+
+.messageMetaDetail small[data-phase="error"] {
+  background: rgba(255, 122, 102, 0.14);
+  color: var(--coral);
+}
+
+.messageMetaDetail small[data-phase="fallback"] {
+  background: rgba(243, 184, 82, 0.14);
+  color: var(--amber);
+}
+
+.messageActivity {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.messageActivity span {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--teal);
+  box-shadow: 0 0 0 5px rgba(76, 215, 200, 0.12);
+  animation: pulseNode 1.8s ease-in-out infinite;
+}
+
+.message[data-stream-phase="fallback"] .messageActivity span {
+  background: var(--amber);
+  box-shadow: 0 0 0 5px rgba(243, 184, 82, 0.12);
+}
+
+.message[data-stream-phase="error"] .messageActivity span {
+  background: var(--coral);
+  box-shadow: 0 0 0 5px rgba(255, 122, 102, 0.12);
+  animation: none;
+}
+
+.streamingCaret {
+  display: inline-block;
+  width: 0.55ch;
+  height: 1.1em;
+  margin-left: 0.2ch;
+  vertical-align: -0.1em;
+  border-radius: 999px;
+  background: rgba(76, 215, 200, 0.86);
+  animation: blinkCaret 1s steps(1, end) infinite;
 }
 
 .composer {
@@ -552,6 +659,14 @@ a {
 
 .composer[data-ready="true"] .composerState {
   color: var(--teal);
+}
+
+.workstation[data-stream-state="streaming"] .composerState {
+  color: var(--teal);
+}
+
+.workstation[data-stream-state="fallback"] .composerState {
+  color: var(--amber);
 }
 
 .previewZone {
@@ -1733,6 +1848,18 @@ a {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes blinkCaret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
   }
 }
 

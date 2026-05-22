@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  startTransition,
   useEffect,
   useMemo,
   useRef,
@@ -29,7 +30,6 @@ import type { LucideIcon } from "lucide-react";
 import type {
   ArtifactAction,
   ArtifactSummary,
-  AssistantMessage,
   AssistantWorkspaceSnapshot,
   InspectorTabName,
   WorkflowStepState
@@ -66,6 +66,15 @@ import {
   type WorkflowRuntimeTraceEvent,
   type WorkflowRuntimeVisualState
 } from "@/lib/workflow-runtime";
+import {
+  buildConversationEntries,
+  getComposerStatusLabel,
+  getConversationPhaseBadge,
+  getConversationPhasePlaceholder,
+  toPersistedConversation,
+  type ConversationEntry,
+  type ConversationEntryPhase
+} from "@/lib/streaming-conversation";
 
 type WorkstationShellProps = {
   snapshot: AssistantWorkspaceSnapshot;
@@ -129,7 +138,11 @@ export function WorkstationShell({
   persistenceClient = defaultWorkspacePersistenceClient
 }: WorkstationShellProps) {
   const [snapshot, setSnapshot] = useState(initialSnapshot);
-  const [messages, setMessages] = useState(initialSnapshot.messages);
+  const entryIdCounterRef = useRef(0);
+  const streamingAssistantIdRef = useRef<string | null>(null);
+  const [conversationEntries, setConversationEntries] = useState(() =>
+    buildConversationEntries(initialSnapshot.messages, createConversationEntryId)
+  );
   const [composerValue, setComposerValue] = useState("");
   const [activeTab, setActiveTab] = useState<InspectorTabName>(
     getInitialActiveTab(initialSnapshot)
@@ -167,6 +180,7 @@ export function WorkstationShell({
   const [transferFeedback, setTransferFeedback] =
     useState<ArtifactActionFeedback | null>(null);
   const chatLogRef = useRef<HTMLDivElement>(null);
+  const shouldAutoScrollRef = useRef(true);
   const isShellMountedRef = useRef(true);
   const hasLoadedPersistenceRef = useRef(false);
   const lastPersistedFingerprintRef = useRef<string | null>(null);
@@ -181,6 +195,11 @@ export function WorkstationShell({
     clearTimer(transferFeedbackTimerRef.current);
   }
 
+  function createConversationEntryId() {
+    entryIdCounterRef.current += 1;
+    return `conversation-entry-${entryIdCounterRef.current}`;
+  }
+
   useEffect(() => {
     return () => {
       isShellMountedRef.current = false;
@@ -191,11 +210,34 @@ export function WorkstationShell({
 
   useEffect(() => {
     const chatLog = chatLogRef.current;
-
-    if (chatLog) {
-      chatLog.scrollTop = chatLog.scrollHeight;
+    if (!chatLog) {
+      return undefined;
     }
-  }, [messages.length]);
+
+    const syncAutoScrollPreference = () => {
+      const distanceFromBottom =
+        chatLog.scrollHeight - chatLog.scrollTop - chatLog.clientHeight;
+      shouldAutoScrollRef.current = distanceFromBottom <= 88;
+    };
+
+    syncAutoScrollPreference();
+    chatLog.addEventListener("scroll", syncAutoScrollPreference, {
+      passive: true
+    });
+
+    return () => {
+      chatLog.removeEventListener("scroll", syncAutoScrollPreference);
+    };
+  }, []);
+
+  useEffect(() => {
+    const chatLog = chatLogRef.current;
+    if (!chatLog || !shouldAutoScrollRef.current) {
+      return;
+    }
+
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }, [conversationEntries]);
 
   useEffect(() => {
     if (workflowRunId === 0) {
@@ -240,7 +282,10 @@ export function WorkstationShell({
             restoredSession
           );
           setSnapshot(restoredSnapshot);
-          setMessages(restoredSnapshot.messages);
+          setConversationEntries(
+            buildConversationEntries(restoredSnapshot.messages, createConversationEntryId)
+          );
+          streamingAssistantIdRef.current = null;
           setActiveTab(restoredSession.activeInspectorTab);
           setActiveArtifactId(
             restoredSession.activeArtifactId ||
@@ -292,6 +337,16 @@ export function WorkstationShell({
   const previewArtifact =
     snapshot.artifacts.find((artifact) => artifact.id === previewArtifactId) ??
     activeArtifact;
+  const persistedMessages = useMemo(
+    () => toPersistedConversation(conversationEntries),
+    [conversationEntries]
+  );
+  const liveAssistantEntry =
+    streamingAssistantIdRef.current == null
+      ? null
+      : conversationEntries.find(
+          (entry) => entry.id === streamingAssistantIdRef.current
+        ) ?? null;
   const workflow = useMemo(
     () => buildInteractiveWorkflow(snapshot.workflow, workflowProgressIndex),
     [snapshot.workflow, workflowProgressIndex]
@@ -309,7 +364,7 @@ export function WorkstationShell({
         badge:
           tab.label === "Artifacts" ? String(snapshot.artifacts.length) : tab.badge
       })),
-      messages,
+      messages: persistedMessages,
       preview: {
         ...snapshot.preview,
         active: isPreviewOpen,
@@ -335,7 +390,7 @@ export function WorkstationShell({
       activeTab,
       isPreviewOpen,
       isStreaming,
-      messages,
+      persistedMessages,
       previewArtifact.title,
       snapshot,
       streamError,
@@ -379,13 +434,12 @@ export function WorkstationShell({
   );
   const isComposerReady = Boolean(composerValue.trim()) && !isStreaming;
   const streamState = isStreaming ? "streaming" : streamError ? "fallback" : "idle";
-  const composerStateLabel = isStreaming
-    ? "Streaming backend events"
-    : streamError
-      ? "Backend fallback active"
-      : isComposerReady
-        ? "Ready to stream"
-        : "Type to stream backend";
+  const composerStateLabel = getComposerStatusLabel({
+    isReady: isComposerReady,
+    isStreaming,
+    phase: liveAssistantEntry?.phase ?? null,
+    streamError
+  });
   const persistenceStatusLabel =
     persistenceStateLabels[persistenceState] ?? "Local session ready";
   const isInspectorCollapsed = layoutState.inspectorCollapsed;
@@ -636,21 +690,31 @@ export function WorkstationShell({
     }
 
     const timestamp = formatMessageTime();
-    const assistantPlaceholder: AssistantMessage = {
-      role: "assistant",
-      time: timestamp,
-      content: "Connecting to backend stream..."
-    };
-    const newMessages: AssistantMessage[] = [
-      {
-        role: "user",
-        time: timestamp,
-        content: prompt
-      },
-      assistantPlaceholder
-    ];
+    const userMessageId = createConversationEntryId();
+    const assistantMessageId = createConversationEntryId();
 
-    setMessages((currentMessages) => [...currentMessages, ...newMessages]);
+    streamingAssistantIdRef.current = assistantMessageId;
+    setConversationEntries((currentMessages) => [
+      ...currentMessages,
+      {
+        content: prompt,
+        activity: null,
+        id: userMessageId,
+        pending: false,
+        phase: "complete",
+        role: "user",
+        time: timestamp
+      },
+      {
+        content: "",
+        activity: "Opening live response.",
+        id: assistantMessageId,
+        pending: true,
+        phase: "connecting",
+        role: "assistant",
+        time: timestamp
+      }
+    ]);
     setComposerValue("");
     setWorkflowProgressIndex(0);
     setWorkflowRunId(0);
@@ -676,24 +740,53 @@ export function WorkstationShell({
           const delta = readPayloadText(streamEvent, "text");
           if (delta) {
             streamedAnswer += delta;
-            updateLatestAssistantMessage(streamedAnswer);
+            startTransition(() => {
+              updateStreamingAssistantMessage({
+                activity: "Generating response.",
+                content: streamedAnswer,
+                phase: "streaming"
+              });
+            });
           }
         }
 
         if (streamEvent.event_type === "final") {
           const answer = readPayloadText(streamEvent, "answer");
-          if (answer) {
-            streamedAnswer = answer;
-            updateLatestAssistantMessage(answer);
-          }
+          streamedAnswer = answer ?? streamedAnswer;
+          finalizeStreamingAssistantMessage({
+            activity: "Response completed.",
+            content: streamedAnswer,
+            phase: "complete"
+          });
         }
 
         if (streamEvent.event_type === "error") {
           const message =
             readPayloadText(streamEvent, "message") ?? "Backend stream failed.";
           setStreamError(message);
-          updateLatestAssistantMessage(`Backend stream error: ${message}`);
+          finalizeStreamingAssistantMessage({
+            activity: message,
+            content: streamedAnswer
+              ? `${streamedAnswer}\n\nBackend stream error: ${message}`
+              : `Backend stream error: ${message}`,
+            phase: "error"
+          });
         }
+      }
+
+      if (streamingAssistantIdRef.current && streamedAnswer) {
+        finalizeStreamingAssistantMessage({
+          activity: "Response completed.",
+          content: streamedAnswer,
+          phase: "complete"
+        });
+      } else if (streamingAssistantIdRef.current) {
+        setStreamError("Live response ended before completion.");
+        finalizeStreamingAssistantMessage({
+          activity: "Live response ended before completion.",
+          content: "Live response ended before completion.",
+          phase: "error"
+        });
       }
     } catch {
       const fallbackMessage = `Backend stream unavailable; showing local fallback. ${buildMockAssistantReply(
@@ -701,7 +794,11 @@ export function WorkstationShell({
         activeArtifact.title
       )}`;
       setStreamError("Backend stream unavailable. Showing local fallback.");
-      updateLatestAssistantMessage(fallbackMessage);
+      finalizeStreamingAssistantMessage({
+        activity: "Switching to the local fallback response.",
+        content: fallbackMessage,
+        phase: "fallback"
+      });
       setWorkflowProgressIndex(0);
       setWorkflowRunId((currentRunId) => currentRunId + 1);
     } finally {
@@ -741,6 +838,25 @@ export function WorkstationShell({
       );
     }
 
+    const eventDetail =
+      readPayloadText(streamEvent, "message") ??
+      readPayloadText(streamEvent, "answer") ??
+      null;
+
+    if (
+      streamEvent.event_type !== "token_delta" &&
+      streamEvent.event_type !== "final" &&
+      streamEvent.event_type !== "error"
+    ) {
+      updateStreamingAssistantMessage({
+        activity: eventDetail ?? "Thinking through the request.",
+        phase:
+          streamEvent.event_type === "status" && streamEvent.sequence === 0
+            ? "connecting"
+            : "thinking"
+      });
+    }
+
     if (streamEvent.event_type === "preview_artifact") {
       const artifactId = readPayloadText(streamEvent, "artifact_id");
       if (
@@ -753,10 +869,21 @@ export function WorkstationShell({
     }
   }
 
-  function updateLatestAssistantMessage(content: string) {
-    setMessages((currentMessages) => {
+  function updateStreamingAssistantMessage(
+    nextState: Partial<
+      Pick<ConversationEntry, "activity" | "content" | "pending" | "phase">
+    >
+  ) {
+    const streamingAssistantId = streamingAssistantIdRef.current;
+    if (!streamingAssistantId) {
+      return;
+    }
+
+    setConversationEntries((currentMessages) => {
       const nextMessages = [...currentMessages];
-      const assistantIndex = findLatestAssistantMessageIndex(nextMessages);
+      const assistantIndex = nextMessages.findIndex(
+        (message) => message.id === streamingAssistantId
+      );
 
       if (assistantIndex < 0) {
         return currentMessages;
@@ -764,10 +891,28 @@ export function WorkstationShell({
 
       nextMessages[assistantIndex] = {
         ...nextMessages[assistantIndex],
-        content
+        ...nextState
       };
       return nextMessages;
     });
+  }
+
+  function finalizeStreamingAssistantMessage({
+    activity,
+    content,
+    phase
+  }: {
+    activity: string;
+    content: string;
+    phase: Extract<ConversationEntryPhase, "complete" | "error" | "fallback">;
+  }) {
+    updateStreamingAssistantMessage({
+      activity,
+      content,
+      pending: false,
+      phase
+    });
+    streamingAssistantIdRef.current = null;
   }
 
   async function handleArtifactCopy(artifact: ArtifactSummary) {
@@ -919,23 +1064,43 @@ export function WorkstationShell({
 
             <div
               aria-label="Conversation"
+              aria-busy={isStreaming}
               aria-live="polite"
               className="chatLog"
               ref={chatLogRef}
               role="log"
             >
-              {interactiveSnapshot.messages.map((message, index) => (
+              {conversationEntries.map((message, index) => (
                 <article
                   className="message"
                   data-fresh={index >= snapshot.messages.length ? "true" : undefined}
                   data-role={message.role}
-                  key={`${message.role}-${message.time}-${message.content}`}
+                  data-stream-phase={message.phase}
+                  key={message.id}
                 >
                   <div className="messageMeta">
                     <span>{message.role}</span>
-                    <span>{message.time}</span>
+                    <div className="messageMetaDetail">
+                      {message.role === "assistant" ? (
+                        <small data-phase={message.phase}>
+                          {getConversationPhaseBadge(message.phase)}
+                        </small>
+                      ) : null}
+                      <span>{message.time}</span>
+                    </div>
                   </div>
-                  <p>{message.content}</p>
+                  <p>
+                    {message.content || getConversationPhasePlaceholder(message.phase)}
+                    {message.phase === "streaming" ? (
+                      <span className="streamingCaret" aria-hidden="true" />
+                    ) : null}
+                  </p>
+                  {message.activity && message.phase !== "complete" ? (
+                    <div className="messageActivity">
+                      <span aria-hidden="true" />
+                      <small>{message.activity}</small>
+                    </div>
+                  ) : null}
                 </article>
               ))}
             </div>
@@ -2068,16 +2233,6 @@ function formatWorkflowMiniMeta(step: WorkflowRuntimeModel["steps"][number]) {
   }
 
   return meta.join(" / ") || step.lastEventLabel || step.detail;
-}
-
-function findLatestAssistantMessageIndex(messages: AssistantMessage[]) {
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    if (messages[index].role === "assistant") {
-      return index;
-    }
-  }
-
-  return -1;
 }
 
 function readPayloadText(
