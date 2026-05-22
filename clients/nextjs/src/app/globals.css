@@ -790,6 +790,16 @@ a {
   animation: pulseNode 1.8s ease-in-out infinite;
 }
 
+.liveDot[data-state="completed"] {
+  background: var(--green);
+  box-shadow: 0 0 0 5px rgba(121, 211, 139, 0.14);
+}
+
+.liveDot[data-state="failed"] {
+  background: var(--coral);
+  box-shadow: 0 0 0 5px rgba(255, 122, 102, 0.14);
+}
+
 .overviewGrid {
   display: grid;
   grid-template-columns: 1fr;
@@ -816,6 +826,25 @@ a {
   gap: 12px;
 }
 
+.workflowSummaryMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.workflowSummaryMeta span,
+.workflowTransitionPill,
+.workflowNodeMeta span,
+.workflowTraceCard header span {
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
 .overviewTile strong {
   color: var(--foreground);
   font-size: 20px;
@@ -830,7 +859,7 @@ a {
 .miniStep {
   display: grid;
   grid-template-columns: 14px 1fr;
-  align-items: center;
+  align-items: start;
   gap: 9px;
   color: var(--muted-strong);
   font-size: 12px;
@@ -880,6 +909,48 @@ a {
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.miniStep div {
+  min-width: 0;
+}
+
+.miniStep small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.miniStep[data-state="failed"] span {
+  background: var(--coral);
+}
+
+.miniStep[data-state="failed"] strong {
+  color: var(--foreground);
+}
+
+.workflowMiniTransitions {
+  display: grid;
+  gap: 8px;
+}
+
+.workflowMiniTransitions p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.workflowTransitionPill[data-kind="retry"] {
+  border-color: rgba(243, 184, 82, 0.24);
+  color: var(--amber);
+}
+
+.workflowTransitionPill[data-kind="failure"] {
+  border-color: rgba(255, 122, 102, 0.24);
+  color: var(--coral);
 }
 
 .codePanel {
@@ -1051,6 +1122,45 @@ a {
   gap: 13px;
 }
 
+.workflowSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.workflowSummaryCard,
+.workflowTraceCard {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: var(--panel-soft);
+}
+
+.workflowSummaryCard span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.workflowSummaryCard strong,
+.workflowTraceCard header strong {
+  color: var(--foreground);
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.workflowSummaryCard p,
+.workflowTraceCard p,
+.workflowTraceCard small {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .workflowProgress {
   position: relative;
   height: 7px;
@@ -1090,9 +1200,9 @@ a {
 .workflowNode {
   position: relative;
   display: grid;
-  grid-template-columns: 36px 1fr;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
   gap: 10px;
-  align-items: center;
+  align-items: start;
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 15px;
@@ -1123,6 +1233,12 @@ a {
 
 .workflowNode[data-state="active"] .nodeIndex {
   animation: pulseNode 1.8s ease-in-out infinite;
+}
+
+.workflowNode[data-state="failed"] {
+  border-color: rgba(255, 122, 102, 0.34);
+  background: rgba(255, 122, 102, 0.08);
+  box-shadow: 0 0 0 1px rgba(255, 122, 102, 0.2);
 }
 
 .workflowNode[data-state="queued"] {
@@ -1161,6 +1277,16 @@ a {
   line-height: 1.35;
 }
 
+.workflowNodeMeta {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.workflowNodeMeta span {
+  white-space: nowrap;
+}
+
 .nodeIndex {
   display: grid;
   width: 28px;
@@ -1173,20 +1299,53 @@ a {
   font-weight: 850;
 }
 
-.loopHint {
-  display: flex;
-  align-items: center;
+.workflowTraceLayout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  padding: 12px;
 }
 
-.loopHint span {
-  width: 26px;
-  height: 14px;
-  flex: 0 0 auto;
-  border: 1px solid rgba(76, 215, 200, 0.42);
-  border-left-color: transparent;
-  border-radius: 999px;
+.workflowTraceCard header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.workflowTraceList {
+  display: grid;
+  gap: 8px;
+}
+
+.workflowTraceItem {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.workflowTraceItem p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.workflowTraceItem[data-kind="retry"] strong {
+  color: var(--amber);
+}
+
+.workflowTraceItem[data-kind="failure"] strong,
+.workflowTraceItem[data-kind="failed"] strong {
+  color: var(--coral);
+}
+
+.workflowTraceEmpty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .artifactPanel,
@@ -1480,6 +1639,21 @@ a {
 
   .inspectorTabs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workflowSummaryGrid,
+  .workflowTraceLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workflowNode {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .workflowNodeMeta {
+    justify-items: start;
+    grid-column: 2;
+    grid-auto-flow: column;
   }
 
   .codeLine {

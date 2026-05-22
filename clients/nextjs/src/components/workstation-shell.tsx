@@ -54,6 +54,12 @@ import {
   type ArtifactDocument,
   type HighlightedLine
 } from "@/lib/artifact-inspector";
+import {
+  buildWorkflowRuntimeModel,
+  type WorkflowRuntimeModel,
+  type WorkflowRuntimeTraceEvent,
+  type WorkflowRuntimeVisualState
+} from "@/lib/workflow-runtime";
 
 type WorkstationShellProps = {
   snapshot: AssistantWorkspaceSnapshot;
@@ -129,6 +135,9 @@ export function WorkstationShell({
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamError, setStreamError] = useState<string | null>(null);
   const [streamEvents, setStreamEvents] = useState(initialSnapshot.debug.events);
+  const [workflowTraceEvents, setWorkflowTraceEvents] = useState<
+    WorkflowRuntimeTraceEvent[]
+  >([]);
   const [persistenceState, setPersistenceState] =
     useState<WorkspacePersistenceState>("loading");
   const [copyFeedback, setCopyFeedback] = useState<ArtifactActionFeedback | null>(
@@ -335,6 +344,10 @@ export function WorkstationShell({
     () => highlightArtifactDocument(activeArtifactDocument),
     [activeArtifactDocument]
   );
+  const workflowRuntime = useMemo(
+    () => buildWorkflowRuntimeModel(interactiveSnapshot.workflow, workflowTraceEvents),
+    [interactiveSnapshot.workflow, workflowTraceEvents]
+  );
   const isComposerReady = Boolean(composerValue.trim()) && !isStreaming;
   const streamState = isStreaming ? "streaming" : streamError ? "fallback" : "idle";
   const composerStateLabel = isStreaming
@@ -415,6 +428,7 @@ export function WorkstationShell({
     setWorkflowRunId(0);
     setStreamError(null);
     setStreamEvents([]);
+    setWorkflowTraceEvents([]);
     setIsStreaming(true);
     setActiveTab("Overview");
 
@@ -468,6 +482,17 @@ export function WorkstationShell({
   }
 
   function applyStreamEventToWorkspace(streamEvent: AssistantStreamEvent) {
+    const receivedAt = new Date().toISOString();
+    const receivedAtMs = Date.now();
+
+    setWorkflowTraceEvents((currentEvents) => [
+      ...currentEvents,
+      {
+        event: streamEvent,
+        receivedAt,
+        receivedAtMs
+      }
+    ]);
     setStreamEvents((currentEvents) => [
       ...currentEvents,
       {
@@ -755,6 +780,7 @@ export function WorkstationShell({
             onArtifactTransfer={handleArtifactTransfer}
             snapshot={interactiveSnapshot}
             transferFeedback={transferFeedback}
+            workflowRuntime={workflowRuntime}
           />
         </aside>
       </section>
@@ -835,6 +861,7 @@ type InspectorPanelProps = {
   onArtifactTransfer: (artifact: ArtifactSummary) => void;
   snapshot: AssistantWorkspaceSnapshot;
   transferFeedback: ArtifactActionFeedback | null;
+  workflowRuntime: WorkflowRuntimeModel;
 };
 
 function InspectorPanel({
@@ -848,7 +875,8 @@ function InspectorPanel({
   onArtifactAction,
   onArtifactTransfer,
   snapshot,
-  transferFeedback
+  transferFeedback,
+  workflowRuntime
 }: InspectorPanelProps) {
   if (activeTab === "Code") {
     return (
@@ -865,7 +893,7 @@ function InspectorPanel({
   }
 
   if (activeTab === "Workflow") {
-    return <WorkflowInspector snapshot={snapshot} />;
+    return <WorkflowInspector runtime={workflowRuntime} />;
   }
 
   if (activeTab === "Artifacts") {
@@ -886,15 +914,25 @@ function InspectorPanel({
     return <RetrievalInspector snapshot={snapshot} />;
   }
 
-  return <OverviewInspector activeArtifact={activeArtifact} snapshot={snapshot} />;
+  return (
+    <OverviewInspector
+      activeArtifact={activeArtifact}
+      runtime={workflowRuntime}
+      snapshot={snapshot}
+    />
+  );
 }
 
 function OverviewInspector({
   activeArtifact,
+  runtime,
   snapshot
-}: WorkstationShellProps & { activeArtifact: ArtifactSummary }) {
-  const activeStep = snapshot.workflow.steps.find((step) => step.state === "active");
-  const workflowProgress = getWorkflowProgress(snapshot.workflow.steps);
+}: WorkstationShellProps & {
+  activeArtifact: ArtifactSummary;
+  runtime: WorkflowRuntimeModel;
+}) {
+  const workflowProgress = getWorkflowRuntimeProgress(runtime.steps);
+  const latestTransitions = runtime.transitions.slice(-3);
 
   return (
     <section
@@ -912,27 +950,58 @@ function OverviewInspector({
           <header>
             <div>
               <span>Workflow</span>
-              <strong>{snapshot.workflow.currentStep}</strong>
-              <p>{activeStep?.displayLabel ?? "Waiting for next node"}</p>
+              <strong>{runtime.summary.currentStep}</strong>
+              <p>{formatWorkflowStatusCopy(runtime.summary.status)}</p>
             </div>
-            <span className="liveDot" aria-hidden="true" />
+            <span
+              className="liveDot"
+              aria-hidden="true"
+              data-state={runtime.summary.status}
+            />
           </header>
+          <div className="workflowSummaryMeta">
+            <span>{formatRuntimeDuration(runtime.summary.totalRuntimeMs)}</span>
+            <span>{formatRetryCount(runtime.summary.retryCount)}</span>
+            <span>{runtime.summary.traceEventCount} trace events</span>
+          </div>
           <WorkflowProgress
             label="Overview workflow progress"
             progress={workflowProgress}
           />
           <div className="miniWorkflow" aria-label="Minimal live workflow state">
-            {snapshot.workflow.steps.map((step) => (
+            {runtime.steps.map((step) => (
               <div
-                aria-current={step.state === "active" ? "step" : undefined}
+                aria-current={
+                  step.state === "active" || step.state === "failed"
+                    ? "step"
+                    : undefined
+                }
                 className="miniStep"
                 data-state={step.state}
                 key={step.nodeId}
               >
                 <span aria-hidden="true" />
-                <strong>{step.displayLabel}</strong>
+                <div>
+                  <strong>{step.displayLabel}</strong>
+                  <small>{formatWorkflowMiniMeta(step)}</small>
+                </div>
               </div>
             ))}
+          </div>
+          <div className="workflowMiniTransitions" aria-label="Workflow transitions">
+            {latestTransitions.length > 0 ? (
+              latestTransitions.map((transition) => (
+                <div
+                  className="workflowTransitionPill"
+                  data-kind={transition.kind}
+                  key={`${transition.sequence}-${transition.label}`}
+                >
+                  {transition.label}
+                </div>
+              ))
+            ) : (
+              <p>Waiting for runtime transitions.</p>
+            )}
           </div>
         </div>
         <div className="overviewTile" role="group" aria-label="Artifacts summary">
@@ -1061,8 +1130,9 @@ function CodeInspector({
   );
 }
 
-function WorkflowInspector({ snapshot }: WorkstationShellProps) {
-  const workflowProgress = getWorkflowProgress(snapshot.workflow.steps);
+function WorkflowInspector({ runtime }: { runtime: WorkflowRuntimeModel }) {
+  const workflowProgress = getWorkflowRuntimeProgress(runtime.steps);
+  const recentEvents = runtime.events.slice(-6).reverse();
 
   return (
     <section
@@ -1075,14 +1145,48 @@ function WorkflowInspector({ snapshot }: WorkstationShellProps) {
         label="Workflow inspector progress"
         progress={workflowProgress}
       />
+      <div className="workflowSummaryGrid" aria-label="Workflow execution summary">
+        <article className="workflowSummaryCard" role="group" aria-label="Workflow status">
+          <span>Status</span>
+          <strong>{formatWorkflowStatusCopy(runtime.summary.status)}</strong>
+          <p>{runtime.summary.currentStep}</p>
+        </article>
+        <article className="workflowSummaryCard" role="group" aria-label="Workflow runtime">
+          <span>Runtime</span>
+          <strong>{formatRuntimeDuration(runtime.summary.totalRuntimeMs)}</strong>
+          <p>
+            {runtime.summary.activeRuntimeMs != null
+              ? `Active ${formatRuntimeDuration(runtime.summary.activeRuntimeMs)}`
+              : "Awaiting next transition"}
+          </p>
+        </article>
+        <article className="workflowSummaryCard" role="group" aria-label="Workflow retries">
+          <span>Retries</span>
+          <strong>{runtime.summary.retryCount}</strong>
+          <p>{formatRetryCount(runtime.summary.retryCount)}</p>
+        </article>
+        <article
+          className="workflowSummaryCard"
+          role="group"
+          aria-label="Workflow transitions"
+        >
+          <span>Transitions</span>
+          <strong>{runtime.summary.transitionCount}</strong>
+          <p>{runtime.summary.traceEventCount} streamed events</p>
+        </article>
+      </div>
       <div
         aria-label="LangGraph workflow visualization"
         className="workflowGraph"
         role="group"
       >
-        {snapshot.workflow.steps.map((step, index) => (
+        {runtime.steps.map((step, index) => (
           <article
-            aria-current={step.state === "active" ? "step" : undefined}
+            aria-current={
+              step.state === "active" || step.state === "failed"
+                ? "step"
+                : undefined
+            }
             className="workflowNode"
             data-state={step.state}
             key={step.nodeId}
@@ -1092,16 +1196,77 @@ function WorkflowInspector({ snapshot }: WorkstationShellProps) {
               <strong>{step.displayLabel}</strong>
               <p>
                 <code>{step.nodeId}</code>
-                <span>{formatWorkflowState(step.state)}</span>
+                <span>{formatWorkflowRuntimeState(step.state)}</span>
               </p>
-              <small>{step.detail}</small>
+              <small>{step.lastEventDetail ?? step.detail}</small>
+            </div>
+            <div className="workflowNodeMeta">
+              <span>{formatRuntimeDuration(step.durationMs)}</span>
+              <span>{formatAttemptMeta(step.attemptCount)}</span>
             </div>
           </article>
         ))}
       </div>
-      <div className="loopHint">
-        <span aria-hidden="true" />
-        <p>{"Real retry edge: refinement -> generation, bounded by review state."}</p>
+      <div className="workflowTraceLayout">
+        <article
+          className="workflowTraceCard"
+          role="group"
+          aria-label="Workflow transition trace"
+        >
+          <header>
+            <strong>Transitions</strong>
+            <span>{runtime.summary.transitionCount}</span>
+          </header>
+          <div className="workflowTraceList">
+            {runtime.transitions.length > 0 ? (
+              runtime.transitions.map((transition) => (
+                <article
+                  className="workflowTraceItem"
+                  data-kind={transition.kind}
+                  key={`${transition.sequence}-${transition.label}`}
+                >
+                  <strong>{transition.label}</strong>
+                  <p>
+                    <span>{transition.sequence}</span>
+                    <span>{formatTraceTime(transition.at)}</span>
+                  </p>
+                </article>
+              ))
+            ) : (
+              <p className="workflowTraceEmpty">No runtime transitions recorded yet.</p>
+            )}
+          </div>
+        </article>
+        <article
+          className="workflowTraceCard"
+          role="group"
+          aria-label="Workflow event trace"
+        >
+          <header>
+            <strong>Event trace</strong>
+            <span>{runtime.summary.traceEventCount}</span>
+          </header>
+          <div className="workflowTraceList">
+            {recentEvents.length > 0 ? (
+              recentEvents.map((event) => (
+                <article
+                  className="workflowTraceItem"
+                  data-kind={event.phase ?? "running"}
+                  key={`${event.sequence}-${event.label}`}
+                >
+                  <strong>{event.label}</strong>
+                  <p>
+                    <span>{event.nodeId ?? "runtime"}</span>
+                    <span>{formatTraceTime(event.at)}</span>
+                  </p>
+                  <small>{event.detail}</small>
+                </article>
+              ))
+            ) : (
+              <p className="workflowTraceEmpty">No streamed workflow events yet.</p>
+            )}
+          </div>
+        </article>
       </div>
     </section>
   );
@@ -1396,6 +1561,10 @@ type WorkflowProgressSummary = {
   total: number;
 };
 
+type WorkflowProgressStep = {
+  state: WorkflowRuntimeVisualState | WorkflowState;
+};
+
 function WorkflowProgress({
   label,
   progress
@@ -1486,14 +1655,12 @@ function buildInteractiveWorkflow(
   };
 }
 
-function formatWorkflowState(state: WorkflowState) {
-  return state === "queued" ? "pending" : state;
-}
-
-function getWorkflowProgress(steps: WorkflowStepState[]): WorkflowProgressSummary {
+function getWorkflowRuntimeProgress(
+  steps: WorkflowProgressStep[]
+): WorkflowProgressSummary {
   const visibleSteps = steps.filter((step) => step.state !== "branch");
   const reached = visibleSteps.filter((step) =>
-    ["active", "complete", "skipped"].includes(step.state)
+    ["active", "complete", "skipped", "failed"].includes(step.state)
   ).length;
   const total = Math.max(visibleSteps.length, 1);
 
@@ -1502,6 +1669,80 @@ function getWorkflowProgress(steps: WorkflowStepState[]): WorkflowProgressSummar
     reached,
     total
   };
+}
+
+function formatWorkflowRuntimeState(state: WorkflowRuntimeVisualState) {
+  switch (state) {
+    case "queued":
+      return "pending";
+    case "failed":
+      return "error";
+    default:
+      return state;
+  }
+}
+
+function formatWorkflowStatusCopy(status: string) {
+  switch (status) {
+    case "completed":
+      return "Completed";
+    case "failed":
+      return "Failed";
+    default:
+      return "Running";
+  }
+}
+
+function formatRetryCount(retryCount: number) {
+  return retryCount === 1 ? "1 retry loop" : `${retryCount} retry loops`;
+}
+
+function formatRuntimeDuration(durationMs: number | null) {
+  if (durationMs == null) {
+    return "No timing yet";
+  }
+
+  if (durationMs < 1000) {
+    return `${durationMs}ms`;
+  }
+
+  return `${(durationMs / 1000).toFixed(durationMs >= 10000 ? 0 : 1)}s`;
+}
+
+function formatAttemptMeta(attemptCount: number) {
+  return attemptCount === 1 ? "1 attempt" : `${attemptCount} attempts`;
+}
+
+function formatTraceTime(timestamp: string) {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return "Now";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    hour12: false,
+    minute: "2-digit",
+    second: "2-digit"
+  }).format(date);
+}
+
+function formatWorkflowMiniMeta(step: WorkflowRuntimeModel["steps"][number]) {
+  const meta = [];
+
+  if (step.durationMs != null) {
+    meta.push(formatRuntimeDuration(step.durationMs));
+  }
+
+  if (step.attemptCount > 1) {
+    meta.push(`attempt ${step.attemptCount}`);
+  }
+
+  if (step.state === "failed") {
+    meta.push("error");
+  }
+
+  return meta.join(" / ") || step.lastEventLabel || step.detail;
 }
 
 function findLatestAssistantMessageIndex(messages: AssistantMessage[]) {

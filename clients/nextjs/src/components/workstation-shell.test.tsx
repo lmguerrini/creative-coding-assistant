@@ -49,6 +49,63 @@ async function* failingStream(): AsyncGenerator<AssistantStreamEvent> {
   throw new Error("offline");
 }
 
+function runtimeWorkflowEvent({
+  answer,
+  at,
+  code,
+  completedSteps = [],
+  currentStep,
+  eventType,
+  message,
+  phase = "running",
+  refinementCount = 0,
+  reviewOutcome = null,
+  sequence,
+  skippedSteps = [],
+  status = "running",
+  step,
+  text
+}: {
+  answer?: string;
+  at: string;
+  code?: string;
+  completedSteps?: string[];
+  currentStep: string | null;
+  eventType: AssistantStreamEvent["event_type"];
+  message?: string;
+  phase?: string;
+  refinementCount?: number;
+  reviewOutcome?: string | null;
+  sequence: number;
+  skippedSteps?: string[];
+  status?: string;
+  step: string | null;
+  text?: string;
+}): AssistantStreamEvent {
+  return {
+    event_type: eventType,
+    sequence,
+    payload: {
+      ...(answer ? { answer } : {}),
+      ...(code ? { code } : {}),
+      ...(message ? { message } : {}),
+      ...(text ? { text } : {}),
+      emitted_at: at,
+      workflow: {
+        step,
+        phase,
+        status,
+        current_step: currentStep,
+        completed_steps: completedSteps,
+        skipped_steps: skippedSteps,
+        refinement_count: refinementCount,
+        review_outcome: reviewOutcome,
+        review_reasons: []
+      }
+    }
+  };
+}
+
 function createNoopPersistenceClient(): WorkspacePersistenceClient {
   return {
     load: vi.fn(() => new Promise<null>(() => undefined)),
@@ -459,12 +516,14 @@ describe("WorkstationShell", () => {
     renderShell(snapshotWithActiveTab("Workflow"));
 
     expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
-    expect(screen.getByRole("tabpanel", { name: "Workflow inspector" })).toBeVisible();
+    const workflowPanel = screen.getByRole("tabpanel", { name: "Workflow inspector" });
+    expect(workflowPanel).toBeVisible();
     const graph = screen.getByRole("group", {
       name: "LangGraph workflow visualization"
     });
 
     expect(graph).toBeVisible();
+    expect(screen.getByLabelText("Workflow execution summary")).toBeVisible();
     expect(
       screen.getByRole("progressbar", { name: "Workflow inspector progress" })
     ).toHaveAttribute("aria-valuetext", "8 of 11 workflow nodes reached");
@@ -476,11 +535,142 @@ describe("WorkstationShell", () => {
     expect(within(graph).getByText("context_assembly")).toBeVisible();
     expect(within(graph).getByText("prompt_rendering")).toBeVisible();
     expect(within(graph).getByText("failure")).toBeVisible();
-    expect(screen.queryByText("Preview request")).not.toBeInTheDocument();
     expect(
-      screen.getByText("Real retry edge: refinement -> generation, bounded by review state.")
+      within(workflowPanel).getByText("No runtime transitions recorded yet.")
     ).toBeVisible();
+    expect(screen.queryByText("Preview request")).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Review" })).not.toBeInTheDocument();
+  });
+
+  it("renders runtime transitions, retries, and event traces from streamed metadata", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:00Z",
+          code: "request_received",
+          currentStep: "intake",
+          eventType: "status",
+          message: "Request accepted.",
+          sequence: 0,
+          step: "intake"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:01Z",
+          code: "route_selected",
+          completedSteps: ["intake"],
+          currentStep: "routing",
+          eventType: "status",
+          message: "Route selected.",
+          sequence: 1,
+          step: "routing"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:02Z",
+          code: "generation_input_prepared",
+          completedSteps: ["intake", "routing"],
+          currentStep: "generation",
+          eventType: "generation_input",
+          message: "Provider generation input prepared.",
+          sequence: 2,
+          skippedSteps: [
+            "memory",
+            "retrieval",
+            "context_assembly",
+            "prompt_input",
+            "prompt_rendering"
+          ],
+          step: "generation"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:03Z",
+          currentStep: "generation",
+          eventType: "token_delta",
+          sequence: 3,
+          step: "generation",
+          text: "draft"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:04Z",
+          code: "generation_input_prepared",
+          completedSteps: ["intake", "routing"],
+          currentStep: "generation",
+          eventType: "generation_input",
+          message: "Provider generation input prepared.",
+          refinementCount: 1,
+          sequence: 4,
+          skippedSteps: [
+            "memory",
+            "retrieval",
+            "context_assembly",
+            "prompt_input",
+            "prompt_rendering"
+          ],
+          step: "generation"
+        }),
+        runtimeWorkflowEvent({
+          answer: "```ts\nconsole.log('refined');\n```",
+          at: "2026-05-22T10:00:05Z",
+          completedSteps: [
+            "intake",
+            "routing",
+            "generation",
+            "review",
+            "refinement",
+            "finalization"
+          ],
+          currentStep: null,
+          eventType: "final",
+          phase: "completed",
+          refinementCount: 1,
+          reviewOutcome: "pass",
+          sequence: 5,
+          skippedSteps: [
+            "memory",
+            "retrieval",
+            "context_assembly",
+            "prompt_input",
+            "prompt_rendering"
+          ],
+          status: "completed",
+          step: "finalization"
+        })
+      ])
+    );
+
+    renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Write code for a Three.js scene." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(await screen.findByText(/refined/)).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
+
+    const workflowPanel = screen.getByRole("tabpanel", { name: "Workflow inspector" });
+    const workflowGraph = within(workflowPanel).getByRole("group", {
+      name: "LangGraph workflow visualization"
+    });
+    const transitions = within(workflowPanel).getByRole("group", {
+      name: "Workflow transition trace"
+    });
+    const events = within(workflowPanel).getByRole("group", {
+      name: "Workflow event trace"
+    });
+    const retries = within(workflowPanel).getByRole("group", {
+      name: "Workflow retries"
+    });
+
+    expect(within(retries).getByText("1 retry loop")).toBeVisible();
+    expect(within(transitions).getByText("Generation retry")).toBeVisible();
+    expect(within(events).getAllByText("Generation Input Prepared")).toHaveLength(2);
+    expect(
+      within(workflowGraph).getByText("Refinement").closest("article")
+    ).toHaveAttribute("data-state", "complete");
+    expect(
+      within(workflowGraph).getByText("Finalization").closest("article")
+    ).toHaveAttribute("data-state", "complete");
   });
 
   it("restores a persisted workspace session on mount", async () => {
