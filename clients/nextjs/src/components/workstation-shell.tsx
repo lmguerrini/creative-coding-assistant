@@ -45,6 +45,15 @@ import {
   snapshotFromWorkspaceSessionRecord,
   type WorkspacePersistenceClient
 } from "@/lib/workspace-persistence";
+import {
+  buildArtifactDocument,
+  copyArtifactDocument,
+  downloadArtifactDocument,
+  formatArtifactActionLabel,
+  highlightArtifactDocument,
+  type ArtifactDocument,
+  type HighlightedLine
+} from "@/lib/artifact-inspector";
 
 type WorkstationShellProps = {
   snapshot: AssistantWorkspaceSnapshot;
@@ -74,8 +83,14 @@ type WorkspacePersistenceState =
   | "saved"
   | "local"
   | "unavailable";
+type ArtifactTransferAction = Extract<ArtifactAction, "Download" | "Export">;
+type ArtifactActionFeedback = {
+  artifactId: string;
+  state: "success" | "error";
+};
 
 const mockWorkflowIntervalMs = 850;
+const artifactFeedbackDurationMs = 1400;
 const defaultWorkspacePersistenceClient = createWorkspacePersistenceClient();
 const persistenceStateLabels = {
   loading: "Restoring session",
@@ -116,15 +131,28 @@ export function WorkstationShell({
   const [streamEvents, setStreamEvents] = useState(initialSnapshot.debug.events);
   const [persistenceState, setPersistenceState] =
     useState<WorkspacePersistenceState>("loading");
+  const [copyFeedback, setCopyFeedback] = useState<ArtifactActionFeedback | null>(
+    null
+  );
+  const [transferFeedback, setTransferFeedback] =
+    useState<ArtifactActionFeedback | null>(null);
   const chatLogRef = useRef<HTMLDivElement>(null);
   const isShellMountedRef = useRef(true);
   const hasLoadedPersistenceRef = useRef(false);
   const lastPersistedFingerprintRef = useRef<string | null>(null);
   const skipNextPersistenceSaveRef = useRef(false);
+  const copyFeedbackTimerRef = useRef<number | null>(null);
+  const transferFeedbackTimerRef = useRef<number | null>(null);
+
+  function clearFeedbackTimers() {
+    clearTimer(copyFeedbackTimerRef.current);
+    clearTimer(transferFeedbackTimerRef.current);
+  }
 
   useEffect(() => {
     return () => {
       isShellMountedRef.current = false;
+      clearFeedbackTimers();
     };
   }, []);
 
@@ -299,6 +327,14 @@ export function WorkstationShell({
   const activeTabSummary =
     interactiveSnapshot.inspectorTabs.find((tab) => tab.label === activeTab)
       ?.summary ?? "";
+  const activeArtifactDocument = useMemo(
+    () => buildArtifactDocument(interactiveSnapshot, activeArtifact),
+    [activeArtifact, interactiveSnapshot]
+  );
+  const activeArtifactHighlights = useMemo(
+    () => highlightArtifactDocument(activeArtifactDocument),
+    [activeArtifactDocument]
+  );
   const isComposerReady = Boolean(composerValue.trim()) && !isStreaming;
   const streamState = isStreaming ? "streaming" : streamError ? "fallback" : "idle";
   const composerStateLabel = isStreaming
@@ -481,11 +517,37 @@ export function WorkstationShell({
     });
   }
 
+  async function handleArtifactCopy(artifact: ArtifactSummary) {
+    setActiveArtifactId(artifact.id);
+    const wasCopied = await copyArtifactDocument(
+      buildArtifactDocument(interactiveSnapshot, artifact)
+    );
+    setFeedbackState(
+      artifact.id,
+      wasCopied ? "success" : "error",
+      copyFeedbackTimerRef,
+      setCopyFeedback
+    );
+  }
+
+  function handleArtifactTransfer(artifact: ArtifactSummary) {
+    setActiveArtifactId(artifact.id);
+    const wasTransferred = downloadArtifactDocument(
+      buildArtifactDocument(interactiveSnapshot, artifact)
+    );
+    setFeedbackState(
+      artifact.id,
+      wasTransferred ? "success" : "error",
+      transferFeedbackTimerRef,
+      setTransferFeedback
+    );
+  }
+
   function handleArtifactAction(action: ArtifactAction, artifact: ArtifactSummary) {
     setActiveArtifactId(artifact.id);
 
     if (action === "Open") {
-      setActiveTab(artifact.type === "code" ? "Code" : "Artifacts");
+      setActiveTab("Code");
       return;
     }
 
@@ -493,6 +555,16 @@ export function WorkstationShell({
       setPreviewArtifactId(artifact.id);
       setIsPreviewOpen(true);
       setActiveTab("Overview");
+      return;
+    }
+
+    if (action === "Copy") {
+      void handleArtifactCopy(artifact);
+      return;
+    }
+
+    if (action === "Download" || action === "Export") {
+      handleArtifactTransfer(artifact);
       return;
     }
 
@@ -673,10 +745,16 @@ export function WorkstationShell({
 
           <InspectorPanel
             activeArtifact={activeArtifact}
+            activeArtifactDocument={activeArtifactDocument}
+            activeArtifactHighlights={activeArtifactHighlights}
             activeArtifactId={activeArtifactId}
             activeTab={activeTab}
+            copyFeedback={copyFeedback}
+            onArtifactCopy={handleArtifactCopy}
             onArtifactAction={handleArtifactAction}
+            onArtifactTransfer={handleArtifactTransfer}
             snapshot={interactiveSnapshot}
+            transferFeedback={transferFeedback}
           />
         </aside>
       </section>
@@ -747,21 +825,43 @@ function PreviewShelf({ onToggle, snapshot }: PreviewShelfProps) {
 
 type InspectorPanelProps = {
   activeArtifact: ArtifactSummary;
+  activeArtifactDocument: ArtifactDocument;
+  activeArtifactHighlights: HighlightedLine[];
   activeArtifactId: string;
   activeTab: InspectorTabName;
+  copyFeedback: ArtifactActionFeedback | null;
+  onArtifactCopy: (artifact: ArtifactSummary) => Promise<void>;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+  onArtifactTransfer: (artifact: ArtifactSummary) => void;
   snapshot: AssistantWorkspaceSnapshot;
+  transferFeedback: ArtifactActionFeedback | null;
 };
 
 function InspectorPanel({
   activeArtifact,
+  activeArtifactDocument,
+  activeArtifactHighlights,
   activeArtifactId,
   activeTab,
+  copyFeedback,
+  onArtifactCopy,
   onArtifactAction,
-  snapshot
+  onArtifactTransfer,
+  snapshot,
+  transferFeedback
 }: InspectorPanelProps) {
   if (activeTab === "Code") {
-    return <CodeInspector snapshot={snapshot} />;
+    return (
+      <CodeInspector
+        artifact={activeArtifact}
+        copyFeedback={copyFeedback}
+        document={activeArtifactDocument}
+        highlightedLines={activeArtifactHighlights}
+        onArtifactCopy={onArtifactCopy}
+        onArtifactTransfer={onArtifactTransfer}
+        transferFeedback={transferFeedback}
+      />
+    );
   }
 
   if (activeTab === "Workflow") {
@@ -771,9 +871,13 @@ function InspectorPanel({
   if (activeTab === "Artifacts") {
     return (
       <ArtifactsInspector
+        activeArtifact={activeArtifact}
+        activeArtifactDocument={activeArtifactDocument}
         activeArtifactId={activeArtifactId}
         artifacts={snapshot.artifacts}
+        copyFeedback={copyFeedback}
         onArtifactAction={onArtifactAction}
+        transferFeedback={transferFeedback}
       />
     );
   }
@@ -851,27 +955,108 @@ function OverviewInspector({
   );
 }
 
-function CodeInspector({ snapshot }: WorkstationShellProps) {
+type CodeInspectorProps = {
+  artifact: ArtifactSummary;
+  copyFeedback: ArtifactActionFeedback | null;
+  document: ArtifactDocument;
+  highlightedLines: HighlightedLine[];
+  onArtifactCopy: (artifact: ArtifactSummary) => Promise<void>;
+  onArtifactTransfer: (artifact: ArtifactSummary) => void;
+  transferFeedback: ArtifactActionFeedback | null;
+};
+
+function CodeInspector({
+  artifact,
+  copyFeedback,
+  document,
+  highlightedLines,
+  onArtifactCopy,
+  onArtifactTransfer,
+  transferFeedback
+}: CodeInspectorProps) {
+  const transferAction = getArtifactTransferAction(artifact.actions);
+  const actionMessage = getArtifactActionMessage(
+    artifact,
+    copyFeedback,
+    transferFeedback
+  );
+
   return (
     <section
       aria-label="Code inspector"
       className="inspectorPanel codePanel"
-      data-opened-artifact={snapshot.code.title}
+      data-opened-artifact={document.fileName}
       id="code-inspector-panel"
       role="tabpanel"
     >
       <header className="codePanelHeader">
         <div>
-          <strong>{snapshot.code.title}</strong>
-          <span>
-            {snapshot.code.language} / {snapshot.code.status}
-          </span>
+          <span>Active document</span>
+          <strong>{document.fileName}</strong>
+          <p>{document.summary}</p>
         </div>
-        <span className="artifactType">Opened artifact</span>
+        <div className="codePanelActions">
+          <button
+            aria-label={`Copy ${document.fileName}`}
+            onClick={() => void onArtifactCopy(artifact)}
+            type="button"
+          >
+            {getArtifactActionButtonLabel("Copy", artifact, copyFeedback, transferFeedback)}
+          </button>
+          {transferAction ? (
+            <button
+              aria-label={`${formatArtifactActionLabel(transferAction)} ${document.fileName}`}
+              onClick={() => onArtifactTransfer(artifact)}
+              type="button"
+            >
+              {getArtifactActionButtonLabel(
+                transferAction,
+                artifact,
+                copyFeedback,
+                transferFeedback
+              )}
+            </button>
+          ) : null}
+        </div>
       </header>
-      <pre>
-        <code>{snapshot.code.excerpt.join("\n")}</code>
-      </pre>
+      <div className="codePanelMeta" aria-label="Artifact metadata" role="list">
+        <span role="listitem">{document.languageLabel}</span>
+        <span role="listitem">{document.typeLabel}</span>
+        <span role="listitem">{document.status}</span>
+        <span role="listitem">{document.lineCount} lines</span>
+      </div>
+      {actionMessage ? (
+        <p className="artifactActionFeedback" aria-live="polite">
+          {actionMessage}
+        </p>
+      ) : null}
+      <div
+        aria-label={`${document.fileName} content`}
+        className="codeViewer"
+        role="region"
+      >
+        <pre>
+          <code>
+            {highlightedLines.map((line) => (
+              <span className="codeLine" key={`${document.artifactId}-${line.lineNumber}`}>
+                <span className="codeLineNumber" aria-hidden="true">
+                  {String(line.lineNumber).padStart(2, "0")}
+                </span>
+                <span className="codeLineContent">
+                  {line.tokens.map((token, index) => (
+                    <span
+                      className={`codeToken codeToken--${token.kind}`}
+                      key={`${line.lineNumber}-${index}-${token.kind}`}
+                    >
+                      {token.text || "\u00a0"}
+                    </span>
+                  ))}
+                </span>
+              </span>
+            ))}
+          </code>
+        </pre>
+      </div>
     </section>
   );
 }
@@ -923,16 +1108,30 @@ function WorkflowInspector({ snapshot }: WorkstationShellProps) {
 }
 
 type ArtifactsInspectorProps = {
+  activeArtifact: ArtifactSummary;
+  activeArtifactDocument: ArtifactDocument;
   activeArtifactId: string;
   artifacts: ArtifactSummary[];
+  copyFeedback: ArtifactActionFeedback | null;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+  transferFeedback: ArtifactActionFeedback | null;
 };
 
 function ArtifactsInspector({
+  activeArtifact,
+  activeArtifactDocument,
   activeArtifactId,
   artifacts,
-  onArtifactAction
+  copyFeedback,
+  onArtifactAction,
+  transferFeedback
 }: ArtifactsInspectorProps) {
+  const actionMessage = getArtifactActionMessage(
+    activeArtifact,
+    copyFeedback,
+    transferFeedback
+  );
+
   return (
     <section
       aria-label="Artifacts inspector"
@@ -940,13 +1139,61 @@ function ArtifactsInspector({
       id="artifacts-inspector-panel"
       role="tabpanel"
     >
+      <article
+        aria-label="Active artifact details"
+        className="artifactDetailCard"
+        role="group"
+      >
+        <header className="artifactDetailHeader">
+          <div>
+            <span>Selected artifact</span>
+            <strong>{activeArtifactDocument.fileName}</strong>
+            <p>{activeArtifact.summary}</p>
+          </div>
+          <div className="artifactBadges">
+            <span className="artifactSelected">Selected</span>
+            <span className="artifactType">{activeArtifactDocument.typeLabel}</span>
+          </div>
+        </header>
+        <dl className="artifactDetailMeta">
+          <div>
+            <dt>Language</dt>
+            <dd>{activeArtifactDocument.languageLabel}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>{activeArtifact.status}</dd>
+          </div>
+          <div>
+            <dt>Lines</dt>
+            <dd>{activeArtifactDocument.lineCount}</dd>
+          </div>
+          <div>
+            <dt>Actions</dt>
+            <dd>{activeArtifact.actions.length}</dd>
+          </div>
+        </dl>
+        <ArtifactActionRow
+          artifact={activeArtifact}
+          copyFeedback={copyFeedback}
+          onArtifactAction={onArtifactAction}
+          transferFeedback={transferFeedback}
+        />
+        {actionMessage ? (
+          <p className="artifactActionFeedback" aria-live="polite">
+            {actionMessage}
+          </p>
+        ) : null}
+      </article>
       <div className="artifactList">
         {artifacts.map((artifact) => (
           <ArtifactCard
             artifact={artifact}
             isActive={artifact.id === activeArtifactId}
             key={artifact.id}
+            copyFeedback={copyFeedback}
             onArtifactAction={onArtifactAction}
+            transferFeedback={transferFeedback}
           />
         ))}
       </div>
@@ -976,14 +1223,18 @@ function RetrievalInspector({ snapshot }: WorkstationShellProps) {
 
 type ArtifactCardProps = {
   artifact: ArtifactSummary;
+  copyFeedback: ArtifactActionFeedback | null;
   isActive: boolean;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+  transferFeedback: ArtifactActionFeedback | null;
 };
 
 function ArtifactCard({
   artifact,
+  copyFeedback,
   isActive,
-  onArtifactAction
+  onArtifactAction,
+  transferFeedback
 }: ArtifactCardProps) {
   return (
     <article
@@ -996,29 +1247,147 @@ function ArtifactCard({
         <div>
           <strong>{artifact.title}</strong>
           <span>
-            {artifact.language} / {artifact.status}
+            {artifact.language} / {getArtifactTypeLabel(artifact.type)} / {artifact.status}
           </span>
         </div>
         <div className="artifactBadges">
           {isActive ? <span className="artifactSelected">Selected</span> : null}
-          <span className="artifactType">{artifact.type}</span>
+          <span className="artifactType">{getArtifactTypeLabel(artifact.type)}</span>
         </div>
       </div>
       <p>{artifact.summary}</p>
-      <div className="artifactActions">
-        {artifact.actions.map((action) => (
-          <button
-            key={action}
-            onClick={() => onArtifactAction(action, artifact)}
-            type="button"
-            aria-label={`${action} ${artifact.title}`}
-          >
-            {action}
-          </button>
-        ))}
-      </div>
+      <ArtifactActionRow
+        artifact={artifact}
+        copyFeedback={copyFeedback}
+        onArtifactAction={onArtifactAction}
+        transferFeedback={transferFeedback}
+      />
     </article>
   );
+}
+
+type ArtifactActionRowProps = {
+  artifact: ArtifactSummary;
+  copyFeedback: ArtifactActionFeedback | null;
+  onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+  transferFeedback: ArtifactActionFeedback | null;
+};
+
+function ArtifactActionRow({
+  artifact,
+  copyFeedback,
+  onArtifactAction,
+  transferFeedback
+}: ArtifactActionRowProps) {
+  return (
+    <div className="artifactActions">
+      {artifact.actions.map((action) => (
+        <button
+          aria-label={`${formatArtifactActionLabel(action)} ${artifact.title}`}
+          data-action={action.toLowerCase()}
+          key={action}
+          onClick={() => onArtifactAction(action, artifact)}
+          type="button"
+        >
+          {getArtifactActionButtonLabel(action, artifact, copyFeedback, transferFeedback)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function clearTimer(timerId: number | null) {
+  if (timerId !== null) {
+    window.clearTimeout(timerId);
+  }
+}
+
+function setFeedbackState(
+  artifactId: string,
+  state: ArtifactActionFeedback["state"],
+  timerRef: { current: number | null },
+  setFeedback: (feedback: ArtifactActionFeedback | null) => void
+) {
+  clearTimer(timerRef.current);
+  setFeedback({ artifactId, state });
+  timerRef.current = window.setTimeout(() => {
+    setFeedback(null);
+    timerRef.current = null;
+  }, artifactFeedbackDurationMs);
+}
+
+function getArtifactTransferAction(
+  actions: ArtifactAction[]
+): ArtifactTransferAction | null {
+  if (actions.includes("Download")) {
+    return "Download";
+  }
+
+  if (actions.includes("Export")) {
+    return "Export";
+  }
+
+  return null;
+}
+
+function getArtifactTypeLabel(type: ArtifactSummary["type"]) {
+  switch (type) {
+    case "code":
+      return "Source code";
+    case "preview":
+      return "Preview manifest";
+    case "export":
+      return "Markdown export";
+    default:
+      return type;
+  }
+}
+
+function getArtifactActionButtonLabel(
+  action: ArtifactAction,
+  artifact: ArtifactSummary,
+  copyFeedback: ArtifactActionFeedback | null,
+  transferFeedback: ArtifactActionFeedback | null
+) {
+  if (action === "Copy" && copyFeedback?.artifactId === artifact.id) {
+    return copyFeedback.state === "success" ? "Copied" : "Copy Unavailable";
+  }
+
+  if (
+    (action === "Download" || action === "Export") &&
+    transferFeedback?.artifactId === artifact.id
+  ) {
+    if (transferFeedback.state === "success") {
+      return action === "Export" ? "Exported" : "Downloaded";
+    }
+
+    return action === "Export" ? "Export Unavailable" : "Download Unavailable";
+  }
+
+  return formatArtifactActionLabel(action);
+}
+
+function getArtifactActionMessage(
+  artifact: ArtifactSummary,
+  copyFeedback: ArtifactActionFeedback | null,
+  transferFeedback: ArtifactActionFeedback | null
+) {
+  if (copyFeedback?.artifactId === artifact.id) {
+    return copyFeedback.state === "success"
+      ? `${artifact.title} copied to clipboard.`
+      : `Clipboard is unavailable for ${artifact.title}.`;
+  }
+
+  if (transferFeedback?.artifactId === artifact.id) {
+    const transferAction = getArtifactTransferAction(artifact.actions);
+    const transferVerb = transferAction === "Export" ? "exported" : "downloaded";
+
+    return transferFeedback.state === "success"
+      ? `${artifact.title} ${transferVerb}.`
+      : `${transferAction === "Export" ? "Export" : "Download"} is unavailable for ${artifact.title}.`;
+  }
+
+  return null;
 }
 
 type WorkflowProgressSummary = {

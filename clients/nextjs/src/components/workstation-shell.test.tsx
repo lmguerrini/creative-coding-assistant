@@ -21,6 +21,8 @@ import {
   type WorkspacePersistenceSaveResult
 } from "@/lib/workspace-persistence";
 
+const originalClipboard = navigator.clipboard;
+
 function snapshotWithActiveTab(
   activeTab: InspectorTabName
 ): AssistantWorkspaceSnapshot {
@@ -70,6 +72,11 @@ function renderShell(
 describe("WorkstationShell", () => {
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: originalClipboard
+    });
   });
 
   it("renders the three-zone creative workspace shell", () => {
@@ -322,7 +329,15 @@ describe("WorkstationShell", () => {
     renderShell();
 
     fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
-    fireEvent.click(screen.getByRole("button", { name: "Open webgpu-particle-field.ts" }));
+    const artifactList = screen.getByRole("tabpanel", { name: "Artifacts inspector" });
+    const sourceArtifact = within(artifactList).getByLabelText(
+      "webgpu-particle-field.ts artifact"
+    );
+    fireEvent.click(
+      within(sourceArtifact).getByRole("button", {
+        name: "Open in Code webgpu-particle-field.ts"
+      })
+    );
 
     const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
 
@@ -336,17 +351,33 @@ describe("WorkstationShell", () => {
     );
 
     fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
-    fireEvent.click(screen.getByRole("button", { name: "Open projection-notes.md" }));
+    const notesArtifact = screen.getByLabelText("projection-notes.md artifact");
+    fireEvent.click(
+      within(notesArtifact).getByRole("button", {
+        name: "Open in Code projection-notes.md"
+      })
+    );
 
+    expect(screen.getByRole("tabpanel", { name: "Code inspector" })).toHaveAttribute(
+      "data-opened-artifact",
+      "projection-notes.md"
+    );
     expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
       "projection-notes.md"
     );
+
+    fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
     const selectedArtifact = screen.getByLabelText("projection-notes.md artifact");
 
     expect(selectedArtifact).toHaveAttribute("data-active", "true");
     expect(within(selectedArtifact).getByText("Selected")).toBeVisible();
+    const previewArtifact = screen.getByLabelText("preview-request.json artifact");
 
-    fireEvent.click(screen.getByRole("button", { name: "Preview preview-request.json" }));
+    fireEvent.click(
+      within(previewArtifact).getByRole("button", {
+        name: "Open Preview preview-request.json"
+      })
+    );
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
 
@@ -368,13 +399,60 @@ describe("WorkstationShell", () => {
     const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
 
     expect(codePanel).toBeVisible();
-    expect(screen.getByText("TypeScript + WGSL / Draft artifact")).toBeVisible();
+    expect(within(codePanel).getByText("TypeScript + WGSL")).toBeVisible();
+    expect(within(codePanel).getByText("Source code")).toBeVisible();
+    expect(within(codePanel).getByText("7 lines")).toBeVisible();
     expect(
-      within(codePanel).getByText((content) =>
-        content.includes("renderer.present({ palette, projectionScale });")
-      )
-    ).toBeVisible();
+      within(codePanel).getByRole("region", {
+        name: "webgpu-particle-field.ts content"
+      })
+    ).toHaveTextContent("renderer.present({ palette, projectionScale });");
     expect(screen.queryByRole("tabpanel", { name: "Overview inspector" })).not.toBeInTheDocument();
+  });
+
+  it("shows focused artifact metadata and actions in the artifacts inspector", () => {
+    renderShell(snapshotWithActiveTab("Artifacts"));
+
+    const details = screen.getByRole("group", { name: "Active artifact details" });
+
+    expect(within(details).getByText("Selected artifact")).toBeVisible();
+    expect(within(details).getByText("webgpu-particle-field.ts")).toBeVisible();
+    expect(within(details).getByText("Source code")).toBeVisible();
+    expect(within(details).getByText("TypeScript + WGSL")).toBeVisible();
+    expect(
+      within(details).getByRole("button", {
+        name: "Open in Code webgpu-particle-field.ts"
+      })
+    ).toBeVisible();
+    expect(
+      within(details).getByRole("button", {
+        name: "Download File webgpu-particle-field.ts"
+      })
+    ).toBeVisible();
+  });
+
+  it("shows copy feedback in the code inspector", async () => {
+    const writeText = vi.fn(async () => undefined);
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: { writeText }
+    });
+
+    renderShell(snapshotWithActiveTab("Code"));
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Copy webgpu-particle-field.ts" })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("webgpu-particle-field.ts copied to clipboard.")
+      ).toBeVisible();
+    });
+    expect(writeText).toHaveBeenCalledWith(
+      expect.stringContaining("renderer.present({ palette, projectionScale });")
+    );
+    expect(screen.getByText("Copied")).toBeVisible();
   });
 
   it("shows an elegant workflow inspector with live graph states", () => {

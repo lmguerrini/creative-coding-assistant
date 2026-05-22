@@ -129,6 +129,7 @@ a {
 .brandText,
 .sessionHeader div,
 .inspectorHeader div,
+.artifactDetailHeader div,
 .artifactItemHeader div,
 .codePanelHeader div {
   min-width: 0;
@@ -137,6 +138,7 @@ a {
 .brandText strong,
 .sessionHeader h1,
 .inspectorHeader h2,
+.artifactDetailHeader strong,
 .artifactItem strong,
 .codePanelHeader strong,
 .retrievalItem strong,
@@ -293,7 +295,10 @@ a {
 .sessionHeader p,
 .inspectorHeader p,
 .message p,
+.artifactDetailHeader p,
+.codePanelHeader p,
 .artifactItem p,
+.artifactActionFeedback,
 .previewCopy p,
 .overviewTile p,
 .retrievalItem p,
@@ -333,6 +338,7 @@ a {
 
 .sessionMetric span,
 .overviewTile span,
+.artifactDetailHeader span,
 .codePanelHeader span,
 .previewSummaryIcon + div span {
   color: var(--muted);
@@ -878,8 +884,8 @@ a {
 
 .codePanel {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 12px;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  gap: 10px;
   height: 100%;
 }
 
@@ -893,21 +899,150 @@ a {
 .codePanel[data-opened-artifact] .codePanelHeader {
   border: 1px solid rgba(76, 215, 200, 0.18);
   border-radius: 14px;
-  padding: 10px;
-  background: rgba(76, 215, 200, 0.065);
+  padding: 12px;
+  background:
+    linear-gradient(135deg, rgba(76, 215, 200, 0.11), transparent 72%),
+    rgba(76, 215, 200, 0.065);
 }
 
-.codePanel pre {
+.codePanelActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.codePanelActions button {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--foreground);
+  background: rgba(255, 255, 255, 0.055);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 780;
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.codePanelActions button:hover {
+  border-color: rgba(76, 215, 200, 0.35);
+  color: var(--teal);
+  background: rgba(76, 215, 200, 0.08);
+  transform: translateY(-1px);
+}
+
+.codePanelMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.codePanelMeta span,
+.artifactDetailMeta dd {
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.artifactActionFeedback {
+  color: var(--teal);
+  font-size: 11px;
+}
+
+.codeViewer {
   min-height: 0;
   overflow: auto;
-  margin: 0;
   border: 1px solid var(--line);
   border-radius: 15px;
-  padding: 13px;
   background: rgba(3, 6, 8, 0.7);
+}
+
+.codeViewer pre,
+.codeViewer code {
+  display: block;
+  margin: 0;
+  min-height: 100%;
+}
+
+.codeViewer pre {
+  padding: 12px 0;
+}
+
+.codeViewer code {
   color: var(--muted-strong);
+  font-family:
+    "IBM Plex Mono",
+    "JetBrains Mono",
+    "SFMono-Regular",
+    monospace;
   font-size: 12px;
   line-height: 1.65;
+}
+
+.codeLine {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  padding: 0 14px;
+}
+
+.codeLine:hover {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.codeLineNumber {
+  position: sticky;
+  left: 0;
+  padding-right: 4px;
+  color: rgba(140, 154, 160, 0.72);
+  text-align: right;
+  user-select: none;
+}
+
+.codeLineContent {
+  min-width: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.codeToken--comment {
+  color: #7da59b;
+}
+
+.codeToken--heading,
+.codeToken--property {
+  color: #86c8ff;
+}
+
+.codeToken--inline_code,
+.codeToken--keyword {
+  color: #f3b852;
+}
+
+.codeToken--function {
+  color: #79d38b;
+}
+
+.codeToken--number {
+  color: #c7b0ff;
+}
+
+.codeToken--string {
+  color: #f5a58c;
+}
+
+.codeToken--symbol {
+  color: rgba(237, 243, 242, 0.72);
 }
 
 .workflowPanel {
@@ -1060,10 +1195,50 @@ a {
   align-content: start;
 }
 
+.artifactPanel {
+  gap: 12px;
+}
+
+.artifactDetailCard,
 .artifactList,
 .retrievalList {
   display: grid;
   gap: 10px;
+}
+
+.artifactDetailCard {
+  padding: 12px;
+  border: 1px solid rgba(76, 215, 200, 0.24);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(76, 215, 200, 0.08), transparent 72%),
+    rgba(255, 255, 255, 0.045);
+}
+
+.artifactDetailHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.artifactDetailMeta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.artifactDetailMeta div {
+  display: grid;
+  gap: 5px;
+}
+
+.artifactDetailMeta dt {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .artifactItem {
@@ -1158,6 +1333,15 @@ a {
     color 180ms ease,
     background 180ms ease,
     transform 180ms ease;
+}
+
+.artifactActions button[data-action="open"] {
+  border-color: rgba(76, 215, 200, 0.26);
+}
+
+.artifactActions button[data-action="download"],
+.artifactActions button[data-action="export"] {
+  border-color: rgba(243, 184, 82, 0.26);
 }
 
 .artifactActions button:hover {
@@ -1269,11 +1453,16 @@ a {
   .sessionHeader,
   .previewBody,
   .inspectorHeader,
+  .artifactDetailHeader,
   .artifactItemHeader,
   .codePanelHeader {
     align-items: flex-start;
     grid-template-columns: minmax(0, 1fr);
     flex-direction: column;
+  }
+
+  .artifactDetailMeta {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .sessionMetric {
@@ -1291,5 +1480,11 @@ a {
 
   .inspectorTabs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .codeLine {
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 10px;
+    padding: 0 10px;
   }
 }
