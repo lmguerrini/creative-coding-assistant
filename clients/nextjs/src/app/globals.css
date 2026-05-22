@@ -914,12 +914,32 @@ a {
   transition:
     border-color 180ms ease,
     background 180ms ease,
+    box-shadow 180ms ease,
     transform 180ms ease;
 }
 
 .previewShelf[open] {
   border-color: rgba(var(--accent-rgb), 0.3);
   box-shadow: var(--glow-teal), var(--shadow);
+}
+
+.previewShelf[data-runtime-state="generating"] {
+  border-color: rgba(var(--accent-rgb), 0.26);
+}
+
+.previewShelf[data-runtime-state="error"] {
+  border-color: rgba(255, 122, 102, 0.26);
+}
+
+.previewShelf[data-runtime-state="error"][open] {
+  box-shadow:
+    0 0 0 1px rgba(255, 122, 102, 0.22),
+    0 18px 46px rgba(255, 122, 102, 0.08),
+    var(--shadow);
+}
+
+.previewShelf[data-runtime-state="unavailable"] {
+  border-color: rgba(243, 184, 82, 0.22);
 }
 
 .previewShelf[data-state="open"] summary {
@@ -976,6 +996,18 @@ a {
   transform: translateX(-2px);
 }
 
+.previewShelf summary small[data-state="generating"] {
+  color: var(--teal);
+}
+
+.previewShelf summary small[data-state="unavailable"] {
+  color: var(--amber);
+}
+
+.previewShelf summary small[data-state="error"] {
+  color: var(--coral);
+}
+
 .previewBody {
   display: grid;
   grid-template-columns: minmax(180px, 0.45fr) minmax(0, 1fr);
@@ -1001,6 +1033,26 @@ a {
     conic-gradient(from 120deg, rgba(124, 167, 255, 0.24), rgba(243, 184, 82, 0.16), rgba(76, 215, 200, 0.22), rgba(124, 167, 255, 0.24));
 }
 
+.previewFrame[data-state="generating"] {
+  background:
+    radial-gradient(circle at 18% 24%, rgba(var(--accent-rgb), 0.22), transparent 18%),
+    radial-gradient(circle at 78% 30%, rgba(243, 184, 82, 0.16), transparent 20%),
+    conic-gradient(from 120deg, rgba(124, 167, 255, 0.18), rgba(var(--accent-rgb), 0.22), rgba(243, 184, 82, 0.12), rgba(124, 167, 255, 0.18));
+}
+
+.previewFrame[data-state="unavailable"] {
+  background:
+    linear-gradient(135deg, rgba(243, 184, 82, 0.14), transparent 72%),
+    rgba(255, 255, 255, 0.035);
+}
+
+.previewFrame[data-state="error"] {
+  background:
+    radial-gradient(circle at 18% 24%, rgba(255, 122, 102, 0.24), transparent 18%),
+    linear-gradient(135deg, rgba(255, 122, 102, 0.14), transparent 72%),
+    rgba(255, 255, 255, 0.035);
+}
+
 .previewFrame div {
   display: grid;
   gap: 4px;
@@ -1010,12 +1062,25 @@ a {
   background: rgba(7, 9, 12, 0.55);
 }
 
+.previewFrame div[data-state="generating"] {
+  border-color: rgba(var(--accent-rgb), 0.22);
+}
+
+.previewFrame div[data-state="unavailable"] {
+  border-color: rgba(243, 184, 82, 0.18);
+}
+
+.previewFrame div[data-state="error"] {
+  border-color: rgba(255, 122, 102, 0.24);
+}
+
 .previewFrame strong {
   color: var(--foreground);
   font-size: 16px;
 }
 
 .previewFrame span,
+.previewFrame small,
 .previewCopy dd {
   color: var(--muted-strong);
   font-size: 12px;

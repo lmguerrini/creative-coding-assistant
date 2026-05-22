@@ -35,6 +35,7 @@ import type {
   WorkflowStepState
 } from "@/lib/assistant-client";
 import {
+  readPreviewArtifactUpdate,
   streamAssistantEvents as streamBackendAssistantEvents,
   workflowNodeFromAssistantStreamEvent,
   type AssistantStreamEvent,
@@ -69,6 +70,7 @@ import {
   type WorkflowRuntimeTraceEvent,
   type WorkflowRuntimeVisualState
 } from "@/lib/workflow-runtime";
+import { buildPreviewRuntimeSummary } from "@/lib/preview-runtime";
 import {
   buildConversationEntries,
   getComposerStatusLabel,
@@ -415,9 +417,6 @@ export function WorkstationShell({
   const activeArtifact =
     snapshot.artifacts.find((artifact) => artifact.id === activeArtifactId) ??
     snapshot.artifacts[0];
-  const previewArtifact =
-    snapshot.artifacts.find((artifact) => artifact.id === previewArtifactId) ??
-    activeArtifact;
   const persistedMessages = useMemo(
     () => toPersistedConversation(conversationEntries),
     [conversationEntries]
@@ -446,14 +445,15 @@ export function WorkstationShell({
           tab.label === "Artifacts" ? String(snapshot.artifacts.length) : tab.badge
       })),
       messages: persistedMessages,
-      preview: {
-        ...snapshot.preview,
-        active: isPreviewOpen,
-        artifactName: previewArtifact.title,
-        collapsed: !isPreviewOpen,
-        status: isPreviewOpen ? "Preview open" : "Ready when opened",
-        trigger: `Preview ${previewArtifact.title}`
-      },
+      preview: buildPreviewRuntimeSummary({
+        artifacts: snapshot.artifacts,
+        basePreview: snapshot.preview,
+        isOpen: isPreviewOpen,
+        previewArtifactId: previewArtifactId || activeArtifact.id,
+        streamError,
+        traceEvents: workflowTraceEvents,
+        workflow
+      }),
       workflow,
       debug: {
         ...snapshot.debug,
@@ -466,16 +466,18 @@ export function WorkstationShell({
       }
     }),
     [
+      activeArtifact.id,
       activeArtifact.title,
       activeArtifact.type,
       activeTab,
       isPreviewOpen,
       isStreaming,
       persistedMessages,
-      previewArtifact.title,
+      previewArtifactId,
       snapshot,
       streamError,
       streamEvents,
+      workflowTraceEvents,
       workflow
     ]
   );
@@ -980,12 +982,15 @@ export function WorkstationShell({
     }
 
     if (streamEvent.event_type === "preview_artifact") {
-      const artifactId = readPayloadText(streamEvent, "artifact_id");
+      const previewUpdate = readPreviewArtifactUpdate(streamEvent);
+      const nextPreviewArtifactId =
+        previewUpdate?.previewArtifactId ?? previewUpdate?.artifactId ?? null;
+
       if (
-        artifactId &&
-        snapshot.artifacts.some((artifact) => artifact.id === artifactId)
+        nextPreviewArtifactId &&
+        snapshot.artifacts.some((artifact) => artifact.id === nextPreviewArtifactId)
       ) {
-        setPreviewArtifactId(artifactId);
+        setPreviewArtifactId(nextPreviewArtifactId);
       }
       if (workspacePreferences.autoOpenPreview) {
         handlePreviewOpenChange(true);
@@ -1041,6 +1046,7 @@ export function WorkstationShell({
 
   async function handleArtifactCopy(artifact: ArtifactSummary) {
     setActiveArtifactId(artifact.id);
+    setPreviewArtifactId(artifact.id);
     const wasCopied = await copyArtifactDocument(
       buildArtifactDocument(interactiveSnapshot, artifact)
     );
@@ -1054,6 +1060,7 @@ export function WorkstationShell({
 
   function handleArtifactTransfer(artifact: ArtifactSummary) {
     setActiveArtifactId(artifact.id);
+    setPreviewArtifactId(artifact.id);
     const wasTransferred = downloadArtifactDocument(
       buildArtifactDocument(interactiveSnapshot, artifact)
     );
@@ -1067,6 +1074,7 @@ export function WorkstationShell({
 
   function handleArtifactAction(action: ArtifactAction, artifact: ArtifactSummary) {
     setActiveArtifactId(artifact.id);
+    setPreviewArtifactId(artifact.id);
 
     if (action === "Open") {
       setActiveTab("Code");
@@ -1074,7 +1082,6 @@ export function WorkstationShell({
     }
 
     if (action === "Preview") {
-      setPreviewArtifactId(artifact.id);
       handlePreviewOpenChange(true);
       setActiveTab("Overview");
       return;
@@ -1474,6 +1481,7 @@ function PreviewShelf({
       <details
         className="previewShelf"
         data-state={snapshot.preview.active ? "open" : "closed"}
+        data-runtime-state={snapshot.preview.state}
         onToggle={handleToggle}
         open={snapshot.preview.active}
       >
@@ -1488,18 +1496,43 @@ function PreviewShelf({
             <strong>{snapshot.preview.title}</strong>
             <span>{snapshot.preview.artifactName}</span>
           </div>
-          <small>{snapshot.preview.status}</small>
+          <small data-state={snapshot.preview.state}>{snapshot.preview.status}</small>
         </summary>
         <div className="previewBody" style={{ height }}>
-          <div className="previewFrame" aria-label="Preview placeholder">
-            <div>
-              <strong>{snapshot.preview.version}</strong>
+          <div
+            className="previewFrame"
+            aria-label="Preview placeholder"
+            data-state={snapshot.preview.state}
+          >
+            <div data-state={snapshot.preview.state}>
+              <strong>
+                {formatPreviewStateLabel(
+                  snapshot.preview.state,
+                  snapshot.preview.active
+                )}
+              </strong>
               <span>{snapshot.preview.renderer}</span>
+              {snapshot.preview.outputArtifactName ? (
+                <small>{snapshot.preview.outputArtifactName}</small>
+              ) : (
+                <small>{snapshot.preview.version}</small>
+              )}
             </div>
           </div>
           <div className="previewCopy">
             <p>{snapshot.preview.summary}</p>
             <dl>
+              <div>
+                <dt>Source</dt>
+                <dd>{snapshot.preview.sourceArtifactName || snapshot.preview.artifactName}</dd>
+              </div>
+              {snapshot.preview.outputArtifactName &&
+              snapshot.preview.outputArtifactName !== snapshot.preview.artifactName ? (
+                <div>
+                  <dt>Runtime output</dt>
+                  <dd>{snapshot.preview.outputArtifactName}</dd>
+                </div>
+              ) : null}
               <div>
                 <dt>Target</dt>
                 <dd>{snapshot.preview.target}</dd>
@@ -1707,7 +1740,7 @@ function OverviewInspector({
         </div>
         <div className="overviewTile" role="group" aria-label="Preview summary">
           <span>Preview</span>
-          <strong>{snapshot.preview.active ? "Open" : "Ready"}</strong>
+          <strong>{formatPreviewStateLabel(snapshot.preview.state, snapshot.preview.active)}</strong>
           <p>{snapshot.preview.available ? snapshot.preview.artifactName : "No target"}</p>
         </div>
         <div className="overviewTile" role="group" aria-label="Retrieval summary">
@@ -2488,6 +2521,24 @@ function getArtifactTypeLabel(type: ArtifactSummary["type"]) {
       return "Markdown export";
     default:
       return type;
+  }
+}
+
+function formatPreviewStateLabel(
+  state: AssistantWorkspaceSnapshot["preview"]["state"],
+  isOpen: boolean
+) {
+  switch (state) {
+    case "generating":
+      return "Generating";
+    case "ready":
+      return isOpen ? "Open" : "Ready";
+    case "error":
+      return "Error";
+    case "unavailable":
+      return "Unavailable";
+    default:
+      return isOpen ? "Open" : "Ready";
   }
 }
 

@@ -316,7 +316,21 @@ describe("WorkstationShell", () => {
         {
           event_type: "preview_artifact",
           sequence: 4,
-          payload: { artifact_id: "preview-manifest", status: "ready" }
+          payload: {
+            artifact_id: "source-sketch",
+            status: "skipped",
+            result: {
+              preview_artifact_id: "preview-manifest",
+              summary:
+                "Preview pipeline foundation only; renderer execution is deferred.",
+              request: {
+                target: "browser_sandbox"
+              },
+              provenance: {
+                renderer_id: "preview.noop"
+              }
+            }
+          }
         },
         {
           event_type: "final",
@@ -362,7 +376,14 @@ describe("WorkstationShell", () => {
     ).toHaveAttribute("aria-valuenow", "11");
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
-    expect(within(preview).getByText("preview-request.json")).toBeVisible();
+    expect(
+      within(preview).getByText("preview-request.json", { selector: "summary span" })
+    ).toBeVisible();
+    expect(
+      within(preview).getByText(
+        "Preview pipeline foundation only; renderer execution is deferred."
+      )
+    ).toBeVisible();
     expect(preview.querySelector("details")).toHaveAttribute("open");
   });
 
@@ -467,7 +488,21 @@ describe("WorkstationShell", () => {
         {
           event_type: "preview_artifact",
           sequence: 1,
-          payload: { artifact_id: "preview-manifest", status: "ready" }
+          payload: {
+            artifact_id: "source-sketch",
+            status: "skipped",
+            result: {
+              preview_artifact_id: "preview-manifest",
+              summary:
+                "Preview pipeline foundation only; renderer execution is deferred.",
+              request: {
+                target: "browser_sandbox"
+              },
+              provenance: {
+                renderer_id: "preview.noop"
+              }
+            }
+          }
         },
         {
           event_type: "final",
@@ -503,7 +538,10 @@ describe("WorkstationShell", () => {
     expect(await screen.findByText("Preview left closed.")).toBeVisible();
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
-    expect(within(preview).getByText("Ready when opened")).toBeVisible();
+    expect(within(preview).getByText("Deferred renderer")).toBeVisible();
+    expect(
+      within(preview).getByText("preview-request.json", { selector: "summary span" })
+    ).toBeVisible();
     expect(preview.querySelector("details")).not.toHaveAttribute("open");
   });
 
@@ -597,8 +635,12 @@ describe("WorkstationShell", () => {
     const summary = within(preview).getByText("Preview available").closest("summary");
 
     expect(within(preview).getByText("Preview available")).toBeVisible();
-    expect(within(preview).getByText("webgpu-particle-field.ts")).toBeVisible();
-    expect(within(preview).getByText("Ready when opened")).toBeVisible();
+    expect(
+      within(preview).getByText("webgpu-particle-field.ts", { selector: "summary span" })
+    ).toBeVisible();
+    expect(
+      within(preview).getByText("Generating", { selector: "summary small" })
+    ).toBeVisible();
     expect(within(preview).getByText("preview.noop")).not.toBeVisible();
     expect(details).not.toHaveAttribute("open");
     expect(details).toHaveAttribute("data-state", "closed");
@@ -610,6 +652,28 @@ describe("WorkstationShell", () => {
     expect(details).toHaveAttribute("open");
     expect(details).toHaveAttribute("data-state", "open");
     expect(summary).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("updates the preview context when the active artifact is not previewable", () => {
+    renderShell();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
+    const notesArtifact = screen.getByLabelText("projection-notes.md artifact");
+    fireEvent.click(
+      within(notesArtifact).getByRole("button", {
+        name: "Open in Code projection-notes.md"
+      })
+    );
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+
+    expect(
+      within(preview).getByText("projection-notes.md", { selector: "summary span" })
+    ).toBeVisible();
+    expect(
+      within(preview).getByText("Unavailable", { selector: "summary small" })
+    ).toBeVisible();
+    expect(preview.querySelector("details")).not.toHaveAttribute("open");
   });
 
   it("opens artifacts, highlights the active artifact, and targets preview actions", () => {
@@ -672,7 +736,9 @@ describe("WorkstationShell", () => {
       "aria-selected",
       "true"
     );
-    expect(within(preview).getByText("preview-request.json")).toBeVisible();
+    expect(
+      within(preview).getByText("preview-request.json", { selector: "summary span" })
+    ).toBeVisible();
     expect(within(preview).getByText("Preview open")).toBeVisible();
     expect(within(preview).getByText("preview.noop")).toBeVisible();
     expect(preview.querySelector("details")).toHaveAttribute("open");
