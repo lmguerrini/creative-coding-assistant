@@ -39,7 +39,12 @@ export type AssistantMessage = {
   content: string;
 };
 
-export type ArtifactAction = "Open" | "Preview" | "Copy" | "Export";
+export type ArtifactAction =
+  | "Open"
+  | "Preview"
+  | "Copy"
+  | "Download"
+  | "Export";
 
 export type ArtifactSummary = {
   id: string;
@@ -278,7 +283,7 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
         language: "TypeScript",
         status: "Draft",
         summary: "Primary generated sketch artifact with a browser preview target.",
-        actions: ["Open", "Preview", "Copy"]
+        actions: ["Open", "Preview", "Copy", "Download"]
       },
       {
         id: "preview-manifest",
@@ -287,7 +292,7 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
         language: "JSON",
         status: "Queued",
         summary: "Renderer identity, browser sandbox target, and artifact v1 linkage.",
-        actions: ["Open", "Preview"]
+        actions: ["Open", "Preview", "Download"]
       },
       {
         id: "session-notes",
