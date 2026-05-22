@@ -74,9 +74,9 @@ export const creativePreviewRendererRegistry: readonly CreativePreviewRendererDe
     matchExtensions: [".p5.js", ".p5.ts"],
     matchTokens: ["p5", "createcanvas", "background(", "draw("],
     notes: [
-      "2D canvas loop placeholder",
-      "Safe surface only; no generated code execution yet",
-      "Future-ready for sketch mount and live frame updates"
+      "Constrained canvas sketch runtime",
+      "Interprets simple p5 sketch signals without executing generated JavaScript",
+      "Reset and reload remount the runtime surface"
     ]
   },
   {
@@ -114,9 +114,9 @@ export const creativePreviewRendererRegistry: readonly CreativePreviewRendererDe
       "void main"
     ],
     notes: [
-      "Shader stage placeholder",
-      "No live compilation or sandbox execution yet",
-      "Prepared for future fragment and vertex shader routing"
+      "Bounded WebGL fragment runtime",
+      "Compiles fragment shaders without JavaScript evaluation",
+      "Rejects unsupported shader features with a visible runtime error"
     ]
   },
   {
@@ -246,7 +246,7 @@ export function buildPreviewRendererRoute({
         surfaceKind: matchedRenderer.kind,
         surfaceTitle: matchedRenderer.surfaceLabel,
         surfaceEyebrow: "Renderer match",
-        surfaceSummary: `${matchedRenderer.displayName} is selected as the future live surface for ${sourceArtifactName}. This branch only renders the safe container foundation.`,
+        surfaceSummary: `${matchedRenderer.displayName} is selected as the live surface for ${sourceArtifactName}. Supported runtimes mount in place while unsupported engines stay in placeholder mode.`,
         notes: matchedRenderer.notes,
         tone
       };

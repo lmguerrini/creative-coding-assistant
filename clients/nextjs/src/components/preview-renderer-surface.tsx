@@ -1,15 +1,21 @@
 "use client";
 
 import type { PreviewSummary } from "@/lib/assistant-client";
+import {
+  getExecutablePreviewRuntimeKind,
+  type PreviewRuntimeSource
+} from "@/lib/preview-runtime-adapters";
 import type {
   CreativePreviewRendererKind,
   PreviewRendererRoute,
   PreviewRendererSurfaceKind
 } from "@/lib/preview-renderers";
+import { PreviewRuntimeStage } from "./preview-runtime-stage";
 
 type PreviewRendererSurfaceProps = {
   preview: PreviewSummary;
   route: PreviewRendererRoute;
+  runtimeSource: PreviewRuntimeSource;
 };
 
 const creativeSurfaceLayers: Record<CreativePreviewRendererKind, readonly string[]> = {
@@ -32,7 +38,8 @@ const mediaSurfaceLayers: Record<
 
 export function PreviewRendererSurface({
   preview,
-  route
+  route,
+  runtimeSource
 }: PreviewRendererSurfaceProps) {
   return (
     <section
@@ -55,7 +62,7 @@ export function PreviewRendererSurface({
           <span>{route.rendererLabel}</span>
         </div>
       </header>
-      {renderPreviewSurfaceStage(route, preview)}
+      {renderPreviewSurfaceStage(route, preview, runtimeSource)}
       <div className="previewSurfaceNotes" aria-label="Preview renderer notes">
         {route.notes.map((note) => (
           <span key={note}>{note}</span>
@@ -75,7 +82,8 @@ export function PreviewRendererSurface({
 
 function renderPreviewSurfaceStage(
   route: PreviewRendererRoute,
-  preview: PreviewSummary
+  preview: PreviewSummary,
+  runtimeSource: PreviewRuntimeSource
 ) {
   if (route.surfaceKind === "unsupported") {
     return (
@@ -112,6 +120,19 @@ function renderPreviewSurfaceStage(
   }
 
   if (isCreativeSurface(route.surfaceKind)) {
+    const runtimeKind = getExecutablePreviewRuntimeKind(route);
+
+    if (runtimeKind) {
+      return (
+        <PreviewRuntimeStage
+          kind={runtimeKind}
+          preview={preview}
+          route={route}
+          source={runtimeSource}
+        />
+      );
+    }
+
     return (
       <div
         aria-label={`${route.rendererLabel} placeholder surface`}

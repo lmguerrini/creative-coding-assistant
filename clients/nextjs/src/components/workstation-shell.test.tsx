@@ -22,6 +22,8 @@ import {
 } from "@/lib/workspace-persistence";
 
 const originalClipboard = navigator.clipboard;
+const originalCancelAnimationFrame = window.cancelAnimationFrame;
+const originalRequestAnimationFrame = window.requestAnimationFrame;
 
 function snapshotWithActiveTab(
   activeTab: InspectorTabName
@@ -73,6 +75,62 @@ function snapshotWithP5Preview(): AssistantWorkspaceSnapshot {
       ]
     }
   };
+}
+
+function snapshotWithGlslPreview(): AssistantWorkspaceSnapshot {
+  const snapshot = getLocalWorkspaceSnapshot();
+  const title = "chromatic-field.frag";
+
+  return {
+    ...snapshot,
+    artifacts: [
+      {
+        ...snapshot.artifacts[0],
+        language: "GLSL",
+        summary: "Fragment shader with gl_FragColor and uniforms.",
+        title
+      },
+      ...snapshot.artifacts.slice(1)
+    ],
+    preview: {
+      ...snapshot.preview,
+      artifactName: title,
+      sourceArtifactName: title,
+      summary: "Runtime is ready to mount a bounded GLSL fragment preview.",
+      target: "Browser sandbox"
+    },
+    code: {
+      ...snapshot.code,
+      language: "GLSL",
+      title,
+      excerpt: [
+        "void main() {",
+        "  vec2 uv = gl_FragCoord.xy / u_resolution.xy;",
+        "  float field = sin((uv.x + u_time) * 8.0);",
+        "  gl_FragColor = vec4(uv.x, field * 0.5 + 0.5, uv.y, 1.0);",
+        "}"
+      ]
+    }
+  };
+}
+
+function installAnimationFrameMock() {
+  Object.defineProperty(window, "requestAnimationFrame", {
+    configurable: true,
+    value: vi.fn(() => 1)
+  });
+  Object.defineProperty(window, "cancelAnimationFrame", {
+    configurable: true,
+    value: vi.fn()
+  });
+}
+
+function installCanvasContextMock(
+  context: Partial<CanvasRenderingContext2D> | null
+) {
+  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(
+    ((contextId: string) => (contextId === "2d" ? context : null)) as typeof HTMLCanvasElement.prototype.getContext
+  );
 }
 
 async function* streamEvents(
@@ -180,6 +238,14 @@ describe("WorkstationShell", () => {
     Object.defineProperty(window.navigator, "clipboard", {
       configurable: true,
       value: originalClipboard
+    });
+    Object.defineProperty(window, "requestAnimationFrame", {
+      configurable: true,
+      value: originalRequestAnimationFrame
+    });
+    Object.defineProperty(window, "cancelAnimationFrame", {
+      configurable: true,
+      value: originalCancelAnimationFrame
     });
   });
 
@@ -881,7 +947,9 @@ describe("WorkstationShell", () => {
     expect(preview.querySelector("details")).toHaveAttribute("data-state", "open");
   });
 
-  it("routes supported creative artifacts into dedicated renderer surfaces", () => {
+  it("mounts supported p5 artifacts into a live renderer canvas", async () => {
+    installAnimationFrameMock();
+    installCanvasContextMock({});
     renderShell(snapshotWithP5Preview());
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
@@ -896,7 +964,34 @@ describe("WorkstationShell", () => {
 
     expect(within(surface).getByText("P5 sketch surface")).toBeVisible();
     expect(within(surface).getByText("p5.js")).toBeVisible();
-    expect(within(surface).getByText("Foundation ready")).toBeVisible();
+    expect(
+      within(surface).getByRole("group", { name: "p5.js live runtime" })
+    ).toBeVisible();
+    expect(
+      within(surface).getByLabelText("p5.js live runtime canvas")
+    ).toBeVisible();
+    expect(await within(surface).findByText("p5 runtime running")).toBeVisible();
+  });
+
+  it("shows a stable GLSL runtime error when WebGL cannot mount", async () => {
+    installCanvasContextMock(null);
+    renderShell(snapshotWithGlslPreview());
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+
+    const surface = within(preview).getByRole("group", {
+      name: "Preview renderer surface"
+    });
+
+    expect(within(surface).getByText("Shader surface")).toBeVisible();
+    expect(
+      within(surface).getByRole("group", { name: "GLSL live runtime" })
+    ).toBeVisible();
+    expect(await within(surface).findByText("GLSL runtime unavailable")).toBeVisible();
   });
 
   it("uses the full inspector panel for code when Code is active", () => {

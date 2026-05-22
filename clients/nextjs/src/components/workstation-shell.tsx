@@ -91,6 +91,7 @@ import {
   buildPreviewRuntimeSummary,
   isArtifactPreviewable
 } from "@/lib/preview-runtime";
+import { buildPreviewRuntimeSource } from "@/lib/preview-runtime-adapters";
 import {
   buildConversationEntries,
   getComposerStatusLabel,
@@ -538,6 +539,14 @@ export function WorkstationShell({
         previewArtifactId
       }),
     [interactiveSnapshot.artifacts, interactiveSnapshot.preview, previewArtifactId]
+  );
+  const previewRuntimeSource = useMemo(
+    () =>
+      buildPreviewRuntimeSource({
+        code: interactiveSnapshot.code,
+        route: previewRendererRoute
+      }),
+    [interactiveSnapshot.code, previewRendererRoute]
   );
   const previewController = useMemo(
     () =>
@@ -1535,6 +1544,7 @@ export function WorkstationShell({
               onRestart={handlePreviewSessionRestart}
               onToggle={handlePreviewOpenChange}
               route={previewRendererRoute}
+              runtimeSource={previewRuntimeSource}
               resizing={activeResizeTarget === "preview"}
               snapshot={interactiveSnapshot}
             />
@@ -1658,6 +1668,7 @@ type PreviewShelfProps = WorkstationShellProps & {
   onRestart: () => void;
   onToggle: (isOpen: boolean) => void;
   route: PreviewRendererRoute;
+  runtimeSource: ReturnType<typeof buildPreviewRuntimeSource>;
   resizing: boolean;
 };
 
@@ -1673,6 +1684,7 @@ function PreviewShelf({
   onRestart,
   onToggle,
   route,
+  runtimeSource,
   resizing,
   snapshot
 }: PreviewShelfProps) {
@@ -1810,7 +1822,11 @@ function PreviewShelf({
             </div>
           </div>
           <div className="previewBody">
-            <PreviewRendererSurface preview={snapshot.preview} route={route} />
+            <PreviewRendererSurface
+              preview={snapshot.preview}
+              route={route}
+              runtimeSource={runtimeSource}
+            />
             <div className="previewCopy">
               <p>{snapshot.preview.summary}</p>
               <p>{route.surfaceSummary}</p>
