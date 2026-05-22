@@ -1183,17 +1183,19 @@ a {
 
 .previewBody {
   display: grid;
-  grid-template-columns: minmax(180px, 0.45fr) minmax(0, 1fr);
+  grid-template-columns: minmax(220px, 0.62fr) minmax(0, 1fr);
   gap: 12px;
   min-height: 0;
 }
 
-.previewFrame {
+.previewSurface {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  gap: 10px;
   min-height: 0;
   height: 100%;
-  place-items: center;
   overflow: hidden;
+  padding: 12px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 14px;
   background:
@@ -1202,54 +1204,234 @@ a {
     conic-gradient(from 120deg, rgba(124, 167, 255, 0.24), rgba(243, 184, 82, 0.16), rgba(76, 215, 200, 0.22), rgba(124, 167, 255, 0.24));
 }
 
-.previewFrame[data-state="generating"] {
+.previewSurface[data-runtime-state="generating"] {
   background:
     radial-gradient(circle at 18% 24%, rgba(var(--accent-rgb), 0.22), transparent 18%),
     radial-gradient(circle at 78% 30%, rgba(243, 184, 82, 0.16), transparent 20%),
     conic-gradient(from 120deg, rgba(124, 167, 255, 0.18), rgba(var(--accent-rgb), 0.22), rgba(243, 184, 82, 0.12), rgba(124, 167, 255, 0.18));
 }
 
-.previewFrame[data-state="unavailable"] {
+.previewSurface[data-runtime-state="unavailable"] {
   background:
     linear-gradient(135deg, rgba(243, 184, 82, 0.14), transparent 72%),
     rgba(255, 255, 255, 0.035);
 }
 
-.previewFrame[data-state="error"] {
+.previewSurface[data-runtime-state="error"] {
   background:
     radial-gradient(circle at 18% 24%, rgba(255, 122, 102, 0.24), transparent 18%),
     linear-gradient(135deg, rgba(255, 122, 102, 0.14), transparent 72%),
     rgba(255, 255, 255, 0.035);
 }
 
-.previewFrame div {
-  display: grid;
-  gap: 4px;
-  padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 12px;
-  background: rgba(7, 9, 12, 0.55);
+.previewSurfaceHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.previewFrame div[data-state="generating"] {
+.previewSurfaceHeader p,
+.previewSurfaceFooter small {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.previewSurfaceHeader strong,
+.previewSurfaceNotice strong,
+.previewSurfaceMetaGrid strong,
+.previewSurfacePanelHeader span {
+  display: block;
+  color: var(--foreground);
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.previewSurfaceStatus {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+}
+
+.previewSurfaceStatus small,
+.previewSurfaceMetaGrid span,
+.previewSurfacePanelHeader small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.previewSurfaceStatus span {
+  color: var(--muted-strong);
+  font-size: 12px;
+}
+
+.previewSurfaceStage {
+  position: relative;
+  display: grid;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  background: rgba(7, 9, 12, 0.58);
+}
+
+.previewSurface[data-runtime-state="generating"] .previewSurfaceStage {
   border-color: rgba(var(--accent-rgb), 0.22);
 }
 
-.previewFrame div[data-state="unavailable"] {
+.previewSurface[data-runtime-state="unavailable"] .previewSurfaceStage,
+.previewSurface[data-support-state="unsupported"] .previewSurfaceStage {
   border-color: rgba(243, 184, 82, 0.18);
 }
 
-.previewFrame div[data-state="error"] {
+.previewSurface[data-runtime-state="error"] .previewSurfaceStage {
   border-color: rgba(255, 122, 102, 0.24);
 }
 
-.previewFrame strong {
-  color: var(--foreground);
-  font-size: 16px;
+.previewSurfaceStageCreative,
+.previewSurfaceStagePanel,
+.previewSurfaceStageUnsupported {
+  align-items: stretch;
+  padding: 12px;
 }
 
-.previewFrame span,
-.previewFrame small,
+.previewSurfaceStageCreative {
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  gap: 12px;
+}
+
+.previewSurfaceBackdrop {
+  min-height: 140px;
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 22% 28%, rgba(124, 167, 255, 0.32), transparent 17%),
+    radial-gradient(circle at 74% 32%, rgba(76, 215, 200, 0.26), transparent 18%),
+    radial-gradient(circle at 58% 72%, rgba(243, 184, 82, 0.18), transparent 20%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 72%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.previewSurface[data-surface-kind="three"] .previewSurfaceBackdrop {
+  background:
+    radial-gradient(circle at 50% 24%, rgba(124, 167, 255, 0.26), transparent 18%),
+    linear-gradient(180deg, rgba(76, 215, 200, 0.08), transparent 55%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.09), transparent 76%);
+}
+
+.previewSurface[data-surface-kind="glsl"] .previewSurfaceBackdrop {
+  background:
+    linear-gradient(135deg, rgba(255, 122, 102, 0.22), transparent 34%),
+    linear-gradient(215deg, rgba(124, 167, 255, 0.22), transparent 48%),
+    linear-gradient(90deg, rgba(76, 215, 200, 0.12), transparent 78%);
+}
+
+.previewSurface[data-surface-kind="hydra"] .previewSurfaceBackdrop {
+  background:
+    radial-gradient(circle at 25% 50%, rgba(76, 215, 200, 0.24), transparent 20%),
+    radial-gradient(circle at 58% 44%, rgba(255, 122, 102, 0.2), transparent 18%),
+    radial-gradient(circle at 76% 66%, rgba(243, 184, 82, 0.18), transparent 20%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 82%);
+}
+
+.previewSurfaceChipRow,
+.previewSurfaceCapabilityList,
+.previewSurfacePanelBody {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.previewSurfaceChipRow span,
+.previewSurfaceCapabilityList span,
+.previewSurfacePanelBody span,
+.previewSurfaceNotes span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.previewSurfaceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.previewSurfaceGrid span {
+  min-height: 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.previewSurfaceGrid span[data-active="true"] {
+  background: rgba(var(--accent-rgb), 0.9);
+  box-shadow: var(--glow-teal);
+}
+
+.previewSurfaceStagePanel {
+  place-items: center;
+}
+
+.previewSurfacePanelFrame {
+  display: grid;
+  width: 100%;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.previewSurfacePanelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.previewSurfaceStageUnsupported {
+  gap: 12px;
+  align-content: start;
+}
+
+.previewSurfaceNotice {
+  display: grid;
+  gap: 6px;
+}
+
+.previewSurfaceMetaGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.previewSurfaceMetaGrid div {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.previewSurfaceNotes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.previewSurfaceFooter {
+  display: grid;
+  gap: 4px;
+}
+
+.previewSurfaceFooter span,
+.previewSurfaceFooter small,
 .previewCopy dd {
   color: var(--muted-strong);
   font-size: 12px;
@@ -2447,12 +2629,22 @@ a {
   .previewToolbar,
   .previewBody,
   .inspectorHeader,
+  .previewSurfacePanelHeader,
   .artifactDetailHeader,
   .artifactItemHeader,
   .codePanelHeader {
     align-items: flex-start;
     grid-template-columns: minmax(0, 1fr);
     flex-direction: column;
+  }
+
+  .previewSurfaceHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .previewSurfaceStatus {
+    justify-items: start;
   }
 
   .artifactDetailMeta {
@@ -2477,7 +2669,8 @@ a {
   }
 
   .workflowSummaryGrid,
-  .workflowTraceLayout {
+  .workflowTraceLayout,
+  .previewSurfaceMetaGrid {
     grid-template-columns: minmax(0, 1fr);
   }
 

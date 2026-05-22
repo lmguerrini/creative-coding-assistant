@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getLocalWorkspaceSnapshot } from "./assistant-client";
+import { buildPreviewRendererRoute } from "./preview-renderers";
 import {
   buildPreviewControllerModel,
   createPreviewSessionOverride
@@ -8,17 +9,24 @@ import {
 describe("preview controller", () => {
   it("derives ready-state controls from the preview summary", () => {
     const snapshot = getLocalWorkspaceSnapshot();
+    const preview = {
+      ...snapshot.preview,
+      active: true,
+      outputArtifactName: "preview-request.json",
+      state: "ready" as const,
+      status: "Preview open"
+    };
+    const route = buildPreviewRendererRoute({
+      artifacts: snapshot.artifacts,
+      preview,
+      previewArtifactId: "preview-manifest"
+    });
 
     expect(
       buildPreviewControllerModel({
         isFullscreen: false,
-        preview: {
-          ...snapshot.preview,
-          active: true,
-          outputArtifactName: "preview-request.json",
-          state: "ready",
-          status: "Preview open"
-        },
+        preview,
+        route,
         sessionOverride: null
       })
     ).toMatchObject({
@@ -29,17 +37,29 @@ describe("preview controller", () => {
       canRestart: true,
       isFullscreen: false,
       isSessionOverridden: false,
-      sessionLabel: "Live"
+      sessionLabel: "Live",
+      indicators: expect.arrayContaining([
+        expect.objectContaining({ id: "artifact", value: "preview-request.json" }),
+        expect.objectContaining({ id: "target", value: "JSON panel" }),
+        expect.objectContaining({ id: "surface", value: "JSON panel surface" }),
+        expect.objectContaining({ id: "support", value: "Foundation ready" })
+      ])
     });
   });
 
   it("surfaces cleared session overrides as warning-state controls", () => {
     const snapshot = getLocalWorkspaceSnapshot();
+    const route = buildPreviewRendererRoute({
+      artifacts: snapshot.artifacts,
+      preview: snapshot.preview,
+      previewArtifactId: "source-sketch"
+    });
 
     expect(
       buildPreviewControllerModel({
         isFullscreen: true,
         preview: snapshot.preview,
+        route,
         sessionOverride: createPreviewSessionOverride("source-sketch", "cleared")
       })
     ).toMatchObject({

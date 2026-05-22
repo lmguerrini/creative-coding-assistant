@@ -37,6 +37,44 @@ function snapshotWithActiveTab(
   };
 }
 
+function snapshotWithP5Preview(): AssistantWorkspaceSnapshot {
+  const snapshot = getLocalWorkspaceSnapshot();
+  const title = "signal-orbit.p5.ts";
+
+  return {
+    ...snapshot,
+    artifacts: [
+      {
+        ...snapshot.artifacts[0],
+        title,
+        summary: "Reactive p5 loop with createCanvas() and draw()."
+      },
+      ...snapshot.artifacts.slice(1)
+    ],
+    preview: {
+      ...snapshot.preview,
+      artifactName: title,
+      sourceArtifactName: title,
+      summary: "Runtime is generating the current sketch and preview context for the p5 surface.",
+      target: "Browser sandbox"
+    },
+    code: {
+      ...snapshot.code,
+      title,
+      language: "TypeScript + p5.js",
+      excerpt: [
+        "function setup() {",
+        "  createCanvas(windowWidth, windowHeight);",
+        "}",
+        "function draw() {",
+        "  background(8, 12, 18);",
+        "  circle(width * 0.5, height * 0.5, 120);",
+        "}"
+      ]
+    }
+  };
+}
+
 async function* streamEvents(
   events: AssistantStreamEvent[]
 ): AsyncGenerator<AssistantStreamEvent> {
@@ -641,9 +679,6 @@ describe("WorkstationShell", () => {
     expect(
       within(preview).getByText("Generating", { selector: "summary small" })
     ).toBeVisible();
-    for (const rendererLabel of within(preview).getAllByText("preview.noop")) {
-      expect(rendererLabel).not.toBeVisible();
-    }
     expect(details).not.toHaveAttribute("open");
     expect(details).toHaveAttribute("data-state", "closed");
     expect(screen.queryByRole("tabpanel", { name: "Preview inspector" })).not.toBeInTheDocument();
@@ -654,6 +689,13 @@ describe("WorkstationShell", () => {
     expect(details).toHaveAttribute("open");
     expect(details).toHaveAttribute("data-state", "open");
     expect(summary).toHaveAttribute("aria-expanded", "true");
+    const surface = within(preview).getByRole("group", {
+      name: "Preview renderer surface"
+    });
+
+    expect(surface).toBeVisible();
+    expect(within(surface).getByText("Browser route without renderer match")).toBeVisible();
+    expect(within(surface).getByText("Unsupported")).toBeVisible();
   });
 
   it("opens the preview shelf in fullscreen without losing the current context", () => {
@@ -825,11 +867,36 @@ describe("WorkstationShell", () => {
       within(preview).getByText("preview-request.json", { selector: "summary span" })
     ).toBeVisible();
     expect(within(preview).getByText("Preview open")).toBeVisible();
-    for (const rendererLabel of within(preview).getAllByText("preview.noop")) {
-      expect(rendererLabel).toBeVisible();
-    }
+    expect(
+      within(
+        within(preview).getByRole("group", { name: "Preview renderer surface" })
+      ).getByText("JSON panel surface")
+    ).toBeVisible();
+    expect(
+      within(
+        within(preview).getByRole("group", { name: "Preview renderer surface" })
+      ).getByText("Preview manifest panel")
+    ).toBeVisible();
     expect(preview.querySelector("details")).toHaveAttribute("open");
     expect(preview.querySelector("details")).toHaveAttribute("data-state", "open");
+  });
+
+  it("routes supported creative artifacts into dedicated renderer surfaces", () => {
+    renderShell(snapshotWithP5Preview());
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+
+    const surface = within(preview).getByRole("group", {
+      name: "Preview renderer surface"
+    });
+
+    expect(within(surface).getByText("P5 sketch surface")).toBeVisible();
+    expect(within(surface).getByText("p5.js")).toBeVisible();
+    expect(within(surface).getByText("Foundation ready")).toBeVisible();
   });
 
   it("uses the full inspector panel for code when Code is active", () => {

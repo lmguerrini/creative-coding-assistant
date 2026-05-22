@@ -84,6 +84,10 @@ import {
   type PreviewRuntimeSessionOverride
 } from "@/lib/preview-controller";
 import {
+  buildPreviewRendererRoute,
+  type PreviewRendererRoute
+} from "@/lib/preview-renderers";
+import {
   buildPreviewRuntimeSummary,
   isArtifactPreviewable
 } from "@/lib/preview-runtime";
@@ -96,6 +100,7 @@ import {
   type ConversationEntry,
   type ConversationEntryPhase
 } from "@/lib/streaming-conversation";
+import { PreviewRendererSurface } from "./preview-renderer-surface";
 
 type WorkstationShellProps = {
   snapshot: AssistantWorkspaceSnapshot;
@@ -525,14 +530,29 @@ export function WorkstationShell({
       workflow
     ]
   );
+  const previewRendererRoute = useMemo(
+    () =>
+      buildPreviewRendererRoute({
+        artifacts: interactiveSnapshot.artifacts,
+        preview: interactiveSnapshot.preview,
+        previewArtifactId
+      }),
+    [interactiveSnapshot.artifacts, interactiveSnapshot.preview, previewArtifactId]
+  );
   const previewController = useMemo(
     () =>
       buildPreviewControllerModel({
         isFullscreen: isPreviewFullscreen,
         preview: interactiveSnapshot.preview,
+        route: previewRendererRoute,
         sessionOverride: previewSessionOverride
       }),
-    [interactiveSnapshot.preview, isPreviewFullscreen, previewSessionOverride]
+    [
+      interactiveSnapshot.preview,
+      isPreviewFullscreen,
+      previewRendererRoute,
+      previewSessionOverride
+    ]
   );
   const persistenceRecord = useMemo(
     () =>
@@ -1514,6 +1534,7 @@ export function WorkstationShell({
               onReset={handlePreviewSessionReset}
               onRestart={handlePreviewSessionRestart}
               onToggle={handlePreviewOpenChange}
+              route={previewRendererRoute}
               resizing={activeResizeTarget === "preview"}
               snapshot={interactiveSnapshot}
             />
@@ -1636,6 +1657,7 @@ type PreviewShelfProps = WorkstationShellProps & {
   onReset: () => void;
   onRestart: () => void;
   onToggle: (isOpen: boolean) => void;
+  route: PreviewRendererRoute;
   resizing: boolean;
 };
 
@@ -1650,6 +1672,7 @@ function PreviewShelf({
   onReset,
   onRestart,
   onToggle,
+  route,
   resizing,
   snapshot
 }: PreviewShelfProps) {
@@ -1787,30 +1810,20 @@ function PreviewShelf({
             </div>
           </div>
           <div className="previewBody">
-            <div
-              className="previewFrame"
-              aria-label="Preview placeholder"
-              data-state={snapshot.preview.state}
-            >
-              <div data-state={snapshot.preview.state}>
-                <strong>{controller.sessionLabel}</strong>
-                <span>{snapshot.preview.renderer}</span>
-                {snapshot.preview.outputArtifactName ? (
-                  <small>{snapshot.preview.outputArtifactName}</small>
-                ) : (
-                  <small>{snapshot.preview.version}</small>
-                )}
-              </div>
-            </div>
+            <PreviewRendererSurface preview={snapshot.preview} route={route} />
             <div className="previewCopy">
               <p>{snapshot.preview.summary}</p>
+              <p>{route.surfaceSummary}</p>
               <dl>
                 <div>
-                  <dt>Source</dt>
-                  <dd>{snapshot.preview.sourceArtifactName || snapshot.preview.artifactName}</dd>
+                  <dt>Artifact</dt>
+                  <dd>{route.selectedArtifactName}</dd>
                 </div>
-                {snapshot.preview.outputArtifactName &&
-                snapshot.preview.outputArtifactName !== snapshot.preview.artifactName ? (
+                <div>
+                  <dt>Source</dt>
+                  <dd>{route.sourceArtifactName || snapshot.preview.sourceArtifactName}</dd>
+                </div>
+                {snapshot.preview.outputArtifactName ? (
                   <div>
                     <dt>Runtime output</dt>
                     <dd>{snapshot.preview.outputArtifactName}</dd>
@@ -1818,7 +1831,15 @@ function PreviewShelf({
                 ) : null}
                 <div>
                   <dt>Target</dt>
-                  <dd>{snapshot.preview.target}</dd>
+                  <dd>{route.targetLabel}</dd>
+                </div>
+                <div>
+                  <dt>Surface</dt>
+                  <dd>{route.rendererLabel}</dd>
+                </div>
+                <div>
+                  <dt>Availability</dt>
+                  <dd>{route.supportLabel}</dd>
                 </div>
                 <div>
                   <dt>Opened from</dt>

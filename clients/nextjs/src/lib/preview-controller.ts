@@ -1,4 +1,5 @@
 import type { PreviewSummary } from "./assistant-client";
+import type { PreviewRendererRoute } from "./preview-renderers";
 
 export type PreviewRuntimeSessionOverrideMode =
   | "restarting"
@@ -19,7 +20,7 @@ export type PreviewRuntimeIndicatorTone =
   | "muted";
 
 export type PreviewRuntimeIndicator = {
-  id: "session" | "target" | "renderer" | "context";
+  id: "session" | "artifact" | "target" | "surface" | "support";
   label: string;
   tone: PreviewRuntimeIndicatorTone;
   value: string;
@@ -51,10 +52,12 @@ export function createPreviewSessionOverride(
 export function buildPreviewControllerModel({
   isFullscreen,
   preview,
+  route,
   sessionOverride
 }: {
   isFullscreen: boolean;
   preview: PreviewSummary;
+  route: PreviewRendererRoute;
   sessionOverride: PreviewRuntimeSessionOverride | null;
 }): PreviewControllerModel {
   const sessionLabel = formatPreviewSessionLabel(preview, sessionOverride);
@@ -66,22 +69,28 @@ export function buildPreviewControllerModel({
       value: sessionLabel
     },
     {
+      id: "artifact",
+      label: "Artifact",
+      tone: preview.available ? "muted" : "warning",
+      value: route.selectedArtifactName || preview.artifactName || "No preview artifact"
+    },
+    {
       id: "target",
       label: "Target",
-      tone: preview.available ? "muted" : "warning",
-      value: preview.target || "Pending"
+      tone: route.targetId ? "muted" : "warning",
+      value: route.targetLabel || preview.target || "Pending target"
     },
     {
-      id: "renderer",
-      label: "Renderer",
-      tone: preview.renderer ? "muted" : "warning",
-      value: preview.renderer || "Deferred"
+      id: "surface",
+      label: "Surface",
+      tone: route.tone,
+      value: route.rendererLabel
     },
     {
-      id: "context",
-      label: "Context",
-      tone: preview.available ? "muted" : "warning",
-      value: preview.sourceArtifactName || preview.artifactName || "No artifact"
+      id: "support",
+      label: "Support",
+      tone: route.tone,
+      value: route.supportLabel
     }
   ];
 
