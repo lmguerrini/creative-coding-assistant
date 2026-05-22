@@ -36,6 +36,23 @@ export type AssistantStreamWorkflowMetadata = {
   review_reasons: string[];
 };
 
+export type AssistantPreviewArtifactStatus =
+  | "succeeded"
+  | "failed"
+  | "skipped";
+
+export type AssistantPreviewArtifactUpdate = {
+  status: AssistantPreviewArtifactStatus;
+  artifactId: string | null;
+  previewArtifactId: string | null;
+  rendererId: string | null;
+  target: string | null;
+  summary: string | null;
+  errorMessage: string | null;
+  emittedAt: string | null;
+  completedAt: string | null;
+};
+
 export type AssistantStreamRequest = {
   query: string;
   conversationId?: string;
@@ -263,6 +280,42 @@ export function readEventTimestamp(event: AssistantStreamEvent): string | null {
   return typeof emittedAt === "string" ? emittedAt : null;
 }
 
+export function readPreviewArtifactUpdate(
+  event: AssistantStreamEvent
+): AssistantPreviewArtifactUpdate | null {
+  if (event.event_type !== "preview_artifact") {
+    return null;
+  }
+
+  const status = normalizePreviewArtifactStatus(event.payload.status);
+  if (!status) {
+    return null;
+  }
+
+  const rawResult = event.payload.result;
+  const result = isRecord(rawResult) ? rawResult : null;
+  const provenance = isRecord(result?.provenance) ? result.provenance : null;
+  const request = isRecord(result?.request) ? result.request : null;
+  const error = isRecord(result?.error) ? result.error : null;
+
+  return {
+    status,
+    artifactId: typeof event.payload.artifact_id === "string" ? event.payload.artifact_id : null,
+    previewArtifactId:
+      typeof result?.preview_artifact_id === "string"
+        ? result.preview_artifact_id
+        : null,
+    rendererId:
+      typeof provenance?.renderer_id === "string" ? provenance.renderer_id : null,
+    target: typeof request?.target === "string" ? request.target : null,
+    summary: typeof result?.summary === "string" ? result.summary : null,
+    errorMessage: typeof error?.message === "string" ? error.message : null,
+    emittedAt: readEventTimestamp(event),
+    completedAt:
+      typeof result?.completed_at === "string" ? result.completed_at : null
+  };
+}
+
 function isAssistantStreamEvent(value: unknown): value is AssistantStreamEvent {
   if (!isRecord(value)) {
     return false;
@@ -280,6 +333,25 @@ function isAssistantStreamEvent(value: unknown): value is AssistantStreamEvent {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function normalizePreviewArtifactStatus(
+  value: unknown
+): AssistantPreviewArtifactStatus | null {
+  switch (value) {
+    case "succeeded":
+    case "failed":
+    case "skipped":
+      return value;
+    case "ready":
+      return "succeeded";
+    case "error":
+      return "failed";
+    case "unavailable":
+      return "skipped";
+    default:
+      return null;
+  }
 }
 
 function parseWorkflowNodeId(value: unknown): WorkflowNodeId | null {

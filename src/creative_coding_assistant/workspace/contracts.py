@@ -16,6 +16,7 @@ InspectorTabName = Literal["Overview", "Code", "Workflow", "Artifacts", "Retriev
 MessageRole = Literal["user", "assistant"]
 WorkspaceDensity = Literal["cozy", "compact"]
 WorkspaceThemePreset = Literal["aqua", "codex", "matrix"]
+WorkspacePreviewState = Literal["generating", "ready", "unavailable", "error"]
 
 
 class WorkspaceSessionMessage(BaseModel):
@@ -89,10 +90,14 @@ class WorkspaceSessionPreview(BaseModel):
     available: bool = False
     active: bool = False
     collapsed: bool = True
+    state: WorkspacePreviewState = "unavailable"
     title: str = "Preview"
     target: str = ""
     status: str = ""
     artifact_name: str = Field(default="", alias="artifactName")
+    source_artifact_id: str = Field(default="", alias="sourceArtifactId")
+    source_artifact_name: str = Field(default="", alias="sourceArtifactName")
+    output_artifact_name: str = Field(default="", alias="outputArtifactName")
     summary: str = ""
     renderer: str = ""
     trigger: str = ""

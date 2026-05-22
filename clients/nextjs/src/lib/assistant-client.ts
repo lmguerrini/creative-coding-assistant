@@ -60,10 +60,14 @@ export type PreviewSummary = {
   available: boolean;
   active: boolean;
   collapsed: boolean;
+  state: "generating" | "ready" | "unavailable" | "error";
   title: string;
   target: string;
   status: string;
   artifactName: string;
+  sourceArtifactId: string;
+  sourceArtifactName: string;
+  outputArtifactName: string;
   summary: string;
   renderer: string;
   trigger: string;
@@ -308,14 +312,18 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
       available: true,
       active: false,
       collapsed: true,
+      state: "generating",
       title: "Preview available",
       target: "Browser sandbox / WebGPU WGSL",
-      status: "Ready when opened",
+      status: "Generating",
       artifactName: "webgpu-particle-field.ts",
+      sourceArtifactId: "source-sketch",
+      sourceArtifactName: "webgpu-particle-field.ts",
+      outputArtifactName: "",
       summary:
-        "Launches from the artifact action to inspect particle density, palette balance, and projection-scale motion.",
+        "Runtime is still generating the current sketch and preview context for the WebGPU field.",
       renderer: "preview.noop",
-      trigger: "Preview webgpu-particle-field.ts",
+      trigger: "Workflow Generation",
       version: "v1"
     },
     code: {

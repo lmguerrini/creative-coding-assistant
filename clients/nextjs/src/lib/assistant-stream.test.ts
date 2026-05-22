@@ -4,6 +4,7 @@ import {
   decodeAssistantStream,
   parseAssistantStreamLine,
   readEventTimestamp,
+  readPreviewArtifactUpdate,
   readWorkflowMetadata,
   streamAssistantEvents,
   workflowNodeFromAssistantStreamEvent,
@@ -181,5 +182,40 @@ describe("assistant stream client", () => {
       review_reasons: []
     });
     expect(workflowNodeFromAssistantStreamEvent(event)).toBe("generation");
+  });
+
+  it("reads preview runtime updates from preview artifact events", () => {
+    const event: AssistantStreamEvent = {
+      event_type: "preview_artifact",
+      sequence: 4,
+      payload: {
+        artifact_id: "source-sketch",
+        status: "skipped",
+        emitted_at: "2026-05-22T10:25:00Z",
+        result: {
+          summary: "Preview pipeline foundation only; renderer execution is deferred.",
+          completed_at: "2026-05-22T10:25:00Z",
+          preview_artifact_id: "preview-manifest",
+          request: {
+            target: "browser_sandbox"
+          },
+          provenance: {
+            renderer_id: "preview.noop"
+          }
+        }
+      }
+    };
+
+    expect(readPreviewArtifactUpdate(event)).toEqual({
+      status: "skipped",
+      artifactId: "source-sketch",
+      previewArtifactId: "preview-manifest",
+      rendererId: "preview.noop",
+      target: "browser_sandbox",
+      summary: "Preview pipeline foundation only; renderer execution is deferred.",
+      errorMessage: null,
+      emittedAt: "2026-05-22T10:25:00Z",
+      completedAt: "2026-05-22T10:25:00Z"
+    });
   });
 });
