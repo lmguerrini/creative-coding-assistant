@@ -14,6 +14,11 @@ describe("artifact inspector helpers", () => {
     const codeArtifact = snapshot.artifacts[0];
     const previewArtifact = snapshot.artifacts[1];
     const exportArtifact = snapshot.artifacts[2];
+    const previewDocument = buildArtifactDocument(snapshot, previewArtifact);
+    const parsedPreviewDocument = JSON.parse(previewDocument.content) as {
+      preview: { targetId: string };
+      route: { surfaceKind: string; rendererLabel: string };
+    };
 
     expect(buildArtifactDocument(snapshot, codeArtifact)).toMatchObject({
       fileName: "webgpu-particle-field.ts",
@@ -22,11 +27,14 @@ describe("artifact inspector helpers", () => {
       mimeType: "text/typescript;charset=utf-8",
       typeLabel: "Source code"
     });
-    expect(buildArtifactDocument(snapshot, previewArtifact)).toMatchObject({
+    expect(previewDocument).toMatchObject({
       fileName: "preview-request.json",
       mimeType: "application/json;charset=utf-8",
       typeLabel: "Preview manifest"
     });
+    expect(parsedPreviewDocument.preview.targetId).toBe("browser_sandbox");
+    expect(parsedPreviewDocument.route.surfaceKind).toBe("json_panel");
+    expect(parsedPreviewDocument.route.rendererLabel).toBe("JSON panel surface");
     expect(buildArtifactDocument(snapshot, exportArtifact)).toMatchObject({
       fileName: "projection-notes.md",
       mimeType: "text/markdown;charset=utf-8",

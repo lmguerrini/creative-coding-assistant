@@ -2,6 +2,7 @@ import type {
   ArtifactSummary,
   AssistantWorkspaceSnapshot
 } from "./assistant-client";
+import { buildPreviewRendererRoute } from "./preview-renderers";
 
 export type ArtifactDocument = {
   artifactId: string;
@@ -90,6 +91,11 @@ export function buildArtifactDocument(
   }
 
   if (artifact.type === "preview") {
+    const previewRoute = buildPreviewRendererRoute({
+      artifacts: snapshot.artifacts,
+      preview: snapshot.preview,
+      previewArtifactId: artifact.id
+    });
     const content = JSON.stringify(
       {
         artifactId: artifact.id,
@@ -98,8 +104,25 @@ export function buildArtifactDocument(
           renderer: snapshot.preview.renderer,
           status: snapshot.preview.status,
           target: snapshot.preview.target,
+          targetId: snapshot.preview.targetId,
           trigger: snapshot.preview.trigger,
           version: snapshot.preview.version
+        },
+        route: {
+          selectedArtifactId: previewRoute.selectedArtifactId,
+          selectedArtifactName: previewRoute.selectedArtifactName,
+          sourceArtifactId: previewRoute.sourceArtifactId,
+          sourceArtifactName: previewRoute.sourceArtifactName,
+          rendererId: previewRoute.rendererId,
+          rendererLabel: previewRoute.rendererLabel,
+          supportState: previewRoute.supportState,
+          supportLabel: previewRoute.supportLabel,
+          supportReason: previewRoute.supportReason,
+          surfaceKind: previewRoute.surfaceKind,
+          surfaceTitle: previewRoute.surfaceTitle,
+          targetId: previewRoute.targetId,
+          targetLabel: previewRoute.targetLabel,
+          notes: previewRoute.notes
         },
         session: {
           projectId: snapshot.session.projectId,
