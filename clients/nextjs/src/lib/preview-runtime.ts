@@ -4,6 +4,7 @@ import type {
   PreviewSummary,
   WorkflowNodeId
 } from "./assistant-client";
+import type { PreviewRuntimeSessionOverride } from "./preview-controller";
 import { readPreviewArtifactUpdate } from "./assistant-stream";
 import type { WorkflowRuntimeTraceEvent } from "./workflow-runtime";
 
@@ -12,6 +13,7 @@ type BuildPreviewRuntimeSummaryInput = {
   basePreview: PreviewSummary;
   isOpen: boolean;
   previewArtifactId: string;
+  sessionOverride?: PreviewRuntimeSessionOverride | null;
   streamError: string | null;
   traceEvents: WorkflowRuntimeTraceEvent[];
   workflow: AssistantWorkspaceSnapshot["workflow"];
@@ -38,6 +40,7 @@ export function buildPreviewRuntimeSummary({
   basePreview,
   isOpen,
   previewArtifactId,
+  sessionOverride = null,
   streamError,
   traceEvents,
   workflow
@@ -53,7 +56,16 @@ export function buildPreviewRuntimeSummary({
     artifacts.find((artifact) => isArtifactPreviewable(artifact)) ??
     artifacts[0] ??
     null;
-  const previewUpdate = findLatestPreviewUpdate(
+  const activeSessionOverride = matchesPreviewSessionOverride(
+    sessionOverride,
+    contextArtifact,
+    basePreview
+  )
+    ? sessionOverride
+    : null;
+  const previewUpdate = activeSessionOverride
+    ? null
+    : findLatestPreviewUpdate(
     traceEvents,
     contextArtifact?.id ?? previewArtifactId
   );
@@ -89,6 +101,7 @@ export function buildPreviewRuntimeSummary({
       (basePreview.state === "ready" || basePreview.state === "error") &&
       Boolean(basePreview.outputArtifactName));
   const state = resolvePreviewRuntimeState({
+    activeSessionOverride,
     basePreview,
     contextIsPreviewable,
     hasConcretePreviewOutput,
@@ -105,9 +118,11 @@ export function buildPreviewRuntimeSummary({
     basePreview.sourceArtifactName ??
     artifactName;
   const outputArtifactName =
-    outputArtifact?.title ??
-    previewUpdate?.previewArtifactId ??
-    basePreview.outputArtifactName;
+    activeSessionOverride
+      ? ""
+      : outputArtifact?.title ??
+        previewUpdate?.previewArtifactId ??
+        basePreview.outputArtifactName;
 
   return {
     ...basePreview,
@@ -122,12 +137,14 @@ export function buildPreviewRuntimeSummary({
     sourceArtifactName: sourceArtifactName || "",
     state,
     status: formatPreviewRuntimeStatus({
+      activeSessionOverride,
       basePreview,
       isOpen,
       previewUpdate,
       state
     }),
     summary: buildPreviewRuntimeSummaryCopy({
+      activeSessionOverride,
       artifactName: sourceArtifactName || artifactName,
       basePreview,
       hasConcretePreviewOutput,
@@ -145,6 +162,7 @@ export function buildPreviewRuntimeSummary({
       ),
     title: workspaceHasPreview ? basePreview.title : "Preview unavailable",
     trigger: buildPreviewRuntimeTrigger({
+      activeSessionOverride,
       artifactName,
       basePreview,
       previewUpdate,
@@ -160,6 +178,7 @@ export function isArtifactPreviewable(artifact: ArtifactSummary): boolean {
 }
 
 function resolvePreviewRuntimeState({
+  activeSessionOverride,
   basePreview,
   contextIsPreviewable,
   hasConcretePreviewOutput,
@@ -168,6 +187,7 @@ function resolvePreviewRuntimeState({
   workflow,
   workspaceHasPreview
 }: {
+  activeSessionOverride: PreviewRuntimeSessionOverride | null;
   basePreview: PreviewSummary;
   contextIsPreviewable: boolean;
   hasConcretePreviewOutput: boolean;
@@ -178,6 +198,19 @@ function resolvePreviewRuntimeState({
 }): PreviewSummary["state"] {
   if (!workspaceHasPreview) {
     return "unavailable";
+  }
+
+  if (
+    activeSessionOverride?.mode === "restarting" ||
+    activeSessionOverride?.mode === "reloading"
+  ) {
+    return "generating";
+  }
+
+  if (activeSessionOverride?.mode === "cleared") {
+    return isPreviewRuntimeActive(workflow) && contextIsPreviewable
+      ? "generating"
+      : "unavailable";
   }
 
   if (previewUpdate?.status === "failed") {
@@ -208,6 +241,7 @@ function resolvePreviewRuntimeState({
 }
 
 function buildPreviewRuntimeSummaryCopy({
+  activeSessionOverride,
   artifactName,
   basePreview,
   hasConcretePreviewOutput,
@@ -217,6 +251,7 @@ function buildPreviewRuntimeSummaryCopy({
   streamError,
   workflow
 }: {
+  activeSessionOverride: PreviewRuntimeSessionOverride | null;
   artifactName: string;
   basePreview: PreviewSummary;
   hasConcretePreviewOutput: boolean;
@@ -226,6 +261,18 @@ function buildPreviewRuntimeSummaryCopy({
   streamError: string | null;
   workflow: AssistantWorkspaceSnapshot["workflow"];
 }) {
+  if (activeSessionOverride?.mode === "restarting") {
+    return `Restart requested for ${artifactName}. Preview output will update when the next runtime event arrives.`;
+  }
+
+  if (activeSessionOverride?.mode === "reloading") {
+    return `Reload requested for ${artifactName}. Restoring the latest preview context when runtime metadata becomes available.`;
+  }
+
+  if (activeSessionOverride?.mode === "cleared") {
+    return `Preview state cleared for ${artifactName}. Reload or reset the session to restore the latest runtime context.`;
+  }
+
   if (state === "error") {
     return previewUpdate?.errorMessage
       ? `Preview runtime reported an error: ${previewUpdate.errorMessage}`
@@ -266,18 +313,32 @@ function buildPreviewRuntimeSummaryCopy({
 }
 
 function buildPreviewRuntimeTrigger({
+  activeSessionOverride,
   artifactName,
   basePreview,
   previewUpdate,
   state,
   workflow
 }: {
+  activeSessionOverride: PreviewRuntimeSessionOverride | null;
   artifactName: string;
   basePreview: PreviewSummary;
   previewUpdate: ReturnType<typeof findLatestPreviewUpdate>;
   state: PreviewSummary["state"];
   workflow: AssistantWorkspaceSnapshot["workflow"];
 }) {
+  if (activeSessionOverride?.mode === "restarting") {
+    return `Preview restart ${artifactName}`;
+  }
+
+  if (activeSessionOverride?.mode === "reloading") {
+    return `Preview reload ${artifactName}`;
+  }
+
+  if (activeSessionOverride?.mode === "cleared") {
+    return `Preview cleared ${artifactName}`;
+  }
+
   if (state === "generating") {
     return `Workflow ${workflow.currentStep}`;
   }
@@ -294,16 +355,30 @@ function buildPreviewRuntimeTrigger({
 }
 
 function formatPreviewRuntimeStatus({
+  activeSessionOverride,
   basePreview,
   isOpen,
   previewUpdate,
   state
 }: {
+  activeSessionOverride: PreviewRuntimeSessionOverride | null;
   basePreview: PreviewSummary;
   isOpen: boolean;
   previewUpdate: ReturnType<typeof findLatestPreviewUpdate>;
   state: PreviewSummary["state"];
 }) {
+  if (activeSessionOverride?.mode === "restarting") {
+    return "Restarting";
+  }
+
+  if (activeSessionOverride?.mode === "reloading") {
+    return "Reloading";
+  }
+
+  if (activeSessionOverride?.mode === "cleared") {
+    return "Cleared";
+  }
+
   switch (state) {
     case "generating":
       return "Generating";
@@ -326,6 +401,21 @@ function formatPreviewRuntimeStatus({
     default:
       return "Ready when opened";
   }
+}
+
+function matchesPreviewSessionOverride(
+  sessionOverride: PreviewRuntimeSessionOverride | null,
+  contextArtifact: ArtifactSummary | null,
+  basePreview: PreviewSummary
+) {
+  if (!sessionOverride) {
+    return false;
+  }
+
+  return (
+    sessionOverride.artifactId === contextArtifact?.id ||
+    sessionOverride.artifactId === basePreview.sourceArtifactId
+  );
 }
 
 function findLatestPreviewUpdate(

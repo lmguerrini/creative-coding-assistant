@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getLocalWorkspaceSnapshot, type ArtifactSummary } from "./assistant-client";
+import type { PreviewRuntimeSessionOverride } from "./preview-controller";
 import type { AssistantStreamEvent } from "./assistant-stream";
 import { buildPreviewRuntimeSummary, isArtifactPreviewable } from "./preview-runtime";
 import type { WorkflowRuntimeTraceEvent } from "./workflow-runtime";
@@ -158,6 +159,52 @@ describe("preview runtime", () => {
       state: "error",
       status: "Preview failed",
       artifactName: "webgpu-particle-field.ts"
+    });
+  });
+
+  it("applies restart overrides without relying on stale preview output", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const sessionOverride: PreviewRuntimeSessionOverride = {
+      artifactId: "source-sketch",
+      mode: "restarting",
+      requestedAt: "2026-05-22T11:00:00Z"
+    };
+
+    expect(
+      buildPreviewRuntimeSummary({
+        artifacts: snapshot.artifacts,
+        basePreview: {
+          ...snapshot.preview,
+          outputArtifactName: "preview-request.json",
+          state: "ready",
+          status: "Ready when opened",
+          summary: "Preview output is ready."
+        },
+        isOpen: true,
+        previewArtifactId: "preview-manifest",
+        sessionOverride,
+        streamError: null,
+        traceEvents: [
+          previewTraceEvent({
+            artifactId: "source-sketch",
+            previewArtifactId: "preview-manifest",
+            status: "skipped",
+            summary:
+              "Preview pipeline foundation only; renderer execution is deferred."
+          })
+        ],
+        workflow: {
+          ...snapshot.workflow,
+          currentNode: "finalization",
+          currentStep: "Finalization",
+          status: "Completed"
+        }
+      })
+    ).toMatchObject({
+      state: "generating",
+      status: "Restarting",
+      outputArtifactName: "",
+      trigger: "Preview restart preview-request.json"
     });
   });
 });
