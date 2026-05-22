@@ -641,7 +641,9 @@ describe("WorkstationShell", () => {
     expect(
       within(preview).getByText("Generating", { selector: "summary small" })
     ).toBeVisible();
-    expect(within(preview).getByText("preview.noop")).not.toBeVisible();
+    for (const rendererLabel of within(preview).getAllByText("preview.noop")) {
+      expect(rendererLabel).not.toBeVisible();
+    }
     expect(details).not.toHaveAttribute("open");
     expect(details).toHaveAttribute("data-state", "closed");
     expect(screen.queryByRole("tabpanel", { name: "Preview inspector" })).not.toBeInTheDocument();
@@ -652,6 +654,89 @@ describe("WorkstationShell", () => {
     expect(details).toHaveAttribute("open");
     expect(details).toHaveAttribute("data-state", "open");
     expect(summary).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("opens the preview shelf in fullscreen without losing the current context", () => {
+    renderShell();
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const details = preview.querySelector("details");
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+    fireEvent.click(
+      within(preview).getByRole("button", { name: "Enter preview fullscreen" })
+    );
+
+    expect(details).toHaveAttribute("data-fullscreen", "true");
+    expect(
+      within(preview).getByRole("button", { name: "Exit preview fullscreen" })
+    ).toBeVisible();
+
+    fireEvent.click(
+      within(preview).getByRole("button", { name: "Exit preview fullscreen" })
+    );
+
+    expect(details).toHaveAttribute("data-fullscreen", "false");
+    expect(
+      within(preview).getByText("webgpu-particle-field.ts", { selector: "summary span" })
+    ).toBeVisible();
+  });
+
+  it("supports clearing, reloading, and resetting preview session state", () => {
+    renderShell();
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+    fireEvent.click(
+      within(preview).getByRole("button", { name: "Clear preview state" })
+    );
+
+    expect(
+      within(preview).getByText("Cleared", { selector: "summary small" })
+    ).toBeVisible();
+    expect(
+      within(preview).getByText(
+        "Preview state cleared for webgpu-particle-field.ts. Reload or reset the session to restore the latest runtime context."
+      )
+    ).toBeVisible();
+
+    fireEvent.click(
+      within(preview).getByRole("button", { name: "Reload preview state" })
+    );
+
+    expect(
+      within(preview).queryByText(
+        "Preview state cleared for webgpu-particle-field.ts. Reload or reset the session to restore the latest runtime context."
+      )
+    ).not.toBeInTheDocument();
+    expect(
+      within(preview).getByText("Generating", { selector: "summary small" })
+    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
+    const notesArtifact = screen.getByLabelText("projection-notes.md artifact");
+    fireEvent.click(
+      within(notesArtifact).getByRole("button", {
+        name: "Open in Code projection-notes.md"
+      })
+    );
+
+    expect(
+      within(preview).getByText("projection-notes.md", { selector: "summary span" })
+    ).toBeVisible();
+
+    fireEvent.click(
+      within(preview).getByRole("button", { name: "Reset preview session" })
+    );
+
+    expect(
+      within(preview).getByText("webgpu-particle-field.ts", { selector: "summary span" })
+    ).toBeVisible();
   });
 
   it("updates the preview context when the active artifact is not previewable", () => {
@@ -740,7 +825,9 @@ describe("WorkstationShell", () => {
       within(preview).getByText("preview-request.json", { selector: "summary span" })
     ).toBeVisible();
     expect(within(preview).getByText("Preview open")).toBeVisible();
-    expect(within(preview).getByText("preview.noop")).toBeVisible();
+    for (const rendererLabel of within(preview).getAllByText("preview.noop")) {
+      expect(rendererLabel).toBeVisible();
+    }
     expect(preview.querySelector("details")).toHaveAttribute("open");
     expect(preview.querySelector("details")).toHaveAttribute("data-state", "open");
   });

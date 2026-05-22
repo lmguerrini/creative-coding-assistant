@@ -16,15 +16,22 @@ import {
   Activity,
   Boxes,
   Braces,
+  ChevronDown,
   Command,
   LayoutGrid,
+  Maximize2,
+  Minimize2,
   Moon,
   PanelRight,
   Play,
+  RefreshCw,
+  RotateCcw,
   SendHorizontal,
   Settings,
   Sparkles,
-  TerminalSquare
+  TerminalSquare,
+  Undo2,
+  X
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type {
@@ -70,7 +77,16 @@ import {
   type WorkflowRuntimeTraceEvent,
   type WorkflowRuntimeVisualState
 } from "@/lib/workflow-runtime";
-import { buildPreviewRuntimeSummary } from "@/lib/preview-runtime";
+import {
+  buildPreviewControllerModel,
+  createPreviewSessionOverride,
+  type PreviewControllerModel,
+  type PreviewRuntimeSessionOverride
+} from "@/lib/preview-controller";
+import {
+  buildPreviewRuntimeSummary,
+  isArtifactPreviewable
+} from "@/lib/preview-runtime";
 import {
   buildConversationEntries,
   getComposerStatusLabel,
@@ -192,6 +208,9 @@ export function WorkstationShell({
   const [isPreviewOpen, setIsPreviewOpen] = useState(
     initialSnapshot.preview.active
   );
+  const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
+  const [previewSessionOverride, setPreviewSessionOverride] =
+    useState<PreviewRuntimeSessionOverride | null>(null);
   const [workflowProgressIndex, setWorkflowProgressIndex] = useState(
     getInitialWorkflowIndex(initialSnapshot.workflow.steps)
   );
@@ -342,6 +361,27 @@ export function WorkstationShell({
   }, [openUtilityPanel]);
 
   useEffect(() => {
+    if (!isPreviewFullscreen) {
+      return undefined;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsPreviewFullscreen(false);
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isPreviewFullscreen]);
+
+  useEffect(() => {
     let isMounted = true;
 
     async function restoreWorkspaceSession() {
@@ -381,6 +421,8 @@ export function WorkstationShell({
             normalizeWorkspacePreferences(restoredSession.preferences)
           );
           setIsFocusMode(false);
+          setIsPreviewFullscreen(false);
+          setPreviewSessionOverride(null);
           setOpenUtilityPanel(null);
           focusRestoreRef.current = null;
           setWorkflowProgressIndex(
@@ -450,6 +492,7 @@ export function WorkstationShell({
         basePreview: snapshot.preview,
         isOpen: isPreviewOpen,
         previewArtifactId: previewArtifactId || activeArtifact.id,
+        sessionOverride: previewSessionOverride,
         streamError,
         traceEvents: workflowTraceEvents,
         workflow
@@ -471,6 +514,7 @@ export function WorkstationShell({
       activeArtifact.type,
       activeTab,
       isPreviewOpen,
+      previewSessionOverride,
       isStreaming,
       persistedMessages,
       previewArtifactId,
@@ -480,6 +524,15 @@ export function WorkstationShell({
       workflowTraceEvents,
       workflow
     ]
+  );
+  const previewController = useMemo(
+    () =>
+      buildPreviewControllerModel({
+        isFullscreen: isPreviewFullscreen,
+        preview: interactiveSnapshot.preview,
+        sessionOverride: previewSessionOverride
+      }),
+    [interactiveSnapshot.preview, isPreviewFullscreen, previewSessionOverride]
   );
   const persistenceRecord = useMemo(
     () =>
@@ -536,6 +589,20 @@ export function WorkstationShell({
       }) as WorkspaceLayoutStyle,
     [layoutState.inspectorWidth, layoutState.previewHeight]
   );
+
+  useEffect(() => {
+    if (
+      isPreviewFullscreen &&
+      (!isPreviewOpen || !interactiveSnapshot.preview.available || isFocusMode)
+    ) {
+      setIsPreviewFullscreen(false);
+    }
+  }, [
+    interactiveSnapshot.preview.available,
+    isFocusMode,
+    isPreviewFullscreen,
+    isPreviewOpen
+  ]);
 
   useEffect(() => {
     if (!hasLoadedPersistenceRef.current || persistenceState === "saving") {
@@ -658,6 +725,28 @@ export function WorkstationShell({
     setOpenUtilityPanel(null);
   }
 
+  function resolvePreviewSourceArtifactId() {
+    return (
+      interactiveSnapshot.preview.sourceArtifactId ||
+      previewArtifactId ||
+      activeArtifact.id ||
+      getInitialPreviewArtifactId(snapshot)
+    );
+  }
+
+  function resolvePreviewResetArtifactId() {
+    return (
+      getInitialPreviewArtifactId(snapshot) ||
+      interactiveSnapshot.preview.sourceArtifactId ||
+      activeArtifact.id
+    );
+  }
+
+  function setPreviewContextArtifactId(nextArtifactId: string) {
+    setPreviewArtifactId(nextArtifactId);
+    setPreviewSessionOverride(null);
+  }
+
   function handlePreviewShelfFromControl() {
     if (!interactiveSnapshot.preview.available) {
       return;
@@ -683,10 +772,25 @@ export function WorkstationShell({
     options: { preserveFocusMode?: boolean } = {}
   ) {
     setIsPreviewOpen(nextOpen);
+    if (!nextOpen) {
+      setIsPreviewFullscreen(false);
+    }
     if (!options.preserveFocusMode && isFocusMode) {
       focusRestoreRef.current = null;
       setIsFocusMode(false);
     }
+  }
+
+  function handlePreviewFullscreenChange(nextFullscreen: boolean) {
+    if (!interactiveSnapshot.preview.available) {
+      return;
+    }
+
+    if (nextFullscreen && !isPreviewOpen) {
+      handlePreviewOpenChange(true, { preserveFocusMode: true });
+    }
+
+    setIsPreviewFullscreen(nextFullscreen);
   }
 
   function handleFocusModeToggle() {
@@ -711,11 +815,63 @@ export function WorkstationShell({
       inspectorCollapsed: isInspectorCollapsed,
       previewOpen: isPreviewOpen
     };
+    setIsPreviewFullscreen(false);
     handleInspectorCollapsedChange(true, { preserveFocusMode: true });
     if (interactiveSnapshot.preview.available) {
       handlePreviewOpenChange(false, { preserveFocusMode: true });
     }
     setIsFocusMode(true);
+  }
+
+  function handlePreviewSessionRestart() {
+    const nextArtifactId = resolvePreviewSourceArtifactId();
+
+    setPreviewArtifactId(nextArtifactId);
+    setPreviewSessionOverride(
+      createPreviewSessionOverride(nextArtifactId, "restarting")
+    );
+    handlePreviewOpenChange(true, { preserveFocusMode: true });
+  }
+
+  function handlePreviewStateClear() {
+    const nextArtifactId = resolvePreviewSourceArtifactId();
+
+    setPreviewArtifactId(nextArtifactId);
+    setPreviewSessionOverride(createPreviewSessionOverride(nextArtifactId, "cleared"));
+    handlePreviewOpenChange(true, { preserveFocusMode: true });
+  }
+
+  function handlePreviewStateReload() {
+    if (!interactiveSnapshot.preview.available) {
+      return;
+    }
+
+    if (previewSessionOverride?.mode === "cleared") {
+      setPreviewSessionOverride(null);
+      handlePreviewOpenChange(true, { preserveFocusMode: true });
+      return;
+    }
+
+    const currentPreviewArtifact =
+      snapshot.artifacts.find((artifact) => artifact.id === previewArtifactId) ??
+      activeArtifact;
+    const nextArtifactId = isArtifactPreviewable(currentPreviewArtifact)
+      ? resolvePreviewSourceArtifactId()
+      : resolvePreviewResetArtifactId();
+    setPreviewArtifactId(nextArtifactId);
+    setPreviewSessionOverride(
+      createPreviewSessionOverride(nextArtifactId, "reloading")
+    );
+    handlePreviewOpenChange(true, { preserveFocusMode: true });
+  }
+
+  function handlePreviewSessionReset() {
+    const nextArtifactId = resolvePreviewResetArtifactId();
+
+    setPreviewArtifactId(nextArtifactId);
+    setPreviewSessionOverride(null);
+    setIsPreviewFullscreen(false);
+    handlePreviewOpenChange(true, { preserveFocusMode: true });
   }
 
   function handleInspectorResizeStart(event: MouseEvent<HTMLElement>) {
@@ -986,6 +1142,18 @@ export function WorkstationShell({
       const nextPreviewArtifactId =
         previewUpdate?.previewArtifactId ?? previewUpdate?.artifactId ?? null;
 
+      if (previewUpdate) {
+        setPreviewSessionOverride((currentOverride) => {
+          if (!currentOverride) {
+            return null;
+          }
+
+          return currentOverride.artifactId === previewUpdate.artifactId
+            ? null
+            : currentOverride;
+        });
+      }
+
       if (
         nextPreviewArtifactId &&
         snapshot.artifacts.some((artifact) => artifact.id === nextPreviewArtifactId)
@@ -1046,7 +1214,7 @@ export function WorkstationShell({
 
   async function handleArtifactCopy(artifact: ArtifactSummary) {
     setActiveArtifactId(artifact.id);
-    setPreviewArtifactId(artifact.id);
+    setPreviewContextArtifactId(artifact.id);
     const wasCopied = await copyArtifactDocument(
       buildArtifactDocument(interactiveSnapshot, artifact)
     );
@@ -1060,7 +1228,7 @@ export function WorkstationShell({
 
   function handleArtifactTransfer(artifact: ArtifactSummary) {
     setActiveArtifactId(artifact.id);
-    setPreviewArtifactId(artifact.id);
+    setPreviewContextArtifactId(artifact.id);
     const wasTransferred = downloadArtifactDocument(
       buildArtifactDocument(interactiveSnapshot, artifact)
     );
@@ -1074,7 +1242,7 @@ export function WorkstationShell({
 
   function handleArtifactAction(action: ArtifactAction, artifact: ArtifactSummary) {
     setActiveArtifactId(artifact.id);
-    setPreviewArtifactId(artifact.id);
+    setPreviewContextArtifactId(artifact.id);
 
     if (action === "Open") {
       setActiveTab("Code");
@@ -1336,9 +1504,15 @@ export function WorkstationShell({
 
           {interactiveSnapshot.preview.available && !isFocusMode ? (
             <PreviewShelf
+              controller={previewController}
               height={layoutState.previewHeight}
+              onClear={handlePreviewStateClear}
+              onFullscreenToggle={handlePreviewFullscreenChange}
+              onReload={handlePreviewStateReload}
               onResizeKeyDown={handlePreviewResizeKeyDown}
               onResizeStart={handlePreviewResizeStart}
+              onReset={handlePreviewSessionReset}
+              onRestart={handlePreviewSessionRestart}
               onToggle={handlePreviewOpenChange}
               resizing={activeResizeTarget === "preview"}
               snapshot={interactiveSnapshot}
@@ -1452,17 +1626,29 @@ export function WorkstationShell({
 }
 
 type PreviewShelfProps = WorkstationShellProps & {
+  controller: PreviewControllerModel;
   height: number;
+  onClear: () => void;
+  onFullscreenToggle: (isFullscreen: boolean) => void;
+  onReload: () => void;
   onResizeKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
   onResizeStart: (event: MouseEvent<HTMLElement>) => void;
+  onReset: () => void;
+  onRestart: () => void;
   onToggle: (isOpen: boolean) => void;
   resizing: boolean;
 };
 
 function PreviewShelf({
+  controller,
   height,
+  onClear,
+  onFullscreenToggle,
+  onReload,
   onResizeKeyDown,
   onResizeStart,
+  onReset,
+  onRestart,
   onToggle,
   resizing,
   snapshot
@@ -1476,9 +1662,12 @@ function PreviewShelf({
     onToggle(event.currentTarget.open);
   }
 
+  const panelStyle = controller.isFullscreen ? undefined : { height };
+
   return (
     <section className="previewZone" aria-label="Preview workspace">
       <details
+        data-fullscreen={controller.isFullscreen ? "true" : "false"}
         className="previewShelf"
         data-state={snapshot.preview.active ? "open" : "closed"}
         data-runtime-state={snapshot.preview.state}
@@ -1496,52 +1685,147 @@ function PreviewShelf({
             <strong>{snapshot.preview.title}</strong>
             <span>{snapshot.preview.artifactName}</span>
           </div>
-          <small data-state={snapshot.preview.state}>{snapshot.preview.status}</small>
+          <div className="previewSummaryMeta">
+            <small data-state={snapshot.preview.state}>{snapshot.preview.status}</small>
+            <span className="previewSummaryChevron" aria-hidden="true">
+              <ChevronDown size={15} />
+            </span>
+          </div>
         </summary>
-        <div className="previewBody" style={{ height }}>
-          <div
-            className="previewFrame"
-            aria-label="Preview placeholder"
-            data-state={snapshot.preview.state}
-          >
-            <div data-state={snapshot.preview.state}>
-              <strong>
-                {formatPreviewStateLabel(
-                  snapshot.preview.state,
-                  snapshot.preview.active
+        <div className="previewPanel" style={panelStyle}>
+          <div className="previewToolbar">
+            <div
+              aria-label="Preview runtime status"
+              className="previewIndicators"
+              role="list"
+            >
+              {controller.indicators.map((indicator) => (
+                <div
+                  className="previewIndicator"
+                  data-tone={indicator.tone}
+                  key={indicator.id}
+                  role="listitem"
+                >
+                  <span>{indicator.label}</span>
+                  <strong>{indicator.value}</strong>
+                </div>
+              ))}
+            </div>
+            <div className="previewToolbarActions" aria-label="Preview controls">
+              <button
+                aria-label="Collapse preview"
+                className="previewControlButton"
+                onClick={() => onToggle(false)}
+                title="Collapse preview"
+                type="button"
+              >
+                <ChevronDown size={15} />
+              </button>
+              <button
+                aria-label={
+                  controller.isFullscreen
+                    ? "Exit preview fullscreen"
+                    : "Enter preview fullscreen"
+                }
+                aria-pressed={controller.isFullscreen}
+                className="previewControlButton"
+                disabled={!controller.canFullscreen}
+                onClick={() => onFullscreenToggle(!controller.isFullscreen)}
+                title={
+                  controller.isFullscreen
+                    ? "Exit preview fullscreen"
+                    : "Enter preview fullscreen"
+                }
+                type="button"
+              >
+                {controller.isFullscreen ? (
+                  <Minimize2 size={15} />
+                ) : (
+                  <Maximize2 size={15} />
                 )}
-              </strong>
-              <span>{snapshot.preview.renderer}</span>
-              {snapshot.preview.outputArtifactName ? (
-                <small>{snapshot.preview.outputArtifactName}</small>
-              ) : (
-                <small>{snapshot.preview.version}</small>
-              )}
+              </button>
+              <button
+                aria-label="Restart preview session"
+                className="previewControlButton"
+                disabled={!controller.canRestart}
+                onClick={onRestart}
+                title="Restart preview session"
+                type="button"
+              >
+                <RotateCcw size={15} />
+              </button>
+              <button
+                aria-label="Clear preview state"
+                className="previewControlButton"
+                disabled={!controller.canClear}
+                onClick={onClear}
+                title="Clear preview state"
+                type="button"
+              >
+                <X size={15} />
+              </button>
+              <button
+                aria-label="Reload preview state"
+                className="previewControlButton"
+                disabled={!controller.canReload}
+                onClick={onReload}
+                title="Reload preview state"
+                type="button"
+              >
+                <RefreshCw size={15} />
+              </button>
+              <button
+                aria-label="Reset preview session"
+                className="previewControlButton"
+                disabled={!controller.canReset}
+                onClick={onReset}
+                title="Reset preview session"
+                type="button"
+              >
+                <Undo2 size={15} />
+              </button>
             </div>
           </div>
-          <div className="previewCopy">
-            <p>{snapshot.preview.summary}</p>
-            <dl>
-              <div>
-                <dt>Source</dt>
-                <dd>{snapshot.preview.sourceArtifactName || snapshot.preview.artifactName}</dd>
+          <div className="previewBody">
+            <div
+              className="previewFrame"
+              aria-label="Preview placeholder"
+              data-state={snapshot.preview.state}
+            >
+              <div data-state={snapshot.preview.state}>
+                <strong>{controller.sessionLabel}</strong>
+                <span>{snapshot.preview.renderer}</span>
+                {snapshot.preview.outputArtifactName ? (
+                  <small>{snapshot.preview.outputArtifactName}</small>
+                ) : (
+                  <small>{snapshot.preview.version}</small>
+                )}
               </div>
-              {snapshot.preview.outputArtifactName &&
-              snapshot.preview.outputArtifactName !== snapshot.preview.artifactName ? (
+            </div>
+            <div className="previewCopy">
+              <p>{snapshot.preview.summary}</p>
+              <dl>
                 <div>
-                  <dt>Runtime output</dt>
-                  <dd>{snapshot.preview.outputArtifactName}</dd>
+                  <dt>Source</dt>
+                  <dd>{snapshot.preview.sourceArtifactName || snapshot.preview.artifactName}</dd>
                 </div>
-              ) : null}
-              <div>
-                <dt>Target</dt>
-                <dd>{snapshot.preview.target}</dd>
-              </div>
-              <div>
-                <dt>Opened from</dt>
-                <dd>{snapshot.preview.trigger}</dd>
-              </div>
-            </dl>
+                {snapshot.preview.outputArtifactName &&
+                snapshot.preview.outputArtifactName !== snapshot.preview.artifactName ? (
+                  <div>
+                    <dt>Runtime output</dt>
+                    <dd>{snapshot.preview.outputArtifactName}</dd>
+                  </div>
+                ) : null}
+                <div>
+                  <dt>Target</dt>
+                  <dd>{snapshot.preview.target}</dd>
+                </div>
+                <div>
+                  <dt>Opened from</dt>
+                  <dd>{snapshot.preview.trigger}</dd>
+                </div>
+              </dl>
+            </div>
           </div>
         </div>
         <div
@@ -1555,7 +1839,7 @@ function PreviewShelf({
           onKeyDown={onResizeKeyDown}
           onMouseDown={onResizeStart}
           role="separator"
-          tabIndex={snapshot.preview.active ? 0 : -1}
+          tabIndex={snapshot.preview.active && !controller.isFullscreen ? 0 : -1}
         >
           <span aria-hidden="true" />
         </div>
