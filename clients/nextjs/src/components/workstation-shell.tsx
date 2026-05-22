@@ -43,12 +43,15 @@ import {
 import {
   createWorkspacePersistenceClient,
   createWorkspaceSessionRecord,
+  defaultWorkspacePreferences,
   defaultWorkspaceLayoutState,
   fingerprintWorkspaceSessionRecord,
+  normalizeWorkspacePreferences,
   normalizeWorkspaceLayoutState,
   snapshotFromWorkspaceSessionRecord,
   workspaceLayoutBounds,
   type WorkspaceLayoutState,
+  type WorkspacePreferences,
   type WorkspacePersistenceClient
 } from "@/lib/workspace-persistence";
 import {
@@ -110,6 +113,7 @@ type ArtifactActionFeedback = {
   state: "success" | "error";
 };
 type ResizeTarget = "inspector" | "preview";
+type UtilityPanelName = "commands" | "theme" | "settings";
 type FocusRestoreState = {
   inspectorCollapsed: boolean;
   previewOpen: boolean;
@@ -117,6 +121,13 @@ type FocusRestoreState = {
 type WorkspaceLayoutStyle = CSSProperties & {
   "--inspector-width": string;
   "--preview-height": string;
+};
+type ThemePresetOption = {
+  value: WorkspacePreferences["theme"];
+  label: string;
+  description: string;
+  accent: string;
+  surface: string;
 };
 
 const mockWorkflowIntervalMs = 850;
@@ -131,6 +142,29 @@ const persistenceStateLabels = {
   local: "Saved locally",
   unavailable: "Persistence offline"
 } satisfies Record<WorkspacePersistenceState, string>;
+const themePresetOptions = [
+  {
+    value: "aqua",
+    label: "Aqua",
+    description: "Current studio default with cool aqua accents.",
+    accent: "#4cd7c8",
+    surface: "linear-gradient(135deg, rgba(76, 215, 200, 0.24), rgba(124, 167, 255, 0.16))"
+  },
+  {
+    value: "codex",
+    label: "Codex",
+    description: "Neutral graphite with restrained, high-contrast accents.",
+    accent: "#b9c4cf",
+    surface: "linear-gradient(135deg, rgba(185, 196, 207, 0.18), rgba(132, 146, 160, 0.14))"
+  },
+  {
+    value: "matrix",
+    label: "Matrix",
+    description: "Blackened shell with lime signal highlights.",
+    accent: "#9fe870",
+    surface: "linear-gradient(135deg, rgba(159, 232, 112, 0.2), rgba(44, 75, 36, 0.16))"
+  }
+] satisfies readonly ThemePresetOption[];
 
 export function WorkstationShell({
   snapshot: initialSnapshot,
@@ -171,9 +205,14 @@ export function WorkstationShell({
   const [layoutState, setLayoutState] = useState<WorkspaceLayoutState>(
     defaultWorkspaceLayoutState
   );
+  const [workspacePreferences, setWorkspacePreferences] =
+    useState<WorkspacePreferences>(defaultWorkspacePreferences);
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [activeResizeTarget, setActiveResizeTarget] =
     useState<ResizeTarget | null>(null);
+  const [openUtilityPanel, setOpenUtilityPanel] = useState<UtilityPanelName | null>(
+    null
+  );
   const [copyFeedback, setCopyFeedback] = useState<ArtifactActionFeedback | null>(
     null
   );
@@ -189,6 +228,7 @@ export function WorkstationShell({
   const copyFeedbackTimerRef = useRef<number | null>(null);
   const transferFeedbackTimerRef = useRef<number | null>(null);
   const dragCleanupRef = useRef<(() => void) | null>(null);
+  const utilityTrayRef = useRef<HTMLDivElement>(null);
 
   function clearFeedbackTimers() {
     clearTimer(copyFeedbackTimerRef.current);
@@ -207,6 +247,14 @@ export function WorkstationShell({
       clearDragState();
     };
   }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.ccaTheme = workspacePreferences.theme;
+
+    return () => {
+      delete document.documentElement.dataset.ccaTheme;
+    };
+  }, [workspacePreferences.theme]);
 
   useEffect(() => {
     const chatLog = chatLogRef.current;
@@ -263,6 +311,35 @@ export function WorkstationShell({
   }, [snapshot.workflow.steps, workflowRunId]);
 
   useEffect(() => {
+    if (!openUtilityPanel) {
+      return undefined;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        utilityTrayRef.current &&
+        event.target instanceof Node &&
+        !utilityTrayRef.current.contains(event.target)
+      ) {
+        setOpenUtilityPanel(null);
+      }
+    };
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpenUtilityPanel(null);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [openUtilityPanel]);
+
+  useEffect(() => {
     let isMounted = true;
 
     async function restoreWorkspaceSession() {
@@ -298,7 +375,11 @@ export function WorkstationShell({
           );
           setIsPreviewOpen(restoredSession.previewOpen);
           setLayoutState(normalizeWorkspaceLayoutState(restoredSession.layout));
+          setWorkspacePreferences(
+            normalizeWorkspacePreferences(restoredSession.preferences)
+          );
           setIsFocusMode(false);
+          setOpenUtilityPanel(null);
           focusRestoreRef.current = null;
           setWorkflowProgressIndex(
             getWorkflowNodeIndex(
@@ -404,6 +485,7 @@ export function WorkstationShell({
         activeArtifactId,
         activeInspectorTab: activeTab,
         layout: layoutState,
+        preferences: workspacePreferences,
         previewArtifactId,
         previewOpen: isPreviewOpen,
         snapshot: interactiveSnapshot
@@ -413,6 +495,7 @@ export function WorkstationShell({
       activeTab,
       interactiveSnapshot,
       layoutState,
+      workspacePreferences,
       isPreviewOpen,
       previewArtifactId
     ]
@@ -537,10 +620,49 @@ export function WorkstationShell({
     }));
   }
 
+  function updateWorkspacePreferences(
+    partialState: Partial<WorkspacePreferences>
+  ) {
+    setWorkspacePreferences((currentState) =>
+      normalizeWorkspacePreferences({
+        ...currentState,
+        ...partialState
+      })
+    );
+  }
+
   function handleDensityToggle() {
     updateLayout({
       density: layoutState.density === "compact" ? "cozy" : "compact"
     });
+  }
+
+  function toggleUtilityPanel(panelName: UtilityPanelName) {
+    setOpenUtilityPanel((currentPanel) =>
+      currentPanel === panelName ? null : panelName
+    );
+  }
+
+  function revealInspectorTab(nextTab: InspectorTabName) {
+    if (isFocusMode) {
+      handleFocusModeToggle();
+    }
+
+    if (layoutState.inspectorCollapsed) {
+      handleInspectorCollapsedChange(false, { preserveFocusMode: true });
+    }
+
+    setActiveTab(nextTab);
+    setOpenUtilityPanel(null);
+  }
+
+  function handlePreviewShelfFromControl() {
+    if (!interactiveSnapshot.preview.available) {
+      return;
+    }
+
+    handlePreviewOpenChange(!isPreviewOpen);
+    setOpenUtilityPanel(null);
   }
 
   function handleInspectorCollapsedChange(
@@ -865,7 +987,9 @@ export function WorkstationShell({
       ) {
         setPreviewArtifactId(artifactId);
       }
-      handlePreviewOpenChange(true);
+      if (workspacePreferences.autoOpenPreview) {
+        handlePreviewOpenChange(true);
+      }
     }
   }
 
@@ -979,6 +1103,7 @@ export function WorkstationShell({
       data-preview={isPreviewOpen ? "open" : "closed"}
       data-resizing={activeResizeTarget ?? "idle"}
       data-stream-state={streamState}
+      data-theme={workspacePreferences.theme}
       style={workspaceLayoutStyle}
     >
       <header className="topbar">
@@ -1007,12 +1132,17 @@ export function WorkstationShell({
           <strong>{interactiveSnapshot.workflow.currentStep}</strong>
         </div>
 
-        <div className="topbarActions" aria-label="Workspace actions">
+        <div
+          ref={utilityTrayRef}
+          className="topbarActions"
+          aria-label="Workspace actions"
+        >
           <button
             aria-label="Focus mode"
             aria-pressed={isFocusMode}
             className="toolbarToggle"
             onClick={handleFocusModeToggle}
+            title={isFocusMode ? "Exit focus mode" : "Enter focus mode"}
             type="button"
           >
             <span>Focus</span>
@@ -1022,20 +1152,85 @@ export function WorkstationShell({
             aria-pressed={layoutState.density === "compact"}
             className="toolbarToggle"
             onClick={handleDensityToggle}
+            title="Toggle workspace density"
             type="button"
           >
             <LayoutGrid size={16} />
             <span>{layoutState.density === "compact" ? "Compact" : "Cozy"}</span>
           </button>
-          <button className="iconButton" type="button" aria-label="Command menu">
-            <Command size={18} />
-          </button>
-          <button className="iconButton" type="button" aria-label="Theme">
-            <Moon size={17} />
-          </button>
-          <button className="iconButton" type="button" aria-label="Settings">
-            <Settings size={18} />
-          </button>
+          <div className="utilityControl">
+            <button
+              aria-controls="command-menu-panel"
+              aria-expanded={openUtilityPanel === "commands"}
+              aria-haspopup="dialog"
+              aria-label="Command menu"
+              className="iconButton"
+              onClick={() => toggleUtilityPanel("commands")}
+              title="Open quick actions"
+              type="button"
+            >
+              <Command size={18} />
+            </button>
+            {openUtilityPanel === "commands" ? (
+              <CommandMenuPanel
+                activeTab={activeTab}
+                isFocusMode={isFocusMode}
+                isPreviewAvailable={interactiveSnapshot.preview.available}
+                isPreviewOpen={isPreviewOpen}
+                onFocusModeToggle={() => {
+                  handleFocusModeToggle();
+                  setOpenUtilityPanel(null);
+                }}
+                onOpenTab={revealInspectorTab}
+                onPreviewToggle={handlePreviewShelfFromControl}
+              />
+            ) : null}
+          </div>
+          <div className="utilityControl">
+            <button
+              aria-controls="theme-presets-panel"
+              aria-expanded={openUtilityPanel === "theme"}
+              aria-haspopup="dialog"
+              aria-label="Theme"
+              className="iconButton"
+              onClick={() => toggleUtilityPanel("theme")}
+              title="Open theme presets"
+              type="button"
+            >
+              <Moon size={17} />
+            </button>
+            {openUtilityPanel === "theme" ? (
+              <ThemePresetsPanel
+                activeTheme={workspacePreferences.theme}
+                onSelectTheme={(theme) => {
+                  updateWorkspacePreferences({ theme });
+                  setOpenUtilityPanel(null);
+                }}
+              />
+            ) : null}
+          </div>
+          <div className="utilityControl">
+            <button
+              aria-controls="workspace-settings-panel"
+              aria-expanded={openUtilityPanel === "settings"}
+              aria-haspopup="dialog"
+              aria-label="Settings"
+              className="iconButton"
+              onClick={() => toggleUtilityPanel("settings")}
+              title="Open workspace settings"
+              type="button"
+            >
+              <Settings size={18} />
+            </button>
+            {openUtilityPanel === "settings" ? (
+              <WorkspaceSettingsPanel
+                layoutState={layoutState}
+                preferences={workspacePreferences}
+                onDensityChange={(density) => updateLayout({ density })}
+                onPreferencesChange={updateWorkspacePreferences}
+              />
+            ) : null}
+          </div>
         </div>
       </header>
 
@@ -1234,6 +1429,7 @@ export function WorkstationShell({
                     onArtifactCopy={handleArtifactCopy}
                     onArtifactAction={handleArtifactAction}
                     onArtifactTransfer={handleArtifactTransfer}
+                    showDebugPanels={workspacePreferences.showDebugPanels}
                     snapshot={interactiveSnapshot}
                     transferFeedback={transferFeedback}
                     workflowRuntime={workflowRuntime}
@@ -1345,6 +1541,7 @@ type InspectorPanelProps = {
   onArtifactCopy: (artifact: ArtifactSummary) => Promise<void>;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
   onArtifactTransfer: (artifact: ArtifactSummary) => void;
+  showDebugPanels: boolean;
   snapshot: AssistantWorkspaceSnapshot;
   transferFeedback: ArtifactActionFeedback | null;
   workflowRuntime: WorkflowRuntimeModel;
@@ -1360,6 +1557,7 @@ function InspectorPanel({
   onArtifactCopy,
   onArtifactAction,
   onArtifactTransfer,
+  showDebugPanels,
   snapshot,
   transferFeedback,
   workflowRuntime
@@ -1379,7 +1577,12 @@ function InspectorPanel({
   }
 
   if (activeTab === "Workflow") {
-    return <WorkflowInspector runtime={workflowRuntime} />;
+    return (
+      <WorkflowInspector
+        runtime={workflowRuntime}
+        showDebugPanels={showDebugPanels}
+      />
+    );
   }
 
   if (activeTab === "Artifacts") {
@@ -1404,6 +1607,7 @@ function InspectorPanel({
     <OverviewInspector
       activeArtifact={activeArtifact}
       runtime={workflowRuntime}
+      showDebugPanels={showDebugPanels}
       snapshot={snapshot}
     />
   );
@@ -1412,10 +1616,12 @@ function InspectorPanel({
 function OverviewInspector({
   activeArtifact,
   runtime,
+  showDebugPanels,
   snapshot
 }: WorkstationShellProps & {
   activeArtifact: ArtifactSummary;
   runtime: WorkflowRuntimeModel;
+  showDebugPanels: boolean;
 }) {
   const workflowProgress = getWorkflowRuntimeProgress(runtime.steps);
   const latestTransitions = runtime.transitions.slice(-3);
@@ -1448,7 +1654,11 @@ function OverviewInspector({
           <div className="workflowSummaryMeta">
             <span>{formatRuntimeDuration(runtime.summary.totalRuntimeMs)}</span>
             <span>{formatRetryCount(runtime.summary.retryCount)}</span>
-            <span>{runtime.summary.traceEventCount} trace events</span>
+            <span>
+              {showDebugPanels
+                ? `${runtime.summary.traceEventCount} trace events`
+                : "Traces hidden"}
+            </span>
           </div>
           <WorkflowProgress
             label="Overview workflow progress"
@@ -1616,7 +1826,13 @@ function CodeInspector({
   );
 }
 
-function WorkflowInspector({ runtime }: { runtime: WorkflowRuntimeModel }) {
+function WorkflowInspector({
+  runtime,
+  showDebugPanels
+}: {
+  runtime: WorkflowRuntimeModel;
+  showDebugPanels: boolean;
+}) {
   const workflowProgress = getWorkflowRuntimeProgress(runtime.steps);
   const recentEvents = runtime.events.slice(-6).reverse();
 
@@ -1693,67 +1909,83 @@ function WorkflowInspector({ runtime }: { runtime: WorkflowRuntimeModel }) {
           </article>
         ))}
       </div>
-      <div className="workflowTraceLayout">
+      {showDebugPanels ? (
+        <div className="workflowTraceLayout">
+          <article
+            className="workflowTraceCard"
+            role="group"
+            aria-label="Workflow transition trace"
+          >
+            <header>
+              <strong>Transitions</strong>
+              <span>{runtime.summary.transitionCount}</span>
+            </header>
+            <div className="workflowTraceList">
+              {runtime.transitions.length > 0 ? (
+                runtime.transitions.map((transition) => (
+                  <article
+                    className="workflowTraceItem"
+                    data-kind={transition.kind}
+                    key={`${transition.sequence}-${transition.label}`}
+                  >
+                    <strong>{transition.label}</strong>
+                    <p>
+                      <span>{transition.sequence}</span>
+                      <span>{formatTraceTime(transition.at)}</span>
+                    </p>
+                  </article>
+                ))
+              ) : (
+                <p className="workflowTraceEmpty">No runtime transitions recorded yet.</p>
+              )}
+            </div>
+          </article>
+          <article
+            className="workflowTraceCard"
+            role="group"
+            aria-label="Workflow event trace"
+          >
+            <header>
+              <strong>Event trace</strong>
+              <span>{runtime.summary.traceEventCount}</span>
+            </header>
+            <div className="workflowTraceList">
+              {recentEvents.length > 0 ? (
+                recentEvents.map((event) => (
+                  <article
+                    className="workflowTraceItem"
+                    data-kind={event.phase ?? "running"}
+                    key={`${event.sequence}-${event.label}`}
+                  >
+                    <strong>{event.label}</strong>
+                    <p>
+                      <span>{event.nodeId ?? "runtime"}</span>
+                      <span>{formatTraceTime(event.at)}</span>
+                    </p>
+                    <small>{event.detail}</small>
+                  </article>
+                ))
+              ) : (
+                <p className="workflowTraceEmpty">No streamed workflow events yet.</p>
+              )}
+            </div>
+          </article>
+        </div>
+      ) : (
         <article
-          className="workflowTraceCard"
+          className="workflowTraceCard workflowTraceCard--muted"
           role="group"
-          aria-label="Workflow transition trace"
+          aria-label="Workflow traces hidden"
         >
           <header>
-            <strong>Transitions</strong>
-            <span>{runtime.summary.transitionCount}</span>
+            <strong>Advanced traces</strong>
+            <span>Off</span>
           </header>
-          <div className="workflowTraceList">
-            {runtime.transitions.length > 0 ? (
-              runtime.transitions.map((transition) => (
-                <article
-                  className="workflowTraceItem"
-                  data-kind={transition.kind}
-                  key={`${transition.sequence}-${transition.label}`}
-                >
-                  <strong>{transition.label}</strong>
-                  <p>
-                    <span>{transition.sequence}</span>
-                    <span>{formatTraceTime(transition.at)}</span>
-                  </p>
-                </article>
-              ))
-            ) : (
-              <p className="workflowTraceEmpty">No runtime transitions recorded yet.</p>
-            )}
-          </div>
+          <p className="workflowTraceEmpty">
+            Workflow trace panels are hidden in Settings.
+          </p>
         </article>
-        <article
-          className="workflowTraceCard"
-          role="group"
-          aria-label="Workflow event trace"
-        >
-          <header>
-            <strong>Event trace</strong>
-            <span>{runtime.summary.traceEventCount}</span>
-          </header>
-          <div className="workflowTraceList">
-            {recentEvents.length > 0 ? (
-              recentEvents.map((event) => (
-                <article
-                  className="workflowTraceItem"
-                  data-kind={event.phase ?? "running"}
-                  key={`${event.sequence}-${event.label}`}
-                >
-                  <strong>{event.label}</strong>
-                  <p>
-                    <span>{event.nodeId ?? "runtime"}</span>
-                    <span>{formatTraceTime(event.at)}</span>
-                  </p>
-                  <small>{event.detail}</small>
-                </article>
-              ))
-            ) : (
-              <p className="workflowTraceEmpty">No streamed workflow events yet.</p>
-            )}
-          </div>
-        </article>
-      </div>
+      )}
     </section>
   );
 }
@@ -1869,6 +2101,267 @@ function RetrievalInspector({ snapshot }: WorkstationShellProps) {
         ))}
       </div>
     </section>
+  );
+}
+
+type CommandMenuPanelProps = {
+  activeTab: InspectorTabName;
+  isFocusMode: boolean;
+  isPreviewAvailable: boolean;
+  isPreviewOpen: boolean;
+  onFocusModeToggle: () => void;
+  onOpenTab: (tab: InspectorTabName) => void;
+  onPreviewToggle: () => void;
+};
+
+function CommandMenuPanel({
+  activeTab,
+  isFocusMode,
+  isPreviewAvailable,
+  isPreviewOpen,
+  onFocusModeToggle,
+  onOpenTab,
+  onPreviewToggle
+}: CommandMenuPanelProps) {
+  return (
+    <section
+      aria-label="Quick actions"
+      className="utilityPanel utilityPanel--menu"
+      id="command-menu-panel"
+      role="dialog"
+    >
+      <header className="utilityPanelHeader">
+        <strong>Quick actions</strong>
+        <p>Jump to the next workspace surface without changing the current mock flow.</p>
+      </header>
+      <div className="commandMenuGrid">
+        <button
+          data-active={activeTab === "Overview"}
+          onClick={() => onOpenTab("Overview")}
+          type="button"
+        >
+          <strong>Overview inspector</strong>
+          <span>Return to the compact session summary.</span>
+        </button>
+        <button
+          data-active={activeTab === "Code"}
+          onClick={() => onOpenTab("Code")}
+          type="button"
+        >
+          <strong>Code inspector</strong>
+          <span>Open the active document in the full-height inspector.</span>
+        </button>
+        <button
+          data-active={activeTab === "Workflow"}
+          onClick={() => onOpenTab("Workflow")}
+          type="button"
+        >
+          <strong>Workflow inspector</strong>
+          <span>Review the live orchestration runtime.</span>
+        </button>
+        <button
+          aria-label="Toggle preview shelf"
+          disabled={!isPreviewAvailable}
+          onClick={onPreviewToggle}
+          type="button"
+        >
+          <strong>{isPreviewOpen ? "Close preview shelf" : "Open preview shelf"}</strong>
+          <span>
+            {isPreviewAvailable
+              ? "Keep the lower preview shelf available on demand."
+              : "No preview target is available yet."}
+          </span>
+        </button>
+        <button
+          aria-label="Toggle focus mode from quick actions"
+          onClick={onFocusModeToggle}
+          type="button"
+        >
+          <strong>{isFocusMode ? "Exit focus mode" : "Enter focus mode"}</strong>
+          <span>Hide or restore the surrounding workspace chrome.</span>
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function ThemePresetsPanel({
+  activeTheme,
+  onSelectTheme
+}: {
+  activeTheme: WorkspacePreferences["theme"];
+  onSelectTheme: (theme: WorkspacePreferences["theme"]) => void;
+}) {
+  return (
+    <section
+      aria-label="Theme presets"
+      className="utilityPanel utilityPanel--theme"
+      id="theme-presets-panel"
+      role="dialog"
+    >
+      <header className="utilityPanelHeader">
+        <strong>Theme presets</strong>
+        <p>Switch the workspace accent and shell tone without changing the layout.</p>
+      </header>
+      <ThemePresetPicker activeTheme={activeTheme} onSelectTheme={onSelectTheme} />
+    </section>
+  );
+}
+
+type WorkspaceSettingsPanelProps = {
+  layoutState: WorkspaceLayoutState;
+  onDensityChange: (density: WorkspaceLayoutState["density"]) => void;
+  onPreferencesChange: (preferences: Partial<WorkspacePreferences>) => void;
+  preferences: WorkspacePreferences;
+};
+
+function WorkspaceSettingsPanel({
+  layoutState,
+  onDensityChange,
+  onPreferencesChange,
+  preferences
+}: WorkspaceSettingsPanelProps) {
+  return (
+    <section
+      aria-label="Workspace settings"
+      className="utilityPanel utilityPanel--settings"
+      id="workspace-settings-panel"
+      role="dialog"
+    >
+      <header className="utilityPanelHeader">
+        <strong>Workspace settings</strong>
+        <p>Lightweight preferences are restored with the current local workspace session.</p>
+      </header>
+      <div className="settingsSection">
+        <div className="settingsSectionHeader">
+          <strong>Theme</strong>
+          <p>Pick the overall shell character for this session.</p>
+        </div>
+        <ThemePresetPicker
+          activeTheme={preferences.theme}
+          compact
+          onSelectTheme={(theme) => onPreferencesChange({ theme })}
+        />
+      </div>
+      <div className="settingsSection">
+        <div className="settingsSectionHeader">
+          <strong>Workspace</strong>
+          <p>Density is persisted alongside the current layout widths and shelf sizing.</p>
+        </div>
+        <div className="settingsChoiceRow" role="group" aria-label="Workspace density options">
+          <button
+            aria-pressed={layoutState.density === "cozy"}
+            data-active={layoutState.density === "cozy"}
+            onClick={() => onDensityChange("cozy")}
+            type="button"
+          >
+            Cozy
+          </button>
+          <button
+            aria-pressed={layoutState.density === "compact"}
+            data-active={layoutState.density === "compact"}
+            onClick={() => onDensityChange("compact")}
+            type="button"
+          >
+            Compact
+          </button>
+        </div>
+      </div>
+      <div className="settingsSection">
+        <div className="settingsToggle">
+          <div>
+            <strong>Preview behavior</strong>
+            <p>Open the preview shelf automatically when a ready preview artifact arrives.</p>
+          </div>
+          <button
+            aria-label="Preview auto-open"
+            aria-pressed={preferences.autoOpenPreview}
+            data-active={preferences.autoOpenPreview}
+            onClick={() =>
+              onPreferencesChange({
+                autoOpenPreview: !preferences.autoOpenPreview
+              })
+            }
+            type="button"
+          >
+            {preferences.autoOpenPreview ? "Auto" : "Manual"}
+          </button>
+        </div>
+      </div>
+      <div className="settingsSection">
+        <div className="settingsToggle">
+          <div>
+            <strong>Advanced traces</strong>
+            <p>Show or hide workflow transition and event trace panels in the inspector.</p>
+          </div>
+          <button
+            aria-label="Advanced traces"
+            aria-pressed={preferences.showDebugPanels}
+            data-active={preferences.showDebugPanels}
+            onClick={() =>
+              onPreferencesChange({
+                showDebugPanels: !preferences.showDebugPanels
+              })
+            }
+            type="button"
+          >
+            {preferences.showDebugPanels ? "Visible" : "Hidden"}
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ThemePresetPicker({
+  activeTheme,
+  compact = false,
+  onSelectTheme
+}: {
+  activeTheme: WorkspacePreferences["theme"];
+  compact?: boolean;
+  onSelectTheme: (theme: WorkspacePreferences["theme"]) => void;
+}) {
+  return (
+    <div
+      className="themePresetList"
+      data-compact={compact ? "true" : "false"}
+      role="list"
+    >
+      {themePresetOptions.map((option) => (
+        <div
+          className="themePresetListItem"
+          key={option.value}
+          role="listitem"
+        >
+          <button
+            aria-label={`Use ${option.label} theme`}
+            aria-pressed={activeTheme === option.value}
+            className="themePresetButton"
+            data-active={activeTheme === option.value}
+            data-theme={option.value}
+            onClick={() => onSelectTheme(option.value)}
+            type="button"
+          >
+            <span
+              aria-hidden="true"
+              className="themePresetSwatch"
+              style={
+                {
+                  "--theme-accent": option.accent,
+                  "--theme-surface": option.surface
+                } as CSSProperties
+              }
+            />
+            <div>
+              <strong>{option.label}</strong>
+              <p>{option.description}</p>
+            </div>
+            <small>{activeTheme === option.value ? "Active" : "Preset"}</small>
+          </button>
+        </div>
+      ))}
+    </div>
   );
 }
 

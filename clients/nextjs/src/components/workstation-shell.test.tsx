@@ -160,6 +160,21 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("button", { name: "Settings" })).toBeVisible();
   });
 
+  it("opens the top-right utility panels one at a time", () => {
+    renderShell();
+
+    fireEvent.click(screen.getByRole("button", { name: "Command menu" }));
+    expect(screen.getByRole("dialog", { name: "Quick actions" })).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "Theme" }));
+    expect(screen.queryByRole("dialog", { name: "Quick actions" })).not.toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Theme presets" })).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    expect(screen.queryByRole("dialog", { name: "Theme presets" })).not.toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Workspace settings" })).toBeVisible();
+  });
+
   it("collapses the inspector into a compact rail and expands it again", () => {
     renderShell();
 
@@ -259,6 +274,20 @@ describe("WorkstationShell", () => {
     );
     expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
     expect(screen.getByRole("tabpanel", { name: "Retrieval inspector" })).toBeVisible();
+  });
+
+  it("uses the command menu to open focused inspector views", () => {
+    renderShell();
+
+    fireEvent.click(screen.getByRole("button", { name: "Command menu" }));
+    fireEvent.click(screen.getByRole("button", { name: /Code inspector/ }));
+
+    expect(screen.getByRole("tab", { name: "Code" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(screen.getByRole("tabpanel", { name: "Code inspector" })).toBeVisible();
+    expect(screen.queryByRole("dialog", { name: "Quick actions" })).not.toBeInTheDocument();
   });
 
   it("streams backend events into the conversation and workflow state", async () => {
@@ -392,6 +421,90 @@ describe("WorkstationShell", () => {
       "aria-busy",
       "false"
     );
+  });
+
+  it("applies theme and settings preferences and persists them", async () => {
+    const persistenceClient: WorkspacePersistenceClient = {
+      load: vi.fn(async () => null),
+      save: vi.fn(async () => ({ target: "remote" as const }))
+    };
+
+    renderShell(getLocalWorkspaceSnapshot(), { persistenceClient });
+
+    expect(await screen.findByText("Session saved")).toBeVisible();
+    vi.mocked(persistenceClient.save).mockClear();
+
+    fireEvent.click(screen.getByRole("button", { name: "Theme" }));
+    fireEvent.click(screen.getByRole("button", { name: "Use Matrix theme" }));
+
+    expect(document.documentElement).toHaveAttribute("data-cca-theme", "matrix");
+
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    fireEvent.click(screen.getByRole("button", { name: "Preview auto-open" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced traces" }));
+
+    await waitFor(() => {
+      expect(persistenceClient.save).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          preferences: {
+            theme: "matrix",
+            autoOpenPreview: false,
+            showDebugPanels: false
+          }
+        })
+      );
+    });
+  });
+
+  it("hides workflow traces and keeps preview closed when auto-open is disabled", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "status",
+          sequence: 0,
+          payload: { code: "request_received", message: "Request accepted." }
+        },
+        {
+          event_type: "preview_artifact",
+          sequence: 1,
+          payload: { artifact_id: "preview-manifest", status: "ready" }
+        },
+        {
+          event_type: "final",
+          sequence: 2,
+          payload: { answer: "Preview left closed." }
+        }
+      ])
+    );
+
+    renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced traces" }));
+    fireEvent.click(screen.getByRole("button", { name: "Preview auto-open" }));
+
+    fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
+
+    expect(
+      screen.getByRole("group", { name: "Workflow traces hidden" })
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("group", { name: "Workflow transition trace" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("group", { name: "Workflow event trace" })
+    ).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Prepare a preview artifact without opening it." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(await screen.findByText("Preview left closed.")).toBeVisible();
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    expect(within(preview).getByText("Ready when opened")).toBeVisible();
+    expect(preview.querySelector("details")).not.toHaveAttribute("open");
   });
 
   it("falls back to the local mock path when the backend stream is unavailable", async () => {
@@ -853,6 +966,11 @@ describe("WorkstationShell", () => {
           inspectorWidth: 460,
           previewHeight: 260
         },
+        preferences: {
+          autoOpenPreview: false,
+          showDebugPanels: false,
+          theme: "codex"
+        },
         previewArtifactId: "preview-manifest",
         previewOpen: true,
         snapshot
@@ -902,6 +1020,7 @@ describe("WorkstationShell", () => {
       "aria-valuenow",
       "260"
     );
+    expect(document.documentElement).toHaveAttribute("data-cca-theme", "codex");
     expect(screen.getByText("Session restored")).toBeVisible();
     expect(persistenceClient.save).not.toHaveBeenCalled();
   });

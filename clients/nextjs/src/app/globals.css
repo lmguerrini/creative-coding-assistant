@@ -1,4 +1,5 @@
-:root {
+:root,
+html[data-cca-theme="aqua"] {
   color-scheme: dark;
   --background: #07090c;
   --background-rgb: 7, 9, 12;
@@ -15,11 +16,57 @@
   --coral: #ff7a66;
   --blue: #7ca7ff;
   --green: #79d38b;
+  --accent-rgb: 76, 215, 200;
+  --focus-outline: rgba(76, 215, 200, 0.75);
   --inspector-width: 420px;
   --inspector-rail-width: 56px;
   --preview-height: 220px;
   --glow-teal: 0 0 0 1px rgba(76, 215, 200, 0.3), 0 0 28px rgba(76, 215, 200, 0.14);
   --shadow: 0 24px 80px rgba(0, 0, 0, 0.44);
+}
+
+html[data-cca-theme="codex"] {
+  --background: #0b0d10;
+  --background-rgb: 11, 13, 16;
+  --foreground: #edf1f4;
+  --muted: #919aa4;
+  --muted-strong: #cad1d8;
+  --panel: rgba(18, 22, 28, 0.9);
+  --panel-strong: rgba(22, 27, 33, 0.96);
+  --panel-soft: rgba(255, 255, 255, 0.04);
+  --line: rgba(206, 214, 224, 0.14);
+  --line-strong: rgba(206, 214, 224, 0.26);
+  --teal: #b9c4cf;
+  --amber: #d0b483;
+  --coral: #dc8d81;
+  --blue: #94a5c2;
+  --green: #a4c0ab;
+  --accent-rgb: 185, 196, 207;
+  --focus-outline: rgba(185, 196, 207, 0.72);
+  --glow-teal: 0 0 0 1px rgba(185, 196, 207, 0.26), 0 0 28px rgba(185, 196, 207, 0.1);
+  --shadow: 0 24px 84px rgba(0, 0, 0, 0.5);
+}
+
+html[data-cca-theme="matrix"] {
+  --background: #050804;
+  --background-rgb: 5, 8, 4;
+  --foreground: #eff9e8;
+  --muted: #7f967c;
+  --muted-strong: #c7d9bf;
+  --panel: rgba(12, 18, 10, 0.9);
+  --panel-strong: rgba(14, 22, 12, 0.96);
+  --panel-soft: rgba(159, 232, 112, 0.055);
+  --line: rgba(159, 232, 112, 0.14);
+  --line-strong: rgba(159, 232, 112, 0.26);
+  --teal: #9fe870;
+  --amber: #d4c770;
+  --coral: #ff937d;
+  --blue: #91d685;
+  --green: #8de067;
+  --accent-rgb: 159, 232, 112;
+  --focus-outline: rgba(159, 232, 112, 0.72);
+  --glow-teal: 0 0 0 1px rgba(159, 232, 112, 0.28), 0 0 28px rgba(159, 232, 112, 0.14);
+  --shadow: 0 24px 84px rgba(0, 0, 0, 0.56);
 }
 
 * {
@@ -29,7 +76,7 @@
 html {
   min-width: 320px;
   background:
-    radial-gradient(circle at 12% 8%, rgba(76, 215, 200, 0.16), transparent 28%),
+    radial-gradient(circle at 12% 8%, rgba(var(--accent-rgb), 0.16), transparent 28%),
     radial-gradient(circle at 82% 14%, rgba(243, 184, 82, 0.12), transparent 30%),
     linear-gradient(rgba(var(--background-rgb), 0.88), rgba(var(--background-rgb), 1)),
     repeating-linear-gradient(
@@ -80,7 +127,7 @@ button:disabled {
 button:focus-visible,
 textarea:focus-visible,
 summary:focus-visible {
-  outline: 2px solid rgba(76, 215, 200, 0.75);
+  outline: 2px solid var(--focus-outline);
   outline-offset: 2px;
 }
 
@@ -121,10 +168,10 @@ a {
   height: 38px;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid rgba(76, 215, 200, 0.4);
+  border: 1px solid rgba(var(--accent-rgb), 0.4);
   border-radius: 12px;
   background:
-    linear-gradient(135deg, rgba(76, 215, 200, 0.18), transparent 42%),
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.18), transparent 42%),
     rgba(255, 255, 255, 0.045);
   color: var(--teal);
 }
@@ -190,7 +237,7 @@ a {
 }
 
 .sessionStatus[data-state="streaming"] span {
-  background: rgba(76, 215, 200, 0.13);
+  background: rgba(var(--accent-rgb), 0.13);
   color: var(--teal);
 }
 
@@ -209,6 +256,7 @@ a {
 }
 
 .topbarActions {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -236,15 +284,19 @@ a {
 }
 
 .toolbarToggle:hover {
-  border-color: rgba(76, 215, 200, 0.3);
+  border-color: rgba(var(--accent-rgb), 0.3);
   color: var(--foreground);
   transform: translateY(-1px);
 }
 
 .toolbarToggle[aria-pressed="true"] {
-  border-color: rgba(76, 215, 200, 0.4);
-  background: rgba(76, 215, 200, 0.11);
+  border-color: rgba(var(--accent-rgb), 0.4);
+  background: rgba(var(--accent-rgb), 0.11);
   color: var(--foreground);
+}
+
+.utilityControl {
+  position: relative;
 }
 
 .iconButton {
@@ -262,6 +314,189 @@ a {
 .iconButton:hover {
   border-color: var(--line-strong);
   color: var(--foreground);
+}
+
+.iconButton[aria-expanded="true"] {
+  border-color: rgba(var(--accent-rgb), 0.36);
+  background: rgba(var(--accent-rgb), 0.12);
+  color: var(--foreground);
+  box-shadow: 0 10px 24px rgba(var(--accent-rgb), 0.1);
+}
+
+.utilityPanel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 12;
+  display: grid;
+  gap: 12px;
+  width: min(92vw, 330px);
+  max-height: min(72vh, 560px);
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), transparent 180px),
+    var(--panel-strong);
+  box-shadow: var(--shadow);
+  animation: revealPanel 180ms ease-out;
+}
+
+.utilityPanel--settings {
+  width: min(94vw, 360px);
+}
+
+.utilityPanelHeader {
+  display: grid;
+  gap: 5px;
+}
+
+.utilityPanelHeader strong,
+.settingsSectionHeader strong,
+.settingsToggle strong,
+.commandMenuGrid button strong,
+.themePresetButton strong {
+  display: block;
+  color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.utilityPanelHeader p,
+.settingsSectionHeader p,
+.settingsToggle p,
+.commandMenuGrid button span,
+.themePresetButton p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.commandMenuGrid,
+.themePresetList,
+.settingsSection {
+  display: grid;
+  gap: 8px;
+}
+
+.commandMenuGrid button,
+.themePresetButton,
+.settingsChoiceRow button,
+.settingsToggle button {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted-strong);
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.commandMenuGrid button,
+.themePresetButton {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  text-align: left;
+}
+
+.commandMenuGrid button:hover,
+.themePresetButton:hover,
+.settingsChoiceRow button:hover,
+.settingsToggle button:hover {
+  border-color: rgba(var(--accent-rgb), 0.34);
+  color: var(--foreground);
+  transform: translateY(-1px);
+}
+
+.commandMenuGrid button[data-active="true"],
+.themePresetButton[data-active="true"],
+.settingsChoiceRow button[data-active="true"],
+.settingsToggle button[data-active="true"] {
+  border-color: rgba(var(--accent-rgb), 0.4);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.11), transparent 72%),
+    rgba(255, 255, 255, 0.045);
+  box-shadow: 0 10px 26px rgba(var(--accent-rgb), 0.1);
+  color: var(--foreground);
+}
+
+.commandMenuGrid button:disabled {
+  opacity: 0.58;
+  transform: none;
+}
+
+.themePresetButton {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.themePresetList[data-compact="true"] .themePresetButton {
+  padding: 10px;
+}
+
+.themePresetSwatch {
+  display: block;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
+  border-radius: 12px;
+  background: var(--theme-surface);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.themePresetButton small {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.themePresetButton[data-active="true"] small {
+  background: rgba(var(--accent-rgb), 0.14);
+  color: var(--teal);
+}
+
+.settingsSection {
+  padding-top: 2px;
+}
+
+.settingsSectionHeader {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.settingsChoiceRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.settingsChoiceRow button,
+.settingsToggle button {
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.settingsToggle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
 }
 
 .workspaceLayout {
@@ -298,7 +533,7 @@ a {
 .inspector {
   border: 1px solid var(--line);
   background:
-    linear-gradient(140deg, rgba(76, 215, 200, 0.08), transparent 36%),
+    linear-gradient(140deg, rgba(var(--accent-rgb), 0.08), transparent 36%),
     linear-gradient(18deg, rgba(124, 167, 255, 0.06), transparent 40%),
     var(--panel);
   box-shadow: var(--shadow);
@@ -384,9 +619,9 @@ a {
 }
 
 .sessionMetric[data-active="true"] {
-  border-color: rgba(76, 215, 200, 0.32);
+  border-color: rgba(var(--accent-rgb), 0.32);
   background:
-    linear-gradient(135deg, rgba(76, 215, 200, 0.1), transparent 70%),
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), transparent 70%),
     rgba(255, 255, 255, 0.045);
 }
 
@@ -412,7 +647,7 @@ a {
   padding: 3px 7px;
   border-radius: 999px;
   color: var(--teal);
-  background: rgba(76, 215, 200, 0.12);
+  background: rgba(var(--accent-rgb), 0.12);
   font-size: 10px;
   font-weight: 850;
   text-transform: uppercase;
@@ -448,20 +683,20 @@ a {
 }
 
 .message[data-role="assistant"] {
-  border-color: rgba(76, 215, 200, 0.22);
+  border-color: rgba(var(--accent-rgb), 0.22);
 }
 
 .message[data-role="assistant"][data-stream-phase="connecting"],
 .message[data-role="assistant"][data-stream-phase="thinking"],
 .message[data-role="assistant"][data-stream-phase="streaming"] {
-  border-color: rgba(76, 215, 200, 0.38);
+  border-color: rgba(var(--accent-rgb), 0.38);
   background:
-    linear-gradient(135deg, rgba(76, 215, 200, 0.08), transparent 62%),
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.08), transparent 62%),
     rgba(255, 255, 255, 0.045);
 }
 
 .message[data-role="assistant"][data-stream-phase="streaming"] {
-  box-shadow: inset 0 0 0 1px rgba(76, 215, 200, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.12);
 }
 
 .message[data-role="assistant"][data-stream-phase="error"] {
@@ -481,9 +716,9 @@ a {
 }
 
 .message[data-fresh="true"][data-role="assistant"] {
-  border-color: rgba(76, 215, 200, 0.46);
+  border-color: rgba(var(--accent-rgb), 0.46);
   background:
-    linear-gradient(135deg, rgba(76, 215, 200, 0.1), transparent 65%),
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), transparent 65%),
     rgba(255, 255, 255, 0.045);
 }
 
@@ -530,7 +765,7 @@ a {
 .messageMetaDetail small[data-phase="streaming"],
 .messageMetaDetail small[data-phase="thinking"],
 .messageMetaDetail small[data-phase="connecting"] {
-  background: rgba(76, 215, 200, 0.14);
+  background: rgba(var(--accent-rgb), 0.14);
   color: var(--teal);
 }
 
@@ -557,7 +792,7 @@ a {
   height: 7px;
   border-radius: 999px;
   background: var(--teal);
-  box-shadow: 0 0 0 5px rgba(76, 215, 200, 0.12);
+  box-shadow: 0 0 0 5px rgba(var(--accent-rgb), 0.12);
   animation: pulseNode 1.8s ease-in-out infinite;
 }
 
@@ -579,7 +814,7 @@ a {
   margin-left: 0.2ch;
   vertical-align: -0.1em;
   border-radius: 999px;
-  background: rgba(76, 215, 200, 0.86);
+  background: rgba(var(--accent-rgb), 0.86);
   animation: blinkCaret 1s steps(1, end) infinite;
 }
 
@@ -605,8 +840,8 @@ a {
 }
 
 .composer[data-ready="true"] textarea {
-  border-color: rgba(76, 215, 200, 0.34);
-  box-shadow: inset 0 0 0 1px rgba(76, 215, 200, 0.08);
+  border-color: rgba(var(--accent-rgb), 0.34);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.08);
 }
 
 .composer textarea::placeholder {
@@ -683,12 +918,12 @@ a {
 }
 
 .previewShelf[open] {
-  border-color: rgba(76, 215, 200, 0.3);
+  border-color: rgba(var(--accent-rgb), 0.3);
   box-shadow: var(--glow-teal), var(--shadow);
 }
 
 .previewShelf[data-state="open"] summary {
-  background: rgba(76, 215, 200, 0.055);
+  background: rgba(var(--accent-rgb), 0.055);
 }
 
 .previewShelf summary {
@@ -712,7 +947,7 @@ a {
   height: 32px;
   place-items: center;
   border-radius: 10px;
-  background: rgba(76, 215, 200, 0.12);
+  background: rgba(var(--accent-rgb), 0.12);
   color: var(--teal);
 }
 
@@ -831,7 +1066,7 @@ a {
 .inspector[data-state="collapsed"] {
   grid-template-rows: minmax(0, 1fr);
   background:
-    linear-gradient(180deg, rgba(76, 215, 200, 0.09), transparent 100px),
+    linear-gradient(180deg, rgba(var(--accent-rgb), 0.09), transparent 100px),
     var(--panel-strong);
 }
 
@@ -1406,6 +1641,11 @@ a {
   background: var(--panel-soft);
 }
 
+.workflowTraceCard--muted {
+  min-height: 112px;
+  align-content: start;
+}
+
 .workflowSummaryCard span {
   color: var(--muted);
   font-size: 10px;
@@ -1443,9 +1683,9 @@ a {
   inset: 0 auto 0 0;
   border-radius: inherit;
   background:
-    linear-gradient(90deg, rgba(121, 211, 139, 0.9), rgba(76, 215, 200, 0.95)),
+    linear-gradient(90deg, rgba(121, 211, 139, 0.9), rgba(var(--accent-rgb), 0.95)),
     var(--teal);
-  box-shadow: 0 0 16px rgba(76, 215, 200, 0.22);
+  box-shadow: 0 0 16px rgba(var(--accent-rgb), 0.22);
   transition: width 320ms ease;
 }
 
@@ -1940,6 +2180,17 @@ a {
     padding: 12px;
   }
 
+  .topbarActions {
+    width: 100%;
+  }
+
+  .utilityPanel,
+  .utilityPanel--settings {
+    right: auto;
+    left: 0;
+    width: min(100vw - 24px, 360px);
+  }
+
   .workspaceLayout {
     gap: 12px;
     padding: 10px;
@@ -1988,6 +2239,11 @@ a {
 
   .workflowSummaryGrid,
   .workflowTraceLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .settingsToggle,
+  .themePresetButton {
     grid-template-columns: minmax(0, 1fr);
   }
 
