@@ -38,19 +38,17 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
         )
 
         line = serialize_stream_event(event)
+        parsed = json.loads(line)
 
         self.assertTrue(line.endswith("\n"))
+        self.assertEqual(parsed["event_type"], "status")
+        self.assertEqual(parsed["sequence"], 0)
         self.assertEqual(
-            json.loads(line),
-            {
-                "event_type": "status",
-                "sequence": 0,
-                "payload": {
-                    "code": "request_received",
-                    "message": "Request accepted.",
-                },
-            },
+            parsed["payload"]["code"],
+            "request_received",
         )
+        self.assertEqual(parsed["payload"]["message"], "Request accepted.")
+        self.assertIn("emitted_at", parsed["payload"])
 
     def test_iter_stream_ndjson_emits_service_events(self) -> None:
         service = _FakeService(

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Any
 
 from creative_coding_assistant.contracts import StreamEvent, StreamEventType
@@ -129,6 +130,11 @@ class StreamEventBuilder:
         event_type: StreamEventType,
         payload: dict[str, Any],
     ) -> StreamEvent:
+        if "emitted_at" not in payload:
+            payload = {
+                **payload,
+                "emitted_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            }
         event = StreamEvent(
             event_type=event_type,
             sequence=self._sequence,

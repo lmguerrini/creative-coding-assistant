@@ -3,6 +3,8 @@ import {
   AssistantStreamError,
   decodeAssistantStream,
   parseAssistantStreamLine,
+  readEventTimestamp,
+  readWorkflowMetadata,
   streamAssistantEvents,
   workflowNodeFromAssistantStreamEvent,
   type AssistantStreamEvent
@@ -143,5 +145,41 @@ describe("assistant stream client", () => {
       "generation",
       "finalization"
     ]);
+  });
+
+  it("reads workflow runtime metadata from enriched stream events", () => {
+    const event: AssistantStreamEvent = {
+      event_type: "generation_input",
+      sequence: 2,
+      payload: {
+        code: "generation_input_prepared",
+        emitted_at: "2026-05-22T10:20:30Z",
+        workflow: {
+          step: "generation",
+          phase: "running",
+          status: "running",
+          current_step: "generation",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: ["memory"],
+          refinement_count: 0,
+          review_outcome: null,
+          review_reasons: []
+        }
+      }
+    };
+
+    expect(readEventTimestamp(event)).toBe("2026-05-22T10:20:30Z");
+    expect(readWorkflowMetadata(event)).toEqual({
+      step: "generation",
+      phase: "running",
+      status: "running",
+      current_step: "generation",
+      completed_steps: ["intake", "routing"],
+      skipped_steps: ["memory"],
+      refinement_count: 0,
+      review_outcome: null,
+      review_reasons: []
+    });
+    expect(workflowNodeFromAssistantStreamEvent(event)).toBe("generation");
   });
 });

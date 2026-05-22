@@ -22,6 +22,20 @@ export type AssistantStreamEvent = {
   payload: Record<string, unknown>;
 };
 
+export type AssistantStreamWorkflowPhase = "running" | "completed" | "failed";
+
+export type AssistantStreamWorkflowMetadata = {
+  step: WorkflowNodeId | null;
+  phase: AssistantStreamWorkflowPhase;
+  status: string;
+  current_step: WorkflowNodeId | null;
+  completed_steps: WorkflowNodeId[];
+  skipped_steps: WorkflowNodeId[];
+  refinement_count: number;
+  review_outcome: string | null;
+  review_reasons: string[];
+};
+
 export type AssistantStreamRequest = {
   query: string;
   conversationId?: string;
@@ -175,6 +189,11 @@ export function parseAssistantStreamLine(
 export function workflowNodeFromAssistantStreamEvent(
   event: AssistantStreamEvent
 ): WorkflowNodeId | undefined {
+  const workflow = readWorkflowMetadata(event);
+  if (workflow?.current_step) {
+    return workflow.current_step;
+  }
+
   if (event.event_type === "token_delta") {
     return "generation";
   }
@@ -195,6 +214,55 @@ export function workflowNodeFromAssistantStreamEvent(
   return streamEventWorkflowNodes[event.event_type]?.[code];
 }
 
+export function readWorkflowMetadata(
+  event: AssistantStreamEvent
+): AssistantStreamWorkflowMetadata | null {
+  const rawWorkflow = event.payload.workflow;
+  if (!isRecord(rawWorkflow)) {
+    return null;
+  }
+
+  const step = parseWorkflowNodeId(rawWorkflow.step);
+  const currentStep = parseWorkflowNodeId(rawWorkflow.current_step);
+  const phase = rawWorkflow.phase;
+  const status = rawWorkflow.status;
+  const completedSteps = parseWorkflowNodeIdList(rawWorkflow.completed_steps);
+  const skippedSteps = parseWorkflowNodeIdList(rawWorkflow.skipped_steps);
+  const reviewReasons = parseStringList(rawWorkflow.review_reasons);
+  const reviewOutcome =
+    typeof rawWorkflow.review_outcome === "string"
+      ? rawWorkflow.review_outcome
+      : null;
+  const refinementCount =
+    typeof rawWorkflow.refinement_count === "number"
+      ? rawWorkflow.refinement_count
+      : 0;
+
+  if (
+    (phase !== "running" && phase !== "completed" && phase !== "failed") ||
+    typeof status !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    step,
+    phase,
+    status,
+    current_step: currentStep,
+    completed_steps: completedSteps,
+    skipped_steps: skippedSteps,
+    refinement_count: refinementCount,
+    review_outcome: reviewOutcome,
+    review_reasons: reviewReasons
+  };
+}
+
+export function readEventTimestamp(event: AssistantStreamEvent): string | null {
+  const emittedAt = event.payload.emitted_at;
+  return typeof emittedAt === "string" ? emittedAt : null;
+}
+
 function isAssistantStreamEvent(value: unknown): value is AssistantStreamEvent {
   if (!isRecord(value)) {
     return false;
@@ -213,3 +281,46 @@ function isAssistantStreamEvent(value: unknown): value is AssistantStreamEvent {
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
+
+function parseWorkflowNodeId(value: unknown): WorkflowNodeId | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  return workflowNodeIds.has(value as WorkflowNodeId)
+    ? (value as WorkflowNodeId)
+    : null;
+}
+
+function parseWorkflowNodeIdList(value: unknown): WorkflowNodeId[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => parseWorkflowNodeId(item))
+    .filter((item): item is WorkflowNodeId => item !== null);
+}
+
+function parseStringList(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((item): item is string => typeof item === "string");
+}
+
+const workflowNodeIds = new Set<WorkflowNodeId>([
+  "intake",
+  "routing",
+  "memory",
+  "retrieval",
+  "context_assembly",
+  "prompt_input",
+  "prompt_rendering",
+  "generation",
+  "review",
+  "refinement",
+  "finalization",
+  "failure"
+]);

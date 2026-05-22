@@ -142,6 +142,41 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(events[4].payload["text"], "answer")
         self.assertEqual(events[5].payload["answer"], "Graph answer")
 
+    def test_stream_events_include_workflow_runtime_metadata(self) -> None:
+        graph = build_assistant_workflow_graph()
+
+        events = tuple(
+            stream_assistant_workflow_events(
+                graph=graph,
+                request=_request(),
+                runtime=_runtime(stream_generation=_stream_completed_generation),
+            )
+        )
+
+        self.assertIn("emitted_at", events[0].payload)
+        self.assertEqual(events[0].payload["workflow"]["step"], "intake")
+        self.assertEqual(events[0].payload["workflow"]["phase"], "running")
+        self.assertEqual(events[1].payload["workflow"]["step"], "routing")
+        self.assertEqual(events[2].payload["workflow"]["step"], "generation")
+        self.assertEqual(events[-1].payload["workflow"]["step"], "finalization")
+        self.assertEqual(events[-1].payload["workflow"]["phase"], "completed")
+        self.assertEqual(events[-1].payload["workflow"]["status"], "completed")
+        self.assertEqual(
+            events[-1].payload["workflow"]["completed_steps"],
+            ["intake", "routing", "generation", "review", "finalization"],
+        )
+        self.assertEqual(
+            events[-1].payload["workflow"]["skipped_steps"],
+            [
+                "memory",
+                "retrieval",
+                "context_assembly",
+                "prompt_input",
+                "prompt_rendering",
+            ],
+        )
+        self.assertEqual(events[-1].payload["workflow"]["review_outcome"], "pass")
+
     def test_review_failure_runs_one_refinement_attempt(self) -> None:
         graph = build_assistant_workflow_graph()
         generation = _SequentialGeneration(

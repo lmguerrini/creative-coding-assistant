@@ -190,7 +190,8 @@ def _intake_node(
     runtime_context = _runtime(runtime)
     try:
         _emit_streaming_step(
-            runtime_context.stream_request_received(runtime_context.event_builder)
+            runtime_context.stream_request_received(runtime_context.event_builder),
+            workflow_state=workflow_state,
         )
         return {
             "workflow_state": complete_workflow_step(
@@ -224,7 +225,8 @@ def _routing_node(
                 builder=runtime_context.event_builder,
                 decision=decision,
                 route_payload=route_payload,
-            )
+            ),
+            workflow_state=workflow_state,
         )
         return {
             "workflow_state": complete_workflow_step(
@@ -258,7 +260,8 @@ def _memory_node(
                 builder=runtime_context.event_builder,
                 request=workflow_state.request,
                 decision=_route_decision(workflow_state),
-            )
+            ),
+            workflow_state=workflow_state,
         )
         if memory_context is None:
             return {
@@ -298,7 +301,8 @@ def _retrieval_node(
                 builder=runtime_context.event_builder,
                 request=workflow_state.request,
                 decision=_route_decision(workflow_state),
-            )
+            ),
+            workflow_state=workflow_state,
         )
         if retrieval_context is None:
             return {
@@ -339,7 +343,8 @@ def _context_assembly_node(
                 decision=_route_decision(workflow_state),
                 memory_context=workflow_state.memory_context,
                 retrieval_context=workflow_state.retrieval_context,
-            )
+            ),
+            workflow_state=workflow_state,
         )
         if assembled_context is None:
             return {
@@ -380,7 +385,8 @@ def _prompt_input_node(
                 request=workflow_state.request,
                 decision=_route_decision(workflow_state),
                 assembled_context=workflow_state.assembled_context,
-            )
+            ),
+            workflow_state=workflow_state,
         )
         if prompt_input is None:
             return {
@@ -420,7 +426,8 @@ def _prompt_rendering_node(
                 builder=runtime_context.event_builder,
                 decision=_route_decision(workflow_state),
                 prompt_inputs=workflow_state.prompt_input,
-            )
+            ),
+            workflow_state=workflow_state,
         )
         if rendered_prompt is None:
             return {
@@ -461,7 +468,8 @@ def _generation_node(
                 builder=runtime_context.event_builder,
                 decision=_route_decision(workflow_state),
                 rendered_prompt=workflow_state.rendered_prompt,
-            )
+            ),
+            workflow_state=workflow_state,
         )
         if generation_result is None:
             return {
@@ -594,7 +602,10 @@ def _finalization_node(
             runtime_context.event_builder.final(
                 answer=answer,
                 route=state["route_payload"],
-            )
+            ),
+            workflow_state=final_state,
+            step=WorkflowStep.FINALIZATION,
+            phase="completed",
         )
         return {"workflow_state": final_state}
     except Exception as exc:
@@ -622,7 +633,10 @@ def _failure_node(
             runtime_context.event_builder.error(
                 code=failure_info.code,
                 message=failure_info.message,
-            )
+            ),
+            workflow_state=workflow_state,
+            step=WorkflowStep.FAILURE,
+            phase="failed",
         )
     answer = _failure_answer(failure_info)
     final_state = fail_workflow(
@@ -635,7 +649,10 @@ def _failure_node(
         runtime_context.event_builder.final(
             answer=answer,
             route=state.get("route_payload"),
-        )
+        ),
+        workflow_state=final_state,
+        step=WorkflowStep.FAILURE,
+        phase="failed",
     )
     return {
         "workflow_state": final_state,
@@ -761,7 +778,10 @@ def _handle_workflow_exception(
         runtime.event_builder.error(
             code=failure_info.code,
             message=failure_info.message,
-        )
+        ),
+        workflow_state=workflow_state,
+        step=step,
+        phase="failed",
     )
     update: AssistantWorkflowGraphState = {
         "workflow_state": workflow_state.model_copy(
@@ -805,19 +825,45 @@ def _has_pending_failure(state: AssistantWorkflowGraphState) -> bool:
     return state.get("pending_failure") is not None
 
 
-def _emit_streaming_step(step: Iterator[object]) -> object:
+def _emit_streaming_step(
+    step: Iterator[object],
+    *,
+    workflow_state: AssistantWorkflowState,
+) -> object:
     while True:
         try:
             item = next(step)
         except StopIteration as exc:
             return exc.value
         if isinstance(item, StreamEvent):
-            _emit(item)
+            _emit(item, workflow_state=workflow_state)
 
 
-def _emit(event: StreamEvent) -> None:
+def _emit(
+    event: StreamEvent,
+    *,
+    workflow_state: AssistantWorkflowState | None = None,
+    step: WorkflowStep | None = None,
+    phase: str = "running",
+) -> None:
     writer = get_stream_writer()
-    writer(event)
+    if workflow_state is None:
+        writer(event)
+        return
+    writer(
+        event.model_copy(
+            update={
+                "payload": {
+                    **event.payload,
+                    "workflow": _serialize_workflow_runtime(
+                        workflow_state=workflow_state,
+                        step=step,
+                        phase=phase,
+                    ),
+                }
+            }
+        )
+    )
 
 
 def _runtime(
@@ -836,3 +882,31 @@ def _route_decision(state: AssistantWorkflowState) -> RouteDecision:
     if state.route_decision is None:
         raise ValueError("Workflow route decision is not available.")
     return state.route_decision
+
+
+def _serialize_workflow_runtime(
+    *,
+    workflow_state: AssistantWorkflowState,
+    step: WorkflowStep | None,
+    phase: str,
+) -> dict[str, object]:
+    runtime_step = step or workflow_state.current_step
+    review_result = workflow_state.review_result
+
+    return {
+        "step": runtime_step.value if runtime_step is not None else None,
+        "phase": phase,
+        "status": workflow_state.status.value,
+        "current_step": (
+            workflow_state.current_step.value
+            if workflow_state.current_step is not None
+            else None
+        ),
+        "completed_steps": [item.value for item in workflow_state.completed_steps],
+        "skipped_steps": [item.value for item in workflow_state.skipped_steps],
+        "refinement_count": workflow_state.refinement_count,
+        "review_outcome": (
+            review_result.outcome.value if review_result is not None else None
+        ),
+        "review_reasons": list(review_result.reasons) if review_result else [],
+    }
