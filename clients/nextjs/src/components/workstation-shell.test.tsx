@@ -144,9 +144,60 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("region", { name: "Preview workspace" })).toBeVisible();
     expect(screen.getByRole("complementary", { name: "Right inspector" })).toBeVisible();
     expect(screen.getByRole("tablist", { name: "Inspector tabs" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Dashboard" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Focus mode" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Workspace density" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Command menu" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Theme" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Settings" })).toBeVisible();
+  });
+
+  it("collapses the inspector into a compact rail and expands it again", () => {
+    renderShell();
+
+    fireEvent.click(screen.getByRole("button", { name: "Collapse inspector" }));
+
+    expect(screen.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
+      "data-state",
+      "collapsed"
+    );
+    expect(screen.queryByRole("tablist", { name: "Inspector tabs" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tabpanel")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Expand inspector" })).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "Expand inspector" }));
+
+    expect(screen.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
+      "data-state",
+      "open"
+    );
+    expect(screen.getByRole("tablist", { name: "Inspector tabs" })).toBeVisible();
+    expect(screen.getByRole("tabpanel", { name: "Overview inspector" })).toBeVisible();
+  });
+
+  it("supports focus mode and density toggles without changing the mock data flow", () => {
+    const { container } = renderShell();
+    const workstation = container.querySelector(".workstation");
+
+    expect(workstation).toHaveAttribute("data-density", "cozy");
+
+    fireEvent.click(screen.getByRole("button", { name: "Workspace density" }));
+    expect(workstation).toHaveAttribute("data-density", "compact");
+
+    fireEvent.click(screen.getByRole("button", { name: "Focus mode" }));
+
+    expect(screen.getByRole("button", { name: "Focus mode" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    expect(workstation).toHaveAttribute("data-focus-mode", "true");
+    expect(screen.queryByRole("complementary", { name: "Right inspector" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Preview workspace" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Focus mode" }));
+
+    expect(workstation).toHaveAttribute("data-focus-mode", "false");
+    expect(screen.getByRole("complementary", { name: "Right inspector" })).toBeVisible();
+    expect(screen.getByRole("region", { name: "Preview workspace" })).toBeVisible();
   });
 
   it("defaults to a single Overview inspector panel", () => {
@@ -673,12 +724,69 @@ describe("WorkstationShell", () => {
     ).toHaveAttribute("data-state", "complete");
   });
 
+  it("resizes workspace regions and persists the layout preferences", async () => {
+    const persistenceClient: WorkspacePersistenceClient = {
+      load: vi.fn(async () => null),
+      save: vi.fn(async () => ({ target: "remote" as const }))
+    };
+
+    renderShell(getLocalWorkspaceSnapshot(), { persistenceClient });
+
+    expect(await screen.findByText("Session saved")).toBeVisible();
+    vi.mocked(persistenceClient.save).mockClear();
+
+    const inspectorHandle = screen.getByRole("separator", {
+      name: "Resize inspector"
+    });
+    fireEvent.mouseDown(inspectorHandle, { clientX: 500 });
+    fireEvent.mouseMove(window, { clientX: 440 });
+    fireEvent.mouseUp(window);
+
+    expect(inspectorHandle).toHaveAttribute("aria-valuenow", "480");
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+
+    const previewHandle = screen.getByRole("separator", {
+      name: "Resize preview shelf"
+    });
+    fireEvent.mouseDown(previewHandle, { clientY: 200 });
+    fireEvent.mouseMove(window, { clientY: 260 });
+    fireEvent.mouseUp(window);
+
+    expect(previewHandle).toHaveAttribute("aria-valuenow", "280");
+
+    fireEvent.click(screen.getByRole("button", { name: "Workspace density" }));
+
+    await waitFor(() => {
+      expect(persistenceClient.save).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          layout: expect.objectContaining({
+            density: "compact",
+            inspectorCollapsed: false,
+            inspectorWidth: 480,
+            previewHeight: 280
+          }),
+          previewOpen: true
+        })
+      );
+    });
+  });
+
   it("restores a persisted workspace session on mount", async () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const persistedRecord = {
       ...createWorkspaceSessionRecord({
         activeArtifactId: "session-notes",
         activeInspectorTab: "Artifacts",
+        layout: {
+          density: "compact",
+          inspectorCollapsed: false,
+          inspectorWidth: 460,
+          previewHeight: 260
+        },
         previewArtifactId: "preview-manifest",
         previewOpen: true,
         snapshot
@@ -719,6 +827,14 @@ describe("WorkstationShell", () => {
     );
     expect(screen.getByRole("region", { name: "Preview workspace" })).toHaveTextContent(
       "Preview open"
+    );
+    expect(screen.getByRole("separator", { name: "Resize inspector" })).toHaveAttribute(
+      "aria-valuenow",
+      "460"
+    );
+    expect(screen.getByRole("separator", { name: "Resize preview shelf" })).toHaveAttribute(
+      "aria-valuenow",
+      "260"
     );
     expect(screen.getByText("Session restored")).toBeVisible();
     expect(persistenceClient.save).not.toHaveBeenCalled();

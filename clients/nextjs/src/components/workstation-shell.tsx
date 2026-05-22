@@ -5,7 +5,9 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type FormEvent,
+  type KeyboardEvent,
   type MouseEvent,
   type SyntheticEvent
 } from "react";
@@ -41,8 +43,12 @@ import {
 import {
   createWorkspacePersistenceClient,
   createWorkspaceSessionRecord,
+  defaultWorkspaceLayoutState,
   fingerprintWorkspaceSessionRecord,
+  normalizeWorkspaceLayoutState,
   snapshotFromWorkspaceSessionRecord,
+  workspaceLayoutBounds,
+  type WorkspaceLayoutState,
   type WorkspacePersistenceClient
 } from "@/lib/workspace-persistence";
 import {
@@ -94,6 +100,15 @@ type ArtifactActionFeedback = {
   artifactId: string;
   state: "success" | "error";
 };
+type ResizeTarget = "inspector" | "preview";
+type FocusRestoreState = {
+  inspectorCollapsed: boolean;
+  previewOpen: boolean;
+};
+type WorkspaceLayoutStyle = CSSProperties & {
+  "--inspector-width": string;
+  "--preview-height": string;
+};
 
 const mockWorkflowIntervalMs = 850;
 const artifactFeedbackDurationMs = 1400;
@@ -140,6 +155,12 @@ export function WorkstationShell({
   >([]);
   const [persistenceState, setPersistenceState] =
     useState<WorkspacePersistenceState>("loading");
+  const [layoutState, setLayoutState] = useState<WorkspaceLayoutState>(
+    defaultWorkspaceLayoutState
+  );
+  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [activeResizeTarget, setActiveResizeTarget] =
+    useState<ResizeTarget | null>(null);
   const [copyFeedback, setCopyFeedback] = useState<ArtifactActionFeedback | null>(
     null
   );
@@ -150,8 +171,10 @@ export function WorkstationShell({
   const hasLoadedPersistenceRef = useRef(false);
   const lastPersistedFingerprintRef = useRef<string | null>(null);
   const skipNextPersistenceSaveRef = useRef(false);
+  const focusRestoreRef = useRef<FocusRestoreState | null>(null);
   const copyFeedbackTimerRef = useRef<number | null>(null);
   const transferFeedbackTimerRef = useRef<number | null>(null);
+  const dragCleanupRef = useRef<(() => void) | null>(null);
 
   function clearFeedbackTimers() {
     clearTimer(copyFeedbackTimerRef.current);
@@ -162,6 +185,7 @@ export function WorkstationShell({
     return () => {
       isShellMountedRef.current = false;
       clearFeedbackTimers();
+      clearDragState();
     };
   }, []);
 
@@ -228,6 +252,9 @@ export function WorkstationShell({
               getInitialPreviewArtifactId(restoredSnapshot)
           );
           setIsPreviewOpen(restoredSession.previewOpen);
+          setLayoutState(normalizeWorkspaceLayoutState(restoredSession.layout));
+          setIsFocusMode(false);
+          focusRestoreRef.current = null;
           setWorkflowProgressIndex(
             getWorkflowNodeIndex(
               restoredSnapshot.workflow.steps,
@@ -321,6 +348,7 @@ export function WorkstationShell({
       createWorkspaceSessionRecord({
         activeArtifactId,
         activeInspectorTab: activeTab,
+        layout: layoutState,
         previewArtifactId,
         previewOpen: isPreviewOpen,
         snapshot: interactiveSnapshot
@@ -329,6 +357,7 @@ export function WorkstationShell({
       activeArtifactId,
       activeTab,
       interactiveSnapshot,
+      layoutState,
       isPreviewOpen,
       previewArtifactId
     ]
@@ -359,6 +388,15 @@ export function WorkstationShell({
         : "Type to stream backend";
   const persistenceStatusLabel =
     persistenceStateLabels[persistenceState] ?? "Local session ready";
+  const isInspectorCollapsed = layoutState.inspectorCollapsed;
+  const workspaceLayoutStyle = useMemo(
+    () =>
+      ({
+        "--inspector-width": `${layoutState.inspectorWidth}px`,
+        "--preview-height": `${layoutState.previewHeight}px`
+      }) as WorkspaceLayoutStyle,
+    [layoutState.inspectorWidth, layoutState.previewHeight]
+  );
 
   useEffect(() => {
     if (!hasLoadedPersistenceRef.current || persistenceState === "saving") {
@@ -397,6 +435,196 @@ export function WorkstationShell({
       });
     return undefined;
   }, [persistenceClient, persistenceRecord, persistenceState]);
+
+  function clearDragState() {
+    dragCleanupRef.current?.();
+    dragCleanupRef.current = null;
+    setActiveResizeTarget(null);
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+  }
+
+  function beginLayoutDrag({
+    cursor,
+    event,
+    onMove,
+    target
+  }: {
+    cursor: "col-resize" | "row-resize";
+    event: MouseEvent<HTMLElement>;
+    onMove: (moveEvent: globalThis.MouseEvent) => void;
+    target: ResizeTarget;
+  }) {
+    event.preventDefault();
+    clearDragState();
+    setActiveResizeTarget(target);
+    document.body.style.cursor = cursor;
+    document.body.style.userSelect = "none";
+
+    const handleMouseMove = (moveEvent: globalThis.MouseEvent) => {
+      onMove(moveEvent);
+    };
+    const handleMouseUp = () => {
+      clearDragState();
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp, { once: true });
+    dragCleanupRef.current = () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }
+
+  function updateLayout(partialState: Partial<WorkspaceLayoutState>) {
+    setLayoutState((currentState) => ({
+      ...currentState,
+      ...partialState
+    }));
+  }
+
+  function handleDensityToggle() {
+    updateLayout({
+      density: layoutState.density === "compact" ? "cozy" : "compact"
+    });
+  }
+
+  function handleInspectorCollapsedChange(
+    nextCollapsed: boolean,
+    options: { preserveFocusMode?: boolean } = {}
+  ) {
+    updateLayout({ inspectorCollapsed: nextCollapsed });
+    if (!options.preserveFocusMode && isFocusMode) {
+      focusRestoreRef.current = null;
+      setIsFocusMode(false);
+    }
+  }
+
+  function handlePreviewOpenChange(
+    nextOpen: boolean,
+    options: { preserveFocusMode?: boolean } = {}
+  ) {
+    setIsPreviewOpen(nextOpen);
+    if (!options.preserveFocusMode && isFocusMode) {
+      focusRestoreRef.current = null;
+      setIsFocusMode(false);
+    }
+  }
+
+  function handleFocusModeToggle() {
+    if (isFocusMode) {
+      const focusRestore = focusRestoreRef.current;
+
+      handleInspectorCollapsedChange(
+        focusRestore?.inspectorCollapsed ?? false,
+        { preserveFocusMode: true }
+      );
+      if (interactiveSnapshot.preview.available) {
+        handlePreviewOpenChange(focusRestore?.previewOpen ?? false, {
+          preserveFocusMode: true
+        });
+      }
+      focusRestoreRef.current = null;
+      setIsFocusMode(false);
+      return;
+    }
+
+    focusRestoreRef.current = {
+      inspectorCollapsed: isInspectorCollapsed,
+      previewOpen: isPreviewOpen
+    };
+    handleInspectorCollapsedChange(true, { preserveFocusMode: true });
+    if (interactiveSnapshot.preview.available) {
+      handlePreviewOpenChange(false, { preserveFocusMode: true });
+    }
+    setIsFocusMode(true);
+  }
+
+  function handleInspectorResizeStart(event: MouseEvent<HTMLElement>) {
+    if (isInspectorCollapsed || isFocusMode) {
+      return;
+    }
+
+    const startX = event.clientX;
+    const startWidth = layoutState.inspectorWidth;
+
+    beginLayoutDrag({
+      cursor: "col-resize",
+      event,
+      onMove: (moveEvent) => {
+        const deltaX = startX - moveEvent.clientX;
+        updateLayout({
+          inspectorWidth: clampNumber(
+            startWidth + deltaX,
+            workspaceLayoutBounds.minInspectorWidth,
+            workspaceLayoutBounds.maxInspectorWidth
+          )
+        });
+      },
+      target: "inspector"
+    });
+  }
+
+  function handleInspectorResizeKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (isInspectorCollapsed || isFocusMode) {
+      return;
+    }
+
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      event.preventDefault();
+      const delta = event.key === "ArrowLeft" ? 16 : -16;
+      updateLayout({
+        inspectorWidth: clampNumber(
+          layoutState.inspectorWidth + delta,
+          workspaceLayoutBounds.minInspectorWidth,
+          workspaceLayoutBounds.maxInspectorWidth
+        )
+      });
+    }
+  }
+
+  function handlePreviewResizeStart(event: MouseEvent<HTMLElement>) {
+    if (!isPreviewOpen || isFocusMode) {
+      return;
+    }
+
+    const startY = event.clientY;
+    const startHeight = layoutState.previewHeight;
+
+    beginLayoutDrag({
+      cursor: "row-resize",
+      event,
+      onMove: (moveEvent) => {
+        const deltaY = moveEvent.clientY - startY;
+        updateLayout({
+          previewHeight: clampNumber(
+            startHeight + deltaY,
+            workspaceLayoutBounds.minPreviewHeight,
+            workspaceLayoutBounds.maxPreviewHeight
+          )
+        });
+      },
+      target: "preview"
+    });
+  }
+
+  function handlePreviewResizeKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (!isPreviewOpen || isFocusMode) {
+      return;
+    }
+
+    if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+      event.preventDefault();
+      const delta = event.key === "ArrowDown" ? 16 : -16;
+      updateLayout({
+        previewHeight: clampNumber(
+          layoutState.previewHeight + delta,
+          workspaceLayoutBounds.minPreviewHeight,
+          workspaceLayoutBounds.maxPreviewHeight
+        )
+      });
+    }
+  }
 
   async function handleComposerSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -521,7 +749,7 @@ export function WorkstationShell({
       ) {
         setPreviewArtifactId(artifactId);
       }
-      setIsPreviewOpen(true);
+      handlePreviewOpenChange(true);
     }
   }
 
@@ -578,7 +806,7 @@ export function WorkstationShell({
 
     if (action === "Preview") {
       setPreviewArtifactId(artifact.id);
-      setIsPreviewOpen(true);
+      handlePreviewOpenChange(true);
       setActiveTab("Overview");
       return;
     }
@@ -600,8 +828,13 @@ export function WorkstationShell({
     <main
       className="workstation"
       data-active-tab={activeTab.toLowerCase()}
+      data-density={layoutState.density}
+      data-focus-mode={isFocusMode ? "true" : "false"}
+      data-inspector-state={isInspectorCollapsed ? "collapsed" : "open"}
       data-preview={isPreviewOpen ? "open" : "closed"}
+      data-resizing={activeResizeTarget ?? "idle"}
       data-stream-state={streamState}
+      style={workspaceLayoutStyle}
     >
       <header className="topbar">
         <div className="brand">
@@ -630,11 +863,27 @@ export function WorkstationShell({
         </div>
 
         <div className="topbarActions" aria-label="Workspace actions">
+          <button
+            aria-label="Focus mode"
+            aria-pressed={isFocusMode}
+            className="toolbarToggle"
+            onClick={handleFocusModeToggle}
+            type="button"
+          >
+            <span>Focus</span>
+          </button>
+          <button
+            aria-label="Workspace density"
+            aria-pressed={layoutState.density === "compact"}
+            className="toolbarToggle"
+            onClick={handleDensityToggle}
+            type="button"
+          >
+            <LayoutGrid size={16} />
+            <span>{layoutState.density === "compact" ? "Compact" : "Cozy"}</span>
+          </button>
           <button className="iconButton" type="button" aria-label="Command menu">
             <Command size={18} />
-          </button>
-          <button className="iconButton" type="button" aria-label="Dashboard">
-            <LayoutGrid size={18} />
           </button>
           <button className="iconButton" type="button" aria-label="Theme">
             <Moon size={17} />
@@ -718,81 +967,138 @@ export function WorkstationShell({
             </form>
           </section>
 
-          {interactiveSnapshot.preview.available ? (
+          {interactiveSnapshot.preview.available && !isFocusMode ? (
             <PreviewShelf
-              onToggle={setIsPreviewOpen}
+              height={layoutState.previewHeight}
+              onResizeKeyDown={handlePreviewResizeKeyDown}
+              onResizeStart={handlePreviewResizeStart}
+              onToggle={handlePreviewOpenChange}
+              resizing={activeResizeTarget === "preview"}
               snapshot={interactiveSnapshot}
             />
           ) : null}
         </div>
 
-        <aside className="inspector" aria-label="Right inspector">
-          <header className="inspectorHeader">
-            <div>
-              <span className="eyebrow">Inspector</span>
-              <h2>{activeTab}</h2>
-              <p>{activeTabSummary}</p>
-            </div>
-            <button
-              className="iconButton"
-              type="button"
-              aria-label="Collapse inspector"
+        {!isFocusMode ? (
+          <>
+            <div
+              aria-label="Resize inspector"
+              aria-orientation="vertical"
+              aria-valuemax={workspaceLayoutBounds.maxInspectorWidth}
+              aria-valuemin={workspaceLayoutBounds.minInspectorWidth}
+              aria-valuenow={layoutState.inspectorWidth}
+              className="layoutResizeHandle inspectorResizeHandle"
+              data-active={activeResizeTarget === "inspector"}
+              onKeyDown={handleInspectorResizeKeyDown}
+              onMouseDown={handleInspectorResizeStart}
+              role="separator"
+              tabIndex={isInspectorCollapsed ? -1 : 0}
             >
-              <PanelRight size={18} />
-            </button>
-          </header>
+              <span aria-hidden="true" />
+            </div>
 
-          <div className="inspectorTabs" role="tablist" aria-label="Inspector tabs">
-            {interactiveSnapshot.inspectorTabs.map((tab) => {
-              const Icon = inspectorTabIcons[tab.label];
+            <aside
+              aria-label="Right inspector"
+              className="inspector"
+              data-state={isInspectorCollapsed ? "collapsed" : "open"}
+            >
+              {isInspectorCollapsed ? (
+                <div className="inspectorRail">
+                  <button
+                    aria-label="Expand inspector"
+                    className="iconButton"
+                    onClick={() => handleInspectorCollapsedChange(false)}
+                    type="button"
+                  >
+                    <PanelRight size={18} />
+                  </button>
+                  <strong>Inspector</strong>
+                  <span>{activeTab}</span>
+                </div>
+              ) : (
+                <>
+                  <header className="inspectorHeader">
+                    <div>
+                      <span className="eyebrow">Inspector</span>
+                      <h2>{activeTab}</h2>
+                      <p>{activeTabSummary}</p>
+                    </div>
+                    <button
+                      className="iconButton"
+                      type="button"
+                      aria-label="Collapse inspector"
+                      onClick={() => handleInspectorCollapsedChange(true)}
+                    >
+                      <PanelRight size={18} />
+                    </button>
+                  </header>
 
-              return (
-                <button
-                  aria-controls={`${tab.label.toLowerCase()}-inspector-panel`}
-                  aria-label={tab.label}
-                  aria-selected={tab.active}
-                  data-active={tab.active}
-                  id={`${tab.label.toLowerCase()}-inspector-tab`}
-                  key={tab.label}
-                  onClick={() => setActiveTab(tab.label)}
-                  role="tab"
-                  tabIndex={tab.active ? 0 : -1}
-                  title={tab.summary}
-                  type="button"
-                >
-                  <Icon size={15} aria-hidden="true" />
-                  <span>{tab.label}</span>
-                  {tab.badge ? <small>{tab.badge}</small> : null}
-                </button>
-              );
-            })}
-          </div>
+                  <div className="inspectorTabs" role="tablist" aria-label="Inspector tabs">
+                    {interactiveSnapshot.inspectorTabs.map((tab) => {
+                      const Icon = inspectorTabIcons[tab.label];
 
-          <InspectorPanel
-            activeArtifact={activeArtifact}
-            activeArtifactDocument={activeArtifactDocument}
-            activeArtifactHighlights={activeArtifactHighlights}
-            activeArtifactId={activeArtifactId}
-            activeTab={activeTab}
-            copyFeedback={copyFeedback}
-            onArtifactCopy={handleArtifactCopy}
-            onArtifactAction={handleArtifactAction}
-            onArtifactTransfer={handleArtifactTransfer}
-            snapshot={interactiveSnapshot}
-            transferFeedback={transferFeedback}
-            workflowRuntime={workflowRuntime}
-          />
-        </aside>
+                      return (
+                        <button
+                          aria-controls={`${tab.label.toLowerCase()}-inspector-panel`}
+                          aria-label={tab.label}
+                          aria-selected={tab.active}
+                          data-active={tab.active}
+                          id={`${tab.label.toLowerCase()}-inspector-tab`}
+                          key={tab.label}
+                          onClick={() => setActiveTab(tab.label)}
+                          role="tab"
+                          tabIndex={tab.active ? 0 : -1}
+                          title={tab.summary}
+                          type="button"
+                        >
+                          <Icon size={15} aria-hidden="true" />
+                          <span>{tab.label}</span>
+                          {tab.badge ? <small>{tab.badge}</small> : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <InspectorPanel
+                    activeArtifact={activeArtifact}
+                    activeArtifactDocument={activeArtifactDocument}
+                    activeArtifactHighlights={activeArtifactHighlights}
+                    activeArtifactId={activeArtifactId}
+                    activeTab={activeTab}
+                    copyFeedback={copyFeedback}
+                    onArtifactCopy={handleArtifactCopy}
+                    onArtifactAction={handleArtifactAction}
+                    onArtifactTransfer={handleArtifactTransfer}
+                    snapshot={interactiveSnapshot}
+                    transferFeedback={transferFeedback}
+                    workflowRuntime={workflowRuntime}
+                  />
+                </>
+              )}
+            </aside>
+          </>
+        ) : null}
       </section>
     </main>
   );
 }
 
 type PreviewShelfProps = WorkstationShellProps & {
+  height: number;
+  onResizeKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
+  onResizeStart: (event: MouseEvent<HTMLElement>) => void;
   onToggle: (isOpen: boolean) => void;
+  resizing: boolean;
 };
 
-function PreviewShelf({ onToggle, snapshot }: PreviewShelfProps) {
+function PreviewShelf({
+  height,
+  onResizeKeyDown,
+  onResizeStart,
+  onToggle,
+  resizing,
+  snapshot
+}: PreviewShelfProps) {
   function handleSummaryClick(event: MouseEvent<HTMLElement>) {
     event.preventDefault();
     onToggle(!snapshot.preview.active);
@@ -823,7 +1129,7 @@ function PreviewShelf({ onToggle, snapshot }: PreviewShelfProps) {
           </div>
           <small>{snapshot.preview.status}</small>
         </summary>
-        <div className="previewBody">
+        <div className="previewBody" style={{ height }}>
           <div className="previewFrame" aria-label="Preview placeholder">
             <div>
               <strong>{snapshot.preview.version}</strong>
@@ -843,6 +1149,21 @@ function PreviewShelf({ onToggle, snapshot }: PreviewShelfProps) {
               </div>
             </dl>
           </div>
+        </div>
+        <div
+          aria-label="Resize preview shelf"
+          aria-orientation="horizontal"
+          aria-valuemax={workspaceLayoutBounds.maxPreviewHeight}
+          aria-valuemin={workspaceLayoutBounds.minPreviewHeight}
+          aria-valuenow={height}
+          className="layoutResizeHandle previewResizeHandle"
+          data-active={resizing}
+          onKeyDown={onResizeKeyDown}
+          onMouseDown={onResizeStart}
+          role="separator"
+          tabIndex={snapshot.preview.active ? 0 : -1}
+        >
+          <span aria-hidden="true" />
         </div>
       </details>
     </section>
@@ -1465,6 +1786,10 @@ function clearTimer(timerId: number | null) {
   if (timerId !== null) {
     window.clearTimeout(timerId);
   }
+}
+
+function clampNumber(value: number, minimum: number, maximum: number) {
+  return Math.min(Math.max(Math.round(value), minimum), maximum);
 }
 
 function setFeedbackState(

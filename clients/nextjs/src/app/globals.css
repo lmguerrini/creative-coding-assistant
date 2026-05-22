@@ -15,6 +15,9 @@
   --coral: #ff7a66;
   --blue: #7ca7ff;
   --green: #79d38b;
+  --inspector-width: 420px;
+  --inspector-rail-width: 56px;
+  --preview-height: 220px;
   --glow-teal: 0 0 0 1px rgba(76, 215, 200, 0.3), 0 0 28px rgba(76, 215, 200, 0.14);
   --shadow: 0 24px 80px rgba(0, 0, 0, 0.44);
 }
@@ -207,8 +210,41 @@ a {
 
 .topbarActions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.toolbarToggle {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--muted-strong);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 780;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.toolbarToggle:hover {
+  border-color: rgba(76, 215, 200, 0.3);
+  color: var(--foreground);
+  transform: translateY(-1px);
+}
+
+.toolbarToggle[aria-pressed="true"] {
+  border-color: rgba(76, 215, 200, 0.4);
+  background: rgba(76, 215, 200, 0.11);
+  color: var(--foreground);
 }
 
 .iconButton {
@@ -231,9 +267,21 @@ a {
 .workspaceLayout {
   display: grid;
   min-height: 0;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 440px);
+  grid-template-columns:
+    minmax(0, 1fr)
+    10px
+    minmax(var(--inspector-rail-width), var(--inspector-width));
   gap: 16px;
   padding: 16px;
+  transition: grid-template-columns 180ms ease, gap 180ms ease;
+}
+
+.workstation[data-inspector-state="collapsed"] .workspaceLayout {
+  grid-template-columns: minmax(0, 1fr) 0 minmax(0, var(--inspector-rail-width));
+}
+
+.workstation[data-focus-mode="true"] .workspaceLayout {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .mainColumn {
@@ -242,6 +290,7 @@ a {
   max-height: calc(100vh - 84px);
   grid-template-rows: minmax(0, 1fr) auto;
   gap: 14px;
+  transition: gap 180ms ease;
 }
 
 .sessionPanel,
@@ -263,6 +312,7 @@ a {
   overflow: hidden;
   border-radius: 22px;
   padding: 18px;
+  transition: padding 180ms ease, gap 180ms ease;
 }
 
 .sessionHeader {
@@ -513,7 +563,8 @@ a {
   border-radius: 18px;
   transition:
     border-color 180ms ease,
-    background 180ms ease;
+    background 180ms ease,
+    transform 180ms ease;
 }
 
 .previewShelf[open] {
@@ -579,13 +630,17 @@ a {
   display: grid;
   grid-template-columns: minmax(180px, 0.45fr) minmax(0, 1fr);
   gap: 12px;
+  min-height: 0;
+  height: var(--preview-height);
   padding: 0 14px 14px;
   animation: revealPreview 180ms ease-out;
+  transition: height 180ms ease;
 }
 
 .previewFrame {
   display: grid;
-  min-height: 132px;
+  min-height: 0;
+  height: 100%;
   place-items: center;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -620,6 +675,8 @@ a {
   display: grid;
   align-content: start;
   gap: 12px;
+  min-height: 0;
+  overflow: auto;
 }
 
 .previewCopy dl {
@@ -650,6 +707,42 @@ a {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.055), transparent 160px),
     var(--panel-strong);
+  transition:
+    border-color 180ms ease,
+    transform 180ms ease,
+    background 180ms ease;
+}
+
+.inspector[data-state="collapsed"] {
+  grid-template-rows: minmax(0, 1fr);
+  background:
+    linear-gradient(180deg, rgba(76, 215, 200, 0.09), transparent 100px),
+    var(--panel-strong);
+}
+
+.inspectorRail {
+  display: grid;
+  height: 100%;
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 14px 8px;
+}
+
+.inspectorRail strong,
+.inspectorRail span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: var(--muted-strong);
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.inspectorRail span {
+  color: var(--teal);
+  font-size: 10px;
 }
 
 .inspectorHeader {
@@ -755,6 +848,66 @@ a {
 .inspectorTabs button[aria-selected="true"] small {
   color: #061412;
   background: var(--teal);
+}
+
+.layoutResizeHandle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  border-radius: 999px;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    opacity 180ms ease;
+}
+
+.layoutResizeHandle span {
+  display: block;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.layoutResizeHandle:hover span,
+.layoutResizeHandle:focus-visible span,
+.layoutResizeHandle[data-active="true"] span {
+  background: rgba(76, 215, 200, 0.82);
+  box-shadow: 0 0 18px rgba(76, 215, 200, 0.24);
+}
+
+.inspectorResizeHandle {
+  min-height: 0;
+}
+
+.inspectorResizeHandle span {
+  width: 3px;
+  height: 100%;
+  min-height: 120px;
+}
+
+.previewResizeHandle {
+  min-height: 22px;
+  padding: 0 14px 14px;
+}
+
+.previewResizeHandle span {
+  width: min(100%, 84px);
+  height: 3px;
+}
+
+.workstation[data-inspector-state="collapsed"] .inspectorResizeHandle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.workstation[data-resizing="inspector"] .workspaceLayout,
+.workstation[data-resizing="preview"] .previewBody {
+  transition: none;
 }
 
 .inspectorPanel {
@@ -1516,6 +1669,50 @@ a {
   padding: 12px;
 }
 
+.workstation[data-density="compact"] .workspaceLayout {
+  gap: 12px;
+  padding: 12px;
+}
+
+.workstation[data-density="compact"] .mainColumn,
+.workstation[data-density="compact"] .sessionPanel,
+.workstation[data-density="compact"] .overviewWorkflowTile,
+.workstation[data-density="compact"] .workflowPanel,
+.workstation[data-density="compact"] .artifactPanel {
+  gap: 10px;
+}
+
+.workstation[data-density="compact"] .sessionPanel {
+  padding: 14px;
+}
+
+.workstation[data-density="compact"] .message,
+.workstation[data-density="compact"] .overviewTile,
+.workstation[data-density="compact"] .workflowSummaryCard,
+.workstation[data-density="compact"] .workflowTraceCard,
+.workstation[data-density="compact"] .artifactItem,
+.workstation[data-density="compact"] .artifactDetailCard,
+.workstation[data-density="compact"] .retrievalItem {
+  padding: 10px;
+}
+
+.workstation[data-density="compact"] .composer textarea {
+  min-height: 68px;
+}
+
+.workstation[data-density="compact"] .inspectorHeader {
+  padding: 13px 13px 10px;
+}
+
+.workstation[data-density="compact"] .inspectorTabs {
+  gap: 4px;
+  padding: 0 10px 10px;
+}
+
+.workstation[data-density="compact"] .inspectorTabs button {
+  min-height: 52px;
+}
+
 @keyframes pulseNode {
   0%,
   100% {
@@ -1588,9 +1785,26 @@ a {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .inspectorResizeHandle {
+    display: none;
+  }
+
   .mainColumn,
   .inspector {
     max-height: none;
+  }
+
+  .inspector[data-state="collapsed"] .inspectorRail {
+    grid-template-columns: auto 1fr auto;
+    align-content: center;
+    align-items: center;
+    justify-items: start;
+  }
+
+  .inspector[data-state="collapsed"] .inspectorRail strong,
+  .inspector[data-state="collapsed"] .inspectorRail span {
+    writing-mode: initial;
+    transform: none;
   }
 }
 
@@ -1602,6 +1816,10 @@ a {
   .workspaceLayout {
     gap: 12px;
     padding: 10px;
+  }
+
+  .toolbarToggle {
+    padding: 0 10px;
   }
 
   .sessionPanel {
