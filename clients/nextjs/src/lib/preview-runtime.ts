@@ -6,6 +6,11 @@ import type {
 } from "./assistant-client";
 import type { PreviewRuntimeSessionOverride } from "./preview-controller";
 import { readPreviewArtifactUpdate } from "./assistant-stream";
+import {
+  derivePreviewTargetIdFromArtifact,
+  formatPreviewTargetLabel,
+  normalizePreviewTargetId
+} from "./preview-targets";
 import type { WorkflowRuntimeTraceEvent } from "./workflow-runtime";
 
 type BuildPreviewRuntimeSummaryInput = {
@@ -25,15 +30,6 @@ const previewGeneratingNodes = new Set<WorkflowNodeId>([
   "refinement",
   "finalization"
 ]);
-
-const previewTargetLabels: Record<string, string> = {
-  audio_asset: "Audio asset",
-  browser_sandbox: "Browser sandbox",
-  image_asset: "Image asset",
-  json_panel: "JSON panel",
-  text_panel: "Text panel",
-  video_asset: "Video asset"
-};
 
 export function buildPreviewRuntimeSummary({
   artifacts,
@@ -65,10 +61,7 @@ export function buildPreviewRuntimeSummary({
     : null;
   const previewUpdate = activeSessionOverride
     ? null
-    : findLatestPreviewUpdate(
-    traceEvents,
-    contextArtifact?.id ?? previewArtifactId
-  );
+    : findLatestPreviewUpdate(traceEvents, contextArtifact?.id ?? previewArtifactId);
   const contextMatchesBasePreview = matchesBasePreviewContext(
     contextArtifact,
     basePreview
@@ -123,6 +116,11 @@ export function buildPreviewRuntimeSummary({
       : outputArtifact?.title ??
         previewUpdate?.previewArtifactId ??
         basePreview.outputArtifactName;
+  const targetId =
+    normalizePreviewTargetId(previewUpdate?.target ?? null) ??
+    derivePreviewTargetIdFromArtifact(outputArtifact ?? contextArtifact) ??
+    normalizePreviewTargetId(contextMatchesBasePreview ? basePreview.targetId : null) ??
+    null;
 
   return {
     ...basePreview,
@@ -154,12 +152,8 @@ export function buildPreviewRuntimeSummary({
       streamError,
       workflow
     }),
-    target:
-      formatPreviewTarget(previewUpdate?.target ?? null) ??
-      derivePreviewTarget(
-        outputArtifact ?? contextArtifact,
-        contextMatchesBasePreview ? basePreview.target : ""
-      ),
+    target: formatPreviewTargetCopy(targetId, contextMatchesBasePreview ? basePreview.target : ""),
+    targetId: targetId ?? "",
     title: workspaceHasPreview ? basePreview.title : "Preview unavailable",
     trigger: buildPreviewRuntimeTrigger({
       activeSessionOverride,
@@ -447,36 +441,8 @@ function isPreviewRuntimeActive(workflow: AssistantWorkspaceSnapshot["workflow"]
   );
 }
 
-function derivePreviewTarget(
-  artifact: ArtifactSummary | null,
-  fallbackTarget: string
-) {
-  if (fallbackTarget) {
-    return fallbackTarget;
-  }
-
-  if (!artifact) {
-    return "Preview target pending";
-  }
-
-  switch (artifact.type) {
-    case "preview":
-      return "JSON panel";
-    case "code":
-      return "Browser sandbox";
-    case "export":
-      return "Text panel";
-    default:
-      return "Preview target pending";
-  }
-}
-
-function formatPreviewTarget(target: string | null) {
-  if (!target) {
-    return null;
-  }
-
-  return previewTargetLabels[target] ?? target.replaceAll("_", " ");
+function formatPreviewTargetCopy(targetId: string | null, fallbackTarget: string) {
+  return formatPreviewTargetLabel(normalizePreviewTargetId(targetId)) ?? fallbackTarget;
 }
 
 function matchesBasePreviewContext(

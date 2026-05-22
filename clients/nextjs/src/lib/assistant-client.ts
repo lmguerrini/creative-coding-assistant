@@ -56,12 +56,21 @@ export type ArtifactSummary = {
   actions: ArtifactAction[];
 };
 
+export type PreviewTargetId =
+  | "browser_sandbox"
+  | "image_asset"
+  | "audio_asset"
+  | "video_asset"
+  | "text_panel"
+  | "json_panel";
+
 export type PreviewSummary = {
   available: boolean;
   active: boolean;
   collapsed: boolean;
   state: "generating" | "ready" | "unavailable" | "error";
   title: string;
+  targetId: PreviewTargetId | "";
   target: string;
   status: string;
   artifactName: string;
@@ -314,6 +323,7 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
       collapsed: true,
       state: "generating",
       title: "Preview available",
+      targetId: "browser_sandbox",
       target: "Browser sandbox / WebGPU WGSL",
       status: "Generating",
       artifactName: "webgpu-particle-field.ts",

@@ -33,7 +33,9 @@ describe("preview runtime", () => {
       artifactName: "webgpu-particle-field.ts",
       sourceArtifactId: "source-sketch",
       sourceArtifactName: "webgpu-particle-field.ts",
-      outputArtifactName: ""
+      outputArtifactName: "",
+      target: "Browser sandbox",
+      targetId: "browser_sandbox"
     });
   });
 
@@ -71,7 +73,8 @@ describe("preview runtime", () => {
       sourceArtifactName: "webgpu-particle-field.ts",
       outputArtifactName: "preview-request.json",
       renderer: "preview.noop",
-      target: "Browser sandbox"
+      target: "Browser sandbox",
+      targetId: "browser_sandbox"
     });
   });
 
@@ -99,7 +102,8 @@ describe("preview runtime", () => {
     ).toMatchObject({
       state: "unavailable",
       status: "Unavailable",
-      artifactName: "projection-notes.md"
+      artifactName: "projection-notes.md",
+      targetId: ""
     });
   });
 

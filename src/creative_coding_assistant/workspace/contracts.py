@@ -92,6 +92,7 @@ class WorkspaceSessionPreview(BaseModel):
     collapsed: bool = True
     state: WorkspacePreviewState = "unavailable"
     title: str = "Preview"
+    target_id: str = Field(default="", alias="targetId")
     target: str = ""
     status: str = ""
     artifact_name: str = Field(default="", alias="artifactName")

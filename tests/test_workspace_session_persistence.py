@@ -199,6 +199,7 @@ def _session_payload() -> dict[str, object]:
             "collapsed": False,
             "state": "ready",
             "title": "Preview available",
+            "targetId": "browser_sandbox",
             "target": "Browser sandbox",
             "status": "Preview open",
             "artifactName": "preview-request.json",

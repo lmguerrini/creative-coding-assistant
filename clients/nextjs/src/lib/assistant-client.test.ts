@@ -61,6 +61,7 @@ describe("assistant frontend client", () => {
       "export"
     ]);
     expect(snapshot.artifacts[0].actions).toContain("Preview");
+    expect(snapshot.preview.targetId).toBe("browser_sandbox");
     expect(snapshot.preview.target).toContain("Browser sandbox");
   });
 
