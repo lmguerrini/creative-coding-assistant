@@ -22,6 +22,8 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
         self.assertEqual(record.session_id, DEFAULT_LOCAL_SESSION_ID)
         self.assertEqual(record.active_inspector_tab, "Code")
         self.assertTrue(record.preview_open)
+        self.assertEqual(record.layout.inspector_width, 440)
+        self.assertEqual(record.layout.density, "compact")
         self.assertEqual(record.messages[0].content, "Keep this chat.")
         self.assertEqual(record.artifacts[0].id, "source-sketch")
 
@@ -83,6 +85,7 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
         self.assertEqual(get_status["status"], "200 OK")
         restored = json.loads(get_body)
         self.assertEqual(restored["title"], "Persisted sketch session")
+        self.assertEqual(restored["layout"]["previewHeight"], 240)
         self.assertEqual(restored["messages"][0]["content"], "Keep this chat.")
 
     def test_wsgi_endpoint_returns_404_for_missing_session(self) -> None:
@@ -127,7 +130,7 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
 
 def _session_payload() -> dict[str, object]:
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "userId": DEFAULT_LOCAL_USER_ID,
         "sessionId": DEFAULT_LOCAL_SESSION_ID,
         "projectId": "local-nextjs-workspace",
@@ -136,6 +139,12 @@ def _session_payload() -> dict[str, object]:
         "activeInspectorTab": "Code",
         "previewOpen": True,
         "previewArtifactId": "preview-manifest",
+        "layout": {
+            "density": "compact",
+            "inspectorCollapsed": False,
+            "inspectorWidth": 440,
+            "previewHeight": 240,
+        },
         "workspace": {
             "name": "Persisted sketch session",
             "focus": "Audio-reactive projection field",

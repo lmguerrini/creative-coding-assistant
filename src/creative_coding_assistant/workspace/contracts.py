@@ -10,10 +10,11 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 DEFAULT_LOCAL_USER_ID = "local-user"
 DEFAULT_LOCAL_SESSION_ID = "local-nextjs-session"
 DEFAULT_LOCAL_PROJECT_ID = "local-nextjs-workspace"
-WORKSPACE_SESSION_SCHEMA_VERSION = 1
+WORKSPACE_SESSION_SCHEMA_VERSION = 2
 
 InspectorTabName = Literal["Overview", "Code", "Workflow", "Artifacts", "Retrieval"]
 MessageRole = Literal["user", "assistant"]
+WorkspaceDensity = Literal["cozy", "compact"]
 
 
 class WorkspaceSessionMessage(BaseModel):
@@ -97,6 +98,21 @@ class WorkspaceSessionPreview(BaseModel):
     version: str = ""
 
 
+class WorkspaceSessionLayout(BaseModel):
+    """Persisted IDE-like layout preferences for the Next.js workspace."""
+
+    model_config = ConfigDict(
+        frozen=True,
+        populate_by_name=True,
+        str_strip_whitespace=True,
+    )
+
+    density: WorkspaceDensity = "cozy"
+    inspector_collapsed: bool = Field(default=False, alias="inspectorCollapsed")
+    inspector_width: int = Field(default=420, alias="inspectorWidth", ge=320, le=560)
+    preview_height: int = Field(default=220, alias="previewHeight", ge=160, le=360)
+
+
 class WorkspaceSessionRecord(BaseModel):
     """Single-user workspace persistence envelope shared with Next.js."""
 
@@ -106,7 +122,7 @@ class WorkspaceSessionRecord(BaseModel):
         str_strip_whitespace=True,
     )
 
-    schema_version: Literal[1] = Field(
+    schema_version: Literal[1, 2] = Field(
         default=WORKSPACE_SESSION_SCHEMA_VERSION,
         alias="schemaVersion",
     )
@@ -136,6 +152,7 @@ class WorkspaceSessionRecord(BaseModel):
     workflow: WorkspaceSessionWorkflow | None = None
     artifacts: tuple[WorkspaceSessionArtifact, ...] = Field(default_factory=tuple)
     preview: WorkspaceSessionPreview | None = None
+    layout: WorkspaceSessionLayout = Field(default_factory=WorkspaceSessionLayout)
     snapshot: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime | None = Field(default=None, alias="createdAt")
     updated_at: datetime | None = Field(default=None, alias="updatedAt")

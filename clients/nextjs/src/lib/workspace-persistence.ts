@@ -9,9 +9,33 @@ import type {
 export const defaultLocalUserId = "local-user";
 export const defaultLocalSessionId = "local-nextjs-session";
 export const defaultLocalProjectId = "local-nextjs-workspace";
+export const workspaceLayoutBounds = {
+  defaultInspectorWidth: 420,
+  minInspectorWidth: 320,
+  maxInspectorWidth: 560,
+  defaultPreviewHeight: 220,
+  minPreviewHeight: 160,
+  maxPreviewHeight: 360
+} as const;
+
+export type WorkspaceDensity = "cozy" | "compact";
+
+export type WorkspaceLayoutState = {
+  density: WorkspaceDensity;
+  inspectorCollapsed: boolean;
+  inspectorWidth: number;
+  previewHeight: number;
+};
+
+export const defaultWorkspaceLayoutState: WorkspaceLayoutState = {
+  density: "cozy",
+  inspectorCollapsed: false,
+  inspectorWidth: workspaceLayoutBounds.defaultInspectorWidth,
+  previewHeight: workspaceLayoutBounds.defaultPreviewHeight
+};
 
 export type WorkspaceSessionRecord = {
-  schemaVersion: 1;
+  schemaVersion: 1 | 2;
   userId: string;
   sessionId: string;
   projectId: string;
@@ -20,6 +44,7 @@ export type WorkspaceSessionRecord = {
   activeInspectorTab: InspectorTabName;
   previewOpen: boolean;
   previewArtifactId: string;
+  layout?: WorkspaceLayoutState;
   workspace: AssistantWorkspaceSnapshot["workspace"];
   messages: AssistantMessage[];
   workflow: AssistantWorkspaceSnapshot["workflow"];
@@ -53,6 +78,7 @@ export type WorkspacePersistenceClientOptions = {
 export type WorkspaceSessionRecordInput = {
   activeArtifactId: string;
   activeInspectorTab: InspectorTabName;
+  layout?: Partial<WorkspaceLayoutState>;
   previewArtifactId: string;
   previewOpen: boolean;
   snapshot: AssistantWorkspaceSnapshot;
@@ -107,6 +133,7 @@ export function createWorkspacePersistenceClient(
 export function createWorkspaceSessionRecord({
   activeArtifactId,
   activeInspectorTab,
+  layout,
   previewArtifactId,
   previewOpen,
   snapshot
@@ -114,7 +141,7 @@ export function createWorkspaceSessionRecord({
   const updatedAt = new Date().toISOString();
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     userId: snapshot.session.userId,
     sessionId: snapshot.session.sessionId,
     projectId: snapshot.session.projectId,
@@ -123,6 +150,7 @@ export function createWorkspaceSessionRecord({
     activeInspectorTab,
     previewOpen,
     previewArtifactId,
+    layout: normalizeWorkspaceLayoutState(layout),
     workspace: snapshot.workspace,
     messages: snapshot.messages,
     workflow: snapshot.workflow,
@@ -198,6 +226,27 @@ export function fingerprintWorkspaceSessionRecord(
   });
 }
 
+export function normalizeWorkspaceLayoutState(
+  layout?: Partial<WorkspaceLayoutState> | null
+): WorkspaceLayoutState {
+  return {
+    density: layout?.density === "compact" ? "compact" : "cozy",
+    inspectorCollapsed: Boolean(layout?.inspectorCollapsed),
+    inspectorWidth: clampLayoutValue(
+      layout?.inspectorWidth,
+      workspaceLayoutBounds.minInspectorWidth,
+      workspaceLayoutBounds.maxInspectorWidth,
+      workspaceLayoutBounds.defaultInspectorWidth
+    ),
+    previewHeight: clampLayoutValue(
+      layout?.previewHeight,
+      workspaceLayoutBounds.minPreviewHeight,
+      workspaceLayoutBounds.maxPreviewHeight,
+      workspaceLayoutBounds.defaultPreviewHeight
+    )
+  };
+}
+
 export function isWorkspaceSessionRecord(
   value: unknown
 ): value is WorkspaceSessionRecord {
@@ -206,7 +255,7 @@ export function isWorkspaceSessionRecord(
   }
 
   return (
-    value.schemaVersion === 1 &&
+    (value.schemaVersion === 1 || value.schemaVersion === 2) &&
     typeof value.userId === "string" &&
     typeof value.sessionId === "string" &&
     typeof value.projectId === "string" &&
@@ -215,6 +264,7 @@ export function isWorkspaceSessionRecord(
     isInspectorTabName(value.activeInspectorTab) &&
     typeof value.previewOpen === "boolean" &&
     typeof value.previewArtifactId === "string" &&
+    (value.layout === undefined || isWorkspaceLayoutState(value.layout)) &&
     isRecord(value.workspace) &&
     Array.isArray(value.messages) &&
     isRecord(value.workflow) &&
@@ -414,6 +464,34 @@ function isInspectorTabName(value: unknown): value is InspectorTabName {
     value === "Artifacts" ||
     value === "Retrieval"
   );
+}
+
+function isWorkspaceLayoutState(value: unknown): value is WorkspaceLayoutState {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    (value.density === "cozy" || value.density === "compact") &&
+    typeof value.inspectorCollapsed === "boolean" &&
+    typeof value.inspectorWidth === "number" &&
+    Number.isFinite(value.inspectorWidth) &&
+    typeof value.previewHeight === "number" &&
+    Number.isFinite(value.previewHeight)
+  );
+}
+
+function clampLayoutValue(
+  value: number | undefined,
+  minimum: number,
+  maximum: number,
+  fallback: number
+) {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return fallback;
+  }
+
+  return Math.min(Math.max(Math.round(value), minimum), maximum);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

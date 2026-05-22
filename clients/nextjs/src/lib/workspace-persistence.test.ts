@@ -3,7 +3,9 @@ import { getLocalWorkspaceSnapshot } from "./assistant-client";
 import {
   createWorkspacePersistenceClient,
   createWorkspaceSessionRecord,
+  defaultWorkspaceLayoutState,
   fingerprintWorkspaceSessionRecord,
+  normalizeWorkspaceLayoutState,
   snapshotFromWorkspaceSessionRecord,
   type WorkspaceSessionRecord
 } from "./workspace-persistence";
@@ -21,18 +23,36 @@ describe("workspace persistence client", () => {
     });
 
     expect(record).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       userId: "local-user",
       sessionId: "local-nextjs-session",
       projectId: "local-nextjs-workspace",
       activeArtifactId: "source-sketch",
       activeInspectorTab: "Code",
       previewOpen: true,
-      previewArtifactId: "preview-manifest"
+      previewArtifactId: "preview-manifest",
+      layout: defaultWorkspaceLayoutState
     });
     expect(record.messages).toEqual(snapshot.messages);
     expect(record.artifacts).toHaveLength(3);
     expect(record.updatedAt).toBeDefined();
+  });
+
+  it("normalizes layout preferences into safe persisted values", () => {
+    expect(
+      normalizeWorkspaceLayoutState({
+        density: "compact",
+        inspectorCollapsed: true,
+        inspectorWidth: 999,
+        previewHeight: 120
+      })
+    ).toEqual({
+      density: "compact",
+      inspectorCollapsed: true,
+      inspectorWidth: 560,
+      previewHeight: 160
+    });
+    expect(normalizeWorkspaceLayoutState()).toEqual(defaultWorkspaceLayoutState);
   });
 
   it("restores messages, active tab, artifact, and preview state", () => {
@@ -130,7 +150,8 @@ describe("workspace persistence client", () => {
     await expect(client.save(record)).resolves.toEqual({ target: "local" });
     await expect(client.load()).resolves.toMatchObject({
       activeInspectorTab: "Workflow",
-      previewOpen: true
+      previewOpen: true,
+      layout: defaultWorkspaceLayoutState
     });
   });
 
