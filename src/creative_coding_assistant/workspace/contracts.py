@@ -10,11 +10,12 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 DEFAULT_LOCAL_USER_ID = "local-user"
 DEFAULT_LOCAL_SESSION_ID = "local-nextjs-session"
 DEFAULT_LOCAL_PROJECT_ID = "local-nextjs-workspace"
-WORKSPACE_SESSION_SCHEMA_VERSION = 2
+WORKSPACE_SESSION_SCHEMA_VERSION = 3
 
 InspectorTabName = Literal["Overview", "Code", "Workflow", "Artifacts", "Retrieval"]
 MessageRole = Literal["user", "assistant"]
 WorkspaceDensity = Literal["cozy", "compact"]
+WorkspaceThemePreset = Literal["aqua", "codex", "matrix"]
 
 
 class WorkspaceSessionMessage(BaseModel):
@@ -113,6 +114,20 @@ class WorkspaceSessionLayout(BaseModel):
     preview_height: int = Field(default=220, alias="previewHeight", ge=160, le=360)
 
 
+class WorkspaceSessionPreferences(BaseModel):
+    """Persisted app-level presentation preferences for the Next.js workspace."""
+
+    model_config = ConfigDict(
+        frozen=True,
+        populate_by_name=True,
+        str_strip_whitespace=True,
+    )
+
+    theme: WorkspaceThemePreset = "aqua"
+    auto_open_preview: bool = Field(default=True, alias="autoOpenPreview")
+    show_debug_panels: bool = Field(default=True, alias="showDebugPanels")
+
+
 class WorkspaceSessionRecord(BaseModel):
     """Single-user workspace persistence envelope shared with Next.js."""
 
@@ -122,7 +137,7 @@ class WorkspaceSessionRecord(BaseModel):
         str_strip_whitespace=True,
     )
 
-    schema_version: Literal[1, 2] = Field(
+    schema_version: Literal[1, 2, 3] = Field(
         default=WORKSPACE_SESSION_SCHEMA_VERSION,
         alias="schemaVersion",
     )
@@ -153,6 +168,9 @@ class WorkspaceSessionRecord(BaseModel):
     artifacts: tuple[WorkspaceSessionArtifact, ...] = Field(default_factory=tuple)
     preview: WorkspaceSessionPreview | None = None
     layout: WorkspaceSessionLayout = Field(default_factory=WorkspaceSessionLayout)
+    preferences: WorkspaceSessionPreferences = Field(
+        default_factory=WorkspaceSessionPreferences
+    )
     snapshot: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime | None = Field(default=None, alias="createdAt")
     updated_at: datetime | None = Field(default=None, alias="updatedAt")

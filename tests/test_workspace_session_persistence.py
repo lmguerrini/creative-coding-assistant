@@ -24,6 +24,8 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
         self.assertTrue(record.preview_open)
         self.assertEqual(record.layout.inspector_width, 440)
         self.assertEqual(record.layout.density, "compact")
+        self.assertEqual(record.preferences.theme, "codex")
+        self.assertFalse(record.preferences.auto_open_preview)
         self.assertEqual(record.messages[0].content, "Keep this chat.")
         self.assertEqual(record.artifacts[0].id, "source-sketch")
 
@@ -86,6 +88,7 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
         restored = json.loads(get_body)
         self.assertEqual(restored["title"], "Persisted sketch session")
         self.assertEqual(restored["layout"]["previewHeight"], 240)
+        self.assertEqual(restored["preferences"]["theme"], "codex")
         self.assertEqual(restored["messages"][0]["content"], "Keep this chat.")
 
     def test_wsgi_endpoint_returns_404_for_missing_session(self) -> None:
@@ -130,7 +133,7 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
 
 def _session_payload() -> dict[str, object]:
     return {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "userId": DEFAULT_LOCAL_USER_ID,
         "sessionId": DEFAULT_LOCAL_SESSION_ID,
         "projectId": "local-nextjs-workspace",
@@ -144,6 +147,11 @@ def _session_payload() -> dict[str, object]:
             "inspectorCollapsed": False,
             "inspectorWidth": 440,
             "previewHeight": 240,
+        },
+        "preferences": {
+            "theme": "codex",
+            "autoOpenPreview": False,
+            "showDebugPanels": True,
         },
         "workspace": {
             "name": "Persisted sketch session",

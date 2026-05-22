@@ -19,12 +19,19 @@ export const workspaceLayoutBounds = {
 } as const;
 
 export type WorkspaceDensity = "cozy" | "compact";
+export type WorkspaceThemePreset = "aqua" | "codex" | "matrix";
 
 export type WorkspaceLayoutState = {
   density: WorkspaceDensity;
   inspectorCollapsed: boolean;
   inspectorWidth: number;
   previewHeight: number;
+};
+
+export type WorkspacePreferences = {
+  theme: WorkspaceThemePreset;
+  autoOpenPreview: boolean;
+  showDebugPanels: boolean;
 };
 
 export const defaultWorkspaceLayoutState: WorkspaceLayoutState = {
@@ -34,8 +41,14 @@ export const defaultWorkspaceLayoutState: WorkspaceLayoutState = {
   previewHeight: workspaceLayoutBounds.defaultPreviewHeight
 };
 
+export const defaultWorkspacePreferences: WorkspacePreferences = {
+  theme: "aqua",
+  autoOpenPreview: true,
+  showDebugPanels: true
+};
+
 export type WorkspaceSessionRecord = {
-  schemaVersion: 1 | 2;
+  schemaVersion: 1 | 2 | 3;
   userId: string;
   sessionId: string;
   projectId: string;
@@ -45,6 +58,7 @@ export type WorkspaceSessionRecord = {
   previewOpen: boolean;
   previewArtifactId: string;
   layout?: WorkspaceLayoutState;
+  preferences?: WorkspacePreferences;
   workspace: AssistantWorkspaceSnapshot["workspace"];
   messages: AssistantMessage[];
   workflow: AssistantWorkspaceSnapshot["workflow"];
@@ -79,6 +93,7 @@ export type WorkspaceSessionRecordInput = {
   activeArtifactId: string;
   activeInspectorTab: InspectorTabName;
   layout?: Partial<WorkspaceLayoutState>;
+  preferences?: Partial<WorkspacePreferences>;
   previewArtifactId: string;
   previewOpen: boolean;
   snapshot: AssistantWorkspaceSnapshot;
@@ -134,6 +149,7 @@ export function createWorkspaceSessionRecord({
   activeArtifactId,
   activeInspectorTab,
   layout,
+  preferences,
   previewArtifactId,
   previewOpen,
   snapshot
@@ -141,7 +157,7 @@ export function createWorkspaceSessionRecord({
   const updatedAt = new Date().toISOString();
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     userId: snapshot.session.userId,
     sessionId: snapshot.session.sessionId,
     projectId: snapshot.session.projectId,
@@ -151,6 +167,7 @@ export function createWorkspaceSessionRecord({
     previewOpen,
     previewArtifactId,
     layout: normalizeWorkspaceLayoutState(layout),
+    preferences: normalizeWorkspacePreferences(preferences),
     workspace: snapshot.workspace,
     messages: snapshot.messages,
     workflow: snapshot.workflow,
@@ -247,6 +264,24 @@ export function normalizeWorkspaceLayoutState(
   };
 }
 
+export function normalizeWorkspacePreferences(
+  preferences?: Partial<WorkspacePreferences> | null
+): WorkspacePreferences {
+  return {
+    theme: isWorkspaceThemePreset(preferences?.theme)
+      ? preferences.theme
+      : defaultWorkspacePreferences.theme,
+    autoOpenPreview:
+      typeof preferences?.autoOpenPreview === "boolean"
+        ? preferences.autoOpenPreview
+        : defaultWorkspacePreferences.autoOpenPreview,
+    showDebugPanels:
+      typeof preferences?.showDebugPanels === "boolean"
+        ? preferences.showDebugPanels
+        : defaultWorkspacePreferences.showDebugPanels
+  };
+}
+
 export function isWorkspaceSessionRecord(
   value: unknown
 ): value is WorkspaceSessionRecord {
@@ -255,7 +290,9 @@ export function isWorkspaceSessionRecord(
   }
 
   return (
-    (value.schemaVersion === 1 || value.schemaVersion === 2) &&
+    (value.schemaVersion === 1 ||
+      value.schemaVersion === 2 ||
+      value.schemaVersion === 3) &&
     typeof value.userId === "string" &&
     typeof value.sessionId === "string" &&
     typeof value.projectId === "string" &&
@@ -265,6 +302,8 @@ export function isWorkspaceSessionRecord(
     typeof value.previewOpen === "boolean" &&
     typeof value.previewArtifactId === "string" &&
     (value.layout === undefined || isWorkspaceLayoutState(value.layout)) &&
+    (value.preferences === undefined ||
+      isWorkspacePreferences(value.preferences)) &&
     isRecord(value.workspace) &&
     Array.isArray(value.messages) &&
     isRecord(value.workflow) &&
@@ -466,6 +505,10 @@ function isInspectorTabName(value: unknown): value is InspectorTabName {
   );
 }
 
+function isWorkspaceThemePreset(value: unknown): value is WorkspaceThemePreset {
+  return value === "aqua" || value === "codex" || value === "matrix";
+}
+
 function isWorkspaceLayoutState(value: unknown): value is WorkspaceLayoutState {
   if (!isRecord(value)) {
     return false;
@@ -478,6 +521,18 @@ function isWorkspaceLayoutState(value: unknown): value is WorkspaceLayoutState {
     Number.isFinite(value.inspectorWidth) &&
     typeof value.previewHeight === "number" &&
     Number.isFinite(value.previewHeight)
+  );
+}
+
+function isWorkspacePreferences(value: unknown): value is WorkspacePreferences {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    isWorkspaceThemePreset(value.theme) &&
+    typeof value.autoOpenPreview === "boolean" &&
+    typeof value.showDebugPanels === "boolean"
   );
 }
 
