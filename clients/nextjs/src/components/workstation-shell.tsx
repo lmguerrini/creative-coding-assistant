@@ -105,6 +105,18 @@ import {
   type ConversationEntry,
   type ConversationEntryPhase
 } from "@/lib/streaming-conversation";
+import {
+  buildHitlApprovalStreamEvent,
+  createHitlApprovalRequest,
+  getHitlApprovalStateLabel,
+  isHitlApprovalBlockingState,
+  isHitlApprovalTerminalState,
+  summarizeHitlApprovalRequests,
+  updateHitlApprovalRequest,
+  type HitlActionId,
+  type HitlActionState,
+  type HitlApprovalRequest
+} from "@/lib/hitl-runtime";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
 
 type WorkstationShellProps = {
@@ -140,6 +152,7 @@ type ArtifactActionFeedback = {
   artifactId: string;
   state: "success" | "error";
 };
+type ApprovalActionExecutor = () => Promise<void> | void;
 type ResizeTarget = "inspector" | "preview";
 type UtilityPanelName = "commands" | "theme" | "settings";
 type FocusRestoreState = {
@@ -201,6 +214,8 @@ export function WorkstationShell({
 }: WorkstationShellProps) {
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const entryIdCounterRef = useRef(0);
+  const approvalIdCounterRef = useRef(0);
+  const localRuntimeSequenceRef = useRef(1000);
   const streamingAssistantIdRef = useRef<string | null>(null);
   const [conversationEntries, setConversationEntries] = useState(() =>
     buildConversationEntries(initialSnapshot.messages, createConversationEntryId)
@@ -249,7 +264,14 @@ export function WorkstationShell({
   );
   const [transferFeedback, setTransferFeedback] =
     useState<ArtifactActionFeedback | null>(null);
+  const [approvalRequests, setApprovalRequests] = useState<HitlApprovalRequest[]>(
+    []
+  );
+  const [dismissedApprovalRequestId, setDismissedApprovalRequestId] = useState<
+    string | null
+  >(null);
   const chatLogRef = useRef<HTMLDivElement>(null);
+  const approvalCardRef = useRef<HTMLElement | null>(null);
   const shouldAutoScrollRef = useRef(true);
   const isShellMountedRef = useRef(true);
   const hasLoadedPersistenceRef = useRef(false);
@@ -260,6 +282,7 @@ export function WorkstationShell({
   const transferFeedbackTimerRef = useRef<number | null>(null);
   const dragCleanupRef = useRef<(() => void) | null>(null);
   const utilityTrayRef = useRef<HTMLDivElement>(null);
+  const approvalExecutorsRef = useRef<Record<string, ApprovalActionExecutor>>({});
 
   function clearFeedbackTimers() {
     clearTimer(copyFeedbackTimerRef.current);
@@ -269,6 +292,11 @@ export function WorkstationShell({
   function createConversationEntryId() {
     entryIdCounterRef.current += 1;
     return `conversation-entry-${entryIdCounterRef.current}`;
+  }
+
+  function createApprovalRequestId() {
+    approvalIdCounterRef.current += 1;
+    return `approval-request-${approvalIdCounterRef.current}`;
   }
 
   useEffect(() => {
@@ -317,6 +345,19 @@ export function WorkstationShell({
 
     chatLog.scrollTop = chatLog.scrollHeight;
   }, [conversationEntries]);
+
+  useEffect(() => {
+    const activeApproval = summarizeHitlApprovalRequests(approvalRequests).activeRequest;
+    if (!activeApproval || activeApproval.state !== "pending_approval") {
+      return;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      approvalCardRef.current?.focus();
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [approvalRequests]);
 
   useEffect(() => {
     if (workflowRunId === 0) {
@@ -608,7 +649,27 @@ export function WorkstationShell({
     [interactiveSnapshot.retrieval, workflowTraceEvents]
   );
   const isComposerReady = Boolean(composerValue.trim()) && !isStreaming;
-  const streamState = isStreaming ? "streaming" : streamError ? "fallback" : "idle";
+  const approvalSummary = useMemo(
+    () => summarizeHitlApprovalRequests(approvalRequests),
+    [approvalRequests]
+  );
+  const blockingApprovalRequest = approvalSummary.activeRequest;
+  const latestApprovalRequest = approvalSummary.latestRequest;
+  const visibleApprovalRequest =
+    blockingApprovalRequest ??
+    (latestApprovalRequest &&
+    latestApprovalRequest.id !== dismissedApprovalRequestId
+      ? latestApprovalRequest
+      : null);
+  const streamState = blockingApprovalRequest
+    ? blockingApprovalRequest.state === "pending_approval"
+      ? "approval"
+      : "executing"
+    : isStreaming
+      ? "streaming"
+      : streamError
+        ? "fallback"
+        : "idle";
   const composerStateLabel = getComposerStatusLabel({
     isReady: isComposerReady,
     isStreaming,
@@ -618,6 +679,16 @@ export function WorkstationShell({
   const persistenceStatusLabel =
     persistenceStateLabels[persistenceState] ?? "Local session ready";
   const isInspectorCollapsed = layoutState.inspectorCollapsed;
+  const sessionStatusLabel = blockingApprovalRequest
+    ? getHitlApprovalStateLabel(blockingApprovalRequest.state)
+    : isStreaming
+      ? "Streaming"
+      : streamError
+        ? "Fallback"
+        : interactiveSnapshot.workflow.status;
+  const sessionStatusDetail = blockingApprovalRequest
+    ? blockingApprovalRequest.title
+    : interactiveSnapshot.workflow.currentStep;
   const workspaceLayoutStyle = useMemo(
     () =>
       ({
@@ -793,6 +864,168 @@ export function WorkstationShell({
     setOpenUtilityPanel(null);
   }
 
+  function appendLocalRuntimeEvent(event: AssistantStreamEvent) {
+    const receivedAt = new Date().toISOString();
+    const receivedAtMs = Date.now();
+    const code = readPayloadText(event, "code") ?? event.event_type;
+
+    setWorkflowTraceEvents((currentEvents) => [
+      ...currentEvents,
+      {
+        event,
+        receivedAt,
+        receivedAtMs
+      }
+    ]);
+    setStreamEvents((currentEvents) => [
+      ...currentEvents,
+      {
+        code: `${event.sequence}:${event.event_type}`,
+        label: formatRuntimeCode(code),
+        detail:
+          readPayloadText(event, "message") ??
+          readPayloadText(event, "answer") ??
+          readPayloadText(event, "text") ??
+          "Local operator event received."
+      }
+    ]);
+
+    const workflowNode = workflowNodeFromAssistantStreamEvent(event);
+    if (workflowNode) {
+      setWorkflowProgressIndex(
+        getWorkflowNodeIndex(interactiveSnapshot.workflow.steps, workflowNode)
+      );
+    }
+  }
+
+  function setApprovalRequestState(
+    request: HitlApprovalRequest,
+    nextState: HitlActionState,
+    options: { failureReason?: string | null } = {}
+  ) {
+    const nextRequest = updateHitlApprovalRequest(
+      request,
+      nextState,
+      new Date().toISOString(),
+      options.failureReason ?? null
+    );
+    setApprovalRequests((currentRequests) =>
+      currentRequests.map((currentRequest) =>
+        currentRequest.id === request.id ? nextRequest : currentRequest
+      )
+    );
+    appendLocalRuntimeEvent(
+      buildHitlApprovalStreamEvent({
+        request: nextRequest,
+        sequence: localRuntimeSequenceRef.current++,
+        state: nextState,
+        workflow: interactiveSnapshot.workflow
+      })
+    );
+
+    return nextRequest;
+  }
+
+  function requestOperatorApproval({
+    actionId,
+    artifactTitle,
+    execute
+  }: {
+    actionId: HitlActionId;
+    artifactTitle?: string | null;
+    execute: ApprovalActionExecutor;
+  }) {
+    if (blockingApprovalRequest) {
+      approvalCardRef.current?.focus();
+      return;
+    }
+
+    const request = createHitlApprovalRequest({
+      actionId,
+      artifactTitle,
+      id: createApprovalRequestId(),
+      nodeId: interactiveSnapshot.workflow.currentNode,
+      workspaceName: interactiveSnapshot.workspace.name
+    });
+    approvalExecutorsRef.current[request.id] = execute;
+    setDismissedApprovalRequestId(null);
+    setApprovalRequests((currentRequests) => [...currentRequests, request]);
+    appendLocalRuntimeEvent(
+      buildHitlApprovalStreamEvent({
+        request,
+        sequence: localRuntimeSequenceRef.current++,
+        state: "pending_approval",
+        workflow: interactiveSnapshot.workflow
+      })
+    );
+    setOpenUtilityPanel(null);
+  }
+
+  async function handleApprovalApprove(request: HitlApprovalRequest) {
+    const execute = approvalExecutorsRef.current[request.id];
+    const approvedRequest = setApprovalRequestState(request, "approved");
+    const executingRequest = setApprovalRequestState(approvedRequest, "executing");
+
+    if (!execute) {
+      setApprovalRequestState(executingRequest, "failed", {
+        failureReason: "No approval executor was available for this action."
+      });
+      return;
+    }
+
+    try {
+      await Promise.resolve(execute());
+      setApprovalRequestState(executingRequest, "completed");
+    } catch (error) {
+      setApprovalRequestState(executingRequest, "failed", {
+        failureReason:
+          error instanceof Error
+            ? error.message
+            : "The operator action could not be completed."
+      });
+    } finally {
+      delete approvalExecutorsRef.current[request.id];
+    }
+  }
+
+  function handleApprovalReject(request: HitlApprovalRequest) {
+    delete approvalExecutorsRef.current[request.id];
+    setApprovalRequestState(request, "rejected");
+  }
+
+  function handleApprovalDismiss(request: HitlApprovalRequest) {
+    if (!isHitlApprovalTerminalState(request.state)) {
+      return;
+    }
+
+    setDismissedApprovalRequestId(request.id);
+  }
+
+  function clearWorkspaceSession() {
+    clearFeedbackTimers();
+    setCopyFeedback(null);
+    setTransferFeedback(null);
+    streamingAssistantIdRef.current = null;
+    setSnapshot(initialSnapshot);
+    setConversationEntries(
+      buildConversationEntries(initialSnapshot.messages, createConversationEntryId)
+    );
+    setComposerValue("");
+    setActiveTab(getInitialActiveTab(initialSnapshot));
+    setActiveArtifactId(initialSnapshot.artifacts[0]?.id ?? "");
+    setPreviewArtifactId(getInitialPreviewArtifactId(initialSnapshot));
+    setIsPreviewOpen(initialSnapshot.preview.active);
+    setIsPreviewFullscreen(false);
+    setPreviewSessionOverride(null);
+    setWorkflowProgressIndex(getInitialWorkflowIndex(initialSnapshot.workflow.steps));
+    setWorkflowRunId(0);
+    setIsStreaming(false);
+    setStreamError(null);
+    setStreamEvents(initialSnapshot.debug.events);
+    setWorkflowTraceEvents([]);
+    setOpenUtilityPanel(null);
+  }
+
   function handleInspectorCollapsedChange(
     nextCollapsed: boolean,
     options: { preserveFocusMode?: boolean } = {}
@@ -861,21 +1094,35 @@ export function WorkstationShell({
   }
 
   function handlePreviewSessionRestart() {
-    const nextArtifactId = resolvePreviewSourceArtifactId();
+    requestOperatorApproval({
+      actionId: "preview_runtime_restart",
+      artifactTitle: interactiveSnapshot.preview.artifactName,
+      execute: () => {
+        const nextArtifactId = resolvePreviewSourceArtifactId();
 
-    setPreviewArtifactId(nextArtifactId);
-    setPreviewSessionOverride(
-      createPreviewSessionOverride(nextArtifactId, "restarting")
-    );
-    handlePreviewOpenChange(true, { preserveFocusMode: true });
+        setPreviewArtifactId(nextArtifactId);
+        setPreviewSessionOverride(
+          createPreviewSessionOverride(nextArtifactId, "restarting")
+        );
+        handlePreviewOpenChange(true, { preserveFocusMode: true });
+      }
+    });
   }
 
   function handlePreviewStateClear() {
-    const nextArtifactId = resolvePreviewSourceArtifactId();
+    requestOperatorApproval({
+      actionId: "preview_runtime_clear",
+      artifactTitle: interactiveSnapshot.preview.artifactName,
+      execute: () => {
+        const nextArtifactId = resolvePreviewSourceArtifactId();
 
-    setPreviewArtifactId(nextArtifactId);
-    setPreviewSessionOverride(createPreviewSessionOverride(nextArtifactId, "cleared"));
-    handlePreviewOpenChange(true, { preserveFocusMode: true });
+        setPreviewArtifactId(nextArtifactId);
+        setPreviewSessionOverride(
+          createPreviewSessionOverride(nextArtifactId, "cleared")
+        );
+        handlePreviewOpenChange(true, { preserveFocusMode: true });
+      }
+    });
   }
 
   function handlePreviewStateReload() {
@@ -903,12 +1150,20 @@ export function WorkstationShell({
   }
 
   function handlePreviewSessionReset() {
-    const nextArtifactId = resolvePreviewResetArtifactId();
+    requestOperatorApproval({
+      actionId: "preview_runtime_reset",
+      artifactTitle:
+        snapshot.artifacts.find((artifact) => artifact.id === resolvePreviewResetArtifactId())
+          ?.title ?? interactiveSnapshot.preview.artifactName,
+      execute: () => {
+        const nextArtifactId = resolvePreviewResetArtifactId();
 
-    setPreviewArtifactId(nextArtifactId);
-    setPreviewSessionOverride(null);
-    setIsPreviewFullscreen(false);
-    handlePreviewOpenChange(true, { preserveFocusMode: true });
+        setPreviewArtifactId(nextArtifactId);
+        setPreviewSessionOverride(null);
+        setIsPreviewFullscreen(false);
+        handlePreviewOpenChange(true, { preserveFocusMode: true });
+      }
+    });
   }
 
   function handleInspectorResizeStart(event: MouseEvent<HTMLElement>) {
@@ -1264,17 +1519,28 @@ export function WorkstationShell({
   }
 
   function handleArtifactTransfer(artifact: ArtifactSummary) {
-    setActiveArtifactId(artifact.id);
-    setPreviewContextArtifactId(artifact.id);
-    const wasTransferred = downloadArtifactDocument(
-      buildArtifactDocument(interactiveSnapshot, artifact)
-    );
-    setFeedbackState(
-      artifact.id,
-      wasTransferred ? "success" : "error",
-      transferFeedbackTimerRef,
-      setTransferFeedback
-    );
+    requestOperatorApproval({
+      actionId: artifact.actions.includes("Download")
+        ? "artifact_download"
+        : "artifact_export",
+      artifactTitle: artifact.title,
+      execute: () => {
+        setActiveArtifactId(artifact.id);
+        setPreviewContextArtifactId(artifact.id);
+        const wasTransferred = downloadArtifactDocument(
+          buildArtifactDocument(interactiveSnapshot, artifact)
+        );
+        setFeedbackState(
+          artifact.id,
+          wasTransferred ? "success" : "error",
+          transferFeedbackTimerRef,
+          setTransferFeedback
+        );
+        if (!wasTransferred) {
+          throw new Error("Local download/export is unavailable in this environment.");
+        }
+      }
+    });
   }
 
   function handleArtifactAction(action: ArtifactAction, artifact: ArtifactSummary) {
@@ -1334,14 +1600,8 @@ export function WorkstationShell({
           aria-label="Current session"
           data-state={streamState}
         >
-          <span>
-            {isStreaming
-              ? "Streaming"
-              : streamError
-                ? "Fallback"
-                : interactiveSnapshot.workflow.status}
-          </span>
-          <strong>{interactiveSnapshot.workflow.currentStep}</strong>
+          <span>{sessionStatusLabel}</span>
+          <strong>{sessionStatusDetail}</strong>
         </div>
 
         <div
@@ -1386,6 +1646,7 @@ export function WorkstationShell({
             {openUtilityPanel === "commands" ? (
               <CommandMenuPanel
                 activeTab={activeTab}
+                hasBlockingApproval={Boolean(blockingApprovalRequest)}
                 isFocusMode={isFocusMode}
                 isPreviewAvailable={interactiveSnapshot.preview.available}
                 isPreviewOpen={isPreviewOpen}
@@ -1395,6 +1656,12 @@ export function WorkstationShell({
                 }}
                 onOpenTab={revealInspectorTab}
                 onPreviewToggle={handlePreviewShelfFromControl}
+                onWorkspaceClear={() =>
+                  requestOperatorApproval({
+                    actionId: "workspace_clear",
+                    execute: clearWorkspaceSession
+                  })
+                }
               />
             ) : null}
           </div>
@@ -1449,25 +1716,105 @@ export function WorkstationShell({
       <section className="workspaceLayout" aria-label="Creative workspace">
         <div className="mainColumn">
           <section className="sessionPanel" aria-label="Creative session">
-            <header className="sessionHeader">
-              <div>
-                <span className="eyebrow">Creative session</span>
-                <h1>{snapshot.workspace.focus}</h1>
-                <p>
-                  Generate, refine, and open artifacts without leaving the current
-                  workspace flow.
-                </p>
-              </div>
-              <div
-                className="sessionMetric"
-                aria-label="Active artifact"
-                data-active="true"
-              >
-                <span>Active artifact</span>
-                <strong>{activeArtifact.title}</strong>
-                <small aria-live="polite">{persistenceStatusLabel}</small>
-              </div>
-            </header>
+            <div className="sessionIntro">
+              <header className="sessionHeader">
+                <div>
+                  <span className="eyebrow">Creative session</span>
+                  <h1>{snapshot.workspace.focus}</h1>
+                  <p>
+                    Generate, refine, and open artifacts without leaving the current
+                    workspace flow.
+                  </p>
+                </div>
+                <div
+                  className="sessionMetric"
+                  aria-label="Active artifact"
+                  data-active="true"
+                >
+                  <span>Active artifact</span>
+                  <strong>{activeArtifact.title}</strong>
+                  <small aria-live="polite">{persistenceStatusLabel}</small>
+                </div>
+              </header>
+              {visibleApprovalRequest ? (
+                <article
+                  aria-label="Operator checkpoint"
+                  aria-live="polite"
+                  className="operatorCheckpoint"
+                  data-kind={visibleApprovalRequest.kind}
+                  data-state={visibleApprovalRequest.state}
+                  ref={approvalCardRef}
+                  tabIndex={-1}
+                >
+                  <header className="operatorCheckpointHeader">
+                    <div>
+                      <span className="eyebrow">Operator checkpoint</span>
+                      <strong>{visibleApprovalRequest.title}</strong>
+                      <p>{visibleApprovalRequest.summary}</p>
+                    </div>
+                    <div className="operatorCheckpointStatus">
+                      <small>{getHitlApprovalStateLabel(visibleApprovalRequest.state)}</small>
+                      {isHitlApprovalTerminalState(visibleApprovalRequest.state) ? (
+                        <button
+                          aria-label="Dismiss operator checkpoint"
+                          className="iconButton"
+                          onClick={() => handleApprovalDismiss(visibleApprovalRequest)}
+                          type="button"
+                        >
+                          <X size={15} />
+                        </button>
+                      ) : null}
+                    </div>
+                  </header>
+                  <p>{visibleApprovalRequest.detail}</p>
+                  <dl className="operatorCheckpointMeta">
+                    <div>
+                      <dt>Target</dt>
+                      <dd>{visibleApprovalRequest.targetLabel}</dd>
+                    </div>
+                    <div>
+                      <dt>Workflow</dt>
+                      <dd>{interactiveSnapshot.workflow.currentStep}</dd>
+                    </div>
+                    <div>
+                      <dt>Requested</dt>
+                      <dd>{formatTraceTime(visibleApprovalRequest.requestedAt)}</dd>
+                    </div>
+                  </dl>
+                  {visibleApprovalRequest.failureReason ? (
+                    <p className="operatorCheckpointFailure" role="status">
+                      {visibleApprovalRequest.failureReason}
+                    </p>
+                  ) : null}
+                  {visibleApprovalRequest.state === "pending_approval" ? (
+                    <div className="operatorCheckpointActions">
+                      <button
+                        onClick={() => handleApprovalReject(visibleApprovalRequest)}
+                        type="button"
+                      >
+                        {visibleApprovalRequest.cancelLabel}
+                      </button>
+                      <button
+                        className="operatorCheckpointApprove"
+                        onClick={() => void handleApprovalApprove(visibleApprovalRequest)}
+                        type="button"
+                      >
+                        {visibleApprovalRequest.confirmLabel}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="operatorCheckpointFooter">
+                      <span>{getHitlApprovalStateLabel(visibleApprovalRequest.state)}</span>
+                      <small>
+                        {visibleApprovalRequest.resolvedAt
+                          ? formatTraceTime(visibleApprovalRequest.resolvedAt)
+                          : "Awaiting operator decision"}
+                      </small>
+                    </div>
+                  )}
+                </article>
+              ) : null}
+            </div>
 
             <div
               aria-label="Conversation"
@@ -2583,22 +2930,26 @@ function RetrievalInspector({ runtime }: { runtime: RetrievalRuntimeModel }) {
 
 type CommandMenuPanelProps = {
   activeTab: InspectorTabName;
+  hasBlockingApproval: boolean;
   isFocusMode: boolean;
   isPreviewAvailable: boolean;
   isPreviewOpen: boolean;
   onFocusModeToggle: () => void;
   onOpenTab: (tab: InspectorTabName) => void;
   onPreviewToggle: () => void;
+  onWorkspaceClear: () => void;
 };
 
 function CommandMenuPanel({
   activeTab,
+  hasBlockingApproval,
   isFocusMode,
   isPreviewAvailable,
   isPreviewOpen,
   onFocusModeToggle,
   onOpenTab,
-  onPreviewToggle
+  onPreviewToggle,
+  onWorkspaceClear
 }: CommandMenuPanelProps) {
   return (
     <section
@@ -2656,6 +3007,19 @@ function CommandMenuPanel({
         >
           <strong>{isFocusMode ? "Exit focus mode" : "Enter focus mode"}</strong>
           <span>Hide or restore the surrounding workspace chrome.</span>
+        </button>
+        <button
+          aria-label="Clear workspace session"
+          disabled={hasBlockingApproval}
+          onClick={onWorkspaceClear}
+          type="button"
+        >
+          <strong>Clear workspace session</strong>
+          <span>
+            {hasBlockingApproval
+              ? "Finish the active operator checkpoint before resetting the session."
+              : "Reset the local creative session to the starter snapshot."}
+          </span>
         </button>
       </div>
     </section>
@@ -3221,6 +3585,12 @@ function formatWorkflowMiniMeta(step: WorkflowRuntimeModel["steps"][number]) {
   }
 
   return meta.join(" / ") || step.lastEventLabel || step.detail;
+}
+
+function formatRuntimeCode(value: string) {
+  return value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
 function readPayloadText(

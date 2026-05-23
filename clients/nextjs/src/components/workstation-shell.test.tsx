@@ -24,6 +24,8 @@ import {
 const originalClipboard = navigator.clipboard;
 const originalCancelAnimationFrame = window.cancelAnimationFrame;
 const originalRequestAnimationFrame = window.requestAnimationFrame;
+const originalCreateObjectURL = URL.createObjectURL;
+const originalRevokeObjectURL = URL.revokeObjectURL;
 
 function snapshotWithActiveTab(
   activeTab: InspectorTabName
@@ -266,6 +268,14 @@ describe("WorkstationShell", () => {
       configurable: true,
       value: originalCancelAnimationFrame
     });
+    Object.defineProperty(URL, "createObjectURL", {
+      configurable: true,
+      value: originalCreateObjectURL
+    });
+    Object.defineProperty(URL, "revokeObjectURL", {
+      configurable: true,
+      value: originalRevokeObjectURL
+    });
   });
 
   it("renders the three-zone creative workspace shell", () => {
@@ -345,6 +355,48 @@ describe("WorkstationShell", () => {
     expect(workstation).toHaveAttribute("data-focus-mode", "false");
     expect(screen.getByRole("complementary", { name: "Right inspector" })).toBeVisible();
     expect(screen.getByRole("region", { name: "Preview workspace" })).toBeVisible();
+  });
+
+  it("clears the workspace session only after operator approval", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockImplementation(() => true);
+    renderShell();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Code" }));
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+
+    fireEvent.click(screen.getByRole("button", { name: "Command menu" }));
+    fireEvent.click(screen.getByRole("button", { name: "Clear workspace session" }));
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Operator checkpoint")).toHaveTextContent(
+      "Clear workspace session"
+    );
+    expect(screen.getByRole("button", { name: "Keep session" })).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "Keep session" }));
+    expect(screen.getByLabelText("Operator checkpoint")).toHaveTextContent("Rejected");
+
+    fireEvent.click(screen.getByRole("button", { name: "Command menu" }));
+    fireEvent.click(screen.getByRole("button", { name: "Clear workspace session" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Clear workspace" }));
+      await Promise.resolve();
+    });
+
+    expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(preview.querySelector("details")).not.toHaveAttribute("open");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
+    await waitFor(() => {
+      const events = screen.getByRole("group", { name: "Workflow event trace" });
+      expect(within(events).getByText("Workspace Clear Completed")).toBeVisible();
+    });
   });
 
   it("defaults to a single Overview inspector panel", () => {
@@ -948,7 +1000,8 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
   });
 
-  it("supports clearing, reloading, and resetting preview session state", () => {
+  it("routes destructive preview runtime actions through an operator checkpoint", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockImplementation(() => true);
     renderShell();
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
@@ -959,6 +1012,19 @@ describe("WorkstationShell", () => {
     fireEvent.click(
       within(preview).getByRole("button", { name: "Clear preview state" })
     );
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Operator checkpoint")).toHaveTextContent(
+      "Clear preview runtime"
+    );
+    expect(
+      within(preview).queryByText("Cleared", { selector: "summary small" })
+    ).not.toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Clear runtime" }));
+      await Promise.resolve();
+    });
 
     expect(
       within(preview).getByText("Cleared", { selector: "summary small" })
@@ -998,9 +1064,26 @@ describe("WorkstationShell", () => {
       within(preview).getByRole("button", { name: "Reset preview session" })
     );
 
+    await waitFor(() => {
+      expect(screen.getByLabelText("Operator checkpoint")).toHaveTextContent(
+        "Reset preview runtime"
+      );
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Reset runtime" }));
+      await Promise.resolve();
+    });
+
     expect(
       within(preview).getByText("webgpu-particle-field.ts", { selector: "summary span" })
     ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
+    const events = screen.getByRole("group", { name: "Workflow event trace" });
+
+    expect(within(events).getByText("Preview Runtime Clear Completed")).toBeVisible();
+    expect(within(events).getByText("Preview Runtime Reset Approval Requested")).toBeVisible();
+    expect(within(events).getByText("Preview Runtime Reset Completed")).toBeVisible();
   });
 
   it("updates the preview context when the active artifact is not previewable", () => {
@@ -1187,6 +1270,54 @@ describe("WorkstationShell", () => {
         name: "Download File webgpu-particle-field.ts"
       })
     ).toBeVisible();
+  });
+
+  it("requires approval before downloading an artifact and records the action in workflow traces", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockImplementation(() => true);
+    const anchorClick = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
+    Object.defineProperty(URL, "createObjectURL", {
+      configurable: true,
+      value: vi.fn(() => "blob:artifact")
+    });
+    Object.defineProperty(URL, "revokeObjectURL", {
+      configurable: true,
+      value: vi.fn()
+    });
+
+    renderShell(snapshotWithActiveTab("Artifacts"));
+    const details = screen.getByRole("group", { name: "Active artifact details" });
+
+    fireEvent.click(
+      within(details).getByRole("button", {
+        name: "Download File webgpu-particle-field.ts"
+      })
+    );
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(anchorClick).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Operator checkpoint")).toHaveTextContent(
+      "Download artifact"
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Download file" }));
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(anchorClick).toHaveBeenCalledTimes(1);
+    });
+    expect(
+      screen.getByText("webgpu-particle-field.ts downloaded.")
+    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
+    const events = screen.getByRole("group", { name: "Workflow event trace" });
+
+    expect(within(events).getByText("Artifact Download Approval Requested")).toBeVisible();
+    expect(within(events).getByText("Artifact Download Completed")).toBeVisible();
   });
 
   it("shows copy feedback in the code inspector", async () => {

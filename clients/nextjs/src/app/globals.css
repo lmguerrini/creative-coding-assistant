@@ -246,6 +246,16 @@ a {
   color: var(--amber);
 }
 
+.sessionStatus[data-state="approval"] span {
+  background: rgba(243, 184, 82, 0.16);
+  color: var(--amber);
+}
+
+.sessionStatus[data-state="executing"] span {
+  background: rgba(124, 167, 255, 0.16);
+  color: var(--blue);
+}
+
 .sessionStatus strong {
   min-width: 0;
   overflow: hidden;
@@ -550,6 +560,11 @@ a {
   transition: padding 180ms ease, gap 180ms ease;
 }
 
+.sessionIntro {
+  display: grid;
+  gap: 14px;
+}
+
 .sessionHeader {
   display: flex;
   align-items: flex-start;
@@ -651,6 +666,204 @@ a {
   font-size: 10px;
   font-weight: 850;
   text-transform: uppercase;
+}
+
+.operatorCheckpoint {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.09), transparent 72%),
+    rgba(255, 255, 255, 0.04);
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.operatorCheckpoint:focus-visible {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 2px;
+}
+
+.operatorCheckpoint[data-kind="destructive"] {
+  border-color: rgba(255, 122, 102, 0.28);
+  background:
+    linear-gradient(135deg, rgba(255, 122, 102, 0.12), transparent 72%),
+    rgba(255, 255, 255, 0.04);
+}
+
+.operatorCheckpoint[data-kind="transfer"] {
+  border-color: rgba(124, 167, 255, 0.28);
+  background:
+    linear-gradient(135deg, rgba(124, 167, 255, 0.12), transparent 72%),
+    rgba(255, 255, 255, 0.04);
+}
+
+.operatorCheckpoint[data-state="pending_approval"] {
+  box-shadow: 0 18px 44px rgba(243, 184, 82, 0.08);
+}
+
+.operatorCheckpoint[data-state="executing"] {
+  border-color: rgba(124, 167, 255, 0.32);
+  box-shadow: 0 18px 44px rgba(124, 167, 255, 0.08);
+}
+
+.operatorCheckpoint[data-state="completed"] {
+  border-color: rgba(121, 211, 139, 0.28);
+}
+
+.operatorCheckpoint[data-state="rejected"],
+.operatorCheckpoint[data-state="failed"] {
+  border-color: rgba(255, 122, 102, 0.3);
+}
+
+.operatorCheckpointHeader,
+.operatorCheckpointStatus,
+.operatorCheckpointFooter {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.operatorCheckpointHeader strong,
+.operatorCheckpointMeta dd {
+  color: var(--foreground);
+}
+
+.operatorCheckpointHeader strong {
+  display: block;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.operatorCheckpointHeader p,
+.operatorCheckpoint > p,
+.operatorCheckpointMeta dt,
+.operatorCheckpointFooter small {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.operatorCheckpointStatus {
+  align-items: center;
+}
+
+.operatorCheckpointStatus small,
+.operatorCheckpointFooter span {
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted-strong);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.operatorCheckpoint[data-state="pending_approval"] .operatorCheckpointStatus small,
+.operatorCheckpoint[data-state="pending_approval"] .operatorCheckpointFooter span {
+  background: rgba(243, 184, 82, 0.15);
+  color: var(--amber);
+}
+
+.operatorCheckpoint[data-state="executing"] .operatorCheckpointStatus small,
+.operatorCheckpoint[data-state="executing"] .operatorCheckpointFooter span {
+  background: rgba(124, 167, 255, 0.15);
+  color: var(--blue);
+}
+
+.operatorCheckpoint[data-state="completed"] .operatorCheckpointStatus small,
+.operatorCheckpoint[data-state="completed"] .operatorCheckpointFooter span {
+  background: rgba(121, 211, 139, 0.15);
+  color: var(--green);
+}
+
+.operatorCheckpoint[data-state="rejected"] .operatorCheckpointStatus small,
+.operatorCheckpoint[data-state="failed"] .operatorCheckpointStatus small,
+.operatorCheckpoint[data-state="rejected"] .operatorCheckpointFooter span,
+.operatorCheckpoint[data-state="failed"] .operatorCheckpointFooter span {
+  background: rgba(255, 122, 102, 0.14);
+  color: var(--coral);
+}
+
+.operatorCheckpointMeta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.operatorCheckpointMeta div {
+  display: grid;
+  gap: 3px;
+}
+
+.operatorCheckpointMeta dt {
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.operatorCheckpointMeta dd,
+.operatorCheckpointFailure {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.operatorCheckpointActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.operatorCheckpointActions button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--muted-strong);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.operatorCheckpointActions button:hover {
+  border-color: rgba(var(--accent-rgb), 0.34);
+  color: var(--foreground);
+  transform: translateY(-1px);
+}
+
+.operatorCheckpointApprove {
+  border-color: rgba(var(--accent-rgb), 0.4);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.12), transparent 72%),
+    rgba(255, 255, 255, 0.045);
+  color: var(--foreground);
+}
+
+.operatorCheckpointFooter {
+  align-items: center;
+}
+
+.operatorCheckpointFailure {
+  color: var(--coral);
 }
 
 .chatLog {
