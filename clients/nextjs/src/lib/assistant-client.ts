@@ -90,13 +90,55 @@ export type CodeSummary = {
   excerpt: string[];
 };
 
+export type RetrievalState =
+  | "available"
+  | "pending"
+  | "empty"
+  | "unavailable"
+  | "error";
+
+export type RetrievalQuality = "high" | "medium" | "low" | "unknown";
+
+export type RetrievalFreshness = "fresh" | "stale" | "unknown";
+
+export type RetrievalChunkSummary = {
+  id: string;
+  chunkIndex: number;
+  score: number | null;
+  snippet: string;
+  relevanceLabel: string;
+};
+
 export type RetrievalSourceSummary = {
+  sourceId: string;
   title: string;
   detail: string;
+  domain: string;
+  domainLabel: string;
+  publisher: string;
+  sourceType: string;
+  sourceTypeLabel: string;
+  href: string;
+  host: string;
+  score: number | null;
+  quality: RetrievalQuality;
+  qualityLabel: string;
+  freshness: RetrievalFreshness;
+  freshnessLabel: string;
+  updatedAt: string | null;
+  whyUsed: string;
+  chunks: RetrievalChunkSummary[];
 };
 
 export type RetrievalSummary = {
+  state: RetrievalState;
   status: string;
+  headline: string;
+  detail: string;
+  source: string;
+  query: string | null;
+  requestedDomains: string[];
+  warning: string | null;
   sources: RetrievalSourceSummary[];
 };
 
@@ -351,15 +393,88 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
       ]
     },
     retrieval: {
+      state: "available",
       status: "Grounded",
+      headline: "3 chunks from 2 official sources",
+      detail:
+        "Official knowledge base context grounded the WebGPU particle-field draft before code generation and preview routing.",
+      source: "official_kb",
+      query:
+        "Stable WebGPU particle field for a projection wall with low-frequency audio response",
+      requestedDomains: ["webgpu_wgsl", "glsl"],
+      warning:
+        "1 source is older than the preferred refresh window for shader guidance.",
       sources: [
         {
-          title: "Projection wall motion constraints",
-          detail: "Prefer broad velocity fields and avoid high-frequency flicker."
+          sourceId: "webgpu_mdn_api",
+          title: "WebGPU API",
+          detail:
+            "Stable compute and render pass separation guidance for the browser sandbox renderer.",
+          domain: "webgpu_wgsl",
+          domainLabel: "WebGPU / WGSL",
+          publisher: "MDN",
+          sourceType: "api_reference",
+          sourceTypeLabel: "API reference",
+          href: "https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API",
+          host: "developer.mozilla.org",
+          score: 0.91,
+          quality: "high",
+          qualityLabel: "High relevance",
+          freshness: "fresh",
+          freshnessLabel: "Current",
+          updatedAt: "2026-05-20T08:30:00Z",
+          whyUsed:
+            "Matched the request for stable compute and render pass separation in a browser sandbox.",
+          chunks: [
+            {
+              id: "webgpu_mdn_api::chunk-0001",
+              chunkIndex: 0,
+              score: 0.91,
+              relevanceLabel: "Best match",
+              snippet:
+                "The WebGPU API separates device setup, command encoding, and queue submission so compute and render work can stay isolated."
+            },
+            {
+              id: "webgpu_mdn_api::chunk-0004",
+              chunkIndex: 3,
+              score: 0.84,
+              relevanceLabel: "Supporting match",
+              snippet:
+                "GPUCanvasContext configuration should be applied once per presentation surface so preview updates stay predictable during iteration."
+            }
+          ]
         },
         {
-          title: "WebGPU particle pass notes",
-          detail: "Keep compute and render passes isolated for preview stability."
+          sourceId: "glsl_language_spec_460",
+          title: "OpenGL Shading Language 4.60 Specification",
+          detail:
+            "Lower-level shader typing and buffer-layout grounding for deterministic output.",
+          domain: "glsl",
+          domainLabel: "GLSL",
+          publisher: "Khronos Group",
+          sourceType: "specification",
+          sourceTypeLabel: "Specification",
+          href:
+            "https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.html",
+          host: "registry.khronos.org",
+          score: 0.73,
+          quality: "medium",
+          qualityLabel: "Relevant grounding",
+          freshness: "stale",
+          freshnessLabel: "Review soon",
+          updatedAt: "2025-10-12T09:00:00Z",
+          whyUsed:
+            "Provided lower-level shader language grounding for deterministic buffer layout and fragment output.",
+          chunks: [
+            {
+              id: "glsl_language_spec_460::chunk-0003",
+              chunkIndex: 2,
+              score: 0.73,
+              relevanceLabel: "Supporting match",
+              snippet:
+                "Explicit shader types and layout-compatible data flow keep buffer-backed particle pipelines deterministic across stages."
+            }
+          ]
         }
       ]
     },

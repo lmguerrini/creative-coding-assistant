@@ -156,7 +156,10 @@ export function buildArtifactDocument(
     `- Selected artifact: ${artifact.title}`,
     "",
     "## Constraints",
-    ...snapshot.retrieval.sources.map((source) => `- ${source.detail}`),
+    ...snapshot.retrieval.sources.map((source) => {
+      const leadChunk = source.chunks[0];
+      return `- ${source.title}: ${leadChunk?.snippet ?? source.whyUsed}`;
+    }),
     "",
     "## Notes",
     artifact.summary

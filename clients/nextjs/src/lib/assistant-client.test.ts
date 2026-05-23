@@ -63,6 +63,17 @@ describe("assistant frontend client", () => {
     expect(snapshot.artifacts[0].actions).toContain("Preview");
     expect(snapshot.preview.targetId).toBe("browser_sandbox");
     expect(snapshot.preview.target).toContain("Browser sandbox");
+    expect(snapshot.retrieval.state).toBe("available");
+    expect(snapshot.retrieval.sources[0]).toMatchObject({
+      sourceId: "webgpu_mdn_api",
+      domainLabel: "WebGPU / WGSL",
+      quality: "high",
+      freshness: "fresh"
+    });
+    expect(snapshot.retrieval.sources[0].chunks[0]).toMatchObject({
+      chunkIndex: 0,
+      relevanceLabel: "Best match"
+    });
   });
 
   it("exposes an async boundary for future backend integration", async () => {
