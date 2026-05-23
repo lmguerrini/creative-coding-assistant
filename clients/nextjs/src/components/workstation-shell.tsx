@@ -78,6 +78,10 @@ import {
   type WorkflowRuntimeVisualState
 } from "@/lib/workflow-runtime";
 import {
+  buildRetrievalRuntimeModel,
+  type RetrievalRuntimeModel
+} from "@/lib/retrieval-runtime";
+import {
   buildPreviewControllerModel,
   createPreviewSessionOverride,
   type PreviewControllerModel,
@@ -598,6 +602,10 @@ export function WorkstationShell({
   const workflowRuntime = useMemo(
     () => buildWorkflowRuntimeModel(interactiveSnapshot.workflow, workflowTraceEvents),
     [interactiveSnapshot.workflow, workflowTraceEvents]
+  );
+  const retrievalRuntime = useMemo(
+    () => buildRetrievalRuntimeModel(interactiveSnapshot.retrieval, workflowTraceEvents),
+    [interactiveSnapshot.retrieval, workflowTraceEvents]
   );
   const isComposerReady = Boolean(composerValue.trim()) && !isStreaming;
   const streamState = isStreaming ? "streaming" : streamError ? "fallback" : "idle";
@@ -1641,6 +1649,7 @@ export function WorkstationShell({
                     onArtifactCopy={handleArtifactCopy}
                     onArtifactAction={handleArtifactAction}
                     onArtifactTransfer={handleArtifactTransfer}
+                    retrievalRuntime={retrievalRuntime}
                     showDebugPanels={workspacePreferences.showDebugPanels}
                     snapshot={interactiveSnapshot}
                     transferFeedback={transferFeedback}
@@ -1895,6 +1904,7 @@ type InspectorPanelProps = {
   onArtifactCopy: (artifact: ArtifactSummary) => Promise<void>;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
   onArtifactTransfer: (artifact: ArtifactSummary) => void;
+  retrievalRuntime: RetrievalRuntimeModel;
   showDebugPanels: boolean;
   snapshot: AssistantWorkspaceSnapshot;
   transferFeedback: ArtifactActionFeedback | null;
@@ -1911,6 +1921,7 @@ function InspectorPanel({
   onArtifactCopy,
   onArtifactAction,
   onArtifactTransfer,
+  retrievalRuntime,
   showDebugPanels,
   snapshot,
   transferFeedback,
@@ -1954,12 +1965,13 @@ function InspectorPanel({
   }
 
   if (activeTab === "Retrieval") {
-    return <RetrievalInspector snapshot={snapshot} />;
+    return <RetrievalInspector runtime={retrievalRuntime} />;
   }
 
   return (
     <OverviewInspector
       activeArtifact={activeArtifact}
+      retrieval={retrievalRuntime}
       runtime={workflowRuntime}
       showDebugPanels={showDebugPanels}
       snapshot={snapshot}
@@ -1969,13 +1981,16 @@ function InspectorPanel({
 
 function OverviewInspector({
   activeArtifact,
+  retrieval,
   runtime,
   showDebugPanels,
   snapshot
-}: WorkstationShellProps & {
+}: {
   activeArtifact: ArtifactSummary;
+  retrieval: RetrievalRuntimeModel;
   runtime: WorkflowRuntimeModel;
   showDebugPanels: boolean;
+  snapshot: AssistantWorkspaceSnapshot;
 }) {
   const workflowProgress = getWorkflowRuntimeProgress(runtime.steps);
   const latestTransitions = runtime.transitions.slice(-3);
@@ -2066,8 +2081,13 @@ function OverviewInspector({
         </div>
         <div className="overviewTile" role="group" aria-label="Retrieval summary">
           <span>Retrieval</span>
-          <strong>{snapshot.retrieval.status}</strong>
-          <p>{snapshot.retrieval.sources.length} references</p>
+          <strong>{retrieval.summary.status}</strong>
+          <p>
+            {retrieval.summary.sourceCount > 0
+              ? `${retrieval.summary.sourceCount} sources / ${retrieval.summary.chunkCount} chunks`
+              : retrieval.summary.headline}
+          </p>
+          <small>{retrieval.summary.freshnessLabel}</small>
         </div>
       </div>
     </section>
@@ -2438,7 +2458,9 @@ function ArtifactsInspector({
   );
 }
 
-function RetrievalInspector({ snapshot }: WorkstationShellProps) {
+function RetrievalInspector({ runtime }: { runtime: RetrievalRuntimeModel }) {
+  const hasSources = runtime.sources.length > 0;
+
   return (
     <section
       aria-label="Retrieval inspector"
@@ -2446,14 +2468,115 @@ function RetrievalInspector({ snapshot }: WorkstationShellProps) {
       id="retrieval-inspector-panel"
       role="tabpanel"
     >
-      <div className="retrievalList">
-        {snapshot.retrieval.sources.map((source) => (
-          <article className="retrievalItem" key={source.title}>
-            <strong>{source.title}</strong>
-            <p>{source.detail}</p>
-          </article>
-        ))}
-      </div>
+      <article
+        aria-label="Retrieval status"
+        className="retrievalSummaryCard"
+        data-state={runtime.summary.state}
+        role="group"
+      >
+        <header className="retrievalSummaryHeader">
+          <div>
+            <span>Retrieval status</span>
+            <strong>{runtime.summary.status}</strong>
+            <p>{runtime.summary.headline}</p>
+          </div>
+          <span className="retrievalStateBadge" data-state={runtime.summary.state}>
+            {runtime.summary.providerLabel}
+          </span>
+        </header>
+        <div className="retrievalSummaryMeta" aria-label="Retrieval metadata" role="list">
+          <span role="listitem">{runtime.summary.sourceCount} sources</span>
+          <span role="listitem">{runtime.summary.chunkCount} chunks</span>
+          <span role="listitem">{runtime.summary.coverageLabel}</span>
+          <span role="listitem">{runtime.summary.qualityLabel}</span>
+          <span role="listitem">{runtime.summary.freshnessLabel}</span>
+        </div>
+        {runtime.request.query ? (
+          <p className="retrievalQuery">
+            Query
+            <code>{runtime.request.query}</code>
+          </p>
+        ) : null}
+        {runtime.request.filterLabels.length > 0 ? (
+          <div className="retrievalFilterRow" aria-label="Retrieval filters">
+            {runtime.request.filterLabels.map((label) => (
+              <span className="retrievalFilterPill" key={label}>
+                {label}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        <p className="retrievalSummaryDetail">{runtime.summary.detail}</p>
+        {runtime.summary.warning ? (
+          <p className="retrievalWarning" role="status">
+            {runtime.summary.warning}
+          </p>
+        ) : null}
+      </article>
+      {hasSources ? (
+        <div className="retrievalList">
+          {runtime.sources.map((source) => (
+            <article className="retrievalItem" key={source.sourceId}>
+              <header className="retrievalItemHeader">
+                <div>
+                  <div className="retrievalItemMeta">
+                    <span className="retrievalDomainBadge">{source.domainLabel}</span>
+                    <span className="retrievalSourceType">{source.sourceTypeLabel}</span>
+                  </div>
+                  <strong>{source.title}</strong>
+                  <p>
+                    {source.publisher}
+                    {source.host ? ` • ${source.host}` : ""}
+                  </p>
+                </div>
+                <div className="retrievalItemSignals">
+                  <span className="retrievalScoreBadge" data-quality={source.quality}>
+                    {source.qualityLabel}
+                  </span>
+                  <span
+                    className="retrievalFreshnessBadge"
+                    data-freshness={source.freshness}
+                  >
+                    {source.freshnessLabel}
+                  </span>
+                </div>
+              </header>
+              <p className="retrievalWhyUsed">{source.whyUsed}</p>
+              <div className="retrievalChunkList" aria-label={`${source.title} chunks`}>
+                {source.chunks.map((chunk) => (
+                  <article className="retrievalChunk" key={chunk.id}>
+                    <header>
+                      <strong>{`Chunk ${chunk.chunkIndex + 1}`}</strong>
+                      <span>{chunk.relevanceLabel}</span>
+                    </header>
+                    <p>{chunk.snippet}</p>
+                  </article>
+                ))}
+              </div>
+              {source.href ? (
+                <a
+                  className="retrievalSourceLink"
+                  href={source.href}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Open source reference
+                </a>
+              ) : null}
+            </article>
+          ))}
+        </div>
+      ) : (
+        <article
+          aria-label="Retrieval empty state"
+          className="retrievalEmptyCard"
+          data-state={runtime.summary.state}
+          role="group"
+        >
+          <strong>{runtime.summary.headline}</strong>
+          <p>{runtime.summary.detail}</p>
+        </article>
+      )}
     </section>
   );
 }

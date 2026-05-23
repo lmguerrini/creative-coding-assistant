@@ -114,6 +114,25 @@ function snapshotWithGlslPreview(): AssistantWorkspaceSnapshot {
   };
 }
 
+function snapshotWithEmptyRetrieval(): AssistantWorkspaceSnapshot {
+  const snapshot = getLocalWorkspaceSnapshot();
+
+  return {
+    ...snapshot,
+    retrieval: {
+      ...snapshot.retrieval,
+      state: "empty",
+      status: "No matches",
+      headline: "No retrieved context",
+      detail: "No retrieval chunks were returned for this mock request.",
+      query: "Find TouchDesigner references for this projection loop.",
+      requestedDomains: ["touchdesigner"],
+      warning: "No retrieved chunks for TouchDesigner.",
+      sources: []
+    }
+  };
+}
+
 function installAnimationFrameMock() {
   Object.defineProperty(window, "requestAnimationFrame", {
     configurable: true,
@@ -380,6 +399,56 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("tabpanel", { name: "Retrieval inspector" })).toBeVisible();
   });
 
+  it("renders retrieval source cards with provenance, quality, and chunk previews", () => {
+    renderShell();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Retrieval" }));
+
+    const retrievalPanel = screen.getByRole("tabpanel", {
+      name: "Retrieval inspector"
+    });
+
+    expect(
+      within(retrievalPanel).getByRole("group", { name: "Retrieval status" })
+    ).toBeVisible();
+    expect(within(retrievalPanel).getByText("Official knowledge base")).toBeVisible();
+    expect(within(retrievalPanel).getByText("WebGPU API")).toBeVisible();
+    expect(
+      within(retrievalPanel).getByText(
+        "OpenGL Shading Language 4.60 Specification"
+      )
+    ).toBeVisible();
+    expect(within(retrievalPanel).getAllByText("Best match").length).toBeGreaterThan(0);
+    expect(within(retrievalPanel).getByText("High relevance")).toBeVisible();
+    expect(within(retrievalPanel).getByText("Review soon")).toBeVisible();
+    expect(
+      within(retrievalPanel).getByText(
+        /Stable WebGPU particle field for a projection wall/
+      )
+    ).toBeVisible();
+  });
+
+  it("renders retrieval empty states without stale source cards", () => {
+    renderShell(snapshotWithEmptyRetrieval());
+
+    fireEvent.click(screen.getByRole("tab", { name: "Retrieval" }));
+
+    const retrievalPanel = screen.getByRole("tabpanel", {
+      name: "Retrieval inspector"
+    });
+
+    expect(
+      within(retrievalPanel).getByRole("group", { name: "Retrieval empty state" })
+    ).toBeVisible();
+    expect(within(retrievalPanel).getByText("No matches")).toBeVisible();
+    expect(
+      within(retrievalPanel).getByText("No retrieved chunks for TouchDesigner.")
+    ).toBeVisible();
+    expect(
+      within(retrievalPanel).queryByRole("link", { name: "Open source reference" })
+    ).not.toBeInTheDocument();
+  });
+
   it("uses the command menu to open focused inspector views", () => {
     renderShell();
 
@@ -489,6 +558,93 @@ describe("WorkstationShell", () => {
       )
     ).toBeVisible();
     expect(preview.querySelector("details")).toHaveAttribute("open");
+  });
+
+  it("hydrates the retrieval inspector from streamed retrieval events", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "retrieval",
+          sequence: 0,
+          payload: {
+            code: "retrieval_requested",
+            emitted_at: "2026-05-23T10:21:00Z",
+            request: {
+              query: "Create a p5.js sketch with low-frequency motion.",
+              limit: 5,
+              filters: {
+                domains: ["p5_js"]
+              }
+            }
+          }
+        },
+        {
+          event_type: "retrieval",
+          sequence: 1,
+          payload: {
+            code: "retrieval_completed",
+            emitted_at: "2026-05-23T10:21:01Z",
+            context: {
+              source: "official_kb",
+              request: {
+                query: "Create a p5.js sketch with low-frequency motion.",
+                limit: 5,
+                filters: {
+                  domains: ["p5_js"]
+                }
+              },
+              chunks: [
+                {
+                  source_id: "p5_reference",
+                  domain: "p5_js",
+                  source_type: "api_reference",
+                  publisher: "p5.js",
+                  registry_title: "p5.js Reference",
+                  document_title: "createCanvas",
+                  source_url: "https://p5js.org/reference/p5/createCanvas/",
+                  resolved_url: "https://p5js.org/reference/p5/createCanvas/",
+                  chunk_index: 0,
+                  excerpt:
+                    "createCanvas sets the main drawing surface and should be called once in setup.",
+                  score: 0.88
+                }
+              ]
+            }
+          }
+        },
+        {
+          event_type: "final",
+          sequence: 2,
+          payload: {
+            answer: "Use p5.js createCanvas in setup and keep the motion broad."
+          }
+        }
+      ])
+    );
+
+    renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Create a p5.js sketch with low-frequency motion." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(await screen.findByText(/Use p5.js createCanvas/)).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Retrieval" }));
+
+    const retrievalPanel = screen.getByRole("tabpanel", {
+      name: "Retrieval inspector"
+    });
+
+    expect(
+      within(retrievalPanel).getByText(
+        "Create a p5.js sketch with low-frequency motion."
+      )
+    ).toBeVisible();
+    expect(within(retrievalPanel).getByText("createCanvas")).toBeVisible();
+    expect(within(retrievalPanel).getAllByText("p5.js").length).toBeGreaterThan(0);
+    expect(within(retrievalPanel).getByText("88% match")).toBeVisible();
   });
 
   it("shows connecting and live generation states during a streamed response", async () => {

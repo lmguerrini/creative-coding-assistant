@@ -1843,6 +1843,12 @@ a {
   letter-spacing: -0.025em;
 }
 
+.overviewTile small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 .miniWorkflow {
   display: grid;
   gap: 8px;
@@ -2355,6 +2361,10 @@ a {
   gap: 12px;
 }
 
+.retrievalPanel {
+  gap: 12px;
+}
+
 .artifactDetailCard,
 .artifactList,
 .retrievalList {
@@ -2507,10 +2517,219 @@ a {
   transform: translateY(-1px);
 }
 
+.retrievalSummaryCard,
+.retrievalEmptyCard {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel-soft);
+}
+
+.retrievalSummaryCard[data-state="available"] {
+  border-color: rgba(76, 215, 200, 0.24);
+  background:
+    linear-gradient(135deg, rgba(76, 215, 200, 0.08), transparent 72%),
+    rgba(255, 255, 255, 0.045);
+}
+
+.retrievalSummaryCard[data-state="pending"] {
+  border-color: rgba(124, 167, 255, 0.24);
+}
+
+.retrievalSummaryCard[data-state="empty"],
+.retrievalEmptyCard[data-state="empty"] {
+  border-color: rgba(243, 184, 82, 0.24);
+}
+
+.retrievalSummaryCard[data-state="error"],
+.retrievalSummaryCard[data-state="unavailable"],
+.retrievalEmptyCard[data-state="error"],
+.retrievalEmptyCard[data-state="unavailable"] {
+  border-color: rgba(255, 122, 102, 0.24);
+}
+
+.retrievalSummaryHeader,
+.retrievalItemHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.retrievalSummaryMeta,
+.retrievalFilterRow,
+.retrievalItemMeta,
+.retrievalItemSignals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.retrievalSummaryMeta span,
+.retrievalStateBadge,
+.retrievalFilterPill,
+.retrievalDomainBadge,
+.retrievalSourceType,
+.retrievalScoreBadge,
+.retrievalFreshnessBadge {
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.retrievalStateBadge {
+  color: var(--teal);
+  border-color: rgba(76, 215, 200, 0.18);
+  background: rgba(76, 215, 200, 0.08);
+}
+
+.retrievalStateBadge[data-state="empty"] {
+  color: var(--amber);
+  border-color: rgba(243, 184, 82, 0.22);
+  background: rgba(243, 184, 82, 0.08);
+}
+
+.retrievalStateBadge[data-state="error"],
+.retrievalStateBadge[data-state="unavailable"] {
+  color: var(--coral);
+  border-color: rgba(255, 122, 102, 0.22);
+  background: rgba(255, 122, 102, 0.08);
+}
+
+.retrievalQuery {
+  display: grid;
+  gap: 6px;
+}
+
+.retrievalQuery code {
+  display: block;
+  overflow-wrap: anywhere;
+  padding: 10px 11px;
+  border: 1px solid rgba(124, 167, 255, 0.16);
+  border-radius: 12px;
+  color: var(--foreground);
+  background: rgba(255, 255, 255, 0.03);
+  font: inherit;
+  font-size: 12px;
+}
+
+.retrievalSummaryDetail,
+.retrievalWhyUsed {
+  color: var(--muted-strong);
+}
+
+.retrievalWarning {
+  padding: 10px 11px;
+  border: 1px solid rgba(243, 184, 82, 0.22);
+  border-radius: 12px;
+  color: var(--amber);
+  background: rgba(243, 184, 82, 0.08);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .retrievalItem {
   display: grid;
-  gap: 7px;
+  gap: 10px;
   padding: 12px;
+}
+
+.retrievalItemHeader p {
+  margin-top: 4px;
+  font-size: 11px;
+}
+
+.retrievalDomainBadge {
+  color: var(--teal);
+  border-color: rgba(76, 215, 200, 0.18);
+  background: rgba(76, 215, 200, 0.08);
+}
+
+.retrievalSourceType {
+  color: var(--blue);
+  border-color: rgba(124, 167, 255, 0.18);
+}
+
+.retrievalScoreBadge[data-quality="high"] {
+  color: var(--green);
+  border-color: rgba(121, 211, 139, 0.2);
+  background: rgba(121, 211, 139, 0.08);
+}
+
+.retrievalScoreBadge[data-quality="medium"] {
+  color: var(--amber);
+  border-color: rgba(243, 184, 82, 0.22);
+  background: rgba(243, 184, 82, 0.08);
+}
+
+.retrievalScoreBadge[data-quality="low"] {
+  color: var(--coral);
+  border-color: rgba(255, 122, 102, 0.22);
+  background: rgba(255, 122, 102, 0.08);
+}
+
+.retrievalFreshnessBadge[data-freshness="fresh"] {
+  color: var(--green);
+  border-color: rgba(121, 211, 139, 0.2);
+  background: rgba(121, 211, 139, 0.08);
+}
+
+.retrievalFreshnessBadge[data-freshness="stale"] {
+  color: var(--amber);
+  border-color: rgba(243, 184, 82, 0.22);
+  background: rgba(243, 184, 82, 0.08);
+}
+
+.retrievalChunkList {
+  display: grid;
+  gap: 8px;
+}
+
+.retrievalChunk {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.retrievalChunk header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.retrievalChunk header span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.retrievalChunk p {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.retrievalSourceLink {
+  width: fit-content;
+  color: var(--teal);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.retrievalSourceLink:hover {
+  color: var(--foreground);
+  text-decoration: underline;
 }
 
 .workstation[data-density="compact"] .workspaceLayout {
@@ -2536,8 +2755,14 @@ a {
 .workstation[data-density="compact"] .workflowTraceCard,
 .workstation[data-density="compact"] .artifactItem,
 .workstation[data-density="compact"] .artifactDetailCard,
+.workstation[data-density="compact"] .retrievalSummaryCard,
+.workstation[data-density="compact"] .retrievalEmptyCard,
 .workstation[data-density="compact"] .retrievalItem {
   padding: 10px;
+}
+
+.workstation[data-density="compact"] .retrievalChunk {
+  padding: 9px;
 }
 
 .workstation[data-density="compact"] .composer textarea {
