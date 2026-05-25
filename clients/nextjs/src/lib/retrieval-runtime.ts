@@ -396,7 +396,9 @@ function normalizeFallbackSources(
   return [...sources]
     .map((source) => ({
       ...source,
-      chunks: [...source.chunks].sort(sortChunksByScore)
+      chunks: (Array.isArray(source.chunks) ? [...source.chunks] : []).sort(
+        sortChunksByScore
+      )
     }))
     .sort(sortSourcesByScore);
 }
@@ -594,7 +596,8 @@ function parseRetrievalChunk(rawChunk: unknown): ParsedRetrievalChunk | null {
 function buildRuntimeRequest(
   request: ParsedRetrievalRequest
 ): RetrievalRuntimeRequest {
-  const domainLabels = request.domains.map((domain) => formatDomainLabel(domain));
+  const domains = Array.isArray(request.domains) ? request.domains : [];
+  const domainLabels = domains.map((domain) => formatDomainLabel(domain));
   const filterLabels = [
     ...domainLabels,
     request.sourceTypeFilter ? formatSourceTypeLabel(request.sourceTypeFilter) : null,
@@ -604,6 +607,7 @@ function buildRuntimeRequest(
 
   return {
     ...request,
+    domains,
     domainLabels,
     filterLabels
   };

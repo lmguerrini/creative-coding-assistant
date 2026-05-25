@@ -26,6 +26,23 @@ describe("retrieval runtime", () => {
     });
   });
 
+  it("normalizes legacy fallback retrieval requests without requested domains", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const legacyRetrieval = {
+      ...snapshot.retrieval,
+      requestedDomains: undefined,
+      sources: snapshot.retrieval.sources.map((source) => ({
+        ...source,
+        chunks: undefined
+      }))
+    } as unknown as typeof snapshot.retrieval;
+
+    const runtime = buildRetrievalRuntimeModel(legacyRetrieval, []);
+
+    expect(runtime.request.domainLabels).toEqual([]);
+    expect(runtime.summary.state).toBe("available");
+  });
+
   it("hydrates retrieval sources and chunks from streamed retrieval completion events", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const runtime = buildRetrievalRuntimeModel(snapshot.retrieval, [
