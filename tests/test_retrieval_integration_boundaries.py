@@ -805,6 +805,35 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
             (CreativeCodingDomain.THREE_JS,),
         )
 
+    def test_service_marks_retrieval_completion_with_error_payload_when_gateway_fails(
+        self,
+    ) -> None:
+        gateway = _FakeGateway(
+            response=RetrievalContextResponse(
+                request=RetrievalContextRequest(
+                    query="Explain lighting.",
+                    route=RouteName.EXPLAIN,
+                ),
+            ),
+            raised_error=RuntimeError("boom"),
+        )
+        service = AssistantService(
+            route_fn=_route_with_docs,
+            retrieval_gateway=gateway,
+        )
+        request = AssistantRequest(
+            query="Explain lighting.",
+            domain=CreativeCodingDomain.THREE_JS,
+            mode=AssistantMode.EXPLAIN,
+        )
+
+        events = tuple(service.stream(request))
+
+        self.assertEqual(events[3].payload["code"], "retrieval_completed")
+        self.assertEqual(events[3].payload["error"]["type"], "retrieval_gateway_failed")
+        self.assertTrue(events[3].payload["error"]["recoverable"])
+        self.assertEqual(events[3].payload["context"]["chunks"], [])
+
     def test_service_preserves_multi_domain_retrieval_filters(self) -> None:
         retrieval_context = RetrievalContextResponse(
             request=RetrievalContextRequest(
@@ -962,8 +991,14 @@ class _FakeRetriever:
 
 
 class _FakeGateway:
-    def __init__(self, *, response: RetrievalContextResponse) -> None:
+    def __init__(
+        self,
+        *,
+        response: RetrievalContextResponse,
+        raised_error: Exception | None = None,
+    ) -> None:
         self.response = response
+        self.raised_error = raised_error
         self.requests: list[RetrievalContextRequest] = []
 
     def retrieve_context(
@@ -971,6 +1006,8 @@ class _FakeGateway:
         request: RetrievalContextRequest,
     ) -> RetrievalContextResponse:
         self.requests.append(request)
+        if self.raised_error is not None:
+            raise self.raised_error
         return self.response
 
 

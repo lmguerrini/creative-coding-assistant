@@ -82,6 +82,8 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
         self.assertEqual(event["event_type"], "error")
         self.assertEqual(event["sequence"], 0)
         self.assertEqual(event["payload"]["code"], "assistant_stream_failed")
+        self.assertTrue(event["payload"]["recoverable"])
+        self.assertEqual(event["payload"]["subsystem"], "assistant_stream")
 
     def test_wsgi_endpoint_streams_ndjson(self) -> None:
         service = _FakeService(

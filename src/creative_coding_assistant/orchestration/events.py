@@ -119,10 +119,10 @@ class StreamEventBuilder:
             {"answer": answer, **details},
         )
 
-    def error(self, *, code: str, message: str) -> StreamEvent:
+    def error(self, *, code: str, message: str, **details: Any) -> StreamEvent:
         return self._event(
             StreamEventType.ERROR,
-            {"code": code, "message": message},
+            {"code": code, "message": message, **details},
         )
 
     def _event(

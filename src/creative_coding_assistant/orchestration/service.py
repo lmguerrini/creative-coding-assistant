@@ -208,6 +208,7 @@ class AssistantService:
             retrieval_context = self._retrieval_gateway.retrieve_context(
                 retrieval_request
             )
+            retrieval_error_payload = None
         except Exception as exc:
             logger.bind(
                 route=decision.route.value,
@@ -221,10 +222,27 @@ class AssistantService:
                 request=retrieval_request,
                 chunks=(),
             )
+            retrieval_error_payload = {
+                "type": "retrieval_gateway_failed",
+                "category": "retrieval",
+                "subsystem": "retrieval_gateway",
+                "message": "Retrieval references are unavailable for this request.",
+                "debug_message": type(exc).__name__,
+                "recoverable": True,
+                "suggested_action": (
+                    "Retry the request or continue without retrieved references."
+                ),
+                "retry_label": "Retry retrieval",
+            }
         yield builder.retrieval(
             code="retrieval_completed",
             message="Retrieval context prepared.",
             context=retrieval_context.model_dump(mode="json"),
+            **(
+                {"error": retrieval_error_payload}
+                if retrieval_error_payload is not None
+                else {}
+            ),
         )
         return retrieval_context
 
@@ -508,6 +526,13 @@ def _stream_provider_generation(
                 builder.error(
                     code=generation_event.error.code,
                     message=generation_event.error.message,
+                    category="stream",
+                    subsystem="generation_provider",
+                    recoverable=True,
+                    suggested_action=(
+                        "Retry the request after the provider recovers."
+                    ),
+                    retry_label="Send prompt again",
                 )
             )
             break

@@ -86,6 +86,11 @@ def iter_assistant_stream_ndjson(
             payload={
                 "code": "assistant_stream_failed",
                 "message": "Assistant stream failed before completion.",
+                "category": "stream",
+                "subsystem": "assistant_stream",
+                "recoverable": True,
+                "suggested_action": "Retry the request from the client.",
+                "retry_label": "Send prompt again",
             },
         )
         yield serialize_stream_event(error_event)
