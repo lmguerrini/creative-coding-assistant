@@ -61,17 +61,17 @@ flowchart TB
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> review
     review -->|"pass or max retry"| finalization --> finish
     review -->|"needs refinement and count < 1"| refinement --> generation
-    intake -. caught error .-> failure
-    routing -. caught error .-> failure
-    memory -. caught error .-> failure
-    retrieval -. caught error .-> failure
-    context_assembly -. caught error .-> failure
-    prompt_input -. caught error .-> failure
-    prompt_rendering -. caught error .-> failure
-    generation -. provider or node error .-> failure
-    review -. caught error .-> failure
-    refinement -. caught error .-> failure
-    finalization -. caught error .-> failure
+    intake -. intake_error .-> failure
+    routing -. routing_error .-> failure
+    memory -. memory_error .-> failure
+    retrieval -. retrieval_error .-> failure
+    context_assembly -. context_error .-> failure
+    prompt_input -. prompt_input_error .-> failure
+    prompt_rendering -. prompt_rendering_error .-> failure
+    generation -. stream_error / provider_error .-> failure
+    review -. review_error .-> failure
+    refinement -. refinement_error .-> failure
+    finalization -. finalization_error .-> failure
     failure --> finish
 
     class start boundary
@@ -79,7 +79,15 @@ flowchart TB
     class intake,routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,refinement,finalization implemented
     class review gate
     class failure failure
+    style phase_1 rx:6px,ry:6px
+    style phase_2 rx:6px,ry:6px
+    style phase_3 rx:6px,ry:6px
+    style phase_4 rx:6px,ry:6px
 ```
+
+The failure edges above remain real LangGraph transitions into the single terminal `failure` node. The labels document structured failure categories carried into that node and then surfaced by the workstation UI; they are not separate LangGraph nodes.
+
+Frontend-only workstation errors are not LangGraph runtime nodes. Preview/renderer runtime errors render in the Preview shelf, artifact/export UI errors render in the Artifacts tab, persistence/session errors render near session controls, and HITL local approval errors render in the Workflow inspector.
 
 The raw Mermaid source for the implemented graph is also available in [workflow_graph.mmd](/Users/k/Desktop/CC/the_turing_college/extra_projects/creative_coding_assistant/docs/workflow_graph.mmd).
 
