@@ -118,6 +118,50 @@ function snapshotWithGlslPreview(): AssistantWorkspaceSnapshot {
   };
 }
 
+function snapshotWithThreePreview(): AssistantWorkspaceSnapshot {
+  const snapshot = getLocalWorkspaceSnapshot();
+  const title = "projection-scene.three.ts";
+
+  return {
+    ...snapshot,
+    artifacts: [
+      {
+        ...snapshot.artifacts[0],
+        summary:
+          "Three scene with WebGLRenderer, PerspectiveCamera, MeshStandardMaterial, lights, and camera motion.",
+        title
+      },
+      ...snapshot.artifacts.slice(1)
+    ],
+    preview: {
+      ...snapshot.preview,
+      artifactName: title,
+      sourceArtifactName: title,
+      summary: "Runtime is ready to mount a bounded Three.js-style scene preview.",
+      target: "Browser sandbox",
+      targetId: "browser_sandbox"
+    },
+    code: {
+      ...snapshot.code,
+      excerpt: [
+        "import * as THREE from 'three';",
+        "const scene = new THREE.Scene();",
+        "scene.background = new THREE.Color(0x05080b);",
+        "const camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 100);",
+        "const renderer = new THREE.WebGLRenderer({ antialias: true });",
+        "renderer.setClearColor(0x05080b);",
+        "const geometry = new THREE.BoxGeometry(1.4, 1.4, 1.4);",
+        "const material = new THREE.MeshStandardMaterial({ color: 0x4cd7c8, emissive: 0x7ca7ff });",
+        "const mesh = new THREE.Mesh(geometry, material);",
+        "mesh.rotation.y += 0.01;",
+        "scene.add(mesh);"
+      ],
+      language: "TypeScript + Three.js",
+      title
+    }
+  };
+}
+
 function snapshotWithEmptyRetrieval(): AssistantWorkspaceSnapshot {
   const snapshot = getLocalWorkspaceSnapshot();
 
@@ -149,11 +193,70 @@ function installAnimationFrameMock() {
 }
 
 function installCanvasContextMock(
-  context: Partial<CanvasRenderingContext2D> | null
+  context: unknown,
+  contextIds: string | string[] = "2d"
 ) {
-  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(
-    ((contextId: string) => (contextId === "2d" ? context : null)) as typeof HTMLCanvasElement.prototype.getContext
+  const supportedContextIds = new Set(
+    Array.isArray(contextIds) ? contextIds : [contextIds]
   );
+
+  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(
+    ((contextId: string) =>
+      supportedContextIds.has(contextId) ? context : null) as typeof HTMLCanvasElement.prototype.getContext
+  );
+}
+
+function createMockWebGlContext(): WebGLRenderingContext {
+  const buffer = {};
+  const program = {};
+  const shader = {};
+
+  return {
+    ARRAY_BUFFER: 0x8892,
+    COLOR_BUFFER_BIT: 0x4000,
+    COMPILE_STATUS: 0x8b81,
+    CULL_FACE: 0x0b44,
+    DEPTH_BUFFER_BIT: 0x0100,
+    DEPTH_TEST: 0x0b71,
+    FLOAT: 0x1406,
+    FRAGMENT_SHADER: 0x8b30,
+    LINK_STATUS: 0x8b82,
+    STATIC_DRAW: 0x88e4,
+    TRIANGLES: 0x0004,
+    VERTEX_SHADER: 0x8b31,
+    attachShader: vi.fn(),
+    bindBuffer: vi.fn(),
+    bufferData: vi.fn(),
+    clear: vi.fn(),
+    clearColor: vi.fn(),
+    compileShader: vi.fn(),
+    createBuffer: vi.fn(() => buffer),
+    createProgram: vi.fn(() => program),
+    createShader: vi.fn(() => shader),
+    deleteBuffer: vi.fn(),
+    deleteProgram: vi.fn(),
+    deleteShader: vi.fn(),
+    drawArrays: vi.fn(),
+    drawingBufferHeight: 360,
+    drawingBufferWidth: 640,
+    enable: vi.fn(),
+    enableVertexAttribArray: vi.fn(),
+    getAttribLocation: vi.fn((_, name: string) =>
+      name === "a_normal" ? 1 : 0
+    ),
+    getProgramInfoLog: vi.fn(() => null),
+    getProgramParameter: vi.fn(() => true),
+    getShaderInfoLog: vi.fn(() => null),
+    getShaderParameter: vi.fn(() => true),
+    getUniformLocation: vi.fn(() => ({})),
+    linkProgram: vi.fn(),
+    shaderSource: vi.fn(),
+    uniform1f: vi.fn(),
+    uniform3f: vi.fn(),
+    useProgram: vi.fn(),
+    vertexAttribPointer: vi.fn(),
+    viewport: vi.fn()
+  } as unknown as WebGLRenderingContext;
 }
 
 async function* streamEvents(
@@ -1314,6 +1417,58 @@ describe("WorkstationShell", () => {
       within(surface).getByLabelText("p5.js live runtime canvas")
     ).toBeVisible();
     expect(await within(surface).findByText("p5 runtime running")).toBeVisible();
+  });
+
+  it("mounts supported Three.js artifacts into a controlled 3D runtime", async () => {
+    installAnimationFrameMock();
+    installCanvasContextMock(createMockWebGlContext(), "webgl");
+    renderShell(snapshotWithThreePreview());
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+
+    const surface = within(preview).getByRole("group", {
+      name: "Preview renderer surface"
+    });
+
+    expect(within(surface).getByText("Three scene surface")).toBeVisible();
+    expect(within(surface).getByText("Three.js")).toBeVisible();
+    expect(
+      within(surface).getByRole("group", { name: "Three.js live runtime" })
+    ).toBeVisible();
+    expect(
+      within(surface).getByLabelText("Three.js live runtime canvas")
+    ).toBeVisible();
+    expect(
+      await within(surface).findByText("Three.js runtime running")
+    ).toBeVisible();
+  });
+
+  it("shows a stable Three.js runtime error when WebGL cannot mount", async () => {
+    installCanvasContextMock(null, "webgl");
+    renderShell(snapshotWithThreePreview());
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+
+    const surface = within(preview).getByRole("group", {
+      name: "Preview renderer surface"
+    });
+
+    expect(within(surface).getByText("Three scene surface")).toBeVisible();
+    expect(
+      within(surface).getByRole("group", { name: "Three.js live runtime" })
+    ).toBeVisible();
+    expect(
+      await within(surface).findByText("Three.js runtime unavailable")
+    ).toBeVisible();
+    expect(within(surface).getByText("Renderer runtime failed")).toBeVisible();
   });
 
   it("shows a stable GLSL runtime error when WebGL cannot mount", async () => {
