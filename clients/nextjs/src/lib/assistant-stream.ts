@@ -1,4 +1,9 @@
 import type { WorkflowNodeId } from "./assistant-client";
+import {
+  createWorkstationError,
+  parseSubsystemErrorPayload,
+  type WorkstationError
+} from "./workstation-errors";
 
 export type AssistantStreamEventType =
   | "status"
@@ -49,6 +54,7 @@ export type AssistantPreviewArtifactUpdate = {
   target: string | null;
   summary: string | null;
   errorMessage: string | null;
+  error: WorkstationError | null;
   emittedAt: string | null;
   completedAt: string | null;
 };
@@ -118,9 +124,22 @@ const streamEventWorkflowNodes: Partial<
 };
 
 export class AssistantStreamError extends Error {
-  constructor(message: string) {
+  readonly detail: WorkstationError;
+
+  constructor(message: string, detail?: WorkstationError) {
     super(message);
     this.name = "AssistantStreamError";
+    this.detail =
+      detail ??
+      createWorkstationError({
+        type: "assistant_stream_error",
+        category: "stream",
+        subsystem: "assistant_stream",
+        userMessage: message,
+        recoverable: true,
+        suggestedAction: "Retry the request from the composer.",
+        retryLabel: "Send prompt again"
+      });
   }
 }
 
@@ -146,12 +165,25 @@ export async function* decodeAssistantStream(
 ): AsyncGenerator<AssistantStreamEvent> {
   if (!response.ok) {
     throw new AssistantStreamError(
-      `Assistant stream request failed with ${response.status}.`
+      `Assistant stream request failed with ${response.status}.`,
+      await buildFailedHttpResponseError(response)
     );
   }
 
   if (!response.body) {
-    throw new AssistantStreamError("Assistant stream response did not include a body.");
+    throw new AssistantStreamError(
+      "Assistant stream response did not include a body.",
+      createWorkstationError({
+        type: "empty_stream_body",
+        category: "stream",
+        subsystem: "assistant_stream",
+        userMessage: "The live response did not include any stream data.",
+        debugMessage: "Response.body was null.",
+        recoverable: true,
+        suggestedAction: "Retry the request from the composer.",
+        retryLabel: "Send prompt again"
+      })
+    );
   }
 
   const reader = response.body.getReader();
@@ -197,7 +229,20 @@ export function parseAssistantStreamLine(
 
   const parsed: unknown = JSON.parse(trimmedLine);
   if (!isAssistantStreamEvent(parsed)) {
-    throw new AssistantStreamError("Assistant stream line had an invalid shape.");
+    throw new AssistantStreamError(
+      "Assistant stream line had an invalid shape.",
+      createWorkstationError({
+        type: "invalid_stream_event",
+        category: "stream",
+        subsystem: "assistant_stream_parser",
+        userMessage: "The live response included an invalid stream event.",
+        debugMessage: trimmedLine,
+        recoverable: true,
+        suggestedAction: "Retry the request. If it repeats, reset the workspace session.",
+        retryLabel: "Send prompt again",
+        resetLabel: "Clear workspace session"
+      })
+    );
   }
 
   return parsed;
@@ -297,6 +342,15 @@ export function readPreviewArtifactUpdate(
   const provenance = isRecord(result?.provenance) ? result.provenance : null;
   const request = isRecord(result?.request) ? result.request : null;
   const error = isRecord(result?.error) ? result.error : null;
+  const structuredError = error
+    ? buildPreviewArtifactError({
+        artifactId:
+          typeof event.payload.artifact_id === "string" ? event.payload.artifact_id : null,
+        error,
+        rendererId:
+          typeof provenance?.renderer_id === "string" ? provenance.renderer_id : null
+      })
+    : null;
 
   return {
     status,
@@ -309,11 +363,44 @@ export function readPreviewArtifactUpdate(
       typeof provenance?.renderer_id === "string" ? provenance.renderer_id : null,
     target: typeof request?.target === "string" ? request.target : null,
     summary: typeof result?.summary === "string" ? result.summary : null,
-    errorMessage: typeof error?.message === "string" ? error.message : null,
+    errorMessage: structuredError?.userMessage ?? (typeof error?.message === "string" ? error.message : null),
+    error: structuredError,
     emittedAt: readEventTimestamp(event),
     completedAt:
       typeof result?.completed_at === "string" ? result.completed_at : null
   };
+}
+
+export function readStreamEventError(
+  event: AssistantStreamEvent
+): WorkstationError | null {
+  if (event.event_type !== "error") {
+    return null;
+  }
+
+  const parsed = parseSubsystemErrorPayload(event.payload);
+  const code =
+    parsed?.type ?? (typeof event.payload.code === "string" ? event.payload.code : "assistant_stream_failed");
+  const rawMessage =
+    parsed?.message ??
+    (typeof event.payload.message === "string"
+      ? event.payload.message
+      : "The live response stopped before completion.");
+  const recoverable = parsed?.recoverable ?? true;
+
+  return createWorkstationError({
+    type: code,
+    category: "stream",
+    subsystem: parsed?.subsystem ?? inferStreamSubsystem(code),
+    userMessage: normalizeStreamUserMessage(code, rawMessage),
+    debugMessage: parsed?.debugMessage,
+    recoverable,
+    suggestedAction:
+      parsed?.suggestedAction ?? defaultStreamSuggestedAction(code, recoverable),
+    retryLabel: parsed?.retryLabel ?? (recoverable ? "Send prompt again" : null),
+    resetLabel:
+      parsed?.resetLabel ?? (recoverable ? "Clear workspace session" : null)
+  });
 }
 
 function isAssistantStreamEvent(value: unknown): value is AssistantStreamEvent {
@@ -352,6 +439,165 @@ function normalizePreviewArtifactStatus(
     default:
       return null;
   }
+}
+
+async function buildFailedHttpResponseError(response: Response) {
+  const payload = await readResponsePayload(response);
+  const parsed = parseSubsystemErrorPayload(payload);
+  const responseErrorCode =
+    parsed?.type ?? readTopLevelErrorCode(payload) ?? `http_${response.status}`;
+  const rawMessage =
+    parsed?.message ??
+    readTopLevelMessage(payload) ??
+    `Assistant stream request failed with ${response.status}.`;
+  const recoverable =
+    parsed?.recoverable ??
+    (response.status >= 500 ||
+      response.status === 408 ||
+      response.status === 429);
+
+  return createWorkstationError({
+    type: responseErrorCode,
+    category: "stream",
+    subsystem: parsed?.subsystem ?? "assistant_stream",
+    userMessage: normalizeHttpStreamUserMessage(responseErrorCode, response.status, rawMessage),
+    debugMessage: parsed?.debugMessage ?? buildHttpDebugMessage(response.status, payload),
+    recoverable,
+    suggestedAction:
+      parsed?.suggestedAction ??
+      defaultHttpStreamSuggestedAction(responseErrorCode, response.status, recoverable),
+    retryLabel: parsed?.retryLabel ?? (recoverable ? "Send prompt again" : null),
+    resetLabel:
+      parsed?.resetLabel ??
+      (response.status >= 500 ? "Clear workspace session" : null)
+  });
+}
+
+async function readResponsePayload(response: Response) {
+  try {
+    return (await response.clone().json()) as unknown;
+  } catch {
+    try {
+      return await response.clone().text();
+    } catch {
+      return null;
+    }
+  }
+}
+
+function buildPreviewArtifactError({
+  artifactId,
+  error,
+  rendererId
+}: {
+  artifactId: string | null;
+  error: Record<string, unknown>;
+  rendererId: string | null;
+}) {
+  const parsed = parseSubsystemErrorPayload(error);
+  const code = parsed?.type ?? "preview_runtime_failed";
+  const recoverable = parsed?.recoverable ?? false;
+  const artifactLabel = artifactId ?? "the active preview";
+
+  return createWorkstationError({
+    type: code,
+    category: "preview_runtime",
+    subsystem: parsed?.subsystem ?? rendererId ?? "preview_runtime",
+    userMessage:
+      parsed?.message ?? `Preview output failed for ${artifactLabel}.`,
+    debugMessage: parsed?.debugMessage,
+    recoverable,
+    suggestedAction:
+      parsed?.suggestedAction ??
+      "Reload the preview state or reset the preview session before retrying.",
+    retryLabel: parsed?.retryLabel ?? (recoverable ? "Reload preview state" : null),
+    resetLabel: parsed?.resetLabel ?? "Reset preview session"
+  });
+}
+
+function readTopLevelErrorCode(payload: unknown) {
+  return isRecord(payload) && typeof payload.error === "string" ? payload.error : null;
+}
+
+function readTopLevelMessage(payload: unknown) {
+  return isRecord(payload) && typeof payload.message === "string"
+    ? payload.message
+    : typeof payload === "string" && payload.trim()
+      ? payload
+      : null;
+}
+
+function inferStreamSubsystem(code: string) {
+  if (code.startsWith("provider_")) {
+    return "generation_provider";
+  }
+
+  if (code.startsWith("workflow_")) {
+    return "assistant_workflow";
+  }
+
+  return "assistant_stream";
+}
+
+function normalizeStreamUserMessage(code: string, message: string) {
+  if (code === "assistant_stream_failed") {
+    return "The live response stopped before completion.";
+  }
+
+  if (code === "provider_unavailable") {
+    return "The model provider is unavailable for this live response.";
+  }
+
+  return message;
+}
+
+function defaultStreamSuggestedAction(code: string, recoverable: boolean) {
+  if (code === "provider_unavailable") {
+    return "Retry the request after the provider recovers, or continue with the local fallback path.";
+  }
+
+  if (recoverable) {
+    return "Retry the request from the composer.";
+  }
+
+  return "Reset the workspace session before trying again.";
+}
+
+function normalizeHttpStreamUserMessage(
+  code: string,
+  status: number,
+  message: string
+) {
+  if (code === "invalid_request" || status === 400) {
+    return "The live request was rejected before streaming started.";
+  }
+
+  if (status >= 500) {
+    return "The backend could not open a live response stream.";
+  }
+
+  return message;
+}
+
+function defaultHttpStreamSuggestedAction(
+  code: string,
+  status: number,
+  recoverable: boolean
+) {
+  if (code === "invalid_request" || status === 400) {
+    return "Review the current prompt or session state, then try the request again.";
+  }
+
+  if (recoverable) {
+    return "Retry the request from the composer.";
+  }
+
+  return "Reset the workspace session before opening another live response.";
+}
+
+function buildHttpDebugMessage(status: number, payload: unknown) {
+  const topLevelMessage = readTopLevelMessage(payload);
+  return topLevelMessage ? `HTTP ${status}: ${topLevelMessage}` : `HTTP ${status}`;
 }
 
 function parseWorkflowNodeId(value: unknown): WorkflowNodeId | null {

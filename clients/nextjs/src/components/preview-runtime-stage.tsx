@@ -11,6 +11,7 @@ import {
   type PreviewRuntimeStatus
 } from "@/lib/preview-runtime-adapters";
 import type { PreviewRendererRoute } from "@/lib/preview-renderers";
+import { SubsystemErrorCallout } from "./subsystem-error-callout";
 
 type PreviewRuntimeStageProps = {
   kind: PreviewExecutableRuntimeKind;
@@ -42,7 +43,8 @@ export function PreviewRuntimeStage({
       setStatus({
         detail: "The runtime canvas is not ready yet.",
         label: "Runtime waiting",
-        state: "idle"
+        state: "idle",
+        error: null
       });
       return undefined;
     }
@@ -53,7 +55,8 @@ export function PreviewRuntimeStage({
           ? "Mounting a bounded WebGL fragment runtime."
           : "Mounting a constrained canvas sketch runtime.",
       label: "Runtime starting",
-      state: "starting"
+      state: "starting",
+      error: null
     });
 
     const runtime = mountPreviewRuntime({
@@ -85,6 +88,13 @@ export function PreviewRuntimeStage({
         <small>{status.label}</small>
         <span>{status.detail}</span>
       </div>
+      {status.error ? (
+        <SubsystemErrorCallout
+          className="previewRuntimeErrorCallout"
+          error={status.error}
+          title="Renderer runtime failed"
+        />
+      ) : null}
       <div className="previewRuntimeMeta" aria-label="Preview runtime source">
         <span>{source.title}</span>
         <small>

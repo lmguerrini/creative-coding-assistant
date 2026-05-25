@@ -1,4 +1,5 @@
 import type { AssistantMessage } from "./assistant-client";
+import type { WorkstationError } from "./workstation-errors";
 
 export type ConversationEntryPhase =
   | "complete"
@@ -79,7 +80,7 @@ export function getComposerStatusLabel({
   isReady: boolean;
   isStreaming: boolean;
   phase: ConversationEntryPhase | null;
-  streamError: string | null;
+  streamError: WorkstationError | null;
 }) {
   if (isStreaming) {
     if (phase === "streaming") {

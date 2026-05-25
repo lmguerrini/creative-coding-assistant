@@ -6,6 +6,11 @@ import type {
   RetrievalSummary
 } from "./assistant-client";
 import { readEventTimestamp, type AssistantStreamEvent } from "./assistant-stream";
+import {
+  createWorkstationError,
+  parseSubsystemErrorPayload,
+  type WorkstationError
+} from "./workstation-errors";
 import type { WorkflowRuntimeTraceEvent } from "./workflow-runtime";
 
 export type RetrievalRuntimeRequest = {
@@ -34,6 +39,7 @@ export type RetrievalRuntimeSummary = {
   coverageLabel: string;
   warning: string | null;
   updatedAt: string | null;
+  error: WorkstationError | null;
 };
 
 export type RetrievalRuntimeModel = {
@@ -69,6 +75,7 @@ type ParsedRetrievalContext = {
   provider: string | null;
   request: ParsedRetrievalRequest;
   chunks: ParsedRetrievalChunk[];
+  error: WorkstationError | null;
 };
 
 const retrievalStateStatusLabels = {
@@ -76,7 +83,7 @@ const retrievalStateStatusLabels = {
   pending: "Searching",
   empty: "No matches",
   unavailable: "Unavailable",
-  error: "Error"
+  error: "Retrieval failed"
 } satisfies Record<RetrievalSummary["state"], string>;
 
 const retrievalQualityOrder = {
@@ -176,6 +183,7 @@ function buildFallbackRuntimeModel(
     detail:
       baseRetrieval.detail ||
       "Retrieval context is available in the saved workspace snapshot.",
+    error: baseRetrieval.error ?? buildFallbackRetrievalError(baseRetrieval),
     emittedAt: latestUpdatedAt(sources),
     includeBaseWarning: true,
     provider: baseRetrieval.source,
@@ -215,6 +223,7 @@ function buildPendingRuntimeModel(
     summary: buildRuntimeSummary({
       baseRetrieval,
       detail,
+      error: null,
       emittedAt: readEventTimestamp(event),
       includeBaseWarning: false,
       provider: baseRetrieval.source,
@@ -234,6 +243,16 @@ function buildCompletedRuntimeModel(
   const context = parseRetrievalContextFromEvent(completedEvent);
   if (!context) {
     return buildFallbackRuntimeModel(baseRetrieval);
+  }
+
+  if (context.error) {
+    return buildErroredRuntimeModel({
+      baseRetrieval,
+      emittedAt: context.emittedAt,
+      error: context.error,
+      provider: context.provider ?? baseRetrieval.source,
+      request: buildRuntimeRequest(context.request)
+    });
   }
 
   const request =
@@ -263,6 +282,7 @@ function buildCompletedRuntimeModel(
     summary: buildRuntimeSummary({
       baseRetrieval,
       detail,
+      error: null,
       emittedAt: context.emittedAt,
       includeBaseWarning: false,
       provider: context.provider ?? baseRetrieval.source,
@@ -277,6 +297,7 @@ function buildCompletedRuntimeModel(
 function buildRuntimeSummary({
   baseRetrieval,
   detail,
+  error,
   emittedAt,
   includeBaseWarning,
   provider,
@@ -287,6 +308,7 @@ function buildRuntimeSummary({
 }: {
   baseRetrieval: RetrievalSummary;
   detail: string;
+  error: WorkstationError | null;
   emittedAt: string | null;
   includeBaseWarning: boolean;
   provider: string | null;
@@ -332,7 +354,39 @@ function buildRuntimeSummary({
           ? `Requested ${countLabel(request.domainLabels.length, "domain")}`
           : "No domain filter",
     warning,
-    updatedAt: emittedAt ?? latestUpdatedAt(sources)
+    updatedAt: emittedAt ?? latestUpdatedAt(sources),
+    error
+  };
+}
+
+function buildErroredRuntimeModel({
+  baseRetrieval,
+  emittedAt,
+  error,
+  provider,
+  request
+}: {
+  baseRetrieval: RetrievalSummary;
+  emittedAt: string | null;
+  error: WorkstationError;
+  provider: string | null;
+  request: RetrievalRuntimeRequest;
+}): RetrievalRuntimeModel {
+  return {
+    request,
+    sources: [],
+    summary: buildRuntimeSummary({
+      baseRetrieval,
+      detail: error.userMessage,
+      error,
+      emittedAt,
+      includeBaseWarning: false,
+      provider,
+      request,
+      sources: [],
+      state: "error",
+      status: "Retrieval failed"
+    })
   };
 }
 
@@ -476,7 +530,8 @@ function parseRetrievalContextFromEvent(
     emittedAt: readEventTimestamp(event),
     provider: readText(rawContext.source),
     request: parseRetrievalRequest(rawRequest),
-    chunks: parsedChunks
+    chunks: parsedChunks,
+    error: buildRetrievalError(event)
   };
 }
 
@@ -552,6 +607,55 @@ function buildRuntimeRequest(
     domainLabels,
     filterLabels
   };
+}
+
+function buildRetrievalError(event: AssistantStreamEvent) {
+  const parsed = parseSubsystemErrorPayload(event.payload.error);
+  if (!parsed?.message && !parsed?.type) {
+    return null;
+  }
+
+  const type = parsed.type ?? "retrieval_runtime_failed";
+  const recoverable = parsed.recoverable ?? true;
+
+  return createWorkstationError({
+    type,
+    category: "retrieval",
+    subsystem: parsed.subsystem ?? "retrieval_gateway",
+    userMessage:
+      parsed.message ??
+      "Retrieval context could not be loaded for this request.",
+    debugMessage: parsed.debugMessage,
+    recoverable,
+    suggestedAction:
+      parsed.suggestedAction ??
+      "Retry the request or continue without retrieved references.",
+    retryLabel: parsed.retryLabel ?? (recoverable ? "Retry retrieval" : null),
+    resetLabel: parsed.resetLabel
+  });
+}
+
+function buildFallbackRetrievalError(baseRetrieval: RetrievalSummary) {
+  if (baseRetrieval.state !== "error") {
+    return null;
+  }
+
+  return createWorkstationError({
+    type: baseRetrieval.error?.type ?? "retrieval_runtime_failed",
+    category: "retrieval",
+    subsystem: baseRetrieval.error?.subsystem ?? "retrieval_gateway",
+    userMessage:
+      baseRetrieval.error?.userMessage ??
+      baseRetrieval.detail ??
+      "Retrieval context could not be loaded for this request.",
+    debugMessage: baseRetrieval.error?.debugMessage ?? baseRetrieval.warning,
+    recoverable: baseRetrieval.error?.recoverable ?? true,
+    suggestedAction:
+      baseRetrieval.error?.suggestedAction ??
+      "Retry the request or continue without retrieved references.",
+    retryLabel: baseRetrieval.error?.retryLabel ?? "Retry retrieval",
+    resetLabel: baseRetrieval.error?.resetLabel ?? null
+  });
 }
 
 function buildSummaryHeadline(

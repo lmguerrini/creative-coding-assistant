@@ -5,10 +5,15 @@ import type {
 } from "./assistant-client";
 import {
   readEventTimestamp,
+  readStreamEventError,
   readWorkflowMetadata,
   workflowNodeFromAssistantStreamEvent,
   type AssistantStreamEvent
 } from "./assistant-stream";
+import {
+  createWorkstationError,
+  type WorkstationError
+} from "./workstation-errors";
 
 export type WorkflowRuntimeTraceEvent = {
   event: AssistantStreamEvent;
@@ -76,6 +81,7 @@ export type WorkflowRuntimeModel = {
   transitions: WorkflowRuntimeTransition[];
   events: WorkflowRuntimeEvent[];
   summary: WorkflowRuntimeSummary;
+  error: WorkstationError | null;
 };
 
 type WorkflowRecord = {
@@ -303,7 +309,13 @@ export function buildWorkflowRuntimeModel(
       traceEventCount: traceEvents.length,
       totalRuntimeMs,
       activeRuntimeMs
-    }
+    },
+    error: buildWorkflowRuntimeError({
+      currentNode: latestNode,
+      currentStep,
+      latestStatus,
+      traceEvents
+    })
   };
 }
 
@@ -341,7 +353,21 @@ function buildFallbackWorkflowRuntimeModel(
       traceEventCount: 0,
       totalRuntimeMs: null,
       activeRuntimeMs: null
-    }
+    },
+    error:
+      normalizeWorkflowStatus(workflow.status) === "failed"
+        ? createWorkstationError({
+            type: "workflow_failed",
+            category: "workflow_runtime",
+            subsystem: workflow.currentNode,
+            userMessage: `${workflow.currentStep} ended in a failed state.`,
+            recoverable: true,
+            suggestedAction:
+              "Retry the request or clear the workspace session before trying again.",
+            retryLabel: "Send prompt again",
+            resetLabel: "Clear workspace session"
+          })
+        : null
   };
 }
 
@@ -534,6 +560,46 @@ function parseTimestamp(value: string): number | null {
 
 function normalizeWorkflowStatus(status: string) {
   return status.toLowerCase();
+}
+
+function buildWorkflowRuntimeError({
+  currentNode,
+  currentStep,
+  latestStatus,
+  traceEvents
+}: {
+  currentNode: WorkflowNodeId;
+  currentStep: string;
+  latestStatus: string;
+  traceEvents: WorkflowRuntimeTraceEvent[];
+}) {
+  for (let index = traceEvents.length - 1; index >= 0; index -= 1) {
+    const streamError = readStreamEventError(traceEvents[index].event);
+    if (!streamError) {
+      continue;
+    }
+
+    return createWorkstationError({
+      ...streamError,
+      category: "workflow_runtime"
+    });
+  }
+
+  if (latestStatus !== "failed") {
+    return null;
+  }
+
+  return createWorkstationError({
+    type: "workflow_failed",
+    category: "workflow_runtime",
+    subsystem: currentNode,
+    userMessage: `${currentStep} ended in a failed state.`,
+    recoverable: true,
+    suggestedAction:
+      "Retry the request or clear the workspace session before trying again.",
+    retryLabel: "Send prompt again",
+    resetLabel: "Clear workspace session"
+  });
 }
 
 function formatRuntimeCode(value: string) {

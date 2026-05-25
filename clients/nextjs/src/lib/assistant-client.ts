@@ -1,3 +1,5 @@
+import type { WorkstationError } from "./workstation-errors";
+
 export type InspectorTabName =
   | "Overview"
   | "Code"
@@ -81,6 +83,7 @@ export type PreviewSummary = {
   renderer: string;
   trigger: string;
   version: string;
+  error?: WorkstationError | null;
 };
 
 export type CodeSummary = {
@@ -140,6 +143,7 @@ export type RetrievalSummary = {
   requestedDomains: string[];
   warning: string | null;
   sources: RetrievalSourceSummary[];
+  error?: WorkstationError | null;
 };
 
 export type DebugEventSummary = {

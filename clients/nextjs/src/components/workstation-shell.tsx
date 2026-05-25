@@ -42,6 +42,7 @@ import type {
   WorkflowStepState
 } from "@/lib/assistant-client";
 import {
+  readStreamEventError,
   readPreviewArtifactUpdate,
   streamAssistantEvents as streamBackendAssistantEvents,
   workflowNodeFromAssistantStreamEvent,
@@ -60,7 +61,8 @@ import {
   workspaceLayoutBounds,
   type WorkspaceLayoutState,
   type WorkspacePreferences,
-  type WorkspacePersistenceClient
+  type WorkspacePersistenceClient,
+  type WorkspacePersistenceLoadResult
 } from "@/lib/workspace-persistence";
 import {
   buildArtifactDocument,
@@ -117,7 +119,12 @@ import {
   type HitlActionState,
   type HitlApprovalRequest
 } from "@/lib/hitl-runtime";
+import {
+  createWorkstationError,
+  type WorkstationError
+} from "@/lib/workstation-errors";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
+import { SubsystemErrorCallout } from "./subsystem-error-callout";
 
 type WorkstationShellProps = {
   snapshot: AssistantWorkspaceSnapshot;
@@ -241,13 +248,16 @@ export function WorkstationShell({
   );
   const [workflowRunId, setWorkflowRunId] = useState(0);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [streamError, setStreamError] = useState<string | null>(null);
+  const [streamError, setStreamError] = useState<WorkstationError | null>(null);
   const [streamEvents, setStreamEvents] = useState(initialSnapshot.debug.events);
   const [workflowTraceEvents, setWorkflowTraceEvents] = useState<
     WorkflowRuntimeTraceEvent[]
   >([]);
   const [persistenceState, setPersistenceState] =
     useState<WorkspacePersistenceState>("loading");
+  const [persistenceError, setPersistenceError] = useState<WorkstationError | null>(
+    null
+  );
   const [layoutState, setLayoutState] = useState<WorkspaceLayoutState>(
     defaultWorkspaceLayoutState
   );
@@ -264,6 +274,8 @@ export function WorkstationShell({
   );
   const [transferFeedback, setTransferFeedback] =
     useState<ArtifactActionFeedback | null>(null);
+  const [artifactTransferError, setArtifactTransferError] =
+    useState<WorkstationError | null>(null);
   const [approvalRequests, setApprovalRequests] = useState<HitlApprovalRequest[]>(
     []
   );
@@ -437,39 +449,45 @@ export function WorkstationShell({
 
     async function restoreWorkspaceSession() {
       try {
-        const restoredSession = await withPersistenceTimeout(
+        const restoredSession = await withPersistenceTimeout<WorkspacePersistenceLoadResult>(
           persistenceClient.load(),
-          null,
+          {
+            error: buildPersistenceTimeoutError("load"),
+            record: null,
+            source: "none"
+          },
           1500
         );
         if (!isMounted) {
           return;
         }
 
-        if (restoredSession) {
+        setPersistenceError(restoredSession.error);
+
+        if (restoredSession.record) {
           const restoredSnapshot = snapshotFromWorkspaceSessionRecord(
             initialSnapshot,
-            restoredSession
+            restoredSession.record
           );
           setSnapshot(restoredSnapshot);
           setConversationEntries(
             buildConversationEntries(restoredSnapshot.messages, createConversationEntryId)
           );
           streamingAssistantIdRef.current = null;
-          setActiveTab(restoredSession.activeInspectorTab);
+          setActiveTab(restoredSession.record.activeInspectorTab);
           setActiveArtifactId(
-            restoredSession.activeArtifactId ||
+            restoredSession.record.activeArtifactId ||
               restoredSnapshot.artifacts[0]?.id ||
               ""
           );
           setPreviewArtifactId(
-            restoredSession.previewArtifactId ||
+            restoredSession.record.previewArtifactId ||
               getInitialPreviewArtifactId(restoredSnapshot)
           );
-          setIsPreviewOpen(restoredSession.previewOpen);
-          setLayoutState(normalizeWorkspaceLayoutState(restoredSession.layout));
+          setIsPreviewOpen(restoredSession.record.previewOpen);
+          setLayoutState(normalizeWorkspaceLayoutState(restoredSession.record.layout));
           setWorkspacePreferences(
-            normalizeWorkspacePreferences(restoredSession.preferences)
+            normalizeWorkspacePreferences(restoredSession.record.preferences)
           );
           setIsFocusMode(false);
           setIsPreviewFullscreen(false);
@@ -484,15 +502,18 @@ export function WorkstationShell({
           );
           setStreamEvents(restoredSnapshot.debug.events);
           lastPersistedFingerprintRef.current =
-            fingerprintWorkspaceSessionRecord(restoredSession);
+            fingerprintWorkspaceSessionRecord(restoredSession.record);
           skipNextPersistenceSaveRef.current = true;
-          setPersistenceState("restored");
+          setPersistenceState(
+            restoredSession.source === "local" ? "local" : "restored"
+          );
           return;
         }
 
-        setPersistenceState("ready");
+        setPersistenceState(restoredSession.error ? "unavailable" : "ready");
       } catch {
         if (isMounted) {
+          setPersistenceError(buildPersistenceTimeoutError("load"));
           setPersistenceState("unavailable");
         }
       } finally {
@@ -661,6 +682,15 @@ export function WorkstationShell({
     latestApprovalRequest.id !== dismissedApprovalRequestId
       ? latestApprovalRequest
       : null);
+  const workflowIssues = useMemo(
+    () =>
+      [
+        workflowRuntime.error,
+        persistenceError,
+        ...approvalRequests.map((request) => buildHitlApprovalError(request))
+      ].filter((error): error is WorkstationError => error !== null),
+    [approvalRequests, persistenceError, workflowRuntime.error]
+  );
   const streamState = blockingApprovalRequest
     ? blockingApprovalRequest.state === "pending_approval"
       ? "approval"
@@ -732,7 +762,10 @@ export function WorkstationShell({
     setPersistenceState("saving");
     withPersistenceTimeout(
       persistenceClient.save(persistenceRecord),
-      { target: "local" },
+      {
+        error: buildPersistenceTimeoutError("save"),
+        target: "local"
+      },
       1500
     )
       .then((result) => {
@@ -740,10 +773,12 @@ export function WorkstationShell({
           return;
         }
 
+        setPersistenceError(result.error);
         setPersistenceState(result.target === "remote" ? "saved" : "local");
       })
       .catch(() => {
         if (isShellMountedRef.current) {
+          setPersistenceError(buildPersistenceTimeoutError("save"));
           setPersistenceState("unavailable");
         }
       });
@@ -1005,6 +1040,7 @@ export function WorkstationShell({
     clearFeedbackTimers();
     setCopyFeedback(null);
     setTransferFeedback(null);
+    setArtifactTransferError(null);
     streamingAssistantIdRef.current = null;
     setSnapshot(initialSnapshot);
     setConversationEntries(
@@ -1333,14 +1369,24 @@ export function WorkstationShell({
         }
 
         if (streamEvent.event_type === "error") {
-          const message =
-            readPayloadText(streamEvent, "message") ?? "Backend stream failed.";
-          setStreamError(message);
+          const error =
+            readStreamEventError(streamEvent) ??
+            createWorkstationError({
+              type: "assistant_stream_failed",
+              category: "stream",
+              subsystem: "assistant_stream",
+              userMessage: "The live response stopped before completion.",
+              recoverable: true,
+              suggestedAction: "Retry the request from the composer.",
+              retryLabel: "Send prompt again",
+              resetLabel: "Clear workspace session"
+            });
+          setStreamError(error);
           finalizeStreamingAssistantMessage({
-            activity: message,
+            activity: error.userMessage,
             content: streamedAnswer
-              ? `${streamedAnswer}\n\nBackend stream error: ${message}`
-              : `Backend stream error: ${message}`,
+              ? `${streamedAnswer}\n\nBackend stream error: ${error.userMessage}`
+              : `Backend stream error: ${error.userMessage}`,
             phase: "error"
           });
         }
@@ -1353,19 +1399,44 @@ export function WorkstationShell({
           phase: "complete"
         });
       } else if (streamingAssistantIdRef.current) {
-        setStreamError("Live response ended before completion.");
+        const error = createWorkstationError({
+          type: "stream_ended_before_completion",
+          category: "stream",
+          subsystem: "assistant_stream",
+          userMessage: "The live response ended before completion.",
+          recoverable: true,
+          suggestedAction: "Retry the request from the composer.",
+          retryLabel: "Send prompt again",
+          resetLabel: "Clear workspace session"
+        });
+        setStreamError(error);
         finalizeStreamingAssistantMessage({
-          activity: "Live response ended before completion.",
-          content: "Live response ended before completion.",
+          activity: error.userMessage,
+          content: error.userMessage,
           phase: "error"
         });
       }
-    } catch {
+    } catch (error) {
+      const streamFailure =
+        error instanceof Error && "detail" in error && error.detail
+          ? (error.detail as WorkstationError)
+          : createWorkstationError({
+              type: "assistant_stream_unavailable",
+              category: "stream",
+              subsystem: "assistant_stream",
+              userMessage: "The backend stream is unavailable.",
+              debugMessage: error instanceof Error ? error.message : null,
+              recoverable: true,
+              suggestedAction:
+                "Retry the request after the backend recovers, or use the local fallback response.",
+              retryLabel: "Send prompt again",
+              resetLabel: "Clear workspace session"
+            });
       const fallbackMessage = `Backend stream unavailable; showing local fallback. ${buildMockAssistantReply(
         prompt,
         activeArtifact.title
       )}`;
-      setStreamError("Backend stream unavailable. Showing local fallback.");
+      setStreamError(streamFailure);
       finalizeStreamingAssistantMessage({
         activity: "Switching to the local fallback response.",
         content: fallbackMessage,
@@ -1527,6 +1598,7 @@ export function WorkstationShell({
       execute: () => {
         setActiveArtifactId(artifact.id);
         setPreviewContextArtifactId(artifact.id);
+        setArtifactTransferError(null);
         const wasTransferred = downloadArtifactDocument(
           buildArtifactDocument(interactiveSnapshot, artifact)
         );
@@ -1537,7 +1609,9 @@ export function WorkstationShell({
           setTransferFeedback
         );
         if (!wasTransferred) {
-          throw new Error("Local download/export is unavailable in this environment.");
+          const transferError = createArtifactTransferError(artifact);
+          setArtifactTransferError(transferError);
+          throw new Error(transferError.userMessage);
         }
       }
     });
@@ -1814,6 +1888,13 @@ export function WorkstationShell({
                   )}
                 </article>
               ) : null}
+              {persistenceError ? (
+                <SubsystemErrorCallout
+                  className="sessionErrorCallout"
+                  error={persistenceError}
+                  title="Session persistence issue"
+                />
+              ) : null}
             </div>
 
             <div
@@ -1858,6 +1939,13 @@ export function WorkstationShell({
                 </article>
               ))}
             </div>
+            {streamError ? (
+              <SubsystemErrorCallout
+                className="chatErrorCallout"
+                error={streamError}
+                title="Live stream interrupted"
+              />
+            ) : null}
 
             <form
               className="composer"
@@ -1992,6 +2080,7 @@ export function WorkstationShell({
                     activeArtifactHighlights={activeArtifactHighlights}
                     activeArtifactId={activeArtifactId}
                     activeTab={activeTab}
+                    artifactTransferError={artifactTransferError}
                     copyFeedback={copyFeedback}
                     onArtifactCopy={handleArtifactCopy}
                     onArtifactAction={handleArtifactAction}
@@ -2001,6 +2090,7 @@ export function WorkstationShell({
                     snapshot={interactiveSnapshot}
                     transferFeedback={transferFeedback}
                     workflowRuntime={workflowRuntime}
+                    workflowIssues={workflowIssues}
                   />
                 </>
               )}
@@ -2178,6 +2268,13 @@ function PreviewShelf({
             </div>
           </div>
           <div className="previewBody">
+            {snapshot.preview.error ? (
+              <SubsystemErrorCallout
+                className="previewErrorCallout"
+                error={snapshot.preview.error}
+                title="Preview runtime failed"
+              />
+            ) : null}
             <PreviewRendererSurface
               preview={snapshot.preview}
               route={route}
@@ -2247,6 +2344,7 @@ type InspectorPanelProps = {
   activeArtifactHighlights: HighlightedLine[];
   activeArtifactId: string;
   activeTab: InspectorTabName;
+  artifactTransferError: WorkstationError | null;
   copyFeedback: ArtifactActionFeedback | null;
   onArtifactCopy: (artifact: ArtifactSummary) => Promise<void>;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
@@ -2256,6 +2354,7 @@ type InspectorPanelProps = {
   snapshot: AssistantWorkspaceSnapshot;
   transferFeedback: ArtifactActionFeedback | null;
   workflowRuntime: WorkflowRuntimeModel;
+  workflowIssues: WorkstationError[];
 };
 
 function InspectorPanel({
@@ -2264,6 +2363,7 @@ function InspectorPanel({
   activeArtifactHighlights,
   activeArtifactId,
   activeTab,
+  artifactTransferError,
   copyFeedback,
   onArtifactCopy,
   onArtifactAction,
@@ -2272,7 +2372,8 @@ function InspectorPanel({
   showDebugPanels,
   snapshot,
   transferFeedback,
-  workflowRuntime
+  workflowRuntime,
+  workflowIssues
 }: InspectorPanelProps) {
   if (activeTab === "Code") {
     return (
@@ -2293,6 +2394,7 @@ function InspectorPanel({
       <WorkflowInspector
         runtime={workflowRuntime}
         showDebugPanels={showDebugPanels}
+        issues={workflowIssues}
       />
     );
   }
@@ -2304,6 +2406,7 @@ function InspectorPanel({
         activeArtifactDocument={activeArtifactDocument}
         activeArtifactId={activeArtifactId}
         artifacts={snapshot.artifacts}
+        artifactTransferError={artifactTransferError}
         copyFeedback={copyFeedback}
         onArtifactAction={onArtifactAction}
         transferFeedback={transferFeedback}
@@ -2548,9 +2651,11 @@ function CodeInspector({
 }
 
 function WorkflowInspector({
+  issues,
   runtime,
   showDebugPanels
 }: {
+  issues: WorkstationError[];
   runtime: WorkflowRuntimeModel;
   showDebugPanels: boolean;
 }) {
@@ -2564,6 +2669,18 @@ function WorkflowInspector({
       id="workflow-inspector-panel"
       role="tabpanel"
     >
+      {issues.length > 0 ? (
+        <div className="workflowIssueStack" aria-label="Workflow runtime issues">
+          {issues.map((issue) => (
+            <SubsystemErrorCallout
+              className="workflowIssueCallout"
+              error={issue}
+              key={issue.id}
+              title="Runtime issue"
+            />
+          ))}
+        </div>
+      ) : null}
       <WorkflowProgress
         label="Workflow inspector progress"
         progress={workflowProgress}
@@ -2716,6 +2833,7 @@ type ArtifactsInspectorProps = {
   activeArtifactDocument: ArtifactDocument;
   activeArtifactId: string;
   artifacts: ArtifactSummary[];
+  artifactTransferError: WorkstationError | null;
   copyFeedback: ArtifactActionFeedback | null;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
   transferFeedback: ArtifactActionFeedback | null;
@@ -2726,6 +2844,7 @@ function ArtifactsInspector({
   activeArtifactDocument,
   activeArtifactId,
   artifacts,
+  artifactTransferError,
   copyFeedback,
   onArtifactAction,
   transferFeedback
@@ -2743,6 +2862,13 @@ function ArtifactsInspector({
       id="artifacts-inspector-panel"
       role="tabpanel"
     >
+      {artifactTransferError ? (
+        <SubsystemErrorCallout
+          className="artifactErrorCallout"
+          error={artifactTransferError}
+          title="Artifact transfer failed"
+        />
+      ) : null}
       <article
         aria-label="Active artifact details"
         className="artifactDetailCard"
@@ -2854,6 +2980,13 @@ function RetrievalInspector({ runtime }: { runtime: RetrievalRuntimeModel }) {
           </div>
         ) : null}
         <p className="retrievalSummaryDetail">{runtime.summary.detail}</p>
+        {runtime.summary.error ? (
+          <SubsystemErrorCallout
+            className="retrievalErrorCallout"
+            error={runtime.summary.error}
+            title="Retrieval failed"
+          />
+        ) : null}
         {runtime.summary.warning ? (
           <p className="retrievalWarning" role="status">
             {runtime.summary.warning}
@@ -3342,7 +3475,7 @@ function formatPreviewStateLabel(
     case "ready":
       return isOpen ? "Open" : "Ready";
     case "error":
-      return "Error";
+      return "Preview failed";
     case "unavailable":
       return "Unavailable";
     default:
@@ -3395,6 +3528,60 @@ function getArtifactActionMessage(
   }
 
   return null;
+}
+
+function createArtifactTransferError(artifact: ArtifactSummary) {
+  const transferAction = getArtifactTransferAction(artifact.actions) ?? "Export";
+  const actionLabel = transferAction === "Export" ? "export" : "download";
+
+  return createWorkstationError({
+    type: transferAction === "Export" ? "artifact_export_failed" : "artifact_download_failed",
+    category: "artifact_export",
+    subsystem: "artifact_transfer",
+    userMessage: `The workspace could not ${actionLabel} ${artifact.title}.`,
+    recoverable: true,
+    suggestedAction:
+      "Retry the transfer from the Artifacts tab or continue working in the current session.",
+    retryLabel: transferAction === "Export" ? "Retry export" : "Retry download"
+  });
+}
+
+function buildHitlApprovalError(request: HitlApprovalRequest) {
+  if (request.state !== "failed") {
+    return null;
+  }
+
+  return createWorkstationError({
+    type: `${request.actionId}_failed`,
+    category: "hitl_approval",
+    subsystem: "operator_checkpoint",
+    userMessage:
+      request.failureReason ?? `${request.title} could not be completed.`,
+    debugMessage: request.detail,
+    recoverable: true,
+    suggestedAction:
+      "Retry the operator action after reviewing the checkpoint details.",
+    retryLabel: request.confirmLabel
+  });
+}
+
+function buildPersistenceTimeoutError(operation: "load" | "save") {
+  return createWorkstationError({
+    type: operation === "load" ? "session_restore_timed_out" : "session_save_timed_out",
+    category: "persistence",
+    subsystem: "workspace_session_store",
+    userMessage:
+      operation === "load"
+        ? "Session restore timed out, so the workspace stayed on the current snapshot."
+        : "Session save timed out, so the workspace is staying local for now.",
+    recoverable: true,
+    suggestedAction:
+      operation === "load"
+        ? "Continue from the current snapshot or reset the workspace session."
+        : "Keep editing locally and retry the save after the backend recovers.",
+    retryLabel: operation === "save" ? "Retry save" : null,
+    resetLabel: operation === "load" ? "Clear workspace session" : null
+  });
 }
 
 type WorkflowProgressSummary = {

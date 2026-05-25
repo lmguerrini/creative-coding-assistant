@@ -5,6 +5,11 @@ import type {
   InspectorTabName,
   PreviewSummary
 } from "./assistant-client";
+import {
+  createWorkstationError,
+  parseSubsystemErrorPayload,
+  type WorkstationError
+} from "./workstation-errors";
 
 export const defaultLocalUserId = "local-user";
 export const defaultLocalSessionId = "local-nextjs-session";
@@ -71,10 +76,17 @@ export type WorkspaceSessionRecord = {
 
 export type WorkspacePersistenceSaveResult = {
   target: "remote" | "local" | "none";
+  error: WorkstationError | null;
+};
+
+export type WorkspacePersistenceLoadResult = {
+  record: WorkspaceSessionRecord | null;
+  source: "remote" | "local" | "none";
+  error: WorkstationError | null;
 };
 
 export type WorkspacePersistenceClient = {
-  load: () => Promise<WorkspaceSessionRecord | null>;
+  load: () => Promise<WorkspacePersistenceLoadResult>;
   save: (
     record: WorkspaceSessionRecord
   ) => Promise<WorkspacePersistenceSaveResult>;
@@ -113,34 +125,54 @@ export function createWorkspacePersistenceClient(
 
   return {
     async load() {
-      const remoteRecord = await loadRemoteSession({
+      const remoteResult = await loadRemoteSession({
         endpoint,
         fetchImpl: options.fetchImpl,
         sessionId,
         timeoutMs,
         userId
       });
-      if (remoteRecord) {
-        writeLocalSession(remoteRecord, options.storage);
-        return remoteRecord;
+      if (remoteResult.record) {
+        writeLocalSession(remoteResult.record, options.storage);
+        return {
+          error: remoteResult.error,
+          record: remoteResult.record,
+          source: "remote"
+        };
       }
 
-      return readLocalSession(options.storage, userId, sessionId);
+      const localRecord = readLocalSession(options.storage, userId, sessionId);
+      if (localRecord) {
+        return {
+          error: remoteResult.error,
+          record: localRecord,
+          source: "local"
+        };
+      }
+
+      return {
+        error: remoteResult.error,
+        record: null,
+        source: "none"
+      };
     },
     async save(record) {
       const storedLocally = writeLocalSession(record, options.storage);
-      const savedRemotely = await saveRemoteSession({
+      const remoteResult = await saveRemoteSession({
         endpoint,
         fetchImpl: options.fetchImpl,
         record,
         timeoutMs
       });
 
-      if (savedRemotely) {
-        return { target: "remote" };
+      if (remoteResult.ok) {
+        return { target: "remote", error: null };
       }
 
-      return { target: storedLocally ? "local" : "none" };
+      return {
+        target: storedLocally ? "local" : "none",
+        error: remoteResult.error
+      };
     }
   };
 }
@@ -325,10 +357,21 @@ async function loadRemoteSession({
   sessionId: string;
   timeoutMs: number;
   userId: string;
-}): Promise<WorkspaceSessionRecord | null> {
+}): Promise<{
+  record: WorkspaceSessionRecord | null;
+  error: WorkstationError | null;
+}> {
   const resolvedFetch = fetchImpl ?? globalThis.fetch;
   if (!resolvedFetch) {
-    return null;
+    return {
+      record: null,
+      error: createPersistenceError({
+        defaultMessage: "Remote session restore is unavailable in this environment.",
+        fallbackType: "persistence_unavailable",
+        operation: "load",
+        payload: null
+      })
+    };
   }
 
   try {
@@ -349,13 +392,45 @@ async function loadRemoteSession({
     );
 
     if (!response.ok) {
-      return null;
+      const payload = (await tryReadJson(response)) ?? (await tryReadText(response));
+      const errorCode = readPersistenceResponseCode(payload);
+      if (response.status === 404 && errorCode === "session_not_found") {
+        return { record: null, error: null };
+      }
+
+      return {
+        record: null,
+        error: createPersistenceError({
+          defaultMessage: "Remote session restore failed.",
+          fallbackType: errorCode ?? `http_${response.status}`,
+          operation: "load",
+          payload
+        })
+      };
     }
 
     const payload: unknown = await response.json();
-    return isWorkspaceSessionRecord(payload) ? payload : null;
+    return {
+      record: isWorkspaceSessionRecord(payload) ? payload : null,
+      error: isWorkspaceSessionRecord(payload)
+        ? null
+        : createPersistenceError({
+            defaultMessage: "The saved session response had an unexpected shape.",
+            fallbackType: "invalid_session_payload",
+            operation: "load",
+            payload
+          })
+    };
   } catch {
-    return null;
+    return {
+      record: null,
+      error: createPersistenceError({
+        defaultMessage: "Remote session restore timed out or could not be reached.",
+        fallbackType: "session_restore_unavailable",
+        operation: "load",
+        payload: null
+      })
+    };
   }
 }
 
@@ -369,10 +444,18 @@ async function saveRemoteSession({
   fetchImpl?: typeof fetch;
   record: WorkspaceSessionRecord;
   timeoutMs: number;
-}): Promise<boolean> {
+}): Promise<{ ok: boolean; error: WorkstationError | null }> {
   const resolvedFetch = fetchImpl ?? globalThis.fetch;
   if (!resolvedFetch) {
-    return false;
+    return {
+      ok: false,
+      error: createPersistenceError({
+        defaultMessage: "Remote session save is unavailable in this environment.",
+        fallbackType: "persistence_unavailable",
+        operation: "save",
+        payload: null
+      })
+    };
   }
 
   try {
@@ -390,10 +473,99 @@ async function saveRemoteSession({
       timeoutMs,
       abort.abort
     );
-    return response.ok;
+    if (response.ok) {
+      return { ok: true, error: null };
+    }
+
+    const payload = (await tryReadJson(response)) ?? (await tryReadText(response));
+    return {
+      ok: false,
+      error: createPersistenceError({
+        defaultMessage: "Remote session save failed.",
+        fallbackType: readPersistenceResponseCode(payload) ?? `http_${response.status}`,
+        operation: "save",
+        payload
+      })
+    };
   } catch {
-    return false;
+    return {
+      ok: false,
+      error: createPersistenceError({
+        defaultMessage: "Remote session save timed out or could not be reached.",
+        fallbackType: "session_save_unavailable",
+        operation: "save",
+        payload: null
+      })
+    };
   }
+}
+
+async function tryReadJson(response: Response) {
+  try {
+    return (await response.clone().json()) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+async function tryReadText(response: Response) {
+  try {
+    const text = await response.clone().text();
+    return text.trim() ? text : null;
+  } catch {
+    return null;
+  }
+}
+
+function createPersistenceError({
+  defaultMessage,
+  fallbackType,
+  operation,
+  payload
+}: {
+  defaultMessage: string;
+  fallbackType: string;
+  operation: "load" | "save";
+  payload: unknown;
+}) {
+  const parsed = parseSubsystemErrorPayload(payload);
+  const type = parsed?.type ?? fallbackType;
+  const recoverable = parsed?.recoverable ?? true;
+
+  return createWorkstationError({
+    type,
+    category: "persistence",
+    subsystem: parsed?.subsystem ?? "workspace_session_store",
+    userMessage: parsed?.message ?? defaultMessage,
+    debugMessage: parsed?.debugMessage ?? readPersistenceDebugMessage(payload),
+    recoverable,
+    suggestedAction:
+      parsed?.suggestedAction ??
+      (operation === "load"
+        ? "Continue from the local session copy or reset the workspace session."
+        : "Keep editing locally and retry the session save after the backend recovers."),
+    retryLabel:
+      parsed?.retryLabel ?? (operation === "save" && recoverable ? "Retry save" : null),
+    resetLabel:
+      parsed?.resetLabel ?? (operation === "load" ? "Clear workspace session" : null)
+  });
+}
+
+function readPersistenceResponseCode(payload: unknown) {
+  const parsed = parseSubsystemErrorPayload(payload);
+  return parsed?.type ?? null;
+}
+
+function readPersistenceDebugMessage(payload: unknown) {
+  if (typeof payload === "string" && payload.trim()) {
+    return payload;
+  }
+
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  return typeof payload.message === "string" ? payload.message : null;
 }
 
 function createAbortSignal(): {

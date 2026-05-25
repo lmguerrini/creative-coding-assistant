@@ -4,6 +4,10 @@ import type {
   PreviewSummary,
   WorkflowNodeId
 } from "./assistant-client";
+import {
+  createWorkstationError,
+  type WorkstationError
+} from "./workstation-errors";
 import type { PreviewRuntimeSessionOverride } from "./preview-controller";
 import { readPreviewArtifactUpdate } from "./assistant-stream";
 import {
@@ -19,7 +23,7 @@ type BuildPreviewRuntimeSummaryInput = {
   isOpen: boolean;
   previewArtifactId: string;
   sessionOverride?: PreviewRuntimeSessionOverride | null;
-  streamError: string | null;
+  streamError: WorkstationError | null;
   traceEvents: WorkflowRuntimeTraceEvent[];
   workflow: AssistantWorkspaceSnapshot["workflow"];
 };
@@ -116,6 +120,12 @@ export function buildPreviewRuntimeSummary({
       : outputArtifact?.title ??
         previewUpdate?.previewArtifactId ??
         basePreview.outputArtifactName;
+  const previewError = buildPreviewRuntimeError({
+    artifactName: sourceArtifactName || artifactName,
+    basePreview,
+    previewUpdate,
+    state
+  });
   const targetId =
     normalizePreviewTargetId(previewUpdate?.target ?? null) ??
     derivePreviewTargetIdFromArtifact(outputArtifact ?? contextArtifact) ??
@@ -147,6 +157,7 @@ export function buildPreviewRuntimeSummary({
       basePreview,
       hasConcretePreviewOutput,
       outputArtifactName,
+      previewError,
       previewUpdate,
       state,
       streamError,
@@ -163,7 +174,8 @@ export function buildPreviewRuntimeSummary({
       state,
       workflow
     }),
-    version: basePreview.version
+    version: basePreview.version,
+    error: previewError
   };
 }
 
@@ -186,7 +198,7 @@ function resolvePreviewRuntimeState({
   contextIsPreviewable: boolean;
   hasConcretePreviewOutput: boolean;
   previewUpdate: ReturnType<typeof findLatestPreviewUpdate>;
-  streamError: string | null;
+  streamError: WorkstationError | null;
   workflow: AssistantWorkspaceSnapshot["workflow"];
   workspaceHasPreview: boolean;
 }): PreviewSummary["state"] {
@@ -240,6 +252,7 @@ function buildPreviewRuntimeSummaryCopy({
   basePreview,
   hasConcretePreviewOutput,
   outputArtifactName,
+  previewError,
   previewUpdate,
   state,
   streamError,
@@ -250,9 +263,10 @@ function buildPreviewRuntimeSummaryCopy({
   basePreview: PreviewSummary;
   hasConcretePreviewOutput: boolean;
   outputArtifactName: string;
+  previewError: WorkstationError | null;
   previewUpdate: ReturnType<typeof findLatestPreviewUpdate>;
   state: PreviewSummary["state"];
-  streamError: string | null;
+  streamError: WorkstationError | null;
   workflow: AssistantWorkspaceSnapshot["workflow"];
 }) {
   if (activeSessionOverride?.mode === "restarting") {
@@ -268,9 +282,7 @@ function buildPreviewRuntimeSummaryCopy({
   }
 
   if (state === "error") {
-    return previewUpdate?.errorMessage
-      ? `Preview runtime reported an error: ${previewUpdate.errorMessage}`
-      : `Preview runtime failed for ${artifactName}.`;
+    return previewError?.userMessage ?? `Preview runtime failed for ${artifactName}.`;
   }
 
   if (state === "generating") {
@@ -304,6 +316,42 @@ function buildPreviewRuntimeSummaryCopy({
   }
 
   return basePreview.summary;
+}
+
+function buildPreviewRuntimeError({
+  artifactName,
+  basePreview,
+  previewUpdate,
+  state
+}: {
+  artifactName: string;
+  basePreview: PreviewSummary;
+  previewUpdate: ReturnType<typeof findLatestPreviewUpdate>;
+  state: PreviewSummary["state"];
+}) {
+  if (state !== "error") {
+    return null;
+  }
+
+  if (previewUpdate?.error) {
+    return previewUpdate.error;
+  }
+
+  if (basePreview.error) {
+    return basePreview.error;
+  }
+
+  return createWorkstationError({
+    type: "preview_runtime_failed",
+    category: "preview_runtime",
+    subsystem: basePreview.renderer || "preview_runtime",
+    userMessage: `Preview output failed for ${artifactName}.`,
+    recoverable: true,
+    suggestedAction:
+      "Reload the preview state or reset the preview session before trying again.",
+    retryLabel: "Reload preview state",
+    resetLabel: "Reset preview session"
+  });
 }
 
 function buildPreviewRuntimeTrigger({

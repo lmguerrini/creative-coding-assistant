@@ -1,5 +1,9 @@
 import type { CodeSummary, PreviewSummary } from "./assistant-client";
 import type { PreviewRendererRoute } from "./preview-renderers";
+import {
+  createWorkstationError,
+  type WorkstationError
+} from "./workstation-errors";
 
 export type PreviewExecutableRuntimeKind = "p5" | "glsl";
 
@@ -13,6 +17,7 @@ export type PreviewRuntimeStatus = {
   state: PreviewRuntimeLifecycleState;
   label: string;
   detail: string;
+  error: WorkstationError | null;
 };
 
 export type PreviewRuntimeSource = {
@@ -120,7 +125,14 @@ export function getInitialPreviewRuntimeStatus({
     return {
       detail: "The preview runtime is waiting for the next successful preview state.",
       label: "Runtime stopped",
-      state: "error"
+      state: "error",
+      error:
+        preview.error ??
+        createRendererRuntimeError({
+          kind,
+          message: "The preview runtime is waiting for the next successful preview state.",
+          type: "preview_runtime_stopped"
+        })
     };
   }
 
@@ -128,7 +140,8 @@ export function getInitialPreviewRuntimeStatus({
     return {
       detail: "This preview route is not currently executable.",
       label: "Runtime unavailable",
-      state: "idle"
+      state: "idle",
+      error: null
     };
   }
 
@@ -138,7 +151,8 @@ export function getInitialPreviewRuntimeStatus({
         ? "Preparing a bounded WebGL fragment shader runtime."
         : "Preparing a constrained canvas sketch runtime.",
     label: "Runtime starting",
-    state: "starting"
+    state: "starting",
+    error: null
   };
 }
 
@@ -167,7 +181,12 @@ function mountP5Runtime({
     onStatus({
       detail: "Canvas 2D is unavailable, so the p5 runtime cannot mount here.",
       label: "p5 runtime unavailable",
-      state: "error"
+      state: "error",
+      error: createRendererRuntimeError({
+        kind: "p5",
+        message: "Canvas 2D is unavailable, so the p5 runtime cannot mount here.",
+        type: "canvas_2d_unavailable"
+      })
     });
     return { dispose: () => undefined };
   }
@@ -181,7 +200,8 @@ function mountP5Runtime({
   onStatus({
     detail: `Rendering ${source.title} through a constrained p5-style canvas adapter.`,
     label: "p5 runtime running",
-    state: "running"
+    state: "running",
+    error: null
   });
 
   function drawFrame(time: number) {
@@ -256,7 +276,12 @@ function mountGlslRuntime({
     onStatus({
       detail: "WebGL is unavailable, so the fragment shader runtime cannot mount here.",
       label: "GLSL runtime unavailable",
-      state: "error"
+      state: "error",
+      error: createRendererRuntimeError({
+        kind: "glsl",
+        message: "WebGL is unavailable, so the fragment shader runtime cannot mount here.",
+        type: "webgl_unavailable"
+      })
     });
     return { dispose: () => undefined };
   }
@@ -266,7 +291,12 @@ function mountGlslRuntime({
     onStatus({
       detail: normalizedFragment.reason,
       label: "GLSL runtime rejected source",
-      state: "error"
+      state: "error",
+      error: createRendererRuntimeError({
+        kind: "glsl",
+        message: normalizedFragment.reason,
+        type: "shader_source_rejected"
+      })
     });
     return { dispose: () => undefined };
   }
@@ -277,7 +307,13 @@ function mountGlslRuntime({
     onStatus({
       detail: program.message,
       label: "GLSL runtime failed",
-      state: "error"
+      state: "error",
+      error: createRendererRuntimeError({
+        kind: "glsl",
+        message: "The bounded GLSL runtime could not compile the current shader.",
+        type: "shader_program_failed",
+        debugMessage: program.message
+      })
     });
     return { dispose: () => undefined };
   }
@@ -295,7 +331,12 @@ function mountGlslRuntime({
     onStatus({
       detail: "The shader runtime could not allocate its fullscreen triangle.",
       label: "GLSL runtime failed",
-      state: "error"
+      state: "error",
+      error: createRendererRuntimeError({
+        kind: "glsl",
+        message: "The bounded GLSL runtime could not allocate its fullscreen surface.",
+        type: "fullscreen_triangle_unavailable"
+      })
     });
     return { dispose: () => undefined };
   }
@@ -310,7 +351,8 @@ function mountGlslRuntime({
   onStatus({
     detail: `Rendering ${source.title} through a bounded WebGL fragment adapter.`,
     label: "GLSL runtime running",
-    state: "running"
+    state: "running",
+    error: null
   });
 
   function drawFrame(time: number) {
@@ -437,6 +479,33 @@ void main() {
   gl_FragColor = vec4(base * (0.2 + ring), 1.0);
 }
 `;
+}
+
+function createRendererRuntimeError({
+  debugMessage = null,
+  kind,
+  message,
+  type
+}: {
+  debugMessage?: string | null;
+  kind: PreviewExecutableRuntimeKind;
+  message: string;
+  type: string;
+}) {
+  const subsystem = kind === "glsl" ? "glsl_renderer" : "p5_renderer";
+
+  return createWorkstationError({
+    type,
+    category: "renderer",
+    subsystem,
+    userMessage: message,
+    debugMessage,
+    recoverable: true,
+    suggestedAction:
+      "Reload the preview state or reset the preview session before trying again.",
+    retryLabel: "Reload preview state",
+    resetLabel: "Reset preview session"
+  });
 }
 
 function createShaderProgram(
