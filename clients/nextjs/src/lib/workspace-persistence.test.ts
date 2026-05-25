@@ -119,7 +119,11 @@ describe("workspace persistence client", () => {
     const fetchImpl = vi.fn(async () => new Response(JSON.stringify(record)));
     const client = createWorkspacePersistenceClient({ fetchImpl, storage });
 
-    await expect(client.load()).resolves.toEqual(record);
+    await expect(client.load()).resolves.toEqual({
+      error: null,
+      record,
+      source: "remote"
+    });
 
     expect(fetchImpl).toHaveBeenCalledWith(
       expect.stringContaining("/api/workspace/session?userId=local-user"),
@@ -140,7 +144,10 @@ describe("workspace persistence client", () => {
     const fetchImpl = vi.fn(async () => new Response("{}"));
     const client = createWorkspacePersistenceClient({ fetchImpl, storage });
 
-    await expect(client.save(record)).resolves.toEqual({ target: "remote" });
+    await expect(client.save(record)).resolves.toEqual({
+      error: null,
+      target: "remote"
+    });
 
     expect(fetchImpl).toHaveBeenCalledWith(
       "http://localhost:8000/api/workspace/session",
@@ -169,11 +176,24 @@ describe("workspace persistence client", () => {
       storage
     });
 
-    await expect(client.save(record)).resolves.toEqual({ target: "local" });
+    await expect(client.save(record)).resolves.toMatchObject({
+      error: expect.objectContaining({
+        category: "persistence",
+        type: "session_save_unavailable"
+      }),
+      target: "local"
+    });
     await expect(client.load()).resolves.toMatchObject({
-      activeInspectorTab: "Workflow",
-      previewOpen: true,
-      layout: defaultWorkspaceLayoutState
+      error: expect.objectContaining({
+        category: "persistence",
+        type: "session_restore_unavailable"
+      }),
+      record: expect.objectContaining({
+        activeInspectorTab: "Workflow",
+        previewOpen: true,
+        layout: defaultWorkspaceLayoutState
+      }),
+      source: "local"
     });
   });
 

@@ -203,6 +203,50 @@ describe("retrieval runtime", () => {
     });
     expect(runtime.sources).toEqual([]);
   });
+
+  it("surfaces structured retrieval failures from streamed retrieval events", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const runtime = buildRetrievalRuntimeModel(snapshot.retrieval, [
+      retrievalTraceEvent({
+        code: "retrieval_completed",
+        payload: {
+          context: {
+            source: "official_kb",
+            request: {
+              query: "Find TouchDesigner references for this projection loop.",
+              limit: 5,
+              filters: {
+                domains: ["touchdesigner"]
+              }
+            },
+            chunks: []
+          },
+          error: {
+            type: "retrieval_gateway_failed",
+            message: "Retrieval references are unavailable for this request.",
+            recoverable: true,
+            retry_label: "Retry retrieval",
+            subsystem: "retrieval_gateway"
+          },
+          emitted_at: "2026-05-23T10:09:00Z"
+        },
+        sequence: 8
+      })
+    ]);
+
+    expect(runtime.summary).toMatchObject({
+      state: "error",
+      status: "Retrieval failed",
+      headline: "Retrieval failed"
+    });
+    expect(runtime.summary.error).toMatchObject({
+      category: "retrieval",
+      subsystem: "retrieval_gateway",
+      type: "retrieval_gateway_failed",
+      retryLabel: "Retry retrieval"
+    });
+    expect(runtime.sources).toEqual([]);
+  });
 });
 
 function retrievalTraceEvent({

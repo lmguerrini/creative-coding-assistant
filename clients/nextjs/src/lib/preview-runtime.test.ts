@@ -162,7 +162,13 @@ describe("preview runtime", () => {
     ).toMatchObject({
       state: "error",
       status: "Preview failed",
-      artifactName: "webgpu-particle-field.ts"
+      artifactName: "webgpu-particle-field.ts",
+      error: {
+        category: "preview_runtime",
+        subsystem: "preview.noop",
+        type: "preview_runtime_failed",
+        resetLabel: "Reset preview session"
+      }
     });
   });
 
@@ -215,14 +221,18 @@ describe("preview runtime", () => {
 
 function previewTraceEvent({
   artifactId,
+  code = "preview_runtime_failed",
   message = null,
   previewArtifactId = null,
+  retryable = false,
   status,
   summary
 }: {
   artifactId: string;
+  code?: string;
   message?: string | null;
   previewArtifactId?: string | null;
+  retryable?: boolean;
   status: "succeeded" | "failed" | "skipped";
   summary: string;
 }): WorkflowRuntimeTraceEvent {
@@ -238,7 +248,12 @@ function previewTraceEvent({
         ...(message
           ? {
               error: {
-                message
+                code,
+                details: {
+                  reset_label: "Reset preview session"
+                },
+                message,
+                retryable
               }
             }
           : {}),

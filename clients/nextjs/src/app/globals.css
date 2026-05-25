@@ -25,6 +25,121 @@ html[data-cca-theme="aqua"] {
   --shadow: 0 24px 80px rgba(0, 0, 0, 0.44);
 }
 
+.subsystemErrorCallout {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 122, 102, 0.22);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(255, 122, 102, 0.12), transparent 72%),
+    rgba(255, 255, 255, 0.04);
+}
+
+.subsystemErrorCallout[data-category="persistence"] {
+  border-color: rgba(243, 184, 82, 0.26);
+  background:
+    linear-gradient(135deg, rgba(243, 184, 82, 0.12), transparent 72%),
+    rgba(255, 255, 255, 0.04);
+}
+
+.subsystemErrorCallout[data-category="retrieval"] {
+  border-color: rgba(243, 184, 82, 0.22);
+  background:
+    linear-gradient(135deg, rgba(243, 184, 82, 0.1), transparent 72%),
+    rgba(255, 255, 255, 0.04);
+}
+
+.subsystemErrorCallout[data-category="renderer"] {
+  border-color: rgba(124, 167, 255, 0.24);
+  background:
+    linear-gradient(135deg, rgba(124, 167, 255, 0.12), transparent 72%),
+    rgba(5, 8, 11, 0.78);
+}
+
+.subsystemErrorHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.subsystemErrorHeader small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.subsystemErrorMessage,
+.subsystemErrorAction,
+.subsystemErrorDebug {
+  margin: 0;
+}
+
+.subsystemErrorAction,
+.subsystemErrorDebug,
+.subsystemErrorMeta dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.subsystemErrorDebug code {
+  white-space: pre-wrap;
+}
+
+.subsystemErrorMeta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.subsystemErrorMeta div {
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.subsystemErrorMeta dt {
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.subsystemErrorMeta dd {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 12px;
+}
+
+.chatErrorCallout,
+.sessionErrorCallout,
+.artifactErrorCallout,
+.retrievalErrorCallout {
+  margin-top: 12px;
+}
+
+.workflowIssueStack {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.previewErrorCallout {
+  grid-column: 1 / -1;
+}
+
+.previewRuntimeErrorCallout {
+  position: absolute;
+  right: 10px;
+  bottom: 54px;
+  z-index: 1;
+  width: min(320px, calc(100% - 20px));
+}
+
 html[data-cca-theme="codex"] {
   --background: #0b0d10;
   --background-rgb: 11, 13, 16;

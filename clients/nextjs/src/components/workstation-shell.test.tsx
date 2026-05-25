@@ -18,8 +18,10 @@ import type { AssistantStreamEvent } from "@/lib/assistant-stream";
 import {
   createWorkspaceSessionRecord,
   type WorkspacePersistenceClient,
+  type WorkspacePersistenceLoadResult,
   type WorkspacePersistenceSaveResult
 } from "@/lib/workspace-persistence";
+import { createWorkstationError } from "@/lib/workstation-errors";
 
 const originalClipboard = navigator.clipboard;
 const originalCancelAnimationFrame = window.cancelAnimationFrame;
@@ -234,8 +236,10 @@ function runtimeWorkflowEvent({
 
 function createNoopPersistenceClient(): WorkspacePersistenceClient {
   return {
-    load: vi.fn(() => new Promise<null>(() => undefined)),
-    save: vi.fn(async () => ({ target: "local" as const }))
+    load: vi.fn(
+      () => new Promise<WorkspacePersistenceLoadResult>(() => undefined)
+    ),
+    save: vi.fn(async () => ({ error: null, target: "local" as const }))
   };
 }
 
@@ -699,6 +703,73 @@ describe("WorkstationShell", () => {
     expect(within(retrievalPanel).getByText("88% match")).toBeVisible();
   });
 
+  it("shows structured retrieval failures in the retrieval inspector", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "retrieval",
+          sequence: 0,
+          payload: {
+            code: "retrieval_completed",
+            emitted_at: "2026-05-23T10:21:01Z",
+            error: {
+              type: "retrieval_gateway_failed",
+              message: "Retrieval references are unavailable for this request.",
+              recoverable: true,
+              retry_label: "Retry retrieval",
+              subsystem: "retrieval_gateway"
+            },
+            context: {
+              source: "official_kb",
+              request: {
+                query: "Find TouchDesigner references for this projection loop.",
+                limit: 5,
+                filters: {
+                  domains: ["touchdesigner"]
+                }
+              },
+              chunks: []
+            }
+          }
+        },
+        {
+          event_type: "final",
+          sequence: 1,
+          payload: {
+            answer: "Continuing without retrieval references."
+          }
+        }
+      ])
+    );
+
+    renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Find TouchDesigner references for this projection loop." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(
+      await screen.findByText("Continuing without retrieval references.")
+    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Retrieval" }));
+
+    const retrievalPanel = screen.getByRole("tabpanel", {
+      name: "Retrieval inspector"
+    });
+
+    expect(
+      within(retrievalPanel).getAllByText("Retrieval failed").length
+    ).toBeGreaterThan(0);
+    expect(
+      within(retrievalPanel).getAllByText(
+        "Retrieval references are unavailable for this request."
+      ).length
+    ).toBeGreaterThan(0);
+    expect(within(retrievalPanel).getByText("Retry retrieval")).toBeVisible();
+  });
+
   it("shows connecting and live generation states during a streamed response", async () => {
     const beforeTokens = createDeferred<void>();
     const beforeFinal = createDeferred<void>();
@@ -758,8 +829,8 @@ describe("WorkstationShell", () => {
 
   it("applies theme and settings preferences and persists them", async () => {
     const persistenceClient: WorkspacePersistenceClient = {
-      load: vi.fn(async () => null),
-      save: vi.fn(async () => ({ target: "remote" as const }))
+      load: vi.fn(async () => ({ error: null, record: null, source: "none" as const })),
+      save: vi.fn(async () => ({ error: null, target: "remote" as const }))
     };
 
     renderShell(getLocalWorkspaceSnapshot(), { persistenceClient });
@@ -787,6 +858,33 @@ describe("WorkstationShell", () => {
         })
       );
     });
+  });
+
+  it("shows a persistence issue when saves fall back to the local session copy", async () => {
+    const persistenceClient: WorkspacePersistenceClient = {
+      load: vi.fn(async () => ({ error: null, record: null, source: "none" as const })),
+      save: vi.fn(async () => ({
+        error: createWorkstationError({
+          type: "session_save_unavailable",
+          category: "persistence",
+          subsystem: "workspace_session_store",
+          userMessage: "Remote session save timed out or could not be reached.",
+          recoverable: true,
+          suggestedAction:
+            "Keep editing locally and retry the session save after the backend recovers.",
+          retryLabel: "Retry save"
+        }),
+        target: "local" as const
+      }))
+    };
+
+    renderShell(getLocalWorkspaceSnapshot(), { persistenceClient });
+
+    expect(await screen.findByText("Saved locally")).toBeVisible();
+    expect(screen.getByText("Session persistence issue")).toBeVisible();
+    expect(
+      screen.getByText("Remote session save timed out or could not be reached.")
+    ).toBeVisible();
   });
 
   it("hides workflow traces and keeps preview closed when auto-open is disabled", async () => {
@@ -934,9 +1032,15 @@ describe("WorkstationShell", () => {
 
     expect(screen.getByText("Generate a reactive sketch.")).toBeVisible();
     expect(
-      await screen.findByText("Backend stream error: Provider unavailable.")
+      await screen.findByText(
+        "Backend stream error: The model provider is unavailable for this live response."
+      )
     ).toBeVisible();
+    expect(screen.getByText("Live stream interrupted")).toBeVisible();
     expect(screen.getByText("Stream interrupted")).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
+    expect(await screen.findByText("Runtime issue")).toBeVisible();
   });
 
   it("keeps preview available, on demand, and collapsible in the main column", () => {
@@ -1231,6 +1335,7 @@ describe("WorkstationShell", () => {
       within(surface).getByRole("group", { name: "GLSL live runtime" })
     ).toBeVisible();
     expect(await within(surface).findByText("GLSL runtime unavailable")).toBeVisible();
+    expect(within(surface).getByText("Renderer runtime failed")).toBeVisible();
   });
 
   it("uses the full inspector panel for code when Code is active", () => {
@@ -1318,6 +1423,39 @@ describe("WorkstationShell", () => {
 
     expect(within(events).getByText("Artifact Download Approval Requested")).toBeVisible();
     expect(within(events).getByText("Artifact Download Completed")).toBeVisible();
+  });
+
+  it("shows artifact transfer failures in the artifacts and workflow surfaces", async () => {
+    Object.defineProperty(URL, "createObjectURL", {
+      configurable: true,
+      value: vi.fn(() => {
+        throw new Error("disk blocked");
+      })
+    });
+
+    renderShell(snapshotWithActiveTab("Artifacts"));
+    const details = screen.getByRole("group", { name: "Active artifact details" });
+
+    fireEvent.click(
+      within(details).getByRole("button", {
+        name: "Download File webgpu-particle-field.ts"
+      })
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Download file" }));
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("Artifact transfer failed")).toBeVisible();
+    expect(
+      screen.getAllByText(
+        "The workspace could not download webgpu-particle-field.ts."
+      ).length
+    ).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
+    expect(await screen.findByText("Runtime issue")).toBeVisible();
   });
 
   it("shows copy feedback in the code inspector", async () => {
@@ -1507,8 +1645,8 @@ describe("WorkstationShell", () => {
 
   it("resizes workspace regions and persists the layout preferences", async () => {
     const persistenceClient: WorkspacePersistenceClient = {
-      load: vi.fn(async () => null),
-      save: vi.fn(async () => ({ target: "remote" as const }))
+      load: vi.fn(async () => ({ error: null, record: null, source: "none" as const })),
+      save: vi.fn(async () => ({ error: null, target: "remote" as const }))
     };
 
     renderShell(getLocalWorkspaceSnapshot(), { persistenceClient });
@@ -1596,8 +1734,12 @@ describe("WorkstationShell", () => {
       }
     } satisfies ReturnType<typeof createWorkspaceSessionRecord>;
     const persistenceClient: WorkspacePersistenceClient = {
-      load: vi.fn(async () => persistedRecord),
-      save: vi.fn(async () => ({ target: "remote" as const }))
+      load: vi.fn(async () => ({
+        error: null,
+        record: persistedRecord,
+        source: "remote" as const
+      })),
+      save: vi.fn(async () => ({ error: null, target: "remote" as const }))
     };
 
     renderShell(snapshot, { persistenceClient });
@@ -1629,8 +1771,8 @@ describe("WorkstationShell", () => {
 
   it("saves workspace state changes after persistence is ready", async () => {
     const persistenceClient: WorkspacePersistenceClient = {
-      load: vi.fn(async () => null),
-      save: vi.fn(async () => ({ target: "remote" as const }))
+      load: vi.fn(async () => ({ error: null, record: null, source: "none" as const })),
+      save: vi.fn(async () => ({ error: null, target: "remote" as const }))
     };
 
     renderShell(getLocalWorkspaceSnapshot(), { persistenceClient });
@@ -1652,7 +1794,9 @@ describe("WorkstationShell", () => {
   it("falls back when persistence load and save calls hang", async () => {
     vi.useFakeTimers();
     const persistenceClient: WorkspacePersistenceClient = {
-      load: vi.fn(() => new Promise<null>(() => undefined)),
+      load: vi.fn(
+        () => new Promise<WorkspacePersistenceLoadResult>(() => undefined)
+      ),
       save: vi.fn(
         () => new Promise<WorkspacePersistenceSaveResult>(() => undefined)
       )

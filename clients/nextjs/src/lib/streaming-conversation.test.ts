@@ -6,6 +6,7 @@ import {
   getConversationPhasePlaceholder,
   toPersistedConversation
 } from "./streaming-conversation";
+import { createWorkstationError } from "./workstation-errors";
 
 describe("streaming conversation helpers", () => {
   it("hydrates persisted messages into complete conversation entries", () => {
@@ -82,7 +83,15 @@ describe("streaming conversation helpers", () => {
         isReady: false,
         isStreaming: false,
         phase: null,
-        streamError: "offline"
+        streamError: createWorkstationError({
+          type: "assistant_stream_unavailable",
+          category: "stream",
+          subsystem: "assistant_stream",
+          userMessage: "The backend stream is unavailable.",
+          recoverable: true,
+          suggestedAction: "Retry the request from the composer.",
+          retryLabel: "Send prompt again"
+        })
       })
     ).toBe("Stream interrupted");
   });

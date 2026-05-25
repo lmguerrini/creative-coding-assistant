@@ -5,6 +5,7 @@ import {
   parseAssistantStreamLine,
   readEventTimestamp,
   readPreviewArtifactUpdate,
+  readStreamEventError,
   readWorkflowMetadata,
   streamAssistantEvents,
   workflowNodeFromAssistantStreamEvent,
@@ -108,6 +109,26 @@ describe("assistant stream client", () => {
     const events = decodeAssistantStream(new Response("Nope.", { status: 503 }));
 
     await expect(events.next()).rejects.toThrow(AssistantStreamError);
+  });
+
+  it("builds a structured stream error from error events", () => {
+    const event: AssistantStreamEvent = {
+      event_type: "error",
+      sequence: 3,
+      payload: {
+        code: "provider_unavailable",
+        message: "Provider unavailable."
+      }
+    };
+
+    expect(readStreamEventError(event)).toMatchObject({
+      category: "stream",
+      subsystem: "generation_provider",
+      type: "provider_unavailable",
+      userMessage: "The model provider is unavailable for this live response.",
+      retryLabel: "Send prompt again",
+      resetLabel: "Clear workspace session"
+    });
   });
 
   it("maps backend events to workflow nodes", () => {
@@ -214,6 +235,7 @@ describe("assistant stream client", () => {
       target: "browser_sandbox",
       summary: "Preview pipeline foundation only; renderer execution is deferred.",
       errorMessage: null,
+      error: null,
       emittedAt: "2026-05-22T10:25:00Z",
       completedAt: "2026-05-22T10:25:00Z"
     });
