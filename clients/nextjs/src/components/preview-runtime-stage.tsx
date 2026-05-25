@@ -53,7 +53,9 @@ export function PreviewRuntimeStage({
       detail:
         kind === "glsl"
           ? "Mounting a bounded WebGL fragment runtime."
-          : "Mounting a constrained canvas sketch runtime.",
+          : kind === "three"
+            ? "Mounting a controlled Three.js-style WebGL scene runtime."
+            : "Mounting a constrained canvas sketch runtime.",
       label: "Runtime starting",
       state: "starting",
       error: null

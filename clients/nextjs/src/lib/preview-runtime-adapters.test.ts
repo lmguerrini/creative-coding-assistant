@@ -38,12 +38,17 @@ describe("preview runtime adapters", () => {
     expect(source.fingerprint).toMatch(/^[a-f0-9]+$/);
   });
 
-  it("marks p5 and GLSL routes as executable runtimes", () => {
+  it("marks p5, Three.js, and GLSL routes as executable runtimes", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const p5Artifact = {
       ...snapshot.artifacts[0],
       summary: "Reactive p5 loop with createCanvas() and draw().",
       title: "signal-orbit.p5.ts"
+    };
+    const threeArtifact = {
+      ...snapshot.artifacts[0],
+      summary: "Three scene with WebGLRenderer, lights, and camera motion.",
+      title: "projection-scene.three.ts"
     };
     const glslArtifact = {
       ...snapshot.artifacts[0],
@@ -61,6 +66,16 @@ describe("preview runtime adapters", () => {
       },
       previewArtifactId: p5Artifact.id
     });
+    const threeRoute = buildPreviewRendererRoute({
+      artifacts: [threeArtifact],
+      preview: {
+        ...snapshot.preview,
+        active: true,
+        artifactName: threeArtifact.title,
+        sourceArtifactName: threeArtifact.title
+      },
+      previewArtifactId: threeArtifact.id
+    });
     const glslRoute = buildPreviewRendererRoute({
       artifacts: [glslArtifact],
       preview: {
@@ -73,6 +88,7 @@ describe("preview runtime adapters", () => {
     });
 
     expect(getExecutablePreviewRuntimeKind(p5Route)).toBe("p5");
+    expect(getExecutablePreviewRuntimeKind(threeRoute)).toBe("three");
     expect(getExecutablePreviewRuntimeKind(glslRoute)).toBe("glsl");
     expect(
       canRunPreviewRuntime({

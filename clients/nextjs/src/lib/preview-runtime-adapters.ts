@@ -5,7 +5,7 @@ import {
   type WorkstationError
 } from "./workstation-errors";
 
-export type PreviewExecutableRuntimeKind = "p5" | "glsl";
+export type PreviewExecutableRuntimeKind = "p5" | "three" | "glsl";
 
 export type PreviewRuntimeLifecycleState =
   | "idle"
@@ -45,6 +45,16 @@ type P5SketchSignals = {
   signal: number;
 };
 
+type ThreeScenePrimitive = "box" | "sphere" | "torus";
+
+type ThreeSceneSignals = {
+  background: [number, number, number];
+  color: [number, number, number];
+  accent: [number, number, number];
+  primitive: ThreeScenePrimitive;
+  spin: number;
+};
+
 const defaultRuntimeSource: PreviewRuntimeSource = {
   fingerprint: "empty",
   lineCount: 0,
@@ -59,6 +69,54 @@ void main() {
 }
 `;
 
+const threeVertexShaderSource = `
+attribute vec3 a_position;
+attribute vec3 a_normal;
+uniform float u_aspect;
+uniform float u_time;
+varying vec3 v_normal;
+varying float v_depth;
+void main() {
+  float spin = u_time * 0.55;
+  float tilt = 0.62 + sin(u_time * 0.24) * 0.08;
+  mat3 rotateY = mat3(
+    cos(spin), 0.0, -sin(spin),
+    0.0, 1.0, 0.0,
+    sin(spin), 0.0, cos(spin)
+  );
+  mat3 rotateX = mat3(
+    1.0, 0.0, 0.0,
+    0.0, cos(tilt), sin(tilt),
+    0.0, -sin(tilt), cos(tilt)
+  );
+  vec3 position = rotateY * rotateX * a_position;
+  vec3 normal = normalize(rotateY * rotateX * a_normal);
+  float cameraDepth = position.z + 3.6;
+  vec2 projected = position.xy / max(cameraDepth, 0.1);
+  projected.x /= max(u_aspect, 0.1);
+  gl_Position = vec4(projected * 2.45, (cameraDepth - 3.6) / 4.0, 1.0);
+  v_normal = normal;
+  v_depth = cameraDepth;
+}
+`;
+
+const threeFragmentShaderSource = `
+precision mediump float;
+uniform vec3 u_accent;
+uniform vec3 u_color;
+varying vec3 v_normal;
+varying float v_depth;
+void main() {
+  vec3 normal = normalize(v_normal);
+  float key = max(dot(normal, normalize(vec3(-0.35, 0.72, 0.58))), 0.0);
+  float fill = max(dot(normal, normalize(vec3(0.55, -0.2, 0.7))), 0.0) * 0.32;
+  float rim = pow(1.0 - max(normal.z, 0.0), 2.0) * 0.44;
+  float depthShade = smoothstep(2.2, 4.7, v_depth);
+  vec3 color = u_color * (0.2 + key * 0.72 + fill) + u_accent * rim;
+  gl_FragColor = vec4(mix(color, color * 0.58, depthShade * 0.34), 1.0);
+}
+`;
+
 export function getExecutablePreviewRuntimeKind(
   route: PreviewRendererRoute
 ): PreviewExecutableRuntimeKind | null {
@@ -68,6 +126,7 @@ export function getExecutablePreviewRuntimeKind(
 
   switch (route.surfaceKind) {
     case "p5":
+    case "three":
     case "glsl":
       return route.surfaceKind;
     default:
@@ -149,7 +208,9 @@ export function getInitialPreviewRuntimeStatus({
     detail:
       kind === "glsl"
         ? "Preparing a bounded WebGL fragment shader runtime."
-        : "Preparing a constrained canvas sketch runtime.",
+        : kind === "three"
+          ? "Preparing a controlled Three.js-style WebGL scene runtime."
+          : "Preparing a constrained canvas sketch runtime.",
     label: "Runtime starting",
     state: "starting",
     error: null
@@ -165,6 +226,8 @@ export function mountPreviewRuntime({
   switch (kind) {
     case "p5":
       return mountP5Runtime({ canvas, onStatus, source });
+    case "three":
+      return mountThreeRuntime({ canvas, onStatus, source });
     case "glsl":
       return mountGlslRuntime({ canvas, onStatus, source });
   }
@@ -261,6 +324,155 @@ function mountP5Runtime({
     dispose: () => {
       disposed = true;
       cancelRuntimeFrame(runtimeWindow, animationFrame);
+    }
+  };
+}
+
+function mountThreeRuntime({
+  canvas,
+  onStatus,
+  source
+}: Omit<MountPreviewRuntimeInput, "kind">): PreviewRuntimeMount {
+  const gl = getWebGlContext(canvas, { depth: true });
+
+  if (!gl) {
+    onStatus({
+      detail: "WebGL is unavailable, so the Three.js-style runtime cannot mount here.",
+      label: "Three.js runtime unavailable",
+      state: "error",
+      error: createRendererRuntimeError({
+        kind: "three",
+        message: "WebGL is unavailable, so the Three.js-style runtime cannot mount here.",
+        type: "webgl_unavailable"
+      })
+    });
+    return { dispose: () => undefined };
+  }
+
+  const signals = parseThreeSceneSignals(source);
+  if (!signals.allowed) {
+    onStatus({
+      detail: signals.reason,
+      label: "Three.js runtime rejected source",
+      state: "error",
+      error: createRendererRuntimeError({
+        kind: "three",
+        message: signals.reason,
+        type: "three_scene_source_rejected"
+      })
+    });
+    return { dispose: () => undefined };
+  }
+
+  const sceneSignals = signals.signals;
+  const webgl = gl;
+  const program = createShaderProgram(
+    webgl,
+    threeVertexShaderSource,
+    threeFragmentShaderSource
+  );
+  if (!program.ok) {
+    onStatus({
+      detail: program.message,
+      label: "Three.js runtime failed",
+      state: "error",
+      error: createRendererRuntimeError({
+        kind: "three",
+        message: "The controlled Three.js-style runtime could not compile its WebGL program.",
+        type: "three_scene_program_failed",
+        debugMessage: program.message
+      })
+    });
+    return { dispose: () => undefined };
+  }
+
+  const scene = createThreeSceneGeometry(sceneSignals.primitive);
+  const programObject = program.program;
+  const positionLocation = webgl.getAttribLocation(programObject, "a_position");
+  const normalLocation = webgl.getAttribLocation(programObject, "a_normal");
+  const aspectLocation = webgl.getUniformLocation(programObject, "u_aspect");
+  const timeLocation = webgl.getUniformLocation(programObject, "u_time");
+  const colorLocation = webgl.getUniformLocation(programObject, "u_color");
+  const accentLocation = webgl.getUniformLocation(programObject, "u_accent");
+  const positionBuffer = webgl.createBuffer();
+  const normalBuffer = webgl.createBuffer();
+  const runtimeWindow = canvas.ownerDocument.defaultView;
+  let animationFrame = 0;
+  let disposed = false;
+
+  if (
+    !positionBuffer ||
+    !normalBuffer ||
+    positionLocation < 0 ||
+    normalLocation < 0
+  ) {
+    onStatus({
+      detail: "The Three.js-style runtime could not allocate its scene buffers.",
+      label: "Three.js runtime failed",
+      state: "error",
+      error: createRendererRuntimeError({
+        kind: "three",
+        message: "The controlled Three.js-style runtime could not allocate its scene buffers.",
+        type: "three_scene_buffer_unavailable"
+      })
+    });
+    return { dispose: () => undefined };
+  }
+
+  webgl.bindBuffer(webgl.ARRAY_BUFFER, positionBuffer);
+  webgl.bufferData(webgl.ARRAY_BUFFER, scene.positions, webgl.STATIC_DRAW);
+  webgl.bindBuffer(webgl.ARRAY_BUFFER, normalBuffer);
+  webgl.bufferData(webgl.ARRAY_BUFFER, scene.normals, webgl.STATIC_DRAW);
+  webgl.enable(webgl.DEPTH_TEST);
+  webgl.enable(webgl.CULL_FACE);
+
+  onStatus({
+    detail: `Rendering ${source.title} as a controlled ${sceneSignals.primitive} scene without evaluating generated JavaScript.`,
+    label: "Three.js runtime running",
+    state: "running",
+    error: null
+  });
+
+  function drawFrame(time: number) {
+    if (disposed) {
+      return;
+    }
+
+    const { height, width } = resizeCanvasToDisplaySize(canvas);
+    const [red, green, blue] = sceneSignals.background.map(
+      (channel) => channel / 255
+    );
+
+    webgl.viewport(0, 0, webgl.drawingBufferWidth, webgl.drawingBufferHeight);
+    webgl.clearColor(red, green, blue, 1);
+    webgl.clear(webgl.COLOR_BUFFER_BIT | webgl.DEPTH_BUFFER_BIT);
+    webgl.useProgram(programObject);
+    webgl.uniform1f(aspectLocation, width / Math.max(height, 1));
+    webgl.uniform1f(timeLocation, time * 0.001 * sceneSignals.spin);
+    webgl.uniform3f(colorLocation, ...toUnitRgb(sceneSignals.color));
+    webgl.uniform3f(accentLocation, ...toUnitRgb(sceneSignals.accent));
+
+    webgl.enableVertexAttribArray(positionLocation);
+    webgl.bindBuffer(webgl.ARRAY_BUFFER, positionBuffer);
+    webgl.vertexAttribPointer(positionLocation, 3, webgl.FLOAT, false, 0, 0);
+
+    webgl.enableVertexAttribArray(normalLocation);
+    webgl.bindBuffer(webgl.ARRAY_BUFFER, normalBuffer);
+    webgl.vertexAttribPointer(normalLocation, 3, webgl.FLOAT, false, 0, 0);
+
+    webgl.drawArrays(webgl.TRIANGLES, 0, scene.vertexCount);
+    animationFrame = requestRuntimeFrame(runtimeWindow, drawFrame);
+  }
+
+  animationFrame = requestRuntimeFrame(runtimeWindow, drawFrame);
+
+  return {
+    dispose: () => {
+      disposed = true;
+      cancelRuntimeFrame(runtimeWindow, animationFrame);
+      webgl.deleteBuffer(positionBuffer);
+      webgl.deleteBuffer(normalBuffer);
+      webgl.deleteProgram(programObject);
     }
   };
 }
@@ -396,6 +608,187 @@ function parseP5SketchSignals(source: PreviewRuntimeSource): P5SketchSignals {
   };
 }
 
+function parseThreeSceneSignals(
+  source: PreviewRuntimeSource
+): { allowed: true; signals: ThreeSceneSignals } | { allowed: false; reason: string } {
+  const sourceText = source.source.trim();
+
+  if (sourceText.length > 9000) {
+    return {
+      allowed: false,
+      reason: "The Three.js scene source is too large for this lightweight runtime."
+    };
+  }
+
+  if (
+    /\b(?:eval|Function|document|window|fetch|XMLHttpRequest|WebSocket|Worker|localStorage|sessionStorage)\b/i.test(
+      sourceText
+    ) ||
+    /\bimport\s*\(/i.test(sourceText)
+  ) {
+    return {
+      allowed: false,
+      reason:
+        "The Three.js scene uses browser or dynamic execution features outside the controlled preview subset."
+    };
+  }
+
+  return {
+    allowed: true,
+    signals: {
+      background:
+        parseThreeHexColor(sourceText, /setClearColor\s*\(\s*(0x[0-9a-f]{3,6}|#[0-9a-f]{3,6})/i) ??
+        parseThreeHexColor(sourceText, /background\s*=\s*new\s+THREE\.Color\s*\(\s*(0x[0-9a-f]{3,6}|#[0-9a-f]{3,6})/i) ??
+        [5, 8, 11],
+      color:
+        parseThreeHexColor(sourceText, /color\s*:\s*(0x[0-9a-f]{3,6}|#[0-9a-f]{3,6})/i) ??
+        parseThreeHexColor(sourceText, /Mesh(?:Standard|Phong|Basic)Material\s*\([^)]*(0x[0-9a-f]{3,6}|#[0-9a-f]{3,6})/i) ??
+        [76, 215, 200],
+      accent:
+        parseThreeHexColor(sourceText, /emissive\s*:\s*(0x[0-9a-f]{3,6}|#[0-9a-f]{3,6})/i) ??
+        [124, 167, 255],
+      primitive: parseThreePrimitive(sourceText),
+      spin: Math.max(
+        0.35,
+        Math.min(
+          parseFirstNumber(sourceText, /rotation\.[xyza-z]+\s*\+=\s*([0-9.]+)/i) ??
+            parseFirstNumber(sourceText, /rotate[XYZ]\s*\(\s*([0-9.]+)/i) ??
+            1,
+          2.4
+        )
+      )
+    }
+  };
+}
+
+function parseThreePrimitive(source: string): ThreeScenePrimitive {
+  if (/Torus(?:Knot)?Geometry/i.test(source)) {
+    return "torus";
+  }
+
+  if (/SphereGeometry|IcosahedronGeometry|DodecahedronGeometry/i.test(source)) {
+    return "sphere";
+  }
+
+  return "box";
+}
+
+function parseThreeHexColor(source: string, pattern: RegExp) {
+  const match = source.match(pattern);
+  if (!match) {
+    return null;
+  }
+
+  const rawValue = match[1].replace(/^#/, "0x");
+  const parsed = Number.parseInt(rawValue.replace(/^0x/i, ""), 16);
+  if (!Number.isFinite(parsed)) {
+    return null;
+  }
+
+  if (rawValue.length === 5) {
+    const red = (parsed >> 8) & 0xf;
+    const green = (parsed >> 4) & 0xf;
+    const blue = parsed & 0xf;
+    return [red * 17, green * 17, blue * 17] as [number, number, number];
+  }
+
+  return [
+    (parsed >> 16) & 255,
+    (parsed >> 8) & 255,
+    parsed & 255
+  ] as [number, number, number];
+}
+
+function createThreeSceneGeometry(primitive: ThreeScenePrimitive) {
+  switch (primitive) {
+    case "sphere":
+      return createOctahedronGeometry();
+    case "torus":
+      return createTorusLikeGeometry();
+    case "box":
+    default:
+      return createCubeGeometry();
+  }
+}
+
+function createCubeGeometry() {
+  const faces = [
+    { normal: [0, 0, 1], corners: [[-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]] },
+    { normal: [0, 0, -1], corners: [[1, -1, -1], [-1, -1, -1], [-1, 1, -1], [1, 1, -1]] },
+    { normal: [1, 0, 0], corners: [[1, -1, 1], [1, -1, -1], [1, 1, -1], [1, 1, 1]] },
+    { normal: [-1, 0, 0], corners: [[-1, -1, -1], [-1, -1, 1], [-1, 1, 1], [-1, 1, -1]] },
+    { normal: [0, 1, 0], corners: [[-1, 1, 1], [1, 1, 1], [1, 1, -1], [-1, 1, -1]] },
+    { normal: [0, -1, 0], corners: [[-1, -1, -1], [1, -1, -1], [1, -1, 1], [-1, -1, 1]] }
+  ] as const;
+  const positions: number[] = [];
+  const normals: number[] = [];
+
+  for (const face of faces) {
+    const [a, b, c, d] = face.corners;
+    for (const vertex of [a, b, c, a, c, d]) {
+      positions.push(...vertex.map((value) => value * 0.74));
+      normals.push(...face.normal);
+    }
+  }
+
+  return toThreeGeometry(positions, normals);
+}
+
+function createOctahedronGeometry() {
+  const triangles = [
+    [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+    [[0, 1, 0], [-1, 0, 0], [0, 0, 1]],
+    [[-1, 0, 0], [0, -1, 0], [0, 0, 1]],
+    [[0, -1, 0], [1, 0, 0], [0, 0, 1]],
+    [[0, 1, 0], [1, 0, 0], [0, 0, -1]],
+    [[-1, 0, 0], [0, 1, 0], [0, 0, -1]],
+    [[0, -1, 0], [-1, 0, 0], [0, 0, -1]],
+    [[1, 0, 0], [0, -1, 0], [0, 0, -1]]
+  ] as const;
+  const positions: number[] = [];
+  const normals: number[] = [];
+
+  for (const triangle of triangles) {
+    for (const vertex of triangle) {
+      positions.push(...vertex.map((value) => value * 0.92));
+      normals.push(...normalizeVec3(vertex));
+    }
+  }
+
+  return toThreeGeometry(positions, normals);
+}
+
+function createTorusLikeGeometry() {
+  const segments = 18;
+  const positions: number[] = [];
+  const normals: number[] = [];
+
+  for (let index = 0; index < segments; index += 1) {
+    const a0 = (index / segments) * Math.PI * 2;
+    const a1 = ((index + 1) / segments) * Math.PI * 2;
+    const inner0 = [Math.cos(a0) * 0.46, Math.sin(a0) * 0.46, -0.22];
+    const outer0 = [Math.cos(a0) * 0.96, Math.sin(a0) * 0.96, 0.0];
+    const inner1 = [Math.cos(a1) * 0.46, Math.sin(a1) * 0.46, -0.22];
+    const outer1 = [Math.cos(a1) * 0.96, Math.sin(a1) * 0.96, 0.0];
+    const cap0 = [Math.cos((a0 + a1) / 2) * 0.72, Math.sin((a0 + a1) / 2) * 0.72, 0.3];
+
+    for (const vertex of [inner0, outer0, outer1, inner0, outer1, inner1, outer0, cap0, outer1]) {
+      positions.push(...vertex);
+      normals.push(...normalizeVec3(vertex));
+    }
+  }
+
+  return toThreeGeometry(positions, normals);
+}
+
+function toThreeGeometry(positions: number[], normals: number[]) {
+  return {
+    positions: new Float32Array(positions),
+    normals: new Float32Array(normals),
+    vertexCount: positions.length / 3
+  };
+}
+
 function buildFragmentShaderSource(
   source: PreviewRuntimeSource
 ): { allowed: true; source: string } | { allowed: false; reason: string } {
@@ -492,7 +885,12 @@ function createRendererRuntimeError({
   message: string;
   type: string;
 }) {
-  const subsystem = kind === "glsl" ? "glsl_renderer" : "p5_renderer";
+  const subsystem =
+    kind === "glsl"
+      ? "glsl_renderer"
+      : kind === "three"
+        ? "three_renderer"
+        : "p5_renderer";
 
   return createWorkstationError({
     type,
@@ -653,15 +1051,19 @@ function getCanvas2DContext(canvas: HTMLCanvasElement) {
   }
 }
 
-function getWebGlContext(canvas: HTMLCanvasElement) {
+function getWebGlContext(
+  canvas: HTMLCanvasElement,
+  options: WebGLContextAttributes = {}
+) {
   try {
     return (
       canvas.getContext("webgl", {
         alpha: false,
         antialias: false,
-        depth: false,
+        depth: options.depth ?? false,
         preserveDrawingBuffer: false,
-        stencil: false
+        stencil: false,
+        ...options
       }) ?? null
     );
   } catch {
@@ -682,6 +1084,20 @@ function hashRuntimeSource(source: string) {
 
 function clampColor(value: number) {
   return Math.max(0, Math.min(255, Math.round(value)));
+}
+
+function normalizeVec3(vector: readonly number[]) {
+  const length = Math.hypot(vector[0] ?? 0, vector[1] ?? 0, vector[2] ?? 0) || 1;
+
+  return [
+    (vector[0] ?? 0) / length,
+    (vector[1] ?? 0) / length,
+    (vector[2] ?? 0) / length
+  ];
+}
+
+function toUnitRgb([red, green, blue]: [number, number, number]) {
+  return [red / 255, green / 255, blue / 255] as const;
 }
 
 function toRgb([red, green, blue]: [number, number, number]) {

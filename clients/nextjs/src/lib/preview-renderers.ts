@@ -94,9 +94,9 @@ export const creativePreviewRendererRegistry: readonly CreativePreviewRendererDe
       "react-three"
     ],
     notes: [
-      "Scene and camera stage placeholder",
-      "Container boundary only on this branch",
-      "Prepared for future safe WebGL scene orchestration"
+      "Controlled WebGL scene runtime",
+      "Parses scene hints without executing generated JavaScript",
+      "Reset and reload remount the 3D stage"
     ]
   },
   {
