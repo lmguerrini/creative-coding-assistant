@@ -36,6 +36,15 @@ from creative_coding_assistant.rag.retrieval.domain_intent import (
 from creative_coding_assistant.rag.sources import OfficialSourceType
 
 
+class PromptImageReferenceInput(BaseModel):
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    id: str = Field(min_length=1)
+    name: str = Field(min_length=1)
+    mime_type: str = Field(min_length=1)
+    size_bytes: int = Field(gt=0)
+
+
 class PromptUserInput(BaseModel):
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -50,6 +59,9 @@ class PromptUserInput(BaseModel):
     effective_domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
     domain_selection: DomainSelectionShape = DomainSelectionShape.NONE
     is_follow_up: bool = False
+    image_references: tuple[PromptImageReferenceInput, ...] = Field(
+        default_factory=tuple
+    )
 
     @field_validator(
         "domains",
@@ -290,6 +302,15 @@ def _build_user_input(assistant_request: AssistantRequest) -> PromptUserInput:
         detected_domains=detected_domains,
         effective_domains=effective_domains,
         is_follow_up=looks_like_follow_up_query(assistant_request.query),
+        image_references=tuple(
+            PromptImageReferenceInput(
+                id=attachment.id,
+                name=attachment.name,
+                mime_type=attachment.mime_type,
+                size_bytes=attachment.size_bytes,
+            )
+            for attachment in assistant_request.attachments
+        ),
     )
 
 

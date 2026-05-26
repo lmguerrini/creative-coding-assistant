@@ -41,6 +41,7 @@ _EXPORT_MAP = {
     "OrchestrationContextAssembler": _CTX,
     "ProjectMemoryContext": _MEM,
     "PromptConversationTurnInput": _PROMPT_INPUTS,
+    "PromptImageReferenceInput": _PROMPT_INPUTS,
     "PromptInputBuilder": _PROMPT_INPUTS,
     "PromptInputRequest": _PROMPT_INPUTS,
     "PromptInputResponse": _PROMPT_INPUTS,

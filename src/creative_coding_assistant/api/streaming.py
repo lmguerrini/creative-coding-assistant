@@ -6,10 +6,12 @@ import json
 from collections.abc import Callable, Iterable, Iterator
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from creative_coding_assistant.app import build_assistant_service
 from creative_coding_assistant.contracts import (
+    MAX_IMAGE_REFERENCE_COUNT,
+    AssistantImageReference,
     AssistantMode,
     AssistantRequest,
     CreativeCodingDomain,
@@ -26,7 +28,7 @@ StartResponse = Callable[
 DEFAULT_STREAM_PATH = "/api/assistant/stream"
 DEFAULT_CONVERSATION_ID = "local-nextjs-session"
 DEFAULT_PROJECT_ID = "local-nextjs-workspace"
-MAX_REQUEST_BYTES = 64 * 1024
+MAX_REQUEST_BYTES = 8 * 1024 * 1024
 
 
 class AssistantStreamRequest(BaseModel):
@@ -47,6 +49,19 @@ class AssistantStreamRequest(BaseModel):
     domain: CreativeCodingDomain | None = None
     domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
     mode: AssistantMode = AssistantMode.GENERATE
+    attachments: tuple[AssistantImageReference, ...] = Field(default_factory=tuple)
+
+    @field_validator("attachments")
+    @classmethod
+    def validate_attachment_count(
+        cls,
+        value: tuple[AssistantImageReference, ...],
+    ) -> tuple[AssistantImageReference, ...]:
+        if len(value) > MAX_IMAGE_REFERENCE_COUNT:
+            raise ValueError(
+                f"Attach up to {MAX_IMAGE_REFERENCE_COUNT} image references."
+            )
+        return value
 
     def to_assistant_request(self) -> AssistantRequest:
         """Convert the HTTP request into the stable backend service contract."""
@@ -58,6 +73,7 @@ class AssistantStreamRequest(BaseModel):
             domain=self.domain,
             domains=self.domains,
             mode=self.mode,
+            attachments=self.attachments,
         )
 
 

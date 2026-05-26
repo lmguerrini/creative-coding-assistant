@@ -367,9 +367,28 @@ def _last_final_event(events: tuple[StreamEvent, ...]) -> StreamEvent:
     raise RuntimeError("Assistant stream completed without a final event.")
 
 
-def _stream_request_received(builder: StreamEventBuilder) -> Iterator[StreamEvent]:
+def _stream_request_received(
+    *,
+    builder: StreamEventBuilder,
+    request: AssistantRequest,
+) -> Iterator[StreamEvent]:
     logger.info("assistant_request_received")
-    yield builder.status(code="request_received", message="Request accepted.")
+    yield builder.status(
+        code="request_received",
+        message="Request accepted.",
+        multimodal={
+            "image_reference_count": len(request.attachments),
+            "image_references": [
+                {
+                    "id": image.id,
+                    "name": image.name,
+                    "mime_type": image.mime_type,
+                    "size_bytes": image.size_bytes,
+                }
+                for image in request.attachments
+            ],
+        },
+    )
 
 
 def _stream_route_selected(

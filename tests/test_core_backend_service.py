@@ -1,6 +1,7 @@
 import unittest
 
 from creative_coding_assistant.contracts import (
+    AssistantImageReference,
     AssistantMode,
     AssistantRequest,
     CreativeCodingDomain,
@@ -118,6 +119,37 @@ class CoreBackendServiceTests(unittest.TestCase):
         self.assertEqual(events[1].payload["route"]["domains"], ["three_js"])
         self.assertEqual(events[1].payload["route"]["domain_selection"], "single")
         self.assertIn("generate route", events[2].payload["answer"])
+
+    def test_assistant_service_emits_image_reference_runtime_metadata(self) -> None:
+        service = AssistantService()
+        request = AssistantRequest(
+            query="Generate from this visual reference.",
+            attachments=(
+                AssistantImageReference(
+                    id="image-reference-1",
+                    name="palette.png",
+                    mimeType="image/png",
+                    sizeBytes=128,
+                    dataUrl="data:image/png;base64,cGFsZXR0ZQ==",
+                ),
+            ),
+        )
+
+        events = tuple(service.stream(request))
+
+        self.assertEqual(
+            events[0].payload["multimodal"]["image_reference_count"],
+            1,
+        )
+        self.assertEqual(
+            events[0].payload["multimodal"]["image_references"][0]["name"],
+            "palette.png",
+        )
+        self.assertNotIn(
+            "data_url",
+            events[0].payload["multimodal"]["image_references"][0],
+        )
+        self.assertEqual(events[0].payload["workflow"]["image_reference_count"], 1)
 
     def test_assistant_service_collects_streamed_response(self) -> None:
         service = AssistantService()

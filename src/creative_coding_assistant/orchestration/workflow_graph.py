@@ -190,7 +190,10 @@ def _intake_node(
     runtime_context = _runtime(runtime)
     try:
         _emit_streaming_step(
-            runtime_context.stream_request_received(runtime_context.event_builder),
+            runtime_context.stream_request_received(
+                builder=runtime_context.event_builder,
+                request=workflow_state.request,
+            ),
             workflow_state=workflow_state,
         )
         return {
@@ -909,4 +912,14 @@ def _serialize_workflow_runtime(
             review_result.outcome.value if review_result is not None else None
         ),
         "review_reasons": list(review_result.reasons) if review_result else [],
+        "image_reference_count": len(workflow_state.request.attachments),
+        "image_references": [
+            {
+                "id": image.id,
+                "name": image.name,
+                "mime_type": image.mime_type,
+                "size_bytes": image.size_bytes,
+            }
+            for image in workflow_state.request.attachments
+        ],
     }

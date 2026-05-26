@@ -2,6 +2,7 @@ import unittest
 from datetime import UTC, datetime
 
 from creative_coding_assistant.contracts import (
+    AssistantImageReference,
     AssistantMode,
     AssistantRequest,
     CreativeCodingDomain,
@@ -116,6 +117,54 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             "PerspectiveCamera controls field of view and aspect ratio.",
             response.sections[3].content,
         )
+
+    def test_jinja_prompt_renderer_lists_image_references_without_payloads(
+        self,
+    ) -> None:
+        renderer = JinjaPromptRenderer()
+        assistant_request = AssistantRequest(
+            query="Use this palette for a WebGPU field.",
+            attachments=(
+                AssistantImageReference(
+                    id="image-reference-1",
+                    name="palette.png",
+                    mimeType="image/png",
+                    sizeBytes=128,
+                    dataUrl="data:image/png;base64,cGFsZXR0ZQ==",
+                ),
+            ),
+        )
+        route_decision = RouteDecision(
+            route=RouteName.GENERATE,
+            mode=AssistantMode.GENERATE,
+            capabilities=(RouteCapability.TOOL_USE,),
+        )
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=assistant_request,
+                route_decision=route_decision,
+                assembled_context=None,
+            )
+        )
+
+        response = renderer.render(
+            build_rendered_prompt_request(
+                route_decision=route_decision,
+                prompt_input=prompt_input,
+            )
+        )
+
+        user_section = next(
+            section
+            for section in response.sections
+            if section.name is RenderedPromptSectionName.USER
+        )
+        self.assertIn("Image References:", user_section.content)
+        self.assertIn(
+            "- palette.png (image/png, 128 bytes, id: image-reference-1)",
+            user_section.content,
+        )
+        self.assertNotIn("data:image/png", user_section.content)
 
     def test_renderer_supports_user_only_prompt_inputs(self) -> None:
         renderer = JinjaPromptRenderer()

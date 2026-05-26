@@ -2,6 +2,7 @@ import unittest
 from datetime import UTC, datetime
 
 from creative_coding_assistant.contracts import (
+    AssistantImageReference,
     AssistantMode,
     AssistantRequest,
     CreativeCodingDomain,
@@ -19,6 +20,7 @@ from creative_coding_assistant.orchestration import (
     MemoryContextSource,
     OrchestrationContextAssembler,
     ProjectMemoryContext,
+    PromptImageReferenceInput,
     PromptInputRequest,
     PromptUserInput,
     RecentConversationTurn,
@@ -330,6 +332,44 @@ class PromptInputContractsTests(unittest.TestCase):
         self.assertEqual(response.user_input.query, "Start a shader study.")
         self.assertIsNone(response.memory_input)
         self.assertIsNone(response.retrieval_input)
+
+    def test_prompt_input_builder_preserves_image_references(self) -> None:
+        builder = StructuredPromptInputBuilder()
+        assistant_request = AssistantRequest(
+            query="Use this palette reference for the particle field.",
+            attachments=(
+                AssistantImageReference(
+                    id="image-reference-1",
+                    name="palette.png",
+                    mimeType="image/png",
+                    sizeBytes=128,
+                    dataUrl="data:image/png;base64,cGFsZXR0ZQ==",
+                ),
+            ),
+        )
+        request = build_prompt_input_request(
+            assistant_request=assistant_request,
+            route_decision=RouteDecision(
+                route=RouteName.GENERATE,
+                mode=AssistantMode.GENERATE,
+                capabilities=(RouteCapability.TOOL_USE,),
+            ),
+            assembled_context=None,
+        )
+
+        response = builder.build(request)
+
+        self.assertEqual(
+            response.user_input.image_references,
+            (
+                PromptImageReferenceInput(
+                    id="image-reference-1",
+                    name="palette.png",
+                    mime_type="image/png",
+                    size_bytes=128,
+                ),
+            ),
+        )
 
     def test_prompt_input_builder_preserves_multi_domain_selection(self) -> None:
         builder = StructuredPromptInputBuilder()

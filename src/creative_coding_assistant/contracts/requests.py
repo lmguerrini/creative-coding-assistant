@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -65,6 +66,44 @@ class AssistantMode(StrEnum):
     PREVIEW = "preview"
 
 
+SUPPORTED_IMAGE_REFERENCE_MIME_TYPES = frozenset(
+    {"image/png", "image/jpeg", "image/webp", "image/gif"}
+)
+MAX_IMAGE_REFERENCE_BYTES = 1024 * 1024
+MAX_IMAGE_REFERENCE_COUNT = 4
+
+
+class AssistantImageReference(BaseModel):
+    model_config = ConfigDict(
+        frozen=True,
+        populate_by_name=True,
+        str_strip_whitespace=True,
+    )
+
+    type: Literal["image"] = "image"
+    id: str = Field(min_length=1)
+    name: str = Field(min_length=1)
+    mime_type: str = Field(alias="mimeType", min_length=1)
+    size_bytes: int = Field(alias="sizeBytes", gt=0, le=MAX_IMAGE_REFERENCE_BYTES)
+    data_url: str | None = Field(default=None, alias="dataUrl")
+
+    @field_validator("mime_type")
+    @classmethod
+    def validate_mime_type(cls, value: str) -> str:
+        if value not in SUPPORTED_IMAGE_REFERENCE_MIME_TYPES:
+            raise ValueError("Unsupported assistant image reference MIME type.")
+        return value
+
+    @field_validator("data_url")
+    @classmethod
+    def validate_data_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        if not value.startswith("data:image/"):
+            raise ValueError("Assistant image reference data URL must be an image.")
+        return value
+
+
 class AssistantRequest(BaseModel):
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -74,6 +113,7 @@ class AssistantRequest(BaseModel):
     domain: CreativeCodingDomain | None = None
     domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
     mode: AssistantMode = AssistantMode.GENERATE
+    attachments: tuple[AssistantImageReference, ...] = Field(default_factory=tuple)
 
     @field_validator("query")
     @classmethod
@@ -133,6 +173,37 @@ class AssistantRequest(BaseModel):
             )
 
         return self
+
+    @field_validator("attachments", mode="before")
+    @classmethod
+    def normalize_attachments(
+        cls,
+        value: (
+            Sequence[AssistantImageReference | dict[str, object]]
+            | AssistantImageReference
+            | dict[str, object]
+            | None
+        ),
+    ) -> tuple[AssistantImageReference, ...]:
+        if value is None:
+            return ()
+        if isinstance(value, AssistantImageReference):
+            attachments = (value,)
+        elif isinstance(value, dict):
+            attachments = (AssistantImageReference.model_validate(value),)
+        else:
+            attachments = tuple(
+                item
+                if isinstance(item, AssistantImageReference)
+                else AssistantImageReference.model_validate(item)
+                for item in value
+            )
+
+        if len(attachments) > MAX_IMAGE_REFERENCE_COUNT:
+            raise ValueError(
+                f"Attach up to {MAX_IMAGE_REFERENCE_COUNT} image references."
+            )
+        return attachments
 
 
 class AssistantResponse(BaseModel):

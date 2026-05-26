@@ -418,8 +418,11 @@ def _runtime(
 
 
 def _stream_request_received(
+    *,
     builder: StreamEventBuilder,
+    **kwargs: object,
 ) -> Iterator[StreamEvent]:
+    del kwargs
     yield builder.status(code="request_received", message="Request accepted.")
 
 

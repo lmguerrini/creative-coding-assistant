@@ -2,6 +2,10 @@
 
 from creative_coding_assistant.contracts.events import StreamEvent, StreamEventType
 from creative_coding_assistant.contracts.requests import (
+    MAX_IMAGE_REFERENCE_BYTES,
+    MAX_IMAGE_REFERENCE_COUNT,
+    SUPPORTED_IMAGE_REFERENCE_MIME_TYPES,
+    AssistantImageReference,
     AssistantMode,
     AssistantRequest,
     AssistantResponse,
@@ -9,10 +13,14 @@ from creative_coding_assistant.contracts.requests import (
 )
 
 __all__ = [
+    "AssistantImageReference",
     "AssistantMode",
     "AssistantRequest",
     "AssistantResponse",
     "CreativeCodingDomain",
+    "MAX_IMAGE_REFERENCE_BYTES",
+    "MAX_IMAGE_REFERENCE_COUNT",
+    "SUPPORTED_IMAGE_REFERENCE_MIME_TYPES",
     "StreamEvent",
     "StreamEventType",
 ]

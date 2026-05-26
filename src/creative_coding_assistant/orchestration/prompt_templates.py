@@ -13,6 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.domains import get_domain_prompt_guidance
 from creative_coding_assistant.orchestration.prompt_inputs import (
+    PromptImageReferenceInput,
     PromptInputResponse,
     PromptUserInput,
 )
@@ -76,6 +77,13 @@ Keep explanation, notes, and setup guidance outside code fences.
 _USER_TEMPLATE = """
 User Request:
 {{ prompt_input.user_input.query }}
+{% if prompt_input.user_input.image_references -%}
+
+Image References:
+{% for image in prompt_input.user_input.image_references -%}
+- {{ image_reference_line(image) }}
+{% endfor %}
+{% endif %}
 """.strip()
 
 _MEMORY_TEMPLATE = """
@@ -194,6 +202,7 @@ class JinjaPromptRenderer:
             route_guidance_lines=_route_guidance_lines,
             domain_guidance_lines=_domain_guidance_lines,
             effective_domain_scope_label=_effective_domain_scope_label,
+            image_reference_line=_image_reference_line,
             show_ui_selected_domains=_show_ui_selected_domains,
         )
 
@@ -389,6 +398,13 @@ def _domain_guidance_lines(user_input: PromptUserInput) -> tuple[str, ...]:
         guidance.append(_domain_preference_line(domain))
 
     return tuple(guidance)
+
+
+def _image_reference_line(image: PromptImageReferenceInput) -> str:
+    return (
+        f"{image.name} ({image.mime_type}, {image.size_bytes} bytes, "
+        f"id: {image.id})"
+    )
 
 
 def _effective_domain_scope_label(user_input: PromptUserInput) -> str:

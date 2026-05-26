@@ -21,6 +21,16 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
                 "projectId": "workspace-a",
                 "domain": "webgpu_wgsl",
                 "mode": "generate",
+                "attachments": [
+                    {
+                        "type": "image",
+                        "id": "image-reference-1",
+                        "name": "palette.png",
+                        "mimeType": "image/png",
+                        "sizeBytes": 128,
+                        "dataUrl": "data:image/png;base64,cGFsZXR0ZQ==",
+                    }
+                ],
             }
         )
 
@@ -30,6 +40,28 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
         self.assertEqual(assistant_request.conversation_id, "browser-session")
         self.assertEqual(assistant_request.project_id, "workspace-a")
         self.assertEqual(assistant_request.domain.value, "webgpu_wgsl")
+        self.assertEqual(len(assistant_request.attachments), 1)
+        self.assertEqual(assistant_request.attachments[0].name, "palette.png")
+        self.assertEqual(assistant_request.attachments[0].mime_type, "image/png")
+
+    def test_stream_request_rejects_too_many_image_references(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Attach up to 4 image references"):
+            AssistantStreamRequest.model_validate(
+                {
+                    "query": "Generate a WebGPU field.",
+                    "attachments": [
+                        {
+                            "type": "image",
+                            "id": f"image-reference-{index}",
+                            "name": f"palette-{index}.png",
+                            "mimeType": "image/png",
+                            "sizeBytes": 128,
+                            "dataUrl": "data:image/png;base64,cGFsZXR0ZQ==",
+                        }
+                        for index in range(5)
+                    ],
+                }
+            )
 
     def test_stream_event_serialization_preserves_backend_shape(self) -> None:
         event = StreamEventBuilder().status(
