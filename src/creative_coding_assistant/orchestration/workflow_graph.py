@@ -599,12 +599,18 @@ def _finalization_node(
             answer = generation_result.answer
         else:
             answer = runtime_context.build_shell_answer(_route_decision(workflow_state))
+        telemetry = (
+            getattr(generation_result, "telemetry", None)
+            if generation_result is not None
+            else None
+        )
 
         final_state = finish_workflow(workflow_state, final_answer=answer)
         _emit(
             runtime_context.event_builder.final(
                 answer=answer,
                 route=state["route_payload"],
+                **({"telemetry": telemetry} if telemetry is not None else {}),
             ),
             workflow_state=final_state,
             step=WorkflowStep.FINALIZATION,

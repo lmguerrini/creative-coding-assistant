@@ -17,6 +17,8 @@ from creative_coding_assistant.core import Settings, load_settings
 from creative_coding_assistant.eval import LiveSessionRecorder
 from creative_coding_assistant.llm.factory import build_generation_provider
 from creative_coding_assistant.llm.generation import (
+    GeneratedOutput,
+    GenerationDelta,
     GenerationEventType,
     GenerationProvider,
 )
@@ -500,11 +502,13 @@ class _GenerationResult:
         events: tuple[StreamEvent, ...],
         error_code: str | None = None,
         error_message: str | None = None,
+        telemetry: dict[str, object] | None = None,
     ) -> None:
         self.answer = answer
         self.events = events
         self.error_code = error_code
         self.error_message = error_message
+        self.telemetry = telemetry
 
 
 def _stream_provider_generation(
@@ -519,20 +523,35 @@ def _stream_provider_generation(
     delta_text: list[str] = []
     streamed_events: list[StreamEvent] = []
     completed_answer: str | None = None
+    completed_telemetry: dict[str, object] | None = None
+    latest_delta_telemetry: dict[str, object] | None = None
     generation_error: tuple[str, str] | None = None
 
     for generation_event in generation_provider.stream(generation_input):
         if generation_event.event_type is GenerationEventType.DELTA:
             assert generation_event.delta is not None
             delta_text.append(generation_event.delta.content)
+            latest_delta_telemetry = _generation_delta_telemetry(
+                generation_event.delta
+            )
             streamed_events.append(
-                builder.token_delta(generation_event.delta.content)
+                builder.token_delta(
+                    generation_event.delta.content,
+                    **(
+                        {"telemetry": latest_delta_telemetry}
+                        if latest_delta_telemetry is not None
+                        else {}
+                    ),
+                )
             )
             continue
 
         if generation_event.event_type is GenerationEventType.COMPLETED:
             assert generation_event.response is not None
             completed_answer = generation_event.response.output.content
+            completed_telemetry = _generated_output_telemetry(
+                generation_event.response.output
+            )
             continue
 
         if generation_event.event_type is GenerationEventType.ERROR:
@@ -560,12 +579,14 @@ def _stream_provider_generation(
         return _GenerationResult(
             answer=completed_answer,
             events=tuple(streamed_events),
+            telemetry=completed_telemetry or latest_delta_telemetry,
         )
 
     if delta_text:
         return _GenerationResult(
             answer="".join(delta_text),
             events=tuple(streamed_events),
+            telemetry=latest_delta_telemetry,
         )
 
     if generation_error is not None:
@@ -578,6 +599,56 @@ def _stream_provider_generation(
         )
 
     return None
+
+
+def _generation_delta_telemetry(
+    delta: GenerationDelta,
+) -> dict[str, object] | None:
+    provider = _provider_telemetry(
+        provider=delta.provider,
+        model=delta.model,
+    )
+    if provider is None:
+        return None
+    return {"provider": provider}
+
+
+def _generated_output_telemetry(
+    output: GeneratedOutput,
+) -> dict[str, object] | None:
+    telemetry: dict[str, object] = {}
+    provider = _provider_telemetry(
+        provider=output.provider,
+        model=output.model,
+        response_id=output.response_id,
+    )
+    if provider is not None:
+        telemetry["provider"] = provider
+    if output.usage is not None:
+        telemetry["token_usage"] = output.usage.model_dump(
+            mode="json",
+            exclude_none=True,
+        )
+    telemetry["finish_reason"] = output.finish_reason.value
+    return telemetry or None
+
+
+def _provider_telemetry(
+    *,
+    provider: str | None,
+    model: str | None,
+    response_id: str | None = None,
+) -> dict[str, object] | None:
+    metadata = {
+        key: value
+        for key, value in {
+            "name": provider,
+            "model": model,
+            "response_id": response_id,
+        }.items()
+        if value
+    }
+    return metadata or None
 
 
 def _resolve_generation_provider(

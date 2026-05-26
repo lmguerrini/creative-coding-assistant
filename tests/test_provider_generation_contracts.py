@@ -17,6 +17,7 @@ from creative_coding_assistant.llm import (
     GenerationRequest,
     GenerationResponse,
     GenerationStreamEvent,
+    GenerationTokenUsage,
     RenderedPromptGenerationBuilder,
     build_generation_request,
 )
@@ -178,6 +179,37 @@ class ProviderGenerationContractsTests(unittest.TestCase):
         self.assertEqual(response.output.role, GenerationMessageRole.ASSISTANT)
         self.assertEqual(response.output.finish_reason, GenerationFinishReason.STOP)
         self.assertIn("restrained camera drift", response.output.content)
+
+    def test_generation_response_carries_provider_token_usage(self) -> None:
+        request = build_generation_request(
+            route_decision=_route_decision(),
+            rendered_prompt=_rendered_prompt(),
+            stream=False,
+        )
+        generation_input = RenderedPromptGenerationBuilder().build(request)
+
+        response = GenerationResponse(
+            request=generation_input,
+            output=GeneratedOutput(
+                content="Use a restrained camera drift and a calm palette.",
+                finish_reason=GenerationFinishReason.STOP,
+                provider="openai",
+                model="gpt-5-mini",
+                response_id="resp_123",
+                usage=GenerationTokenUsage(
+                    input_tokens=1200,
+                    output_tokens=300,
+                    total_tokens=1500,
+                    reasoning_tokens=12,
+                ),
+            ),
+        )
+
+        self.assertEqual(response.output.provider, "openai")
+        self.assertEqual(response.output.model, "gpt-5-mini")
+        self.assertEqual(response.output.response_id, "resp_123")
+        self.assertEqual(response.output.usage.total_tokens, 1500)
+        self.assertEqual(response.output.usage.reasoning_tokens, 12)
 
     def test_generation_stream_event_accepts_completed_response(self) -> None:
         request = build_generation_request(

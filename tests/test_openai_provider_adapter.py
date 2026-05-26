@@ -89,8 +89,18 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
             SimpleNamespace(
                 type="response.completed",
                 response=SimpleNamespace(
+                    id="resp_123",
+                    model="gpt-5-mini",
                     output_text="Use documented camera settings.",
                     status="completed",
+                    usage=SimpleNamespace(
+                        input_tokens=1200,
+                        output_tokens=300,
+                        total_tokens=1500,
+                        output_tokens_details=SimpleNamespace(
+                            reasoning_tokens=12,
+                        ),
+                    ),
                 ),
             ),
         )
@@ -111,11 +121,20 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
             ],
         )
         self.assertEqual(events[0].delta.content, "Use ")
+        self.assertEqual(events[0].delta.provider, "openai")
+        self.assertEqual(events[0].delta.model, "gpt-5-mini")
         self.assertEqual(events[1].delta.content, "documented ")
         self.assertEqual(
             events[2].response.output.content,
             "Use documented camera settings.",
         )
+        self.assertEqual(events[2].response.output.provider, "openai")
+        self.assertEqual(events[2].response.output.model, "gpt-5-mini")
+        self.assertEqual(events[2].response.output.response_id, "resp_123")
+        self.assertEqual(events[2].response.output.usage.input_tokens, 1200)
+        self.assertEqual(events[2].response.output.usage.output_tokens, 300)
+        self.assertEqual(events[2].response.output.usage.total_tokens, 1500)
+        self.assertEqual(events[2].response.output.usage.reasoning_tokens, 12)
         self.assertTrue(client.last_kwargs["stream"])
         self.assertEqual(client.last_kwargs["model"], "gpt-5-mini")
 
@@ -156,6 +175,20 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
         stream_events = (
             SimpleNamespace(type="response.output_text.delta", delta="Use "),
             SimpleNamespace(type="response.output_text.delta", delta="soft motion."),
+            SimpleNamespace(
+                type="response.completed",
+                response=SimpleNamespace(
+                    id="resp_service",
+                    model="gpt-5-mini",
+                    output_text="Use soft motion.",
+                    status="completed",
+                    usage=SimpleNamespace(
+                        input_tokens=90,
+                        output_tokens=15,
+                        total_tokens=105,
+                    ),
+                ),
+            ),
         )
         provider = OpenAIGenerationProvider(
             client=_FakeOpenAIClient(stream_events=stream_events)
@@ -194,6 +227,18 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
         self.assertEqual(events[10].payload["text"], "Use ")
         self.assertEqual(events[11].payload["text"], "soft motion.")
         self.assertEqual(events[12].payload["answer"], "Use soft motion.")
+        self.assertEqual(
+            events[10].payload["telemetry"]["provider"]["name"],
+            "openai",
+        )
+        self.assertEqual(
+            events[12].payload["telemetry"]["provider"]["model"],
+            "gpt-5-mini",
+        )
+        self.assertEqual(
+            events[12].payload["telemetry"]["token_usage"]["total_tokens"],
+            105,
+        )
 
     def test_service_emits_error_and_failure_answer_on_provider_error(self) -> None:
         stream_events = (

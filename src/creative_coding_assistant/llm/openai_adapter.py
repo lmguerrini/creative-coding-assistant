@@ -21,6 +21,7 @@ from creative_coding_assistant.llm.generation import (
     GenerationProvider,
     GenerationResponse,
     GenerationStreamEvent,
+    GenerationTokenUsage,
 )
 
 
@@ -92,7 +93,12 @@ class OpenAIGenerationProvider(GenerationProvider):
                     accumulated_text += delta_text
                     yield GenerationStreamEvent(
                         event_type=GenerationEventType.DELTA,
-                        delta=GenerationDelta(index=0, content=delta_text),
+                        delta=GenerationDelta(
+                            index=0,
+                            content=delta_text,
+                            provider="openai",
+                            model=self._model,
+                        ),
                     )
                 continue
 
@@ -121,6 +127,8 @@ class OpenAIGenerationProvider(GenerationProvider):
                     output=GeneratedOutput(
                         content=accumulated_text,
                         finish_reason=GenerationFinishReason.STOP,
+                        provider="openai",
+                        model=self._model,
                     ),
                 ),
             )
@@ -141,6 +149,10 @@ class OpenAIGenerationProvider(GenerationProvider):
                 output=GeneratedOutput(
                     content=text,
                     finish_reason=finish_reason,
+                    provider="openai",
+                    model=_extract_model(response) or self._model,
+                    response_id=_extract_response_id(response),
+                    usage=_extract_token_usage(response),
                 ),
             ),
         )
@@ -246,6 +258,77 @@ def _extract_finish_reason(response: Any) -> GenerationFinishReason:
     if reason in {"failed", "error"}:
         return GenerationFinishReason.ERROR
     return GenerationFinishReason.STOP
+
+
+def _extract_model(response: Any) -> str | None:
+    model = _read_field(response, "model")
+    if isinstance(model, str) and model.strip():
+        return model.strip()
+    return None
+
+
+def _extract_response_id(response: Any) -> str | None:
+    response_id = _read_field(response, "id")
+    if isinstance(response_id, str) and response_id.strip():
+        return response_id.strip()
+    return None
+
+
+def _extract_token_usage(response: Any) -> GenerationTokenUsage | None:
+    usage = _read_field(response, "usage")
+    if usage is None:
+        return None
+
+    input_tokens = _read_token_count(
+        usage,
+        "input_tokens",
+        "prompt_tokens",
+    )
+    output_tokens = _read_token_count(
+        usage,
+        "output_tokens",
+        "completion_tokens",
+    )
+    total_tokens = _read_token_count(usage, "total_tokens")
+    if total_tokens is None and input_tokens is not None and output_tokens is not None:
+        total_tokens = input_tokens + output_tokens
+
+    input_details = _read_field(usage, "input_tokens_details", {}) or {}
+    output_details = _read_field(usage, "output_tokens_details", {}) or {}
+    cached_input_tokens = _read_token_count(input_details, "cached_tokens")
+    reasoning_tokens = _read_token_count(output_details, "reasoning_tokens")
+
+    if all(
+        value is None
+        for value in (
+            input_tokens,
+            output_tokens,
+            total_tokens,
+            cached_input_tokens,
+            reasoning_tokens,
+        )
+    ):
+        return None
+
+    return GenerationTokenUsage(
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        total_tokens=total_tokens,
+        cached_input_tokens=cached_input_tokens,
+        reasoning_tokens=reasoning_tokens,
+    )
+
+
+def _read_token_count(value: Any, *field_names: str) -> int | None:
+    for field_name in field_names:
+        raw_value = _read_field(value, field_name)
+        if isinstance(raw_value, bool):
+            continue
+        if isinstance(raw_value, int) and raw_value >= 0:
+            return raw_value
+        if isinstance(raw_value, float) and raw_value >= 0 and raw_value.is_integer():
+            return int(raw_value)
+    return None
 
 
 def _map_provider_error(error_like: Any) -> GenerationError:

@@ -42,6 +42,18 @@ class GenerationEventType(StrEnum):
     ERROR = "error"
 
 
+class GenerationTokenUsage(BaseModel):
+    """Provider-neutral token accounting for one generation response."""
+
+    model_config = ConfigDict(frozen=True)
+
+    input_tokens: int | None = Field(default=None, ge=0)
+    output_tokens: int | None = Field(default=None, ge=0)
+    total_tokens: int | None = Field(default=None, ge=0)
+    cached_input_tokens: int | None = Field(default=None, ge=0)
+    reasoning_tokens: int | None = Field(default=None, ge=0)
+
+
 class GenerationMessage(BaseModel):
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -77,6 +89,8 @@ class GenerationDelta(BaseModel):
     index: int = Field(ge=0)
     role: GenerationMessageRole = GenerationMessageRole.ASSISTANT
     content: str = Field(min_length=1)
+    provider: str | None = Field(default=None, min_length=1)
+    model: str | None = Field(default=None, min_length=1)
 
 
 class GeneratedOutput(BaseModel):
@@ -85,6 +99,10 @@ class GeneratedOutput(BaseModel):
     role: GenerationMessageRole = GenerationMessageRole.ASSISTANT
     content: str = Field(min_length=1)
     finish_reason: GenerationFinishReason
+    provider: str | None = Field(default=None, min_length=1)
+    model: str | None = Field(default=None, min_length=1)
+    response_id: str | None = Field(default=None, min_length=1)
+    usage: GenerationTokenUsage | None = None
 
 
 class GenerationError(BaseModel):

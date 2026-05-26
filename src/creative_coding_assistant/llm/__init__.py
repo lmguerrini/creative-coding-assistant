@@ -19,6 +19,7 @@ _EXPORT_MAP = {
     "GenerationRequest": "creative_coding_assistant.llm.generation",
     "GenerationResponse": "creative_coding_assistant.llm.generation",
     "GenerationStreamEvent": "creative_coding_assistant.llm.generation",
+    "GenerationTokenUsage": "creative_coding_assistant.llm.generation",
     "OpenAIGenerationProvider": "creative_coding_assistant.llm.openai_adapter",
     "RenderedPromptGenerationBuilder": "creative_coding_assistant.llm.generation",
     "UnsupportedGenerationProviderError": "creative_coding_assistant.llm.factory",
