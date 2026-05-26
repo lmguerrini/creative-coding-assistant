@@ -5,6 +5,7 @@ export type WorkstationErrorCategory =
   | "renderer"
   | "artifact_export"
   | "persistence"
+  | "multimodal"
   | "workflow_runtime"
   | "hitl_approval";
 

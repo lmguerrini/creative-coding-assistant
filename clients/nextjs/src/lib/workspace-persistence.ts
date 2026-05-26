@@ -3,8 +3,13 @@ import type {
   AssistantMessage,
   AssistantWorkspaceSnapshot,
   InspectorTabName,
+  MultimodalSummary,
   PreviewSummary
 } from "./assistant-client";
+import {
+  buildMultimodalSummary,
+  normalizeImageAttachments
+} from "./multimodal-attachments";
 import {
   createWorkstationError,
   parseSubsystemErrorPayload,
@@ -53,7 +58,7 @@ export const defaultWorkspacePreferences: WorkspacePreferences = {
 };
 
 export type WorkspaceSessionRecord = {
-  schemaVersion: 1 | 2 | 3;
+  schemaVersion: 1 | 2 | 3 | 4;
   userId: string;
   sessionId: string;
   projectId: string;
@@ -68,6 +73,7 @@ export type WorkspaceSessionRecord = {
   messages: AssistantMessage[];
   workflow: AssistantWorkspaceSnapshot["workflow"];
   artifacts: ArtifactSummary[];
+  multimodal?: MultimodalSummary;
   preview: PreviewSummary;
   snapshot: AssistantWorkspaceSnapshot;
   createdAt?: string;
@@ -189,7 +195,7 @@ export function createWorkspaceSessionRecord({
   const updatedAt = new Date().toISOString();
 
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     userId: snapshot.session.userId,
     sessionId: snapshot.session.sessionId,
     projectId: snapshot.session.projectId,
@@ -204,6 +210,7 @@ export function createWorkspaceSessionRecord({
     messages: snapshot.messages,
     workflow: snapshot.workflow,
     artifacts: snapshot.artifacts,
+    multimodal: snapshot.multimodal,
     preview: snapshot.preview,
     snapshot: {
       ...snapshot,
@@ -224,6 +231,10 @@ export function snapshotFromWorkspaceSessionRecord(
   const artifacts = record.artifacts.length
     ? record.artifacts
     : restoredSnapshot.artifacts;
+  const multimodal = normalizeWorkspaceMultimodal(
+    fallback.multimodal,
+    record.multimodal ?? restoredSnapshot.multimodal
+  );
   const preview = {
     ...restoredSnapshot.preview,
     ...record.preview,
@@ -254,6 +265,7 @@ export function snapshotFromWorkspaceSessionRecord(
     messages: record.messages.length ? record.messages : restoredSnapshot.messages,
     workflow: record.workflow ?? restoredSnapshot.workflow,
     artifacts,
+    multimodal,
     preview
   };
 }
@@ -324,7 +336,8 @@ export function isWorkspaceSessionRecord(
   return (
     (value.schemaVersion === 1 ||
       value.schemaVersion === 2 ||
-      value.schemaVersion === 3) &&
+      value.schemaVersion === 3 ||
+      value.schemaVersion === 4) &&
     typeof value.userId === "string" &&
     typeof value.sessionId === "string" &&
     typeof value.projectId === "string" &&
@@ -340,9 +353,35 @@ export function isWorkspaceSessionRecord(
     Array.isArray(value.messages) &&
     isRecord(value.workflow) &&
     Array.isArray(value.artifacts) &&
+    (value.multimodal === undefined || isRecord(value.multimodal)) &&
     isRecord(value.preview) &&
     isRecord(value.snapshot)
   );
+}
+
+function normalizeWorkspaceMultimodal(
+  fallback: MultimodalSummary,
+  value: unknown
+): MultimodalSummary {
+  if (!isRecord(value)) {
+    return fallback;
+  }
+
+  return buildMultimodalSummary({
+    baseMultimodal: {
+      ...fallback,
+      state:
+        value.state === "ready" || value.state === "error" || value.state === "empty"
+          ? value.state
+          : fallback.state,
+      status: typeof value.status === "string" ? value.status : fallback.status,
+      detail: typeof value.detail === "string" ? value.detail : fallback.detail,
+      imageAttachments: [],
+      error: null
+    },
+    imageAttachments: normalizeImageAttachments(value.imageAttachments),
+    uploadError: null
+  });
 }
 
 async function loadRemoteSession({

@@ -1,4 +1,5 @@
 import type { WorkflowNodeId } from "./assistant-client";
+import type { AssistantRequestImageAttachment } from "./multimodal-attachments";
 import {
   createWorkstationError,
   parseSubsystemErrorPayload,
@@ -29,6 +30,13 @@ export type AssistantStreamEvent = {
 
 export type AssistantStreamWorkflowPhase = "running" | "completed" | "failed";
 
+export type AssistantStreamImageReferenceMetadata = {
+  id: string;
+  name: string;
+  mime_type: string;
+  size_bytes: number;
+};
+
 export type AssistantStreamWorkflowMetadata = {
   step: WorkflowNodeId | null;
   phase: AssistantStreamWorkflowPhase;
@@ -39,6 +47,8 @@ export type AssistantStreamWorkflowMetadata = {
   refinement_count: number;
   review_outcome: string | null;
   review_reasons: string[];
+  image_reference_count: number;
+  image_references: AssistantStreamImageReferenceMetadata[];
 };
 
 export type AssistantPreviewArtifactStatus =
@@ -66,6 +76,7 @@ export type AssistantStreamRequest = {
   domain?: string;
   domains?: string[];
   mode?: string;
+  attachments?: AssistantRequestImageAttachment[];
 };
 
 export type AssistantStreamOptions = {
@@ -291,6 +302,9 @@ export function readWorkflowMetadata(
   const completedSteps = parseWorkflowNodeIdList(rawWorkflow.completed_steps);
   const skippedSteps = parseWorkflowNodeIdList(rawWorkflow.skipped_steps);
   const reviewReasons = parseStringList(rawWorkflow.review_reasons);
+  const imageReferences = parseImageReferenceMetadataList(
+    rawWorkflow.image_references
+  );
   const reviewOutcome =
     typeof rawWorkflow.review_outcome === "string"
       ? rawWorkflow.review_outcome
@@ -299,6 +313,10 @@ export function readWorkflowMetadata(
     typeof rawWorkflow.refinement_count === "number"
       ? rawWorkflow.refinement_count
       : 0;
+  const imageReferenceCount =
+    typeof rawWorkflow.image_reference_count === "number"
+      ? rawWorkflow.image_reference_count
+      : imageReferences.length;
 
   if (
     (phase !== "running" && phase !== "completed" && phase !== "failed") ||
@@ -316,7 +334,9 @@ export function readWorkflowMetadata(
     skipped_steps: skippedSteps,
     refinement_count: refinementCount,
     review_outcome: reviewOutcome,
-    review_reasons: reviewReasons
+    review_reasons: reviewReasons,
+    image_reference_count: imageReferenceCount,
+    image_references: imageReferences
   };
 }
 
@@ -626,6 +646,35 @@ function parseStringList(value: unknown): string[] {
   }
 
   return value.filter((item): item is string => typeof item === "string");
+}
+
+function parseImageReferenceMetadataList(
+  value: unknown
+): AssistantStreamImageReferenceMetadata[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (
+      !isRecord(item) ||
+      typeof item.id !== "string" ||
+      typeof item.name !== "string" ||
+      typeof item.mime_type !== "string" ||
+      typeof item.size_bytes !== "number"
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        id: item.id,
+        name: item.name,
+        mime_type: item.mime_type,
+        size_bytes: item.size_bytes
+      }
+    ];
+  });
 }
 
 const workflowNodeIds = new Set<WorkflowNodeId>([

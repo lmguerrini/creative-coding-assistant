@@ -41,6 +41,24 @@ export type AssistantMessage = {
   content: string;
 };
 
+export type ImageAttachmentSummary = {
+  id: string;
+  kind: "image";
+  name: string;
+  mimeType: string;
+  sizeBytes: number;
+  dataUrl: string;
+  createdAt: string;
+};
+
+export type MultimodalSummary = {
+  state: "empty" | "ready" | "error";
+  status: string;
+  detail: string;
+  imageAttachments: ImageAttachmentSummary[];
+  error?: WorkstationError | null;
+};
+
 export type ArtifactAction =
   | "Open"
   | "Preview"
@@ -175,6 +193,7 @@ export type AssistantWorkspaceSnapshot = {
     steps: WorkflowStepState[];
   };
   artifacts: ArtifactSummary[];
+  multimodal: MultimodalSummary;
   preview: PreviewSummary;
   code: CodeSummary;
   retrieval: RetrievalSummary;
@@ -363,6 +382,14 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
         actions: ["Open", "Export"]
       }
     ],
+    multimodal: {
+      state: "empty",
+      status: "No image references",
+      detail:
+        "Attach image references to ground the next creative coding request visually.",
+      imageAttachments: [],
+      error: null
+    },
     preview: {
       available: true,
       active: false,

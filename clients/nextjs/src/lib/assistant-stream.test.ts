@@ -74,6 +74,16 @@ describe("assistant stream client", () => {
     for await (const event of streamAssistantEvents(
       {
         query: "Generate particles.",
+        attachments: [
+          {
+            type: "image",
+            id: "image-reference-1",
+            name: "palette.png",
+            mimeType: "image/png",
+            sizeBytes: 128,
+            dataUrl: "data:image/png;base64,cGFsZXR0ZQ=="
+          }
+        ],
         conversationId: "browser-session",
         domain: "webgpu_wgsl",
         mode: "generate"
@@ -100,7 +110,15 @@ describe("assistant stream client", () => {
       conversationId: "browser-session",
       domain: "webgpu_wgsl",
       mode: "generate",
-      query: "Generate particles."
+      query: "Generate particles.",
+      attachments: [
+        expect.objectContaining({
+          type: "image",
+          name: "palette.png",
+          mimeType: "image/png",
+          dataUrl: "data:image/png;base64,cGFsZXR0ZQ=="
+        })
+      ]
     });
     expect(events).toHaveLength(1);
   });
@@ -185,7 +203,16 @@ describe("assistant stream client", () => {
           skipped_steps: ["memory"],
           refinement_count: 0,
           review_outcome: null,
-          review_reasons: []
+          review_reasons: [],
+          image_reference_count: 1,
+          image_references: [
+            {
+              id: "image-reference-1",
+              name: "palette.png",
+              mime_type: "image/png",
+              size_bytes: 128
+            }
+          ]
         }
       }
     };
@@ -200,7 +227,16 @@ describe("assistant stream client", () => {
       skipped_steps: ["memory"],
       refinement_count: 0,
       review_outcome: null,
-      review_reasons: []
+      review_reasons: [],
+      image_reference_count: 1,
+      image_references: [
+        {
+          id: "image-reference-1",
+          name: "palette.png",
+          mime_type: "image/png",
+          size_bytes: 128
+        }
+      ]
     });
     expect(workflowNodeFromAssistantStreamEvent(event)).toBe("generation");
   });

@@ -25,7 +25,7 @@ describe("workspace persistence client", () => {
     });
 
     expect(record).toMatchObject({
-      schemaVersion: 3,
+      schemaVersion: 4,
       userId: "local-user",
       sessionId: "local-nextjs-session",
       projectId: "local-nextjs-workspace",
@@ -34,7 +34,11 @@ describe("workspace persistence client", () => {
       previewOpen: true,
       previewArtifactId: "preview-manifest",
       layout: defaultWorkspaceLayoutState,
-      preferences: defaultWorkspacePreferences
+      preferences: defaultWorkspacePreferences,
+      multimodal: {
+        state: "empty",
+        imageAttachments: []
+      }
     });
     expect(record.messages).toEqual(snapshot.messages);
     expect(record.artifacts).toHaveLength(3);

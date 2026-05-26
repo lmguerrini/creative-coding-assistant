@@ -61,6 +61,11 @@ describe("assistant frontend client", () => {
       "export"
     ]);
     expect(snapshot.artifacts[0].actions).toContain("Preview");
+    expect(snapshot.multimodal).toMatchObject({
+      state: "empty",
+      status: "No image references",
+      imageAttachments: []
+    });
     expect(snapshot.preview.targetId).toBe("browser_sandbox");
     expect(snapshot.preview.target).toContain("Browser sandbox");
     expect(snapshot.retrieval.state).toBe("available");
