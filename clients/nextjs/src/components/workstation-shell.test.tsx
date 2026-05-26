@@ -192,6 +192,35 @@ function installAnimationFrameMock() {
   });
 }
 
+function installAnimationFrameStepper() {
+  const callbacks: FrameRequestCallback[] = [];
+
+  Object.defineProperty(window, "requestAnimationFrame", {
+    configurable: true,
+    value: vi.fn((callback: FrameRequestCallback) => {
+      callbacks.push(callback);
+      return callbacks.length;
+    })
+  });
+  Object.defineProperty(window, "cancelAnimationFrame", {
+    configurable: true,
+    value: vi.fn()
+  });
+
+  return {
+    flush(frameTimes: number[]) {
+      for (const frameTime of frameTimes) {
+        const callback = callbacks.shift();
+        if (!callback) {
+          break;
+        }
+
+        callback(frameTime);
+      }
+    }
+  };
+}
+
 function installCanvasContextMock(
   context: unknown,
   contextIds: string | string[] = "2d"
@@ -204,6 +233,24 @@ function installCanvasContextMock(
     ((contextId: string) =>
       supportedContextIds.has(contextId) ? context : null) as typeof HTMLCanvasElement.prototype.getContext
   );
+}
+
+function createMockCanvas2DContext(): CanvasRenderingContext2D {
+  return {
+    arc: vi.fn(),
+    beginPath: vi.fn(),
+    clearRect: vi.fn(),
+    fill: vi.fn(),
+    fillRect: vi.fn(),
+    lineTo: vi.fn(),
+    moveTo: vi.fn(),
+    setTransform: vi.fn(),
+    stroke: vi.fn(),
+    globalAlpha: 1,
+    fillStyle: "#000",
+    lineWidth: 1,
+    strokeStyle: "#fff"
+  } as unknown as CanvasRenderingContext2D;
 }
 
 function createMockWebGlContext(): WebGLRenderingContext {
@@ -1514,6 +1561,54 @@ describe("WorkstationShell", () => {
       within(surface).getByLabelText("p5.js live runtime canvas")
     ).toBeVisible();
     expect(await within(surface).findByText("p5 runtime running")).toBeVisible();
+  });
+
+  it("shows a compact diagnostics overlay for live preview runtimes", async () => {
+    const frameStepper = installAnimationFrameStepper();
+    installCanvasContextMock(createMockCanvas2DContext());
+    renderShell(snapshotWithP5Preview());
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+
+    const surface = within(preview).getByRole("group", {
+      name: "Preview renderer surface"
+    });
+
+    await act(async () => {
+      frameStepper.flush([
+        0,
+        16,
+        32,
+        48,
+        64,
+        80,
+        96,
+        112,
+        128,
+        144,
+        160,
+        176,
+        192,
+        208,
+        224,
+        240
+      ]);
+      await Promise.resolve();
+    });
+
+    const overlay = within(surface).getByLabelText("Renderer diagnostics overlay");
+
+    expect(within(overlay).getByText("FPS")).toBeVisible();
+    expect(within(overlay).getByText("Frame")).toBeVisible();
+    expect(within(overlay).getByText("Health")).toBeVisible();
+    expect(within(overlay).getByText("State")).toBeVisible();
+    expect(within(overlay).getByText("Nominal")).toBeVisible();
+    expect(within(surface).getByText("63 fps")).toBeVisible();
+    expect(within(surface).getByText("16.0 ms")).toBeVisible();
   });
 
   it("mounts supported Three.js artifacts into a controlled 3D runtime", async () => {

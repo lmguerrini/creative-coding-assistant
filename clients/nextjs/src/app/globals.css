@@ -1792,13 +1792,41 @@ a {
   top: 10px;
   left: 10px;
   display: grid;
-  max-width: min(72%, 320px);
-  gap: 4px;
+  max-width: min(78%, 360px);
+  gap: 6px;
   padding: 8px 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   background: rgba(5, 8, 11, 0.68);
   backdrop-filter: blur(12px);
+}
+
+.previewRuntimeOverlayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.previewRuntimeOverlayHealth {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.previewRuntimeOverlayHealth[data-tone="good"] {
+  color: var(--teal);
+}
+
+.previewRuntimeOverlayHealth[data-tone="warning"] {
+  color: var(--amber);
+}
+
+.previewRuntimeOverlayHealth[data-tone="danger"] {
+  color: var(--coral);
 }
 
 .previewRuntimeOverlay small,
@@ -1818,6 +1846,60 @@ a {
   line-height: 1.35;
 }
 
+.previewRuntimeMetrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.previewRuntimeMetric {
+  display: grid;
+  gap: 3px;
+  padding: 6px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.previewRuntimeMetric span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.previewRuntimeMetric strong {
+  color: var(--muted-strong);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.previewRuntimeMetric[data-tone="good"] strong {
+  color: var(--teal);
+}
+
+.previewRuntimeMetric[data-tone="warning"] strong {
+  color: var(--amber);
+}
+
+.previewRuntimeMetric[data-tone="danger"] strong {
+  color: var(--coral);
+}
+
+.previewRuntimeDiagnostics {
+  display: grid;
+  gap: 4px;
+}
+
+.previewRuntimeDiagnostics span {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
 .previewRuntimeStage[data-runtime-state="error"] .previewRuntimeOverlay small {
   color: var(--coral);
 }
@@ -1834,6 +1916,20 @@ a {
   padding: 8px 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.035);
+}
+
+.previewRuntimeStage[data-runtime-health="nominal"] .previewRuntimeOverlay {
+  border-color: rgba(76, 215, 200, 0.22);
+}
+
+.previewRuntimeStage[data-runtime-health="stressed"] .previewRuntimeOverlay,
+.previewRuntimeStage[data-runtime-health="warming"] .previewRuntimeOverlay {
+  border-color: rgba(243, 184, 82, 0.2);
+}
+
+.previewRuntimeStage[data-runtime-health="degraded"] .previewRuntimeOverlay,
+.previewRuntimeStage[data-runtime-health="failed"] .previewRuntimeOverlay {
+  border-color: rgba(255, 122, 102, 0.24);
 }
 
 .previewSurface[data-runtime-state="generating"] .previewSurfaceStage {
