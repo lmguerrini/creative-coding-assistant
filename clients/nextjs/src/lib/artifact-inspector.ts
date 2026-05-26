@@ -75,13 +75,13 @@ export function buildArtifactDocument(
   artifact: ArtifactSummary
 ): ArtifactDocument {
   if (artifact.type === "code") {
-    const content = snapshot.code.excerpt.join("\n");
+    const content = artifact.content ?? snapshot.code.excerpt.join("\n");
 
     return {
       artifactId: artifact.id,
       content,
       fileName: artifact.title,
-      languageLabel: snapshot.code.language,
+      languageLabel: artifact.content ? artifact.language : snapshot.code.language,
       lineCount: content.split("\n").length,
       mimeType: resolveMimeType(artifact.title),
       status: artifact.status,
@@ -147,23 +147,25 @@ export function buildArtifactDocument(
     };
   }
 
-  const content = [
-    `# ${artifact.title}`,
-    "",
-    "## Workspace",
-    `- Session: ${snapshot.workspace.name}`,
-    `- Focus: ${snapshot.workspace.focus}`,
-    `- Selected artifact: ${artifact.title}`,
-    "",
-    "## Constraints",
-    ...snapshot.retrieval.sources.map((source) => {
-      const leadChunk = source.chunks[0];
-      return `- ${source.title}: ${leadChunk?.snippet ?? source.whyUsed}`;
-    }),
-    "",
-    "## Notes",
-    artifact.summary
-  ].join("\n");
+  const content =
+    artifact.content ??
+    [
+      `# ${artifact.title}`,
+      "",
+      "## Workspace",
+      `- Session: ${snapshot.workspace.name}`,
+      `- Focus: ${snapshot.workspace.focus}`,
+      `- Selected artifact: ${artifact.title}`,
+      "",
+      "## Constraints",
+      ...snapshot.retrieval.sources.map((source) => {
+        const leadChunk = source.chunks[0];
+        return `- ${source.title}: ${leadChunk?.snippet ?? source.whyUsed}`;
+      }),
+      "",
+      "## Notes",
+      artifact.summary
+    ].join("\n");
 
   return {
     artifactId: artifact.id,

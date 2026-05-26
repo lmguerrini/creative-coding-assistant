@@ -73,6 +73,7 @@ export type ArtifactSummary = {
   language: string;
   status: string;
   summary: string;
+  content?: string;
   actions: ArtifactAction[];
 };
 

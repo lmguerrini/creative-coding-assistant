@@ -298,7 +298,7 @@ export function matchCreativePreviewRenderer(
     return null;
   }
 
-  const haystack = [artifact.title, artifact.language, artifact.summary]
+  const haystack = [artifact.title, artifact.language, artifact.summary, artifact.content]
     .join(" ")
     .trim()
     .toLowerCase();
