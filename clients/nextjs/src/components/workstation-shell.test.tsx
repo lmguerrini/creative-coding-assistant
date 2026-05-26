@@ -342,6 +342,7 @@ function runtimeWorkflowEvent({
   skippedSteps = [],
   status = "running",
   step,
+  telemetry,
   text
 }: {
   answer?: string;
@@ -358,6 +359,7 @@ function runtimeWorkflowEvent({
   skippedSteps?: string[];
   status?: string;
   step: string | null;
+  telemetry?: Record<string, unknown>;
   text?: string;
 }): AssistantStreamEvent {
   return {
@@ -367,6 +369,7 @@ function runtimeWorkflowEvent({
       ...(answer ? { answer } : {}),
       ...(code ? { code } : {}),
       ...(message ? { message } : {}),
+      ...(telemetry ? { telemetry } : {}),
       ...(text ? { text } : {}),
       emitted_at: at,
       workflow: {
@@ -569,6 +572,7 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("group", { name: "Workflow summary" })).toBeVisible();
     expect(screen.getByRole("group", { name: "Artifacts summary" })).toBeVisible();
     expect(screen.getByRole("group", { name: "Preview summary" })).toBeVisible();
+    expect(screen.getByRole("group", { name: "Telemetry summary" })).toBeVisible();
     expect(
       screen.getByRole("group", { name: "Image references summary" })
     ).toBeVisible();
@@ -2036,6 +2040,129 @@ describe("WorkstationShell", () => {
     expect(
       within(workflowGraph).getByText("Finalization").closest("article")
     ).toHaveAttribute("data-state", "complete");
+  });
+
+  it("renders provider telemetry in the overview and workflow inspector", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        runtimeWorkflowEvent({
+          at: "2026-05-24T10:00:00Z",
+          code: "generation_input_prepared",
+          completedSteps: ["intake", "routing"],
+          currentStep: "generation",
+          eventType: "generation_input",
+          message: "Provider generation input prepared.",
+          sequence: 0,
+          skippedSteps: [
+            "memory",
+            "retrieval",
+            "context_assembly",
+            "prompt_input",
+            "prompt_rendering"
+          ],
+          step: "generation"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-24T10:00:01Z",
+          currentStep: "generation",
+          eventType: "token_delta",
+          sequence: 1,
+          step: "generation",
+          telemetry: {
+            provider: {
+              name: "openai",
+              model: "gpt-5-mini"
+            }
+          },
+          text: "Telemetry "
+        }),
+        runtimeWorkflowEvent({
+          answer: "Telemetry answer.",
+          at: "2026-05-24T10:00:02Z",
+          completedSteps: [
+            "intake",
+            "routing",
+            "generation",
+            "review",
+            "finalization"
+          ],
+          currentStep: null,
+          eventType: "final",
+          phase: "completed",
+          reviewOutcome: "pass",
+          sequence: 2,
+          skippedSteps: [
+            "memory",
+            "retrieval",
+            "context_assembly",
+            "prompt_input",
+            "prompt_rendering"
+          ],
+          status: "completed",
+          step: "finalization",
+          telemetry: {
+            provider: {
+              name: "openai",
+              model: "gpt-5-mini",
+              response_id: "resp_123"
+            },
+            token_usage: {
+              input_tokens: 1200,
+              output_tokens: 300,
+              total_tokens: 1500,
+              reasoning_tokens: 12
+            },
+            pricing: {
+              input_usd_per_million_tokens: 0.25,
+              output_usd_per_million_tokens: 2
+            }
+          }
+        })
+      ])
+    );
+
+    renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Generate with telemetry." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(await screen.findByText("Telemetry answer.")).toBeVisible();
+
+    const overviewTelemetry = screen.getByRole("group", {
+      name: "Telemetry summary"
+    });
+    expect(within(overviewTelemetry).getByText("$0.0009")).toBeVisible();
+    expect(within(overviewTelemetry).getByText(/1,500 tokens/)).toBeVisible();
+    expect(
+      within(overviewTelemetry).getByText("openai / gpt-5-mini")
+    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
+
+    const workflowPanel = screen.getByRole("tabpanel", {
+      name: "Workflow inspector"
+    });
+    const tokenUsage = within(workflowPanel).getByRole("group", {
+      name: "Workflow token usage"
+    });
+    const costEstimate = within(workflowPanel).getByRole("group", {
+      name: "Workflow cost estimate"
+    });
+    const lifecycle = within(workflowPanel).getByRole("group", {
+      name: "Generation telemetry lifecycle"
+    });
+
+    expect(within(tokenUsage).getByText("1,500")).toBeVisible();
+    expect(within(tokenUsage).getByText(/1,200 input/)).toBeVisible();
+    expect(within(costEstimate).getByText("$0.0009")).toBeVisible();
+    expect(
+      within(costEstimate).getByText("Estimated from pricing metadata")
+    ).toBeVisible();
+    expect(within(lifecycle).getByText("openai / gpt-5-mini")).toBeVisible();
+    expect(within(lifecycle).getByText("Generation input")).toBeVisible();
+    expect(within(lifecycle).getAllByText("First token").length).toBeGreaterThan(0);
   });
 
   it("resizes workspace regions and persists the layout preferences", async () => {

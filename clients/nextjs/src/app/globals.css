@@ -387,6 +387,15 @@ a {
   white-space: nowrap;
 }
 
+.sessionStatus small {
+  max-width: 170px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .topbarActions {
   position: relative;
   display: flex;
@@ -2536,6 +2545,24 @@ a {
   color: var(--coral);
 }
 
+.overviewTelemetryTile[data-state="complete"] {
+  border-color: rgba(121, 211, 139, 0.2);
+  background:
+    linear-gradient(135deg, rgba(121, 211, 139, 0.06), transparent 72%),
+    var(--panel-soft);
+}
+
+.overviewTelemetryTile[data-state="streaming"] {
+  border-color: rgba(76, 215, 200, 0.24);
+  background:
+    linear-gradient(135deg, rgba(76, 215, 200, 0.07), transparent 72%),
+    var(--panel-soft);
+}
+
+.overviewTelemetryTile[data-state="error"] {
+  border-color: rgba(255, 122, 102, 0.24);
+}
+
 .codePanel {
   display: grid;
   grid-template-rows: auto auto auto minmax(0, 1fr);
@@ -2747,6 +2774,140 @@ a {
   color: var(--muted-strong);
   font-size: 11px;
   line-height: 1.45;
+}
+
+.telemetryLifecycleCard {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(76, 215, 200, 0.18);
+  border-radius: 15px;
+  background:
+    linear-gradient(135deg, rgba(76, 215, 200, 0.055), transparent 76%),
+    var(--panel-soft);
+}
+
+.telemetryLifecycleCard header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.telemetryLifecycleCard header span:first-child,
+.telemetryMetricRow span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.telemetryLifecycleCard header strong,
+.telemetryMetricRow strong {
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.telemetryLifecycleCard header p {
+  margin: 4px 0 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.telemetryStateBadge {
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.telemetryStateBadge[data-state="streaming"] {
+  border-color: rgba(76, 215, 200, 0.24);
+  color: var(--teal);
+}
+
+.telemetryStateBadge[data-state="complete"] {
+  border-color: rgba(121, 211, 139, 0.24);
+  color: var(--green);
+}
+
+.telemetryStateBadge[data-state="error"] {
+  border-color: rgba(255, 122, 102, 0.24);
+  color: var(--coral);
+}
+
+.telemetryMetricRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.telemetryMetricRow div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.telemetryMetricRow strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.telemetryLifecycleSteps {
+  display: grid;
+  gap: 8px;
+}
+
+.telemetryLifecycleStep {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+}
+
+.telemetryLifecycleStep > span {
+  width: 9px;
+  height: 9px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.telemetryLifecycleStep[data-state="complete"] > span {
+  background: var(--green);
+}
+
+.telemetryLifecycleStep[data-state="active"] > span {
+  background: var(--teal);
+  box-shadow: 0 0 0 4px rgba(76, 215, 200, 0.12);
+  animation: pulseNode 1.8s ease-in-out infinite;
+}
+
+.telemetryLifecycleStep[data-state="failed"] > span {
+  background: var(--coral);
+}
+
+.telemetryLifecycleStep strong {
+  color: var(--muted-strong);
+  font-size: 12px;
+}
+
+.telemetryLifecycleStep small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
 }
 
 .workflowProgress {

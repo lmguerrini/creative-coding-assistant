@@ -100,6 +100,11 @@ import {
   buildPreviewRuntimeSummary,
   isArtifactPreviewable
 } from "@/lib/preview-runtime";
+import {
+  buildProviderTelemetryModel,
+  type ProviderTelemetryLifecycleStep,
+  type ProviderTelemetryModel
+} from "@/lib/provider-telemetry";
 import { buildPreviewRuntimeSource } from "@/lib/preview-runtime-adapters";
 import {
   buildMultimodalSummary,
@@ -696,6 +701,10 @@ export function WorkstationShell({
   const workflowRuntime = useMemo(
     () => buildWorkflowRuntimeModel(interactiveSnapshot.workflow, workflowTraceEvents),
     [interactiveSnapshot.workflow, workflowTraceEvents]
+  );
+  const providerTelemetry = useMemo(
+    () => buildProviderTelemetryModel(workflowTraceEvents),
+    [workflowTraceEvents]
   );
   const retrievalRuntime = useMemo(
     () => buildRetrievalRuntimeModel(interactiveSnapshot.retrieval, workflowTraceEvents),
@@ -1851,6 +1860,7 @@ export function WorkstationShell({
         >
           <span>{sessionStatusLabel}</span>
           <strong>{sessionStatusDetail}</strong>
+          <small>{formatSessionTelemetryLabel(providerTelemetry)}</small>
         </div>
 
         <div
@@ -2288,6 +2298,7 @@ export function WorkstationShell({
                     onArtifactCopy={handleArtifactCopy}
                     onArtifactAction={handleArtifactAction}
                     onArtifactTransfer={handleArtifactTransfer}
+                    providerTelemetry={providerTelemetry}
                     retrievalRuntime={retrievalRuntime}
                     showDebugPanels={workspacePreferences.showDebugPanels}
                     snapshot={interactiveSnapshot}
@@ -2627,6 +2638,7 @@ type InspectorPanelProps = {
   onArtifactCopy: (artifact: ArtifactSummary) => Promise<void>;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
   onArtifactTransfer: (artifact: ArtifactSummary) => void;
+  providerTelemetry: ProviderTelemetryModel;
   retrievalRuntime: RetrievalRuntimeModel;
   showDebugPanels: boolean;
   snapshot: AssistantWorkspaceSnapshot;
@@ -2646,6 +2658,7 @@ function InspectorPanel({
   onArtifactCopy,
   onArtifactAction,
   onArtifactTransfer,
+  providerTelemetry,
   retrievalRuntime,
   showDebugPanels,
   snapshot,
@@ -2671,6 +2684,7 @@ function InspectorPanel({
     return (
       <WorkflowInspector
         runtime={workflowRuntime}
+        telemetry={providerTelemetry}
         showDebugPanels={showDebugPanels}
         issues={workflowIssues}
       />
@@ -2701,6 +2715,7 @@ function InspectorPanel({
       activeArtifact={activeArtifact}
       retrieval={retrievalRuntime}
       runtime={workflowRuntime}
+      telemetry={providerTelemetry}
       showDebugPanels={showDebugPanels}
       snapshot={snapshot}
     />
@@ -2711,12 +2726,14 @@ function OverviewInspector({
   activeArtifact,
   retrieval,
   runtime,
+  telemetry,
   showDebugPanels,
   snapshot
 }: {
   activeArtifact: ArtifactSummary;
   retrieval: RetrievalRuntimeModel;
   runtime: WorkflowRuntimeModel;
+  telemetry: ProviderTelemetryModel;
   showDebugPanels: boolean;
   snapshot: AssistantWorkspaceSnapshot;
 }) {
@@ -2806,6 +2823,17 @@ function OverviewInspector({
           <span>Preview</span>
           <strong>{formatPreviewStateLabel(snapshot.preview.state, snapshot.preview.active)}</strong>
           <p>{snapshot.preview.available ? snapshot.preview.artifactName : "No target"}</p>
+        </div>
+        <div
+          className="overviewTile overviewTelemetryTile"
+          data-state={telemetry.status}
+          role="group"
+          aria-label="Telemetry summary"
+        >
+          <span>Telemetry</span>
+          <strong>{telemetry.summary.costLabel}</strong>
+          <p>{`${telemetry.summary.tokenLabel} / ${telemetry.summary.latencyLabel}`}</p>
+          <small>{`${telemetry.summary.providerLabel} / ${telemetry.summary.modelLabel}`}</small>
         </div>
         <div className="overviewTile" role="group" aria-label="Image references summary">
           <span>Image references</span>
@@ -2937,10 +2965,12 @@ function CodeInspector({
 function WorkflowInspector({
   issues,
   runtime,
+  telemetry,
   showDebugPanels
 }: {
   issues: WorkstationError[];
   runtime: WorkflowRuntimeModel;
+  telemetry: ProviderTelemetryModel;
   showDebugPanels: boolean;
 }) {
   const workflowProgress = getWorkflowRuntimeProgress(runtime.steps);
@@ -2998,7 +3028,26 @@ function WorkflowInspector({
           <strong>{runtime.summary.transitionCount}</strong>
           <p>{runtime.summary.traceEventCount} streamed events</p>
         </article>
+        <article
+          className="workflowSummaryCard"
+          role="group"
+          aria-label="Workflow token usage"
+        >
+          <span>Tokens</span>
+          <strong>{formatTokenUsageTotal(telemetry)}</strong>
+          <p>{formatTokenUsageDetail(telemetry)}</p>
+        </article>
+        <article
+          className="workflowSummaryCard"
+          role="group"
+          aria-label="Workflow cost estimate"
+        >
+          <span>Cost</span>
+          <strong>{telemetry.summary.costLabel}</strong>
+          <p>{formatTelemetryCostSource(telemetry)}</p>
+        </article>
       </div>
+      <TelemetryLifecycleCard telemetry={telemetry} />
       <div
         aria-label="LangGraph workflow visualization"
         className="workflowGraph"
@@ -3109,6 +3158,60 @@ function WorkflowInspector({
         </article>
       )}
     </section>
+  );
+}
+
+function TelemetryLifecycleCard({
+  telemetry
+}: {
+  telemetry: ProviderTelemetryModel;
+}) {
+  return (
+    <article
+      className="telemetryLifecycleCard"
+      role="group"
+      aria-label="Generation telemetry lifecycle"
+    >
+      <header>
+        <div>
+          <span>Generation telemetry</span>
+          <strong>{formatProviderRuntimeLabel(telemetry)}</strong>
+          <p>{telemetry.summary.lifecycleLabel}</p>
+        </div>
+        <span className="telemetryStateBadge" data-state={telemetry.status}>
+          {formatTelemetryStatus(telemetry.status)}
+        </span>
+      </header>
+      <div className="telemetryMetricRow" aria-label="Telemetry timing summary">
+        <div>
+          <span>First token</span>
+          <strong>{formatRuntimeDuration(telemetry.timing.timeToFirstTokenMs)}</strong>
+        </div>
+        <div>
+          <span>Generation</span>
+          <strong>{formatRuntimeDuration(telemetry.timing.generationDurationMs)}</strong>
+        </div>
+        <div>
+          <span>Stream</span>
+          <strong>{telemetry.summary.streamLabel}</strong>
+        </div>
+      </div>
+      <div className="telemetryLifecycleSteps" aria-label="Generation lifecycle stages">
+        {telemetry.lifecycle.map((step) => (
+          <div
+            className="telemetryLifecycleStep"
+            data-state={step.state}
+            key={step.id}
+          >
+            <span aria-hidden="true" />
+            <div>
+              <strong>{step.label}</strong>
+              <small>{formatTelemetryLifecycleStep(step)}</small>
+            </div>
+          </div>
+        ))}
+      </div>
+    </article>
   );
 }
 
@@ -4051,6 +4154,85 @@ function formatWorkflowStatusCopy(status: string) {
 
 function formatRetryCount(retryCount: number) {
   return retryCount === 1 ? "1 retry loop" : `${retryCount} retry loops`;
+}
+
+function formatSessionTelemetryLabel(telemetry: ProviderTelemetryModel) {
+  if (telemetry.status === "idle") {
+    return "Telemetry pending";
+  }
+
+  return `${telemetry.summary.providerLabel} / ${telemetry.summary.tokenLabel}`;
+}
+
+function formatTokenUsageTotal(telemetry: ProviderTelemetryModel) {
+  return telemetry.tokenUsage.totalTokens == null
+    ? "Pending"
+    : formatCompactNumber(telemetry.tokenUsage.totalTokens);
+}
+
+function formatTokenUsageDetail(telemetry: ProviderTelemetryModel) {
+  if (telemetry.tokenUsage.source !== "provider") {
+    return telemetry.stream.streamedCharacterCount > 0
+      ? `${telemetry.stream.streamedCharacterCount} streamed chars; provider usage pending`
+      : "Provider usage pending";
+  }
+
+  const parts = [];
+  if (telemetry.tokenUsage.inputTokens != null) {
+    parts.push(`${formatCompactNumber(telemetry.tokenUsage.inputTokens)} input`);
+  }
+  if (telemetry.tokenUsage.outputTokens != null) {
+    parts.push(`${formatCompactNumber(telemetry.tokenUsage.outputTokens)} output`);
+  }
+  if (telemetry.tokenUsage.reasoningTokens != null) {
+    parts.push(`${formatCompactNumber(telemetry.tokenUsage.reasoningTokens)} reasoning`);
+  }
+
+  return parts.join(" / ") || "Provider usage captured";
+}
+
+function formatTelemetryCostSource(telemetry: ProviderTelemetryModel) {
+  switch (telemetry.cost.source) {
+    case "provider_reported":
+      return "Provider reported";
+    case "pricing_metadata":
+      return "Estimated from pricing metadata";
+    default:
+      return "Awaiting usage and pricing metadata";
+  }
+}
+
+function formatProviderRuntimeLabel(telemetry: ProviderTelemetryModel) {
+  return `${telemetry.summary.providerLabel} / ${telemetry.summary.modelLabel}`;
+}
+
+function formatTelemetryStatus(status: ProviderTelemetryModel["status"]) {
+  switch (status) {
+    case "complete":
+      return "Complete";
+    case "error":
+      return "Error";
+    case "streaming":
+      return "Streaming";
+    default:
+      return "Idle";
+  }
+}
+
+function formatTelemetryLifecycleStep(step: ProviderTelemetryLifecycleStep) {
+  if (!step.at) {
+    return step.state === "active" ? "Active" : "Pending";
+  }
+
+  const offset =
+    step.offsetMs == null ? "" : ` / +${formatRuntimeDuration(step.offsetMs)}`;
+  return `${formatTraceTime(step.at)}${offset}`;
+}
+
+function formatCompactNumber(value: number) {
+  return new Intl.NumberFormat("en", {
+    maximumFractionDigits: 0
+  }).format(value);
 }
 
 function formatRuntimeDuration(durationMs: number | null) {
