@@ -225,7 +225,10 @@ export function downloadArtifactDocument(
   }
 }
 
-export function formatArtifactActionLabel(action: string): string {
+export function formatArtifactActionLabel(
+  action: string,
+  artifact: Pick<ArtifactSummary, "type"> | null = null
+): string {
   switch (action) {
     case "Open":
       return "Open in Code";
@@ -236,7 +239,7 @@ export function formatArtifactActionLabel(action: string): string {
     case "Download":
       return "Download File";
     case "Export":
-      return "Export File";
+      return artifact?.type === "export" ? "Export Bundle" : "Export File";
     default:
       return action;
   }

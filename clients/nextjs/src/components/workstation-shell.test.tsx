@@ -1677,6 +1677,54 @@ describe("WorkstationShell", () => {
     expect(within(events).getByText("Artifact Download Completed")).toBeVisible();
   });
 
+  it("exports the current workspace bundle through the existing approval flow", async () => {
+    const anchorClick = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
+    Object.defineProperty(URL, "createObjectURL", {
+      configurable: true,
+      value: vi.fn(() => "blob:bundle")
+    });
+    Object.defineProperty(URL, "revokeObjectURL", {
+      configurable: true,
+      value: vi.fn()
+    });
+
+    renderShell(snapshotWithActiveTab("Artifacts"));
+    const notesArtifact = screen.getByLabelText("projection-notes.md artifact");
+
+    fireEvent.click(
+      within(notesArtifact).getByRole("button", {
+        name: "Export Bundle projection-notes.md"
+      })
+    );
+
+    expect(screen.getByLabelText("Operator checkpoint")).toHaveTextContent(
+      "Export project bundle"
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Export bundle" }));
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(anchorClick).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.getByText("Project bundle exported.")).toBeVisible();
+
+    const anchor = anchorClick.mock.instances[0] as unknown as HTMLAnchorElement;
+    expect(anchor.download).toBe("local-nextjs-workspace-bundle.zip");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
+    const events = screen.getByRole("group", { name: "Workflow event trace" });
+
+    expect(
+      within(events).getByText("Project Bundle Export Approval Requested")
+    ).toBeVisible();
+    expect(within(events).getByText("Project Bundle Export Completed")).toBeVisible();
+  });
+
   it("shows artifact transfer failures in the artifacts and workflow surfaces", async () => {
     Object.defineProperty(URL, "createObjectURL", {
       configurable: true,

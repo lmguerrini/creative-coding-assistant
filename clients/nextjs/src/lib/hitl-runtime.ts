@@ -11,7 +11,8 @@ export type HitlActionId =
   | "preview_runtime_clear"
   | "preview_runtime_reset"
   | "artifact_download"
-  | "artifact_export";
+  | "artifact_export"
+  | "project_bundle_export";
 
 export type HitlActionState =
   | "idle"
@@ -176,6 +177,24 @@ export function createHitlApprovalRequest({
         confirmLabel: "Export file",
         cancelLabel: "Stay in workspace",
         targetLabel: artifactTitle ?? "Selected artifact",
+        requestedAt,
+        resolvedAt: null,
+        failureReason: null
+      };
+    case "project_bundle_export":
+      return {
+        id,
+        actionId,
+        state: "pending_approval",
+        kind: "transfer",
+        nodeId,
+        title: "Export project bundle",
+        summary: `Export ${workspaceName} as a local ZIP bundle.`,
+        detail:
+          "This packages generated artifacts, session metadata, workflow context, retrieval summaries, preview routing data, and multimodal image references into a single download.",
+        confirmLabel: "Export bundle",
+        cancelLabel: "Stay in workspace",
+        targetLabel: artifactTitle ?? workspaceName,
         requestedAt,
         resolvedAt: null,
         failureReason: null

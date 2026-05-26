@@ -25,6 +25,19 @@ describe("hitl-runtime", () => {
     expect(request.confirmLabel).toBe("Restart runtime");
     expect(request.targetLabel).toBe("signal-orbit.p5.ts");
     expect(request.state).toBe("pending_approval");
+
+    const bundleRequest = createHitlApprovalRequest({
+      actionId: "project_bundle_export",
+      artifactTitle: "Session workspace",
+      id: "approval-5",
+      nodeId: "generation",
+      requestedAt: "2026-05-23T09:01:00.000Z",
+      workspaceName: "Session workspace"
+    });
+
+    expect(bundleRequest.title).toBe("Export project bundle");
+    expect(bundleRequest.confirmLabel).toBe("Export bundle");
+    expect(bundleRequest.summary).toContain("Session workspace");
   });
 
   it("tracks blocking and terminal states distinctly", () => {

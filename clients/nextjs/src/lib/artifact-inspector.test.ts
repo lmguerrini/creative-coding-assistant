@@ -91,5 +91,8 @@ describe("artifact inspector helpers", () => {
     expect(downloadApi.revokeObjectURL).toHaveBeenCalledWith("blob:artifact");
     expect(formatArtifactActionLabel("Open")).toBe("Open in Code");
     expect(formatArtifactActionLabel("Export")).toBe("Export File");
+    expect(
+      formatArtifactActionLabel("Export", { type: "export" })
+    ).toBe("Export Bundle");
   });
 });

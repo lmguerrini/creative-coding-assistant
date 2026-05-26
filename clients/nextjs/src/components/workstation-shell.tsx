@@ -75,6 +75,7 @@ import {
   type ArtifactDocument,
   type HighlightedLine
 } from "@/lib/artifact-inspector";
+import { buildProjectBundle } from "@/lib/project-bundle";
 import {
   buildWorkflowRuntimeModel,
   type WorkflowRuntimeModel,
@@ -133,6 +134,7 @@ import {
   createWorkstationError,
   type WorkstationError
 } from "@/lib/workstation-errors";
+import { buildZipArchive, downloadZipArchive } from "@/lib/zip-archive";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
 
@@ -1741,17 +1743,40 @@ export function WorkstationShell({
 
   function handleArtifactTransfer(artifact: ArtifactSummary) {
     requestOperatorApproval({
-      actionId: artifact.actions.includes("Download")
-        ? "artifact_download"
-        : "artifact_export",
-      artifactTitle: artifact.title,
+      actionId: getArtifactTransferApprovalActionId(artifact),
+      artifactTitle: isProjectBundleExportArtifact(artifact)
+        ? interactiveSnapshot.workspace.name
+        : artifact.title,
       execute: () => {
         setActiveArtifactId(artifact.id);
         setPreviewContextArtifactId(artifact.id);
         setArtifactTransferError(null);
-        const wasTransferred = downloadArtifactDocument(
-          buildArtifactDocument(interactiveSnapshot, artifact)
-        );
+        const wasTransferred = isProjectBundleExportArtifact(artifact)
+          ? (() => {
+              const bundle = buildProjectBundle({
+                approvalSummary,
+                persistenceRecord,
+                previewController,
+                previewRoute: previewRendererRoute,
+                previewRuntimeSource,
+                retrievalRuntime,
+                snapshot: interactiveSnapshot,
+                workflowRuntime
+              });
+
+              return downloadZipArchive(
+                bundle.fileName,
+                buildZipArchive(
+                  bundle.files.map((file) => ({
+                    bytes: file.bytes,
+                    path: file.path
+                  }))
+                )
+              );
+            })()
+          : downloadArtifactDocument(
+              buildArtifactDocument(interactiveSnapshot, artifact)
+            );
         setFeedbackState(
           artifact.id,
           wasTransferred ? "success" : "error",
@@ -2853,7 +2878,7 @@ function CodeInspector({
           </button>
           {transferAction ? (
             <button
-              aria-label={`${formatArtifactActionLabel(transferAction)} ${document.fileName}`}
+              aria-label={`${formatArtifactActionLabel(transferAction, artifact)} ${document.fileName}`}
               onClick={() => onArtifactTransfer(artifact)}
               type="button"
             >
@@ -3660,7 +3685,7 @@ function ArtifactActionRow({
     <div className="artifactActions">
       {artifact.actions.map((action) => (
         <button
-          aria-label={`${formatArtifactActionLabel(action)} ${artifact.title}`}
+          aria-label={`${formatArtifactActionLabel(action, artifact)} ${artifact.title}`}
           data-action={action.toLowerCase()}
           key={action}
           onClick={() => onArtifactAction(action, artifact)}
@@ -3748,6 +3773,8 @@ function getArtifactActionButtonLabel(
   copyFeedback: ArtifactActionFeedback | null,
   transferFeedback: ArtifactActionFeedback | null
 ) {
+  const isBundleExport = isProjectBundleExportArtifact(artifact);
+
   if (action === "Copy" && copyFeedback?.artifactId === artifact.id) {
     return copyFeedback.state === "success" ? "Copied" : "Copy Unavailable";
   }
@@ -3757,13 +3784,21 @@ function getArtifactActionButtonLabel(
     transferFeedback?.artifactId === artifact.id
   ) {
     if (transferFeedback.state === "success") {
+      if (action === "Export" && isBundleExport) {
+        return "Bundle Exported";
+      }
+
       return action === "Export" ? "Exported" : "Downloaded";
+    }
+
+    if (action === "Export" && isBundleExport) {
+      return "Bundle Unavailable";
     }
 
     return action === "Export" ? "Export Unavailable" : "Download Unavailable";
   }
 
-  return formatArtifactActionLabel(action);
+  return formatArtifactActionLabel(action, artifact);
 }
 
 function getArtifactActionMessage(
@@ -3779,17 +3814,34 @@ function getArtifactActionMessage(
 
   if (transferFeedback?.artifactId === artifact.id) {
     const transferAction = getArtifactTransferAction(artifact.actions);
+    const isBundleExport = isProjectBundleExportArtifact(artifact);
     const transferVerb = transferAction === "Export" ? "exported" : "downloaded";
+    const transferTarget = isBundleExport ? "Project bundle" : artifact.title;
 
     return transferFeedback.state === "success"
-      ? `${artifact.title} ${transferVerb}.`
-      : `${transferAction === "Export" ? "Export" : "Download"} is unavailable for ${artifact.title}.`;
+      ? `${transferTarget} ${transferVerb}.`
+      : isBundleExport
+        ? "Bundle export is unavailable for the current workspace."
+        : `${transferAction === "Export" ? "Export" : "Download"} is unavailable for ${artifact.title}.`;
   }
 
   return null;
 }
 
 function createArtifactTransferError(artifact: ArtifactSummary) {
+  if (isProjectBundleExportArtifact(artifact)) {
+    return createWorkstationError({
+      type: "project_bundle_export_failed",
+      category: "artifact_export",
+      subsystem: "artifact_transfer",
+      userMessage: "The workspace could not export the current project bundle.",
+      recoverable: true,
+      suggestedAction:
+        "Retry the bundle export from the Artifacts tab or continue working in the current session.",
+      retryLabel: "Retry export"
+    });
+  }
+
   const transferAction = getArtifactTransferAction(artifact.actions) ?? "Export";
   const actionLabel = transferAction === "Export" ? "export" : "download";
 
@@ -3803,6 +3855,22 @@ function createArtifactTransferError(artifact: ArtifactSummary) {
       "Retry the transfer from the Artifacts tab or continue working in the current session.",
     retryLabel: transferAction === "Export" ? "Retry export" : "Retry download"
   });
+}
+
+function getArtifactTransferApprovalActionId(
+  artifact: ArtifactSummary
+): HitlActionId {
+  if (isProjectBundleExportArtifact(artifact)) {
+    return "project_bundle_export";
+  }
+
+  return artifact.actions.includes("Download")
+    ? "artifact_download"
+    : "artifact_export";
+}
+
+function isProjectBundleExportArtifact(artifact: ArtifactSummary) {
+  return artifact.type === "export" && artifact.actions.includes("Export");
 }
 
 function buildHitlApprovalError(request: HitlApprovalRequest) {
