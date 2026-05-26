@@ -100,6 +100,7 @@ import {
   buildPreviewRuntimeSummary,
   isArtifactPreviewable
 } from "@/lib/preview-runtime";
+import { hydrateWorkspaceFromFinalEvent } from "@/lib/live-artifact-hydration";
 import {
   buildProviderTelemetryModel,
   type ProviderTelemetryLifecycleStep,
@@ -241,6 +242,7 @@ export function WorkstationShell({
   const approvalIdCounterRef = useRef(0);
   const localRuntimeSequenceRef = useRef(1000);
   const streamingAssistantIdRef = useRef<string | null>(null);
+  const hasPreviewRuntimeEventRef = useRef(false);
   const [conversationEntries, setConversationEntries] = useState(() =>
     buildConversationEntries(initialSnapshot.messages, createConversationEntryId)
   );
@@ -1483,6 +1485,7 @@ export function WorkstationShell({
     setStreamError(null);
     setStreamEvents([]);
     setWorkflowTraceEvents([]);
+    hasPreviewRuntimeEventRef.current = false;
     setIsStreaming(true);
     setActiveTab("Overview");
 
@@ -1662,6 +1665,7 @@ export function WorkstationShell({
     }
 
     if (streamEvent.event_type === "preview_artifact") {
+      hasPreviewRuntimeEventRef.current = true;
       const previewUpdate = readPreviewArtifactUpdate(streamEvent);
       const nextPreviewArtifactId =
         previewUpdate?.previewArtifactId ?? previewUpdate?.artifactId ?? null;
@@ -1687,6 +1691,24 @@ export function WorkstationShell({
       if (workspacePreferences.autoOpenPreview) {
         handlePreviewOpenChange(true);
       }
+    }
+
+    if (streamEvent.event_type === "final") {
+      const hydration = hydrateWorkspaceFromFinalEvent(snapshot, streamEvent, {
+        skipPlainTextArtifact: hasPreviewRuntimeEventRef.current
+      });
+
+      if (!hydration.artifact) {
+        return;
+      }
+
+      setSnapshot(hydration.snapshot);
+      setActiveArtifactId(hydration.activeArtifactId);
+      setPreviewArtifactId(hydration.previewArtifactId);
+      setPreviewSessionOverride(null);
+      handlePreviewOpenChange(
+        hydration.previewAvailable && workspacePreferences.autoOpenPreview
+      );
     }
   }
 

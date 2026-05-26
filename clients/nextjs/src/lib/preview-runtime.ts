@@ -45,10 +45,6 @@ export function buildPreviewRuntimeSummary({
   traceEvents,
   workflow
 }: BuildPreviewRuntimeSummaryInput): PreviewSummary {
-  const workspaceHasPreview =
-    basePreview.available ||
-    artifacts.some(isArtifactPreviewable) ||
-    traceEvents.some(({ event }) => readPreviewArtifactUpdate(event) !== null);
   const contextArtifact =
     artifacts.find((artifact) => artifact.id === previewArtifactId) ??
     artifacts.find((artifact) => artifact.title === basePreview.artifactName) ??
@@ -56,6 +52,17 @@ export function buildPreviewRuntimeSummary({
     artifacts.find((artifact) => isArtifactPreviewable(artifact)) ??
     artifacts[0] ??
     null;
+  const contextMatchesBasePreview = matchesBasePreviewContext(
+    contextArtifact,
+    basePreview
+  );
+  const traceHasPreview = traceEvents.some(
+    ({ event }) => readPreviewArtifactUpdate(event) !== null
+  );
+  const workspaceHasPreview =
+    (basePreview.available && contextMatchesBasePreview) ||
+    (contextArtifact ? isArtifactPreviewable(contextArtifact) : false) ||
+    traceHasPreview;
   const activeSessionOverride = matchesPreviewSessionOverride(
     sessionOverride,
     contextArtifact,
@@ -66,10 +73,6 @@ export function buildPreviewRuntimeSummary({
   const previewUpdate = activeSessionOverride
     ? null
     : findLatestPreviewUpdate(traceEvents, contextArtifact?.id ?? previewArtifactId);
-  const contextMatchesBasePreview = matchesBasePreviewContext(
-    contextArtifact,
-    basePreview
-  );
   const sourceArtifact =
     artifacts.find((artifact) => artifact.id === (previewUpdate?.artifactId ?? "")) ??
     (contextMatchesBasePreview

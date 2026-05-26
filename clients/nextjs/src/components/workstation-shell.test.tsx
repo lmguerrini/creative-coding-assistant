@@ -773,6 +773,126 @@ describe("WorkstationShell", () => {
     expect(preview.querySelector("details")).toHaveAttribute("open");
   });
 
+  it("hydrates final stream output into the active artifact and routed preview", async () => {
+    installCanvasContextMock(createMockWebGlContext(), [
+      "webgl",
+      "experimental-webgl"
+    ]);
+    const generatedAnswer = [
+      "Generated a controlled scene artifact.",
+      "```ts",
+      "import * as THREE from 'three';",
+      "const scene = new THREE.Scene();",
+      "const camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 100);",
+      "const renderer = new THREE.WebGLRenderer({ antialias: true });",
+      "scene.add(new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial()));",
+      "```"
+    ].join("\n");
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "generation_input",
+          sequence: 0,
+          payload: {
+            code: "generation_input_prepared",
+            message: "Generation input ready."
+          }
+        },
+        {
+          event_type: "final",
+          sequence: 1,
+          payload: { answer: generatedAnswer }
+        }
+      ])
+    );
+
+    renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Create a small Three.js preview scene." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(
+      await screen.findByText(/Generated a controlled scene artifact/)
+    ).toBeVisible();
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    expect(
+      within(preview).getByText("generated-scene.three.ts", {
+        selector: "summary span"
+      })
+    ).toBeVisible();
+    expect(
+      within(preview).getByText("Preview open", { selector: "summary small" })
+    ).toBeVisible();
+    expect(preview.querySelector("details")).toHaveAttribute("open");
+    expect(within(preview).getByText("Three scene surface")).toBeVisible();
+    expect(within(preview).getAllByText("Foundation ready").length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Code" }));
+    const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
+    expect(within(codePanel).getByText("generated-scene.three.ts")).toBeVisible();
+    expect(
+      within(codePanel).getByRole("region", {
+        name: "generated-scene.three.ts content"
+      })
+    ).toHaveTextContent("const scene = new THREE.Scene();");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
+    const artifactsPanel = screen.getByRole("tabpanel", {
+      name: "Artifacts inspector"
+    });
+    expect(
+      within(artifactsPanel).getByRole("article", {
+        name: "generated-scene.three.ts artifact"
+      })
+    ).toHaveAttribute("aria-current", "true");
+  });
+
+  it("disables the preview shelf when final stream output has no runnable artifact", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "final",
+          sequence: 0,
+          payload: {
+            answer:
+              "Keep the projection motion slower and document the next creative pass."
+          }
+        }
+      ])
+    );
+
+    renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Summarize refinements without code." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(
+      await screen.findByText(
+        "Keep the projection motion slower and document the next creative pass."
+      )
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("region", { name: "Preview workspace" })
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Overview" }));
+    expect(
+      within(screen.getByRole("group", { name: "Preview summary" })).getByText(
+        "No target"
+      )
+    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Code" }));
+    const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
+    expect(within(codePanel).getByText("assistant-response.md")).toBeVisible();
+    expect(within(codePanel).getByText("Markdown export")).toBeVisible();
+  });
+
   it("uploads image references and sends them with the next backend request", async () => {
     const backendStream = vi.fn(() =>
       streamEvents([
@@ -1391,31 +1511,6 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
 
     fireEvent.click(
-      within(preview).getByRole("button", { name: "Reload preview state" })
-    );
-
-    expect(
-      within(preview).queryByText(
-        "Preview state cleared for webgpu-particle-field.ts. Reload or reset the session to restore the latest runtime context."
-      )
-    ).not.toBeInTheDocument();
-    expect(
-      within(preview).getByText("Generating", { selector: "summary small" })
-    ).toBeVisible();
-
-    fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
-    const notesArtifact = screen.getByLabelText("projection-notes.md artifact");
-    fireEvent.click(
-      within(notesArtifact).getByRole("button", {
-        name: "Open in Code projection-notes.md"
-      })
-    );
-
-    expect(
-      within(preview).getByText("projection-notes.md", { selector: "summary span" })
-    ).toBeVisible();
-
-    fireEvent.click(
       within(preview).getByRole("button", { name: "Reset preview session" })
     );
 
@@ -1432,6 +1527,21 @@ describe("WorkstationShell", () => {
     expect(
       within(preview).getByText("webgpu-particle-field.ts", { selector: "summary span" })
     ).toBeVisible();
+    expect(
+      within(preview).getByText("Generating", { selector: "summary small" })
+    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
+    const notesArtifact = screen.getByLabelText("projection-notes.md artifact");
+    fireEvent.click(
+      within(notesArtifact).getByRole("button", {
+        name: "Open in Code projection-notes.md"
+      })
+    );
+
+    expect(
+      screen.queryByRole("region", { name: "Preview workspace" })
+    ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
     const events = screen.getByRole("group", { name: "Workflow event trace" });
@@ -1441,7 +1551,7 @@ describe("WorkstationShell", () => {
     expect(within(events).getByText("Preview Runtime Reset Completed")).toBeVisible();
   });
 
-  it("updates the preview context when the active artifact is not previewable", () => {
+  it("hides preview context when the active artifact is not previewable", () => {
     renderShell();
 
     fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
@@ -1452,15 +1562,18 @@ describe("WorkstationShell", () => {
       })
     );
 
-    const preview = screen.getByRole("region", { name: "Preview workspace" });
-
     expect(
-      within(preview).getByText("projection-notes.md", { selector: "summary span" })
-    ).toBeVisible();
+      screen.queryByRole("region", { name: "Preview workspace" })
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Code" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
     expect(
-      within(preview).getByText("Unavailable", { selector: "summary small" })
+      within(screen.getByRole("tabpanel", { name: "Code inspector" })).getByText(
+        "projection-notes.md"
+      )
     ).toBeVisible();
-    expect(preview.querySelector("details")).not.toHaveAttribute("open");
   });
 
   it("opens artifacts, highlights the active artifact, and targets preview actions", () => {
