@@ -18,6 +18,7 @@ export type PreviewRuntimeStatus = {
   label: string;
   detail: string;
   error: WorkstationError | null;
+  diagnostics?: readonly string[];
 };
 
 export type PreviewRuntimeSource = {
@@ -31,9 +32,14 @@ export type PreviewRuntimeMount = {
   dispose: () => void;
 };
 
+export type PreviewRuntimeFrameSample = {
+  renderedAtMs: number;
+};
+
 type MountPreviewRuntimeInput = {
   canvas: HTMLCanvasElement;
   kind: PreviewExecutableRuntimeKind;
+  onFrame?: ((sample: PreviewRuntimeFrameSample) => void) | undefined;
   onStatus: (status: PreviewRuntimeStatus) => void;
   source: PreviewRuntimeSource;
 };
@@ -220,21 +226,23 @@ export function getInitialPreviewRuntimeStatus({
 export function mountPreviewRuntime({
   canvas,
   kind,
+  onFrame,
   onStatus,
   source
 }: MountPreviewRuntimeInput): PreviewRuntimeMount {
   switch (kind) {
     case "p5":
-      return mountP5Runtime({ canvas, onStatus, source });
+      return mountP5Runtime({ canvas, onFrame, onStatus, source });
     case "three":
-      return mountThreeRuntime({ canvas, onStatus, source });
+      return mountThreeRuntime({ canvas, onFrame, onStatus, source });
     case "glsl":
-      return mountGlslRuntime({ canvas, onStatus, source });
+      return mountGlslRuntime({ canvas, onFrame, onStatus, source });
   }
 }
 
 function mountP5Runtime({
   canvas,
+  onFrame,
   onStatus,
   source
 }: Omit<MountPreviewRuntimeInput, "kind">): PreviewRuntimeMount {
@@ -315,6 +323,7 @@ function mountP5Runtime({
     context2d.stroke();
     context2d.globalAlpha = 1;
 
+    onFrame?.({ renderedAtMs: time });
     animationFrame = requestRuntimeFrame(runtimeWindow, drawFrame);
   }
 
@@ -330,6 +339,7 @@ function mountP5Runtime({
 
 function mountThreeRuntime({
   canvas,
+  onFrame,
   onStatus,
   source
 }: Omit<MountPreviewRuntimeInput, "kind">): PreviewRuntimeMount {
@@ -353,6 +363,7 @@ function mountThreeRuntime({
   if (!signals.allowed) {
     onStatus({
       detail: signals.reason,
+      diagnostics: [signals.reason],
       label: "Three.js runtime rejected source",
       state: "error",
       error: createRendererRuntimeError({
@@ -374,6 +385,7 @@ function mountThreeRuntime({
   if (!program.ok) {
     onStatus({
       detail: program.message,
+      diagnostics: [program.message],
       label: "Three.js runtime failed",
       state: "error",
       error: createRendererRuntimeError({
@@ -461,6 +473,7 @@ function mountThreeRuntime({
     webgl.vertexAttribPointer(normalLocation, 3, webgl.FLOAT, false, 0, 0);
 
     webgl.drawArrays(webgl.TRIANGLES, 0, scene.vertexCount);
+    onFrame?.({ renderedAtMs: time });
     animationFrame = requestRuntimeFrame(runtimeWindow, drawFrame);
   }
 
@@ -479,6 +492,7 @@ function mountThreeRuntime({
 
 function mountGlslRuntime({
   canvas,
+  onFrame,
   onStatus,
   source
 }: Omit<MountPreviewRuntimeInput, "kind">): PreviewRuntimeMount {
@@ -502,6 +516,7 @@ function mountGlslRuntime({
   if (!normalizedFragment.allowed) {
     onStatus({
       detail: normalizedFragment.reason,
+      diagnostics: [normalizedFragment.reason],
       label: "GLSL runtime rejected source",
       state: "error",
       error: createRendererRuntimeError({
@@ -518,6 +533,7 @@ function mountGlslRuntime({
   if (!program.ok) {
     onStatus({
       detail: program.message,
+      diagnostics: [program.message],
       label: "GLSL runtime failed",
       state: "error",
       error: createRendererRuntimeError({
@@ -582,6 +598,7 @@ function mountGlslRuntime({
     webgl.uniform1f(timeLocation, time * 0.001);
     webgl.drawArrays(webgl.TRIANGLES, 0, 3);
 
+    onFrame?.({ renderedAtMs: time });
     animationFrame = requestRuntimeFrame(runtimeWindow, drawFrame);
   }
 
