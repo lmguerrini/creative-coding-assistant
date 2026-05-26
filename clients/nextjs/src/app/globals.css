@@ -50,6 +50,13 @@ html[data-cca-theme="aqua"] {
     rgba(255, 255, 255, 0.04);
 }
 
+.subsystemErrorCallout[data-category="multimodal"] {
+  border-color: rgba(124, 167, 255, 0.26);
+  background:
+    linear-gradient(135deg, rgba(124, 167, 255, 0.12), transparent 72%),
+    rgba(255, 255, 255, 0.04);
+}
+
 .subsystemErrorCallout[data-category="renderer"] {
   border-color: rgba(124, 167, 255, 0.24);
   background:
@@ -1146,11 +1153,165 @@ a {
   animation: blinkCaret 1s steps(1, end) infinite;
 }
 
+.imageReferenceShelf {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(124, 167, 255, 0.08), transparent 70%),
+    rgba(255, 255, 255, 0.04);
+}
+
+.imageReferenceShelf[data-state="ready"] {
+  border-color: rgba(124, 167, 255, 0.3);
+}
+
+.imageReferenceShelf[data-state="error"] {
+  border-color: rgba(255, 122, 102, 0.28);
+}
+
+.imageReferenceHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.imageReferenceHeader strong {
+  display: block;
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.imageReferenceHeader p {
+  margin: 4px 0 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.imageReferenceDismiss,
+.imageReferenceCard button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted-strong);
+  cursor: pointer;
+}
+
+.imageReferenceList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.imageReferenceCard {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-width: min(100%, 230px);
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.imageReferenceThumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.08);
+  background-position: center;
+  background-size: cover;
+}
+
+.imageReferenceCard strong {
+  display: block;
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 12px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.imageReferenceCard span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 .composer {
   position: relative;
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 10px;
+}
+
+.composerInputFrame {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+}
+
+.composerUploadButton {
+  position: relative;
+  display: grid;
+  width: 48px;
+  min-height: 78px;
+  place-items: center;
+  align-content: center;
+  gap: 5px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--muted-strong);
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.composerUploadButton:hover {
+  border-color: rgba(124, 167, 255, 0.32);
+  color: var(--foreground);
+  background: rgba(124, 167, 255, 0.09);
+  transform: translateY(-1px);
+}
+
+.composerUploadButton input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.composerUploadButton span {
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.composer:has(input:disabled) .composerUploadButton {
+  cursor: default;
+  opacity: 0.58;
+  transform: none;
 }
 
 .composer textarea {
@@ -3097,6 +3258,10 @@ a {
   min-height: 68px;
 }
 
+.workstation[data-density="compact"] .composerUploadButton {
+  min-height: 68px;
+}
+
 .workstation[data-density="compact"] .inspectorHeader {
   padding: 13px 13px 10px;
 }
@@ -3280,6 +3445,16 @@ a {
 
   .composer {
     grid-template-columns: 1fr;
+  }
+
+  .composerInputFrame {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .composerUploadButton {
+    width: 100%;
+    min-height: 44px;
+    grid-auto-flow: column;
   }
 
   .sendButton {

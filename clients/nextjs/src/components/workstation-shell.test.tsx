@@ -522,6 +522,9 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("group", { name: "Workflow summary" })).toBeVisible();
     expect(screen.getByRole("group", { name: "Artifacts summary" })).toBeVisible();
     expect(screen.getByRole("group", { name: "Preview summary" })).toBeVisible();
+    expect(
+      screen.getByRole("group", { name: "Image references summary" })
+    ).toBeVisible();
     expect(screen.getByRole("group", { name: "Retrieval summary" })).toBeVisible();
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
@@ -717,6 +720,100 @@ describe("WorkstationShell", () => {
       )
     ).toBeVisible();
     expect(preview.querySelector("details")).toHaveAttribute("open");
+  });
+
+  it("uploads image references and sends them with the next backend request", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "final",
+          sequence: 0,
+          payload: { answer: "Image-aware response." }
+        }
+      ])
+    );
+
+    renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+
+    const uploadInput = screen.getByLabelText("Upload image reference");
+    const imageFile = new File(["palette-bytes"], "palette.png", {
+      type: "image/png"
+    });
+
+    await act(async () => {
+      fireEvent.change(uploadInput, {
+        target: { files: [imageFile] }
+      });
+      await Promise.resolve();
+    });
+
+    const imageShelf = await screen.findByRole("region", {
+      name: "Image references"
+    });
+    expect(within(imageShelf).getByText("1 image reference")).toBeVisible();
+    expect(within(imageShelf).getByText("palette.png")).toBeVisible();
+    expect(
+      within(screen.getByRole("group", { name: "Image references summary" })).getByText(
+        "1"
+      )
+    ).toBeVisible();
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Use this palette reference." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(await screen.findByText("Image-aware response.")).toBeVisible();
+    expect(backendStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attachments: [
+          expect.objectContaining({
+            type: "image",
+            id: expect.stringContaining("palette-png"),
+            name: "palette.png",
+            mimeType: "image/png",
+            sizeBytes: imageFile.size,
+            dataUrl: expect.stringMatching(/^data:image\/png;base64,/)
+          })
+        ],
+        query: "Use this palette reference."
+      })
+    );
+
+    fireEvent.click(
+      within(imageShelf).getByRole("button", {
+        name: "Remove image reference palette.png"
+      })
+    );
+
+    expect(screen.queryByText("palette.png")).not.toBeInTheDocument();
+  });
+
+  it("shows a graceful image upload error for unsupported files", async () => {
+    renderShell();
+
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText("Upload image reference"), {
+        target: {
+          files: [new File(["notes"], "notes.txt", { type: "text/plain" })]
+        }
+      });
+      await Promise.resolve();
+    });
+
+    const imageShelf = await screen.findByRole("region", {
+      name: "Image references"
+    });
+
+    expect(within(imageShelf).getAllByText("Image upload issue")).toHaveLength(2);
+    expect(
+      within(imageShelf).getAllByText(
+        "Only PNG, JPEG, WebP, or GIF image references can be attached."
+      )
+    ).toHaveLength(2);
+    expect(
+      within(imageShelf).getByRole("button", { name: "Dismiss image upload issue" })
+    ).toBeVisible();
   });
 
   it("hydrates the retrieval inspector from streamed retrieval events", async () => {

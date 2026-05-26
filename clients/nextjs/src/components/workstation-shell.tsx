@@ -18,6 +18,7 @@ import {
   Braces,
   ChevronDown,
   Command,
+  ImagePlus,
   LayoutGrid,
   Maximize2,
   Minimize2,
@@ -38,6 +39,7 @@ import type {
   ArtifactAction,
   ArtifactSummary,
   AssistantWorkspaceSnapshot,
+  ImageAttachmentSummary,
   InspectorTabName,
   WorkflowStepState
 } from "@/lib/assistant-client";
@@ -98,6 +100,14 @@ import {
   isArtifactPreviewable
 } from "@/lib/preview-runtime";
 import { buildPreviewRuntimeSource } from "@/lib/preview-runtime-adapters";
+import {
+  buildMultimodalSummary,
+  createImageAttachmentFromFile,
+  formatImageAttachmentSize,
+  normalizeImageAttachments,
+  supportedImageUploadAccept,
+  toAssistantRequestImageAttachments
+} from "@/lib/multimodal-attachments";
 import {
   buildConversationEntries,
   getComposerStatusLabel,
@@ -228,6 +238,12 @@ export function WorkstationShell({
     buildConversationEntries(initialSnapshot.messages, createConversationEntryId)
   );
   const [composerValue, setComposerValue] = useState("");
+  const [imageAttachments, setImageAttachments] = useState(() =>
+    normalizeImageAttachments(initialSnapshot.multimodal.imageAttachments)
+  );
+  const [imageUploadError, setImageUploadError] = useState<WorkstationError | null>(
+    initialSnapshot.multimodal.error ?? null
+  );
   const [activeTab, setActiveTab] = useState<InspectorTabName>(
     getInitialActiveTab(initialSnapshot)
   );
@@ -295,6 +311,7 @@ export function WorkstationShell({
   const dragCleanupRef = useRef<(() => void) | null>(null);
   const utilityTrayRef = useRef<HTMLDivElement>(null);
   const approvalExecutorsRef = useRef<Record<string, ApprovalActionExecutor>>({});
+  const imageAttachmentCounterRef = useRef(imageAttachments.length);
 
   function clearFeedbackTimers() {
     clearTimer(copyFeedbackTimerRef.current);
@@ -469,10 +486,16 @@ export function WorkstationShell({
             initialSnapshot,
             restoredSession.record
           );
+          const restoredImageAttachments = normalizeImageAttachments(
+            restoredSnapshot.multimodal.imageAttachments
+          );
           setSnapshot(restoredSnapshot);
           setConversationEntries(
             buildConversationEntries(restoredSnapshot.messages, createConversationEntryId)
           );
+          setImageAttachments(restoredImageAttachments);
+          setImageUploadError(restoredSnapshot.multimodal.error ?? null);
+          imageAttachmentCounterRef.current = restoredImageAttachments.length;
           streamingAssistantIdRef.current = null;
           setActiveTab(restoredSession.record.activeInspectorTab);
           setActiveArtifactId(
@@ -559,6 +582,11 @@ export function WorkstationShell({
           tab.label === "Artifacts" ? String(snapshot.artifacts.length) : tab.badge
       })),
       messages: persistedMessages,
+      multimodal: buildMultimodalSummary({
+        baseMultimodal: snapshot.multimodal,
+        imageAttachments,
+        uploadError: imageUploadError
+      }),
       preview: buildPreviewRuntimeSummary({
         artifacts: snapshot.artifacts,
         basePreview: snapshot.preview,
@@ -585,6 +613,8 @@ export function WorkstationShell({
       activeArtifact.title,
       activeArtifact.type,
       activeTab,
+      imageAttachments,
+      imageUploadError,
       isPreviewOpen,
       previewSessionOverride,
       isStreaming,
@@ -1046,6 +1076,13 @@ export function WorkstationShell({
     setConversationEntries(
       buildConversationEntries(initialSnapshot.messages, createConversationEntryId)
     );
+    setImageAttachments(
+      normalizeImageAttachments(initialSnapshot.multimodal.imageAttachments)
+    );
+    setImageUploadError(initialSnapshot.multimodal.error ?? null);
+    imageAttachmentCounterRef.current = normalizeImageAttachments(
+      initialSnapshot.multimodal.imageAttachments
+    ).length;
     setComposerValue("");
     setActiveTab(getInitialActiveTab(initialSnapshot));
     setActiveArtifactId(initialSnapshot.artifacts[0]?.id ?? "");
@@ -1288,6 +1325,112 @@ export function WorkstationShell({
     }
   }
 
+  async function handleImageUploadChange(event: FormEvent<HTMLInputElement>) {
+    const input = event.currentTarget;
+    const files = Array.from(input.files ?? []);
+    input.value = "";
+
+    if (files.length === 0) {
+      return;
+    }
+
+    const nextAttachments: ImageAttachmentSummary[] = [];
+    let nextError: WorkstationError | null = null;
+
+    for (const file of files) {
+      const result = await createImageAttachmentFromFile({
+        createdAt: new Date().toISOString(),
+        existingCount: imageAttachments.length + nextAttachments.length,
+        file,
+        id: createImageAttachmentId(file.name)
+      });
+
+      if (result.ok) {
+        nextAttachments.push(result.attachment);
+      } else {
+        nextError = result.error;
+        break;
+      }
+    }
+
+    if (nextAttachments.length > 0) {
+      const updatedAttachments = [...imageAttachments, ...nextAttachments];
+      setImageAttachments(updatedAttachments);
+      appendImageReferenceRuntimeEvent({
+        attachments: updatedAttachments,
+        code: "image_reference_attached",
+        message: `${nextAttachments.length} ${pluralize(
+          nextAttachments.length,
+          "image reference",
+          "image references"
+        )} attached to the session.`
+      });
+    }
+
+    setImageUploadError(nextError);
+  }
+
+  function handleImageAttachmentRemove(attachmentId: string) {
+    const nextAttachments = imageAttachments.filter(
+      (attachment) => attachment.id !== attachmentId
+    );
+    setImageAttachments(nextAttachments);
+    setImageUploadError(null);
+    appendImageReferenceRuntimeEvent({
+      attachments: nextAttachments,
+      code: "image_reference_removed",
+      message: "Image reference removed from the session."
+    });
+  }
+
+  function handleImageUploadErrorDismiss() {
+    setImageUploadError(null);
+  }
+
+  function createImageAttachmentId(fileName: string) {
+    imageAttachmentCounterRef.current += 1;
+    const safeName = fileName
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 32);
+
+    return `image-reference-${imageAttachmentCounterRef.current}${
+      safeName ? `-${safeName}` : ""
+    }`;
+  }
+
+  function appendImageReferenceRuntimeEvent({
+    attachments,
+    code,
+    message
+  }: {
+    attachments: ImageAttachmentSummary[];
+    code: "image_reference_attached" | "image_reference_removed";
+    message: string;
+  }) {
+    appendLocalRuntimeEvent({
+      event_type: "status",
+      sequence: localRuntimeSequenceRef.current++,
+      payload: {
+        code,
+        message,
+        category: "multimodal",
+        subsystem: "image_upload",
+        multimodal: {
+          image_count: attachments.length,
+          images: attachments.map((attachment) => ({
+            id: attachment.id,
+            name: attachment.name,
+            mime_type: attachment.mimeType,
+            size_bytes: attachment.sizeBytes
+          }))
+        }
+      }
+    });
+  }
+
   async function handleComposerSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -1333,15 +1476,22 @@ export function WorkstationShell({
     setActiveTab("Overview");
 
     let streamedAnswer = "";
+    const requestAttachments = toAssistantRequestImageAttachments(imageAttachments);
 
     try {
-      for await (const streamEvent of streamAssistantEvents({
+      const streamRequest: AssistantStreamRequest = {
         conversationId: "local-nextjs-session",
         domain: "webgpu_wgsl",
         mode: "generate",
         projectId: "local-nextjs-workspace",
         query: prompt
-      })) {
+      };
+
+      if (requestAttachments.length > 0) {
+        streamRequest.attachments = requestAttachments;
+      }
+
+      for await (const streamEvent of streamAssistantEvents(streamRequest)) {
         applyStreamEventToWorkspace(streamEvent);
 
         if (streamEvent.event_type === "token_delta") {
@@ -1947,17 +2097,45 @@ export function WorkstationShell({
               />
             ) : null}
 
+            {interactiveSnapshot.multimodal.imageAttachments.length > 0 ||
+            interactiveSnapshot.multimodal.error ? (
+              <ImageReferenceShelf
+                multimodal={interactiveSnapshot.multimodal}
+                onDismissError={handleImageUploadErrorDismiss}
+                onRemove={handleImageAttachmentRemove}
+              />
+            ) : null}
+
             <form
               className="composer"
+              data-has-images={
+                interactiveSnapshot.multimodal.imageAttachments.length > 0
+                  ? "true"
+                  : "false"
+              }
               data-ready={isComposerReady}
               onSubmit={handleComposerSubmit}
             >
-              <textarea
-                aria-label="Assistant prompt"
-                onChange={(event) => setComposerValue(event.currentTarget.value)}
-                placeholder="Ask for a denser particle field, a softer palette, or a preview pass."
-                value={composerValue}
-              />
+              <div className="composerInputFrame">
+                <label className="composerUploadButton">
+                  <input
+                    accept={supportedImageUploadAccept}
+                    aria-label="Upload image reference"
+                    disabled={isStreaming}
+                    multiple
+                    onChange={(event) => void handleImageUploadChange(event)}
+                    type="file"
+                  />
+                  <ImagePlus size={16} aria-hidden="true" />
+                  <span>Image</span>
+                </label>
+                <textarea
+                  aria-label="Assistant prompt"
+                  onChange={(event) => setComposerValue(event.currentTarget.value)}
+                  placeholder="Ask for a denser particle field, a softer palette, or a preview pass."
+                  value={composerValue}
+                />
+              </div>
               <span className="composerState" aria-live="polite">
                 {composerStateLabel}
               </span>
@@ -2117,6 +2295,81 @@ type PreviewShelfProps = WorkstationShellProps & {
   runtimeSource: ReturnType<typeof buildPreviewRuntimeSource>;
   resizing: boolean;
 };
+
+function ImageReferenceShelf({
+  multimodal,
+  onDismissError,
+  onRemove
+}: {
+  multimodal: AssistantWorkspaceSnapshot["multimodal"];
+  onDismissError: () => void;
+  onRemove: (attachmentId: string) => void;
+}) {
+  return (
+    <section
+      aria-label="Image references"
+      className="imageReferenceShelf"
+      data-state={multimodal.state}
+    >
+      <header className="imageReferenceHeader">
+        <div>
+          <span className="eyebrow">Visual context</span>
+          <strong>{multimodal.status}</strong>
+          <p>{multimodal.detail}</p>
+        </div>
+        {multimodal.error ? (
+          <button
+            aria-label="Dismiss image upload issue"
+            className="imageReferenceDismiss"
+            onClick={onDismissError}
+            type="button"
+          >
+            <X size={14} />
+          </button>
+        ) : null}
+      </header>
+      {multimodal.error ? (
+        <SubsystemErrorCallout
+          className="imageUploadErrorCallout"
+          error={multimodal.error}
+          title="Image upload issue"
+        />
+      ) : null}
+      {multimodal.imageAttachments.length > 0 ? (
+        <div className="imageReferenceList" role="list">
+          {multimodal.imageAttachments.map((attachment) => (
+            <article
+              aria-label={`${attachment.name} image reference`}
+              className="imageReferenceCard"
+              key={attachment.id}
+              role="listitem"
+            >
+              <div
+                aria-hidden="true"
+                className="imageReferenceThumb"
+                style={{ backgroundImage: `url(${attachment.dataUrl})` }}
+              />
+              <div>
+                <strong>{attachment.name}</strong>
+                <span>
+                  {attachment.mimeType.replace("image/", "").toUpperCase()} /{" "}
+                  {formatImageAttachmentSize(attachment.sizeBytes)}
+                </span>
+              </div>
+              <button
+                aria-label={`Remove image reference ${attachment.name}`}
+                onClick={() => onRemove(attachment.id)}
+                type="button"
+              >
+                <X size={13} />
+              </button>
+            </article>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
+}
 
 function PreviewShelf({
   controller,
@@ -2528,6 +2781,12 @@ function OverviewInspector({
           <span>Preview</span>
           <strong>{formatPreviewStateLabel(snapshot.preview.state, snapshot.preview.active)}</strong>
           <p>{snapshot.preview.available ? snapshot.preview.artifactName : "No target"}</p>
+        </div>
+        <div className="overviewTile" role="group" aria-label="Image references summary">
+          <span>Image references</span>
+          <strong>{snapshot.multimodal.imageAttachments.length}</strong>
+          <p>{snapshot.multimodal.status}</p>
+          <small>{snapshot.multimodal.detail}</small>
         </div>
         <div className="overviewTile" role="group" aria-label="Retrieval summary">
           <span>Retrieval</span>
@@ -3740,6 +3999,10 @@ function formatRuntimeDuration(durationMs: number | null) {
 
 function formatAttemptMeta(attemptCount: number) {
   return attemptCount === 1 ? "1 attempt" : `${attemptCount} attempts`;
+}
+
+function pluralize(count: number, singular: string, plural: string) {
+  return count === 1 ? singular : plural;
 }
 
 function formatTraceTime(timestamp: string) {
