@@ -7,9 +7,15 @@ import {
   getInitialPreviewRuntimeStatus,
   mountPreviewRuntime,
   type PreviewExecutableRuntimeKind,
+  type PreviewRuntimeFrameSample,
   type PreviewRuntimeSource,
   type PreviewRuntimeStatus
 } from "@/lib/preview-runtime-adapters";
+import {
+  buildPreviewRuntimeOverlayModel,
+  createPreviewRuntimeMetricsTracker,
+  type PreviewRuntimeMetricsSnapshot
+} from "@/lib/preview-runtime-diagnostics";
 import type { PreviewRendererRoute } from "@/lib/preview-renderers";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
 
@@ -30,9 +36,39 @@ export function PreviewRuntimeStage({
   const [status, setStatus] = useState<PreviewRuntimeStatus>(() =>
     getInitialPreviewRuntimeStatus({ kind, preview })
   );
+  const [metrics, setMetrics] = useState<PreviewRuntimeMetricsSnapshot>(() => {
+    const initialStatus = getInitialPreviewRuntimeStatus({ kind, preview });
+    return createPreviewRuntimeMetricsTracker(initialStatus, {
+      publishIntervalMs: 0
+    }).snapshot();
+  });
+  const overlay = buildPreviewRuntimeOverlayModel({
+    kind,
+    route,
+    runtimeSource: source,
+    snapshot: metrics,
+    status
+  });
 
   useEffect(() => {
-    setStatus(getInitialPreviewRuntimeStatus({ kind, preview }));
+    const initialStatus = getInitialPreviewRuntimeStatus({ kind, preview });
+    const tracker = createPreviewRuntimeMetricsTracker(initialStatus);
+
+    setStatus(initialStatus);
+    setMetrics(tracker.snapshot());
+
+    function handleStatus(nextStatus: PreviewRuntimeStatus) {
+      setStatus(nextStatus);
+      setMetrics(tracker.publishStatus(nextStatus));
+    }
+
+    function handleFrame(sample: PreviewRuntimeFrameSample) {
+      const nextMetrics = tracker.recordFrame(sample);
+
+      if (nextMetrics) {
+        setMetrics(nextMetrics);
+      }
+    }
 
     if (!canRunPreviewRuntime({ preview, route })) {
       return undefined;
@@ -40,7 +76,7 @@ export function PreviewRuntimeStage({
 
     const canvas = canvasRef.current;
     if (!canvas) {
-      setStatus({
+      handleStatus({
         detail: "The runtime canvas is not ready yet.",
         label: "Runtime waiting",
         state: "idle",
@@ -49,7 +85,7 @@ export function PreviewRuntimeStage({
       return undefined;
     }
 
-    setStatus({
+    handleStatus({
       detail:
         kind === "glsl"
           ? "Mounting a bounded WebGL fragment runtime."
@@ -64,7 +100,8 @@ export function PreviewRuntimeStage({
     const runtime = mountPreviewRuntime({
       canvas,
       kind,
-      onStatus: setStatus,
+      onFrame: handleFrame,
+      onStatus: handleStatus,
       source
     });
 
@@ -77,6 +114,7 @@ export function PreviewRuntimeStage({
     <div
       aria-label={`${route.rendererLabel} live runtime`}
       className="previewSurfaceStage previewRuntimeStage"
+      data-runtime-health={metrics.health}
       data-runtime-kind={kind}
       data-runtime-state={status.state}
       role="group"
@@ -87,8 +125,40 @@ export function PreviewRuntimeStage({
         ref={canvasRef}
       />
       <div className="previewRuntimeOverlay" aria-live="polite">
-        <small>{status.label}</small>
+        <div className="previewRuntimeOverlayHeader">
+          <small>{status.label}</small>
+          <span
+            className="previewRuntimeOverlayHealth"
+            data-tone={overlay.healthTone}
+          >
+            {overlay.healthLabel}
+          </span>
+        </div>
         <span>{status.detail}</span>
+        <div
+          aria-label="Renderer diagnostics overlay"
+          className="previewRuntimeMetrics"
+          role="list"
+        >
+          {overlay.metrics.map((metric) => (
+            <div
+              className="previewRuntimeMetric"
+              data-tone={metric.tone}
+              key={metric.id}
+              role="listitem"
+            >
+              <span>{metric.label}</span>
+              <strong>{metric.value}</strong>
+            </div>
+          ))}
+        </div>
+        {overlay.diagnostics.length > 0 ? (
+          <div className="previewRuntimeDiagnostics" aria-label="Runtime diagnostics">
+            {overlay.diagnostics.map((diagnostic) => (
+              <span key={diagnostic}>{diagnostic}</span>
+            ))}
+          </div>
+        ) : null}
       </div>
       {status.error ? (
         <SubsystemErrorCallout
