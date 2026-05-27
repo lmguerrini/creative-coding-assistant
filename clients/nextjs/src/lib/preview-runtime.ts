@@ -303,7 +303,7 @@ function buildPreviewRuntimeSummaryCopy({
   if (previewUpdate?.status === "skipped") {
     return (
       previewUpdate.summary ??
-      "Preview target metadata is ready, but renderer execution is deferred on this branch."
+      "Preview target metadata is ready; live execution starts when a supported sandbox runtime opens."
     );
   }
 

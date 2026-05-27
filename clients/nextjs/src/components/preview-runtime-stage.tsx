@@ -5,7 +5,6 @@ import type { PreviewSummary } from "@/lib/assistant-client";
 import {
   canRunPreviewRuntime,
   getInitialPreviewRuntimeStatus,
-  mountPreviewRuntime,
   type PreviewExecutableRuntimeKind,
   type PreviewRuntimeFrameSample,
   type PreviewRuntimeSource,
@@ -17,10 +16,26 @@ import {
   type PreviewRuntimeMetricsSnapshot
 } from "@/lib/preview-runtime-diagnostics";
 import type { PreviewRendererRoute } from "@/lib/preview-renderers";
+import {
+  createPreviewSandboxRuntimeId,
+  mountPreviewSandboxRuntime
+} from "@/lib/preview-sandbox-runtime";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
+
+export type PreviewRuntimeTelemetryEvent = {
+  kind: PreviewExecutableRuntimeKind;
+  route: PreviewRendererRoute;
+  source: PreviewRuntimeSource;
+};
 
 type PreviewRuntimeStageProps = {
   kind: PreviewExecutableRuntimeKind;
+  onRuntimeFrame?: (
+    event: PreviewRuntimeTelemetryEvent & { sample: PreviewRuntimeFrameSample }
+  ) => void;
+  onRuntimeStatus?: (
+    event: PreviewRuntimeTelemetryEvent & { status: PreviewRuntimeStatus }
+  ) => void;
   preview: PreviewSummary;
   route: PreviewRendererRoute;
   source: PreviewRuntimeSource;
@@ -28,11 +43,18 @@ type PreviewRuntimeStageProps = {
 
 export function PreviewRuntimeStage({
   kind,
+  onRuntimeFrame,
+  onRuntimeStatus,
   preview,
   route,
   source
 }: PreviewRuntimeStageProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const onRuntimeFrameRef = useRef(onRuntimeFrame);
+  const onRuntimeStatusRef = useRef(onRuntimeStatus);
+  const previewRef = useRef(preview);
+  const routeRef = useRef(route);
+  const sourceRef = useRef(source);
   const [status, setStatus] = useState<PreviewRuntimeStatus>(() =>
     getInitialPreviewRuntimeStatus({ kind, preview })
   );
@@ -51,7 +73,21 @@ export function PreviewRuntimeStage({
   });
 
   useEffect(() => {
-    const initialStatus = getInitialPreviewRuntimeStatus({ kind, preview });
+    onRuntimeFrameRef.current = onRuntimeFrame;
+    onRuntimeStatusRef.current = onRuntimeStatus;
+    previewRef.current = preview;
+    routeRef.current = route;
+    sourceRef.current = source;
+  }, [onRuntimeFrame, onRuntimeStatus, preview, route, source]);
+
+  useEffect(() => {
+    const currentPreview = previewRef.current;
+    const currentRoute = routeRef.current;
+    const currentSource = sourceRef.current;
+    const initialStatus = getInitialPreviewRuntimeStatus({
+      kind,
+      preview: currentPreview
+    });
     const tracker = createPreviewRuntimeMetricsTracker(initialStatus);
 
     setStatus(initialStatus);
@@ -60,6 +96,12 @@ export function PreviewRuntimeStage({
     function handleStatus(nextStatus: PreviewRuntimeStatus) {
       setStatus(nextStatus);
       setMetrics(tracker.publishStatus(nextStatus));
+      onRuntimeStatusRef.current?.({
+        kind,
+        route: currentRoute,
+        source: currentSource,
+        status: nextStatus
+      });
     }
 
     function handleFrame(sample: PreviewRuntimeFrameSample) {
@@ -68,47 +110,56 @@ export function PreviewRuntimeStage({
       if (nextMetrics) {
         setMetrics(nextMetrics);
       }
+
+      onRuntimeFrameRef.current?.({
+        kind,
+        route: currentRoute,
+        sample,
+        source: currentSource
+      });
     }
 
-    if (!canRunPreviewRuntime({ preview, route })) {
+    if (!canRunPreviewRuntime({ preview: currentPreview, route: currentRoute })) {
       return undefined;
     }
 
-    const canvas = canvasRef.current;
-    if (!canvas) {
+    const iframe = iframeRef.current;
+    if (!iframe) {
       handleStatus({
-        detail: "The runtime canvas is not ready yet.",
-        label: "Runtime waiting",
+        detail: "The sandbox frame is not ready yet.",
+        label: "Runtime sandbox waiting",
         state: "idle",
         error: null
       });
       return undefined;
     }
 
-    handleStatus({
-      detail:
-        kind === "glsl"
-          ? "Mounting a bounded WebGL fragment runtime."
-          : kind === "three"
-            ? "Mounting a controlled Three.js-style WebGL scene runtime."
-            : "Mounting a constrained canvas sketch runtime.",
-      label: "Runtime starting",
-      state: "starting",
-      error: null
-    });
-
-    const runtime = mountPreviewRuntime({
-      canvas,
+    const runtime = mountPreviewSandboxRuntime({
+      iframe,
       kind,
       onFrame: handleFrame,
       onStatus: handleStatus,
-      source
+      runtimeId: createPreviewSandboxRuntimeId(),
+      source: currentSource
     });
 
     return () => {
       runtime.dispose();
     };
-  }, [kind, preview, route, source]);
+  }, [
+    kind,
+    preview.active,
+    preview.error?.type,
+    preview.state,
+    route.rendererId,
+    route.rendererLabel,
+    route.supportState,
+    route.surfaceKind,
+    source.fingerprint,
+    source.lineCount,
+    source.source,
+    source.title
+  ]);
 
   return (
     <div
@@ -119,10 +170,12 @@ export function PreviewRuntimeStage({
       data-runtime-state={status.state}
       role="group"
     >
-      <canvas
-        aria-label={`${route.rendererLabel} live runtime canvas`}
-        className="previewRuntimeCanvas"
-        ref={canvasRef}
+      <iframe
+        aria-label={`${route.rendererLabel} sandbox runtime frame`}
+        className="previewRuntimeFrame"
+        ref={iframeRef}
+        sandbox="allow-scripts allow-same-origin"
+        title={`${route.rendererLabel} sandbox runtime`}
       />
       <div className="previewRuntimeOverlay" aria-live="polite">
         <div className="previewRuntimeOverlayHeader">

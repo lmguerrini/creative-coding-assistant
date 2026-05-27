@@ -3,19 +3,39 @@
 import type { PreviewSummary } from "@/lib/assistant-client";
 import {
   getExecutablePreviewRuntimeKind,
-  type PreviewRuntimeSource
+  type PreviewRuntimeFrameSample,
+  type PreviewRuntimeSource,
+  type PreviewRuntimeStatus
 } from "@/lib/preview-runtime-adapters";
 import type {
   CreativePreviewRendererKind,
   PreviewRendererRoute,
   PreviewRendererSurfaceKind
 } from "@/lib/preview-renderers";
-import { PreviewRuntimeStage } from "./preview-runtime-stage";
+import {
+  PreviewRuntimeStage,
+  type PreviewRuntimeTelemetryEvent
+} from "./preview-runtime-stage";
 
 type PreviewRendererSurfaceProps = {
+  onRuntimeFrame?: PreviewRuntimeCallbackProps["onRuntimeFrame"];
+  onRuntimeStatus?: PreviewRuntimeCallbackProps["onRuntimeStatus"];
   preview: PreviewSummary;
   route: PreviewRendererRoute;
   runtimeSource: PreviewRuntimeSource;
+};
+
+type PreviewRuntimeCallbackProps = {
+  onRuntimeFrame?: (
+    event: PreviewRuntimeTelemetryEvent & {
+      sample: PreviewRuntimeFrameSample;
+    }
+  ) => void;
+  onRuntimeStatus?: (
+    event: PreviewRuntimeTelemetryEvent & {
+      status: PreviewRuntimeStatus;
+    }
+  ) => void;
 };
 
 const creativeSurfaceLayers: Record<CreativePreviewRendererKind, readonly string[]> = {
@@ -37,6 +57,8 @@ const mediaSurfaceLayers: Record<
 };
 
 export function PreviewRendererSurface({
+  onRuntimeFrame,
+  onRuntimeStatus,
   preview,
   route,
   runtimeSource
@@ -62,7 +84,13 @@ export function PreviewRendererSurface({
           <span>{route.rendererLabel}</span>
         </div>
       </header>
-      {renderPreviewSurfaceStage(route, preview, runtimeSource)}
+      {renderPreviewSurfaceStage({
+        onRuntimeFrame,
+        onRuntimeStatus,
+        preview,
+        route,
+        runtimeSource
+      })}
       <div className="previewSurfaceNotes" aria-label="Preview renderer notes">
         {route.notes.map((note) => (
           <span key={note}>{note}</span>
@@ -80,11 +108,13 @@ export function PreviewRendererSurface({
   );
 }
 
-function renderPreviewSurfaceStage(
-  route: PreviewRendererRoute,
-  preview: PreviewSummary,
-  runtimeSource: PreviewRuntimeSource
-) {
+function renderPreviewSurfaceStage({
+  onRuntimeFrame,
+  onRuntimeStatus,
+  preview,
+  route,
+  runtimeSource
+}: PreviewRendererSurfaceProps) {
   if (route.surfaceKind === "unsupported") {
     return (
       <div
@@ -126,6 +156,8 @@ function renderPreviewSurfaceStage(
       return (
         <PreviewRuntimeStage
           kind={runtimeKind}
+          onRuntimeFrame={onRuntimeFrame}
+          onRuntimeStatus={onRuntimeStatus}
           preview={preview}
           route={route}
           source={runtimeSource}

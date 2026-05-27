@@ -30,16 +30,16 @@ describe("preview runtime", () => {
     ).toMatchObject({
       state: "generating",
       status: "Generating",
-      artifactName: "webgpu-particle-field.ts",
+      artifactName: "aurora-field.p5.js",
       sourceArtifactId: "source-sketch",
-      sourceArtifactName: "webgpu-particle-field.ts",
+      sourceArtifactName: "aurora-field.p5.js",
       outputArtifactName: "",
       target: "Browser sandbox",
       targetId: "browser_sandbox"
     });
   });
 
-  it("hydrates deferred preview output from terminal preview events", () => {
+  it("hydrates sandbox preview output from terminal preview events", () => {
     const snapshot = getLocalWorkspaceSnapshot();
 
     expect(
@@ -52,10 +52,10 @@ describe("preview runtime", () => {
         traceEvents: [
           previewTraceEvent({
             artifactId: "source-sketch",
-            previewArtifactId: "preview-manifest",
-            status: "skipped",
-            summary:
-              "Preview pipeline foundation only; renderer execution is deferred."
+            previewArtifactId: "source-sketch",
+            rendererId: "surface.p5",
+            status: "succeeded",
+            summary: "p5.js runtime ready for sandbox execution."
           })
         ],
         workflow: {
@@ -67,12 +67,12 @@ describe("preview runtime", () => {
       })
     ).toMatchObject({
       state: "ready",
-      status: "Deferred renderer",
-      artifactName: "preview-request.json",
+      status: "Ready when opened",
+      artifactName: "aurora-field.p5.js",
       sourceArtifactId: "source-sketch",
-      sourceArtifactName: "webgpu-particle-field.ts",
-      outputArtifactName: "preview-request.json",
-      renderer: "preview.noop",
+      sourceArtifactName: "aurora-field.p5.js",
+      outputArtifactName: "aurora-field.p5.js",
+      renderer: "surface.p5",
       target: "Browser sandbox",
       targetId: "browser_sandbox"
     });
@@ -128,9 +128,9 @@ describe("preview runtime", () => {
     ).toMatchObject({
       state: "unavailable",
       status: "Unavailable",
-      artifactName: "webgpu-particle-field.ts",
+      artifactName: "aurora-field.p5.js",
       sourceArtifactId: "source-sketch",
-      sourceArtifactName: "webgpu-particle-field.ts"
+      sourceArtifactName: "aurora-field.p5.js"
     });
   });
 
@@ -162,10 +162,10 @@ describe("preview runtime", () => {
     ).toMatchObject({
       state: "error",
       status: "Preview failed",
-      artifactName: "webgpu-particle-field.ts",
+      artifactName: "aurora-field.p5.js",
       error: {
         category: "preview_runtime",
-        subsystem: "preview.noop",
+        subsystem: "surface.p5",
         type: "preview_runtime_failed",
         resetLabel: "Reset preview session"
       }
@@ -197,10 +197,10 @@ describe("preview runtime", () => {
         traceEvents: [
           previewTraceEvent({
             artifactId: "source-sketch",
-            previewArtifactId: "preview-manifest",
-            status: "skipped",
-            summary:
-              "Preview pipeline foundation only; renderer execution is deferred."
+            previewArtifactId: "source-sketch",
+            rendererId: "surface.p5",
+            status: "succeeded",
+            summary: "p5.js runtime ready for sandbox execution."
           })
         ],
         workflow: {
@@ -224,6 +224,7 @@ function previewTraceEvent({
   code = "preview_runtime_failed",
   message = null,
   previewArtifactId = null,
+  rendererId = "surface.p5",
   retryable = false,
   status,
   summary
@@ -232,6 +233,7 @@ function previewTraceEvent({
   code?: string;
   message?: string | null;
   previewArtifactId?: string | null;
+  rendererId?: string;
   retryable?: boolean;
   status: "succeeded" | "failed" | "skipped";
   summary: string;
@@ -259,7 +261,7 @@ function previewTraceEvent({
           : {}),
         ...(previewArtifactId ? { preview_artifact_id: previewArtifactId } : {}),
         provenance: {
-          renderer_id: "preview.noop"
+          renderer_id: rendererId
         },
         request: {
           target: "browser_sandbox"
