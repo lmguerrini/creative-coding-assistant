@@ -385,6 +385,10 @@ function resolveMimeType(fileName: string): string {
     return "text/typescript;charset=utf-8";
   }
 
+  if (fileName.endsWith(".js")) {
+    return "text/javascript;charset=utf-8";
+  }
+
   if (fileName.endsWith(".json")) {
     return "application/json;charset=utf-8";
   }

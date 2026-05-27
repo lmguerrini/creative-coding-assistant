@@ -334,7 +334,7 @@ function buildPreviewableSummary({
     sourceArtifactName: artifact.title,
     state: "ready",
     status: "Ready when opened",
-    summary: `${rendererLabel} preview routing was inferred from the latest generated artifact. Open the shelf to mount the controlled runtime surface.`,
+    summary: `${rendererLabel} preview routing was inferred from the latest generated artifact. Open the shelf to mount the sandboxed runtime surface.`,
     target: `Browser sandbox / ${rendererLabel}`,
     targetId: "browser_sandbox",
     title: "Preview available",

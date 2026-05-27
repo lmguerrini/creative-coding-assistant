@@ -21,10 +21,10 @@ describe("artifact inspector helpers", () => {
     };
 
     expect(buildArtifactDocument(snapshot, codeArtifact)).toMatchObject({
-      fileName: "webgpu-particle-field.ts",
-      languageLabel: "TypeScript + WGSL",
-      lineCount: 7,
-      mimeType: "text/typescript;charset=utf-8",
+      fileName: "aurora-field.p5.js",
+      languageLabel: "p5.js",
+      lineCount: 15,
+      mimeType: "text/javascript;charset=utf-8",
       typeLabel: "Source code"
     });
     expect(previewDocument).toMatchObject({
@@ -52,11 +52,11 @@ describe("artifact inspector helpers", () => {
 
     expect(codeLines[0].tokens).toContainEqual({
       kind: "keyword",
-      text: "const"
+      text: "let"
     });
     expect(codeLines[0].tokens).toContainEqual({
-      kind: "function",
-      text: "sampleBand"
+      kind: "number",
+      text: "0"
     });
     expect(previewLines[1].tokens).toContainEqual({
       kind: "property",
@@ -85,7 +85,7 @@ describe("artifact inspector helpers", () => {
     await expect(copyArtifactDocument(document, clipboard)).resolves.toBe(true);
     expect(clipboard.writeText).toHaveBeenCalledWith(document.content);
     expect(downloadArtifactDocument(document, downloadApi)).toBe(true);
-    expect(anchor.download).toBe("webgpu-particle-field.ts");
+    expect(anchor.download).toBe("aurora-field.p5.js");
     expect(anchor.href).toBe("blob:artifact");
     expect(click).toHaveBeenCalledTimes(1);
     expect(downloadApi.revokeObjectURL).toHaveBeenCalledWith("blob:artifact");

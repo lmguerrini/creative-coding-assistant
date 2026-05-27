@@ -74,9 +74,9 @@ export const creativePreviewRendererRegistry: readonly CreativePreviewRendererDe
     matchExtensions: [".p5.js", ".p5.ts"],
     matchTokens: ["p5", "createcanvas", "background(", "draw("],
     notes: [
-      "Constrained canvas sketch runtime",
-      "Interprets simple p5 sketch signals without executing generated JavaScript",
-      "Reset and reload remount the runtime surface"
+      "Sandboxed p5-compatible browser runtime",
+      "Executes generated sketch source inside an isolated iframe",
+      "Runtime status, frames, and errors stream back to diagnostics"
     ]
   },
   {
@@ -94,9 +94,9 @@ export const creativePreviewRendererRegistry: readonly CreativePreviewRendererDe
       "react-three"
     ],
     notes: [
-      "Controlled WebGL scene runtime",
-      "Parses scene hints without executing generated JavaScript",
-      "Reset and reload remount the 3D stage"
+      "Sandboxed Three.js-compatible browser runtime",
+      "Executes generated scene source inside an isolated iframe",
+      "Reset and reload remount the 3D runtime document"
     ]
   },
   {
@@ -114,8 +114,8 @@ export const creativePreviewRendererRegistry: readonly CreativePreviewRendererDe
       "void main"
     ],
     notes: [
-      "Bounded WebGL fragment runtime",
-      "Compiles fragment shaders without JavaScript evaluation",
+      "Sandboxed WebGL fragment runtime",
+      "Compiles fragment shaders inside an isolated iframe",
       "Rejects unsupported shader features with a visible runtime error"
     ]
   },
@@ -218,7 +218,7 @@ export function buildPreviewRendererRoute({
         "The runtime surface is waiting for preview target metadata before a renderer container can be selected.",
       notes: [
         "Target resolution happens before renderer selection",
-        "No creative runtime engine is executed on this branch"
+        "Live runtime execution starts after a supported target is selected"
       ],
       tone
     };
@@ -241,12 +241,12 @@ export function buildPreviewRendererRoute({
         rendererLabel: matchedRenderer.displayName,
         rendererDescription: matchedRenderer.description,
         supportState: "supported",
-        supportLabel: "Foundation ready",
+        supportLabel: "Runtime ready",
         supportReason: `${matchedRenderer.displayName} matches the current browser-sandbox artifact signals.`,
         surfaceKind: matchedRenderer.kind,
         surfaceTitle: matchedRenderer.surfaceLabel,
         surfaceEyebrow: "Renderer match",
-        surfaceSummary: `${matchedRenderer.displayName} is selected as the live surface for ${sourceArtifactName}. Supported runtimes mount in place while unsupported engines stay in placeholder mode.`,
+        surfaceSummary: `${matchedRenderer.displayName} is selected as the live surface for ${sourceArtifactName}. Supported runtimes execute in an isolated browser sandbox.`,
         notes: matchedRenderer.notes,
         tone
       };
@@ -302,14 +302,18 @@ export function matchCreativePreviewRenderer(
     .join(" ")
     .trim()
     .toLowerCase();
+  const normalizedTitle = artifact.title.trim().toLowerCase();
+  const extensionMatch = creativePreviewRendererRegistry.find((renderer) =>
+    renderer.matchExtensions.some((extension) => normalizedTitle.endsWith(extension))
+  );
+
+  if (extensionMatch) {
+    return extensionMatch;
+  }
 
   return (
     creativePreviewRendererRegistry.find((renderer) => {
-      const normalizedTitle = artifact.title.trim().toLowerCase();
-      return (
-        renderer.matchExtensions.some((extension) => normalizedTitle.endsWith(extension)) ||
-        renderer.matchTokens.some((token) => haystack.includes(token))
-      );
+      return renderer.matchTokens.some((token) => haystack.includes(token));
     }) ?? null
   );
 }

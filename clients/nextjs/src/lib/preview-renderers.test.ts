@@ -10,7 +10,7 @@ import {
 } from "./preview-renderers";
 
 describe("preview renderers", () => {
-  it("routes the default WebGPU sketch into an unsupported browser surface", () => {
+  it("routes the default p5 sketch into the sandbox browser runtime", () => {
     const snapshot = getLocalWorkspaceSnapshot();
 
     expect(
@@ -22,9 +22,10 @@ describe("preview renderers", () => {
     ).toMatchObject({
       targetId: "browser_sandbox",
       targetLabel: "Browser sandbox",
-      rendererLabel: "No matching live renderer",
-      supportState: "unsupported",
-      surfaceKind: "unsupported"
+      rendererId: "surface.p5",
+      rendererLabel: "p5.js",
+      supportState: "supported",
+      surfaceKind: "p5"
     });
   });
 
@@ -40,7 +41,7 @@ describe("preview renderers", () => {
           artifactName: "preview-request.json",
           outputArtifactName: "preview-request.json",
           sourceArtifactId: "source-sketch",
-          sourceArtifactName: "webgpu-particle-field.ts",
+          sourceArtifactName: "aurora-field.p5.js",
           state: "ready",
           status: "Preview open"
         },
