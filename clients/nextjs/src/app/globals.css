@@ -180,25 +180,35 @@ html[data-cca-theme="codex"] {
 }
 
 html[data-cca-theme="matrix"] {
-  --background: #050804;
-  --background-rgb: 5, 8, 4;
-  --foreground: #eff9e8;
-  --muted: #7f967c;
-  --muted-strong: #c7d9bf;
-  --panel: rgba(12, 18, 10, 0.9);
-  --panel-strong: rgba(14, 22, 12, 0.96);
-  --panel-soft: rgba(159, 232, 112, 0.055);
-  --line: rgba(159, 232, 112, 0.14);
-  --line-strong: rgba(159, 232, 112, 0.26);
-  --teal: #9fe870;
-  --amber: #d4c770;
-  --coral: #ff937d;
-  --blue: #91d685;
-  --green: #8de067;
+  --background: #040703;
+  --background-rgb: 4, 7, 3;
+  --foreground: #edf6e1;
+  --muted: #879783;
+  --muted-strong: #c3d4bb;
+  --panel: rgba(10, 16, 9, 0.9);
+  --panel-strong: rgba(12, 18, 10, 0.965);
+  --panel-soft: rgba(255, 255, 255, 0.03);
+  --line: rgba(145, 180, 118, 0.12);
+  --line-strong: rgba(145, 180, 118, 0.22);
+  --teal: #a7ea72;
+  --amber: #c9c185;
+  --coral: #f1987f;
+  --blue: #9cc88b;
+  --green: #8fd75d;
   --accent-rgb: 159, 232, 112;
   --focus-outline: rgba(159, 232, 112, 0.72);
-  --glow-teal: 0 0 0 1px rgba(159, 232, 112, 0.28), 0 0 28px rgba(159, 232, 112, 0.14);
-  --shadow: 0 24px 84px rgba(0, 0, 0, 0.56);
+  --glow-teal: 0 0 0 1px rgba(159, 232, 112, 0.22), 0 0 34px rgba(104, 148, 69, 0.16);
+  --shadow: 0 28px 92px rgba(0, 0, 0, 0.62);
+  --surface-0: rgba(7, 11, 6, 0.9);
+  --surface-1: rgba(170, 214, 125, 0.028);
+  --surface-2: rgba(170, 214, 125, 0.042);
+  --surface-3: rgba(170, 214, 125, 0.06);
+  --surface-accent: rgba(159, 232, 112, 0.075);
+  --section-divider: rgba(145, 180, 118, 0.08);
+  --panel-highlight: inset 0 1px 0 rgba(232, 247, 219, 0.028);
+  --code-surface: rgba(3, 8, 3, 0.88);
+  --scrollbar-track: rgba(116, 150, 88, 0.08);
+  --scrollbar-thumb: rgba(159, 232, 112, 0.18);
 }
 
 * {
@@ -3885,6 +3895,286 @@ a {
 .retrievalSourceLink:hover {
   color: var(--foreground);
   text-decoration: underline;
+}
+
+html[data-cca-theme="matrix"] {
+  background:
+    radial-gradient(circle at 16% 12%, rgba(159, 232, 112, 0.13), transparent 24%),
+    radial-gradient(circle at 84% 16%, rgba(108, 145, 79, 0.1), transparent 26%),
+    linear-gradient(rgba(4, 7, 3, 0.9), rgba(4, 7, 3, 1)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(159, 232, 112, 0.028) 0,
+      rgba(159, 232, 112, 0.028) 1px,
+      transparent 1px,
+      transparent 72px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(159, 232, 112, 0.018) 0,
+      rgba(159, 232, 112, 0.018) 1px,
+      transparent 1px,
+      transparent 72px
+    ),
+    var(--background);
+}
+
+html[data-cca-theme="matrix"] .workstation {
+  background:
+    linear-gradient(180deg, rgba(114, 161, 74, 0.035), transparent 200px),
+    radial-gradient(circle at 50% 100%, rgba(46, 69, 33, 0.2), transparent 42%),
+    transparent;
+}
+
+html[data-cca-theme="matrix"] .topbar,
+html[data-cca-theme="matrix"] .sessionPanel,
+html[data-cca-theme="matrix"] .previewShelf,
+html[data-cca-theme="matrix"] .inspector,
+html[data-cca-theme="matrix"] .utilityPanel {
+  border-color: rgba(145, 180, 118, 0.16);
+}
+
+html[data-cca-theme="matrix"] .topbar {
+  background:
+    linear-gradient(180deg, rgba(159, 232, 112, 0.045), transparent 140px),
+    rgba(5, 9, 4, 0.9);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.24);
+}
+
+html[data-cca-theme="matrix"] .brandMark,
+html[data-cca-theme="matrix"] .sessionStatus,
+html[data-cca-theme="matrix"] .sessionMetric,
+html[data-cca-theme="matrix"] .toolbarToggle,
+html[data-cca-theme="matrix"] .iconButton,
+html[data-cca-theme="matrix"] .commandMenuGrid button,
+html[data-cca-theme="matrix"] .themePresetButton,
+html[data-cca-theme="matrix"] .settingsChoiceRow button,
+html[data-cca-theme="matrix"] .settingsToggle button,
+html[data-cca-theme="matrix"] .composerUploadButton,
+html[data-cca-theme="matrix"] .composer textarea,
+html[data-cca-theme="matrix"] .artifactActions button,
+html[data-cca-theme="matrix"] .codePanelActions button,
+html[data-cca-theme="matrix"] .previewControlButton,
+html[data-cca-theme="matrix"] .operatorCheckpointActions button {
+  background:
+    linear-gradient(180deg, rgba(159, 232, 112, 0.045), rgba(6, 10, 5, 0.2)),
+    rgba(255, 255, 255, 0.02);
+}
+
+html[data-cca-theme="matrix"] .brandMark {
+  border-color: rgba(159, 232, 112, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(232, 247, 219, 0.03),
+    0 0 0 1px rgba(53, 76, 37, 0.14);
+}
+
+html[data-cca-theme="matrix"] .sessionPanel,
+html[data-cca-theme="matrix"] .previewShelf,
+html[data-cca-theme="matrix"] .inspector {
+  background:
+    linear-gradient(180deg, rgba(159, 232, 112, 0.03), transparent 160px),
+    linear-gradient(140deg, rgba(159, 232, 112, 0.045), transparent 32%),
+    rgba(10, 16, 9, 0.9);
+}
+
+html[data-cca-theme="matrix"] .sessionStatus {
+  color: #d0ddc9;
+}
+
+html[data-cca-theme="matrix"] .sessionStatus small,
+html[data-cca-theme="matrix"] .sessionMetric small,
+html[data-cca-theme="matrix"] .previewShelf summary small,
+html[data-cca-theme="matrix"] .telemetryDashboardHeroMeta span,
+html[data-cca-theme="matrix"] .telemetryStateBadge[data-state="streaming"],
+html[data-cca-theme="matrix"] .telemetryStateBadge[data-state="complete"] {
+  background: rgba(159, 232, 112, 0.12);
+  color: var(--teal);
+}
+
+html[data-cca-theme="matrix"] .toolbarToggle[aria-pressed="true"],
+html[data-cca-theme="matrix"] .iconButton[aria-expanded="true"],
+html[data-cca-theme="matrix"] .commandMenuGrid button[data-active="true"],
+html[data-cca-theme="matrix"] .themePresetButton[data-active="true"],
+html[data-cca-theme="matrix"] .settingsChoiceRow button[data-active="true"],
+html[data-cca-theme="matrix"] .settingsToggle button[data-active="true"],
+html[data-cca-theme="matrix"] .inspectorTabs button[aria-selected="true"],
+html[data-cca-theme="matrix"] .previewControlButton[aria-pressed="true"] {
+  border-color: rgba(159, 232, 112, 0.32);
+  background:
+    linear-gradient(180deg, rgba(159, 232, 112, 0.1), transparent 80%),
+    rgba(14, 22, 12, 0.96);
+  box-shadow: 0 12px 24px rgba(54, 84, 34, 0.18);
+}
+
+html[data-cca-theme="matrix"] .toolbarToggle:hover,
+html[data-cca-theme="matrix"] .iconButton:hover,
+html[data-cca-theme="matrix"] .commandMenuGrid button:hover,
+html[data-cca-theme="matrix"] .themePresetButton:hover,
+html[data-cca-theme="matrix"] .settingsChoiceRow button:hover,
+html[data-cca-theme="matrix"] .settingsToggle button:hover,
+html[data-cca-theme="matrix"] .artifactActions button:hover,
+html[data-cca-theme="matrix"] .codePanelActions button:hover,
+html[data-cca-theme="matrix"] .previewControlButton:hover,
+html[data-cca-theme="matrix"] .operatorCheckpointActions button:hover {
+  border-color: rgba(159, 232, 112, 0.26);
+  box-shadow: 0 10px 22px rgba(54, 84, 34, 0.14);
+  color: #eff6e4;
+}
+
+html[data-cca-theme="matrix"] .sendButton[data-ready="true"] {
+  color: #061004;
+  background:
+    linear-gradient(180deg, #b8f58e, #8edb5d);
+  box-shadow:
+    0 0 0 1px rgba(159, 232, 112, 0.2),
+    0 14px 28px rgba(47, 77, 28, 0.24);
+}
+
+html[data-cca-theme="matrix"] .chatLog {
+  background:
+    linear-gradient(180deg, rgba(159, 232, 112, 0.02), transparent 88px),
+    transparent;
+}
+
+html[data-cca-theme="matrix"] .message,
+html[data-cca-theme="matrix"] .overviewTile,
+html[data-cca-theme="matrix"] .workflowSummaryCard,
+html[data-cca-theme="matrix"] .workflowTraceCard,
+html[data-cca-theme="matrix"] .telemetryLifecycleCard,
+html[data-cca-theme="matrix"] .telemetrySignalCard,
+html[data-cca-theme="matrix"] .telemetryDashboardCard,
+html[data-cca-theme="matrix"] .artifactItem,
+html[data-cca-theme="matrix"] .artifactDetailCard,
+html[data-cca-theme="matrix"] .retrievalSummaryCard,
+html[data-cca-theme="matrix"] .retrievalEmptyCard,
+html[data-cca-theme="matrix"] .retrievalItem,
+html[data-cca-theme="matrix"] .retrievalChunk,
+html[data-cca-theme="matrix"] .previewIndicator,
+html[data-cca-theme="matrix"] .previewCopy,
+html[data-cca-theme="matrix"] .previewSurfacePanelFrame,
+html[data-cca-theme="matrix"] .subsystemErrorMeta div,
+html[data-cca-theme="matrix"] .telemetryMetricRow div {
+  background:
+    linear-gradient(180deg, rgba(159, 232, 112, 0.035), transparent 78%),
+    rgba(11, 18, 10, 0.7);
+}
+
+html[data-cca-theme="matrix"] .message[data-role="assistant"],
+html[data-cca-theme="matrix"] .codePanel[data-opened-artifact] .codePanelHeader,
+html[data-cca-theme="matrix"] .overviewTile[data-state="running"],
+html[data-cca-theme="matrix"] .overviewTile[data-state="streaming"],
+html[data-cca-theme="matrix"] .overviewTile[data-state="generating"],
+html[data-cca-theme="matrix"] .overviewTile[data-state="ready"],
+html[data-cca-theme="matrix"] .previewShelf[open],
+html[data-cca-theme="matrix"] .previewIndicator[data-tone="active"],
+html[data-cca-theme="matrix"] .retrievalSummaryCard[data-state="available"],
+html[data-cca-theme="matrix"] .telemetryLifecycleCard,
+html[data-cca-theme="matrix"] .telemetryDashboardHero {
+  border-color: rgba(159, 232, 112, 0.2);
+}
+
+html[data-cca-theme="matrix"] .inspector {
+  background:
+    linear-gradient(180deg, rgba(159, 232, 112, 0.045), transparent 148px),
+    linear-gradient(140deg, rgba(159, 232, 112, 0.05), transparent 26%),
+    rgba(11, 18, 10, 0.96);
+}
+
+html[data-cca-theme="matrix"] .inspectorHeader,
+html[data-cca-theme="matrix"] .inspectorTabs {
+  background:
+    linear-gradient(180deg, rgba(159, 232, 112, 0.028), transparent),
+    transparent;
+}
+
+html[data-cca-theme="matrix"] .inspectorTabs button {
+  background:
+    linear-gradient(180deg, rgba(159, 232, 112, 0.03), transparent),
+    rgba(9, 14, 8, 0.88);
+}
+
+html[data-cca-theme="matrix"] .telemetryDashboardHero {
+  background:
+    radial-gradient(circle at top left, rgba(159, 232, 112, 0.1), transparent 40%),
+    linear-gradient(135deg, rgba(159, 232, 112, 0.04), rgba(255, 255, 255, 0.015)),
+    rgba(11, 18, 10, 0.82);
+}
+
+html[data-cca-theme="matrix"] .telemetryDashboardPanel,
+html[data-cca-theme="matrix"] .retrievalPanel,
+html[data-cca-theme="matrix"] .artifactPanel,
+html[data-cca-theme="matrix"] .workflowPanel {
+  background:
+    linear-gradient(180deg, rgba(159, 232, 112, 0.016), transparent 120px),
+    transparent;
+}
+
+html[data-cca-theme="matrix"] .previewShelf {
+  background:
+    linear-gradient(180deg, rgba(159, 232, 112, 0.04), transparent 128px),
+    linear-gradient(140deg, rgba(159, 232, 112, 0.04), transparent 26%),
+    rgba(10, 16, 9, 0.94);
+}
+
+html[data-cca-theme="matrix"] .previewSurface {
+  background:
+    linear-gradient(180deg, rgba(159, 232, 112, 0.05), transparent 72px),
+    radial-gradient(circle at 18% 18%, rgba(159, 232, 112, 0.12), transparent 26%),
+    rgba(5, 10, 5, 0.84);
+}
+
+html[data-cca-theme="matrix"] .previewSurface[data-runtime-state="generating"] {
+  background:
+    linear-gradient(180deg, rgba(159, 232, 112, 0.07), transparent 88px),
+    radial-gradient(circle at 18% 18%, rgba(159, 232, 112, 0.14), transparent 28%),
+    rgba(5, 10, 5, 0.86);
+}
+
+html[data-cca-theme="matrix"] .previewSurfaceBackdrop,
+html[data-cca-theme="matrix"] .previewRuntimeCanvas {
+  background:
+    radial-gradient(circle at 22% 28%, rgba(159, 232, 112, 0.16), transparent 22%),
+    radial-gradient(circle at 74% 64%, rgba(109, 152, 79, 0.14), transparent 24%),
+    linear-gradient(180deg, rgba(159, 232, 112, 0.035), transparent 40%),
+    #050904;
+}
+
+html[data-cca-theme="matrix"] .previewRuntimeOverlay,
+html[data-cca-theme="matrix"] .previewRuntimeMeta {
+  background: rgba(6, 10, 5, 0.76);
+}
+
+html[data-cca-theme="matrix"] .codeViewer {
+  background:
+    linear-gradient(180deg, rgba(159, 232, 112, 0.025), transparent 72px),
+    rgba(3, 8, 3, 0.92);
+}
+
+html[data-cca-theme="matrix"] .codeToken--comment {
+  color: #7ca26e;
+}
+
+html[data-cca-theme="matrix"] .codeToken--heading,
+html[data-cca-theme="matrix"] .codeToken--property {
+  color: #a7d58d;
+}
+
+html[data-cca-theme="matrix"] .codeToken--function {
+  color: #d4ecb5;
+}
+
+html[data-cca-theme="matrix"] .codeToken--number {
+  color: #b9d684;
+}
+
+html[data-cca-theme="matrix"] .codeToken--string {
+  color: #d8d2a1;
+}
+
+html[data-cca-theme="matrix"] .workflowNode[data-state="active"],
+html[data-cca-theme="matrix"] .workflowProgress span,
+html[data-cca-theme="matrix"] .previewSurfaceGrid span[data-active="true"] {
+  box-shadow: 0 0 0 1px rgba(159, 232, 112, 0.18), 0 0 18px rgba(83, 123, 50, 0.18);
 }
 
 .workstation[data-density="compact"] .workspaceLayout {

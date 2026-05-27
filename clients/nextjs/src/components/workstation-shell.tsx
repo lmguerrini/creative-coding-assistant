@@ -232,9 +232,10 @@ const themePresetOptions = [
   {
     value: "matrix",
     label: "Matrix",
-    description: "Blackened shell with lime signal highlights.",
+    description: "Obsidian console with restrained lime signal highlights.",
     accent: "#9fe870",
-    surface: "linear-gradient(135deg, rgba(159, 232, 112, 0.2), rgba(44, 75, 36, 0.16))"
+    surface:
+      "linear-gradient(135deg, rgba(159, 232, 112, 0.16), rgba(38, 58, 30, 0.16), rgba(7, 11, 6, 0.26))"
   }
 ] satisfies readonly ThemePresetOption[];
 
