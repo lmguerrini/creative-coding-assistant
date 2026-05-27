@@ -10,6 +10,7 @@ from uuid import uuid4
 
 from loguru import logger
 
+from creative_coding_assistant.analytics import LangSmithRunMetadata
 from creative_coding_assistant.contracts import AssistantRequest, StreamEvent
 from creative_coding_assistant.core import Settings
 from creative_coding_assistant.eval.live_session import (
@@ -97,6 +98,7 @@ def build_live_session_sample(
     route_decision = _extract_route_decision(events)
     retrieved_contexts = _extract_recorded_retrieved_contexts(events)
     provider_metadata = _extract_provider_metadata(final_event)
+    observability_metadata = _extract_observability_metadata(final_event)
     resolved_recorded_at = recorded_at or datetime.now(UTC)
     resolved_route = LiveSessionRouteMetadata(
         route=(route_decision.route if route_decision is not None else None),
@@ -123,6 +125,7 @@ def build_live_session_sample(
         route=resolved_route,
         retrieved_contexts=retrieved_contexts,
         provider_metadata=provider_metadata,
+        observability_metadata=observability_metadata,
         started_at=started_at,
         completed_at=completed_at,
         recorded_at=resolved_recorded_at,
@@ -190,6 +193,20 @@ def _extract_provider_metadata(
     ):
         return None
     return metadata
+
+
+def _extract_observability_metadata(
+    final_event: StreamEvent,
+) -> LangSmithRunMetadata | None:
+    raw_observability = final_event.payload.get("observability")
+    if not isinstance(raw_observability, dict):
+        return None
+
+    try:
+        return LangSmithRunMetadata.model_validate(raw_observability)
+    except Exception:
+        logger.debug("live_session_observability_metadata_ignored")
+        return None
 
 
 def _extract_retrieval_context(

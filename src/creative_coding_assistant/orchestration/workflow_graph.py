@@ -11,6 +11,10 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.runtime import Runtime
 from loguru import logger
 
+from creative_coding_assistant.analytics import (
+    LangSmithObservability,
+    LangSmithRunMetadata,
+)
 from creative_coding_assistant.contracts import AssistantRequest, StreamEvent
 from creative_coding_assistant.orchestration.events import StreamEventBuilder
 from creative_coding_assistant.orchestration.prompt_templates import (
@@ -61,6 +65,8 @@ class AssistantWorkflowRuntime:
     """Runtime services needed by graph nodes for one assistant turn."""
 
     event_builder: StreamEventBuilder
+    observability: LangSmithObservability
+    observability_run: LangSmithRunMetadata
     route_fn: Callable[[AssistantRequest], RouteDecision]
     stream_request_received: Callable[..., Iterator[object]]
     stream_route_selected: Callable[..., Iterator[object]]
@@ -193,6 +199,8 @@ def _intake_node(
             runtime_context.stream_request_received(
                 builder=runtime_context.event_builder,
                 request=workflow_state.request,
+                observability=runtime_context.observability,
+                observability_run=runtime_context.observability_run,
             ),
             workflow_state=workflow_state,
         )
@@ -304,6 +312,7 @@ def _retrieval_node(
                 builder=runtime_context.event_builder,
                 request=workflow_state.request,
                 decision=_route_decision(workflow_state),
+                observability_run=runtime_context.observability_run,
             ),
             workflow_state=workflow_state,
         )
@@ -610,6 +619,13 @@ def _finalization_node(
             runtime_context.event_builder.final(
                 answer=answer,
                 route=state["route_payload"],
+                **_optional_event_payload(
+                    "observability",
+                    runtime_context.observability.event_payload(
+                        runtime_context.observability_run,
+                        lineage={"stage": WorkflowStep.FINALIZATION.value},
+                    ),
+                ),
                 **({"telemetry": telemetry} if telemetry is not None else {}),
             ),
             workflow_state=final_state,
@@ -658,6 +674,13 @@ def _failure_node(
         runtime_context.event_builder.final(
             answer=answer,
             route=state.get("route_payload"),
+            **_optional_event_payload(
+                "observability",
+                runtime_context.observability.event_payload(
+                    runtime_context.observability_run,
+                    lineage={"stage": WorkflowStep.FAILURE.value},
+                ),
+            ),
         ),
         workflow_state=final_state,
         step=WorkflowStep.FAILURE,
@@ -929,3 +952,10 @@ def _serialize_workflow_runtime(
             for image in workflow_state.request.attachments
         ],
     }
+
+
+def _optional_event_payload(
+    key: str,
+    value: dict[str, object] | None,
+) -> dict[str, dict[str, object]]:
+    return {key: value} if value is not None else {}

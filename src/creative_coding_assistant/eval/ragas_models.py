@@ -8,6 +8,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
+from creative_coding_assistant.analytics import LangSmithRunMetadata
 from creative_coding_assistant.eval.live_session import (
     LiveSessionEvalSample,
     LiveSessionProviderMetadata,
@@ -35,6 +36,7 @@ class RagasLiveEvalRow(BaseModel):
     domains: tuple[str, ...] = Field(default_factory=tuple)
     retrieval_scores: tuple[float, ...] = Field(default_factory=tuple)
     provider_metadata: LiveSessionProviderMetadata | None = None
+    observability_metadata: LangSmithRunMetadata | None = None
     recorded_at: datetime | None = None
 
     @field_validator("user_input", "response")
@@ -231,6 +233,7 @@ def select_ragas_live_eval_rows(
                     context.score for context in sample.retrieved_contexts
                 ),
                 provider_metadata=sample.provider_metadata,
+                observability_metadata=sample.observability_metadata,
                 recorded_at=sample.recorded_at,
             )
         )

@@ -46,6 +46,42 @@ class Settings(BaseSettings):
         default=None,
         validation_alias=AliasChoices("OPENAI_API_KEY", "CCA_OPENAI_API_KEY"),
     )
+    langsmith_tracing: bool = Field(
+        default=False,
+        validation_alias=AliasChoices(
+            "LANGSMITH_TRACING",
+            "LANGCHAIN_TRACING_V2",
+            "CCA_LANGSMITH_TRACING",
+        ),
+    )
+    langsmith_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "LANGSMITH_API_KEY",
+            "LANGCHAIN_API_KEY",
+            "CCA_LANGSMITH_API_KEY",
+        ),
+        exclude=True,
+    )
+    langsmith_project: str = Field(
+        default="creative-coding-assistant",
+        min_length=1,
+        validation_alias=AliasChoices(
+            "LANGSMITH_PROJECT",
+            "LANGCHAIN_PROJECT",
+            "CCA_LANGSMITH_PROJECT",
+        ),
+    )
+    langsmith_endpoint: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "LANGSMITH_ENDPOINT",
+            "LANGCHAIN_ENDPOINT",
+            "CCA_LANGSMITH_ENDPOINT",
+        ),
+    )
+    langsmith_timeout_ms: int = Field(default=1500, ge=100)
+    langsmith_sampling_rate: float = Field(default=1.0, ge=0, le=1)
 
     model_config = SettingsConfigDict(
         env_prefix="CCA_",
@@ -75,9 +111,22 @@ class Settings(BaseSettings):
     def normalize_eval_ragas_model(cls, value: str) -> str:
         return value.strip()
 
-    @field_validator("openai_api_key", mode="before")
+    @field_validator("langsmith_project", mode="before")
     @classmethod
-    def normalize_openai_api_key(
+    def normalize_langsmith_project(cls, value: str) -> str:
+        return str(value).strip()
+
+    @field_validator("langsmith_endpoint", mode="before")
+    @classmethod
+    def normalize_langsmith_endpoint(cls, value: object | None) -> str | None:
+        if value is None:
+            return None
+        normalized = str(value).strip()
+        return normalized or None
+
+    @field_validator("openai_api_key", "langsmith_api_key", mode="before")
+    @classmethod
+    def normalize_api_key(
         cls,
         value: SecretStr | str | None,
     ) -> str | None:
@@ -103,6 +152,16 @@ class Settings(BaseSettings):
         if self.openai_api_key is None:
             return None
         secret_value = self.openai_api_key.get_secret_value().strip()
+        return secret_value or None
+
+    @property
+    def has_langsmith_api_key(self) -> bool:
+        return self.get_langsmith_api_key() is not None
+
+    def get_langsmith_api_key(self) -> str | None:
+        if self.langsmith_api_key is None:
+            return None
+        secret_value = self.langsmith_api_key.get_secret_value().strip()
         return secret_value or None
 
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping, Sequence
+from contextlib import nullcontext
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol
@@ -11,6 +12,10 @@ from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
 
+from creative_coding_assistant.analytics import (
+    LangSmithObservability,
+    LangSmithRunMetadata,
+)
 from creative_coding_assistant.eval.ragas_models import (
     DEFAULT_RAGAS_METRICS,
     RagasLiveEvalDataset,
@@ -99,10 +104,11 @@ class RagasLiveEvalRunManifest(BaseModel):
     cost_warning: str = Field(min_length=1)
     result_rows: int = Field(ge=0)
     metric_failures: int = Field(default=0, ge=0)
+    langsmith: LangSmithRunMetadata | None = None
     evaluated_at: datetime
 
     def summary_payload(self) -> dict[str, object]:
-        return {
+        payload: dict[str, object] = {
             "run_id": self.run_id,
             "dataset": self.dataset.summary_payload(),
             "input_path": str(self.input_path),
@@ -116,6 +122,9 @@ class RagasLiveEvalRunManifest(BaseModel):
             "metric_failures": self.metric_failures,
             "evaluated_at": self.evaluated_at.isoformat(),
         }
+        if self.langsmith is not None:
+            payload["langsmith"] = self.langsmith.payload()
+        return payload
 
 
 class RagasLiveEvalRunResult(BaseModel):
@@ -241,6 +250,7 @@ def run_ragas_live_eval(
     latest: int | None = None,
     evaluator_config: RagasEvaluatorConfig | None = None,
     backend: RagasEvaluationBackend | None = None,
+    langsmith_observability: LangSmithObservability | None = None,
     run_id: str | None = None,
     evaluated_at: datetime | None = None,
     dry_run: bool = False,
@@ -266,29 +276,48 @@ def run_ragas_live_eval(
         dry_run=dry_run,
         provider_calls_allowed=allow_provider_calls,
     )
+    langsmith_run = (
+        langsmith_observability.evaluation_run_context(
+            eval_run_id=resolved_run_id,
+            dataset_id=dataset.dataset_id,
+            metrics=resolved_metrics,
+            eligible_samples=dataset.eligible_samples,
+            skipped_samples=dataset.skipped_samples,
+            dry_run=dry_run,
+        )
+        if langsmith_observability is not None
+        else None
+    )
 
     result_rows: tuple[RagasLiveEvalResultRow, ...] = ()
-    if dataset.rows and not dry_run:
-        if backend is None and not allow_provider_calls:
-            raise RagasProviderCostBoundaryError(
-                "RAGAs evaluation may call evaluator LLM and embedding providers. "
-                "Pass allow_provider_calls=True or run with --dry-run first."
+    with _optional_langsmith_trace(
+        langsmith_observability=langsmith_observability,
+        langsmith_run=langsmith_run,
+        dataset=dataset,
+    ):
+        if dataset.rows and not dry_run:
+            if backend is None and not allow_provider_calls:
+                raise RagasProviderCostBoundaryError(
+                    "RAGAs evaluation may call evaluator LLM and embedding providers. "
+                    "Pass allow_provider_calls=True or run with --dry-run first."
+                )
+            evaluator = backend or DefaultRagasEvaluationBackend(
+                config=evaluator_config
             )
-        evaluator = backend or DefaultRagasEvaluationBackend(config=evaluator_config)
-        scores = evaluator.evaluate(dataset.rows, resolved_metrics)
-        if len(scores) != len(dataset.rows):
-            raise ValueError("RAGAs backend returned a mismatched score row count.")
-        result_rows = tuple(
-            _build_result_row(
-                row=row,
-                score=score,
-                metric_names=resolved_metrics,
-                run_id=resolved_run_id,
-                evaluated_at=resolved_evaluated_at,
+            scores = evaluator.evaluate(dataset.rows, resolved_metrics)
+            if len(scores) != len(dataset.rows):
+                raise ValueError("RAGAs backend returned a mismatched score row count.")
+            result_rows = tuple(
+                _build_result_row(
+                    row=row,
+                    score=score,
+                    metric_names=resolved_metrics,
+                    run_id=resolved_run_id,
+                    evaluated_at=resolved_evaluated_at,
+                )
+                for row, score in zip(dataset.rows, scores, strict=True)
             )
-            for row, score in zip(dataset.rows, scores, strict=True)
-        )
-        _write_result_rows(output_path, result_rows)
+            _write_result_rows(output_path, result_rows)
 
     metric_failures = sum(len(row.metric_errors) for row in result_rows)
     manifest = RagasLiveEvalRunManifest(
@@ -303,6 +332,10 @@ def run_ragas_live_eval(
         cost_warning=cost_warning,
         result_rows=len(result_rows),
         metric_failures=metric_failures,
+        langsmith=_manifest_langsmith_metadata(
+            langsmith_observability=langsmith_observability,
+            langsmith_run=langsmith_run,
+        ),
         evaluated_at=resolved_evaluated_at,
     )
     _write_run_manifest(manifest)
@@ -360,6 +393,38 @@ def _write_result_rows(
         for row in rows:
             handle.write(row.model_dump_json())
             handle.write("\n")
+
+
+def _optional_langsmith_trace(
+    *,
+    langsmith_observability: LangSmithObservability | None,
+    langsmith_run: LangSmithRunMetadata | None,
+    dataset: RagasLiveEvalDataset,
+) -> object:
+    if langsmith_observability is None or langsmith_run is None:
+        return nullcontext()
+    return langsmith_observability.trace(
+        langsmith_run,
+        run_type="chain",
+        inputs={
+            "dataset_id": dataset.dataset_id,
+            "eligible_samples": dataset.eligible_samples,
+            "skipped_samples": dataset.skipped_samples,
+            "metrics": list(dataset.metrics),
+        },
+    )
+
+
+def _manifest_langsmith_metadata(
+    *,
+    langsmith_observability: LangSmithObservability | None,
+    langsmith_run: LangSmithRunMetadata | None,
+) -> LangSmithRunMetadata | None:
+    if langsmith_observability is None or langsmith_run is None:
+        return None
+    if langsmith_observability.event_payload(langsmith_run) is None:
+        return None
+    return langsmith_run
 
 
 def _write_run_manifest(manifest: RagasLiveEvalRunManifest) -> None:

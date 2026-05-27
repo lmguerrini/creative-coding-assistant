@@ -8,6 +8,7 @@ from pathlib import Path
 
 from loguru import logger
 
+from creative_coding_assistant.analytics import build_langsmith_observability
 from creative_coding_assistant.core import load_settings
 from creative_coding_assistant.core.logging import configure_logging
 from creative_coding_assistant.eval.ragas_models import SUPPORTED_RAGAS_METRICS
@@ -103,6 +104,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 max_retries=settings.eval_ragas_max_retries,
                 max_workers=settings.eval_ragas_max_workers,
             ),
+            langsmith_observability=build_langsmith_observability(settings),
             dry_run=args.dry_run,
             allow_provider_calls=args.allow_provider_calls,
         )

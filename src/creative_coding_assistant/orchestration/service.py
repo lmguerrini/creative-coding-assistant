@@ -7,6 +7,11 @@ from datetime import UTC, datetime
 
 from loguru import logger
 
+from creative_coding_assistant.analytics import (
+    LangSmithObservability,
+    LangSmithRunMetadata,
+    build_langsmith_observability,
+)
 from creative_coding_assistant.contracts import (
     AssistantRequest,
     AssistantResponse,
@@ -99,17 +104,26 @@ class AssistantService:
         self._eval_recorder = eval_recorder
         self._memory_recorder = memory_recorder
         self._workflow_graph = build_assistant_workflow_graph()
+        self._observability = build_langsmith_observability(self.settings)
 
     def stream(self, request: AssistantRequest) -> Iterator[StreamEvent]:
         """Yield the current backend event flow for one assistant request."""
 
         started_at = _utcnow()
         streamed_events: list[StreamEvent] = []
+        observability_run = self._observability.assistant_run_context(request)
 
         try:
-            for event in self._stream_events(request):
-                streamed_events.append(event)
-                yield event
+            with self._observability.trace(
+                observability_run,
+                inputs=_assistant_trace_inputs(request),
+            ):
+                for event in self._stream_events(
+                    request,
+                    observability_run=observability_run,
+                ):
+                    streamed_events.append(event)
+                    yield event
         except Exception as exc:
             logger.bind(
                 mode=request.mode.value,
@@ -135,10 +149,17 @@ class AssistantService:
                 completed_at=completed_at,
         )
 
-    def _stream_events(self, request: AssistantRequest) -> Iterator[StreamEvent]:
+    def _stream_events(
+        self,
+        request: AssistantRequest,
+        *,
+        observability_run: LangSmithRunMetadata,
+    ) -> Iterator[StreamEvent]:
         builder = StreamEventBuilder()
         runtime = AssistantWorkflowRuntime(
             event_builder=builder,
+            observability=self._observability,
+            observability_run=observability_run,
             route_fn=self._route_fn,
             stream_request_received=_stream_request_received,
             stream_route_selected=_stream_route_selected,
@@ -191,6 +212,7 @@ class AssistantService:
         builder: StreamEventBuilder,
         request: AssistantRequest,
         decision: RouteDecision,
+        observability_run: LangSmithRunMetadata,
     ) -> Iterator[StreamEvent | RetrievalContextResponse | None]:
         if self._retrieval_gateway is None:
             return None
@@ -240,6 +262,16 @@ class AssistantService:
             code="retrieval_completed",
             message="Retrieval context prepared.",
             context=retrieval_context.model_dump(mode="json"),
+            **_optional_event_payload(
+                "observability",
+                self._observability.event_payload(
+                    observability_run,
+                    lineage=_retrieval_lineage_payload(
+                        retrieval_context=retrieval_context,
+                        error=retrieval_error_payload,
+                    ),
+                ),
+            ),
             **(
                 {"error": retrieval_error_payload}
                 if retrieval_error_payload is not None
@@ -373,11 +405,20 @@ def _stream_request_received(
     *,
     builder: StreamEventBuilder,
     request: AssistantRequest,
+    observability: LangSmithObservability,
+    observability_run: LangSmithRunMetadata,
 ) -> Iterator[StreamEvent]:
     logger.info("assistant_request_received")
     yield builder.status(
         code="request_received",
         message="Request accepted.",
+        **_optional_event_payload(
+            "observability",
+            observability.event_payload(
+                observability_run,
+                lineage={"stage": "intake"},
+            ),
+        ),
         multimodal={
             "image_reference_count": len(request.attachments),
             "image_references": [
@@ -649,6 +690,44 @@ def _provider_telemetry(
         if value
     }
     return metadata or None
+
+
+def _assistant_trace_inputs(request: AssistantRequest) -> dict[str, object]:
+    return {
+        "mode": request.mode.value,
+        "domain": request.domain.value if request.domain is not None else None,
+        "domains": [domain.value for domain in request.domains],
+        "conversation_id": request.conversation_id,
+        "project_id": request.project_id,
+        "query_length": len(request.query),
+        "image_reference_count": len(request.attachments),
+    }
+
+
+def _retrieval_lineage_payload(
+    *,
+    retrieval_context: RetrievalContextResponse,
+    error: dict[str, object] | None,
+) -> dict[str, object]:
+    return {
+        "stage": "retrieval",
+        "source": retrieval_context.source.value,
+        "chunk_count": len(retrieval_context.chunks),
+        "source_ids": [
+            *dict.fromkeys(chunk.source_id for chunk in retrieval_context.chunks)
+        ],
+        "domains": [
+            *dict.fromkeys(chunk.domain.value for chunk in retrieval_context.chunks)
+        ],
+        "error": error["type"] if error is not None else None,
+    }
+
+
+def _optional_event_payload(
+    key: str,
+    value: dict[str, object] | None,
+) -> dict[str, dict[str, object]]:
+    return {key: value} if value is not None else {}
 
 
 def _resolve_generation_provider(

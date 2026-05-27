@@ -6,6 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from creative_coding_assistant.analytics import LangSmithRunMetadata
 from creative_coding_assistant.contracts import AssistantMode, CreativeCodingDomain
 from creative_coding_assistant.orchestration.retrieval import RetrievedKnowledgeChunk
 from creative_coding_assistant.orchestration.routing import (
@@ -102,6 +103,7 @@ class LiveSessionEvalSample(BaseModel):
         default_factory=tuple
     )
     provider_metadata: LiveSessionProviderMetadata | None = None
+    observability_metadata: LangSmithRunMetadata | None = None
     started_at: datetime
     completed_at: datetime
     recorded_at: datetime

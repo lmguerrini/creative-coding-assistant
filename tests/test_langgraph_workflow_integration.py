@@ -1,6 +1,7 @@
 import unittest
 from collections.abc import Iterator
 
+from creative_coding_assistant.analytics import build_langsmith_observability
 from creative_coding_assistant.contracts import (
     AssistantMode,
     AssistantRequest,
@@ -8,6 +9,7 @@ from creative_coding_assistant.contracts import (
     StreamEvent,
     StreamEventType,
 )
+from creative_coding_assistant.core import Settings
 from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
     AssistantService,
@@ -402,8 +404,11 @@ def _runtime(
     route_fn=_route_generate,
     stream_generation=None,
 ) -> AssistantWorkflowRuntime:
+    observability = build_langsmith_observability(Settings(_env_file=None))
     return AssistantWorkflowRuntime(
         event_builder=StreamEventBuilder(),
+        observability=observability,
+        observability_run=observability.assistant_run_context(_request()),
         route_fn=route_fn,
         stream_request_received=_stream_request_received,
         stream_route_selected=_stream_route_selected,
