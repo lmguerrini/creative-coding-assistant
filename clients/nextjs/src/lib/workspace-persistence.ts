@@ -29,7 +29,14 @@ export const workspaceLayoutBounds = {
 } as const;
 
 export type WorkspaceDensity = "cozy" | "compact";
-export type WorkspaceThemePreset = "aqua" | "codex" | "matrix";
+export type WorkspaceThemePreset =
+  | "aqua"
+  | "codex"
+  | "matrix"
+  | "terminal"
+  | "horizon"
+  | "zen"
+  | "blueprint";
 
 export type WorkspaceLayoutState = {
   density: WorkspaceDensity;
@@ -718,7 +725,15 @@ function isInspectorTabName(value: unknown): value is InspectorTabName {
 }
 
 function isWorkspaceThemePreset(value: unknown): value is WorkspaceThemePreset {
-  return value === "aqua" || value === "codex" || value === "matrix";
+  return (
+    value === "aqua" ||
+    value === "codex" ||
+    value === "matrix" ||
+    value === "terminal" ||
+    value === "horizon" ||
+    value === "zen" ||
+    value === "blueprint"
+  );
 }
 
 function isWorkspaceLayoutState(value: unknown): value is WorkspaceLayoutState {

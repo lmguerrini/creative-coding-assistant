@@ -471,6 +471,24 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("dialog", { name: "Workspace settings" })).toBeVisible();
   });
 
+  it("renders all workspace theme presets and applies them", () => {
+    renderShell();
+
+    for (const [label, theme] of [
+      ["Aqua", "aqua"],
+      ["Codex", "codex"],
+      ["Matrix", "matrix"],
+      ["Terminal", "terminal"],
+      ["Horizon", "horizon"],
+      ["Zen", "zen"],
+      ["Blueprint", "blueprint"]
+    ] as const) {
+      fireEvent.click(screen.getByRole("button", { name: "Theme" }));
+      fireEvent.click(screen.getByRole("button", { name: `Use ${label} theme` }));
+      expect(document.documentElement).toHaveAttribute("data-cca-theme", theme);
+    }
+  });
+
   it("collapses the inspector into a compact rail and expands it again", () => {
     renderShell();
 
@@ -1232,9 +1250,9 @@ describe("WorkstationShell", () => {
     vi.mocked(persistenceClient.save).mockClear();
 
     fireEvent.click(screen.getByRole("button", { name: "Theme" }));
-    fireEvent.click(screen.getByRole("button", { name: "Use Matrix theme" }));
+    fireEvent.click(screen.getByRole("button", { name: "Use Blueprint theme" }));
 
-    expect(document.documentElement).toHaveAttribute("data-cca-theme", "matrix");
+    expect(document.documentElement).toHaveAttribute("data-cca-theme", "blueprint");
 
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     fireEvent.click(screen.getByRole("button", { name: "Preview auto-open" }));
@@ -1244,7 +1262,7 @@ describe("WorkstationShell", () => {
       expect(persistenceClient.save).toHaveBeenLastCalledWith(
         expect.objectContaining({
           preferences: {
-            theme: "matrix",
+            theme: "blueprint",
             autoOpenPreview: false,
             showDebugPanels: false
           }

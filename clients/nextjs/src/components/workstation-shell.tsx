@@ -236,6 +236,38 @@ const themePresetOptions = [
     accent: "#9fe870",
     surface:
       "linear-gradient(135deg, rgba(159, 232, 112, 0.16), rgba(38, 58, 30, 0.16), rgba(7, 11, 6, 0.26))"
+  },
+  {
+    value: "terminal",
+    label: "Terminal",
+    description: "Focused command-console shell with warm phosphor highlights.",
+    accent: "#f1c56f",
+    surface:
+      "linear-gradient(135deg, rgba(241, 197, 111, 0.18), rgba(86, 74, 42, 0.14), rgba(9, 10, 11, 0.28))"
+  },
+  {
+    value: "horizon",
+    label: "Horizon",
+    description: "Warm dusk palette tuned for cinematic creative sessions.",
+    accent: "#f4a36e",
+    surface:
+      "linear-gradient(135deg, rgba(244, 163, 110, 0.18), rgba(124, 84, 132, 0.14), rgba(19, 18, 28, 0.28))"
+  },
+  {
+    value: "zen",
+    label: "Zen",
+    description: "Calm, low-noise workspace with soft sage-blue guidance.",
+    accent: "#8fd4c7",
+    surface:
+      "linear-gradient(135deg, rgba(143, 212, 199, 0.16), rgba(112, 142, 154, 0.14), rgba(15, 20, 21, 0.28))"
+  },
+  {
+    value: "blueprint",
+    label: "Blueprint",
+    description: "Technical drafting atmosphere with crisp cyan planning cues.",
+    accent: "#7fd4ff",
+    surface:
+      "linear-gradient(135deg, rgba(127, 212, 255, 0.18), rgba(53, 95, 152, 0.14), rgba(8, 16, 31, 0.28))"
   }
 ] satisfies readonly ThemePresetOption[];
 
