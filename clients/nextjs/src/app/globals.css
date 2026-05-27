@@ -17,6 +17,7 @@ html[data-cca-theme="aqua"] {
   --blue: #7ca7ff;
   --green: #79d38b;
   --accent-rgb: 76, 215, 200;
+  --accent-ink: #04100e;
   --focus-outline: rgba(76, 215, 200, 0.75);
   --inspector-width: 420px;
   --inspector-rail-width: 56px;
@@ -211,6 +212,138 @@ html[data-cca-theme="matrix"] {
   --scrollbar-thumb: rgba(159, 232, 112, 0.18);
 }
 
+html[data-cca-theme="terminal"] {
+  --background: #050607;
+  --background-rgb: 5, 6, 7;
+  --foreground: #f3ede1;
+  --muted: #92897b;
+  --muted-strong: #d7cdbd;
+  --panel: rgba(14, 16, 18, 0.91);
+  --panel-strong: rgba(18, 20, 22, 0.97);
+  --panel-soft: rgba(255, 255, 255, 0.03);
+  --line: rgba(241, 197, 111, 0.14);
+  --line-strong: rgba(241, 197, 111, 0.24);
+  --teal: #f1c56f;
+  --amber: #f1c56f;
+  --coral: #e48f69;
+  --blue: #a5b78d;
+  --green: #95c28b;
+  --accent-rgb: 241, 197, 111;
+  --accent-ink: #120d05;
+  --focus-outline: rgba(241, 197, 111, 0.72);
+  --glow-teal: 0 0 0 1px rgba(241, 197, 111, 0.24), 0 0 34px rgba(146, 111, 33, 0.16);
+  --shadow: 0 28px 92px rgba(0, 0, 0, 0.64);
+  --surface-0: rgba(10, 12, 13, 0.92);
+  --surface-1: rgba(241, 197, 111, 0.028);
+  --surface-2: rgba(241, 197, 111, 0.04);
+  --surface-3: rgba(241, 197, 111, 0.064);
+  --surface-accent: rgba(241, 197, 111, 0.07);
+  --section-divider: rgba(241, 197, 111, 0.08);
+  --panel-highlight: inset 0 1px 0 rgba(255, 241, 214, 0.03);
+  --code-surface: rgba(7, 8, 9, 0.92);
+  --scrollbar-track: rgba(90, 72, 40, 0.08);
+  --scrollbar-thumb: rgba(241, 197, 111, 0.18);
+}
+
+html[data-cca-theme="horizon"] {
+  --background: #120f18;
+  --background-rgb: 18, 15, 24;
+  --foreground: #f7eee8;
+  --muted: #a99b95;
+  --muted-strong: #dfd1c8;
+  --panel: rgba(24, 20, 31, 0.9);
+  --panel-strong: rgba(29, 24, 37, 0.965);
+  --panel-soft: rgba(255, 255, 255, 0.035);
+  --line: rgba(244, 163, 110, 0.14);
+  --line-strong: rgba(244, 163, 110, 0.24);
+  --teal: #f4a36e;
+  --amber: #f2c37d;
+  --coral: #ff8f77;
+  --blue: #9eaee0;
+  --green: #a7c0aa;
+  --accent-rgb: 244, 163, 110;
+  --accent-ink: #1f110b;
+  --focus-outline: rgba(244, 163, 110, 0.72);
+  --glow-teal: 0 0 0 1px rgba(244, 163, 110, 0.24), 0 0 34px rgba(158, 88, 56, 0.16);
+  --shadow: 0 28px 92px rgba(6, 4, 12, 0.62);
+  --surface-0: rgba(19, 17, 27, 0.9);
+  --surface-1: rgba(244, 163, 110, 0.03);
+  --surface-2: rgba(244, 163, 110, 0.044);
+  --surface-3: rgba(244, 163, 110, 0.066);
+  --surface-accent: rgba(244, 163, 110, 0.08);
+  --section-divider: rgba(244, 163, 110, 0.08);
+  --panel-highlight: inset 0 1px 0 rgba(255, 238, 230, 0.03);
+  --code-surface: rgba(15, 14, 22, 0.9);
+  --scrollbar-track: rgba(88, 59, 48, 0.08);
+  --scrollbar-thumb: rgba(244, 163, 110, 0.2);
+}
+
+html[data-cca-theme="zen"] {
+  --background: #0e1515;
+  --background-rgb: 14, 21, 21;
+  --foreground: #eef3ef;
+  --muted: #8ea09a;
+  --muted-strong: #cedad6;
+  --panel: rgba(15, 22, 22, 0.9);
+  --panel-strong: rgba(18, 26, 26, 0.965);
+  --panel-soft: rgba(255, 255, 255, 0.032);
+  --line: rgba(143, 212, 199, 0.13);
+  --line-strong: rgba(143, 212, 199, 0.24);
+  --teal: #8fd4c7;
+  --amber: #d8c79d;
+  --coral: #e09d88;
+  --blue: #9bbdcb;
+  --green: #a8d4b6;
+  --accent-rgb: 143, 212, 199;
+  --accent-ink: #08201d;
+  --focus-outline: rgba(143, 212, 199, 0.72);
+  --glow-teal: 0 0 0 1px rgba(143, 212, 199, 0.24), 0 0 32px rgba(89, 132, 125, 0.14);
+  --shadow: 0 26px 88px rgba(0, 0, 0, 0.54);
+  --surface-0: rgba(13, 19, 19, 0.88);
+  --surface-1: rgba(143, 212, 199, 0.024);
+  --surface-2: rgba(143, 212, 199, 0.036);
+  --surface-3: rgba(143, 212, 199, 0.055);
+  --surface-accent: rgba(143, 212, 199, 0.068);
+  --section-divider: rgba(143, 212, 199, 0.075);
+  --panel-highlight: inset 0 1px 0 rgba(241, 248, 245, 0.03);
+  --code-surface: rgba(10, 16, 16, 0.9);
+  --scrollbar-track: rgba(78, 112, 105, 0.06);
+  --scrollbar-thumb: rgba(143, 212, 199, 0.18);
+}
+
+html[data-cca-theme="blueprint"] {
+  --background: #07111e;
+  --background-rgb: 7, 17, 30;
+  --foreground: #e8f2fb;
+  --muted: #88a0bb;
+  --muted-strong: #c6d5e8;
+  --panel: rgba(11, 22, 37, 0.91);
+  --panel-strong: rgba(14, 26, 43, 0.97);
+  --panel-soft: rgba(255, 255, 255, 0.034);
+  --line: rgba(127, 212, 255, 0.14);
+  --line-strong: rgba(127, 212, 255, 0.24);
+  --teal: #7fd4ff;
+  --amber: #ceda8a;
+  --coral: #f1a08e;
+  --blue: #8aa9ff;
+  --green: #8fcfbe;
+  --accent-rgb: 127, 212, 255;
+  --accent-ink: #061824;
+  --focus-outline: rgba(127, 212, 255, 0.72);
+  --glow-teal: 0 0 0 1px rgba(127, 212, 255, 0.24), 0 0 34px rgba(68, 126, 162, 0.16);
+  --shadow: 0 28px 92px rgba(0, 0, 0, 0.58);
+  --surface-0: rgba(9, 18, 31, 0.9);
+  --surface-1: rgba(127, 212, 255, 0.026);
+  --surface-2: rgba(127, 212, 255, 0.04);
+  --surface-3: rgba(127, 212, 255, 0.062);
+  --surface-accent: rgba(127, 212, 255, 0.074);
+  --section-divider: rgba(127, 212, 255, 0.08);
+  --panel-highlight: inset 0 1px 0 rgba(235, 246, 255, 0.03);
+  --code-surface: rgba(8, 15, 27, 0.92);
+  --scrollbar-track: rgba(60, 96, 124, 0.08);
+  --scrollbar-thumb: rgba(127, 212, 255, 0.18);
+}
+
 * {
   box-sizing: border-box;
   scrollbar-width: thin;
@@ -218,7 +351,7 @@ html[data-cca-theme="matrix"] {
 }
 
 ::selection {
-  color: #04100e;
+  color: var(--accent-ink);
   background: rgba(var(--accent-rgb), 0.78);
 }
 
@@ -1445,8 +1578,12 @@ a {
   align-self: end;
   border: 1px solid rgba(var(--accent-rgb), 0.24);
   border-radius: 14px;
-  color: #04100e;
-  background: var(--teal);
+  color: var(--accent-ink);
+  background: linear-gradient(
+    180deg,
+    rgba(var(--accent-rgb), 0.94),
+    rgba(var(--accent-rgb), 0.88)
+  );
   cursor: pointer;
   transition:
     box-shadow 180ms ease,
@@ -1461,7 +1598,11 @@ a {
 
 .sendButton[data-ready="true"]:hover {
   transform: translateY(-1px);
-  background: #6fe2d6;
+  background: linear-gradient(
+    180deg,
+    rgba(var(--accent-rgb), 1),
+    rgba(var(--accent-rgb), 0.92)
+  );
 }
 
 .sendButton:disabled {
@@ -2032,7 +2173,7 @@ a {
 }
 
 .previewRuntimeStage[data-runtime-health="nominal"] .previewRuntimeOverlay {
-  border-color: rgba(76, 215, 200, 0.22);
+  border-color: rgba(var(--accent-rgb), 0.22);
 }
 
 .previewRuntimeStage[data-runtime-health="stressed"] .previewRuntimeOverlay,
@@ -2084,7 +2225,7 @@ a {
 .previewSurface[data-surface-kind="three"] .previewSurfaceBackdrop {
   background:
     radial-gradient(circle at 50% 24%, rgba(124, 167, 255, 0.26), transparent 18%),
-    linear-gradient(180deg, rgba(76, 215, 200, 0.08), transparent 55%),
+    linear-gradient(180deg, rgba(var(--accent-rgb), 0.08), transparent 55%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.09), transparent 76%);
 }
 
@@ -2092,12 +2233,12 @@ a {
   background:
     linear-gradient(135deg, rgba(255, 122, 102, 0.22), transparent 34%),
     linear-gradient(215deg, rgba(124, 167, 255, 0.22), transparent 48%),
-    linear-gradient(90deg, rgba(76, 215, 200, 0.12), transparent 78%);
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.12), transparent 78%);
 }
 
 .previewSurface[data-surface-kind="hydra"] .previewSurfaceBackdrop {
   background:
-    radial-gradient(circle at 25% 50%, rgba(76, 215, 200, 0.24), transparent 20%),
+    radial-gradient(circle at 25% 50%, rgba(var(--accent-rgb), 0.24), transparent 20%),
     radial-gradient(circle at 58% 44%, rgba(255, 122, 102, 0.2), transparent 18%),
     radial-gradient(circle at 76% 66%, rgba(243, 184, 82, 0.18), transparent 20%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 82%);
@@ -2357,16 +2498,16 @@ a {
 }
 
 .inspectorTabs button:hover {
-  border-color: rgba(76, 215, 200, 0.28);
+  border-color: rgba(var(--accent-rgb), 0.28);
   color: var(--foreground);
   transform: translateY(-1px);
 }
 
 .inspectorTabs button[aria-selected="true"] {
-  border-color: rgba(76, 215, 200, 0.42);
+  border-color: rgba(var(--accent-rgb), 0.42);
   color: var(--foreground);
-  background: rgba(76, 215, 200, 0.12);
-  box-shadow: 0 12px 30px rgba(76, 215, 200, 0.12);
+  background: rgba(var(--accent-rgb), 0.12);
+  box-shadow: 0 12px 30px rgba(var(--accent-rgb), 0.12);
 }
 
 .inspectorTabs button[aria-selected="true"]::after {
@@ -2398,8 +2539,8 @@ a {
 }
 
 .inspectorTabs button[aria-selected="true"] small {
-  color: #061412;
-  background: var(--teal);
+  color: var(--accent-ink);
+  background: rgb(var(--accent-rgb));
 }
 
 .layoutResizeHandle {
@@ -2428,8 +2569,8 @@ a {
 .layoutResizeHandle:hover span,
 .layoutResizeHandle:focus-visible span,
 .layoutResizeHandle[data-active="true"] span {
-  background: rgba(76, 215, 200, 0.82);
-  box-shadow: 0 0 18px rgba(76, 215, 200, 0.24);
+  background: rgba(var(--accent-rgb), 0.82);
+  box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.24);
 }
 
 .inspectorResizeHandle {
@@ -2497,7 +2638,7 @@ a {
   flex: 0 0 auto;
   border-radius: 999px;
   background: var(--teal);
-  box-shadow: 0 0 0 5px rgba(76, 215, 200, 0.12);
+  box-shadow: 0 0 0 5px rgba(var(--accent-rgb), 0.12);
   animation: pulseNode 1.8s ease-in-out infinite;
 }
 
@@ -2637,7 +2778,7 @@ a {
 
 .miniStep[data-state="active"] span {
   background: var(--teal);
-  box-shadow: 0 0 0 4px rgba(76, 215, 200, 0.14);
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.14);
   animation: pulseNode 1.8s ease-in-out infinite;
 }
 
@@ -2711,9 +2852,9 @@ a {
 }
 
 .overviewTelemetryTile[data-state="streaming"] {
-  border-color: rgba(76, 215, 200, 0.24);
+  border-color: rgba(var(--accent-rgb), 0.24);
   background:
-    linear-gradient(135deg, rgba(76, 215, 200, 0.07), transparent 72%),
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.07), transparent 72%),
     var(--panel-soft);
 }
 
@@ -2736,12 +2877,12 @@ a {
 }
 
 .codePanel[data-opened-artifact] .codePanelHeader {
-  border: 1px solid rgba(76, 215, 200, 0.18);
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
   border-radius: 14px;
   padding: 12px;
   background:
-    linear-gradient(135deg, rgba(76, 215, 200, 0.11), transparent 72%),
-    rgba(76, 215, 200, 0.065);
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.11), transparent 72%),
+    rgba(var(--accent-rgb), 0.065);
   box-shadow: var(--panel-highlight);
 }
 
@@ -2773,9 +2914,9 @@ a {
 }
 
 .codePanelActions button:hover {
-  border-color: rgba(76, 215, 200, 0.35);
+  border-color: rgba(var(--accent-rgb), 0.35);
   color: var(--teal);
-  background: rgba(76, 215, 200, 0.08);
+  background: rgba(var(--accent-rgb), 0.08);
   transform: translateY(-1px);
 }
 
@@ -2949,10 +3090,10 @@ a {
   display: grid;
   gap: 12px;
   padding: 12px;
-  border: 1px solid rgba(76, 215, 200, 0.18);
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
   border-radius: 15px;
   background:
-    linear-gradient(135deg, rgba(76, 215, 200, 0.055), transparent 76%),
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.055), transparent 76%),
     var(--panel-soft);
   box-shadow: var(--panel-highlight);
 }
@@ -2997,7 +3138,7 @@ a {
 }
 
 .telemetryStateBadge[data-state="streaming"] {
-  border-color: rgba(76, 215, 200, 0.24);
+  border-color: rgba(var(--accent-rgb), 0.24);
   color: var(--teal);
 }
 
@@ -3059,7 +3200,7 @@ a {
 
 .telemetryLifecycleStep[data-state="active"] > span {
   background: var(--teal);
-  box-shadow: 0 0 0 4px rgba(76, 215, 200, 0.12);
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.12);
   animation: pulseNode 1.8s ease-in-out infinite;
 }
 
@@ -3090,10 +3231,10 @@ a {
   display: grid;
   gap: 14px;
   padding: 14px;
-  border: 1px solid rgba(76, 215, 200, 0.2);
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
   border-radius: 18px;
   background:
-    radial-gradient(circle at top left, rgba(76, 215, 200, 0.16), transparent 42%),
+    radial-gradient(circle at top left, rgba(var(--accent-rgb), 0.16), transparent 42%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025)),
     var(--panel-soft);
   box-shadow: var(--panel-highlight);
@@ -3146,10 +3287,10 @@ a {
 
 .telemetryDashboardHeroMeta span {
   padding: 5px 9px;
-  border: 1px solid rgba(76, 215, 200, 0.22);
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
   border-radius: 999px;
   color: var(--teal);
-  background: rgba(76, 215, 200, 0.08);
+  background: rgba(var(--accent-rgb), 0.08);
 }
 
 .telemetrySignalGrid,
@@ -3205,7 +3346,7 @@ a {
 }
 
 .telemetrySignalCard[data-tone="info"] {
-  border-color: rgba(76, 215, 200, 0.24);
+  border-color: rgba(var(--accent-rgb), 0.24);
 }
 
 .telemetrySignalCard[data-tone="warning"] {
@@ -3287,7 +3428,7 @@ a {
 .telemetryDashboardCard[data-state="generating"],
 .telemetryDashboardCard[data-state="requested"],
 .telemetryDashboardCard[data-state="pending"] {
-  border-color: rgba(76, 215, 200, 0.22);
+  border-color: rgba(var(--accent-rgb), 0.22);
 }
 
 .telemetryDashboardCard[data-state="complete"],
@@ -3384,8 +3525,8 @@ a {
 }
 
 .workflowNode[data-state="active"] {
-  border-color: rgba(76, 215, 200, 0.42);
-  background: rgba(76, 215, 200, 0.08);
+  border-color: rgba(var(--accent-rgb), 0.42);
+  background: rgba(var(--accent-rgb), 0.08);
   box-shadow: var(--glow-teal);
   transform: translateX(2px);
 }
@@ -3530,10 +3671,10 @@ a {
 
 .artifactDetailCard {
   padding: 12px;
-  border: 1px solid rgba(76, 215, 200, 0.24);
+  border: 1px solid rgba(var(--accent-rgb), 0.24);
   border-radius: 16px;
   background:
-    linear-gradient(135deg, rgba(76, 215, 200, 0.08), transparent 72%),
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.08), transparent 72%),
     rgba(255, 255, 255, 0.045);
   box-shadow: var(--panel-highlight);
 }
@@ -3575,13 +3716,13 @@ a {
 }
 
 .artifactItem[data-active="true"] {
-  border-color: rgba(76, 215, 200, 0.42);
-  background: rgba(76, 215, 200, 0.08);
+  border-color: rgba(var(--accent-rgb), 0.42);
+  background: rgba(var(--accent-rgb), 0.08);
 }
 
 .artifactItem[data-active="true"] .artifactType {
   color: var(--teal);
-  background: rgba(76, 215, 200, 0.12);
+  background: rgba(var(--accent-rgb), 0.12);
 }
 
 .artifactItemHeader {
@@ -3627,9 +3768,9 @@ a {
 .artifactSelected {
   padding: 4px 7px;
   border-radius: 999px;
-  color: #061412;
-  background: var(--teal);
-  box-shadow: 0 0 18px rgba(76, 215, 200, 0.18);
+  color: var(--accent-ink);
+  background: rgb(var(--accent-rgb));
+  box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.18);
   font-size: 10px;
   font-weight: 850;
   text-transform: uppercase;
@@ -3662,7 +3803,7 @@ a {
 }
 
 .artifactActions button[data-action="open"] {
-  border-color: rgba(76, 215, 200, 0.26);
+  border-color: rgba(var(--accent-rgb), 0.26);
 }
 
 .artifactActions button[data-action="download"],
@@ -3671,9 +3812,9 @@ a {
 }
 
 .artifactActions button:hover {
-  border-color: rgba(76, 215, 200, 0.35);
+  border-color: rgba(var(--accent-rgb), 0.35);
   color: var(--teal);
-  background: rgba(76, 215, 200, 0.08);
+  background: rgba(var(--accent-rgb), 0.08);
   transform: translateY(-1px);
 }
 
@@ -3691,9 +3832,9 @@ a {
 }
 
 .retrievalSummaryCard[data-state="available"] {
-  border-color: rgba(76, 215, 200, 0.24);
+  border-color: rgba(var(--accent-rgb), 0.24);
   background:
-    linear-gradient(135deg, rgba(76, 215, 200, 0.08), transparent 72%),
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.08), transparent 72%),
     rgba(255, 255, 255, 0.045);
 }
 
@@ -3748,8 +3889,8 @@ a {
 
 .retrievalStateBadge {
   color: var(--teal);
-  border-color: rgba(76, 215, 200, 0.18);
-  background: rgba(76, 215, 200, 0.08);
+  border-color: rgba(var(--accent-rgb), 0.18);
+  background: rgba(var(--accent-rgb), 0.08);
 }
 
 .retrievalStateBadge[data-state="empty"] {
@@ -3810,8 +3951,8 @@ a {
 
 .retrievalDomainBadge {
   color: var(--teal);
-  border-color: rgba(76, 215, 200, 0.18);
-  background: rgba(76, 215, 200, 0.08);
+  border-color: rgba(var(--accent-rgb), 0.18);
+  background: rgba(var(--accent-rgb), 0.08);
 }
 
 .retrievalSourceType {
@@ -4177,6 +4318,228 @@ html[data-cca-theme="matrix"] .previewSurfaceGrid span[data-active="true"] {
   box-shadow: 0 0 0 1px rgba(159, 232, 112, 0.18), 0 0 18px rgba(83, 123, 50, 0.18);
 }
 
+html[data-cca-theme="terminal"] {
+  background:
+    radial-gradient(circle at 14% 10%, rgba(241, 197, 111, 0.14), transparent 22%),
+    radial-gradient(circle at 82% 18%, rgba(149, 194, 139, 0.08), transparent 24%),
+    linear-gradient(rgba(5, 6, 7, 0.92), rgba(5, 6, 7, 1)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(241, 197, 111, 0.024) 0,
+      rgba(241, 197, 111, 0.024) 1px,
+      transparent 1px,
+      transparent 72px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.012) 0,
+      rgba(255, 255, 255, 0.012) 1px,
+      transparent 1px,
+      transparent 72px
+    ),
+    var(--background);
+}
+
+html[data-cca-theme="terminal"] .workstation {
+  background:
+    linear-gradient(180deg, rgba(241, 197, 111, 0.03), transparent 180px),
+    radial-gradient(circle at 50% 100%, rgba(82, 60, 18, 0.16), transparent 40%),
+    transparent;
+}
+
+html[data-cca-theme="terminal"] .topbar,
+html[data-cca-theme="terminal"] .sessionPanel,
+html[data-cca-theme="terminal"] .previewShelf,
+html[data-cca-theme="terminal"] .inspector,
+html[data-cca-theme="terminal"] .utilityPanel {
+  border-color: rgba(241, 197, 111, 0.14);
+  background:
+    linear-gradient(180deg, rgba(241, 197, 111, 0.032), transparent 132px),
+    rgba(10, 12, 13, 0.92);
+}
+
+html[data-cca-theme="terminal"] .toolbarToggle,
+html[data-cca-theme="terminal"] .iconButton,
+html[data-cca-theme="terminal"] .commandMenuGrid button,
+html[data-cca-theme="terminal"] .themePresetButton,
+html[data-cca-theme="terminal"] .settingsChoiceRow button,
+html[data-cca-theme="terminal"] .settingsToggle button,
+html[data-cca-theme="terminal"] .inspectorTabs button {
+  background:
+    linear-gradient(180deg, rgba(241, 197, 111, 0.045), transparent),
+    rgba(15, 16, 18, 0.88);
+}
+
+html[data-cca-theme="terminal"] .telemetryDashboardHero,
+html[data-cca-theme="terminal"] .previewSurfaceBackdrop,
+html[data-cca-theme="terminal"] .previewRuntimeCanvas,
+html[data-cca-theme="terminal"] .codeViewer {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(241, 197, 111, 0.14), transparent 24%),
+    radial-gradient(circle at 78% 64%, rgba(149, 194, 139, 0.08), transparent 28%),
+    rgba(7, 8, 9, 0.92);
+}
+
+html[data-cca-theme="horizon"] {
+  background:
+    radial-gradient(circle at 16% 10%, rgba(244, 163, 110, 0.18), transparent 24%),
+    radial-gradient(circle at 82% 18%, rgba(158, 174, 224, 0.1), transparent 28%),
+    radial-gradient(circle at 50% 100%, rgba(116, 68, 64, 0.14), transparent 34%),
+    linear-gradient(rgba(18, 15, 24, 0.9), rgba(18, 15, 24, 1)),
+    var(--background);
+}
+
+html[data-cca-theme="horizon"] .workstation {
+  background:
+    linear-gradient(180deg, rgba(244, 163, 110, 0.04), transparent 200px),
+    radial-gradient(circle at 78% 0%, rgba(94, 78, 126, 0.16), transparent 26%),
+    transparent;
+}
+
+html[data-cca-theme="horizon"] .topbar,
+html[data-cca-theme="horizon"] .sessionPanel,
+html[data-cca-theme="horizon"] .previewShelf,
+html[data-cca-theme="horizon"] .inspector,
+html[data-cca-theme="horizon"] .utilityPanel {
+  border-color: rgba(244, 163, 110, 0.15);
+  background:
+    linear-gradient(180deg, rgba(244, 163, 110, 0.04), transparent 144px),
+    linear-gradient(140deg, rgba(110, 78, 146, 0.06), transparent 28%),
+    rgba(22, 18, 29, 0.92);
+}
+
+html[data-cca-theme="horizon"] .toolbarToggle,
+html[data-cca-theme="horizon"] .iconButton,
+html[data-cca-theme="horizon"] .commandMenuGrid button,
+html[data-cca-theme="horizon"] .themePresetButton,
+html[data-cca-theme="horizon"] .settingsChoiceRow button,
+html[data-cca-theme="horizon"] .settingsToggle button,
+html[data-cca-theme="horizon"] .inspectorTabs button {
+  background:
+    linear-gradient(180deg, rgba(244, 163, 110, 0.05), transparent),
+    rgba(28, 22, 35, 0.88);
+}
+
+html[data-cca-theme="horizon"] .telemetryDashboardHero,
+html[data-cca-theme="horizon"] .previewSurfaceBackdrop,
+html[data-cca-theme="horizon"] .previewRuntimeCanvas,
+html[data-cca-theme="horizon"] .codeViewer {
+  background:
+    radial-gradient(circle at 20% 22%, rgba(244, 163, 110, 0.16), transparent 24%),
+    radial-gradient(circle at 74% 62%, rgba(158, 174, 224, 0.1), transparent 28%),
+    rgba(15, 14, 22, 0.92);
+}
+
+html[data-cca-theme="zen"] {
+  background:
+    radial-gradient(circle at 18% 10%, rgba(143, 212, 199, 0.1), transparent 22%),
+    radial-gradient(circle at 78% 18%, rgba(155, 189, 203, 0.08), transparent 24%),
+    linear-gradient(rgba(14, 21, 21, 0.96), rgba(14, 21, 21, 1)),
+    var(--background);
+}
+
+html[data-cca-theme="zen"] .workstation {
+  background:
+    linear-gradient(180deg, rgba(143, 212, 199, 0.02), transparent 180px),
+    radial-gradient(circle at 50% 100%, rgba(89, 132, 125, 0.12), transparent 36%),
+    transparent;
+}
+
+html[data-cca-theme="zen"] .topbar,
+html[data-cca-theme="zen"] .sessionPanel,
+html[data-cca-theme="zen"] .previewShelf,
+html[data-cca-theme="zen"] .inspector,
+html[data-cca-theme="zen"] .utilityPanel {
+  border-color: rgba(143, 212, 199, 0.12);
+  background:
+    linear-gradient(180deg, rgba(143, 212, 199, 0.024), transparent 140px),
+    rgba(16, 22, 22, 0.9);
+}
+
+html[data-cca-theme="zen"] .toolbarToggle,
+html[data-cca-theme="zen"] .iconButton,
+html[data-cca-theme="zen"] .commandMenuGrid button,
+html[data-cca-theme="zen"] .themePresetButton,
+html[data-cca-theme="zen"] .settingsChoiceRow button,
+html[data-cca-theme="zen"] .settingsToggle button,
+html[data-cca-theme="zen"] .inspectorTabs button {
+  background:
+    linear-gradient(180deg, rgba(143, 212, 199, 0.036), transparent),
+    rgba(18, 26, 26, 0.84);
+}
+
+html[data-cca-theme="zen"] .telemetryDashboardHero,
+html[data-cca-theme="zen"] .previewSurfaceBackdrop,
+html[data-cca-theme="zen"] .previewRuntimeCanvas,
+html[data-cca-theme="zen"] .codeViewer {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(143, 212, 199, 0.12), transparent 24%),
+    radial-gradient(circle at 76% 60%, rgba(155, 189, 203, 0.08), transparent 28%),
+    rgba(10, 16, 16, 0.92);
+}
+
+html[data-cca-theme="blueprint"] {
+  background:
+    radial-gradient(circle at 14% 12%, rgba(127, 212, 255, 0.15), transparent 22%),
+    radial-gradient(circle at 84% 16%, rgba(138, 169, 255, 0.08), transparent 26%),
+    linear-gradient(rgba(7, 17, 30, 0.92), rgba(7, 17, 30, 1)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(127, 212, 255, 0.03) 0,
+      rgba(127, 212, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 68px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(127, 212, 255, 0.022) 0,
+      rgba(127, 212, 255, 0.022) 1px,
+      transparent 1px,
+      transparent 68px
+    ),
+    var(--background);
+}
+
+html[data-cca-theme="blueprint"] .workstation {
+  background:
+    linear-gradient(180deg, rgba(127, 212, 255, 0.03), transparent 188px),
+    radial-gradient(circle at 50% 100%, rgba(52, 84, 124, 0.16), transparent 38%),
+    transparent;
+}
+
+html[data-cca-theme="blueprint"] .topbar,
+html[data-cca-theme="blueprint"] .sessionPanel,
+html[data-cca-theme="blueprint"] .previewShelf,
+html[data-cca-theme="blueprint"] .inspector,
+html[data-cca-theme="blueprint"] .utilityPanel {
+  border-color: rgba(127, 212, 255, 0.15);
+  background:
+    linear-gradient(180deg, rgba(127, 212, 255, 0.035), transparent 148px),
+    rgba(10, 19, 33, 0.92);
+}
+
+html[data-cca-theme="blueprint"] .toolbarToggle,
+html[data-cca-theme="blueprint"] .iconButton,
+html[data-cca-theme="blueprint"] .commandMenuGrid button,
+html[data-cca-theme="blueprint"] .themePresetButton,
+html[data-cca-theme="blueprint"] .settingsChoiceRow button,
+html[data-cca-theme="blueprint"] .settingsToggle button,
+html[data-cca-theme="blueprint"] .inspectorTabs button {
+  background:
+    linear-gradient(180deg, rgba(127, 212, 255, 0.05), transparent),
+    rgba(14, 25, 42, 0.86);
+}
+
+html[data-cca-theme="blueprint"] .telemetryDashboardHero,
+html[data-cca-theme="blueprint"] .previewSurfaceBackdrop,
+html[data-cca-theme="blueprint"] .previewRuntimeCanvas,
+html[data-cca-theme="blueprint"] .codeViewer {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(127, 212, 255, 0.14), transparent 24%),
+    radial-gradient(circle at 76% 62%, rgba(138, 169, 255, 0.08), transparent 28%),
+    rgba(8, 15, 27, 0.94);
+}
+
 .workstation[data-density="compact"] .workspaceLayout {
   gap: 12px;
   padding: 12px;
@@ -4234,11 +4597,11 @@ html[data-cca-theme="matrix"] .previewSurfaceGrid span[data-active="true"] {
 @keyframes pulseNode {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(76, 215, 200, 0.24);
+    box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.24);
   }
 
   50% {
-    box-shadow: 0 0 0 8px rgba(76, 215, 200, 0);
+    box-shadow: 0 0 0 8px rgba(var(--accent-rgb), 0);
   }
 }
 
