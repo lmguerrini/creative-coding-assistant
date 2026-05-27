@@ -14,6 +14,7 @@ describe("assistant frontend client", () => {
       "Overview",
       "Code",
       "Workflow",
+      "Telemetry",
       "Artifacts",
       "Retrieval"
     ]);

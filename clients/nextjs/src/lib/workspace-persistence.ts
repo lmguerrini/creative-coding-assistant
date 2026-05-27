@@ -711,6 +711,7 @@ function isInspectorTabName(value: unknown): value is InspectorTabName {
     value === "Overview" ||
     value === "Code" ||
     value === "Workflow" ||
+    value === "Telemetry" ||
     value === "Artifacts" ||
     value === "Retrieval"
   );

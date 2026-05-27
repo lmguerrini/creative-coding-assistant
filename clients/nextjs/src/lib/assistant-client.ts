@@ -4,6 +4,7 @@ export type InspectorTabName =
   | "Overview"
   | "Code"
   | "Workflow"
+  | "Telemetry"
   | "Artifacts"
   | "Retrieval";
 
@@ -247,6 +248,12 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
         active: false,
         summary: "LangGraph-style orchestration",
         badge: "Running"
+      },
+      {
+        label: "Telemetry",
+        active: false,
+        summary: "Operator observability console",
+        badge: "Ops"
       },
       {
         label: "Artifacts",

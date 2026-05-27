@@ -2910,6 +2910,246 @@ a {
   line-height: 1.35;
 }
 
+.telemetryDashboardPanel {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.telemetryDashboardHero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid rgba(76, 215, 200, 0.2);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(76, 215, 200, 0.16), transparent 42%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025)),
+    var(--panel-soft);
+}
+
+.telemetryDashboardPanel[data-state="error"] .telemetryDashboardHero {
+  border-color: rgba(255, 122, 102, 0.28);
+  background:
+    radial-gradient(circle at top left, rgba(255, 122, 102, 0.13), transparent 44%),
+    var(--panel-soft);
+}
+
+.telemetryDashboardPanel[data-state="degraded"] .telemetryDashboardHero {
+  border-color: rgba(243, 184, 82, 0.26);
+}
+
+.telemetryDashboardHero span,
+.telemetrySignalCard span,
+.telemetryDashboardCard header span,
+.telemetryDashboardCard dt {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.telemetryDashboardHero strong {
+  color: var(--foreground);
+  font-size: 22px;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+}
+
+.telemetryDashboardHero p,
+.telemetryDashboardHero small {
+  margin: 5px 0 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.telemetryDashboardHeroMeta {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+  min-width: 128px;
+  text-align: right;
+}
+
+.telemetryDashboardHeroMeta span {
+  padding: 5px 9px;
+  border: 1px solid rgba(76, 215, 200, 0.22);
+  border-radius: 999px;
+  color: var(--teal);
+  background: rgba(76, 215, 200, 0.08);
+}
+
+.telemetrySignalGrid,
+.telemetryDashboardGrid {
+  display: grid;
+  gap: 10px;
+}
+
+.telemetrySignalGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.telemetryDashboardGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.telemetrySignalCard,
+.telemetryDashboardCard {
+  display: grid;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: var(--panel-soft);
+}
+
+.telemetrySignalCard {
+  gap: 5px;
+  padding: 11px;
+}
+
+.telemetrySignalCard strong {
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 15px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.telemetrySignalCard p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.telemetrySignalCard[data-tone="good"] {
+  border-color: rgba(121, 211, 139, 0.24);
+  background:
+    linear-gradient(135deg, rgba(121, 211, 139, 0.06), transparent 72%),
+    var(--panel-soft);
+}
+
+.telemetrySignalCard[data-tone="info"] {
+  border-color: rgba(76, 215, 200, 0.24);
+}
+
+.telemetrySignalCard[data-tone="warning"] {
+  border-color: rgba(243, 184, 82, 0.24);
+}
+
+.telemetrySignalCard[data-tone="danger"] {
+  border-color: rgba(255, 122, 102, 0.28);
+  background:
+    linear-gradient(135deg, rgba(255, 122, 102, 0.075), transparent 72%),
+    var(--panel-soft);
+}
+
+.telemetryDashboardCard {
+  gap: 10px;
+  padding: 12px;
+}
+
+.telemetryDashboardCard--wide {
+  grid-column: 1 / -1;
+}
+
+.telemetryDashboardCard header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.telemetryDashboardCard header strong {
+  color: var(--foreground);
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.telemetryDashboardCard dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.telemetryDashboardCard dl div {
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.telemetryDashboardCard dd {
+  overflow: hidden;
+  margin: 4px 0 0;
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.telemetryDashboardCard p,
+.telemetryDashboardCard small {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.telemetryDashboardCard small {
+  color: var(--muted);
+}
+
+.telemetryDashboardCard[data-state="error"],
+.telemetryDashboardCard[data-state="failed"] {
+  border-color: rgba(255, 122, 102, 0.26);
+}
+
+.telemetryDashboardCard[data-state="running"],
+.telemetryDashboardCard[data-state="streaming"],
+.telemetryDashboardCard[data-state="generating"],
+.telemetryDashboardCard[data-state="requested"],
+.telemetryDashboardCard[data-state="pending"] {
+  border-color: rgba(76, 215, 200, 0.22);
+}
+
+.telemetryDashboardCard[data-state="complete"],
+.telemetryDashboardCard[data-state="completed"],
+.telemetryDashboardCard[data-state="ready"],
+.telemetryDashboardCard[data-state="linked"],
+.telemetryDashboardCard[data-state="available"] {
+  border-color: rgba(121, 211, 139, 0.22);
+}
+
+.telemetryEventPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.telemetryEventPills span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 11px;
+}
+
+.telemetryEventPills strong {
+  color: var(--teal);
+}
+
 .workflowProgress {
   position: relative;
   height: 7px;

@@ -333,8 +333,10 @@ function runtimeWorkflowEvent({
   code,
   completedSteps = [],
   currentStep,
+  evaluation,
   eventType,
   message,
+  observability,
   phase = "running",
   refinementCount = 0,
   reviewOutcome = null,
@@ -350,8 +352,10 @@ function runtimeWorkflowEvent({
   code?: string;
   completedSteps?: string[];
   currentStep: string | null;
+  evaluation?: Record<string, unknown>;
   eventType: AssistantStreamEvent["event_type"];
   message?: string;
+  observability?: Record<string, unknown>;
   phase?: string;
   refinementCount?: number;
   reviewOutcome?: string | null;
@@ -368,7 +372,9 @@ function runtimeWorkflowEvent({
     payload: {
       ...(answer ? { answer } : {}),
       ...(code ? { code } : {}),
+      ...(evaluation ? { evaluation } : {}),
       ...(message ? { message } : {}),
+      ...(observability ? { observability } : {}),
       ...(telemetry ? { telemetry } : {}),
       ...(text ? { text } : {}),
       emitted_at: at,
@@ -559,7 +565,14 @@ describe("WorkstationShell", () => {
   it("defaults to a single Overview inspector panel", () => {
     renderShell();
 
-    for (const tab of ["Overview", "Code", "Workflow", "Artifacts", "Retrieval"]) {
+    for (const tab of [
+      "Overview",
+      "Code",
+      "Workflow",
+      "Telemetry",
+      "Artifacts",
+      "Retrieval"
+    ]) {
       expect(screen.getByRole("tab", { name: tab })).toBeVisible();
     }
 
@@ -2276,6 +2289,155 @@ describe("WorkstationShell", () => {
     expect(within(lifecycle).getByText("openai / gpt-5-mini")).toBeVisible();
     expect(within(lifecycle).getByText("Generation input")).toBeVisible();
     expect(within(lifecycle).getAllByText("First token").length).toBeGreaterThan(0);
+  });
+
+  it("renders the advanced telemetry dashboard without fake metrics", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        runtimeWorkflowEvent({
+          at: "2026-05-24T10:00:00Z",
+          code: "request_received",
+          currentStep: "intake",
+          eventType: "status",
+          message: "Request accepted.",
+          observability: {
+            provider: "langsmith",
+            trace_kind: "assistant_workflow",
+            trace_id: "trace-local-123456",
+            requested: true,
+            enabled: false,
+            project_name: "creative-local",
+            reason: "missing_api_key",
+            status: "disabled",
+            tags: ["assistant", "workflow"]
+          },
+          sequence: 0,
+          step: "intake"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-24T10:00:01Z",
+          currentStep: "generation",
+          eventType: "token_delta",
+          sequence: 1,
+          step: "generation",
+          telemetry: {
+            provider: {
+              name: "openai",
+              model: "gpt-5-mini"
+            }
+          },
+          text: "Telemetry "
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-24T10:00:02Z",
+          code: "ragas_eval_completed",
+          currentStep: "generation",
+          evaluation: {
+            dataset_id: "dataset-live-1",
+            dry_run: true,
+            metric_failures: 0,
+            metrics: ["context_precision"],
+            provider_calls_allowed: false,
+            result_rows: 1,
+            run_id: "eval-run-1",
+            status: "Evaluation complete"
+          },
+          eventType: "eval_update",
+          message: "Evaluation manifest ready.",
+          sequence: 2,
+          step: "generation"
+        }),
+        runtimeWorkflowEvent({
+          answer: "Telemetry answer.",
+          at: "2026-05-24T10:00:03Z",
+          completedSteps: [
+            "intake",
+            "routing",
+            "generation",
+            "review",
+            "finalization"
+          ],
+          currentStep: null,
+          eventType: "final",
+          phase: "completed",
+          reviewOutcome: "pass",
+          sequence: 3,
+          skippedSteps: [
+            "memory",
+            "retrieval",
+            "context_assembly",
+            "prompt_input",
+            "prompt_rendering"
+          ],
+          status: "completed",
+          step: "finalization",
+          telemetry: {
+            provider: {
+              name: "openai",
+              model: "gpt-5-mini",
+              response_id: "resp_123"
+            },
+            token_usage: {
+              input_tokens: 120,
+              output_tokens: 30,
+              total_tokens: 150
+            }
+          }
+        })
+      ])
+    );
+
+    renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Generate with telemetry dashboard." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(await screen.findByText("Telemetry answer.")).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Telemetry" }));
+
+    const dashboard = screen.getByRole("tabpanel", {
+      name: "Telemetry dashboard"
+    });
+    expect(dashboard).toBeVisible();
+    expect(
+      within(dashboard).getByRole("group", { name: "Stream lifecycle" })
+    ).toBeVisible();
+    expect(
+      within(dashboard).getByRole("group", {
+        name: "Provider token and cost telemetry"
+      })
+    ).toBeVisible();
+    expect(
+      within(dashboard).getByRole("group", { name: "Runtime lifecycle" })
+    ).toBeVisible();
+    expect(
+      within(dashboard).getByRole("group", {
+        name: "Renderer and preview health"
+      })
+    ).toBeVisible();
+    expect(
+      within(dashboard).getByRole("group", { name: "Retrieval activity" })
+    ).toBeVisible();
+
+    const langsmith = within(dashboard).getByRole("group", {
+      name: "LangSmith observability"
+    });
+    const evalLineage = within(dashboard).getByRole("group", {
+      name: "RAGAs evaluation lineage"
+    });
+
+    expect(within(langsmith).getByText("Requested")).toBeVisible();
+    expect(within(langsmith).getByText("missing_api_key")).toBeVisible();
+    expect(within(evalLineage).getByText("Evaluation complete")).toBeVisible();
+    expect(within(evalLineage).getByText("eval-run-1")).toBeVisible();
+    expect(within(evalLineage).getByText("dataset-live-1")).toBeVisible();
+    expect(within(evalLineage).getByText("context_precision")).toBeVisible();
+    expect(
+      within(dashboard).getByRole("group", { name: "Telemetry event type counts" })
+    ).toBeVisible();
   });
 
   it("resizes workspace regions and persists the layout preferences", async () => {

@@ -18,6 +18,7 @@ import {
   Braces,
   ChevronDown,
   Command,
+  Gauge,
   ImagePlus,
   LayoutGrid,
   Maximize2,
@@ -106,6 +107,10 @@ import {
   type ProviderTelemetryLifecycleStep,
   type ProviderTelemetryModel
 } from "@/lib/provider-telemetry";
+import {
+  buildTelemetryDashboardModel,
+  type TelemetryDashboardModel
+} from "@/lib/telemetry-dashboard";
 import { buildPreviewRuntimeSource } from "@/lib/preview-runtime-adapters";
 import {
   buildMultimodalSummary,
@@ -158,6 +163,7 @@ const inspectorTabIcons = {
   Overview: Sparkles,
   Code: Braces,
   Workflow: Activity,
+  Telemetry: Gauge,
   Artifacts: Boxes,
   Retrieval: TerminalSquare
 } satisfies Record<InspectorTabName, LucideIcon>;
@@ -711,6 +717,25 @@ export function WorkstationShell({
   const retrievalRuntime = useMemo(
     () => buildRetrievalRuntimeModel(interactiveSnapshot.retrieval, workflowTraceEvents),
     [interactiveSnapshot.retrieval, workflowTraceEvents]
+  );
+  const telemetryDashboard = useMemo(
+    () =>
+      buildTelemetryDashboardModel({
+        activeArtifact,
+        providerTelemetry,
+        retrievalRuntime,
+        snapshot: interactiveSnapshot,
+        traceEvents: workflowTraceEvents,
+        workflowRuntime
+      }),
+    [
+      activeArtifact,
+      interactiveSnapshot,
+      providerTelemetry,
+      retrievalRuntime,
+      workflowRuntime,
+      workflowTraceEvents
+    ]
   );
   const isComposerReady = Boolean(composerValue.trim()) && !isStreaming;
   const approvalSummary = useMemo(
@@ -2324,6 +2349,7 @@ export function WorkstationShell({
                     retrievalRuntime={retrievalRuntime}
                     showDebugPanels={workspacePreferences.showDebugPanels}
                     snapshot={interactiveSnapshot}
+                    telemetryDashboard={telemetryDashboard}
                     transferFeedback={transferFeedback}
                     workflowRuntime={workflowRuntime}
                     workflowIssues={workflowIssues}
@@ -2664,6 +2690,7 @@ type InspectorPanelProps = {
   retrievalRuntime: RetrievalRuntimeModel;
   showDebugPanels: boolean;
   snapshot: AssistantWorkspaceSnapshot;
+  telemetryDashboard: TelemetryDashboardModel;
   transferFeedback: ArtifactActionFeedback | null;
   workflowRuntime: WorkflowRuntimeModel;
   workflowIssues: WorkstationError[];
@@ -2684,6 +2711,7 @@ function InspectorPanel({
   retrievalRuntime,
   showDebugPanels,
   snapshot,
+  telemetryDashboard,
   transferFeedback,
   workflowRuntime,
   workflowIssues
@@ -2709,6 +2737,15 @@ function InspectorPanel({
         telemetry={providerTelemetry}
         showDebugPanels={showDebugPanels}
         issues={workflowIssues}
+      />
+    );
+  }
+
+  if (activeTab === "Telemetry") {
+    return (
+      <TelemetryInspector
+        dashboard={telemetryDashboard}
+        showDebugPanels={showDebugPanels}
       />
     );
   }
@@ -3237,6 +3274,353 @@ function TelemetryLifecycleCard({
   );
 }
 
+function TelemetryInspector({
+  dashboard,
+  showDebugPanels
+}: {
+  dashboard: TelemetryDashboardModel;
+  showDebugPanels: boolean;
+}) {
+  const populatedEventTypes = Object.entries(dashboard.stream.eventTypeCounts).filter(
+    ([, count]) => count > 0
+  );
+
+  return (
+    <section
+      aria-label="Telemetry dashboard"
+      className="inspectorPanel telemetryDashboardPanel"
+      data-state={dashboard.status}
+      id="telemetry-inspector-panel"
+      role="tabpanel"
+    >
+      <header className="telemetryDashboardHero">
+        <div>
+          <span>Advanced telemetry</span>
+          <strong>{dashboard.summary.operatorStatus}</strong>
+          <p>{dashboard.summary.signalLabel}</p>
+        </div>
+        <div className="telemetryDashboardHeroMeta">
+          <span>{dashboard.summary.coverageLabel}</span>
+          <small>{dashboard.summary.runtimeLabel}</small>
+        </div>
+      </header>
+
+      <div className="telemetrySignalGrid" aria-label="Telemetry signal summary">
+        {dashboard.signals.map((signal) => (
+          <article
+            aria-label={`${signal.label} signal`}
+            className="telemetrySignalCard"
+            data-tone={signal.tone}
+            key={signal.id}
+            role="group"
+          >
+            <span>{signal.label}</span>
+            <strong>{signal.value}</strong>
+            <p>{signal.detail}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className="telemetryDashboardGrid">
+        <article
+          aria-label="Stream lifecycle"
+          className="telemetryDashboardCard"
+          data-state={dashboard.stream.state}
+          role="group"
+        >
+          <header>
+            <span>Stream lifecycle</span>
+            <strong>{formatDashboardStatusLabel(dashboard.stream.state)}</strong>
+          </header>
+          <dl>
+            <div>
+              <dt>Events</dt>
+              <dd>{dashboard.stream.eventCount}</dd>
+            </div>
+            <div>
+              <dt>Errors</dt>
+              <dd>{dashboard.stream.errorCount}</dd>
+            </div>
+            <div>
+              <dt>Preview</dt>
+              <dd>{dashboard.stream.previewEventCount}</dd>
+            </div>
+            <div>
+              <dt>Eval</dt>
+              <dd>{dashboard.stream.evalEventCount}</dd>
+            </div>
+          </dl>
+          <p>{dashboard.stream.latestEventLabel}</p>
+          <small>{formatNullableTraceTime(dashboard.stream.latestEventAt)}</small>
+        </article>
+
+        <article
+          aria-label="Provider token and cost telemetry"
+          className="telemetryDashboardCard"
+          data-state={dashboard.provider.status}
+          role="group"
+        >
+          <header>
+            <span>Provider</span>
+            <strong>{formatProviderRuntimeLabel(dashboard.provider)}</strong>
+          </header>
+          <dl>
+            <div>
+              <dt>Tokens</dt>
+              <dd>{formatTokenUsageTotal(dashboard.provider)}</dd>
+            </div>
+            <div>
+              <dt>Cost</dt>
+              <dd>{dashboard.provider.summary.costLabel}</dd>
+            </div>
+            <div>
+              <dt>First token</dt>
+              <dd>{formatRuntimeDuration(dashboard.provider.timing.timeToFirstTokenMs)}</dd>
+            </div>
+            <div>
+              <dt>Stream</dt>
+              <dd>{dashboard.provider.stream.eventCount}</dd>
+            </div>
+          </dl>
+          <p>{formatTokenUsageDetail(dashboard.provider)}</p>
+          <small>{formatTelemetryCostSource(dashboard.provider)}</small>
+        </article>
+
+        <article
+          aria-label="Runtime lifecycle"
+          className="telemetryDashboardCard"
+          data-state={dashboard.runtime.workflowStatus}
+          role="group"
+        >
+          <header>
+            <span>Runtime</span>
+            <strong>{dashboard.runtime.currentStep}</strong>
+          </header>
+          <dl>
+            <div>
+              <dt>Nodes</dt>
+              <dd>{`${dashboard.runtime.reachedNodes}/${dashboard.runtime.totalNodes}`}</dd>
+            </div>
+            <div>
+              <dt>Transitions</dt>
+              <dd>{dashboard.runtime.transitionCount}</dd>
+            </div>
+            <div>
+              <dt>Retries</dt>
+              <dd>{dashboard.runtime.retryCount}</dd>
+            </div>
+            <div>
+              <dt>Runtime</dt>
+              <dd>{formatRuntimeDuration(dashboard.runtime.totalRuntimeMs)}</dd>
+            </div>
+          </dl>
+          <p>{formatWorkflowStatusCopy(dashboard.runtime.workflowStatus)}</p>
+          <small>
+            {dashboard.runtime.activeRuntimeMs != null
+              ? `Active ${formatRuntimeDuration(dashboard.runtime.activeRuntimeMs)}`
+              : "No active node timing"}
+          </small>
+        </article>
+
+        <article
+          aria-label="Renderer and preview health"
+          className="telemetryDashboardCard"
+          data-state={dashboard.preview.state}
+          role="group"
+        >
+          <header>
+            <span>Preview runtime</span>
+            <strong>{dashboard.preview.healthLabel}</strong>
+          </header>
+          <dl>
+            <div>
+              <dt>Renderer</dt>
+              <dd>{dashboard.preview.renderer}</dd>
+            </div>
+            <div>
+              <dt>Target</dt>
+              <dd>{dashboard.preview.target}</dd>
+            </div>
+          </dl>
+          <p>{dashboard.preview.detail}</p>
+          <small>
+            {dashboard.preview.error ??
+              `Latest preview event ${formatNullableTraceTime(dashboard.preview.latestPreviewEventAt)}`}
+          </small>
+        </article>
+
+        <article
+          aria-label="Retrieval activity"
+          className="telemetryDashboardCard"
+          data-state={dashboard.retrieval.state}
+          role="group"
+        >
+          <header>
+            <span>Retrieval</span>
+            <strong>{dashboard.retrieval.status}</strong>
+          </header>
+          <dl>
+            <div>
+              <dt>Sources</dt>
+              <dd>{dashboard.retrieval.sourceCount}</dd>
+            </div>
+            <div>
+              <dt>Chunks</dt>
+              <dd>{dashboard.retrieval.chunkCount}</dd>
+            </div>
+            <div>
+              <dt>Quality</dt>
+              <dd>{dashboard.retrieval.qualityLabel}</dd>
+            </div>
+            <div>
+              <dt>Freshness</dt>
+              <dd>{dashboard.retrieval.freshnessLabel}</dd>
+            </div>
+          </dl>
+          <p>{dashboard.retrieval.query ?? "No retrieval query captured yet."}</p>
+          <small>
+            {dashboard.retrieval.error ??
+              dashboard.retrieval.warning ??
+              dashboard.retrieval.providerLabel}
+          </small>
+        </article>
+
+        <article
+          aria-label="LangSmith observability"
+          className="telemetryDashboardCard"
+          data-state={dashboard.observability.state}
+          role="group"
+        >
+          <header>
+            <span>LangSmith</span>
+            <strong>{formatObservabilityDashboardState(dashboard.observability.state)}</strong>
+          </header>
+          <dl>
+            <div>
+              <dt>Trace</dt>
+              <dd>{dashboard.observability.traceId ?? "Not linked"}</dd>
+            </div>
+            <div>
+              <dt>Project</dt>
+              <dd>{dashboard.observability.projectName ?? "Local only"}</dd>
+            </div>
+          </dl>
+          <p>{dashboard.observability.traceKind ?? "Optional tracing unavailable."}</p>
+          <small>
+            {dashboard.observability.reason ??
+              dashboard.observability.status ??
+              "No LangSmith metadata in stream"}
+          </small>
+        </article>
+
+        <article
+          aria-label="RAGAs evaluation lineage"
+          className="telemetryDashboardCard"
+          data-state={dashboard.evaluation.state}
+          role="group"
+        >
+          <header>
+            <span>Evaluation</span>
+            <strong>{dashboard.evaluation.statusLabel}</strong>
+          </header>
+          <dl>
+            <div>
+              <dt>Run</dt>
+              <dd>{dashboard.evaluation.runId ?? "None"}</dd>
+            </div>
+            <div>
+              <dt>Dataset</dt>
+              <dd>{dashboard.evaluation.datasetId ?? "None"}</dd>
+            </div>
+            <div>
+              <dt>Rows</dt>
+              <dd>{dashboard.evaluation.resultRows ?? "N/A"}</dd>
+            </div>
+            <div>
+              <dt>Failures</dt>
+              <dd>{dashboard.evaluation.metricFailures ?? "N/A"}</dd>
+            </div>
+          </dl>
+          <p>{dashboard.evaluation.detail}</p>
+          <small>
+            {dashboard.evaluation.metrics.length > 0
+              ? dashboard.evaluation.metrics.join(" / ")
+              : "RAGAs metadata pending"}
+          </small>
+        </article>
+
+        <article
+          aria-label="Artifact runtime linkage"
+          className="telemetryDashboardCard telemetryDashboardCard--wide"
+          data-state={dashboard.preview.state}
+          role="group"
+        >
+          <header>
+            <span>Artifact linkage</span>
+            <strong>{dashboard.artifactLink.linkLabel}</strong>
+          </header>
+          <dl>
+            <div>
+              <dt>Active</dt>
+              <dd>{dashboard.artifactLink.activeArtifactTitle}</dd>
+            </div>
+            <div>
+              <dt>Preview source</dt>
+              <dd>{dashboard.artifactLink.previewArtifactId ?? "None"}</dd>
+            </div>
+            <div>
+              <dt>Renderer</dt>
+              <dd>{dashboard.artifactLink.renderer}</dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>{dashboard.artifactLink.status}</dd>
+            </div>
+          </dl>
+          <p>{dashboard.artifactLink.target}</p>
+        </article>
+      </div>
+
+      {showDebugPanels ? (
+        <article
+          aria-label="Telemetry event type counts"
+          className="telemetryDashboardCard telemetryDashboardCard--wide"
+          role="group"
+        >
+          <header>
+            <span>Event distribution</span>
+            <strong>{dashboard.stream.eventCount} events</strong>
+          </header>
+          <div className="telemetryEventPills">
+            {populatedEventTypes.length > 0 ? (
+              populatedEventTypes.map(([eventType, count]) => (
+                <span key={eventType}>
+                  {formatRuntimeCode(eventType)}
+                  <strong>{count}</strong>
+                </span>
+              ))
+            ) : (
+              <p>No stream events captured yet.</p>
+            )}
+          </div>
+        </article>
+      ) : (
+        <article
+          aria-label="Telemetry debug panels hidden"
+          className="telemetryDashboardCard telemetryDashboardCard--wide"
+          role="group"
+        >
+          <header>
+            <span>Event distribution</span>
+            <strong>Hidden</strong>
+          </header>
+          <p>Raw event counts are hidden in Settings.</p>
+        </article>
+      )}
+    </section>
+  );
+}
+
 type ArtifactsInspectorProps = {
   activeArtifact: ArtifactSummary;
   activeArtifactDocument: ArtifactDocument;
@@ -3528,6 +3912,14 @@ function CommandMenuPanel({
         >
           <strong>Workflow inspector</strong>
           <span>Review the live orchestration runtime.</span>
+        </button>
+        <button
+          data-active={activeTab === "Telemetry"}
+          onClick={() => onOpenTab("Telemetry")}
+          type="button"
+        >
+          <strong>Telemetry dashboard</strong>
+          <span>Inspect runtime, provider, retrieval, and observability signals.</span>
         </button>
         <button
           aria-label="Toggle preview shelf"
@@ -4241,6 +4633,36 @@ function formatTelemetryStatus(status: ProviderTelemetryModel["status"]) {
   }
 }
 
+function formatDashboardStatusLabel(status: TelemetryDashboardModel["status"]) {
+  switch (status) {
+    case "complete":
+      return "Complete";
+    case "degraded":
+      return "Degraded";
+    case "error":
+      return "Error";
+    case "running":
+      return "Running";
+    default:
+      return "Idle";
+  }
+}
+
+function formatObservabilityDashboardState(
+  state: TelemetryDashboardModel["observability"]["state"]
+) {
+  switch (state) {
+    case "linked":
+      return "Linked";
+    case "requested":
+      return "Requested";
+    case "disabled":
+      return "Disabled";
+    default:
+      return "Unavailable";
+  }
+}
+
 function formatTelemetryLifecycleStep(step: ProviderTelemetryLifecycleStep) {
   if (!step.at) {
     return step.state === "active" ? "Active" : "Pending";
@@ -4289,6 +4711,10 @@ function formatTraceTime(timestamp: string) {
     minute: "2-digit",
     second: "2-digit"
   }).format(date);
+}
+
+function formatNullableTraceTime(timestamp: string | null) {
+  return timestamp ? formatTraceTime(timestamp) : "Not captured";
 }
 
 function formatWorkflowMiniMeta(step: WorkflowRuntimeModel["steps"][number]) {
