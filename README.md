@@ -1,56 +1,199 @@
 # Creative Coding Assistant
 
-Creative Coding Assistant is a Python-first assistant for creative coding and
-graphics programming workflows. V1 provides a Streamlit chat client over a
-frontend-agnostic backend service, with retrieval-augmented answers grounded in
-curated documentation and live-session evaluation support.
+Creative Coding Assistant is an AI-native workstation for creative coding,
+generative graphics, and realtime media workflows. It combines a
+LangGraph-orchestrated Python backend with a Next.js workstation that streams
+assistant output into code, artifacts, previews, and runtime inspectors.
 
-The project is currently in a pre-agent phase. The V1 app is feature-complete
-for interactive chat, domain-aware retrieval, short-term memory, trace
-visibility, and local evaluation workflows.
+The repository is structured as both a serious AI engineering project and a
+reusable foundation for future AI-native products. It includes orchestration,
+retrieval, memory, evaluation, bounded preview runtimes, multimodal inputs,
+export flows, telemetry surfaces, and a workstation interface designed for
+iterative creative work.
 
-![Streamlit chat preview](assets/preview.png)
+![Creative Coding Assistant workstation preview](assets/preview.png)
 
-## Project Structure
+## Highlights
+
+- AI-native workstation UX with chat, a collapsible preview shelf, and focused
+  inspector tabs for overview, code, workflow, artifacts, and retrieval
+- LangGraph workflow runtime with routing, memory, retrieval, prompt assembly,
+  generation, deterministic review, bounded refinement, and terminal failure
+  handling
+- Streaming NDJSON bridge between the Next.js client and the Python assistant
+  runtime
+- Live artifact hydration that turns final assistant output into active code,
+  artifact, and preview state
+- Controlled preview runtimes for p5.js sketches, GLSL shaders, and
+  Three.js-style scenes
+- Multimodal image references for grounding creative requests visually
+- Project bundle export with artifacts, runtime metadata, retrieval context, and
+  session state
+- Provider/runtime telemetry, renderer diagnostics, and subsystem error
+  surfaces
+- Local workspace persistence with browser restore and SQLite-backed backend
+  session storage
+
+## Architecture
+
+### Frontend Workstation
+
+The primary interface lives in `clients/nextjs/`. The workstation shell
+provides:
+
+- a main creative session area for conversation and streaming output
+- a lower preview shelf that appears when previewable output is available
+- a right-side inspector with `Overview`, `Code`, `Workflow`, `Artifacts`, and
+  `Retrieval` tabs
+- session, layout, and theme persistence across reloads
+- artifact copy, download, and export actions
+- local approval checkpoints for runtime resets, destructive actions, and file
+  transfer flows
+
+The initial shell boots from a local workspace snapshot and then updates through
+live stream events from the backend bridge.
+
+### Backend Runtime
+
+The Python backend lives under `src/creative_coding_assistant/` and centers on
+an implemented LangGraph workflow in
+`src/creative_coding_assistant/orchestration/workflow_graph.py`.
+
+The current workflow order is:
+
+`intake -> routing -> memory -> retrieval -> context_assembly -> prompt_input -> prompt_rendering -> generation -> review -> refinement -> finalization -> failure`
+
+Key backend capabilities include:
+
+- domain-aware routing and request shaping
+- curated official-source retrieval and query grounding
+- conversation memory and memory recording
+- prompt input assembly and rendered provider prompts
+- streamed generation events with workflow metadata
+- deterministic review checks with at most one refinement retry
+- structured terminal failure handling
+- live session recording and evaluation support
+
+Architecture documentation for the current workflow graph is available in
+[`architecture/workflow_graph.md`](architecture/workflow_graph.md).
+
+### Preview, Runtime, And Safety Model
+
+Preview handling is driven by workstation runtime surfaces and artifact state.
+The client routes previewable outputs into controlled runtime adapters rather
+than executing arbitrary generated application code directly.
+
+Implemented runtime surfaces include:
+
+- p5.js-style canvas previews
+- bounded GLSL fragment shader previews
+- controlled Three.js-style WebGL scene previews
+
+The workstation also exposes:
+
+- preview runtime health, FPS, frame-time, and diagnostics overlays
+- provider/model/tokens/latency/cost telemetry summaries
+- retrieval inspectors with source quality, freshness, and chunk context
+- local HITL-style approval flows for export/runtime/reset actions
+
+## Feature Areas
+
+### Creative Workstation
+
+- Streaming conversation workflow designed for iterative creative sessions
+- Inspector surfaces for workflow state, code, artifacts, retrieval, and
+  summaries
+- Live artifact selection and code-focused inspection
+- Workspace-level session restore with active tab, artifact, preview, layout,
+  and preference state
+
+### Retrieval And Grounding
+
+- Retrieval over curated official documentation sources
+- Domain and source metadata registries spanning a broad creative coding tool
+  ecosystem
+- Retrieval summaries with request parameters, source scoring, freshness, and
+  chunk-level grounding context
+- Validation coverage for source registry, retrieval foundation, and retrieval
+  integration boundaries
+
+### Memory And Evaluation
+
+- Conversation memory repositories and memory retrieval adapters
+- Live session recording for later evaluation
+- Offline evaluation helpers and RAGAs-oriented evaluation runner
+- Tests covering memory behavior, session evaluation foundations, and live
+  session flows
+
+### Export And Multimodal
+
+- Image reference attachments for PNG, JPEG, WebP, and GIF inputs
+- Frontend-side validation for attachment size/count/type
+- Project bundle export containing:
+  - generated artifacts
+  - workspace session snapshot
+  - workflow summary
+  - retrieval summary
+  - preview routing/runtime metadata
+  - operator approval summary
+  - multimodal image metadata
+  - bundle manifest and bundled README
+
+## Repository Layout
 
 ```text
 .
+├── architecture/                # Workflow graph docs and Mermaid source
+├── assets/                      # README assets
 ├── clients/
-│   └── streamlit/
-│       └── app.py                # Streamlit UI entry point
-├── src/
-│   └── creative_coding_assistant/
-│       ├── orchestration/        # Service pipeline: memory, retrieval, prompt, generation
-│       ├── rag/                  # Knowledge base, indexing, retrieval logic
-│       ├── llm/                  # Provider adapters (OpenAI)
-│       ├── eval/                 # RAG evaluation (RAGAs, live sessions)
-│       └── clients/              # Streamlit helpers and rendering logic
-├── tests/                        # Pytest test suite
-├── scripts/                      # CLI utilities (KB sync, eval runs)
-├── data/                         # Local runtime data (Chroma, eval logs)
-├── assets/                       # README images (screenshots)
+│   ├── nextjs/                  # Primary workstation UI
+│   │   ├── src/app/             # Next.js app entrypoints and global styles
+│   │   ├── src/components/      # Workstation shell, preview surfaces, callouts
+│   │   └── src/lib/             # Frontend runtime models, export, persistence
+│   └── streamlit/               # Earlier reference client
+├── data/                        # Local runtime data (Chroma, eval, artifacts, SQLite)
+├── docs/                        # Local ignored implementation/planning material
+├── scripts/                     # KB sync and evaluation utilities
+├── src/creative_coding_assistant/
+│   ├── api/                     # Streaming and persistence bridge apps
+│   ├── app/                     # Top-level service composition
+│   ├── artifacts/               # Artifact contracts
+│   ├── contracts/               # Assistant request and event contracts
+│   ├── domains/                 # Domain registry and metadata
+│   ├── eval/                    # Live-session evaluation support
+│   ├── llm/                     # Provider adapters
+│   ├── orchestration/           # LangGraph runtime and service flow
+│   ├── preview/                 # Preview contracts
+│   ├── rag/                     # Source registry, sync, embeddings, retrieval
+│   ├── vectorstore/             # Chroma persistence helpers
+│   └── workspace/               # Workspace session contracts and persistence
+├── tests/                       # Backend and bridge tests
 ├── README.md
 └── pyproject.toml
 ```
 
-## Architecture
+## Key Reference Files
 
-- `clients/streamlit/`: thin Streamlit chat client and UI rendering.
-- `src/creative_coding_assistant/orchestration/`: request routing, memory
-  assembly, retrieval orchestration, prompt input construction, prompt
-  rendering, provider-boundary preparation, and streamed service events.
-- `src/creative_coding_assistant/rag/`: official source registry, KB sync,
-  chunking, embedding, retrieval, filtering, deduplication, and deterministic
-  post-processing.
-- `src/creative_coding_assistant/llm/`: provider-neutral generation contracts
-  and OpenAI generation adapter.
-- `src/creative_coding_assistant/eval/`: live session recorder and manual RAGAs
-  evaluation runner over recorded real app usage.
+- Workflow graph docs:
+  [`architecture/workflow_graph.md`](architecture/workflow_graph.md)
+- Workflow graph Mermaid source:
+  [`architecture/workflow_graph.mmd`](architecture/workflow_graph.mmd)
+- Next.js workstation shell:
+  [`clients/nextjs/src/components/workstation-shell.tsx`](clients/nextjs/src/components/workstation-shell.tsx)
+- Frontend workstation tests:
+  [`clients/nextjs/src/components/workstation-shell.test.tsx`](clients/nextjs/src/components/workstation-shell.test.tsx)
+- Streaming bridge:
+  [`src/creative_coding_assistant/api/streaming.py`](src/creative_coding_assistant/api/streaming.py)
+- Workspace persistence bridge:
+  [`src/creative_coding_assistant/api/workspace_sessions.py`](src/creative_coding_assistant/api/workspace_sessions.py)
+- Workflow integration tests:
+  [`tests/test_langgraph_workflow_integration.py`](tests/test_langgraph_workflow_integration.py)
 
-Local application data is stored under `data/`, including Chroma collections
-and evaluation JSONL outputs. Runtime data is not intended to be committed.
+## Domain Coverage
 
-## Supported Domains
+The request/domain registry and approved source registry cover a broad creative
+coding surface. Core domains exercised most directly by the current workstation
+and preview/runtime flow include:
 
 - Three.js
 - React Three Fiber
@@ -58,35 +201,19 @@ and evaluation JSONL outputs. Runtime data is not intended to be committed.
 - GLSL
 - Processing
 - Canvas 2D
-- WebGPU/WGSL
+- WebGPU / WGSL
 
-## Core V1 Features
-
-- Domain intent detection from the user query.
-- Multi-domain routing for queries that span multiple creative coding domains.
-- RAG over curated official and high-quality documentation sources.
-- Improved retrieval ranking, including p5.js example-priority ranking and
-  low-value source filtering.
-- Prompt and retrieval alignment so explicit query intent takes priority over
-  sidebar selections.
-- Generate, explain, and debug modes with mode-specific output guidance.
-- Follow-up memory for short multi-turn creative coding edits.
-- Lightweight session summaries for longer chat continuity.
-- Retrieval trace/debug UI showing detected domains, retrieval domains, source
-  IDs, and assembled context.
-- Code block rendering for generated code.
-- Download buttons for generated code blocks.
-- Smart filenames for common generated artifacts such as `index.html`,
-  `sketch.js`, `App.jsx`, and `shader.glsl`.
-- User-facing error handling for configuration, provider, network, and
-  retrieval failures.
-- Retrieval fallback so generation can continue when the knowledge base is
-  temporarily unavailable.
+The broader registry also covers ecosystems such as GSAP, Tone.js, PixiJS,
+Matter.js, Rapier, Hydra, Shadertoy, TouchDesigner, Houdini, Blender,
+openFrameworks, OPENRNDR, SuperCollider, Sonic Pi, TensorFlow.js, ComfyUI,
+Runway, Unreal, Unity, and more.
 
 ## Setup
 
-Create and activate a virtual environment, then install the project with dev
-dependencies:
+### Python Environment
+
+Create and activate a virtual environment, then install the Python project with
+dev dependencies:
 
 ```bash
 python -m venv .venv
@@ -105,7 +232,7 @@ Required for live generation and embeddings:
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-Useful optional settings:
+Useful optional Python settings:
 
 ```bash
 CCA_OPENAI_API_KEY=
@@ -114,9 +241,62 @@ CCA_OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 CCA_LOG_LEVEL=INFO
 CCA_CHROMA_PERSIST_DIR=data/chroma
 CCA_EVAL_DATA_PATH=data/eval/live_sessions.jsonl
+CCA_WORKSPACE_SESSION_DB_PATH=data/workspace_sessions.sqlite3
 ```
 
-## Run the App
+### Next.js Workstation
+
+Install the frontend dependencies:
+
+```bash
+cd clients/nextjs
+npm install
+```
+
+Optional frontend overrides:
+
+```bash
+NEXT_PUBLIC_ASSISTANT_STREAM_URL=http://localhost:8000/api/assistant/stream
+NEXT_PUBLIC_WORKSPACE_SESSION_URL=http://localhost:8000/api/workspace/session
+```
+
+## Running The System
+
+Start the Next.js workstation:
+
+```bash
+cd clients/nextjs
+npm run dev
+```
+
+Then open:
+
+```text
+http://localhost:3000
+```
+
+The frontend expects two backend bridge endpoints by default:
+
+- `POST /api/assistant/stream` for assistant NDJSON streaming
+- `GET/POST /api/workspace/session` for workspace save/restore
+
+These bridges are exposed as importable WSGI applications in
+`creative_coding_assistant.api`:
+
+- `create_assistant_streaming_app`
+- `create_workspace_session_app`
+
+Frontend defaults:
+
+```text
+http://localhost:8000/api/assistant/stream
+http://localhost:8000/api/workspace/session
+```
+
+### Streamlit Reference Client
+
+An earlier Streamlit client is still included as a lightweight reference
+interface:
 
 ```bash
 .venv/bin/streamlit run clients/streamlit/app.py --server.headless true --server.port 8501
@@ -128,10 +308,10 @@ Then open:
 http://localhost:8501
 ```
 
-## Sync the Knowledge Base
+## Knowledge Base Sync
 
-The app can run without retrieval context, but RAG quality depends on a synced
-local Chroma knowledge base. Sync all approved sources:
+The retrieval stack depends on a synced local Chroma knowledge base. Sync all
+approved sources:
 
 ```bash
 .venv/bin/python scripts/sync_official_kb.py --all
@@ -153,9 +333,11 @@ Sync selected sources:
 
 ## Evaluation
 
-Live app sessions are recorded locally for later retrieval evaluation. RAGAs is
-manual and offline from normal app usage; running it may call evaluator LLM APIs
-and incur provider cost.
+Live sessions are recorded locally for later evaluation. The repository
+includes offline evaluation helpers today, including a retrieval-focused
+RAGAs-oriented runner. In-app evaluation dashboards and richer RAGAs/observability
+surfacing are intentionally separate concerns and belong to a later
+observability layer.
 
 Evaluate the latest eligible samples:
 
@@ -175,7 +357,7 @@ scripts/run_eval_latest.sh 4
 
 ## Validation
 
-Run the project checks from the repository root:
+Python checks:
 
 ```bash
 .venv/bin/python -m pytest
@@ -183,62 +365,12 @@ Run the project checks from the repository root:
 .venv/bin/python -m compileall -q src clients tests scripts
 ```
 
-## Demo (Example Usage)
+Frontend checks:
 
-These examples highlight different capabilities of the assistant, including code generation, multi-domain reasoning, memory, and UI controls.
-
-**Controls:**
-- **Domains:** restrict retrieval to specific technologies
-- **Mode:** generate, explain, or debug code
-- **Trace detail:** control visibility of retrieval and prompt context
-
-### 1. Beginner explanation + code
-**Domains:** All (no filter)  
-**Mode:** Generate  
-**Trace detail:** Medium  
-
-**Prompt:**
-> What is creative coding? Explain it clearly and include a minimal Three.js example.
-
-### 2. Visual generation (p5.js)
-**Domains:** p5.js  
-**Mode:** Generate  
-**Trace detail:** Medium  
-
-**Prompt:**
-> Create a generative sketch in p5.js with animated circles reacting to noise.
-
-### 3. Three.js basic scene
-**Domains:** Three.js  
-**Mode:** Generate  
-**Trace detail:** Medium  
-
-**Prompt:**
-> Create a rotating cube in Three.js with basic lighting.
-
-### 4. Shader example (GLSL)
-**Domains:** GLSL  
-**Mode:** Generate  
-**Trace detail:** High  
-
-**Prompt:**
-> Create a simple fragment shader that generates a gradient animation.
-
-### 5. Multi-domain example
-**Domains:** React Three Fiber + GLSL  
-**Mode:** Generate  
-**Trace detail:** High  
-
-**Prompt:**
-> Create a shader material in React Three Fiber using GLSL.
-
-### 6. Follow-up interaction (memory)
-**Domains:** Three.js  
-**Mode:** Generate  
-**Trace detail:** Medium  
-
-**Prompt 1:**
-> Create a rotating cube in Three.js.
-
-**Prompt 2:**
-> Make it faster and change the color to red.
+```bash
+cd clients/nextjs
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+```
