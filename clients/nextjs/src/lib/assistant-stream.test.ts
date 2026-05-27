@@ -247,29 +247,29 @@ describe("assistant stream client", () => {
       sequence: 4,
       payload: {
         artifact_id: "source-sketch",
-        status: "skipped",
+        status: "succeeded",
         emitted_at: "2026-05-22T10:25:00Z",
         result: {
-          summary: "Preview pipeline foundation only; renderer execution is deferred.",
+          summary: "p5.js runtime ready for sandbox execution.",
           completed_at: "2026-05-22T10:25:00Z",
-          preview_artifact_id: "preview-manifest",
+          preview_artifact_id: "source-sketch",
           request: {
             target: "browser_sandbox"
           },
           provenance: {
-            renderer_id: "preview.noop"
+            renderer_id: "surface.p5"
           }
         }
       }
     };
 
     expect(readPreviewArtifactUpdate(event)).toEqual({
-      status: "skipped",
+      status: "succeeded",
       artifactId: "source-sketch",
-      previewArtifactId: "preview-manifest",
-      rendererId: "preview.noop",
+      previewArtifactId: "source-sketch",
+      rendererId: "surface.p5",
       target: "browser_sandbox",
-      summary: "Preview pipeline foundation only; renderer execution is deferred.",
+      summary: "p5.js runtime ready for sandbox execution.",
       errorMessage: null,
       error: null,
       emittedAt: "2026-05-22T10:25:00Z",

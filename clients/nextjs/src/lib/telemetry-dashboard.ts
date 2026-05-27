@@ -184,6 +184,15 @@ type EvaluationRecord = {
   detail: string | null;
 };
 
+type PreviewRuntimeRecord = {
+  artifact: string | null;
+  error: string | null;
+  fingerprint: string | null;
+  kind: string | null;
+  rendererLabel: string | null;
+  state: string | null;
+};
+
 const allStreamEventTypes: AssistantStreamEventType[] = [
   "status",
   "memory",
@@ -339,22 +348,41 @@ function buildPreviewHealth(
   traceEvents: WorkflowRuntimeTraceEvent[]
 ): TelemetryPreviewHealth {
   const latestPreview = findLatestPreviewArtifact(traceEvents);
+  const latestRuntime = findLatestPreviewRuntime(traceEvents);
   const error =
     preview.error?.userMessage ??
+    latestRuntime?.record.error ??
     latestPreview?.errorMessage ??
     null;
+  const runtimeMessage =
+    latestRuntime?.record.state === "running"
+      ? `${latestRuntime.record.rendererLabel ?? latestRuntime.record.kind ?? "Preview"} sandbox runtime is executing ${latestRuntime.record.artifact ?? preview.artifactName}.`
+      : null;
 
   return {
     state: preview.state,
     active: preview.active,
     available: preview.available,
-    renderer: preview.renderer || "Renderer pending",
+    renderer:
+      preview.renderer ||
+      latestRuntime?.record.rendererLabel ||
+      "Renderer pending",
     target: preview.target || "Target pending",
-    artifactName: preview.artifactName || "No artifact",
+    artifactName:
+      preview.artifactName ||
+      latestRuntime?.record.artifact ||
+      "No artifact",
     healthLabel: formatPreviewHealthLabel(preview),
-    detail: preview.summary || "Preview runtime metadata has not arrived yet.",
+    detail:
+      runtimeMessage ??
+      preview.summary ??
+      "Preview runtime metadata has not arrived yet.",
     error,
-    latestPreviewEventAt: latestPreview?.emittedAt ?? latestPreview?.completedAt ?? null
+    latestPreviewEventAt:
+      latestRuntime?.at ??
+      latestPreview?.emittedAt ??
+      latestPreview?.completedAt ??
+      null
   };
 }
 
@@ -625,6 +653,20 @@ function findLatestPreviewArtifact(traceEvents: WorkflowRuntimeTraceEvent[]) {
   return null;
 }
 
+function findLatestPreviewRuntime(traceEvents: WorkflowRuntimeTraceEvent[]) {
+  for (let index = traceEvents.length - 1; index >= 0; index -= 1) {
+    const event = traceEvents[index];
+    const record = parsePreviewRuntimeRecord(event.event.payload.preview_runtime);
+    if (record) {
+      return {
+        at: readEventTimestamp(event.event) ?? event.receivedAt,
+        record
+      };
+    }
+  }
+  return null;
+}
+
 function findLatestObservabilityRecord(traceEvents: WorkflowRuntimeTraceEvent[]) {
   for (let index = traceEvents.length - 1; index >= 0; index -= 1) {
     const event = traceEvents[index];
@@ -651,6 +693,21 @@ function findLatestEvaluationRecord(traceEvents: WorkflowRuntimeTraceEvent[]) {
     }
   }
   return null;
+}
+
+function parsePreviewRuntimeRecord(value: unknown): PreviewRuntimeRecord | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return {
+    artifact: readString(value.artifact),
+    error: readString(value.error),
+    fingerprint: readString(value.fingerprint),
+    kind: readString(value.kind),
+    rendererLabel: readString(value.renderer_label) ?? readString(value.rendererLabel),
+    state: readString(value.state)
+  };
 }
 
 function parseObservabilityRecord(value: unknown): ObservabilityRecord | null {

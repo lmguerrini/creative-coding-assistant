@@ -228,7 +228,7 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
     },
     workspace: {
       name: "Session workspace",
-      focus: "WebGPU kinetic field"
+      focus: "p5 aurora field"
     },
     inspectorTabs: [
       {
@@ -241,7 +241,7 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
         label: "Code",
         active: false,
         summary: "Generated sketch source",
-        badge: "TS"
+        badge: "JS"
       },
       {
         label: "Workflow",
@@ -279,7 +279,7 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
         role: "assistant",
         time: "09:25",
         content:
-          "Drafting a WebGPU sketch with stable simulation passes, palette controls, and an artifact that can be opened or previewed on demand."
+          "Drafting a p5.js sketch with stable motion, palette controls, and an artifact that can be opened or previewed on demand."
       }
     ],
     workflow: {
@@ -364,11 +364,11 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
     artifacts: [
       {
         id: "source-sketch",
-        title: "webgpu-particle-field.ts",
+        title: "aurora-field.p5.js",
         type: "code",
-        language: "TypeScript",
-        status: "Draft",
-        summary: "Primary generated sketch artifact with a browser preview target.",
+        language: "p5.js",
+        status: "Ready",
+        summary: "Primary generated p5 sketch artifact with a browser preview target.",
         actions: ["Open", "Preview", "Copy", "Download"]
       },
       {
@@ -402,33 +402,41 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
       available: true,
       active: false,
       collapsed: true,
-      state: "generating",
+      state: "ready",
       title: "Preview available",
       targetId: "browser_sandbox",
-      target: "Browser sandbox / WebGPU WGSL",
-      status: "Generating",
-      artifactName: "webgpu-particle-field.ts",
+      target: "Browser sandbox / p5.js",
+      status: "Ready",
+      artifactName: "aurora-field.p5.js",
       sourceArtifactId: "source-sketch",
-      sourceArtifactName: "webgpu-particle-field.ts",
+      sourceArtifactName: "aurora-field.p5.js",
       outputArtifactName: "",
       summary:
-        "Runtime is still generating the current sketch and preview context for the WebGPU field.",
-      renderer: "preview.noop",
+        "Runtime context is ready for the generated p5 sketch. Open the preview shelf to execute it in the browser sandbox.",
+      renderer: "surface.p5",
       trigger: "Workflow Generation",
       version: "v1"
     },
     code: {
-      title: "webgpu-particle-field.ts",
-      language: "TypeScript + WGSL",
-      status: "Draft artifact",
+      title: "aurora-field.p5.js",
+      language: "p5.js",
+      status: "Ready artifact",
       excerpt: [
-        "const lowBand = audio.sampleBand('low');",
-        "const field = curlNoise({ scale: 0.42, time });",
-        "particles.integrate({ field, damping: 0.92 });",
-        "particles.applyAudioForce({ band: lowBand, gain: 0.18 });",
-        "palette.blend({ warmth: 0.34, bloom: 0.62 });",
-        "renderer.present({ palette, projectionScale });",
-        "preview.exportFrame({ artifact: 'webgpu-particle-field.ts' });"
+        "let phase = 0;",
+        "function setup() {",
+        "  createCanvas(windowWidth, 320);",
+        "  noStroke();",
+        "}",
+        "function draw() {",
+        "  phase += 0.012;",
+        "  background(5, 8, 11);",
+        "  for (let i = 0; i < 18; i += 1) {",
+        "    const x = map(i, 0, 17, 36, width - 36);",
+        "    const y = height * 0.5 + sin(phase + i * 0.52) * 74;",
+        "    fill(76 + i * 4, 215, 200, 160);",
+        "    circle(x, y, 18 + sin(phase * 1.7 + i) * 8);",
+        "  }",
+        "}"
       ]
     },
     retrieval: {
@@ -534,7 +542,7 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
         {
           code: "preview_queued",
           label: "Preview",
-          detail: "browser_sandbox target resolved from WebGPU artifact metadata"
+          detail: "browser_sandbox target resolved from p5.js artifact metadata"
         }
       ]
     }

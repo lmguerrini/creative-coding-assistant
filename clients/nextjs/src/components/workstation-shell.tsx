@@ -111,7 +111,13 @@ import {
   buildTelemetryDashboardModel,
   type TelemetryDashboardModel
 } from "@/lib/telemetry-dashboard";
-import { buildPreviewRuntimeSource } from "@/lib/preview-runtime-adapters";
+import {
+  buildPreviewRuntimeSource,
+  type PreviewExecutableRuntimeKind,
+  type PreviewRuntimeFrameSample,
+  type PreviewRuntimeSource,
+  type PreviewRuntimeStatus
+} from "@/lib/preview-runtime-adapters";
 import {
   buildMultimodalSummary,
   createImageAttachmentFromFile,
@@ -158,6 +164,20 @@ type WorkstationShellProps = {
 type AssistantStreamClient = (
   request: AssistantStreamRequest
 ) => AsyncIterable<AssistantStreamEvent>;
+
+type PreviewRuntimeTelemetryBase = {
+  kind: PreviewExecutableRuntimeKind;
+  route: PreviewRendererRoute;
+  source: PreviewRuntimeSource;
+};
+
+type PreviewRuntimeStatusTelemetryEvent = PreviewRuntimeTelemetryBase & {
+  status: PreviewRuntimeStatus;
+};
+
+type PreviewRuntimeFrameTelemetryEvent = PreviewRuntimeTelemetryBase & {
+  sample: PreviewRuntimeFrameSample;
+};
 
 const inspectorTabIcons = {
   Overview: Sparkles,
@@ -282,6 +302,7 @@ export function WorkstationShell({
   const localRuntimeSequenceRef = useRef(1000);
   const streamingAssistantIdRef = useRef<string | null>(null);
   const hasPreviewRuntimeEventRef = useRef(false);
+  const previewRuntimeTelemetryKeysRef = useRef<Set<string>>(new Set());
   const [conversationEntries, setConversationEntries] = useState(() =>
     buildConversationEntries(initialSnapshot.messages, createConversationEntryId)
   );
@@ -1034,6 +1055,85 @@ export function WorkstationShell({
     }
   }
 
+  function appendPreviewRuntimeStatusEvent({
+    kind,
+    route,
+    source,
+    status
+  }: PreviewRuntimeStatusTelemetryEvent) {
+    const key = [
+      "status",
+      source.fingerprint,
+      kind,
+      status.state,
+      status.label,
+      status.detail
+    ].join(":");
+
+    if (previewRuntimeTelemetryKeysRef.current.has(key)) {
+      return;
+    }
+
+    previewRuntimeTelemetryKeysRef.current.add(key);
+    appendLocalRuntimeEvent({
+      event_type: "status",
+      sequence: localRuntimeSequenceRef.current++,
+      payload: {
+        code:
+          status.state === "error"
+            ? "preview_runtime_error"
+            : `preview_runtime_${status.state}`,
+        message: `${status.label}: ${status.detail}`,
+        category: "preview_runtime",
+        subsystem: `${kind}_sandbox_runtime`,
+        preview_runtime: {
+          artifact: source.title,
+          fingerprint: source.fingerprint,
+          kind,
+          renderer_id: route.rendererId,
+          renderer_label: route.rendererLabel,
+          state: status.state,
+          diagnostics: status.diagnostics ?? [],
+          error: status.error?.userMessage ?? null
+        }
+      }
+    });
+  }
+
+  function appendPreviewRuntimeFrameEvent({
+    kind,
+    route,
+    sample,
+    source
+  }: PreviewRuntimeFrameTelemetryEvent) {
+    const key = ["frame", source.fingerprint, kind, "first"].join(":");
+
+    if (previewRuntimeTelemetryKeysRef.current.has(key)) {
+      return;
+    }
+
+    previewRuntimeTelemetryKeysRef.current.add(key);
+    appendLocalRuntimeEvent({
+      event_type: "status",
+      sequence: localRuntimeSequenceRef.current++,
+      payload: {
+        code: "preview_runtime_frame",
+        message: `First sandbox frame rendered for ${source.title}.`,
+        category: "preview_runtime",
+        subsystem: `${kind}_sandbox_runtime`,
+        preview_runtime: {
+          artifact: source.title,
+          fingerprint: source.fingerprint,
+          kind,
+          renderer_id: route.rendererId,
+          renderer_label: route.rendererLabel,
+          rendered_at_ms: sample.renderedAtMs,
+          state: "running"
+        }
+      }
+    });
+  }
+
   function setApprovalRequestState(
     request: HitlApprovalRequest,
     nextState: HitlActionState,
@@ -1143,6 +1243,7 @@ export function WorkstationShell({
     setTransferFeedback(null);
     setArtifactTransferError(null);
     streamingAssistantIdRef.current = null;
+    previewRuntimeTelemetryKeysRef.current.clear();
     setSnapshot(initialSnapshot);
     setConversationEntries(
       buildConversationEntries(initialSnapshot.messages, createConversationEntryId)
@@ -1544,6 +1645,7 @@ export function WorkstationShell({
     setStreamEvents([]);
     setWorkflowTraceEvents([]);
     hasPreviewRuntimeEventRef.current = false;
+    previewRuntimeTelemetryKeysRef.current.clear();
     setIsStreaming(true);
     setActiveTab("Overview");
 
@@ -2278,6 +2380,8 @@ export function WorkstationShell({
               onResizeStart={handlePreviewResizeStart}
               onReset={handlePreviewSessionReset}
               onRestart={handlePreviewSessionRestart}
+              onRuntimeFrame={appendPreviewRuntimeFrameEvent}
+              onRuntimeStatus={appendPreviewRuntimeStatusEvent}
               onToggle={handlePreviewOpenChange}
               route={previewRendererRoute}
               runtimeSource={previewRuntimeSource}
@@ -2407,6 +2511,8 @@ type PreviewShelfProps = WorkstationShellProps & {
   onResizeStart: (event: MouseEvent<HTMLElement>) => void;
   onReset: () => void;
   onRestart: () => void;
+  onRuntimeFrame: (event: PreviewRuntimeFrameTelemetryEvent) => void;
+  onRuntimeStatus: (event: PreviewRuntimeStatusTelemetryEvent) => void;
   onToggle: (isOpen: boolean) => void;
   route: PreviewRendererRoute;
   runtimeSource: ReturnType<typeof buildPreviewRuntimeSource>;
@@ -2498,6 +2604,8 @@ function PreviewShelf({
   onResizeStart,
   onReset,
   onRestart,
+  onRuntimeFrame,
+  onRuntimeStatus,
   onToggle,
   route,
   runtimeSource,
@@ -2646,6 +2754,8 @@ function PreviewShelf({
               />
             ) : null}
             <PreviewRendererSurface
+              onRuntimeFrame={onRuntimeFrame}
+              onRuntimeStatus={onRuntimeStatus}
               preview={snapshot.preview}
               route={route}
               runtimeSource={runtimeSource}
