@@ -23,7 +23,7 @@ describe("project bundle export", () => {
       expect.arrayContaining([
         "manifest.json",
         "README.md",
-        "artifacts/webgpu-particle-field.ts",
+        "artifacts/aurora-field.p5.js",
         "artifacts/preview-request.json",
         "artifacts/projection-notes.md",
         "session/workspace-session.json",
@@ -64,7 +64,7 @@ describe("project bundle export", () => {
       runtimeSource: { title: string; lineCount: number };
     }>(bundle, "runtime/preview-config.json");
     expect(previewConfig.route.rendererLabel).toBe("JSON panel surface");
-    expect(previewConfig.runtimeSource.title).toBe("webgpu-particle-field.ts");
+    expect(previewConfig.runtimeSource.title).toBe("aurora-field.p5.js");
 
     const multimodalMetadata = readJsonFile<{
       images: Array<{

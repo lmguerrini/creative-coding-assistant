@@ -54,7 +54,7 @@ describe("hitl-runtime", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const pendingRequest = createHitlApprovalRequest({
       actionId: "artifact_download",
-      artifactTitle: "webgpu-particle-field.ts",
+      artifactTitle: "aurora-field.p5.js",
       id: "approval-2",
       nodeId: snapshot.workflow.currentNode,
       requestedAt: "2026-05-23T10:15:00.000Z",

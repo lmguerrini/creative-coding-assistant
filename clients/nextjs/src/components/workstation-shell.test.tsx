@@ -235,6 +235,75 @@ function installCanvasContextMock(
   );
 }
 
+type SandboxStatusInput = {
+  state: "idle" | "starting" | "running" | "error";
+  label: string;
+  detail: string;
+  diagnostics?: string[];
+  error?: {
+    message: string;
+    debugMessage?: string;
+    type?: string;
+  } | null;
+};
+
+async function waitForSandboxRuntimeFrame(
+  surface: HTMLElement,
+  label: string
+) {
+  const frame = (await within(surface).findByLabelText(
+    label
+  )) as HTMLIFrameElement;
+
+  await waitFor(() => {
+    expect(frame.dataset.runtimeId).toMatch(/^preview-runtime-/);
+  });
+
+  return frame;
+}
+
+function dispatchSandboxRuntimeStatus(
+  frame: HTMLIFrameElement,
+  status: SandboxStatusInput
+) {
+  const runtimeId = frame.dataset.runtimeId;
+
+  expect(runtimeId).toBeTruthy();
+  act(() => {
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: {
+          source: "cca-preview-runtime",
+          runtimeId,
+          type: "status",
+          status
+        }
+      })
+    );
+  });
+}
+
+function dispatchSandboxRuntimeFrame(
+  frame: HTMLIFrameElement,
+  renderedAtMs: number
+) {
+  const runtimeId = frame.dataset.runtimeId;
+
+  expect(runtimeId).toBeTruthy();
+  act(() => {
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: {
+          renderedAtMs,
+          runtimeId,
+          source: "cca-preview-runtime",
+          type: "frame"
+        }
+      })
+    );
+  });
+}
+
 function createMockCanvas2DContext(): CanvasRenderingContext2D {
   return {
     arc: vi.fn(),
@@ -744,16 +813,15 @@ describe("WorkstationShell", () => {
           sequence: 4,
           payload: {
             artifact_id: "source-sketch",
-            status: "skipped",
+            status: "succeeded",
             result: {
-              preview_artifact_id: "preview-manifest",
-              summary:
-                "Preview pipeline foundation only; renderer execution is deferred.",
+              preview_artifact_id: "source-sketch",
+              summary: "p5.js runtime ready for sandbox execution.",
               request: {
                 target: "browser_sandbox"
               },
               provenance: {
-                renderer_id: "preview.noop"
+                renderer_id: "surface.p5"
               }
             }
           }
@@ -803,23 +871,17 @@ describe("WorkstationShell", () => {
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
     expect(
-      within(preview).getByText("preview-request.json", { selector: "summary span" })
+      within(preview).getByText("aurora-field.p5.js", { selector: "summary span" })
     ).toBeVisible();
     expect(
-      within(preview).getByText(
-        "Preview pipeline foundation only; renderer execution is deferred."
-      )
+      within(preview).getByText("p5.js runtime ready for sandbox execution.")
     ).toBeVisible();
     expect(preview.querySelector("details")).toHaveAttribute("open");
   });
 
   it("hydrates final stream output into the active artifact and routed preview", async () => {
-    installCanvasContextMock(createMockWebGlContext(), [
-      "webgl",
-      "experimental-webgl"
-    ]);
     const generatedAnswer = [
-      "Generated a controlled scene artifact.",
+      "Generated a sandboxed scene artifact.",
       "```ts",
       "import * as THREE from 'three';",
       "const scene = new THREE.Scene();",
@@ -854,7 +916,7 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
 
     expect(
-      await screen.findByText(/Generated a controlled scene artifact/)
+      await screen.findByText(/Generated a sandboxed scene artifact/)
     ).toBeVisible();
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
@@ -868,7 +930,7 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
     expect(preview.querySelector("details")).toHaveAttribute("open");
     expect(within(preview).getByText("Three scene surface")).toBeVisible();
-    expect(within(preview).getAllByText("Foundation ready").length).toBeGreaterThan(0);
+    expect(within(preview).getAllByText("Runtime ready").length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole("tab", { name: "Code" }));
     const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
@@ -1311,16 +1373,15 @@ describe("WorkstationShell", () => {
           sequence: 1,
           payload: {
             artifact_id: "source-sketch",
-            status: "skipped",
+            status: "succeeded",
             result: {
-              preview_artifact_id: "preview-manifest",
-              summary:
-                "Preview pipeline foundation only; renderer execution is deferred.",
+              preview_artifact_id: "source-sketch",
+              summary: "p5.js runtime ready for sandbox execution.",
               request: {
                 target: "browser_sandbox"
               },
               provenance: {
-                renderer_id: "preview.noop"
+                renderer_id: "surface.p5"
               }
             }
           }
@@ -1359,9 +1420,9 @@ describe("WorkstationShell", () => {
     expect(await screen.findByText("Preview left closed.")).toBeVisible();
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
-    expect(within(preview).getByText("Deferred renderer")).toBeVisible();
+    expect(within(preview).getByText("Ready when opened")).toBeVisible();
     expect(
-      within(preview).getByText("preview-request.json", { selector: "summary span" })
+      within(preview).getByText("aurora-field.p5.js", { selector: "summary span" })
     ).toBeVisible();
     expect(preview.querySelector("details")).not.toHaveAttribute("open");
   });
@@ -1463,7 +1524,7 @@ describe("WorkstationShell", () => {
 
     expect(within(preview).getByText("Preview available")).toBeVisible();
     expect(
-      within(preview).getByText("webgpu-particle-field.ts", { selector: "summary span" })
+      within(preview).getByText("aurora-field.p5.js", { selector: "summary span" })
     ).toBeVisible();
     expect(
       within(preview).getByText("Generating", { selector: "summary small" })
@@ -1483,8 +1544,8 @@ describe("WorkstationShell", () => {
     });
 
     expect(surface).toBeVisible();
-    expect(within(surface).getByText("Browser route without renderer match")).toBeVisible();
-    expect(within(surface).getByText("Unsupported")).toBeVisible();
+    expect(within(surface).getByText("P5 sketch surface")).toBeVisible();
+    expect(within(surface).getByText("Runtime ready")).toBeVisible();
   });
 
   it("opens the preview shelf in fullscreen without losing the current context", () => {
@@ -1511,7 +1572,7 @@ describe("WorkstationShell", () => {
 
     expect(details).toHaveAttribute("data-fullscreen", "false");
     expect(
-      within(preview).getByText("webgpu-particle-field.ts", { selector: "summary span" })
+      within(preview).getByText("aurora-field.p5.js", { selector: "summary span" })
     ).toBeVisible();
   });
 
@@ -1546,7 +1607,7 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
     expect(
       within(preview).getByText(
-        "Preview state cleared for webgpu-particle-field.ts. Reload or reset the session to restore the latest runtime context."
+        "Preview state cleared for aurora-field.p5.js. Reload or reset the session to restore the latest runtime context."
       )
     ).toBeVisible();
 
@@ -1565,7 +1626,7 @@ describe("WorkstationShell", () => {
     });
 
     expect(
-      within(preview).getByText("webgpu-particle-field.ts", { selector: "summary span" })
+      within(preview).getByText("aurora-field.p5.js", { selector: "summary span" })
     ).toBeVisible();
     expect(
       within(preview).getByText("Generating", { selector: "summary small" })
@@ -1622,11 +1683,11 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
     const artifactList = screen.getByRole("tabpanel", { name: "Artifacts inspector" });
     const sourceArtifact = within(artifactList).getByLabelText(
-      "webgpu-particle-field.ts artifact"
+      "aurora-field.p5.js artifact"
     );
     fireEvent.click(
       within(sourceArtifact).getByRole("button", {
-        name: "Open in Code webgpu-particle-field.ts"
+        name: "Open in Code aurora-field.p5.js"
       })
     );
 
@@ -1638,7 +1699,7 @@ describe("WorkstationShell", () => {
     );
     expect(codePanel).toHaveAttribute(
       "data-opened-artifact",
-      "webgpu-particle-field.ts"
+      "aurora-field.p5.js"
     );
 
     fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
@@ -1694,9 +1755,7 @@ describe("WorkstationShell", () => {
     expect(preview.querySelector("details")).toHaveAttribute("data-state", "open");
   });
 
-  it("mounts supported p5 artifacts into a live renderer canvas", async () => {
-    installAnimationFrameMock();
-    installCanvasContextMock({});
+  it("mounts supported p5 artifacts into a sandboxed live runtime", async () => {
     renderShell(snapshotWithP5Preview());
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
@@ -1714,15 +1773,20 @@ describe("WorkstationShell", () => {
     expect(
       within(surface).getByRole("group", { name: "p5.js live runtime" })
     ).toBeVisible();
-    expect(
-      within(surface).getByLabelText("p5.js live runtime canvas")
-    ).toBeVisible();
+    const frame = await waitForSandboxRuntimeFrame(
+      surface,
+      "p5.js sandbox runtime frame"
+    );
+    dispatchSandboxRuntimeStatus(frame, {
+      detail:
+        "Executing signal-orbit.p5.ts inside a sandboxed p5-compatible iframe.",
+      label: "p5 runtime running",
+      state: "running"
+    });
     expect(await within(surface).findByText("p5 runtime running")).toBeVisible();
   });
 
   it("shows a compact diagnostics overlay for live preview runtimes", async () => {
-    const frameStepper = installAnimationFrameStepper();
-    installCanvasContextMock(createMockCanvas2DContext());
     renderShell(snapshotWithP5Preview());
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
@@ -1734,28 +1798,37 @@ describe("WorkstationShell", () => {
     const surface = within(preview).getByRole("group", {
       name: "Preview renderer surface"
     });
+    const frame = await waitForSandboxRuntimeFrame(
+      surface,
+      "p5.js sandbox runtime frame"
+    );
 
-    await act(async () => {
-      frameStepper.flush([
-        0,
-        16,
-        32,
-        48,
-        64,
-        80,
-        96,
-        112,
-        128,
-        144,
-        160,
-        176,
-        192,
-        208,
-        224,
-        240
-      ]);
-      await Promise.resolve();
+    dispatchSandboxRuntimeStatus(frame, {
+      detail:
+        "Executing signal-orbit.p5.ts inside a sandboxed p5-compatible iframe.",
+      label: "p5 runtime running",
+      state: "running"
     });
+    for (const frameTime of [
+      0,
+      16,
+      32,
+      48,
+      64,
+      80,
+      96,
+      112,
+      128,
+      144,
+      160,
+      176,
+      192,
+      208,
+      224,
+      240
+    ]) {
+      dispatchSandboxRuntimeFrame(frame, frameTime);
+    }
 
     const overlay = within(surface).getByLabelText("Renderer diagnostics overlay");
 
@@ -1768,9 +1841,7 @@ describe("WorkstationShell", () => {
     expect(within(surface).getByText("16.0 ms")).toBeVisible();
   });
 
-  it("mounts supported Three.js artifacts into a controlled 3D runtime", async () => {
-    installAnimationFrameMock();
-    installCanvasContextMock(createMockWebGlContext(), "webgl");
+  it("mounts supported Three.js artifacts into a sandboxed 3D runtime", async () => {
     renderShell(snapshotWithThreePreview());
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
@@ -1788,16 +1859,22 @@ describe("WorkstationShell", () => {
     expect(
       within(surface).getByRole("group", { name: "Three.js live runtime" })
     ).toBeVisible();
-    expect(
-      within(surface).getByLabelText("Three.js live runtime canvas")
-    ).toBeVisible();
+    const frame = await waitForSandboxRuntimeFrame(
+      surface,
+      "Three.js sandbox runtime frame"
+    );
+    dispatchSandboxRuntimeStatus(frame, {
+      detail:
+        "Executing projection-scene.three.ts inside a sandboxed Three.js-compatible iframe.",
+      label: "Three.js runtime running",
+      state: "running"
+    });
     expect(
       await within(surface).findByText("Three.js runtime running")
     ).toBeVisible();
   });
 
-  it("shows a stable Three.js runtime error when WebGL cannot mount", async () => {
-    installCanvasContextMock(null, "webgl");
+  it("shows a stable Three.js runtime error from the sandbox", async () => {
     renderShell(snapshotWithThreePreview());
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
@@ -1814,14 +1891,26 @@ describe("WorkstationShell", () => {
     expect(
       within(surface).getByRole("group", { name: "Three.js live runtime" })
     ).toBeVisible();
+    const frame = await waitForSandboxRuntimeFrame(
+      surface,
+      "Three.js sandbox runtime frame"
+    );
+    dispatchSandboxRuntimeStatus(frame, {
+      detail: "WebGL is unavailable in the sandbox.",
+      error: {
+        message: "WebGL is unavailable in the sandbox.",
+        type: "webgl_unavailable"
+      },
+      label: "Three.js runtime failed",
+      state: "error"
+    });
     expect(
-      await within(surface).findByText("Three.js runtime unavailable")
+      await within(surface).findByText("Three.js runtime failed")
     ).toBeVisible();
     expect(within(surface).getByText("Renderer runtime failed")).toBeVisible();
   });
 
-  it("shows a stable GLSL runtime error when WebGL cannot mount", async () => {
-    installCanvasContextMock(null);
+  it("shows a stable GLSL runtime error from the sandbox", async () => {
     renderShell(snapshotWithGlslPreview());
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
@@ -1838,7 +1927,20 @@ describe("WorkstationShell", () => {
     expect(
       within(surface).getByRole("group", { name: "GLSL live runtime" })
     ).toBeVisible();
-    expect(await within(surface).findByText("GLSL runtime unavailable")).toBeVisible();
+    const frame = await waitForSandboxRuntimeFrame(
+      surface,
+      "GLSL sandbox runtime frame"
+    );
+    dispatchSandboxRuntimeStatus(frame, {
+      detail: "Shader did not compile.",
+      error: {
+        message: "Shader did not compile.",
+        type: "shader_compile_failed"
+      },
+      label: "GLSL runtime failed",
+      state: "error"
+    });
+    expect(await within(surface).findByText("GLSL runtime failed")).toBeVisible();
     expect(within(surface).getByText("Renderer runtime failed")).toBeVisible();
   });
 
@@ -1849,14 +1951,14 @@ describe("WorkstationShell", () => {
     const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
 
     expect(codePanel).toBeVisible();
-    expect(within(codePanel).getByText("TypeScript + WGSL")).toBeVisible();
+    expect(within(codePanel).getByText("p5.js")).toBeVisible();
     expect(within(codePanel).getByText("Source code")).toBeVisible();
-    expect(within(codePanel).getByText("7 lines")).toBeVisible();
+    expect(within(codePanel).getByText("15 lines")).toBeVisible();
     expect(
       within(codePanel).getByRole("region", {
-        name: "webgpu-particle-field.ts content"
+        name: "aurora-field.p5.js content"
       })
-    ).toHaveTextContent("renderer.present({ palette, projectionScale });");
+    ).toHaveTextContent("function draw()");
     expect(screen.queryByRole("tabpanel", { name: "Overview inspector" })).not.toBeInTheDocument();
   });
 
@@ -1866,17 +1968,17 @@ describe("WorkstationShell", () => {
     const details = screen.getByRole("group", { name: "Active artifact details" });
 
     expect(within(details).getByText("Selected artifact")).toBeVisible();
-    expect(within(details).getByText("webgpu-particle-field.ts")).toBeVisible();
+    expect(within(details).getByText("aurora-field.p5.js")).toBeVisible();
     expect(within(details).getByText("Source code")).toBeVisible();
-    expect(within(details).getByText("TypeScript + WGSL")).toBeVisible();
+    expect(within(details).getByText("p5.js")).toBeVisible();
     expect(
       within(details).getByRole("button", {
-        name: "Open in Code webgpu-particle-field.ts"
+        name: "Open in Code aurora-field.p5.js"
       })
     ).toBeVisible();
     expect(
       within(details).getByRole("button", {
-        name: "Download File webgpu-particle-field.ts"
+        name: "Download File aurora-field.p5.js"
       })
     ).toBeVisible();
   });
@@ -1900,7 +2002,7 @@ describe("WorkstationShell", () => {
 
     fireEvent.click(
       within(details).getByRole("button", {
-        name: "Download File webgpu-particle-field.ts"
+        name: "Download File aurora-field.p5.js"
       })
     );
 
@@ -1919,7 +2021,7 @@ describe("WorkstationShell", () => {
       expect(anchorClick).toHaveBeenCalledTimes(1);
     });
     expect(
-      screen.getByText("webgpu-particle-field.ts downloaded.")
+      screen.getByText("aurora-field.p5.js downloaded.")
     ).toBeVisible();
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
@@ -1990,7 +2092,7 @@ describe("WorkstationShell", () => {
 
     fireEvent.click(
       within(details).getByRole("button", {
-        name: "Download File webgpu-particle-field.ts"
+        name: "Download File aurora-field.p5.js"
       })
     );
 
@@ -2002,7 +2104,7 @@ describe("WorkstationShell", () => {
     expect(screen.getByText("Artifact transfer failed")).toBeVisible();
     expect(
       screen.getAllByText(
-        "The workspace could not download webgpu-particle-field.ts."
+        "The workspace could not download aurora-field.p5.js."
       ).length
     ).toBeGreaterThan(0);
 
@@ -2020,16 +2122,16 @@ describe("WorkstationShell", () => {
     renderShell(snapshotWithActiveTab("Code"));
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Copy webgpu-particle-field.ts" })
+      screen.getByRole("button", { name: "Copy aurora-field.p5.js" })
     );
 
     await waitFor(() => {
       expect(
-        screen.getByText("webgpu-particle-field.ts copied to clipboard.")
+        screen.getByText("aurora-field.p5.js copied to clipboard.")
       ).toBeVisible();
     });
     expect(writeText).toHaveBeenCalledWith(
-      expect.stringContaining("renderer.present({ palette, projectionScale });")
+      expect.stringContaining("function draw()")
     );
     expect(screen.getByText("Copied")).toBeVisible();
   });
