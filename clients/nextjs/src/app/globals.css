@@ -23,6 +23,16 @@ html[data-cca-theme="aqua"] {
   --preview-height: 220px;
   --glow-teal: 0 0 0 1px rgba(76, 215, 200, 0.3), 0 0 28px rgba(76, 215, 200, 0.14);
   --shadow: 0 24px 80px rgba(0, 0, 0, 0.44);
+  --surface-0: rgba(9, 12, 16, 0.82);
+  --surface-1: rgba(255, 255, 255, 0.04);
+  --surface-2: rgba(255, 255, 255, 0.055);
+  --surface-3: rgba(255, 255, 255, 0.075);
+  --surface-accent: rgba(var(--accent-rgb), 0.09);
+  --section-divider: rgba(255, 255, 255, 0.08);
+  --panel-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  --code-surface: rgba(4, 7, 10, 0.82);
+  --scrollbar-track: rgba(255, 255, 255, 0.028);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.16);
 }
 
 .subsystemErrorCallout {
@@ -193,6 +203,35 @@ html[data-cca-theme="matrix"] {
 
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+::selection {
+  color: #04100e;
+  background: rgba(var(--accent-rgb), 0.78);
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--scrollbar-thumb);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--accent-rgb), 0.34);
+  background-clip: padding-box;
 }
 
 html {
@@ -236,6 +275,8 @@ input,
 textarea,
 select {
   font: inherit;
+  color: inherit;
+  caret-color: var(--teal);
 }
 
 button {
@@ -261,6 +302,9 @@ a {
   display: grid;
   min-height: 100vh;
   grid-template-rows: auto 1fr;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 180px),
+    transparent;
 }
 
 .topbar {
@@ -271,10 +315,13 @@ a {
   grid-template-columns: minmax(230px, 1fr) auto minmax(260px, 1fr);
   align-items: center;
   gap: 18px;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--line);
-  background: rgba(var(--background-rgb), 0.84);
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--section-divider);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 140px),
+    rgba(var(--background-rgb), 0.88);
   backdrop-filter: blur(18px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
 }
 
 .brand {
@@ -341,9 +388,12 @@ a {
   justify-self: center;
   gap: 9px;
   padding: 6px 10px 6px 6px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.045);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), transparent),
+    var(--surface-1);
+  box-shadow: var(--panel-highlight);
   color: var(--muted-strong);
   font-size: 12px;
 }
@@ -406,13 +456,16 @@ a {
 
 .toolbarToggle {
   display: inline-flex;
-  min-height: 36px;
+  min-height: 38px;
   align-items: center;
   gap: 8px;
   padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.045);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
+    var(--surface-1);
+  box-shadow: var(--panel-highlight);
   color: var(--muted-strong);
   cursor: pointer;
   font-size: 11px;
@@ -442,12 +495,15 @@ a {
 
 .iconButton {
   display: grid;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   place-items: center;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.045);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
+    var(--surface-1);
+  box-shadow: var(--panel-highlight);
   color: var(--muted-strong);
   cursor: pointer;
 }
@@ -475,12 +531,12 @@ a {
   max-height: min(72vh, 560px);
   overflow: auto;
   padding: 14px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 18px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.055), transparent 180px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.065), transparent 180px),
     var(--panel-strong);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), var(--panel-highlight);
   animation: revealPanel 180ms ease-out;
 }
 
@@ -647,8 +703,8 @@ a {
     minmax(0, 1fr)
     10px
     minmax(var(--inspector-rail-width), var(--inspector-width));
-  gap: 16px;
-  padding: 16px;
+  gap: 18px;
+  padding: 18px;
   transition: grid-template-columns 180ms ease, gap 180ms ease;
 }
 
@@ -674,26 +730,29 @@ a {
 .inspector {
   border: 1px solid var(--line);
   background:
-    linear-gradient(140deg, rgba(var(--accent-rgb), 0.08), transparent 36%),
-    linear-gradient(18deg, rgba(124, 167, 255, 0.06), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 160px),
+    linear-gradient(140deg, rgba(var(--accent-rgb), 0.08), transparent 38%),
+    linear-gradient(18deg, rgba(124, 167, 255, 0.05), transparent 42%),
     var(--panel);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), var(--panel-highlight);
 }
 
 .sessionPanel {
+  position: relative;
   display: grid;
   min-height: 0;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 16px;
+  gap: 18px;
   overflow: hidden;
   border-radius: 22px;
-  padding: 18px;
+  padding: 20px;
   transition: padding 180ms ease, gap 180ms ease;
 }
 
 .sessionIntro {
   display: grid;
-  gap: 14px;
+  gap: 16px;
+  padding-bottom: 2px;
 }
 
 .sessionHeader {
@@ -705,11 +764,11 @@ a {
 
 .eyebrow {
   display: block;
-  margin-bottom: 7px;
+  margin-bottom: 8px;
   color: var(--teal);
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -717,10 +776,10 @@ a {
 .inspectorHeader h2 {
   margin: 0;
   color: var(--foreground);
-  font-size: clamp(28px, 5vw, 54px);
+  font-size: clamp(26px, 4vw, 44px);
   font-weight: 760;
-  letter-spacing: -0.055em;
-  line-height: 0.95;
+  letter-spacing: -0.05em;
+  line-height: 0.92;
 }
 
 .sessionHeader p,
@@ -746,18 +805,21 @@ a {
 }
 
 .sessionHeader p {
-  max-width: 560px;
-  margin-top: 12px;
+  max-width: 52ch;
+  margin-top: 14px;
 }
 
 .sessionMetric {
   display: grid;
   min-width: 210px;
   gap: 5px;
-  padding: 13px;
-  border: 1px solid var(--line);
+  padding: 14px;
+  border: 1px solid var(--line-strong);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.045);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
+    var(--surface-1);
+  box-shadow: var(--panel-highlight);
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease,
@@ -961,7 +1023,10 @@ a {
   padding: 0 14px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.045);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
+    var(--surface-1);
+  box-shadow: var(--panel-highlight);
   color: var(--muted-strong);
   cursor: pointer;
   font-size: 11px;
@@ -1003,17 +1068,22 @@ a {
   align-content: start;
   gap: 12px;
   overflow: auto;
-  padding-right: 4px;
+  padding: 16px 6px 4px 0;
+  border-top: 1px solid var(--section-divider);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.022), transparent 96px);
 }
 
 .message {
   display: grid;
   gap: 7px;
   max-width: 76ch;
-  padding: 14px;
+  padding: 15px 16px;
   border: 1px solid var(--line);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.045);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent),
+    rgba(255, 255, 255, 0.04);
+  box-shadow: var(--panel-highlight);
   transition:
     border-color 180ms ease,
     background 180ms ease,
@@ -1023,7 +1093,9 @@ a {
 .message[data-role="user"] {
   justify-self: end;
   border-color: rgba(124, 167, 255, 0.3);
-  background: rgba(124, 167, 255, 0.08);
+  background:
+    linear-gradient(135deg, rgba(124, 167, 255, 0.12), transparent 78%),
+    rgba(124, 167, 255, 0.08);
 }
 
 .message[data-role="assistant"] {
@@ -1171,6 +1243,7 @@ a {
   background:
     linear-gradient(135deg, rgba(124, 167, 255, 0.08), transparent 70%),
     rgba(255, 255, 255, 0.04);
+  box-shadow: var(--panel-highlight);
 }
 
 .imageReferenceShelf[data-state="ready"] {
@@ -1265,6 +1338,8 @@ a {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--section-divider);
 }
 
 .composerInputFrame {
@@ -1283,7 +1358,10 @@ a {
   gap: 5px;
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.045);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
+    var(--surface-1);
+  box-shadow: var(--panel-highlight);
   color: var(--muted-strong);
   cursor: pointer;
   transition:
@@ -1329,7 +1407,10 @@ a {
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 13px 14px;
-  background: rgba(255, 255, 255, 0.045);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
+    var(--surface-1);
+  box-shadow: var(--panel-highlight);
   color: var(--foreground);
   transition:
     border-color 180ms ease,
@@ -1352,6 +1433,7 @@ a {
   min-height: 48px;
   place-items: center;
   align-self: end;
+  border: 1px solid rgba(var(--accent-rgb), 0.24);
   border-radius: 14px;
   color: #04100e;
   background: var(--teal);
@@ -1457,7 +1539,8 @@ a {
 }
 
 .previewShelf[data-state="open"] summary {
-  background: rgba(var(--accent-rgb), 0.055);
+  border-bottom-color: var(--section-divider);
+  background: rgba(var(--accent-rgb), 0.05);
 }
 
 .previewShelf summary {
@@ -1465,8 +1548,9 @@ a {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 12px;
-  min-height: 54px;
+  min-height: 56px;
   padding: 12px 14px;
+  border-bottom: 1px solid transparent;
   cursor: pointer;
   list-style: none;
 }
@@ -1482,11 +1566,14 @@ a {
 
 .previewSummaryIcon {
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   place-items: center;
   border-radius: 10px;
-  background: rgba(var(--accent-rgb), 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
+    rgba(var(--accent-rgb), 0.12);
+  box-shadow: var(--panel-highlight);
   color: var(--teal);
 }
 
@@ -1550,7 +1637,7 @@ a {
 .previewPanel {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  gap: 12px;
+  gap: 14px;
   min-height: 0;
   height: var(--preview-height);
   padding: 0 14px 14px;
@@ -1583,7 +1670,10 @@ a {
   padding: 8px 10px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.035);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
+    rgba(255, 255, 255, 0.03);
+  box-shadow: var(--panel-highlight);
 }
 
 .previewIndicator span {
@@ -1644,12 +1734,15 @@ a {
 
 .previewControlButton {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   place-items: center;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
+    var(--surface-1);
+  box-shadow: var(--panel-highlight);
   color: var(--muted-strong);
   cursor: pointer;
   transition:
@@ -1682,7 +1775,7 @@ a {
 .previewBody {
   display: grid;
   grid-template-columns: minmax(220px, 0.62fr) minmax(0, 1fr);
-  gap: 12px;
+  gap: 14px;
   min-height: 0;
 }
 
@@ -1697,16 +1790,17 @@ a {
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 14px;
   background:
-    radial-gradient(circle at 18% 24%, rgba(255, 122, 102, 0.24), transparent 18%),
-    radial-gradient(circle at 78% 30%, rgba(76, 215, 200, 0.22), transparent 20%),
-    conic-gradient(from 120deg, rgba(124, 167, 255, 0.24), rgba(243, 184, 82, 0.16), rgba(76, 215, 200, 0.22), rgba(124, 167, 255, 0.24));
+    radial-gradient(circle at 18% 20%, rgba(var(--accent-rgb), 0.18), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 70%),
+    rgba(6, 10, 14, 0.76);
+  box-shadow: var(--panel-highlight);
 }
 
 .previewSurface[data-runtime-state="generating"] {
   background:
-    radial-gradient(circle at 18% 24%, rgba(var(--accent-rgb), 0.22), transparent 18%),
-    radial-gradient(circle at 78% 30%, rgba(243, 184, 82, 0.16), transparent 20%),
-    conic-gradient(from 120deg, rgba(124, 167, 255, 0.18), rgba(var(--accent-rgb), 0.22), rgba(243, 184, 82, 0.12), rgba(124, 167, 255, 0.18));
+    radial-gradient(circle at 18% 20%, rgba(var(--accent-rgb), 0.2), transparent 26%),
+    linear-gradient(180deg, rgba(var(--accent-rgb), 0.08), transparent 55%),
+    rgba(6, 10, 14, 0.78);
 }
 
 .previewSurface[data-runtime-state="unavailable"] {
@@ -1791,8 +1885,8 @@ a {
   height: 100%;
   min-height: 160px;
   background:
-    radial-gradient(circle at 24% 30%, rgba(76, 215, 200, 0.18), transparent 24%),
-    radial-gradient(circle at 74% 62%, rgba(124, 167, 255, 0.14), transparent 28%),
+    radial-gradient(circle at 24% 30%, rgba(var(--accent-rgb), 0.16), transparent 24%),
+    radial-gradient(circle at 74% 62%, rgba(124, 167, 255, 0.12), transparent 28%),
     #05080b;
 }
 
@@ -1970,10 +2064,10 @@ a {
   min-height: 140px;
   border-radius: 12px;
   background:
-    radial-gradient(circle at 22% 28%, rgba(124, 167, 255, 0.32), transparent 17%),
-    radial-gradient(circle at 74% 32%, rgba(76, 215, 200, 0.26), transparent 18%),
-    radial-gradient(circle at 58% 72%, rgba(243, 184, 82, 0.18), transparent 20%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 72%);
+    radial-gradient(circle at 22% 28%, rgba(124, 167, 255, 0.24), transparent 17%),
+    radial-gradient(circle at 74% 32%, rgba(var(--accent-rgb), 0.18), transparent 18%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent 74%),
+    rgba(9, 13, 18, 0.78);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
@@ -2047,7 +2141,9 @@ a {
   gap: 12px;
   padding: 12px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.035);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
+    rgba(255, 255, 255, 0.03);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
@@ -2106,6 +2202,13 @@ a {
   gap: 12px;
   min-height: 0;
   overflow: auto;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
+    rgba(255, 255, 255, 0.025);
+  box-shadow: var(--panel-highlight);
 }
 
 .previewCopy dl {
@@ -2134,7 +2237,8 @@ a {
   overflow: hidden;
   border-radius: 22px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.055), transparent 160px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.065), transparent 160px),
+    linear-gradient(140deg, rgba(var(--accent-rgb), 0.06), transparent 30%),
     var(--panel-strong);
   transition:
     border-color 180ms ease,
@@ -2179,12 +2283,14 @@ a {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 15px 15px 12px;
+  padding: 16px 16px 14px;
+  border-bottom: 1px solid var(--section-divider);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent);
 }
 
 .inspectorHeader h2 {
-  font-size: 25px;
-  letter-spacing: -0.04em;
+  font-size: clamp(24px, 2.4vw, 30px);
+  letter-spacing: -0.045em;
 }
 
 .inspectorHeader p {
@@ -2193,23 +2299,29 @@ a {
 
 .inspectorTabs {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 5px;
-  padding: 0 12px 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 12px 14px 14px;
+  border-bottom: 1px solid var(--section-divider);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent);
 }
 
 .inspectorTabs button {
   position: relative;
   display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   min-width: 0;
-  place-items: center;
-  gap: 4px;
-  min-height: 58px;
-  padding: 8px 5px;
+  align-items: center;
+  gap: 6px;
+  min-height: 54px;
+  padding: 10px 9px;
   border: 1px solid var(--line);
-  border-radius: 13px;
+  border-radius: 14px;
   color: var(--muted-strong);
-  background: rgba(255, 255, 255, 0.035);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent),
+    rgba(255, 255, 255, 0.03);
+  box-shadow: var(--panel-highlight);
   cursor: pointer;
   transition:
     border-color 180ms ease,
@@ -2221,9 +2333,9 @@ a {
 
 .inspectorTabs button::after {
   position: absolute;
-  right: 12px;
-  bottom: 7px;
-  left: 12px;
+  right: 10px;
+  bottom: 6px;
+  left: 10px;
   height: 2px;
   border-radius: 999px;
   content: "";
@@ -2255,21 +2367,22 @@ a {
 .inspectorTabs span {
   overflow: hidden;
   width: 100%;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 760;
-  text-align: center;
+  text-align: left;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.15;
 }
 
 .inspectorTabs small {
   display: block;
-  min-width: 20px;
-  padding: 2px 5px;
+  min-width: 18px;
+  padding: 2px 4px;
   border-radius: 999px;
   color: var(--muted);
   background: rgba(255, 255, 255, 0.065);
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 850;
   line-height: 1;
 }
@@ -2346,8 +2459,7 @@ a {
 .inspectorPanel {
   min-height: 0;
   overflow: auto;
-  padding: 13px;
-  border-top: 1px solid var(--line);
+  padding: 16px;
   animation: revealPanel 180ms ease-out;
 }
 
@@ -2363,7 +2475,10 @@ a {
 .loopHint {
   border: 1px solid var(--line);
   border-radius: 15px;
-  background: var(--panel-soft);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
+    var(--panel-soft);
+  box-shadow: var(--panel-highlight);
 }
 
 .liveDot {
@@ -2394,8 +2509,8 @@ a {
 
 .overviewTile {
   display: grid;
-  gap: 5px;
-  padding: 12px;
+  gap: 7px;
+  padding: 13px;
   transition:
     border-color 180ms ease,
     background 180ms ease;
@@ -2433,14 +2548,47 @@ a {
 
 .overviewTile strong {
   color: var(--foreground);
-  font-size: 20px;
-  letter-spacing: -0.025em;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
 }
 
 .overviewTile small {
   color: var(--muted);
   font-size: 11px;
   line-height: 1.35;
+}
+
+.overviewTile[data-state="running"],
+.overviewTile[data-state="streaming"],
+.overviewTile[data-state="generating"],
+.overviewTile[data-state="ready"] {
+  border-color: rgba(var(--accent-rgb), 0.24);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.08), transparent 72%),
+    var(--panel-soft);
+}
+
+.overviewTile[data-state="complete"],
+.overviewTile[data-state="available"] {
+  border-color: rgba(121, 211, 139, 0.22);
+  background:
+    linear-gradient(135deg, rgba(121, 211, 139, 0.06), transparent 72%),
+    var(--panel-soft);
+}
+
+.overviewTile[data-state="empty"],
+.overviewTile[data-state="pending"],
+.overviewTile[data-state="unavailable"] {
+  border-color: rgba(243, 184, 82, 0.22);
+}
+
+.overviewTile[data-state="error"],
+.overviewTile[data-state="failed"] {
+  border-color: rgba(255, 122, 102, 0.24);
+  background:
+    linear-gradient(135deg, rgba(255, 122, 102, 0.06), transparent 72%),
+    var(--panel-soft);
 }
 
 .miniWorkflow {
@@ -2584,6 +2732,7 @@ a {
   background:
     linear-gradient(135deg, rgba(76, 215, 200, 0.11), transparent 72%),
     rgba(76, 215, 200, 0.065);
+  box-shadow: var(--panel-highlight);
 }
 
 .codePanelActions {
@@ -2599,7 +2748,10 @@ a {
   border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--foreground);
-  background: rgba(255, 255, 255, 0.055);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
+    var(--surface-1);
+  box-shadow: var(--panel-highlight);
   cursor: pointer;
   font-size: 11px;
   font-weight: 780;
@@ -2644,7 +2796,10 @@ a {
   overflow: auto;
   border: 1px solid var(--line);
   border-radius: 15px;
-  background: rgba(3, 6, 8, 0.7);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 72px),
+    var(--code-surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 
 .codeViewer pre,
@@ -2678,13 +2833,14 @@ a {
 }
 
 .codeLine:hover {
-  background: rgba(255, 255, 255, 0.035);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .codeLineNumber {
   position: sticky;
   left: 0;
   padding-right: 4px;
+  background: linear-gradient(90deg, rgba(4, 7, 10, 0.96), rgba(4, 7, 10, 0.74));
   color: rgba(140, 154, 160, 0.72);
   text-align: right;
   user-select: none;
@@ -2745,7 +2901,10 @@ a {
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 15px;
-  background: var(--panel-soft);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
+    var(--panel-soft);
+  box-shadow: var(--panel-highlight);
 }
 
 .workflowTraceCard--muted {
@@ -2785,6 +2944,7 @@ a {
   background:
     linear-gradient(135deg, rgba(76, 215, 200, 0.055), transparent 76%),
     var(--panel-soft);
+  box-shadow: var(--panel-highlight);
 }
 
 .telemetryLifecycleCard header {
@@ -2913,13 +3073,11 @@ a {
 .telemetryDashboardPanel {
   display: grid;
   align-content: start;
-  gap: 12px;
+  gap: 14px;
 }
 
 .telemetryDashboardHero {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  display: grid;
   gap: 14px;
   padding: 14px;
   border: 1px solid rgba(76, 215, 200, 0.2);
@@ -2928,6 +3086,7 @@ a {
     radial-gradient(circle at top left, rgba(76, 215, 200, 0.16), transparent 42%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025)),
     var(--panel-soft);
+  box-shadow: var(--panel-highlight);
 }
 
 .telemetryDashboardPanel[data-state="error"] .telemetryDashboardHero {
@@ -2945,6 +3104,7 @@ a {
 .telemetrySignalCard span,
 .telemetryDashboardCard header span,
 .telemetryDashboardCard dt {
+  display: block;
   color: var(--muted);
   font-size: 10px;
   font-weight: 850;
@@ -2953,9 +3113,9 @@ a {
 
 .telemetryDashboardHero strong {
   color: var(--foreground);
-  font-size: 22px;
-  line-height: 1.1;
-  letter-spacing: -0.035em;
+  font-size: 24px;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
 }
 
 .telemetryDashboardHero p,
@@ -2967,11 +3127,11 @@ a {
 }
 
 .telemetryDashboardHeroMeta {
-  display: grid;
-  justify-items: end;
-  gap: 5px;
-  min-width: 128px;
-  text-align: right;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
 }
 
 .telemetryDashboardHeroMeta span {
@@ -2993,7 +3153,7 @@ a {
 }
 
 .telemetryDashboardGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .telemetrySignalCard,
@@ -3002,7 +3162,10 @@ a {
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: 15px;
-  background: var(--panel-soft);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
+    var(--panel-soft);
+  box-shadow: var(--panel-highlight);
 }
 
 .telemetrySignalCard {
@@ -3011,12 +3174,10 @@ a {
 }
 
 .telemetrySignalCard strong {
-  overflow: hidden;
   color: var(--foreground);
   font-size: 15px;
   line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .telemetrySignalCard p {
@@ -3086,13 +3247,12 @@ a {
 }
 
 .telemetryDashboardCard dd {
-  overflow: hidden;
   margin: 4px 0 0;
   color: var(--foreground);
   font-size: 12px;
   font-weight: 800;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .telemetryDashboardCard p,
@@ -3365,6 +3525,7 @@ a {
   background:
     linear-gradient(135deg, rgba(76, 215, 200, 0.08), transparent 72%),
     rgba(255, 255, 255, 0.045);
+  box-shadow: var(--panel-highlight);
 }
 
 .artifactDetailHeader {
@@ -3476,7 +3637,10 @@ a {
   border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--foreground);
-  background: rgba(255, 255, 255, 0.045);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
+    var(--surface-1);
+  box-shadow: var(--panel-highlight);
   cursor: pointer;
   font-size: 11px;
   font-weight: 750;
@@ -3510,7 +3674,10 @@ a {
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: var(--panel-soft);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
+    var(--panel-soft);
+  box-shadow: var(--panel-highlight);
 }
 
 .retrievalSummaryCard[data-state="available"] {
@@ -3683,7 +3850,9 @@ a {
   padding: 10px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
+    rgba(255, 255, 255, 0.03);
 }
 
 .retrievalChunk header {

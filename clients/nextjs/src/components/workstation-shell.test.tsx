@@ -582,14 +582,23 @@ describe("WorkstationShell", () => {
     );
     expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
     expect(screen.getByRole("tabpanel", { name: "Overview inspector" })).toBeVisible();
-    expect(screen.getByRole("group", { name: "Workflow summary" })).toBeVisible();
+    expect(screen.getByRole("group", { name: "Workflow summary" })).toHaveAttribute(
+      "data-state",
+      "running"
+    );
     expect(screen.getByRole("group", { name: "Artifacts summary" })).toBeVisible();
-    expect(screen.getByRole("group", { name: "Preview summary" })).toBeVisible();
+    expect(screen.getByRole("group", { name: "Preview summary" })).toHaveAttribute(
+      "data-state",
+      "generating"
+    );
     expect(screen.getByRole("group", { name: "Telemetry summary" })).toBeVisible();
     expect(
       screen.getByRole("group", { name: "Image references summary" })
-    ).toBeVisible();
-    expect(screen.getByRole("group", { name: "Retrieval summary" })).toBeVisible();
+    ).toHaveAttribute("data-state", "empty");
+    expect(screen.getByRole("group", { name: "Retrieval summary" })).toHaveAttribute(
+      "data-state",
+      "available"
+    );
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
     ).toHaveAttribute("aria-valuetext", "8 of 11 workflow nodes reached");

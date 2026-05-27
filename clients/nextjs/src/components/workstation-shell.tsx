@@ -2810,6 +2810,7 @@ function OverviewInspector({
         <div
           aria-label="Workflow summary"
           className="overviewTile overviewWorkflowTile"
+          data-state={runtime.summary.status}
           role="group"
         >
           <header>
@@ -2878,7 +2879,12 @@ function OverviewInspector({
           <strong>{snapshot.artifacts.length}</strong>
           <p>{activeArtifact.title}</p>
         </div>
-        <div className="overviewTile" role="group" aria-label="Preview summary">
+        <div
+          aria-label="Preview summary"
+          className="overviewTile"
+          data-state={snapshot.preview.state}
+          role="group"
+        >
           <span>Preview</span>
           <strong>{formatPreviewStateLabel(snapshot.preview.state, snapshot.preview.active)}</strong>
           <p>{snapshot.preview.available ? snapshot.preview.artifactName : "No target"}</p>
@@ -2894,13 +2900,23 @@ function OverviewInspector({
           <p>{`${telemetry.summary.tokenLabel} / ${telemetry.summary.latencyLabel}`}</p>
           <small>{`${telemetry.summary.providerLabel} / ${telemetry.summary.modelLabel}`}</small>
         </div>
-        <div className="overviewTile" role="group" aria-label="Image references summary">
+        <div
+          aria-label="Image references summary"
+          className="overviewTile"
+          data-state={snapshot.multimodal.state}
+          role="group"
+        >
           <span>Image references</span>
           <strong>{snapshot.multimodal.imageAttachments.length}</strong>
           <p>{snapshot.multimodal.status}</p>
           <small>{snapshot.multimodal.detail}</small>
         </div>
-        <div className="overviewTile" role="group" aria-label="Retrieval summary">
+        <div
+          aria-label="Retrieval summary"
+          className="overviewTile"
+          data-state={retrieval.summary.state}
+          role="group"
+        >
           <span>Retrieval</span>
           <strong>{retrieval.summary.status}</strong>
           <p>
