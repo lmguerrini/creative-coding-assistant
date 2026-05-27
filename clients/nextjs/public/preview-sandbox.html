@@ -1,0 +1,553 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #05080b;
+    }
+    #preview-root {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    #runtime-status {
+      position: fixed;
+      left: 10px;
+      bottom: 10px;
+      z-index: 2;
+      max-width: calc(100% - 20px);
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: rgba(5, 8, 11, 0.72);
+      color: #edf3f2;
+      font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+  </style>
+</head>
+<body>
+  <div id="preview-root"><canvas id="preview-canvas"></canvas></div>
+  <pre id="runtime-status">Runtime host waiting</pre>
+  <script>
+    (function () {
+      const messageSource = "cca-preview-runtime";
+      const canvas = document.getElementById("preview-canvas");
+      const root = document.getElementById("preview-root");
+      const statusNode = document.getElementById("runtime-status");
+      let activeToken = 0;
+      let runtime = null;
+
+      function isMountMessage(data) {
+        return data &&
+          data.source === messageSource &&
+          data.type === "mount" &&
+          data.runtime &&
+          data.runtime.runtimeId === data.runtimeId;
+      }
+
+      function post(message) {
+        if (!runtime) return;
+        parent.postMessage(
+          Object.assign({
+            source: messageSource,
+            runtimeId: runtime.runtimeId
+          }, message),
+          "*"
+        );
+      }
+
+      function status(state, label, detail, extra) {
+        document.body.dataset.runtimeState = state;
+        document.body.dataset.runtimeLabel = label;
+        statusNode.textContent = label + "\n" + detail;
+        post({
+          type: "status",
+          status: Object.assign({ state, label, detail }, extra || {})
+        });
+      }
+
+      function fail(error, label) {
+        const message = error && error.message ? error.message : String(error);
+        status("error", label || "Runtime failed", message, {
+          diagnostics: [message],
+          error: {
+            debugMessage: error && error.stack ? error.stack : message,
+            message,
+            type: "preview_sandbox_runtime_failed"
+          }
+        });
+      }
+
+      function frame(time) {
+        post({
+          type: "frame",
+          renderedAtMs: Number.isFinite(time) ? time : performance.now()
+        });
+      }
+
+      function resizeCanvas() {
+        const dpr = Math.min(devicePixelRatio || 1, 2);
+        const rect = root.getBoundingClientRect();
+        const width = Math.max(1, Math.floor(rect.width || innerWidth || 640));
+        const height = Math.max(1, Math.floor(rect.height || innerHeight || 360));
+        const nextWidth = Math.floor(width * dpr);
+        const nextHeight = Math.floor(height * dpr);
+        if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
+          canvas.width = nextWidth;
+          canvas.height = nextHeight;
+        }
+        return { dpr, height, width };
+      }
+
+      function normalizeColor(value, fallback) {
+        if (typeof value === "number") {
+          const next = Math.max(0, Math.min(255, Math.round(value)));
+          return "rgb(" + next + "," + next + "," + next + ")";
+        }
+        if (typeof value === "string") return value;
+        if (Array.isArray(value)) {
+          const values = value.slice(0, 3).map(function (entry) {
+            return Math.max(0, Math.min(255, Math.round(Number(entry) || 0)));
+          });
+          return "rgb(" + values.join(",") + ")";
+        }
+        return fallback;
+      }
+
+      function startP5(token) {
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Canvas 2D is unavailable in the sandbox.");
+
+        const paint = {
+          fill: "#4cd7c8",
+          stroke: "#edf3f2",
+          useFill: true,
+          useStroke: false,
+          weight: 1
+        };
+        const globals = {
+          window,
+          document,
+          console,
+          Math,
+          PI: Math.PI,
+          TWO_PI: Math.PI * 2,
+          HALF_PI: Math.PI / 2,
+          abs: Math.abs,
+          atan2: Math.atan2,
+          ceil: Math.ceil,
+          cos: Math.cos,
+          dist: Math.hypot,
+          floor: Math.floor,
+          frameCount: 0,
+          frameRate: function () {},
+          height: 0,
+          lerp: function (a, b, amount) { return a + (b - a) * amount; },
+          map: function (value, start1, stop1, start2, stop2) {
+            return start2 + ((value - start1) / (stop1 - start1 || 1)) * (stop2 - start2);
+          },
+          max: Math.max,
+          min: Math.min,
+          mouseX: 0,
+          mouseY: 0,
+          noise: function (value) {
+            return Math.abs((Math.sin(value * 12.9898) * 43758.5453) % 1);
+          },
+          pow: Math.pow,
+          random: function (min, max) {
+            const value = Math.random();
+            if (typeof min !== "number") return value;
+            if (typeof max !== "number") return value * min;
+            return min + value * (max - min);
+          },
+          sin: Math.sin,
+          sqrt: Math.sqrt,
+          width: 0,
+          windowHeight: 0,
+          windowWidth: 0
+        };
+
+        function syncDimensions() {
+          const size = resizeCanvas();
+          globals.width = size.width;
+          globals.height = size.height;
+          globals.windowWidth = size.width;
+          globals.windowHeight = size.height;
+          context.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
+          return size;
+        }
+
+        globals.createCanvas = function (width, height) {
+          const size = syncDimensions();
+          globals.width = Number(width) || size.width;
+          globals.height = Number(height) || size.height;
+          return canvas;
+        };
+        globals.resizeCanvas = globals.createCanvas;
+        globals.clear = function () {
+          context.clearRect(0, 0, canvas.width, canvas.height);
+        };
+        globals.color = function () {
+          return normalizeColor(arguments.length === 1 ? arguments[0] : Array.from(arguments), "#fff");
+        };
+        globals.background = function () {
+          syncDimensions();
+          context.save();
+          context.fillStyle = normalizeColor(arguments.length === 1 ? arguments[0] : Array.from(arguments), "#05080b");
+          context.fillRect(0, 0, globals.width, globals.height);
+          context.restore();
+        };
+        globals.fill = function () {
+          paint.fill = normalizeColor(arguments.length === 1 ? arguments[0] : Array.from(arguments), paint.fill);
+          paint.useFill = true;
+        };
+        globals.stroke = function () {
+          paint.stroke = normalizeColor(arguments.length === 1 ? arguments[0] : Array.from(arguments), paint.stroke);
+          paint.useStroke = true;
+        };
+        globals.noFill = function () { paint.useFill = false; };
+        globals.noStroke = function () { paint.useStroke = false; };
+        globals.strokeWeight = function (weight) { paint.weight = Number(weight) || 1; };
+
+        function drawShape(drawPath) {
+          context.save();
+          context.lineWidth = paint.weight;
+          drawPath();
+          if (paint.useFill) {
+            context.fillStyle = paint.fill;
+            context.fill();
+          }
+          if (paint.useStroke) {
+            context.strokeStyle = paint.stroke;
+            context.stroke();
+          }
+          context.restore();
+        }
+
+        globals.circle = function (x, y, diameter) {
+          globals.ellipse(x, y, diameter, diameter);
+        };
+        globals.ellipse = function (x, y, width, height) {
+          drawShape(function () {
+            context.beginPath();
+            context.ellipse(
+              Number(x) || 0,
+              Number(y) || 0,
+              Math.max(1, (Number(width) || 1) / 2),
+              Math.max(1, (Number(height) || Number(width) || 1) / 2),
+              0,
+              0,
+              Math.PI * 2
+            );
+          });
+        };
+        globals.rect = function (x, y, width, height) {
+          drawShape(function () {
+            context.beginPath();
+            context.rect(Number(x) || 0, Number(y) || 0, Number(width) || 0, Number(height) || 0);
+          });
+        };
+        globals.line = function (x1, y1, x2, y2) {
+          context.save();
+          context.lineWidth = paint.weight;
+          context.strokeStyle = paint.stroke;
+          context.beginPath();
+          context.moveTo(Number(x1) || 0, Number(y1) || 0);
+          context.lineTo(Number(x2) || 0, Number(y2) || 0);
+          context.stroke();
+          context.restore();
+        };
+
+        const result = new Function(
+          "globals",
+          "with (globals) {" + runtime.source.source + "\nreturn { setup: typeof setup === 'function' ? setup : null, draw: typeof draw === 'function' ? draw : null }; }"
+        )(globals);
+        const setup = result.setup || window.setup;
+        const draw = result.draw || window.draw;
+        if (!setup && !draw) throw new Error("p5 source did not define setup() or draw().");
+        syncDimensions();
+        if (setup) setup.call(globals);
+        status("running", "p5 runtime running", "Executing " + runtime.source.title + " inside a sandboxed p5-compatible iframe.");
+        requestAnimationFrame(function loop(time) {
+          if (token !== activeToken) return;
+          try {
+            syncDimensions();
+            globals.frameCount += 1;
+            if (draw) draw.call(globals);
+            frame(time);
+            requestAnimationFrame(loop);
+          } catch (error) {
+            fail(error, "p5 runtime failed");
+          }
+        });
+      }
+
+      function makeThree() {
+        const renderers = [];
+        const scenes = [];
+        const cameras = [];
+
+        function Color(value) {
+          this.value = value == null ? 0xffffff : value;
+        }
+        Color.prototype.toStyle = function () {
+          if (typeof this.value === "string") return this.value;
+          return "#" + (Number(this.value) || 0xffffff).toString(16).padStart(6, "0").slice(-6);
+        };
+        function Object3D() {
+          this.children = [];
+          this.position = { x: 0, y: 0, z: 0, set: function (x, y, z) { this.x = x || 0; this.y = y || 0; this.z = z || 0; } };
+          this.rotation = { x: 0, y: 0, z: 0 };
+          this.scale = { x: 1, y: 1, z: 1, set: function (x, y, z) { this.x = x || 1; this.y = y || x || 1; this.z = z || x || 1; } };
+        }
+        Object3D.prototype.add = function () {
+          this.children.push.apply(this.children, arguments);
+        };
+        function Scene() { Object3D.call(this); this.background = new Color(0x05080b); scenes.push(this); }
+        Scene.prototype = Object.create(Object3D.prototype);
+        function PerspectiveCamera() { Object3D.call(this); this.position.z = 4; cameras.push(this); }
+        PerspectiveCamera.prototype = Object.create(Object3D.prototype);
+        PerspectiveCamera.prototype.lookAt = function () {};
+        function Geometry(type) { this.type = type; }
+        function materialColor(options, key, fallback) {
+          return new Color(options && options[key] != null ? options[key] : fallback);
+        }
+        function MeshStandardMaterial(options) {
+          this.color = materialColor(options, "color", 0x4cd7c8);
+          this.emissive = materialColor(options, "emissive", 0x7ca7ff);
+        }
+        function Mesh(geometry, material) {
+          Object3D.call(this);
+          this.geometry = geometry || new Geometry("box");
+          this.material = material || new MeshStandardMaterial();
+        }
+        Mesh.prototype = Object.create(Object3D.prototype);
+        function WebGLRenderer(options) {
+          this.domElement = options && options.canvas ? options.canvas : canvas;
+          this.context = this.domElement.getContext("2d");
+          this.clearColor = new Color(0x05080b);
+          this.lastScene = null;
+          renderers.push(this);
+        }
+        WebGLRenderer.prototype.setClearColor = function (value) { this.clearColor = new Color(value); };
+        WebGLRenderer.prototype.setPixelRatio = function () {};
+        WebGLRenderer.prototype.setSize = function () { resizeCanvas(); };
+        WebGLRenderer.prototype.render = function (scene) {
+          this.lastScene = scene;
+          drawThreeScene(this.context, scene, this.clearColor);
+          frame(performance.now());
+        };
+        WebGLRenderer.prototype.setAnimationLoop = function (callback) {
+          const token = activeToken;
+          requestAnimationFrame(function loop(time) {
+            if (token !== activeToken) return;
+            callback(time);
+            requestAnimationFrame(loop);
+          });
+        };
+
+        function drawThreeScene(context, scene, clearColor) {
+          if (!context) throw new Error("Canvas 2D is unavailable for the Three.js sandbox.");
+          const size = resizeCanvas();
+          context.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
+          context.fillStyle = scene && scene.background ? scene.background.toStyle() : clearColor.toStyle();
+          context.fillRect(0, 0, size.width, size.height);
+          const meshes = [];
+          (function collect(object) {
+            if (!object) return;
+            if (object.geometry && object.material) meshes.push(object);
+            if (object.children) object.children.forEach(collect);
+          })(scene);
+          meshes.forEach(function (mesh, index) {
+            const x = size.width * 0.5 + (mesh.position.x || 0) * size.width * 0.12;
+            const y = size.height * 0.5 - (mesh.position.y || 0) * size.height * 0.12;
+            const radius = Math.min(size.width, size.height) * 0.18 * (mesh.scale.x || 1);
+            context.save();
+            context.translate(x, y);
+            context.rotate((mesh.rotation.y || 0) + performance.now() * 0.00035 + index);
+            context.fillStyle = mesh.material.color.toStyle();
+            context.strokeStyle = mesh.material.emissive.toStyle();
+            context.lineWidth = 2;
+            context.beginPath();
+            if (mesh.geometry.type === "sphere") context.arc(0, 0, radius, 0, Math.PI * 2);
+            else if (mesh.geometry.type === "torus") {
+              context.arc(0, 0, radius, 0, Math.PI * 2);
+              context.moveTo(radius * 0.48, 0);
+              context.arc(0, 0, radius * 0.48, 0, Math.PI * 2, true);
+            } else context.rect(-radius * 0.72, -radius * 0.72, radius * 1.44, radius * 1.44);
+            context.fill();
+            context.stroke();
+            context.restore();
+          });
+        }
+
+        function geometry(type) { return function () { Geometry.call(this, type); }; }
+        const BoxGeometry = geometry("box");
+        const SphereGeometry = geometry("sphere");
+        const TorusGeometry = geometry("torus");
+        const AmbientLight = function () { Object3D.call(this); };
+        const DirectionalLight = function () { Object3D.call(this); };
+        const PointLight = function () { Object3D.call(this); };
+        const Clock = function () { this.started = performance.now(); };
+        Clock.prototype.getElapsedTime = function () { return (performance.now() - this.started) / 1000; };
+
+        return {
+          AmbientLight,
+          BoxGeometry,
+          Clock,
+          Color,
+          DirectionalLight,
+          DodecahedronGeometry: SphereGeometry,
+          IcosahedronGeometry: SphereGeometry,
+          Mesh,
+          MeshBasicMaterial: MeshStandardMaterial,
+          MeshPhongMaterial: MeshStandardMaterial,
+          MeshStandardMaterial,
+          PerspectiveCamera,
+          PointLight,
+          Scene,
+          SphereGeometry,
+          TorusGeometry,
+          TorusKnotGeometry: TorusGeometry,
+          WebGLRenderer,
+          MathUtils: { degToRad: function (value) { return value * Math.PI / 180; } },
+          runDefaultLoop: function () {
+            const token = activeToken;
+            requestAnimationFrame(function loop() {
+              if (token !== activeToken) return;
+              renderers.forEach(function (renderer) {
+                const scene = renderer.lastScene || scenes[0];
+                if (scene) renderer.render(scene, cameras[0]);
+              });
+              requestAnimationFrame(loop);
+            });
+          }
+        };
+      }
+
+      function startThree() {
+        const size = resizeCanvas();
+        const THREE = makeThree();
+        new Function("THREE", "window", "document", "requestAnimationFrame", "cancelAnimationFrame", "performance", "width", "height", runtime.source.source)(
+          THREE,
+          window,
+          document,
+          requestAnimationFrame.bind(window),
+          cancelAnimationFrame.bind(window),
+          performance,
+          size.width,
+          size.height
+        );
+        THREE.runDefaultLoop();
+        status("running", "Three.js runtime running", "Executing " + runtime.source.title + " inside a sandboxed Three.js-compatible iframe.");
+      }
+
+      function fragmentSource(source) {
+        const precision = /precision\s+(lowp|mediump|highp)\s+float/i.test(source) ? "" : "precision mediump float;\n";
+        const resolution = /uniform\s+vec2\s+u_resolution\s*;/i.test(source) ? "" : "uniform vec2 u_resolution;\n";
+        const time = /uniform\s+float\s+u_time\s*;/i.test(source) ? "" : "uniform float u_time;\n";
+        const header = precision + resolution + time;
+        if (/void\s+mainImage\s*\(/i.test(source)) {
+          return header + source + "\nvoid main(){vec4 color=vec4(0.0);mainImage(color,gl_FragCoord.xy);gl_FragColor=color;}";
+        }
+        if (/void\s+main\s*\(/i.test(source)) return header + source;
+        throw new Error("GLSL source did not define main() or mainImage().");
+      }
+
+      function startGlsl(token) {
+        const gl = canvas.getContext("webgl", { alpha: false, antialias: false });
+        if (!gl) throw new Error("WebGL is unavailable in the sandbox.");
+        const vertexSource = "attribute vec2 a_position;void main(){gl_Position=vec4(a_position,0.0,1.0);}";
+        const fragment = fragmentSource(runtime.source.source);
+        const program = createProgram(gl, vertexSource, fragment);
+        const buffer = gl.createBuffer();
+        const position = gl.getAttribLocation(program, "a_position");
+        const resolution = gl.getUniformLocation(program, "u_resolution");
+        const timeUniform = gl.getUniformLocation(program, "u_time");
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+        status("running", "GLSL runtime running", "Executing " + runtime.source.title + " as a sandboxed WebGL fragment shader.");
+        requestAnimationFrame(function loop(time) {
+          if (token !== activeToken) return;
+          const size = resizeCanvas();
+          gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+          gl.useProgram(program);
+          gl.enableVertexAttribArray(position);
+          gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+          gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+          gl.uniform2f(resolution, size.width, size.height);
+          gl.uniform1f(timeUniform, time * 0.001);
+          gl.drawArrays(gl.TRIANGLES, 0, 3);
+          frame(time);
+          requestAnimationFrame(loop);
+        });
+      }
+
+      function createProgram(gl, vertexSource, fragmentSource) {
+        const vertex = compileShader(gl, gl.VERTEX_SHADER, vertexSource);
+        const fragment = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
+        const program = gl.createProgram();
+        gl.attachShader(program, vertex);
+        gl.attachShader(program, fragment);
+        gl.linkProgram(program);
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+          throw new Error(gl.getProgramInfoLog(program) || "Shader program did not link.");
+        }
+        return program;
+      }
+
+      function compileShader(gl, type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          throw new Error(gl.getShaderInfoLog(shader) || "Shader did not compile.");
+        }
+        return shader;
+      }
+
+      function mountRuntime(nextRuntime) {
+        runtime = nextRuntime;
+        activeToken += 1;
+        const token = activeToken;
+        try {
+          status("starting", "Runtime sandbox mounted", "Sandbox document loaded for " + runtime.source.title + ".");
+          if (runtime.kind === "p5") startP5(token);
+          else if (runtime.kind === "three") startThree(token);
+          else startGlsl(token);
+        } catch (error) {
+          fail(error, runtime.kind === "glsl" ? "GLSL runtime failed" : runtime.kind === "three" ? "Three.js runtime failed" : "p5 runtime failed");
+        }
+      }
+
+      window.addEventListener("message", function (event) {
+        if (!isMountMessage(event.data)) return;
+        mountRuntime(event.data.runtime);
+      });
+
+      if (location.hash.length > 1) {
+        try {
+          mountRuntime(JSON.parse(decodeURIComponent(location.hash.slice(1))));
+        } catch (error) {
+          runtime = {
+            kind: "p5",
+            runtimeId: "direct-preview-runtime",
+            source: { title: "Direct runtime payload", source: "" }
+          };
+          fail(error, "Runtime payload failed");
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
