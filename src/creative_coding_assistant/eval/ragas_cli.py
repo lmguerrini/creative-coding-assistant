@@ -14,6 +14,7 @@ from creative_coding_assistant.eval.ragas_models import SUPPORTED_RAGAS_METRICS
 from creative_coding_assistant.eval.ragas_runner import (
     RagasDependencyError,
     RagasEvaluatorConfig,
+    RagasProviderCostBoundaryError,
     run_ragas_live_eval,
 )
 
@@ -22,8 +23,9 @@ def build_ragas_eval_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Evaluate recorded live chat samples with RAGAs.",
         epilog=(
-            "This command is local/manual only. Running RAGAs may call evaluator "
-            "LLM APIs and can incur provider cost."
+            "This command is local/manual only. Use --dry-run to prepare the "
+            "dataset without provider calls. Use --allow-provider-calls to run "
+            "RAGAs metrics that may call evaluator LLM and embedding APIs."
         ),
     )
     parser.add_argument(
@@ -61,6 +63,19 @@ def build_ragas_eval_parser() -> argparse.ArgumentParser:
             "Defaults to the safe smoke metric set."
         ),
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Prepare and persist the eval manifest without running RAGAs.",
+    )
+    parser.add_argument(
+        "--allow-provider-calls",
+        action="store_true",
+        help=(
+            "Explicitly allow evaluator LLM/embedding provider calls. "
+            "Required for real RAGAs execution."
+        ),
+    )
     return parser
 
 
@@ -88,7 +103,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                 max_retries=settings.eval_ragas_max_retries,
                 max_workers=settings.eval_ragas_max_workers,
             ),
+            dry_run=args.dry_run,
+            allow_provider_calls=args.allow_provider_calls,
         )
+    except RagasProviderCostBoundaryError as exc:
+        logger.error(str(exc))
+        return 3
     except RagasDependencyError as exc:
         logger.error(str(exc))
         return 2
@@ -107,6 +127,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         ", ".join(result.metrics),
         result.output_path,
     )
+    logger.info("RAGAs run manifest written to {}", result.manifest_path)
     return 0
 
 

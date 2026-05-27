@@ -14,6 +14,7 @@ from creative_coding_assistant.contracts import AssistantRequest, StreamEvent
 from creative_coding_assistant.core import Settings
 from creative_coding_assistant.eval.live_session import (
     LiveSessionEvalSample,
+    LiveSessionProviderMetadata,
     LiveSessionRetrievedContext,
     LiveSessionRouteMetadata,
 )
@@ -95,6 +96,7 @@ def build_live_session_sample(
 
     route_decision = _extract_route_decision(events)
     retrieved_contexts = _extract_recorded_retrieved_contexts(events)
+    provider_metadata = _extract_provider_metadata(final_event)
     resolved_recorded_at = recorded_at or datetime.now(UTC)
     resolved_route = LiveSessionRouteMetadata(
         route=(route_decision.route if route_decision is not None else None),
@@ -120,6 +122,7 @@ def build_live_session_sample(
         project_id=request.project_id,
         route=resolved_route,
         retrieved_contexts=retrieved_contexts,
+        provider_metadata=provider_metadata,
         started_at=started_at,
         completed_at=completed_at,
         recorded_at=resolved_recorded_at,
@@ -154,6 +157,39 @@ def _extract_route_decision(
     if not isinstance(raw_route, dict):
         return None
     return RouteDecision.model_validate(raw_route)
+
+
+def _extract_provider_metadata(
+    final_event: StreamEvent,
+) -> LiveSessionProviderMetadata | None:
+    raw_telemetry = final_event.payload.get("telemetry")
+    if not isinstance(raw_telemetry, dict):
+        return None
+
+    raw_provider = raw_telemetry.get("provider")
+    provider = raw_provider if isinstance(raw_provider, dict) else {}
+    raw_usage = raw_telemetry.get("token_usage")
+    token_usage = {
+        key: value
+        for key, value in (raw_usage.items() if isinstance(raw_usage, dict) else ())
+        if isinstance(key, str) and isinstance(value, int) and value >= 0
+    }
+    metadata = LiveSessionProviderMetadata(
+        provider=_optional_string(provider.get("name")),
+        model=_optional_string(provider.get("model")),
+        response_id=_optional_string(provider.get("response_id")),
+        finish_reason=_optional_string(raw_telemetry.get("finish_reason")),
+        token_usage=token_usage,
+    )
+    if (
+        metadata.provider is None
+        and metadata.model is None
+        and metadata.response_id is None
+        and metadata.finish_reason is None
+        and not metadata.token_usage
+    ):
+        return None
+    return metadata
 
 
 def _extract_retrieval_context(
@@ -211,3 +247,10 @@ def _last_event(
         if code is None or event.payload.get("code") == code:
             return event
     return None
+
+
+def _optional_string(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    return normalized or None

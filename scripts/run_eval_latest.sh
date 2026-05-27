@@ -15,7 +15,8 @@ SSL_CERT_FILE="$SSL_CERT_FILE" \
   --input-path data/eval/live_sessions.jsonl \
   --output-path "$OUTPUT_PATH" \
   --latest "$LATEST" \
-  --metric context_precision
+  --metric context_precision \
+  --allow-provider-calls
 
 jq '{cp: .metrics.context_precision, sources: .source_ids, domains: .domains}' \
   "$OUTPUT_PATH"

@@ -43,7 +43,10 @@ class SessionEvalFoundationTests(unittest.TestCase):
 
         sample = build_live_session_sample(
             request=request,
-            events=_trace_events(answer="Fog softens distant objects."),
+            events=_trace_events(
+                answer="Fog softens distant objects.",
+                with_provider_metadata=True,
+            ),
             started_at=started_at,
             completed_at=completed_at,
             recorded_at=recorded_at,
@@ -64,6 +67,11 @@ class SessionEvalFoundationTests(unittest.TestCase):
         self.assertEqual(sample.started_at, started_at)
         self.assertEqual(sample.completed_at, completed_at)
         self.assertEqual(sample.recorded_at, recorded_at)
+        assert sample.provider_metadata is not None
+        self.assertEqual(sample.provider_metadata.provider, "openai")
+        self.assertEqual(sample.provider_metadata.model, "gpt-5-mini")
+        self.assertEqual(sample.provider_metadata.response_id, "response-123")
+        self.assertEqual(sample.provider_metadata.token_usage["total_tokens"], 25)
 
         serialized = sample.model_dump(mode="json")
         self.assertEqual(serialized["route"]["route"], "explain")
@@ -253,7 +261,27 @@ class SessionEvalFoundationTests(unittest.TestCase):
             self.assertIn("selected the explain route", payload["answer"])
 
 
-def _trace_events(*, answer: str) -> tuple[StreamEvent, ...]:
+def _trace_events(
+    *,
+    answer: str,
+    with_provider_metadata: bool = False,
+) -> tuple[StreamEvent, ...]:
+    final_payload = {"answer": answer}
+    if with_provider_metadata:
+        final_payload["telemetry"] = {
+            "provider": {
+                "name": "openai",
+                "model": "gpt-5-mini",
+                "response_id": "response-123",
+            },
+            "token_usage": {
+                "input_tokens": 10,
+                "output_tokens": 15,
+                "total_tokens": 25,
+            },
+            "finish_reason": "stop",
+        }
+
     return (
         StreamEvent(
             event_type=StreamEventType.STATUS,
@@ -322,7 +350,7 @@ def _trace_events(*, answer: str) -> tuple[StreamEvent, ...]:
         StreamEvent(
             event_type=StreamEventType.FINAL,
             sequence=3,
-            payload={"answer": answer},
+            payload=final_payload,
         ),
     )
 

@@ -11,6 +11,7 @@ from creative_coding_assistant.contracts import AssistantMode, CreativeCodingDom
 from creative_coding_assistant.core import Settings
 from creative_coding_assistant.eval.live_session import (
     LiveSessionEvalSample,
+    LiveSessionProviderMetadata,
     LiveSessionRetrievedContext,
     LiveSessionRouteMetadata,
 )
@@ -18,7 +19,9 @@ from creative_coding_assistant.eval.ragas_cli import main as ragas_cli_main
 from creative_coding_assistant.eval.ragas_models import (
     DEFAULT_RAGAS_METRICS,
     SUPPORTED_RAGAS_METRICS,
+    RagasLiveEvalDataset,
     load_live_session_samples,
+    prepare_ragas_live_eval_dataset,
     resolve_ragas_metric_names,
     select_ragas_live_eval_rows,
 )
@@ -26,7 +29,10 @@ from creative_coding_assistant.eval.ragas_runner import (
     DefaultRagasEvaluationBackend,
     RagasDependencyError,
     RagasEvaluatorConfig,
+    RagasLiveEvalRunManifest,
     RagasLiveEvalRunResult,
+    RagasProviderCostBoundaryError,
+    ragas_run_manifest_path,
     run_ragas_live_eval,
 )
 from creative_coding_assistant.orchestration import RouteCapability, RouteName
@@ -59,6 +65,50 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
         self.assertEqual(
             selection.skipped[0].reason,
             "missing_retrieved_contexts",
+        )
+
+    def test_prepare_ragas_dataset_preserves_optional_eval_metadata(self) -> None:
+        created_at = datetime(2026, 4, 29, 12, 30, tzinfo=UTC)
+        dataset = prepare_ragas_live_eval_dataset(
+            (
+                _sample(
+                    sample_id="eligible",
+                    with_context=True,
+                    ground_truth="draw() loops after setup().",
+                    with_provider_metadata=True,
+                ),
+                _sample(sample_id="missing-context", with_context=False),
+            ),
+            dataset_id="dataset-1",
+            source_path=Path("data/eval/live_sessions.jsonl"),
+            metric_names=("context_precision", "faithfulness"),
+            created_at=created_at,
+        )
+
+        self.assertEqual(dataset.dataset_id, "dataset-1")
+        self.assertEqual(dataset.created_at, created_at)
+        self.assertEqual(dataset.total_samples, 2)
+        self.assertEqual(dataset.eligible_samples, 1)
+        self.assertEqual(dataset.skipped_samples, 1)
+        self.assertEqual(dataset.metrics, ("context_precision", "faithfulness"))
+        self.assertEqual(
+            dataset.ragas_payloads()[0]["reference"],
+            "draw() loops after setup().",
+        )
+        self.assertEqual(dataset.rows[0].retrieval_scores, (0.91,))
+        assert dataset.rows[0].provider_metadata is not None
+        self.assertEqual(dataset.rows[0].provider_metadata.provider, "openai")
+        self.assertEqual(
+            dataset.summary_payload(),
+            {
+                "dataset_id": "dataset-1",
+                "created_at": created_at.isoformat(),
+                "source_path": "data/eval/live_sessions.jsonl",
+                "total_samples": 2,
+                "eligible_samples": 1,
+                "skipped_samples": 1,
+                "metrics": ["context_precision", "faithfulness"],
+            },
         )
 
     def test_select_ragas_rows_limits_eligible_samples(self) -> None:
@@ -175,10 +225,15 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
             )
 
             payload = json.loads(output_path.read_text(encoding="utf-8"))
+            manifest = json.loads(
+                ragas_run_manifest_path(output_path).read_text(encoding="utf-8")
+            )
 
         self.assertEqual(result.total_samples, 2)
         self.assertEqual(result.eligible_samples, 1)
         self.assertEqual(result.skipped_samples, 1)
+        self.assertFalse(result.dry_run)
+        self.assertFalse(result.provider_calls_allowed)
         self.assertEqual(result.metrics, DEFAULT_RAGAS_METRICS)
         self.assertEqual(result.metric_failures, 0)
         self.assertEqual(payload["run_id"], "run-1")
@@ -186,9 +241,62 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
         self.assertEqual(payload["metrics"]["context_precision"], 0.9)
         self.assertEqual(payload["metric_errors"], {})
         self.assertEqual(payload["source_ids"], ["p5_reference"])
+        self.assertEqual(payload["retrieval_scores"], [0.91])
         self.assertNotIn("response", payload)
         self.assertNotIn("retrieved_contexts", payload)
         self.assertNotIn("embedding", json.dumps(payload))
+        self.assertEqual(manifest["run_id"], "run-1")
+        self.assertEqual(manifest["dataset"]["eligible_samples"], 1)
+        self.assertEqual(manifest["result_rows"], 1)
+
+    def test_run_ragas_live_eval_dry_run_persists_manifest_without_results(
+        self,
+    ) -> None:
+        with TemporaryDirectory() as temp_dir:
+            input_path = Path(temp_dir) / "live_sessions.jsonl"
+            output_path = Path(temp_dir) / "ragas_results.jsonl"
+            input_path.write_text(
+                _sample(sample_id="sample-1", with_context=True).model_dump_json(),
+                encoding="utf-8",
+            )
+
+            result = run_ragas_live_eval(
+                input_path=input_path,
+                output_path=output_path,
+                dry_run=True,
+                run_id="dry-run",
+                evaluated_at=datetime(2026, 4, 29, 12, 0, tzinfo=UTC),
+            )
+
+            manifest = json.loads(
+                ragas_run_manifest_path(output_path).read_text(encoding="utf-8")
+            )
+
+        self.assertTrue(result.dry_run)
+        self.assertEqual(result.result_rows, ())
+        self.assertFalse(output_path.exists())
+        self.assertEqual(manifest["run_id"], "dry-run")
+        self.assertTrue(manifest["dry_run"])
+        self.assertIn("no evaluator", manifest["cost_warning"])
+
+    def test_run_ragas_live_eval_requires_provider_opt_in_for_default_backend(
+        self,
+    ) -> None:
+        with TemporaryDirectory() as temp_dir:
+            input_path = Path(temp_dir) / "live_sessions.jsonl"
+            output_path = Path(temp_dir) / "ragas_results.jsonl"
+            input_path.write_text(
+                _sample(sample_id="sample-1", with_context=True).model_dump_json(),
+                encoding="utf-8",
+            )
+
+            with self.assertRaises(RagasProviderCostBoundaryError):
+                run_ragas_live_eval(
+                    input_path=input_path,
+                    output_path=output_path,
+                    run_id="blocked-cost",
+                    evaluated_at=datetime(2026, 4, 29, 12, 0, tzinfo=UTC),
+                )
 
     def test_run_ragas_live_eval_latest_keeps_summary_counts_correct(self) -> None:
         with TemporaryDirectory() as temp_dir:
@@ -269,18 +377,7 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
                 )
 
     def test_ragas_cli_uses_settings_paths_and_reports_success(self) -> None:
-        result = RagasLiveEvalRunResult(
-            run_id="run-1",
-            input_path=Path("data/eval/live_sessions.jsonl"),
-            output_path=Path("data/eval/ragas_results.jsonl"),
-            total_samples=3,
-            eligible_samples=2,
-            skipped_samples=1,
-            metrics=DEFAULT_RAGAS_METRICS,
-            metric_failures=0,
-            result_rows=(),
-            skipped=(),
-        )
+        result = _run_result()
 
         with (
             patch(
@@ -333,20 +430,11 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
         self.assertEqual(evaluator_config.timeout_seconds, 30)
         self.assertEqual(evaluator_config.max_retries, 1)
         self.assertEqual(evaluator_config.max_workers, 1)
+        self.assertFalse(run_mock.call_args.kwargs["dry_run"])
+        self.assertFalse(run_mock.call_args.kwargs["allow_provider_calls"])
 
     def test_ragas_cli_passes_latest_selection(self) -> None:
-        result = RagasLiveEvalRunResult(
-            run_id="run-latest",
-            input_path=Path("data/eval/live_sessions.jsonl"),
-            output_path=Path("data/eval/ragas_results.jsonl"),
-            total_samples=4,
-            eligible_samples=2,
-            skipped_samples=2,
-            metrics=DEFAULT_RAGAS_METRICS,
-            metric_failures=0,
-            result_rows=(),
-            skipped=(),
-        )
+        result = _run_result(run_id="run-latest", total_samples=4, skipped_samples=2)
 
         with (
             patch(
@@ -364,6 +452,25 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
         self.assertEqual(run_mock.call_args.kwargs["limit"], 1)
         self.assertEqual(run_mock.call_args.kwargs["latest"], 2)
 
+    def test_ragas_cli_passes_dry_run_and_provider_opt_in_flags(self) -> None:
+        result = _run_result(run_id="run-dry", dry_run=True)
+
+        with (
+            patch(
+                "creative_coding_assistant.eval.ragas_cli.load_settings",
+                return_value=Settings(),
+            ),
+            patch(
+                "creative_coding_assistant.eval.ragas_cli.run_ragas_live_eval",
+                return_value=result,
+            ) as run_mock,
+        ):
+            exit_code = ragas_cli_main(("--dry-run", "--allow-provider-calls"))
+
+        self.assertEqual(exit_code, 0)
+        self.assertTrue(run_mock.call_args.kwargs["dry_run"])
+        self.assertTrue(run_mock.call_args.kwargs["allow_provider_calls"])
+
     def test_ragas_cli_reports_missing_optional_dependency(self) -> None:
         with (
             patch(
@@ -378,6 +485,21 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
             exit_code = ragas_cli_main(())
 
         self.assertEqual(exit_code, 2)
+
+    def test_ragas_cli_reports_provider_cost_boundary(self) -> None:
+        with (
+            patch(
+                "creative_coding_assistant.eval.ragas_cli.load_settings",
+                return_value=Settings(),
+            ),
+            patch(
+                "creative_coding_assistant.eval.ragas_cli.run_ragas_live_eval",
+                side_effect=RagasProviderCostBoundaryError("allow provider calls"),
+            ),
+        ):
+            exit_code = ragas_cli_main(())
+
+        self.assertEqual(exit_code, 3)
 
 
 class _FakeRagasBackend:
@@ -399,6 +521,65 @@ class _FailingMetricBackend:
         return tuple({metric_name: None for metric_name in metric_names} for _ in rows)
 
 
+def _run_result(
+    *,
+    run_id: str = "run-1",
+    total_samples: int = 3,
+    eligible_samples: int = 2,
+    skipped_samples: int = 1,
+    dry_run: bool = False,
+) -> RagasLiveEvalRunResult:
+    input_path = Path("data/eval/live_sessions.jsonl")
+    output_path = Path("data/eval/ragas_results.jsonl")
+    manifest_path = ragas_run_manifest_path(output_path)
+    evaluated_at = datetime(2026, 4, 29, 12, 0, tzinfo=UTC)
+    cost_warning = (
+        "Dry run only: no evaluator LLM or embedding provider calls are made."
+        if dry_run
+        else (
+            "Provider calls disabled: pass --allow-provider-calls only after "
+            "reviewing the prepared dataset and expected cost."
+        )
+    )
+    manifest = RagasLiveEvalRunManifest(
+        run_id=run_id,
+        dataset=RagasLiveEvalDataset(
+            dataset_id=run_id,
+            created_at=evaluated_at,
+            source_path=input_path,
+            total_samples=total_samples,
+            metrics=DEFAULT_RAGAS_METRICS,
+        ),
+        input_path=input_path,
+        output_path=output_path,
+        manifest_path=manifest_path,
+        metrics=DEFAULT_RAGAS_METRICS,
+        dry_run=dry_run,
+        provider_calls_allowed=False,
+        cost_warning=cost_warning,
+        result_rows=0,
+        metric_failures=0,
+        evaluated_at=evaluated_at,
+    )
+    return RagasLiveEvalRunResult(
+        run_id=run_id,
+        input_path=input_path,
+        output_path=output_path,
+        manifest_path=manifest_path,
+        total_samples=total_samples,
+        eligible_samples=eligible_samples,
+        skipped_samples=skipped_samples,
+        metrics=DEFAULT_RAGAS_METRICS,
+        dry_run=dry_run,
+        provider_calls_allowed=False,
+        cost_warning=cost_warning,
+        metric_failures=0,
+        result_rows=(),
+        skipped=(),
+        manifest=manifest,
+    )
+
+
 def _blocked_ragas_import(name, *args, **kwargs):
     if name == "ragas" or name.startswith("ragas."):
         raise ImportError("missing ragas")
@@ -409,12 +590,15 @@ def _sample(
     *,
     sample_id: str = "sample-1",
     with_context: bool = True,
+    ground_truth: str | None = None,
+    with_provider_metadata: bool = False,
 ) -> LiveSessionEvalSample:
     return LiveSessionEvalSample(
         sample_id=sample_id,
         question="How does draw work in p5.js?",
         answer="draw runs repeatedly after setup.",
         conversation_id="conversation-1",
+        ground_truth=ground_truth,
         route=LiveSessionRouteMetadata(
             route=RouteName.EXPLAIN,
             mode=AssistantMode.EXPLAIN,
@@ -438,6 +622,17 @@ def _sample(
             )
             if with_context
             else ()
+        ),
+        provider_metadata=(
+            LiveSessionProviderMetadata(
+                provider="openai",
+                model="gpt-5-mini",
+                response_id="response-1",
+                finish_reason="stop",
+                token_usage={"total_tokens": 42},
+            )
+            if with_provider_metadata
+            else None
         ),
         started_at=datetime(2026, 4, 29, 11, 0, tzinfo=UTC),
         completed_at=datetime(2026, 4, 29, 11, 0, 2, tzinfo=UTC),

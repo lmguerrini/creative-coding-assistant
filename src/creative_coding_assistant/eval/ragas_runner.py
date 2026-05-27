@@ -13,16 +13,20 @@ from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
 
 from creative_coding_assistant.eval.ragas_models import (
     DEFAULT_RAGAS_METRICS,
+    RagasLiveEvalDataset,
     RagasLiveEvalRow,
     RagasSkippedSample,
     load_live_session_samples,
-    resolve_ragas_metric_names,
-    select_ragas_live_eval_rows,
+    prepare_ragas_live_eval_dataset,
 )
 
 
 class RagasDependencyError(RuntimeError):
     """Raised when optional RAGAs runtime dependencies are unavailable."""
+
+
+class RagasProviderCostBoundaryError(RuntimeError):
+    """Raised when a run would call evaluator providers without explicit opt-in."""
 
 
 class RagasEvaluatorConfig(BaseModel):
@@ -75,7 +79,43 @@ class RagasLiveEvalResultRow(BaseModel):
     metric_errors: dict[str, str] = Field(default_factory=dict)
     source_ids: tuple[str, ...] = Field(default_factory=tuple)
     domains: tuple[str, ...] = Field(default_factory=tuple)
+    retrieval_scores: tuple[float, ...] = Field(default_factory=tuple)
     evaluated_at: datetime
+
+
+class RagasLiveEvalRunManifest(BaseModel):
+    """Persisted summary for one local RAGAs evaluation attempt."""
+
+    model_config = ConfigDict(frozen=True)
+
+    run_id: str = Field(min_length=1)
+    dataset: RagasLiveEvalDataset
+    input_path: Path
+    output_path: Path
+    manifest_path: Path
+    metrics: tuple[str, ...] = Field(default_factory=tuple)
+    dry_run: bool = False
+    provider_calls_allowed: bool = False
+    cost_warning: str = Field(min_length=1)
+    result_rows: int = Field(ge=0)
+    metric_failures: int = Field(default=0, ge=0)
+    evaluated_at: datetime
+
+    def summary_payload(self) -> dict[str, object]:
+        return {
+            "run_id": self.run_id,
+            "dataset": self.dataset.summary_payload(),
+            "input_path": str(self.input_path),
+            "output_path": str(self.output_path),
+            "manifest_path": str(self.manifest_path),
+            "metrics": list(self.metrics),
+            "dry_run": self.dry_run,
+            "provider_calls_allowed": self.provider_calls_allowed,
+            "cost_warning": self.cost_warning,
+            "result_rows": self.result_rows,
+            "metric_failures": self.metric_failures,
+            "evaluated_at": self.evaluated_at.isoformat(),
+        }
 
 
 class RagasLiveEvalRunResult(BaseModel):
@@ -86,23 +126,32 @@ class RagasLiveEvalRunResult(BaseModel):
     run_id: str = Field(min_length=1)
     input_path: Path
     output_path: Path
+    manifest_path: Path
     total_samples: int = Field(ge=0)
     eligible_samples: int = Field(ge=0)
     skipped_samples: int = Field(ge=0)
     metrics: tuple[str, ...] = Field(default_factory=tuple)
+    dry_run: bool = False
+    provider_calls_allowed: bool = False
+    cost_warning: str = Field(min_length=1)
     metric_failures: int = Field(default=0, ge=0)
     result_rows: tuple[RagasLiveEvalResultRow, ...] = Field(default_factory=tuple)
     skipped: tuple[RagasSkippedSample, ...] = Field(default_factory=tuple)
+    manifest: RagasLiveEvalRunManifest
 
     def summary_payload(self) -> dict[str, object]:
         return {
             "run_id": self.run_id,
             "input_path": str(self.input_path),
             "output_path": str(self.output_path),
+            "manifest_path": str(self.manifest_path),
             "total_samples": self.total_samples,
             "eligible_samples": self.eligible_samples,
             "skipped_samples": self.skipped_samples,
             "metrics": list(self.metrics),
+            "dry_run": self.dry_run,
+            "provider_calls_allowed": self.provider_calls_allowed,
+            "cost_warning": self.cost_warning,
             "metric_failures": self.metric_failures,
             "result_rows": len(self.result_rows),
         }
@@ -194,20 +243,40 @@ def run_ragas_live_eval(
     backend: RagasEvaluationBackend | None = None,
     run_id: str | None = None,
     evaluated_at: datetime | None = None,
+    dry_run: bool = False,
+    allow_provider_calls: bool = False,
 ) -> RagasLiveEvalRunResult:
     """Run manual RAGAs evaluation over recorded live-session samples."""
 
     samples = load_live_session_samples(input_path)
-    selection = select_ragas_live_eval_rows(samples, limit=limit, latest=latest)
     resolved_run_id = run_id or uuid4().hex
     resolved_evaluated_at = evaluated_at or datetime.now(UTC)
-    resolved_metrics = resolve_ragas_metric_names(metric_names)
+    dataset = prepare_ragas_live_eval_dataset(
+        samples,
+        dataset_id=resolved_run_id,
+        source_path=input_path,
+        metric_names=metric_names,
+        limit=limit,
+        latest=latest,
+        created_at=resolved_evaluated_at,
+    )
+    resolved_metrics = dataset.metrics
+    manifest_path = ragas_run_manifest_path(output_path)
+    cost_warning = _cost_warning_for_run(
+        dry_run=dry_run,
+        provider_calls_allowed=allow_provider_calls,
+    )
 
     result_rows: tuple[RagasLiveEvalResultRow, ...] = ()
-    if selection.rows:
+    if dataset.rows and not dry_run:
+        if backend is None and not allow_provider_calls:
+            raise RagasProviderCostBoundaryError(
+                "RAGAs evaluation may call evaluator LLM and embedding providers. "
+                "Pass allow_provider_calls=True or run with --dry-run first."
+            )
         evaluator = backend or DefaultRagasEvaluationBackend(config=evaluator_config)
-        scores = evaluator.evaluate(selection.rows, resolved_metrics)
-        if len(scores) != len(selection.rows):
+        scores = evaluator.evaluate(dataset.rows, resolved_metrics)
+        if len(scores) != len(dataset.rows):
             raise ValueError("RAGAs backend returned a mismatched score row count.")
         result_rows = tuple(
             _build_result_row(
@@ -217,21 +286,43 @@ def run_ragas_live_eval(
                 run_id=resolved_run_id,
                 evaluated_at=resolved_evaluated_at,
             )
-            for row, score in zip(selection.rows, scores, strict=True)
+            for row, score in zip(dataset.rows, scores, strict=True)
         )
         _write_result_rows(output_path, result_rows)
+
+    metric_failures = sum(len(row.metric_errors) for row in result_rows)
+    manifest = RagasLiveEvalRunManifest(
+        run_id=resolved_run_id,
+        dataset=dataset,
+        input_path=input_path,
+        output_path=output_path,
+        manifest_path=manifest_path,
+        metrics=resolved_metrics,
+        dry_run=dry_run,
+        provider_calls_allowed=allow_provider_calls,
+        cost_warning=cost_warning,
+        result_rows=len(result_rows),
+        metric_failures=metric_failures,
+        evaluated_at=resolved_evaluated_at,
+    )
+    _write_run_manifest(manifest)
 
     return RagasLiveEvalRunResult(
         run_id=resolved_run_id,
         input_path=input_path,
         output_path=output_path,
-        total_samples=selection.total_samples,
-        eligible_samples=selection.eligible_samples,
-        skipped_samples=selection.skipped_samples,
+        manifest_path=manifest_path,
+        total_samples=dataset.total_samples,
+        eligible_samples=dataset.eligible_samples,
+        skipped_samples=dataset.skipped_samples,
         metrics=resolved_metrics,
-        metric_failures=sum(len(row.metric_errors) for row in result_rows),
+        dry_run=dry_run,
+        provider_calls_allowed=allow_provider_calls,
+        cost_warning=cost_warning,
+        metric_failures=metric_failures,
         result_rows=result_rows,
-        skipped=selection.skipped,
+        skipped=dataset.skipped,
+        manifest=manifest,
     )
 
 
@@ -255,6 +346,7 @@ def _build_result_row(
         metric_errors=_metric_errors_for_scores(metrics),
         source_ids=row.source_ids,
         domains=row.domains,
+        retrieval_scores=row.retrieval_scores,
         evaluated_at=evaluated_at,
     )
 
@@ -268,6 +360,38 @@ def _write_result_rows(
         for row in rows:
             handle.write(row.model_dump_json())
             handle.write("\n")
+
+
+def _write_run_manifest(manifest: RagasLiveEvalRunManifest) -> None:
+    manifest.manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest.manifest_path.write_text(
+        manifest.model_dump_json(indent=2),
+        encoding="utf-8",
+    )
+
+
+def ragas_run_manifest_path(output_path: Path) -> Path:
+    """Return the sidecar manifest path for a JSONL RAGAs result artifact."""
+
+    return output_path.with_name(f"{output_path.name}.manifest.json")
+
+
+def _cost_warning_for_run(
+    *,
+    dry_run: bool,
+    provider_calls_allowed: bool,
+) -> str:
+    if dry_run:
+        return "Dry run only: no evaluator LLM or embedding provider calls are made."
+    if provider_calls_allowed:
+        return (
+            "Provider calls explicitly enabled: RAGAs may call evaluator LLM "
+            "and embedding APIs and incur cost."
+        )
+    return (
+        "Provider calls disabled: pass --allow-provider-calls only after "
+        "reviewing the prepared dataset and expected cost."
+    )
 
 
 def _normalize_metric_scores(

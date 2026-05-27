@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from creative_coding_assistant.contracts import AssistantMode, CreativeCodingDomain
 from creative_coding_assistant.orchestration.retrieval import RetrievedKnowledgeChunk
@@ -66,6 +66,26 @@ class LiveSessionRouteMetadata(BaseModel):
     capabilities: tuple[RouteCapability, ...] = Field(default_factory=tuple)
 
 
+class LiveSessionProviderMetadata(BaseModel):
+    """Provider/runtime metadata captured when generation telemetry is available."""
+
+    model_config = ConfigDict(frozen=True)
+
+    provider: str | None = None
+    model: str | None = None
+    response_id: str | None = None
+    finish_reason: str | None = None
+    token_usage: dict[str, int] = Field(default_factory=dict)
+
+    @field_validator("provider", "model", "response_id", "finish_reason")
+    @classmethod
+    def normalize_optional_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        return normalized or None
+
+
 class LiveSessionEvalSample(BaseModel):
     """One real assistant turn recorded for later evaluation work."""
 
@@ -76,10 +96,20 @@ class LiveSessionEvalSample(BaseModel):
     answer: str = Field(min_length=1)
     conversation_id: str | None = None
     project_id: str | None = None
+    ground_truth: str | None = None
     route: LiveSessionRouteMetadata
     retrieved_contexts: tuple[LiveSessionRetrievedContext, ...] = Field(
         default_factory=tuple
     )
+    provider_metadata: LiveSessionProviderMetadata | None = None
     started_at: datetime
     completed_at: datetime
     recorded_at: datetime
+
+    @field_validator("ground_truth")
+    @classmethod
+    def normalize_ground_truth(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        return normalized or None
