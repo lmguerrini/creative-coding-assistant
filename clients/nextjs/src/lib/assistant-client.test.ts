@@ -12,6 +12,7 @@ describe("assistant frontend client", () => {
     });
     expect(snapshot.inspectorTabs.map((tab) => tab.label)).toEqual([
       "Overview",
+      "Preview",
       "Code",
       "Workflow",
       "Telemetry",
@@ -21,8 +22,8 @@ describe("assistant frontend client", () => {
     expect(snapshot.inspectorTabs).toContainEqual(
       expect.objectContaining({ label: "Overview", active: true })
     );
-    expect(snapshot.inspectorTabs.map((tab) => tab.label) as string[]).not.toContain(
-      "Preview"
+    expect(snapshot.inspectorTabs).toContainEqual(
+      expect.objectContaining({ label: "Preview", active: false })
     );
     expect(snapshot.preview.available).toBe(true);
     expect(snapshot.preview.active).toBe(false);

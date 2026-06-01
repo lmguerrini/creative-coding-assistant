@@ -57,7 +57,7 @@ describe("workspace persistence client", () => {
       density: "compact",
       inspectorCollapsed: true,
       inspectorWidth: 560,
-      previewHeight: 160
+      previewHeight: 220
     });
     expect(normalizeWorkspaceLayoutState()).toEqual(defaultWorkspaceLayoutState);
   });

@@ -23,9 +23,10 @@ export const workspaceLayoutBounds = {
   defaultInspectorWidth: 420,
   minInspectorWidth: 320,
   maxInspectorWidth: 560,
-  defaultPreviewHeight: 220,
-  minPreviewHeight: 160,
-  maxPreviewHeight: 360
+  compactPreviewHeight: 280,
+  defaultPreviewHeight: 320,
+  minPreviewHeight: 220,
+  maxPreviewHeight: 520
 } as const;
 
 export type WorkspaceDensity = "cozy" | "compact";
@@ -716,6 +717,7 @@ function resolveStorage(storage: Storage | null | undefined): Storage | null {
 function isInspectorTabName(value: unknown): value is InspectorTabName {
   return (
     value === "Overview" ||
+    value === "Preview" ||
     value === "Code" ||
     value === "Workflow" ||
     value === "Telemetry" ||

@@ -162,6 +162,22 @@ function snapshotWithThreePreview(): AssistantWorkspaceSnapshot {
   };
 }
 
+function snapshotWithReadyPreview(): AssistantWorkspaceSnapshot {
+  const snapshot = getLocalWorkspaceSnapshot();
+
+  return {
+    ...snapshot,
+    preview: {
+      ...snapshot.preview,
+      active: true,
+      collapsed: false,
+      outputArtifactName: "preview-request.json",
+      state: "ready",
+      status: "Preview open"
+    }
+  };
+}
+
 function snapshotWithEmptyRetrieval(): AssistantWorkspaceSnapshot {
   const snapshot = getLocalWorkspaceSnapshot();
 
@@ -661,6 +677,7 @@ describe("WorkstationShell", () => {
 
     for (const tab of [
       "Overview",
+      "Preview",
       "Code",
       "Workflow",
       "Telemetry",
@@ -697,12 +714,31 @@ describe("WorkstationShell", () => {
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
     ).toHaveAttribute("aria-valuetext", "8 of 11 workflow nodes reached");
     expect(screen.queryByRole("tabpanel", { name: "Code inspector" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("tab", { name: "Preview" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tabpanel", { name: "Preview inspector" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Review" })).not.toBeInTheDocument();
   });
 
   it("switches inspector tabs without stacking panels", () => {
     renderShell();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Preview" }));
+
+    expect(screen.getByRole("tab", { name: "Preview" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
+    const previewPanel = screen.getByRole("tabpanel", {
+      name: "Preview inspector"
+    });
+    expect(previewPanel).toBeVisible();
+    expect(
+      within(previewPanel).getByRole("group", { name: "Preview runtime metadata" })
+    ).toBeVisible();
+    expect(
+      within(previewPanel).getByRole("group", { name: "Preview source metadata" })
+    ).toHaveTextContent("4ff94984");
+    expect(screen.queryByRole("tabpanel", { name: "Overview inspector" })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: "Code" }));
 
@@ -716,7 +752,7 @@ describe("WorkstationShell", () => {
     );
     expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
     expect(screen.getByRole("tabpanel", { name: "Code inspector" })).toBeVisible();
-    expect(screen.queryByRole("tabpanel", { name: "Overview inspector" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tabpanel", { name: "Preview inspector" })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: "Retrieval" }));
 
@@ -872,6 +908,11 @@ describe("WorkstationShell", () => {
     expect(screen.getByLabelText("Current session")).toHaveTextContent(
       "Finalization"
     );
+    expect(screen.getByRole("tab", { name: "Preview" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "Overview" }));
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
     ).toHaveAttribute("aria-valuenow", "11");
@@ -881,9 +922,21 @@ describe("WorkstationShell", () => {
       within(preview).getByText("aurora-field.p5.js", { selector: "summary span" })
     ).toBeVisible();
     expect(
-      within(preview).getByText("p5.js runtime ready for sandbox execution.")
-    ).toBeVisible();
+      within(preview).queryByText("p5.js runtime ready for sandbox execution.")
+    ).not.toBeInTheDocument();
     expect(preview.querySelector("details")).toHaveAttribute("open");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Preview" }));
+    const previewPanel = screen.getByRole("tabpanel", {
+      name: "Preview inspector"
+    });
+    const previewStatus = within(previewPanel).getByRole("group", {
+      name: "Preview canvas status"
+    });
+
+    expect(
+      within(previewStatus).getByText("p5.js runtime ready for sandbox execution.")
+    ).toBeVisible();
   });
 
   it("hydrates final stream output into the active artifact and routed preview", async () => {
@@ -936,8 +989,12 @@ describe("WorkstationShell", () => {
       within(preview).getByText("Preview open", { selector: "summary small" })
     ).toBeVisible();
     expect(preview.querySelector("details")).toHaveAttribute("open");
+    expect(screen.getByRole("tab", { name: "Preview" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
     expect(within(preview).getByText("Three scene surface")).toBeVisible();
-    expect(within(preview).getAllByText("Runtime ready").length).toBeGreaterThan(0);
+    expect(within(preview).getByText("Preview open / Three.js")).toBeVisible();
 
     fireEvent.click(screen.getByRole("tab", { name: "Code" }));
     const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
@@ -1313,7 +1370,7 @@ describe("WorkstationShell", () => {
       save: vi.fn(async () => ({ error: null, target: "remote" as const }))
     };
 
-    renderShell(getLocalWorkspaceSnapshot(), { persistenceClient });
+    renderShell(snapshotWithReadyPreview(), { persistenceClient });
 
     expect(await screen.findByText("Session saved")).toBeVisible();
     vi.mocked(persistenceClient.save).mockClear();
@@ -1358,7 +1415,7 @@ describe("WorkstationShell", () => {
       }))
     };
 
-    renderShell(getLocalWorkspaceSnapshot(), { persistenceClient });
+    renderShell(snapshotWithReadyPreview(), { persistenceClient });
 
     expect(await screen.findByText("Saved locally")).toBeVisible();
     expect(screen.getByText("Session persistence issue")).toBeVisible();
@@ -1545,14 +1602,25 @@ describe("WorkstationShell", () => {
 
     expect(details).toHaveAttribute("open");
     expect(details).toHaveAttribute("data-state", "open");
+    expect(details).toHaveAttribute("data-layout-size", "compact");
     expect(summary).toHaveAttribute("aria-expanded", "true");
+    expect(preview.querySelector(".previewPanel")).toHaveStyle({
+      height: "280px"
+    });
+    expect(
+      screen.getByRole("separator", { name: "Resize preview shelf" })
+    ).toHaveAttribute("aria-disabled", "true");
     const surface = within(preview).getByRole("group", {
       name: "Preview renderer surface"
     });
 
     expect(surface).toBeVisible();
-    expect(within(surface).getByText("P5 sketch surface")).toBeVisible();
-    expect(within(surface).getByText("Runtime ready")).toBeVisible();
+    expect(within(preview).getByText("P5 sketch surface")).toBeVisible();
+    expect(within(preview).getByText("Generating / p5.js")).toBeVisible();
+    expect(
+      within(preview).queryByRole("list", { name: "Preview runtime status" })
+    ).not.toBeInTheDocument();
+    expect(within(preview).queryByText("Opened from")).not.toBeInTheDocument();
   });
 
   it("opens the preview shelf in fullscreen without losing the current context", () => {
@@ -1613,10 +1681,20 @@ describe("WorkstationShell", () => {
       within(preview).getByText("Cleared", { selector: "summary small" })
     ).toBeVisible();
     expect(
-      within(preview).getByText(
+      within(preview).queryByText(
         "Preview state cleared for aurora-field.p5.js. Reload or reset the session to restore the latest runtime context."
       )
-    ).toBeVisible();
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Preview" }));
+    const previewPanel = screen.getByRole("tabpanel", {
+      name: "Preview inspector"
+    });
+    expect(
+      within(previewPanel).getByRole("group", { name: "Preview canvas status" })
+    ).toHaveTextContent(
+      "Preview state cleared for aurora-field.p5.js. Reload or reset the session to restore the latest runtime context."
+    );
 
     fireEvent.click(
       within(preview).getByRole("button", { name: "Reset preview session" })
@@ -1740,7 +1818,7 @@ describe("WorkstationShell", () => {
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
 
-    expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute(
+    expect(screen.getByRole("tab", { name: "Preview" })).toHaveAttribute(
       "aria-selected",
       "true"
     );
@@ -1748,16 +1826,8 @@ describe("WorkstationShell", () => {
       within(preview).getByText("preview-request.json", { selector: "summary span" })
     ).toBeVisible();
     expect(within(preview).getByText("Preview open")).toBeVisible();
-    expect(
-      within(
-        within(preview).getByRole("group", { name: "Preview renderer surface" })
-      ).getByText("JSON panel surface")
-    ).toBeVisible();
-    expect(
-      within(
-        within(preview).getByRole("group", { name: "Preview renderer surface" })
-      ).getByText("Preview manifest panel")
-    ).toBeVisible();
+    expect(within(preview).getByText("Preview open / JSON panel surface")).toBeVisible();
+    expect(within(preview).getByText("Preview manifest panel")).toBeVisible();
     expect(preview.querySelector("details")).toHaveAttribute("open");
     expect(preview.querySelector("details")).toHaveAttribute("data-state", "open");
   });
@@ -1775,8 +1845,7 @@ describe("WorkstationShell", () => {
       name: "Preview renderer surface"
     });
 
-    expect(within(surface).getByText("P5 sketch surface")).toBeVisible();
-    expect(within(surface).getByText("p5.js")).toBeVisible();
+    expect(within(preview).getByText("P5 sketch surface")).toBeVisible();
     expect(
       within(surface).getByRole("group", { name: "p5.js live runtime" })
     ).toBeVisible();
@@ -1861,8 +1930,8 @@ describe("WorkstationShell", () => {
       name: "Preview renderer surface"
     });
 
-    expect(within(surface).getByText("Three scene surface")).toBeVisible();
-    expect(within(surface).getByText("Three.js")).toBeVisible();
+    expect(within(preview).getByText("Three scene surface")).toBeVisible();
+    expect(within(preview).getByText("Generating / Three.js")).toBeVisible();
     expect(
       within(surface).getByRole("group", { name: "Three.js live runtime" })
     ).toBeVisible();
@@ -1894,7 +1963,7 @@ describe("WorkstationShell", () => {
       name: "Preview renderer surface"
     });
 
-    expect(within(surface).getByText("Three scene surface")).toBeVisible();
+    expect(within(preview).getByText("Three scene surface")).toBeVisible();
     expect(
       within(surface).getByRole("group", { name: "Three.js live runtime" })
     ).toBeVisible();
@@ -1957,7 +2026,7 @@ describe("WorkstationShell", () => {
       name: "Preview renderer surface"
     });
 
-    expect(within(surface).getByText("Shader surface")).toBeVisible();
+    expect(within(preview).getByText("Shader surface")).toBeVisible();
     expect(
       within(surface).getByRole("group", { name: "GLSL live runtime" })
     ).toBeVisible();
@@ -2020,7 +2089,7 @@ describe("WorkstationShell", () => {
         name: "Preview renderer surface"
       });
 
-      expect(within(surface).getByText(surfaceTitle)).toBeVisible();
+      expect(within(preview).getByText(surfaceTitle)).toBeVisible();
       const frame = await waitForSandboxRuntimeFrame(surface, frameLabel);
       const staleRuntimeId = frame.dataset.runtimeId;
 
@@ -2695,7 +2764,7 @@ describe("WorkstationShell", () => {
       save: vi.fn(async () => ({ error: null, target: "remote" as const }))
     };
 
-    renderShell(getLocalWorkspaceSnapshot(), { persistenceClient });
+    renderShell(snapshotWithReadyPreview(), { persistenceClient });
 
     expect(await screen.findByText("Session saved")).toBeVisible();
     vi.mocked(persistenceClient.save).mockClear();
@@ -2710,18 +2779,26 @@ describe("WorkstationShell", () => {
     expect(inspectorHandle).toHaveAttribute("aria-valuenow", "480");
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
-    const summary = within(preview).getByText("Preview available").closest("summary");
-    expect(summary).not.toBeNull();
-    fireEvent.click(summary as HTMLElement);
+    expect(preview.querySelector("details")).toHaveAttribute(
+      "data-layout-size",
+      "visual"
+    );
+    expect(preview.querySelector(".previewPanel")).toHaveStyle({
+      height: "320px"
+    });
 
     const previewHandle = screen.getByRole("separator", {
       name: "Resize preview shelf"
     });
+    expect(previewHandle).toHaveAttribute("aria-disabled", "false");
     fireEvent.mouseDown(previewHandle, { clientY: 200 });
     fireEvent.mouseMove(window, { clientY: 260 });
     fireEvent.mouseUp(window);
 
-    expect(previewHandle).toHaveAttribute("aria-valuenow", "280");
+    expect(previewHandle).toHaveAttribute("aria-valuenow", "380");
+    expect(preview.querySelector(".previewPanel")).toHaveStyle({
+      height: "380px"
+    });
 
     fireEvent.click(screen.getByRole("button", { name: "Workspace density" }));
 
@@ -2732,7 +2809,7 @@ describe("WorkstationShell", () => {
             density: "compact",
             inspectorCollapsed: false,
             inspectorWidth: 480,
-            previewHeight: 280
+            previewHeight: 380
           }),
           previewOpen: true
         })

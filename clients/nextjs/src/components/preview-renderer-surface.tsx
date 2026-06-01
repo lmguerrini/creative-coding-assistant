@@ -18,6 +18,7 @@ import {
 } from "./preview-runtime-stage";
 
 type PreviewRendererSurfaceProps = {
+  chrome?: "default" | "immersive";
   onReload?: (() => void) | undefined;
   onRuntimeFrame?: PreviewRuntimeCallbackProps["onRuntimeFrame"];
   onRuntimeStatus?: PreviewRuntimeCallbackProps["onRuntimeStatus"];
@@ -59,6 +60,7 @@ const mediaSurfaceLayers: Record<
 };
 
 export function PreviewRendererSurface({
+  chrome = "default",
   onReload,
   onRuntimeFrame,
   onRuntimeStatus,
@@ -71,24 +73,28 @@ export function PreviewRendererSurface({
     <section
       aria-label="Preview renderer surface"
       className="previewSurface"
+      data-chrome={chrome}
       data-runtime-state={preview.state}
       data-surface-kind={route.surfaceKind}
       data-support-state={route.supportState}
       data-tone={route.tone}
       role="group"
     >
-      <header className="previewSurfaceHeader">
-        <div>
-          <span className="eyebrow">{route.surfaceEyebrow}</span>
-          <strong>{route.surfaceTitle}</strong>
-          <p>{route.rendererDescription}</p>
-        </div>
-        <div className="previewSurfaceStatus">
-          <small>{route.supportLabel}</small>
-          <span>{route.rendererLabel}</span>
-        </div>
-      </header>
+      {chrome === "default" ? (
+        <header className="previewSurfaceHeader">
+          <div>
+            <span className="eyebrow">{route.surfaceEyebrow}</span>
+            <strong>{route.surfaceTitle}</strong>
+            <p>{route.rendererDescription}</p>
+          </div>
+          <div className="previewSurfaceStatus">
+            <small>{route.supportLabel}</small>
+            <span>{route.rendererLabel}</span>
+          </div>
+        </header>
+      ) : null}
       {renderPreviewSurfaceStage({
+        chrome,
         onReload,
         onRuntimeFrame,
         onRuntimeStatus,
@@ -97,24 +103,29 @@ export function PreviewRendererSurface({
         runtimeSessionKey,
         runtimeSource
       })}
-      <div className="previewSurfaceNotes" aria-label="Preview renderer notes">
-        {route.notes.map((note) => (
-          <span key={note}>{note}</span>
-        ))}
-      </div>
-      <footer className="previewSurfaceFooter">
-        <span>{route.targetLabel}</span>
-        <small>
-          {preview.state === "generating"
-            ? "Runtime metadata is still arriving."
-            : route.supportReason}
-        </small>
-      </footer>
+      {chrome === "default" ? (
+        <>
+          <div className="previewSurfaceNotes" aria-label="Preview renderer notes">
+            {route.notes.map((note) => (
+              <span key={note}>{note}</span>
+            ))}
+          </div>
+          <footer className="previewSurfaceFooter">
+            <span>{route.targetLabel}</span>
+            <small>
+              {preview.state === "generating"
+                ? "Runtime metadata is still arriving."
+                : route.supportReason}
+            </small>
+          </footer>
+        </>
+      ) : null}
     </section>
   );
 }
 
 function renderPreviewSurfaceStage({
+  chrome,
   onReload,
   onRuntimeFrame,
   onRuntimeStatus,
@@ -186,14 +197,20 @@ function renderPreviewSurfaceStage({
             <span key={layer}>{layer}</span>
           ))}
         </div>
-        <div className="previewSurfaceGrid" aria-hidden="true">
-          {Array.from({ length: 9 }, (_, index) => (
-            <span
-              data-active={index === 4 ? "true" : "false"}
-              key={`${route.surfaceKind}-${index}`}
-            />
-          ))}
-        </div>
+        {chrome === "immersive" ? (
+          <div className="previewSurfaceImmersiveHint" aria-hidden="true">
+            Visual output focused mode
+          </div>
+        ) : (
+          <div className="previewSurfaceGrid" aria-hidden="true">
+            {Array.from({ length: 9 }, (_, index) => (
+              <span
+                data-active={index === 4 ? "true" : "false"}
+                key={`${route.surfaceKind}-${index}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     );
   }

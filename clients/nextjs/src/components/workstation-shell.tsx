@@ -183,6 +183,7 @@ type PreviewRuntimeFrameTelemetryEvent = PreviewRuntimeTelemetryBase & {
 
 const inspectorTabIcons = {
   Overview: Sparkles,
+  Preview: Play,
   Code: Braces,
   Workflow: Activity,
   Telemetry: Gauge,
@@ -1916,6 +1917,7 @@ export function WorkstationShell({
       }
       if (workspacePreferences.autoOpenPreview) {
         handlePreviewOpenChange(true);
+        setActiveTab("Preview");
       }
     }
 
@@ -1935,6 +1937,9 @@ export function WorkstationShell({
       handlePreviewOpenChange(
         hydration.previewAvailable && workspacePreferences.autoOpenPreview
       );
+      if (hydration.previewAvailable && workspacePreferences.autoOpenPreview) {
+        setActiveTab("Preview");
+      }
     }
   }
 
@@ -2060,7 +2065,7 @@ export function WorkstationShell({
 
     if (action === "Preview") {
       handlePreviewOpenChange(true);
-      setActiveTab("Overview");
+      setActiveTab("Preview");
       return;
     }
 
@@ -2550,6 +2555,9 @@ export function WorkstationShell({
                     onArtifactAction={handleArtifactAction}
                     onArtifactTransfer={handleArtifactTransfer}
                     providerTelemetry={providerTelemetry}
+                    previewController={previewController}
+                    previewRoute={previewRendererRoute}
+                    previewRuntimeSource={previewRuntimeSource}
                     retrievalRuntime={retrievalRuntime}
                     showDebugPanels={workspacePreferences.showDebugPanels}
                     snapshot={interactiveSnapshot}
@@ -2690,12 +2698,17 @@ function PreviewShelf({
     onToggle(event.currentTarget.open);
   }
 
-  const panelStyle = controller.isFullscreen ? undefined : { height };
+  const layoutSize = resolvePreviewShelfLayoutSize(snapshot.preview);
+  const panelHeight = resolvePreviewShelfPanelHeight(height, snapshot.preview);
+  const canResizePreview =
+    snapshot.preview.active && layoutSize === "visual" && !controller.isFullscreen;
+  const panelStyle = controller.isFullscreen ? undefined : { height: panelHeight };
 
   return (
     <section className="previewZone" aria-label="Preview workspace">
       <details
         data-fullscreen={controller.isFullscreen ? "true" : "false"}
+        data-layout-size={layoutSize}
         className="previewShelf"
         data-state={snapshot.preview.active ? "open" : "closed"}
         data-runtime-state={snapshot.preview.state}
@@ -2722,22 +2735,10 @@ function PreviewShelf({
         </summary>
         <div className="previewPanel" style={panelStyle}>
           <div className="previewToolbar">
-            <div
-              aria-label="Preview runtime status"
-              className="previewIndicators"
-              role="list"
-            >
-              {controller.indicators.map((indicator) => (
-                <div
-                  className="previewIndicator"
-                  data-tone={indicator.tone}
-                  key={indicator.id}
-                  role="listitem"
-                >
-                  <span>{indicator.label}</span>
-                  <strong>{indicator.value}</strong>
-                </div>
-              ))}
+            <div className="previewToolbarFocus" aria-label="Focused preview context">
+              <span>{route.surfaceEyebrow}</span>
+              <strong>{route.surfaceTitle}</strong>
+              <small>{`${snapshot.preview.status} / ${route.rendererLabel}`}</small>
             </div>
             <div className="previewToolbarActions" aria-label="Preview controls">
               <button
@@ -2823,6 +2824,7 @@ function PreviewShelf({
               />
             ) : null}
             <PreviewRendererSurface
+              chrome="immersive"
               onReload={onReload}
               onRuntimeFrame={onRuntimeFrame}
               onRuntimeStatus={onRuntimeStatus}
@@ -2831,62 +2833,48 @@ function PreviewShelf({
               runtimeSessionKey={runtimeSessionKey}
               runtimeSource={runtimeSource}
             />
-            <div className="previewCopy">
-              <p>{snapshot.preview.summary}</p>
-              <p>{route.surfaceSummary}</p>
-              <dl>
-                <div>
-                  <dt>Artifact</dt>
-                  <dd>{route.selectedArtifactName}</dd>
-                </div>
-                <div>
-                  <dt>Source</dt>
-                  <dd>{route.sourceArtifactName || snapshot.preview.sourceArtifactName}</dd>
-                </div>
-                {snapshot.preview.outputArtifactName ? (
-                  <div>
-                    <dt>Runtime output</dt>
-                    <dd>{snapshot.preview.outputArtifactName}</dd>
-                  </div>
-                ) : null}
-                <div>
-                  <dt>Target</dt>
-                  <dd>{route.targetLabel}</dd>
-                </div>
-                <div>
-                  <dt>Surface</dt>
-                  <dd>{route.rendererLabel}</dd>
-                </div>
-                <div>
-                  <dt>Availability</dt>
-                  <dd>{route.supportLabel}</dd>
-                </div>
-                <div>
-                  <dt>Opened from</dt>
-                  <dd>{snapshot.preview.trigger}</dd>
-                </div>
-              </dl>
-            </div>
           </div>
         </div>
         <div
           aria-label="Resize preview shelf"
+          aria-disabled={!canResizePreview}
           aria-orientation="horizontal"
-          aria-valuemax={workspaceLayoutBounds.maxPreviewHeight}
+          aria-valuemax={
+            layoutSize === "visual"
+              ? workspaceLayoutBounds.maxPreviewHeight
+              : workspaceLayoutBounds.compactPreviewHeight
+          }
           aria-valuemin={workspaceLayoutBounds.minPreviewHeight}
-          aria-valuenow={height}
+          aria-valuenow={panelHeight}
           className="layoutResizeHandle previewResizeHandle"
           data-active={resizing}
-          onKeyDown={onResizeKeyDown}
-          onMouseDown={onResizeStart}
+          onKeyDown={canResizePreview ? onResizeKeyDown : undefined}
+          onMouseDown={canResizePreview ? onResizeStart : undefined}
           role="separator"
-          tabIndex={snapshot.preview.active && !controller.isFullscreen ? 0 : -1}
+          tabIndex={canResizePreview ? 0 : -1}
         >
           <span aria-hidden="true" />
         </div>
       </details>
     </section>
   );
+}
+
+function resolvePreviewShelfLayoutSize(
+  preview: AssistantWorkspaceSnapshot["preview"]
+) {
+  return preview.active && preview.state === "ready" ? "visual" : "compact";
+}
+
+function resolvePreviewShelfPanelHeight(
+  height: number,
+  preview: AssistantWorkspaceSnapshot["preview"]
+) {
+  if (resolvePreviewShelfLayoutSize(preview) === "visual") {
+    return height;
+  }
+
+  return Math.min(height, workspaceLayoutBounds.compactPreviewHeight);
 }
 
 type InspectorPanelProps = {
@@ -2901,6 +2889,9 @@ type InspectorPanelProps = {
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
   onArtifactTransfer: (artifact: ArtifactSummary) => void;
   providerTelemetry: ProviderTelemetryModel;
+  previewController: PreviewControllerModel;
+  previewRoute: PreviewRendererRoute;
+  previewRuntimeSource: PreviewRuntimeSource;
   retrievalRuntime: RetrievalRuntimeModel;
   showDebugPanels: boolean;
   snapshot: AssistantWorkspaceSnapshot;
@@ -2922,6 +2913,9 @@ function InspectorPanel({
   onArtifactAction,
   onArtifactTransfer,
   providerTelemetry,
+  previewController,
+  previewRoute,
+  previewRuntimeSource,
   retrievalRuntime,
   showDebugPanels,
   snapshot,
@@ -2940,6 +2934,18 @@ function InspectorPanel({
         onArtifactCopy={onArtifactCopy}
         onArtifactTransfer={onArtifactTransfer}
         transferFeedback={transferFeedback}
+      />
+    );
+  }
+
+  if (activeTab === "Preview") {
+    return (
+      <PreviewInspector
+        controller={previewController}
+        dashboard={telemetryDashboard}
+        preview={snapshot.preview}
+        route={previewRoute}
+        runtimeSource={previewRuntimeSource}
       />
     );
   }
@@ -3141,6 +3147,163 @@ function OverviewInspector({
           <small>{retrieval.summary.freshnessLabel}</small>
         </div>
       </div>
+    </section>
+  );
+}
+
+function PreviewInspector({
+  controller,
+  dashboard,
+  preview,
+  route,
+  runtimeSource
+}: {
+  controller: PreviewControllerModel;
+  dashboard: TelemetryDashboardModel;
+  preview: AssistantWorkspaceSnapshot["preview"];
+  route: PreviewRendererRoute;
+  runtimeSource: PreviewRuntimeSource;
+}) {
+  return (
+    <section
+      aria-label="Preview inspector"
+      className="inspectorPanel previewInspectorPanel"
+      data-state={preview.state}
+      id="preview-inspector-panel"
+      role="tabpanel"
+    >
+      <article
+        aria-label="Preview canvas status"
+        className="previewInspectorHero"
+        data-state={preview.state}
+        role="group"
+      >
+        <div>
+          <span>Canvas runtime</span>
+          <strong>{formatPreviewStateLabel(preview.state, preview.active)}</strong>
+          <p>{preview.summary}</p>
+        </div>
+        <span>{controller.sessionLabel}</span>
+      </article>
+
+      <div className="previewInspectorGrid">
+        <article
+          aria-label="Preview runtime metadata"
+          className="previewInspectorCard"
+          role="group"
+        >
+          <header>
+            <span>Runtime context</span>
+            <strong>{route.rendererLabel}</strong>
+          </header>
+          <dl>
+            <div>
+              <dt>Artifact</dt>
+              <dd>{route.selectedArtifactName}</dd>
+            </div>
+            <div>
+              <dt>Source</dt>
+              <dd>{route.sourceArtifactName || preview.sourceArtifactName}</dd>
+            </div>
+            {preview.outputArtifactName ? (
+              <div>
+                <dt>Runtime output</dt>
+                <dd>{preview.outputArtifactName}</dd>
+              </div>
+            ) : null}
+            <div>
+              <dt>Target</dt>
+              <dd>{route.targetLabel}</dd>
+            </div>
+            <div>
+              <dt>Support</dt>
+              <dd>{route.supportLabel}</dd>
+            </div>
+            <div>
+              <dt>Opened from</dt>
+              <dd>{preview.trigger}</dd>
+            </div>
+          </dl>
+        </article>
+
+        <article
+          aria-label="Preview source metadata"
+          className="previewInspectorCard"
+          role="group"
+        >
+          <header>
+            <span>Executable source</span>
+            <strong>{runtimeSource.title}</strong>
+          </header>
+          <dl>
+            <div>
+              <dt>Fingerprint</dt>
+              <dd>{runtimeSource.fingerprint}</dd>
+            </div>
+            <div>
+              <dt>Lines</dt>
+              <dd>{runtimeSource.lineCount}</dd>
+            </div>
+            <div>
+              <dt>Renderer</dt>
+              <dd>{route.rendererId ?? "Pending renderer"}</dd>
+            </div>
+            <div>
+              <dt>Health</dt>
+              <dd>{dashboard.preview.healthLabel}</dd>
+            </div>
+          </dl>
+          <p>{dashboard.preview.detail}</p>
+        </article>
+
+        <article
+          aria-label="Preview controls metadata"
+          className="previewInspectorCard"
+          role="group"
+        >
+          <header>
+            <span>Controls</span>
+            <strong>{controller.isSessionOverridden ? "Session override" : "Live session"}</strong>
+          </header>
+          <div className="previewInspectorControlGrid" role="list">
+            {controller.indicators.map((indicator) => (
+              <div
+                data-tone={indicator.tone}
+                key={indicator.id}
+                role="listitem"
+              >
+                <span>{indicator.label}</span>
+                <strong>{indicator.value}</strong>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article
+          aria-label="Preview renderer notes"
+          className="previewInspectorCard"
+          role="group"
+        >
+          <header>
+            <span>Renderer notes</span>
+            <strong>{route.surfaceTitle}</strong>
+          </header>
+          <p>{route.surfaceSummary}</p>
+          <div className="previewInspectorNotes">
+            {route.notes.map((note) => (
+              <span key={note}>{note}</span>
+            ))}
+          </div>
+        </article>
+      </div>
+
+      {preview.error ? (
+        <SubsystemErrorCallout
+          className="previewInspectorError"
+          error={preview.error}
+          title="Preview runtime failed"
+        />
+      ) : null}
     </section>
   );
 }
@@ -4126,6 +4289,14 @@ function CommandMenuPanel({
         >
           <strong>Overview inspector</strong>
           <span>Return to the compact session summary.</span>
+        </button>
+        <button
+          data-active={activeTab === "Preview"}
+          onClick={() => onOpenTab("Preview")}
+          type="button"
+        >
+          <strong>Preview inspector</strong>
+          <span>Review runtime, renderer, source, and preview health metadata.</span>
         </button>
         <button
           data-active={activeTab === "Code"}

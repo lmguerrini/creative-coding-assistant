@@ -895,6 +895,10 @@ a {
   transition: gap 180ms ease;
 }
 
+.workstation[data-preview="open"] .mainColumn {
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
 .sessionPanel,
 .previewShelf,
 .inspector {
@@ -1663,6 +1667,7 @@ a {
 }
 
 .previewZone {
+  align-self: end;
   min-height: 0;
 }
 
@@ -1815,7 +1820,7 @@ a {
 .previewPanel {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  gap: 14px;
+  gap: 10px;
   min-height: 0;
   height: var(--preview-height);
   padding: 0 14px 14px;
@@ -1832,7 +1837,42 @@ a {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
-  align-items: start;
+  align-items: center;
+}
+
+.previewToolbarFocus {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  padding: 8px 0;
+}
+
+.previewToolbarFocus span,
+.previewToolbarFocus small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.previewToolbarFocus strong {
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 15px;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.previewToolbarFocus small {
+  color: var(--teal);
+  letter-spacing: 0.04em;
 }
 
 .previewIndicators {
@@ -1952,8 +1992,8 @@ a {
 
 .previewBody {
   display: grid;
-  grid-template-columns: minmax(220px, 0.62fr) minmax(0, 1fr);
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
   min-height: 0;
 }
 
@@ -1972,6 +2012,17 @@ a {
     linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 70%),
     rgba(6, 10, 14, 0.76);
   box-shadow: var(--panel-highlight);
+}
+
+.previewSurface[data-chrome="immersive"] {
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+  padding: 8px;
+  border-color: rgba(var(--accent-rgb), 0.2);
+  background:
+    radial-gradient(circle at 18% 20%, rgba(var(--accent-rgb), 0.16), transparent 24%),
+    radial-gradient(circle at 78% 68%, rgba(124, 167, 255, 0.12), transparent 28%),
+    rgba(3, 6, 9, 0.86);
 }
 
 .previewSurface[data-runtime-state="generating"] {
@@ -2050,7 +2101,7 @@ a {
 
 .previewRuntimeStage {
   grid-template-rows: minmax(0, 1fr) auto;
-  min-height: 180px;
+  min-height: 220px;
   padding: 0;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 64%),
@@ -2063,11 +2114,49 @@ a {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 160px;
+  min-height: 220px;
   background:
     radial-gradient(circle at 24% 30%, rgba(var(--accent-rgb), 0.16), transparent 24%),
     radial-gradient(circle at 74% 62%, rgba(124, 167, 255, 0.12), transparent 28%),
     #05080b;
+}
+
+.previewSurface[data-chrome="immersive"] .previewRuntimeStage {
+  min-height: 100%;
+  border-radius: 16px;
+}
+
+.previewSurface[data-chrome="immersive"] .previewRuntimeFrame {
+  min-height: 100%;
+}
+
+.previewSurface[data-chrome="immersive"] .previewRuntimeMeta {
+  display: none;
+}
+
+.previewSurface[data-chrome="immersive"] .previewRuntimeOverlay {
+  max-width: min(48%, 280px);
+  opacity: 0.76;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.previewSurface[data-chrome="immersive"]:hover .previewRuntimeOverlay,
+.previewSurface[data-chrome="immersive"]:focus-within .previewRuntimeOverlay {
+  opacity: 1;
+}
+
+.previewSurfaceImmersiveHint {
+  align-self: end;
+  justify-self: start;
+  padding: 6px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(5, 8, 11, 0.58);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .previewRuntimeOverlay {
@@ -2479,7 +2568,7 @@ a {
 
 .inspectorTabs {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
   gap: 8px;
   padding: 12px 14px 14px;
   border-bottom: 1px solid var(--section-divider);
@@ -2615,6 +2704,11 @@ a {
 .previewResizeHandle {
   min-height: 22px;
   padding: 0 14px 14px;
+}
+
+.previewResizeHandle[aria-disabled="true"] {
+  pointer-events: none;
+  opacity: 0.44;
 }
 
 .previewResizeHandle span {
@@ -2769,6 +2863,161 @@ a {
   background:
     linear-gradient(135deg, rgba(255, 122, 102, 0.06), transparent 72%),
     var(--panel-soft);
+}
+
+.previewInspectorPanel {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.previewInspectorHero,
+.previewInspectorCard {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent),
+    var(--panel-soft);
+  box-shadow: var(--panel-highlight);
+}
+
+.previewInspectorHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+  padding: 15px;
+}
+
+.previewInspectorHero[data-state="generating"],
+.previewInspectorHero[data-state="ready"] {
+  border-color: rgba(var(--accent-rgb), 0.26);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(var(--accent-rgb), 0.12), transparent 30%),
+    var(--panel-soft);
+}
+
+.previewInspectorHero[data-state="error"] {
+  border-color: rgba(255, 122, 102, 0.26);
+}
+
+.previewInspectorHero span:last-child {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.12);
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.previewInspectorHero span:first-child,
+.previewInspectorCard header span,
+.previewInspectorCard dt,
+.previewInspectorControlGrid span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.previewInspectorHero strong,
+.previewInspectorCard header strong,
+.previewInspectorControlGrid strong {
+  display: block;
+  color: var(--foreground);
+  font-size: 16px;
+  letter-spacing: -0.025em;
+  line-height: 1.16;
+}
+
+.previewInspectorHero p,
+.previewInspectorCard p,
+.previewInspectorCard dd {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.previewInspectorGrid {
+  display: grid;
+  gap: 10px;
+}
+
+.previewInspectorCard {
+  display: grid;
+  gap: 12px;
+  padding: 13px;
+}
+
+.previewInspectorCard header {
+  display: grid;
+  gap: 5px;
+}
+
+.previewInspectorCard dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.previewInspectorCard dl div {
+  display: grid;
+  grid-template-columns: minmax(96px, 0.38fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.previewInspectorCard dd {
+  overflow-wrap: anywhere;
+}
+
+.previewInspectorControlGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.previewInspectorControlGrid div {
+  display: grid;
+  gap: 4px;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.previewInspectorControlGrid div[data-tone="active"],
+.previewInspectorControlGrid div[data-tone="success"] {
+  border-color: rgba(var(--accent-rgb), 0.2);
+  background: rgba(var(--accent-rgb), 0.07);
+}
+
+.previewInspectorControlGrid div[data-tone="warning"] {
+  border-color: rgba(243, 184, 82, 0.22);
+}
+
+.previewInspectorControlGrid div[data-tone="danger"] {
+  border-color: rgba(255, 122, 102, 0.24);
+}
+
+.previewInspectorNotes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.previewInspectorNotes span {
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.2;
 }
 
 .miniWorkflow {
@@ -4767,6 +5016,7 @@ html[data-cca-theme="blueprint"] .codeViewer {
 
   .sessionHeader,
   .previewToolbar,
+  .previewInspectorHero,
   .previewBody,
   .inspectorHeader,
   .previewSurfacePanelHeader,
@@ -4820,7 +5070,9 @@ html[data-cca-theme="blueprint"] .codeViewer {
 
   .workflowSummaryGrid,
   .workflowTraceLayout,
-  .previewSurfaceMetaGrid {
+  .previewSurfaceMetaGrid,
+  .previewInspectorControlGrid,
+  .previewInspectorCard dl div {
     grid-template-columns: minmax(0, 1fr);
   }
 

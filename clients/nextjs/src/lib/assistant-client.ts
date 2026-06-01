@@ -2,6 +2,7 @@ import type { WorkstationError } from "./workstation-errors";
 
 export type InspectorTabName =
   | "Overview"
+  | "Preview"
   | "Code"
   | "Workflow"
   | "Telemetry"
@@ -236,6 +237,12 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
         active: true,
         summary: "Live creative session summary",
         badge: "Live"
+      },
+      {
+        label: "Preview",
+        active: false,
+        summary: "Canvas runtime and renderer context",
+        badge: "Run"
       },
       {
         label: "Code",
