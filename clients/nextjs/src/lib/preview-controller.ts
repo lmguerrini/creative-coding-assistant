@@ -97,10 +97,7 @@ export function buildPreviewControllerModel({
   return {
     canClear: preview.available && sessionOverride?.mode !== "cleared",
     canFullscreen: preview.available,
-    canReload:
-      sessionOverride !== null ||
-      preview.state === "error" ||
-      preview.state === "unavailable",
+    canReload: preview.available && sessionOverride?.mode !== "reloading",
     canReset:
       preview.available &&
       (sessionOverride !== null ||

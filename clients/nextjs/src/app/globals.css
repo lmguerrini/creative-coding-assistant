@@ -150,12 +150,39 @@ html[data-cca-theme="aqua"] {
   grid-column: 1 / -1;
 }
 
-.previewRuntimeErrorCallout {
+.previewRuntimeErrorBoundary {
   position: absolute;
   right: 10px;
   bottom: 54px;
-  z-index: 1;
+  z-index: 2;
+  display: grid;
+  gap: 8px;
   width: min(320px, calc(100% - 20px));
+}
+
+.previewRuntimeErrorCallout {
+  width: 100%;
+}
+
+.previewRuntimeRecoveryButton {
+  justify-self: end;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.18);
+  color: var(--foreground);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.previewRuntimeRecoveryButton:hover,
+.previewRuntimeRecoveryButton:focus-visible {
+  border-color: rgba(var(--accent-rgb), 0.38);
+  background: rgba(var(--accent-rgb), 0.26);
 }
 
 html[data-cca-theme="codex"] {

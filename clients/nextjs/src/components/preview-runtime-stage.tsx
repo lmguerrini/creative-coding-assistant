@@ -25,6 +25,7 @@ import { SubsystemErrorCallout } from "./subsystem-error-callout";
 export type PreviewRuntimeTelemetryEvent = {
   kind: PreviewExecutableRuntimeKind;
   route: PreviewRendererRoute;
+  runtimeId: string;
   source: PreviewRuntimeSource;
 };
 
@@ -36,8 +37,10 @@ type PreviewRuntimeStageProps = {
   onRuntimeStatus?: (
     event: PreviewRuntimeTelemetryEvent & { status: PreviewRuntimeStatus }
   ) => void;
+  onReload?: (() => void) | undefined;
   preview: PreviewSummary;
   route: PreviewRendererRoute;
+  runtimeSessionKey: string;
   source: PreviewRuntimeSource;
 };
 
@@ -45,8 +48,10 @@ export function PreviewRuntimeStage({
   kind,
   onRuntimeFrame,
   onRuntimeStatus,
+  onReload,
   preview,
   route,
+  runtimeSessionKey,
   source
 }: PreviewRuntimeStageProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -99,6 +104,7 @@ export function PreviewRuntimeStage({
       onRuntimeStatusRef.current?.({
         kind,
         route: currentRoute,
+        runtimeId,
         source: currentSource,
         status: nextStatus
       });
@@ -114,6 +120,7 @@ export function PreviewRuntimeStage({
       onRuntimeFrameRef.current?.({
         kind,
         route: currentRoute,
+        runtimeId,
         sample,
         source: currentSource
       });
@@ -134,12 +141,13 @@ export function PreviewRuntimeStage({
       return undefined;
     }
 
+    const runtimeId = createPreviewSandboxRuntimeId();
     const runtime = mountPreviewSandboxRuntime({
       iframe,
       kind,
       onFrame: handleFrame,
       onStatus: handleStatus,
-      runtimeId: createPreviewSandboxRuntimeId(),
+      runtimeId,
       source: currentSource
     });
 
@@ -155,6 +163,7 @@ export function PreviewRuntimeStage({
     route.rendererLabel,
     route.supportState,
     route.surfaceKind,
+    runtimeSessionKey,
     source.fingerprint,
     source.lineCount,
     source.source,
@@ -214,11 +223,24 @@ export function PreviewRuntimeStage({
         ) : null}
       </div>
       {status.error ? (
-        <SubsystemErrorCallout
-          className="previewRuntimeErrorCallout"
-          error={status.error}
-          title="Renderer runtime failed"
-        />
+        <div className="previewRuntimeErrorBoundary" role="alert">
+          <SubsystemErrorCallout
+            className="previewRuntimeErrorCallout"
+            error={status.error}
+            role="status"
+            title="Renderer runtime failed"
+          />
+          {onReload ? (
+            <button
+              aria-label="Reload preview runtime"
+              className="previewRuntimeRecoveryButton"
+              onClick={onReload}
+              type="button"
+            >
+              Reload preview
+            </button>
+          ) : null}
+        </div>
       ) : null}
       <div className="previewRuntimeMeta" aria-label="Preview runtime source">
         <span>{source.title}</span>

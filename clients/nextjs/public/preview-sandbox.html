@@ -55,6 +55,14 @@
           data.runtime.runtimeId === data.runtimeId;
       }
 
+      function isDisposeMessage(data) {
+        return data &&
+          data.source === messageSource &&
+          data.type === "dispose" &&
+          runtime &&
+          data.runtimeId === runtime.runtimeId;
+      }
+
       function post(message) {
         if (!runtime) return;
         parent.postMessage(
@@ -78,6 +86,7 @@
 
       function fail(error, label) {
         const message = error && error.message ? error.message : String(error);
+        activeToken += 1;
         status("error", label || "Runtime failed", message, {
           diagnostics: [message],
           error: {
@@ -86,6 +95,21 @@
             type: "preview_sandbox_runtime_failed"
           }
         });
+      }
+
+      function disposeActiveRuntime() {
+        const previousRuntime = runtime;
+        activeToken += 1;
+        runtime = null;
+        document.body.dataset.runtimeState = "idle";
+        document.body.dataset.runtimeLabel = "Runtime sandbox disposed";
+        statusNode.textContent = "Runtime sandbox disposed";
+        if (previousRuntime && previousRuntime.kind !== "glsl") {
+          const context = canvas.getContext("2d");
+          if (context) {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+          }
+        }
       }
 
       function frame(time) {
@@ -351,8 +375,12 @@
           const token = activeToken;
           requestAnimationFrame(function loop(time) {
             if (token !== activeToken) return;
-            callback(time);
-            requestAnimationFrame(loop);
+            try {
+              callback(time);
+              requestAnimationFrame(loop);
+            } catch (error) {
+              if (token === activeToken) fail(error, "Three.js runtime failed");
+            }
           });
         };
 
@@ -425,11 +453,15 @@
             const token = activeToken;
             requestAnimationFrame(function loop() {
               if (token !== activeToken) return;
-              renderers.forEach(function (renderer) {
-                const scene = renderer.lastScene || scenes[0];
-                if (scene) renderer.render(scene, cameras[0]);
-              });
-              requestAnimationFrame(loop);
+              try {
+                renderers.forEach(function (renderer) {
+                  const scene = renderer.lastScene || scenes[0];
+                  if (scene) renderer.render(scene, cameras[0]);
+                });
+                requestAnimationFrame(loop);
+              } catch (error) {
+                if (token === activeToken) fail(error, "Three.js runtime failed");
+              }
             });
           }
         };
@@ -479,17 +511,21 @@
         status("running", "GLSL runtime running", "Executing " + runtime.source.title + " as a sandboxed WebGL fragment shader.");
         requestAnimationFrame(function loop(time) {
           if (token !== activeToken) return;
-          const size = resizeCanvas();
-          gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-          gl.useProgram(program);
-          gl.enableVertexAttribArray(position);
-          gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-          gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-          gl.uniform2f(resolution, size.width, size.height);
-          gl.uniform1f(timeUniform, time * 0.001);
-          gl.drawArrays(gl.TRIANGLES, 0, 3);
-          frame(time);
-          requestAnimationFrame(loop);
+          try {
+            const size = resizeCanvas();
+            gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+            gl.useProgram(program);
+            gl.enableVertexAttribArray(position);
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+            gl.uniform2f(resolution, size.width, size.height);
+            gl.uniform1f(timeUniform, time * 0.001);
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            frame(time);
+            requestAnimationFrame(loop);
+          } catch (error) {
+            if (token === activeToken) fail(error, "GLSL runtime failed");
+          }
         });
       }
 
@@ -517,6 +553,7 @@
       }
 
       function mountRuntime(nextRuntime) {
+        disposeActiveRuntime();
         runtime = nextRuntime;
         activeToken += 1;
         const token = activeToken;
@@ -531,8 +568,13 @@
       }
 
       window.addEventListener("message", function (event) {
-        if (!isMountMessage(event.data)) return;
-        mountRuntime(event.data.runtime);
+        if (isDisposeMessage(event.data)) {
+          disposeActiveRuntime();
+          return;
+        }
+        if (isMountMessage(event.data)) {
+          mountRuntime(event.data.runtime);
+        }
       });
 
       if (location.hash.length > 1) {

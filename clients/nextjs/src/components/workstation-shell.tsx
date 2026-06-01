@@ -113,6 +113,7 @@ import {
 } from "@/lib/telemetry-dashboard";
 import {
   buildPreviewRuntimeSource,
+  getExecutablePreviewRuntimeKind,
   type PreviewExecutableRuntimeKind,
   type PreviewRuntimeFrameSample,
   type PreviewRuntimeSource,
@@ -168,6 +169,7 @@ type AssistantStreamClient = (
 type PreviewRuntimeTelemetryBase = {
   kind: PreviewExecutableRuntimeKind;
   route: PreviewRendererRoute;
+  runtimeId: string;
   source: PreviewRuntimeSource;
 };
 
@@ -303,6 +305,7 @@ export function WorkstationShell({
   const streamingAssistantIdRef = useRef<string | null>(null);
   const hasPreviewRuntimeEventRef = useRef(false);
   const previewRuntimeTelemetryKeysRef = useRef<Set<string>>(new Set());
+  const previewRuntimeErrorScopesRef = useRef<Set<string>>(new Set());
   const [conversationEntries, setConversationEntries] = useState(() =>
     buildConversationEntries(initialSnapshot.messages, createConversationEntryId)
   );
@@ -713,6 +716,9 @@ export function WorkstationShell({
       }),
     [interactiveSnapshot.code, previewRendererRoute]
   );
+  const previewRuntimeSessionKey =
+    previewSessionOverride?.requestedAt ??
+    `${previewArtifactId}:${interactiveSnapshot.preview.version}`;
   const previewController = useMemo(
     () =>
       buildPreviewControllerModel({
@@ -1058,13 +1064,30 @@ export function WorkstationShell({
   function appendPreviewRuntimeStatusEvent({
     kind,
     route,
+    runtimeId,
     source,
     status
   }: PreviewRuntimeStatusTelemetryEvent) {
+    const errorScopeKey = [source.fingerprint, kind].join(":");
+    const recoveredFromError =
+      status.state === "running" &&
+      previewRuntimeErrorScopesRef.current.has(errorScopeKey);
+    const code =
+      status.state === "error"
+        ? "preview_runtime_error"
+        : recoveredFromError
+          ? "preview_runtime_recovered"
+          : `preview_runtime_${status.state}`;
+    const telemetryScopeId =
+      status.state === "idle" || status.state === "starting"
+        ? "session"
+        : runtimeId;
     const key = [
       "status",
+      telemetryScopeId,
       source.fingerprint,
       kind,
+      code,
       status.state,
       status.label,
       status.detail
@@ -1075,14 +1098,16 @@ export function WorkstationShell({
     }
 
     previewRuntimeTelemetryKeysRef.current.add(key);
+    if (status.state === "error") {
+      previewRuntimeErrorScopesRef.current.add(errorScopeKey);
+    } else if (recoveredFromError) {
+      previewRuntimeErrorScopesRef.current.delete(errorScopeKey);
+    }
     appendLocalRuntimeEvent({
       event_type: "status",
       sequence: localRuntimeSequenceRef.current++,
       payload: {
-        code:
-          status.state === "error"
-            ? "preview_runtime_error"
-            : `preview_runtime_${status.state}`,
+        code,
         message: `${status.label}: ${status.detail}`,
         category: "preview_runtime",
         subsystem: `${kind}_sandbox_runtime`,
@@ -1092,9 +1117,11 @@ export function WorkstationShell({
           kind,
           renderer_id: route.rendererId,
           renderer_label: route.rendererLabel,
+          runtime_id: runtimeId,
           state: status.state,
           diagnostics: status.diagnostics ?? [],
-          error: status.error?.userMessage ?? null
+          error: status.error?.userMessage ?? null,
+          recovered_from_error: recoveredFromError
         }
       }
     });
@@ -1103,10 +1130,11 @@ export function WorkstationShell({
   function appendPreviewRuntimeFrameEvent({
     kind,
     route,
+    runtimeId,
     sample,
     source
   }: PreviewRuntimeFrameTelemetryEvent) {
-    const key = ["frame", source.fingerprint, kind, "first"].join(":");
+    const key = ["frame", runtimeId, source.fingerprint, kind, "first"].join(":");
 
     if (previewRuntimeTelemetryKeysRef.current.has(key)) {
       return;
@@ -1127,6 +1155,7 @@ export function WorkstationShell({
           kind,
           renderer_id: route.rendererId,
           renderer_label: route.rendererLabel,
+          runtime_id: runtimeId,
           rendered_at_ms: sample.renderedAtMs,
           state: "running"
         }
@@ -1244,6 +1273,7 @@ export function WorkstationShell({
     setArtifactTransferError(null);
     streamingAssistantIdRef.current = null;
     previewRuntimeTelemetryKeysRef.current.clear();
+    previewRuntimeErrorScopesRef.current.clear();
     setSnapshot(initialSnapshot);
     setConversationEntries(
       buildConversationEntries(initialSnapshot.messages, createConversationEntryId)
@@ -1376,6 +1406,7 @@ export function WorkstationShell({
     }
 
     if (previewSessionOverride?.mode === "cleared") {
+      appendPreviewRuntimeReloadEvent(resolvePreviewSourceArtifactId());
       setPreviewSessionOverride(null);
       handlePreviewOpenChange(true, { preserveFocusMode: true });
       return;
@@ -1387,11 +1418,45 @@ export function WorkstationShell({
     const nextArtifactId = isArtifactPreviewable(currentPreviewArtifact)
       ? resolvePreviewSourceArtifactId()
       : resolvePreviewResetArtifactId();
-    setPreviewArtifactId(nextArtifactId);
-    setPreviewSessionOverride(
-      createPreviewSessionOverride(nextArtifactId, "reloading")
+    const nextSessionOverride = createPreviewSessionOverride(
+      nextArtifactId,
+      "reloading"
     );
+
+    setPreviewArtifactId(nextArtifactId);
+    setPreviewSessionOverride(nextSessionOverride);
+    appendPreviewRuntimeReloadEvent(nextArtifactId, nextSessionOverride.requestedAt);
     handlePreviewOpenChange(true, { preserveFocusMode: true });
+  }
+
+  function appendPreviewRuntimeReloadEvent(
+    artifactId: string,
+    requestedAt = new Date().toISOString()
+  ) {
+    const runtimeKind = getExecutablePreviewRuntimeKind(previewRendererRoute);
+    const artifactTitle =
+      snapshot.artifacts.find((artifact) => artifact.id === artifactId)?.title ??
+      previewRuntimeSource.title;
+
+    appendLocalRuntimeEvent({
+      event_type: "status",
+      sequence: localRuntimeSequenceRef.current++,
+      payload: {
+        code: "preview_runtime_reload_requested",
+        message: `Reload requested for ${artifactTitle}.`,
+        category: "preview_runtime",
+        subsystem: runtimeKind ? `${runtimeKind}_sandbox_runtime` : "preview_runtime",
+        preview_runtime: {
+          artifact: artifactTitle,
+          fingerprint: previewRuntimeSource.fingerprint,
+          kind: runtimeKind ?? previewRendererRoute.surfaceKind,
+          renderer_id: previewRendererRoute.rendererId,
+          renderer_label: previewRendererRoute.rendererLabel,
+          requested_at: requestedAt,
+          state: "reloading"
+        }
+      }
+    });
   }
 
   function handlePreviewSessionReset() {
@@ -1646,6 +1711,7 @@ export function WorkstationShell({
     setWorkflowTraceEvents([]);
     hasPreviewRuntimeEventRef.current = false;
     previewRuntimeTelemetryKeysRef.current.clear();
+    previewRuntimeErrorScopesRef.current.clear();
     setIsStreaming(true);
     setActiveTab("Overview");
 
@@ -2384,6 +2450,7 @@ export function WorkstationShell({
               onRuntimeStatus={appendPreviewRuntimeStatusEvent}
               onToggle={handlePreviewOpenChange}
               route={previewRendererRoute}
+              runtimeSessionKey={previewRuntimeSessionKey}
               runtimeSource={previewRuntimeSource}
               resizing={activeResizeTarget === "preview"}
               snapshot={interactiveSnapshot}
@@ -2515,6 +2582,7 @@ type PreviewShelfProps = WorkstationShellProps & {
   onRuntimeStatus: (event: PreviewRuntimeStatusTelemetryEvent) => void;
   onToggle: (isOpen: boolean) => void;
   route: PreviewRendererRoute;
+  runtimeSessionKey: string;
   runtimeSource: ReturnType<typeof buildPreviewRuntimeSource>;
   resizing: boolean;
 };
@@ -2608,6 +2676,7 @@ function PreviewShelf({
   onRuntimeStatus,
   onToggle,
   route,
+  runtimeSessionKey,
   runtimeSource,
   resizing,
   snapshot
@@ -2754,10 +2823,12 @@ function PreviewShelf({
               />
             ) : null}
             <PreviewRendererSurface
+              onReload={onReload}
               onRuntimeFrame={onRuntimeFrame}
               onRuntimeStatus={onRuntimeStatus}
               preview={snapshot.preview}
               route={route}
+              runtimeSessionKey={runtimeSessionKey}
               runtimeSource={runtimeSource}
             />
             <div className="previewCopy">

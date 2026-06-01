@@ -32,7 +32,7 @@ describe("preview controller", () => {
     ).toMatchObject({
       canClear: true,
       canFullscreen: true,
-      canReload: false,
+      canReload: true,
       canReset: true,
       canRestart: true,
       isFullscreen: false,

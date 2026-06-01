@@ -145,7 +145,83 @@ describe("preview sandbox runtime", () => {
     ]);
 
     runtime.dispose();
-    expect(iframe.getAttribute("src")).toBeNull();
+    expect(iframe.dataset.runtimeId).toBeUndefined();
+    expect(iframe.getAttribute("src")).toBe("about:blank");
+    iframe.remove();
+  });
+
+  it("ignores stale messages after a sandbox remount", () => {
+    const iframe = document.createElement("iframe");
+    const statuses: string[] = [];
+    document.body.appendChild(iframe);
+
+    const firstRuntime = mountPreviewSandboxRuntime({
+      iframe,
+      kind: "p5",
+      onStatus: (status) => statuses.push(status.label),
+      runtimeId: "runtime-1",
+      source: {
+        fingerprint: "abc123",
+        lineCount: 1,
+        source: "function draw() { circle(20, 20, 10); }",
+        title: "sketch.p5.js"
+      }
+    });
+
+    firstRuntime.dispose();
+    const secondRuntime = mountPreviewSandboxRuntime({
+      iframe,
+      kind: "p5",
+      onStatus: (status) => statuses.push(status.label),
+      runtimeId: "runtime-2",
+      source: {
+        fingerprint: "def456",
+        lineCount: 1,
+        source: "function draw() { circle(40, 40, 20); }",
+        title: "sketch-v2.p5.js"
+      }
+    });
+
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: {
+          source: "cca-preview-runtime",
+          runtimeId: "runtime-1",
+          type: "status",
+          status: {
+            detail: "Stale runtime failed.",
+            error: {
+              message: "Stale runtime failed.",
+              type: "preview_sandbox_runtime_failed"
+            },
+            label: "p5 runtime failed",
+            state: "error"
+          }
+        }
+      })
+    );
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: {
+          source: "cca-preview-runtime",
+          runtimeId: "runtime-2",
+          type: "status",
+          status: {
+            detail: "Executing the remounted sketch.",
+            label: "p5 runtime running",
+            state: "running"
+          }
+        }
+      })
+    );
+
+    expect(statuses).toEqual([
+      "Runtime sandbox starting",
+      "Runtime sandbox starting",
+      "p5 runtime running"
+    ]);
+
+    secondRuntime.dispose();
     iframe.remove();
   });
 });

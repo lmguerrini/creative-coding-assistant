@@ -77,9 +77,22 @@ export function mountPreviewSandboxRuntime({
       }
     }
   };
+  const disposeMessage = {
+    source: sandboxMessageSource,
+    runtimeId,
+    type: "dispose"
+  };
 
   function handleMessage(event: MessageEvent) {
     if (disposed) {
+      return;
+    }
+
+    if (
+      event.source &&
+      iframe.contentWindow &&
+      event.source !== iframe.contentWindow
+    ) {
       return;
     }
 
@@ -107,7 +120,6 @@ export function mountPreviewSandboxRuntime({
   window.addEventListener("message", handleMessage);
   iframe.addEventListener("load", postMountMessage);
   onStatus(getSandboxStartingStatus(kind));
-  iframe.removeAttribute("srcdoc");
   iframe.src = "/preview-sandbox.html";
   retryTimer = window.setTimeout(postMountMessage, 150);
 
@@ -117,7 +129,9 @@ export function mountPreviewSandboxRuntime({
       window.clearTimeout(retryTimer);
       window.removeEventListener("message", handleMessage);
       iframe.removeEventListener("load", postMountMessage);
-      iframe.removeAttribute("src");
+      iframe.contentWindow?.postMessage(disposeMessage, "*");
+      delete iframe.dataset.runtimeId;
+      iframe.src = "about:blank";
       iframe.removeAttribute("srcdoc");
     }
   };

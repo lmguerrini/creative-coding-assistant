@@ -269,6 +269,13 @@ function dispatchSandboxRuntimeStatus(
   const runtimeId = frame.dataset.runtimeId;
 
   expect(runtimeId).toBeTruthy();
+  dispatchSandboxRuntimeStatusByRuntimeId(runtimeId as string, status);
+}
+
+function dispatchSandboxRuntimeStatusByRuntimeId(
+  runtimeId: string,
+  status: SandboxStatusInput
+) {
   act(() => {
     window.dispatchEvent(
       new MessageEvent("message", {
@@ -1908,6 +1915,33 @@ describe("WorkstationShell", () => {
       await within(surface).findByText("Three.js runtime failed")
     ).toBeVisible();
     expect(within(surface).getByText("Renderer runtime failed")).toBeVisible();
+    expect(screen.getByLabelText("Current session")).not.toHaveTextContent("Failure");
+
+    const failedRuntimeId = frame.dataset.runtimeId;
+    fireEvent.click(
+      within(surface).getByRole("button", { name: "Reload preview runtime" })
+    );
+
+    await waitFor(() => {
+      expect(frame.dataset.runtimeId).toMatch(/^preview-runtime-/);
+      expect(frame.dataset.runtimeId).not.toBe(failedRuntimeId);
+    });
+    dispatchSandboxRuntimeStatus(frame, {
+      detail:
+        "Executing projection-scene.three.ts inside a sandboxed Three.js-compatible iframe.",
+      label: "Three.js runtime running",
+      state: "running"
+    });
+
+    expect(
+      await within(surface).findByText("Three.js runtime running")
+    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
+    const events = screen.getByRole("group", { name: "Workflow event trace" });
+
+    expect(within(events).getByText("Preview Runtime Error")).toBeVisible();
+    expect(within(events).getByText("Preview Runtime Recovered")).toBeVisible();
   });
 
   it("shows a stable GLSL runtime error from the sandbox", async () => {
@@ -1943,6 +1977,92 @@ describe("WorkstationShell", () => {
     expect(await within(surface).findByText("GLSL runtime failed")).toBeVisible();
     expect(within(surface).getByText("Renderer runtime failed")).toBeVisible();
   });
+
+  it.each([
+    {
+      frameLabel: "p5.js sandbox runtime frame",
+      makeSnapshot: snapshotWithP5Preview,
+      runningDetail:
+        "Executing signal-orbit.p5.ts inside a sandboxed p5-compatible iframe.",
+      runningLabel: "p5 runtime running",
+      surfaceTitle: "P5 sketch surface"
+    },
+    {
+      frameLabel: "GLSL sandbox runtime frame",
+      makeSnapshot: snapshotWithGlslPreview,
+      runningDetail:
+        "Executing chromatic-field.frag as a sandboxed WebGL fragment shader.",
+      runningLabel: "GLSL runtime running",
+      surfaceTitle: "Shader surface"
+    },
+    {
+      frameLabel: "Three.js sandbox runtime frame",
+      makeSnapshot: snapshotWithThreePreview,
+      runningDetail:
+        "Executing projection-scene.three.ts inside a sandboxed Three.js-compatible iframe.",
+      runningLabel: "Three.js runtime running",
+      surfaceTitle: "Three scene surface"
+    }
+  ])(
+    "reloads $surfaceTitle artifacts and ignores stale runtime events",
+    async ({ frameLabel, makeSnapshot, runningDetail, runningLabel, surfaceTitle }) => {
+      renderShell(makeSnapshot());
+
+      const preview = screen.getByRole("region", { name: "Preview workspace" });
+      const summary = within(preview)
+        .getByText("Preview available")
+        .closest("summary");
+
+      expect(summary).not.toBeNull();
+      fireEvent.click(summary as HTMLElement);
+
+      const surface = within(preview).getByRole("group", {
+        name: "Preview renderer surface"
+      });
+
+      expect(within(surface).getByText(surfaceTitle)).toBeVisible();
+      const frame = await waitForSandboxRuntimeFrame(surface, frameLabel);
+      const staleRuntimeId = frame.dataset.runtimeId;
+
+      expect(staleRuntimeId).toBeTruthy();
+      fireEvent.click(
+        within(preview).getByRole("button", { name: "Reload preview state" })
+      );
+
+      await waitFor(() => {
+        expect(frame.dataset.runtimeId).toMatch(/^preview-runtime-/);
+        expect(frame.dataset.runtimeId).not.toBe(staleRuntimeId);
+      });
+      expect(
+        within(preview).getByText("Reloading", { selector: "summary small" })
+      ).toBeVisible();
+
+      dispatchSandboxRuntimeStatusByRuntimeId(staleRuntimeId as string, {
+        detail: "Stale runtime failed.",
+        error: {
+          message: "Stale runtime failed.",
+          type: "preview_sandbox_runtime_failed"
+        },
+        label: "Stale runtime failed",
+        state: "error"
+      });
+      expect(within(surface).queryByText("Stale runtime failed")).not.toBeInTheDocument();
+
+      dispatchSandboxRuntimeStatus(frame, {
+        detail: runningDetail,
+        label: runningLabel,
+        state: "running"
+      });
+      expect(await within(surface).findByText(runningLabel)).toBeVisible();
+
+      fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
+      const events = screen.getByRole("group", { name: "Workflow event trace" });
+
+      expect(
+        within(events).getByText("Preview Runtime Reload Requested")
+      ).toBeVisible();
+    }
+  );
 
   it("uses the full inspector panel for code when Code is active", () => {
     renderShell(snapshotWithActiveTab("Code"));

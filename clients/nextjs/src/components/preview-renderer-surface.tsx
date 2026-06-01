@@ -18,10 +18,12 @@ import {
 } from "./preview-runtime-stage";
 
 type PreviewRendererSurfaceProps = {
+  onReload?: (() => void) | undefined;
   onRuntimeFrame?: PreviewRuntimeCallbackProps["onRuntimeFrame"];
   onRuntimeStatus?: PreviewRuntimeCallbackProps["onRuntimeStatus"];
   preview: PreviewSummary;
   route: PreviewRendererRoute;
+  runtimeSessionKey: string;
   runtimeSource: PreviewRuntimeSource;
 };
 
@@ -57,10 +59,12 @@ const mediaSurfaceLayers: Record<
 };
 
 export function PreviewRendererSurface({
+  onReload,
   onRuntimeFrame,
   onRuntimeStatus,
   preview,
   route,
+  runtimeSessionKey,
   runtimeSource
 }: PreviewRendererSurfaceProps) {
   return (
@@ -85,10 +89,12 @@ export function PreviewRendererSurface({
         </div>
       </header>
       {renderPreviewSurfaceStage({
+        onReload,
         onRuntimeFrame,
         onRuntimeStatus,
         preview,
         route,
+        runtimeSessionKey,
         runtimeSource
       })}
       <div className="previewSurfaceNotes" aria-label="Preview renderer notes">
@@ -109,10 +115,12 @@ export function PreviewRendererSurface({
 }
 
 function renderPreviewSurfaceStage({
+  onReload,
   onRuntimeFrame,
   onRuntimeStatus,
   preview,
   route,
+  runtimeSessionKey,
   runtimeSource
 }: PreviewRendererSurfaceProps) {
   if (route.surfaceKind === "unsupported") {
@@ -156,10 +164,12 @@ function renderPreviewSurfaceStage({
       return (
         <PreviewRuntimeStage
           kind={runtimeKind}
+          onReload={onReload}
           onRuntimeFrame={onRuntimeFrame}
           onRuntimeStatus={onRuntimeStatus}
           preview={preview}
           route={route}
+          runtimeSessionKey={runtimeSessionKey}
           source={runtimeSource}
         />
       );
