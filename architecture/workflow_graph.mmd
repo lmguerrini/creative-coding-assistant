@@ -32,8 +32,8 @@ flowchart TB
         generation["Generation<br/>prepare provider input<br/>stream tokens<br/>store generation_result"]
         artifact_extraction["Artifact extraction<br/>normalize code artifacts<br/>emit artifact_extracted"]
         preview_preparation["Preview preparation<br/>prepare runtime metadata<br/>emit preview_artifact"]
-        review{{"Review quality gate<br/>deterministic checks<br/>records review_result"}}
-        refinement["Refinement<br/>append guidance<br/>increment refinement_count<br/>max one attempt"]
+        review{{"Review quality gate<br/>deterministic checks<br/>emit review + retry events"}}
+        refinement["Refinement<br/>append guidance<br/>emit refinement_completed<br/>max one attempt"]
         finalization["Finalization<br/>resolve final answer<br/>emit final<br/>finish_workflow()"]
         failure["Failure<br/>emit final failure answer<br/>mark workflow FAILED"]
     end

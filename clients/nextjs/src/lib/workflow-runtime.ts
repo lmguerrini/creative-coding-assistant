@@ -46,9 +46,10 @@ export type WorkflowRuntimeStep = {
 
 export type WorkflowRuntimeTransition = {
   fromNodeId: WorkflowNodeId;
-  toNodeId: WorkflowNodeId;
+  toNodeId: WorkflowNodeId | "end";
   kind: "advance" | "retry" | "failure";
   label: string;
+  reason: string | null;
   sequence: number;
   at: string;
 };
@@ -112,6 +113,7 @@ export function buildWorkflowRuntimeModel(
   let lastObservedAt = traceEvents[0]?.receivedAt ?? new Date().toISOString();
   let lastObservedAtMs = traceEvents[0]?.receivedAtMs ?? Date.now();
   let retryCount = 0;
+  const explicitTransitionKeys = new Set<string>();
 
   for (const traceEvent of traceEvents) {
     const workflowMetadata = readWorkflowMetadata(traceEvent.event);
@@ -125,6 +127,14 @@ export function buildWorkflowRuntimeModel(
     const phase = workflowMetadata?.phase ?? inferWorkflowPhase(traceEvent.event);
     const label = formatRuntimeEventLabel(traceEvent.event);
     const detail = readRuntimeEventDetail(traceEvent.event);
+    const explicitTransition = readExplicitWorkflowTransition(traceEvent.event);
+
+    if (traceEvent.event.event_type === "retry_started") {
+      retryCount = Math.max(
+        retryCount,
+        readRetryCount(traceEvent.event) ?? retryCount + 1
+      );
+    }
 
     if (workflowMetadata) {
       latestStatus = normalizeWorkflowStatus(workflowMetadata.status);
@@ -146,6 +156,27 @@ export function buildWorkflowRuntimeModel(
       at
     });
 
+    if (explicitTransition) {
+      const key = transitionKey(
+        explicitTransition.fromNodeId,
+        explicitTransition.toNodeId
+      );
+      explicitTransitionKeys.add(key);
+      transitions.push({
+        fromNodeId: explicitTransition.fromNodeId,
+        toNodeId: explicitTransition.toNodeId,
+        kind: explicitTransition.kind,
+        label: formatTransitionLabel(
+          workflowNodeLabel(records, explicitTransition.fromNodeId),
+          workflowTargetLabel(records, explicitTransition.toNodeId),
+          explicitTransition.kind
+        ),
+        reason: explicitTransition.reason,
+        sequence: traceEvent.event.sequence,
+        at
+      });
+    }
+
     if (!nodeId) {
       continue;
     }
@@ -164,6 +195,7 @@ export function buildWorkflowRuntimeModel(
         toNodeId: nodeId,
         kind: "retry",
         label: `${record.step.displayLabel} retry`,
+        reason: "generation_retry_detected",
         sequence: traceEvent.event.sequence,
         at
       });
@@ -180,21 +212,25 @@ export function buildWorkflowRuntimeModel(
             : record.step.attemptCount > 0
               ? "retry"
               : "advance";
-        if (kind === "retry") {
-          retryCount += 1;
+        const inferredTransitionKey = transitionKey(lastObservedNode, nodeId);
+        if (!explicitTransitionKeys.delete(inferredTransitionKey)) {
+          if (kind === "retry") {
+            retryCount += 1;
+          }
+          transitions.push({
+            fromNodeId: lastObservedNode,
+            toNodeId: nodeId,
+            kind,
+            label: formatTransitionLabel(
+              workflowNodeLabel(records, lastObservedNode),
+              record.step.displayLabel,
+              kind
+            ),
+            reason: null,
+            sequence: traceEvent.event.sequence,
+            at
+          });
         }
-        transitions.push({
-          fromNodeId: lastObservedNode,
-          toNodeId: nodeId,
-          kind,
-          label: formatTransitionLabel(
-            records.get(lastObservedNode)?.step.displayLabel ?? lastObservedNode,
-            record.step.displayLabel,
-            kind
-          ),
-          sequence: traceEvent.event.sequence,
-          at
-        });
       }
 
       if (record.step.attemptCount === 0 || record.openAttemptStartedAtMs === null) {
@@ -523,7 +559,7 @@ function formatTransitionLabel(
   toLabel: string,
   kind: WorkflowRuntimeTransition["kind"]
 ) {
-  if (kind === "retry") {
+  if (kind === "retry" && fromLabel === toLabel) {
     return `${toLabel} retry`;
   }
 
@@ -534,11 +570,131 @@ function formatTransitionLabel(
   return `${fromLabel} -> ${toLabel}`;
 }
 
+function readExplicitWorkflowTransition(
+  event: AssistantStreamEvent
+): Pick<
+  WorkflowRuntimeTransition,
+  "fromNodeId" | "toNodeId" | "kind" | "reason"
+> | null {
+  if (
+    event.event_type !== "node_completed" &&
+    event.event_type !== "node_failed"
+  ) {
+    return null;
+  }
+
+  const edge = isRecord(event.payload.edge) ? event.payload.edge : null;
+  const fromNodeId =
+    readWorkflowNodeId(event.payload.transition_source) ??
+    readWorkflowNodeId(edge?.source) ??
+    readWorkflowNodeId(event.payload.node);
+  const toNodeId =
+    readWorkflowTransitionTarget(event.payload.transition_target) ??
+    readWorkflowTransitionTarget(edge?.target);
+
+  if (!fromNodeId || !toNodeId) {
+    return null;
+  }
+
+  const reason =
+    readPayloadString(event.payload.decision_reason) ??
+    readPayloadString(edge?.decision_reason) ??
+    null;
+  const kind =
+    event.event_type === "node_failed" || toNodeId === "failure"
+      ? "failure"
+      : fromNodeId === "refinement" ||
+          toNodeId === "refinement" ||
+          reason?.includes("retry")
+        ? "retry"
+        : "advance";
+
+  return {
+    fromNodeId,
+    toNodeId,
+    kind,
+    reason
+  };
+}
+
 function isRetryMarkerEvent(
   event: AssistantStreamEvent,
   nodeId: WorkflowNodeId
 ): boolean {
+  if (isRecord(event.payload.workflow)) {
+    return false;
+  }
+
   return nodeId === "generation" && event.event_type === "generation_input";
+}
+
+const workflowNodeIds = new Set<string>([
+  "intake",
+  "routing",
+  "memory",
+  "retrieval",
+  "context_assembly",
+  "prompt_input",
+  "prompt_rendering",
+  "generation",
+  "artifact_extraction",
+  "preview_preparation",
+  "review",
+  "refinement",
+  "finalization",
+  "failure"
+]);
+
+function readWorkflowNodeId(value: unknown): WorkflowNodeId | null {
+  return typeof value === "string" && workflowNodeIds.has(value)
+    ? (value as WorkflowNodeId)
+    : null;
+}
+
+function readWorkflowTransitionTarget(
+  value: unknown
+): WorkflowNodeId | "end" | null {
+  if (value === "end") {
+    return "end";
+  }
+
+  return readWorkflowNodeId(value);
+}
+
+function readRetryCount(event: AssistantStreamEvent): number | null {
+  const retryCount = event.payload.retry_count;
+  return typeof retryCount === "number" && Number.isFinite(retryCount)
+    ? retryCount
+    : null;
+}
+
+function readPayloadString(value: unknown): string | null {
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+function transitionKey(
+  fromNodeId: WorkflowNodeId,
+  toNodeId: WorkflowNodeId | "end"
+) {
+  return `${fromNodeId}->${toNodeId}`;
+}
+
+function workflowNodeLabel(
+  records: Map<WorkflowNodeId, WorkflowRecord>,
+  nodeId: WorkflowNodeId
+) {
+  return records.get(nodeId)?.step.displayLabel ?? formatRuntimeCode(nodeId);
+}
+
+function workflowTargetLabel(
+  records: Map<WorkflowNodeId, WorkflowRecord>,
+  nodeId: WorkflowNodeId | "end"
+) {
+  return nodeId === "end" ? "End" : workflowNodeLabel(records, nodeId);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function inferWorkflowPhase(event: AssistantStreamEvent): string | null {

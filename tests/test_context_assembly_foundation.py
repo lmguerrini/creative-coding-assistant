@@ -30,6 +30,7 @@ from creative_coding_assistant.orchestration import (
     build_assembled_context_request,
 )
 from creative_coding_assistant.rag.sources import OfficialSourceType
+from event_assertions import first_event, legacy_events
 
 
 class ContextAssemblyFoundationTests(unittest.TestCase):
@@ -125,9 +126,10 @@ class ContextAssemblyFoundationTests(unittest.TestCase):
         )
 
         events = tuple(service.stream(request))
+        legacy = legacy_events(events)
 
         self.assertEqual(
-            [event.event_type for event in events],
+            [event.event_type for event in legacy],
             [
                 StreamEventType.STATUS,
                 StreamEventType.STATUS,
@@ -139,7 +141,9 @@ class ContextAssemblyFoundationTests(unittest.TestCase):
                 StreamEventType.FINAL,
             ],
         )
-        self.assertEqual(events[6].payload["code"], "context_assembled")
+        context_event = first_event(events, StreamEventType.CONTEXT, "context_assembled")
+
+        self.assertEqual(context_event.payload["code"], "context_assembled")
         self.assertEqual(len(assembler.requests), 1)
         self.assertIsNotNone(assembler.requests[0].memory_context)
         self.assertIsNotNone(assembler.requests[0].retrieval_context)

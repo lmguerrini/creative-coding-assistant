@@ -61,7 +61,7 @@ an implemented LangGraph workflow in
 
 The current workflow order is:
 
-`intake -> routing -> memory -> retrieval -> context_assembly -> prompt_input -> prompt_rendering -> generation -> review -> refinement -> finalization -> failure`
+`intake -> routing -> memory -> retrieval -> context_assembly -> prompt_input -> prompt_rendering -> generation -> artifact_extraction -> preview_preparation -> review -> refinement -> finalization -> failure`
 
 Key backend capabilities include:
 
@@ -69,7 +69,7 @@ Key backend capabilities include:
 - curated official-source retrieval and query grounding
 - conversation memory and memory recording
 - prompt input assembly and rendered provider prompts
-- streamed generation events with workflow metadata
+- streamed generation, lifecycle, review, retry, artifact, and preview events with workflow metadata
 - deterministic review checks with at most one refinement retry
 - structured terminal failure handling
 - live session recording and evaluation support

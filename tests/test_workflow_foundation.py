@@ -161,7 +161,7 @@ class WorkflowFoundationTests(unittest.TestCase):
         self.assertEqual(restarted_state.current_step, WorkflowStep.GENERATION)
         self.assertEqual(restarted_state.completed_steps, (WorkflowStep.GENERATION,))
 
-    def test_service_stream_event_sequence_remains_backward_compatible(self) -> None:
+    def test_service_stream_includes_lifecycle_events_and_legacy_statuses(self) -> None:
         service = AssistantService()
         request = AssistantRequest(
             query="Generate a Three.js particle field.",
@@ -170,19 +170,20 @@ class WorkflowFoundationTests(unittest.TestCase):
         )
 
         events = tuple(service.stream(request))
+        event_types = [event.event_type for event in events]
+        status_codes = [
+            event.payload["code"]
+            for event in events
+            if event.event_type is StreamEventType.STATUS
+        ]
 
-        self.assertEqual(
-            [event.event_type for event in events],
-            [
-                StreamEventType.STATUS,
-                StreamEventType.STATUS,
-                StreamEventType.FINAL,
-            ],
-        )
-        self.assertEqual([event.sequence for event in events], [0, 1, 2])
-        self.assertEqual(events[0].payload["code"], "request_received")
-        self.assertEqual(events[1].payload["code"], "route_selected")
-        self.assertIn("generate route", events[2].payload["answer"])
+        self.assertEqual([event.sequence for event in events], list(range(len(events))))
+        self.assertIn(StreamEventType.NODE_STARTED, event_types)
+        self.assertIn(StreamEventType.NODE_COMPLETED, event_types)
+        self.assertIn(StreamEventType.REVIEW_PASSED, event_types)
+        self.assertEqual(events[-1].event_type, StreamEventType.FINAL)
+        self.assertEqual(status_codes, ["request_received", "route_selected"])
+        self.assertIn("generate route", events[-1].payload["answer"])
 
 
 if __name__ == "__main__":

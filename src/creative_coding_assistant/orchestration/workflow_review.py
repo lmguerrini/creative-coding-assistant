@@ -77,6 +77,8 @@ class WorkflowReviewResult(BaseModel):
     outcome: WorkflowReviewOutcome
     reasons: tuple[str, ...] = ()
     refinement_count: int = Field(default=0, ge=0)
+    score: float = Field(ge=0.0, le=1.0)
+    rationale: str = Field(min_length=1)
 
     @property
     def passed(self) -> bool:
@@ -112,6 +114,8 @@ def review_assistant_answer(
         outcome=outcome,
         reasons=tuple(reasons),
         refinement_count=refinement_count,
+        score=_score_review(reasons),
+        rationale=_review_rationale(reasons),
     )
 
 
@@ -153,3 +157,15 @@ def _request_explicitly_asks_for_code(request: AssistantRequest) -> bool:
 
 def _tokens(value: str) -> set[str]:
     return set(_TOKEN_PATTERN.findall(value.lower()))
+
+
+def _score_review(reasons: list[str]) -> float:
+    if not reasons:
+        return 1.0
+    return max(0.0, 1.0 - (0.25 * len(reasons)))
+
+
+def _review_rationale(reasons: list[str]) -> str:
+    if not reasons:
+        return "Deterministic review passed without quality gate findings."
+    return "Deterministic review requested refinement: " + ", ".join(reasons) + "."

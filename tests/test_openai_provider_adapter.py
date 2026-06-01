@@ -42,6 +42,7 @@ from creative_coding_assistant.orchestration import (
     build_rendered_prompt_request,
 )
 from creative_coding_assistant.rag.sources import OfficialSourceType
+from event_assertions import first_event, legacy_events
 
 
 class OpenAIProviderAdapterTests(unittest.TestCase):
@@ -205,9 +206,10 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
         )
 
         events = tuple(service.stream(_assistant_request()))
+        legacy = legacy_events(events)
 
         self.assertEqual(
-            [event.event_type for event in events],
+            [event.event_type for event in legacy],
             [
                 StreamEventType.STATUS,
                 StreamEventType.STATUS,
@@ -224,19 +226,24 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
                 StreamEventType.FINAL,
             ],
         )
-        self.assertEqual(events[10].payload["text"], "Use ")
-        self.assertEqual(events[11].payload["text"], "soft motion.")
-        self.assertEqual(events[12].payload["answer"], "Use soft motion.")
+        token_events = [
+            event for event in events if event.event_type is StreamEventType.TOKEN_DELTA
+        ]
+        final_event = first_event(events, StreamEventType.FINAL)
+
+        self.assertEqual(token_events[0].payload["text"], "Use ")
+        self.assertEqual(token_events[1].payload["text"], "soft motion.")
+        self.assertEqual(final_event.payload["answer"], "Use soft motion.")
         self.assertEqual(
-            events[10].payload["telemetry"]["provider"]["name"],
+            token_events[0].payload["telemetry"]["provider"]["name"],
             "openai",
         )
         self.assertEqual(
-            events[12].payload["telemetry"]["provider"]["model"],
+            final_event.payload["telemetry"]["provider"]["model"],
             "gpt-5-mini",
         )
         self.assertEqual(
-            events[12].payload["telemetry"]["token_usage"]["total_tokens"],
+            final_event.payload["telemetry"]["token_usage"]["total_tokens"],
             105,
         )
 
@@ -265,12 +272,12 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
         )
 
         events = tuple(service.stream(_assistant_request()))
+        error_event = first_event(events, StreamEventType.ERROR)
+        final_event = first_event(events, StreamEventType.FINAL)
 
-        self.assertEqual(events[10].event_type, StreamEventType.ERROR)
-        self.assertEqual(events[10].payload["code"], "provider_unavailable")
-        self.assertEqual(events[11].event_type, StreamEventType.FINAL)
-        self.assertIn("Generation failed", events[11].payload["answer"])
-        self.assertIn("provider_unavailable", events[11].payload["answer"])
+        self.assertEqual(error_event.payload["code"], "provider_unavailable")
+        self.assertIn("Generation failed", final_event.payload["answer"])
+        self.assertIn("provider_unavailable", final_event.payload["answer"])
 
 
 def _assistant_request() -> AssistantRequest:

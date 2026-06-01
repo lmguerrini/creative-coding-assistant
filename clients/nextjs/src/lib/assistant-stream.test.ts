@@ -172,18 +172,63 @@ describe("assistant stream client", () => {
         payload: { text: "Hello" }
       },
       {
-        event_type: "artifact_extracted",
+        event_type: "node_started",
         sequence: 4,
+        payload: { code: "node_started", node: "review" }
+      },
+      {
+        event_type: "review_failed",
+        sequence: 5,
+        payload: { code: "review_failed" }
+      },
+      {
+        event_type: "refinement_requested",
+        sequence: 6,
+        payload: { code: "refinement_requested" }
+      },
+      {
+        event_type: "retry_started",
+        sequence: 7,
+        payload: { code: "retry_started" }
+      },
+      {
+        event_type: "refinement_completed",
+        sequence: 8,
+        payload: { code: "refinement_completed" }
+      },
+      {
+        event_type: "node_completed",
+        sequence: 9,
+        payload: { code: "node_completed", node: "refinement" }
+      },
+      {
+        event_type: "retry_completed",
+        sequence: 10,
+        payload: { code: "retry_completed" }
+      },
+      {
+        event_type: "review_passed",
+        sequence: 11,
+        payload: { code: "review_passed" }
+      },
+      {
+        event_type: "node_failed",
+        sequence: 12,
+        payload: { code: "node_failed", node: "generation" }
+      },
+      {
+        event_type: "artifact_extracted",
+        sequence: 13,
         payload: { code: "artifact_extracted" }
       },
       {
         event_type: "preview_artifact",
-        sequence: 5,
+        sequence: 14,
         payload: { code: "preview_artifact_prepared", status: "succeeded" }
       },
       {
         event_type: "final",
-        sequence: 6,
+        sequence: 15,
         payload: { answer: "Done." }
       }
     ];
@@ -192,6 +237,15 @@ describe("assistant stream client", () => {
       "intake",
       "routing",
       "prompt_rendering",
+      "generation",
+      "review",
+      "review",
+      "review",
+      "review",
+      "refinement",
+      "refinement",
+      "review",
+      "review",
       "generation",
       "artifact_extraction",
       "preview_preparation",

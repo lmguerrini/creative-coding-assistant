@@ -1,5 +1,5 @@
 import unittest
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Sequence
 
 from creative_coding_assistant.analytics import build_langsmith_observability
 from creative_coding_assistant.contracts import (
@@ -52,7 +52,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             ),
         )
 
-    def test_graph_streams_existing_events_without_shape_changes(self) -> None:
+    def test_graph_streams_node_lifecycle_events_with_legacy_statuses(self) -> None:
         graph = build_assistant_workflow_graph()
         request = _request()
         runtime = _runtime()
@@ -65,19 +65,62 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             )
         )
 
+        event_types = _event_types(events)
         self.assertEqual(
-            [event.event_type for event in events],
+            _node_payloads(events, StreamEventType.NODE_STARTED),
             [
-                StreamEventType.STATUS,
-                StreamEventType.STATUS,
-                StreamEventType.FINAL,
+                "intake",
+                "routing",
+                "memory",
+                "retrieval",
+                "context_assembly",
+                "prompt_input",
+                "prompt_rendering",
+                "generation",
+                "artifact_extraction",
+                "preview_preparation",
+                "review",
+                "finalization",
             ],
         )
-        self.assertEqual([event.sequence for event in events], [0, 1, 2])
-        self.assertEqual(events[0].payload["code"], "request_received")
-        self.assertEqual(events[1].payload["code"], "route_selected")
-        self.assertEqual(events[1].payload["route"]["route"], "generate")
-        self.assertIn("generate route", events[2].payload["answer"])
+        self.assertEqual(
+            _node_payloads(events, StreamEventType.NODE_COMPLETED),
+            [
+                "intake",
+                "routing",
+                "memory",
+                "retrieval",
+                "context_assembly",
+                "prompt_input",
+                "prompt_rendering",
+                "generation",
+                "artifact_extraction",
+                "preview_preparation",
+                "review",
+                "finalization",
+            ],
+        )
+        self.assertEqual([event.sequence for event in events], list(range(len(events))))
+        self.assertEqual(event_types[-1], StreamEventType.FINAL)
+        self.assertIn(StreamEventType.STATUS, event_types)
+        self.assertIn(StreamEventType.REVIEW_PASSED, event_types)
+
+        request_status = _first_event(events, StreamEventType.STATUS, "request_received")
+        routing_status = _first_event(events, StreamEventType.STATUS, "route_selected")
+        review_passed = _first_event(events, StreamEventType.REVIEW_PASSED)
+        final = events[-1]
+
+        self.assertEqual(routing_status.payload["route"]["route"], "generate")
+        self.assertEqual(review_passed.payload["score"], 1.0)
+        self.assertEqual(
+            review_passed.payload["rationale"],
+            "Deterministic review passed without quality gate findings.",
+        )
+        self.assertEqual(review_passed.payload["transition_source"], "review")
+        self.assertEqual(review_passed.payload["transition_target"], "finalization")
+        self.assertEqual(review_passed.payload["decision_reason"], "review_passed")
+        self.assertEqual(request_status.payload["workflow"]["step"], "intake")
+        self.assertIn("generate route", final.payload["answer"])
 
     def test_graph_completes_workflow_state_after_generation(self) -> None:
         graph = build_assistant_workflow_graph()
@@ -131,22 +174,36 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             )
         )
 
-        self.assertEqual(
-            [event.event_type for event in events],
+        event_types = _event_types(events)
+        _assert_subsequence(
+            self,
+            event_types,
             [
-                StreamEventType.STATUS,
-                StreamEventType.STATUS,
+                StreamEventType.NODE_STARTED,
                 StreamEventType.GENERATION_INPUT,
                 StreamEventType.TOKEN_DELTA,
                 StreamEventType.TOKEN_DELTA,
+                StreamEventType.NODE_COMPLETED,
+                StreamEventType.NODE_STARTED,
+                StreamEventType.REVIEW_PASSED,
+                StreamEventType.NODE_COMPLETED,
                 StreamEventType.FINAL,
             ],
         )
-        self.assertEqual([event.sequence for event in events], list(range(6)))
-        self.assertEqual(events[2].payload["code"], "generation_input_prepared")
-        self.assertEqual(events[3].payload["text"], "Graph ")
-        self.assertEqual(events[4].payload["text"], "answer")
-        self.assertEqual(events[5].payload["answer"], "Graph answer")
+        self.assertEqual([event.sequence for event in events], list(range(len(events))))
+        generation_input = _first_event(events, StreamEventType.GENERATION_INPUT)
+        token_events = _events_of_type(events, StreamEventType.TOKEN_DELTA)
+        generation_completed = _first_transition(
+            events,
+            StreamEventType.NODE_COMPLETED,
+            source="generation",
+            target="artifact_extraction",
+        )
+
+        self.assertEqual(generation_input.payload["code"], "generation_input_prepared")
+        self.assertEqual([event.payload["text"] for event in token_events], ["Graph ", "answer"])
+        self.assertEqual(generation_completed.payload["decision_reason"], "generation_completed")
+        self.assertEqual(events[-1].payload["answer"], "Graph answer")
 
     def test_stream_events_include_workflow_runtime_metadata(self) -> None:
         graph = build_assistant_workflow_graph()
@@ -159,20 +216,33 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             )
         )
 
-        self.assertIn("emitted_at", events[0].payload)
-        self.assertEqual(events[0].payload["workflow"]["step"], "intake")
-        self.assertEqual(events[0].payload["workflow"]["phase"], "running")
-        self.assertEqual(events[1].payload["workflow"]["step"], "routing")
-        self.assertEqual(events[2].payload["workflow"]["step"], "generation")
+        intake_started = _first_transition(
+            events,
+            StreamEventType.NODE_STARTED,
+            source="intake",
+        )
+        routing_started = _first_transition(
+            events,
+            StreamEventType.NODE_STARTED,
+            source="routing",
+        )
+        generation_input = _first_event(events, StreamEventType.GENERATION_INPUT)
+        final = events[-1]
+
+        self.assertIn("emitted_at", intake_started.payload)
+        self.assertEqual(intake_started.payload["workflow"]["step"], "intake")
+        self.assertEqual(intake_started.payload["workflow"]["phase"], "running")
+        self.assertEqual(routing_started.payload["workflow"]["step"], "routing")
+        self.assertEqual(generation_input.payload["workflow"]["step"], "generation")
         self.assertEqual(events[-1].payload["workflow"]["step"], "finalization")
-        self.assertEqual(events[-1].payload["workflow"]["phase"], "completed")
-        self.assertEqual(events[-1].payload["workflow"]["status"], "completed")
+        self.assertEqual(final.payload["workflow"]["phase"], "completed")
+        self.assertEqual(final.payload["workflow"]["status"], "completed")
         self.assertEqual(
-            events[-1].payload["workflow"]["completed_steps"],
+            final.payload["workflow"]["completed_steps"],
             ["intake", "routing", "generation", "review", "finalization"],
         )
         self.assertEqual(
-            events[-1].payload["workflow"]["skipped_steps"],
+            final.payload["workflow"]["skipped_steps"],
             [
                 "memory",
                 "retrieval",
@@ -183,9 +253,9 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "preview_preparation",
             ],
         )
-        self.assertEqual(events[-1].payload["workflow"]["review_outcome"], "pass")
-        self.assertEqual(events[-1].payload["workflow"]["artifact_count"], 0)
-        self.assertEqual(events[-1].payload["workflow"]["preview_artifact_count"], 0)
+        self.assertEqual(final.payload["workflow"]["review_outcome"], "pass")
+        self.assertEqual(final.payload["workflow"]["artifact_count"], 0)
+        self.assertEqual(final.payload["workflow"]["preview_artifact_count"], 0)
 
     def test_review_failure_runs_one_refinement_attempt(self) -> None:
         graph = build_assistant_workflow_graph()
@@ -324,7 +394,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         )
         self.assertEqual(workflow_state.refinement_count, 1)
 
-    def test_refinement_stream_preserves_existing_event_shapes(self) -> None:
+    def test_refinement_stream_exposes_review_retry_and_preview_events(self) -> None:
         graph = build_assistant_workflow_graph()
         generation = _SequentialGeneration(
             "This answer does not include fenced code.",
@@ -339,24 +409,73 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             )
         )
 
-        self.assertEqual(
-            [event.event_type for event in events],
+        event_types = _event_types(events)
+        _assert_subsequence(
+            self,
+            event_types,
             [
-                StreamEventType.STATUS,
-                StreamEventType.STATUS,
                 StreamEventType.GENERATION_INPUT,
                 StreamEventType.TOKEN_DELTA,
+                StreamEventType.REVIEW_FAILED,
+                StreamEventType.REFINEMENT_REQUESTED,
+                StreamEventType.RETRY_STARTED,
+                StreamEventType.NODE_COMPLETED,
+                StreamEventType.REFINEMENT_COMPLETED,
                 StreamEventType.GENERATION_INPUT,
                 StreamEventType.TOKEN_DELTA,
                 StreamEventType.ARTIFACT_EXTRACTED,
                 StreamEventType.PREVIEW_ARTIFACT,
+                StreamEventType.REVIEW_PASSED,
+                StreamEventType.RETRY_COMPLETED,
                 StreamEventType.FINAL,
             ],
         )
-        self.assertEqual([event.sequence for event in events], list(range(9)))
+        self.assertEqual([event.sequence for event in events], list(range(len(events))))
         self.assertEqual(generation.calls, 2)
-        self.assertEqual(events[6].payload["code"], "artifact_extracted")
-        self.assertEqual(events[7].payload["code"], "preview_artifact_prepared")
+        review_failed = _first_event(events, StreamEventType.REVIEW_FAILED)
+        retry_started = _first_event(events, StreamEventType.RETRY_STARTED)
+        retry_completed = _first_event(events, StreamEventType.RETRY_COMPLETED)
+        refinement_completed = _first_event(
+            events,
+            StreamEventType.REFINEMENT_COMPLETED,
+        )
+        artifact_event = _first_event(events, StreamEventType.ARTIFACT_EXTRACTED)
+        preview_event = _first_event(events, StreamEventType.PREVIEW_ARTIFACT)
+        review_transition = _first_transition(
+            events,
+            StreamEventType.NODE_COMPLETED,
+            source="review",
+            target="refinement",
+        )
+        refinement_transition = _first_transition(
+            events,
+            StreamEventType.NODE_COMPLETED,
+            source="refinement",
+            target="generation",
+        )
+
+        self.assertEqual(review_failed.payload["review_outcome"], "needs_refinement")
+        self.assertEqual(review_failed.payload["score"], 0.75)
+        self.assertEqual(
+            review_failed.payload["rationale"],
+            "Deterministic review requested refinement: missing_code_block.",
+        )
+        self.assertEqual(retry_started.payload["retry_count"], 1)
+        self.assertEqual(retry_started.payload["retry_reason"], "missing_code_block")
+        self.assertEqual(retry_completed.payload["retry_count"], 1)
+        self.assertEqual(retry_completed.payload["retry_status"], "passed")
+        self.assertEqual(refinement_completed.payload["retry_count"], 1)
+        self.assertEqual(refinement_completed.payload["retry_reason"], "missing_code_block")
+        self.assertEqual(
+            review_transition.payload["decision_reason"],
+            "review_failed_retry_available",
+        )
+        self.assertEqual(
+            refinement_transition.payload["decision_reason"],
+            "refinement_completed",
+        )
+        self.assertEqual(artifact_event.payload["code"], "artifact_extracted")
+        self.assertEqual(preview_event.payload["code"], "preview_artifact_prepared")
         self.assertEqual(
             events[-1].payload["answer"],
             "```javascript\nconsole.log('refined');\n```",
@@ -378,16 +497,30 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             context={"runtime": _runtime(route_fn=_failing_route)},
         )
 
-        self.assertEqual(
-            [event.event_type for event in events],
+        event_types = _event_types(events)
+        _assert_subsequence(
+            self,
+            event_types,
             [
-                StreamEventType.STATUS,
+                StreamEventType.NODE_STARTED,
+                StreamEventType.NODE_FAILED,
                 StreamEventType.ERROR,
+                StreamEventType.NODE_STARTED,
+                StreamEventType.NODE_COMPLETED,
                 StreamEventType.FINAL,
             ],
         )
-        self.assertEqual(events[1].payload["code"], "workflow_routing_failed")
-        self.assertIn("route failed", events[2].payload["answer"])
+        routing_failure = _first_transition(
+            events,
+            StreamEventType.NODE_FAILED,
+            source="routing",
+            target="failure",
+        )
+        error_event = _first_event(events, StreamEventType.ERROR)
+
+        self.assertEqual(routing_failure.payload["decision_reason"], "node_exception")
+        self.assertEqual(error_event.payload["code"], "workflow_routing_failed")
+        self.assertIn("route failed", events[-1].payload["answer"])
         self.assertEqual(final_state["workflow_state"].status, WorkflowStatus.FAILED)
         self.assertEqual(
             final_state["workflow_state"].failure_info,
@@ -414,18 +547,34 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             context={"runtime": _runtime(stream_generation=_stream_failed_generation)},
         )
 
-        self.assertEqual(
-            [event.event_type for event in events],
+        event_types = _event_types(events)
+        _assert_subsequence(
+            self,
+            event_types,
             [
-                StreamEventType.STATUS,
-                StreamEventType.STATUS,
+                StreamEventType.NODE_STARTED,
                 StreamEventType.GENERATION_INPUT,
                 StreamEventType.ERROR,
+                StreamEventType.NODE_FAILED,
+                StreamEventType.NODE_STARTED,
+                StreamEventType.NODE_COMPLETED,
                 StreamEventType.FINAL,
             ],
         )
-        self.assertEqual(events[3].payload["code"], "provider_unavailable")
-        self.assertIn("Generation failed", events[4].payload["answer"])
+        provider_error = _first_event(events, StreamEventType.ERROR)
+        generation_failure = _first_transition(
+            events,
+            StreamEventType.NODE_FAILED,
+            source="generation",
+            target="failure",
+        )
+
+        self.assertEqual(provider_error.payload["code"], "provider_unavailable")
+        self.assertEqual(
+            generation_failure.payload["decision_reason"],
+            "generation_provider_failed",
+        )
+        self.assertIn("Generation failed", events[-1].payload["answer"])
         workflow_state = final_state["workflow_state"]
         self.assertEqual(workflow_state.status, WorkflowStatus.FAILED)
         self.assertEqual(
@@ -449,14 +598,84 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertTrue(hasattr(service._workflow_graph, "stream"))
         events = tuple(service.stream(_request()))
 
-        self.assertEqual(
-            [event.event_type for event in events],
-            [
-                StreamEventType.STATUS,
-                StreamEventType.STATUS,
-                StreamEventType.FINAL,
-            ],
+        event_types = _event_types(events)
+
+        self.assertIn(StreamEventType.NODE_STARTED, event_types)
+        self.assertIn(StreamEventType.NODE_COMPLETED, event_types)
+        self.assertIn(StreamEventType.REVIEW_PASSED, event_types)
+        self.assertEqual(events[-1].event_type, StreamEventType.FINAL)
+
+
+def _event_types(events: Sequence[StreamEvent]) -> list[StreamEventType]:
+    return [event.event_type for event in events]
+
+
+def _events_of_type(
+    events: Sequence[StreamEvent],
+    event_type: StreamEventType,
+) -> list[StreamEvent]:
+    return [event for event in events if event.event_type is event_type]
+
+
+def _node_payloads(
+    events: Sequence[StreamEvent],
+    event_type: StreamEventType,
+) -> list[str]:
+    return [
+        str(event.payload["node"])
+        for event in events
+        if event.event_type is event_type and "node" in event.payload
+    ]
+
+
+def _first_event(
+    events: Sequence[StreamEvent],
+    event_type: StreamEventType,
+    code: str | None = None,
+) -> StreamEvent:
+    for event in events:
+        if event.event_type is not event_type:
+            continue
+        if code is not None and event.payload.get("code") != code:
+            continue
+        return event
+    raise AssertionError(f"Missing event {event_type} with code {code!r}.")
+
+
+def _first_transition(
+    events: Sequence[StreamEvent],
+    event_type: StreamEventType,
+    *,
+    source: str,
+    target: str | None = None,
+) -> StreamEvent:
+    for event in events:
+        payload_source = event.payload.get("transition_source") or event.payload.get(
+            "node"
         )
+        if event.event_type is not event_type or payload_source != source:
+            continue
+        if target is not None and event.payload.get("transition_target") != target:
+            continue
+        return event
+    raise AssertionError(f"Missing transition {event_type} from {source} to {target}.")
+
+
+def _assert_subsequence(
+    testcase: unittest.TestCase,
+    values: Sequence[StreamEventType],
+    expected: Sequence[StreamEventType],
+) -> None:
+    start_index = 0
+    for expected_value in expected:
+        try:
+            match_index = values.index(expected_value, start_index)
+        except ValueError as exc:
+            raise AssertionError(
+                f"Missing {expected_value!r} after index {start_index} in {values!r}."
+            ) from exc
+        testcase.assertGreaterEqual(match_index, start_index)
+        start_index = match_index + 1
 
 
 def _request(

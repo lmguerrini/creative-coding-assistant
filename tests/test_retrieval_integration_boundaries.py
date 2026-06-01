@@ -26,6 +26,7 @@ from creative_coding_assistant.rag.retrieval import (
     KnowledgeBaseSearchResult,
 )
 from creative_coding_assistant.rag.sources import OfficialSourceType
+from event_assertions import first_event, legacy_events
 
 
 class RetrievalIntegrationBoundaryTests(unittest.TestCase):
@@ -782,9 +783,10 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
         )
 
         events = tuple(service.stream(request))
+        legacy = legacy_events(events)
 
         self.assertEqual(
-            [event.event_type for event in events],
+            [event.event_type for event in legacy],
             [
                 StreamEventType.STATUS,
                 StreamEventType.STATUS,
@@ -793,8 +795,18 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
                 StreamEventType.FINAL,
             ],
         )
-        self.assertEqual(events[2].payload["code"], "retrieval_requested")
-        self.assertEqual(events[3].payload["code"], "retrieval_completed")
+        self.assertEqual(
+            first_event(events, StreamEventType.RETRIEVAL, "retrieval_requested").payload[
+                "code"
+            ],
+            "retrieval_requested",
+        )
+        self.assertEqual(
+            first_event(events, StreamEventType.RETRIEVAL, "retrieval_completed").payload[
+                "code"
+            ],
+            "retrieval_completed",
+        )
         self.assertEqual(len(gateway.requests), 1)
         self.assertEqual(
             gateway.requests[0].filters.domain,
@@ -828,11 +840,19 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
         )
 
         events = tuple(service.stream(request))
+        completed_event = first_event(
+            events,
+            StreamEventType.RETRIEVAL,
+            "retrieval_completed",
+        )
 
-        self.assertEqual(events[3].payload["code"], "retrieval_completed")
-        self.assertEqual(events[3].payload["error"]["type"], "retrieval_gateway_failed")
-        self.assertTrue(events[3].payload["error"]["recoverable"])
-        self.assertEqual(events[3].payload["context"]["chunks"], [])
+        self.assertEqual(completed_event.payload["code"], "retrieval_completed")
+        self.assertEqual(
+            completed_event.payload["error"]["type"],
+            "retrieval_gateway_failed",
+        )
+        self.assertTrue(completed_event.payload["error"]["recoverable"])
+        self.assertEqual(completed_event.payload["context"]["chunks"], [])
 
     def test_service_preserves_multi_domain_retrieval_filters(self) -> None:
         retrieval_context = RetrievalContextResponse(
@@ -915,9 +935,10 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
         request = AssistantRequest(query="Generate a scene.")
 
         events = tuple(service.stream(request))
+        legacy = legacy_events(events)
 
         self.assertEqual(
-            [event.event_type for event in events],
+            [event.event_type for event in legacy],
             [
                 StreamEventType.STATUS,
                 StreamEventType.STATUS,

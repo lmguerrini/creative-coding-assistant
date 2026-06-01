@@ -189,11 +189,12 @@ def _intake_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
 ) -> AssistantWorkflowGraphState:
-    workflow_state = start_workflow_step(
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
         _workflow_state(state),
+        runtime_context,
         WorkflowStep.INTAKE,
     )
-    runtime_context = _runtime(runtime)
     try:
         _emit_streaming_step(
             runtime_context.stream_request_received(
@@ -205,9 +206,11 @@ def _intake_node(
             workflow_state=workflow_state,
         )
         return {
-            "workflow_state": complete_workflow_step(
+            "workflow_state": _complete_node(
                 workflow_state,
+                runtime_context,
                 WorkflowStep.INTAKE,
+                decision_reason="request_received",
             )
         }
     except Exception as exc:
@@ -223,11 +226,12 @@ def _routing_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
 ) -> AssistantWorkflowGraphState:
-    workflow_state = start_workflow_step(
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
         _workflow_state(state),
+        runtime_context,
         WorkflowStep.ROUTING,
     )
-    runtime_context = _runtime(runtime)
     try:
         decision = runtime_context.route_fn(workflow_state.request)
         route_payload = decision.model_dump(mode="json")
@@ -240,9 +244,11 @@ def _routing_node(
             workflow_state=workflow_state,
         )
         return {
-            "workflow_state": complete_workflow_step(
+            "workflow_state": _complete_node(
                 workflow_state,
+                runtime_context,
                 WorkflowStep.ROUTING,
+                decision_reason=f"route_selected:{decision.route.value}",
                 route_decision=decision,
             ),
             "route_payload": route_payload,
@@ -260,11 +266,12 @@ def _memory_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
 ) -> AssistantWorkflowGraphState:
-    workflow_state = start_workflow_step(
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
         _workflow_state(state),
+        runtime_context,
         WorkflowStep.MEMORY,
     )
-    runtime_context = _runtime(runtime)
     try:
         memory_context = _emit_streaming_step(
             runtime_context.stream_memory_context(
@@ -276,15 +283,19 @@ def _memory_node(
         )
         if memory_context is None:
             return {
-                "workflow_state": skip_workflow_step(
+                "workflow_state": _skip_node(
                     workflow_state,
+                    runtime_context,
                     WorkflowStep.MEMORY,
+                    decision_reason="memory_context_unavailable",
                 )
             }
         return {
-            "workflow_state": complete_workflow_step(
+            "workflow_state": _complete_node(
                 workflow_state,
+                runtime_context,
                 WorkflowStep.MEMORY,
+                decision_reason="memory_context_available",
                 memory_context=memory_context,
             )
         }
@@ -301,11 +312,12 @@ def _retrieval_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
 ) -> AssistantWorkflowGraphState:
-    workflow_state = start_workflow_step(
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
         _workflow_state(state),
+        runtime_context,
         WorkflowStep.RETRIEVAL,
     )
-    runtime_context = _runtime(runtime)
     try:
         retrieval_context = _emit_streaming_step(
             runtime_context.stream_retrieval_context(
@@ -318,15 +330,19 @@ def _retrieval_node(
         )
         if retrieval_context is None:
             return {
-                "workflow_state": skip_workflow_step(
+                "workflow_state": _skip_node(
                     workflow_state,
+                    runtime_context,
                     WorkflowStep.RETRIEVAL,
+                    decision_reason="retrieval_context_unavailable",
                 )
             }
         return {
-            "workflow_state": complete_workflow_step(
+            "workflow_state": _complete_node(
                 workflow_state,
+                runtime_context,
                 WorkflowStep.RETRIEVAL,
+                decision_reason="retrieval_context_available",
                 retrieval_context=retrieval_context,
             )
         }
@@ -343,11 +359,12 @@ def _context_assembly_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
 ) -> AssistantWorkflowGraphState:
-    workflow_state = start_workflow_step(
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
         _workflow_state(state),
+        runtime_context,
         WorkflowStep.CONTEXT_ASSEMBLY,
     )
-    runtime_context = _runtime(runtime)
     try:
         assembled_context = _emit_streaming_step(
             runtime_context.stream_assembled_context(
@@ -360,15 +377,19 @@ def _context_assembly_node(
         )
         if assembled_context is None:
             return {
-                "workflow_state": skip_workflow_step(
+                "workflow_state": _skip_node(
                     workflow_state,
+                    runtime_context,
                     WorkflowStep.CONTEXT_ASSEMBLY,
+                    decision_reason="context_assembly_unavailable",
                 )
             }
         return {
-            "workflow_state": complete_workflow_step(
+            "workflow_state": _complete_node(
                 workflow_state,
+                runtime_context,
                 WorkflowStep.CONTEXT_ASSEMBLY,
+                decision_reason="context_assembled",
                 assembled_context=assembled_context,
             )
         }
@@ -385,11 +406,12 @@ def _prompt_input_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
 ) -> AssistantWorkflowGraphState:
-    workflow_state = start_workflow_step(
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
         _workflow_state(state),
+        runtime_context,
         WorkflowStep.PROMPT_INPUT,
     )
-    runtime_context = _runtime(runtime)
     try:
         prompt_input = _emit_streaming_step(
             runtime_context.stream_prompt_inputs(
@@ -402,15 +424,19 @@ def _prompt_input_node(
         )
         if prompt_input is None:
             return {
-                "workflow_state": skip_workflow_step(
+                "workflow_state": _skip_node(
                     workflow_state,
+                    runtime_context,
                     WorkflowStep.PROMPT_INPUT,
+                    decision_reason="prompt_input_unavailable",
                 )
             }
         return {
-            "workflow_state": complete_workflow_step(
+            "workflow_state": _complete_node(
                 workflow_state,
+                runtime_context,
                 WorkflowStep.PROMPT_INPUT,
+                decision_reason="prompt_input_prepared",
                 prompt_input=prompt_input,
             )
         }
@@ -427,11 +453,12 @@ def _prompt_rendering_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
 ) -> AssistantWorkflowGraphState:
-    workflow_state = start_workflow_step(
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
         _workflow_state(state),
+        runtime_context,
         WorkflowStep.PROMPT_RENDERING,
     )
-    runtime_context = _runtime(runtime)
     try:
         rendered_prompt = _emit_streaming_step(
             runtime_context.stream_rendered_prompt(
@@ -443,15 +470,19 @@ def _prompt_rendering_node(
         )
         if rendered_prompt is None:
             return {
-                "workflow_state": skip_workflow_step(
+                "workflow_state": _skip_node(
                     workflow_state,
+                    runtime_context,
                     WorkflowStep.PROMPT_RENDERING,
+                    decision_reason="prompt_rendering_unavailable",
                 )
             }
         return {
-            "workflow_state": complete_workflow_step(
+            "workflow_state": _complete_node(
                 workflow_state,
+                runtime_context,
                 WorkflowStep.PROMPT_RENDERING,
+                decision_reason="prompt_rendered",
                 rendered_prompt=rendered_prompt,
             )
         }
@@ -468,12 +499,13 @@ def _generation_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
 ) -> AssistantWorkflowGraphState:
-    workflow_state = _start_graph_workflow_step(
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
         _workflow_state(state),
+        runtime_context,
         WorkflowStep.GENERATION,
         allow_reentry=True,
     )
-    runtime_context = _runtime(runtime)
     try:
         generation_result = _emit_streaming_step(
             runtime_context.stream_generation(
@@ -485,13 +517,22 @@ def _generation_node(
         )
         if generation_result is None:
             return {
-                "workflow_state": skip_workflow_step(
+                "workflow_state": _skip_node(
                     workflow_state,
+                    runtime_context,
                     WorkflowStep.GENERATION,
+                    decision_reason="generation_unavailable",
                 )
             }
         generation_failure = _failure_info_from_generation_result(generation_result)
         if generation_failure is not None:
+            _emit_node_failed(
+                runtime_context,
+                workflow_state,
+                WorkflowStep.GENERATION,
+                generation_failure,
+                decision_reason="generation_provider_failed",
+            )
             return {
                 "workflow_state": complete_workflow_step(
                     workflow_state,
@@ -504,9 +545,11 @@ def _generation_node(
                 "generation_result": None,
             }
         return {
-            "workflow_state": complete_workflow_step(
+            "workflow_state": _complete_node(
                 workflow_state,
+                runtime_context,
                 WorkflowStep.GENERATION,
+                decision_reason="generation_completed",
             ),
             "generation_result": generation_result,
         }
@@ -524,12 +567,13 @@ def _artifact_extraction_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
 ) -> AssistantWorkflowGraphState:
-    workflow_state = _start_graph_workflow_step(
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
         _workflow_state(state),
+        runtime_context,
         WorkflowStep.ARTIFACT_EXTRACTION,
         allow_reentry=True,
     )
-    runtime_context = _runtime(runtime)
     try:
         artifacts = extract_workflow_artifacts(
             _answer_for_review(
@@ -542,11 +586,13 @@ def _artifact_extraction_node(
         )
         if not artifacts:
             return {
-                "workflow_state": skip_workflow_step(
+                "workflow_state": _skip_node(
                     workflow_state.model_copy(
                         update={"artifacts": (), "preview_results": ()}
                     ),
+                    runtime_context,
                     WorkflowStep.ARTIFACT_EXTRACTION,
+                    decision_reason="no_generated_artifacts",
                 )
             }
 
@@ -563,9 +609,11 @@ def _artifact_extraction_node(
             step=WorkflowStep.ARTIFACT_EXTRACTION,
         )
         return {
-            "workflow_state": complete_workflow_step(
+            "workflow_state": _complete_node(
                 workflow_state,
+                runtime_context,
                 WorkflowStep.ARTIFACT_EXTRACTION,
+                decision_reason="artifacts_extracted",
                 artifacts=artifacts,
                 preview_results=(),
             )
@@ -583,18 +631,21 @@ def _preview_preparation_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
 ) -> AssistantWorkflowGraphState:
-    workflow_state = _start_graph_workflow_step(
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
         _workflow_state(state),
+        runtime_context,
         WorkflowStep.PREVIEW_PREPARATION,
         allow_reentry=True,
     )
-    runtime_context = _runtime(runtime)
     try:
         if not workflow_state.artifacts:
             return {
-                "workflow_state": skip_workflow_step(
+                "workflow_state": _skip_node(
                     workflow_state.model_copy(update={"preview_results": ()}),
+                    runtime_context,
                     WorkflowStep.PREVIEW_PREPARATION,
+                    decision_reason="no_artifacts_for_preview",
                 )
             }
 
@@ -605,9 +656,11 @@ def _preview_preparation_node(
         )
         if not preview_results:
             return {
-                "workflow_state": skip_workflow_step(
+                "workflow_state": _skip_node(
                     workflow_state.model_copy(update={"preview_results": ()}),
+                    runtime_context,
                     WorkflowStep.PREVIEW_PREPARATION,
+                    decision_reason="no_previewable_artifacts",
                 )
             }
 
@@ -623,9 +676,11 @@ def _preview_preparation_node(
                 step=WorkflowStep.PREVIEW_PREPARATION,
             )
         return {
-            "workflow_state": complete_workflow_step(
+            "workflow_state": _complete_node(
                 workflow_state,
+                runtime_context,
                 WorkflowStep.PREVIEW_PREPARATION,
+                decision_reason="preview_metadata_prepared",
                 preview_results=preview_results,
             )
         }
@@ -642,13 +697,15 @@ def _review_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
 ) -> AssistantWorkflowGraphState:
-    workflow_state = _start_graph_workflow_step(
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
         _workflow_state(state),
+        runtime_context,
         WorkflowStep.REVIEW,
         allow_reentry=True,
     )
-    runtime_context = _runtime(runtime)
     try:
+        previous_review_result = workflow_state.review_result
         review_result = review_assistant_answer(
             request=workflow_state.request,
             answer=_answer_for_review(
@@ -658,10 +715,44 @@ def _review_node(
             ),
             refinement_count=workflow_state.refinement_count,
         )
-        return {
-            "workflow_state": complete_workflow_step(
+        transition_target, decision_reason = _review_transition(
+            review_result,
+            workflow_state.refinement_count,
+        )
+        _emit_review_outcome(
+            runtime_context,
+            workflow_state,
+            review_result,
+            transition_target=transition_target,
+            decision_reason=decision_reason,
+        )
+        if _review_requests_retry(review_result, workflow_state.refinement_count):
+            _emit_refinement_requested(
+                runtime_context,
                 workflow_state,
+                review_result,
+            )
+            _emit_retry_started(
+                runtime_context,
+                workflow_state,
+                review_result,
+            )
+        elif workflow_state.refinement_count > 0:
+            _emit_retry_completed(
+                runtime_context,
+                workflow_state,
+                review_result,
+                previous_review_result,
+                transition_target=transition_target,
+                decision_reason=decision_reason,
+            )
+        return {
+            "workflow_state": _complete_node(
+                workflow_state,
+                runtime_context,
                 WorkflowStep.REVIEW,
+                transition_target=transition_target,
+                decision_reason=decision_reason,
                 review_result=review_result,
             )
         }
@@ -678,11 +769,12 @@ def _refinement_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
 ) -> AssistantWorkflowGraphState:
-    workflow_state = start_workflow_step(
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
         _workflow_state(state),
+        runtime_context,
         WorkflowStep.REFINEMENT,
     )
-    runtime_context = _runtime(runtime)
     review_result = workflow_state.review_result
     try:
         if review_result is None:
@@ -692,12 +784,22 @@ def _refinement_node(
             rendered_prompt=workflow_state.rendered_prompt,
             review_result=review_result,
         )
+        retry_count = workflow_state.refinement_count + 1
+        _emit_refinement_completed(
+            runtime_context,
+            workflow_state,
+            review_result,
+            retry_count=retry_count,
+        )
         return {
-            "workflow_state": complete_workflow_step(
+            "workflow_state": _complete_node(
                 workflow_state,
+                runtime_context,
                 WorkflowStep.REFINEMENT,
+                transition_target=WorkflowStep.GENERATION.value,
+                decision_reason="refinement_completed",
                 rendered_prompt=refined_prompt,
-                refinement_count=workflow_state.refinement_count + 1,
+                refinement_count=retry_count,
             ),
             "generation_result": None,
         }
@@ -715,11 +817,12 @@ def _finalization_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
 ) -> AssistantWorkflowGraphState:
-    workflow_state = start_workflow_step(
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
         _workflow_state(state),
+        runtime_context,
         WorkflowStep.FINALIZATION,
     )
-    runtime_context = _runtime(runtime)
     try:
         generation_result = state.get("generation_result")
         if generation_result is not None:
@@ -733,6 +836,14 @@ def _finalization_node(
         )
 
         final_state = finish_workflow(workflow_state, final_answer=answer)
+        _emit_node_completed(
+            runtime_context,
+            final_state,
+            WorkflowStep.FINALIZATION,
+            transition_target="end",
+            decision_reason="final_answer_emitted",
+            resolution="completed",
+        )
         _emit(
             runtime_context.event_builder.final(
                 answer=answer,
@@ -773,11 +884,12 @@ def _failure_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
 ) -> AssistantWorkflowGraphState:
-    workflow_state = start_workflow_step(
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
         _workflow_state(state),
+        runtime_context,
         WorkflowStep.FAILURE,
     )
-    runtime_context = _runtime(runtime)
     failure_info = _pending_failure_info(state, workflow_state)
     if not state.get("failure_event_emitted", False):
         _emit(
@@ -795,6 +907,14 @@ def _failure_node(
         error_message=failure_info.message,
         failure_info=failure_info,
         final_answer=answer,
+    )
+    _emit_node_completed(
+        runtime_context,
+        final_state,
+        WorkflowStep.FAILURE,
+        transition_target="end",
+        decision_reason="terminal_failure_answer_emitted",
+        resolution="completed",
     )
     _emit(
         runtime_context.event_builder.final(
@@ -848,6 +968,287 @@ def _next_node_or_failure(
     if _has_pending_failure(state):
         return "failure"
     return next_node
+
+
+def _review_transition(
+    review_result: WorkflowReviewResult,
+    refinement_count: int,
+) -> tuple[str, str]:
+    if _review_requests_retry(review_result, refinement_count):
+        return WorkflowStep.REFINEMENT.value, "review_failed_retry_available"
+    if review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT:
+        return WorkflowStep.FINALIZATION.value, "review_failed_retry_limit_reached"
+    return WorkflowStep.FINALIZATION.value, "review_passed"
+
+
+def _review_requests_retry(
+    review_result: WorkflowReviewResult,
+    refinement_count: int,
+) -> bool:
+    return (
+        review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
+        and refinement_count < MAX_WORKFLOW_REFINEMENT_COUNT
+    )
+
+
+def _start_node(
+    state: AssistantWorkflowState,
+    runtime: AssistantWorkflowRuntime,
+    step: WorkflowStep,
+    *,
+    allow_reentry: bool = False,
+) -> AssistantWorkflowState:
+    workflow_state = _start_graph_workflow_step(
+        state,
+        step,
+        allow_reentry=allow_reentry,
+    )
+    _emit_node_started(runtime, workflow_state, step)
+    return workflow_state
+
+
+def _complete_node(
+    workflow_state: AssistantWorkflowState,
+    runtime: AssistantWorkflowRuntime,
+    step: WorkflowStep,
+    *,
+    transition_target: str | None = None,
+    decision_reason: str = "node_completed",
+    resolution: str = "completed",
+    **updates: object,
+) -> AssistantWorkflowState:
+    completed_state = complete_workflow_step(workflow_state, step, **updates)
+    _emit_node_completed(
+        runtime,
+        completed_state,
+        step,
+        transition_target=transition_target,
+        decision_reason=decision_reason,
+        resolution=resolution,
+    )
+    return completed_state
+
+
+def _skip_node(
+    workflow_state: AssistantWorkflowState,
+    runtime: AssistantWorkflowRuntime,
+    step: WorkflowStep,
+    *,
+    transition_target: str | None = None,
+    decision_reason: str = "node_skipped",
+) -> AssistantWorkflowState:
+    skipped_state = skip_workflow_step(workflow_state, step)
+    _emit_node_completed(
+        runtime,
+        skipped_state,
+        step,
+        transition_target=transition_target,
+        decision_reason=decision_reason,
+        resolution="skipped",
+    )
+    return skipped_state
+
+
+def _emit_node_started(
+    runtime: AssistantWorkflowRuntime,
+    workflow_state: AssistantWorkflowState,
+    step: WorkflowStep,
+) -> None:
+    _emit(
+        runtime.event_builder.node_started(
+            node=step.value,
+            node_label=_step_label(step),
+            message=f"{_step_label(step)} started.",
+            attempt_count=_node_attempt_count(workflow_state, step),
+        ),
+        workflow_state=workflow_state,
+        step=step,
+    )
+
+
+def _emit_node_completed(
+    runtime: AssistantWorkflowRuntime,
+    workflow_state: AssistantWorkflowState,
+    step: WorkflowStep,
+    *,
+    transition_target: str | None,
+    decision_reason: str,
+    resolution: str,
+) -> None:
+    target = transition_target or _default_transition_target(step)
+    _emit(
+        runtime.event_builder.node_completed(
+            node=step.value,
+            node_label=_step_label(step),
+            message=f"{_step_label(step)} {resolution}.",
+            resolution=resolution,
+            **_transition_payload(step.value, target, decision_reason),
+        ),
+        workflow_state=workflow_state,
+        step=step,
+        phase="completed",
+    )
+
+
+def _emit_node_failed(
+    runtime: AssistantWorkflowRuntime,
+    workflow_state: AssistantWorkflowState,
+    step: WorkflowStep,
+    failure_info: WorkflowFailureInfo,
+    *,
+    transition_target: str = "failure",
+    decision_reason: str = "node_failed",
+) -> None:
+    _emit(
+        runtime.event_builder.node_failed(
+            node=step.value,
+            node_label=_step_label(step),
+            message=f"{_step_label(step)} failed: {failure_info.message}",
+            error_code=failure_info.code,
+            error_message=failure_info.message,
+            **_transition_payload(step.value, transition_target, decision_reason),
+        ),
+        workflow_state=workflow_state,
+        step=step,
+        phase="failed",
+    )
+
+
+def _emit_review_outcome(
+    runtime: AssistantWorkflowRuntime,
+    workflow_state: AssistantWorkflowState,
+    review_result: WorkflowReviewResult,
+    *,
+    transition_target: str,
+    decision_reason: str,
+) -> None:
+    payload = {
+        "score": review_result.score,
+        "rationale": review_result.rationale,
+        "review": review_result.model_dump(mode="json"),
+        "review_outcome": review_result.outcome.value,
+        "review_reasons": list(review_result.reasons),
+        "refinement_count": review_result.refinement_count,
+        **_transition_payload(
+            WorkflowStep.REVIEW.value,
+            transition_target,
+            decision_reason,
+        ),
+    }
+    if review_result.passed:
+        event = runtime.event_builder.review_passed(
+            message=review_result.rationale,
+            **payload,
+        )
+    else:
+        event = runtime.event_builder.review_failed(
+            message=review_result.rationale,
+            **payload,
+        )
+    _emit(event, workflow_state=workflow_state, step=WorkflowStep.REVIEW)
+
+
+def _emit_refinement_requested(
+    runtime: AssistantWorkflowRuntime,
+    workflow_state: AssistantWorkflowState,
+    review_result: WorkflowReviewResult,
+) -> None:
+    retry_count = workflow_state.refinement_count + 1
+    reason = _review_reason_text(review_result)
+    _emit(
+        runtime.event_builder.refinement_requested(
+            message=f"Refinement requested for retry {retry_count}: {reason}.",
+            retry_count=retry_count,
+            retry_reason=reason,
+            review=review_result.model_dump(mode="json"),
+            **_transition_payload(
+                WorkflowStep.REVIEW.value,
+                WorkflowStep.REFINEMENT.value,
+                "review_failed_retry_available",
+            ),
+        ),
+        workflow_state=workflow_state,
+        step=WorkflowStep.REVIEW,
+    )
+
+
+def _emit_refinement_completed(
+    runtime: AssistantWorkflowRuntime,
+    workflow_state: AssistantWorkflowState,
+    review_result: WorkflowReviewResult,
+    *,
+    retry_count: int,
+) -> None:
+    reason = _review_reason_text(review_result)
+    _emit(
+        runtime.event_builder.refinement_completed(
+            message=f"Refinement guidance prepared for retry {retry_count}.",
+            retry_count=retry_count,
+            retry_reason=reason,
+            review=review_result.model_dump(mode="json"),
+            **_transition_payload(
+                WorkflowStep.REFINEMENT.value,
+                WorkflowStep.GENERATION.value,
+                "refinement_completed",
+            ),
+        ),
+        workflow_state=workflow_state,
+        step=WorkflowStep.REFINEMENT,
+    )
+
+
+def _emit_retry_started(
+    runtime: AssistantWorkflowRuntime,
+    workflow_state: AssistantWorkflowState,
+    review_result: WorkflowReviewResult,
+) -> None:
+    retry_count = workflow_state.refinement_count + 1
+    reason = _review_reason_text(review_result)
+    _emit(
+        runtime.event_builder.retry_started(
+            message=f"Retry {retry_count} started: {reason}.",
+            retry_count=retry_count,
+            retry_reason=reason,
+            review=review_result.model_dump(mode="json"),
+            **_transition_payload(
+                WorkflowStep.REVIEW.value,
+                WorkflowStep.REFINEMENT.value,
+                "review_failed_retry_available",
+            ),
+        ),
+        workflow_state=workflow_state,
+        step=WorkflowStep.REVIEW,
+    )
+
+
+def _emit_retry_completed(
+    runtime: AssistantWorkflowRuntime,
+    workflow_state: AssistantWorkflowState,
+    review_result: WorkflowReviewResult,
+    previous_review_result: WorkflowReviewResult | None,
+    *,
+    transition_target: str,
+    decision_reason: str,
+) -> None:
+    retry_count = workflow_state.refinement_count
+    reason = _review_reason_text(previous_review_result or review_result)
+    status = "passed" if review_result.passed else "exhausted"
+    _emit(
+        runtime.event_builder.retry_completed(
+            message=f"Retry {retry_count} {status}: {review_result.rationale}",
+            retry_count=retry_count,
+            retry_reason=reason,
+            retry_status=status,
+            review=review_result.model_dump(mode="json"),
+            **_transition_payload(
+                WorkflowStep.REVIEW.value,
+                transition_target,
+                decision_reason,
+            ),
+        ),
+        workflow_state=workflow_state,
+        step=WorkflowStep.REVIEW,
+    )
 
 
 def _start_graph_workflow_step(
@@ -931,6 +1332,13 @@ def _handle_workflow_exception(
         "assistant_workflow_step_failed: {}: {}",
         type(exc).__name__,
         exc,
+    )
+    _emit_node_failed(
+        runtime,
+        workflow_state,
+        step,
+        failure_info,
+        decision_reason="node_exception",
     )
     _emit(
         runtime.event_builder.error(
@@ -1087,3 +1495,55 @@ def _optional_event_payload(
     value: dict[str, object] | None,
 ) -> dict[str, dict[str, object]]:
     return {key: value} if value is not None else {}
+
+
+def _transition_payload(
+    source: str,
+    target: str,
+    decision_reason: str,
+) -> dict[str, object]:
+    return {
+        "transition_source": source,
+        "transition_target": target,
+        "decision_reason": decision_reason,
+        "edge": {
+            "source": source,
+            "target": target,
+            "decision_reason": decision_reason,
+        },
+    }
+
+
+def _default_transition_target(step: WorkflowStep) -> str:
+    if step is WorkflowStep.REFINEMENT:
+        return WorkflowStep.GENERATION.value
+    if step in {WorkflowStep.FINALIZATION, WorkflowStep.FAILURE}:
+        return "end"
+
+    try:
+        next_index = ASSISTANT_WORKFLOW_NODE_ORDER.index(step.value) + 1
+    except ValueError:
+        return "end"
+
+    if next_index >= len(ASSISTANT_WORKFLOW_NODE_ORDER):
+        return "end"
+    return ASSISTANT_WORKFLOW_NODE_ORDER[next_index]
+
+
+def _step_label(step: WorkflowStep) -> str:
+    return step.value.replace("_", " ").title()
+
+
+def _node_attempt_count(
+    workflow_state: AssistantWorkflowState,
+    step: WorkflowStep,
+) -> int:
+    if step is WorkflowStep.GENERATION:
+        return workflow_state.refinement_count + 1
+    if step is WorkflowStep.REFINEMENT:
+        return workflow_state.refinement_count + 1
+    return 1
+
+
+def _review_reason_text(review_result: WorkflowReviewResult) -> str:
+    return ", ".join(review_result.reasons) or "quality gate passed"

@@ -3572,6 +3572,9 @@ function WorkflowInspector({
                     <p>
                       <span>{transition.sequence}</span>
                       <span>{formatTraceTime(transition.at)}</span>
+                      {transition.reason ? (
+                        <span>{formatRuntimeCode(transition.reason)}</span>
+                      ) : null}
                     </p>
                   </article>
                 ))

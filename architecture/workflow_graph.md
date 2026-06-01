@@ -54,8 +54,8 @@ flowchart TB
         generation["Generation<br/>prepare provider input<br/>stream tokens<br/>store generation_result"]
         artifact_extraction["Artifact extraction<br/>normalize code artifacts<br/>emit artifact_extracted"]
         preview_preparation["Preview preparation<br/>prepare runtime metadata<br/>emit preview_artifact"]
-        review{{"Review quality gate<br/>deterministic checks<br/>records review_result"}}
-        refinement["Refinement<br/>append guidance<br/>increment refinement_count<br/>max one attempt"]
+        review{{"Review quality gate<br/>deterministic checks<br/>emit review + retry events"}}
+        refinement["Refinement<br/>append guidance<br/>emit refinement_completed<br/>max one attempt"]
         finalization["Finalization<br/>resolve final answer<br/>emit final<br/>finish_workflow()"]
         failure["Failure<br/>emit final failure answer<br/>mark workflow FAILED"]
     end
@@ -125,9 +125,11 @@ Current transition rules:
 - `finalization -> END` on success
 - `failure -> END`
 - The only graph loop is the bounded `refinement -> generation -> artifact_extraction -> preview_preparation -> review` loop
+- Completed and failed node events expose `transition_source`, `transition_target`, `decision_reason`, and an `edge` object with the same decision metadata
 
 Node responsibilities:
 
+- Every node emits `node_started`; completed or skipped nodes emit `node_completed`; failing nodes emit `node_failed` before routing to `failure`
 - `intake`: marks `WorkflowStep.INTAKE` active, emits `status/request_received`, then completes the step
 - `routing`: computes `RouteDecision`, emits `status/route_selected`, stores `route_decision` in workflow state and `route_payload` in graph state
 - `memory`: calls the memory step generator and either stores `memory_context` or skips the step
@@ -138,8 +140,9 @@ Node responsibilities:
 - `generation`: prepares provider input, forwards generation stream events, and stores the transient `generation_result`
 - `artifact_extraction`: detects generated code artifacts, normalizes workflow artifact metadata, stores `artifacts`, and emits `artifact_extracted`
 - `preview_preparation`: prepares preview-ready runtime metadata for previewable artifacts, stores `preview_results`, and emits `preview_artifact`
-- `review`: runs deterministic quality checks, stores `review_result`, and selects the next graph edge
-- `refinement`: appends refinement guidance to the rendered prompt, increments `refinement_count`, and sends control back to `generation`
+- `review`: runs deterministic quality checks, stores `review_result`, emits `review_passed` or `review_failed`, and selects the next graph edge
+- `review`: emits `refinement_requested` and `retry_started` when a failed review can enter the bounded retry loop; emits `retry_completed` after a retry resolves
+- `refinement`: appends refinement guidance to the rendered prompt, emits `refinement_completed`, increments `refinement_count`, and sends control back to `generation`
 - `finalization`: resolves the final answer from `generation_result.answer` or the shell fallback, emits the `final` event, and marks the workflow completed
 - `failure`: emits a terminal failure answer, marks `WorkflowStatus.FAILED`, and closes the graph cleanly after explicit provider failures or caught node exceptions
 
@@ -195,10 +198,14 @@ sequenceDiagram
     Service->>Graph: graph.stream(initial_state, context, stream_mode="custom")
     loop per node
         Graph->>Node: execute(state, runtime)
+        Node->>Builder: build node_started
+        Node->>Graph: get_stream_writer()(node_started)
         Node->>Step: call step generator
         Step->>Builder: build StreamEvent
         Step-->>Node: yield StreamEvent
         Node->>Graph: get_stream_writer()(event)
+        Node->>Builder: build node_completed / node_failed
+        Node->>Graph: get_stream_writer()(node_completed / node_failed)
         Graph-->>Service: custom stream item
     end
     Node->>Graph: emit final in finalization
@@ -208,6 +215,7 @@ sequenceDiagram
 
 What actually flows through the stream:
 
+- Every executed graph node emits `node_started` followed by `node_completed`, or `node_failed` on caught failures
 - `intake` emits `status`
 - `routing` emits `status`
 - `memory` emits `memory`
@@ -218,7 +226,10 @@ What actually flows through the stream:
 - `generation` emits `generation_input`, `token_delta`, and possibly `error`
 - `artifact_extraction` emits `artifact_extracted` when code artifacts are detected
 - `preview_preparation` emits `preview_artifact` when preview metadata is prepared
-- `review` and `refinement` currently update graph state without emitting stream events
+- `review` emits `review_passed` or `review_failed` with score, rationale, full review metadata, and edge decision metadata
+- `review` emits `refinement_requested` and `retry_started` when it sends control to `refinement`
+- `refinement` emits `refinement_completed` with retry reason/count before returning control to `generation`
+- `review` emits `retry_completed` after a retry resolves or exhausts
 - `finalization` emits `final` with the final answer plus structured `artifacts` and `preview_results`
 - `failure` emits `final` and may emit `error` if the failing node did not already emit one
 
@@ -227,7 +238,7 @@ Important stream guarantees:
 - Sequence numbers remain monotonic because the same `StreamEventBuilder` instance is shared across all nodes
 - Only `StreamEvent` instances are surfaced from the graph stream; helper return values become state updates instead
 - The final event is still emitted exactly once by `finalization`
-- No-artifact shell and explanation paths preserve their existing status/status/final event shape
+- Legacy `status`, generation, artifact, preview, error, and `final` events remain present, with lifecycle truth events surrounding them
 - Generation paths with runnable code now surface artifact and preview events before finalization
 
 ## Current Implemented Flow Vs Future Extension Points
@@ -238,6 +249,7 @@ Current implemented flow:
 - Conditional review edge
 - Bounded one-attempt refinement loop
 - Workflow-owned artifact extraction and preview metadata preparation
+- Node lifecycle, review outcome, retry, refinement, and edge decision events
 - Explicit failure node and failure transitions
 - No tool nodes
 - No renderer execution or preview capture inside the backend graph
@@ -336,5 +348,6 @@ Those tests currently verify:
 - state completion and skipped-step behavior
 - compiled graph execution
 - graph-owned artifact extraction and preview preparation events
+- node lifecycle, review outcome, retry, refinement, and edge decision events
 - terminal failure routing and failed workflow state
-- stream ordering and event-shape compatibility
+- stream ordering and legacy event compatibility

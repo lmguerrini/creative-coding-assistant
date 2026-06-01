@@ -106,6 +106,129 @@ class StreamEventBuilder:
             },
         )
 
+    def node_started(
+        self,
+        *,
+        node: str,
+        message: str,
+        **details: Any,
+    ) -> StreamEvent:
+        return self._workflow_truth_event(
+            StreamEventType.NODE_STARTED,
+            code="node_started",
+            message=message,
+            node=node,
+            **details,
+        )
+
+    def node_completed(
+        self,
+        *,
+        node: str,
+        message: str,
+        **details: Any,
+    ) -> StreamEvent:
+        return self._workflow_truth_event(
+            StreamEventType.NODE_COMPLETED,
+            code="node_completed",
+            message=message,
+            node=node,
+            **details,
+        )
+
+    def node_failed(
+        self,
+        *,
+        node: str,
+        message: str,
+        **details: Any,
+    ) -> StreamEvent:
+        return self._workflow_truth_event(
+            StreamEventType.NODE_FAILED,
+            code="node_failed",
+            message=message,
+            node=node,
+            **details,
+        )
+
+    def review_passed(
+        self,
+        *,
+        message: str,
+        **details: Any,
+    ) -> StreamEvent:
+        return self._workflow_truth_event(
+            StreamEventType.REVIEW_PASSED,
+            code="review_passed",
+            message=message,
+            **details,
+        )
+
+    def review_failed(
+        self,
+        *,
+        message: str,
+        **details: Any,
+    ) -> StreamEvent:
+        return self._workflow_truth_event(
+            StreamEventType.REVIEW_FAILED,
+            code="review_failed",
+            message=message,
+            **details,
+        )
+
+    def refinement_requested(
+        self,
+        *,
+        message: str,
+        **details: Any,
+    ) -> StreamEvent:
+        return self._workflow_truth_event(
+            StreamEventType.REFINEMENT_REQUESTED,
+            code="refinement_requested",
+            message=message,
+            **details,
+        )
+
+    def refinement_completed(
+        self,
+        *,
+        message: str,
+        **details: Any,
+    ) -> StreamEvent:
+        return self._workflow_truth_event(
+            StreamEventType.REFINEMENT_COMPLETED,
+            code="refinement_completed",
+            message=message,
+            **details,
+        )
+
+    def retry_started(
+        self,
+        *,
+        message: str,
+        **details: Any,
+    ) -> StreamEvent:
+        return self._workflow_truth_event(
+            StreamEventType.RETRY_STARTED,
+            code="retry_started",
+            message=message,
+            **details,
+        )
+
+    def retry_completed(
+        self,
+        *,
+        message: str,
+        **details: Any,
+    ) -> StreamEvent:
+        return self._workflow_truth_event(
+            StreamEventType.RETRY_COMPLETED,
+            code="retry_completed",
+            message=message,
+            **details,
+        )
+
     def artifact_extracted(
         self,
         *,
@@ -166,6 +289,23 @@ class StreamEventBuilder:
         )
         self._sequence += 1
         return event
+
+    def _workflow_truth_event(
+        self,
+        event_type: StreamEventType,
+        *,
+        code: str,
+        message: str,
+        **details: Any,
+    ) -> StreamEvent:
+        return self._event(
+            event_type,
+            {
+                "code": code,
+                "message": message,
+                **details,
+            },
+        )
 
 
 def _dump_event_payload(value: object) -> object:

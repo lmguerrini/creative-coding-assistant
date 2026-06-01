@@ -41,6 +41,7 @@ from creative_coding_assistant.orchestration import (
     build_rendered_prompt_request,
 )
 from creative_coding_assistant.rag.sources import OfficialSourceType
+from event_assertions import first_event, legacy_events
 
 
 class RenderedPromptToProviderBoundaryTests(unittest.TestCase):
@@ -118,9 +119,10 @@ class RenderedPromptToProviderBoundaryTests(unittest.TestCase):
         )
 
         events = tuple(service.stream(request))
+        legacy = legacy_events(events)
 
         self.assertEqual(
-            [event.event_type for event in events],
+            [event.event_type for event in legacy],
             [
                 StreamEventType.STATUS,
                 StreamEventType.STATUS,
@@ -135,8 +137,14 @@ class RenderedPromptToProviderBoundaryTests(unittest.TestCase):
                 StreamEventType.FINAL,
             ],
         )
-        self.assertEqual(events[9].payload["code"], "generation_input_prepared")
-        generation_input = events[9].payload["generation_input"]
+        generation_event = first_event(
+            events,
+            StreamEventType.GENERATION_INPUT,
+            "generation_input_prepared",
+        )
+
+        self.assertEqual(generation_event.payload["code"], "generation_input_prepared")
+        generation_input = generation_event.payload["generation_input"]
         self.assertEqual(len(generation_input["messages"]), 4)
         self.assertEqual(generation_input["messages"][0]["name"], "system")
         self.assertEqual(generation_input["messages"][1]["name"], "user")
@@ -163,9 +171,10 @@ class RenderedPromptToProviderBoundaryTests(unittest.TestCase):
         )
 
         events = tuple(service.stream(request))
+        legacy = legacy_events(events)
 
         self.assertEqual(
-            [event.event_type for event in events],
+            [event.event_type for event in legacy],
             [
                 StreamEventType.STATUS,
                 StreamEventType.STATUS,
@@ -180,11 +189,26 @@ class RenderedPromptToProviderBoundaryTests(unittest.TestCase):
                 StreamEventType.FINAL,
             ],
         )
-        retrieval_context = events[5].payload["context"]
+        retrieval_context = first_event(
+            events,
+            StreamEventType.RETRIEVAL,
+            "retrieval_completed",
+        ).payload["context"]
         self.assertEqual(retrieval_context["chunks"], [])
-        assembled_context = events[6].payload["context"]
+        assembled_context = first_event(
+            events,
+            StreamEventType.CONTEXT,
+            "context_assembled",
+        ).payload["context"]
         self.assertEqual(assembled_context["summary"]["retrieval_chunk_count"], 0)
-        self.assertEqual(events[9].payload["code"], "generation_input_prepared")
+        self.assertEqual(
+            first_event(
+                events,
+                StreamEventType.GENERATION_INPUT,
+                "generation_input_prepared",
+            ).payload["code"],
+            "generation_input_prepared",
+        )
 
 
 def _route_decision() -> RouteDecision:

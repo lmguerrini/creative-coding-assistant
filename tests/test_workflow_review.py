@@ -17,6 +17,11 @@ class WorkflowReviewTests(unittest.TestCase):
 
         self.assertEqual(result.outcome, WorkflowReviewOutcome.PASS)
         self.assertEqual(result.reasons, ())
+        self.assertEqual(result.score, 1.0)
+        self.assertEqual(
+            result.rationale,
+            "Deterministic review passed without quality gate findings.",
+        )
 
     def test_review_flags_missing_answer(self) -> None:
         result = review_assistant_answer(
@@ -27,6 +32,11 @@ class WorkflowReviewTests(unittest.TestCase):
 
         self.assertEqual(result.outcome, WorkflowReviewOutcome.NEEDS_REFINEMENT)
         self.assertEqual(result.reasons, ("missing_answer",))
+        self.assertEqual(result.score, 0.75)
+        self.assertEqual(
+            result.rationale,
+            "Deterministic review requested refinement: missing_answer.",
+        )
 
     def test_review_flags_explicit_code_request_without_code_block(self) -> None:
         result = review_assistant_answer(
@@ -37,6 +47,11 @@ class WorkflowReviewTests(unittest.TestCase):
 
         self.assertEqual(result.outcome, WorkflowReviewOutcome.NEEDS_REFINEMENT)
         self.assertEqual(result.reasons, ("missing_code_block",))
+        self.assertEqual(result.score, 0.75)
+        self.assertEqual(
+            result.rationale,
+            "Deterministic review requested refinement: missing_code_block.",
+        )
 
     def test_review_flags_explain_mode_without_explanation_signals(self) -> None:
         result = review_assistant_answer(

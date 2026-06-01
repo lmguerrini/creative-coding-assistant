@@ -36,6 +36,7 @@ from creative_coding_assistant.orchestration import (
     build_prompt_input_request,
 )
 from creative_coding_assistant.rag.sources import OfficialSourceType
+from event_assertions import first_event, legacy_events
 
 _UNSET = object()
 
@@ -552,9 +553,10 @@ class PromptInputContractsTests(unittest.TestCase):
         )
 
         events = tuple(service.stream(request))
+        legacy = legacy_events(events)
 
         self.assertEqual(
-            [event.event_type for event in events],
+            [event.event_type for event in legacy],
             [
                 StreamEventType.STATUS,
                 StreamEventType.STATUS,
@@ -567,8 +569,14 @@ class PromptInputContractsTests(unittest.TestCase):
                 StreamEventType.FINAL,
             ],
         )
-        self.assertEqual(events[7].payload["code"], "prompt_inputs_prepared")
-        prompt_input = events[7].payload["prompt_input"]
+        prompt_event = first_event(
+            events,
+            StreamEventType.PROMPT_INPUT,
+            "prompt_inputs_prepared",
+        )
+
+        self.assertEqual(prompt_event.payload["code"], "prompt_inputs_prepared")
+        prompt_input = prompt_event.payload["prompt_input"]
         self.assertEqual(
             prompt_input["user_input"]["query"],
             "Explain the scene setup.",

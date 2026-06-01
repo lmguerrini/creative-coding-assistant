@@ -17,6 +17,15 @@ export type AssistantStreamEventType =
   | "tool_start"
   | "tool_result"
   | "token_delta"
+  | "node_started"
+  | "node_completed"
+  | "node_failed"
+  | "review_passed"
+  | "review_failed"
+  | "refinement_requested"
+  | "refinement_completed"
+  | "retry_started"
+  | "retry_completed"
   | "artifact_extracted"
   | "preview_artifact"
   | "eval_update"
@@ -102,6 +111,15 @@ const streamEventTypes = new Set<AssistantStreamEventType>([
   "tool_start",
   "tool_result",
   "token_delta",
+  "node_started",
+  "node_completed",
+  "node_failed",
+  "review_passed",
+  "review_failed",
+  "refinement_requested",
+  "refinement_completed",
+  "retry_started",
+  "retry_completed",
   "artifact_extracted",
   "preview_artifact",
   "eval_update",
@@ -135,6 +153,33 @@ const streamEventWorkflowNodes: Partial<
   },
   generation_input: {
     generation_input_prepared: "generation"
+  },
+  node_started: {
+    node_started: "intake"
+  },
+  node_completed: {
+    node_completed: "intake"
+  },
+  node_failed: {
+    node_failed: "failure"
+  },
+  review_passed: {
+    review_passed: "review"
+  },
+  review_failed: {
+    review_failed: "review"
+  },
+  refinement_requested: {
+    refinement_requested: "review"
+  },
+  refinement_completed: {
+    refinement_completed: "refinement"
+  },
+  retry_started: {
+    retry_started: "review"
+  },
+  retry_completed: {
+    retry_completed: "review"
   },
   artifact_extracted: {
     artifact_extracted: "artifact_extraction"
@@ -276,6 +321,9 @@ export function workflowNodeFromAssistantStreamEvent(
   if (workflow?.current_step) {
     return workflow.current_step;
   }
+  if (workflow?.step) {
+    return workflow.step;
+  }
 
   if (event.event_type === "token_delta") {
     return "generation";
@@ -291,6 +339,11 @@ export function workflowNodeFromAssistantStreamEvent(
 
   if (event.event_type === "error") {
     return "failure";
+  }
+
+  const node = parseWorkflowNodeId(event.payload.node);
+  if (node) {
+    return node;
   }
 
   const code = event.payload.code;

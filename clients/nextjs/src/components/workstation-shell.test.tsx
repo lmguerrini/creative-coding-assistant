@@ -425,6 +425,7 @@ function runtimeWorkflowEvent({
   code,
   completedSteps = [],
   currentStep,
+  decisionReason,
   evaluation,
   eventType,
   message,
@@ -432,11 +433,15 @@ function runtimeWorkflowEvent({
   phase = "running",
   refinementCount = 0,
   reviewOutcome = null,
+  retryCount,
+  retryReason,
   sequence,
   skippedSteps = [],
   status = "running",
   step,
   telemetry,
+  transitionSource,
+  transitionTarget,
   text
 }: {
   answer?: string;
@@ -444,6 +449,7 @@ function runtimeWorkflowEvent({
   code?: string;
   completedSteps?: string[];
   currentStep: string | null;
+  decisionReason?: string;
   evaluation?: Record<string, unknown>;
   eventType: AssistantStreamEvent["event_type"];
   message?: string;
@@ -451,11 +457,15 @@ function runtimeWorkflowEvent({
   phase?: string;
   refinementCount?: number;
   reviewOutcome?: string | null;
+  retryCount?: number;
+  retryReason?: string;
   sequence: number;
   skippedSteps?: string[];
   status?: string;
   step: string | null;
   telemetry?: Record<string, unknown>;
+  transitionSource?: string;
+  transitionTarget?: string;
   text?: string;
 }): AssistantStreamEvent {
   return {
@@ -466,8 +476,23 @@ function runtimeWorkflowEvent({
       ...(code ? { code } : {}),
       ...(evaluation ? { evaluation } : {}),
       ...(message ? { message } : {}),
+      ...(step ? { node: step } : {}),
       ...(observability ? { observability } : {}),
+      ...(retryCount != null ? { retry_count: retryCount } : {}),
+      ...(retryReason ? { retry_reason: retryReason } : {}),
       ...(telemetry ? { telemetry } : {}),
+      ...(transitionSource ? { transition_source: transitionSource } : {}),
+      ...(transitionTarget ? { transition_target: transitionTarget } : {}),
+      ...(decisionReason ? { decision_reason: decisionReason } : {}),
+      ...(transitionSource && transitionTarget && decisionReason
+        ? {
+            edge: {
+              source: transitionSource,
+              target: transitionTarget,
+              decision_reason: decisionReason
+            }
+          }
+        : {}),
       ...(text ? { text } : {}),
       emitted_at: at,
       workflow: {
@@ -2356,137 +2381,495 @@ describe("WorkstationShell", () => {
   });
 
   it("renders runtime transitions, retries, and event traces from streamed metadata", async () => {
+    const skippedSteps = [
+      "memory",
+      "retrieval",
+      "context_assembly",
+      "prompt_input",
+      "prompt_rendering"
+    ];
+    const completedAfterPreview = [
+      "intake",
+      "routing",
+      "generation",
+      "artifact_extraction",
+      "preview_preparation",
+      "review",
+      "refinement"
+    ];
     const backendStream = vi.fn(() =>
       streamEvents([
         runtimeWorkflowEvent({
           at: "2026-05-22T10:00:00Z",
-          code: "request_received",
           currentStep: "intake",
-          eventType: "status",
-          message: "Request accepted.",
+          eventType: "node_started",
           sequence: 0,
           step: "intake"
         }),
         runtimeWorkflowEvent({
           at: "2026-05-22T10:00:01Z",
-          code: "route_selected",
           completedSteps: ["intake"],
-          currentStep: "routing",
-          eventType: "status",
-          message: "Route selected.",
+          currentStep: null,
+          decisionReason: "request_received",
+          eventType: "node_completed",
+          phase: "completed",
           sequence: 1,
-          step: "routing"
+          step: "intake",
+          transitionSource: "intake",
+          transitionTarget: "routing"
         }),
         runtimeWorkflowEvent({
           at: "2026-05-22T10:00:02Z",
-          code: "generation_input_prepared",
-          completedSteps: ["intake", "routing"],
-          currentStep: "generation",
-          eventType: "generation_input",
-          message: "Provider generation input prepared.",
+          completedSteps: ["intake"],
+          currentStep: "routing",
+          eventType: "node_started",
           sequence: 2,
-          skippedSteps: [
-            "memory",
-            "retrieval",
-            "context_assembly",
-            "prompt_input",
-            "prompt_rendering"
-          ],
-          step: "generation"
+          step: "routing"
         }),
         runtimeWorkflowEvent({
           at: "2026-05-22T10:00:03Z",
-          currentStep: "generation",
-          eventType: "token_delta",
+          completedSteps: ["intake", "routing"],
+          currentStep: null,
+          decisionReason: "route_selected:generate",
+          eventType: "node_completed",
+          phase: "completed",
           sequence: 3,
-          step: "generation",
-          text: "draft"
+          step: "routing",
+          transitionSource: "routing",
+          transitionTarget: "generation"
         }),
         runtimeWorkflowEvent({
           at: "2026-05-22T10:00:04Z",
-          code: "generation_input_prepared",
-          completedSteps: ["intake", "routing"],
           currentStep: "generation",
-          eventType: "generation_input",
-          message: "Provider generation input prepared.",
-          refinementCount: 1,
+          eventType: "node_started",
           sequence: 4,
-          skippedSteps: [
-            "memory",
-            "retrieval",
-            "context_assembly",
-            "prompt_input",
-            "prompt_rendering"
-          ],
+          skippedSteps,
           step: "generation"
         }),
         runtimeWorkflowEvent({
           at: "2026-05-22T10:00:05Z",
-          code: "artifact_extracted",
+          code: "generation_input_prepared",
+          completedSteps: ["intake", "routing"],
+          currentStep: "generation",
+          eventType: "generation_input",
+          message: "Provider generation input prepared.",
+          sequence: 5,
+          skippedSteps,
+          step: "generation"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:06Z",
+          completedSteps: ["intake", "routing"],
+          currentStep: "generation",
+          eventType: "token_delta",
+          sequence: 6,
+          skippedSteps,
+          step: "generation",
+          text: "draft"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:07Z",
           completedSteps: ["intake", "routing", "generation"],
+          currentStep: null,
+          decisionReason: "generation_completed",
+          eventType: "node_completed",
+          phase: "completed",
+          sequence: 7,
+          skippedSteps,
+          step: "generation",
+          transitionSource: "generation",
+          transitionTarget: "artifact_extraction"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:08Z",
+          completedSteps: ["intake", "routing", "generation"],
+          currentStep: "artifact_extraction",
+          eventType: "node_started",
+          sequence: 8,
+          skippedSteps,
+          step: "artifact_extraction"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:09Z",
+          completedSteps: ["intake", "routing", "generation"],
+          currentStep: null,
+          decisionReason: "no_generated_artifacts",
+          eventType: "node_completed",
+          phase: "completed",
+          sequence: 9,
+          skippedSteps: [...skippedSteps, "artifact_extraction"],
+          step: "artifact_extraction",
+          transitionSource: "artifact_extraction",
+          transitionTarget: "preview_preparation"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:10Z",
+          completedSteps: ["intake", "routing", "generation"],
+          currentStep: "preview_preparation",
+          eventType: "node_started",
+          sequence: 10,
+          skippedSteps: [...skippedSteps, "artifact_extraction"],
+          step: "preview_preparation"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:11Z",
+          completedSteps: ["intake", "routing", "generation"],
+          currentStep: null,
+          decisionReason: "no_artifacts_for_preview",
+          eventType: "node_completed",
+          phase: "completed",
+          sequence: 11,
+          skippedSteps: [
+            ...skippedSteps,
+            "artifact_extraction",
+            "preview_preparation"
+          ],
+          step: "preview_preparation",
+          transitionSource: "preview_preparation",
+          transitionTarget: "review"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:12Z",
+          completedSteps: ["intake", "routing", "generation"],
+          currentStep: "review",
+          eventType: "node_started",
+          sequence: 12,
+          skippedSteps: [
+            ...skippedSteps,
+            "artifact_extraction",
+            "preview_preparation"
+          ],
+          step: "review"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:13Z",
+          completedSteps: ["intake", "routing", "generation"],
+          currentStep: "review",
+          eventType: "review_failed",
+          message: "Review failed: missing_code_block",
+          reviewOutcome: "needs_refinement",
+          refinementCount: 1,
+          sequence: 13,
+          skippedSteps: [
+            ...skippedSteps,
+            "artifact_extraction",
+            "preview_preparation"
+          ],
+          step: "review"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:14Z",
+          completedSteps: ["intake", "routing", "generation"],
+          currentStep: "review",
+          eventType: "retry_started",
+          message: "Retry 1 started: missing_code_block.",
+          refinementCount: 1,
+          retryCount: 1,
+          retryReason: "missing_code_block",
+          sequence: 14,
+          skippedSteps: [
+            ...skippedSteps,
+            "artifact_extraction",
+            "preview_preparation"
+          ],
+          step: "review"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:15Z",
+          completedSteps: ["intake", "routing", "generation", "review"],
+          currentStep: null,
+          decisionReason: "review_failed_retry_available",
+          eventType: "node_completed",
+          phase: "completed",
+          refinementCount: 1,
+          sequence: 15,
+          skippedSteps: [
+            ...skippedSteps,
+            "artifact_extraction",
+            "preview_preparation"
+          ],
+          step: "review",
+          transitionSource: "review",
+          transitionTarget: "refinement"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:16Z",
+          completedSteps: ["intake", "routing", "generation", "review"],
+          currentStep: "refinement",
+          eventType: "node_started",
+          refinementCount: 1,
+          sequence: 16,
+          skippedSteps: [
+            ...skippedSteps,
+            "artifact_extraction",
+            "preview_preparation"
+          ],
+          step: "refinement"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:17Z",
+          completedSteps: ["intake", "routing", "generation", "review"],
+          currentStep: "refinement",
+          eventType: "refinement_completed",
+          message: "Refinement guidance prepared for retry 1.",
+          refinementCount: 1,
+          retryCount: 1,
+          retryReason: "missing_code_block",
+          sequence: 17,
+          skippedSteps: [
+            ...skippedSteps,
+            "artifact_extraction",
+            "preview_preparation"
+          ],
+          step: "refinement"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:18Z",
+          completedSteps: ["intake", "routing", "generation", "review", "refinement"],
+          currentStep: null,
+          decisionReason: "refinement_completed",
+          eventType: "node_completed",
+          phase: "completed",
+          refinementCount: 1,
+          sequence: 18,
+          skippedSteps: [
+            ...skippedSteps,
+            "artifact_extraction",
+            "preview_preparation"
+          ],
+          step: "refinement",
+          transitionSource: "refinement",
+          transitionTarget: "generation"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:19Z",
+          completedSteps: ["intake", "routing", "review", "refinement"],
+          currentStep: "generation",
+          eventType: "node_started",
+          refinementCount: 1,
+          sequence: 19,
+          skippedSteps,
+          step: "generation"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:20Z",
+          code: "generation_input_prepared",
+          completedSteps: ["intake", "routing", "review", "refinement"],
+          currentStep: "generation",
+          eventType: "generation_input",
+          message: "Provider generation input prepared.",
+          refinementCount: 1,
+          sequence: 20,
+          skippedSteps,
+          step: "generation"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:21Z",
+          completedSteps: ["intake", "routing", "review", "refinement"],
+          currentStep: "generation",
+          eventType: "token_delta",
+          refinementCount: 1,
+          sequence: 21,
+          skippedSteps,
+          step: "generation",
+          text: "refined"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:22Z",
+          completedSteps: ["intake", "routing", "generation", "review", "refinement"],
+          currentStep: null,
+          decisionReason: "generation_completed",
+          eventType: "node_completed",
+          phase: "completed",
+          refinementCount: 1,
+          sequence: 22,
+          skippedSteps,
+          step: "generation",
+          transitionSource: "generation",
+          transitionTarget: "artifact_extraction"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:23Z",
+          completedSteps: ["intake", "routing", "generation", "review", "refinement"],
+          currentStep: "artifact_extraction",
+          eventType: "node_started",
+          refinementCount: 1,
+          sequence: 23,
+          skippedSteps,
+          step: "artifact_extraction"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:24Z",
+          code: "artifact_extracted",
+          completedSteps: ["intake", "routing", "generation", "review", "refinement"],
           currentStep: "artifact_extraction",
           eventType: "artifact_extracted",
           message: "Extracted 1 generated artifact from the answer.",
           refinementCount: 1,
-          sequence: 5,
-          skippedSteps: [
-            "memory",
-            "retrieval",
-            "context_assembly",
-            "prompt_input",
-            "prompt_rendering"
-          ],
+          sequence: 24,
+          skippedSteps,
           step: "artifact_extraction"
         }),
         runtimeWorkflowEvent({
-          at: "2026-05-22T10:00:06Z",
-          code: "preview_artifact_prepared",
-          completedSteps: [
-            "intake",
-            "routing",
-            "generation",
-            "artifact_extraction"
-          ],
-          currentStep: "preview_preparation",
-          eventType: "preview_artifact",
-          message: "Preview runtime metadata prepared.",
-          refinementCount: 1,
-          sequence: 6,
-          skippedSteps: [
-            "memory",
-            "retrieval",
-            "context_assembly",
-            "prompt_input",
-            "prompt_rendering"
-          ],
-          step: "preview_preparation"
-        }),
-        runtimeWorkflowEvent({
-          answer: "```ts\nconsole.log('refined');\n```",
-          at: "2026-05-22T10:00:07Z",
+          at: "2026-05-22T10:00:25Z",
           completedSteps: [
             "intake",
             "routing",
             "generation",
             "artifact_extraction",
-            "preview_preparation",
             "review",
-            "refinement",
-            "finalization"
+            "refinement"
           ],
+          currentStep: null,
+          decisionReason: "artifacts_extracted",
+          eventType: "node_completed",
+          phase: "completed",
+          refinementCount: 1,
+          sequence: 25,
+          skippedSteps,
+          step: "artifact_extraction",
+          transitionSource: "artifact_extraction",
+          transitionTarget: "preview_preparation"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:26Z",
+          completedSteps: [
+            "intake",
+            "routing",
+            "generation",
+            "artifact_extraction",
+            "review",
+            "refinement"
+          ],
+          currentStep: "preview_preparation",
+          eventType: "node_started",
+          refinementCount: 1,
+          sequence: 26,
+          skippedSteps,
+          step: "preview_preparation"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:27Z",
+          code: "preview_artifact_prepared",
+          completedSteps: [
+            "intake",
+            "routing",
+            "generation",
+            "artifact_extraction",
+            "review",
+            "refinement"
+          ],
+          currentStep: "preview_preparation",
+          eventType: "preview_artifact",
+          message: "Preview runtime metadata prepared.",
+          refinementCount: 1,
+          sequence: 27,
+          skippedSteps,
+          step: "preview_preparation"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:28Z",
+          completedSteps: completedAfterPreview,
+          currentStep: null,
+          decisionReason: "preview_metadata_prepared",
+          eventType: "node_completed",
+          phase: "completed",
+          refinementCount: 1,
+          sequence: 28,
+          skippedSteps,
+          step: "preview_preparation",
+          transitionSource: "preview_preparation",
+          transitionTarget: "review"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:29Z",
+          completedSteps: completedAfterPreview,
+          currentStep: "review",
+          eventType: "node_started",
+          refinementCount: 1,
+          sequence: 29,
+          skippedSteps,
+          step: "review"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:30Z",
+          completedSteps: completedAfterPreview,
+          currentStep: "review",
+          eventType: "review_passed",
+          message: "Review passed.",
+          refinementCount: 1,
+          reviewOutcome: "pass",
+          sequence: 30,
+          skippedSteps,
+          step: "review"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:31Z",
+          completedSteps: completedAfterPreview,
+          currentStep: "review",
+          eventType: "retry_completed",
+          message: "Retry 1 passed.",
+          refinementCount: 1,
+          retryCount: 1,
+          retryReason: "missing_code_block",
+          reviewOutcome: "pass",
+          sequence: 31,
+          skippedSteps,
+          step: "review"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:32Z",
+          completedSteps: completedAfterPreview,
+          currentStep: null,
+          decisionReason: "review_passed",
+          eventType: "node_completed",
+          phase: "completed",
+          refinementCount: 1,
+          reviewOutcome: "pass",
+          sequence: 32,
+          skippedSteps,
+          step: "review",
+          transitionSource: "review",
+          transitionTarget: "finalization"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:33Z",
+          completedSteps: completedAfterPreview,
+          currentStep: "finalization",
+          eventType: "node_started",
+          refinementCount: 1,
+          reviewOutcome: "pass",
+          sequence: 33,
+          skippedSteps,
+          step: "finalization"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:34Z",
+          completedSteps: [...completedAfterPreview, "finalization"],
+          currentStep: null,
+          decisionReason: "final_answer_emitted",
+          eventType: "node_completed",
+          phase: "completed",
+          refinementCount: 1,
+          reviewOutcome: "pass",
+          sequence: 34,
+          skippedSteps,
+          status: "completed",
+          step: "finalization",
+          transitionSource: "finalization",
+          transitionTarget: "end"
+        }),
+        runtimeWorkflowEvent({
+          answer: "```ts\nconsole.log('refined');\n```",
+          at: "2026-05-22T10:00:35Z",
+          completedSteps: [...completedAfterPreview, "finalization"],
           currentStep: null,
           eventType: "final",
           phase: "completed",
           refinementCount: 1,
           reviewOutcome: "pass",
-          sequence: 7,
-          skippedSteps: [
-            "memory",
-            "retrieval",
-            "context_assembly",
-            "prompt_input",
-            "prompt_rendering"
-          ],
+          sequence: 35,
+          skippedSteps,
           status: "completed",
           step: "finalization"
         })
@@ -2519,20 +2902,22 @@ describe("WorkstationShell", () => {
     });
 
     expect(within(retries).getByText("1 retry loop")).toBeVisible();
-    expect(within(transitions).getByText("Generation retry")).toBeVisible();
+    expect(within(transitions).getByText("Review -> Refinement")).toBeVisible();
     expect(
-      within(transitions).getByText("Generation -> Artifact extraction")
+      within(transitions).getByText("Review Failed Retry Available")
     ).toBeVisible();
+    expect(within(transitions).getByText("Refinement -> Generation")).toBeVisible();
     expect(
-      within(transitions).getByText(
+      within(transitions).getAllByText("Generation -> Artifact extraction")
+    ).toHaveLength(2);
+    expect(
+      within(transitions).getAllByText(
         "Artifact extraction -> Preview preparation"
       )
-    ).toBeVisible();
-    expect(
-      within(events).getAllByText("Generation Input Prepared").length
-    ).toBeGreaterThan(0);
-    expect(within(events).getByText("Artifact Extracted")).toBeVisible();
-    expect(within(events).getByText("Preview Artifact Prepared")).toBeVisible();
+    ).toHaveLength(2);
+    expect(within(events).getByText("Retry Completed")).toBeVisible();
+    expect(within(events).getByText("Review Passed")).toBeVisible();
+    expect(within(events).getByText("Final")).toBeVisible();
     expect(
       within(workflowGraph).getByText("Artifact extraction").closest("article")
     ).toHaveAttribute("data-state", "complete");

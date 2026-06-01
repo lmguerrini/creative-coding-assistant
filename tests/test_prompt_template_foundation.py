@@ -44,6 +44,7 @@ from creative_coding_assistant.orchestration import (
     build_rendered_prompt_request,
 )
 from creative_coding_assistant.rag.sources import OfficialSourceType
+from event_assertions import first_event, legacy_events
 
 _UNSET = object()
 
@@ -809,9 +810,10 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         )
 
         events = tuple(service.stream(request))
+        legacy = legacy_events(events)
 
         self.assertEqual(
-            [event.event_type for event in events],
+            [event.event_type for event in legacy],
             [
                 StreamEventType.STATUS,
                 StreamEventType.STATUS,
@@ -825,8 +827,14 @@ class PromptTemplateFoundationTests(unittest.TestCase):
                 StreamEventType.FINAL,
             ],
         )
-        self.assertEqual(events[8].payload["code"], "prompt_rendered")
-        rendered_prompt = events[8].payload["rendered_prompt"]
+        rendered_event = first_event(
+            events,
+            StreamEventType.PROMPT_RENDERED,
+            "prompt_rendered",
+        )
+
+        self.assertEqual(rendered_event.payload["code"], "prompt_rendered")
+        rendered_prompt = rendered_event.payload["rendered_prompt"]
         self.assertEqual(len(rendered_prompt["sections"]), 4)
         self.assertEqual(rendered_prompt["sections"][0]["name"], "system")
         self.assertEqual(rendered_prompt["sections"][1]["name"], "user")

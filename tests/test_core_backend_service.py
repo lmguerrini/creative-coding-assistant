@@ -16,6 +16,7 @@ from creative_coding_assistant.orchestration import (
     StreamEventBuilder,
     route_request,
 )
+from event_assertions import first_event, legacy_events
 
 
 class CoreBackendServiceTests(unittest.TestCase):
@@ -105,20 +106,21 @@ class CoreBackendServiceTests(unittest.TestCase):
         )
 
         events = tuple(service.stream(request))
+        legacy = legacy_events(events)
 
         self.assertEqual(
-            [event.event_type for event in events],
+            [event.event_type for event in legacy],
             [
                 StreamEventType.STATUS,
                 StreamEventType.STATUS,
                 StreamEventType.FINAL,
             ],
         )
-        self.assertEqual(events[0].payload["code"], "request_received")
-        self.assertEqual(events[1].payload["route"]["route"], "generate")
-        self.assertEqual(events[1].payload["route"]["domains"], ["three_js"])
-        self.assertEqual(events[1].payload["route"]["domain_selection"], "single")
-        self.assertIn("generate route", events[2].payload["answer"])
+        self.assertEqual(legacy[0].payload["code"], "request_received")
+        self.assertEqual(legacy[1].payload["route"]["route"], "generate")
+        self.assertEqual(legacy[1].payload["route"]["domains"], ["three_js"])
+        self.assertEqual(legacy[1].payload["route"]["domain_selection"], "single")
+        self.assertIn("generate route", legacy[2].payload["answer"])
 
     def test_assistant_service_emits_image_reference_runtime_metadata(self) -> None:
         service = AssistantService()
@@ -136,20 +138,21 @@ class CoreBackendServiceTests(unittest.TestCase):
         )
 
         events = tuple(service.stream(request))
+        request_event = first_event(events, StreamEventType.STATUS, "request_received")
 
         self.assertEqual(
-            events[0].payload["multimodal"]["image_reference_count"],
+            request_event.payload["multimodal"]["image_reference_count"],
             1,
         )
         self.assertEqual(
-            events[0].payload["multimodal"]["image_references"][0]["name"],
+            request_event.payload["multimodal"]["image_references"][0]["name"],
             "palette.png",
         )
         self.assertNotIn(
             "data_url",
-            events[0].payload["multimodal"]["image_references"][0],
+            request_event.payload["multimodal"]["image_references"][0],
         )
-        self.assertEqual(events[0].payload["workflow"]["image_reference_count"], 1)
+        self.assertEqual(request_event.payload["workflow"]["image_reference_count"], 1)
 
     def test_assistant_service_collects_streamed_response(self) -> None:
         service = AssistantService()
@@ -157,7 +160,7 @@ class CoreBackendServiceTests(unittest.TestCase):
 
         response = service.respond(request)
 
-        self.assertEqual(len(response.events), 3)
+        self.assertEqual(len(legacy_events(response.events)), 3)
         self.assertEqual(response.events[-1].event_type, StreamEventType.FINAL)
         self.assertEqual(response.answer, response.events[-1].payload["answer"])
 
@@ -174,9 +177,10 @@ class CoreBackendServiceTests(unittest.TestCase):
         request = AssistantRequest(query="Why is this shader black?")
 
         events = tuple(service.stream(request))
+        route_event = first_event(events, StreamEventType.STATUS, "route_selected")
 
-        self.assertEqual(events[1].payload["route"]["route"], "debug")
-        self.assertEqual(events[1].payload["route"]["capabilities"], ["tool_use"])
+        self.assertEqual(route_event.payload["route"]["route"], "debug")
+        self.assertEqual(route_event.payload["route"]["capabilities"], ["tool_use"])
 
 
 if __name__ == "__main__":

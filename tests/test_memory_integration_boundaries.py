@@ -25,6 +25,7 @@ from creative_coding_assistant.orchestration import (
     RouteName,
     build_memory_context_request,
 )
+from event_assertions import first_event, legacy_events
 
 
 class MemoryIntegrationBoundaryTests(unittest.TestCase):
@@ -167,9 +168,10 @@ class MemoryIntegrationBoundaryTests(unittest.TestCase):
         )
 
         events = tuple(service.stream(request))
+        legacy = legacy_events(events)
 
         self.assertEqual(
-            [event.event_type for event in events],
+            [event.event_type for event in legacy],
             [
                 StreamEventType.STATUS,
                 StreamEventType.STATUS,
@@ -178,8 +180,18 @@ class MemoryIntegrationBoundaryTests(unittest.TestCase):
                 StreamEventType.FINAL,
             ],
         )
-        self.assertEqual(events[2].payload["code"], "memory_requested")
-        self.assertEqual(events[3].payload["code"], "memory_completed")
+        self.assertEqual(
+            first_event(events, StreamEventType.MEMORY, "memory_requested").payload[
+                "code"
+            ],
+            "memory_requested",
+        )
+        self.assertEqual(
+            first_event(events, StreamEventType.MEMORY, "memory_completed").payload[
+                "code"
+            ],
+            "memory_completed",
+        )
         self.assertEqual(len(gateway.requests), 1)
         self.assertEqual(gateway.requests[0].conversation_id, "conversation-1")
 
@@ -196,9 +208,10 @@ class MemoryIntegrationBoundaryTests(unittest.TestCase):
         request = AssistantRequest(query="Continue the sketch direction.")
 
         events = tuple(service.stream(request))
+        legacy = legacy_events(events)
 
         self.assertEqual(
-            [event.event_type for event in events],
+            [event.event_type for event in legacy],
             [
                 StreamEventType.STATUS,
                 StreamEventType.STATUS,

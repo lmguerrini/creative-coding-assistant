@@ -17,6 +17,7 @@ from creative_coding_assistant.contracts import (
     AssistantMode,
     AssistantRequest,
     CreativeCodingDomain,
+    StreamEventType,
 )
 from creative_coding_assistant.core import Settings, load_settings
 from creative_coding_assistant.eval.live_session import (
@@ -39,6 +40,7 @@ from creative_coding_assistant.orchestration import (
     RouteName,
 )
 from creative_coding_assistant.rag.sources import OfficialSourceType
+from event_assertions import first_event, legacy_events
 
 
 class LangSmithObservabilityTests(unittest.TestCase):
@@ -91,17 +93,20 @@ class LangSmithObservabilityTests(unittest.TestCase):
             )
         )
 
-        self.assertEqual(len(events), 3)
+        request_event = first_event(events, StreamEventType.STATUS, "request_received")
+        final_event = first_event(events, StreamEventType.FINAL)
+
+        self.assertEqual(len(legacy_events(events)), 3)
         self.assertEqual(
-            events[0].payload["observability"]["reason"],
+            request_event.payload["observability"]["reason"],
             "missing_api_key",
         )
         self.assertEqual(
-            events[-1].payload["observability"]["trace_kind"],
+            final_event.payload["observability"]["trace_kind"],
             "assistant_workflow",
         )
         self.assertEqual(
-            events[-1].payload["observability"]["lineage"]["stage"],
+            final_event.payload["observability"]["lineage"]["stage"],
             "finalization",
         )
 
