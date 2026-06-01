@@ -130,6 +130,18 @@ class WorkflowFoundationTests(unittest.TestCase):
         self.assertEqual(WORKFLOW_STEP_ORDER[-1], WorkflowStep.FINALIZATION)
         self.assertEqual(next_workflow_step(WorkflowStep.INTAKE), WorkflowStep.ROUTING)
         self.assertEqual(
+            next_workflow_step(WorkflowStep.GENERATION),
+            WorkflowStep.ARTIFACT_EXTRACTION,
+        )
+        self.assertEqual(
+            next_workflow_step(WorkflowStep.ARTIFACT_EXTRACTION),
+            WorkflowStep.PREVIEW_PREPARATION,
+        )
+        self.assertEqual(
+            next_workflow_step(WorkflowStep.PREVIEW_PREPARATION),
+            WorkflowStep.REVIEW,
+        )
+        self.assertEqual(
             next_workflow_step(WorkflowStep.REVIEW),
             WorkflowStep.REFINEMENT,
         )

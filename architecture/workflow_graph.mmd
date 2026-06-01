@@ -30,13 +30,15 @@ flowchart TB
     subgraph phase_4["Phase 4: Answer production"]
         direction TB
         generation["Generation<br/>prepare provider input<br/>stream tokens<br/>store generation_result"]
+        artifact_extraction["Artifact extraction<br/>normalize code artifacts<br/>emit artifact_extracted"]
+        preview_preparation["Preview preparation<br/>prepare runtime metadata<br/>emit preview_artifact"]
         review{{"Review quality gate<br/>deterministic checks<br/>records review_result"}}
         refinement["Refinement<br/>append guidance<br/>increment refinement_count<br/>max one attempt"]
         finalization["Finalization<br/>resolve final answer<br/>emit final<br/>finish_workflow()"]
         failure["Failure<br/>emit final failure answer<br/>mark workflow FAILED"]
     end
 
-    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> review
+    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> review
     review -->|"pass or max retry"| finalization --> finish
     review -->|"needs refinement and count < 1"| refinement --> generation
     intake -. intake_error .-> failure
@@ -47,6 +49,8 @@ flowchart TB
     prompt_input -. prompt_input_error .-> failure
     prompt_rendering -. prompt_rendering_error .-> failure
     generation -. stream_error / provider_error .-> failure
+    artifact_extraction -. extraction_error .-> failure
+    preview_preparation -. preview_error .-> failure
     review -. review_error .-> failure
     refinement -. refinement_error .-> failure
     finalization -. finalization_error .-> failure
@@ -54,7 +58,7 @@ flowchart TB
 
     class start boundary
     class finish terminal
-    class intake,routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,refinement,finalization implemented
+    class intake,routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,artifact_extraction,preview_preparation,refinement,finalization implemented
     class review gate
     class failure failure
     style phase_1 rx:6px,ry:6px

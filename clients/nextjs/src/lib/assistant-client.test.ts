@@ -40,6 +40,8 @@ describe("assistant frontend client", () => {
       "prompt_input",
       "prompt_rendering",
       "generation",
+      "artifact_extraction",
+      "preview_preparation",
       "review",
       "refinement",
       "finalization",

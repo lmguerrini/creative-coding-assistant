@@ -30,6 +30,8 @@ type BuildPreviewRuntimeSummaryInput = {
 
 const previewGeneratingNodes = new Set<WorkflowNodeId>([
   "generation",
+  "artifact_extraction",
+  "preview_preparation",
   "review",
   "refinement",
   "finalization"

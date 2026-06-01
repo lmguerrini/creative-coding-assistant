@@ -172,8 +172,18 @@ describe("assistant stream client", () => {
         payload: { text: "Hello" }
       },
       {
-        event_type: "final",
+        event_type: "artifact_extracted",
         sequence: 4,
+        payload: { code: "artifact_extracted" }
+      },
+      {
+        event_type: "preview_artifact",
+        sequence: 5,
+        payload: { code: "preview_artifact_prepared", status: "succeeded" }
+      },
+      {
+        event_type: "final",
+        sequence: 6,
         payload: { answer: "Done." }
       }
     ];
@@ -183,6 +193,8 @@ describe("assistant stream client", () => {
       "routing",
       "prompt_rendering",
       "generation",
+      "artifact_extraction",
+      "preview_preparation",
       "finalization"
     ]);
   });
@@ -204,6 +216,8 @@ describe("assistant stream client", () => {
           refinement_count: 0,
           review_outcome: null,
           review_reasons: [],
+          artifact_count: 1,
+          preview_artifact_count: 0,
           image_reference_count: 1,
           image_references: [
             {
@@ -228,6 +242,8 @@ describe("assistant stream client", () => {
       refinement_count: 0,
       review_outcome: null,
       review_reasons: [],
+      artifact_count: 1,
+      preview_artifact_count: 0,
       image_reference_count: 1,
       image_references: [
         {

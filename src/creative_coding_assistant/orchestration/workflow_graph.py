@@ -16,6 +16,10 @@ from creative_coding_assistant.analytics import (
     LangSmithRunMetadata,
 )
 from creative_coding_assistant.contracts import AssistantRequest, StreamEvent
+from creative_coding_assistant.orchestration.artifacts import (
+    extract_workflow_artifacts,
+    prepare_workflow_preview_results,
+)
 from creative_coding_assistant.orchestration.events import StreamEventBuilder
 from creative_coding_assistant.orchestration.prompt_templates import (
     RenderedPromptResponse,
@@ -88,6 +92,8 @@ ASSISTANT_WORKFLOW_NODE_ORDER: tuple[str, ...] = (
     "prompt_input",
     "prompt_rendering",
     "generation",
+    "artifact_extraction",
+    "preview_preparation",
     "review",
     "refinement",
     "finalization",
@@ -114,6 +120,8 @@ def build_assistant_workflow_graph() -> Any:
     graph.add_node("prompt_input", _prompt_input_node)
     graph.add_node("prompt_rendering", _prompt_rendering_node)
     graph.add_node("generation", _generation_node)
+    graph.add_node("artifact_extraction", _artifact_extraction_node)
+    graph.add_node("preview_preparation", _preview_preparation_node)
     graph.add_node("review", _review_node)
     graph.add_node("refinement", _refinement_node)
     graph.add_node("finalization", _finalization_node)
@@ -121,7 +129,7 @@ def build_assistant_workflow_graph() -> Any:
 
     graph.add_edge(START, "intake")
     review_index = ASSISTANT_WORKFLOW_NODE_ORDER.index("review")
-    for index in range(review_index - 1):
+    for index in range(review_index):
         current_node = ASSISTANT_WORKFLOW_NODE_ORDER[index]
         next_node = ASSISTANT_WORKFLOW_NODE_ORDER[index + 1]
         graph.add_conditional_edges(
@@ -132,14 +140,6 @@ def build_assistant_workflow_graph() -> Any:
                 "failure": "failure",
             },
         )
-    graph.add_conditional_edges(
-        "generation",
-        lambda state: _next_node_or_failure(state, "review"),
-        {
-            "review": "review",
-            "failure": "failure",
-        },
-    )
     graph.add_conditional_edges(
         "review",
         _next_node_after_review,
@@ -520,6 +520,124 @@ def _generation_node(
         )
 
 
+def _artifact_extraction_node(
+    state: AssistantWorkflowGraphState,
+    runtime: Runtime[AssistantWorkflowGraphContext],
+) -> AssistantWorkflowGraphState:
+    workflow_state = _start_graph_workflow_step(
+        _workflow_state(state),
+        WorkflowStep.ARTIFACT_EXTRACTION,
+        allow_reentry=True,
+    )
+    runtime_context = _runtime(runtime)
+    try:
+        artifacts = extract_workflow_artifacts(
+            _answer_for_review(
+                state=state,
+                workflow_state=workflow_state,
+                runtime=runtime_context,
+            ),
+            request=workflow_state.request,
+            route_decision=_route_decision(workflow_state),
+        )
+        if not artifacts:
+            return {
+                "workflow_state": skip_workflow_step(
+                    workflow_state.model_copy(
+                        update={"artifacts": (), "preview_results": ()}
+                    ),
+                    WorkflowStep.ARTIFACT_EXTRACTION,
+                )
+            }
+
+        _emit(
+            runtime_context.event_builder.artifact_extracted(
+                artifacts=artifacts,
+                code="artifact_extracted",
+                message=(
+                    f"Extracted {len(artifacts)} generated artifact"
+                    f"{'s' if len(artifacts) != 1 else ''} from the answer."
+                ),
+            ),
+            workflow_state=workflow_state,
+            step=WorkflowStep.ARTIFACT_EXTRACTION,
+        )
+        return {
+            "workflow_state": complete_workflow_step(
+                workflow_state,
+                WorkflowStep.ARTIFACT_EXTRACTION,
+                artifacts=artifacts,
+                preview_results=(),
+            )
+        }
+    except Exception as exc:
+        return _handle_workflow_exception(
+            workflow_state=workflow_state,
+            runtime=runtime_context,
+            step=WorkflowStep.ARTIFACT_EXTRACTION,
+            exc=exc,
+        )
+
+
+def _preview_preparation_node(
+    state: AssistantWorkflowGraphState,
+    runtime: Runtime[AssistantWorkflowGraphContext],
+) -> AssistantWorkflowGraphState:
+    workflow_state = _start_graph_workflow_step(
+        _workflow_state(state),
+        WorkflowStep.PREVIEW_PREPARATION,
+        allow_reentry=True,
+    )
+    runtime_context = _runtime(runtime)
+    try:
+        if not workflow_state.artifacts:
+            return {
+                "workflow_state": skip_workflow_step(
+                    workflow_state.model_copy(update={"preview_results": ()}),
+                    WorkflowStep.PREVIEW_PREPARATION,
+                )
+            }
+
+        preview_results = prepare_workflow_preview_results(
+            workflow_state.artifacts,
+            request=workflow_state.request,
+            route_decision=_route_decision(workflow_state),
+        )
+        if not preview_results:
+            return {
+                "workflow_state": skip_workflow_step(
+                    workflow_state.model_copy(update={"preview_results": ()}),
+                    WorkflowStep.PREVIEW_PREPARATION,
+                )
+            }
+
+        for result in preview_results:
+            _emit(
+                runtime_context.event_builder.preview_artifact(
+                    result,
+                    code="preview_artifact_prepared",
+                    message=result.summary
+                    or "Preview runtime metadata prepared for the artifact.",
+                ),
+                workflow_state=workflow_state,
+                step=WorkflowStep.PREVIEW_PREPARATION,
+            )
+        return {
+            "workflow_state": complete_workflow_step(
+                workflow_state,
+                WorkflowStep.PREVIEW_PREPARATION,
+                preview_results=preview_results,
+            )
+        }
+    except Exception as exc:
+        return _handle_workflow_exception(
+            workflow_state=workflow_state,
+            runtime=runtime_context,
+            step=WorkflowStep.PREVIEW_PREPARATION,
+            exc=exc,
+        )
+
+
 def _review_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
@@ -619,6 +737,14 @@ def _finalization_node(
             runtime_context.event_builder.final(
                 answer=answer,
                 route=state["route_payload"],
+                artifacts=[
+                    artifact.model_dump(mode="json")
+                    for artifact in final_state.artifacts
+                ],
+                preview_results=[
+                    result.model_dump(mode="json")
+                    for result in final_state.preview_results
+                ],
                 **_optional_event_payload(
                     "observability",
                     runtime_context.observability.event_payload(
@@ -941,6 +1067,8 @@ def _serialize_workflow_runtime(
             review_result.outcome.value if review_result is not None else None
         ),
         "review_reasons": list(review_result.reasons) if review_result else [],
+        "artifact_count": len(workflow_state.artifacts),
+        "preview_artifact_count": len(workflow_state.preview_results),
         "image_reference_count": len(workflow_state.request.attachments),
         "image_references": [
             {

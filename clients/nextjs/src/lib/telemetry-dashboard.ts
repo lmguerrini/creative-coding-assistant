@@ -204,6 +204,7 @@ const allStreamEventTypes: AssistantStreamEventType[] = [
   "tool_start",
   "tool_result",
   "token_delta",
+  "artifact_extracted",
   "preview_artifact",
   "eval_update",
   "final",

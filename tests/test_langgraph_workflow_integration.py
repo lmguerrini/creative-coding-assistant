@@ -1,5 +1,5 @@
 import unittest
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 
 from creative_coding_assistant.analytics import build_langsmith_observability
 from creative_coding_assistant.contracts import (
@@ -43,6 +43,8 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "prompt_input",
                 "prompt_rendering",
                 "generation",
+                "artifact_extraction",
+                "preview_preparation",
                 "review",
                 "refinement",
                 "finalization",
@@ -108,6 +110,8 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 WorkflowStep.CONTEXT_ASSEMBLY,
                 WorkflowStep.PROMPT_INPUT,
                 WorkflowStep.PROMPT_RENDERING,
+                WorkflowStep.ARTIFACT_EXTRACTION,
+                WorkflowStep.PREVIEW_PREPARATION,
             ),
         )
         self.assertEqual(
@@ -175,9 +179,13 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "context_assembly",
                 "prompt_input",
                 "prompt_rendering",
+                "artifact_extraction",
+                "preview_preparation",
             ],
         )
         self.assertEqual(events[-1].payload["workflow"]["review_outcome"], "pass")
+        self.assertEqual(events[-1].payload["workflow"]["artifact_count"], 0)
+        self.assertEqual(events[-1].payload["workflow"]["preview_artifact_count"], 0)
 
     def test_review_failure_runs_one_refinement_attempt(self) -> None:
         graph = build_assistant_workflow_graph()
@@ -208,6 +216,80 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         )
         self.assertEqual(workflow_state.refinement_count, 1)
         self.assertIn(WorkflowStep.REFINEMENT, workflow_state.completed_steps)
+
+    def test_generation_artifacts_are_extracted_and_prepared_for_preview(self) -> None:
+        graph = build_assistant_workflow_graph()
+        answer = "\n".join(
+            [
+                "```javascript",
+                "function setup() {",
+                "  createCanvas(640, 360);",
+                "}",
+                "function draw() {",
+                "  background(12);",
+                "}",
+                "```",
+            ]
+        )
+
+        events = tuple(
+            stream_assistant_workflow_events(
+                graph=graph,
+                request=_request(query="Write a p5.js sketch."),
+                runtime=_runtime(stream_generation=_single_generation(answer)),
+            )
+        )
+        final_state = graph.invoke(
+            build_initial_workflow_graph_state(
+                _request(query="Write a p5.js sketch.")
+            ),
+            context={"runtime": _runtime(stream_generation=_single_generation(answer))},
+        )
+
+        workflow_state = final_state["workflow_state"]
+        artifact_event = next(
+            event
+            for event in events
+            if event.event_type is StreamEventType.ARTIFACT_EXTRACTED
+        )
+        preview_event = next(
+            event
+            for event in events
+            if event.event_type is StreamEventType.PREVIEW_ARTIFACT
+        )
+
+        self.assertEqual(workflow_state.artifacts[0].runtime, "p5")
+        self.assertEqual(
+            workflow_state.completed_steps,
+            (
+                WorkflowStep.INTAKE,
+                WorkflowStep.ROUTING,
+                WorkflowStep.GENERATION,
+                WorkflowStep.ARTIFACT_EXTRACTION,
+                WorkflowStep.PREVIEW_PREPARATION,
+                WorkflowStep.REVIEW,
+                WorkflowStep.FINALIZATION,
+            ),
+        )
+        self.assertEqual(
+            artifact_event.payload["artifacts"][0]["title"],
+            "generated-sketch-1.p5.js",
+        )
+        self.assertEqual(
+            artifact_event.payload["workflow"]["step"],
+            "artifact_extraction",
+        )
+        self.assertEqual(preview_event.payload["artifact_id"], workflow_state.artifacts[0].id)
+        self.assertEqual(preview_event.payload["status"], "succeeded")
+        self.assertEqual(
+            preview_event.payload["result"]["request"]["target"],
+            "browser_sandbox",
+        )
+        self.assertEqual(events[-1].payload["artifacts"][0]["runtime"], "p5")
+        self.assertEqual(
+            events[-1].payload["preview_results"][0]["status"],
+            "succeeded",
+        )
 
     def test_review_refinement_is_bounded_to_one_attempt(self) -> None:
         graph = build_assistant_workflow_graph()
@@ -266,11 +348,15 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 StreamEventType.TOKEN_DELTA,
                 StreamEventType.GENERATION_INPUT,
                 StreamEventType.TOKEN_DELTA,
+                StreamEventType.ARTIFACT_EXTRACTED,
+                StreamEventType.PREVIEW_ARTIFACT,
                 StreamEventType.FINAL,
             ],
         )
-        self.assertEqual([event.sequence for event in events], list(range(7)))
+        self.assertEqual([event.sequence for event in events], list(range(9)))
         self.assertEqual(generation.calls, 2)
+        self.assertEqual(events[6].payload["code"], "artifact_extracted")
+        self.assertEqual(events[7].payload["code"], "preview_artifact_prepared")
         self.assertEqual(
             events[-1].payload["answer"],
             "```javascript\nconsole.log('refined');\n```",
@@ -490,6 +576,10 @@ def _stream_failed_generation(
         error_code="provider_unavailable",
         error_message="Provider unavailable.",
     )
+
+
+def _single_generation(answer: str) -> Callable[..., Iterator[StreamEvent]]:
+    return _SequentialGeneration(answer).stream
 
 
 def _shell_answer(decision: RouteDecision) -> str:

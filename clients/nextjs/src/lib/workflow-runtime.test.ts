@@ -82,11 +82,52 @@ describe("workflow runtime model", () => {
       }),
       traceEvent({
         at: "2026-05-22T10:00:05Z",
+        code: "artifact_extracted",
+        completedSteps: ["intake", "routing", "generation"],
+        currentStep: "artifact_extraction",
+        event_type: "artifact_extracted",
+        refinementCount: 1,
+        sequence: 5,
+        skippedSteps: [
+          "memory",
+          "retrieval",
+          "context_assembly",
+          "prompt_input",
+          "prompt_rendering"
+        ],
+        step: "artifact_extraction"
+      }),
+      traceEvent({
+        at: "2026-05-22T10:00:06Z",
+        code: "preview_artifact_prepared",
+        completedSteps: [
+          "intake",
+          "routing",
+          "generation",
+          "artifact_extraction"
+        ],
+        currentStep: "preview_preparation",
+        event_type: "preview_artifact",
+        refinementCount: 1,
+        sequence: 6,
+        skippedSteps: [
+          "memory",
+          "retrieval",
+          "context_assembly",
+          "prompt_input",
+          "prompt_rendering"
+        ],
+        step: "preview_preparation"
+      }),
+      traceEvent({
+        at: "2026-05-22T10:00:07Z",
         answer: "```ts\nconsole.log('refined');\n```",
         completedSteps: [
           "intake",
           "routing",
           "generation",
+          "artifact_extraction",
+          "preview_preparation",
           "review",
           "refinement",
           "finalization"
@@ -96,7 +137,7 @@ describe("workflow runtime model", () => {
         phase: "completed",
         refinementCount: 1,
         reviewOutcome: "pass",
-        sequence: 5,
+        sequence: 7,
         skippedSteps: [
           "memory",
           "retrieval",
@@ -118,8 +159,8 @@ describe("workflow runtime model", () => {
 
     expect(runtime.summary.status).toBe("completed");
     expect(runtime.summary.retryCount).toBe(1);
-    expect(runtime.summary.transitionCount).toBe(4);
-    expect(runtime.summary.totalRuntimeMs).toBe(5000);
+    expect(runtime.summary.transitionCount).toBe(6);
+    expect(runtime.summary.totalRuntimeMs).toBe(7000);
     expect(runtime.summary.currentNode).toBe("finalization");
     expect(generationStep).toMatchObject({
       attemptCount: 2,
@@ -136,7 +177,9 @@ describe("workflow runtime model", () => {
       "Intake -> Routing",
       "Routing -> Generation",
       "Generation retry",
-      "Generation -> Finalization"
+      "Generation -> Artifact extraction",
+      "Artifact extraction -> Preview preparation",
+      "Preview preparation -> Finalization"
     ]);
   });
 });

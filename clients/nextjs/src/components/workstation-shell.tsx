@@ -101,7 +101,10 @@ import {
   buildPreviewRuntimeSummary,
   isArtifactPreviewable
 } from "@/lib/preview-runtime";
-import { hydrateWorkspaceFromFinalEvent } from "@/lib/live-artifact-hydration";
+import {
+  hydrateWorkspaceFromArtifactExtractedEvent,
+  hydrateWorkspaceFromFinalEvent
+} from "@/lib/live-artifact-hydration";
 import {
   buildProviderTelemetryModel,
   type ProviderTelemetryLifecycleStep,
@@ -1889,6 +1892,20 @@ export function WorkstationShell({
             ? "connecting"
             : "thinking"
       });
+    }
+
+    if (streamEvent.event_type === "artifact_extracted") {
+      const hydration = hydrateWorkspaceFromArtifactExtractedEvent(
+        snapshot,
+        streamEvent
+      );
+
+      if (hydration.artifact) {
+        setSnapshot(hydration.snapshot);
+        setActiveArtifactId(hydration.activeArtifactId);
+        setPreviewArtifactId(hydration.previewArtifactId);
+        setPreviewSessionOverride(null);
+      }
     }
 
     if (streamEvent.event_type === "preview_artifact") {

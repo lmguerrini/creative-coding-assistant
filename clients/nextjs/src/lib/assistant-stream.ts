@@ -17,6 +17,7 @@ export type AssistantStreamEventType =
   | "tool_start"
   | "tool_result"
   | "token_delta"
+  | "artifact_extracted"
   | "preview_artifact"
   | "eval_update"
   | "final"
@@ -47,6 +48,8 @@ export type AssistantStreamWorkflowMetadata = {
   refinement_count: number;
   review_outcome: string | null;
   review_reasons: string[];
+  artifact_count: number;
+  preview_artifact_count: number;
   image_reference_count: number;
   image_references: AssistantStreamImageReferenceMetadata[];
 };
@@ -99,6 +102,7 @@ const streamEventTypes = new Set<AssistantStreamEventType>([
   "tool_start",
   "tool_result",
   "token_delta",
+  "artifact_extracted",
   "preview_artifact",
   "eval_update",
   "final",
@@ -131,6 +135,12 @@ const streamEventWorkflowNodes: Partial<
   },
   generation_input: {
     generation_input_prepared: "generation"
+  },
+  artifact_extracted: {
+    artifact_extracted: "artifact_extraction"
+  },
+  preview_artifact: {
+    preview_artifact_prepared: "preview_preparation"
   }
 };
 
@@ -271,6 +281,10 @@ export function workflowNodeFromAssistantStreamEvent(
     return "generation";
   }
 
+  if (event.event_type === "preview_artifact") {
+    return "preview_preparation";
+  }
+
   if (event.event_type === "final") {
     return "finalization";
   }
@@ -302,6 +316,14 @@ export function readWorkflowMetadata(
   const completedSteps = parseWorkflowNodeIdList(rawWorkflow.completed_steps);
   const skippedSteps = parseWorkflowNodeIdList(rawWorkflow.skipped_steps);
   const reviewReasons = parseStringList(rawWorkflow.review_reasons);
+  const artifactCount =
+    typeof rawWorkflow.artifact_count === "number"
+      ? rawWorkflow.artifact_count
+      : 0;
+  const previewArtifactCount =
+    typeof rawWorkflow.preview_artifact_count === "number"
+      ? rawWorkflow.preview_artifact_count
+      : 0;
   const imageReferences = parseImageReferenceMetadataList(
     rawWorkflow.image_references
   );
@@ -335,6 +357,8 @@ export function readWorkflowMetadata(
     refinement_count: refinementCount,
     review_outcome: reviewOutcome,
     review_reasons: reviewReasons,
+    artifact_count: artifactCount,
+    preview_artifact_count: previewArtifactCount,
     image_reference_count: imageReferenceCount,
     image_references: imageReferences
   };
@@ -686,6 +710,8 @@ const workflowNodeIds = new Set<WorkflowNodeId>([
   "prompt_input",
   "prompt_rendering",
   "generation",
+  "artifact_extraction",
+  "preview_preparation",
   "review",
   "refinement",
   "finalization",

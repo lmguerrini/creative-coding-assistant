@@ -5,6 +5,7 @@ from __future__ import annotations
 from importlib import import_module
 
 _CTX = "creative_coding_assistant.orchestration.context"
+_ARTIFACTS = "creative_coding_assistant.orchestration.artifacts"
 _EVENTS = "creative_coding_assistant.orchestration.events"
 _GEN = "creative_coding_assistant.orchestration.generation"
 _MEM = "creative_coding_assistant.orchestration.memory"
@@ -79,6 +80,7 @@ _EXPORT_MAP = {
     "WorkflowReviewResult": _WORKFLOW_REVIEW,
     "WorkflowStatus": _WORKFLOW,
     "WorkflowStep": _WORKFLOW,
+    "WorkflowArtifact": _ARTIFACTS,
     "JinjaPromptRenderer": _PROMPT_TEMPLATES,
     "begin_assistant_workflow": _WORKFLOW,
     "build_assistant_workflow_graph": _WORKFLOW_GRAPH,
@@ -90,9 +92,11 @@ _EXPORT_MAP = {
     "build_rendered_prompt_request": _PROMPT_TEMPLATES,
     "build_retrieval_context_request": _RETRIEVAL,
     "complete_workflow_step": _WORKFLOW,
+    "extract_workflow_artifacts": _ARTIFACTS,
     "fail_workflow": _WORKFLOW,
     "finish_workflow": _WORKFLOW,
     "next_workflow_step": _WORKFLOW,
+    "prepare_workflow_preview_results": _ARTIFACTS,
     "restart_workflow_step": _WORKFLOW,
     "review_assistant_answer": _WORKFLOW_REVIEW,
     "route_request": _ROUTING,

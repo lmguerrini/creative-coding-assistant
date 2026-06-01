@@ -79,6 +79,42 @@ export function hydrateWorkspaceFromFinalEvent(
   }
 
   if (!source) {
+    return hydrateWorkspaceFromSource(snapshot, null);
+  }
+
+  return hydrateWorkspaceFromSource(snapshot, source);
+}
+
+export function hydrateWorkspaceFromArtifactExtractedEvent(
+  snapshot: AssistantWorkspaceSnapshot,
+  event: AssistantStreamEvent
+): LiveArtifactHydrationResult {
+  if (event.event_type !== "artifact_extracted") {
+    return {
+      activeArtifactId: snapshot.artifacts[0]?.id ?? "",
+      artifact: null,
+      previewArtifactId: "",
+      previewAvailable: snapshot.preview.available,
+      snapshot
+    };
+  }
+
+  const source = readStructuredArtifactSources(event.payload)[0] ?? null;
+  return hydrateWorkspaceFromSource(snapshot, source, {
+    artifactHydrationSource: "graph-owned artifact extraction",
+    previewTrigger: "Artifact extraction"
+  });
+}
+
+function hydrateWorkspaceFromSource(
+  snapshot: AssistantWorkspaceSnapshot,
+  source: GeneratedArtifactSource | null,
+  options: {
+    artifactHydrationSource?: string;
+    previewTrigger?: string;
+  } = {}
+): LiveArtifactHydrationResult {
+  if (!source) {
     return {
       activeArtifactId: snapshot.artifacts[0]?.id ?? "",
       artifact: null,
@@ -88,24 +124,30 @@ export function hydrateWorkspaceFromFinalEvent(
         ...snapshot,
         preview: buildUnavailablePreviewSummary({
           artifact: null,
-          basePreview: snapshot.preview
+          basePreview: snapshot.preview,
+          trigger: options.previewTrigger
         })
       }
     };
   }
 
   const inferred = inferGeneratedArtifact(source);
-  const artifact = buildArtifactSummary(inferred);
+  const artifact = buildArtifactSummary(
+    inferred,
+    options.artifactHydrationSource
+  );
   const artifacts = upsertLiveArtifact(snapshot.artifacts, artifact);
   const preview = inferred.previewKind
     ? buildPreviewableSummary({
         artifact,
         basePreview: snapshot.preview,
-        kind: inferred.previewKind
+        kind: inferred.previewKind,
+        trigger: options.previewTrigger
       })
     : buildUnavailablePreviewSummary({
         artifact,
-        basePreview: snapshot.preview
+        basePreview: snapshot.preview,
+        trigger: options.previewTrigger
       });
   const code =
     artifact.type === "code"
@@ -158,6 +200,7 @@ function readStructuredArtifactSources(
       content,
       id: readString(artifact.id) ?? undefined,
       language:
+        readString(artifact.source_language) ??
         readString(artifact.language) ??
         readString(artifact.lang) ??
         readString(artifact.mime_type) ??
@@ -266,7 +309,10 @@ function inferGeneratedArtifact(source: GeneratedArtifactSource): ArtifactInfere
   };
 }
 
-function buildArtifactSummary(inferred: ArtifactInference): ArtifactSummary {
+function buildArtifactSummary(
+  inferred: ArtifactInference,
+  hydrationSource = "latest live generation output"
+): ArtifactSummary {
   const actions: ArtifactAction[] =
     inferred.type === "code"
       ? inferred.previewKind
@@ -285,8 +331,8 @@ function buildArtifactSummary(inferred: ArtifactInference): ArtifactSummary {
     status: "Generated",
     summary:
       inferred.type === "code"
-        ? `Hydrated from the latest live generation output. ${runtimeSummary}`
-        : "Hydrated from the latest live generation output as a readable response artifact.",
+        ? `Hydrated from ${hydrationSource}. ${runtimeSummary}`
+        : `Hydrated from ${hydrationSource} as a readable response artifact.`,
     content: inferred.content,
     actions
   };
@@ -313,11 +359,13 @@ function upsertLiveArtifact(
 function buildPreviewableSummary({
   artifact,
   basePreview,
-  kind
+  kind,
+  trigger = "Final generation output"
 }: {
   artifact: ArtifactSummary;
   basePreview: PreviewSummary;
   kind: CreativeRuntimeKind;
+  trigger?: string;
 }): PreviewSummary {
   const rendererLabel = previewRendererLabels[kind];
 
@@ -334,20 +382,25 @@ function buildPreviewableSummary({
     sourceArtifactName: artifact.title,
     state: "ready",
     status: "Ready when opened",
-    summary: `${rendererLabel} preview routing was inferred from the latest generated artifact. Open the shelf to mount the sandboxed runtime surface.`,
+    summary:
+      trigger === "Artifact extraction"
+        ? `${rendererLabel} preview routing was prepared from graph-owned artifact metadata. Open the shelf to mount the sandboxed runtime surface.`
+        : `${rendererLabel} preview routing was inferred from the latest generated artifact. Open the shelf to mount the sandboxed runtime surface.`,
     target: `Browser sandbox / ${rendererLabel}`,
     targetId: "browser_sandbox",
     title: "Preview available",
-    trigger: "Final generation output"
+    trigger
   };
 }
 
 function buildUnavailablePreviewSummary({
   artifact,
-  basePreview
+  basePreview,
+  trigger = "Final generation output"
 }: {
   artifact: ArtifactSummary | null;
   basePreview: PreviewSummary;
+  trigger?: string;
 }): PreviewSummary {
   const artifactName = artifact?.title ?? "No runnable artifact";
 
@@ -368,7 +421,7 @@ function buildUnavailablePreviewSummary({
     target: "",
     targetId: "",
     title: "Preview unavailable",
-    trigger: "Final generation output"
+    trigger
   };
 }
 

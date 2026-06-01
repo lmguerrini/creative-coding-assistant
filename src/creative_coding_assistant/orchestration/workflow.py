@@ -7,6 +7,7 @@ from enum import StrEnum
 from pydantic import BaseModel, ConfigDict
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.artifacts import WorkflowArtifact
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
 from creative_coding_assistant.orchestration.memory import MemoryContextResponse
 from creative_coding_assistant.orchestration.prompt_inputs import PromptInputResponse
@@ -18,6 +19,7 @@ from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.workflow_review import (
     WorkflowReviewResult,
 )
+from creative_coding_assistant.preview import PreviewResult
 
 
 class WorkflowStep(StrEnum):
@@ -29,6 +31,8 @@ class WorkflowStep(StrEnum):
     PROMPT_INPUT = "prompt_input"
     PROMPT_RENDERING = "prompt_rendering"
     GENERATION = "generation"
+    ARTIFACT_EXTRACTION = "artifact_extraction"
+    PREVIEW_PREPARATION = "preview_preparation"
     REVIEW = "review"
     REFINEMENT = "refinement"
     FINALIZATION = "finalization"
@@ -50,6 +54,8 @@ WORKFLOW_STEP_ORDER: tuple[WorkflowStep, ...] = (
     WorkflowStep.PROMPT_INPUT,
     WorkflowStep.PROMPT_RENDERING,
     WorkflowStep.GENERATION,
+    WorkflowStep.ARTIFACT_EXTRACTION,
+    WorkflowStep.PREVIEW_PREPARATION,
     WorkflowStep.REVIEW,
     WorkflowStep.REFINEMENT,
     WorkflowStep.FINALIZATION,
@@ -97,6 +103,8 @@ class AssistantWorkflowState(BaseModel):
     assembled_context: AssembledContextResponse | None = None
     prompt_input: PromptInputResponse | None = None
     rendered_prompt: RenderedPromptResponse | None = None
+    artifacts: tuple[WorkflowArtifact, ...] = ()
+    preview_results: tuple[PreviewResult, ...] = ()
     review_result: WorkflowReviewResult | None = None
     refinement_count: int = 0
     failure_info: WorkflowFailureInfo | None = None
@@ -157,6 +165,7 @@ def complete_workflow_step(
         update={
             "current_step": None,
             "completed_steps": _append_unique(state.completed_steps, step),
+            "skipped_steps": _remove_step(state.skipped_steps, step),
             **updates,
         }
     )
@@ -170,6 +179,7 @@ def skip_workflow_step(
     return state.model_copy(
         update={
             "current_step": None,
+            "completed_steps": _remove_step(state.completed_steps, step),
             "skipped_steps": _append_unique(state.skipped_steps, step),
         }
     )
@@ -234,3 +244,10 @@ def _append_unique(
     if step in steps:
         return steps
     return (*steps, step)
+
+
+def _remove_step(
+    steps: tuple[WorkflowStep, ...],
+    step: WorkflowStep,
+) -> tuple[WorkflowStep, ...]:
+    return tuple(item for item in steps if item is not step)

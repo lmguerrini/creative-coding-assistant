@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { getLocalWorkspaceSnapshot } from "./assistant-client";
 import { buildArtifactDocument } from "./artifact-inspector";
-import { hydrateWorkspaceFromFinalEvent } from "./live-artifact-hydration";
+import {
+  hydrateWorkspaceFromArtifactExtractedEvent,
+  hydrateWorkspaceFromFinalEvent
+} from "./live-artifact-hydration";
 import { buildPreviewRendererRoute } from "./preview-renderers";
 import type { AssistantStreamEvent } from "./assistant-stream";
 
@@ -88,6 +91,43 @@ describe("live artifact hydration", () => {
       artifactName: "aurora.frag",
       renderer: "surface.glsl",
       targetId: "browser_sandbox"
+    });
+  });
+
+  it("hydrates graph-owned artifact extraction events before finalization", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const result = hydrateWorkspaceFromArtifactExtractedEvent(
+      snapshot,
+      {
+        event_type: "artifact_extracted",
+        payload: {
+          artifacts: [
+            {
+              id: "graph-sketch",
+              title: "graph-sketch.p5.js",
+              language: "JavaScript + p5.js",
+              source_language: "javascript",
+              content:
+                "function setup() {\n  createCanvas(640, 360);\n}\nfunction draw() {\n  background(12);\n}"
+            }
+          ]
+        },
+        sequence: 3
+      }
+    );
+
+    expect(result.artifact).toMatchObject({
+      id: "graph-sketch",
+      title: "graph-sketch.p5.js",
+      language: "JavaScript + p5.js",
+      actions: ["Open", "Preview", "Copy", "Download"]
+    });
+    expect(result.previewArtifactId).toBe("graph-sketch");
+    expect(result.snapshot.preview).toMatchObject({
+      available: true,
+      renderer: "surface.p5",
+      sourceArtifactId: "graph-sketch",
+      trigger: "Artifact extraction"
     });
   });
 

@@ -25,6 +25,8 @@ export type WorkflowNodeId =
   | "prompt_input"
   | "prompt_rendering"
   | "generation"
+  | "artifact_extraction"
+  | "preview_preparation"
   | "review"
   | "refinement"
   | "finalization"
@@ -341,6 +343,18 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
           displayLabel: "Generation",
           state: "active",
           detail: "Generated sketch artifact is being drafted."
+        },
+        {
+          nodeId: "artifact_extraction",
+          displayLabel: "Artifact extraction",
+          state: "queued",
+          detail: "Generated code will be normalized into workflow artifacts."
+        },
+        {
+          nodeId: "preview_preparation",
+          displayLabel: "Preview preparation",
+          state: "queued",
+          detail: "Preview runtime metadata will be prepared for runnable artifacts."
         },
         {
           nodeId: "review",

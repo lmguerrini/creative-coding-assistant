@@ -19,6 +19,7 @@ class StreamEventType(StrEnum):
     TOOL_START = "tool_start"
     TOOL_RESULT = "tool_result"
     TOKEN_DELTA = "token_delta"
+    ARTIFACT_EXTRACTED = "artifact_extracted"
     PREVIEW_ARTIFACT = "preview_artifact"
     EVAL_UPDATE = "eval_update"
     FINAL = "final"

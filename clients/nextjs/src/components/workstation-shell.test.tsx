@@ -712,7 +712,7 @@ describe("WorkstationShell", () => {
     );
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
-    ).toHaveAttribute("aria-valuetext", "8 of 11 workflow nodes reached");
+    ).toHaveAttribute("aria-valuetext", "8 of 13 workflow nodes reached");
     expect(screen.queryByRole("tabpanel", { name: "Code inspector" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tabpanel", { name: "Preview inspector" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Review" })).not.toBeInTheDocument();
@@ -915,7 +915,7 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Overview" }));
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
-    ).toHaveAttribute("aria-valuenow", "11");
+    ).toHaveAttribute("aria-valuenow", "13");
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
     expect(
@@ -2339,7 +2339,7 @@ describe("WorkstationShell", () => {
     expect(screen.getByLabelText("Workflow execution summary")).toBeVisible();
     expect(
       screen.getByRole("progressbar", { name: "Workflow inspector progress" })
-    ).toHaveAttribute("aria-valuetext", "8 of 11 workflow nodes reached");
+    ).toHaveAttribute("aria-valuetext", "8 of 13 workflow nodes reached");
     expect(within(graph).getByText("Generation")).toBeVisible();
     expect(within(graph).getByText("Generation").closest("article")).toHaveAttribute(
       "aria-current",
@@ -2421,12 +2421,55 @@ describe("WorkstationShell", () => {
           step: "generation"
         }),
         runtimeWorkflowEvent({
-          answer: "```ts\nconsole.log('refined');\n```",
           at: "2026-05-22T10:00:05Z",
+          code: "artifact_extracted",
+          completedSteps: ["intake", "routing", "generation"],
+          currentStep: "artifact_extraction",
+          eventType: "artifact_extracted",
+          message: "Extracted 1 generated artifact from the answer.",
+          refinementCount: 1,
+          sequence: 5,
+          skippedSteps: [
+            "memory",
+            "retrieval",
+            "context_assembly",
+            "prompt_input",
+            "prompt_rendering"
+          ],
+          step: "artifact_extraction"
+        }),
+        runtimeWorkflowEvent({
+          at: "2026-05-22T10:00:06Z",
+          code: "preview_artifact_prepared",
           completedSteps: [
             "intake",
             "routing",
             "generation",
+            "artifact_extraction"
+          ],
+          currentStep: "preview_preparation",
+          eventType: "preview_artifact",
+          message: "Preview runtime metadata prepared.",
+          refinementCount: 1,
+          sequence: 6,
+          skippedSteps: [
+            "memory",
+            "retrieval",
+            "context_assembly",
+            "prompt_input",
+            "prompt_rendering"
+          ],
+          step: "preview_preparation"
+        }),
+        runtimeWorkflowEvent({
+          answer: "```ts\nconsole.log('refined');\n```",
+          at: "2026-05-22T10:00:07Z",
+          completedSteps: [
+            "intake",
+            "routing",
+            "generation",
+            "artifact_extraction",
+            "preview_preparation",
             "review",
             "refinement",
             "finalization"
@@ -2436,7 +2479,7 @@ describe("WorkstationShell", () => {
           phase: "completed",
           refinementCount: 1,
           reviewOutcome: "pass",
-          sequence: 5,
+          sequence: 7,
           skippedSteps: [
             "memory",
             "retrieval",
@@ -2477,7 +2520,25 @@ describe("WorkstationShell", () => {
 
     expect(within(retries).getByText("1 retry loop")).toBeVisible();
     expect(within(transitions).getByText("Generation retry")).toBeVisible();
-    expect(within(events).getAllByText("Generation Input Prepared")).toHaveLength(2);
+    expect(
+      within(transitions).getByText("Generation -> Artifact extraction")
+    ).toBeVisible();
+    expect(
+      within(transitions).getByText(
+        "Artifact extraction -> Preview preparation"
+      )
+    ).toBeVisible();
+    expect(
+      within(events).getAllByText("Generation Input Prepared").length
+    ).toBeGreaterThan(0);
+    expect(within(events).getByText("Artifact Extracted")).toBeVisible();
+    expect(within(events).getByText("Preview Artifact Prepared")).toBeVisible();
+    expect(
+      within(workflowGraph).getByText("Artifact extraction").closest("article")
+    ).toHaveAttribute("data-state", "complete");
+    expect(
+      within(workflowGraph).getByText("Preview preparation").closest("article")
+    ).toHaveAttribute("data-state", "complete");
     expect(
       within(workflowGraph).getByText("Refinement").closest("article")
     ).toHaveAttribute("data-state", "complete");

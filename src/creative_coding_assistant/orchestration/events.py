@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
+from pydantic import BaseModel
+
 from creative_coding_assistant.contracts import StreamEvent, StreamEventType
 from creative_coding_assistant.preview import PreviewResult
 from creative_coding_assistant.tools import ToolRequest, ToolResult, ToolStatus
@@ -104,6 +106,25 @@ class StreamEventBuilder:
             },
         )
 
+    def artifact_extracted(
+        self,
+        *,
+        artifacts: tuple[object, ...],
+        code: str,
+        message: str,
+        **details: Any,
+    ) -> StreamEvent:
+        return self._event(
+            StreamEventType.ARTIFACT_EXTRACTED,
+            {
+                "code": code,
+                "message": message,
+                "artifacts": [_dump_event_payload(artifact) for artifact in artifacts],
+                "artifact_count": len(artifacts),
+                **details,
+            },
+        )
+
     def preview_artifact(self, result: PreviewResult, **details: Any) -> StreamEvent:
         return self._event(
             StreamEventType.PREVIEW_ARTIFACT,
@@ -145,3 +166,9 @@ class StreamEventBuilder:
         )
         self._sequence += 1
         return event
+
+
+def _dump_event_payload(value: object) -> object:
+    if isinstance(value, BaseModel):
+        return value.model_dump(mode="json")
+    return value
