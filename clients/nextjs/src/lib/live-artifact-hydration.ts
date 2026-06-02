@@ -384,9 +384,9 @@ function buildPreviewableSummary({
     status: "Ready when opened",
     summary:
       trigger === "Artifact extraction"
-        ? `${rendererLabel} preview routing was prepared from graph-owned artifact metadata. Open the shelf to mount the sandboxed runtime surface.`
-        : `${rendererLabel} preview routing was inferred from the latest generated artifact. Open the shelf to mount the sandboxed runtime surface.`,
-    target: `Browser sandbox / ${rendererLabel}`,
+        ? `${rendererLabel} preview routing was prepared from graph-owned artifact metadata. Open the shelf to mount the live preview surface.`
+        : `${rendererLabel} preview routing was inferred from the latest generated artifact. Open the shelf to mount the live preview surface.`,
+    target: `Browser preview / ${rendererLabel}`,
     targetId: "browser_sandbox",
     title: "Preview available",
     trigger

@@ -50,8 +50,9 @@ provides:
 - local approval checkpoints for runtime resets, destructive actions, and file
   transfer flows
 
-The initial shell boots from a local workspace snapshot and then updates through
-live stream events from the backend bridge.
+The initial shell opens on a clean creative workspace, then hydrates code,
+artifacts, preview, retrieval, and workflow state through live stream events
+from the backend bridge.
 
 ### Backend Runtime
 

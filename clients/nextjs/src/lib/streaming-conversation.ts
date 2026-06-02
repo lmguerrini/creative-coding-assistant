@@ -65,7 +65,7 @@ export function getConversationPhasePlaceholder(phase: ConversationEntryPhase) {
     case "error":
       return "The live response stopped before completion.";
     case "fallback":
-      return "Switching to the local fallback response.";
+      return "Switching to a local draft.";
     default:
       return "";
   }

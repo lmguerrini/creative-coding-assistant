@@ -74,9 +74,9 @@ export const creativePreviewRendererRegistry: readonly CreativePreviewRendererDe
     matchExtensions: [".p5.js", ".p5.ts"],
     matchTokens: ["p5", "createcanvas", "background(", "draw("],
     notes: [
-      "Sandboxed p5-compatible browser runtime",
-      "Executes generated sketch source inside an isolated iframe",
-      "Runtime status, frames, and errors stream back to diagnostics"
+      "Controlled p5-compatible browser runtime",
+      "Runs generated sketch source inside an isolated preview frame",
+      "Runtime status, frames, and errors stream back to the inspector"
     ]
   },
   {
@@ -94,8 +94,8 @@ export const creativePreviewRendererRegistry: readonly CreativePreviewRendererDe
       "react-three"
     ],
     notes: [
-      "Sandboxed Three.js-compatible browser runtime",
-      "Executes generated scene source inside an isolated iframe",
+      "Controlled Three.js-compatible browser runtime",
+      "Runs generated scene source inside an isolated preview frame",
       "Reset and reload remount the 3D runtime document"
     ]
   },
@@ -114,8 +114,8 @@ export const creativePreviewRendererRegistry: readonly CreativePreviewRendererDe
       "void main"
     ],
     notes: [
-      "Sandboxed WebGL fragment runtime",
-      "Compiles fragment shaders inside an isolated iframe",
+      "Controlled WebGL fragment runtime",
+      "Compiles fragment shaders inside an isolated preview frame",
       "Rejects unsupported shader features with a visible runtime error"
     ]
   },
@@ -128,7 +128,7 @@ export const creativePreviewRendererRegistry: readonly CreativePreviewRendererDe
     matchExtensions: [".hydra.js", ".hydra.ts"],
     matchTokens: ["hydra", "osc(", "shape(", "render(", "out("],
     notes: [
-      "Patch graph placeholder",
+      "Patch graph preview frame",
       "Safe routing surface only on this branch",
       "Prepared for future live Hydra graph execution"
     ]
@@ -242,11 +242,11 @@ export function buildPreviewRendererRoute({
         rendererDescription: matchedRenderer.description,
         supportState: "supported",
         supportLabel: "Runtime ready",
-        supportReason: `${matchedRenderer.displayName} matches the current browser-sandbox artifact signals.`,
+        supportReason: `${matchedRenderer.displayName} matches the current browser preview artifact signals.`,
         surfaceKind: matchedRenderer.kind,
         surfaceTitle: matchedRenderer.surfaceLabel,
         surfaceEyebrow: "Renderer match",
-        surfaceSummary: `${matchedRenderer.displayName} is selected as the live surface for ${sourceArtifactName}. Supported runtimes execute in an isolated browser sandbox.`,
+        surfaceSummary: `${matchedRenderer.displayName} is selected as the live surface for ${sourceArtifactName}. Supported runtimes execute in an isolated browser preview frame.`,
         notes: matchedRenderer.notes,
         tone
       };
@@ -262,15 +262,15 @@ export function buildPreviewRendererRoute({
       rendererId: null,
       rendererLabel: "No matching live renderer",
       rendererDescription:
-        "The browser sandbox target is available, but the artifact does not match the current creative renderer foundations.",
+        "The browser preview target is available, but the artifact does not match the current creative renderer foundations.",
       supportState: "unsupported",
       supportLabel: "Unsupported",
       supportReason:
-        "Current browser-sandbox foundations cover p5.js, Three.js, GLSL, and Hydra only.",
+        "Current browser preview foundations cover p5.js, Three.js, GLSL, and Hydra only.",
       surfaceKind: "unsupported",
-      surfaceTitle: "Browser route without renderer match",
+      surfaceTitle: "Browser preview without renderer match",
       surfaceEyebrow: "Unsupported creative surface",
-      surfaceSummary: `${sourceArtifactName} still resolves to the browser sandbox, but no safe live renderer foundation matches its current signals yet.`,
+      surfaceSummary: `${sourceArtifactName} still resolves to the browser preview, but no safe live renderer foundation matches its current signals yet.`,
       notes: [
         "Runtime target metadata is still preserved",
         "The preview shelf stays stable without executing arbitrary code",
@@ -394,7 +394,7 @@ function buildNonBrowserPreviewRendererRoute({
         surfaceEyebrow: "Media surface",
         surfaceSummary: `${selectedArtifactName} is routed to an image asset surface rather than a browser renderer.`,
         notes: [
-          "Still image placeholder container",
+          "Still image preview container",
           "Prepared for future image asset loading and inspection"
         ]
       };
@@ -410,7 +410,7 @@ function buildNonBrowserPreviewRendererRoute({
         surfaceEyebrow: "Media surface",
         surfaceSummary: `${selectedArtifactName} is routed to an audio asset surface without relying on a browser sketch renderer.`,
         notes: [
-          "Playback surface placeholder",
+          "Playback surface frame",
           "Prepared for future waveform, transport, and output controls"
         ]
       };
@@ -426,7 +426,7 @@ function buildNonBrowserPreviewRendererRoute({
         surfaceEyebrow: "Media surface",
         surfaceSummary: `${selectedArtifactName} is routed to a video asset surface instead of a creative browser runtime.`,
         notes: [
-          "Playback surface placeholder",
+          "Playback surface frame",
           "Prepared for future video mounting and transport controls"
         ]
       };

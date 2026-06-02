@@ -228,7 +228,7 @@ type ThemePresetOption = {
   surface: string;
 };
 
-const mockWorkflowIntervalMs = 850;
+const localWorkflowIntervalMs = 850;
 const artifactFeedbackDurationMs = 1400;
 const defaultWorkspacePersistenceClient = createWorkspacePersistenceClient();
 const persistenceStateLabels = {
@@ -237,9 +237,19 @@ const persistenceStateLabels = {
   restored: "Session restored",
   saving: "Saving session",
   saved: "Session saved",
-  local: "Saved locally",
-  unavailable: "Persistence offline"
+  local: "Stored locally",
+  unavailable: "Stored for this tab"
 } satisfies Record<WorkspacePersistenceState, string>;
+const emptyWorkspaceArtifact: ArtifactSummary = {
+  id: "empty-workspace-artifact",
+  title: "No artifact yet",
+  type: "code",
+  language: "Creative code",
+  status: "Ready for first prompt",
+  summary: "Generated source appears here after the first creative request.",
+  content: "// Generated code appears here after your first creative request.",
+  actions: []
+};
 const themePresetOptions = [
   {
     value: "aqua",
@@ -347,9 +357,7 @@ export function WorkstationShell({
   >([]);
   const [persistenceState, setPersistenceState] =
     useState<WorkspacePersistenceState>("loading");
-  const [persistenceError, setPersistenceError] = useState<WorkstationError | null>(
-    null
-  );
+  const [, setPersistenceError] = useState<WorkstationError | null>(null);
   const [layoutState, setLayoutState] = useState<WorkspaceLayoutState>(
     defaultWorkspaceLayoutState
   );
@@ -375,6 +383,7 @@ export function WorkstationShell({
     string | null
   >(null);
   const chatLogRef = useRef<HTMLDivElement>(null);
+  const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const approvalCardRef = useRef<HTMLElement | null>(null);
   const shouldAutoScrollRef = useRef(true);
   const isShellMountedRef = useRef(true);
@@ -482,7 +491,7 @@ export function WorkstationShell({
 
         return currentIndex + 1;
       });
-    }, mockWorkflowIntervalMs);
+    }, localWorkflowIntervalMs);
 
     return () => window.clearInterval(timer);
   }, [snapshot.workflow.steps, workflowRunId]);
@@ -562,6 +571,15 @@ export function WorkstationShell({
             initialSnapshot,
             restoredSession.record
           );
+
+          if (
+            shouldIgnoreRestoredWorkspaceSession(initialSnapshot, restoredSnapshot)
+          ) {
+            setPersistenceError(null);
+            setPersistenceState("ready");
+            return;
+          }
+
           const restoredImageAttachments = normalizeImageAttachments(
             restoredSnapshot.multimodal.imageAttachments
           );
@@ -629,7 +647,8 @@ export function WorkstationShell({
 
   const activeArtifact =
     snapshot.artifacts.find((artifact) => artifact.id === activeArtifactId) ??
-    snapshot.artifacts[0];
+    snapshot.artifacts[0] ??
+    emptyWorkspaceArtifact;
   const persistedMessages = useMemo(
     () => toPersistedConversation(conversationEntries),
     [conversationEntries]
@@ -640,9 +659,14 @@ export function WorkstationShell({
       : conversationEntries.find(
           (entry) => entry.id === streamingAssistantIdRef.current
         ) ?? null;
+  const hasActiveWorkflowRun =
+    isStreaming || workflowRunId > 0 || workflowTraceEvents.length > 0;
   const workflow = useMemo(
-    () => buildInteractiveWorkflow(snapshot.workflow, workflowProgressIndex),
-    [snapshot.workflow, workflowProgressIndex]
+    () =>
+      buildInteractiveWorkflow(snapshot.workflow, workflowProgressIndex, {
+        hasActiveRun: hasActiveWorkflowRun
+      }),
+    [hasActiveWorkflowRun, snapshot.workflow, workflowProgressIndex]
   );
   const interactiveSnapshot: AssistantWorkspaceSnapshot = useMemo(
     () => ({
@@ -677,9 +701,9 @@ export function WorkstationShell({
       debug: {
         ...snapshot.debug,
         status: isStreaming
-          ? "Streaming backend"
+          ? "Streaming live response"
           : streamError
-            ? "Backend fallback"
+            ? "Local draft available"
             : snapshot.debug.status,
         events: streamEvents
       }
@@ -818,10 +842,9 @@ export function WorkstationShell({
     () =>
       [
         workflowRuntime.error,
-        persistenceError,
         ...approvalRequests.map((request) => buildHitlApprovalError(request))
       ].filter((error): error is WorkstationError => error !== null),
-    [approvalRequests, persistenceError, workflowRuntime.error]
+    [approvalRequests, workflowRuntime.error]
   );
   const streamState = blockingApprovalRequest
     ? blockingApprovalRequest.state === "pending_approval"
@@ -840,6 +863,7 @@ export function WorkstationShell({
   });
   const persistenceStatusLabel =
     persistenceStateLabels[persistenceState] ?? "Local session ready";
+  const hasWorkspaceArtifacts = snapshot.artifacts.length > 0;
   const isInspectorCollapsed = layoutState.inspectorCollapsed;
   const sessionStatusLabel = blockingApprovalRequest
     ? getHitlApprovalStateLabel(blockingApprovalRequest.state)
@@ -1150,7 +1174,7 @@ export function WorkstationShell({
       sequence: localRuntimeSequenceRef.current++,
       payload: {
         code: "preview_runtime_frame",
-        message: `First sandbox frame rendered for ${source.title}.`,
+        message: `First preview frame rendered for ${source.title}.`,
         category: "preview_runtime",
         subsystem: `${kind}_sandbox_runtime`,
         preview_runtime: {
@@ -1672,6 +1696,14 @@ export function WorkstationShell({
     });
   }
 
+  function handleEmptyStatePromptSelect(prompt: string) {
+    setComposerValue(prompt);
+
+    window.requestAnimationFrame(() => {
+      composerTextareaRef.current?.focus();
+    });
+  }
+
   async function handleComposerSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -1779,8 +1811,8 @@ export function WorkstationShell({
           finalizeStreamingAssistantMessage({
             activity: error.userMessage,
             content: streamedAnswer
-              ? `${streamedAnswer}\n\nBackend stream error: ${error.userMessage}`
-              : `Backend stream error: ${error.userMessage}`,
+              ? `${streamedAnswer}\n\nLive response error: ${error.userMessage}`
+              : `Live response error: ${error.userMessage}`,
             phase: "error"
           });
         }
@@ -1818,21 +1850,21 @@ export function WorkstationShell({
               type: "assistant_stream_unavailable",
               category: "stream",
               subsystem: "assistant_stream",
-              userMessage: "The backend stream is unavailable.",
+              userMessage: "The live response is unavailable.",
               debugMessage: error instanceof Error ? error.message : null,
               recoverable: true,
               suggestedAction:
-                "Retry the request after the backend recovers, or use the local fallback response.",
+                "Retry the request when the connection recovers, or continue with the local draft.",
               retryLabel: "Send prompt again",
               resetLabel: "Clear workspace session"
             });
-      const fallbackMessage = `Backend stream unavailable; showing local fallback. ${buildMockAssistantReply(
+      const fallbackMessage = `Live response unavailable; showing a local draft. ${buildLocalDraftReply(
         prompt,
         activeArtifact.title
       )}`;
       setStreamError(streamFailure);
       finalizeStreamingAssistantMessage({
-        activity: "Switching to the local fallback response.",
+        activity: "Switching to a local draft.",
         content: fallbackMessage,
         phase: "fallback"
       });
@@ -1864,7 +1896,7 @@ export function WorkstationShell({
           readPayloadText(streamEvent, "message") ??
           readPayloadText(streamEvent, "answer") ??
           readPayloadText(streamEvent, "text") ??
-          "Backend stream event received."
+          "Live response event received."
       }
     ]);
 
@@ -2258,10 +2290,12 @@ export function WorkstationShell({
                 <div
                   className="sessionMetric"
                   aria-label="Active artifact"
-                  data-active="true"
+                  data-active={hasWorkspaceArtifacts ? "true" : "false"}
                 >
-                  <span>Active artifact</span>
-                  <strong>{activeArtifact.title}</strong>
+                  <span>{hasWorkspaceArtifacts ? "Active artifact" : "Workspace"}</span>
+                  <strong>
+                    {hasWorkspaceArtifacts ? activeArtifact.title : "Ready for first prompt"}
+                  </strong>
                   <small aria-live="polite">{persistenceStatusLabel}</small>
                 </div>
               </header>
@@ -2343,13 +2377,6 @@ export function WorkstationShell({
                   )}
                 </article>
               ) : null}
-              {persistenceError ? (
-                <SubsystemErrorCallout
-                  className="sessionErrorCallout"
-                  error={persistenceError}
-                  title="Session persistence issue"
-                />
-              ) : null}
             </div>
 
             <div
@@ -2360,6 +2387,9 @@ export function WorkstationShell({
               ref={chatLogRef}
               role="log"
             >
+              {conversationEntries.length === 0 && !isStreaming ? (
+                <EmptyWorkspaceState onSelectPrompt={handleEmptyStatePromptSelect} />
+              ) : null}
               {conversationEntries.map((message, index) => (
                 <article
                   className="message"
@@ -2438,6 +2468,7 @@ export function WorkstationShell({
                   aria-label="Assistant prompt"
                   onChange={(event) => setComposerValue(event.currentTarget.value)}
                   placeholder="Ask for a denser particle field, a softer palette, or a preview pass."
+                  ref={composerTextareaRef}
                   value={composerValue}
                 />
               </div>
@@ -2684,6 +2715,77 @@ function ImageReferenceShelf({
         </div>
       ) : null}
     </section>
+  );
+}
+
+function EmptyWorkspaceState({
+  onSelectPrompt
+}: {
+  onSelectPrompt: (prompt: string) => void;
+}) {
+  const promptSuggestions = [
+    "Create a p5.js particle field that feels like slow bioluminescent drift.",
+    "Design a Three.js kinetic sculpture with camera motion and soft studio lighting.",
+    "Generate a GLSL fragment shader with liquid glass refraction and restrained color."
+  ];
+  const domainExamples = [
+    "p5.js sketches",
+    "Three.js scenes",
+    "GLSL shaders",
+    "Hydra visuals"
+  ];
+  const workflowExamples = [
+    "Brief -> generate -> preview -> refine",
+    "Attach image references -> match palette -> export bundle",
+    "Ground with references -> inspect workflow -> iterate"
+  ];
+
+  return (
+    <article
+      aria-label="Empty creative workspace"
+      className="emptyWorkspace"
+      role="group"
+    >
+      <header className="emptyWorkspaceHero">
+        <span className="eyebrow">New creative session</span>
+        <strong>Describe the visual system you want to build.</strong>
+        <p>
+          Start with mood, medium, constraints, or references. Generated code,
+          preview, retrieval, and workflow state will appear as the session runs.
+        </p>
+      </header>
+
+      <div className="emptyWorkspaceSuggestions" aria-label="Prompt suggestions">
+        {promptSuggestions.map((prompt) => (
+          <button
+            key={prompt}
+            onClick={() => onSelectPrompt(prompt)}
+            type="button"
+          >
+            {prompt}
+          </button>
+        ))}
+      </div>
+
+      <div className="emptyWorkspaceGrid">
+        <section aria-label="Domain examples">
+          <span>Domains</span>
+          <div>
+            {domainExamples.map((domain) => (
+              <small key={domain}>{domain}</small>
+            ))}
+          </div>
+        </section>
+        <section aria-label="Example workflows">
+          <span>Workflows</span>
+          <div>
+            {workflowExamples.map((workflow) => (
+              <small key={workflow}>{workflow}</small>
+            ))}
+          </div>
+        </section>
+      </div>
+    </article>
   );
 }
 
@@ -4299,7 +4401,7 @@ function CommandMenuPanel({
     >
       <header className="utilityPanelHeader">
         <strong>Quick actions</strong>
-        <p>Jump to the next workspace surface without changing the current mock flow.</p>
+        <p>Jump to the next workspace surface without changing the current flow.</p>
       </header>
       <div className="commandMenuGrid">
         <button
@@ -4837,13 +4939,13 @@ function buildPersistenceTimeoutError(operation: "load" | "save") {
     subsystem: "workspace_session_store",
     userMessage:
       operation === "load"
-        ? "Session restore timed out, so the workspace stayed on the current snapshot."
-        : "Session save timed out, so the workspace is staying local for now.",
+        ? "No saved session was restored, so the workspace is ready for a fresh start."
+        : "Changes are stored locally for now.",
     recoverable: true,
     suggestedAction:
       operation === "load"
-        ? "Continue from the current snapshot or reset the workspace session."
-        : "Keep editing locally and retry the save after the backend recovers.",
+        ? "Continue from the current workspace or clear the session if you want to reset it."
+        : "Keep editing; the workspace can save again when the connection is available.",
     retryLabel: operation === "save" ? "Retry save" : null,
     resetLabel: operation === "load" ? "Clear workspace session" : null
   });
@@ -4901,6 +5003,34 @@ function getInitialWorkflowIndex(steps: WorkflowStepState[]) {
   return activeIndex >= 0 ? activeIndex : 0;
 }
 
+function shouldIgnoreRestoredWorkspaceSession(
+  initialSnapshot: AssistantWorkspaceSnapshot,
+  restoredSnapshot: AssistantWorkspaceSnapshot
+) {
+  return (
+    isFirstRunSnapshot(initialSnapshot) &&
+    isSeededDemoWorkspaceSnapshot(restoredSnapshot)
+  );
+}
+
+function isFirstRunSnapshot(snapshot: AssistantWorkspaceSnapshot) {
+  return (
+    snapshot.messages.length === 0 &&
+    snapshot.artifacts.length === 0 &&
+    !snapshot.preview.available
+  );
+}
+
+function isSeededDemoWorkspaceSnapshot(snapshot: AssistantWorkspaceSnapshot) {
+  return (
+    snapshot.workspace.focus === "p5 aurora field" ||
+    snapshot.artifacts.some((artifact) => artifact.title === "aurora-field.p5.js") ||
+    snapshot.messages.some((message) =>
+      message.content.includes("luminous particle field")
+    )
+  );
+}
+
 function getWorkflowNodeIndex(
   steps: WorkflowStepState[],
   nodeId: WorkflowStepState["nodeId"]
@@ -4912,8 +5042,21 @@ function getWorkflowNodeIndex(
 
 function buildInteractiveWorkflow(
   workflow: WorkspaceWorkflow,
-  progressIndex: number
+  progressIndex: number,
+  options: { hasActiveRun?: boolean } = {}
 ): WorkspaceWorkflow {
+  if (!options.hasActiveRun && isWorkflowIdleStatus(workflow.status)) {
+    return {
+      ...workflow,
+      status: "Idle",
+      steps: workflow.steps.map((step) =>
+        step.nodeId === "failure"
+          ? { ...step, state: "branch" as WorkflowState }
+          : { ...step, state: "queued" as WorkflowState }
+      )
+    };
+  }
+
   const finalizationIndex = getWorkflowNodeIndex(workflow.steps, "finalization");
   const boundedProgressIndex = Math.min(
     Math.max(progressIndex, 0),
@@ -4949,6 +5092,10 @@ function buildInteractiveWorkflow(
   };
 }
 
+function isWorkflowIdleStatus(status: string) {
+  return ["idle", "ready"].includes(status.toLowerCase());
+}
+
 function getWorkflowRuntimeProgress(
   steps: WorkflowProgressStep[]
 ): WorkflowProgressSummary {
@@ -4978,6 +5125,10 @@ function formatWorkflowRuntimeState(state: WorkflowRuntimeVisualState) {
 
 function formatWorkflowStatusCopy(status: string) {
   switch (status) {
+    case "idle":
+    case "ready":
+      return "Ready";
+    case "complete":
     case "completed":
       return "Completed";
     case "failed":
@@ -5178,14 +5329,14 @@ function formatMessageTime() {
   }).format(new Date());
 }
 
-function buildMockAssistantReply(prompt: string, artifactTitle: string) {
+function buildLocalDraftReply(prompt: string, artifactTitle: string) {
   const trimmedPrompt = prompt.trim();
   const promptSummary =
     trimmedPrompt.length > 88
       ? `${trimmedPrompt.slice(0, 85).trim()}...`
       : trimmedPrompt;
 
-  return `Mock orchestration pass started for "${promptSummary}". I kept ${artifactTitle} active and advanced the workflow locally without contacting the backend.`;
+  return `Local draft started for "${promptSummary}". I kept ${artifactTitle} active and advanced the workflow in this workspace.`;
 }
 
 function withPersistenceTimeout<T>(

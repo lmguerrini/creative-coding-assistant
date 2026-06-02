@@ -590,7 +590,7 @@ function createPersistenceError({
       parsed?.suggestedAction ??
       (operation === "load"
         ? "Continue from the local session copy or reset the workspace session."
-        : "Keep editing locally and retry the session save after the backend recovers."),
+        : "Keep editing locally; the workspace can save again when the connection is available."),
     retryLabel:
       parsed?.retryLabel ?? (operation === "save" && recoverable ? "Retry save" : null),
     resetLabel:

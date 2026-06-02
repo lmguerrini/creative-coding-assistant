@@ -188,7 +188,7 @@ function renderPreviewSurfaceStage({
 
     return (
       <div
-        aria-label={`${route.rendererLabel} placeholder surface`}
+        aria-label={`${route.rendererLabel} preview surface`}
         className="previewSurfaceStage previewSurfaceStageCreative"
       >
         <div className="previewSurfaceBackdrop" />
@@ -217,7 +217,7 @@ function renderPreviewSurfaceStage({
 
   return (
     <div
-      aria-label={`${route.rendererLabel} placeholder surface`}
+      aria-label={`${route.rendererLabel} preview surface`}
       className="previewSurfaceStage previewSurfaceStagePanel"
     >
       <div className="previewSurfacePanelFrame">

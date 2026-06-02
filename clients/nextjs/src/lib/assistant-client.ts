@@ -216,7 +216,202 @@ export type AssistantFrontendClient = {
 export function createAssistantClient(): AssistantFrontendClient {
   return {
     async getWorkspaceSnapshot() {
-      return getLocalWorkspaceSnapshot();
+      return getInitialWorkspaceSnapshot();
+    }
+  };
+}
+
+export function getInitialWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
+  return {
+    session: {
+      userId: "local-user",
+      sessionId: "local-nextjs-session",
+      projectId: "local-nextjs-workspace",
+      title: "Creative workspace"
+    },
+    workspace: {
+      name: "Creative workspace",
+      focus: "Start a creative coding session"
+    },
+    inspectorTabs: [
+      {
+        label: "Overview",
+        active: true,
+        summary: "Session plan, readiness, and compact workflow state",
+        badge: "Ready"
+      },
+      {
+        label: "Preview",
+        active: false,
+        summary: "Canvas appears after a runnable artifact is generated"
+      },
+      {
+        label: "Code",
+        active: false,
+        summary: "Generated source appears after the first creative pass"
+      },
+      {
+        label: "Workflow",
+        active: false,
+        summary: "LangGraph orchestration view for active runs"
+      },
+      {
+        label: "Telemetry",
+        active: false,
+        summary: "Runtime and provider signals for active runs"
+      },
+      {
+        label: "Artifacts",
+        active: false,
+        summary: "Generated files and exports"
+      },
+      {
+        label: "Retrieval",
+        active: false,
+        summary: "Reference grounding for creative requests"
+      }
+    ],
+    messages: [],
+    workflow: {
+      status: "Idle",
+      currentNode: "intake",
+      currentStep: "Ready to start",
+      steps: [
+        {
+          nodeId: "intake",
+          displayLabel: "Intake",
+          state: "queued",
+          detail: "Capture the creative brief when you send the first prompt."
+        },
+        {
+          nodeId: "routing",
+          displayLabel: "Routing",
+          state: "queued",
+          detail: "Choose the generation path for the request."
+        },
+        {
+          nodeId: "memory",
+          displayLabel: "Memory",
+          state: "queued",
+          detail: "Apply relevant session memory when available."
+        },
+        {
+          nodeId: "retrieval",
+          displayLabel: "Retrieval",
+          state: "queued",
+          detail: "Gather grounded references when the request needs them."
+        },
+        {
+          nodeId: "context_assembly",
+          displayLabel: "Context assembly",
+          state: "queued",
+          detail: "Prepare memory and retrieval context for generation."
+        },
+        {
+          nodeId: "prompt_input",
+          displayLabel: "Prompt input",
+          state: "queued",
+          detail: "Structure prompt inputs for the provider request."
+        },
+        {
+          nodeId: "prompt_rendering",
+          displayLabel: "Prompt rendering",
+          state: "queued",
+          detail: "Render the provider prompt."
+        },
+        {
+          nodeId: "generation",
+          displayLabel: "Generation",
+          state: "queued",
+          detail: "Generate the creative code or response."
+        },
+        {
+          nodeId: "artifact_extraction",
+          displayLabel: "Artifact extraction",
+          state: "queued",
+          detail: "Normalize generated output into workspace artifacts."
+        },
+        {
+          nodeId: "preview_preparation",
+          displayLabel: "Preview preparation",
+          state: "queued",
+          detail: "Prepare preview routing for runnable artifacts."
+        },
+        {
+          nodeId: "review",
+          displayLabel: "Review",
+          state: "queued",
+          detail: "Check the generated result before finalization."
+        },
+        {
+          nodeId: "refinement",
+          displayLabel: "Refinement",
+          state: "queued",
+          detail: "Run one refinement loop when review asks for changes."
+        },
+        {
+          nodeId: "finalization",
+          displayLabel: "Finalization",
+          state: "queued",
+          detail: "Emit the final response and updated workspace state."
+        },
+        {
+          nodeId: "failure",
+          displayLabel: "Failure",
+          state: "branch",
+          detail: "Terminal branch used only when a workflow node fails."
+        }
+      ]
+    },
+    artifacts: [],
+    multimodal: {
+      state: "empty",
+      status: "No image references",
+      detail: "Attach image references when a visual brief needs palette, mood, or composition guidance.",
+      imageAttachments: [],
+      error: null
+    },
+    preview: {
+      available: false,
+      active: false,
+      collapsed: true,
+      state: "unavailable",
+      title: "Preview ready when output exists",
+      targetId: "",
+      target: "",
+      status: "Waiting for artifact",
+      artifactName: "No preview yet",
+      sourceArtifactId: "",
+      sourceArtifactName: "",
+      outputArtifactName: "",
+      summary:
+        "Generate a runnable sketch and the preview shelf will dock below the session.",
+      renderer: "",
+      trigger: "",
+      version: "v1"
+    },
+    code: {
+      title: "No artifact yet",
+      language: "Creative code",
+      status: "Awaiting first artifact",
+      excerpt: ["// Generated code appears here after your first creative request."]
+    },
+    retrieval: {
+      state: "empty",
+      status: "Ready",
+      headline: "No references loaded yet",
+      detail:
+        "Reference grounding appears here when a request benefits from documentation or source context.",
+      source: "",
+      query: null,
+      requestedDomains: [],
+      warning: null,
+      sources: []
+    },
+    debug: {
+      traceId: "trace.local.first-run",
+      status: "Ready",
+      events: []
     }
   };
 }
@@ -398,7 +593,7 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
         type: "preview",
         language: "JSON",
         status: "Queued",
-        summary: "Renderer identity, browser sandbox target, and artifact v1 linkage.",
+        summary: "Renderer identity, browser preview target, and artifact v1 linkage.",
         actions: ["Open", "Preview", "Download"]
       },
       {
@@ -426,14 +621,14 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
       state: "ready",
       title: "Preview available",
       targetId: "browser_sandbox",
-      target: "Browser sandbox / p5.js",
+      target: "Browser preview / p5.js",
       status: "Ready",
       artifactName: "aurora-field.p5.js",
       sourceArtifactId: "source-sketch",
       sourceArtifactName: "aurora-field.p5.js",
       outputArtifactName: "",
       summary:
-        "Runtime context is ready for the generated p5 sketch. Open the preview shelf to execute it in the browser sandbox.",
+        "Runtime context is ready for the generated p5 sketch. Open the preview shelf to render it in the browser preview.",
       renderer: "surface.p5",
       trigger: "Workflow Generation",
       version: "v1"
@@ -477,7 +672,7 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
           sourceId: "webgpu_mdn_api",
           title: "WebGPU API",
           detail:
-            "Stable compute and render pass separation guidance for the browser sandbox renderer.",
+            "Stable compute and render pass separation guidance for the browser preview renderer.",
           domain: "webgpu_wgsl",
           domainLabel: "WebGPU / WGSL",
           publisher: "MDN",
@@ -492,7 +687,7 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
           freshnessLabel: "Current",
           updatedAt: "2026-05-20T08:30:00Z",
           whyUsed:
-            "Matched the request for stable compute and render pass separation in a browser sandbox.",
+            "Matched the request for stable compute and render pass separation in a browser preview.",
           chunks: [
             {
               id: "webgpu_mdn_api::chunk-0001",
@@ -563,7 +758,7 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
         {
           code: "preview_queued",
           label: "Preview",
-          detail: "browser_sandbox target resolved from p5.js artifact metadata"
+          detail: "browser preview target resolved from p5.js artifact metadata"
         }
       ]
     }

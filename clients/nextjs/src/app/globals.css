@@ -1247,6 +1247,113 @@ a {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.022), transparent 96px);
 }
 
+.emptyWorkspace {
+  display: grid;
+  gap: 18px;
+  max-width: 860px;
+  padding: clamp(20px, 4vw, 34px);
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(var(--accent-rgb), 0.16), transparent 32%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.07), transparent 58%),
+    rgba(255, 255, 255, 0.035);
+  box-shadow: var(--panel-highlight), 0 24px 70px rgba(0, 0, 0, 0.2);
+}
+
+.emptyWorkspaceHero {
+  max-width: 68ch;
+}
+
+.emptyWorkspaceHero strong {
+  display: block;
+  max-width: 14ch;
+  color: var(--foreground);
+  font-size: clamp(30px, 5vw, 56px);
+  font-weight: 780;
+  letter-spacing: -0.06em;
+  line-height: 0.92;
+}
+
+.emptyWorkspaceHero p {
+  max-width: 60ch;
+  margin: 16px 0 0;
+  color: var(--muted-strong);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.emptyWorkspaceSuggestions {
+  display: grid;
+  gap: 10px;
+}
+
+.emptyWorkspaceSuggestions button {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.08), transparent 72%),
+    rgba(255, 255, 255, 0.045);
+  color: var(--foreground);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: left;
+  transition:
+    border-color 180ms ease,
+    transform 180ms ease,
+    background 180ms ease;
+}
+
+.emptyWorkspaceSuggestions button:hover {
+  border-color: rgba(var(--accent-rgb), 0.34);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.13), transparent 72%),
+    rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+}
+
+.emptyWorkspaceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.emptyWorkspaceGrid section {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.emptyWorkspaceGrid section > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.emptyWorkspaceGrid section > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.emptyWorkspaceGrid small {
+  padding: 6px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
 .message {
   display: grid;
   gap: 7px;
@@ -5044,6 +5151,10 @@ html[data-cca-theme="blueprint"] .codeViewer {
   .sessionMetric {
     width: 100%;
     min-width: 0;
+  }
+
+  .emptyWorkspaceGrid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .composer {

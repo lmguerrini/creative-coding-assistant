@@ -265,11 +265,11 @@ function getSandboxStartingStatus(
   return {
     detail:
       kind === "glsl"
-        ? "Mounting a sandboxed WebGL shader document."
+        ? "Mounting a controlled WebGL shader document."
         : kind === "three"
-          ? "Mounting a sandboxed Three.js-compatible browser document."
-          : "Mounting a sandboxed p5.js-compatible browser document.",
-    label: "Runtime sandbox starting",
+          ? "Mounting a controlled Three.js-compatible browser document."
+          : "Mounting a controlled p5.js-compatible browser document.",
+    label: "Preview runtime starting",
     state: "starting",
     error: null
   };
@@ -418,7 +418,7 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
 
   function startP5() {
     const context = canvas.getContext("2d");
-    if (!context) throw new Error("Canvas 2D is unavailable in the sandbox.");
+    if (!context) throw new Error("Canvas 2D is unavailable in the preview frame.");
     const paint = { fill: "#4cd7c8", stroke: "#edf3f2", useFill: true, useStroke: false, weight: 1 };
     const globals = {
       window,
@@ -557,7 +557,7 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
     if (!setup && !draw) throw new Error("p5 source did not define setup() or draw().");
     syncDimensions();
     if (setup) setup.call(globals);
-    status("running", "p5 runtime running", "Executing " + runtime.source.title + " inside a sandboxed p5-compatible iframe.");
+    status("running", "p5 runtime running", "Rendering " + runtime.source.title + " inside an isolated p5-compatible preview frame.");
     function loop(time) {
       if (disposed) return;
       syncDimensions();
@@ -671,7 +671,7 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
       }
     }
     function drawThreeScene(context, scene, clearColor) {
-      if (!context) throw new Error("Canvas 2D is unavailable for the Three.js sandbox.");
+      if (!context) throw new Error("Canvas 2D is unavailable for the Three.js preview frame.");
       const size = resizeCanvas();
       context.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
       context.fillStyle = scene && scene.background ? scene.background.toStyle() : clearColor.toStyle();
@@ -751,7 +751,7 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
     const THREE = makeThree();
     runUserScript(runtime.source.source, ["THREE", "window", "document", "requestAnimationFrame", "cancelAnimationFrame", "performance"], [THREE, window, document, requestAnimationFrame.bind(window), cancelAnimationFrame.bind(window), performance]);
     THREE.__runDefaultLoop();
-    status("running", "Three.js runtime running", "Executing " + runtime.source.title + " inside a sandboxed Three.js-compatible iframe.");
+    status("running", "Three.js runtime running", "Rendering " + runtime.source.title + " inside an isolated Three.js-compatible preview frame.");
   }
 
   function fragmentSource(source) {
@@ -770,7 +770,7 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
 
   function startGlsl() {
     const gl = canvas.getContext("webgl", { alpha: false, antialias: false });
-    if (!gl) throw new Error("WebGL is unavailable in the sandbox.");
+    if (!gl) throw new Error("WebGL is unavailable in the preview frame.");
     const vertex = "attribute vec2 a_position;void main(){gl_Position=vec4(a_position,0.0,1.0);}";
     const fragment = fragmentSource(runtime.source.source);
     const program = createProgram(gl, vertex, fragment);
@@ -780,7 +780,7 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
     const timeUniform = gl.getUniformLocation(program, "u_time");
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-    status("running", "GLSL runtime running", "Executing " + runtime.source.title + " as a sandboxed WebGL fragment shader.");
+    status("running", "GLSL runtime running", "Rendering " + runtime.source.title + " as an isolated WebGL fragment shader.");
     function loop(time) {
       if (disposed) return;
       const size = resizeCanvas();
@@ -826,7 +826,7 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
   window.addEventListener("beforeunload", () => { disposed = true; });
 
   try {
-    status("starting", "Runtime sandbox mounted", "Sandbox document loaded for " + runtime.source.title + ".");
+    status("starting", "Preview runtime mounted", "Preview document loaded for " + runtime.source.title + ".");
     if (runtime.kind === "p5") startP5();
     else if (runtime.kind === "three") startThree();
     else startGlsl();

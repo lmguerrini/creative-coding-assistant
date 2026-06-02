@@ -10,6 +10,7 @@ import type { ComponentProps } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { WorkstationShell } from "./workstation-shell";
 import {
+  getInitialWorkspaceSnapshot,
   getLocalWorkspaceSnapshot,
   type AssistantWorkspaceSnapshot,
   type InspectorTabName
@@ -62,7 +63,7 @@ function snapshotWithP5Preview(): AssistantWorkspaceSnapshot {
       artifactName: title,
       sourceArtifactName: title,
       summary: "Runtime is generating the current sketch and preview context for the p5 surface.",
-      target: "Browser sandbox"
+      target: "Browser preview"
     },
     code: {
       ...snapshot.code,
@@ -101,7 +102,7 @@ function snapshotWithGlslPreview(): AssistantWorkspaceSnapshot {
       artifactName: title,
       sourceArtifactName: title,
       summary: "Runtime is ready to mount a bounded GLSL fragment preview.",
-      target: "Browser sandbox"
+      target: "Browser preview"
     },
     code: {
       ...snapshot.code,
@@ -138,7 +139,7 @@ function snapshotWithThreePreview(): AssistantWorkspaceSnapshot {
       artifactName: title,
       sourceArtifactName: title,
       summary: "Runtime is ready to mount a bounded Three.js-style scene preview.",
-      target: "Browser sandbox",
+      target: "Browser preview",
       targetId: "browser_sandbox"
     },
     code: {
@@ -188,7 +189,7 @@ function snapshotWithEmptyRetrieval(): AssistantWorkspaceSnapshot {
       state: "empty",
       status: "No matches",
       headline: "No retrieved context",
-      detail: "No retrieval chunks were returned for this mock request.",
+      detail: "No retrieval chunks were returned for this request.",
       query: "Find TouchDesigner references for this projection loop.",
       requestedDomains: ["touchdesigner"],
       warning: "No retrieved chunks for TouchDesigner.",
@@ -573,6 +574,91 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("button", { name: "Settings" })).toBeVisible();
   });
 
+  it("renders a polished first-run workspace without demo or infrastructure noise", () => {
+    renderShell(getInitialWorkspaceSnapshot());
+
+    expect(
+      screen.getByRole("group", { name: "Empty creative workspace" })
+    ).toBeVisible();
+    expect(screen.getByText("New creative session")).toBeVisible();
+    expect(screen.getByText("p5.js sketches")).toBeVisible();
+    expect(screen.getByText("Brief -> generate -> preview -> refine")).toBeVisible();
+    expect(screen.queryByText(/aurora/i)).not.toBeInTheDocument();
+    expect(screen.queryByText("Session persistence issue")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: "Preview workspace" })
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Current session")).toHaveTextContent(
+      "Ready to start"
+    );
+    expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
+      "Ready for first prompt"
+    );
+    expect(screen.getByRole("group", { name: "Workflow summary" })).toHaveAttribute(
+      "data-state",
+      "idle"
+    );
+    expect(screen.getByRole("group", { name: "Artifacts summary" })).toHaveTextContent(
+      "0"
+    );
+    expect(screen.getByRole("group", { name: "Preview summary" })).toHaveAttribute(
+      "data-state",
+      "unavailable"
+    );
+    expect(screen.getByRole("group", { name: "Retrieval summary" })).toHaveAttribute(
+      "data-state",
+      "empty"
+    );
+    expect(
+      screen.getByRole("progressbar", { name: "Overview workflow progress" })
+    ).toHaveAttribute("aria-valuetext", "0 of 13 workflow nodes reached");
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Create a p5.js particle field that feels like slow bioluminescent drift."
+      })
+    );
+    expect(screen.getByLabelText("Assistant prompt")).toHaveValue(
+      "Create a p5.js particle field that feels like slow bioluminescent drift."
+    );
+  });
+
+  it("ignores a persisted seeded demo session on first run", async () => {
+    const seededSnapshot = getLocalWorkspaceSnapshot();
+    const persistedRecord = createWorkspaceSessionRecord({
+      activeArtifactId: "source-sketch",
+      activeInspectorTab: "Overview",
+      previewArtifactId: "source-sketch",
+      previewOpen: true,
+      snapshot: seededSnapshot
+    });
+    const persistenceClient: WorkspacePersistenceClient = {
+      load: vi.fn(async () => ({
+        error: null,
+        record: persistedRecord,
+        source: "local" as const
+      })),
+      save: vi.fn(async () => ({ error: null, target: "remote" as const }))
+    };
+
+    renderShell(getInitialWorkspaceSnapshot(), { persistenceClient });
+
+    await waitFor(() => {
+      expect(persistenceClient.save).toHaveBeenCalled();
+    });
+    expect(
+      screen.getByRole("group", { name: "Empty creative workspace" })
+    ).toBeVisible();
+    expect(screen.queryByText(/aurora/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: "Preview workspace" })
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Workflow summary" })).toHaveAttribute(
+      "data-state",
+      "idle"
+    );
+  });
+
   it("opens the top-right utility panels one at a time", () => {
     renderShell();
 
@@ -629,7 +715,7 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("tabpanel", { name: "Overview inspector" })).toBeVisible();
   });
 
-  it("supports focus mode and density toggles without changing the mock data flow", () => {
+  it("supports focus mode and density toggles without changing the data flow", () => {
     const { container } = renderShell();
     const workstation = container.querySelector(".workstation");
 
@@ -884,7 +970,7 @@ describe("WorkstationShell", () => {
             status: "succeeded",
             result: {
               preview_artifact_id: "source-sketch",
-              summary: "p5.js runtime ready for sandbox execution.",
+              summary: "p5.js runtime ready for browser preview execution.",
               request: {
                 target: "browser_sandbox"
               },
@@ -947,7 +1033,7 @@ describe("WorkstationShell", () => {
       within(preview).getByText("aurora-field.p5.js", { selector: "summary span" })
     ).toBeVisible();
     expect(
-      within(preview).queryByText("p5.js runtime ready for sandbox execution.")
+      within(preview).queryByText("p5.js runtime ready for browser preview execution.")
     ).not.toBeInTheDocument();
     expect(preview.querySelector("details")).toHaveAttribute("open");
 
@@ -960,13 +1046,15 @@ describe("WorkstationShell", () => {
     });
 
     expect(
-      within(previewStatus).getByText("p5.js runtime ready for sandbox execution.")
+      within(previewStatus).getByText(
+        "p5.js runtime ready for browser preview execution."
+      )
     ).toBeVisible();
   });
 
   it("hydrates final stream output into the active artifact and routed preview", async () => {
     const generatedAnswer = [
-      "Generated a sandboxed scene artifact.",
+      "Generated a controlled scene artifact.",
       "```ts",
       "import * as THREE from 'three';",
       "const scene = new THREE.Scene();",
@@ -1001,7 +1089,7 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
 
     expect(
-      await screen.findByText(/Generated a sandboxed scene artifact/)
+      await screen.findByText(/Generated a controlled scene artifact/)
     ).toBeVisible();
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
@@ -1422,7 +1510,7 @@ describe("WorkstationShell", () => {
     });
   });
 
-  it("shows a persistence issue when saves fall back to the local session copy", async () => {
+  it("keeps persistence fallback compact when saves stay local", async () => {
     const persistenceClient: WorkspacePersistenceClient = {
       load: vi.fn(async () => ({ error: null, record: null, source: "none" as const })),
       save: vi.fn(async () => ({
@@ -1433,7 +1521,7 @@ describe("WorkstationShell", () => {
           userMessage: "Remote session save timed out or could not be reached.",
           recoverable: true,
           suggestedAction:
-            "Keep editing locally and retry the session save after the backend recovers.",
+            "Keep editing locally; the workspace can save again when the connection is available.",
           retryLabel: "Retry save"
         }),
         target: "local" as const
@@ -1442,11 +1530,11 @@ describe("WorkstationShell", () => {
 
     renderShell(snapshotWithReadyPreview(), { persistenceClient });
 
-    expect(await screen.findByText("Saved locally")).toBeVisible();
-    expect(screen.getByText("Session persistence issue")).toBeVisible();
+    expect(await screen.findByText("Stored locally")).toBeVisible();
+    expect(screen.queryByText("Session persistence issue")).not.toBeInTheDocument();
     expect(
-      screen.getByText("Remote session save timed out or could not be reached.")
-    ).toBeVisible();
+      screen.queryByText("Remote session save timed out or could not be reached.")
+    ).not.toBeInTheDocument();
   });
 
   it("hides workflow traces and keeps preview closed when auto-open is disabled", async () => {
@@ -1465,7 +1553,7 @@ describe("WorkstationShell", () => {
             status: "succeeded",
             result: {
               preview_artifact_id: "source-sketch",
-              summary: "p5.js runtime ready for sandbox execution.",
+              summary: "p5.js runtime ready for browser preview execution.",
               request: {
                 target: "browser_sandbox"
               },
@@ -1516,7 +1604,7 @@ describe("WorkstationShell", () => {
     expect(preview.querySelector("details")).not.toHaveAttribute("open");
   });
 
-  it("falls back to the local mock path when the backend stream is unavailable", async () => {
+  it("falls back to the local draft path when the live response is unavailable", async () => {
     vi.useFakeTimers();
     renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: failingStream });
 
@@ -1540,12 +1628,12 @@ describe("WorkstationShell", () => {
     });
 
     expect(promptInput).toHaveValue("");
-    expect(screen.getByText(/Backend stream unavailable/)).toBeVisible();
+    expect(screen.getByText(/Live response unavailable/)).toBeVisible();
     const userMessage = screen
       .getByText("Make the low-frequency motion calmer.")
       .closest("article");
     const assistantMessage = screen
-      .getByText(/Mock orchestration pass started/)
+      .getByText(/Local draft started/)
       .closest("article");
 
     expect(userMessage).toHaveAttribute("data-fresh", "true");
@@ -1594,7 +1682,7 @@ describe("WorkstationShell", () => {
     expect(screen.getByText("Generate a reactive sketch.")).toBeVisible();
     expect(
       await screen.findByText(
-        "Backend stream error: The model provider is unavailable for this live response."
+        "Live response error: The model provider is unavailable for this live response."
       )
     ).toBeVisible();
     expect(screen.getByText("Live stream interrupted")).toBeVisible();
@@ -1857,7 +1945,7 @@ describe("WorkstationShell", () => {
     expect(preview.querySelector("details")).toHaveAttribute("data-state", "open");
   });
 
-  it("mounts supported p5 artifacts into a sandboxed live runtime", async () => {
+  it("mounts supported p5 artifacts into a controlled live runtime", async () => {
     renderShell(snapshotWithP5Preview());
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
@@ -1876,11 +1964,11 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
     const frame = await waitForSandboxRuntimeFrame(
       surface,
-      "p5.js sandbox runtime frame"
+      "p5.js preview runtime frame"
     );
     dispatchSandboxRuntimeStatus(frame, {
       detail:
-        "Executing signal-orbit.p5.ts inside a sandboxed p5-compatible iframe.",
+        "Rendering signal-orbit.p5.ts inside an isolated p5-compatible preview frame.",
       label: "p5 runtime running",
       state: "running"
     });
@@ -1901,12 +1989,12 @@ describe("WorkstationShell", () => {
     });
     const frame = await waitForSandboxRuntimeFrame(
       surface,
-      "p5.js sandbox runtime frame"
+      "p5.js preview runtime frame"
     );
 
     dispatchSandboxRuntimeStatus(frame, {
       detail:
-        "Executing signal-orbit.p5.ts inside a sandboxed p5-compatible iframe.",
+        "Rendering signal-orbit.p5.ts inside an isolated p5-compatible preview frame.",
       label: "p5 runtime running",
       state: "running"
     });
@@ -1931,7 +2019,7 @@ describe("WorkstationShell", () => {
       dispatchSandboxRuntimeFrame(frame, frameTime);
     }
 
-    const overlay = within(surface).getByLabelText("Renderer diagnostics overlay");
+    const overlay = within(surface).getByLabelText("Renderer health overlay");
 
     expect(within(overlay).getByText("FPS")).toBeVisible();
     expect(within(overlay).getByText("Frame")).toBeVisible();
@@ -1942,7 +2030,7 @@ describe("WorkstationShell", () => {
     expect(within(surface).getByText("16.0 ms")).toBeVisible();
   });
 
-  it("mounts supported Three.js artifacts into a sandboxed 3D runtime", async () => {
+  it("mounts supported Three.js artifacts into a controlled 3D runtime", async () => {
     renderShell(snapshotWithThreePreview());
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
@@ -1962,11 +2050,11 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
     const frame = await waitForSandboxRuntimeFrame(
       surface,
-      "Three.js sandbox runtime frame"
+      "Three.js preview runtime frame"
     );
     dispatchSandboxRuntimeStatus(frame, {
       detail:
-        "Executing projection-scene.three.ts inside a sandboxed Three.js-compatible iframe.",
+        "Rendering projection-scene.three.ts inside an isolated Three.js-compatible preview frame.",
       label: "Three.js runtime running",
       state: "running"
     });
@@ -1975,7 +2063,7 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
   });
 
-  it("shows a stable Three.js runtime error from the sandbox", async () => {
+  it("shows a stable Three.js runtime error from the preview frame", async () => {
     renderShell(snapshotWithThreePreview());
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
@@ -1994,12 +2082,12 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
     const frame = await waitForSandboxRuntimeFrame(
       surface,
-      "Three.js sandbox runtime frame"
+      "Three.js preview runtime frame"
     );
     dispatchSandboxRuntimeStatus(frame, {
-      detail: "WebGL is unavailable in the sandbox.",
+      detail: "WebGL is unavailable in the preview frame.",
       error: {
-        message: "WebGL is unavailable in the sandbox.",
+        message: "WebGL is unavailable in the preview frame.",
         type: "webgl_unavailable"
       },
       label: "Three.js runtime failed",
@@ -2022,7 +2110,7 @@ describe("WorkstationShell", () => {
     });
     dispatchSandboxRuntimeStatus(frame, {
       detail:
-        "Executing projection-scene.three.ts inside a sandboxed Three.js-compatible iframe.",
+        "Rendering projection-scene.three.ts inside an isolated Three.js-compatible preview frame.",
       label: "Three.js runtime running",
       state: "running"
     });
@@ -2038,7 +2126,7 @@ describe("WorkstationShell", () => {
     expect(within(events).getByText("Preview Runtime Recovered")).toBeVisible();
   });
 
-  it("shows a stable GLSL runtime error from the sandbox", async () => {
+  it("shows a stable GLSL runtime error from the preview frame", async () => {
     renderShell(snapshotWithGlslPreview());
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
@@ -2057,7 +2145,7 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
     const frame = await waitForSandboxRuntimeFrame(
       surface,
-      "GLSL sandbox runtime frame"
+      "GLSL preview runtime frame"
     );
     dispatchSandboxRuntimeStatus(frame, {
       detail: "Shader did not compile.",
@@ -2074,26 +2162,26 @@ describe("WorkstationShell", () => {
 
   it.each([
     {
-      frameLabel: "p5.js sandbox runtime frame",
+      frameLabel: "p5.js preview runtime frame",
       makeSnapshot: snapshotWithP5Preview,
       runningDetail:
-        "Executing signal-orbit.p5.ts inside a sandboxed p5-compatible iframe.",
+        "Rendering signal-orbit.p5.ts inside an isolated p5-compatible preview frame.",
       runningLabel: "p5 runtime running",
       surfaceTitle: "P5 sketch surface"
     },
     {
-      frameLabel: "GLSL sandbox runtime frame",
+      frameLabel: "GLSL preview runtime frame",
       makeSnapshot: snapshotWithGlslPreview,
       runningDetail:
-        "Executing chromatic-field.frag as a sandboxed WebGL fragment shader.",
+        "Rendering chromatic-field.frag as an isolated WebGL fragment shader.",
       runningLabel: "GLSL runtime running",
       surfaceTitle: "Shader surface"
     },
     {
-      frameLabel: "Three.js sandbox runtime frame",
+      frameLabel: "Three.js preview runtime frame",
       makeSnapshot: snapshotWithThreePreview,
       runningDetail:
-        "Executing projection-scene.three.ts inside a sandboxed Three.js-compatible iframe.",
+        "Rendering projection-scene.three.ts inside an isolated Three.js-compatible preview frame.",
       runningLabel: "Three.js runtime running",
       surfaceTitle: "Three scene surface"
     }
@@ -3389,6 +3477,6 @@ describe("WorkstationShell", () => {
       await Promise.resolve();
     });
 
-    expect(screen.getByText("Saved locally")).toBeVisible();
+    expect(screen.getByText("Stored locally")).toBeVisible();
   });
 });

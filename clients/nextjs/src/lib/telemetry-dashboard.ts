@@ -366,7 +366,7 @@ function buildPreviewHealth(
     null;
   const runtimeMessage =
     latestRuntime?.record.state === "running"
-      ? `${latestRuntime.record.rendererLabel ?? latestRuntime.record.kind ?? "Preview"} sandbox runtime is executing ${latestRuntime.record.artifact ?? preview.artifactName}.`
+      ? `${latestRuntime.record.rendererLabel ?? latestRuntime.record.kind ?? "Preview"} runtime is rendering ${latestRuntime.record.artifact ?? preview.artifactName}.`
       : null;
 
   return {

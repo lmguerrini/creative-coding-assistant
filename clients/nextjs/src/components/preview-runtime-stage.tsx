@@ -133,8 +133,8 @@ export function PreviewRuntimeStage({
     const iframe = iframeRef.current;
     if (!iframe) {
       handleStatus({
-        detail: "The sandbox frame is not ready yet.",
-        label: "Runtime sandbox waiting",
+        detail: "The preview frame is not ready yet.",
+        label: "Preview runtime waiting",
         state: "idle",
         error: null
       });
@@ -180,11 +180,11 @@ export function PreviewRuntimeStage({
       role="group"
     >
       <iframe
-        aria-label={`${route.rendererLabel} sandbox runtime frame`}
+        aria-label={`${route.rendererLabel} preview runtime frame`}
         className="previewRuntimeFrame"
         ref={iframeRef}
         sandbox="allow-scripts allow-same-origin"
-        title={`${route.rendererLabel} sandbox runtime`}
+        title={`${route.rendererLabel} preview runtime`}
       />
       <div className="previewRuntimeOverlay" aria-live="polite">
         <div className="previewRuntimeOverlayHeader">
@@ -198,7 +198,7 @@ export function PreviewRuntimeStage({
         </div>
         <span>{status.detail}</span>
         <div
-          aria-label="Renderer diagnostics overlay"
+          aria-label="Renderer health overlay"
           className="previewRuntimeMetrics"
           role="list"
         >
@@ -215,7 +215,7 @@ export function PreviewRuntimeStage({
           ))}
         </div>
         {overlay.diagnostics.length > 0 ? (
-          <div className="previewRuntimeDiagnostics" aria-label="Runtime diagnostics">
+          <div className="previewRuntimeDiagnostics" aria-label="Runtime notes">
             {overlay.diagnostics.map((diagnostic) => (
               <span key={diagnostic}>{diagnostic}</span>
             ))}

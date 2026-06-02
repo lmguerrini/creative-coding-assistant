@@ -213,10 +213,10 @@ export function getInitialPreviewRuntimeStatus({
   return {
     detail:
       kind === "glsl"
-        ? "Preparing a sandboxed WebGL fragment shader runtime."
+        ? "Preparing a controlled WebGL fragment shader runtime."
         : kind === "three"
-          ? "Preparing a sandboxed Three.js-compatible browser runtime."
-          : "Preparing a sandboxed p5.js-compatible browser runtime.",
+          ? "Preparing a controlled Three.js-compatible browser runtime."
+          : "Preparing a controlled p5.js-compatible browser runtime.",
     label: "Runtime starting",
     state: "starting",
     error: null

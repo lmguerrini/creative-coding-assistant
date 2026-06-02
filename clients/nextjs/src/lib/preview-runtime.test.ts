@@ -34,7 +34,7 @@ describe("preview runtime", () => {
       sourceArtifactId: "source-sketch",
       sourceArtifactName: "aurora-field.p5.js",
       outputArtifactName: "",
-      target: "Browser sandbox",
+      target: "Browser preview",
       targetId: "browser_sandbox"
     });
   });
@@ -73,7 +73,7 @@ describe("preview runtime", () => {
       sourceArtifactName: "aurora-field.p5.js",
       outputArtifactName: "aurora-field.p5.js",
       renderer: "surface.p5",
-      target: "Browser sandbox",
+      target: "Browser preview",
       targetId: "browser_sandbox"
     });
   });

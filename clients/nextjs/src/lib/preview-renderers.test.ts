@@ -21,7 +21,7 @@ describe("preview renderers", () => {
       })
     ).toMatchObject({
       targetId: "browser_sandbox",
-      targetLabel: "Browser sandbox",
+      targetLabel: "Browser preview",
       rendererId: "surface.p5",
       rendererLabel: "p5.js",
       supportState: "supported",
@@ -141,7 +141,7 @@ function creativePreviewSummary(
     sourceArtifactName: artifact.title,
     state: "ready",
     status: "Ready when opened",
-    target: "Browser sandbox",
+    target: "Browser preview",
     targetId: "browser_sandbox"
   };
 }

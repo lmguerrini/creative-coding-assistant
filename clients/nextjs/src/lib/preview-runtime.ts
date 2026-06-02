@@ -305,7 +305,7 @@ function buildPreviewRuntimeSummaryCopy({
   if (previewUpdate?.status === "skipped") {
     return (
       previewUpdate.summary ??
-      "Preview target metadata is ready; live execution starts when a supported sandbox runtime opens."
+      "Preview target metadata is ready; live execution starts when a supported preview runtime opens."
     );
   }
 

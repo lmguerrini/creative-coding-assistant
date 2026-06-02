@@ -140,7 +140,7 @@ describe("preview sandbox runtime", () => {
     );
 
     expect(statuses).toEqual([
-      "Runtime sandbox starting",
+      "Preview runtime starting",
       "p5 runtime running"
     ]);
 
@@ -216,8 +216,8 @@ describe("preview sandbox runtime", () => {
     );
 
     expect(statuses).toEqual([
-      "Runtime sandbox starting",
-      "Runtime sandbox starting",
+      "Preview runtime starting",
+      "Preview runtime starting",
       "p5 runtime running"
     ]);
 

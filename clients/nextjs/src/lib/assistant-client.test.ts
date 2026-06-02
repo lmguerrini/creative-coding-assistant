@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createAssistantClient, getLocalWorkspaceSnapshot } from "./assistant-client";
+import {
+  createAssistantClient,
+  getInitialWorkspaceSnapshot,
+  getLocalWorkspaceSnapshot
+} from "./assistant-client";
 
 describe("assistant frontend client", () => {
   it("provides a typed local workspace snapshot", () => {
@@ -71,7 +75,7 @@ describe("assistant frontend client", () => {
       imageAttachments: []
     });
     expect(snapshot.preview.targetId).toBe("browser_sandbox");
-    expect(snapshot.preview.target).toContain("Browser sandbox");
+    expect(snapshot.preview.target).toContain("Browser preview");
     expect(snapshot.retrieval.state).toBe("available");
     expect(snapshot.retrieval.sources[0]).toMatchObject({
       sourceId: "webgpu_mdn_api",
@@ -89,9 +93,31 @@ describe("assistant frontend client", () => {
     const client = createAssistantClient();
 
     await expect(client.getWorkspaceSnapshot()).resolves.toMatchObject({
+      artifacts: [],
       debug: {
-        status: "Contextual"
+        status: "Ready"
+      },
+      preview: {
+        available: false
       }
     });
+  });
+
+  it("provides a polished first-run workspace snapshot", () => {
+    const snapshot = getInitialWorkspaceSnapshot();
+
+    expect(snapshot.messages).toEqual([]);
+    expect(snapshot.artifacts).toEqual([]);
+    expect(snapshot.preview).toMatchObject({
+      available: false,
+      active: false,
+      collapsed: true,
+      state: "unavailable"
+    });
+    expect(snapshot.workflow.status).toBe("Idle");
+    expect(snapshot.workflow.steps.some((step) => step.state === "active")).toBe(
+      false
+    );
+    expect(snapshot.retrieval.state).toBe("empty");
   });
 });

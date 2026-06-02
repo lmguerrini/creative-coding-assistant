@@ -2,7 +2,7 @@ import type { ArtifactSummary, PreviewTargetId } from "./assistant-client";
 
 const previewTargetLabels: Record<PreviewTargetId, string> = {
   audio_asset: "Audio asset",
-  browser_sandbox: "Browser sandbox",
+  browser_sandbox: "Browser preview",
   image_asset: "Image asset",
   json_panel: "JSON panel",
   text_panel: "Text panel",
