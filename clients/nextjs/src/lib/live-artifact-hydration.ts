@@ -2,7 +2,8 @@ import type {
   ArtifactAction,
   ArtifactSummary,
   AssistantWorkspaceSnapshot,
-  PreviewSummary
+  PreviewSummary,
+  PreviewTargetId
 } from "./assistant-client";
 import type { AssistantStreamEvent } from "./assistant-stream";
 
@@ -20,20 +21,37 @@ export type LiveArtifactHydrationOptions = {
 
 type GeneratedArtifactSource = {
   content: string;
+  domain?: string | null;
   id?: string;
+  isDefault?: boolean;
   language?: string;
   origin?: "answer" | "code_fence" | "structured";
+  previewEligible?: boolean;
+  previewTarget?: string | null;
+  rendererId?: string | null;
+  runtime?: string | null;
+  sourceOrder?: number;
+  status?: string;
+  summary?: string;
   title?: string;
   type?: ArtifactSummary["type"];
 };
 
-type CreativeRuntimeKind = "p5" | "three" | "glsl";
+type CreativeRuntimeKind = "p5" | "three" | "glsl" | "hydra";
 
 type ArtifactInference = {
   content: string;
+  domain: string | null;
   id: string;
+  isDefault: boolean;
   language: string;
+  previewEligible: boolean;
   previewKind: CreativeRuntimeKind | null;
+  previewTarget: PreviewTargetId | "";
+  rendererId: string | null;
+  sourceOrder: number;
+  status: string;
+  summary: string | null;
   title: string;
   type: ArtifactSummary["type"];
 };
@@ -42,11 +60,13 @@ const liveGeneratedArtifactId = "live-generated-artifact";
 const liveResponseArtifactId = "live-response-artifact";
 const previewRendererLabels: Record<CreativeRuntimeKind, string> = {
   glsl: "GLSL",
+  hydra: "Hydra",
   p5: "p5.js",
   three: "Three.js"
 };
 const previewRendererIds: Record<CreativeRuntimeKind, string> = {
   glsl: "surface.glsl",
+  hydra: "surface.hydra",
   p5: "surface.p5",
   three: "surface.three"
 };
@@ -67,8 +87,14 @@ export function hydrateWorkspaceFromFinalEvent(
   }
 
   const answer = readString(event.payload.answer);
-  const source = readStructuredArtifactSources(event.payload)[0] ?? sourceFromAnswer(answer);
-  if (options.skipPlainTextArtifact && source?.origin === "answer") {
+  const structuredSources = readStructuredArtifactSources(event.payload);
+  const sources =
+    structuredSources.length > 0 ? structuredSources : sourcesFromAnswer(answer);
+  if (
+    options.skipPlainTextArtifact &&
+    sources.length > 0 &&
+    sources.every((source) => source.origin === "answer")
+  ) {
     return {
       activeArtifactId: snapshot.artifacts[0]?.id ?? "",
       artifact: null,
@@ -78,11 +104,7 @@ export function hydrateWorkspaceFromFinalEvent(
     };
   }
 
-  if (!source) {
-    return hydrateWorkspaceFromSource(snapshot, null);
-  }
-
-  return hydrateWorkspaceFromSource(snapshot, source);
+  return hydrateWorkspaceFromSources(snapshot, sources);
 }
 
 export function hydrateWorkspaceFromArtifactExtractedEvent(
@@ -99,22 +121,22 @@ export function hydrateWorkspaceFromArtifactExtractedEvent(
     };
   }
 
-  const source = readStructuredArtifactSources(event.payload)[0] ?? null;
-  return hydrateWorkspaceFromSource(snapshot, source, {
+  const sources = readStructuredArtifactSources(event.payload);
+  return hydrateWorkspaceFromSources(snapshot, sources, {
     artifactHydrationSource: "graph-owned artifact extraction",
     previewTrigger: "Artifact extraction"
   });
 }
 
-function hydrateWorkspaceFromSource(
+function hydrateWorkspaceFromSources(
   snapshot: AssistantWorkspaceSnapshot,
-  source: GeneratedArtifactSource | null,
+  sources: GeneratedArtifactSource[],
   options: {
     artifactHydrationSource?: string;
     previewTrigger?: string;
   } = {}
 ): LiveArtifactHydrationResult {
-  if (!source) {
+  if (sources.length === 0) {
     return {
       activeArtifactId: snapshot.artifacts[0]?.id ?? "",
       artifact: null,
@@ -131,39 +153,54 @@ function hydrateWorkspaceFromSource(
     };
   }
 
-  const inferred = inferGeneratedArtifact(source);
-  const artifact = buildArtifactSummary(
-    inferred,
-    options.artifactHydrationSource
+  const inferredArtifacts = inferGeneratedArtifacts(sources);
+  const artifactSummaries = inferredArtifacts.map((inferred) =>
+    buildArtifactSummary(inferred, options.artifactHydrationSource)
   );
-  const artifacts = upsertLiveArtifact(snapshot.artifacts, artifact);
-  const preview = inferred.previewKind
+  const activeInference =
+    inferredArtifacts.find((inferred) => inferred.isDefault) ??
+    inferredArtifacts.find((inferred) => inferred.previewKind) ??
+    inferredArtifacts[0];
+  const activeArtifact =
+    artifactSummaries.find((artifact) => artifact.id === activeInference.id) ??
+    artifactSummaries[0];
+  const previewInference =
+    activeInference.previewKind || activeInference.previewEligible
+      ? activeInference
+      : inferredArtifacts.find(
+          (inferred) => inferred.previewKind || inferred.previewEligible
+        ) ?? null;
+  const previewArtifact = previewInference
+    ? artifactSummaries.find((artifact) => artifact.id === previewInference.id) ?? null
+    : null;
+  const artifacts = upsertLiveArtifacts(snapshot.artifacts, artifactSummaries);
+  const preview = previewInference && previewArtifact
     ? buildPreviewableSummary({
-        artifact,
+        artifact: previewArtifact,
         basePreview: snapshot.preview,
-        kind: inferred.previewKind,
+        inferred: previewInference,
         trigger: options.previewTrigger
       })
     : buildUnavailablePreviewSummary({
-        artifact,
+        artifact: activeArtifact,
         basePreview: snapshot.preview,
         trigger: options.previewTrigger
       });
   const code =
-    artifact.type === "code"
+    activeArtifact.type === "code"
       ? {
-          title: artifact.title,
-          language: artifact.language,
-          status: artifact.status,
-          excerpt: splitContentLines(inferred.content)
+          title: activeArtifact.title,
+          language: activeArtifact.language,
+          status: activeArtifact.status,
+          excerpt: splitContentLines(activeInference.content)
         }
       : snapshot.code;
 
   return {
-    activeArtifactId: artifact.id,
-    artifact,
-    previewArtifactId: inferred.previewKind ? artifact.id : "",
-    previewAvailable: inferred.previewKind !== null,
+    activeArtifactId: activeArtifact.id,
+    artifact: activeArtifact,
+    previewArtifactId: previewInference && previewArtifact ? previewArtifact.id : "",
+    previewAvailable: previewInference !== null,
     snapshot: {
       ...snapshot,
       artifacts,
@@ -198,13 +235,40 @@ function readStructuredArtifactSources(
 
     sources.push({
       content,
+      domain: readString(artifact.domain) ?? null,
       id: readString(artifact.id) ?? undefined,
+      isDefault:
+        readBoolean(artifact.is_default) ??
+        readBoolean(artifact.isDefault) ??
+        readBoolean(artifact.default) ??
+        undefined,
       language:
         readString(artifact.source_language) ??
         readString(artifact.language) ??
         readString(artifact.lang) ??
         readString(artifact.mime_type) ??
         undefined,
+      previewEligible:
+        readBoolean(artifact.preview_eligible) ??
+        readBoolean(artifact.previewEligible) ??
+        undefined,
+      previewTarget:
+        readString(artifact.preview_target) ??
+        readString(artifact.previewTarget) ??
+        readString(artifact.target_id) ??
+        readString(artifact.targetId) ??
+        null,
+      rendererId:
+        readString(artifact.renderer_id) ??
+        readString(artifact.rendererId) ??
+        null,
+      runtime: readString(artifact.runtime) ?? null,
+      sourceOrder:
+        readNumber(artifact.source_order) ??
+        readNumber(artifact.sourceOrder) ??
+        undefined,
+      status: readString(artifact.status) ?? undefined,
+      summary: readString(artifact.summary) ?? undefined,
       origin: "structured",
       title:
         readString(artifact.title) ??
@@ -219,27 +283,25 @@ function readStructuredArtifactSources(
   return sources;
 }
 
-function sourceFromAnswer(answer: string | null): GeneratedArtifactSource | null {
+function sourcesFromAnswer(answer: string | null): GeneratedArtifactSource[] {
   if (!answer?.trim()) {
-    return null;
+    return [];
   }
 
   const codeBlocks = parseMarkdownCodeBlocks(answer);
-  const preferredBlock =
-    codeBlocks.find((block) => inferRuntimeKind(block.content, block.language, block.title)) ??
-    codeBlocks[0];
-
-  if (preferredBlock) {
-    return preferredBlock;
+  if (codeBlocks.length > 0) {
+    return codeBlocks;
   }
 
-  return {
-    content: answer,
-    language: "markdown",
-    origin: "answer",
-    title: "assistant-response.md",
-    type: "export"
-  };
+  return [
+    {
+      content: answer,
+      language: "markdown",
+      origin: "answer",
+      title: "assistant-response.md",
+      type: "export"
+    }
+  ];
 }
 
 function parseMarkdownCodeBlocks(answer: string): GeneratedArtifactSource[] {
@@ -280,12 +342,48 @@ function parseFenceInfo(info: string) {
   };
 }
 
-function inferGeneratedArtifact(source: GeneratedArtifactSource): ArtifactInference {
+function inferGeneratedArtifacts(
+  sources: GeneratedArtifactSource[]
+): ArtifactInference[] {
+  const inferredArtifacts = sources.map((source, index) =>
+    inferGeneratedArtifact(source, {
+      sourceOrder: source.sourceOrder ?? index + 1,
+      totalSources: sources.length
+    })
+  );
+  const defaultIndex = inferredArtifacts.findIndex((artifact) => artifact.isDefault);
+  const fallbackDefaultIndex =
+    inferredArtifacts.findIndex((artifact) => artifact.previewKind) >= 0
+      ? inferredArtifacts.findIndex((artifact) => artifact.previewKind)
+      : 0;
+  const defaultArtifactIndex =
+    defaultIndex >= 0 ? defaultIndex : fallbackDefaultIndex;
+
+  return ensureUniqueInferredArtifacts(
+    inferredArtifacts.map((artifact, index) => ({
+      ...artifact,
+      isDefault: index === defaultArtifactIndex
+    }))
+  );
+}
+
+function inferGeneratedArtifact(
+  source: GeneratedArtifactSource,
+  {
+    sourceOrder,
+    totalSources
+  }: {
+    sourceOrder: number;
+    totalSources: number;
+  }
+): ArtifactInference {
   const normalizedLanguage = normalizeLanguageToken(source.language ?? "");
   const type = source.type ?? (normalizedLanguage === "markdown" ? "export" : "code");
+  const runtimeKind = normalizeRuntimeKind(source.runtime ?? source.rendererId ?? "");
   const previewKind =
     type === "code"
-      ? inferRuntimeKind(source.content, normalizedLanguage, source.title)
+      ? runtimeKind ??
+        inferRuntimeKind(source.content, normalizedLanguage, source.title)
       : null;
   const title =
     sanitizeFileName(source.title ?? "") ||
@@ -293,20 +391,58 @@ function inferGeneratedArtifact(source: GeneratedArtifactSource): ArtifactInfere
       content: source.content,
       language: normalizedLanguage,
       previewKind,
+      sourceOrder: totalSources > 1 ? sourceOrder : undefined,
       type
     });
   const language = formatLanguageLabel(normalizedLanguage, previewKind, title);
+  const previewTarget = normalizePreviewTarget(source.previewTarget);
+  const previewEligible =
+    source.previewEligible ??
+    (previewKind !== null || previewTarget === "browser_sandbox");
+  const fallbackId =
+    totalSources > 1
+      ? sanitizeArtifactId(title) || `${liveGeneratedArtifactId}-${sourceOrder}`
+      : type === "code"
+        ? liveGeneratedArtifactId
+        : liveResponseArtifactId;
 
   return {
     content: trimCodeBlock(source.content),
+    domain: source.domain ?? null,
     id:
       sanitizeArtifactId(source.id ?? "") ||
-      (type === "code" ? liveGeneratedArtifactId : liveResponseArtifactId),
+      fallbackId,
+    isDefault: source.isDefault ?? false,
     language,
+    previewEligible,
     previewKind,
+    previewTarget,
+    rendererId: source.rendererId ?? (previewKind ? previewRendererIds[previewKind] : null),
+    sourceOrder,
+    status: source.status ?? "Generated",
+    summary: source.summary ?? null,
     title,
     type
   };
+}
+
+function ensureUniqueInferredArtifacts(
+  artifacts: ArtifactInference[]
+): ArtifactInference[] {
+  const usedIds = new Set<string>();
+
+  return artifacts.map((artifact) => {
+    let nextId = artifact.id;
+    let suffix = 2;
+    while (usedIds.has(nextId)) {
+      nextId =
+        sanitizeArtifactId(`${artifact.id}-${suffix}`) ||
+        `${liveGeneratedArtifactId}-${artifact.sourceOrder}-${suffix}`;
+      suffix += 1;
+    }
+    usedIds.add(nextId);
+    return nextId === artifact.id ? artifact : { ...artifact, id: nextId };
+  });
 }
 
 function buildArtifactSummary(
@@ -315,35 +451,47 @@ function buildArtifactSummary(
 ): ArtifactSummary {
   const actions: ArtifactAction[] =
     inferred.type === "code"
-      ? inferred.previewKind
+      ? inferred.previewKind || inferred.previewEligible
         ? ["Open", "Preview", "Copy", "Download"]
         : ["Open", "Copy", "Download"]
       : ["Open", "Copy", "Download"];
   const runtimeSummary = inferred.previewKind
     ? `${previewRendererLabels[inferred.previewKind]} runtime signals matched from the generated artifact.`
-    : "No supported p5.js, Three.js, or GLSL preview runtime matched this output.";
+    : inferred.previewEligible
+      ? "Preview target metadata is available, but no supported creative runtime matched this output."
+    : "No supported p5.js, Three.js, GLSL, or Hydra preview runtime matched this output.";
+  const summary =
+    inferred.summary ??
+    (inferred.type === "code"
+      ? `Hydrated from ${hydrationSource}. ${runtimeSummary}`
+      : `Hydrated from ${hydrationSource} as a readable response artifact.`);
 
   return {
     id: inferred.id,
     title: inferred.title,
     type: inferred.type,
     language: inferred.language,
-    status: "Generated",
-    summary:
-      inferred.type === "code"
-        ? `Hydrated from ${hydrationSource}. ${runtimeSummary}`
-        : `Hydrated from ${hydrationSource} as a readable response artifact.`,
+    status: inferred.status,
+    summary,
     content: inferred.content,
+    domain: inferred.domain,
+    isDefault: inferred.isDefault,
+    previewEligible: inferred.previewEligible,
+    previewTarget: inferred.previewTarget,
+    rendererId: inferred.rendererId,
+    runtime: inferred.previewKind,
+    sourceOrder: inferred.sourceOrder,
     actions
   };
 }
 
-function upsertLiveArtifact(
+function upsertLiveArtifacts(
   artifacts: ArtifactSummary[],
-  artifact: ArtifactSummary
+  hydratedArtifacts: ArtifactSummary[]
 ): ArtifactSummary[] {
+  const hydratedIds = new Set(hydratedArtifacts.map((artifact) => artifact.id));
   const nextArtifacts = artifacts.filter((currentArtifact) => {
-    if (currentArtifact.id === artifact.id) {
+    if (hydratedIds.has(currentArtifact.id)) {
       return false;
     }
 
@@ -353,21 +501,27 @@ function upsertLiveArtifact(
     );
   });
 
-  return [artifact, ...nextArtifacts];
+  return [...hydratedArtifacts, ...nextArtifacts];
 }
 
 function buildPreviewableSummary({
   artifact,
   basePreview,
-  kind,
+  inferred,
   trigger = "Final generation output"
 }: {
   artifact: ArtifactSummary;
   basePreview: PreviewSummary;
-  kind: CreativeRuntimeKind;
+  inferred: ArtifactInference;
   trigger?: string;
 }): PreviewSummary {
-  const rendererLabel = previewRendererLabels[kind];
+  const rendererLabel = inferred.previewKind
+    ? previewRendererLabels[inferred.previewKind]
+    : "Browser";
+  const rendererId =
+    inferred.rendererId ??
+    (inferred.previewKind ? previewRendererIds[inferred.previewKind] : "");
+  const targetId = inferred.previewTarget || "browser_sandbox";
 
   return {
     ...basePreview,
@@ -377,7 +531,7 @@ function buildPreviewableSummary({
     collapsed: true,
     error: null,
     outputArtifactName: artifact.title,
-    renderer: previewRendererIds[kind],
+    renderer: rendererId,
     sourceArtifactId: artifact.id,
     sourceArtifactName: artifact.title,
     state: "ready",
@@ -387,7 +541,7 @@ function buildPreviewableSummary({
         ? `${rendererLabel} preview routing was prepared from graph-owned artifact metadata. Open the shelf to mount the live preview surface.`
         : `${rendererLabel} preview routing was inferred from the latest generated artifact. Open the shelf to mount the live preview surface.`,
     target: `Browser preview / ${rendererLabel}`,
-    targetId: "browser_sandbox",
+    targetId,
     title: "Preview available",
     trigger
   };
@@ -464,6 +618,15 @@ function inferRuntimeKind(
     return "p5";
   }
 
+  if (
+    normalizedTitle.endsWith(".hydra.ts") ||
+    normalizedTitle.endsWith(".hydra.js") ||
+    haystack.includes("hydra") ||
+    (haystack.includes("osc(") && haystack.includes("out("))
+  ) {
+    return "hydra";
+  }
+
   return null;
 }
 
@@ -471,58 +634,68 @@ function defaultArtifactTitle({
   content,
   language,
   previewKind,
+  sourceOrder,
   type
 }: {
   content: string;
   language: string;
   previewKind: CreativeRuntimeKind | null;
+  sourceOrder?: number;
   type: ArtifactSummary["type"];
 }) {
+  const orderSuffix = sourceOrder ? `-${sourceOrder}` : "";
+
   if (type !== "code") {
     return "assistant-response.md";
   }
 
   if (previewKind === "three") {
     return language === "javascript"
-      ? "generated-scene.three.js"
-      : "generated-scene.three.ts";
+      ? `generated-scene${orderSuffix}.three.js`
+      : `generated-scene${orderSuffix}.three.ts`;
   }
 
   if (previewKind === "p5") {
     return language === "javascript"
-      ? "generated-sketch.p5.js"
-      : "generated-sketch.p5.ts";
+      ? `generated-sketch${orderSuffix}.p5.js`
+      : `generated-sketch${orderSuffix}.p5.ts`;
   }
 
   if (previewKind === "glsl") {
-    return "generated-shader.frag";
+    return `generated-shader${orderSuffix}.frag`;
+  }
+
+  if (previewKind === "hydra") {
+    return language === "typescript"
+      ? `generated-patch${orderSuffix}.hydra.ts`
+      : `generated-patch${orderSuffix}.hydra.js`;
   }
 
   if (language === "javascript") {
-    return "generated-artifact.js";
+    return `generated-artifact${orderSuffix}.js`;
   }
 
   if (language === "typescript" || content.includes("export ")) {
-    return "generated-artifact.ts";
+    return `generated-artifact${orderSuffix}.ts`;
   }
 
   if (language === "json") {
-    return "generated-artifact.json";
+    return `generated-artifact${orderSuffix}.json`;
   }
 
   if (language === "html") {
-    return "generated-artifact.html";
+    return `generated-artifact${orderSuffix}.html`;
   }
 
   if (language === "css") {
-    return "generated-artifact.css";
+    return `generated-artifact${orderSuffix}.css`;
   }
 
   if (language === "python") {
-    return "generated-artifact.py";
+    return `generated-artifact${orderSuffix}.py`;
   }
 
-  return "generated-artifact.txt";
+  return `generated-artifact${orderSuffix}.txt`;
 }
 
 function formatLanguageLabel(
@@ -540,6 +713,10 @@ function formatLanguageLabel(
 
   if (previewKind === "glsl") {
     return "GLSL";
+  }
+
+  if (previewKind === "hydra") {
+    return language === "typescript" ? "TypeScript + Hydra" : "JavaScript + Hydra";
   }
 
   switch (language) {
@@ -589,6 +766,45 @@ function normalizeLanguageToken(value: string) {
   }
 }
 
+function normalizeRuntimeKind(value: string): CreativeRuntimeKind | null {
+  const normalized = value.trim().toLowerCase();
+
+  switch (normalized) {
+    case "surface.glsl":
+    case "glsl":
+      return "glsl";
+    case "surface.hydra":
+    case "hydra":
+      return "hydra";
+    case "surface.p5":
+    case "p5":
+    case "p5.js":
+      return "p5";
+    case "surface.three":
+    case "three":
+    case "three.js":
+      return "three";
+    default:
+      return null;
+  }
+}
+
+function normalizePreviewTarget(
+  value: string | null | undefined
+): PreviewTargetId | "" {
+  switch (value) {
+    case "audio_asset":
+    case "browser_sandbox":
+    case "image_asset":
+    case "json_panel":
+    case "text_panel":
+    case "video_asset":
+      return value;
+    default:
+      return "";
+  }
+}
+
 function splitContentLines(content: string) {
   const lines = content.replace(/\r\n/g, "\n").split("\n");
   return lines.length > 0 ? lines : [""];
@@ -613,6 +829,14 @@ function readRecordList(value: unknown): Record<string, unknown>[] {
     (entry): entry is Record<string, unknown> =>
       typeof entry === "object" && entry !== null && !Array.isArray(entry)
   );
+}
+
+function readBoolean(value: unknown) {
+  return typeof value === "boolean" ? value : null;
+}
+
+function readNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 function readString(value: unknown) {

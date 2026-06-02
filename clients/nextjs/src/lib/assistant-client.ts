@@ -78,6 +78,13 @@ export type ArtifactSummary = {
   status: string;
   summary: string;
   content?: string;
+  domain?: string | null;
+  isDefault?: boolean;
+  previewEligible?: boolean;
+  previewTarget?: PreviewTargetId | "";
+  rendererId?: string | null;
+  runtime?: string | null;
+  sourceOrder?: number;
   actions: ArtifactAction[];
 };
 

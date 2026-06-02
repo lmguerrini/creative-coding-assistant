@@ -131,6 +131,72 @@ describe("live artifact hydration", () => {
     });
   });
 
+  it("hydrates multiple graph-owned artifacts and selects the default preview candidate", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const result = hydrateWorkspaceFromArtifactExtractedEvent(snapshot, {
+      event_type: "artifact_extracted",
+      payload: {
+        artifacts: [
+          {
+            id: "palette-notes",
+            title: "palette-notes.py",
+            language: "Python",
+            source_language: "python",
+            content: "palette = ['#0bf', '#111']",
+            preview_eligible: false,
+            source_order: 1,
+            is_default: false
+          },
+          {
+            id: "orbit-sketch",
+            title: "orbit-sketch.p5.js",
+            language: "JavaScript + p5.js",
+            source_language: "javascript",
+            content:
+              "function setup() {\n  createCanvas(640, 360);\n}\nfunction draw() {\n  background(12);\n}",
+            preview_eligible: true,
+            preview_target: "browser_sandbox",
+            runtime: "p5",
+            renderer_id: "surface.p5",
+            source_order: 2,
+            is_default: true
+          }
+        ]
+      },
+      sequence: 3
+    });
+
+    expect(result.activeArtifactId).toBe("orbit-sketch");
+    expect(result.artifact).toMatchObject({
+      id: "orbit-sketch",
+      isDefault: true,
+      previewEligible: true,
+      sourceOrder: 2
+    });
+    expect(result.snapshot.artifacts.slice(0, 2).map((artifact) => artifact.id)).toEqual([
+      "palette-notes",
+      "orbit-sketch"
+    ]);
+    expect(result.snapshot.artifacts[0]).toMatchObject({
+      actions: ["Open", "Copy", "Download"],
+      previewEligible: false,
+      sourceOrder: 1
+    });
+    expect(result.snapshot.code).toMatchObject({
+      title: "orbit-sketch.p5.js",
+      language: "JavaScript + p5.js",
+      status: "Generated"
+    });
+    expect(result.snapshot.code.excerpt).toContain("  createCanvas(640, 360);");
+    expect(result.previewArtifactId).toBe("orbit-sketch");
+    expect(result.snapshot.preview).toMatchObject({
+      available: true,
+      renderer: "surface.p5",
+      sourceArtifactId: "orbit-sketch",
+      targetId: "browser_sandbox"
+    });
+  });
+
   it("creates a readable artifact and disables preview for non-runnable answers", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const result = hydrateWorkspaceFromFinalEvent(

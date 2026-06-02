@@ -40,6 +40,7 @@ class WorkflowArtifact(BaseModel):
 
     id: str = Field(min_length=1)
     title: str = Field(min_length=1)
+    name: str = Field(min_length=1)
     type: str = Field(default=ArtifactType.CODE.value, min_length=1)
     language: str = Field(min_length=1)
     source_language: str = Field(min_length=1)
@@ -47,7 +48,11 @@ class WorkflowArtifact(BaseModel):
     summary: str = Field(min_length=1)
     status: str = "Generated"
     source: str = "generation"
+    source_order: int = Field(ge=1)
+    domain: str | None = None
     is_creative: bool = False
+    is_default: bool = False
+    preview_eligible: bool = False
     runtime: str | None = None
     renderer_id: str | None = None
     preview_target: str | None = None
@@ -98,7 +103,7 @@ def extract_workflow_artifacts(
         )
         if artifact is not None:
             artifacts.append(artifact)
-    return tuple(artifacts)
+    return _finalize_workflow_artifacts(tuple(artifacts))
 
 
 def prepare_workflow_preview_results(
@@ -213,6 +218,7 @@ def _build_workflow_artifact(
         else None
     )
     domain_label = _domain_label(route_decision.domain or request.domain)
+    domain_value = _domain_value(route_decision.domain or request.domain)
     runtime_label = _RUNTIME_LABELS.get(runtime or "")
     summary_parts = ["Extracted from the generation result"]
     if runtime_label:
@@ -223,16 +229,73 @@ def _build_workflow_artifact(
     return WorkflowArtifact(
         id=artifact_id,
         title=title,
+        name=title,
         language=_format_language_label(language, runtime, title),
         source_language=language,
         content=block.content,
         summary="; ".join(summary_parts) + ".",
+        source_order=index,
+        domain=domain_value,
         is_creative=runtime is not None,
+        preview_eligible=preview_target is not None,
         runtime=runtime,
         renderer_id=renderer_id,
         preview_target=preview_target,
         content_hash=content_hash,
     )
+
+
+def _finalize_workflow_artifacts(
+    artifacts: tuple[WorkflowArtifact, ...],
+) -> tuple[WorkflowArtifact, ...]:
+    if not artifacts:
+        return ()
+
+    default_index = next(
+        (
+            index
+            for index, artifact in enumerate(artifacts)
+            if artifact.preview_eligible
+        ),
+        0,
+    )
+    used_ids: set[str] = set()
+    finalized: list[WorkflowArtifact] = []
+    for index, artifact in enumerate(artifacts, start=1):
+        artifact_id = _unique_artifact_id(
+            artifact.id or f"generated-artifact-{index}",
+            used_ids=used_ids,
+            source_order=index,
+        )
+        used_ids.add(artifact_id)
+        finalized.append(
+            artifact.model_copy(
+                update={
+                    "id": artifact_id,
+                    "source_order": index,
+                    "is_default": index - 1 == default_index,
+                }
+            )
+        )
+    return tuple(finalized)
+
+
+def _unique_artifact_id(
+    artifact_id: str,
+    *,
+    used_ids: set[str],
+    source_order: int,
+) -> str:
+    base_id = _sanitize_identifier(artifact_id) or f"generated-artifact-{source_order}"
+    candidate = base_id
+    suffix = 2
+    while candidate in used_ids:
+        candidate = (
+            _sanitize_identifier(f"{base_id}-{suffix}")
+            or f"generated-artifact-{source_order}-{suffix}"
+        )
+        suffix += 1
+    return candidate
 
 
 def _to_artifact_record(
@@ -264,8 +327,13 @@ def _to_artifact_record(
             language=artifact.source_language,
             extra={
                 "content_hash": artifact.content_hash,
+                "domain": artifact.domain,
+                "is_default": artifact.is_default,
+                "preview_eligible": artifact.preview_eligible,
+                "preview_target": artifact.preview_target,
                 "renderer_id": artifact.renderer_id,
                 "runtime": artifact.runtime,
+                "source_order": artifact.source_order,
             },
         ),
         content_references=(
@@ -444,6 +512,10 @@ def _domain_label(domain: CreativeCodingDomain | None) -> str | None:
     if domain is None:
         return None
     return domain.value.replace("_", " ")
+
+
+def _domain_value(domain: CreativeCodingDomain | None) -> str | None:
+    return domain.value if domain is not None else None
 
 
 def _sanitize_filename(value: str) -> str:

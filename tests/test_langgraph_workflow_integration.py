@@ -361,6 +361,91 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             "succeeded",
         )
 
+    def test_generation_extracts_multiple_artifacts_with_selection_metadata(self) -> None:
+        graph = build_assistant_workflow_graph()
+        answer = "\n".join(
+            [
+                "Variant A:",
+                "```python filename=shared-output.js",
+                "palette = ['#0bf', '#111']",
+                "```",
+                "Variant B:",
+                "```javascript filename=shared-output.js",
+                "function setup() {",
+                "  createCanvas(640, 360);",
+                "}",
+                "function draw() {",
+                "  background(12);",
+                "}",
+                "```",
+            ]
+        )
+
+        events = tuple(
+            stream_assistant_workflow_events(
+                graph=graph,
+                request=_request(query="Generate two candidate sketches."),
+                runtime=_runtime(stream_generation=_single_generation(answer)),
+            )
+        )
+        final_state = graph.invoke(
+            build_initial_workflow_graph_state(
+                _request(query="Generate two candidate sketches.")
+            ),
+            context={"runtime": _runtime(stream_generation=_single_generation(answer))},
+        )
+
+        workflow_state = final_state["workflow_state"]
+        artifact_event = next(
+            event
+            for event in events
+            if event.event_type is StreamEventType.ARTIFACT_EXTRACTED
+        )
+        preview_events = tuple(
+            event
+            for event in events
+            if event.event_type is StreamEventType.PREVIEW_ARTIFACT
+        )
+
+        self.assertEqual(len(workflow_state.artifacts), 2)
+        self.assertEqual(
+            [artifact.id for artifact in workflow_state.artifacts],
+            ["shared-output.js", "shared-output.js-2"],
+        )
+        self.assertEqual(
+            [artifact.source_order for artifact in workflow_state.artifacts],
+            [1, 2],
+        )
+        self.assertEqual(
+            [artifact.is_default for artifact in workflow_state.artifacts],
+            [False, True],
+        )
+        self.assertEqual(
+            [artifact.preview_eligible for artifact in workflow_state.artifacts],
+            [False, True],
+        )
+        self.assertEqual(workflow_state.artifacts[0].domain, "three_js")
+        self.assertEqual(artifact_event.payload["artifact_count"], 2)
+        self.assertEqual(
+            artifact_event.payload["artifacts"][1]["id"],
+            "shared-output.js-2",
+        )
+        self.assertEqual(
+            artifact_event.payload["artifacts"][1]["source_order"],
+            2,
+        )
+        self.assertEqual(
+            artifact_event.payload["artifacts"][0]["is_default"],
+            False,
+        )
+        self.assertEqual(
+            artifact_event.payload["artifacts"][1]["is_default"],
+            True,
+        )
+        self.assertEqual(len(preview_events), 1)
+        self.assertEqual(preview_events[0].payload["artifact_id"], "shared-output.js-2")
+        self.assertEqual(events[-1].payload["workflow"]["artifact_count"], 2)
+
     def test_review_refinement_is_bounded_to_one_attempt(self) -> None:
         graph = build_assistant_workflow_graph()
         generation = _SequentialGeneration(

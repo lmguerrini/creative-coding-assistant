@@ -1129,6 +1129,147 @@ describe("WorkstationShell", () => {
     ).toHaveAttribute("aria-current", "true");
   });
 
+  it("keeps multiple generated artifacts selectable while preview follows previewable candidates", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "artifact_extracted",
+          sequence: 0,
+          payload: {
+            artifacts: [
+              {
+                id: "palette-notes",
+                title: "palette-notes.py",
+                language: "Python",
+                source_language: "python",
+                content: "palette = ['#0bf', '#111']",
+                preview_eligible: false,
+                source_order: 1,
+                is_default: false
+              },
+              {
+                id: "orbit-sketch",
+                title: "orbit-sketch.p5.js",
+                language: "JavaScript + p5.js",
+                source_language: "javascript",
+                content:
+                  "function setup() {\n  createCanvas(640, 360);\n}\nfunction draw() {\n  background(12);\n}",
+                preview_eligible: true,
+                preview_target: "browser_sandbox",
+                runtime: "p5",
+                renderer_id: "surface.p5",
+                source_order: 2,
+                is_default: true
+              }
+            ]
+          }
+        },
+        {
+          event_type: "final",
+          sequence: 1,
+          payload: {
+            answer: "Generated two creative candidates.",
+            artifacts: [
+              {
+                id: "palette-notes",
+                title: "palette-notes.py",
+                language: "Python",
+                source_language: "python",
+                content: "palette = ['#0bf', '#111']",
+                preview_eligible: false,
+                source_order: 1,
+                is_default: false
+              },
+              {
+                id: "orbit-sketch",
+                title: "orbit-sketch.p5.js",
+                language: "JavaScript + p5.js",
+                source_language: "javascript",
+                content:
+                  "function setup() {\n  createCanvas(640, 360);\n}\nfunction draw() {\n  background(12);\n}",
+                preview_eligible: true,
+                preview_target: "browser_sandbox",
+                runtime: "p5",
+                renderer_id: "surface.p5",
+                source_order: 2,
+                is_default: true
+              }
+            ]
+          }
+        }
+      ])
+    );
+
+    renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Generate two candidate artifacts." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(await screen.findByText("Generated two creative candidates.")).toBeVisible();
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    expect(
+      within(preview).getByText("orbit-sketch.p5.js", {
+        selector: "summary span"
+      })
+    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
+    const artifactsPanel = screen.getByRole("tabpanel", {
+      name: "Artifacts inspector"
+    });
+    expect(
+      within(artifactsPanel).getByRole("article", {
+        name: "palette-notes.py artifact"
+      })
+    ).toBeVisible();
+    expect(
+      within(artifactsPanel).getByRole("article", {
+        name: "orbit-sketch.p5.js artifact"
+      })
+    ).toHaveAttribute("aria-current", "true");
+
+    fireEvent.click(
+      within(artifactsPanel).getByRole("button", {
+        name: "Open in Code palette-notes.py"
+      })
+    );
+    const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
+    expect(within(codePanel).getByText("palette-notes.py")).toBeVisible();
+    expect(
+      within(codePanel).getByRole("region", {
+        name: "palette-notes.py content"
+      })
+    ).toHaveTextContent("palette = ['#0bf', '#111']");
+    expect(
+      within(preview).getByText("orbit-sketch.p5.js", {
+        selector: "summary span"
+      })
+    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
+    fireEvent.click(
+      within(
+        screen.getByRole("tabpanel", {
+          name: "Artifacts inspector"
+        })
+      ).getByRole("button", {
+        name: "Open Preview orbit-sketch.p5.js"
+      })
+    );
+    expect(screen.getByRole("tab", { name: "Preview" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(
+      within(preview).getByText("orbit-sketch.p5.js", {
+        selector: "summary span"
+      })
+    ).toBeVisible();
+  });
+
   it("disables the preview shelf when final stream output has no runnable artifact", async () => {
     const backendStream = vi.fn(() =>
       streamEvents([
@@ -1839,8 +1980,8 @@ describe("WorkstationShell", () => {
     );
 
     expect(
-      screen.queryByRole("region", { name: "Preview workspace" })
-    ).not.toBeInTheDocument();
+      within(preview).getByText("aurora-field.p5.js", { selector: "summary span" })
+    ).toBeVisible();
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
     const events = screen.getByRole("group", { name: "Workflow event trace" });
@@ -1850,7 +1991,7 @@ describe("WorkstationShell", () => {
     expect(within(events).getByText("Preview Runtime Reset Completed")).toBeVisible();
   });
 
-  it("hides preview context when the active artifact is not previewable", () => {
+  it("keeps preview context available when inspecting a non-previewable artifact", () => {
     renderShell();
 
     fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
@@ -1861,9 +2002,10 @@ describe("WorkstationShell", () => {
       })
     );
 
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
     expect(
-      screen.queryByRole("region", { name: "Preview workspace" })
-    ).not.toBeInTheDocument();
+      within(preview).getByText("aurora-field.p5.js", { selector: "summary span" })
+    ).toBeVisible();
     expect(screen.getByRole("tab", { name: "Code" })).toHaveAttribute(
       "aria-selected",
       "true"

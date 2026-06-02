@@ -671,10 +671,7 @@ export function WorkstationShell({
   const interactiveSnapshot: AssistantWorkspaceSnapshot = useMemo(
     () => ({
       ...snapshot,
-      code:
-        activeArtifact.type === "code"
-          ? { ...snapshot.code, title: activeArtifact.title }
-          : snapshot.code,
+      code: buildCodeSummaryForArtifact(snapshot.code, activeArtifact),
       inspectorTabs: snapshot.inspectorTabs.map((tab) => ({
         ...tab,
         active: tab.label === activeTab,
@@ -709,9 +706,7 @@ export function WorkstationShell({
       }
     }),
     [
-      activeArtifact.id,
-      activeArtifact.title,
-      activeArtifact.type,
+      activeArtifact,
       activeTab,
       imageAttachments,
       imageUploadError,
@@ -736,13 +731,31 @@ export function WorkstationShell({
       }),
     [interactiveSnapshot.artifacts, interactiveSnapshot.preview, previewArtifactId]
   );
+  const previewRuntimeCode = useMemo(() => {
+    const previewRuntimeArtifact =
+      interactiveSnapshot.artifacts.find(
+        (artifact) => artifact.id === previewRendererRoute.sourceArtifactId
+      ) ??
+      interactiveSnapshot.artifacts.find(
+        (artifact) => artifact.id === previewRendererRoute.selectedArtifactId
+      ) ??
+      activeArtifact;
+
+    return buildCodeSummaryForArtifact(snapshot.code, previewRuntimeArtifact);
+  }, [
+    activeArtifact,
+    interactiveSnapshot.artifacts,
+    previewRendererRoute.selectedArtifactId,
+    previewRendererRoute.sourceArtifactId,
+    snapshot.code
+  ]);
   const previewRuntimeSource = useMemo(
     () =>
       buildPreviewRuntimeSource({
-        code: interactiveSnapshot.code,
+        code: previewRuntimeCode,
         route: previewRendererRoute
       }),
-    [interactiveSnapshot.code, previewRendererRoute]
+    [previewRuntimeCode, previewRendererRoute]
   );
   const previewRuntimeSessionKey =
     previewSessionOverride?.requestedAt ??
@@ -2040,7 +2053,9 @@ export function WorkstationShell({
 
   async function handleArtifactCopy(artifact: ArtifactSummary) {
     setActiveArtifactId(artifact.id);
-    setPreviewContextArtifactId(artifact.id);
+    if (isArtifactPreviewable(artifact)) {
+      setPreviewContextArtifactId(artifact.id);
+    }
     const wasCopied = await copyArtifactDocument(
       buildArtifactDocument(interactiveSnapshot, artifact)
     );
@@ -2060,7 +2075,9 @@ export function WorkstationShell({
         : artifact.title,
       execute: () => {
         setActiveArtifactId(artifact.id);
-        setPreviewContextArtifactId(artifact.id);
+        if (isArtifactPreviewable(artifact)) {
+          setPreviewContextArtifactId(artifact.id);
+        }
         setArtifactTransferError(null);
         const wasTransferred = isProjectBundleExportArtifact(artifact)
           ? (() => {
@@ -2105,7 +2122,9 @@ export function WorkstationShell({
 
   function handleArtifactAction(action: ArtifactAction, artifact: ArtifactSummary) {
     setActiveArtifactId(artifact.id);
-    setPreviewContextArtifactId(artifact.id);
+    if (isArtifactPreviewable(artifact)) {
+      setPreviewContextArtifactId(artifact.id);
+    }
 
     if (action === "Open") {
       setActiveTab("Code");
@@ -2113,6 +2132,7 @@ export function WorkstationShell({
     }
 
     if (action === "Preview") {
+      setPreviewContextArtifactId(artifact.id);
       handlePreviewOpenChange(true);
       setActiveTab("Preview");
       return;
@@ -4866,6 +4886,27 @@ function getArtifactActionMessage(
   }
 
   return null;
+}
+
+function buildCodeSummaryForArtifact(
+  baseCode: AssistantWorkspaceSnapshot["code"],
+  artifact: ArtifactSummary
+): AssistantWorkspaceSnapshot["code"] {
+  if (artifact.type !== "code") {
+    return baseCode;
+  }
+
+  return {
+    title: artifact.title,
+    language: artifact.language,
+    status: artifact.status,
+    excerpt: splitArtifactContentLines(artifact.content ?? baseCode.excerpt.join("\n"))
+  };
+}
+
+function splitArtifactContentLines(content: string) {
+  const lines = content.replace(/\r\n/g, "\n").split("\n");
+  return lines.length > 0 ? lines : [""];
 }
 
 function createArtifactTransferError(artifact: ArtifactSummary) {

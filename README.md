@@ -24,6 +24,8 @@ iterative creative work.
   runtime
 - Live artifact hydration that turns final assistant output into active code,
   artifact, and preview state
+- Multi-artifact generation support for comparing, selecting, and previewing
+  multiple creative candidates from one run
 - Controlled preview runtimes for p5.js sketches, GLSL shaders, and
   Three.js-style scenes
 - Multimodal image references for grounding creative requests visually
@@ -46,13 +48,13 @@ provides:
 - a right-side inspector with `Overview`, `Code`, `Workflow`, `Artifacts`, and
   `Retrieval` tabs
 - session, layout, and theme persistence across reloads
-- artifact copy, download, and export actions
+- artifact selection, copy, download, and export actions
 - local approval checkpoints for runtime resets, destructive actions, and file
   transfer flows
 
 The initial shell opens on a clean creative workspace, then hydrates code,
-artifacts, preview, retrieval, and workflow state through live stream events
-from the backend bridge.
+multiple artifacts, preview, retrieval, and workflow state through live stream
+events from the backend bridge.
 
 ### Backend Runtime
 
@@ -71,6 +73,8 @@ Key backend capabilities include:
 - conversation memory and memory recording
 - prompt input assembly and rendered provider prompts
 - streamed generation, lifecycle, review, retry, artifact, and preview events with workflow metadata
+- multi-artifact extraction metadata including source order, default selection,
+  runtime, and preview eligibility
 - deterministic review checks with at most one refinement retry
 - structured terminal failure handling
 - live session recording and evaluation support
