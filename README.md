@@ -18,14 +18,16 @@ iterative creative work.
 - AI-native workstation UX with chat, a collapsible preview shelf, and focused
   inspector tabs for overview, code, workflow, artifacts, and retrieval
 - LangGraph workflow runtime with routing, memory, retrieval, prompt assembly,
-  generation, deterministic review, bounded refinement, and terminal failure
-  handling
+  generation, artifact critique, deterministic review, bounded refinement, and
+  terminal failure handling
 - Streaming NDJSON bridge between the Next.js client and the Python assistant
   runtime
 - Live artifact hydration that turns final assistant output into active code,
   artifact, and preview state
 - Multi-artifact generation support for comparing, selecting, and previewing
   multiple creative candidates from one run
+- Structured artifact critique metadata for quality ranking, recommended
+  candidates, and bounded refinement guidance
 - Controlled preview runtimes for p5.js sketches, GLSL shaders, and
   Three.js-style scenes
 - Multimodal image references for grounding creative requests visually
@@ -64,7 +66,7 @@ an implemented LangGraph workflow in
 
 The current workflow order is:
 
-`intake -> routing -> memory -> retrieval -> context_assembly -> prompt_input -> prompt_rendering -> generation -> artifact_extraction -> preview_preparation -> review -> refinement -> finalization -> failure`
+`intake -> routing -> memory -> retrieval -> context_assembly -> prompt_input -> prompt_rendering -> generation -> artifact_extraction -> preview_preparation -> artifact_critique -> review -> refinement -> finalization -> failure`
 
 Key backend capabilities include:
 
@@ -75,6 +77,8 @@ Key backend capabilities include:
 - streamed generation, lifecycle, review, retry, artifact, and preview events with workflow metadata
 - multi-artifact extraction metadata including source order, default selection,
   runtime, and preview eligibility
+- structured artifact critique metadata including per-artifact scores, ranks,
+  rationales, recommended candidates, and refinement guidance
 - deterministic review checks with at most one refinement retry
 - structured terminal failure handling
 - live session recording and evaluation support

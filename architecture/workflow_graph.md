@@ -10,7 +10,7 @@ This document describes the real LangGraph workflow currently executed by the ba
 
 ## Current Implemented Flow
 
-The graph is compiled once in `AssistantService.__init__()` and executed through `graph.stream(..., stream_mode="custom")`. Control flow is linear through generation, workflow-owned artifact extraction, and preview preparation before `review`, where the graph applies a bounded quality gate. Passing outputs continue to `finalization`; failing outputs enter one `refinement` attempt and loop back to `generation`. Explicit provider failures and caught node errors route into a terminal `failure` node.
+The graph is compiled once in `AssistantService.__init__()` and executed through `graph.stream(..., stream_mode="custom")`. Control flow is linear through generation, workflow-owned artifact extraction, preview preparation, and artifact critique before `review`, where the graph applies a bounded quality gate. Passing outputs continue to `finalization`; failing outputs enter one `refinement` attempt and loop back to `generation`. Explicit provider failures and caught node errors route into a terminal `failure` node.
 
 In the diagrams below:
 
@@ -54,13 +54,14 @@ flowchart TB
         generation["Generation<br/>prepare provider input<br/>stream tokens<br/>store generation_result"]
         artifact_extraction["Artifact extraction<br/>normalize code artifacts<br/>emit artifact_extracted"]
         preview_preparation["Preview preparation<br/>prepare runtime metadata<br/>emit preview_artifact"]
+        artifact_critique["Artifact critique<br/>score artifacts<br/>emit artifact_critique"]
         review{{"Review quality gate<br/>deterministic checks<br/>emit review + retry events"}}
         refinement["Refinement<br/>append guidance<br/>emit refinement_completed<br/>max one attempt"]
         finalization["Finalization<br/>resolve final answer<br/>emit final<br/>finish_workflow()"]
         failure["Failure<br/>emit final failure answer<br/>mark workflow FAILED"]
     end
 
-    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> review
+    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
     review -->|"pass or max retry"| finalization --> finish
     review -->|"needs refinement and count < 1"| refinement --> generation
     intake -. intake_error .-> failure
@@ -73,6 +74,7 @@ flowchart TB
     generation -. stream_error / provider_error .-> failure
     artifact_extraction -. extraction_error .-> failure
     preview_preparation -. preview_error .-> failure
+    artifact_critique -. critique_error .-> failure
     review -. review_error .-> failure
     refinement -. refinement_error .-> failure
     finalization -. finalization_error .-> failure
@@ -80,7 +82,7 @@ flowchart TB
 
     class start boundary
     class finish terminal
-    class intake,routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,artifact_extraction,preview_preparation,refinement,finalization implemented
+    class intake,routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
     style phase_1 rx:6px,ry:6px
@@ -109,22 +111,23 @@ The raw Mermaid source for the implemented graph is also available in [workflow_
 8. `generation`
 9. `artifact_extraction`
 10. `preview_preparation`
-11. `review`
-12. `refinement`
-13. `finalization`
-14. `failure`
+11. `artifact_critique`
+12. `review`
+13. `refinement`
+14. `finalization`
+15. `failure`
 
 Current transition rules:
 
 - `START -> intake`
-- Nodes point linearly from `intake` through `preview_preparation`, then into `review`
+- Nodes point linearly from `intake` through `artifact_critique`, then into `review`
 - `review -> finalization` when the review passes or the refinement limit is reached
 - `review -> refinement` when the review fails and `refinement_count < 1`
-- `refinement -> generation`, then through artifact extraction and preview preparation again
+- `refinement -> generation`, then through artifact extraction, preview preparation, and artifact critique again
 - Any node can route to `failure` when it records `pending_failure`
 - `finalization -> END` on success
 - `failure -> END`
-- The only graph loop is the bounded `refinement -> generation -> artifact_extraction -> preview_preparation -> review` loop
+- The only graph loop is the bounded `refinement -> generation -> artifact_extraction -> preview_preparation -> artifact_critique -> review` loop
 - Completed and failed node events expose `transition_source`, `transition_target`, `decision_reason`, and an `edge` object with the same decision metadata
 
 Node responsibilities:
@@ -140,6 +143,7 @@ Node responsibilities:
 - `generation`: prepares provider input, forwards generation stream events, and stores the transient `generation_result`
 - `artifact_extraction`: detects generated code artifacts, normalizes workflow artifact metadata, stores `artifacts`, and emits `artifact_extracted`
 - `preview_preparation`: prepares preview-ready runtime metadata for previewable artifacts, stores `preview_results`, and emits `preview_artifact`
+- `artifact_critique`: scores generated artifacts across quality dimensions, stores per-artifact critique metadata and the recommended candidate, and emits `artifact_critique` progress events
 - `review`: runs deterministic quality checks, stores `review_result`, emits `review_passed` or `review_failed`, and selects the next graph edge
 - `review`: emits `refinement_requested` and `retry_started` when a failed review can enter the bounded retry loop; emits `retry_completed` after a retry resolves
 - `refinement`: appends refinement guidance to the rendered prompt, emits `refinement_completed`, increments `refinement_count`, and sends control back to `generation`
@@ -156,7 +160,7 @@ There are two layers of runtime state.
 - Starts as `status=running`, `current_step=None`
 - Moves one step at a time through `start_workflow_step()`
 - Resolves each step through `complete_workflow_step()` or `skip_workflow_step()`
-- Stores durable outputs such as `route_decision`, `memory_context`, `retrieval_context`, `assembled_context`, `prompt_input`, `rendered_prompt`, extracted `artifacts`, prepared `preview_results`, and `final_answer`
+- Stores durable outputs such as `route_decision`, `memory_context`, `retrieval_context`, `assembled_context`, `prompt_input`, `rendered_prompt`, extracted `artifacts`, prepared `preview_results`, `artifact_critique_summary`, and `final_answer`
 - Stores review metadata through `review_result` and `refinement_count`
 - Stores typed failure metadata through `failure_info`
 - Reaches terminal completion only through `finish_workflow()` while `FINALIZATION` is active
@@ -175,6 +179,7 @@ Important current behavior:
 - Optional steps skip when their gateway or input is missing
 - `artifact_extraction` skips when generation produced no code artifact
 - `preview_preparation` skips when no extracted artifact has a supported preview target
+- `artifact_critique` skips when there are no extracted artifacts
 - `review` always runs and records a deterministic review result
 - `refinement` runs at most once and only after a failed review
 - Explicit provider errors bypass `review` and route directly to `failure`
@@ -226,6 +231,7 @@ What actually flows through the stream:
 - `generation` emits `generation_input`, `token_delta`, and possibly `error`
 - `artifact_extraction` emits `artifact_extracted` when code artifacts are detected
 - `preview_preparation` emits `preview_artifact` when preview metadata is prepared
+- `artifact_critique` emits `critique_started`, `artifact_scored`, `artifact_selected_recommended`, optional `artifact_refinement_requested`, and `critique_completed`
 - `review` emits `review_passed` or `review_failed` with score, rationale, full review metadata, and edge decision metadata
 - `review` emits `refinement_requested` and `retry_started` when it sends control to `refinement`
 - `refinement` emits `refinement_completed` with retry reason/count before returning control to `generation`
@@ -239,16 +245,16 @@ Important stream guarantees:
 - Only `StreamEvent` instances are surfaced from the graph stream; helper return values become state updates instead
 - The final event is still emitted exactly once by `finalization`
 - Legacy `status`, generation, artifact, preview, error, and `final` events remain present, with lifecycle truth events surrounding them
-- Generation paths with runnable code now surface artifact and preview events before finalization
+- Generation paths with runnable code now surface artifact, preview, and critique events before finalization
 
 ## Current Implemented Flow Vs Future Extension Points
 
 Current implemented flow:
 
-- Linear path through generation, artifact extraction, preview preparation, and `review`
+- Linear path through generation, artifact extraction, preview preparation, artifact critique, and `review`
 - Conditional review edge
 - Bounded one-attempt refinement loop
-- Workflow-owned artifact extraction and preview metadata preparation
+- Workflow-owned artifact extraction, preview metadata preparation, and artifact critique metadata
 - Node lifecycle, review outcome, retry, refinement, and edge decision events
 - Explicit failure node and failure transitions
 - No tool nodes
@@ -275,11 +281,12 @@ flowchart TB
         generation["Generation"]
         artifact_extraction["Artifact extraction"]
         preview_preparation["Preview preparation"]
+        artifact_critique["Artifact critique"]
         review{{"Review quality gate"}}
         refinement["Refinement<br/>max one attempt"]
         finalization["Finalization"]
         failure["Failure"]
-        routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> review
+        routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
         review -->|"pass or max retry"| finalization
         review -->|"needs refinement"| refinement --> generation
         generation -. provider error .-> failure
@@ -308,13 +315,13 @@ flowchart TB
     prompt_rendering -. optional tool loop .-> tool_loop
     tool_loop -. rejoin .-> generation
     preview_preparation -. optional renderer branch .-> preview
-    preview -. rejoin .-> review
+    preview -. rejoin .-> artifact_critique
     review -. refinement loop .-> retry
     retry -. back to prompt preparation .-> prompt_input
     review -. human approval .-> hitl
     hitl -. rejoin .-> finalization
 
-    class routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,artifact_extraction,preview_preparation,refinement,finalization implemented
+    class routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
     class tool_gate,tool_loop,preview,retry,hitl future
@@ -324,13 +331,13 @@ Conservative insertion points:
 
 - Tools: the least disruptive gate is immediately after `routing`, because route capabilities already exist there; a richer tool loop can also sit between `prompt_rendering` and `generation`
 - Review loops: the current `review` gate is the natural anchor for richer future retry loops back to `prompt_input` or `generation`
-- Preview execution: renderer execution and capture can branch from `preview_preparation` and rejoin before `review` without changing the request/response contract
+- Preview execution: renderer execution and capture can branch from `preview_preparation` and rejoin before artifact critique or `review` without changing the request/response contract
 - HITL checkpoints: the safest first checkpoint is between `review` and `finalization`, where a human can approve, edit, or reject a nearly complete result
 
 ## Known Limits In The Current Runtime
 
 - Route selection does not currently alter graph control flow
-- `review` is deterministic and intentionally lightweight; it is not an LLM evaluator
+- `artifact_critique` and `review` are deterministic and intentionally lightweight; they are not LLM evaluators
 - Preview preparation creates runtime metadata but does not execute renderers or capture frames
 - Unexpected failures are normalized into the workflow only when a node catches them and records `pending_failure`
 - Stream event types such as `tool_start`, `tool_result`, and `eval_update` exist in contracts but are not emitted by the current graph
@@ -347,7 +354,7 @@ Those tests currently verify:
 - explicit step ordering
 - state completion and skipped-step behavior
 - compiled graph execution
-- graph-owned artifact extraction and preview preparation events
-- node lifecycle, review outcome, retry, refinement, and edge decision events
+- graph-owned artifact extraction, preview preparation, and artifact critique events
+- node lifecycle, critique, review outcome, retry, refinement, and edge decision events
 - terminal failure routing and failed workflow state
 - stream ordering and legacy event compatibility
