@@ -159,7 +159,46 @@ describe("live artifact hydration", () => {
             runtime: "p5",
             renderer_id: "surface.p5",
             source_order: 2,
-            is_default: true
+            is_default: true,
+            is_recommended: true,
+            quality_score: 0.91,
+            quality_rank: 1,
+            critique: {
+              artifact_id: "orbit-sketch",
+              artifact_title: "orbit-sketch.p5.js",
+              source_order: 2,
+              overall_score: 0.91,
+              rank: 1,
+              passed: true,
+              recommended: true,
+              prompt_alignment: {
+                score: 0.88,
+                rationale: "p5 sketch matches the brief."
+              },
+              creative_quality: {
+                score: 0.92,
+                rationale: "Strong motion and visual structure."
+              },
+              runtime_suitability: {
+                score: 1,
+                rationale: "p5 runtime is supported."
+              },
+              code_quality: {
+                score: 0.9,
+                rationale: "Setup and draw loop are complete."
+              },
+              preview_readiness: {
+                score: 1,
+                rationale: "Preview metadata is ready."
+              },
+              domain_appropriateness: {
+                score: 0.86,
+                rationale: "Domain matches p5."
+              },
+              reasons: [],
+              rationale: "orbit-sketch.p5.js is the recommended candidate.",
+              refinement_guidance: null
+            }
           }
         ]
       },
@@ -170,8 +209,18 @@ describe("live artifact hydration", () => {
     expect(result.artifact).toMatchObject({
       id: "orbit-sketch",
       isDefault: true,
+      isRecommended: true,
       previewEligible: true,
+      qualityRank: 1,
+      qualityScore: 0.91,
       sourceOrder: 2
+    });
+    expect(result.artifact?.critique).toMatchObject({
+      artifactId: "orbit-sketch",
+      overallScore: 0.91,
+      rank: 1,
+      recommended: true,
+      rationale: "orbit-sketch.p5.js is the recommended candidate."
     });
     expect(result.snapshot.artifacts.slice(0, 2).map((artifact) => artifact.id)).toEqual([
       "palette-notes",

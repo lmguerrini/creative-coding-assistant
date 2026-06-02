@@ -6,6 +6,7 @@ from importlib import import_module
 
 _CTX = "creative_coding_assistant.orchestration.context"
 _ARTIFACTS = "creative_coding_assistant.orchestration.artifacts"
+_ARTIFACT_CRITIQUE = "creative_coding_assistant.orchestration.artifact_critique"
 _EVENTS = "creative_coding_assistant.orchestration.events"
 _GEN = "creative_coding_assistant.orchestration.generation"
 _MEM = "creative_coding_assistant.orchestration.memory"
@@ -23,6 +24,8 @@ _EXPORT_MAP = {
     "AssistantWorkflowGraphState": _WORKFLOW_GRAPH,
     "AssistantWorkflowRuntime": _WORKFLOW_GRAPH,
     "AssistantWorkflowState": _WORKFLOW,
+    "ArtifactCritiqueDimension": _ARTIFACTS,
+    "ArtifactCritiqueSummary": _ARTIFACT_CRITIQUE,
     "AssistantService": _SERVICE,
     "AssembledContextRequest": _CTX,
     "AssembledContextResponse": _CTX,
@@ -81,6 +84,7 @@ _EXPORT_MAP = {
     "WorkflowStatus": _WORKFLOW,
     "WorkflowStep": _WORKFLOW,
     "WorkflowArtifact": _ARTIFACTS,
+    "WorkflowArtifactCritique": _ARTIFACTS,
     "JinjaPromptRenderer": _PROMPT_TEMPLATES,
     "begin_assistant_workflow": _WORKFLOW,
     "build_assistant_workflow_graph": _WORKFLOW_GRAPH,
@@ -92,6 +96,7 @@ _EXPORT_MAP = {
     "build_rendered_prompt_request": _PROMPT_TEMPLATES,
     "build_retrieval_context_request": _RETRIEVAL,
     "complete_workflow_step": _WORKFLOW,
+    "critique_workflow_artifacts": _ARTIFACT_CRITIQUE,
     "extract_workflow_artifacts": _ARTIFACTS,
     "fail_workflow": _WORKFLOW,
     "finish_workflow": _WORKFLOW,

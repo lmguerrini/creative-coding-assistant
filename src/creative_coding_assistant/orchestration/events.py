@@ -248,6 +248,18 @@ class StreamEventBuilder:
             },
         )
 
+    def artifact_critique(
+        self,
+        *,
+        code: str,
+        message: str,
+        **details: Any,
+    ) -> StreamEvent:
+        return self._event(
+            StreamEventType.ARTIFACT_CRITIQUE,
+            {"code": code, "message": message, **details},
+        )
+
     def preview_artifact(self, result: PreviewResult, **details: Any) -> StreamEvent:
         return self._event(
             StreamEventType.PREVIEW_ARTIFACT,

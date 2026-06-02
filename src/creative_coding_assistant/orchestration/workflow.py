@@ -7,6 +7,9 @@ from enum import StrEnum
 from pydantic import BaseModel, ConfigDict
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.artifact_critique import (
+    ArtifactCritiqueSummary,
+)
 from creative_coding_assistant.orchestration.artifacts import WorkflowArtifact
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
 from creative_coding_assistant.orchestration.memory import MemoryContextResponse
@@ -33,6 +36,7 @@ class WorkflowStep(StrEnum):
     GENERATION = "generation"
     ARTIFACT_EXTRACTION = "artifact_extraction"
     PREVIEW_PREPARATION = "preview_preparation"
+    ARTIFACT_CRITIQUE = "artifact_critique"
     REVIEW = "review"
     REFINEMENT = "refinement"
     FINALIZATION = "finalization"
@@ -56,6 +60,7 @@ WORKFLOW_STEP_ORDER: tuple[WorkflowStep, ...] = (
     WorkflowStep.GENERATION,
     WorkflowStep.ARTIFACT_EXTRACTION,
     WorkflowStep.PREVIEW_PREPARATION,
+    WorkflowStep.ARTIFACT_CRITIQUE,
     WorkflowStep.REVIEW,
     WorkflowStep.REFINEMENT,
     WorkflowStep.FINALIZATION,
@@ -105,6 +110,7 @@ class AssistantWorkflowState(BaseModel):
     rendered_prompt: RenderedPromptResponse | None = None
     artifacts: tuple[WorkflowArtifact, ...] = ()
     preview_results: tuple[PreviewResult, ...] = ()
+    artifact_critique_summary: ArtifactCritiqueSummary | None = None
     review_result: WorkflowReviewResult | None = None
     refinement_count: int = 0
     failure_info: WorkflowFailureInfo | None = None

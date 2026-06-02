@@ -639,6 +639,7 @@ const workflowNodeIds = new Set<string>([
   "generation",
   "artifact_extraction",
   "preview_preparation",
+  "artifact_critique",
   "review",
   "refinement",
   "finalization",

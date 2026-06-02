@@ -29,6 +29,7 @@ class StreamEventType(StrEnum):
     RETRY_STARTED = "retry_started"
     RETRY_COMPLETED = "retry_completed"
     ARTIFACT_EXTRACTED = "artifact_extracted"
+    ARTIFACT_CRITIQUE = "artifact_critique"
     PREVIEW_ARTIFACT = "preview_artifact"
     EVAL_UPDATE = "eval_update"
     FINAL = "final"

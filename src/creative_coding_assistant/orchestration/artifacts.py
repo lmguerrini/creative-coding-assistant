@@ -33,6 +33,38 @@ from creative_coding_assistant.preview import (
 )
 
 
+class ArtifactCritiqueDimension(BaseModel):
+    """One bounded, deterministic artifact critique dimension."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    score: float = Field(ge=0.0, le=1.0)
+    rationale: str = Field(min_length=1)
+
+
+class WorkflowArtifactCritique(BaseModel):
+    """Per-artifact critique metadata used for ranking and refinement guidance."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    artifact_id: str = Field(min_length=1)
+    artifact_title: str = Field(min_length=1)
+    source_order: int = Field(ge=1)
+    overall_score: float = Field(ge=0.0, le=1.0)
+    rank: int = Field(ge=1)
+    passed: bool
+    recommended: bool = False
+    prompt_alignment: ArtifactCritiqueDimension
+    creative_quality: ArtifactCritiqueDimension
+    runtime_suitability: ArtifactCritiqueDimension
+    code_quality: ArtifactCritiqueDimension
+    preview_readiness: ArtifactCritiqueDimension
+    domain_appropriateness: ArtifactCritiqueDimension
+    reasons: tuple[str, ...] = ()
+    rationale: str = Field(min_length=1)
+    refinement_guidance: str | None = None
+
+
 class WorkflowArtifact(BaseModel):
     """Structured artifact extracted from a generation result."""
 
@@ -57,6 +89,11 @@ class WorkflowArtifact(BaseModel):
     renderer_id: str | None = None
     preview_target: str | None = None
     content_hash: str = Field(min_length=1)
+    critique: WorkflowArtifactCritique | None = None
+    quality_score: float | None = Field(default=None, ge=0.0, le=1.0)
+    quality_rank: int | None = Field(default=None, ge=1)
+    is_recommended: bool = False
+    refinement_reason: str | None = None
 
 
 @dataclass(frozen=True)

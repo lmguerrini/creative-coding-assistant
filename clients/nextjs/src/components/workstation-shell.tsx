@@ -4230,7 +4230,23 @@ function ArtifactsInspector({
             <dt>Actions</dt>
             <dd>{activeArtifact.actions.length}</dd>
           </div>
+          {activeArtifact.qualityScore !== undefined &&
+          activeArtifact.qualityScore !== null ? (
+            <div>
+              <dt>Quality</dt>
+              <dd>{formatQualityScore(activeArtifact.qualityScore)}</dd>
+            </div>
+          ) : null}
+          {activeArtifact.qualityRank ? (
+            <div>
+              <dt>Rank</dt>
+              <dd>{`#${activeArtifact.qualityRank}`}</dd>
+            </div>
+          ) : null}
         </dl>
+        {activeArtifact.critique ? (
+          <ArtifactCritiqueSummaryCard artifact={activeArtifact} />
+        ) : null}
         <ArtifactActionRow
           artifact={activeArtifact}
           copyFeedback={copyFeedback}
@@ -4683,6 +4699,58 @@ function ThemePresetPicker({
   );
 }
 
+function ArtifactCritiqueSummaryCard({
+  artifact
+}: {
+  artifact: ArtifactSummary;
+}) {
+  const critique = artifact.critique;
+  if (!critique) {
+    return null;
+  }
+
+  const dimensions = [
+    ["Prompt", critique.promptAlignment.score],
+    ["Creative", critique.creativeQuality.score],
+    ["Runtime", critique.runtimeSuitability.score],
+    ["Code", critique.codeQuality.score],
+    ["Preview", critique.previewReadiness.score],
+    ["Domain", critique.domainAppropriateness.score]
+  ] as const;
+
+  return (
+    <section
+      aria-label="Artifact quality summary"
+      className="artifactCritiqueCard"
+    >
+      <header>
+        <div>
+          <span>Artifact critique</span>
+          <strong>
+            {artifact.isRecommended
+              ? "Recommended candidate"
+              : critique.passed
+                ? "Quality gate passed"
+                : "Refinement advised"}
+          </strong>
+        </div>
+        <span className="artifactQualityBadge">
+          {formatQualityScore(critique.overallScore)}
+        </span>
+      </header>
+      <p>{critique.rationale}</p>
+      {critique.refinementGuidance ? (
+        <p className="artifactRefinementReason">{critique.refinementGuidance}</p>
+      ) : null}
+      <div className="artifactCritiqueDimensions" aria-label="Critique dimensions">
+        {dimensions.map(([label, score]) => (
+          <span key={label}>{`${label} ${formatQualityScore(score)}`}</span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 type ArtifactCardProps = {
   artifact: ArtifactSummary;
   copyFeedback: ArtifactActionFeedback | null;
@@ -4713,11 +4781,21 @@ function ArtifactCard({
           </span>
         </div>
         <div className="artifactBadges">
+          {artifact.isRecommended ? (
+            <span className="artifactSelected">Recommended</span>
+          ) : null}
           {isActive ? <span className="artifactSelected">Selected</span> : null}
           <span className="artifactType">{getArtifactTypeLabel(artifact.type)}</span>
         </div>
       </div>
       <p>{artifact.summary}</p>
+      {artifact.critique ? (
+        <p className="artifactQualityLine">
+          {`Rank #${artifact.critique.rank} / Quality ${formatQualityScore(
+            artifact.critique.overallScore
+          )}: ${artifact.critique.rationale}`}
+        </p>
+      ) : null}
       <ArtifactActionRow
         artifact={artifact}
         copyFeedback={copyFeedback}
@@ -4807,6 +4885,10 @@ function getArtifactTypeLabel(type: ArtifactSummary["type"]) {
     default:
       return type;
   }
+}
+
+function formatQualityScore(score: number) {
+  return `${Math.round(score * 100)}%`;
 }
 
 function formatPreviewStateLabel(

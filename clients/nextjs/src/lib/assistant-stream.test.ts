@@ -297,6 +297,8 @@ describe("assistant stream client", () => {
       review_outcome: null,
       review_reasons: [],
       artifact_count: 1,
+      artifact_critique_count: 0,
+      recommended_artifact_id: null,
       preview_artifact_count: 0,
       image_reference_count: 1,
       image_references: [

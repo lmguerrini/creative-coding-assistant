@@ -27,6 +27,7 @@ export type WorkflowNodeId =
   | "generation"
   | "artifact_extraction"
   | "preview_preparation"
+  | "artifact_critique"
   | "review"
   | "refinement"
   | "finalization"
@@ -85,7 +86,36 @@ export type ArtifactSummary = {
   rendererId?: string | null;
   runtime?: string | null;
   sourceOrder?: number;
+  qualityScore?: number | null;
+  qualityRank?: number | null;
+  isRecommended?: boolean;
+  refinementReason?: string | null;
+  critique?: ArtifactCritique;
   actions: ArtifactAction[];
+};
+
+export type ArtifactCritiqueDimension = {
+  score: number;
+  rationale: string;
+};
+
+export type ArtifactCritique = {
+  artifactId: string;
+  artifactTitle: string;
+  sourceOrder: number;
+  overallScore: number;
+  rank: number;
+  passed: boolean;
+  recommended: boolean;
+  promptAlignment: ArtifactCritiqueDimension;
+  creativeQuality: ArtifactCritiqueDimension;
+  runtimeSuitability: ArtifactCritiqueDimension;
+  codeQuality: ArtifactCritiqueDimension;
+  previewReadiness: ArtifactCritiqueDimension;
+  domainAppropriateness: ArtifactCritiqueDimension;
+  reasons: string[];
+  rationale: string;
+  refinementGuidance: string | null;
 };
 
 export type PreviewTargetId =
@@ -345,6 +375,12 @@ export function getInitialWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
           detail: "Prepare preview routing for runnable artifacts."
         },
         {
+          nodeId: "artifact_critique",
+          displayLabel: "Artifact critique",
+          state: "queued",
+          detail: "Score and rank generated artifacts before answer review."
+        },
+        {
           nodeId: "review",
           displayLabel: "Review",
           state: "queued",
@@ -557,6 +593,12 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
           displayLabel: "Preview preparation",
           state: "queued",
           detail: "Preview runtime metadata will be prepared for runnable artifacts."
+        },
+        {
+          nodeId: "artifact_critique",
+          displayLabel: "Artifact critique",
+          state: "queued",
+          detail: "Generated artifacts will be scored and ranked."
         },
         {
           nodeId: "review",

@@ -46,6 +46,7 @@ describe("assistant frontend client", () => {
       "generation",
       "artifact_extraction",
       "preview_preparation",
+      "artifact_critique",
       "review",
       "refinement",
       "finalization",

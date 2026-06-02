@@ -45,6 +45,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "generation",
                 "artifact_extraction",
                 "preview_preparation",
+                "artifact_critique",
                 "review",
                 "refinement",
                 "finalization",
@@ -79,6 +80,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "generation",
                 "artifact_extraction",
                 "preview_preparation",
+                "artifact_critique",
                 "review",
                 "finalization",
             ],
@@ -96,6 +98,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "generation",
                 "artifact_extraction",
                 "preview_preparation",
+                "artifact_critique",
                 "review",
                 "finalization",
             ],
@@ -155,6 +158,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 WorkflowStep.PROMPT_RENDERING,
                 WorkflowStep.ARTIFACT_EXTRACTION,
                 WorkflowStep.PREVIEW_PREPARATION,
+                WorkflowStep.ARTIFACT_CRITIQUE,
             ),
         )
         self.assertEqual(
@@ -251,10 +255,12 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "prompt_rendering",
                 "artifact_extraction",
                 "preview_preparation",
+                "artifact_critique",
             ],
         )
         self.assertEqual(final.payload["workflow"]["review_outcome"], "pass")
         self.assertEqual(final.payload["workflow"]["artifact_count"], 0)
+        self.assertEqual(final.payload["workflow"]["artifact_critique_count"], 0)
         self.assertEqual(final.payload["workflow"]["preview_artifact_count"], 0)
 
     def test_review_failure_runs_one_refinement_attempt(self) -> None:
@@ -337,9 +343,32 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 WorkflowStep.GENERATION,
                 WorkflowStep.ARTIFACT_EXTRACTION,
                 WorkflowStep.PREVIEW_PREPARATION,
+                WorkflowStep.ARTIFACT_CRITIQUE,
                 WorkflowStep.REVIEW,
                 WorkflowStep.FINALIZATION,
             ),
+        )
+        self.assertIsNotNone(workflow_state.artifact_critique_summary)
+        self.assertEqual(
+            workflow_state.artifact_critique_summary.recommended_artifact_id,
+            workflow_state.artifacts[0].id,
+        )
+        self.assertTrue(workflow_state.artifacts[0].is_recommended)
+        self.assertIsNotNone(workflow_state.artifacts[0].critique)
+        self.assertGreaterEqual(workflow_state.artifacts[0].quality_score, 0.68)
+        critique_events = tuple(
+            event
+            for event in events
+            if event.event_type is StreamEventType.ARTIFACT_CRITIQUE
+        )
+        self.assertEqual(
+            [event.payload["code"] for event in critique_events],
+            [
+                "critique_started",
+                "artifact_scored",
+                "artifact_selected_recommended",
+                "critique_completed",
+            ],
         )
         self.assertEqual(
             artifact_event.payload["artifacts"][0]["title"],
@@ -445,6 +474,14 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(len(preview_events), 1)
         self.assertEqual(preview_events[0].payload["artifact_id"], "shared-output.js-2")
         self.assertEqual(events[-1].payload["workflow"]["artifact_count"], 2)
+        self.assertEqual(
+            events[-1].payload["workflow"]["artifact_critique_count"],
+            2,
+        )
+        self.assertEqual(
+            events[-1].payload["artifact_critique_summary"]["recommended_artifact_id"],
+            workflow_state.artifact_critique_summary.recommended_artifact_id,
+        )
 
     def test_review_refinement_is_bounded_to_one_attempt(self) -> None:
         graph = build_assistant_workflow_graph()
@@ -510,6 +547,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 StreamEventType.TOKEN_DELTA,
                 StreamEventType.ARTIFACT_EXTRACTED,
                 StreamEventType.PREVIEW_ARTIFACT,
+                StreamEventType.ARTIFACT_CRITIQUE,
                 StreamEventType.REVIEW_PASSED,
                 StreamEventType.RETRY_COMPLETED,
                 StreamEventType.FINAL,

@@ -139,6 +139,10 @@ class WorkflowFoundationTests(unittest.TestCase):
         )
         self.assertEqual(
             next_workflow_step(WorkflowStep.PREVIEW_PREPARATION),
+            WorkflowStep.ARTIFACT_CRITIQUE,
+        )
+        self.assertEqual(
+            next_workflow_step(WorkflowStep.ARTIFACT_CRITIQUE),
             WorkflowStep.REVIEW,
         )
         self.assertEqual(

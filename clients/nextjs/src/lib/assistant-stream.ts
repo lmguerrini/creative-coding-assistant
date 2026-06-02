@@ -27,6 +27,7 @@ export type AssistantStreamEventType =
   | "retry_started"
   | "retry_completed"
   | "artifact_extracted"
+  | "artifact_critique"
   | "preview_artifact"
   | "eval_update"
   | "final"
@@ -58,6 +59,8 @@ export type AssistantStreamWorkflowMetadata = {
   review_outcome: string | null;
   review_reasons: string[];
   artifact_count: number;
+  artifact_critique_count: number;
+  recommended_artifact_id: string | null;
   preview_artifact_count: number;
   image_reference_count: number;
   image_references: AssistantStreamImageReferenceMetadata[];
@@ -121,6 +124,7 @@ const streamEventTypes = new Set<AssistantStreamEventType>([
   "retry_started",
   "retry_completed",
   "artifact_extracted",
+  "artifact_critique",
   "preview_artifact",
   "eval_update",
   "final",
@@ -183,6 +187,13 @@ const streamEventWorkflowNodes: Partial<
   },
   artifact_extracted: {
     artifact_extracted: "artifact_extraction"
+  },
+  artifact_critique: {
+    artifact_refinement_requested: "artifact_critique",
+    artifact_scored: "artifact_critique",
+    artifact_selected_recommended: "artifact_critique",
+    critique_completed: "artifact_critique",
+    critique_started: "artifact_critique"
   },
   preview_artifact: {
     preview_artifact_prepared: "preview_preparation"
@@ -373,6 +384,14 @@ export function readWorkflowMetadata(
     typeof rawWorkflow.artifact_count === "number"
       ? rawWorkflow.artifact_count
       : 0;
+  const artifactCritiqueCount =
+    typeof rawWorkflow.artifact_critique_count === "number"
+      ? rawWorkflow.artifact_critique_count
+      : 0;
+  const recommendedArtifactId =
+    typeof rawWorkflow.recommended_artifact_id === "string"
+      ? rawWorkflow.recommended_artifact_id
+      : null;
   const previewArtifactCount =
     typeof rawWorkflow.preview_artifact_count === "number"
       ? rawWorkflow.preview_artifact_count
@@ -411,6 +430,8 @@ export function readWorkflowMetadata(
     review_outcome: reviewOutcome,
     review_reasons: reviewReasons,
     artifact_count: artifactCount,
+    artifact_critique_count: artifactCritiqueCount,
+    recommended_artifact_id: recommendedArtifactId,
     preview_artifact_count: previewArtifactCount,
     image_reference_count: imageReferenceCount,
     image_references: imageReferences
@@ -765,6 +786,7 @@ const workflowNodeIds = new Set<WorkflowNodeId>([
   "generation",
   "artifact_extraction",
   "preview_preparation",
+  "artifact_critique",
   "review",
   "refinement",
   "finalization",

@@ -8,6 +8,9 @@ from enum import StrEnum
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantMode, AssistantRequest
+from creative_coding_assistant.orchestration.artifact_critique import (
+    ArtifactCritiqueSummary,
+)
 
 MAX_WORKFLOW_REFINEMENT_COUNT = 1
 
@@ -90,6 +93,7 @@ def review_assistant_answer(
     request: AssistantRequest,
     answer: str | None,
     refinement_count: int,
+    artifact_critique_summary: ArtifactCritiqueSummary | None = None,
 ) -> WorkflowReviewResult:
     """Run conservative deterministic checks on a generated answer."""
 
@@ -104,6 +108,12 @@ def review_assistant_answer(
             answer=normalized_answer,
             reasons=reasons,
         )
+    if (
+        artifact_critique_summary
+        and artifact_critique_summary.refinement_required
+        and refinement_count < MAX_WORKFLOW_REFINEMENT_COUNT
+    ):
+        reasons.append("artifact_quality_below_threshold")
 
     outcome = (
         WorkflowReviewOutcome.NEEDS_REFINEMENT
@@ -114,8 +124,8 @@ def review_assistant_answer(
         outcome=outcome,
         reasons=tuple(reasons),
         refinement_count=refinement_count,
-        score=_score_review(reasons),
-        rationale=_review_rationale(reasons),
+        score=_score_review(reasons, artifact_critique_summary),
+        rationale=_review_rationale(reasons, artifact_critique_summary),
     )
 
 
@@ -159,13 +169,35 @@ def _tokens(value: str) -> set[str]:
     return set(_TOKEN_PATTERN.findall(value.lower()))
 
 
-def _score_review(reasons: list[str]) -> float:
-    if not reasons:
-        return 1.0
-    return max(0.0, 1.0 - (0.25 * len(reasons)))
+def _score_review(
+    reasons: list[str],
+    artifact_critique_summary: ArtifactCritiqueSummary | None,
+) -> float:
+    answer_score = 1.0 if not reasons else max(0.0, 1.0 - (0.25 * len(reasons)))
+    if artifact_critique_summary is None or artifact_critique_summary.artifact_count == 0:
+        return answer_score
+    return round(min(answer_score, artifact_critique_summary.average_score), 3)
 
 
-def _review_rationale(reasons: list[str]) -> str:
+def _review_rationale(
+    reasons: list[str],
+    artifact_critique_summary: ArtifactCritiqueSummary | None,
+) -> str:
     if not reasons:
+        if artifact_critique_summary and artifact_critique_summary.recommended_artifact_title:
+            return (
+                "Deterministic review passed; recommended artifact is "
+                f"{artifact_critique_summary.recommended_artifact_title}."
+            )
         return "Deterministic review passed without quality gate findings."
-    return "Deterministic review requested refinement: " + ", ".join(reasons) + "."
+    guidance = (
+        f" {artifact_critique_summary.refinement_guidance}"
+        if artifact_critique_summary and artifact_critique_summary.refinement_guidance
+        else ""
+    )
+    return (
+        "Deterministic review requested refinement: "
+        + ", ".join(reasons)
+        + "."
+        + guidance
+    )

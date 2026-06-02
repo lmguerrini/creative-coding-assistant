@@ -16,7 +16,12 @@ from creative_coding_assistant.analytics import (
     LangSmithRunMetadata,
 )
 from creative_coding_assistant.contracts import AssistantRequest, StreamEvent
+from creative_coding_assistant.orchestration.artifact_critique import (
+    ArtifactCritiqueSummary,
+    critique_workflow_artifacts,
+)
 from creative_coding_assistant.orchestration.artifacts import (
+    WorkflowArtifactCritique,
     extract_workflow_artifacts,
     prepare_workflow_preview_results,
 )
@@ -94,6 +99,7 @@ ASSISTANT_WORKFLOW_NODE_ORDER: tuple[str, ...] = (
     "generation",
     "artifact_extraction",
     "preview_preparation",
+    "artifact_critique",
     "review",
     "refinement",
     "finalization",
@@ -122,6 +128,7 @@ def build_assistant_workflow_graph() -> Any:
     graph.add_node("generation", _generation_node)
     graph.add_node("artifact_extraction", _artifact_extraction_node)
     graph.add_node("preview_preparation", _preview_preparation_node)
+    graph.add_node("artifact_critique", _artifact_critique_node)
     graph.add_node("review", _review_node)
     graph.add_node("refinement", _refinement_node)
     graph.add_node("finalization", _finalization_node)
@@ -693,6 +700,74 @@ def _preview_preparation_node(
         )
 
 
+def _artifact_critique_node(
+    state: AssistantWorkflowGraphState,
+    runtime: Runtime[AssistantWorkflowGraphContext],
+) -> AssistantWorkflowGraphState:
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
+        _workflow_state(state),
+        runtime_context,
+        WorkflowStep.ARTIFACT_CRITIQUE,
+        allow_reentry=True,
+    )
+    try:
+        if not workflow_state.artifacts:
+            return {
+                "workflow_state": _skip_node(
+                    workflow_state.model_copy(
+                        update={"artifact_critique_summary": None}
+                    ),
+                    runtime_context,
+                    WorkflowStep.ARTIFACT_CRITIQUE,
+                    decision_reason="no_artifacts_for_critique",
+                )
+            }
+
+        _emit_artifact_critique_started(runtime_context, workflow_state)
+        artifacts, critique_summary = critique_workflow_artifacts(
+            workflow_state.artifacts,
+            request=workflow_state.request,
+            route_decision=_route_decision(workflow_state),
+            preview_results=workflow_state.preview_results,
+        )
+        for critique in critique_summary.critiques:
+            _emit_artifact_scored(runtime_context, workflow_state, critique)
+        _emit_artifact_recommendation(runtime_context, workflow_state, critique_summary)
+        if critique_summary.refinement_required:
+            _emit_artifact_refinement_requested(
+                runtime_context,
+                workflow_state,
+                critique_summary,
+            )
+        _emit_artifact_critique_completed(
+            runtime_context,
+            workflow_state,
+            critique_summary,
+        )
+        return {
+            "workflow_state": _complete_node(
+                workflow_state,
+                runtime_context,
+                WorkflowStep.ARTIFACT_CRITIQUE,
+                decision_reason=(
+                    "artifact_critique_requested_refinement"
+                    if critique_summary.refinement_required
+                    else "artifact_critique_completed"
+                ),
+                artifacts=artifacts,
+                artifact_critique_summary=critique_summary,
+            )
+        }
+    except Exception as exc:
+        return _handle_workflow_exception(
+            workflow_state=workflow_state,
+            runtime=runtime_context,
+            step=WorkflowStep.ARTIFACT_CRITIQUE,
+            exc=exc,
+        )
+
+
 def _review_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
@@ -714,6 +789,7 @@ def _review_node(
                 runtime=runtime_context,
             ),
             refinement_count=workflow_state.refinement_count,
+            artifact_critique_summary=workflow_state.artifact_critique_summary,
         )
         transition_target, decision_reason = _review_transition(
             review_result,
@@ -783,6 +859,7 @@ def _refinement_node(
         refined_prompt = _append_refinement_guidance(
             rendered_prompt=workflow_state.rendered_prompt,
             review_result=review_result,
+            artifact_critique_summary=workflow_state.artifact_critique_summary,
         )
         retry_count = workflow_state.refinement_count + 1
         _emit_refinement_completed(
@@ -852,6 +929,19 @@ def _finalization_node(
                     artifact.model_dump(mode="json")
                     for artifact in final_state.artifacts
                 ],
+                artifact_critiques=[
+                    critique.model_dump(mode="json")
+                    for critique in (
+                        final_state.artifact_critique_summary.critiques
+                        if final_state.artifact_critique_summary is not None
+                        else ()
+                    )
+                ],
+                artifact_critique_summary=(
+                    final_state.artifact_critique_summary.model_dump(mode="json")
+                    if final_state.artifact_critique_summary is not None
+                    else None
+                ),
                 preview_results=[
                     result.model_dump(mode="json")
                     for result in final_state.preview_results
@@ -1148,6 +1238,122 @@ def _emit_review_outcome(
     _emit(event, workflow_state=workflow_state, step=WorkflowStep.REVIEW)
 
 
+def _emit_artifact_critique_started(
+    runtime: AssistantWorkflowRuntime,
+    workflow_state: AssistantWorkflowState,
+) -> None:
+    _emit(
+        runtime.event_builder.artifact_critique(
+            code="critique_started",
+            message=(
+                f"Critiquing {len(workflow_state.artifacts)} generated artifact"
+                f"{'s' if len(workflow_state.artifacts) != 1 else ''}."
+            ),
+            artifact_count=len(workflow_state.artifacts),
+        ),
+        workflow_state=workflow_state,
+        step=WorkflowStep.ARTIFACT_CRITIQUE,
+    )
+
+
+def _emit_artifact_scored(
+    runtime: AssistantWorkflowRuntime,
+    workflow_state: AssistantWorkflowState,
+    critique: WorkflowArtifactCritique,
+) -> None:
+    _emit(
+        runtime.event_builder.artifact_critique(
+            code="artifact_scored",
+            message=(
+                f"Scored {critique.artifact_title} at "
+                f"{critique.overall_score:.2f}."
+            ),
+            artifact_id=critique.artifact_id,
+            artifact_title=critique.artifact_title,
+            score=critique.overall_score,
+            rank=critique.rank,
+            passed=critique.passed,
+            critique=critique.model_dump(mode="json"),
+        ),
+        workflow_state=workflow_state,
+        step=WorkflowStep.ARTIFACT_CRITIQUE,
+    )
+
+
+def _emit_artifact_recommendation(
+    runtime: AssistantWorkflowRuntime,
+    workflow_state: AssistantWorkflowState,
+    critique_summary: ArtifactCritiqueSummary,
+) -> None:
+    if not critique_summary.recommended_artifact_id:
+        return
+    _emit(
+        runtime.event_builder.artifact_critique(
+            code="artifact_selected_recommended",
+            message=(
+                f"Recommended {critique_summary.recommended_artifact_title} "
+                "as the strongest artifact candidate."
+            ),
+            recommended_artifact_id=critique_summary.recommended_artifact_id,
+            recommended_artifact_title=critique_summary.recommended_artifact_title,
+            average_score=critique_summary.average_score,
+            failed_artifact_count=critique_summary.failed_artifact_count,
+            critique_summary=critique_summary.model_dump(mode="json"),
+        ),
+        workflow_state=workflow_state,
+        step=WorkflowStep.ARTIFACT_CRITIQUE,
+    )
+
+
+def _emit_artifact_refinement_requested(
+    runtime: AssistantWorkflowRuntime,
+    workflow_state: AssistantWorkflowState,
+    critique_summary: ArtifactCritiqueSummary,
+) -> None:
+    _emit(
+        runtime.event_builder.artifact_critique(
+            code="artifact_refinement_requested",
+            message=(
+                critique_summary.refinement_guidance
+                or "Artifact critique requested refinement."
+            ),
+            recommended_artifact_id=critique_summary.recommended_artifact_id,
+            refinement_reasons=list(critique_summary.refinement_reasons),
+            refinement_guidance=critique_summary.refinement_guidance,
+            critique_summary=critique_summary.model_dump(mode="json"),
+            **_transition_payload(
+                WorkflowStep.ARTIFACT_CRITIQUE.value,
+                WorkflowStep.REVIEW.value,
+                "artifact_critique_requested_refinement",
+            ),
+        ),
+        workflow_state=workflow_state,
+        step=WorkflowStep.ARTIFACT_CRITIQUE,
+    )
+
+
+def _emit_artifact_critique_completed(
+    runtime: AssistantWorkflowRuntime,
+    workflow_state: AssistantWorkflowState,
+    critique_summary: ArtifactCritiqueSummary,
+) -> None:
+    _emit(
+        runtime.event_builder.artifact_critique(
+            code="critique_completed",
+            message=(
+                "Artifact critique completed; "
+                f"recommended {critique_summary.recommended_artifact_title}."
+            ),
+            critique_summary=critique_summary.model_dump(mode="json"),
+            recommended_artifact_id=critique_summary.recommended_artifact_id,
+            average_score=critique_summary.average_score,
+            refinement_required=critique_summary.refinement_required,
+        ),
+        workflow_state=workflow_state,
+        step=WorkflowStep.ARTIFACT_CRITIQUE,
+    )
+
+
 def _emit_refinement_requested(
     runtime: AssistantWorkflowRuntime,
     workflow_state: AssistantWorkflowState,
@@ -1292,10 +1498,17 @@ def _append_refinement_guidance(
     *,
     rendered_prompt: RenderedPromptResponse | None,
     review_result: WorkflowReviewResult,
+    artifact_critique_summary: ArtifactCritiqueSummary | None = None,
 ) -> RenderedPromptResponse | None:
     if rendered_prompt is None:
         return None
     reasons = ", ".join(review_result.reasons) or "quality gate did not pass"
+    artifact_guidance = (
+        f"\n- Artifact critique guidance: {artifact_critique_summary.refinement_guidance}"
+        if artifact_critique_summary
+        and artifact_critique_summary.refinement_guidance
+        else ""
+    )
     refinement_section = RenderedPromptSection(
         role=RenderedPromptRole.SYSTEM,
         name=RenderedPromptSectionName.SYSTEM,
@@ -1304,6 +1517,7 @@ def _append_refinement_guidance(
             "- Revise the previous answer before finalization.\n"
             f"- Address review issue(s): {reasons}.\n"
             "- Preserve the original user request and existing context."
+            f"{artifact_guidance}"
         ),
     )
     return rendered_prompt.model_copy(
@@ -1476,6 +1690,16 @@ def _serialize_workflow_runtime(
         ),
         "review_reasons": list(review_result.reasons) if review_result else [],
         "artifact_count": len(workflow_state.artifacts),
+        "artifact_critique_count": (
+            len(workflow_state.artifact_critique_summary.critiques)
+            if workflow_state.artifact_critique_summary is not None
+            else 0
+        ),
+        "recommended_artifact_id": (
+            workflow_state.artifact_critique_summary.recommended_artifact_id
+            if workflow_state.artifact_critique_summary is not None
+            else None
+        ),
         "preview_artifact_count": len(workflow_state.preview_results),
         "image_reference_count": len(workflow_state.request.attachments),
         "image_references": [

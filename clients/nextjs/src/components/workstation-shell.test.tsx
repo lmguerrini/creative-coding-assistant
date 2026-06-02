@@ -611,7 +611,7 @@ describe("WorkstationShell", () => {
     );
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
-    ).toHaveAttribute("aria-valuetext", "0 of 13 workflow nodes reached");
+    ).toHaveAttribute("aria-valuetext", "0 of 14 workflow nodes reached");
 
     fireEvent.click(
       screen.getByRole("button", {
@@ -823,7 +823,7 @@ describe("WorkstationShell", () => {
     );
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
-    ).toHaveAttribute("aria-valuetext", "8 of 13 workflow nodes reached");
+    ).toHaveAttribute("aria-valuetext", "8 of 14 workflow nodes reached");
     expect(screen.queryByRole("tabpanel", { name: "Code inspector" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tabpanel", { name: "Preview inspector" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Review" })).not.toBeInTheDocument();
@@ -1026,7 +1026,7 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Overview" }));
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
-    ).toHaveAttribute("aria-valuenow", "13");
+    ).toHaveAttribute("aria-valuenow", "14");
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
     expect(
@@ -2087,6 +2087,85 @@ describe("WorkstationShell", () => {
     expect(preview.querySelector("details")).toHaveAttribute("data-state", "open");
   });
 
+  it("surfaces artifact critique ranking and rationale in the artifacts inspector", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const critiquedSnapshot: AssistantWorkspaceSnapshot = {
+      ...snapshot,
+      artifacts: snapshot.artifacts.map((artifact, index) =>
+        index === 0
+          ? {
+              ...artifact,
+              isRecommended: true,
+              qualityRank: 1,
+              qualityScore: 0.93,
+              critique: {
+                artifactId: artifact.id,
+                artifactTitle: artifact.title,
+                sourceOrder: 1,
+                overallScore: 0.93,
+                rank: 1,
+                passed: true,
+                recommended: true,
+                promptAlignment: {
+                  score: 0.9,
+                  rationale: "Matches the prompt."
+                },
+                creativeQuality: {
+                  score: 0.95,
+                  rationale: "Strong visual candidate."
+                },
+                runtimeSuitability: {
+                  score: 1,
+                  rationale: "p5 runtime is supported."
+                },
+                codeQuality: {
+                  score: 0.91,
+                  rationale: "Source is complete."
+                },
+                previewReadiness: {
+                  score: 1,
+                  rationale: "Preview is ready."
+                },
+                domainAppropriateness: {
+                  score: 0.86,
+                  rationale: "Domain matches."
+                },
+                reasons: [],
+                rationale: "aurora-field.p5.js is the recommended candidate.",
+                refinementGuidance: null
+              }
+            }
+          : artifact
+      )
+    };
+
+    renderShell(critiquedSnapshot);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
+    const artifactsPanel = screen.getByRole("tabpanel", {
+      name: "Artifacts inspector"
+    });
+
+    expect(
+      within(artifactsPanel).getByRole("group", {
+        name: "Active artifact details"
+      })
+    ).toHaveTextContent("Quality");
+    expect(
+      within(artifactsPanel).getByRole("region", {
+        name: "Artifact quality summary"
+      })
+    ).toHaveTextContent("Recommended candidate");
+    expect(
+      within(artifactsPanel).getByText(
+        "aurora-field.p5.js is the recommended candidate."
+      )
+    ).toBeVisible();
+    expect(
+      within(artifactsPanel).getByText(/Rank #1 \/ Quality 93%/)
+    ).toBeVisible();
+  });
+
   it("mounts supported p5 artifacts into a controlled live runtime", async () => {
     renderShell(snapshotWithP5Preview());
 
@@ -2594,7 +2673,7 @@ describe("WorkstationShell", () => {
     expect(screen.getByLabelText("Workflow execution summary")).toBeVisible();
     expect(
       screen.getByRole("progressbar", { name: "Workflow inspector progress" })
-    ).toHaveAttribute("aria-valuetext", "8 of 13 workflow nodes reached");
+    ).toHaveAttribute("aria-valuetext", "8 of 14 workflow nodes reached");
     expect(within(graph).getByText("Generation")).toBeVisible();
     expect(within(graph).getByText("Generation").closest("article")).toHaveAttribute(
       "aria-current",

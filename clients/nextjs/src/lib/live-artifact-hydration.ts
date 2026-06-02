@@ -1,5 +1,7 @@
 import type {
   ArtifactAction,
+  ArtifactCritique,
+  ArtifactCritiqueDimension,
   ArtifactSummary,
   AssistantWorkspaceSnapshot,
   PreviewSummary,
@@ -21,6 +23,7 @@ export type LiveArtifactHydrationOptions = {
 
 type GeneratedArtifactSource = {
   content: string;
+  critique?: ArtifactCritique;
   domain?: string | null;
   id?: string;
   isDefault?: boolean;
@@ -29,6 +32,10 @@ type GeneratedArtifactSource = {
   previewEligible?: boolean;
   previewTarget?: string | null;
   rendererId?: string | null;
+  qualityRank?: number | null;
+  qualityScore?: number | null;
+  isRecommended?: boolean;
+  refinementReason?: string | null;
   runtime?: string | null;
   sourceOrder?: number;
   status?: string;
@@ -42,6 +49,7 @@ type CreativeRuntimeKind = "p5" | "three" | "glsl" | "hydra";
 type ArtifactInference = {
   content: string;
   domain: string | null;
+  critique: ArtifactCritique | null;
   id: string;
   isDefault: boolean;
   language: string;
@@ -49,6 +57,10 @@ type ArtifactInference = {
   previewKind: CreativeRuntimeKind | null;
   previewTarget: PreviewTargetId | "";
   rendererId: string | null;
+  qualityRank: number | null;
+  qualityScore: number | null;
+  isRecommended: boolean;
+  refinementReason: string | null;
   sourceOrder: number;
   status: string;
   summary: string | null;
@@ -235,6 +247,7 @@ function readStructuredArtifactSources(
 
     sources.push({
       content,
+      critique: readArtifactCritique(artifact.critique),
       domain: readString(artifact.domain) ?? null,
       id: readString(artifact.id) ?? undefined,
       isDefault:
@@ -261,6 +274,22 @@ function readStructuredArtifactSources(
       rendererId:
         readString(artifact.renderer_id) ??
         readString(artifact.rendererId) ??
+        null,
+      qualityRank:
+        readNumber(artifact.quality_rank) ??
+        readNumber(artifact.qualityRank) ??
+        null,
+      qualityScore:
+        readNumber(artifact.quality_score) ??
+        readNumber(artifact.qualityScore) ??
+        null,
+      isRecommended:
+        readBoolean(artifact.is_recommended) ??
+        readBoolean(artifact.isRecommended) ??
+        undefined,
+      refinementReason:
+        readString(artifact.refinement_reason) ??
+        readString(artifact.refinementReason) ??
         null,
       runtime: readString(artifact.runtime) ?? null,
       sourceOrder:
@@ -408,6 +437,7 @@ function inferGeneratedArtifact(
 
   return {
     content: trimCodeBlock(source.content),
+    critique: source.critique ?? null,
     domain: source.domain ?? null,
     id:
       sanitizeArtifactId(source.id ?? "") ||
@@ -417,6 +447,11 @@ function inferGeneratedArtifact(
     previewEligible,
     previewKind,
     previewTarget,
+    qualityRank: source.qualityRank ?? source.critique?.rank ?? null,
+    qualityScore: source.qualityScore ?? source.critique?.overallScore ?? null,
+    isRecommended: source.isRecommended ?? source.critique?.recommended ?? false,
+    refinementReason:
+      source.refinementReason ?? source.critique?.refinementGuidance ?? null,
     rendererId: source.rendererId ?? (previewKind ? previewRendererIds[previewKind] : null),
     sourceOrder,
     status: source.status ?? "Generated",
@@ -474,10 +509,15 @@ function buildArtifactSummary(
     status: inferred.status,
     summary,
     content: inferred.content,
+    critique: inferred.critique ?? undefined,
     domain: inferred.domain,
     isDefault: inferred.isDefault,
+    isRecommended: inferred.isRecommended,
     previewEligible: inferred.previewEligible,
     previewTarget: inferred.previewTarget,
+    qualityRank: inferred.qualityRank,
+    qualityScore: inferred.qualityScore,
+    refinementReason: inferred.refinementReason,
     rendererId: inferred.rendererId,
     runtime: inferred.previewKind,
     sourceOrder: inferred.sourceOrder,
@@ -820,6 +860,55 @@ function readArtifactType(value: unknown): ArtifactSummary["type"] | undefined {
     : undefined;
 }
 
+function readArtifactCritique(value: unknown): ArtifactCritique | undefined {
+  const record = isRecord(value) ? value : null;
+  if (!record) {
+    return undefined;
+  }
+  const artifactId = readString(record.artifact_id) ?? readString(record.artifactId);
+  const artifactTitle =
+    readString(record.artifact_title) ?? readString(record.artifactTitle);
+  const overallScore =
+    readNumber(record.overall_score) ?? readNumber(record.overallScore);
+  const rank = readNumber(record.rank);
+  const sourceOrder =
+    readNumber(record.source_order) ?? readNumber(record.sourceOrder);
+
+  if (!artifactId || !artifactTitle || overallScore === null || rank === null || sourceOrder === null) {
+    return undefined;
+  }
+
+  return {
+    artifactId,
+    artifactTitle,
+    sourceOrder,
+    overallScore,
+    rank,
+    passed: readBoolean(record.passed) ?? false,
+    recommended: readBoolean(record.recommended) ?? false,
+    promptAlignment: readCritiqueDimension(record.prompt_alignment),
+    creativeQuality: readCritiqueDimension(record.creative_quality),
+    runtimeSuitability: readCritiqueDimension(record.runtime_suitability),
+    codeQuality: readCritiqueDimension(record.code_quality),
+    previewReadiness: readCritiqueDimension(record.preview_readiness),
+    domainAppropriateness: readCritiqueDimension(record.domain_appropriateness),
+    reasons: readStringList(record.reasons),
+    rationale: readString(record.rationale) ?? "Artifact critique completed.",
+    refinementGuidance:
+      readString(record.refinement_guidance) ??
+      readString(record.refinementGuidance) ??
+      null
+  };
+}
+
+function readCritiqueDimension(value: unknown): ArtifactCritiqueDimension {
+  const record = isRecord(value) ? value : null;
+  return {
+    score: readNumber(record?.score) ?? 0,
+    rationale: readString(record?.rationale) ?? "No critique rationale available."
+  };
+}
+
 function readRecordList(value: unknown): Record<string, unknown>[] {
   if (!Array.isArray(value)) {
     return [];
@@ -829,6 +918,16 @@ function readRecordList(value: unknown): Record<string, unknown>[] {
     (entry): entry is Record<string, unknown> =>
       typeof entry === "object" && entry !== null && !Array.isArray(entry)
   );
+}
+
+function readStringList(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function readBoolean(value: unknown) {
