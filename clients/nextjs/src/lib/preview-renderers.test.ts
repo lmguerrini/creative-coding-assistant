@@ -82,14 +82,6 @@ describe("preview renderers", () => {
         summary: "Fragment shader with gl_FragColor and uniforms.",
         title: "chromatic-field.frag"
       })
-    },
-    {
-      id: "surface.hydra",
-      kind: "hydra",
-      artifact: creativeArtifact({
-        summary: "Hydra patch built from osc(), shape(), and out().",
-        title: "feedback-lattice.hydra.js"
-      })
     }
   ])(
     "matches $kind renderer signals and routes them into a supported surface",
@@ -115,6 +107,30 @@ describe("preview renderers", () => {
       });
     }
   );
+
+  it("keeps unsupported Hydra-like code out of live renderer matching", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const artifact = creativeArtifact({
+      previewEligible: true,
+      summary: "Hydra patch built from osc(), shape(), and out().",
+      title: "feedback-lattice.hydra.js"
+    });
+    const preview = creativePreviewSummary(artifact, snapshot.preview);
+
+    expect(matchCreativePreviewRenderer(artifact)).toBeNull();
+    expect(
+      buildPreviewRendererRoute({
+        artifacts: [artifact],
+        preview,
+        previewArtifactId: artifact.id
+      })
+    ).toMatchObject({
+      supportState: "unsupported",
+      supportReason:
+        "Current browser preview foundations cover p5.js, Three.js, and GLSL only.",
+      surfaceKind: "unsupported"
+    });
+  });
 });
 
 function creativeArtifact(

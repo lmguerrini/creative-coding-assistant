@@ -16,7 +16,7 @@ export type PreviewRendererTone =
   | "danger"
   | "muted";
 
-export type CreativePreviewRendererKind = "p5" | "three" | "glsl" | "hydra";
+export type CreativePreviewRendererKind = "p5" | "three" | "glsl";
 
 export type PreviewRendererSurfaceKind =
   | CreativePreviewRendererKind
@@ -118,21 +118,29 @@ export const creativePreviewRendererRegistry: readonly CreativePreviewRendererDe
       "Compiles fragment shaders inside an isolated preview frame",
       "Rejects unsupported shader features with a visible runtime error"
     ]
-  },
-  {
-    id: "surface.hydra",
-    kind: "hydra",
-    displayName: "Hydra",
-    surfaceLabel: "Hydra patch surface",
-    description: "Node-driven Hydra surface for browser preview routing.",
-    matchExtensions: [".hydra.js", ".hydra.ts"],
-    matchTokens: ["hydra", "osc(", "shape(", "render(", "out("],
-    notes: [
-      "Patch graph preview frame",
-      "Safe routing surface only on this branch",
-      "Prepared for future live Hydra graph execution"
-    ]
   }
+] as const;
+
+const supportedPreviewDomains = new Set([
+  "p5_js",
+  "glsl",
+  "three_js",
+  "react_three_fiber"
+]);
+
+const unsupportedBrowserRuntimeExtensions = [
+  ".hydra.js",
+  ".hydra.ts",
+  ".wgsl",
+  ".webgpu.js",
+  ".webgpu.ts",
+  ".canvas.js",
+  ".canvas.ts",
+  ".gsap.js",
+  ".gsap.ts",
+  ".tone.js",
+  ".tone.ts",
+  ".svg"
 ] as const;
 
 export function buildPreviewRendererRoute({
@@ -266,7 +274,7 @@ export function buildPreviewRendererRoute({
       supportState: "unsupported",
       supportLabel: "Unsupported",
       supportReason:
-        "Current browser preview foundations cover p5.js, Three.js, GLSL, and Hydra only.",
+        "Current browser preview foundations cover p5.js, Three.js, and GLSL only.",
       surfaceKind: "unsupported",
       surfaceTitle: "Browser preview without renderer match",
       surfaceEyebrow: "Unsupported creative surface",
@@ -303,6 +311,17 @@ export function matchCreativePreviewRenderer(
     .trim()
     .toLowerCase();
   const normalizedTitle = artifact.title.trim().toLowerCase();
+
+  if (hasUnsupportedBrowserRuntimeSignal(artifact, normalizedTitle)) {
+    return null;
+  }
+
+  const explicitRenderer = matchExplicitPreviewRenderer(artifact);
+
+  if (explicitRenderer !== undefined) {
+    return explicitRenderer;
+  }
+
   const extensionMatch = creativePreviewRendererRegistry.find((renderer) =>
     renderer.matchExtensions.some((extension) => normalizedTitle.endsWith(extension))
   );
@@ -315,6 +334,42 @@ export function matchCreativePreviewRenderer(
     creativePreviewRendererRegistry.find((renderer) => {
       return renderer.matchTokens.some((token) => haystack.includes(token));
     }) ?? null
+  );
+}
+
+function matchExplicitPreviewRenderer(
+  artifact: ArtifactSummary
+): CreativePreviewRendererDefinition | null | undefined {
+  const rendererId = artifact.rendererId?.trim();
+  if (rendererId) {
+    return (
+      creativePreviewRendererRegistry.find((renderer) => renderer.id === rendererId) ??
+      null
+    );
+  }
+
+  const runtime = artifact.runtime?.trim().toLowerCase();
+  if (!runtime) {
+    return undefined;
+  }
+
+  return (
+    creativePreviewRendererRegistry.find((renderer) => renderer.kind === runtime) ??
+    null
+  );
+}
+
+function hasUnsupportedBrowserRuntimeSignal(
+  artifact: ArtifactSummary,
+  normalizedTitle: string
+) {
+  const domain = artifact.domain?.trim().toLowerCase();
+  if (domain && !supportedPreviewDomains.has(domain)) {
+    return true;
+  }
+
+  return unsupportedBrowserRuntimeExtensions.some((extension) =>
+    normalizedTitle.endsWith(extension)
   );
 }
 

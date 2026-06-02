@@ -275,6 +275,36 @@ describe("live artifact hydration", () => {
       targetId: ""
     });
   });
+
+  it("keeps unsupported domain code-only when no live runtime is available", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const result = hydrateWorkspaceFromFinalEvent(
+      snapshot,
+      finalEvent({
+        answer: [
+          "Here is the patch:",
+          "```js feedback-lattice.hydra.js",
+          "osc(10, 0.1, 1.2).modulate(shape(4)).out();",
+          "```"
+        ].join("\n")
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      title: "feedback-lattice.hydra.js",
+      previewEligible: false,
+      rendererId: null,
+      runtime: null,
+      actions: ["Open", "Copy", "Download"]
+    });
+    expect(result.previewArtifactId).toBe("");
+    expect(result.previewAvailable).toBe(false);
+    expect(result.snapshot.preview).toMatchObject({
+      available: false,
+      state: "unavailable",
+      targetId: ""
+    });
+  });
 });
 
 function finalEvent(payload: Record<string, unknown>): AssistantStreamEvent {

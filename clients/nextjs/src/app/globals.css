@@ -2461,14 +2461,6 @@ a {
     linear-gradient(90deg, rgba(var(--accent-rgb), 0.12), transparent 78%);
 }
 
-.previewSurface[data-surface-kind="hydra"] .previewSurfaceBackdrop {
-  background:
-    radial-gradient(circle at 25% 50%, rgba(var(--accent-rgb), 0.24), transparent 20%),
-    radial-gradient(circle at 58% 44%, rgba(255, 122, 102, 0.2), transparent 18%),
-    radial-gradient(circle at 76% 66%, rgba(243, 184, 82, 0.18), transparent 20%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 82%);
-}
-
 .previewSurfaceChipRow,
 .previewSurfaceCapabilityList,
 .previewSurfacePanelBody {

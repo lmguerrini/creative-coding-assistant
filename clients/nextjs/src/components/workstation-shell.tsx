@@ -95,6 +95,7 @@ import {
 } from "@/lib/preview-controller";
 import {
   buildPreviewRendererRoute,
+  matchCreativePreviewRenderer,
   type PreviewRendererRoute
 } from "@/lib/preview-renderers";
 import {
@@ -2752,7 +2753,7 @@ function EmptyWorkspaceState({
     "p5.js sketches",
     "Three.js scenes",
     "GLSL shaders",
-    "Hydra visuals"
+    "React Three Fiber scenes"
   ];
   const workflowExamples = [
     "Brief -> generate -> preview -> refine",
@@ -4210,6 +4211,17 @@ function ArtifactsInspector({
           </div>
           <div className="artifactBadges">
             <span className="artifactSelected">Selected</span>
+            {activeArtifact.isRecommended ? (
+              <span className="artifactSelected">Recommended</span>
+            ) : null}
+            <span className="artifactType">
+              {getArtifactRuntimeSupportLabel(activeArtifact)}
+            </span>
+            {activeArtifact.domain ? (
+              <span className="artifactType">
+                {formatArtifactDomainLabel(activeArtifact.domain)}
+              </span>
+            ) : null}
             <span className="artifactType">{activeArtifactDocument.typeLabel}</span>
           </div>
         </header>
@@ -4229,6 +4241,14 @@ function ArtifactsInspector({
           <div>
             <dt>Actions</dt>
             <dd>{activeArtifact.actions.length}</dd>
+          </div>
+          <div>
+            <dt>Domain</dt>
+            <dd>{formatArtifactDomainLabel(activeArtifact.domain)}</dd>
+          </div>
+          <div>
+            <dt>Runtime</dt>
+            <dd>{formatArtifactRuntimeDetail(activeArtifact)}</dd>
           </div>
           {activeArtifact.qualityScore !== undefined &&
           activeArtifact.qualityScore !== null ? (
@@ -4785,6 +4805,10 @@ function ArtifactCard({
             <span className="artifactSelected">Recommended</span>
           ) : null}
           {isActive ? <span className="artifactSelected">Selected</span> : null}
+          <span className="artifactType">{getArtifactRuntimeSupportLabel(artifact)}</span>
+          {artifact.domain ? (
+            <span className="artifactType">{formatArtifactDomainLabel(artifact.domain)}</span>
+          ) : null}
           <span className="artifactType">{getArtifactTypeLabel(artifact.type)}</span>
         </div>
       </div>
@@ -4889,6 +4913,58 @@ function getArtifactTypeLabel(type: ArtifactSummary["type"]) {
 
 function formatQualityScore(score: number) {
   return `${Math.round(score * 100)}%`;
+}
+
+function getArtifactRuntimeSupportLabel(artifact: ArtifactSummary) {
+  return isArtifactPreviewable(artifact) ? "Previewable" : "Code-only";
+}
+
+function formatArtifactRuntimeDetail(artifact: ArtifactSummary) {
+  if (!isArtifactPreviewable(artifact)) {
+    return "Code-only";
+  }
+  const matchedRenderer = matchCreativePreviewRenderer(artifact);
+  const runtime = artifact.runtime
+    ? formatArtifactRuntimeLabel(artifact.runtime)
+    : matchedRenderer?.displayName ?? "Preview";
+  const rendererId = artifact.rendererId ?? matchedRenderer?.id ?? null;
+  return rendererId ? `${runtime} / ${rendererId}` : runtime;
+}
+
+function formatArtifactRuntimeLabel(runtime: string) {
+  switch (runtime) {
+    case "p5":
+      return "p5.js";
+    case "three":
+      return "Three.js";
+    case "glsl":
+      return "GLSL";
+    default:
+      return sentenceCase(runtime.replace(/[_-]+/g, " "));
+  }
+}
+
+function formatArtifactDomainLabel(domain: string | null | undefined) {
+  if (!domain) {
+    return "No selected domain";
+  }
+  switch (domain) {
+    case "p5_js":
+      return "p5.js";
+    case "three_js":
+      return "Three.js";
+    case "react_three_fiber":
+      return "React Three Fiber";
+    case "glsl":
+      return "GLSL";
+    default:
+      return sentenceCase(domain.replace(/_/g, " "));
+  }
+}
+
+function sentenceCase(value: string) {
+  const normalized = value.trim();
+  return normalized ? normalized[0].toUpperCase() + normalized.slice(1) : normalized;
 }
 
 function formatPreviewStateLabel(

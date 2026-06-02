@@ -2494,6 +2494,10 @@ describe("WorkstationShell", () => {
     expect(within(details).getByText("aurora-field.p5.js")).toBeVisible();
     expect(within(details).getByText("Source code")).toBeVisible();
     expect(within(details).getByText("p5.js")).toBeVisible();
+    expect(within(details).getByText("Previewable")).toBeVisible();
+    expect(within(details).getByText("Runtime")).toBeVisible();
+    expect(within(details).getByText("p5.js / surface.p5")).toBeVisible();
+    expect(within(details).getByText("Domain")).toBeVisible();
     expect(
       within(details).getByRole("button", {
         name: "Open in Code aurora-field.p5.js"
@@ -2504,6 +2508,49 @@ describe("WorkstationShell", () => {
         name: "Download File aurora-field.p5.js"
       })
     ).toBeVisible();
+  });
+
+  it("labels unsupported artifacts as code-only in the artifacts inspector", () => {
+    const snapshot = snapshotWithActiveTab("Artifacts");
+    const codeOnlySnapshot: AssistantWorkspaceSnapshot = {
+      ...snapshot,
+      artifacts: [
+        {
+          ...snapshot.artifacts[0],
+          id: "hydra-notes",
+          title: "feedback-lattice.hydra.js",
+          language: "JavaScript",
+          status: "Generated",
+          summary: "Hydra code remains inspectable without live preview support.",
+          content: "osc(10, 0.1, 1.2).modulate(shape(4)).out();",
+          domain: "hydra",
+          previewEligible: false,
+          previewTarget: "",
+          rendererId: null,
+          runtime: null,
+          actions: ["Open", "Copy", "Download"]
+        }
+      ],
+      preview: {
+        ...snapshot.preview,
+        available: false,
+        state: "unavailable",
+        targetId: ""
+      }
+    };
+
+    renderShell(codeOnlySnapshot);
+
+    const details = screen.getByRole("group", { name: "Active artifact details" });
+
+    expect(within(details).getAllByText("Code-only").length).toBeGreaterThan(0);
+    expect(within(details).getAllByText("Hydra").length).toBeGreaterThan(0);
+    expect(within(details).getByText("Runtime")).toBeVisible();
+    expect(
+      within(details).queryByRole("button", {
+        name: "Preview feedback-lattice.hydra.js"
+      })
+    ).not.toBeInTheDocument();
   });
 
   it("requires approval before downloading an artifact and records the action in workflow traces", async () => {

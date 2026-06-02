@@ -44,7 +44,7 @@ type GeneratedArtifactSource = {
   type?: ArtifactSummary["type"];
 };
 
-type CreativeRuntimeKind = "p5" | "three" | "glsl" | "hydra";
+type CreativeRuntimeKind = "p5" | "three" | "glsl";
 
 type ArtifactInference = {
   content: string;
@@ -72,13 +72,11 @@ const liveGeneratedArtifactId = "live-generated-artifact";
 const liveResponseArtifactId = "live-response-artifact";
 const previewRendererLabels: Record<CreativeRuntimeKind, string> = {
   glsl: "GLSL",
-  hydra: "Hydra",
   p5: "p5.js",
   three: "Three.js"
 };
 const previewRendererIds: Record<CreativeRuntimeKind, string> = {
   glsl: "surface.glsl",
-  hydra: "surface.hydra",
   p5: "surface.p5",
   three: "surface.three"
 };
@@ -424,10 +422,17 @@ function inferGeneratedArtifact(
       type
     });
   const language = formatLanguageLabel(normalizedLanguage, previewKind, title);
-  const previewTarget = normalizePreviewTarget(source.previewTarget);
+  const rawPreviewTarget = normalizePreviewTarget(source.previewTarget);
+  const previewTarget =
+    type === "code"
+      ? previewKind
+        ? rawPreviewTarget || "browser_sandbox"
+        : ""
+      : rawPreviewTarget;
   const previewEligible =
-    source.previewEligible ??
-    (previewKind !== null || previewTarget === "browser_sandbox");
+    type === "code"
+      ? previewKind !== null
+      : source.previewEligible ?? previewTarget !== "";
   const fallbackId =
     totalSources > 1
       ? sanitizeArtifactId(title) || `${liveGeneratedArtifactId}-${sourceOrder}`
@@ -452,7 +457,9 @@ function inferGeneratedArtifact(
     isRecommended: source.isRecommended ?? source.critique?.recommended ?? false,
     refinementReason:
       source.refinementReason ?? source.critique?.refinementGuidance ?? null,
-    rendererId: source.rendererId ?? (previewKind ? previewRendererIds[previewKind] : null),
+    rendererId: previewKind
+      ? source.rendererId ?? previewRendererIds[previewKind]
+      : null,
     sourceOrder,
     status: source.status ?? "Generated",
     summary: source.summary ?? null,
@@ -494,7 +501,7 @@ function buildArtifactSummary(
     ? `${previewRendererLabels[inferred.previewKind]} runtime signals matched from the generated artifact.`
     : inferred.previewEligible
       ? "Preview target metadata is available, but no supported creative runtime matched this output."
-    : "No supported p5.js, Three.js, GLSL, or Hydra preview runtime matched this output.";
+    : "No supported p5.js, Three.js, or GLSL preview runtime matched this output.";
   const summary =
     inferred.summary ??
     (inferred.type === "code"
@@ -658,15 +665,6 @@ function inferRuntimeKind(
     return "p5";
   }
 
-  if (
-    normalizedTitle.endsWith(".hydra.ts") ||
-    normalizedTitle.endsWith(".hydra.js") ||
-    haystack.includes("hydra") ||
-    (haystack.includes("osc(") && haystack.includes("out("))
-  ) {
-    return "hydra";
-  }
-
   return null;
 }
 
@@ -703,12 +701,6 @@ function defaultArtifactTitle({
 
   if (previewKind === "glsl") {
     return `generated-shader${orderSuffix}.frag`;
-  }
-
-  if (previewKind === "hydra") {
-    return language === "typescript"
-      ? `generated-patch${orderSuffix}.hydra.ts`
-      : `generated-patch${orderSuffix}.hydra.js`;
   }
 
   if (language === "javascript") {
@@ -753,10 +745,6 @@ function formatLanguageLabel(
 
   if (previewKind === "glsl") {
     return "GLSL";
-  }
-
-  if (previewKind === "hydra") {
-    return language === "typescript" ? "TypeScript + Hydra" : "JavaScript + Hydra";
   }
 
   switch (language) {
@@ -813,9 +801,6 @@ function normalizeRuntimeKind(value: string): CreativeRuntimeKind | null {
     case "surface.glsl":
     case "glsl":
       return "glsl";
-    case "surface.hydra":
-    case "hydra":
-      return "hydra";
     case "surface.p5":
     case "p5":
     case "p5.js":
