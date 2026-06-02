@@ -12,6 +12,9 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.domains import get_domain_prompt_guidance
+from creative_coding_assistant.orchestration.domain_generation import (
+    domain_generation_guidance_lines,
+)
 from creative_coding_assistant.orchestration.prompt_inputs import (
     PromptImageReferenceInput,
     PromptInputResponse,
@@ -65,6 +68,10 @@ Route Guidance:
 {% endfor %}
 Domain Discipline:
 {% for instruction in domain_guidance_lines(prompt_input.user_input) -%}
+- {{ instruction }}
+{% endfor %}
+Generation Runtime Guidance:
+{% for instruction in generation_runtime_guidance_lines(prompt_input.user_input) -%}
 - {{ instruction }}
 {% endfor %}
 When you provide code, place each runnable snippet in a fenced code block with
@@ -201,6 +208,7 @@ class JinjaPromptRenderer:
             global_guardrail_lines=_global_guardrail_lines,
             route_guidance_lines=_route_guidance_lines,
             domain_guidance_lines=_domain_guidance_lines,
+            generation_runtime_guidance_lines=_generation_runtime_guidance_lines,
             effective_domain_scope_label=_effective_domain_scope_label,
             image_reference_line=_image_reference_line,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -397,6 +405,23 @@ def _domain_guidance_lines(user_input: PromptUserInput) -> tuple[str, ...]:
     for domain in user_input.effective_domains:
         guidance.append(_domain_preference_line(domain))
 
+    return tuple(guidance)
+
+
+def _generation_runtime_guidance_lines(
+    user_input: PromptUserInput,
+) -> tuple[str, ...]:
+    if not user_input.effective_domains:
+        return (
+            "When visual/runtime output is requested without an explicit domain, choose the smallest suitable supported runtime instead of defaulting blindly.",
+            "Current live preview support is limited to p5.js, GLSL, Three.js, and React Three Fiber.",
+        )
+
+    guidance = list(domain_generation_guidance_lines(user_input.effective_domains))
+    if user_input.domain_selection is DomainSelectionShape.MULTI:
+        guidance.append(
+            "For multiple generated candidates, make each artifact meaningfully different by domain, runtime, or implementation strategy instead of changing only names or colors."
+        )
     return tuple(guidance)
 
 

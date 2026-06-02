@@ -23,7 +23,6 @@ from creative_coding_assistant.rag.retrieval import (
 )
 from creative_coding_assistant.rag.retrieval.domain_intent import (
     detect_explicit_query_domains,
-    resolve_effective_query_domains,
 )
 from creative_coding_assistant.rag.sources import OfficialSourceType
 
@@ -186,7 +185,14 @@ def build_retrieval_context_request(
     if RouteCapability.OFFICIAL_DOCS not in route_decision.capabilities:
         return None
 
-    domain, domains = _resolve_retrieval_domains(assistant_request)
+    explicit_domains = detect_explicit_query_domains(assistant_request.query)
+    domains = explicit_domains or route_decision.domains or assistant_request.domains
+    if len(domains) == 1:
+        domain = domains[0]
+    elif domains:
+        domain = None
+    else:
+        domain = route_decision.domain or assistant_request.domain
     return RetrievalContextRequest(
         query=assistant_request.query,
         route=route_decision.route,
@@ -230,27 +236,6 @@ def _build_retrieved_chunk(
         excerpt=result.text,
         score=result.score,
     )
-
-
-def _resolve_retrieval_domains(
-    assistant_request: AssistantRequest,
-) -> tuple[CreativeCodingDomain | None, tuple[CreativeCodingDomain, ...]]:
-    query_domains = detect_explicit_query_domains(assistant_request.query)
-    if not query_domains:
-        return assistant_request.domain, assistant_request.domains
-
-    logger.info(
-        "Using explicit query domains {} for retrieval instead of request domains {}",
-        [domain.value for domain in query_domains],
-        [domain.value for domain in assistant_request.domains],
-    )
-    effective_domains = resolve_effective_query_domains(
-        query=assistant_request.query,
-        selected_domains=assistant_request.domains,
-    )
-    if len(effective_domains) == 1:
-        return effective_domains[0], effective_domains
-    return None, effective_domains
 
 
 def _rank_retrieval_results(

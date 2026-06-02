@@ -67,6 +67,40 @@ class ArtifactCritiqueTests(unittest.TestCase):
         self.assertFalse(artifact.critique.passed)
         self.assertEqual(artifact.refinement_reason, summary.refinement_guidance)
 
+    def test_code_only_domain_fit_scores_unsupported_domain_without_preview(self) -> None:
+        artifact = _weak_python_artifact().model_copy(
+            update={
+                "id": "hydra-patch",
+                "title": "hydra-patch.js",
+                "name": "hydra-patch.js",
+                "language": "javascript",
+                "source_language": "javascript",
+                "content": "osc(10, 0.1, 1.2).modulate(shape(4)).out();",
+                "summary": "Hydra patch code.",
+                "domain": CreativeCodingDomain.HYDRA.value,
+                "preview_eligible": False,
+                "runtime": None,
+                "renderer_id": None,
+                "preview_target": None,
+            }
+        )
+
+        artifacts, summary = critique_workflow_artifacts(
+            (artifact,),
+            request=AssistantRequest(
+                query="Create a Hydra video synth patch.",
+                domains=(CreativeCodingDomain.HYDRA,),
+            ),
+            route_decision=_route_decision(CreativeCodingDomain.HYDRA),
+        )
+
+        critique = artifacts[0].critique
+
+        self.assertEqual(summary.recommended_artifact_id, "hydra-patch")
+        self.assertIsNotNone(critique)
+        self.assertEqual(critique.domain_appropriateness.score, 0.88)
+        self.assertIn("correctly code-only", critique.domain_appropriateness.rationale)
+
 
 def _route_decision(domain: CreativeCodingDomain) -> RouteDecision:
     return RouteDecision(

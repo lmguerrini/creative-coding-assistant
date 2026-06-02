@@ -31,7 +31,6 @@ from creative_coding_assistant.orchestration.routing import (
 )
 from creative_coding_assistant.rag.retrieval.domain_intent import (
     detect_explicit_query_domains,
-    resolve_effective_query_domains,
 )
 from creative_coding_assistant.rag.sources import OfficialSourceType
 
@@ -203,11 +202,16 @@ class PromptInputRequest(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     route: RouteName
+    route_decision: RouteDecision | None = None
     assistant_request: AssistantRequest
     assembled_context: AssembledContextResponse | None = None
 
     @model_validator(mode="after")
     def validate_route_alignment(self) -> Self:
+        if self.route_decision is not None and self.route_decision.route != self.route:
+            raise ValueError(
+                "Prompt-input route decision must match the prompt-input route."
+            )
         if (
             self.assembled_context is not None
             and self.assembled_context.request.route != self.route
@@ -261,7 +265,10 @@ class StructuredPromptInputBuilder:
 
         prompt_input = PromptInputResponse(
             request=request,
-            user_input=_build_user_input(request.assistant_request),
+            user_input=_build_user_input(
+                request.assistant_request,
+                route_decision=request.route_decision,
+            ),
             memory_input=memory_input,
             retrieval_input=retrieval_input,
         )
@@ -281,17 +288,25 @@ def build_prompt_input_request(
 ) -> PromptInputRequest:
     return PromptInputRequest(
         route=route_decision.route,
+        route_decision=route_decision,
         assistant_request=assistant_request,
         assembled_context=assembled_context,
     )
 
 
-def _build_user_input(assistant_request: AssistantRequest) -> PromptUserInput:
+def _build_user_input(
+    assistant_request: AssistantRequest,
+    *,
+    route_decision: RouteDecision | None,
+) -> PromptUserInput:
     ui_selected_domains = assistant_request.domains
     detected_domains = detect_explicit_query_domains(assistant_request.query)
-    effective_domains = resolve_effective_query_domains(
-        query=assistant_request.query,
-        selected_domains=ui_selected_domains,
+    effective_domains = (
+        detected_domains
+        if detected_domains
+        else route_decision.domains
+        if route_decision is not None and route_decision.domains
+        else ui_selected_domains
     )
     return PromptUserInput(
         query=assistant_request.query,

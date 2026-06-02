@@ -12,6 +12,12 @@ from creative_coding_assistant.contracts import (
     AssistantRequest,
     CreativeCodingDomain,
 )
+from creative_coding_assistant.orchestration.domain_generation import (
+    resolve_generation_domains,
+)
+from creative_coding_assistant.rag.retrieval.domain_intent import (
+    detect_explicit_query_domains,
+)
 
 
 class RouteName(StrEnum):
@@ -166,11 +172,21 @@ def route_request(request: AssistantRequest) -> RouteDecision:
     """Select an explicit route from request mode and optional domain."""
 
     route_name, capabilities = MODE_ROUTE_MAP[request.mode]
+    explicit_domains = detect_explicit_query_domains(request.query)
+    if explicit_domains:
+        domains = explicit_domains
+    elif route_name in (RouteName.GENERATE, RouteName.PREVIEW):
+        domains = resolve_generation_domains(
+            query=request.query,
+            selected_domains=request.domains,
+        )
+    else:
+        domains = request.domains
     return RouteDecision(
         route=route_name,
         mode=request.mode,
-        domain=request.domain,
-        domains=request.domains,
+        domain=domains[0] if len(domains) == 1 else None,
+        domains=domains,
         capabilities=capabilities,
     )
 

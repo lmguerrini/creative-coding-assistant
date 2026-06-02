@@ -13,6 +13,10 @@ from creative_coding_assistant.orchestration.artifacts import (
     WorkflowArtifact,
     WorkflowArtifactCritique,
 )
+from creative_coding_assistant.orchestration.domain_generation import (
+    get_domain_runtime_support,
+    is_previewable_generation_domain,
+)
 from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.preview import PreviewResult
 
@@ -47,16 +51,6 @@ _CODE_MARKERS = frozenset(
         "void",
     }
 )
-_DOMAIN_RUNTIME_MATCHES: dict[str, frozenset[str]] = {
-    CreativeCodingDomain.THREE_JS.value: frozenset({"three"}),
-    CreativeCodingDomain.REACT_THREE_FIBER.value: frozenset({"three"}),
-    CreativeCodingDomain.P5_JS.value: frozenset({"p5"}),
-    CreativeCodingDomain.GLSL.value: frozenset({"glsl"}),
-    CreativeCodingDomain.SHADERTOY.value: frozenset({"glsl"}),
-    CreativeCodingDomain.HYDRA.value: frozenset({"hydra"}),
-}
-
-
 class ArtifactCritiqueSummary(BaseModel):
     """Run-level summary for artifact critique results."""
 
@@ -179,7 +173,7 @@ def _score_artifact(
         "preview_readiness": _score_preview_readiness(artifact, preview_artifact_ids),
         "domain_appropriateness": _score_domain_appropriateness(
             artifact,
-            route_decision.domain or request.domain,
+            route_decision.domains or request.domains,
         ),
     }
     overall = round(
@@ -210,7 +204,12 @@ def _score_artifact(
         preview_readiness=dimensions["preview_readiness"],
         domain_appropriateness=dimensions["domain_appropriateness"],
         reasons=reasons,
-        rationale=_critique_rationale(artifact, overall, reasons),
+        rationale=_critique_rationale(
+            artifact,
+            overall,
+            reasons,
+            dimensions["domain_appropriateness"].rationale,
+        ),
         refinement_guidance=_refinement_guidance(artifact, reasons),
     )
 
@@ -285,18 +284,50 @@ def _score_preview_readiness(
 
 def _score_domain_appropriateness(
     artifact: WorkflowArtifact,
-    domain: CreativeCodingDomain | None,
+    domains: tuple[CreativeCodingDomain, ...],
 ) -> ArtifactCritiqueDimension:
-    if domain is None:
-        return _dimension(0.75, "No domain was selected, so artifact domain fit is neutral.")
-    expected_runtimes = _DOMAIN_RUNTIME_MATCHES.get(domain.value)
-    if expected_runtimes is None:
-        return _dimension(0.72, f"No strict runtime mapping exists for {domain.value}.")
-    if artifact.runtime in expected_runtimes:
-        return _dimension(1.0, f"{artifact.runtime} matches requested domain {domain.value}.")
-    if artifact.preview_eligible:
-        return _dimension(0.58, f"Previewable artifact does not directly match {domain.value}.")
-    return _dimension(0.38, f"Artifact does not match requested domain {domain.value}.")
+    artifact_domain = _artifact_domain(artifact)
+    if not domains:
+        if artifact_domain is None:
+            return _dimension(0.75, "No domain was selected, so artifact domain fit is neutral.")
+        return _dimension(0.78, f"Artifact declares domain {artifact_domain.value}.")
+
+    if artifact_domain in domains:
+        support = get_domain_runtime_support(artifact_domain)
+        if support is None:
+            if artifact.preview_eligible:
+                return _dimension(
+                    0.48,
+                    f"{artifact_domain.value} is code-only here, but the artifact claims preview readiness.",
+                )
+            return _dimension(
+                0.88,
+                f"{artifact_domain.value} matches the requested domain and is correctly code-only.",
+            )
+        if artifact.runtime == support.runtime and artifact.renderer_id == support.renderer_id:
+            return _dimension(
+                1.0,
+                f"{artifact.runtime} runtime matches requested domain {artifact_domain.value}.",
+            )
+        return _dimension(
+            0.55,
+            f"{artifact_domain.value} matches the requested domain, but runtime metadata is incomplete.",
+        )
+
+    for domain in domains:
+        support = get_domain_runtime_support(domain)
+        if support is not None and artifact.runtime == support.runtime:
+            return _dimension(
+                0.74,
+                f"{artifact.runtime} runtime fits {domain.value}, but artifact domain metadata differs.",
+            )
+
+    if artifact.preview_eligible and any(is_previewable_generation_domain(domain) for domain in domains):
+        return _dimension(
+            0.58,
+            "Previewable artifact does not directly match the requested domain set.",
+        )
+    return _dimension(0.38, "Artifact does not match the requested domain set.")
 
 
 def _critique_reasons(
@@ -317,10 +348,17 @@ def _critique_rationale(
     artifact: WorkflowArtifact,
     score: float,
     reasons: tuple[str, ...],
+    domain_rationale: str,
 ) -> str:
     if not reasons:
-        return f"{artifact.title} is a strong candidate with score {score:.2f}."
-    return f"{artifact.title} needs refinement for {', '.join(reasons)}."
+        return (
+            f"{artifact.title} is a strong candidate with score {score:.2f}. "
+            f"{domain_rationale}"
+        )
+    return (
+        f"{artifact.title} needs refinement for {', '.join(reasons)}. "
+        f"{domain_rationale}"
+    )
 
 
 def _refinement_guidance(
@@ -350,9 +388,13 @@ def _query_matches_runtime(query_tokens: set[str], runtime: str | None) -> bool:
         return bool(normalized_tokens.intersection({"3d", "scene", "scenes", "three"}))
     if runtime == "glsl":
         return bool(normalized_tokens.intersection({"fragment", "glsl", "shader", "shaders"}))
-    if runtime == "hydra":
-        return bool(normalized_tokens.intersection({"hydra", "patch", "patches"}))
     return False
+
+
+def _artifact_domain(artifact: WorkflowArtifact) -> CreativeCodingDomain | None:
+    if artifact.domain is None:
+        return None
+    return CreativeCodingDomain(artifact.domain)
 
 
 def _artifact_by_id(

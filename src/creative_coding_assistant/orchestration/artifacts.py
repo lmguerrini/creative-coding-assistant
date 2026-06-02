@@ -24,12 +24,21 @@ from creative_coding_assistant.artifacts import (
     ArtifactWorkflowLink,
 )
 from creative_coding_assistant.contracts import AssistantRequest, CreativeCodingDomain
+from creative_coding_assistant.orchestration.domain_generation import (
+    domains_for_runtime,
+    get_domain_runtime_support,
+    is_previewable_generation_domain,
+    runtime_is_supported,
+)
 from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.preview import (
     PreviewProvenance,
     PreviewRequest,
     PreviewResult,
     PreviewTarget,
+)
+from creative_coding_assistant.rag.retrieval.domain_intent import (
+    detect_explicit_query_domains,
 )
 
 
@@ -104,21 +113,11 @@ class _CodeBlock:
 
 
 _FENCE_PATTERN = re.compile(r"```([^\n`]*)\n([\s\S]*?)```")
-_RUNTIME_RENDERERS = {
-    "glsl": "surface.glsl",
-    "hydra": "surface.hydra",
-    "p5": "surface.p5",
-    "three": "surface.three",
-}
 _RUNTIME_LABELS = {
     "glsl": "GLSL",
-    "hydra": "Hydra",
     "p5": "p5.js",
     "three": "Three.js",
 }
-_BROWSER_SOURCE_LANGUAGES = frozenset(
-    {"javascript", "typescript", "html", "css", "glsl", "wgsl"}
-)
 
 
 def extract_workflow_artifacts(
@@ -245,21 +244,35 @@ def _build_workflow_artifact(
     if not language:
         return None
     runtime = _infer_runtime(block.content, language, block.title)
-    title = block.title or _default_artifact_title(language, runtime, index)
+    artifact_domain = _infer_artifact_domain(
+        runtime=runtime,
+        content=block.content,
+        language=language,
+        title=block.title,
+        request=request,
+        route_decision=route_decision,
+        source_order=index,
+    )
+    support = get_domain_runtime_support(artifact_domain)
+    preview_ready = (
+        support is not None
+        and runtime_is_supported(runtime)
+        and runtime == support.runtime
+    )
+    effective_runtime = runtime if preview_ready else None
+    title = block.title or _default_artifact_title(language, effective_runtime, index)
     artifact_id = _sanitize_identifier(title) or f"generated-artifact-{index}"
     content_hash = sha256(block.content.encode("utf-8")).hexdigest()
-    renderer_id = _RUNTIME_RENDERERS.get(runtime or "")
-    preview_target = (
-        PreviewTarget.BROWSER_SANDBOX.value
-        if runtime is not None or language in _BROWSER_SOURCE_LANGUAGES
-        else None
-    )
-    domain_label = _domain_label(route_decision.domain or request.domain)
-    domain_value = _domain_value(route_decision.domain or request.domain)
-    runtime_label = _RUNTIME_LABELS.get(runtime or "")
+    renderer_id = support.renderer_id if preview_ready else None
+    preview_target = support.preview_target if preview_ready else None
+    domain_label = _domain_label(artifact_domain)
+    domain_value = _domain_value(artifact_domain)
+    runtime_label = _RUNTIME_LABELS.get(effective_runtime or "")
     summary_parts = ["Extracted from the generation result"]
-    if runtime_label:
+    if runtime_label and preview_ready:
         summary_parts.append(f"matched {runtime_label} creative runtime")
+    elif domain_label and not is_previewable_generation_domain(artifact_domain):
+        summary_parts.append("kept as code-only for the selected domain")
     if domain_label:
         summary_parts.append(f"for {domain_label}")
 
@@ -267,15 +280,15 @@ def _build_workflow_artifact(
         id=artifact_id,
         title=title,
         name=title,
-        language=_format_language_label(language, runtime, title),
+        language=_format_language_label(language, effective_runtime, title),
         source_language=language,
         content=block.content,
         summary="; ".join(summary_parts) + ".",
         source_order=index,
         domain=domain_value,
-        is_creative=runtime is not None,
+        is_creative=preview_ready,
         preview_eligible=preview_target is not None,
-        runtime=runtime,
+        runtime=effective_runtime,
         renderer_id=renderer_id,
         preview_target=preview_target,
         content_hash=content_hash,
@@ -343,11 +356,7 @@ def _to_artifact_record(
     timestamp: datetime,
 ) -> ArtifactRecord:
     workspace_id = _sanitize_identifier(request.project_id or "local-workspace")
-    workflow_link = ArtifactWorkflowLink.from_request(
-        request,
-        workflow_run_id=_workflow_run_id(request),
-        step="artifact_extraction",
-    )
+    workflow_link = _workflow_link_for_artifact(request, artifact)
     return ArtifactRecord(
         identity=ArtifactIdentity(
             artifact_id=artifact.id,
@@ -360,7 +369,7 @@ def _to_artifact_record(
             title=artifact.title,
             summary=artifact.summary,
             tags=_artifact_tags(artifact),
-            domain=route_decision.domain or request.domain,
+            domain=_artifact_domain_enum(artifact) or route_decision.domain or request.domain,
             language=artifact.source_language,
             extra={
                 "content_hash": artifact.content_hash,
@@ -410,12 +419,6 @@ def _infer_runtime(
     ):
         return "glsl"
     if (
-        normalized_title.endswith((".hydra.js", ".hydra.ts"))
-        or "hydra" in haystack
-        or ("osc(" in haystack and "out(" in haystack)
-    ):
-        return "hydra"
-    if (
         normalized_title.endswith((".three.js", ".three.ts", ".r3f.tsx"))
         or "webglrenderer" in haystack
         or "perspectivecamera" in haystack
@@ -431,6 +434,80 @@ def _infer_runtime(
     ):
         return "p5"
     return None
+
+
+def _workflow_link_for_artifact(
+    request: AssistantRequest,
+    artifact: WorkflowArtifact,
+) -> ArtifactWorkflowLink:
+    workflow_link = ArtifactWorkflowLink.from_request(
+        request,
+        workflow_run_id=_workflow_run_id(request),
+        step="artifact_extraction",
+    )
+    artifact_domain = _artifact_domain_enum(artifact)
+    if artifact_domain is None or artifact_domain in workflow_link.domains:
+        return workflow_link
+    return workflow_link.model_copy(
+        update={"domains": (*workflow_link.domains, artifact_domain)}
+    )
+
+
+def _infer_artifact_domain(
+    *,
+    runtime: str | None,
+    content: str,
+    language: str,
+    title: str | None,
+    request: AssistantRequest,
+    route_decision: RouteDecision,
+    source_order: int,
+) -> CreativeCodingDomain | None:
+    route_domains = route_decision.domains or request.domains
+    explicit_domains = detect_explicit_query_domains(request.query)
+    runtime_domains = domains_for_runtime(runtime)
+
+    if explicit_domains:
+        matching_explicit_domain = next(
+            (domain for domain in explicit_domains if domain in runtime_domains),
+            None,
+        )
+        if matching_explicit_domain is not None:
+            return matching_explicit_domain
+        return explicit_domains[min(source_order - 1, len(explicit_domains) - 1)]
+
+    if runtime_domains:
+        matching_route_domain = next(
+            (domain for domain in route_domains if domain in runtime_domains),
+            None,
+        )
+        if matching_route_domain is not None:
+            return matching_route_domain
+        if route_domains and not any(
+            is_previewable_generation_domain(domain) for domain in route_domains
+        ):
+            return route_domains[min(source_order - 1, len(route_domains) - 1)]
+        if runtime == "three" and _looks_like_react_three_fiber(content, language, title):
+            return CreativeCodingDomain.REACT_THREE_FIBER
+        return runtime_domains[0]
+
+    if route_domains:
+        return route_domains[min(source_order - 1, len(route_domains) - 1)]
+
+    return route_decision.domain or request.domain
+
+
+def _looks_like_react_three_fiber(
+    content: str,
+    language: str,
+    title: str | None,
+) -> bool:
+    haystack = f"{content} {language} {title or ''}".lower()
+    return (
+        "@react-three/fiber" in haystack
+        or "useframe" in haystack
+        or (title or "").lower().endswith(".r3f.tsx")
+    )
 
 
 def _infer_language(content: str, title: str | None) -> str:
@@ -478,8 +555,6 @@ def _format_language_label(language: str, runtime: str | None, title: str) -> st
         )
     if runtime == "glsl":
         return "GLSL"
-    if runtime == "hydra":
-        return "JavaScript + Hydra"
     if language == "typescript":
         return "TypeScript + React" if title.endswith(".tsx") else "TypeScript"
     return {
@@ -505,8 +580,6 @@ def _default_artifact_title(
         return f"generated-sketch-{index}.p5.{extension}"
     if runtime == "glsl":
         return f"generated-shader-{index}.frag"
-    if runtime == "hydra":
-        return f"generated-patch-{index}.hydra.js"
     extensions = {
         "css": "css",
         "glsl": "glsl",
@@ -553,6 +626,12 @@ def _domain_label(domain: CreativeCodingDomain | None) -> str | None:
 
 def _domain_value(domain: CreativeCodingDomain | None) -> str | None:
     return domain.value if domain is not None else None
+
+
+def _artifact_domain_enum(artifact: WorkflowArtifact) -> CreativeCodingDomain | None:
+    if artifact.domain is None:
+        return None
+    return CreativeCodingDomain(artifact.domain)
 
 
 def _sanitize_filename(value: str) -> str:

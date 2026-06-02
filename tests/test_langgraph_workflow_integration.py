@@ -267,7 +267,17 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         graph = build_assistant_workflow_graph()
         generation = _SequentialGeneration(
             "This answer does not include fenced code.",
-            "```javascript\nconsole.log('refined');\n```",
+            "\n".join(
+                [
+                    "```javascript",
+                    "const scene = new THREE.Scene();",
+                    "const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 100);",
+                    "function animate() {",
+                    "  scene.rotation.y += 0.01;",
+                    "}",
+                    "```",
+                ]
+            ),
         )
 
         final_state = graph.invoke(
@@ -284,7 +294,17 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(workflow_state.status, WorkflowStatus.COMPLETED)
         self.assertEqual(
             workflow_state.final_answer,
-            "```javascript\nconsole.log('refined');\n```",
+            "\n".join(
+                [
+                    "```javascript",
+                    "const scene = new THREE.Scene();",
+                    "const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 100);",
+                    "function animate() {",
+                    "  scene.rotation.y += 0.01;",
+                    "}",
+                    "```",
+                ]
+            ),
         )
         self.assertEqual(
             workflow_state.review_result.outcome,
@@ -520,7 +540,17 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         graph = build_assistant_workflow_graph()
         generation = _SequentialGeneration(
             "This answer does not include fenced code.",
-            "```javascript\nconsole.log('refined');\n```",
+            "\n".join(
+                [
+                    "```javascript",
+                    "const scene = new THREE.Scene();",
+                    "const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 100);",
+                    "function animate() {",
+                    "  scene.rotation.y += 0.01;",
+                    "}",
+                    "```",
+                ]
+            ),
         )
 
         events = tuple(
@@ -601,7 +631,17 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(preview_event.payload["code"], "preview_artifact_prepared")
         self.assertEqual(
             events[-1].payload["answer"],
-            "```javascript\nconsole.log('refined');\n```",
+            "\n".join(
+                [
+                    "```javascript",
+                    "const scene = new THREE.Scene();",
+                    "const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 100);",
+                    "function animate() {",
+                    "  scene.rotation.y += 0.01;",
+                    "}",
+                    "```",
+                ]
+            ),
         )
 
     def test_graph_routes_routing_failures_to_terminal_failure_path(self) -> None:
