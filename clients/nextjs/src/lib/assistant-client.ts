@@ -3,6 +3,7 @@ import type { WorkstationError } from "./workstation-errors";
 export type InspectorTabName =
   | "Overview"
   | "Preview"
+  | "Runtime"
   | "Code"
   | "Workflow"
   | "Telemetry"
@@ -283,6 +284,11 @@ export function getInitialWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
         summary: "Canvas appears after a runnable artifact is generated"
       },
       {
+        label: "Runtime",
+        active: false,
+        summary: "Live runtime diagnostics appear after the preview renderer starts"
+      },
+      {
         label: "Code",
         active: false,
         summary: "Generated source appears after the first creative pass"
@@ -483,6 +489,12 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
         active: false,
         summary: "Canvas runtime and renderer context",
         badge: "Run"
+      },
+      {
+        label: "Runtime",
+        active: false,
+        summary: "Focused runtime diagnostics and lifecycle history",
+        badge: "Diag"
       },
       {
         label: "Code",

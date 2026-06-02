@@ -718,6 +718,7 @@ function isInspectorTabName(value: unknown): value is InspectorTabName {
   return (
     value === "Overview" ||
     value === "Preview" ||
+    value === "Runtime" ||
     value === "Code" ||
     value === "Workflow" ||
     value === "Telemetry" ||

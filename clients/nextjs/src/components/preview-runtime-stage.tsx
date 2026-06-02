@@ -29,8 +29,14 @@ export type PreviewRuntimeTelemetryEvent = {
   source: PreviewRuntimeSource;
 };
 
+export type PreviewRuntimeDiagnosticsEvent = PreviewRuntimeTelemetryEvent & {
+  metrics: PreviewRuntimeMetricsSnapshot;
+  status: PreviewRuntimeStatus;
+};
+
 type PreviewRuntimeStageProps = {
   kind: PreviewExecutableRuntimeKind;
+  onRuntimeDiagnostics?: (event: PreviewRuntimeDiagnosticsEvent) => void;
   onRuntimeFrame?: (
     event: PreviewRuntimeTelemetryEvent & { sample: PreviewRuntimeFrameSample }
   ) => void;
@@ -46,6 +52,7 @@ type PreviewRuntimeStageProps = {
 
 export function PreviewRuntimeStage({
   kind,
+  onRuntimeDiagnostics,
   onRuntimeFrame,
   onRuntimeStatus,
   onReload,
@@ -55,6 +62,7 @@ export function PreviewRuntimeStage({
   source
 }: PreviewRuntimeStageProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const onRuntimeDiagnosticsRef = useRef(onRuntimeDiagnostics);
   const onRuntimeFrameRef = useRef(onRuntimeFrame);
   const onRuntimeStatusRef = useRef(onRuntimeStatus);
   const previewRef = useRef(preview);
@@ -78,12 +86,13 @@ export function PreviewRuntimeStage({
   });
 
   useEffect(() => {
+    onRuntimeDiagnosticsRef.current = onRuntimeDiagnostics;
     onRuntimeFrameRef.current = onRuntimeFrame;
     onRuntimeStatusRef.current = onRuntimeStatus;
     previewRef.current = preview;
     routeRef.current = route;
     sourceRef.current = source;
-  }, [onRuntimeFrame, onRuntimeStatus, preview, route, source]);
+  }, [onRuntimeDiagnostics, onRuntimeFrame, onRuntimeStatus, preview, route, source]);
 
   useEffect(() => {
     const currentPreview = previewRef.current;
@@ -94,13 +103,34 @@ export function PreviewRuntimeStage({
       preview: currentPreview
     });
     const tracker = createPreviewRuntimeMetricsTracker(initialStatus);
+    const runtimeId = createPreviewSandboxRuntimeId();
+    let latestStatus = initialStatus;
 
     setStatus(initialStatus);
     setMetrics(tracker.snapshot());
 
+    function publishRuntimeDiagnostics(
+      nextStatus: PreviewRuntimeStatus,
+      nextMetrics: PreviewRuntimeMetricsSnapshot
+    ) {
+      onRuntimeDiagnosticsRef.current?.({
+        kind,
+        metrics: nextMetrics,
+        route: currentRoute,
+        runtimeId,
+        source: currentSource,
+        status: nextStatus
+      });
+    }
+
+    publishRuntimeDiagnostics(initialStatus, tracker.snapshot());
+
     function handleStatus(nextStatus: PreviewRuntimeStatus) {
+      latestStatus = nextStatus;
+      const nextMetrics = tracker.publishStatus(nextStatus);
       setStatus(nextStatus);
-      setMetrics(tracker.publishStatus(nextStatus));
+      setMetrics(nextMetrics);
+      publishRuntimeDiagnostics(nextStatus, nextMetrics);
       onRuntimeStatusRef.current?.({
         kind,
         route: currentRoute,
@@ -115,6 +145,7 @@ export function PreviewRuntimeStage({
 
       if (nextMetrics) {
         setMetrics(nextMetrics);
+        publishRuntimeDiagnostics(latestStatus, nextMetrics);
       }
 
       onRuntimeFrameRef.current?.({
@@ -140,8 +171,6 @@ export function PreviewRuntimeStage({
       });
       return undefined;
     }
-
-    const runtimeId = createPreviewSandboxRuntimeId();
     const runtime = mountPreviewSandboxRuntime({
       iframe,
       kind,

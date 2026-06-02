@@ -14,11 +14,13 @@ import type {
 } from "@/lib/preview-renderers";
 import {
   PreviewRuntimeStage,
+  type PreviewRuntimeDiagnosticsEvent,
   type PreviewRuntimeTelemetryEvent
 } from "./preview-runtime-stage";
 
 type PreviewRendererSurfaceProps = {
   chrome?: "default" | "immersive";
+  onRuntimeDiagnostics?: PreviewRuntimeCallbackProps["onRuntimeDiagnostics"];
   onReload?: (() => void) | undefined;
   onRuntimeFrame?: PreviewRuntimeCallbackProps["onRuntimeFrame"];
   onRuntimeStatus?: PreviewRuntimeCallbackProps["onRuntimeStatus"];
@@ -29,6 +31,7 @@ type PreviewRendererSurfaceProps = {
 };
 
 type PreviewRuntimeCallbackProps = {
+  onRuntimeDiagnostics?: (event: PreviewRuntimeDiagnosticsEvent) => void;
   onRuntimeFrame?: (
     event: PreviewRuntimeTelemetryEvent & {
       sample: PreviewRuntimeFrameSample;
@@ -60,6 +63,7 @@ const mediaSurfaceLayers: Record<
 
 export function PreviewRendererSurface({
   chrome = "default",
+  onRuntimeDiagnostics,
   onReload,
   onRuntimeFrame,
   onRuntimeStatus,
@@ -94,6 +98,7 @@ export function PreviewRendererSurface({
       ) : null}
       {renderPreviewSurfaceStage({
         chrome,
+        onRuntimeDiagnostics,
         onReload,
         onRuntimeFrame,
         onRuntimeStatus,
@@ -125,6 +130,7 @@ export function PreviewRendererSurface({
 
 function renderPreviewSurfaceStage({
   chrome,
+  onRuntimeDiagnostics,
   onReload,
   onRuntimeFrame,
   onRuntimeStatus,
@@ -173,6 +179,7 @@ function renderPreviewSurfaceStage({
       return (
         <PreviewRuntimeStage
           kind={runtimeKind}
+          onRuntimeDiagnostics={onRuntimeDiagnostics}
           onReload={onReload}
           onRuntimeFrame={onRuntimeFrame}
           onRuntimeStatus={onRuntimeStatus}
