@@ -12,6 +12,7 @@ import { WorkstationShell } from "./workstation-shell";
 import {
   getInitialWorkspaceSnapshot,
   getLocalWorkspaceSnapshot,
+  type ArtifactSummary,
   type AssistantWorkspaceSnapshot,
   type InspectorTabName
 } from "@/lib/assistant-client";
@@ -160,6 +161,160 @@ function snapshotWithThreePreview(): AssistantWorkspaceSnapshot {
       language: "TypeScript + Three.js",
       title
     }
+  };
+}
+
+function snapshotWithArtifactComparison(): AssistantWorkspaceSnapshot {
+  const snapshot = getLocalWorkspaceSnapshot();
+  const artifacts: ArtifactSummary[] = [
+    {
+      ...snapshot.artifacts[0],
+      content: [
+        "function setup() {",
+        "  createCanvas(windowWidth, 320);",
+        "}",
+        "function draw() {",
+        "  background(8, 12, 18);",
+        "}"
+      ].join("\n"),
+      critique: artifactCritique({
+        artifactId: "source-sketch",
+        artifactTitle: "aurora-field.p5.js",
+        overallScore: 0.88,
+        rank: 2,
+        rationale: "Stable p5 fallback with a direct preview route.",
+        recommended: false
+      }),
+      domain: "p5_js",
+      isDefault: true,
+      language: "p5.js",
+      qualityRank: 2,
+      qualityScore: 0.88,
+      rendererId: "surface.p5",
+      runtime: "p5",
+      title: "aurora-field.p5.js"
+    },
+    {
+      actions: ["Open", "Preview", "Copy", "Download"],
+      content: [
+        "void main() {",
+        "  vec2 uv = gl_FragCoord.xy / u_resolution.xy;",
+        "  gl_FragColor = vec4(uv, 0.8, 1.0);",
+        "}"
+      ].join("\n"),
+      critique: artifactCritique({
+        artifactId: "shader-field",
+        artifactTitle: "shader-field.frag",
+        overallScore: 0.94,
+        rank: 1,
+        rationale:
+          "Shader candidate has the strongest prompt alignment and preview readiness.",
+        refinementGuidance: "Keep the palette restrained while refining motion.",
+        recommended: true
+      }),
+      domain: "glsl",
+      id: "shader-field",
+      isRecommended: true,
+      language: "GLSL",
+      previewEligible: true,
+      previewTarget: "browser_sandbox",
+      qualityRank: 1,
+      qualityScore: 0.94,
+      rendererId: "surface.glsl",
+      runtime: "glsl",
+      status: "Generated",
+      summary: "Recommended GLSL fragment shader with live browser preview support.",
+      title: "shader-field.frag",
+      type: "code"
+    },
+    {
+      actions: ["Open", "Copy", "Download"],
+      content: "osc(10, 0.1, 1.2).modulate(shape(4)).out();",
+      critique: artifactCritique({
+        artifactId: "hydra-lattice",
+        artifactTitle: "feedback-lattice.hydra.js",
+        overallScore: 0.71,
+        rank: 3,
+        rationale: "Hydra version is useful as source but has no supported runtime.",
+        refinementGuidance:
+          "Port the feedback logic to p5.js or GLSL before live preview.",
+        recommended: false
+      }),
+      domain: "hydra",
+      id: "hydra-lattice",
+      language: "JavaScript",
+      previewEligible: false,
+      previewTarget: "",
+      qualityRank: 3,
+      qualityScore: 0.71,
+      rendererId: null,
+      runtime: null,
+      status: "Generated",
+      summary: "Hydra code remains inspectable without live preview support.",
+      title: "feedback-lattice.hydra.js",
+      type: "code"
+    }
+  ];
+
+  return {
+    ...snapshot,
+    artifacts,
+    inspectorTabs: snapshot.inspectorTabs.map((tab) => ({
+      ...tab,
+      active: tab.label === "Artifacts"
+    })),
+    preview: {
+      ...snapshot.preview,
+      artifactName: "aurora-field.p5.js",
+      sourceArtifactId: "source-sketch",
+      sourceArtifactName: "aurora-field.p5.js",
+      summary:
+        "Runtime context is ready for the selected artifact. Open the preview shelf to render it in the browser preview.",
+      target: "Browser preview / p5.js",
+      targetId: "browser_sandbox"
+    }
+  };
+}
+
+function artifactCritique(
+  overrides: Partial<NonNullable<ArtifactSummary["critique"]>>
+): NonNullable<ArtifactSummary["critique"]> {
+  return {
+    artifactId: "artifact",
+    artifactTitle: "artifact.p5.js",
+    codeQuality: {
+      rationale: "Source is complete.",
+      score: 0.9
+    },
+    creativeQuality: {
+      rationale: "Strong visual candidate.",
+      score: 0.9
+    },
+    domainAppropriateness: {
+      rationale: "Domain matches.",
+      score: 0.9
+    },
+    overallScore: 0.9,
+    passed: true,
+    previewReadiness: {
+      rationale: "Preview is ready.",
+      score: 0.9
+    },
+    promptAlignment: {
+      rationale: "Matches the prompt.",
+      score: 0.9
+    },
+    rank: 1,
+    rationale: "Strong artifact candidate.",
+    reasons: [],
+    recommended: false,
+    refinementGuidance: null,
+    runtimeSuitability: {
+      rationale: "Runtime is supported.",
+      score: 0.9
+    },
+    sourceOrder: 1,
+    ...overrides
   };
 }
 
@@ -2189,8 +2344,11 @@ describe("WorkstationShell", () => {
         name: "Artifact quality summary"
       })
     ).toHaveTextContent("Recommended candidate");
+    const qualitySummary = within(artifactsPanel).getByRole("region", {
+      name: "Artifact quality summary"
+    });
     expect(
-      within(artifactsPanel).getByText(
+      within(qualitySummary).getByText(
         "aurora-field.p5.js is the recommended candidate."
       )
     ).toBeVisible();
@@ -2647,6 +2805,86 @@ describe("WorkstationShell", () => {
       })
     ).toHaveTextContent("function draw()");
     expect(screen.queryByRole("tabpanel", { name: "Overview inspector" })).not.toBeInTheDocument();
+  });
+
+  it("renders artifact comparison with recommendation, critique, and runtime support", () => {
+    renderShell(snapshotWithArtifactComparison());
+
+    const comparison = screen.getByRole("region", {
+      name: "Artifact comparison"
+    });
+    const recommended = within(comparison).getByRole("group", {
+      name: "Recommended artifact comparison"
+    });
+    const shaderCandidate = within(comparison).getByLabelText(
+      "shader-field.frag comparison candidate"
+    );
+    const hydraCandidate = within(comparison).getByLabelText(
+      "feedback-lattice.hydra.js comparison candidate"
+    );
+
+    expect(recommended).toHaveTextContent("Recommended candidate");
+    expect(recommended).toHaveTextContent("shader-field.frag");
+    expect(recommended).toHaveTextContent(
+      "Shader candidate has the strongest prompt alignment and preview readiness."
+    );
+    expect(shaderCandidate).toHaveAttribute("data-recommended", "true");
+    expect(within(shaderCandidate).getByText("Previewable")).toBeVisible();
+    expect(within(shaderCandidate).getAllByText("GLSL").length).toBeGreaterThan(1);
+    expect(within(shaderCandidate).getByText("Browser preview / GLSL")).toBeVisible();
+    expect(within(shaderCandidate).getByText("#1")).toBeVisible();
+    expect(within(shaderCandidate).getByText("94%")).toBeVisible();
+    expect(
+      within(shaderCandidate).getByText(
+        "Keep the palette restrained while refining motion."
+      )
+    ).toBeVisible();
+    expect(hydraCandidate).toHaveAttribute("data-runtime-support", "unsupported");
+    expect(within(hydraCandidate).getByText("Unsupported runtime")).toBeVisible();
+    expect(within(hydraCandidate).getByText("No supported live runtime")).toBeVisible();
+    expect(
+      within(hydraCandidate).queryByRole("button", {
+        name: "Preview feedback-lattice.hydra.js from comparison"
+      })
+    ).not.toBeInTheDocument();
+  });
+
+  it("selects artifacts from comparison and keeps code plus preview context synced", () => {
+    renderShell(snapshotWithArtifactComparison());
+
+    const comparison = screen.getByRole("region", {
+      name: "Artifact comparison"
+    });
+    const shaderCandidate = within(comparison).getByLabelText(
+      "shader-field.frag comparison candidate"
+    );
+
+    fireEvent.click(
+      within(shaderCandidate).getByRole("button", {
+        name: "Select shader-field.frag"
+      })
+    );
+
+    expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
+      "shader-field.frag"
+    );
+    expect(
+      within(screen.getByRole("region", { name: "Preview workspace" })).getByText(
+        "shader-field.frag",
+        { selector: "summary span" }
+      )
+    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Code" }));
+
+    const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
+
+    expect(codePanel).toHaveAttribute("data-opened-artifact", "shader-field.frag");
+    expect(
+      within(codePanel).getByRole("region", {
+        name: "shader-field.frag content"
+      })
+    ).toHaveTextContent("void main()");
   });
 
   it("shows focused artifact metadata and actions in the artifacts inspector", () => {

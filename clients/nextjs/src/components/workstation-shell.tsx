@@ -76,6 +76,11 @@ import {
   type ArtifactDocument,
   type HighlightedLine
 } from "@/lib/artifact-inspector";
+import {
+  buildArtifactComparisonModel,
+  type ArtifactComparisonModel,
+  type ArtifactComparisonRow
+} from "@/lib/artifact-comparison";
 import { buildProjectBundle } from "@/lib/project-bundle";
 import {
   buildWorkflowRuntimeModel,
@@ -2220,6 +2225,14 @@ export function WorkstationShell({
     setActiveTab("Artifacts");
   }
 
+  function handleArtifactSelect(artifact: ArtifactSummary) {
+    setActiveArtifactId(artifact.id);
+    if (isArtifactPreviewable(artifact)) {
+      setPreviewContextArtifactId(artifact.id);
+    }
+    setActiveTab("Artifacts");
+  }
+
   return (
     <main
       className="workstation"
@@ -2691,6 +2704,7 @@ export function WorkstationShell({
                     copyFeedback={copyFeedback}
                     onArtifactCopy={handleArtifactCopy}
                     onArtifactAction={handleArtifactAction}
+                    onArtifactSelect={handleArtifactSelect}
                     onArtifactTransfer={handleArtifactTransfer}
                     providerTelemetry={providerTelemetry}
                     previewController={previewController}
@@ -3100,6 +3114,7 @@ type InspectorPanelProps = {
   copyFeedback: ArtifactActionFeedback | null;
   onArtifactCopy: (artifact: ArtifactSummary) => Promise<void>;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+  onArtifactSelect: (artifact: ArtifactSummary) => void;
   onArtifactTransfer: (artifact: ArtifactSummary) => void;
   providerTelemetry: ProviderTelemetryModel;
   previewController: PreviewControllerModel;
@@ -3125,6 +3140,7 @@ function InspectorPanel({
   copyFeedback,
   onArtifactCopy,
   onArtifactAction,
+  onArtifactSelect,
   onArtifactTransfer,
   providerTelemetry,
   previewController,
@@ -3199,6 +3215,7 @@ function InspectorPanel({
         artifactTransferError={artifactTransferError}
         copyFeedback={copyFeedback}
         onArtifactAction={onArtifactAction}
+        onArtifactSelect={onArtifactSelect}
         transferFeedback={transferFeedback}
       />
     );
@@ -4413,6 +4430,7 @@ type ArtifactsInspectorProps = {
   artifactTransferError: WorkstationError | null;
   copyFeedback: ArtifactActionFeedback | null;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+  onArtifactSelect: (artifact: ArtifactSummary) => void;
   transferFeedback: ArtifactActionFeedback | null;
 };
 
@@ -4424,6 +4442,7 @@ function ArtifactsInspector({
   artifactTransferError,
   copyFeedback,
   onArtifactAction,
+  onArtifactSelect,
   transferFeedback
 }: ArtifactsInspectorProps) {
   const actionMessage = getArtifactActionMessage(
@@ -4431,6 +4450,10 @@ function ArtifactsInspector({
     copyFeedback,
     transferFeedback
   );
+  const comparison = buildArtifactComparisonModel({
+    activeArtifactId,
+    artifacts
+  });
 
   return (
     <section
@@ -4527,6 +4550,11 @@ function ArtifactsInspector({
           </p>
         ) : null}
       </article>
+      <ArtifactComparisonPanel
+        comparison={comparison}
+        onArtifactAction={onArtifactAction}
+        onArtifactSelect={onArtifactSelect}
+      />
       <div className="artifactList">
         {artifacts.map((artifact) => (
           <ArtifactCard
@@ -4972,6 +5000,182 @@ function ThemePresetPicker({
         </div>
       ))}
     </div>
+  );
+}
+
+type ArtifactComparisonPanelProps = {
+  comparison: ArtifactComparisonModel;
+  onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+  onArtifactSelect: (artifact: ArtifactSummary) => void;
+};
+
+function ArtifactComparisonPanel({
+  comparison,
+  onArtifactAction,
+  onArtifactSelect
+}: ArtifactComparisonPanelProps) {
+  const recommendedRow = comparison.recommendedRow;
+
+  return (
+    <section
+      aria-label="Artifact comparison"
+      className="artifactComparisonPanel"
+    >
+      <header className="artifactComparisonHeader">
+        <div>
+          <span>Artifact comparison</span>
+          <strong>{`${comparison.rows.length} candidate${
+            comparison.rows.length === 1 ? "" : "s"
+          }`}</strong>
+        </div>
+        {recommendedRow ? (
+          <span className="artifactComparisonCount">
+            {recommendedRow.isRecommended ? "Recommended" : "Best available"}
+          </span>
+        ) : null}
+      </header>
+      {recommendedRow ? (
+        <article
+          aria-label="Recommended artifact comparison"
+          className="artifactComparisonRecommended"
+          role="group"
+        >
+          <span>
+            {recommendedRow.isRecommended ? "Recommended candidate" : "Best candidate"}
+          </span>
+          <strong>{recommendedRow.title}</strong>
+          <p>{comparison.recommendedReason}</p>
+        </article>
+      ) : null}
+      {comparison.rows.length > 0 ? (
+        <div className="artifactComparisonList" role="list">
+          {comparison.rows.map((row) => (
+            <ArtifactComparisonCandidate
+              key={row.artifactId}
+              onArtifactAction={onArtifactAction}
+              onArtifactSelect={onArtifactSelect}
+              row={row}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="artifactComparisonEmpty">
+          Generate artifacts to compare candidates, runtime support, and critique
+          guidance.
+        </p>
+      )}
+    </section>
+  );
+}
+
+type ArtifactComparisonCandidateProps = {
+  onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+  onArtifactSelect: (artifact: ArtifactSummary) => void;
+  row: ArtifactComparisonRow;
+};
+
+function ArtifactComparisonCandidate({
+  onArtifactAction,
+  onArtifactSelect,
+  row
+}: ArtifactComparisonCandidateProps) {
+  const canOpen = row.artifact.actions.includes("Open");
+  const canPreview =
+    row.artifact.actions.includes("Preview") &&
+    row.runtimeSupport.state === "previewable";
+
+  return (
+    <article
+      aria-current={row.isActive ? "true" : undefined}
+      aria-label={`${row.title} comparison candidate`}
+      className="artifactComparisonCandidate"
+      data-active={row.isActive}
+      data-recommended={row.isRecommended}
+      data-runtime-support={row.runtimeSupport.state}
+      role="listitem"
+    >
+      <header className="artifactComparisonCandidateHeader">
+        <div>
+          <strong>{row.title}</strong>
+          <span>{`${row.typeLabel} / ${row.languageLabel}`}</span>
+        </div>
+        <div className="artifactBadges">
+          {row.isRecommended ? (
+            <span className="artifactSelected">Recommended</span>
+          ) : null}
+          {row.isDefault ? <span className="artifactType">Default</span> : null}
+          {row.isActive ? <span className="artifactSelected">Selected</span> : null}
+          <span className="artifactType">{row.runtimeSupport.label}</span>
+        </div>
+      </header>
+      <dl className="artifactComparisonMeta">
+        <div>
+          <dt>Domain</dt>
+          <dd>{row.domainLabel}</dd>
+        </div>
+        <div>
+          <dt>Runtime</dt>
+          <dd>{row.runtimeLabel}</dd>
+        </div>
+        <div>
+          <dt>Preview</dt>
+          <dd>{row.previewLabel}</dd>
+        </div>
+        <div>
+          <dt>Rank</dt>
+          <dd>{row.rankLabel}</dd>
+        </div>
+        <div>
+          <dt>Score</dt>
+          <dd>{row.scoreLabel}</dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd>{row.statusLabel}</dd>
+        </div>
+      </dl>
+      <p className="artifactComparisonSupport">{row.runtimeSupport.detail}</p>
+      <p className="artifactComparisonRationale">
+        <strong>Critique rationale</strong>
+        <span>{row.rationale}</span>
+      </p>
+      {row.refinementGuidance ? (
+        <p className="artifactComparisonRefinement">
+          <strong>Refinement guidance</strong>
+          <span>{row.refinementGuidance}</span>
+        </p>
+      ) : null}
+      <div className="artifactComparisonActions">
+        <button
+          aria-label={`Select ${row.title}`}
+          data-action="select"
+          onClick={() => onArtifactSelect(row.artifact)}
+          type="button"
+        >
+          {row.isActive ? "Selected" : "Select"}
+        </button>
+        {canOpen ? (
+          <button
+            aria-label={`Open code for ${row.title}`}
+            data-action="open"
+            onClick={() => onArtifactAction("Open", row.artifact)}
+            type="button"
+          >
+            Code
+          </button>
+        ) : null}
+        {canPreview ? (
+          <button
+            aria-label={`Preview ${row.title} from comparison`}
+            data-action="preview"
+            onClick={() => onArtifactAction("Preview", row.artifact)}
+            type="button"
+          >
+            Preview
+          </button>
+        ) : null}
+      </div>
+    </article>
   );
 }
 
