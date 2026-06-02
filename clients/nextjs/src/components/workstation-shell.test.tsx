@@ -659,6 +659,27 @@ describe("WorkstationShell", () => {
     );
   });
 
+  it("keeps the runtime console quiet on first run", () => {
+    renderShell(getInitialWorkspaceSnapshot());
+
+    fireEvent.click(screen.getByRole("tab", { name: "Runtime" }));
+
+    const runtimePanel = screen.getByRole("tabpanel", {
+      name: "Runtime console inspector"
+    });
+
+    expect(runtimePanel).toBeVisible();
+    expect(
+      within(runtimePanel).getByRole("group", { name: "Runtime console empty state" })
+    ).toHaveTextContent("No runtime activity yet");
+    expect(
+      within(runtimePanel).queryByRole("group", { name: "Runtime lifecycle events" })
+    ).not.toBeInTheDocument();
+    expect(
+      within(runtimePanel).queryByRole("group", { name: "Runtime metrics" })
+    ).not.toBeInTheDocument();
+  });
+
   it("opens the top-right utility panels one at a time", () => {
     renderShell();
 
@@ -789,6 +810,7 @@ describe("WorkstationShell", () => {
     for (const tab of [
       "Overview",
       "Preview",
+      "Runtime",
       "Code",
       "Workflow",
       "Telemetry",
@@ -864,6 +886,17 @@ describe("WorkstationShell", () => {
     expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
     expect(screen.getByRole("tabpanel", { name: "Code inspector" })).toBeVisible();
     expect(screen.queryByRole("tabpanel", { name: "Preview inspector" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Runtime" }));
+
+    expect(screen.getByRole("tab", { name: "Runtime" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
+    expect(
+      screen.getByRole("tabpanel", { name: "Runtime console inspector" })
+    ).toBeVisible();
 
     fireEvent.click(screen.getByRole("tab", { name: "Retrieval" }));
 
@@ -2251,6 +2284,75 @@ describe("WorkstationShell", () => {
     expect(within(surface).getByText("16.0 ms")).toBeVisible();
   });
 
+  it("shows runtime console metrics and lifecycle events for a live preview runtime", async () => {
+    renderShell(snapshotWithP5Preview());
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+
+    const surface = within(preview).getByRole("group", {
+      name: "Preview renderer surface"
+    });
+    const frame = await waitForSandboxRuntimeFrame(
+      surface,
+      "p5.js preview runtime frame"
+    );
+
+    dispatchSandboxRuntimeStatus(frame, {
+      detail:
+        "Rendering signal-orbit.p5.ts inside an isolated p5-compatible preview frame.",
+      label: "p5 runtime running",
+      state: "running"
+    });
+    for (const frameTime of [
+      0,
+      16,
+      32,
+      48,
+      64,
+      80,
+      96,
+      112,
+      128,
+      144,
+      160,
+      176,
+      192,
+      208,
+      224,
+      240
+    ]) {
+      dispatchSandboxRuntimeFrame(frame, frameTime);
+    }
+
+    fireEvent.click(screen.getByRole("tab", { name: "Runtime" }));
+
+    const runtimePanel = screen.getByRole("tabpanel", {
+      name: "Runtime console inspector"
+    });
+    const metrics = within(runtimePanel).getByRole("group", {
+      name: "Runtime metrics"
+    });
+    const context = within(runtimePanel).getByRole("group", {
+      name: "Runtime context"
+    });
+    const lifecycle = within(runtimePanel).getByRole("group", {
+      name: "Runtime lifecycle events"
+    });
+
+    expect(metrics).toHaveTextContent("Running");
+    expect(metrics).toHaveTextContent("63 fps");
+    expect(metrics).toHaveTextContent("16.0 ms");
+    expect(metrics).toHaveTextContent("Nominal");
+    expect(context).toHaveTextContent("Browser preview");
+    expect(context).toHaveTextContent("p5.js");
+    expect(lifecycle).toHaveTextContent("Preview Runtime Running");
+    expect(lifecycle).toHaveTextContent("Preview Runtime Frame");
+  });
+
   it("mounts supported Three.js artifacts into a controlled 3D runtime", async () => {
     renderShell(snapshotWithThreePreview());
 
@@ -2345,6 +2447,68 @@ describe("WorkstationShell", () => {
 
     expect(within(events).getByText("Preview Runtime Error")).toBeVisible();
     expect(within(events).getByText("Preview Runtime Recovered")).toBeVisible();
+  });
+
+  it("shows runtime errors and reload requests inside the runtime console", async () => {
+    renderShell(snapshotWithThreePreview());
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+
+    const surface = within(preview).getByRole("group", {
+      name: "Preview renderer surface"
+    });
+    const frame = await waitForSandboxRuntimeFrame(
+      surface,
+      "Three.js preview runtime frame"
+    );
+
+    dispatchSandboxRuntimeStatus(frame, {
+      detail: "WebGL is unavailable in the preview frame.",
+      error: {
+        message: "WebGL is unavailable in the preview frame.",
+        type: "webgl_unavailable"
+      },
+      label: "Three.js runtime failed",
+      state: "error"
+    });
+
+    fireEvent.click(screen.getByRole("tab", { name: "Runtime" }));
+
+    const runtimePanel = screen.getByRole("tabpanel", {
+      name: "Runtime console inspector"
+    });
+    const diagnostics = within(runtimePanel).getByRole("group", {
+      name: "Runtime diagnostics"
+    });
+    const lifecycle = within(runtimePanel).getByRole("group", {
+      name: "Runtime lifecycle events"
+    });
+
+    expect(diagnostics).toHaveTextContent("Attention needed");
+    expect(diagnostics).toHaveTextContent("WebGL is unavailable in the preview frame.");
+    expect(lifecycle).toHaveTextContent("Preview Runtime Error");
+
+    const failedRuntimeId = frame.dataset.runtimeId;
+    fireEvent.click(
+      within(surface).getByRole("button", { name: "Reload preview runtime" })
+    );
+
+    await waitFor(() => {
+      expect(frame.dataset.runtimeId).toMatch(/^preview-runtime-/);
+      expect(frame.dataset.runtimeId).not.toBe(failedRuntimeId);
+    });
+    dispatchSandboxRuntimeStatus(frame, {
+      detail:
+        "Rendering projection-scene.three.ts inside an isolated Three.js-compatible preview frame.",
+      label: "Three.js runtime running",
+      state: "running"
+    });
+
+    expect(lifecycle).toHaveTextContent("Preview Runtime Reload Requested");
   });
 
   it("shows a stable GLSL runtime error from the preview frame", async () => {
