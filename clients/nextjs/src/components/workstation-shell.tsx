@@ -116,6 +116,11 @@ import {
   type TelemetryDashboardModel
 } from "@/lib/telemetry-dashboard";
 import {
+  buildRuntimeConsoleModel,
+  type RuntimeConsoleLiveSnapshot,
+  type RuntimeConsoleModel
+} from "@/lib/runtime-console";
+import {
   buildPreviewRuntimeSource,
   getExecutablePreviewRuntimeKind,
   type PreviewExecutableRuntimeKind,
@@ -188,6 +193,7 @@ type PreviewRuntimeFrameTelemetryEvent = PreviewRuntimeTelemetryBase & {
 const inspectorTabIcons = {
   Overview: Sparkles,
   Preview: Play,
+  Runtime: Command,
   Code: Braces,
   Workflow: Activity,
   Telemetry: Gauge,
@@ -356,6 +362,8 @@ export function WorkstationShell({
   const [workflowTraceEvents, setWorkflowTraceEvents] = useState<
     WorkflowRuntimeTraceEvent[]
   >([]);
+  const [previewRuntimeLive, setPreviewRuntimeLive] =
+    useState<RuntimeConsoleLiveSnapshot | null>(null);
   const [persistenceState, setPersistenceState] =
     useState<WorkspacePersistenceState>("loading");
   const [, setPersistenceError] = useState<WorkstationError | null>(null);
@@ -383,6 +391,7 @@ export function WorkstationShell({
   const [dismissedApprovalRequestId, setDismissedApprovalRequestId] = useState<
     string | null
   >(null);
+  const previousPreviewRuntimeSessionKeyRef = useRef<string | null>(null);
   const chatLogRef = useRef<HTMLDivElement>(null);
   const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const approvalCardRef = useRef<HTMLElement | null>(null);
@@ -776,6 +785,19 @@ export function WorkstationShell({
       previewSessionOverride
     ]
   );
+  useEffect(() => {
+    if (previousPreviewRuntimeSessionKeyRef.current === null) {
+      previousPreviewRuntimeSessionKeyRef.current = previewRuntimeSessionKey;
+      return;
+    }
+
+    if (previousPreviewRuntimeSessionKeyRef.current === previewRuntimeSessionKey) {
+      return;
+    }
+
+    previousPreviewRuntimeSessionKeyRef.current = previewRuntimeSessionKey;
+    setPreviewRuntimeLive(null);
+  }, [previewRuntimeSessionKey]);
   const persistenceRecord = useMemo(
     () =>
       createWorkspaceSessionRecord({
@@ -797,9 +819,6 @@ export function WorkstationShell({
       previewArtifactId
     ]
   );
-  const activeTabSummary =
-    interactiveSnapshot.inspectorTabs.find((tab) => tab.label === activeTab)
-      ?.summary ?? "";
   const activeArtifactDocument = useMemo(
     () => buildArtifactDocument(interactiveSnapshot, activeArtifact),
     [activeArtifact, interactiveSnapshot]
@@ -839,6 +858,40 @@ export function WorkstationShell({
       workflowTraceEvents
     ]
   );
+  const runtimeConsole = useMemo(
+    () =>
+      buildRuntimeConsoleModel({
+        liveRuntime: previewRuntimeLive,
+        preview: interactiveSnapshot.preview,
+        route: previewRendererRoute,
+        runtimeSource: previewRuntimeSource,
+        traceEvents: workflowTraceEvents
+      }),
+    [
+      interactiveSnapshot.preview,
+      previewRendererRoute,
+      previewRuntimeLive,
+      previewRuntimeSource,
+      workflowTraceEvents
+    ]
+  );
+  const inspectorTabs = useMemo(
+    () =>
+      interactiveSnapshot.inspectorTabs.map((tab) =>
+        tab.label === "Runtime"
+          ? {
+              ...tab,
+              badge: runtimeConsole.badge ?? tab.badge
+            }
+          : tab
+      ),
+    [interactiveSnapshot.inspectorTabs, runtimeConsole.badge]
+  );
+  const activeTabSummary =
+    activeTab === "Runtime"
+      ? runtimeConsole.summary
+      : interactiveSnapshot.inspectorTabs.find((tab) => tab.label === activeTab)
+        ?.summary ?? "";
   const isComposerReady = Boolean(composerValue.trim()) && !isStreaming;
   const approvalSummary = useMemo(
     () => summarizeHitlApprovalRequests(approvalRequests),
@@ -1058,6 +1111,7 @@ export function WorkstationShell({
   function setPreviewContextArtifactId(nextArtifactId: string) {
     setPreviewArtifactId(nextArtifactId);
     setPreviewSessionOverride(null);
+    setPreviewRuntimeLive(null);
   }
 
   function handlePreviewShelfFromControl() {
@@ -1205,6 +1259,15 @@ export function WorkstationShell({
     });
   }
 
+  function handlePreviewRuntimeDiagnostics(
+    nextRuntimeLive: Omit<RuntimeConsoleLiveSnapshot, "updatedAt">
+  ) {
+    setPreviewRuntimeLive({
+      ...nextRuntimeLive,
+      updatedAt: new Date().toISOString()
+    });
+  }
+
   function setApprovalRequestState(
     request: HitlApprovalRequest,
     nextState: HitlActionState,
@@ -1340,6 +1403,7 @@ export function WorkstationShell({
     setStreamError(null);
     setStreamEvents(initialSnapshot.debug.events);
     setWorkflowTraceEvents([]);
+    setPreviewRuntimeLive(null);
     setOpenUtilityPanel(null);
   }
 
@@ -1421,6 +1485,7 @@ export function WorkstationShell({
         setPreviewSessionOverride(
           createPreviewSessionOverride(nextArtifactId, "restarting")
         );
+        setPreviewRuntimeLive(null);
         handlePreviewOpenChange(true, { preserveFocusMode: true });
       }
     });
@@ -1437,6 +1502,7 @@ export function WorkstationShell({
         setPreviewSessionOverride(
           createPreviewSessionOverride(nextArtifactId, "cleared")
         );
+        setPreviewRuntimeLive(null);
         handlePreviewOpenChange(true, { preserveFocusMode: true });
       }
     });
@@ -1467,6 +1533,7 @@ export function WorkstationShell({
 
     setPreviewArtifactId(nextArtifactId);
     setPreviewSessionOverride(nextSessionOverride);
+    setPreviewRuntimeLive(null);
     appendPreviewRuntimeReloadEvent(nextArtifactId, nextSessionOverride.requestedAt);
     handlePreviewOpenChange(true, { preserveFocusMode: true });
   }
@@ -1513,6 +1580,7 @@ export function WorkstationShell({
         setPreviewArtifactId(nextArtifactId);
         setPreviewSessionOverride(null);
         setIsPreviewFullscreen(false);
+        setPreviewRuntimeLive(null);
         handlePreviewOpenChange(true, { preserveFocusMode: true });
       }
     });
@@ -2516,6 +2584,7 @@ export function WorkstationShell({
               onClear={handlePreviewStateClear}
               onFullscreenToggle={handlePreviewFullscreenChange}
               onReload={handlePreviewStateReload}
+              onRuntimeDiagnostics={handlePreviewRuntimeDiagnostics}
               onResizeKeyDown={handlePreviewResizeKeyDown}
               onResizeStart={handlePreviewResizeStart}
               onReset={handlePreviewSessionReset}
@@ -2587,7 +2656,7 @@ export function WorkstationShell({
                   </header>
 
                   <div className="inspectorTabs" role="tablist" aria-label="Inspector tabs">
-                    {interactiveSnapshot.inspectorTabs.map((tab) => {
+                    {inspectorTabs.map((tab) => {
                       const Icon = inspectorTabIcons[tab.label];
 
                       return (
@@ -2625,6 +2694,7 @@ export function WorkstationShell({
                     onArtifactTransfer={handleArtifactTransfer}
                     providerTelemetry={providerTelemetry}
                     previewController={previewController}
+                    runtimeConsole={runtimeConsole}
                     previewRoute={previewRendererRoute}
                     previewRuntimeSource={previewRuntimeSource}
                     retrievalRuntime={retrievalRuntime}
@@ -2651,6 +2721,7 @@ type PreviewShelfProps = WorkstationShellProps & {
   onClear: () => void;
   onFullscreenToggle: (isFullscreen: boolean) => void;
   onReload: () => void;
+  onRuntimeDiagnostics: (event: Omit<RuntimeConsoleLiveSnapshot, "updatedAt">) => void;
   onResizeKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
   onResizeStart: (event: MouseEvent<HTMLElement>) => void;
   onReset: () => void;
@@ -2816,6 +2887,7 @@ function PreviewShelf({
   onClear,
   onFullscreenToggle,
   onReload,
+  onRuntimeDiagnostics,
   onResizeKeyDown,
   onResizeStart,
   onReset,
@@ -2966,6 +3038,7 @@ function PreviewShelf({
             <PreviewRendererSurface
               chrome="immersive"
               onReload={onReload}
+              onRuntimeDiagnostics={onRuntimeDiagnostics}
               onRuntimeFrame={onRuntimeFrame}
               onRuntimeStatus={onRuntimeStatus}
               preview={snapshot.preview}
@@ -3030,6 +3103,7 @@ type InspectorPanelProps = {
   onArtifactTransfer: (artifact: ArtifactSummary) => void;
   providerTelemetry: ProviderTelemetryModel;
   previewController: PreviewControllerModel;
+  runtimeConsole: RuntimeConsoleModel;
   previewRoute: PreviewRendererRoute;
   previewRuntimeSource: PreviewRuntimeSource;
   retrievalRuntime: RetrievalRuntimeModel;
@@ -3054,6 +3128,7 @@ function InspectorPanel({
   onArtifactTransfer,
   providerTelemetry,
   previewController,
+  runtimeConsole,
   previewRoute,
   previewRuntimeSource,
   retrievalRuntime,
@@ -3088,6 +3163,10 @@ function InspectorPanel({
         runtimeSource={previewRuntimeSource}
       />
     );
+  }
+
+  if (activeTab === "Runtime") {
+    return <RuntimeConsoleInspector console={runtimeConsole} />;
   }
 
   if (activeTab === "Workflow") {
@@ -3444,6 +3523,175 @@ function PreviewInspector({
           title="Preview runtime failed"
         />
       ) : null}
+    </section>
+  );
+}
+
+function RuntimeConsoleInspector({
+  console
+}: {
+  console: RuntimeConsoleModel;
+}) {
+  return (
+    <section
+      aria-label="Runtime console inspector"
+      className="inspectorPanel runtimeConsolePanel"
+      data-state={console.hero.tone}
+      id="runtime-inspector-panel"
+      role="tabpanel"
+    >
+      <article
+        aria-label="Runtime console status"
+        className="runtimeConsoleHero"
+        data-tone={console.hero.tone}
+        role="group"
+      >
+        <div>
+          <span>{console.hero.eyebrow}</span>
+          <strong>{console.hero.title}</strong>
+          <p>{console.hero.detail}</p>
+        </div>
+        <small>{console.hero.sessionLabel}</small>
+      </article>
+
+      {console.emptyTitle ? (
+        <article
+          aria-label="Runtime console empty state"
+          className="runtimeConsoleEmptyCard"
+          role="group"
+        >
+          <strong>{console.emptyTitle}</strong>
+          <p>{console.emptyDetail}</p>
+        </article>
+      ) : (
+        <div className="runtimeConsoleGrid">
+          <article
+            aria-label="Runtime metrics"
+            className="runtimeConsoleCard"
+            role="group"
+          >
+            <header>
+              <span>Status</span>
+              <strong>{console.metrics[0]?.value ?? "Idle"}</strong>
+            </header>
+            <div className="runtimeConsoleMetricGrid" role="list">
+              {console.metrics.map((metric) => (
+                <div
+                  data-tone={metric.tone}
+                  key={metric.id}
+                  role="listitem"
+                >
+                  <span>{metric.label}</span>
+                  <strong>{metric.value}</strong>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article
+            aria-label="Runtime context"
+            className="runtimeConsoleCard"
+            role="group"
+          >
+            <header>
+              <span>Context</span>
+              <strong>{console.context.runtimeTypeLabel}</strong>
+            </header>
+            <dl className="runtimeConsoleDetails">
+              <div>
+                <dt>Artifact</dt>
+                <dd>{console.context.artifactName}</dd>
+              </div>
+              <div>
+                <dt>Source</dt>
+                <dd>{console.context.sourceName}</dd>
+              </div>
+              <div>
+                <dt>Target</dt>
+                <dd>{console.context.targetLabel}</dd>
+              </div>
+              <div>
+                <dt>Renderer</dt>
+                <dd>{console.context.rendererLabel}</dd>
+              </div>
+              <div>
+                <dt>Support</dt>
+                <dd>{console.context.supportLabel}</dd>
+              </div>
+              <div>
+                <dt>Fingerprint</dt>
+                <dd>{console.context.fingerprint}</dd>
+              </div>
+              <div>
+                <dt>Source size</dt>
+                <dd>{console.context.lineCountLabel}</dd>
+              </div>
+            </dl>
+          </article>
+
+          <article
+            aria-label="Runtime diagnostics"
+            className="runtimeConsoleCard"
+            role="group"
+          >
+            <header>
+              <span>Diagnostics</span>
+              <strong>{console.latestError ? "Attention needed" : "Stable"}</strong>
+            </header>
+            {console.latestError ? (
+              <p className="runtimeConsoleAlert">{console.latestError}</p>
+            ) : null}
+            {console.diagnostics.length > 0 ? (
+              <div className="runtimeConsoleNotes">
+                {console.diagnostics.map((diagnostic) => (
+                  <span key={diagnostic}>{diagnostic}</span>
+                ))}
+              </div>
+            ) : (
+              <p className="runtimeConsoleMuted">
+                Runtime diagnostics will appear here as the renderer reports state changes.
+              </p>
+            )}
+          </article>
+
+          <article
+            aria-label="Runtime lifecycle events"
+            className="runtimeConsoleCard runtimeConsoleCard--wide"
+            role="group"
+          >
+            <header>
+              <span>Lifecycle</span>
+              <strong>{console.events.length} latest events</strong>
+            </header>
+            {console.events.length > 0 ? (
+              <div className="runtimeConsoleEventList">
+                {console.events.map((event) => (
+                  <article
+                    className="runtimeConsoleEvent"
+                    data-tone={event.tone}
+                    key={event.id}
+                  >
+                    <div>
+                      <strong>{event.label}</strong>
+                      <p>
+                        <span>{event.stateLabel}</span>
+                        <span>{event.atLabel}</span>
+                        {event.runtimeTypeLabel ? <span>{event.runtimeTypeLabel}</span> : null}
+                      </p>
+                    </div>
+                    {event.artifactName ? <small>{event.artifactName}</small> : null}
+                    <span>{event.detail}</span>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="runtimeConsoleMuted">
+                Runtime lifecycle events are captured after the live preview renderer starts.
+              </p>
+            )}
+          </article>
+        </div>
+      )}
     </section>
   );
 }
@@ -4475,6 +4723,14 @@ function CommandMenuPanel({
         >
           <strong>Preview inspector</strong>
           <span>Review runtime, renderer, source, and preview health metadata.</span>
+        </button>
+        <button
+          data-active={activeTab === "Runtime"}
+          onClick={() => onOpenTab("Runtime")}
+          type="button"
+        >
+          <strong>Runtime console</strong>
+          <span>Inspect live runtime status, FPS, reloads, and renderer errors.</span>
         </button>
         <button
           data-active={activeTab === "Code"}

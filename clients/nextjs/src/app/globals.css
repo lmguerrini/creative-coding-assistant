@@ -3119,6 +3119,212 @@ a {
   line-height: 1.2;
 }
 
+.runtimeConsolePanel {
+  display: grid;
+  gap: 14px;
+}
+
+.runtimeConsoleHero,
+.runtimeConsoleCard,
+.runtimeConsoleEmptyCard {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 72%),
+    rgba(255, 255, 255, 0.03);
+  box-shadow: var(--panel-highlight);
+}
+
+.runtimeConsoleHero {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: flex-start;
+}
+
+.runtimeConsoleHero[data-tone="success"] {
+  border-color: rgba(var(--accent-rgb), 0.24);
+}
+
+.runtimeConsoleHero[data-tone="warning"] {
+  border-color: rgba(243, 184, 82, 0.24);
+}
+
+.runtimeConsoleHero[data-tone="danger"] {
+  border-color: rgba(255, 122, 102, 0.24);
+}
+
+.runtimeConsoleHero span,
+.runtimeConsoleCard header span,
+.runtimeConsoleDetails dt,
+.runtimeConsoleMetricGrid span,
+.runtimeConsoleEvent p,
+.runtimeConsoleHero small,
+.runtimeConsoleEvent small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.runtimeConsoleHero strong,
+.runtimeConsoleCard header strong,
+.runtimeConsoleMetricGrid strong,
+.runtimeConsoleEvent strong,
+.runtimeConsoleEmptyCard strong {
+  color: var(--foreground);
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.runtimeConsoleHero p,
+.runtimeConsoleDetails dd,
+.runtimeConsoleEvent > span,
+.runtimeConsoleEmptyCard p,
+.runtimeConsoleMuted,
+.runtimeConsoleAlert {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.runtimeConsoleGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.runtimeConsoleCard--wide {
+  grid-column: 1 / -1;
+}
+
+.runtimeConsoleCard header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.runtimeConsoleMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.runtimeConsoleMetricGrid div,
+.runtimeConsoleDetails div {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.runtimeConsoleMetricGrid div[data-tone="active"],
+.runtimeConsoleMetricGrid div[data-tone="success"] {
+  border-color: rgba(var(--accent-rgb), 0.2);
+  background: rgba(var(--accent-rgb), 0.08);
+}
+
+.runtimeConsoleMetricGrid div[data-tone="warning"] {
+  border-color: rgba(243, 184, 82, 0.18);
+  background: rgba(243, 184, 82, 0.08);
+}
+
+.runtimeConsoleMetricGrid div[data-tone="danger"] {
+  border-color: rgba(255, 122, 102, 0.2);
+  background: rgba(255, 122, 102, 0.08);
+}
+
+.runtimeConsoleMetricGrid div[data-tone="active"] strong,
+.runtimeConsoleMetricGrid div[data-tone="success"] strong {
+  color: var(--teal);
+}
+
+.runtimeConsoleMetricGrid div[data-tone="warning"] strong {
+  color: var(--amber);
+}
+
+.runtimeConsoleMetricGrid div[data-tone="danger"] strong {
+  color: var(--coral);
+}
+
+.runtimeConsoleDetails {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.runtimeConsoleDetails dd {
+  word-break: break-word;
+}
+
+.runtimeConsoleNotes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.runtimeConsoleNotes span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.runtimeConsoleAlert {
+  color: var(--coral);
+}
+
+.runtimeConsoleEventList {
+  display: grid;
+  gap: 8px;
+}
+
+.runtimeConsoleEvent {
+  display: grid;
+  gap: 6px;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.runtimeConsoleEvent[data-tone="active"] {
+  border-color: rgba(var(--accent-rgb), 0.2);
+}
+
+.runtimeConsoleEvent[data-tone="success"] {
+  border-color: rgba(121, 211, 139, 0.18);
+}
+
+.runtimeConsoleEvent[data-tone="warning"] {
+  border-color: rgba(243, 184, 82, 0.18);
+}
+
+.runtimeConsoleEvent[data-tone="danger"] {
+  border-color: rgba(255, 122, 102, 0.22);
+}
+
+.runtimeConsoleEvent p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 0;
+}
+
+.runtimeConsoleEvent small {
+  color: var(--muted-strong);
+}
+
 .miniWorkflow {
   display: grid;
   gap: 8px;
@@ -5165,10 +5371,12 @@ html[data-cca-theme="blueprint"] .codeViewer {
   .sessionHeader,
   .previewToolbar,
   .previewInspectorHero,
+  .runtimeConsoleHero,
   .previewBody,
   .inspectorHeader,
   .previewSurfacePanelHeader,
   .artifactDetailHeader,
+  .runtimeConsoleCard header,
   .artifactItemHeader,
   .codePanelHeader {
     align-items: flex-start;
@@ -5222,8 +5430,11 @@ html[data-cca-theme="blueprint"] .codeViewer {
 
   .workflowSummaryGrid,
   .workflowTraceLayout,
+  .runtimeConsoleGrid,
+  .runtimeConsoleMetricGrid,
   .previewSurfaceMetaGrid,
   .previewInspectorControlGrid,
+  .runtimeConsoleDetails div,
   .previewInspectorCard dl div {
     grid-template-columns: minmax(0, 1fr);
   }
