@@ -1,42 +1,77 @@
 # Creative Coding Assistant
 
-Creative Coding Assistant is an AI-native workstation for creative coding,
-generative graphics, and realtime media workflows. It combines a
+Creative Coding Assistant is an AI-powered creative workflow platform for
+creative coding, generative graphics, and realtime media work. It combines a
 LangGraph-orchestrated Python backend with a Next.js workstation that streams
-assistant output into code, artifacts, previews, and runtime inspectors.
+assistant output into code, multiple artifacts, live previews, comparison tools,
+refinement controls, and runtime inspectors.
 
-The repository is structured as both a serious AI engineering project and a
-reusable foundation for future AI-native products. It includes orchestration,
-retrieval, memory, evaluation, bounded preview runtimes, multimodal inputs,
-export flows, telemetry surfaces, and a workstation interface designed for
-iterative creative work.
+The application is a multi-artifact generation environment: requests can route
+through domain-aware retrieval and generation, produce several creative
+candidates, rank them with structured critique, compare alternatives, refine a
+selected artifact, and inspect the resulting runtime behavior from the same
+workstation.
 
 ![Creative Coding Assistant workstation preview](assets/preview.png)
 
 ## Highlights
 
-- AI-native workstation UX with chat, a collapsible preview shelf, and focused
-  inspector tabs for overview, code, workflow, artifacts, and retrieval
+- AI-powered workstation UX with chat, a compact bottom preview shelf, and
+  focused inspector tabs for overview, preview, runtime, code, workflow,
+  telemetry, artifacts, and retrieval
+- Domain-aware generation for p5.js, Three.js, React Three Fiber, GLSL, and
+  broader creative-coding knowledge domains
 - LangGraph workflow runtime with routing, memory, retrieval, prompt assembly,
-  generation, artifact critique, deterministic review, bounded refinement, and
-  terminal failure handling
+  generation, artifact extraction, preview preparation, artifact critique,
+  deterministic review, bounded refinement, and terminal failure handling
+- Graph-owned preview pipeline that prepares preview metadata before the
+  frontend mounts supported outputs in controlled browser runtimes
 - Streaming NDJSON bridge between the Next.js client and the Python assistant
   runtime
 - Live artifact hydration that turns final assistant output into active code,
-  artifact, and preview state
-- Multi-artifact generation support for comparing, selecting, and previewing
-  multiple creative candidates from one run
+  artifact, preview, comparison, and refinement state
+- Multi-artifact generation support for comparing, selecting, refining, and
+  previewing multiple creative candidates from one run
 - Structured artifact critique metadata for quality ranking, recommended
-  candidates, and bounded refinement guidance
-- Controlled preview runtimes for p5.js sketches, GLSL shaders, and
-  Three.js-style scenes
+  candidates, runtime suitability, preview readiness, and refinement guidance
+- Artifact comparison and selected-artifact refinement flows that preserve the
+  original candidate while adding refined versions
+- Controlled preview runtimes for p5.js sketches, Three.js and React Three
+  Fiber scene outputs, and GLSL fragment shaders
+- Runtime console with live renderer status, FPS/frame telemetry, reload events,
+  diagnostics, and error surfacing
 - Multimodal image references for grounding creative requests visually
 - Project bundle export with artifacts, runtime metadata, retrieval context, and
   session state
-- Provider/runtime telemetry, renderer diagnostics, and subsystem error
-  surfaces
+- Provider/runtime telemetry, LangSmith trace metadata when available, RAGAs
+  evaluation lineage, renderer diagnostics, and subsystem error surfaces
 - Local workspace persistence with browser restore and SQLite-backed backend
   session storage
+
+## Creative Workflow
+
+The workstation is designed around an iterative creative coding loop:
+
+`Generate -> Critique -> Compare -> Select -> Refine -> Preview -> Runtime diagnostics`
+
+- Generate: the assistant resolves the effective creative-coding domains,
+  retrieves official-source context, assembles the prompt, and streams generated
+  output.
+- Critique: generated artifacts receive structured scores for prompt alignment,
+  creative quality, runtime suitability, code quality, preview readiness, and
+  domain appropriateness.
+- Compare: multi-artifact runs expose ranked candidates, recommendation
+  rationale, runtime support, previewability, and refinement guidance.
+- Select: choosing an artifact keeps the code inspector, preview shelf,
+  artifacts inspector, and comparison state synchronized.
+- Refine: the selected artifact can be sent back with explicit refinement
+  instructions while preserving the source candidate and adding a labeled
+  refined version.
+- Preview: supported artifacts mount in the bottom preview shelf with visible
+  play, reload, collapse, and fullscreen controls.
+- Runtime diagnostics: the Preview, Runtime, Workflow, Telemetry, Artifacts, and
+  Retrieval inspectors expose the runtime state without crowding the visual
+  output.
 
 ## Architecture
 
@@ -110,11 +145,25 @@ The workstation also exposes:
 ### Creative Workstation
 
 - Streaming conversation workflow designed for iterative creative sessions
-- Inspector surfaces for workflow state, code, artifacts, retrieval, and
-  summaries
-- Live artifact selection and code-focused inspection
+- Inspector surfaces for overview, preview metadata, runtime console, code,
+  workflow state, telemetry, artifacts, and retrieval
+- Live artifact selection, comparison, refinement, and code-focused inspection
+- Compact bottom preview shelf that stays out of the chat flow until previewable
+  output exists
 - Workspace-level session restore with active tab, artifact, preview, layout,
   and preference state
+
+### Artifact Generation And Refinement
+
+- Domain-aware prompt shaping for the effective creative-coding ecosystem
+- Multi-artifact extraction with source order, default selection, runtime, and
+  preview eligibility metadata
+- Structured artifact critique for ranking, recommendation, and refinement
+  guidance
+- Artifact comparison UI for previewable, code-only, and unsupported-runtime
+  candidates
+- Selected-artifact refinement that carries source code, critique context,
+  runtime metadata, and the user instruction into the next generation request
 
 ### Retrieval And Grounding
 
@@ -131,6 +180,9 @@ The workstation also exposes:
 - Conversation memory repositories and memory retrieval adapters
 - Live session recording for later evaluation
 - Offline evaluation helpers and RAGAs-oriented evaluation runner
+- In-workstation telemetry surfaces for stream events, provider usage,
+  workflow runtime, preview health, retrieval quality, optional LangSmith trace
+  metadata, and RAGAs evaluation lineage
 - Tests covering memory behavior, session evaluation foundations, and live
   session flows
 
