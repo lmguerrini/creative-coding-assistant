@@ -56,6 +56,18 @@ Follow-Up Request:
 - Let the current request and effective domains override stale details from
   earlier context.
 {% endif %}
+{% if prompt_input.user_input.artifact_refinement is not none -%}
+Selected Artifact Refinement:
+- Target only the selected artifact unless the user explicitly asks to regenerate
+  the full candidate set.
+- Preserve the surrounding artifact set conceptually and return the refinement as
+  a new version or clearly labeled candidate.
+- Keep the selected artifact's domain, runtime, and preview contract unless the
+  refinement instruction requires a compatible change.
+- Place the refined artifact in a fenced code block with an explicit filename.
+- Source artifact: {{ prompt_input.user_input.artifact_refinement.title }}
+  ({{ prompt_input.user_input.artifact_refinement.artifact_id }})
+{% endif %}
 Use the provided context sections as working context. Keep responses grounded in
 the structured inputs that follow.
 Global Guardrails:
@@ -84,6 +96,39 @@ Keep explanation, notes, and setup guidance outside code fences.
 _USER_TEMPLATE = """
 User Request:
 {{ prompt_input.user_input.query }}
+{% if prompt_input.user_input.artifact_refinement is not none -%}
+
+Refinement Target:
+- Artifact ID: {{ prompt_input.user_input.artifact_refinement.artifact_id }}
+- Title: {{ prompt_input.user_input.artifact_refinement.title }}
+- Language: {{ prompt_input.user_input.artifact_refinement.language }}
+{% if prompt_input.user_input.artifact_refinement.domain -%}
+- Domain: {{ prompt_input.user_input.artifact_refinement.domain.value }}
+{% endif %}
+{% if prompt_input.user_input.artifact_refinement.runtime -%}
+- Runtime: {{ prompt_input.user_input.artifact_refinement.runtime }}
+{% endif %}
+{% if prompt_input.user_input.artifact_refinement.renderer_id -%}
+- Renderer: {{ prompt_input.user_input.artifact_refinement.renderer_id }}
+{% endif %}
+{% if prompt_input.user_input.artifact_refinement.quality_score is not none -%}
+- Quality Score: {{ '%.2f'|format(prompt_input.user_input.artifact_refinement.quality_score) }}
+{% endif %}
+{% if prompt_input.user_input.artifact_refinement.quality_rank is not none -%}
+- Quality Rank: #{{ prompt_input.user_input.artifact_refinement.quality_rank }}
+{% endif %}
+{% if prompt_input.user_input.artifact_refinement.critique_rationale -%}
+- Critique Rationale: {{ prompt_input.user_input.artifact_refinement.critique_rationale }}
+{% endif %}
+{% if prompt_input.user_input.artifact_refinement.refinement_guidance -%}
+- Existing Refinement Guidance: {{ prompt_input.user_input.artifact_refinement.refinement_guidance }}
+{% endif %}
+
+Selected Artifact Code:
+```{{ prompt_input.user_input.artifact_refinement.language }}
+{{ prompt_input.user_input.artifact_refinement.content }}
+```
+{% endif %}
 {% if prompt_input.user_input.image_references -%}
 
 Image References:

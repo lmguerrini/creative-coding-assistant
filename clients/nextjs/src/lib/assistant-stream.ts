@@ -1,4 +1,4 @@
-import type { WorkflowNodeId } from "./assistant-client";
+import type { ArtifactCritique, WorkflowNodeId } from "./assistant-client";
 import type { AssistantRequestImageAttachment } from "./multimodal-attachments";
 import {
   createWorkstationError,
@@ -84,6 +84,23 @@ export type AssistantPreviewArtifactUpdate = {
   completedAt: string | null;
 };
 
+export type AssistantArtifactRefinementRequest = {
+  artifactId: string;
+  title: string;
+  language: string;
+  content: string;
+  instruction: string;
+  domain?: string | null;
+  runtime?: string | null;
+  rendererId?: string | null;
+  previewEligible?: boolean | null;
+  qualityScore?: number | null;
+  qualityRank?: number | null;
+  critiqueRationale?: string | null;
+  refinementGuidance?: string | null;
+  critique?: ArtifactCritique | null;
+};
+
 export type AssistantStreamRequest = {
   query: string;
   conversationId?: string;
@@ -92,6 +109,7 @@ export type AssistantStreamRequest = {
   domains?: string[];
   mode?: string;
   attachments?: AssistantRequestImageAttachment[];
+  artifactRefinement?: AssistantArtifactRefinementRequest;
 };
 
 export type AssistantStreamOptions = {

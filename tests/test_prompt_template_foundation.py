@@ -2,6 +2,7 @@ import unittest
 from datetime import UTC, datetime
 
 from creative_coding_assistant.contracts import (
+    AssistantArtifactRefinement,
     AssistantImageReference,
     AssistantMode,
     AssistantRequest,
@@ -166,6 +167,70 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             user_section.content,
         )
         self.assertNotIn("data:image/png", user_section.content)
+
+    def test_jinja_prompt_renderer_includes_selected_artifact_refinement_context(
+        self,
+    ) -> None:
+        renderer = JinjaPromptRenderer()
+        assistant_request = AssistantRequest(
+            query="Make this more organic.",
+            domain=CreativeCodingDomain.P5_JS,
+            artifact_refinement=AssistantArtifactRefinement(
+                artifactId="source-sketch",
+                title="aurora-field.p5.js",
+                language="p5.js",
+                content="function draw() { background(0); }",
+                instruction="Make this more organic.",
+                domain=CreativeCodingDomain.P5_JS,
+                runtime="p5",
+                rendererId="surface.p5",
+                previewEligible=True,
+                qualityScore=0.91,
+                qualityRank=1,
+                critiqueRationale="Strong visual candidate.",
+                refinementGuidance="Soften particle motion.",
+            ),
+        )
+        route_decision = RouteDecision(
+            route=RouteName.GENERATE,
+            mode=AssistantMode.GENERATE,
+            domain=CreativeCodingDomain.P5_JS,
+            capabilities=(RouteCapability.TOOL_USE,),
+        )
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=assistant_request,
+                route_decision=route_decision,
+                assembled_context=None,
+            )
+        )
+
+        response = renderer.render(
+            build_rendered_prompt_request(
+                route_decision=route_decision,
+                prompt_input=prompt_input,
+            )
+        )
+        system_section = next(
+            section
+            for section in response.sections
+            if section.name is RenderedPromptSectionName.SYSTEM
+        )
+        user_section = next(
+            section
+            for section in response.sections
+            if section.name is RenderedPromptSectionName.USER
+        )
+
+        self.assertIn("Selected Artifact Refinement:", system_section.content)
+        self.assertIn("Target only the selected artifact", system_section.content)
+        self.assertIn("aurora-field.p5.js", system_section.content)
+        self.assertIn("Refinement Target:", user_section.content)
+        self.assertIn("- Artifact ID: source-sketch", user_section.content)
+        self.assertIn("- Runtime: p5", user_section.content)
+        self.assertIn("- Quality Score: 0.91", user_section.content)
+        self.assertIn("Strong visual candidate.", user_section.content)
+        self.assertIn("function draw() { background(0); }", user_section.content)
 
     def test_renderer_supports_user_only_prompt_inputs(self) -> None:
         renderer = JinjaPromptRenderer()

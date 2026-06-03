@@ -5,6 +5,7 @@ from creative_coding_assistant.contracts.requests import (
     MAX_IMAGE_REFERENCE_BYTES,
     MAX_IMAGE_REFERENCE_COUNT,
     SUPPORTED_IMAGE_REFERENCE_MIME_TYPES,
+    AssistantArtifactRefinement,
     AssistantImageReference,
     AssistantMode,
     AssistantRequest,
@@ -13,6 +14,7 @@ from creative_coding_assistant.contracts.requests import (
 )
 
 __all__ = [
+    "AssistantArtifactRefinement",
     "AssistantImageReference",
     "AssistantMode",
     "AssistantRequest",

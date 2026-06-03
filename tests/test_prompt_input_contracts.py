@@ -2,6 +2,7 @@ import unittest
 from datetime import UTC, datetime
 
 from creative_coding_assistant.contracts import (
+    AssistantArtifactRefinement,
     AssistantImageReference,
     AssistantMode,
     AssistantRequest,
@@ -96,6 +97,51 @@ class PromptInputContractsTests(unittest.TestCase):
             response.retrieval_input.chunks[0].document_title,
             "PerspectiveCamera",
         )
+
+    def test_prompt_input_builder_preserves_artifact_refinement_context(self) -> None:
+        builder = StructuredPromptInputBuilder()
+        assistant_request = AssistantRequest(
+            query="Make this calmer.",
+            domain=CreativeCodingDomain.P5_JS,
+            mode=AssistantMode.GENERATE,
+            artifact_refinement=AssistantArtifactRefinement(
+                artifactId="source-sketch",
+                title="aurora-field.p5.js",
+                language="p5.js",
+                content="function draw() { background(0); }",
+                instruction="Make this calmer.",
+                domain=CreativeCodingDomain.P5_JS,
+                runtime="p5",
+                rendererId="surface.p5",
+                previewEligible=True,
+                qualityScore=0.88,
+                qualityRank=2,
+                critiqueRationale="Stable sketch with useful motion.",
+                refinementGuidance="Reduce visual density.",
+            ),
+        )
+        request = build_prompt_input_request(
+            assistant_request=assistant_request,
+            route_decision=RouteDecision(
+                route=RouteName.GENERATE,
+                mode=AssistantMode.GENERATE,
+                domain=CreativeCodingDomain.P5_JS,
+                capabilities=(RouteCapability.TOOL_USE,),
+            ),
+            assembled_context=None,
+        )
+
+        response = builder.build(request)
+
+        refinement = response.user_input.artifact_refinement
+        self.assertIsNotNone(refinement)
+        assert refinement is not None
+        self.assertEqual(refinement.artifact_id, "source-sketch")
+        self.assertEqual(refinement.title, "aurora-field.p5.js")
+        self.assertEqual(refinement.content, "function draw() { background(0); }")
+        self.assertEqual(refinement.runtime, "p5")
+        self.assertEqual(refinement.quality_score, 0.88)
+        self.assertEqual(refinement.critique_rationale, "Stable sketch with useful motion.")
 
     def test_prompt_input_builder_keeps_compact_prior_pair_for_follow_up(
         self,

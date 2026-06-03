@@ -44,6 +44,24 @@ class PromptImageReferenceInput(BaseModel):
     size_bytes: int = Field(gt=0)
 
 
+class PromptArtifactRefinementInput(BaseModel):
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    artifact_id: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    language: str = Field(min_length=1)
+    content: str = Field(min_length=1)
+    instruction: str = Field(min_length=1)
+    domain: CreativeCodingDomain | None = None
+    runtime: str | None = None
+    renderer_id: str | None = None
+    preview_eligible: bool | None = None
+    quality_score: float | None = Field(default=None, ge=0, le=1)
+    quality_rank: int | None = Field(default=None, ge=1)
+    critique_rationale: str | None = None
+    refinement_guidance: str | None = None
+
+
 class PromptUserInput(BaseModel):
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -61,6 +79,7 @@ class PromptUserInput(BaseModel):
     image_references: tuple[PromptImageReferenceInput, ...] = Field(
         default_factory=tuple
     )
+    artifact_refinement: PromptArtifactRefinementInput | None = None
 
     @field_validator(
         "domains",
@@ -326,6 +345,31 @@ def _build_user_input(
             )
             for attachment in assistant_request.attachments
         ),
+        artifact_refinement=_build_artifact_refinement_input(assistant_request),
+    )
+
+
+def _build_artifact_refinement_input(
+    assistant_request: AssistantRequest,
+) -> PromptArtifactRefinementInput | None:
+    refinement = assistant_request.artifact_refinement
+    if refinement is None:
+        return None
+
+    return PromptArtifactRefinementInput(
+        artifact_id=refinement.artifact_id,
+        title=refinement.title,
+        language=refinement.language,
+        content=refinement.content,
+        instruction=refinement.instruction,
+        domain=refinement.domain,
+        runtime=refinement.runtime,
+        renderer_id=refinement.renderer_id,
+        preview_eligible=refinement.preview_eligible,
+        quality_score=refinement.quality_score,
+        quality_rank=refinement.quality_rank,
+        critique_rationale=refinement.critique_rationale,
+        refinement_guidance=refinement.refinement_guidance,
     )
 
 

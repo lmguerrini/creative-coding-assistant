@@ -21,6 +21,21 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
                 "projectId": "workspace-a",
                 "domain": "webgpu_wgsl",
                 "mode": "generate",
+                "artifactRefinement": {
+                    "artifactId": "source-sketch",
+                    "title": "aurora-field.p5.js",
+                    "language": "p5.js",
+                    "content": "function draw() { background(0); }",
+                    "instruction": "Make this more organic.",
+                    "domain": "p5_js",
+                    "runtime": "p5",
+                    "rendererId": "surface.p5",
+                    "previewEligible": True,
+                    "qualityScore": 0.91,
+                    "qualityRank": 1,
+                    "critiqueRationale": "Strong visual candidate.",
+                    "refinementGuidance": "Soften the motion.",
+                },
                 "attachments": [
                     {
                         "type": "image",
@@ -43,6 +58,20 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
         self.assertEqual(len(assistant_request.attachments), 1)
         self.assertEqual(assistant_request.attachments[0].name, "palette.png")
         self.assertEqual(assistant_request.attachments[0].mime_type, "image/png")
+        self.assertIsNotNone(assistant_request.artifact_refinement)
+        assert assistant_request.artifact_refinement is not None
+        self.assertEqual(
+            assistant_request.artifact_refinement.artifact_id,
+            "source-sketch",
+        )
+        self.assertEqual(
+            assistant_request.artifact_refinement.instruction,
+            "Make this more organic.",
+        )
+        self.assertEqual(
+            assistant_request.artifact_refinement.domain,
+            "p5_js",
+        )
 
     def test_stream_request_rejects_too_many_image_references(self) -> None:
         with self.assertRaisesRegex(ValueError, "Attach up to 4 image references"):

@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_valida
 from creative_coding_assistant.app import build_assistant_service
 from creative_coding_assistant.contracts import (
     MAX_IMAGE_REFERENCE_COUNT,
+    AssistantArtifactRefinement,
     AssistantImageReference,
     AssistantMode,
     AssistantRequest,
@@ -50,6 +51,10 @@ class AssistantStreamRequest(BaseModel):
     domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
     mode: AssistantMode = AssistantMode.GENERATE
     attachments: tuple[AssistantImageReference, ...] = Field(default_factory=tuple)
+    artifact_refinement: AssistantArtifactRefinement | None = Field(
+        default=None,
+        alias="artifactRefinement",
+    )
 
     @field_validator("attachments")
     @classmethod
@@ -74,6 +79,7 @@ class AssistantStreamRequest(BaseModel):
             domains=self.domains,
             mode=self.mode,
             attachments=self.attachments,
+            artifact_refinement=self.artifact_refinement,
         )
 
 

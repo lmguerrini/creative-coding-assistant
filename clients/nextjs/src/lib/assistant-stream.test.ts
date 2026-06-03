@@ -86,7 +86,22 @@ describe("assistant stream client", () => {
         ],
         conversationId: "browser-session",
         domain: "webgpu_wgsl",
-        mode: "generate"
+        mode: "generate",
+        artifactRefinement: {
+          artifactId: "source-sketch",
+          title: "aurora-field.p5.js",
+          language: "p5.js",
+          content: "function draw() { background(0); }",
+          instruction: "Make this more organic.",
+          domain: "p5_js",
+          runtime: "p5",
+          rendererId: "surface.p5",
+          previewEligible: true,
+          qualityScore: 0.91,
+          qualityRank: 1,
+          critiqueRationale: "Strong visual candidate.",
+          refinementGuidance: "Soften particle motion."
+        }
       },
       {
         endpoint: "http://backend.test/api/assistant/stream",
@@ -111,6 +126,16 @@ describe("assistant stream client", () => {
       domain: "webgpu_wgsl",
       mode: "generate",
       query: "Generate particles.",
+      artifactRefinement: expect.objectContaining({
+        artifactId: "source-sketch",
+        title: "aurora-field.p5.js",
+        content: "function draw() { background(0); }",
+        instruction: "Make this more organic.",
+        domain: "p5_js",
+        runtime: "p5",
+        rendererId: "surface.p5",
+        previewEligible: true
+      }),
       attachments: [
         expect.objectContaining({
           type: "image",

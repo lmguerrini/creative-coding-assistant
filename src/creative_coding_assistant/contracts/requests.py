@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from enum import StrEnum
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -104,8 +104,45 @@ class AssistantImageReference(BaseModel):
         return value
 
 
+class AssistantArtifactRefinement(BaseModel):
+    """Selected-artifact context for targeted refinement requests."""
+
+    model_config = ConfigDict(
+        frozen=True,
+        populate_by_name=True,
+        str_strip_whitespace=True,
+    )
+
+    artifact_id: str = Field(alias="artifactId", min_length=1)
+    title: str = Field(min_length=1)
+    language: str = Field(min_length=1)
+    content: str = Field(min_length=1)
+    instruction: str = Field(min_length=1)
+    domain: CreativeCodingDomain | None = None
+    runtime: str | None = None
+    renderer_id: str | None = Field(default=None, alias="rendererId")
+    preview_eligible: bool | None = Field(default=None, alias="previewEligible")
+    quality_score: float | None = Field(
+        default=None,
+        alias="qualityScore",
+        ge=0,
+        le=1,
+    )
+    quality_rank: int | None = Field(default=None, alias="qualityRank", ge=1)
+    critique_rationale: str | None = Field(default=None, alias="critiqueRationale")
+    refinement_guidance: str | None = Field(
+        default=None,
+        alias="refinementGuidance",
+    )
+    critique: dict[str, Any] | None = None
+
+
 class AssistantRequest(BaseModel):
-    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+    model_config = ConfigDict(
+        frozen=True,
+        populate_by_name=True,
+        str_strip_whitespace=True,
+    )
 
     query: str = Field(min_length=1)
     conversation_id: str | None = None
@@ -114,6 +151,10 @@ class AssistantRequest(BaseModel):
     domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
     mode: AssistantMode = AssistantMode.GENERATE
     attachments: tuple[AssistantImageReference, ...] = Field(default_factory=tuple)
+    artifact_refinement: AssistantArtifactRefinement | None = Field(
+        default=None,
+        alias="artifactRefinement",
+    )
 
     @field_validator("query")
     @classmethod
