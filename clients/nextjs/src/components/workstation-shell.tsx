@@ -49,6 +49,7 @@ import {
   readPreviewArtifactUpdate,
   streamAssistantEvents as streamBackendAssistantEvents,
   workflowNodeFromAssistantStreamEvent,
+  type AssistantArtifactRefinementRequest,
   type AssistantStreamEvent,
   type AssistantStreamRequest
 } from "@/lib/assistant-stream";
@@ -109,7 +110,8 @@ import {
 } from "@/lib/preview-runtime";
 import {
   hydrateWorkspaceFromArtifactExtractedEvent,
-  hydrateWorkspaceFromFinalEvent
+  hydrateWorkspaceFromFinalEvent,
+  type LiveArtifactHydrationResult
 } from "@/lib/live-artifact-hydration";
 import {
   buildProviderTelemetryModel,
@@ -239,9 +241,19 @@ type ThemePresetOption = {
   accent: string;
   surface: string;
 };
+type PendingArtifactRefinement = AssistantArtifactRefinementRequest & {
+  requestedAt: string;
+};
 
 const localWorkflowIntervalMs = 850;
 const artifactFeedbackDurationMs = 1400;
+const artifactRefinementSuggestions = [
+  "Make this faster",
+  "Make this more organic",
+  "Add audio-reactive behavior",
+  "Convert this to a calmer version",
+  "Improve performance"
+] as const;
 const defaultWorkspacePersistenceClient = createWorkspacePersistenceClient();
 const persistenceStateLabels = {
   loading: "Restoring session",
@@ -330,6 +342,9 @@ export function WorkstationShell({
   const localRuntimeSequenceRef = useRef(1000);
   const streamingAssistantIdRef = useRef<string | null>(null);
   const hasPreviewRuntimeEventRef = useRef(false);
+  const pendingArtifactRefinementRef = useRef<PendingArtifactRefinement | null>(
+    null
+  );
   const previewRuntimeTelemetryKeysRef = useRef<Set<string>>(new Set());
   const previewRuntimeErrorScopesRef = useRef<Set<string>>(new Set());
   const [conversationEntries, setConversationEntries] = useState(() =>
@@ -1382,6 +1397,7 @@ export function WorkstationShell({
     setTransferFeedback(null);
     setArtifactTransferError(null);
     streamingAssistantIdRef.current = null;
+    pendingArtifactRefinementRef.current = null;
     previewRuntimeTelemetryKeysRef.current.clear();
     previewRuntimeErrorScopesRef.current.clear();
     setSnapshot(initialSnapshot);
@@ -1800,15 +1816,64 @@ export function WorkstationShell({
       return;
     }
 
+    setComposerValue("");
+    await submitAssistantRequest({ prompt });
+  }
+
+  async function handleArtifactRefine(
+    artifact: ArtifactSummary,
+    instruction: string
+  ) {
+    const prompt = instruction.trim();
+
+    if (!prompt) {
+      return;
+    }
+
+    const artifactDocument = buildArtifactDocument(interactiveSnapshot, artifact);
+    const artifactRefinement = buildArtifactRefinementRequest({
+      artifact,
+      document: artifactDocument,
+      instruction: prompt
+    });
+
+    setActiveArtifactId(artifact.id);
+    if (isArtifactPreviewable(artifact)) {
+      setPreviewContextArtifactId(artifact.id);
+    }
+
+    await submitAssistantRequest({
+      artifactRefinement,
+      prompt
+    });
+  }
+
+  async function submitAssistantRequest({
+    artifactRefinement,
+    prompt
+  }: {
+    artifactRefinement?: AssistantArtifactRefinementRequest;
+    prompt: string;
+  }) {
     const timestamp = formatMessageTime();
     const userMessageId = createConversationEntryId();
     const assistantMessageId = createConversationEntryId();
+    const pendingRefinement = artifactRefinement
+      ? {
+          ...artifactRefinement,
+          requestedAt: new Date().toISOString()
+        }
+      : null;
+    const userMessageContent = artifactRefinement
+      ? `Refine ${artifactRefinement.title}: ${prompt}`
+      : prompt;
 
+    pendingArtifactRefinementRef.current = pendingRefinement;
     streamingAssistantIdRef.current = assistantMessageId;
     setConversationEntries((currentMessages) => [
       ...currentMessages,
       {
-        content: prompt,
+        content: userMessageContent,
         activity: null,
         id: userMessageId,
         pending: false,
@@ -1818,7 +1883,9 @@ export function WorkstationShell({
       },
       {
         content: "",
-        activity: "Opening live response.",
+        activity: artifactRefinement
+          ? "Opening refinement pass."
+          : "Opening live response.",
         id: assistantMessageId,
         pending: true,
         phase: "connecting",
@@ -1844,11 +1911,20 @@ export function WorkstationShell({
     try {
       const streamRequest: AssistantStreamRequest = {
         conversationId: "local-nextjs-session",
-        domain: "webgpu_wgsl",
         mode: "generate",
         projectId: "local-nextjs-workspace",
         query: prompt
       };
+
+      if (artifactRefinement) {
+        streamRequest.artifactRefinement = artifactRefinement;
+        if (artifactRefinement.domain) {
+          streamRequest.domain = artifactRefinement.domain;
+          streamRequest.domains = [artifactRefinement.domain];
+        }
+      } else {
+        streamRequest.domain = "webgpu_wgsl";
+      }
 
       if (requestAttachments.length > 0) {
         streamRequest.attachments = requestAttachments;
@@ -1863,7 +1939,9 @@ export function WorkstationShell({
             streamedAnswer += delta;
             startTransition(() => {
               updateStreamingAssistantMessage({
-                activity: "Generating response.",
+                activity: artifactRefinement
+                  ? "Refining selected artifact."
+                  : "Generating response.",
                 content: streamedAnswer,
                 phase: "streaming"
               });
@@ -1875,7 +1953,9 @@ export function WorkstationShell({
           const answer = readPayloadText(streamEvent, "answer");
           streamedAnswer = answer ?? streamedAnswer;
           finalizeStreamingAssistantMessage({
-            activity: "Response completed.",
+            activity: artifactRefinement
+              ? "Refinement completed."
+              : "Response completed.",
             content: streamedAnswer,
             phase: "complete"
           });
@@ -1907,7 +1987,9 @@ export function WorkstationShell({
 
       if (streamingAssistantIdRef.current && streamedAnswer) {
         finalizeStreamingAssistantMessage({
-          activity: "Response completed.",
+          activity: artifactRefinement
+            ? "Refinement completed."
+            : "Response completed.",
           content: streamedAnswer,
           phase: "complete"
         });
@@ -1947,7 +2029,7 @@ export function WorkstationShell({
             });
       const fallbackMessage = `Live response unavailable; showing a local draft. ${buildLocalDraftReply(
         prompt,
-        activeArtifact.title
+        artifactRefinement?.title ?? activeArtifact.title
       )}`;
       setStreamError(streamFailure);
       finalizeStreamingAssistantMessage({
@@ -1958,6 +2040,9 @@ export function WorkstationShell({
       setWorkflowProgressIndex(0);
       setWorkflowRunId((currentRunId) => currentRunId + 1);
     } finally {
+      if (pendingArtifactRefinementRef.current?.requestedAt === pendingRefinement?.requestedAt) {
+        pendingArtifactRefinementRef.current = null;
+      }
       setIsStreaming(false);
     }
   }
@@ -2014,9 +2099,10 @@ export function WorkstationShell({
     }
 
     if (streamEvent.event_type === "artifact_extracted") {
-      const hydration = hydrateWorkspaceFromArtifactExtractedEvent(
-        snapshot,
-        streamEvent
+      const hydration = annotateRefinedHydration(
+        hydrateWorkspaceFromArtifactExtractedEvent(snapshot, streamEvent),
+        pendingArtifactRefinementRef.current,
+        snapshot
       );
 
       if (hydration.artifact) {
@@ -2058,9 +2144,13 @@ export function WorkstationShell({
     }
 
     if (streamEvent.event_type === "final") {
-      const hydration = hydrateWorkspaceFromFinalEvent(snapshot, streamEvent, {
-        skipPlainTextArtifact: hasPreviewRuntimeEventRef.current
-      });
+      const hydration = annotateRefinedHydration(
+        hydrateWorkspaceFromFinalEvent(snapshot, streamEvent, {
+          skipPlainTextArtifact: hasPreviewRuntimeEventRef.current
+        }),
+        pendingArtifactRefinementRef.current,
+        snapshot
+      );
 
       if (!hydration.artifact) {
         return;
@@ -2702,8 +2792,10 @@ export function WorkstationShell({
                     activeTab={activeTab}
                     artifactTransferError={artifactTransferError}
                     copyFeedback={copyFeedback}
+                    isStreaming={isStreaming}
                     onArtifactCopy={handleArtifactCopy}
                     onArtifactAction={handleArtifactAction}
+                    onArtifactRefine={handleArtifactRefine}
                     onArtifactSelect={handleArtifactSelect}
                     onArtifactTransfer={handleArtifactTransfer}
                     providerTelemetry={providerTelemetry}
@@ -3112,8 +3204,10 @@ type InspectorPanelProps = {
   activeTab: InspectorTabName;
   artifactTransferError: WorkstationError | null;
   copyFeedback: ArtifactActionFeedback | null;
+  isStreaming: boolean;
   onArtifactCopy: (artifact: ArtifactSummary) => Promise<void>;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+  onArtifactRefine: (artifact: ArtifactSummary, instruction: string) => Promise<void>;
   onArtifactSelect: (artifact: ArtifactSummary) => void;
   onArtifactTransfer: (artifact: ArtifactSummary) => void;
   providerTelemetry: ProviderTelemetryModel;
@@ -3138,8 +3232,10 @@ function InspectorPanel({
   activeTab,
   artifactTransferError,
   copyFeedback,
+  isStreaming,
   onArtifactCopy,
   onArtifactAction,
+  onArtifactRefine,
   onArtifactSelect,
   onArtifactTransfer,
   providerTelemetry,
@@ -3214,7 +3310,9 @@ function InspectorPanel({
         artifacts={snapshot.artifacts}
         artifactTransferError={artifactTransferError}
         copyFeedback={copyFeedback}
+        isStreaming={isStreaming}
         onArtifactAction={onArtifactAction}
+        onArtifactRefine={onArtifactRefine}
         onArtifactSelect={onArtifactSelect}
         transferFeedback={transferFeedback}
       />
@@ -4429,7 +4527,9 @@ type ArtifactsInspectorProps = {
   artifacts: ArtifactSummary[];
   artifactTransferError: WorkstationError | null;
   copyFeedback: ArtifactActionFeedback | null;
+  isStreaming: boolean;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+  onArtifactRefine: (artifact: ArtifactSummary, instruction: string) => Promise<void>;
   onArtifactSelect: (artifact: ArtifactSummary) => void;
   transferFeedback: ArtifactActionFeedback | null;
 };
@@ -4441,7 +4541,9 @@ function ArtifactsInspector({
   artifacts,
   artifactTransferError,
   copyFeedback,
+  isStreaming,
   onArtifactAction,
+  onArtifactRefine,
   onArtifactSelect,
   transferFeedback
 }: ArtifactsInspectorProps) {
@@ -4484,6 +4586,9 @@ function ArtifactsInspector({
             <span className="artifactSelected">Selected</span>
             {activeArtifact.isRecommended ? (
               <span className="artifactSelected">Recommended</span>
+            ) : null}
+            {activeArtifact.refinedFromTitle ? (
+              <span className="artifactSelected">Refined</span>
             ) : null}
             <span className="artifactType">
               {getArtifactRuntimeSupportLabel(activeArtifact)}
@@ -4537,6 +4642,13 @@ function ArtifactsInspector({
         </dl>
         {activeArtifact.critique ? (
           <ArtifactCritiqueSummaryCard artifact={activeArtifact} />
+        ) : null}
+        {activeArtifact.type === "code" && activeArtifact.actions.length > 0 ? (
+          <ArtifactRefinementCard
+            artifact={activeArtifact}
+            disabled={isStreaming}
+            onArtifactRefine={onArtifactRefine}
+          />
         ) : null}
         <ArtifactActionRow
           artifact={activeArtifact}
@@ -5003,6 +5115,91 @@ function ThemePresetPicker({
   );
 }
 
+type ArtifactRefinementCardProps = {
+  artifact: ArtifactSummary;
+  disabled: boolean;
+  onArtifactRefine: (artifact: ArtifactSummary, instruction: string) => Promise<void>;
+};
+
+function ArtifactRefinementCard({
+  artifact,
+  disabled,
+  onArtifactRefine
+}: ArtifactRefinementCardProps) {
+  const [instruction, setInstruction] = useState("");
+  const trimmedInstruction = instruction.trim();
+  const canSubmit = !disabled && trimmedInstruction.length > 0;
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!canSubmit) {
+      return;
+    }
+
+    await onArtifactRefine(artifact, trimmedInstruction);
+    setInstruction("");
+  }
+
+  return (
+    <section
+      aria-label="Selected artifact refinement"
+      className="artifactRefinementCard"
+    >
+      <header>
+        <div>
+          <span>Iterate</span>
+          <strong>Refine selected artifact</strong>
+          <p>{`Target ${artifact.title} without regenerating every candidate.`}</p>
+        </div>
+        {artifact.refinedFromTitle ? (
+          <span className="artifactRefinedBadge">Refined</span>
+        ) : null}
+      </header>
+      {artifact.refinedFromTitle ? (
+        <p className="artifactRefinementHistory">
+          {`Refined from ${artifact.refinedFromTitle}`}
+          {artifact.refinementInstruction
+            ? ` with "${artifact.refinementInstruction}"`
+            : ""}
+        </p>
+      ) : null}
+      <form className="artifactRefinementForm" onSubmit={handleSubmit}>
+        <label htmlFor={`artifact-refinement-${artifact.id}`}>
+          Refinement instruction
+        </label>
+        <textarea
+          disabled={disabled}
+          id={`artifact-refinement-${artifact.id}`}
+          onChange={(event) => setInstruction(event.target.value)}
+          placeholder="Describe the targeted improvement for this artifact."
+          rows={3}
+          value={instruction}
+        />
+        <div className="artifactRefinementSuggestions" aria-label="Refinement examples">
+          {artifactRefinementSuggestions.map((suggestion) => (
+            <button
+              disabled={disabled}
+              key={suggestion}
+              onClick={() => setInstruction(suggestion)}
+              type="button"
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+        <button
+          className="artifactRefinementSubmit"
+          disabled={!canSubmit}
+          type="submit"
+        >
+          {disabled ? "Refinement running" : "Refine selected artifact"}
+        </button>
+      </form>
+    </section>
+  );
+}
+
 type ArtifactComparisonPanelProps = {
   comparison: ArtifactComparisonModel;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
@@ -5102,6 +5299,9 @@ function ArtifactComparisonCandidate({
         <div className="artifactBadges">
           {row.isRecommended ? (
             <span className="artifactSelected">Recommended</span>
+          ) : null}
+          {row.artifact.refinedFromTitle ? (
+            <span className="artifactSelected">Refined</span>
           ) : null}
           {row.isDefault ? <span className="artifactType">Default</span> : null}
           {row.isActive ? <span className="artifactSelected">Selected</span> : null}
@@ -5263,6 +5463,9 @@ function ArtifactCard({
         <div className="artifactBadges">
           {artifact.isRecommended ? (
             <span className="artifactSelected">Recommended</span>
+          ) : null}
+          {artifact.refinedFromTitle ? (
+            <span className="artifactSelected">Refined</span>
           ) : null}
           {isActive ? <span className="artifactSelected">Selected</span> : null}
           <span className="artifactType">{getArtifactRuntimeSupportLabel(artifact)}</span>
@@ -5520,6 +5723,143 @@ function buildCodeSummaryForArtifact(
     status: artifact.status,
     excerpt: splitArtifactContentLines(artifact.content ?? baseCode.excerpt.join("\n"))
   };
+}
+
+function buildArtifactRefinementRequest({
+  artifact,
+  document,
+  instruction
+}: {
+  artifact: ArtifactSummary;
+  document: ArtifactDocument;
+  instruction: string;
+}): AssistantArtifactRefinementRequest {
+  return {
+    artifactId: artifact.id,
+    title: artifact.title,
+    language: document.languageLabel,
+    content: document.content,
+    instruction,
+    domain: artifact.domain ?? null,
+    runtime: artifact.runtime ?? null,
+    rendererId: artifact.rendererId ?? null,
+    previewEligible: artifact.previewEligible ?? isArtifactPreviewable(artifact),
+    qualityScore: artifact.qualityScore ?? artifact.critique?.overallScore ?? null,
+    qualityRank: artifact.qualityRank ?? artifact.critique?.rank ?? null,
+    critiqueRationale: artifact.critique?.rationale ?? null,
+    refinementGuidance:
+      artifact.critique?.refinementGuidance ?? artifact.refinementReason ?? null,
+    critique: artifact.critique ?? null
+  };
+}
+
+function annotateRefinedHydration(
+  hydration: LiveArtifactHydrationResult,
+  refinement: PendingArtifactRefinement | null,
+  sourceSnapshot: AssistantWorkspaceSnapshot
+): LiveArtifactHydrationResult {
+  if (!refinement || !hydration.artifact) {
+    return hydration;
+  }
+
+  const sourceArtifact =
+    sourceSnapshot.artifacts.find(
+      (artifact) => artifact.id === refinement.artifactId
+    ) ?? null;
+  const idCollidesWithSource = hydration.artifact.id === refinement.artifactId;
+  const refinedArtifact: ArtifactSummary = {
+    ...hydration.artifact,
+    id: idCollidesWithSource
+      ? createRefinedArtifactId(refinement.artifactId, sourceSnapshot.artifacts)
+      : hydration.artifact.id,
+    title: idCollidesWithSource
+      ? createRefinedArtifactTitle(hydration.artifact.title)
+      : hydration.artifact.title,
+    status: "Refined",
+    refinedAt: refinement.requestedAt,
+    refinedFromArtifactId: refinement.artifactId,
+    refinedFromTitle: refinement.title,
+    refinementInstruction: refinement.instruction,
+    refinementReason:
+      hydration.artifact.refinementReason ??
+      refinement.refinementGuidance ??
+      refinement.instruction,
+    summary: buildRefinedArtifactSummary(hydration.artifact, refinement)
+  };
+  const nextArtifacts = [
+    refinedArtifact,
+    ...(idCollidesWithSource && sourceArtifact ? [sourceArtifact] : []),
+    ...hydration.snapshot.artifacts.filter(
+      (artifact) =>
+        artifact.id !== hydration.artifact?.id &&
+        artifact.id !== refinedArtifact.id &&
+        (!idCollidesWithSource || artifact.id !== refinement.artifactId)
+    )
+  ];
+  const preview =
+    hydration.snapshot.preview.sourceArtifactId === hydration.artifact.id
+      ? {
+          ...hydration.snapshot.preview,
+          artifactName: refinedArtifact.title,
+          outputArtifactName: refinedArtifact.title,
+          sourceArtifactId: refinedArtifact.id,
+          sourceArtifactName: refinedArtifact.title,
+          summary:
+            "Preview routing is ready for the refined artifact version. Open the shelf to mount the live preview surface."
+        }
+      : hydration.snapshot.preview;
+
+  return {
+    activeArtifactId: refinedArtifact.id,
+    artifact: refinedArtifact,
+    previewArtifactId:
+      hydration.previewArtifactId === hydration.artifact.id
+        ? refinedArtifact.id
+        : hydration.previewArtifactId,
+    previewAvailable: hydration.previewAvailable,
+    snapshot: {
+      ...hydration.snapshot,
+      artifacts: nextArtifacts,
+      code: buildCodeSummaryForArtifact(hydration.snapshot.code, refinedArtifact),
+      preview
+    }
+  };
+}
+
+function createRefinedArtifactId(
+  sourceArtifactId: string,
+  artifacts: ArtifactSummary[]
+) {
+  const existingIds = new Set(artifacts.map((artifact) => artifact.id));
+  let suffix = 1;
+  let candidate = `${sourceArtifactId}-refined`;
+
+  while (existingIds.has(candidate)) {
+    suffix += 1;
+    candidate = `${sourceArtifactId}-refined-${suffix}`;
+  }
+
+  return candidate;
+}
+
+function createRefinedArtifactTitle(title: string) {
+  const extensionIndex = title.lastIndexOf(".");
+
+  if (extensionIndex <= 0) {
+    return `${title}-refined`;
+  }
+
+  return `${title.slice(0, extensionIndex)}.refined${title.slice(extensionIndex)}`;
+}
+
+function buildRefinedArtifactSummary(
+  artifact: ArtifactSummary,
+  refinement: PendingArtifactRefinement
+) {
+  const sourceSummary = artifact.summary.trim();
+  const refinementSummary = `Refined from ${refinement.title}: ${refinement.instruction}`;
+
+  return sourceSummary ? `${sourceSummary} ${refinementSummary}` : refinementSummary;
 }
 
 function splitArtifactContentLines(content: string) {

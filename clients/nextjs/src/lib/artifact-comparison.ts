@@ -256,6 +256,10 @@ function buildStatusLabel(artifact: ArtifactSummary) {
     labels.push("recommended");
   }
 
+  if (artifact.refinedFromTitle) {
+    labels.push("refined");
+  }
+
   return labels.join(" / ");
 }
 

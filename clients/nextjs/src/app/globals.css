@@ -4288,6 +4288,137 @@ a {
   text-transform: uppercase;
 }
 
+.artifactRefinementCard {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.07), transparent 70%),
+    rgba(255, 255, 255, 0.035);
+}
+
+.artifactRefinementCard header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.artifactRefinementCard header span,
+.artifactRefinementForm label {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.artifactRefinementCard header strong {
+  display: block;
+  color: var(--foreground);
+}
+
+.artifactRefinedBadge {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: var(--accent-ink);
+  background: rgb(var(--accent-rgb));
+  box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.18);
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.artifactRefinementHistory {
+  margin: 0;
+  color: var(--teal);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.artifactRefinementForm {
+  display: grid;
+  gap: 8px;
+}
+
+.artifactRefinementForm textarea {
+  width: 100%;
+  min-height: 78px;
+  resize: vertical;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--foreground);
+  background: rgba(5, 8, 12, 0.42);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.artifactRefinementForm textarea:focus {
+  outline: none;
+  border-color: rgba(var(--accent-rgb), 0.42);
+  box-shadow:
+    0 0 0 3px rgba(var(--accent-rgb), 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.artifactRefinementSuggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.artifactRefinementSuggestions button,
+.artifactRefinementSubmit {
+  min-height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--foreground);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
+    var(--surface-1);
+  box-shadow: var(--panel-highlight);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 750;
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.artifactRefinementSuggestions button {
+  padding: 0 8px;
+}
+
+.artifactRefinementSubmit {
+  justify-self: start;
+  padding: 0 11px;
+  border-color: rgba(var(--accent-rgb), 0.28);
+}
+
+.artifactRefinementSuggestions button:hover,
+.artifactRefinementSubmit:hover {
+  border-color: rgba(var(--accent-rgb), 0.35);
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.08);
+  transform: translateY(-1px);
+}
+
+.artifactRefinementSuggestions button:disabled,
+.artifactRefinementSubmit:disabled,
+.artifactRefinementForm textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
 .artifactComparisonPanel {
   display: grid;
   gap: 10px;
@@ -5550,6 +5681,7 @@ html[data-cca-theme="blueprint"] .codeViewer {
   .previewBody,
   .inspectorHeader,
   .previewSurfacePanelHeader,
+  .artifactRefinementCard header,
   .artifactComparisonHeader,
   .artifactComparisonCandidateHeader,
   .artifactDetailHeader,

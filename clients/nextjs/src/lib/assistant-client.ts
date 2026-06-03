@@ -91,6 +91,10 @@ export type ArtifactSummary = {
   qualityRank?: number | null;
   isRecommended?: boolean;
   refinementReason?: string | null;
+  refinedAt?: string | null;
+  refinedFromArtifactId?: string | null;
+  refinedFromTitle?: string | null;
+  refinementInstruction?: string | null;
   critique?: ArtifactCritique;
   actions: ArtifactAction[];
 };

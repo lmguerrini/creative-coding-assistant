@@ -743,6 +743,9 @@ describe("WorkstationShell", () => {
     expect(
       screen.queryByRole("region", { name: "Preview workspace" })
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: "Selected artifact refinement" })
+    ).not.toBeInTheDocument();
     expect(screen.getByLabelText("Current session")).toHaveTextContent(
       "Ready to start"
     );
@@ -2847,6 +2850,151 @@ describe("WorkstationShell", () => {
         name: "Preview feedback-lattice.hydra.js from comparison"
       })
     ).not.toBeInTheDocument();
+  });
+
+  it("shows a selected-artifact refinement action with guided instructions", () => {
+    renderShell(snapshotWithArtifactComparison());
+
+    const details = screen.getByRole("group", { name: "Active artifact details" });
+    const refinement = within(details).getByRole("region", {
+      name: "Selected artifact refinement"
+    });
+    const submitButton = within(refinement).getByRole("button", {
+      name: "Refine selected artifact"
+    });
+
+    expect(
+      within(refinement).getAllByText("Refine selected artifact").length
+    ).toBeGreaterThan(1);
+    expect(
+      within(refinement).getByText(
+        "Target aurora-field.p5.js without regenerating every candidate."
+      )
+    ).toBeVisible();
+    expect(submitButton).toBeDisabled();
+
+    fireEvent.click(within(refinement).getByRole("button", { name: "Make this faster" }));
+
+    expect(within(refinement).getByLabelText("Refinement instruction")).toHaveValue(
+      "Make this faster"
+    );
+    expect(submitButton).toBeEnabled();
+  });
+
+  it("sends selected artifact context and hydrates the refined artifact as a new version", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "final",
+          sequence: 0,
+          payload: {
+            answer: "Refined artifact ready.",
+            artifacts: [
+              {
+                id: "source-sketch",
+                title: "aurora-field.p5.js",
+                type: "code",
+                language: "p5.js",
+                content: [
+                  "function setup() {",
+                  "  createCanvas(windowWidth, 320);",
+                  "}",
+                  "function draw() {",
+                  "  background(4, 8, 14);",
+                  "  circle(width * 0.5, height * 0.5, 120);",
+                  "}"
+                ].join("\n"),
+                domain: "p5_js",
+                runtime: "p5",
+                renderer_id: "surface.p5",
+                preview_eligible: true,
+                preview_target: "browser_sandbox",
+                summary: "Refined p5 sketch with calmer organic motion."
+              }
+            ]
+          }
+        }
+      ])
+    );
+
+    renderShell(snapshotWithArtifactComparison(), { streamAssistantEvents: backendStream });
+
+    const refinement = screen.getByRole("region", {
+      name: "Selected artifact refinement"
+    });
+
+    fireEvent.click(
+      within(refinement).getByRole("button", { name: "Make this more organic" })
+    );
+    fireEvent.click(
+      within(refinement).getByRole("button", {
+        name: "Refine selected artifact"
+      })
+    );
+
+    expect(await screen.findByText("Refined artifact ready.")).toBeVisible();
+    expect(backendStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conversationId: "local-nextjs-session",
+        domain: "p5_js",
+        domains: ["p5_js"],
+        mode: "generate",
+        projectId: "local-nextjs-workspace",
+        query: "Make this more organic",
+        artifactRefinement: expect.objectContaining({
+          artifactId: "source-sketch",
+          title: "aurora-field.p5.js",
+          language: "p5.js",
+          content: expect.stringContaining("function draw()"),
+          instruction: "Make this more organic",
+          domain: "p5_js",
+          runtime: "p5",
+          rendererId: "surface.p5",
+          previewEligible: true,
+          qualityScore: 0.88,
+          qualityRank: 2,
+          critiqueRationale: "Stable p5 fallback with a direct preview route."
+        })
+      })
+    );
+    expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
+      "aurora-field.p5.refined.js"
+    );
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+
+    expect(
+      within(preview).getByText("aurora-field.p5.refined.js", {
+        selector: "summary span"
+      })
+    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Code" }));
+    const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
+
+    expect(codePanel).toHaveAttribute(
+      "data-opened-artifact",
+      "aurora-field.p5.refined.js"
+    );
+    expect(
+      within(codePanel).getByRole("region", {
+        name: "aurora-field.p5.refined.js content"
+      })
+    ).toHaveTextContent("background(4, 8, 14)");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
+    const refinedDetails = screen.getByRole("group", {
+      name: "Active artifact details"
+    });
+
+    expect(refinedDetails).toHaveTextContent("Refined");
+    expect(refinedDetails).toHaveTextContent("Refined from aurora-field.p5.js");
+    expect(
+      screen.getByLabelText("aurora-field.p5.js artifact")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("aurora-field.p5.refined.js artifact")
+    ).toHaveAttribute("data-active", "true");
   });
 
   it("selects artifacts from comparison and keeps code plus preview context synced", () => {
