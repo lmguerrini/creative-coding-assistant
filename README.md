@@ -82,16 +82,21 @@ provides:
 
 - a main creative session area for conversation and streaming output
 - a lower preview shelf that appears when previewable output is available
-- a right-side inspector with `Overview`, `Code`, `Workflow`, `Artifacts`, and
-  `Retrieval` tabs
+- a right-side inspector with `Overview`, `Preview`, `Runtime`, `Code`,
+  `Workflow`, `Telemetry`, `Artifacts`, and `Retrieval` tabs
 - session, layout, and theme persistence across reloads
-- artifact selection, copy, download, and export actions
-- local approval checkpoints for runtime resets, destructive actions, and file
+- artifact selection, comparison, refinement, copy, download, and export actions
+- runtime console surfaces for renderer lifecycle, diagnostics, reloads, and
+  frame telemetry
+- telemetry panels for provider usage, workflow runtime, preview health,
+  retrieval quality, LangSmith metadata, and RAGAs evaluation lineage
+- local operator approvals for runtime resets, destructive actions, and file
   transfer flows
 
 The initial shell opens on a clean creative workspace, then hydrates code,
-multiple artifacts, preview, retrieval, and workflow state through live stream
-events from the backend bridge.
+multiple artifacts, comparison, refinement, preview, runtime, retrieval,
+telemetry, and workflow state through live stream events from the backend
+bridge.
 
 ### Backend Runtime
 
@@ -105,40 +110,52 @@ The current workflow order is:
 
 Key backend capabilities include:
 
-- domain-aware routing and request shaping
+- domain-aware routing, generation-domain resolution, and request shaping
 - curated official-source retrieval and query grounding
 - conversation memory and memory recording
 - prompt input assembly and rendered provider prompts
-- streamed generation, lifecycle, review, retry, artifact, and preview events with workflow metadata
+- streamed generation, lifecycle, review, retry, artifact, and preview events
+  carrying workflow and telemetry metadata
 - multi-artifact extraction metadata including source order, default selection,
   runtime, and preview eligibility
 - structured artifact critique metadata including per-artifact scores, ranks,
   rationales, recommended candidates, and refinement guidance
 - deterministic review checks with at most one refinement retry
+- selected-artifact refinement context threaded into request contracts, prompt
+  inputs, and rendered prompts
 - structured terminal failure handling
-- live session recording and evaluation support
+- live session recording, optional LangSmith runtime metadata, and offline
+  evaluation support
 
 Architecture documentation for the current workflow graph is available in
 [`architecture/workflow_graph.md`](architecture/workflow_graph.md).
 
 ### Preview, Runtime, And Safety Model
 
-Preview handling is driven by workstation runtime surfaces and artifact state.
-The client routes previewable outputs into controlled runtime adapters rather
-than executing arbitrary generated application code directly.
+Preview handling is split between the backend graph and the frontend runtime
+surfaces. The LangGraph workflow owns artifact extraction and preview metadata
+preparation. The Next.js workstation then routes previewable outputs into
+controlled runtime adapters rather than executing arbitrary generated
+application code directly.
 
-Implemented runtime surfaces include:
+Current live preview/runtime support is limited to:
 
-- p5.js-style canvas previews
-- bounded GLSL fragment shader previews
-- controlled Three.js-style WebGL scene previews
+- p5.js sketches through a controlled p5-compatible 2D canvas runtime
+- Three.js scenes through a controlled Three-compatible WebGL runtime
+- React Three Fiber artifacts routed through the Three-compatible preview
+  surface when they match the supported browser runtime contract
+- GLSL fragment shaders through a bounded WebGL shader runtime
 
 The workstation also exposes:
 
 - preview runtime health, FPS, frame-time, and diagnostics overlays
+- a runtime console for lifecycle events, reload requests, renderer errors, and
+  latest runtime messages
 - provider/model/tokens/latency/cost telemetry summaries
 - retrieval inspectors with source quality, freshness, and chunk context
-- local HITL-style approval flows for export/runtime/reset actions
+- artifact comparison rows with quality rank, recommendation state, runtime
+  support, and preview actions
+- local operator approval flows for export/runtime/reset actions
 
 ## Feature Areas
 
@@ -253,21 +270,76 @@ The workstation also exposes:
 ## Domain Coverage
 
 The request/domain registry and approved source registry cover a broad creative
-coding surface. Core domains exercised most directly by the current workstation
-and preview/runtime flow include:
+coding surface. Current live preview/runtime support is limited to:
 
 - Three.js
 - React Three Fiber
 - p5.js
 - GLSL
+
+The broader generation and retrieval domain registry also covers code-oriented
+or documentation-grounded support for:
+
 - Processing
 - Canvas 2D
 - WebGPU / WGSL
+- GSAP
+- Tone.js
+- PixiJS
+- Matter.js
+- Rapier
+- Hydra
+- Shadertoy
+- TouchDesigner
+- Houdini
+- Blender
+- openFrameworks
+- OPENRNDR
+- SuperCollider
+- Sonic Pi
+- TensorFlow.js
+- ComfyUI
+- Runway
+- Unreal
+- Unity
+- additional creative-coding and realtime media ecosystems
 
-The broader registry also covers ecosystems such as GSAP, Tone.js, PixiJS,
-Matter.js, Rapier, Hydra, Shadertoy, TouchDesigner, Houdini, Blender,
-openFrameworks, OPENRNDR, SuperCollider, Sonic Pi, TensorFlow.js, ComfyUI,
-Runway, Unreal, Unity, and more.
+Those broader domains are available for routing, prompt guidance, retrieval, or
+code inspection depending on available source coverage. They should not be read
+as live browser preview runtimes unless they are listed in the current live
+runtime support list above.
+
+## Roadmap
+
+### Current Capabilities
+
+- Next.js workstation with chat, preview shelf, focused inspector tabs,
+  persistence, themes, command actions, and export flows
+- LangGraph backend runtime with graph-owned artifact extraction, preview
+  preparation, critique, deterministic review, bounded refinement, and failure
+  handling
+- Domain-aware generation for supported preview domains and broader
+  creative-coding knowledge domains
+- Multi-artifact generation, artifact critique, artifact comparison, selected
+  artifact refinement, and synchronized code/preview/artifact state
+- Controlled frontend live preview runtimes for p5.js, Three.js, React Three
+  Fiber, and GLSL outputs
+- Runtime console, workflow telemetry, provider telemetry, retrieval telemetry,
+  optional LangSmith metadata, RAGAs lineage, and offline evaluation helpers
+- Multimodal image references and project bundle export
+
+### Planned Capabilities
+
+- Richer tool-node insertion and capability-based graph branches after routing
+- Deeper review/refinement loops that can return to prompt preparation, not only
+  the current bounded retry path
+- Backend-managed renderer execution, frame capture, or export jobs connected to
+  preview preparation
+- Human approval checkpoints between review and finalization
+- Fuller in-app RAGAs and observability dashboards beyond the current telemetry
+  and metadata surfaces
+- Additional safe live runtimes for domains that are currently code-only or
+  retrieval-guided
 
 ## Setup
 
@@ -396,9 +468,9 @@ Sync selected sources:
 
 Live sessions are recorded locally for later evaluation. The repository
 includes offline evaluation helpers today, including a retrieval-focused
-RAGAs-oriented runner. In-app evaluation dashboards and richer RAGAs/observability
-surfacing are intentionally separate concerns and belong to a later
-observability layer.
+RAGAs-oriented runner. The workstation can surface RAGAs lineage and optional
+LangSmith metadata when that data is present; richer in-app RAGAs scoring
+dashboards remain planned for a later observability layer.
 
 Evaluate the latest eligible samples:
 
