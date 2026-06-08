@@ -170,6 +170,7 @@ import {
 } from "@/lib/workstation-errors";
 import { buildZipArchive, downloadZipArchive } from "@/lib/zip-archive";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
+import { RetrievalInspector } from "./retrieval-inspector";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
 
 type WorkstationShellProps = {
@@ -4679,136 +4680,6 @@ function ArtifactsInspector({
           />
         ))}
       </div>
-    </section>
-  );
-}
-
-function RetrievalInspector({ runtime }: { runtime: RetrievalRuntimeModel }) {
-  const hasSources = runtime.sources.length > 0;
-
-  return (
-    <section
-      aria-label="Retrieval inspector"
-      className="inspectorPanel retrievalPanel"
-      id="retrieval-inspector-panel"
-      role="tabpanel"
-    >
-      <article
-        aria-label="Retrieval status"
-        className="retrievalSummaryCard"
-        data-state={runtime.summary.state}
-        role="group"
-      >
-        <header className="retrievalSummaryHeader">
-          <div>
-            <span>Retrieval status</span>
-            <strong>{runtime.summary.status}</strong>
-            <p>{runtime.summary.headline}</p>
-          </div>
-          <span className="retrievalStateBadge" data-state={runtime.summary.state}>
-            {runtime.summary.providerLabel}
-          </span>
-        </header>
-        <div className="retrievalSummaryMeta" aria-label="Retrieval metadata" role="list">
-          <span role="listitem">{runtime.summary.sourceCount} sources</span>
-          <span role="listitem">{runtime.summary.chunkCount} chunks</span>
-          <span role="listitem">{runtime.summary.coverageLabel}</span>
-          <span role="listitem">{runtime.summary.qualityLabel}</span>
-          <span role="listitem">{runtime.summary.freshnessLabel}</span>
-        </div>
-        {runtime.request.query ? (
-          <p className="retrievalQuery">
-            Query
-            <code>{runtime.request.query}</code>
-          </p>
-        ) : null}
-        {runtime.request.filterLabels.length > 0 ? (
-          <div className="retrievalFilterRow" aria-label="Retrieval filters">
-            {runtime.request.filterLabels.map((label) => (
-              <span className="retrievalFilterPill" key={label}>
-                {label}
-              </span>
-            ))}
-          </div>
-        ) : null}
-        <p className="retrievalSummaryDetail">{runtime.summary.detail}</p>
-        {runtime.summary.error ? (
-          <SubsystemErrorCallout
-            className="retrievalErrorCallout"
-            error={runtime.summary.error}
-            title="Retrieval failed"
-          />
-        ) : null}
-        {runtime.summary.warning ? (
-          <p className="retrievalWarning" role="status">
-            {runtime.summary.warning}
-          </p>
-        ) : null}
-      </article>
-      {hasSources ? (
-        <div className="retrievalList">
-          {runtime.sources.map((source) => (
-            <article className="retrievalItem" key={source.sourceId}>
-              <header className="retrievalItemHeader">
-                <div>
-                  <div className="retrievalItemMeta">
-                    <span className="retrievalDomainBadge">{source.domainLabel}</span>
-                    <span className="retrievalSourceType">{source.sourceTypeLabel}</span>
-                  </div>
-                  <strong>{source.title}</strong>
-                  <p>
-                    {source.publisher}
-                    {source.host ? ` • ${source.host}` : ""}
-                  </p>
-                </div>
-                <div className="retrievalItemSignals">
-                  <span className="retrievalScoreBadge" data-quality={source.quality}>
-                    {source.qualityLabel}
-                  </span>
-                  <span
-                    className="retrievalFreshnessBadge"
-                    data-freshness={source.freshness}
-                  >
-                    {source.freshnessLabel}
-                  </span>
-                </div>
-              </header>
-              <p className="retrievalWhyUsed">{source.whyUsed}</p>
-              <div className="retrievalChunkList" aria-label={`${source.title} chunks`}>
-                {source.chunks.map((chunk) => (
-                  <article className="retrievalChunk" key={chunk.id}>
-                    <header>
-                      <strong>{`Chunk ${chunk.chunkIndex + 1}`}</strong>
-                      <span>{chunk.relevanceLabel}</span>
-                    </header>
-                    <p>{chunk.snippet}</p>
-                  </article>
-                ))}
-              </div>
-              {source.href ? (
-                <a
-                  className="retrievalSourceLink"
-                  href={source.href}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  Open source reference
-                </a>
-              ) : null}
-            </article>
-          ))}
-        </div>
-      ) : (
-        <article
-          aria-label="Retrieval empty state"
-          className="retrievalEmptyCard"
-          data-state={runtime.summary.state}
-          role="group"
-        >
-          <strong>{runtime.summary.headline}</strong>
-          <p>{runtime.summary.detail}</p>
-        </article>
-      )}
     </section>
   );
 }

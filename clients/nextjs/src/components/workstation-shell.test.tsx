@@ -1079,12 +1079,31 @@ describe("WorkstationShell", () => {
       within(retrievalPanel).getByRole("group", { name: "Retrieval status" })
     ).toBeVisible();
     expect(within(retrievalPanel).getByText("Official knowledge base")).toBeVisible();
+    expect(
+      within(retrievalPanel).getByRole("group", { name: "Retrieval confidence" })
+    ).toHaveTextContent("Medium confidence");
+    expect(
+      within(retrievalPanel).getByRole("group", { name: "Retrieval coverage" })
+    ).toHaveTextContent("2/2 domains covered");
+    expect(
+      within(retrievalPanel).getByRole("group", { name: "Retrieval context used" })
+    ).toHaveTextContent("3 chunks used");
     expect(within(retrievalPanel).getByText("WebGPU API")).toBeVisible();
+    expect(within(retrievalPanel).getByText("webgpu_mdn_api")).toBeVisible();
     expect(
       within(retrievalPanel).getByText(
         "OpenGL Shading Language 4.60 Specification"
       )
     ).toBeVisible();
+    expect(within(retrievalPanel).getByText("glsl_language_spec_460")).toBeVisible();
+    expect(within(retrievalPanel).getByText("Rank #1")).toBeVisible();
+    expect(within(retrievalPanel).getByText("Rank #3")).toBeVisible();
+    expect(
+      within(retrievalPanel).getAllByText(/Domain match ·/).length
+    ).toBeGreaterThan(0);
+    expect(
+      within(retrievalPanel).getAllByText("Why selected").length
+    ).toBeGreaterThan(0);
     expect(within(retrievalPanel).getAllByText("Best match").length).toBeGreaterThan(0);
     expect(within(retrievalPanel).getByText("High relevance")).toBeVisible();
     expect(within(retrievalPanel).getByText("Review soon")).toBeVisible();
@@ -1644,7 +1663,13 @@ describe("WorkstationShell", () => {
                   chunk_index: 0,
                   excerpt:
                     "createCanvas sets the main drawing surface and should be called once in setup.",
-                  score: 0.88
+                  score: 0.88,
+                  rank: 1,
+                  original_score: 0.8,
+                  score_adjustment: 0.08,
+                  domain_match: true,
+                  selection_reason:
+                    "Selected after semantic ranking and route-specific generation relevance adjustment."
                 }
               ]
             }
@@ -1683,6 +1708,14 @@ describe("WorkstationShell", () => {
     expect(within(retrievalPanel).getByText("createCanvas")).toBeVisible();
     expect(within(retrievalPanel).getAllByText("p5.js").length).toBeGreaterThan(0);
     expect(within(retrievalPanel).getByText("88% match")).toBeVisible();
+    expect(within(retrievalPanel).getByText("Rank #1")).toBeVisible();
+    expect(within(retrievalPanel).getByText("88% score")).toBeVisible();
+    expect(within(retrievalPanel).getByText("Route adjustment +8 pts")).toBeVisible();
+    expect(
+      within(retrievalPanel).getByText(
+        "Selected after semantic ranking and route-specific generation relevance adjustment."
+      )
+    ).toBeVisible();
   });
 
   it("shows structured retrieval failures in the retrieval inspector", async () => {

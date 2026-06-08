@@ -4800,10 +4800,23 @@ a {
   gap: 12px;
 }
 
+.retrievalSummaryHeader > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.retrievalSummaryHeader > div > span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
 .retrievalSummaryMeta,
 .retrievalFilterRow,
 .retrievalItemMeta,
-.retrievalItemSignals {
+.retrievalItemSignals,
+.retrievalChunkMeta,
+.retrievalChunkSignals {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
@@ -4814,8 +4827,12 @@ a {
 .retrievalFilterPill,
 .retrievalDomainBadge,
 .retrievalSourceType,
+.retrievalSourceId,
+.retrievalRankBadge,
 .retrievalScoreBadge,
-.retrievalFreshnessBadge {
+.retrievalFreshnessBadge,
+.retrievalChunkMeta span,
+.retrievalChunkSignals span {
   padding: 4px 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
@@ -4823,6 +4840,59 @@ a {
   background: rgba(255, 255, 255, 0.04);
   font-size: 11px;
   line-height: 1.2;
+}
+
+.retrievalInsightGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.retrievalInsightCard {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.retrievalInsightCard:last-child {
+  grid-column: 1 / -1;
+}
+
+.retrievalInsightCard > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.retrievalInsightCard > strong {
+  font-size: 13px;
+}
+
+.retrievalInsightCard > p {
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.retrievalInsightCard[data-confidence="high"] {
+  border-color: rgba(121, 211, 139, 0.2);
+  background: rgba(121, 211, 139, 0.06);
+}
+
+.retrievalInsightCard[data-confidence="medium"] {
+  border-color: rgba(243, 184, 82, 0.2);
+  background: rgba(243, 184, 82, 0.06);
+}
+
+.retrievalInsightCard[data-confidence="low"] {
+  border-color: rgba(255, 122, 102, 0.2);
+  background: rgba(255, 122, 102, 0.06);
 }
 
 .retrievalStateBadge {
@@ -4898,6 +4968,19 @@ a {
   border-color: rgba(124, 167, 255, 0.18);
 }
 
+.retrievalSourceId {
+  overflow-wrap: anywhere;
+  color: var(--muted-strong);
+  font-family: "SFMono-Regular", "Cascadia Code", "Liberation Mono", monospace;
+  text-transform: none;
+}
+
+.retrievalRankBadge {
+  color: var(--foreground);
+  border-color: rgba(var(--accent-rgb), 0.18);
+  background: rgba(var(--accent-rgb), 0.06);
+}
+
 .retrievalScoreBadge[data-quality="high"] {
   color: var(--green);
   border-color: rgba(121, 211, 139, 0.2);
@@ -4951,16 +5034,64 @@ a {
   gap: 8px;
 }
 
-.retrievalChunk header span {
+.retrievalChunkRank {
+  display: grid;
+  gap: 2px;
+}
+
+.retrievalChunkRank > strong {
+  color: var(--foreground);
+  font-size: 12px;
+}
+
+.retrievalChunkRank > span {
   color: var(--muted);
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
 }
 
+.retrievalChunkSignals {
+  justify-content: flex-end;
+}
+
+.retrievalChunkSignals span,
+.retrievalChunkMeta span {
+  color: var(--muted-strong);
+  font-size: 10px;
+}
+
+.retrievalChunkMeta span[data-domain-match="match"] {
+  color: var(--green);
+  border-color: rgba(121, 211, 139, 0.2);
+  background: rgba(121, 211, 139, 0.06);
+}
+
+.retrievalChunkMeta span[data-domain-match="cross-domain"] {
+  color: var(--amber);
+  border-color: rgba(243, 184, 82, 0.2);
+  background: rgba(243, 184, 82, 0.06);
+}
+
 .retrievalChunk p {
   font-size: 12px;
   line-height: 1.45;
+}
+
+.retrievalSelectionReason {
+  display: grid;
+  gap: 3px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  color: var(--muted-strong);
+}
+
+.retrievalSelectionReason > span {
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .retrievalSourceLink {
@@ -5126,6 +5257,7 @@ html[data-cca-theme="matrix"] .artifactItem,
 html[data-cca-theme="matrix"] .artifactDetailCard,
 html[data-cca-theme="matrix"] .retrievalSummaryCard,
 html[data-cca-theme="matrix"] .retrievalEmptyCard,
+html[data-cca-theme="matrix"] .retrievalInsightCard,
 html[data-cca-theme="matrix"] .retrievalItem,
 html[data-cca-theme="matrix"] .retrievalChunk,
 html[data-cca-theme="matrix"] .previewIndicator,
