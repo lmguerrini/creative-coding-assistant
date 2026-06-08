@@ -1,12 +1,11 @@
-import type {
-  RetrievalChunkSummary,
-  RetrievalSourceSummary
-} from "@/lib/assistant-client";
 import type { RetrievalRuntimeModel } from "@/lib/retrieval-runtime";
+import { buildRetrievalSourceExplorerModel } from "@/lib/retrieval-source-explorer";
+import { RetrievalSourceExplorer } from "./retrieval-source-explorer";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
 
 export function RetrievalInspector({ runtime }: { runtime: RetrievalRuntimeModel }) {
   const hasSources = runtime.sources.length > 0;
+  const explorer = buildRetrievalSourceExplorerModel(runtime);
 
   return (
     <section
@@ -97,11 +96,7 @@ export function RetrievalInspector({ runtime }: { runtime: RetrievalRuntimeModel
         ) : null}
       </article>
       {hasSources ? (
-        <div className="retrievalList">
-          {runtime.sources.map((source) => (
-            <RetrievalSourceCard key={source.sourceId} source={source} />
-          ))}
-        </div>
+        <RetrievalSourceExplorer model={explorer} />
       ) : (
         <article
           aria-label="Retrieval empty state"
@@ -115,127 +110,4 @@ export function RetrievalInspector({ runtime }: { runtime: RetrievalRuntimeModel
       )}
     </section>
   );
-}
-
-function RetrievalSourceCard({ source }: { source: RetrievalSourceSummary }) {
-  return (
-    <article className="retrievalItem">
-      <header className="retrievalItemHeader">
-        <div>
-          <div className="retrievalItemMeta">
-            <span className="retrievalDomainBadge">{source.domainLabel}</span>
-            <span className="retrievalSourceType">{source.sourceTypeLabel}</span>
-            <code className="retrievalSourceId">{source.sourceId}</code>
-          </div>
-          <strong>{source.title}</strong>
-          <p>
-            {source.publisher}
-            {source.host ? ` • ${source.host}` : ""}
-          </p>
-        </div>
-        <div className="retrievalItemSignals">
-          {source.bestRank != null ? (
-            <span className="retrievalRankBadge">{`Best rank #${source.bestRank}`}</span>
-          ) : null}
-          <span className="retrievalScoreBadge" data-quality={source.quality}>
-            {source.qualityLabel}
-          </span>
-          <span
-            className="retrievalFreshnessBadge"
-            data-freshness={source.freshness}
-          >
-            {source.freshnessLabel}
-          </span>
-        </div>
-      </header>
-      <p className="retrievalWhyUsed">{source.whyUsed}</p>
-      <div className="retrievalChunkList" aria-label={`${source.title} chunks`}>
-        {source.chunks.map((chunk) => (
-          <RetrievalChunkCard chunk={chunk} domainLabel={source.domainLabel} key={chunk.id} />
-        ))}
-      </div>
-      {source.href ? (
-        <a
-          className="retrievalSourceLink"
-          href={source.href}
-          rel="noreferrer"
-          target="_blank"
-        >
-          Open source reference
-        </a>
-      ) : null}
-    </article>
-  );
-}
-
-function RetrievalChunkCard({
-  chunk,
-  domainLabel
-}: {
-  chunk: RetrievalChunkSummary;
-  domainLabel: string;
-}) {
-  return (
-    <article className="retrievalChunk" data-rank={chunk.rank ?? undefined}>
-      <header>
-        <div className="retrievalChunkRank">
-          <strong>{chunk.rank != null ? `Rank #${chunk.rank}` : "Rank unavailable"}</strong>
-          <span>{`Source chunk ${chunk.chunkIndex + 1}`}</span>
-        </div>
-        <div className="retrievalChunkSignals">
-          {chunk.score != null ? <span>{`${formatScore(chunk.score)} score`}</span> : null}
-          <span>{chunk.relevanceLabel}</span>
-        </div>
-      </header>
-      <div className="retrievalChunkMeta">
-        <span data-domain-match={formatDomainMatchState(chunk.domainMatch)}>
-          {formatDomainMatchLabel(chunk.domainMatch, domainLabel)}
-        </span>
-        {chunk.scoreAdjustment != null ? (
-          <span>{`Route adjustment ${formatSignedScore(chunk.scoreAdjustment)}`}</span>
-        ) : null}
-      </div>
-      <p>{chunk.snippet}</p>
-      <p className="retrievalSelectionReason">
-        <span>Why selected</span>
-        {chunk.selectionReason ?? "Selection reasoning was not recorded for this chunk."}
-      </p>
-    </article>
-  );
-}
-
-function formatScore(score: number) {
-  return `${Math.round(score * 100)}%`;
-}
-
-function formatSignedScore(score: number) {
-  const points = Math.round(score * 100);
-  return `${points > 0 ? "+" : ""}${points} pts`;
-}
-
-function formatDomainMatchState(domainMatch: boolean | null | undefined) {
-  if (domainMatch === true) {
-    return "match";
-  }
-
-  if (domainMatch === false) {
-    return "cross-domain";
-  }
-
-  return "unfiltered";
-}
-
-function formatDomainMatchLabel(
-  domainMatch: boolean | null | undefined,
-  domainLabel: string
-) {
-  if (domainMatch === true) {
-    return `Domain match · ${domainLabel}`;
-  }
-
-  if (domainMatch === false) {
-    return `Cross-domain support · ${domainLabel}`;
-  }
-
-  return `Unfiltered domain · ${domainLabel}`;
 }

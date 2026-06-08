@@ -353,6 +353,29 @@ function snapshotWithEmptyRetrieval(): AssistantWorkspaceSnapshot {
   };
 }
 
+function snapshotWithIgnoredRetrievalSource(): AssistantWorkspaceSnapshot {
+  const snapshot = getLocalWorkspaceSnapshot();
+
+  return {
+    ...snapshot,
+    retrieval: {
+      ...snapshot.retrieval,
+      sources: snapshot.retrieval.sources.map((source, index) =>
+        index === 1
+          ? {
+              ...source,
+              selectedForContext: false,
+              chunks: source.chunks.map((chunk) => ({
+                ...chunk,
+                usedInContext: false
+              }))
+            }
+          : source
+      )
+    }
+  };
+}
+
 function installAnimationFrameMock() {
   Object.defineProperty(window, "requestAnimationFrame", {
     configurable: true,
@@ -1066,7 +1089,7 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("tabpanel", { name: "Retrieval inspector" })).toBeVisible();
   });
 
-  it("renders retrieval source cards with provenance, quality, and chunk previews", () => {
+  it("renders a grouped retrieval source explorer with chunk drilldown", () => {
     renderShell();
 
     fireEvent.click(screen.getByRole("tab", { name: "Retrieval" }));
@@ -1088,25 +1111,56 @@ describe("WorkstationShell", () => {
     expect(
       within(retrievalPanel).getByRole("group", { name: "Retrieval context used" })
     ).toHaveTextContent("3 chunks used");
-    expect(within(retrievalPanel).getByText("WebGPU API")).toBeVisible();
-    expect(within(retrievalPanel).getByText("webgpu_mdn_api")).toBeVisible();
+    const explorer = within(retrievalPanel).getByRole("region", {
+      name: "Retrieval source explorer"
+    });
+    expect(explorer).toHaveTextContent(
+      "2 selected sources · No ignored sources reported"
+    );
+    expect(explorer).toHaveTextContent(
+      "WebGPU API contributed most with 2/3 context chunks."
+    );
     expect(
-      within(retrievalPanel).getByText(
-        "OpenGL Shading Language 4.60 Specification"
-      )
+      within(explorer).getByRole("button", {
+        name: "Inspect source WebGPU API"
+      })
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      within(explorer).getByRole("button", {
+        name: "Inspect source OpenGL Shading Language 4.60 Specification"
+      })
     ).toBeVisible();
-    expect(within(retrievalPanel).getByText("glsl_language_spec_460")).toBeVisible();
-    expect(within(retrievalPanel).getByText("Rank #1")).toBeVisible();
-    expect(within(retrievalPanel).getByText("Rank #3")).toBeVisible();
+    const webgpuDetail = within(explorer).getByRole("group", {
+      name: "WebGPU API source details"
+    });
+    expect(webgpuDetail).toHaveTextContent("webgpu_mdn_api");
+    expect(webgpuDetail).toHaveTextContent("Top contributor");
+    expect(webgpuDetail).toHaveTextContent("2 retrieved chunks");
+    expect(webgpuDetail).toHaveTextContent("Ranks #1–#2");
+    expect(webgpuDetail).toHaveTextContent("2/3 context chunks");
+    expect(webgpuDetail).toHaveTextContent("Used in context");
+    expect(within(webgpuDetail).getByText("Rank #1")).toBeVisible();
     expect(
-      within(retrievalPanel).getAllByText(/Domain match ·/).length
+      within(webgpuDetail).getAllByText(/Domain match ·/).length
     ).toBeGreaterThan(0);
     expect(
-      within(retrievalPanel).getAllByText("Why selected").length
+      within(webgpuDetail).getAllByText("Why selected").length
     ).toBeGreaterThan(0);
-    expect(within(retrievalPanel).getAllByText("Best match").length).toBeGreaterThan(0);
-    expect(within(retrievalPanel).getByText("High relevance")).toBeVisible();
-    expect(within(retrievalPanel).getByText("Review soon")).toBeVisible();
+    expect(within(webgpuDetail).getByText("Best match")).toBeVisible();
+    expect(within(webgpuDetail).getByText("High relevance")).toBeVisible();
+
+    fireEvent.click(
+      within(explorer).getByRole("button", {
+        name: "Inspect source OpenGL Shading Language 4.60 Specification"
+      })
+    );
+
+    const glslDetail = within(explorer).getByRole("group", {
+      name: "OpenGL Shading Language 4.60 Specification source details"
+    });
+    expect(glslDetail).toHaveTextContent("glsl_language_spec_460");
+    expect(glslDetail).toHaveTextContent("Rank #3");
+    expect(glslDetail).toHaveTextContent("Review soon");
     expect(
       within(retrievalPanel).getByText(
         /Stable WebGPU particle field for a projection wall/
@@ -1133,6 +1187,40 @@ describe("WorkstationShell", () => {
     expect(
       within(retrievalPanel).queryByRole("link", { name: "Open source reference" })
     ).not.toBeInTheDocument();
+    expect(
+      within(retrievalPanel).queryByRole("region", {
+        name: "Retrieval source explorer"
+      })
+    ).not.toBeInTheDocument();
+  });
+
+  it("labels ignored sources and unused chunks without losing global rank", () => {
+    renderShell(snapshotWithIgnoredRetrievalSource());
+
+    fireEvent.click(screen.getByRole("tab", { name: "Retrieval" }));
+
+    const explorer = screen.getByRole("region", {
+      name: "Retrieval source explorer"
+    });
+    expect(explorer).toHaveTextContent("1 selected source · 1 ignored source");
+
+    fireEvent.click(
+      within(explorer).getByRole("button", {
+        name: "Inspect source OpenGL Shading Language 4.60 Specification"
+      })
+    );
+
+    const ignoredDetail = within(explorer).getByRole("group", {
+      name: "OpenGL Shading Language 4.60 Specification source details"
+    });
+    expect(ignoredDetail).toHaveTextContent("Not selected");
+    expect(ignoredDetail).toHaveTextContent("0/2 context chunks");
+    expect(ignoredDetail).toHaveTextContent("Rank #3");
+    expect(ignoredDetail).toHaveTextContent("Not used");
+    expect(ignoredDetail).toHaveTextContent("Selection note");
+    expect(ignoredDetail).toHaveTextContent(
+      "Retrieved as a candidate source but not included in the final context"
+    );
   });
 
   it("uses the command menu to open focused inspector views", () => {
@@ -1705,14 +1793,17 @@ describe("WorkstationShell", () => {
         "Create a p5.js sketch with low-frequency motion."
       )
     ).toBeVisible();
-    expect(within(retrievalPanel).getByText("createCanvas")).toBeVisible();
+    const sourceDetail = within(retrievalPanel).getByRole("group", {
+      name: "createCanvas source details"
+    });
+    expect(sourceDetail).toBeVisible();
     expect(within(retrievalPanel).getAllByText("p5.js").length).toBeGreaterThan(0);
-    expect(within(retrievalPanel).getByText("88% match")).toBeVisible();
-    expect(within(retrievalPanel).getByText("Rank #1")).toBeVisible();
-    expect(within(retrievalPanel).getByText("88% score")).toBeVisible();
-    expect(within(retrievalPanel).getByText("Route adjustment +8 pts")).toBeVisible();
+    expect(within(sourceDetail).getByText("88% match")).toBeVisible();
+    expect(within(sourceDetail).getAllByText("Rank #1").length).toBeGreaterThan(0);
+    expect(within(sourceDetail).getByText("88% score")).toBeVisible();
+    expect(within(sourceDetail).getByText("Route adjustment +8 pts")).toBeVisible();
     expect(
-      within(retrievalPanel).getByText(
+      within(sourceDetail).getByText(
         "Selected after semantic ranking and route-specific generation relevance adjustment."
       )
     ).toBeVisible();

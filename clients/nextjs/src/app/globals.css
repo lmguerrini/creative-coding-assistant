@@ -4946,6 +4946,226 @@ a {
   line-height: 1.45;
 }
 
+.retrievalExplorer {
+  display: grid;
+  gap: 10px;
+}
+
+.retrievalExplorerHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.retrievalExplorerHeader > div {
+  display: grid;
+  gap: 3px;
+}
+
+.retrievalExplorerHeader span {
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.retrievalExplorerHeader strong {
+  color: var(--foreground);
+  font-size: 13px;
+}
+
+.retrievalExplorerHeader p {
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.retrievalSourceList {
+  display: grid;
+  gap: 6px;
+}
+
+.retrievalSourceList > span {
+  display: block;
+  min-width: 0;
+}
+
+.retrievalSourceRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--foreground);
+  background: rgba(255, 255, 255, 0.025);
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.retrievalSourceRow:hover {
+  border-color: rgba(var(--accent-rgb), 0.24);
+  background: rgba(var(--accent-rgb), 0.05);
+  transform: translateY(-1px);
+}
+
+.retrievalSourceRow[aria-pressed="true"] {
+  border-color: rgba(var(--accent-rgb), 0.34);
+  background:
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.1), transparent 72%),
+    rgba(255, 255, 255, 0.035);
+}
+
+.retrievalSourceRow[data-selected="false"] {
+  opacity: 0.72;
+}
+
+.retrievalSourceRowMain,
+.retrievalSourceRowMeta {
+  display: grid;
+  min-width: 0;
+}
+
+.retrievalSourceRowMain {
+  gap: 3px;
+}
+
+.retrievalSourceRowMain strong {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.retrievalSourceRowMain code {
+  overflow: hidden;
+  color: var(--muted);
+  font-family: "SFMono-Regular", "Cascadia Code", "Liberation Mono", monospace;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.retrievalSourceRowMeta {
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+}
+
+.retrievalSourceRowMeta small {
+  font-size: 9px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.retrievalSourceRow[aria-pressed="true"] .retrievalSourceRowMeta svg {
+  color: var(--teal);
+  transform: translateX(2px);
+}
+
+.retrievalSourceDetail {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
+  border-radius: 15px;
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.07), transparent 54%),
+    rgba(255, 255, 255, 0.03);
+  box-shadow: var(--panel-highlight);
+}
+
+.retrievalSourceDetail[data-selected="false"] {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.retrievalSourceDetailHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.retrievalSourceDetailHeader > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.retrievalSourceDetailHeader > div > strong {
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.retrievalSourceDetailHeader p {
+  font-size: 11px;
+}
+
+.retrievalContributorBadge,
+.retrievalContextBadge {
+  padding: 4px 8px;
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border-radius: 999px;
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.08);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.retrievalContextBadge[data-selected="false"] {
+  color: var(--muted);
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.retrievalSourceMetrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.retrievalSourceMetric {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.retrievalSourceMetric small {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.retrievalSourceMetric strong {
+  overflow-wrap: anywhere;
+  color: var(--foreground);
+  font-size: 11px;
+}
+
+.retrievalCoverageDetail {
+  color: var(--muted-strong);
+  font-size: 11px;
+}
+
 .retrievalItem {
   display: grid;
   gap: 10px;
@@ -5027,6 +5247,11 @@ a {
     rgba(255, 255, 255, 0.03);
 }
 
+.retrievalChunk[data-used="false"] {
+  opacity: 0.7;
+  border-style: dashed;
+}
+
 .retrievalChunk header {
   display: flex;
   align-items: center;
@@ -5053,6 +5278,18 @@ a {
 
 .retrievalChunkSignals {
   justify-content: flex-end;
+}
+
+.retrievalChunkSignals span[data-confidence="high"] {
+  color: var(--green);
+}
+
+.retrievalChunkSignals span[data-confidence="medium"] {
+  color: var(--amber);
+}
+
+.retrievalChunkSignals span[data-confidence="low"] {
+  color: var(--coral);
 }
 
 .retrievalChunkSignals span,
@@ -5258,6 +5495,7 @@ html[data-cca-theme="matrix"] .artifactDetailCard,
 html[data-cca-theme="matrix"] .retrievalSummaryCard,
 html[data-cca-theme="matrix"] .retrievalEmptyCard,
 html[data-cca-theme="matrix"] .retrievalInsightCard,
+html[data-cca-theme="matrix"] .retrievalSourceDetail,
 html[data-cca-theme="matrix"] .retrievalItem,
 html[data-cca-theme="matrix"] .retrievalChunk,
 html[data-cca-theme="matrix"] .previewIndicator,
@@ -5640,6 +5878,7 @@ html[data-cca-theme="blueprint"] .codeViewer {
 .workstation[data-density="compact"] .artifactDetailCard,
 .workstation[data-density="compact"] .retrievalSummaryCard,
 .workstation[data-density="compact"] .retrievalEmptyCard,
+.workstation[data-density="compact"] .retrievalSourceDetail,
 .workstation[data-density="compact"] .retrievalItem {
   padding: 10px;
 }
