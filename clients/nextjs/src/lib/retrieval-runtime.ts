@@ -79,6 +79,7 @@ type ParsedRetrievalChunk = {
   scoreAdjustment: number | null;
   domainMatch: boolean | null;
   selectionReason: string | null;
+  usedInContext: boolean | null;
 };
 
 type ParsedRetrievalContext = {
@@ -330,6 +331,7 @@ function buildRuntimeSummary({
 }): RetrievalRuntimeSummary {
   const chunkCount = sources.reduce((total, source) => total + source.chunks.length, 0);
   const chunks = sources.flatMap((source) => source.chunks);
+  const usedChunkCount = chunks.filter((chunk) => chunk.usedInContext !== false).length;
   const domainLabels = Array.from(
     new Set(sources.map((source) => source.domainLabel).filter(Boolean))
   );
@@ -366,10 +368,12 @@ function buildRuntimeSummary({
     confidence: confidence.quality,
     confidenceLabel: confidence.label,
     confidenceDetail: confidence.detail,
-    usedChunkLabel: `${chunkCount} ${chunkCount === 1 ? "chunk" : "chunks"} used`,
+    usedChunkLabel: `${usedChunkCount} ${usedChunkCount === 1 ? "chunk" : "chunks"} used`,
     usedChunkDetail:
-      chunkCount > 0
-        ? "Every returned chunk was included in the generation context."
+      usedChunkCount > 0
+        ? usedChunkCount === chunkCount
+          ? "Every returned chunk was included in the generation context."
+          : `${usedChunkCount} of ${chunkCount} returned chunks were included in the generation context.`
         : "No retrieval chunks were available for generation context.",
     warning,
     updatedAt: emittedAt ?? latestUpdatedAt(sources),
@@ -425,6 +429,7 @@ function normalizeFallbackSources(
     .map((source) => {
       const domainMatch =
         request.domains.length > 0 ? request.domains.includes(source.domain) : null;
+      const sourceSelection = source.selectedForContext;
       const chunks = source.chunks
         .map((chunk) => {
           const rank = rankByChunkId.get(chunk.id) ?? chunk.rank ?? null;
@@ -438,6 +443,8 @@ function normalizeFallbackSources(
             originalScore: chunk.originalScore ?? chunk.score,
             scoreAdjustment,
             domainMatch: chunk.domainMatch ?? domainMatch,
+            usedInContext:
+              chunk.usedInContext ?? sourceSelection ?? true,
             selectionReason:
               chunk.selectionReason ??
               buildFallbackSelectionReason({
@@ -452,6 +459,8 @@ function normalizeFallbackSources(
       return {
         ...source,
         bestRank: chunks[0]?.rank ?? source.bestRank ?? null,
+        selectedForContext:
+          sourceSelection ?? chunks.some((chunk) => chunk.usedInContext !== false),
         chunks
       };
     })
@@ -532,6 +541,9 @@ function buildRuntimeSourceSummary(
           formatSourceTypeLabel(topChunk?.sourceType ?? baseSource?.sourceType ?? "reference")
       }),
     bestRank: topChunk?.rank ?? baseSource?.bestRank ?? null,
+    selectedForContext: sortedChunks.some(
+      (chunk) => chunk.usedInContext !== false
+    ),
     chunks: sortedChunks.map((chunk, index) => ({
       id: `${chunk.sourceId}::chunk-${String(chunk.chunkIndex).padStart(4, "0")}`,
       chunkIndex: chunk.chunkIndex,
@@ -543,6 +555,7 @@ function buildRuntimeSourceSummary(
         chunk.scoreAdjustment ??
         buildScoreAdjustment(chunk.score, chunk.originalScore),
       domainMatch: chunk.domainMatch,
+      usedInContext: chunk.usedInContext ?? true,
       selectionReason:
         chunk.selectionReason ??
         buildFallbackSelectionReason({
@@ -668,7 +681,8 @@ function parseRetrievalChunk(rawChunk: unknown): ParsedRetrievalChunk | null {
     originalScore: readNumber(rawChunk.original_score),
     scoreAdjustment: readNumber(rawChunk.score_adjustment),
     domainMatch: readBoolean(rawChunk.domain_match),
-    selectionReason: readText(rawChunk.selection_reason)
+    selectionReason: readText(rawChunk.selection_reason),
+    usedInContext: readBoolean(rawChunk.used_in_context)
   };
 }
 

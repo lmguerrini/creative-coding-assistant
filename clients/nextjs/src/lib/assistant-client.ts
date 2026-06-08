@@ -180,6 +180,7 @@ export type RetrievalChunkSummary = {
   scoreAdjustment?: number | null;
   domainMatch?: boolean | null;
   selectionReason?: string | null;
+  usedInContext?: boolean | null;
 };
 
 export type RetrievalSourceSummary = {
@@ -202,6 +203,7 @@ export type RetrievalSourceSummary = {
   whyUsed: string;
   chunks: RetrievalChunkSummary[];
   bestRank?: number | null;
+  selectedForContext?: boolean | null;
 };
 
 export type RetrievalSummary = {
