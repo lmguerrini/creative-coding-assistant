@@ -175,6 +175,11 @@ export type RetrievalChunkSummary = {
   score: number | null;
   snippet: string;
   relevanceLabel: string;
+  rank?: number | null;
+  originalScore?: number | null;
+  scoreAdjustment?: number | null;
+  domainMatch?: boolean | null;
+  selectionReason?: string | null;
 };
 
 export type RetrievalSourceSummary = {
@@ -196,6 +201,7 @@ export type RetrievalSourceSummary = {
   updatedAt: string | null;
   whyUsed: string;
   chunks: RetrievalChunkSummary[];
+  bestRank?: number | null;
 };
 
 export type RetrievalSummary = {

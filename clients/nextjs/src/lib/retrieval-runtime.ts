@@ -37,6 +37,12 @@ export type RetrievalRuntimeSummary = {
   qualityLabel: string;
   freshnessLabel: string;
   coverageLabel: string;
+  coverageDetail: string;
+  confidence: RetrievalQuality;
+  confidenceLabel: string;
+  confidenceDetail: string;
+  usedChunkLabel: string;
+  usedChunkDetail: string;
   warning: string | null;
   updatedAt: string | null;
   error: WorkstationError | null;
@@ -68,6 +74,11 @@ type ParsedRetrievalChunk = {
   score: number | null;
   snippet: string;
   chunkIndex: number;
+  rank: number | null;
+  originalScore: number | null;
+  scoreAdjustment: number | null;
+  domainMatch: boolean | null;
+  selectionReason: string | null;
 };
 
 type ParsedRetrievalContext = {
@@ -177,7 +188,7 @@ function buildFallbackRuntimeModel(
     sourceFilter: null,
     sourceTypeFilter: null
   });
-  const sources = normalizeFallbackSources(baseRetrieval.sources);
+  const sources = normalizeFallbackSources(baseRetrieval.sources, request);
   const summary = buildRuntimeSummary({
     baseRetrieval,
     detail:
@@ -318,6 +329,7 @@ function buildRuntimeSummary({
   status: string;
 }): RetrievalRuntimeSummary {
   const chunkCount = sources.reduce((total, source) => total + source.chunks.length, 0);
+  const chunks = sources.flatMap((source) => source.chunks);
   const domainLabels = Array.from(
     new Set(sources.map((source) => source.domainLabel).filter(Boolean))
   );
@@ -329,6 +341,8 @@ function buildRuntimeSummary({
     return currentTop == null ? source.score : Math.max(currentTop, source.score);
   }, null);
   const freshnessLabel = buildFreshnessSummaryLabel(sources);
+  const confidence = buildRetrievalConfidence(chunks);
+  const coverage = buildRetrievalCoverage(request, domainLabels);
   const warning =
     buildMissingDomainWarning(request, domainLabels) ??
     buildStaleSourceWarning(sources) ??
@@ -347,12 +361,16 @@ function buildRuntimeSummary({
     qualityLabel:
       topScore != null ? `Top score ${formatScorePercent(topScore)}` : "No relevance score",
     freshnessLabel,
-    coverageLabel:
-      domainLabels.length > 0
-        ? countLabel(domainLabels.length, "domain")
-        : request.domainLabels.length > 0
-          ? `Requested ${countLabel(request.domainLabels.length, "domain")}`
-          : "No domain filter",
+    coverageLabel: coverage.label,
+    coverageDetail: coverage.detail,
+    confidence: confidence.quality,
+    confidenceLabel: confidence.label,
+    confidenceDetail: confidence.detail,
+    usedChunkLabel: `${chunkCount} ${chunkCount === 1 ? "chunk" : "chunks"} used`,
+    usedChunkDetail:
+      chunkCount > 0
+        ? "Every returned chunk was included in the generation context."
+        : "No retrieval chunks were available for generation context.",
     warning,
     updatedAt: emittedAt ?? latestUpdatedAt(sources),
     error
@@ -391,16 +409,53 @@ function buildErroredRuntimeModel({
 }
 
 function normalizeFallbackSources(
-  sources: RetrievalSourceSummary[]
+  sources: RetrievalSourceSummary[],
+  request: RetrievalRuntimeRequest
 ): RetrievalSourceSummary[] {
-  return [...sources]
+  const normalizedSources = [...sources]
     .map((source) => ({
       ...source,
       chunks: (Array.isArray(source.chunks) ? [...source.chunks] : []).sort(
         sortChunksByScore
       )
-    }))
-    .sort(sortSourcesByScore);
+    }));
+  const rankByChunkId = buildFallbackChunkRankMap(normalizedSources);
+
+  return normalizedSources
+    .map((source) => {
+      const domainMatch =
+        request.domains.length > 0 ? request.domains.includes(source.domain) : null;
+      const chunks = source.chunks
+        .map((chunk) => {
+          const rank = rankByChunkId.get(chunk.id) ?? chunk.rank ?? null;
+          const scoreAdjustment =
+            chunk.scoreAdjustment ??
+            buildScoreAdjustment(chunk.score, chunk.originalScore ?? null);
+
+          return {
+            ...chunk,
+            rank,
+            originalScore: chunk.originalScore ?? chunk.score,
+            scoreAdjustment,
+            domainMatch: chunk.domainMatch ?? domainMatch,
+            selectionReason:
+              chunk.selectionReason ??
+              buildFallbackSelectionReason({
+                domainMatch: chunk.domainMatch ?? domainMatch,
+                rank,
+                scoreAdjustment
+              })
+          };
+        })
+        .sort(sortChunksByRank);
+
+      return {
+        ...source,
+        bestRank: chunks[0]?.rank ?? source.bestRank ?? null,
+        chunks
+      };
+    })
+    .sort(sortSourcesByRank);
 }
 
 function buildRuntimeSources(
@@ -408,10 +463,11 @@ function buildRuntimeSources(
   chunks: ParsedRetrievalChunk[],
   request: RetrievalRuntimeRequest
 ): RetrievalSourceSummary[] {
+  const rankedChunks = normalizeParsedChunkRanks(chunks);
   const baseSourceById = new Map(baseSources.map((source) => [source.sourceId, source]));
   const sourceGroups = new Map<string, ParsedRetrievalChunk[]>();
 
-  for (const chunk of chunks) {
+  for (const chunk of rankedChunks) {
     const existingChunks = sourceGroups.get(chunk.sourceId);
     if (existingChunks) {
       existingChunks.push(chunk);
@@ -425,7 +481,7 @@ function buildRuntimeSources(
     .map(([sourceId, sourceChunks]) =>
       buildRuntimeSourceSummary(baseSourceById.get(sourceId) ?? null, sourceChunks, request)
     )
-    .sort(sortSourcesByScore);
+    .sort(sortSourcesByRank);
 }
 
 function buildRuntimeSourceSummary(
@@ -433,7 +489,7 @@ function buildRuntimeSourceSummary(
   rawChunks: ParsedRetrievalChunk[],
   request: RetrievalRuntimeRequest
 ): RetrievalSourceSummary {
-  const sortedChunks = [...rawChunks].sort(sortParsedChunksByScore);
+  const sortedChunks = [...rawChunks].sort(sortParsedChunksByRank);
   const topChunk = sortedChunks[0] ?? null;
   const topScore = topChunk?.score ?? baseSource?.score ?? null;
   const quality = baseSource?.quality ?? deriveQualityFromScore(topScore);
@@ -475,13 +531,31 @@ function buildRuntimeSourceSummary(
           baseSource?.sourceTypeLabel ??
           formatSourceTypeLabel(topChunk?.sourceType ?? baseSource?.sourceType ?? "reference")
       }),
+    bestRank: topChunk?.rank ?? baseSource?.bestRank ?? null,
     chunks: sortedChunks.map((chunk, index) => ({
       id: `${chunk.sourceId}::chunk-${String(chunk.chunkIndex).padStart(4, "0")}`,
       chunkIndex: chunk.chunkIndex,
       score: chunk.score,
       snippet: compactText(chunk.snippet),
+      rank: chunk.rank,
+      originalScore: chunk.originalScore,
+      scoreAdjustment:
+        chunk.scoreAdjustment ??
+        buildScoreAdjustment(chunk.score, chunk.originalScore),
+      domainMatch: chunk.domainMatch,
+      selectionReason:
+        chunk.selectionReason ??
+        buildFallbackSelectionReason({
+          domainMatch: chunk.domainMatch,
+          rank: chunk.rank,
+          scoreAdjustment:
+            chunk.scoreAdjustment ??
+            buildScoreAdjustment(chunk.score, chunk.originalScore)
+        }),
       relevanceLabel:
-        index === 0 ? "Best match" : buildChunkRelevanceLabel(chunk.score)
+        chunk.rank === 1 || (chunk.rank == null && index === 0)
+          ? "Best match"
+          : buildChunkRelevanceLabel(chunk.score)
     }))
   };
 }
@@ -589,7 +663,12 @@ function parseRetrievalChunk(rawChunk: unknown): ParsedRetrievalChunk | null {
     host: readHost(href),
     score: readNumber(rawChunk.score),
     snippet,
-    chunkIndex: readInteger(rawChunk.chunk_index) ?? 0
+    chunkIndex: readInteger(rawChunk.chunk_index) ?? 0,
+    rank: readInteger(rawChunk.rank),
+    originalScore: readNumber(rawChunk.original_score),
+    scoreAdjustment: readNumber(rawChunk.score_adjustment),
+    domainMatch: readBoolean(rawChunk.domain_match),
+    selectionReason: readText(rawChunk.selection_reason)
   };
 }
 
@@ -738,6 +817,139 @@ function buildFreshnessSummaryLabel(sources: RetrievalSourceSummary[]) {
   }
 
   return "Freshness unverified";
+}
+
+function buildRetrievalConfidence(chunks: RetrievalChunkSummary[]) {
+  const scores = chunks
+    .map((chunk) => chunk.score)
+    .filter((score): score is number => score != null);
+
+  if (scores.length === 0) {
+    return {
+      quality: "unknown" as const,
+      label: "Confidence unknown",
+      detail: "No retrieval scores were available for this context."
+    };
+  }
+
+  const averageScore =
+    scores.reduce((total, score) => total + score, 0) / scores.length;
+  const quality = deriveQualityFromScore(averageScore);
+  const label =
+    quality === "high"
+      ? "High confidence"
+      : quality === "medium"
+        ? "Medium confidence"
+        : "Low confidence";
+
+  return {
+    quality,
+    label,
+    detail: `${formatScorePercent(averageScore)} average relevance across ${countLabel(
+      scores.length,
+      "scored chunk"
+    )}.`
+  };
+}
+
+function buildRetrievalCoverage(
+  request: RetrievalRuntimeRequest,
+  sourceDomainLabels: string[]
+) {
+  if (request.domainLabels.length === 0) {
+    return sourceDomainLabels.length > 0
+      ? {
+          label: countLabel(sourceDomainLabels.length, "domain"),
+          detail: `${sourceDomainLabels.join(", ")} represented in retrieved context.`
+        }
+      : {
+          label: "No domain filter",
+          detail: "The request did not constrain retrieval to a specific domain."
+        };
+  }
+
+  const sourceDomainSet = new Set(sourceDomainLabels);
+  const matchedDomains = request.domainLabels.filter((domainLabel) =>
+    sourceDomainSet.has(domainLabel)
+  );
+  const missingDomains = request.domainLabels.filter(
+    (domainLabel) => !sourceDomainSet.has(domainLabel)
+  );
+
+  return {
+    label: `${matchedDomains.length}/${request.domainLabels.length} domains covered`,
+    detail:
+      missingDomains.length === 0
+        ? `All requested domains are represented: ${matchedDomains.join(", ")}.`
+        : `${matchedDomains.length > 0 ? `${matchedDomains.join(", ")} represented. ` : ""}Missing ${missingDomains.join(", ")}.`
+  };
+}
+
+function buildFallbackChunkRankMap(sources: RetrievalSourceSummary[]) {
+  const chunks = sources.flatMap((source) => source.chunks);
+  const hasCompleteRanks =
+    chunks.length > 0 && chunks.every((chunk) => chunk.rank != null);
+  const sortedChunks = [...chunks].sort(
+    hasCompleteRanks ? sortChunksByRank : sortChunksByScore
+  );
+
+  return new Map(
+    sortedChunks.map((chunk, index) => [
+      chunk.id,
+      hasCompleteRanks ? (chunk.rank ?? index + 1) : index + 1
+    ])
+  );
+}
+
+function normalizeParsedChunkRanks(
+  chunks: ParsedRetrievalChunk[]
+): ParsedRetrievalChunk[] {
+  const hasCompleteRanks =
+    chunks.length > 0 && chunks.every((chunk) => chunk.rank != null);
+
+  return [...chunks]
+    .sort(hasCompleteRanks ? sortParsedChunksByRank : sortParsedChunksByScore)
+    .map((chunk, index) => ({
+      ...chunk,
+      rank: hasCompleteRanks ? (chunk.rank ?? index + 1) : index + 1
+    }));
+}
+
+function buildScoreAdjustment(
+  score: number | null,
+  originalScore: number | null
+) {
+  if (score == null || originalScore == null || score === originalScore) {
+    return null;
+  }
+
+  return score - originalScore;
+}
+
+function buildFallbackSelectionReason({
+  domainMatch,
+  rank,
+  scoreAdjustment
+}: {
+  domainMatch: boolean | null;
+  rank: number | null;
+  scoreAdjustment: number | null;
+}) {
+  const rankLabel = rank != null ? `Ranked #${rank}` : "Selected";
+
+  if (scoreAdjustment != null) {
+    return `${rankLabel} after semantic retrieval and route-specific relevance adjustment.`;
+  }
+
+  if (domainMatch) {
+    return `${rankLabel} for semantic relevance within the requested domain scope.`;
+  }
+
+  if (domainMatch === false) {
+    return `${rankLabel} as cross-domain supporting context.`;
+  }
+
+  return `${rankLabel} by semantic relevance from the official knowledge base.`;
 }
 
 function buildWhyUsedCopy({
@@ -889,6 +1101,17 @@ function sortSourcesByScore(
   return firstSource.title.localeCompare(secondSource.title);
 }
 
+function sortSourcesByRank(
+  firstSource: RetrievalSourceSummary,
+  secondSource: RetrievalSourceSummary
+) {
+  const rankDifference =
+    (firstSource.bestRank ?? Number.MAX_SAFE_INTEGER) -
+    (secondSource.bestRank ?? Number.MAX_SAFE_INTEGER);
+
+  return rankDifference || sortSourcesByScore(firstSource, secondSource);
+}
+
 function sortChunksByScore(
   firstChunk: RetrievalChunkSummary,
   secondChunk: RetrievalChunkSummary
@@ -896,11 +1119,40 @@ function sortChunksByScore(
   return sortScores(firstChunk.score, secondChunk.score) || firstChunk.chunkIndex - secondChunk.chunkIndex;
 }
 
+function sortChunksByRank(
+  firstChunk: RetrievalChunkSummary,
+  secondChunk: RetrievalChunkSummary
+) {
+  const rankDifference =
+    (firstChunk.rank ?? Number.MAX_SAFE_INTEGER) -
+    (secondChunk.rank ?? Number.MAX_SAFE_INTEGER);
+
+  return rankDifference || sortChunksByScore(firstChunk, secondChunk);
+}
+
+function sortParsedChunksByRank(
+  firstChunk: ParsedRetrievalChunk,
+  secondChunk: ParsedRetrievalChunk
+) {
+  const rankDifference =
+    (firstChunk.rank ?? Number.MAX_SAFE_INTEGER) -
+    (secondChunk.rank ?? Number.MAX_SAFE_INTEGER);
+
+  return (
+    rankDifference ||
+    sortScores(firstChunk.score, secondChunk.score) ||
+    firstChunk.chunkIndex - secondChunk.chunkIndex
+  );
+}
+
 function sortParsedChunksByScore(
   firstChunk: ParsedRetrievalChunk,
   secondChunk: ParsedRetrievalChunk
 ) {
-  return sortScores(firstChunk.score, secondChunk.score) || firstChunk.chunkIndex - secondChunk.chunkIndex;
+  return (
+    sortScores(firstChunk.score, secondChunk.score) ||
+    firstChunk.chunkIndex - secondChunk.chunkIndex
+  );
 }
 
 function sortScores(firstScore: number | null, secondScore: number | null) {
@@ -984,6 +1236,10 @@ function readInteger(value: unknown) {
   }
 
   return null;
+}
+
+function readBoolean(value: unknown) {
+  return typeof value === "boolean" ? value : null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

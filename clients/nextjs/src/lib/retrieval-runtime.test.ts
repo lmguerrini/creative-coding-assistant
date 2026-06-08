@@ -19,11 +19,20 @@ describe("retrieval runtime", () => {
         status: "Grounded",
         sourceCount: 2,
         chunkCount: 3,
+        confidence: "medium",
+        confidenceLabel: "Medium confidence",
+        coverageLabel: "2/2 domains covered",
+        usedChunkLabel: "3 chunks used",
         freshnessLabel: "1 stale source",
         warning:
           "1 source is older than the preferred refresh window for shader guidance."
       }
     });
+    expect(
+      buildRetrievalRuntimeModel(snapshot.retrieval, []).sources.flatMap(
+        (source) => source.chunks.map((chunk) => chunk.rank)
+      )
+    ).toEqual([1, 2, 3]);
   });
 
   it("normalizes legacy fallback retrieval requests without requested domains", () => {
@@ -41,6 +50,28 @@ describe("retrieval runtime", () => {
 
     expect(runtime.request.domainLabels).toEqual([]);
     expect(runtime.summary.state).toBe("available");
+  });
+
+  it("rebuilds a complete ranking when a saved session has partial rank metadata", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const partialRankRetrieval = {
+      ...snapshot.retrieval,
+      sources: snapshot.retrieval.sources.map((source, sourceIndex) => ({
+        ...source,
+        chunks: source.chunks.map((chunk, chunkIndex) => ({
+          ...chunk,
+          rank: sourceIndex === 0 && chunkIndex === 0 ? 7 : undefined
+        }))
+      }))
+    };
+
+    const runtime = buildRetrievalRuntimeModel(partialRankRetrieval, []);
+
+    expect(
+      runtime.sources.flatMap((source) =>
+        source.chunks.map((chunk) => chunk.rank)
+      )
+    ).toEqual([1, 2, 3]);
   });
 
   it("hydrates retrieval sources and chunks from streamed retrieval completion events", () => {
@@ -88,7 +119,13 @@ describe("retrieval runtime", () => {
                 chunk_index: 0,
                 excerpt:
                   "The WebGPU API separates device setup and queue submission so compute and render passes can remain isolated.",
-                score: 0.94
+                score: 0.94,
+                rank: 1,
+                original_score: 0.9,
+                score_adjustment: 0.04,
+                domain_match: true,
+                selection_reason:
+                  "Selected after semantic ranking and route-specific generation relevance adjustment."
               },
               {
                 source_id: "webgpu_mdn_api",
@@ -104,7 +141,13 @@ describe("retrieval runtime", () => {
                 chunk_index: 1,
                 excerpt:
                   "Canvas configuration should happen once for each presentation surface to keep preview output stable.",
-                score: 0.86
+                score: 0.86,
+                rank: 2,
+                original_score: 0.86,
+                score_adjustment: null,
+                domain_match: true,
+                selection_reason:
+                  "Selected for semantic relevance within the requested domain scope."
               },
               {
                 source_id: "glsl_language_spec_460",
@@ -120,7 +163,13 @@ describe("retrieval runtime", () => {
                 chunk_index: 7,
                 excerpt:
                   "Explicit types and layout-compatible data flow keep shader state deterministic across stages.",
-                score: 0.72
+                score: 0.72,
+                rank: 3,
+                original_score: 0.72,
+                score_adjustment: null,
+                domain_match: true,
+                selection_reason:
+                  "Selected for semantic relevance within the requested domain scope."
               }
             ]
           },
@@ -137,9 +186,15 @@ describe("retrieval runtime", () => {
       providerLabel: "Official knowledge base",
       sourceCount: 2,
       chunkCount: 3,
+      confidence: "medium",
+      confidenceLabel: "Medium confidence",
+      confidenceDetail: "84% average relevance across 3 scored chunks.",
       qualityLabel: "Top score 94%",
       freshnessLabel: "1 stale source",
-      coverageLabel: "2 domains",
+      coverageLabel: "2/2 domains covered",
+      coverageDetail:
+        "All requested domains are represented: WebGPU / WGSL, GLSL.",
+      usedChunkLabel: "3 chunks used",
       warning: "1 source may be stale."
     });
     expect(runtime.sources[0]).toMatchObject({
@@ -152,7 +207,13 @@ describe("retrieval runtime", () => {
     expect(runtime.sources[0].chunks).toHaveLength(2);
     expect(runtime.sources[0].chunks[0]).toMatchObject({
       chunkIndex: 0,
-      relevanceLabel: "Best match"
+      rank: 1,
+      originalScore: 0.9,
+      scoreAdjustment: 0.04,
+      domainMatch: true,
+      relevanceLabel: "Best match",
+      selectionReason:
+        "Selected after semantic ranking and route-specific generation relevance adjustment."
     });
     expect(runtime.sources[1]).toMatchObject({
       sourceId: "glsl_language_spec_460",
@@ -160,6 +221,73 @@ describe("retrieval runtime", () => {
       freshness: "stale",
       sourceTypeLabel: "Specification"
     });
+  });
+
+  it("derives ranking, reasoning, and low confidence for legacy stream chunks", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const runtime = buildRetrievalRuntimeModel(snapshot.retrieval, [
+      retrievalTraceEvent({
+        code: "retrieval_completed",
+        payload: {
+          context: {
+            source: "official_kb",
+            request: {
+              query: "Find broad motion references.",
+              limit: 2,
+              filters: {}
+            },
+            chunks: [
+              {
+                source_id: "motion_reference",
+                domain: "p5_js",
+                source_type: "guide",
+                publisher: "p5.js",
+                registry_title: "Motion guide",
+                document_title: "Motion guide",
+                source_url: "https://p5js.org/tutorials/",
+                chunk_index: 4,
+                excerpt: "A general motion reference.",
+                score: 0.52
+              },
+              {
+                source_id: "timing_reference",
+                domain: "p5_js",
+                source_type: "api_reference",
+                publisher: "p5.js",
+                registry_title: "Timing reference",
+                document_title: "Timing reference",
+                source_url: "https://p5js.org/reference/",
+                chunk_index: 1,
+                excerpt: "A slightly stronger timing reference.",
+                score: 0.64
+              }
+            ]
+          }
+        },
+        sequence: 4
+      })
+    ]);
+
+    expect(runtime.summary).toMatchObject({
+      confidence: "low",
+      confidenceLabel: "Low confidence",
+      coverageLabel: "1 domain",
+      usedChunkLabel: "2 chunks used"
+    });
+    expect(runtime.sources.flatMap((source) => source.chunks)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          rank: 1,
+          selectionReason:
+            "Ranked #1 by semantic relevance from the official knowledge base."
+        }),
+        expect.objectContaining({
+          rank: 2,
+          selectionReason:
+            "Ranked #2 by semantic relevance from the official knowledge base."
+        })
+      ])
+    );
   });
 
   it("shows a pending retrieval state when a newer request has not completed yet", () => {
