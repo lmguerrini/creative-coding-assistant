@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol
 
@@ -134,6 +135,11 @@ class RetrievedKnowledgeChunk(BaseModel):
     chunk_index: int = Field(ge=0)
     excerpt: str = Field(min_length=1)
     score: float = Field(ge=0, le=1)
+    rank: int | None = Field(default=None, ge=1)
+    original_score: float | None = Field(default=None, ge=0, le=1)
+    score_adjustment: float | None = Field(default=None, ge=-1, le=1)
+    domain_match: bool | None = None
+    selection_reason: str | None = Field(default=None, min_length=1)
 
 
 class RetrievalContextResponse(BaseModel):
@@ -152,6 +158,12 @@ class RetrievalGateway(Protocol):
         """Return orchestration-facing retrieval context for a single request."""
 
 
+@dataclass(frozen=True, slots=True)
+class _RankedRetrievalResult:
+    result: KnowledgeBaseSearchResult
+    original_score: float
+
+
 class KnowledgeBaseRetrievalAdapter:
     """Adapt KB retrieval outputs into orchestration-facing context results."""
 
@@ -168,7 +180,14 @@ class KnowledgeBaseRetrievalAdapter:
             retrieval_response.results,
             request=request,
         )
-        chunks = tuple(_build_retrieved_chunk(result) for result in ranked_results)
+        chunks = tuple(
+            _build_retrieved_chunk(
+                ranked_result,
+                request=request,
+                rank=index,
+            )
+            for index, ranked_result in enumerate(ranked_results, start=1)
+        )
         logger.info(
             "Built orchestration retrieval context with {} chunk(s)",
             len(chunks),
@@ -221,8 +240,15 @@ def _build_kb_retrieval_request(
 
 
 def _build_retrieved_chunk(
-    result: KnowledgeBaseSearchResult,
+    ranked_result: _RankedRetrievalResult,
+    *,
+    request: RetrievalContextRequest,
+    rank: int,
 ) -> RetrievedKnowledgeChunk:
+    result = ranked_result.result
+    score_adjustment = result.score - ranked_result.original_score
+    domain_match = _domain_matches_request(result, request=request)
+
     return RetrievedKnowledgeChunk(
         source_id=result.source_id,
         domain=result.domain,
@@ -235,6 +261,14 @@ def _build_retrieved_chunk(
         chunk_index=result.chunk_index,
         excerpt=result.text,
         score=result.score,
+        rank=rank,
+        original_score=ranked_result.original_score,
+        score_adjustment=score_adjustment if score_adjustment != 0 else None,
+        domain_match=domain_match,
+        selection_reason=_build_selection_reason(
+            domain_match=domain_match,
+            score_adjustment=score_adjustment,
+        ),
     )
 
 
@@ -242,22 +276,68 @@ def _rank_retrieval_results(
     results: tuple[KnowledgeBaseSearchResult, ...],
     *,
     request: RetrievalContextRequest,
-) -> tuple[KnowledgeBaseSearchResult, ...]:
+) -> tuple[_RankedRetrievalResult, ...]:
     if request.route is not RouteName.GENERATE:
-        return results
+        return tuple(
+            _RankedRetrievalResult(result=result, original_score=result.score)
+            for result in results
+        )
 
-    ranked: list[tuple[int, KnowledgeBaseSearchResult]] = []
+    ranked: list[tuple[int, _RankedRetrievalResult]] = []
     changed = False
     for index, result in enumerate(results):
         adjusted = _adjust_p5_generate_result_score(result)
         changed = changed or adjusted.score != result.score
-        ranked.append((index, adjusted))
+        ranked.append(
+            (
+                index,
+                _RankedRetrievalResult(
+                    result=adjusted,
+                    original_score=result.score,
+                ),
+            )
+        )
 
     if not changed:
-        return results
+        return tuple(result for _, result in ranked)
 
-    ranked.sort(key=lambda item: (-item[1].score, item[0]))
+    ranked.sort(key=lambda item: (-item[1].result.score, item[0]))
     return tuple(result for _, result in ranked)
+
+
+def _domain_matches_request(
+    result: KnowledgeBaseSearchResult,
+    *,
+    request: RetrievalContextRequest,
+) -> bool | None:
+    requested_domains = request.filters.domains
+    if not requested_domains:
+        return None
+
+    return result.domain in requested_domains
+
+
+def _build_selection_reason(
+    *,
+    domain_match: bool | None,
+    score_adjustment: float,
+) -> str:
+    if score_adjustment != 0:
+        return (
+            "Selected after semantic ranking and route-specific generation "
+            "relevance adjustment."
+        )
+
+    if domain_match:
+        return "Selected for semantic relevance within the requested domain scope."
+
+    if domain_match is False:
+        return (
+            "Selected for semantic relevance despite falling outside the requested "
+            "domain scope."
+        )
+
+    return "Selected by semantic relevance from the official knowledge base."
 
 
 def _adjust_p5_generate_result_score(

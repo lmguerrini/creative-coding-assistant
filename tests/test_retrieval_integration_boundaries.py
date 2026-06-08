@@ -539,6 +539,14 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
             context.chunks[0].excerpt,
             "PerspectiveCamera defines frustum settings.",
         )
+        self.assertEqual(context.chunks[0].rank, 1)
+        self.assertEqual(context.chunks[0].original_score, 0.909090909)
+        self.assertIsNone(context.chunks[0].score_adjustment)
+        self.assertIsNone(context.chunks[0].domain_match)
+        self.assertEqual(
+            context.chunks[0].selection_reason,
+            "Selected by semantic relevance from the official knowledge base.",
+        )
 
     def test_retrieval_adapter_preserves_multi_domain_filters(self) -> None:
         fake_retriever = _FakeRetriever(
@@ -615,6 +623,14 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
         self.assertEqual(context.chunks[0].source_id, "p5_examples")
         self.assertIn("function setup()", context.chunks[0].excerpt)
         self.assertGreater(context.chunks[0].score, context.chunks[1].score)
+        self.assertEqual([chunk.rank for chunk in context.chunks], [1, 2])
+        self.assertEqual(context.chunks[0].original_score, 0.76)
+        self.assertAlmostEqual(context.chunks[0].score_adjustment or 0, 0.08)
+        self.assertTrue(context.chunks[0].domain_match)
+        self.assertIn(
+            "route-specific generation relevance adjustment",
+            context.chunks[0].selection_reason or "",
+        )
 
     def test_retrieval_adapter_prioritizes_p5_examples_over_weak_reference_chunks(
         self,
@@ -768,6 +784,13 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
                     chunk_index=0,
                     excerpt="AmbientLight adds constant illumination.",
                     score=0.8,
+                    rank=1,
+                    original_score=0.8,
+                    domain_match=True,
+                    selection_reason=(
+                        "Selected for semantic relevance within the requested "
+                        "domain scope."
+                    ),
                 ),
             ),
         )
@@ -815,6 +838,17 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
         self.assertEqual(
             gateway.requests[0].filters.domains,
             (CreativeCodingDomain.THREE_JS,),
+        )
+        completed_context = first_event(
+            events,
+            StreamEventType.RETRIEVAL,
+            "retrieval_completed",
+        ).payload["context"]
+        self.assertEqual(completed_context["chunks"][0]["rank"], 1)
+        self.assertEqual(completed_context["chunks"][0]["domain_match"], True)
+        self.assertIn(
+            "requested domain scope",
+            completed_context["chunks"][0]["selection_reason"],
         )
 
     def test_service_marks_retrieval_completion_with_error_payload_when_gateway_fails(
