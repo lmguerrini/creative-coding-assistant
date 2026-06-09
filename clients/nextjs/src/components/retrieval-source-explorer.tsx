@@ -7,6 +7,7 @@ import type {
   RetrievalExplorerSource,
   RetrievalSourceExplorerModel
 } from "@/lib/retrieval-source-explorer";
+import { KbSourceHealthDashboard } from "./kb-source-health-dashboard";
 
 export function RetrievalSourceExplorer({
   model
@@ -36,6 +37,7 @@ export function RetrievalSourceExplorer({
           <p>{model.contributionLabel}</p>
         </div>
       </header>
+      <KbSourceHealthDashboard model={model.health} />
       <div aria-label="Retrieved sources" className="retrievalSourceList" role="list">
         {model.sources.map((source) => (
           <span key={source.sourceId} role="listitem">
@@ -52,6 +54,12 @@ export function RetrievalSourceExplorer({
                 <code>{source.sourceId}</code>
               </span>
               <span className="retrievalSourceRowMeta">
+                <small
+                  className="kbHealthStatusBadge"
+                  data-health={source.health.status}
+                >
+                  {source.health.statusLabel}
+                </small>
                 <small>{source.contextStatusLabel}</small>
                 <small>{source.rankRangeLabel}</small>
                 <ChevronRight aria-hidden="true" size={14} />
@@ -107,6 +115,7 @@ function RetrievalSourceDetail({ source }: { source: RetrievalExplorerSource }) 
         <SourceMetric label="Global rank" value={source.rankRangeLabel} />
         <SourceMetric label="Context share" value={source.coverageLabel} />
       </div>
+      <SourceHealthDetail source={source} />
       <p className="retrievalCoverageDetail">{source.coverageDetail}</p>
       <p className="retrievalWhyUsed">{source.contextReason}</p>
       <div className="retrievalChunkList" aria-label={`${source.title} chunks`}>
@@ -129,6 +138,65 @@ function RetrievalSourceDetail({ source }: { source: RetrievalExplorerSource }) 
         </a>
       ) : null}
     </article>
+  );
+}
+
+function SourceHealthDetail({ source }: { source: RetrievalExplorerSource }) {
+  const health = source.health;
+
+  return (
+    <section
+      aria-label={`${source.title} source health`}
+      className="kbSourceHealthDetail"
+      data-health={health.status}
+    >
+      <header>
+        <div>
+          <span>Source health</span>
+          <strong>{health.statusLabel}</strong>
+          <p>{health.statusDetail}</p>
+        </div>
+        <div className="kbSourceHealthBadges">
+          <span className="kbHealthStatusBadge" data-health={health.status}>
+            {health.statusLabel}
+          </span>
+          <span
+            className="kbAvailabilityBadge"
+            data-availability={health.availability}
+          >
+            {health.availabilityLabel}
+          </span>
+        </div>
+      </header>
+      <div
+        aria-label={`${source.title} health metrics`}
+        className="kbSourceHealthMetrics"
+        role="list"
+      >
+        <SourceMetric label="Availability" value={health.availabilityLabel} />
+        <SourceMetric label="Freshness" value={health.freshnessLabel} />
+        <SourceMetric label="Domain owner" value={health.domainOwner} />
+        <SourceMetric label="Indexed chunks" value={health.indexedChunkLabel} />
+        <SourceMetric label="Last successful sync" value={health.lastSuccessfulSyncLabel} />
+        <SourceMetric label="Last attempted sync" value={health.lastAttemptedSyncLabel} />
+        <SourceMetric label="Sync outcome" value={health.syncOutcomeLabel} />
+        <SourceMetric label="Source coverage" value={health.coverageLabel} />
+      </div>
+      <p className="kbSourceHealthCoverage">{health.coverageDetail}</p>
+      {health.warnings.length > 0 ? (
+        <div
+          aria-label={`${source.title} health warnings`}
+          className="kbSourceHealthWarnings"
+          role="list"
+        >
+          {health.warnings.map((warning) => (
+            <p key={warning} role="listitem">
+              {warning}
+            </p>
+          ))}
+        </div>
+      ) : null}
+    </section>
   );
 }
 

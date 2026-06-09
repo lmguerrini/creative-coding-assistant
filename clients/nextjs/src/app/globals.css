@@ -5038,6 +5038,168 @@ a {
   line-height: 1.4;
 }
 
+.kbHealthDashboard {
+  overflow: hidden;
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.07), transparent 70%),
+    rgba(255, 255, 255, 0.025);
+}
+
+.kbHealthDashboard summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.kbHealthDashboard summary::-webkit-details-marker {
+  display: none;
+}
+
+.kbHealthDashboard summary > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.kbHealthDashboard summary > div > span,
+.kbSourceHealthDetail header > div > span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.kbHealthDashboard summary strong,
+.kbSourceHealthDetail header strong {
+  color: var(--foreground);
+  font-size: 13px;
+}
+
+.kbHealthDashboard summary p,
+.kbSourceHealthDetail header p,
+.kbSourceHealthCoverage {
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.kbHealthDashboard summary > svg {
+  color: var(--muted);
+  transition: transform 160ms ease;
+}
+
+.kbHealthDashboard[open] summary > svg {
+  color: var(--teal);
+  transform: rotate(180deg);
+}
+
+.kbHealthSummaryMetrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  padding: 0 11px 11px;
+}
+
+.kbHealthSummaryMetric {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.kbHealthSummaryMetric small {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.kbHealthSummaryMetric strong {
+  overflow-wrap: anywhere;
+  color: var(--foreground);
+  font-size: 11px;
+}
+
+.kbHealthStatusBadge {
+  width: fit-content;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.kbHealthStatusBadge[data-health="healthy"] {
+  color: var(--green);
+  border-color: rgba(121, 211, 139, 0.22);
+  background: rgba(121, 211, 139, 0.08);
+}
+
+.kbHealthStatusBadge[data-health="warning"],
+.kbHealthStatusBadge[data-health="stale"] {
+  color: var(--amber);
+  border-color: rgba(243, 184, 82, 0.22);
+  background: rgba(243, 184, 82, 0.08);
+}
+
+.kbHealthStatusBadge[data-health="failed"] {
+  color: var(--coral);
+  border-color: rgba(255, 122, 102, 0.24);
+  background: rgba(255, 122, 102, 0.09);
+}
+
+.kbSourceHealthBadges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.kbAvailabilityBadge {
+  width: fit-content;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.kbAvailabilityBadge[data-availability="available"] {
+  color: var(--green);
+  border-color: rgba(121, 211, 139, 0.18);
+}
+
+.kbAvailabilityBadge[data-availability="degraded"] {
+  color: var(--amber);
+  border-color: rgba(243, 184, 82, 0.2);
+}
+
+.kbAvailabilityBadge[data-availability="unavailable"] {
+  color: var(--coral);
+  border-color: rgba(255, 122, 102, 0.22);
+}
+
 .retrievalSourceList {
   display: grid;
   gap: 6px;
@@ -5111,8 +5273,10 @@ a {
 }
 
 .retrievalSourceRowMeta {
-  grid-template-columns: auto auto auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
   color: var(--muted);
 }
@@ -5215,6 +5379,63 @@ a {
   overflow-wrap: anywhere;
   color: var(--foreground);
   font-size: 11px;
+}
+
+.kbSourceHealthDetail {
+  display: grid;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(7, 12, 18, 0.2);
+}
+
+.kbSourceHealthDetail[data-health="healthy"] {
+  border-color: rgba(121, 211, 139, 0.16);
+}
+
+.kbSourceHealthDetail[data-health="warning"],
+.kbSourceHealthDetail[data-health="stale"] {
+  border-color: rgba(243, 184, 82, 0.18);
+}
+
+.kbSourceHealthDetail[data-health="failed"] {
+  border-color: rgba(255, 122, 102, 0.2);
+}
+
+.kbSourceHealthDetail header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.kbSourceHealthDetail header > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.kbSourceHealthMetrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.kbSourceHealthWarnings {
+  display: grid;
+  gap: 6px;
+}
+
+.kbSourceHealthWarnings p {
+  margin: 0;
+  padding: 8px 9px;
+  border: 1px solid rgba(243, 184, 82, 0.18);
+  border-radius: 10px;
+  color: var(--amber);
+  background: rgba(243, 184, 82, 0.07);
+  font-size: 10px;
+  line-height: 1.4;
 }
 
 .retrievalCoverageDetail {
@@ -6170,11 +6391,35 @@ html[data-cca-theme="blueprint"] .codeViewer {
   .runtimeConsoleGrid,
   .runtimeConsoleMetricGrid,
   .runtimeConsoleHealthSignals,
+  .kbHealthSummaryMetrics,
+  .kbSourceHealthMetrics,
   .previewSurfaceMetaGrid,
   .previewInspectorControlGrid,
   .runtimeConsoleDetails div,
   .previewInspectorCard dl div {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .kbHealthDashboard summary {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .kbHealthDashboard summary > .kbHealthStatusBadge {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .kbHealthDashboard summary > svg {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .retrievalSourceRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .retrievalSourceRowMeta {
+    justify-content: flex-start;
   }
 
   .previewToolbarActions {
