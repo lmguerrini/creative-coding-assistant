@@ -9,6 +9,10 @@ import {
   type AssistantStreamEvent,
   type AssistantStreamEventType
 } from "./assistant-stream";
+import {
+  buildEvaluationSessionModel,
+  type EvaluationSessionModel
+} from "./evaluation-session";
 import type { ProviderTelemetryModel } from "./provider-telemetry";
 import type { RetrievalRuntimeModel } from "./retrieval-runtime";
 import type {
@@ -108,19 +112,7 @@ export type TelemetryObservabilitySummary = {
   tags: string[];
 };
 
-export type TelemetryEvaluationLineage = {
-  state: "available" | "pending" | "unavailable";
-  runId: string | null;
-  datasetId: string | null;
-  metrics: string[];
-  resultRows: number | null;
-  metricFailures: number | null;
-  dryRun: boolean | null;
-  providerCallsAllowed: boolean | null;
-  statusLabel: string;
-  detail: string;
-  latestAt: string | null;
-};
+export type TelemetryEvaluationLineage = EvaluationSessionModel;
 
 export type TelemetryArtifactRuntimeLink = {
   activeArtifactId: string;
@@ -172,18 +164,6 @@ type ObservabilityRecord = {
   tags: string[];
 };
 
-type EvaluationRecord = {
-  runId: string | null;
-  datasetId: string | null;
-  metrics: string[];
-  resultRows: number | null;
-  metricFailures: number | null;
-  dryRun: boolean | null;
-  providerCallsAllowed: boolean | null;
-  status: string | null;
-  detail: string | null;
-};
-
 type PreviewRuntimeRecord = {
   artifact: string | null;
   error: string | null;
@@ -233,7 +213,7 @@ export function buildTelemetryDashboardModel({
   const preview = buildPreviewHealth(snapshot.preview, traceEvents);
   const retrieval = buildRetrievalActivity(retrievalRuntime);
   const observability = buildObservabilitySummary(traceEvents);
-  const evaluation = buildEvaluationLineage(traceEvents, observability);
+  const evaluation = buildEvaluationSessionModel(traceEvents, observability);
   const artifactLink = buildArtifactRuntimeLink({
     activeArtifact,
     preview: snapshot.preview
@@ -452,64 +432,6 @@ function buildObservabilitySummary(
   };
 }
 
-function buildEvaluationLineage(
-  traceEvents: WorkflowRuntimeTraceEvent[],
-  observability: TelemetryObservabilitySummary
-): TelemetryEvaluationLineage {
-  const latest = findLatestEvaluationRecord(traceEvents);
-  if (latest) {
-    return {
-      state: "available",
-      runId: latest.record.runId,
-      datasetId: latest.record.datasetId,
-      metrics: latest.record.metrics,
-      resultRows: latest.record.resultRows,
-      metricFailures: latest.record.metricFailures,
-      dryRun: latest.record.dryRun,
-      providerCallsAllowed: latest.record.providerCallsAllowed,
-      statusLabel: latest.record.status ?? "Evaluation lineage captured",
-      detail:
-        latest.record.detail ??
-        (latest.record.datasetId
-          ? `Dataset ${latest.record.datasetId}`
-          : "Evaluation event captured in the stream."),
-      latestAt: latest.at
-    };
-  }
-
-  if (observability.traceKind === "ragas_evaluation") {
-    return {
-      state: "available",
-      runId: null,
-      datasetId: null,
-      metrics: [],
-      resultRows: null,
-      metricFailures: null,
-      dryRun: null,
-      providerCallsAllowed: null,
-      statusLabel: "RAGAs trace linked",
-      detail: "Evaluation lineage is available through the LangSmith trace metadata.",
-      latestAt: observability.latestAt
-    };
-  }
-
-  return {
-    state: traceEvents.length > 0 ? "pending" : "unavailable",
-    runId: null,
-    datasetId: null,
-    metrics: [],
-    resultRows: null,
-    metricFailures: null,
-    dryRun: null,
-    providerCallsAllowed: null,
-    statusLabel:
-      traceEvents.length > 0 ? "No eval event in stream" : "No evaluation run",
-    detail:
-      "RAGAs lineage appears here when eval_update events or linked eval traces are available.",
-    latestAt: null
-  };
-}
-
 function buildArtifactRuntimeLink({
   activeArtifact,
   preview
@@ -648,7 +570,14 @@ function buildSignals({
         evaluation.metrics.length > 0
           ? evaluation.metrics.join(", ")
           : evaluation.detail,
-      tone: evaluation.state === "available" ? "good" : "neutral"
+      tone:
+        evaluation.outcome === "fail"
+          ? "danger"
+          : evaluation.outcome === "warn"
+            ? "warning"
+            : evaluation.outcome === "pass"
+              ? "good"
+              : "neutral"
     }
   ];
 }
@@ -691,20 +620,6 @@ function findLatestObservabilityRecord(traceEvents: WorkflowRuntimeTraceEvent[])
   return null;
 }
 
-function findLatestEvaluationRecord(traceEvents: WorkflowRuntimeTraceEvent[]) {
-  for (let index = traceEvents.length - 1; index >= 0; index -= 1) {
-    const event = traceEvents[index];
-    const record = parseEvaluationRecord(event.event);
-    if (record) {
-      return {
-        at: readEventTimestamp(event.event) ?? event.receivedAt,
-        record
-      };
-    }
-  }
-  return null;
-}
-
 function parsePreviewRuntimeRecord(value: unknown): PreviewRuntimeRecord | null {
   if (!isRecord(value)) {
     return null;
@@ -735,47 +650,6 @@ function parseObservabilityRecord(value: unknown): ObservabilityRecord | null {
     enabled: readBoolean(value.enabled),
     requested: readBoolean(value.requested),
     tags: readStringArray(value.tags)
-  };
-}
-
-function parseEvaluationRecord(event: AssistantStreamEvent): EvaluationRecord | null {
-  if (event.event_type !== "eval_update") {
-    return null;
-  }
-
-  const payload = event.payload;
-  const record =
-    readRecord(payload.evaluation) ??
-    readRecord(payload.ragas) ??
-    readRecord(payload.result) ??
-    payload;
-  const dataset = readRecord(record.dataset);
-  const observability = readRecord(record.observability) ?? readRecord(record.langsmith);
-  const observabilityMetadata = readRecord(observability?.metadata);
-
-  return {
-    runId:
-      readString(record.run_id) ??
-      readString(record.runId) ??
-      readString(observabilityMetadata?.run_id),
-    datasetId:
-      readString(record.dataset_id) ??
-      readString(record.datasetId) ??
-      readString(dataset?.dataset_id) ??
-      readString(dataset?.datasetId),
-    metrics:
-      readStringArray(record.metrics).length > 0
-        ? readStringArray(record.metrics)
-        : readStringArray(dataset?.metrics),
-    resultRows: readNumber(record.result_rows) ?? readNumber(record.resultRows),
-    metricFailures:
-      readNumber(record.metric_failures) ?? readNumber(record.metricFailures),
-    dryRun: readOptionalBoolean(record.dry_run) ?? readOptionalBoolean(record.dryRun),
-    providerCallsAllowed:
-      readOptionalBoolean(record.provider_calls_allowed) ??
-      readOptionalBoolean(record.providerCallsAllowed),
-    status: readString(record.status) ?? readString(payload.code),
-    detail: readString(record.detail) ?? readString(payload.message)
   };
 }
 
@@ -970,10 +844,6 @@ function readString(value: unknown): string | null {
 
 function readBoolean(value: unknown): boolean {
   return value === true;
-}
-
-function readOptionalBoolean(value: unknown): boolean | null {
-  return typeof value === "boolean" ? value : null;
 }
 
 function readNumber(value: unknown): number | null {

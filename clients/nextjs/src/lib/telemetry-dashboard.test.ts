@@ -49,7 +49,11 @@ describe("telemetry dashboard model", () => {
           dataset_id: "dataset-1",
           dry_run: true,
           metric_failures: 0,
-          metrics: ["context_precision"],
+          metric_scores: {
+            answer_relevancy: 0.9,
+            context_precision: 0.84,
+            faithfulness: 0.79
+          },
           provider_calls_allowed: false,
           result_rows: 2,
           run_id: "eval-run-1",
@@ -95,7 +99,14 @@ describe("telemetry dashboard model", () => {
       runId: "eval-run-1",
       datasetId: "dataset-1",
       resultRows: 2,
-      metricFailures: 0
+      metricFailures: 0,
+      evaluationType: "RAGAs",
+      outcome: "pass"
+    });
+    expect(model.evaluation.score).toBeCloseTo(0.843);
+    expect(model.evaluation.signals.find((signal) => signal.id === "answer")).toMatchObject({
+      score: 0.9,
+      outcome: "pass"
     });
     expect(model.signals.map((signal) => signal.label)).toContain("LangSmith");
     expect(model.summary.coverageLabel).toMatch(/telemetry domains populated/);
@@ -113,7 +124,9 @@ describe("telemetry dashboard model", () => {
     });
     expect(model.evaluation).toMatchObject({
       state: "unavailable",
-      statusLabel: "No evaluation run"
+      statusLabel: "No evaluation run",
+      score: null,
+      outcome: "unscored"
     });
     expect(model.provider.summary.costLabel).toBe("Cost pending");
   });
