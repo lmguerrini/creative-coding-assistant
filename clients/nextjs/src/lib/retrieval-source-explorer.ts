@@ -3,6 +3,11 @@ import type {
   RetrievalQuality,
   RetrievalSourceSummary
 } from "./assistant-client";
+import {
+  buildKbSourceHealthDashboardModel,
+  type KbSourceHealthDashboardModel,
+  type KbSourceHealthSource
+} from "./kb-source-health";
 import type { RetrievalRuntimeModel } from "./retrieval-runtime";
 
 export type RetrievalExplorerChunk = RetrievalChunkSummary & {
@@ -12,8 +17,12 @@ export type RetrievalExplorerChunk = RetrievalChunkSummary & {
   contextStatusLabel: string;
 };
 
-export type RetrievalExplorerSource = Omit<RetrievalSourceSummary, "chunks"> & {
+export type RetrievalExplorerSource = Omit<
+  RetrievalSourceSummary,
+  "chunks" | "health"
+> & {
   chunks: RetrievalExplorerChunk[];
+  health: KbSourceHealthSource;
   selectedForContext: boolean;
   contextStatusLabel: string;
   chunkCountLabel: string;
@@ -27,6 +36,7 @@ export type RetrievalExplorerSource = Omit<RetrievalSourceSummary, "chunks"> & {
 
 export type RetrievalSourceExplorerModel = {
   sources: RetrievalExplorerSource[];
+  health: KbSourceHealthDashboardModel;
   selectedSourceCount: number;
   ignoredSourceCount: number;
   overviewLabel: string;
@@ -36,6 +46,7 @@ export type RetrievalSourceExplorerModel = {
 export function buildRetrievalSourceExplorerModel(
   runtime: RetrievalRuntimeModel
 ): RetrievalSourceExplorerModel {
+  const health = buildKbSourceHealthDashboardModel(runtime);
   const totalUsedChunks = runtime.sources.reduce(
     (total, source) =>
       total +
@@ -43,8 +54,13 @@ export function buildRetrievalSourceExplorerModel(
     0
   );
   const topContributorId = findTopContributorId(runtime.sources);
-  const sources = runtime.sources.map((source) =>
-    buildExplorerSource(source, totalUsedChunks, topContributorId)
+  const sources = runtime.sources.map((source, index) =>
+    buildExplorerSource(
+      source,
+      totalUsedChunks,
+      topContributorId,
+      health.sources[index]!
+    )
   );
   const selectedSourceCount = sources.filter(
     (source) => source.selectedForContext
@@ -54,6 +70,7 @@ export function buildRetrievalSourceExplorerModel(
 
   return {
     sources,
+    health,
     selectedSourceCount,
     ignoredSourceCount,
     overviewLabel: [
@@ -71,7 +88,8 @@ export function buildRetrievalSourceExplorerModel(
 function buildExplorerSource(
   source: RetrievalSourceSummary,
   totalUsedChunks: number,
-  topContributorId: string | null
+  topContributorId: string | null,
+  health: KbSourceHealthSource
 ): RetrievalExplorerSource {
   const chunks = source.chunks.map((chunk) => buildExplorerChunk(chunk, source));
   const usedChunkCount = chunks.filter((chunk) => chunk.usedInContext).length;
@@ -87,6 +105,7 @@ function buildExplorerSource(
   return {
     ...source,
     chunks,
+    health,
     selectedForContext,
     contextStatusLabel: selectedForContext
       ? "Selected for context"

@@ -2,7 +2,11 @@ import type {
   RetrievalChunkSummary,
   RetrievalFreshness,
   RetrievalQuality,
+  RetrievalSourceAvailability,
+  RetrievalSourceHealthMetadata,
+  RetrievalSourceHealthStatus,
   RetrievalSourceSummary,
+  RetrievalSourceSyncOutcome,
   RetrievalSummary
 } from "./assistant-client";
 import { readEventTimestamp, type AssistantStreamEvent } from "./assistant-stream";
@@ -80,6 +84,7 @@ type ParsedRetrievalChunk = {
   domainMatch: boolean | null;
   selectionReason: string | null;
   usedInContext: boolean | null;
+  health: RetrievalSourceHealthMetadata | null;
 };
 
 type ParsedRetrievalContext = {
@@ -502,6 +507,11 @@ function buildRuntimeSourceSummary(
   const topChunk = sortedChunks[0] ?? null;
   const topScore = topChunk?.score ?? baseSource?.score ?? null;
   const quality = baseSource?.quality ?? deriveQualityFromScore(topScore);
+  const health = topChunk?.health ?? baseSource?.health ?? null;
+  const freshness =
+    normalizeRetrievalFreshness(health?.freshnessStatus) ??
+    baseSource?.freshness ??
+    "unknown";
 
   return {
     sourceId: topChunk?.sourceId ?? baseSource?.sourceId ?? "unknown_source",
@@ -523,10 +533,10 @@ function buildRuntimeSourceSummary(
     score: topScore,
     quality,
     qualityLabel: buildQualityLabel(quality, topScore),
-    freshness: baseSource?.freshness ?? "unknown",
+    freshness,
     freshnessLabel:
       baseSource?.freshnessLabel ??
-      buildFreshnessLabel(baseSource?.freshness ?? "unknown"),
+      buildFreshnessLabel(freshness),
     updatedAt: baseSource?.updatedAt ?? null,
     whyUsed:
       baseSource?.whyUsed ??
@@ -544,6 +554,7 @@ function buildRuntimeSourceSummary(
     selectedForContext: sortedChunks.some(
       (chunk) => chunk.usedInContext !== false
     ),
+    health,
     chunks: sortedChunks.map((chunk, index) => ({
       id: `${chunk.sourceId}::chunk-${String(chunk.chunkIndex).padStart(4, "0")}`,
       chunkIndex: chunk.chunkIndex,
@@ -682,8 +693,64 @@ function parseRetrievalChunk(rawChunk: unknown): ParsedRetrievalChunk | null {
     scoreAdjustment: readNumber(rawChunk.score_adjustment),
     domainMatch: readBoolean(rawChunk.domain_match),
     selectionReason: readText(rawChunk.selection_reason),
-    usedInContext: readBoolean(rawChunk.used_in_context)
+    usedInContext: readBoolean(rawChunk.used_in_context),
+    health: parseRetrievalSourceHealth(rawChunk)
   };
+}
+
+function parseRetrievalSourceHealth(
+  rawChunk: Record<string, unknown>
+): RetrievalSourceHealthMetadata | null {
+  const rawHealth =
+    readRecord(rawChunk.source_health) ??
+    readRecord(rawChunk.kb_source_health) ??
+    readRecord(rawChunk.health);
+  const health = rawHealth ?? rawChunk;
+  const rawSync = readRecord(health.sync);
+  const rawSource = readRecord(health.source);
+  const status = normalizeRetrievalHealthStatus(
+    readText(health.health_status) ?? readText(health.status)
+  );
+  const freshnessStatus = normalizeRetrievalFreshness(
+    readText(health.freshness_status) ?? readText(health.freshness)
+  );
+  const availability =
+    normalizeRetrievalAvailability(readText(health.availability)) ??
+    availabilityFromBoolean(readBoolean(health.available));
+  const syncOutcome = normalizeRetrievalSyncOutcome(
+    readText(health.sync_outcome) ??
+      readText(health.sync_status) ??
+      readText(rawSync?.sync_status)
+  );
+  const warnings = readStringArray(health.warnings ?? rawSync?.warnings);
+  const metadata: RetrievalSourceHealthMetadata = {
+    status,
+    freshnessStatus,
+    availability,
+    domainOwner:
+      readText(health.domain_owner) ??
+      readText(rawSource?.domain_owner) ??
+      readText(rawSource?.owner),
+    indexedChunkCount:
+      readInteger(health.indexed_chunk_count) ??
+      readInteger(health.chunk_count) ??
+      readInteger(rawSync?.chunk_count),
+    lastSuccessfulSyncAt:
+      readText(health.last_successful_sync_at) ??
+      readText(health.last_synced_at) ??
+      readText(rawSync?.last_synced_at),
+    lastAttemptedSyncAt:
+      readText(health.last_attempted_sync_at) ??
+      readText(health.requested_at) ??
+      readText(rawSync?.requested_at),
+    syncOutcome,
+    refreshRecommended:
+      readBoolean(health.refresh_recommended) ?? null,
+    checkedAt: readText(health.checked_at),
+    warnings
+  };
+
+  return rawHealth || hasHealthMetadata(metadata) ? metadata : null;
 }
 
 function buildRuntimeRequest(
@@ -1254,6 +1321,82 @@ function readInteger(value: unknown) {
 
 function readBoolean(value: unknown) {
   return typeof value === "boolean" ? value : null;
+}
+
+function readStringArray(value: unknown) {
+  return Array.isArray(value)
+    ? value
+        .map((item) => readText(item))
+        .filter((item): item is string => item !== null)
+    : [];
+}
+
+function readRecord(value: unknown) {
+  return isRecord(value) ? value : null;
+}
+
+function normalizeRetrievalHealthStatus(
+  value: unknown
+): RetrievalSourceHealthStatus | "sync_failed" | null {
+  return value === "healthy" ||
+    value === "warning" ||
+    value === "stale" ||
+    value === "failed" ||
+    value === "sync_failed" ||
+    value === "unknown"
+    ? value
+    : null;
+}
+
+function normalizeRetrievalFreshness(value: unknown): RetrievalFreshness | null {
+  return value === "fresh" || value === "stale" || value === "unknown"
+    ? value
+    : null;
+}
+
+function normalizeRetrievalAvailability(
+  value: unknown
+): RetrievalSourceAvailability | null {
+  return value === "available" ||
+    value === "degraded" ||
+    value === "unavailable" ||
+    value === "unknown"
+    ? value
+    : null;
+}
+
+function normalizeRetrievalSyncOutcome(
+  value: unknown
+): RetrievalSourceSyncOutcome | null {
+  return value === "succeeded" ||
+    value === "failed" ||
+    value === "pending" ||
+    value === "unknown"
+    ? value
+    : null;
+}
+
+function availabilityFromBoolean(
+  value: boolean | null
+): RetrievalSourceAvailability | null {
+  if (value === true) {
+    return "available";
+  }
+
+  if (value === false) {
+    return "unavailable";
+  }
+
+  return null;
+}
+
+function hasHealthMetadata(metadata: RetrievalSourceHealthMetadata) {
+  return Object.values(metadata).some(
+    (value) =>
+      value !== null &&
+      value !== undefined &&
+      (!Array.isArray(value) || value.length > 0)
+  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

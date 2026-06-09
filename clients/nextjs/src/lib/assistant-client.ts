@@ -169,6 +169,39 @@ export type RetrievalQuality = "high" | "medium" | "low" | "unknown";
 
 export type RetrievalFreshness = "fresh" | "stale" | "unknown";
 
+export type RetrievalSourceHealthStatus =
+  | "healthy"
+  | "warning"
+  | "stale"
+  | "failed"
+  | "unknown";
+
+export type RetrievalSourceAvailability =
+  | "available"
+  | "degraded"
+  | "unavailable"
+  | "unknown";
+
+export type RetrievalSourceSyncOutcome =
+  | "succeeded"
+  | "failed"
+  | "pending"
+  | "unknown";
+
+export type RetrievalSourceHealthMetadata = {
+  status?: RetrievalSourceHealthStatus | "sync_failed" | null;
+  freshnessStatus?: RetrievalFreshness | null;
+  availability?: RetrievalSourceAvailability | null;
+  domainOwner?: string | null;
+  indexedChunkCount?: number | null;
+  lastSuccessfulSyncAt?: string | null;
+  lastAttemptedSyncAt?: string | null;
+  syncOutcome?: RetrievalSourceSyncOutcome | null;
+  refreshRecommended?: boolean | null;
+  checkedAt?: string | null;
+  warnings?: string[] | null;
+};
+
 export type RetrievalChunkSummary = {
   id: string;
   chunkIndex: number;
@@ -204,6 +237,7 @@ export type RetrievalSourceSummary = {
   chunks: RetrievalChunkSummary[];
   bestRank?: number | null;
   selectedForContext?: boolean | null;
+  health?: RetrievalSourceHealthMetadata | null;
 };
 
 export type RetrievalSummary = {
@@ -778,7 +812,20 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
               snippet:
                 "GPUCanvasContext configuration should be applied once per presentation surface so preview updates stay predictable during iteration."
             }
-          ]
+          ],
+          health: {
+            status: "healthy",
+            freshnessStatus: "fresh",
+            availability: "available",
+            domainOwner: "Web platform / MDN",
+            indexedChunkCount: 184,
+            lastSuccessfulSyncAt: "2026-05-20T08:30:00Z",
+            lastAttemptedSyncAt: "2026-05-20T08:30:00Z",
+            syncOutcome: "succeeded",
+            refreshRecommended: false,
+            checkedAt: "2026-06-09T08:30:00Z",
+            warnings: []
+          }
         },
         {
           sourceId: "glsl_language_spec_460",
@@ -810,7 +857,20 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
               snippet:
                 "Explicit shader types and layout-compatible data flow keep buffer-backed particle pipelines deterministic across stages."
             }
-          ]
+          ],
+          health: {
+            status: "stale",
+            freshnessStatus: "stale",
+            availability: "available",
+            domainOwner: "Graphics standards / Khronos Group",
+            indexedChunkCount: 96,
+            lastSuccessfulSyncAt: "2025-10-12T09:00:00Z",
+            lastAttemptedSyncAt: "2025-10-12T09:00:00Z",
+            syncOutcome: "succeeded",
+            refreshRecommended: true,
+            checkedAt: "2026-06-09T08:30:00Z",
+            warnings: ["Source exceeds the preferred shader guidance refresh window."]
+          }
         }
       ]
     },
