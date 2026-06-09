@@ -3159,6 +3159,7 @@ a {
 .runtimeConsoleCard header span,
 .runtimeConsoleDetails dt,
 .runtimeConsoleMetricGrid span,
+.runtimeConsoleHealthSignals span,
 .runtimeConsoleEvent p,
 .runtimeConsoleHero small,
 .runtimeConsoleEvent small {
@@ -3173,6 +3174,7 @@ a {
 .runtimeConsoleHero strong,
 .runtimeConsoleCard header strong,
 .runtimeConsoleMetricGrid strong,
+.runtimeConsoleHealthSignals strong,
 .runtimeConsoleEvent strong,
 .runtimeConsoleEmptyCard strong {
   color: var(--foreground);
@@ -3183,6 +3185,7 @@ a {
 .runtimeConsoleHero p,
 .runtimeConsoleDetails dd,
 .runtimeConsoleEvent > span,
+.runtimeConsoleHealth > p,
 .runtimeConsoleEmptyCard p,
 .runtimeConsoleMuted,
 .runtimeConsoleAlert {
@@ -3202,6 +3205,18 @@ a {
   grid-column: 1 / -1;
 }
 
+.runtimeConsoleHealth[data-tone="success"] {
+  border-color: rgba(var(--accent-rgb), 0.22);
+}
+
+.runtimeConsoleHealth[data-tone="warning"] {
+  border-color: rgba(243, 184, 82, 0.22);
+}
+
+.runtimeConsoleHealth[data-tone="danger"] {
+  border-color: rgba(255, 122, 102, 0.24);
+}
+
 .runtimeConsoleCard header {
   display: flex;
   align-items: flex-start;
@@ -3213,6 +3228,21 @@ a {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
+}
+
+.runtimeConsoleHealthSignals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.runtimeConsoleHealthSignals div {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
 }
 
 .runtimeConsoleMetricGrid div,
@@ -3281,6 +3311,32 @@ a {
 }
 
 .runtimeConsoleAlert {
+  color: var(--coral);
+}
+
+.runtimeConsoleDiagnosticList {
+  display: grid;
+  gap: 7px;
+}
+
+.runtimeConsoleDiagnosticList p {
+  margin: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 11px;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.45;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.runtimeConsoleDiagnosticList[data-tone="warning"] p {
+  border-color: rgba(243, 184, 82, 0.18);
+  color: var(--amber);
+}
+
+.runtimeConsoleDiagnosticList[data-tone="danger"] p {
+  border-color: rgba(255, 122, 102, 0.2);
   color: var(--coral);
 }
 
@@ -6113,6 +6169,7 @@ html[data-cca-theme="blueprint"] .codeViewer {
   .workflowTraceLayout,
   .runtimeConsoleGrid,
   .runtimeConsoleMetricGrid,
+  .runtimeConsoleHealthSignals,
   .previewSurfaceMetaGrid,
   .previewInspectorControlGrid,
   .runtimeConsoleDetails div,

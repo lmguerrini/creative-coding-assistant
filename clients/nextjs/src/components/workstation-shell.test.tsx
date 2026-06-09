@@ -854,7 +854,7 @@ describe("WorkstationShell", () => {
       within(runtimePanel).getByRole("group", { name: "Runtime console empty state" })
     ).toHaveTextContent("No runtime activity yet");
     expect(
-      within(runtimePanel).queryByRole("group", { name: "Runtime lifecycle events" })
+      within(runtimePanel).queryByRole("group", { name: "Runtime event history" })
     ).not.toBeInTheDocument();
     expect(
       within(runtimePanel).queryByRole("group", { name: "Runtime metrics" })
@@ -2569,7 +2569,7 @@ describe("WorkstationShell", () => {
     expect(within(surface).getByText("16.0 ms")).toBeVisible();
   });
 
-  it("shows runtime console metrics and lifecycle events for a live preview runtime", async () => {
+  it("shows runtime diagnostics, metrics, and event history for a live preview runtime", async () => {
     renderShell(snapshotWithP5Preview());
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
@@ -2624,18 +2624,27 @@ describe("WorkstationShell", () => {
     const context = within(runtimePanel).getByRole("group", {
       name: "Runtime context"
     });
-    const lifecycle = within(runtimePanel).getByRole("group", {
-      name: "Runtime lifecycle events"
+    const health = within(runtimePanel).getByRole("group", {
+      name: "Runtime health"
+    });
+    const eventHistory = within(runtimePanel).getByRole("group", {
+      name: "Runtime event history"
     });
 
     expect(metrics).toHaveTextContent("Running");
     expect(metrics).toHaveTextContent("63 fps");
     expect(metrics).toHaveTextContent("16.0 ms");
-    expect(metrics).toHaveTextContent("Nominal");
+    expect(metrics).toHaveTextContent("Healthy");
+    expect(metrics).toHaveTextContent("Uptime");
+    expect(metrics).toHaveTextContent("Reloads");
+    expect(metrics).toHaveTextContent("Execution");
+    expect(health).toHaveTextContent("Healthy");
+    expect(health).toHaveTextContent("frame delivery is within the expected budget");
     expect(context).toHaveTextContent("Browser preview");
     expect(context).toHaveTextContent("p5.js");
-    expect(lifecycle).toHaveTextContent("Preview Runtime Running");
-    expect(lifecycle).toHaveTextContent("Preview Runtime Frame");
+    expect(eventHistory).toHaveTextContent("Start");
+    expect(eventHistory).toHaveTextContent("p5 runtime running");
+    expect(eventHistory).not.toHaveTextContent("First preview frame rendered");
   });
 
   it("mounts supported Three.js artifacts into a controlled 3D runtime", async () => {
@@ -2769,13 +2778,17 @@ describe("WorkstationShell", () => {
     const diagnostics = within(runtimePanel).getByRole("group", {
       name: "Runtime diagnostics"
     });
-    const lifecycle = within(runtimePanel).getByRole("group", {
-      name: "Runtime lifecycle events"
+    const health = within(runtimePanel).getByRole("group", {
+      name: "Runtime health"
+    });
+    const eventHistory = within(runtimePanel).getByRole("group", {
+      name: "Runtime event history"
     });
 
-    expect(diagnostics).toHaveTextContent("Attention needed");
+    expect(health).toHaveTextContent("Failed");
+    expect(diagnostics).toHaveTextContent("1 active");
     expect(diagnostics).toHaveTextContent("WebGL is unavailable in the preview frame.");
-    expect(lifecycle).toHaveTextContent("Preview Runtime Error");
+    expect(eventHistory).toHaveTextContent("Error");
 
     const failedRuntimeId = frame.dataset.runtimeId;
     fireEvent.click(
@@ -2793,7 +2806,13 @@ describe("WorkstationShell", () => {
       state: "running"
     });
 
-    expect(lifecycle).toHaveTextContent("Preview Runtime Reload Requested");
+    const reloadHistory = within(runtimePanel).getByRole("group", {
+      name: "Runtime reload history"
+    });
+
+    expect(reloadHistory).toHaveTextContent("1 reload");
+    expect(reloadHistory).toHaveTextContent("Reload requested");
+    expect(eventHistory).toHaveTextContent("Reload");
   });
 
   it("shows a stable GLSL runtime error from the preview frame", async () => {
