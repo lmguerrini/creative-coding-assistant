@@ -156,6 +156,8 @@ function buildDashboard(
 
   return buildTelemetryDashboardModel({
     activeArtifact: snapshot.artifacts[0],
+    creativeCostHistory: [],
+    draftPrompt: "",
     providerTelemetry,
     retrievalRuntime,
     snapshot,

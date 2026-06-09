@@ -119,6 +119,10 @@ import {
   type ProviderTelemetryModel
 } from "@/lib/provider-telemetry";
 import {
+  buildCreativeCostRunRecord,
+  type CreativeCostRunRecord
+} from "@/lib/creative-cost-intelligence";
+import {
   buildTelemetryDashboardModel,
   type TelemetryDashboardModel
 } from "@/lib/telemetry-dashboard";
@@ -170,6 +174,7 @@ import {
 } from "@/lib/workstation-errors";
 import { buildZipArchive, downloadZipArchive } from "@/lib/zip-archive";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
+import { CreativeCostIntelligenceDashboard } from "./creative-cost-intelligence-dashboard";
 import { EvaluationSessionDashboard } from "./evaluation-session-dashboard";
 import { LangSmithTraceDeepDive } from "./langsmith-trace-deep-dive";
 import { ProviderObservabilityDeepDive } from "./provider-observability-deep-dive";
@@ -387,6 +392,9 @@ export function WorkstationShell({
   const [streamEvents, setStreamEvents] = useState(initialSnapshot.debug.events);
   const [workflowTraceEvents, setWorkflowTraceEvents] = useState<
     WorkflowRuntimeTraceEvent[]
+  >([]);
+  const [creativeCostRunHistory, setCreativeCostRunHistory] = useState<
+    CreativeCostRunRecord[]
   >([]);
   const [previewRuntimeLive, setPreviewRuntimeLive] =
     useState<RuntimeConsoleLiveSnapshot | null>(null);
@@ -861,6 +869,21 @@ export function WorkstationShell({
     () => buildProviderTelemetryModel(workflowTraceEvents),
     [workflowTraceEvents]
   );
+  useEffect(() => {
+    const completedRun = buildCreativeCostRunRecord({
+      providerTelemetry,
+      traceEvents: workflowTraceEvents
+    });
+    if (!completedRun) {
+      return;
+    }
+
+    setCreativeCostRunHistory((currentHistory) =>
+      currentHistory.some((run) => run.id === completedRun.id)
+        ? currentHistory
+        : [...currentHistory, completedRun]
+    );
+  }, [providerTelemetry, workflowTraceEvents]);
   const retrievalRuntime = useMemo(
     () => buildRetrievalRuntimeModel(interactiveSnapshot.retrieval, workflowTraceEvents),
     [interactiveSnapshot.retrieval, workflowTraceEvents]
@@ -869,6 +892,8 @@ export function WorkstationShell({
     () =>
       buildTelemetryDashboardModel({
         activeArtifact,
+        creativeCostHistory: creativeCostRunHistory,
+        draftPrompt: composerValue,
         providerTelemetry,
         retrievalRuntime,
         snapshot: interactiveSnapshot,
@@ -877,6 +902,8 @@ export function WorkstationShell({
       }),
     [
       activeArtifact,
+      composerValue,
+      creativeCostRunHistory,
       interactiveSnapshot,
       providerTelemetry,
       retrievalRuntime,
@@ -4092,6 +4119,10 @@ function TelemetryInspector({
         </article>
 
         <ProviderObservabilityDeepDive telemetry={dashboard.provider} />
+
+        <CreativeCostIntelligenceDashboard
+          intelligence={dashboard.creativeCost}
+        />
 
         <article
           aria-label="Runtime lifecycle"

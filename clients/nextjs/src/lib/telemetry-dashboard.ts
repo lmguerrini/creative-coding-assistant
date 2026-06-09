@@ -14,6 +14,11 @@ import {
   type EvaluationSessionModel
 } from "./evaluation-session";
 import {
+  buildCreativeCostIntelligenceModel,
+  type CreativeCostIntelligenceModel,
+  type CreativeCostRunRecord
+} from "./creative-cost-intelligence";
+import {
   buildLangSmithTraceModel,
   type LangSmithTraceModel
 } from "./langsmith-trace";
@@ -145,11 +150,14 @@ export type TelemetryDashboardModel = {
   observability: TelemetryObservabilitySummary;
   langsmithTrace: LangSmithTraceModel;
   evaluation: TelemetryEvaluationLineage;
+  creativeCost: CreativeCostIntelligenceModel;
   artifactLink: TelemetryArtifactRuntimeLink;
 };
 
 export type BuildTelemetryDashboardModelInput = {
   activeArtifact: ArtifactSummary;
+  creativeCostHistory: CreativeCostRunRecord[];
+  draftPrompt: string;
   providerTelemetry: ProviderTelemetryModel;
   retrievalRuntime: RetrievalRuntimeModel;
   snapshot: AssistantWorkspaceSnapshot;
@@ -207,6 +215,8 @@ const allStreamEventTypes: AssistantStreamEventType[] = [
 
 export function buildTelemetryDashboardModel({
   activeArtifact,
+  creativeCostHistory,
+  draftPrompt,
   providerTelemetry,
   retrievalRuntime,
   snapshot,
@@ -220,6 +230,13 @@ export function buildTelemetryDashboardModel({
   const observability = buildObservabilitySummary(traceEvents);
   const langsmithTrace = buildLangSmithTraceModel(traceEvents);
   const evaluation = buildEvaluationSessionModel(traceEvents, observability);
+  const creativeCost = buildCreativeCostIntelligenceModel({
+    draftPrompt,
+    providerTelemetry,
+    retrievalChunkCount: retrievalRuntime.summary.chunkCount,
+    runHistory: creativeCostHistory,
+    traceEvents
+  });
   const artifactLink = buildArtifactRuntimeLink({
     activeArtifact,
     preview: snapshot.preview
@@ -268,6 +285,7 @@ export function buildTelemetryDashboardModel({
     observability,
     langsmithTrace,
     evaluation,
+    creativeCost,
     artifactLink
   };
 }

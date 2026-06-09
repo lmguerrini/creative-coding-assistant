@@ -4924,6 +4924,191 @@ a {
   font-size: 9px;
 }
 
+.creativeCostDashboard {
+  gap: 14px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(243, 184, 82, 0.08), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(var(--accent-rgb), 0.07), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent),
+    var(--panel-soft);
+}
+
+.creativeCostHeader > div {
+  min-width: 0;
+}
+
+.creativeCostHeader p {
+  margin: 4px 0 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.creativeCostCoverage {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.creativeCostCoverage[data-coverage="complete"] {
+  border-color: rgba(121, 211, 139, 0.25);
+  color: var(--green);
+  background: rgba(121, 211, 139, 0.06);
+}
+
+.creativeCostCoverage[data-coverage="partial"] {
+  border-color: rgba(243, 184, 82, 0.25);
+  color: var(--amber);
+  background: rgba(243, 184, 82, 0.06);
+}
+
+.creativeCostSections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.creativeCostSection {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 13px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.creativeCostSection--wide {
+  grid-column: 1 / -1;
+}
+
+.creativeCostSection[data-state="ready"],
+.creativeCostSection[data-state="complete"] {
+  border-color: rgba(121, 211, 139, 0.18);
+}
+
+.creativeCostSection[data-state="pricing_unavailable"] {
+  border-color: rgba(243, 184, 82, 0.18);
+}
+
+.creativeCostSection > header,
+.creativeCostSection > header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.creativeCostSection > header {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.creativeCostSection > header span,
+.creativeCostSection dt {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.creativeCostSection > header strong {
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.creativeCostSection > header small {
+  max-width: 180px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.35;
+  text-align: right;
+}
+
+.creativeCostSection > p {
+  min-height: 31px;
+}
+
+.creativeCostSection dl,
+.creativeCostSessionMetrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.creativeCostSection .creativeCostSessionMetrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.creativeCostSection dl div {
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.creativeCostSection dd {
+  margin: 3px 0 0;
+  color: var(--foreground);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.creativeCostAssumptions {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.creativeCostAssumptions li {
+  position: relative;
+  padding-left: 11px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.creativeCostAssumptions li::before {
+  position: absolute;
+  top: 0.48em;
+  left: 1px;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.7);
+  content: "";
+}
+
+.creativeCostRunContext {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.creativeCostRunContext span {
+  padding: 4px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 9px;
+  line-height: 1.2;
+}
+
 .telemetryEventPills {
   display: flex;
   flex-wrap: wrap;
@@ -7816,6 +8001,9 @@ html[data-cca-theme="blueprint"] .codeViewer {
   .previewInspectorCard dl div,
   .providerObservabilityDetailGrid,
   .providerExecutionColumns,
+  .creativeCostSections,
+  .creativeCostSection dl,
+  .creativeCostSection .creativeCostSessionMetrics,
   .langsmithTraceOverview,
   .langsmithTraceMetadataGrid,
   .evaluationSessionOverview,
