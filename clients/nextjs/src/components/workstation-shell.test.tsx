@@ -4298,6 +4298,13 @@ describe("WorkstationShell", () => {
     expect(within(providerDeepDive).getByText("780 ms")).toBeVisible();
     expect(within(providerDeepDive).getByText("0 retries")).toBeVisible();
     expect(within(providerDeepDive).getByText("Stream completed")).toBeVisible();
+    const creativeCost = within(dashboard).getByRole("group", {
+      name: "Creative cost intelligence dashboard"
+    });
+    expect(within(creativeCost).getByText("Session cost unavailable")).toBeVisible();
+    expect(within(creativeCost).getByText("120 tokens")).toBeVisible();
+    expect(within(creativeCost).getByText("30 tokens")).toBeVisible();
+    expect(within(creativeCost).getByText("1 completed run")).toBeVisible();
     expect(
       within(dashboard).getByRole("group", { name: "Runtime lifecycle" })
     ).toBeVisible();
