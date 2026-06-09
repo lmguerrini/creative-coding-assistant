@@ -94,6 +94,12 @@ describe("telemetry dashboard model", () => {
       traceId: "trace-langsmith-123456",
       projectName: "creative-prod"
     });
+    expect(model.langsmithTrace).toMatchObject({
+      state: "linked",
+      status: "complete",
+      traceId: "trace-langsmith-123456",
+      projectName: "creative-prod"
+    });
     expect(model.evaluation).toMatchObject({
       state: "available",
       runId: "eval-run-1",
@@ -121,6 +127,11 @@ describe("telemetry dashboard model", () => {
     expect(model.observability).toMatchObject({
       state: "unavailable",
       traceId: null
+    });
+    expect(model.langsmithTrace).toMatchObject({
+      state: "unavailable",
+      traceId: null,
+      spans: []
     });
     expect(model.evaluation).toMatchObject({
       state: "unavailable",
