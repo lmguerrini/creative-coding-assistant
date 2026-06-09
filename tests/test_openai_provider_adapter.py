@@ -239,12 +239,43 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
             "openai",
         )
         self.assertEqual(
+            token_events[0].payload["telemetry"]["execution"]["generation_mode"],
+            "streaming",
+        )
+        self.assertTrue(
+            token_events[0].payload["telemetry"]["execution"]["streaming"],
+        )
+        self.assertEqual(
+            token_events[0].payload["telemetry"]["execution"]["streaming_status"],
+            "active",
+        )
+        self.assertEqual(
             final_event.payload["telemetry"]["provider"]["model"],
             "gpt-5-mini",
         )
         self.assertEqual(
             final_event.payload["telemetry"]["token_usage"]["total_tokens"],
             105,
+        )
+        self.assertEqual(
+            final_event.payload["telemetry"]["execution"]["streaming_status"],
+            "completed",
+        )
+        self.assertEqual(
+            final_event.payload["telemetry"]["execution"]["retry_count"],
+            0,
+        )
+        self.assertGreaterEqual(
+            final_event.payload["telemetry"]["execution"]["request_duration_ms"],
+            0,
+        )
+        self.assertIn(
+            "request_started_at",
+            final_event.payload["telemetry"]["execution"],
+        )
+        self.assertIn(
+            "request_completed_at",
+            final_event.payload["telemetry"]["execution"],
         )
 
     def test_service_emits_error_and_failure_answer_on_provider_error(self) -> None:
@@ -276,6 +307,23 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
         final_event = first_event(events, StreamEventType.FINAL)
 
         self.assertEqual(error_event.payload["code"], "provider_unavailable")
+        self.assertEqual(
+            error_event.payload["telemetry"]["execution"]["generation_mode"],
+            "streaming",
+        )
+        self.assertEqual(
+            error_event.payload["telemetry"]["execution"]["streaming_status"],
+            "failed",
+        )
+        self.assertEqual(
+            error_event.payload["telemetry"]["execution"]["errors"],
+            [
+                {
+                    "code": "provider_unavailable",
+                    "message": "Provider unavailable.",
+                }
+            ],
+        )
         self.assertIn("Generation failed", final_event.payload["answer"])
         self.assertIn("provider_unavailable", final_event.payload["answer"])
 
