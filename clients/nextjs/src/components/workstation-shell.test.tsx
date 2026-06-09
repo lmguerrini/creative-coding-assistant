@@ -4311,14 +4311,21 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
 
     const langsmith = within(dashboard).getByRole("group", {
-      name: "LangSmith observability"
+      name: "LangSmith trace deep dive"
     });
     const evaluation = within(dashboard).getByRole("group", {
       name: "Evaluation session dashboard"
     });
 
-    expect(within(langsmith).getByText("Requested")).toBeVisible();
+    expect(within(langsmith).getByText("Local trace metadata")).toBeVisible();
+    expect(within(langsmith).getByLabelText("Trace status Complete")).toBeVisible();
     expect(within(langsmith).getByText("missing_api_key")).toBeVisible();
+    expect(
+      within(langsmith).getByRole("region", {
+        name: "LangSmith trace hierarchy"
+      })
+    ).toBeVisible();
+    expect(within(langsmith).getAllByText("Intake")).toHaveLength(2);
     expect(within(evaluation).getByText("Evaluation complete")).toBeVisible();
     expect(within(evaluation).getByText("82%")).toBeVisible();
     expect(

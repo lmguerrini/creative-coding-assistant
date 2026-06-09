@@ -171,6 +171,7 @@ import {
 import { buildZipArchive, downloadZipArchive } from "@/lib/zip-archive";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
 import { EvaluationSessionDashboard } from "./evaluation-session-dashboard";
+import { LangSmithTraceDeepDive } from "./langsmith-trace-deep-dive";
 import { ProviderObservabilityDeepDive } from "./provider-observability-deep-dive";
 import { RetrievalInspector } from "./retrieval-inspector";
 import { RuntimeConsoleInspector } from "./runtime-console-inspector";
@@ -4191,33 +4192,7 @@ function TelemetryInspector({
           </small>
         </article>
 
-        <article
-          aria-label="LangSmith observability"
-          className="telemetryDashboardCard"
-          data-state={dashboard.observability.state}
-          role="group"
-        >
-          <header>
-            <span>LangSmith</span>
-            <strong>{formatObservabilityDashboardState(dashboard.observability.state)}</strong>
-          </header>
-          <dl>
-            <div>
-              <dt>Trace</dt>
-              <dd>{dashboard.observability.traceId ?? "Not linked"}</dd>
-            </div>
-            <div>
-              <dt>Project</dt>
-              <dd>{dashboard.observability.projectName ?? "Local only"}</dd>
-            </div>
-          </dl>
-          <p>{dashboard.observability.traceKind ?? "Optional tracing unavailable."}</p>
-          <small>
-            {dashboard.observability.reason ??
-              dashboard.observability.status ??
-              "No LangSmith metadata in stream"}
-          </small>
-        </article>
+        <LangSmithTraceDeepDive trace={dashboard.langsmithTrace} />
 
         <EvaluationSessionDashboard evaluation={dashboard.evaluation} />
 
@@ -5859,21 +5834,6 @@ function formatDashboardStatusLabel(status: TelemetryDashboardModel["status"]) {
       return "Running";
     default:
       return "Idle";
-  }
-}
-
-function formatObservabilityDashboardState(
-  state: TelemetryDashboardModel["observability"]["state"]
-) {
-  switch (state) {
-    case "linked":
-      return "Linked";
-    case "requested":
-      return "Requested";
-    case "disabled":
-      return "Disabled";
-    default:
-      return "Unavailable";
   }
 }
 

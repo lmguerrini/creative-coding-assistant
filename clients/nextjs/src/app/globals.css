@@ -4078,6 +4078,393 @@ a {
   border-color: rgba(121, 211, 139, 0.22);
 }
 
+.langsmithTraceCard {
+  gap: 14px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top right, rgba(121, 211, 139, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
+    var(--panel-soft);
+}
+
+.langsmithTraceCard[data-state="local"] {
+  border-color: rgba(243, 184, 82, 0.22);
+}
+
+.langsmithTraceCard[data-state="linked"] {
+  border-color: rgba(121, 211, 139, 0.24);
+}
+
+.langsmithTraceHeader {
+  align-items: flex-start;
+}
+
+.langsmithTraceHeader > div {
+  min-width: 0;
+}
+
+.langsmithTraceHeader > div > span,
+.langsmithTraceHierarchy > header span,
+.langsmithTraceMetadata > header span,
+.langsmithTraceOverview span {
+  display: block;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.langsmithTraceHeader > div > strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--foreground);
+  font-size: 18px;
+  letter-spacing: -0.025em;
+}
+
+.langsmithTraceHeader p {
+  max-width: 54ch;
+  margin-top: 5px;
+}
+
+.langsmithTraceStatus {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.langsmithTraceStatus[data-status="complete"] {
+  border-color: rgba(121, 211, 139, 0.26);
+  color: #9be7a9;
+  background: rgba(121, 211, 139, 0.06);
+}
+
+.langsmithTraceStatus[data-status="running"] {
+  border-color: rgba(var(--accent-rgb), 0.26);
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.06);
+}
+
+.langsmithTraceStatus[data-status="error"] {
+  border-color: rgba(255, 122, 102, 0.28);
+  color: #ff9d8d;
+  background: rgba(255, 122, 102, 0.06);
+}
+
+.langsmithTraceStatus[data-status="disabled"] {
+  border-color: rgba(243, 184, 82, 0.25);
+  color: #f3c978;
+  background: rgba(243, 184, 82, 0.055);
+}
+
+.langsmithTraceEmpty,
+.langsmithTraceHierarchyEmpty {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.langsmithTraceEmpty strong,
+.langsmithTraceHierarchyEmpty strong {
+  color: var(--foreground);
+  font-size: 12px;
+}
+
+.langsmithTraceEmpty p,
+.langsmithTraceHierarchyEmpty p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.langsmithTraceOverview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.langsmithTraceOverview > div {
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.langsmithTraceOverview > div:first-child {
+  grid-column: 1 / -1;
+}
+
+.langsmithTraceOverview strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.langsmithTraceIdentity,
+.langsmithTraceTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.langsmithTraceIdentity span,
+.langsmithTraceTags span {
+  padding: 4px 7px;
+  border: 1px solid rgba(var(--accent-rgb), 0.16);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(var(--accent-rgb), 0.035);
+  font-size: 9px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.langsmithTraceHierarchy,
+.langsmithTraceMetadata {
+  display: grid;
+  gap: 9px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.langsmithTraceHierarchy > header,
+.langsmithTraceMetadata > header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.langsmithTraceHierarchy > header strong,
+.langsmithTraceMetadata > header strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--foreground);
+  font-size: 13px;
+}
+
+.langsmithTraceHierarchy > header small,
+.langsmithTraceMetadata > header small {
+  color: var(--muted);
+  font-size: 9px;
+  text-align: right;
+}
+
+.langsmithTraceHierarchy ol {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.langsmithTraceSpan {
+  --trace-depth: 0;
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+  margin-left: calc(var(--trace-depth) * 12px);
+}
+
+.langsmithTraceRail {
+  position: relative;
+  display: grid;
+  justify-items: center;
+}
+
+.langsmithTraceRail::after {
+  position: absolute;
+  top: 16px;
+  bottom: -8px;
+  width: 1px;
+  background: rgba(var(--accent-rgb), 0.18);
+  content: "";
+}
+
+.langsmithTraceSpan:last-child .langsmithTraceRail::after {
+  display: none;
+}
+
+.langsmithTraceRail span {
+  z-index: 1;
+  width: 8px;
+  height: 8px;
+  margin-top: 13px;
+  border: 2px solid var(--panel);
+  border-radius: 999px;
+  background: var(--muted);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.langsmithTraceSpan[data-status="complete"] .langsmithTraceRail span {
+  background: #79d38b;
+  box-shadow: 0 0 0 1px rgba(121, 211, 139, 0.22);
+}
+
+.langsmithTraceSpan[data-status="running"] .langsmithTraceRail span {
+  background: var(--teal);
+  box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.45);
+}
+
+.langsmithTraceSpan[data-status="error"] .langsmithTraceRail span {
+  background: #ff7a66;
+  box-shadow: 0 0 0 1px rgba(255, 122, 102, 0.24);
+}
+
+.langsmithTraceSpanBody {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.langsmithTraceSpan[data-depth="1"] .langsmithTraceSpanBody,
+.langsmithTraceSpan[data-depth="2"] .langsmithTraceSpanBody,
+.langsmithTraceSpan[data-depth="3"] .langsmithTraceSpanBody,
+.langsmithTraceSpan[data-depth="4"] .langsmithTraceSpanBody {
+  background: rgba(var(--accent-rgb), 0.028);
+}
+
+.langsmithTraceSpanBody > header {
+  align-items: baseline;
+}
+
+.langsmithTraceSpanBody > header div {
+  min-width: 0;
+}
+
+.langsmithTraceSpanBody > header strong {
+  display: block;
+  color: var(--foreground);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.langsmithTraceSpanBody > header span,
+.langsmithTraceSpanBody > header small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.langsmithTraceSpanMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.langsmithTraceSpanMeta span {
+  padding: 3px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  overflow-wrap: anywhere;
+}
+
+.langsmithTraceSpanBody > p {
+  padding: 6px 7px;
+  border-left: 2px solid rgba(var(--accent-rgb), 0.3);
+  border-radius: 0 7px 7px 0;
+  background: rgba(var(--accent-rgb), 0.035);
+  color: var(--muted-strong);
+  font-size: 9px;
+}
+
+.langsmithTraceSpanBody > p strong {
+  color: var(--foreground);
+}
+
+.langsmithTraceMetadataGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.langsmithTraceMetadataGroup {
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.langsmithTraceMetadataGroup > header {
+  align-items: center;
+}
+
+.langsmithTraceMetadataGroup > header strong {
+  color: var(--muted-strong);
+  font-size: 10px;
+}
+
+.langsmithTraceMetadataGroup > header span {
+  display: grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.langsmithTraceMetadataGroup dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.langsmithTraceMetadataGroup dl div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 0;
+  background: transparent;
+}
+
+.langsmithTraceMetadataGroup dd {
+  max-width: 64%;
+  margin-top: 0;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-align: right;
+}
+
+.langsmithTraceMetadataEmpty {
+  padding: 10px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
 .evaluationSessionDashboard {
   gap: 12px;
   overflow: hidden;
@@ -7360,6 +7747,9 @@ html[data-cca-theme="blueprint"] .codeViewer {
   .artifactDetailHeader,
   .runtimeConsoleCard header,
   .artifactItemHeader,
+  .langsmithTraceHeader,
+  .langsmithTraceHierarchy > header,
+  .langsmithTraceMetadata > header,
   .codePanelHeader {
     align-items: flex-start;
     grid-template-columns: minmax(0, 1fr);
@@ -7426,6 +7816,8 @@ html[data-cca-theme="blueprint"] .codeViewer {
   .previewInspectorCard dl div,
   .providerObservabilityDetailGrid,
   .providerExecutionColumns,
+  .langsmithTraceOverview,
+  .langsmithTraceMetadataGrid,
   .evaluationSessionOverview,
   .evaluationSessionMeta,
   .evaluationSignalGrid {
@@ -7433,6 +7825,10 @@ html[data-cca-theme="blueprint"] .codeViewer {
   }
 
   .evaluationSignalCard:last-child {
+    grid-column: auto;
+  }
+
+  .langsmithTraceOverview > div:first-child {
     grid-column: auto;
   }
 
