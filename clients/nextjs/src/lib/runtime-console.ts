@@ -19,6 +19,15 @@ export type RuntimeConsoleTone =
   | "warning"
   | "danger";
 
+export type RuntimeConsoleHealthSignal = "healthy" | "degraded" | "failed";
+
+export type RuntimeConsoleEventKind =
+  | "start"
+  | "stop"
+  | "reload"
+  | "warning"
+  | "error";
+
 export type RuntimeConsoleLiveSnapshot = {
   kind: PreviewExecutableRuntimeKind;
   route: PreviewRendererRoute;
@@ -31,6 +40,7 @@ export type RuntimeConsoleLiveSnapshot = {
 
 export type RuntimeConsoleEvent = {
   id: string;
+  kind: RuntimeConsoleEventKind;
   label: string;
   detail: string;
   at: string;
@@ -43,7 +53,15 @@ export type RuntimeConsoleEvent = {
 };
 
 export type RuntimeConsoleMetric = {
-  id: "status" | "fps" | "frameTime" | "frames" | "health" | "lastFrame";
+  id:
+    | "status"
+    | "fps"
+    | "frameTime"
+    | "frames"
+    | "health"
+    | "uptime"
+    | "reloadCount"
+    | "executionDuration";
   label: string;
   value: string;
   tone: RuntimeConsoleTone;
@@ -65,6 +83,15 @@ export type RuntimeConsoleModel = {
   metrics: RuntimeConsoleMetric[];
   diagnostics: readonly string[];
   latestError: string | null;
+  health: {
+    signal: RuntimeConsoleHealthSignal;
+    label: string;
+    explanation: string;
+    tone: RuntimeConsoleTone;
+  };
+  warnings: readonly string[];
+  errors: readonly string[];
+  reloadHistory: RuntimeConsoleEvent[];
   events: RuntimeConsoleEvent[];
   context: {
     artifactName: string;
@@ -76,6 +103,12 @@ export type RuntimeConsoleModel = {
     supportLabel: string;
     targetLabel: string;
   };
+};
+
+type RuntimeConsoleTiming = {
+  uptimeMs: number | null;
+  reloadCount: number;
+  executionDurationMs: number | null;
 };
 
 export function buildRuntimeConsoleModel({
@@ -92,7 +125,7 @@ export function buildRuntimeConsoleModel({
   traceEvents: WorkflowRuntimeTraceEvent[];
 }): RuntimeConsoleModel {
   const events = buildRuntimeConsoleEvents(traceEvents);
-  const latestEvent = events[0] ?? null;
+  const latestEvent = events.at(-1) ?? null;
   const latestTraceState = extractLatestRuntimeState(traceEvents);
   const latestTraceError = extractLatestRuntimeError(traceEvents);
   const diagnostics =
@@ -107,6 +140,30 @@ export function buildRuntimeConsoleModel({
         ? latestTraceError
         : null;
   const hasRuntimeActivity = liveRuntime !== null || events.length > 0;
+  const health = buildRuntimeConsoleHealth({
+    diagnostics,
+    health: liveRuntime?.metrics.health ?? null,
+    latestError,
+    runtimeState: liveRuntime?.status.state ?? latestTraceState
+  });
+  const warnings = buildRuntimeWarnings({
+    diagnostics,
+    events,
+    health: liveRuntime?.metrics.health ?? null,
+    latestError
+  });
+  const errors = uniqueDiagnosticText([
+    ...events
+      .filter((event) => event.kind === "error")
+      .map((event) => event.detail),
+    latestError
+  ]);
+  const reloadHistory = events.filter((event) => event.kind === "reload");
+  const timing = buildRuntimeTiming({
+    events,
+    liveRuntime,
+    runtimeState: liveRuntime?.status.state ?? latestTraceState
+  });
   const runtimeTypeLabel =
     liveRuntime != null
       ? formatRuntimeKindLabel(liveRuntime.kind)
@@ -157,12 +214,17 @@ export function buildRuntimeConsoleModel({
         sessionLabel
       },
       metrics: buildRuntimeConsoleMetrics({
+        health,
         liveRuntime,
         latestEventState: null,
-        latestHealth: null
+        timing
       }),
       diagnostics,
       latestError,
+      health,
+      warnings,
+      errors,
+      reloadHistory,
       events,
       context: {
         artifactName: route.selectedArtifactName,
@@ -179,7 +241,6 @@ export function buildRuntimeConsoleModel({
 
   const runtimeState =
     liveRuntime?.status.state ?? latestTraceState ?? "idle";
-  const health = liveRuntime?.metrics.health ?? deriveHealthFromState(runtimeState, latestError);
   const title =
     latestError != null
       ? "Runtime issue detected"
@@ -210,16 +271,21 @@ export function buildRuntimeConsoleModel({
       eyebrow: "Runtime console",
       title,
       detail,
-      tone: toneForHealth(health),
+      tone: health.tone,
       sessionLabel
     },
     metrics: buildRuntimeConsoleMetrics({
+      health,
       liveRuntime,
       latestEventState: runtimeState,
-      latestHealth: health
+      timing
     }),
     diagnostics,
     latestError,
+    health,
+    warnings,
+    errors,
+    reloadHistory,
     events,
     context: {
       artifactName: liveRuntime?.route.selectedArtifactName ?? route.selectedArtifactName,
@@ -242,8 +308,6 @@ function buildRuntimeConsoleEvents(
 ): RuntimeConsoleEvent[] {
   return traceEvents
     .filter((traceEvent) => isPreviewRuntimeTraceEvent(traceEvent))
-    .slice(-8)
-    .reverse()
     .map((traceEvent) => {
       const payload = traceEvent.event.payload;
       const previewRuntime = readRecord(payload.preview_runtime);
@@ -258,10 +322,16 @@ function buildRuntimeConsoleEvents(
         readText(payload.message) ??
         errorMessage ??
         "Preview runtime event recorded.";
+      const kind = classifyRuntimeEvent(code, runtimeState, errorMessage);
+
+      if (!kind) {
+        return null;
+      }
 
       return {
         id: `${traceEvent.event.sequence}-${code}`,
-        label: humanizeRuntimeCode(code),
+        kind,
+        label: formatRuntimeEventKindLabel(kind),
         detail,
         at: traceEvent.receivedAt,
         atLabel: formatRuntimeConsoleTime(traceEvent.receivedAt),
@@ -271,24 +341,30 @@ function buildRuntimeConsoleEvents(
         artifactName: readText(previewRuntime?.artifact) ?? null,
         runtimeTypeLabel: formatRuntimeKindLabelFromValue(readText(previewRuntime?.kind))
       };
+    })
+    .filter((event): event is RuntimeConsoleEvent => event !== null)
+    .sort((left, right) => {
+      const timestampDifference = Date.parse(left.at) - Date.parse(right.at);
+
+      return Number.isNaN(timestampDifference) ? 0 : timestampDifference;
     });
 }
 
 function buildRuntimeConsoleMetrics({
+  health,
   liveRuntime,
   latestEventState,
-  latestHealth
+  timing
 }: {
+  health: RuntimeConsoleModel["health"];
   liveRuntime: RuntimeConsoleLiveSnapshot | null;
   latestEventState: PreviewRuntimeLifecycleState | "reloading" | null;
-  latestHealth: PreviewRuntimeHealth | null;
+  timing: RuntimeConsoleTiming;
 }): RuntimeConsoleMetric[] {
   const fps = liveRuntime?.metrics.fps ?? null;
   const frameTimeMs = liveRuntime?.metrics.frameTimeMs ?? null;
   const frameCount = liveRuntime?.metrics.frameCount ?? null;
-  const lastFrameAtMs = liveRuntime?.metrics.lastFrameAtMs ?? null;
   const runtimeState = liveRuntime?.status.state ?? latestEventState;
-  const health = liveRuntime?.metrics.health ?? latestHealth;
 
   return [
     {
@@ -308,13 +384,13 @@ function buildRuntimeConsoleMetrics({
       id: "fps",
       label: "FPS",
       value: fps != null ? `${Math.round(fps)} fps` : "Waiting",
-      tone: health ? toneForHealth(health) : "neutral"
+      tone: health.tone
     },
     {
       id: "frameTime",
       label: "Frame time",
       value: frameTimeMs != null ? `${frameTimeMs.toFixed(1)} ms` : "Waiting",
-      tone: health ? toneForHealth(health) : "neutral"
+      tone: health.tone
     },
     {
       id: "frames",
@@ -325,16 +401,203 @@ function buildRuntimeConsoleMetrics({
     {
       id: "health",
       label: "Health",
-      value: health ? formatHealthLabel(health) : "Pending",
-      tone: health ? toneForHealth(health) : "neutral"
+      value: health.label,
+      tone: health.tone
     },
     {
-      id: "lastFrame",
-      label: "Last frame",
-      value: lastFrameAtMs != null ? `${Math.round(lastFrameAtMs)} ms` : "Awaiting frame",
-      tone: lastFrameAtMs != null ? "active" : "neutral"
+      id: "uptime",
+      label: "Uptime",
+      value: formatRuntimeDuration(timing.uptimeMs),
+      tone: timing.uptimeMs != null ? "active" : "neutral"
+    },
+    {
+      id: "reloadCount",
+      label: "Reloads",
+      value: String(timing.reloadCount),
+      tone: timing.reloadCount > 0 ? "warning" : "neutral"
+    },
+    {
+      id: "executionDuration",
+      label: "Execution",
+      value: formatRuntimeDuration(timing.executionDurationMs),
+      tone: timing.executionDurationMs != null ? "active" : "neutral"
     }
   ];
+}
+
+function buildRuntimeConsoleHealth({
+  diagnostics,
+  health,
+  latestError,
+  runtimeState
+}: {
+  diagnostics: readonly string[];
+  health: PreviewRuntimeHealth | null;
+  latestError: string | null;
+  runtimeState: PreviewRuntimeLifecycleState | "reloading" | null;
+}): RuntimeConsoleModel["health"] {
+  if (latestError || health === "failed" || runtimeState === "error") {
+    return {
+      signal: "failed",
+      label: "Failed",
+      explanation:
+        latestError ??
+        diagnostics[0] ??
+        "The preview renderer stopped after reporting a runtime error.",
+      tone: "danger"
+    };
+  }
+
+  if (health === "nominal" && runtimeState === "running") {
+    return {
+      signal: "healthy",
+      label: "Healthy",
+      explanation:
+        "The renderer is running and frame delivery is within the expected budget.",
+      tone: "success"
+    };
+  }
+
+  return {
+    signal: "degraded",
+    label: "Degraded",
+    explanation:
+      diagnostics[0] ??
+      (runtimeState === "starting" || runtimeState === "reloading"
+        ? "The renderer is warming up and has not established stable frame delivery yet."
+        : runtimeState === "idle"
+          ? "The renderer is inactive, so live health metrics are unavailable."
+          : "The renderer is active, but stable frame metrics are not available yet."),
+    tone: "warning"
+  };
+}
+
+function buildRuntimeWarnings({
+  diagnostics,
+  events,
+  health,
+  latestError
+}: {
+  diagnostics: readonly string[];
+  events: RuntimeConsoleEvent[];
+  health: PreviewRuntimeHealth | null;
+  latestError: string | null;
+}) {
+  const eventWarnings = events
+    .filter((event) => event.kind === "warning")
+    .map((event) => event.detail);
+  const healthWarnings =
+    latestError == null &&
+    (health === "warming" || health === "stressed" || health === "degraded")
+      ? diagnostics
+      : [];
+
+  return uniqueText([...eventWarnings, ...healthWarnings]);
+}
+
+function buildRuntimeTiming({
+  events,
+  liveRuntime,
+  runtimeState
+}: {
+  events: RuntimeConsoleEvent[];
+  liveRuntime: RuntimeConsoleLiveSnapshot | null;
+  runtimeState: PreviewRuntimeLifecycleState | "reloading" | null;
+}): RuntimeConsoleTiming {
+  const timedEvents = events
+    .map((event) => ({
+      event,
+      atMs: Date.parse(event.at)
+    }))
+    .filter((entry) => Number.isFinite(entry.atMs));
+  const startEvents = timedEvents.filter((entry) => entry.event.kind === "start");
+  const firstStartAtMs = startEvents[0]?.atMs ?? null;
+  const latestStartAtMs = startEvents.at(-1)?.atMs ?? null;
+  const latestEventAtMs = timedEvents.at(-1)?.atMs ?? null;
+  const liveUpdatedAtMs = liveRuntime ? Date.parse(liveRuntime.updatedAt) : Number.NaN;
+  const observedAtMs = Number.isFinite(liveUpdatedAtMs)
+    ? Math.max(liveUpdatedAtMs, latestEventAtMs ?? liveUpdatedAtMs)
+    : latestEventAtMs;
+  const latestTerminalAtMs =
+    timedEvents
+      .filter(
+        (entry) =>
+          entry.event.kind === "stop" ||
+          entry.event.kind === "reload" ||
+          entry.event.kind === "error"
+      )
+      .at(-1)?.atMs ?? null;
+  const isLive =
+    runtimeState === "running" &&
+    latestStartAtMs != null &&
+    (latestTerminalAtMs == null || latestStartAtMs >= latestTerminalAtMs);
+
+  return {
+    uptimeMs:
+      isLive && observedAtMs != null
+        ? Math.max(observedAtMs - latestStartAtMs, 0)
+        : null,
+    reloadCount: events.filter((event) => event.kind === "reload").length,
+    executionDurationMs:
+      firstStartAtMs != null && observedAtMs != null
+        ? Math.max(observedAtMs - firstStartAtMs, 0)
+        : null
+  };
+}
+
+function classifyRuntimeEvent(
+  code: string,
+  runtimeState: string | undefined,
+  errorMessage: string | undefined
+): RuntimeConsoleEventKind | null {
+  const normalizedCode = code.toLowerCase();
+
+  if (normalizedCode.includes("frame")) {
+    return null;
+  }
+
+  if (
+    errorMessage ||
+    runtimeState === "error" ||
+    normalizedCode.includes("error") ||
+    normalizedCode.includes("failed")
+  ) {
+    return "error";
+  }
+
+  if (normalizedCode.includes("reload")) {
+    return "reload";
+  }
+
+  if (normalizedCode.includes("warning") || normalizedCode.includes("warn")) {
+    return "warning";
+  }
+
+  if (
+    runtimeState === "idle" ||
+    normalizedCode.includes("stopped") ||
+    normalizedCode.endsWith("_stop") ||
+    normalizedCode.endsWith("_idle")
+  ) {
+    return "stop";
+  }
+
+  if (
+    runtimeState === "starting" ||
+    runtimeState === "running" ||
+    normalizedCode.includes("starting") ||
+    normalizedCode.includes("started") ||
+    normalizedCode.includes("running") ||
+    normalizedCode.includes("recovered")
+  ) {
+    return "start";
+  }
+
+  return null;
+}
+
+function formatRuntimeEventKindLabel(kind: RuntimeConsoleEventKind) {
+  return kind.replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
 function buildRuntimeConsoleBadge(
@@ -391,10 +654,13 @@ function extractLatestRuntimeState(
 
 function extractLatestRuntimeDiagnostics(traceEvents: WorkflowRuntimeTraceEvent[]) {
   for (let index = traceEvents.length - 1; index >= 0; index -= 1) {
-    const previewRuntime = readRecord(traceEvents[index]?.event.payload.preview_runtime);
+    const payload = traceEvents[index]?.event.payload;
+    const previewRuntime = readRecord(payload?.preview_runtime);
     const diagnostics = Array.isArray(previewRuntime?.diagnostics)
       ? previewRuntime.diagnostics.filter((value): value is string => typeof value === "string")
-      : [];
+      : Array.isArray(payload?.diagnostics)
+        ? payload.diagnostics.filter((value): value is string => typeof value === "string")
+        : [];
 
     if (diagnostics.length > 0) {
       return diagnostics.slice(0, 3);
@@ -406,8 +672,10 @@ function extractLatestRuntimeDiagnostics(traceEvents: WorkflowRuntimeTraceEvent[
 
 function extractLatestRuntimeError(traceEvents: WorkflowRuntimeTraceEvent[]) {
   for (let index = traceEvents.length - 1; index >= 0; index -= 1) {
-    const previewRuntime = readRecord(traceEvents[index]?.event.payload.preview_runtime);
-    const errorMessage = readText(previewRuntime?.error);
+    const payload = traceEvents[index]?.event.payload;
+    const previewRuntime = readRecord(payload?.preview_runtime);
+    const errorMessage =
+      readText(previewRuntime?.error) ?? readText(payload?.error_message);
 
     if (errorMessage) {
       return errorMessage;
@@ -415,25 +683,6 @@ function extractLatestRuntimeError(traceEvents: WorkflowRuntimeTraceEvent[]) {
   }
 
   return null;
-}
-
-function deriveHealthFromState(
-  state: PreviewRuntimeLifecycleState | "reloading",
-  latestError: string | null
-): PreviewRuntimeHealth {
-  if (latestError || state === "error") {
-    return "failed";
-  }
-
-  if (state === "running") {
-    return "nominal";
-  }
-
-  if (state === "starting" || state === "reloading") {
-    return "warming";
-  }
-
-  return "unavailable";
 }
 
 function toneForRuntimeEvent(
@@ -475,23 +724,6 @@ function toneForHealth(health: PreviewRuntimeHealth): RuntimeConsoleTone {
   }
 }
 
-function formatHealthLabel(health: PreviewRuntimeHealth) {
-  switch (health) {
-    case "nominal":
-      return "Nominal";
-    case "warming":
-      return "Warming";
-    case "stressed":
-      return "Stressed";
-    case "degraded":
-      return "Degraded";
-    case "failed":
-      return "Failed";
-    default:
-      return "Unavailable";
-  }
-}
-
 function formatRuntimeStateLabel(
   state: PreviewRuntimeLifecycleState | "reloading"
 ) {
@@ -518,7 +750,7 @@ function inferRuntimeStateFromCode(
     return "reloading";
   }
 
-  if (code.includes("error")) {
+  if (code.includes("error") || code.includes("failed")) {
     return "error";
   }
 
@@ -574,12 +806,6 @@ function formatRuntimeKindLabelFromValue(kind: string | undefined) {
   }
 }
 
-function humanizeRuntimeCode(value: string) {
-  return value
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (character) => character.toUpperCase());
-}
-
 function formatRuntimeConsoleTime(timestamp: string) {
   const date = new Date(timestamp);
 
@@ -604,6 +830,49 @@ function formatCompactNumber(value: number) {
     maximumFractionDigits: 0,
     notation: value >= 1000 ? "compact" : "standard"
   }).format(value);
+}
+
+function formatRuntimeDuration(durationMs: number | null) {
+  if (durationMs == null) {
+    return "Waiting";
+  }
+
+  if (durationMs < 1000) {
+    return "<1s";
+  }
+
+  const totalSeconds = Math.round(durationMs / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return minutes > 0 ? `${minutes}m ${seconds}s` : `${totalSeconds}s`;
+}
+
+function uniqueText(values: Array<string | null | undefined>) {
+  return [...new Set(values.filter((value): value is string => Boolean(value)))];
+}
+
+function uniqueDiagnosticText(values: Array<string | null | undefined>) {
+  return uniqueText(values).reduce<string[]>((diagnostics, value) => {
+    const relatedIndex = diagnostics.findIndex(
+      (diagnostic) =>
+        diagnostic.toLowerCase().includes(value.toLowerCase()) ||
+        value.toLowerCase().includes(diagnostic.toLowerCase())
+    );
+
+    if (relatedIndex === -1) {
+      return [...diagnostics, value];
+    }
+
+    const relatedDiagnostic = diagnostics[relatedIndex];
+    if (relatedDiagnostic && value.length < relatedDiagnostic.length) {
+      return diagnostics.map((diagnostic, index) =>
+        index === relatedIndex ? value : diagnostic
+      );
+    }
+
+    return diagnostics;
+  }, []);
 }
 
 function readText(value: unknown) {
