@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterator
 from datetime import UTC, datetime
+from time import monotonic
 
 from loguru import logger
 
@@ -25,6 +26,7 @@ from creative_coding_assistant.llm.generation import (
     GeneratedOutput,
     GenerationDelta,
     GenerationEventType,
+    GenerationInput,
     GenerationProvider,
 )
 from creative_coding_assistant.orchestration.context import (
@@ -556,11 +558,16 @@ def _stream_provider_generation(
     *,
     builder: StreamEventBuilder,
     generation_provider: GenerationProvider | None,
-    generation_input: object,
+    generation_input: GenerationInput,
 ) -> _GenerationResult | None:
     if generation_provider is None:
         return None
 
+    request_started_at = _utcnow()
+    request_started_at_monotonic = monotonic()
+    generation_mode = (
+        "streaming" if generation_input.request.stream else "non_streaming"
+    )
     delta_text: list[str] = []
     streamed_events: list[StreamEvent] = []
     completed_answer: str | None = None
@@ -573,7 +580,13 @@ def _stream_provider_generation(
             assert generation_event.delta is not None
             delta_text.append(generation_event.delta.content)
             latest_delta_telemetry = _generation_delta_telemetry(
-                generation_event.delta
+                generation_event.delta,
+                execution=_generation_execution_telemetry(
+                    generation_mode=generation_mode,
+                    request_started_at=request_started_at,
+                    request_started_at_monotonic=request_started_at_monotonic,
+                    status="active",
+                ),
             )
             streamed_events.append(
                 builder.token_delta(
@@ -591,7 +604,13 @@ def _stream_provider_generation(
             assert generation_event.response is not None
             completed_answer = generation_event.response.output.content
             completed_telemetry = _generated_output_telemetry(
-                generation_event.response.output
+                generation_event.response.output,
+                execution=_generation_execution_telemetry(
+                    generation_mode=generation_mode,
+                    request_started_at=request_started_at,
+                    request_started_at_monotonic=request_started_at_monotonic,
+                    status="completed",
+                ),
             )
             continue
 
@@ -600,6 +619,21 @@ def _stream_provider_generation(
             generation_error = (
                 generation_event.error.code,
                 generation_event.error.message,
+            )
+            error_telemetry = _merge_execution_telemetry(
+                latest_delta_telemetry,
+                _generation_execution_telemetry(
+                    generation_mode=generation_mode,
+                    request_started_at=request_started_at,
+                    request_started_at_monotonic=request_started_at_monotonic,
+                    status="failed",
+                    errors=(
+                        {
+                            "code": generation_event.error.code,
+                            "message": generation_event.error.message,
+                        },
+                    ),
+                ),
             )
             streamed_events.append(
                 builder.error(
@@ -612,8 +646,10 @@ def _stream_provider_generation(
                         "Retry the request after the provider recovers."
                     ),
                     retry_label="Send prompt again",
+                    telemetry=error_telemetry,
                 )
             )
+            completed_telemetry = error_telemetry
             break
 
     if completed_answer is not None:
@@ -624,10 +660,27 @@ def _stream_provider_generation(
         )
 
     if delta_text:
+        partial_telemetry = _merge_execution_telemetry(
+            latest_delta_telemetry,
+            _generation_execution_telemetry(
+                generation_mode=generation_mode,
+                request_started_at=request_started_at,
+                request_started_at_monotonic=request_started_at_monotonic,
+                status="completed",
+                warnings=(
+                    {
+                        "code": "completion_metadata_unavailable",
+                        "message": (
+                            "The provider stream ended without a completion event."
+                        ),
+                    },
+                ),
+            ),
+        )
         return _GenerationResult(
             answer="".join(delta_text),
             events=tuple(streamed_events),
-            telemetry=latest_delta_telemetry,
+            telemetry=partial_telemetry,
         )
 
     if generation_error is not None:
@@ -637,6 +690,7 @@ def _stream_provider_generation(
             events=tuple(streamed_events),
             error_code=code,
             error_message=message,
+            telemetry=completed_telemetry,
         )
 
     return None
@@ -644,20 +698,25 @@ def _stream_provider_generation(
 
 def _generation_delta_telemetry(
     delta: GenerationDelta,
+    *,
+    execution: dict[str, object],
 ) -> dict[str, object] | None:
     provider = _provider_telemetry(
         provider=delta.provider,
         model=delta.model,
     )
-    if provider is None:
-        return None
-    return {"provider": provider}
+    telemetry: dict[str, object] = {"execution": execution}
+    if provider is not None:
+        telemetry["provider"] = provider
+    return telemetry
 
 
 def _generated_output_telemetry(
     output: GeneratedOutput,
+    *,
+    execution: dict[str, object],
 ) -> dict[str, object] | None:
-    telemetry: dict[str, object] = {}
+    telemetry: dict[str, object] = {"execution": execution}
     provider = _provider_telemetry(
         provider=output.provider,
         model=output.model,
@@ -672,6 +731,45 @@ def _generated_output_telemetry(
         )
     telemetry["finish_reason"] = output.finish_reason.value
     return telemetry or None
+
+
+def _generation_execution_telemetry(
+    *,
+    generation_mode: str,
+    request_started_at: datetime,
+    request_started_at_monotonic: float,
+    status: str,
+    errors: tuple[dict[str, str], ...] = (),
+    warnings: tuple[dict[str, str], ...] = (),
+) -> dict[str, object]:
+    terminal = status in {"completed", "failed"}
+    request_completed_at = _utcnow() if terminal else None
+    duration_ms = round((monotonic() - request_started_at_monotonic) * 1000)
+    return {
+        "generation_mode": generation_mode,
+        "streaming": generation_mode == "streaming",
+        "streaming_status": status,
+        "request_started_at": request_started_at.isoformat(),
+        **(
+            {"request_completed_at": request_completed_at.isoformat()}
+            if request_completed_at is not None
+            else {}
+        ),
+        "request_duration_ms": max(duration_ms, 0),
+        "retry_count": 0,
+        **({"errors": list(errors)} if errors else {}),
+        **({"warnings": list(warnings)} if warnings else {}),
+    }
+
+
+def _merge_execution_telemetry(
+    telemetry: dict[str, object] | None,
+    execution: dict[str, object],
+) -> dict[str, object]:
+    return {
+        **(telemetry or {}),
+        "execution": execution,
+    }
 
 
 def _provider_telemetry(

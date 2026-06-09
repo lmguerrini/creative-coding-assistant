@@ -1,4 +1,7 @@
-import { readEventTimestamp } from "./assistant-stream";
+import {
+  readEventTimestamp,
+  readStreamEventError
+} from "./assistant-stream";
 import type { WorkflowRuntimeTraceEvent } from "./workflow-runtime";
 
 export type ProviderTelemetryStatus =
@@ -65,6 +68,61 @@ export type ProviderTelemetryStreamSummary = {
   streamedCharacterCount: number;
 };
 
+export type ProviderTelemetryGenerationMode =
+  | "streaming"
+  | "non_streaming"
+  | "unknown";
+
+export type ProviderTelemetryStreamingState =
+  | "idle"
+  | "active"
+  | "completed"
+  | "failed"
+  | "disabled"
+  | "unknown";
+
+export type ProviderTelemetryIssue = {
+  id: string;
+  severity: "warning" | "error";
+  code: string;
+  message: string;
+  at: string | null;
+  recoverable: boolean | null;
+  source: "provider" | "stream";
+};
+
+export type ProviderTelemetryRetryEvent = {
+  id: string;
+  attempt: number | null;
+  status: string;
+  reason: string | null;
+  at: string | null;
+};
+
+export type ProviderTelemetryFallbackPath = {
+  id: string;
+  label: string;
+  reason: string;
+  source: string | null;
+  target: string | null;
+  at: string | null;
+};
+
+export type ProviderTelemetryExecution = {
+  generationMode: ProviderTelemetryGenerationMode;
+  streamingEnabled: boolean | null;
+  streamingState: ProviderTelemetryStreamingState;
+  requestStartedAt: string | null;
+  requestCompletedAt: string | null;
+  requestDurationMs: number | null;
+  retryCount: number | null;
+  finishReason: string | null;
+  errors: ProviderTelemetryIssue[];
+  warnings: ProviderTelemetryIssue[];
+  retryEvents: ProviderTelemetryRetryEvent[];
+  fallbackPaths: ProviderTelemetryFallbackPath[];
+};
+
 export type ProviderTelemetryModel = {
   status: ProviderTelemetryStatus;
   provider: ProviderTelemetryProvider;
@@ -74,6 +132,7 @@ export type ProviderTelemetryModel = {
   timing: ProviderTelemetryTiming;
   lifecycle: ProviderTelemetryLifecycleStep[];
   stream: ProviderTelemetryStreamSummary;
+  execution: ProviderTelemetryExecution;
   summary: {
     providerLabel: string;
     modelLabel: string;
@@ -82,7 +141,34 @@ export type ProviderTelemetryModel = {
     latencyLabel: string;
     streamLabel: string;
     lifecycleLabel: string;
+    generationModeLabel: string;
+    streamingStatusLabel: string;
+    requestDurationLabel: string;
+    retryLabel: string;
+    issueLabel: string;
   };
+};
+
+type ProviderExecutionRecord = {
+  generationMode: ProviderTelemetryGenerationMode;
+  streamingEnabled: boolean | null;
+  streamingStatus: string | null;
+  requestStartedAt: string | null;
+  requestCompletedAt: string | null;
+  requestDurationMs: number | null;
+  retryCount: number | null;
+  finishReason: string | null;
+};
+
+const emptyExecutionRecord: ProviderExecutionRecord = {
+  generationMode: "unknown",
+  streamingEnabled: null,
+  streamingStatus: null,
+  requestStartedAt: null,
+  requestCompletedAt: null,
+  requestDurationMs: null,
+  retryCount: null,
+  finishReason: null
 };
 
 const emptyProvider: ProviderTelemetryProvider = {
@@ -125,7 +211,12 @@ export function buildProviderTelemetryModel(
         streamedCharacterCount: 0
       },
       timing: buildTiming(traceEvents),
-      tokenUsage: emptyTokenUsage
+      tokenUsage: emptyTokenUsage,
+      execution: buildExecutionTelemetry({
+        executionRecord: emptyExecutionRecord,
+        status: "idle",
+        traceEvents
+      })
     });
   }
 
@@ -133,6 +224,7 @@ export function buildProviderTelemetryModel(
   let tokenUsage = emptyTokenUsage;
   let pricing: ProviderTelemetryPricing | null = null;
   let reportedCost: ProviderTelemetryCostEstimate | null = null;
+  let executionRecord = emptyExecutionRecord;
   let streamedCharacterCount = 0;
   let tokenDeltaCount = 0;
 
@@ -143,8 +235,10 @@ export function buildProviderTelemetryModel(
     const nextUsage = readTokenUsage(payload, telemetry);
     const nextPricing = readPricing(payload, telemetry);
     const nextCost = readReportedCost(payload, telemetry);
+    const nextExecution = readExecutionRecord(payload, telemetry);
 
     provider = mergeProviderTelemetry(provider, nextProvider);
+    executionRecord = mergeExecutionRecord(executionRecord, nextExecution);
 
     if (nextUsage) {
       tokenUsage = mergeTokenUsage(tokenUsage, nextUsage);
@@ -165,9 +259,15 @@ export function buildProviderTelemetryModel(
 
   const status = deriveTelemetryStatus(traceEvents);
   const cost = reportedCost ?? estimateCostFromPricing(tokenUsage, pricing);
+  const execution = buildExecutionTelemetry({
+    executionRecord,
+    status,
+    traceEvents
+  });
 
   return buildTelemetryModel({
     cost,
+    execution,
     provider,
     pricing,
     status,
@@ -183,6 +283,7 @@ export function buildProviderTelemetryModel(
 
 function buildTelemetryModel({
   cost,
+  execution,
   provider,
   pricing,
   status,
@@ -191,6 +292,7 @@ function buildTelemetryModel({
   tokenUsage
 }: {
   cost: ProviderTelemetryCostEstimate;
+  execution: ProviderTelemetryExecution;
   provider: ProviderTelemetryProvider;
   pricing: ProviderTelemetryPricing | null;
   status: ProviderTelemetryStatus;
@@ -209,6 +311,7 @@ function buildTelemetryModel({
     timing,
     lifecycle,
     stream,
+    execution,
     summary: {
       providerLabel: provider.name ?? "Provider pending",
       modelLabel: provider.model ?? "Model pending",
@@ -228,7 +331,20 @@ function buildTelemetryModel({
         stream.eventCount > 0
           ? `${stream.eventCount} events / ${stream.tokenDeltaCount} deltas`
           : "No stream events",
-      lifecycleLabel: summarizeLifecycle(lifecycle)
+      lifecycleLabel: summarizeLifecycle(lifecycle),
+      generationModeLabel: formatGenerationMode(execution.generationMode),
+      streamingStatusLabel: formatStreamingState(execution.streamingState),
+      requestDurationLabel:
+        execution.requestDurationMs != null
+          ? formatDuration(execution.requestDurationMs)
+          : "Duration unavailable",
+      retryLabel:
+        execution.retryCount != null
+          ? `${execution.retryCount} provider ${
+              execution.retryCount === 1 ? "retry" : "retries"
+            }`
+          : "Retry metadata unavailable",
+      issueLabel: summarizeIssues(execution)
     }
   };
 }
@@ -367,6 +483,483 @@ function deriveTelemetryStatus(
     return "complete";
   }
   return "streaming";
+}
+
+function buildExecutionTelemetry({
+  executionRecord,
+  status,
+  traceEvents
+}: {
+  executionRecord: ProviderExecutionRecord;
+  status: ProviderTelemetryStatus;
+  traceEvents: WorkflowRuntimeTraceEvent[];
+}): ProviderTelemetryExecution {
+  const generationInput = traceEvents.find(
+    (traceEvent) => traceEvent.event.event_type === "generation_input"
+  );
+  const inferredStreaming = inferStreamingPreference(generationInput);
+  const hasTokenDeltas = traceEvents.some(
+    (traceEvent) => traceEvent.event.event_type === "token_delta"
+  );
+  const streamingEnabled =
+    executionRecord.streamingEnabled ??
+    (executionRecord.generationMode === "streaming"
+      ? true
+      : executionRecord.generationMode === "non_streaming"
+        ? false
+        : inferredStreaming ?? (hasTokenDeltas ? true : null));
+  const generationMode =
+    executionRecord.generationMode !== "unknown"
+      ? executionRecord.generationMode
+      : streamingEnabled === true
+        ? "streaming"
+        : streamingEnabled === false
+          ? "non_streaming"
+          : "unknown";
+  const errors = collectExecutionIssues(traceEvents, "error");
+  const warnings = collectExecutionIssues(traceEvents, "warning");
+  const finishReason = executionRecord.finishReason;
+
+  if (
+    finishReason &&
+    ["cancelled", "length"].includes(finishReason.toLowerCase())
+  ) {
+    warnings.push({
+      id: `finish-reason:${finishReason.toLowerCase()}`,
+      severity: "warning",
+      code: `finish_reason_${finishReason.toLowerCase()}`,
+      message:
+        finishReason.toLowerCase() === "length"
+          ? "The provider stopped because the output token limit was reached."
+          : "The provider generation was cancelled before normal completion.",
+      at: executionRecord.requestCompletedAt,
+      recoverable: true,
+      source: "provider"
+    });
+  }
+
+  return {
+    generationMode,
+    streamingEnabled,
+    streamingState: deriveStreamingState({
+      explicitStatus: executionRecord.streamingStatus,
+      generationMode,
+      status
+    }),
+    requestStartedAt:
+      executionRecord.requestStartedAt ?? generationInput?.receivedAt ?? null,
+    requestCompletedAt: executionRecord.requestCompletedAt,
+    requestDurationMs: executionRecord.requestDurationMs,
+    retryCount: executionRecord.retryCount,
+    finishReason,
+    errors: dedupeIssues(errors),
+    warnings: dedupeIssues(warnings),
+    retryEvents: collectRetryEvents(traceEvents),
+    fallbackPaths: collectFallbackPaths(traceEvents)
+  };
+}
+
+function readExecutionRecord(
+  payload: Record<string, unknown>,
+  telemetry: Record<string, unknown> | null
+): ProviderExecutionRecord | null {
+  const execution =
+    readUsageRecord(telemetry?.execution) ??
+    readUsageRecord(telemetry?.provider_execution) ??
+    readUsageRecord(payload.execution) ??
+    readUsageRecord(payload.provider_execution);
+  const generationInput = readUsageRecord(payload.generation_input);
+  const request = readUsageRecord(generationInput?.request);
+  const explicitStreaming =
+    readBoolean(execution?.streaming) ??
+    readBoolean(execution?.is_streaming) ??
+    readBoolean(telemetry?.streaming) ??
+    readBoolean(request?.stream);
+  const generationMode =
+    normalizeGenerationMode(
+      readString(execution?.generation_mode) ??
+        readString(execution?.generationMode) ??
+        readString(telemetry?.generation_mode)
+    ) ??
+    (explicitStreaming === true
+      ? "streaming"
+      : explicitStreaming === false
+        ? "non_streaming"
+        : "unknown");
+  const record: ProviderExecutionRecord = {
+    generationMode,
+    streamingEnabled: explicitStreaming,
+    streamingStatus:
+      readString(execution?.streaming_status) ??
+      readString(execution?.streamingStatus) ??
+      readString(execution?.status),
+    requestStartedAt:
+      readString(execution?.request_started_at) ??
+      readString(execution?.requestStartedAt),
+    requestCompletedAt:
+      readString(execution?.request_completed_at) ??
+      readString(execution?.requestCompletedAt),
+    requestDurationMs: readFiniteNumber(
+      execution ?? {},
+      "request_duration_ms",
+      "requestDurationMs",
+      "duration_ms",
+      "durationMs"
+    ),
+    retryCount: readCount(
+      execution ?? {},
+      "retry_count",
+      "retryCount",
+      "retries"
+    ),
+    finishReason:
+      readString(telemetry?.finish_reason) ??
+      readString(telemetry?.finishReason) ??
+      readString(payload.finish_reason)
+  };
+
+  return execution ||
+    generationInput ||
+    record.finishReason ||
+    record.streamingEnabled !== null
+    ? record
+    : null;
+}
+
+function mergeExecutionRecord(
+  current: ProviderExecutionRecord,
+  next: ProviderExecutionRecord | null
+): ProviderExecutionRecord {
+  if (!next) {
+    return current;
+  }
+
+  return {
+    generationMode:
+      next.generationMode !== "unknown"
+        ? next.generationMode
+        : current.generationMode,
+    streamingEnabled: next.streamingEnabled ?? current.streamingEnabled,
+    streamingStatus: next.streamingStatus ?? current.streamingStatus,
+    requestStartedAt: next.requestStartedAt ?? current.requestStartedAt,
+    requestCompletedAt: next.requestCompletedAt ?? current.requestCompletedAt,
+    requestDurationMs: next.requestDurationMs ?? current.requestDurationMs,
+    retryCount: next.retryCount ?? current.retryCount,
+    finishReason: next.finishReason ?? current.finishReason
+  };
+}
+
+function collectExecutionIssues(
+  traceEvents: WorkflowRuntimeTraceEvent[],
+  severity: ProviderTelemetryIssue["severity"]
+) {
+  const issues: ProviderTelemetryIssue[] = [];
+
+  for (const traceEvent of traceEvents) {
+    const telemetry = readTelemetryRecord(traceEvent.event.payload);
+    const execution =
+      readUsageRecord(telemetry?.execution) ??
+      readUsageRecord(telemetry?.provider_execution) ??
+      readUsageRecord(traceEvent.event.payload.execution) ??
+      readUsageRecord(traceEvent.event.payload.provider_execution);
+    const key = severity === "error" ? "errors" : "warnings";
+    const values = readUnknownList(execution?.[key] ?? telemetry?.[key]);
+
+    values.forEach((value, index) => {
+      const issue = readExecutionIssue({
+        at: readTraceTime(traceEvent),
+        fallbackCode: `provider_${severity}_${index + 1}`,
+        severity,
+        value
+      });
+      if (issue) {
+        issues.push(issue);
+      }
+    });
+
+    if (severity !== "error" || traceEvent.event.event_type !== "error") {
+      continue;
+    }
+
+    const streamError = readStreamEventError(traceEvent.event);
+    if (!streamError || !isProviderError(traceEvent, streamError.subsystem)) {
+      continue;
+    }
+
+    issues.push({
+      id: `stream:${traceEvent.event.sequence}:${streamError.type}`,
+      severity: "error",
+      code: streamError.type,
+      message: streamError.userMessage,
+      at: readTraceTime(traceEvent),
+      recoverable: streamError.recoverable,
+      source: "stream"
+    });
+  }
+
+  return issues;
+}
+
+function readExecutionIssue({
+  at,
+  fallbackCode,
+  severity,
+  value
+}: {
+  at: string | null;
+  fallbackCode: string;
+  severity: ProviderTelemetryIssue["severity"];
+  value: unknown;
+}): ProviderTelemetryIssue | null {
+  if (typeof value === "string" && value.trim()) {
+    const message = value.trim();
+    return {
+      id: `${severity}:${fallbackCode}:${message}`,
+      severity,
+      code: fallbackCode,
+      message,
+      at,
+      recoverable: null,
+      source: "provider"
+    };
+  }
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const code =
+    readString(value.code) ??
+    readString(value.type) ??
+    readString(value.warning_code) ??
+    readString(value.error_code) ??
+    fallbackCode;
+  const message =
+    readString(value.message) ??
+    readString(value.detail) ??
+    readString(value.warning) ??
+    readString(value.error);
+  if (!message) {
+    return null;
+  }
+
+  return {
+    id: `${severity}:${code}:${message}`,
+    severity,
+    code,
+    message,
+    at: readString(value.at) ?? readString(value.emitted_at) ?? at,
+    recoverable:
+      readBoolean(value.recoverable) ?? readBoolean(value.retryable),
+    source: "provider"
+  };
+}
+
+function collectRetryEvents(
+  traceEvents: WorkflowRuntimeTraceEvent[]
+): ProviderTelemetryRetryEvent[] {
+  const retries: ProviderTelemetryRetryEvent[] = [];
+
+  for (const traceEvent of traceEvents) {
+    const telemetry = readTelemetryRecord(traceEvent.event.payload);
+    const execution =
+      readUsageRecord(telemetry?.execution) ??
+      readUsageRecord(telemetry?.provider_execution);
+    const values = readUnknownList(
+      execution?.retry_events ?? execution?.retryEvents
+    );
+
+    values.forEach((value, index) => {
+      if (!isRecord(value)) {
+        return;
+      }
+      const status =
+        readString(value.status) ??
+        readString(value.state) ??
+        readString(value.outcome);
+      if (!status) {
+        return;
+      }
+      retries.push({
+        id: `retry:${traceEvent.event.sequence}:${index}:${status}`,
+        attempt: readCount(value, "attempt", "retry_count", "retryCount"),
+        status,
+        reason:
+          readString(value.reason) ??
+          readString(value.retry_reason) ??
+          readString(value.message),
+        at:
+          readString(value.at) ??
+          readString(value.emitted_at) ??
+          readTraceTime(traceEvent)
+      });
+    });
+  }
+
+  return retries;
+}
+
+function collectFallbackPaths(
+  traceEvents: WorkflowRuntimeTraceEvent[]
+): ProviderTelemetryFallbackPath[] {
+  const paths: ProviderTelemetryFallbackPath[] = [];
+
+  for (const traceEvent of traceEvents) {
+    const payload = traceEvent.event.payload;
+    const telemetry = readTelemetryRecord(payload);
+    const execution =
+      readUsageRecord(telemetry?.execution) ??
+      readUsageRecord(telemetry?.provider_execution);
+    const explicitPaths = readUnknownList(
+      execution?.fallback_paths ??
+        execution?.fallbackPaths ??
+        execution?.fallback_execution_paths
+    );
+
+    explicitPaths.forEach((value, index) => {
+      if (!isRecord(value)) {
+        return;
+      }
+      const reason =
+        readString(value.reason) ??
+        readString(value.decision_reason) ??
+        readString(value.message);
+      if (!reason) {
+        return;
+      }
+      paths.push({
+        id: `fallback:${traceEvent.event.sequence}:${index}:${reason}`,
+        label:
+          readString(value.label) ??
+          readString(value.name) ??
+          "Provider fallback",
+        reason,
+        source: readString(value.source) ?? readString(value.from),
+        target: readString(value.target) ?? readString(value.to),
+        at:
+          readString(value.at) ??
+          readString(value.emitted_at) ??
+          readTraceTime(traceEvent)
+      });
+    });
+
+    const decisionReason =
+      readString(payload.decision_reason) ??
+      readString(readUsageRecord(payload.edge)?.decision_reason);
+    if (decisionReason !== "generation_unavailable") {
+      continue;
+    }
+    paths.push({
+      id: `fallback:${traceEvent.event.sequence}:generation-unavailable`,
+      label: "Generation fallback",
+      reason: "Provider execution was unavailable; the workflow continued locally.",
+      source:
+        readString(payload.transition_source) ??
+        readString(readUsageRecord(payload.edge)?.source) ??
+        "generation",
+      target:
+        readString(payload.transition_target) ??
+        readString(readUsageRecord(payload.edge)?.target),
+      at: readTraceTime(traceEvent)
+    });
+  }
+
+  return dedupeFallbackPaths(paths);
+}
+
+function inferStreamingPreference(
+  generationInput: WorkflowRuntimeTraceEvent | undefined
+): boolean | null {
+  if (!generationInput) {
+    return null;
+  }
+  const input = readUsageRecord(generationInput.event.payload.generation_input);
+  const request = readUsageRecord(input?.request);
+  return readBoolean(request?.stream);
+}
+
+function deriveStreamingState({
+  explicitStatus,
+  generationMode,
+  status
+}: {
+  explicitStatus: string | null;
+  generationMode: ProviderTelemetryGenerationMode;
+  status: ProviderTelemetryStatus;
+}): ProviderTelemetryStreamingState {
+  const normalizedStatus = explicitStatus?.toLowerCase();
+  if (normalizedStatus === "failed" || status === "error") {
+    return "failed";
+  }
+  if (generationMode === "non_streaming") {
+    return "disabled";
+  }
+  if (normalizedStatus === "active" || normalizedStatus === "streaming") {
+    return "active";
+  }
+  if (normalizedStatus === "completed" || normalizedStatus === "complete") {
+    return "completed";
+  }
+  if (status === "idle") {
+    return "idle";
+  }
+  if (status === "streaming" && generationMode === "streaming") {
+    return "active";
+  }
+  if (status === "complete" && generationMode === "streaming") {
+    return "completed";
+  }
+  return "unknown";
+}
+
+function normalizeGenerationMode(
+  value: string | null
+): ProviderTelemetryGenerationMode | null {
+  switch (value?.toLowerCase().replaceAll("-", "_")) {
+    case "stream":
+    case "streamed":
+    case "streaming":
+      return "streaming";
+    case "non_stream":
+    case "non_streamed":
+    case "non_streaming":
+    case "synchronous":
+      return "non_streaming";
+    default:
+      return null;
+  }
+}
+
+function isProviderError(
+  traceEvent: WorkflowRuntimeTraceEvent,
+  subsystem: string
+) {
+  const payload = traceEvent.event.payload;
+  return (
+    subsystem === "generation_provider" ||
+    subsystem === "provider" ||
+    readString(payload.transition_source) === "generation" ||
+    readString(payload.node) === "generation" ||
+    String(payload.code ?? "").includes("provider")
+  );
+}
+
+function dedupeIssues(issues: ProviderTelemetryIssue[]) {
+  return [
+    ...new Map(
+      issues.map((issue) => [
+        `${issue.severity}:${issue.code}`,
+        issue
+      ])
+    ).values()
+  ];
+}
+
+function dedupeFallbackPaths(paths: ProviderTelemetryFallbackPath[]) {
+  return [...new Map(paths.map((path) => [path.id, path])).values()];
+}
+
+function readTraceTime(traceEvent: WorkflowRuntimeTraceEvent) {
+  return readEventTimestamp(traceEvent.event) ?? traceEvent.receivedAt;
 }
 
 function readTelemetryRecord(
@@ -662,6 +1255,17 @@ function readString(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
+function readBoolean(value: unknown) {
+  return typeof value === "boolean" ? value : null;
+}
+
+function readUnknownList(value: unknown): unknown[] {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  return value == null ? [] : [value];
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -694,4 +1298,44 @@ function summarizeLifecycle(lifecycle: ProviderTelemetryLifecycleStep[]) {
     ["complete", "failed"].includes(step.state)
   ).length;
   return `${completed} of ${lifecycle.length} lifecycle stages`;
+}
+
+function formatGenerationMode(mode: ProviderTelemetryGenerationMode) {
+  switch (mode) {
+    case "streaming":
+      return "Streaming generation";
+    case "non_streaming":
+      return "Non-streaming generation";
+    default:
+      return "Generation mode unavailable";
+  }
+}
+
+function formatStreamingState(state: ProviderTelemetryStreamingState) {
+  switch (state) {
+    case "active":
+      return "Stream active";
+    case "completed":
+      return "Stream completed";
+    case "failed":
+      return "Stream failed";
+    case "disabled":
+      return "Streaming disabled";
+    case "idle":
+      return "Stream idle";
+    default:
+      return "Stream status unavailable";
+  }
+}
+
+function summarizeIssues(execution: ProviderTelemetryExecution) {
+  const issueCount = execution.errors.length + execution.warnings.length;
+  if (issueCount === 0) {
+    return "No provider issues";
+  }
+  return `${execution.errors.length} ${
+    execution.errors.length === 1 ? "error" : "errors"
+  } / ${execution.warnings.length} ${
+    execution.warnings.length === 1 ? "warning" : "warnings"
+  }`;
 }
