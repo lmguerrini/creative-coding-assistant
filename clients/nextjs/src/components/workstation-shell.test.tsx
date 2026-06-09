@@ -4181,7 +4181,15 @@ describe("WorkstationShell", () => {
             dataset_id: "dataset-live-1",
             dry_run: true,
             metric_failures: 0,
-            metrics: ["context_precision"],
+            evaluation_type: "RAGAs live",
+            metric_scores: {
+              answer_relevancy: 0.91,
+              artifact_quality: 0.86,
+              context_precision: 0.84,
+              faithfulness: 0.76,
+              runtime_quality: 0.68
+            },
+            overall_score: 0.82,
             provider_calls_allowed: false,
             result_rows: 1,
             run_id: "eval-run-1",
@@ -4284,16 +4292,25 @@ describe("WorkstationShell", () => {
     const langsmith = within(dashboard).getByRole("group", {
       name: "LangSmith observability"
     });
-    const evalLineage = within(dashboard).getByRole("group", {
-      name: "RAGAs evaluation lineage"
+    const evaluation = within(dashboard).getByRole("group", {
+      name: "Evaluation session dashboard"
     });
 
     expect(within(langsmith).getByText("Requested")).toBeVisible();
     expect(within(langsmith).getByText("missing_api_key")).toBeVisible();
-    expect(within(evalLineage).getByText("Evaluation complete")).toBeVisible();
-    expect(within(evalLineage).getByText("eval-run-1")).toBeVisible();
-    expect(within(evalLineage).getByText("dataset-live-1")).toBeVisible();
-    expect(within(evalLineage).getByText("context_precision")).toBeVisible();
+    expect(within(evaluation).getByText("Evaluation complete")).toBeVisible();
+    expect(within(evaluation).getByText("82%")).toBeVisible();
+    expect(
+      within(evaluation).getByLabelText("Evaluation status Pass")
+    ).toBeVisible();
+    expect(within(evaluation).getByText("RAGAs live")).toBeVisible();
+    expect(within(evaluation).getByText("eval-run-1")).toBeVisible();
+    expect(within(evaluation).getByText("dataset-live-1")).toBeVisible();
+    expect(
+      within(evaluation).getByRole("group", {
+        name: "Retrieval quality evaluation signal"
+      })
+    ).toHaveTextContent("84%");
     expect(
       within(dashboard).getByRole("group", { name: "Telemetry event type counts" })
     ).toBeVisible();

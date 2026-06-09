@@ -170,6 +170,7 @@ import {
 } from "@/lib/workstation-errors";
 import { buildZipArchive, downloadZipArchive } from "@/lib/zip-archive";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
+import { EvaluationSessionDashboard } from "./evaluation-session-dashboard";
 import { ProviderObservabilityDeepDive } from "./provider-observability-deep-dive";
 import { RetrievalInspector } from "./retrieval-inspector";
 import { RuntimeConsoleInspector } from "./runtime-console-inspector";
@@ -4216,41 +4217,7 @@ function TelemetryInspector({
           </small>
         </article>
 
-        <article
-          aria-label="RAGAs evaluation lineage"
-          className="telemetryDashboardCard"
-          data-state={dashboard.evaluation.state}
-          role="group"
-        >
-          <header>
-            <span>Evaluation</span>
-            <strong>{dashboard.evaluation.statusLabel}</strong>
-          </header>
-          <dl>
-            <div>
-              <dt>Run</dt>
-              <dd>{dashboard.evaluation.runId ?? "None"}</dd>
-            </div>
-            <div>
-              <dt>Dataset</dt>
-              <dd>{dashboard.evaluation.datasetId ?? "None"}</dd>
-            </div>
-            <div>
-              <dt>Rows</dt>
-              <dd>{dashboard.evaluation.resultRows ?? "N/A"}</dd>
-            </div>
-            <div>
-              <dt>Failures</dt>
-              <dd>{dashboard.evaluation.metricFailures ?? "N/A"}</dd>
-            </div>
-          </dl>
-          <p>{dashboard.evaluation.detail}</p>
-          <small>
-            {dashboard.evaluation.metrics.length > 0
-              ? dashboard.evaluation.metrics.join(" / ")
-              : "RAGAs metadata pending"}
-          </small>
-        </article>
+        <EvaluationSessionDashboard evaluation={dashboard.evaluation} />
 
         <article
           aria-label="Artifact runtime linkage"
