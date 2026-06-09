@@ -1111,6 +1111,12 @@ describe("WorkstationShell", () => {
     expect(
       within(retrievalPanel).getByRole("group", { name: "Retrieval context used" })
     ).toHaveTextContent("3 chunks used");
+    const qualityDeepDive = within(retrievalPanel).getByLabelText(
+      "Retrieval quality deep dive"
+    );
+    expect(qualityDeepDive).toHaveAttribute("data-open", "true");
+    expect(qualityDeepDive).toHaveTextContent("Medium retrieval quality");
+    expect(qualityDeepDive).toHaveTextContent("Balanced across 2 domains");
     const explorer = within(retrievalPanel).getByRole("region", {
       name: "Retrieval source explorer"
     });
