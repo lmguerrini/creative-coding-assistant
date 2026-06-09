@@ -170,6 +170,7 @@ import {
 } from "@/lib/workstation-errors";
 import { buildZipArchive, downloadZipArchive } from "@/lib/zip-archive";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
+import { ProviderObservabilityDeepDive } from "./provider-observability-deep-dive";
 import { RetrievalInspector } from "./retrieval-inspector";
 import { RuntimeConsoleInspector } from "./runtime-console-inspector";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
@@ -4086,37 +4087,7 @@ function TelemetryInspector({
           <small>{formatNullableTraceTime(dashboard.stream.latestEventAt)}</small>
         </article>
 
-        <article
-          aria-label="Provider token and cost telemetry"
-          className="telemetryDashboardCard"
-          data-state={dashboard.provider.status}
-          role="group"
-        >
-          <header>
-            <span>Provider</span>
-            <strong>{formatProviderRuntimeLabel(dashboard.provider)}</strong>
-          </header>
-          <dl>
-            <div>
-              <dt>Tokens</dt>
-              <dd>{formatTokenUsageTotal(dashboard.provider)}</dd>
-            </div>
-            <div>
-              <dt>Cost</dt>
-              <dd>{dashboard.provider.summary.costLabel}</dd>
-            </div>
-            <div>
-              <dt>First token</dt>
-              <dd>{formatRuntimeDuration(dashboard.provider.timing.timeToFirstTokenMs)}</dd>
-            </div>
-            <div>
-              <dt>Stream</dt>
-              <dd>{dashboard.provider.stream.eventCount}</dd>
-            </div>
-          </dl>
-          <p>{formatTokenUsageDetail(dashboard.provider)}</p>
-          <small>{formatTelemetryCostSource(dashboard.provider)}</small>
-        </article>
+        <ProviderObservabilityDeepDive telemetry={dashboard.provider} />
 
         <article
           aria-label="Runtime lifecycle"

@@ -4078,6 +4078,220 @@ a {
   border-color: rgba(121, 211, 139, 0.22);
 }
 
+.providerObservabilityCard {
+  gap: 12px;
+  background:
+    radial-gradient(circle at top right, rgba(var(--accent-rgb), 0.09), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent),
+    var(--panel-soft);
+}
+
+.providerObservabilityHeader > div {
+  min-width: 0;
+}
+
+.providerObservabilityHeader p {
+  margin: 4px 0 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.providerObservabilityMetrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.providerObservabilityMetrics > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.providerObservabilityMetrics span,
+.providerObservabilitySection > header span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.providerObservabilityMetrics strong {
+  color: var(--foreground);
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.providerObservabilityDetailGrid,
+.providerExecutionColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.providerObservabilitySection {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 13px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.providerObservabilitySection--wide {
+  padding: 11px;
+}
+
+.providerObservabilitySection > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.providerObservabilitySection > header strong {
+  color: var(--foreground);
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: right;
+}
+
+.providerObservabilitySection dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  margin: 0;
+}
+
+.providerObservabilitySection dl div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 0 6px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0;
+  background: transparent;
+}
+
+.providerObservabilitySection dl div:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.providerObservabilitySection dt {
+  flex: 0 0 auto;
+}
+
+.providerObservabilitySection dd {
+  margin: 0;
+  text-align: right;
+}
+
+.providerObservabilitySection > small {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.providerExecutionList {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  min-width: 0;
+}
+
+.providerExecutionList > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.providerExecutionList > header strong {
+  color: var(--muted-strong);
+  font-size: 11px;
+}
+
+.providerExecutionList > header span {
+  display: grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+}
+
+.providerExecutionList > div {
+  display: grid;
+  gap: 6px;
+}
+
+.providerExecutionList > p {
+  min-height: 34px;
+  margin: 0;
+  padding: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.providerExecutionItem {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid rgba(var(--accent-rgb), 0.14);
+  border-radius: 10px;
+  background: rgba(var(--accent-rgb), 0.035);
+}
+
+.providerExecutionItem[data-severity="warning"] {
+  border-color: rgba(243, 184, 82, 0.2);
+  background: rgba(243, 184, 82, 0.035);
+}
+
+.providerExecutionItem[data-severity="error"] {
+  border-color: rgba(255, 122, 102, 0.22);
+  background: rgba(255, 122, 102, 0.04);
+}
+
+.providerExecutionItem strong {
+  color: var(--foreground);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.providerExecutionItem p,
+.providerExecutionItem small {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.providerExecutionItem small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
 .telemetryEventPills {
   display: flex;
   flex-wrap: wrap;
@@ -6396,7 +6610,9 @@ html[data-cca-theme="blueprint"] .codeViewer {
   .previewSurfaceMetaGrid,
   .previewInspectorControlGrid,
   .runtimeConsoleDetails div,
-  .previewInspectorCard dl div {
+  .previewInspectorCard dl div,
+  .providerObservabilityDetailGrid,
+  .providerExecutionColumns {
     grid-template-columns: minmax(0, 1fr);
   }
 

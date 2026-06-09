@@ -4059,6 +4059,13 @@ describe("WorkstationShell", () => {
           status: "completed",
           step: "finalization",
           telemetry: {
+            execution: {
+              generation_mode: "streaming",
+              request_duration_ms: 780,
+              retry_count: 0,
+              streaming: true,
+              streaming_status: "completed"
+            },
             provider: {
               name: "openai",
               model: "gpt-5-mini",
@@ -4204,6 +4211,13 @@ describe("WorkstationShell", () => {
           status: "completed",
           step: "finalization",
           telemetry: {
+            execution: {
+              generation_mode: "streaming",
+              request_duration_ms: 780,
+              retry_count: 0,
+              streaming: true,
+              streaming_status: "completed"
+            },
             provider: {
               name: "openai",
               model: "gpt-5-mini",
@@ -4239,9 +4253,16 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
     expect(
       within(dashboard).getByRole("group", {
-        name: "Provider token and cost telemetry"
+        name: "Provider observability deep dive"
       })
     ).toBeVisible();
+    const providerDeepDive = within(dashboard).getByRole("group", {
+      name: "Provider observability deep dive"
+    });
+    expect(within(providerDeepDive).getByText("Streaming generation")).toBeVisible();
+    expect(within(providerDeepDive).getByText("780 ms")).toBeVisible();
+    expect(within(providerDeepDive).getByText("0 retries")).toBeVisible();
+    expect(within(providerDeepDive).getByText("Stream completed")).toBeVisible();
     expect(
       within(dashboard).getByRole("group", { name: "Runtime lifecycle" })
     ).toBeVisible();
