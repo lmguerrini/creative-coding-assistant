@@ -3435,6 +3435,11 @@ describe("WorkstationShell", () => {
     });
 
     expect(graph).toBeVisible();
+    const timeline = within(workflowPanel).getByRole("group", {
+      name: "Workflow timeline explorer"
+    });
+    expect(timeline).toBeVisible();
+    expect(within(timeline).getByText("No workflow timeline yet")).toBeVisible();
     expect(screen.getByLabelText("Workflow execution summary")).toBeVisible();
     expect(
       screen.getByRole("progressbar", { name: "Workflow inspector progress" })
@@ -3974,8 +3979,24 @@ describe("WorkstationShell", () => {
     const retries = within(workflowPanel).getByRole("group", {
       name: "Workflow retries"
     });
+    const timeline = within(workflowPanel).getByRole("group", {
+      name: "Workflow timeline explorer"
+    });
 
     expect(within(retries).getByText("1 retry loop")).toBeVisible();
+    expect(
+      within(timeline).getByRole("list", {
+        name: "Chronological workflow events"
+      })
+    ).toBeVisible();
+    expect(
+      within(timeline).getAllByText("Provider generation completed")
+    ).toHaveLength(2);
+    expect(within(timeline).getByText("Review needs refinement")).toBeVisible();
+    expect(within(timeline).getByText("Final response")).toBeVisible();
+    expect(
+      within(timeline).getAllByText("Review Failed Retry Available").length
+    ).toBeGreaterThan(0);
     expect(within(transitions).getByText("Review -> Refinement")).toBeVisible();
     expect(
       within(transitions).getByText("Review Failed Retry Available")
