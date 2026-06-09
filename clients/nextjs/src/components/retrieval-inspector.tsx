@@ -1,10 +1,13 @@
 import type { RetrievalRuntimeModel } from "@/lib/retrieval-runtime";
+import { buildRetrievalQualityModel } from "@/lib/retrieval-quality";
 import { buildRetrievalSourceExplorerModel } from "@/lib/retrieval-source-explorer";
+import { RetrievalQualityDeepDive } from "./retrieval-quality-deep-dive";
 import { RetrievalSourceExplorer } from "./retrieval-source-explorer";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
 
 export function RetrievalInspector({ runtime }: { runtime: RetrievalRuntimeModel }) {
   const hasSources = runtime.sources.length > 0;
+  const quality = buildRetrievalQualityModel(runtime);
   const explorer = buildRetrievalSourceExplorerModel(runtime);
 
   return (
@@ -95,6 +98,7 @@ export function RetrievalInspector({ runtime }: { runtime: RetrievalRuntimeModel
           </p>
         ) : null}
       </article>
+      <RetrievalQualityDeepDive model={quality} />
       {hasSources ? (
         <RetrievalSourceExplorer model={explorer} />
       ) : (

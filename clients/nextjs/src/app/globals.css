@@ -4512,6 +4512,7 @@ a {
 }
 
 .retrievalPanel {
+  grid-auto-rows: max-content;
   gap: 12px;
 }
 
@@ -5214,6 +5215,293 @@ a {
   background: rgba(243, 184, 82, 0.08);
   font-size: 12px;
   line-height: 1.45;
+}
+
+.retrievalQualityDeepDive {
+  min-height: max-content;
+  overflow: hidden;
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.07), transparent 70%),
+    rgba(255, 255, 255, 0.025);
+  box-shadow: var(--panel-highlight);
+}
+
+.retrievalQualityDeepDive[data-quality="low"] {
+  border-color: rgba(255, 122, 102, 0.22);
+}
+
+.retrievalQualityToggle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.retrievalQualityToggle > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.retrievalQualityToggle > div > span,
+.retrievalDomainBalance header > div > span,
+.retrievalQualityWeaknesses > span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.retrievalQualityToggle strong,
+.retrievalDomainBalance header strong {
+  color: var(--foreground);
+  font-size: 13px;
+}
+
+.retrievalQualityToggle p,
+.retrievalDomainBalance header p,
+.retrievalQualityWeaknesses p {
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.retrievalQualityToggle > svg {
+  color: var(--muted);
+  transition:
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.retrievalQualityDeepDive[data-open="true"] .retrievalQualityToggle > svg {
+  color: var(--teal);
+  transform: rotate(180deg);
+}
+
+.retrievalQualityBadge,
+.retrievalQualityMetric header small,
+.retrievalDomainBalance header > span {
+  width: fit-content;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.retrievalQualityBadge[data-quality="high"],
+.retrievalQualityMetric header small[data-quality="high"] {
+  color: var(--green);
+  border-color: rgba(121, 211, 139, 0.22);
+  background: rgba(121, 211, 139, 0.08);
+}
+
+.retrievalQualityBadge[data-quality="medium"],
+.retrievalQualityMetric header small[data-quality="medium"],
+.retrievalDomainBalance header > span[data-balance="weighted"] {
+  color: var(--amber);
+  border-color: rgba(243, 184, 82, 0.22);
+  background: rgba(243, 184, 82, 0.08);
+}
+
+.retrievalQualityBadge[data-quality="low"],
+.retrievalQualityMetric header small[data-quality="low"],
+.retrievalDomainBalance header > span[data-balance="concentrated"] {
+  color: var(--coral);
+  border-color: rgba(255, 122, 102, 0.22);
+  background: rgba(255, 122, 102, 0.08);
+}
+
+.retrievalDomainBalance header > span[data-balance="balanced"] {
+  color: var(--green);
+  border-color: rgba(121, 211, 139, 0.2);
+  background: rgba(121, 211, 139, 0.07);
+}
+
+.retrievalDomainBalance header > span[data-balance="focused"] {
+  color: var(--blue);
+  border-color: rgba(124, 167, 255, 0.2);
+  background: rgba(124, 167, 255, 0.07);
+}
+
+.retrievalQualityBody {
+  display: grid;
+  gap: 10px;
+  padding: 0 12px 12px;
+}
+
+.retrievalQualityMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.retrievalQualityMetric {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.retrievalQualityMetric[data-quality="high"] {
+  border-color: rgba(121, 211, 139, 0.16);
+}
+
+.retrievalQualityMetric[data-quality="medium"] {
+  border-color: rgba(243, 184, 82, 0.16);
+}
+
+.retrievalQualityMetric[data-quality="low"] {
+  border-color: rgba(255, 122, 102, 0.18);
+}
+
+.retrievalQualityMetric header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.retrievalQualityMetric header > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.retrievalQualityMetric > strong {
+  color: var(--foreground);
+  font-size: 12px;
+}
+
+.retrievalQualityMetric > p {
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.retrievalDomainBalance,
+.retrievalQualityWeaknesses {
+  display: grid;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(7, 12, 18, 0.18);
+}
+
+.retrievalDomainBalance header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.retrievalDomainBalance header > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.retrievalDomainDistribution {
+  display: grid;
+  gap: 7px;
+}
+
+.retrievalDomainRow {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(72px, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.retrievalDomainRow > span:first-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.retrievalDomainRow > span:first-child strong {
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.retrievalDomainRow > span:first-child small,
+.retrievalDomainRow > strong {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.retrievalDomainRow[data-missing="true"] {
+  opacity: 0.72;
+}
+
+.retrievalDomainRow[data-missing="true"] > span:first-child strong,
+.retrievalDomainRow[data-missing="true"] > strong {
+  color: var(--coral);
+}
+
+.retrievalDomainBar {
+  overflow: hidden;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.retrievalDomainBar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--teal), rgba(var(--accent-rgb), 0.45));
+}
+
+.retrievalQualityWeaknesses ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.retrievalQualityWeaknesses li {
+  position: relative;
+  padding-left: 12px;
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.retrievalQualityWeaknesses li::before {
+  position: absolute;
+  top: 0.55em;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--amber);
+  content: "";
 }
 
 .retrievalExplorer {
@@ -5986,6 +6274,10 @@ html[data-cca-theme="matrix"] .artifactDetailCard,
 html[data-cca-theme="matrix"] .retrievalSummaryCard,
 html[data-cca-theme="matrix"] .retrievalEmptyCard,
 html[data-cca-theme="matrix"] .retrievalInsightCard,
+html[data-cca-theme="matrix"] .retrievalQualityDeepDive,
+html[data-cca-theme="matrix"] .retrievalQualityMetric,
+html[data-cca-theme="matrix"] .retrievalDomainBalance,
+html[data-cca-theme="matrix"] .retrievalQualityWeaknesses,
 html[data-cca-theme="matrix"] .retrievalSourceDetail,
 html[data-cca-theme="matrix"] .retrievalItem,
 html[data-cca-theme="matrix"] .retrievalChunk,
@@ -6369,6 +6661,7 @@ html[data-cca-theme="blueprint"] .codeViewer {
 .workstation[data-density="compact"] .artifactDetailCard,
 .workstation[data-density="compact"] .retrievalSummaryCard,
 .workstation[data-density="compact"] .retrievalEmptyCard,
+.workstation[data-density="compact"] .retrievalQualityToggle,
 .workstation[data-density="compact"] .retrievalSourceDetail,
 .workstation[data-density="compact"] .retrievalItem {
   padding: 10px;
@@ -6607,6 +6900,7 @@ html[data-cca-theme="blueprint"] .codeViewer {
   .runtimeConsoleHealthSignals,
   .kbHealthSummaryMetrics,
   .kbSourceHealthMetrics,
+  .retrievalQualityMetricGrid,
   .previewSurfaceMetaGrid,
   .previewInspectorControlGrid,
   .runtimeConsoleDetails div,
@@ -6632,6 +6926,15 @@ html[data-cca-theme="blueprint"] .codeViewer {
 
   .retrievalSourceRow {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .retrievalDomainRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .retrievalDomainBar {
+    grid-column: 1 / -1;
+    grid-row: 2;
   }
 
   .retrievalSourceRowMeta {
