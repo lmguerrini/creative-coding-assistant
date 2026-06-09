@@ -175,6 +175,7 @@ import { ProviderObservabilityDeepDive } from "./provider-observability-deep-div
 import { RetrievalInspector } from "./retrieval-inspector";
 import { RuntimeConsoleInspector } from "./runtime-console-inspector";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
+import { WorkflowTimelineExplorer } from "./workflow-timeline-explorer";
 
 type WorkstationShellProps = {
   snapshot: AssistantWorkspaceSnapshot;
@@ -3838,6 +3839,7 @@ function WorkflowInspector({
         </article>
       </div>
       <TelemetryLifecycleCard telemetry={telemetry} />
+      <WorkflowTimelineExplorer timeline={runtime.timeline} />
       <div
         aria-label="LangGraph workflow visualization"
         className="workflowGraph"
