@@ -14,6 +14,10 @@ import {
   createWorkstationError,
   type WorkstationError
 } from "./workstation-errors";
+import {
+  buildWorkflowTimelineModel,
+  type WorkflowTimelineModel
+} from "./workflow-timeline";
 
 export type WorkflowRuntimeTraceEvent = {
   event: AssistantStreamEvent;
@@ -81,6 +85,7 @@ export type WorkflowRuntimeModel = {
   steps: WorkflowRuntimeStep[];
   transitions: WorkflowRuntimeTransition[];
   events: WorkflowRuntimeEvent[];
+  timeline: WorkflowTimelineModel;
   summary: WorkflowRuntimeSummary;
   error: WorkstationError | null;
 };
@@ -331,6 +336,7 @@ export function buildWorkflowRuntimeModel(
     steps,
     transitions,
     events,
+    timeline: buildWorkflowTimelineModel(traceEvents),
     summary: {
       status: latestStatus,
       currentNode: latestNode,
@@ -378,6 +384,7 @@ function buildFallbackWorkflowRuntimeModel(
     steps,
     transitions: [],
     events: [],
+    timeline: buildWorkflowTimelineModel([]),
     summary: {
       status: normalizeWorkflowStatus(workflow.status),
       currentNode: workflow.currentNode,
