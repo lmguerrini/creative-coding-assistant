@@ -1120,6 +1120,20 @@ describe("WorkstationShell", () => {
     expect(explorer).toHaveTextContent(
       "WebGPU API contributed most with 2/3 context chunks."
     );
+    const healthToggle = within(explorer).getByLabelText(
+      "Toggle knowledge base source health dashboard"
+    );
+    expect(healthToggle.closest("details")).not.toHaveAttribute("open");
+    expect(healthToggle).toHaveTextContent("Stale");
+
+    fireEvent.click(healthToggle);
+
+    expect(healthToggle.closest("details")).toHaveAttribute("open");
+    expect(
+      within(explorer).getByRole("list", {
+        name: "Knowledge base source health metrics"
+      })
+    ).toHaveTextContent("280 indexed chunks");
     expect(
       within(explorer).getByRole("button", {
         name: "Inspect source WebGPU API"
@@ -1148,6 +1162,11 @@ describe("WorkstationShell", () => {
     ).toBeGreaterThan(0);
     expect(within(webgpuDetail).getByText("Best match")).toBeVisible();
     expect(within(webgpuDetail).getByText("High relevance")).toBeVisible();
+    expect(
+      within(webgpuDetail).getByRole("region", {
+        name: "WebGPU API source health"
+      })
+    ).toHaveTextContent("184 indexed chunks");
 
     fireEvent.click(
       within(explorer).getByRole("button", {

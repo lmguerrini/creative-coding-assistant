@@ -125,7 +125,22 @@ describe("retrieval runtime", () => {
                 score_adjustment: 0.04,
                 domain_match: true,
                 selection_reason:
-                  "Selected after semantic ranking and route-specific generation relevance adjustment."
+                  "Selected after semantic ranking and route-specific generation relevance adjustment.",
+                source_health: {
+                  health_status: "healthy",
+                  freshness_status: "fresh",
+                  availability: "available",
+                  domain_owner: "Web platform / MDN",
+                  checked_at: "2026-05-23T10:05:01Z",
+                  refresh_recommended: false,
+                  sync: {
+                    sync_status: "succeeded",
+                    requested_at: "2026-05-22T08:00:00Z",
+                    last_synced_at: "2026-05-22T08:02:00Z",
+                    chunk_count: 184,
+                    warnings: []
+                  }
+                }
               },
               {
                 source_id: "webgpu_mdn_api",
@@ -202,7 +217,20 @@ describe("retrieval runtime", () => {
       title: "WebGPU API",
       freshness: "fresh",
       quality: "high",
-      qualityLabel: "94% match"
+      qualityLabel: "94% match",
+      health: {
+        status: "healthy",
+        freshnessStatus: "fresh",
+        availability: "available",
+        domainOwner: "Web platform / MDN",
+        indexedChunkCount: 184,
+        lastSuccessfulSyncAt: "2026-05-22T08:02:00Z",
+        lastAttemptedSyncAt: "2026-05-22T08:00:00Z",
+        syncOutcome: "succeeded",
+        refreshRecommended: false,
+        checkedAt: "2026-05-23T10:05:01Z",
+        warnings: []
+      }
     });
     expect(runtime.sources[0].chunks).toHaveLength(2);
     expect(runtime.sources[0].chunks[0]).toMatchObject({
