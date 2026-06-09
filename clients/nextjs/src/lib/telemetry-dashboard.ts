@@ -13,6 +13,10 @@ import {
   buildEvaluationSessionModel,
   type EvaluationSessionModel
 } from "./evaluation-session";
+import {
+  buildLangSmithTraceModel,
+  type LangSmithTraceModel
+} from "./langsmith-trace";
 import type { ProviderTelemetryModel } from "./provider-telemetry";
 import type { RetrievalRuntimeModel } from "./retrieval-runtime";
 import type {
@@ -139,6 +143,7 @@ export type TelemetryDashboardModel = {
   preview: TelemetryPreviewHealth;
   retrieval: TelemetryRetrievalActivity;
   observability: TelemetryObservabilitySummary;
+  langsmithTrace: LangSmithTraceModel;
   evaluation: TelemetryEvaluationLineage;
   artifactLink: TelemetryArtifactRuntimeLink;
 };
@@ -213,6 +218,7 @@ export function buildTelemetryDashboardModel({
   const preview = buildPreviewHealth(snapshot.preview, traceEvents);
   const retrieval = buildRetrievalActivity(retrievalRuntime);
   const observability = buildObservabilitySummary(traceEvents);
+  const langsmithTrace = buildLangSmithTraceModel(traceEvents);
   const evaluation = buildEvaluationSessionModel(traceEvents, observability);
   const artifactLink = buildArtifactRuntimeLink({
     activeArtifact,
@@ -260,6 +266,7 @@ export function buildTelemetryDashboardModel({
     preview,
     retrieval,
     observability,
+    langsmithTrace,
     evaluation,
     artifactLink
   };
