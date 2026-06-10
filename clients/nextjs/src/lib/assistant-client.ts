@@ -113,6 +113,19 @@ export type CreativeTranslationSummary = {
   structureDirection: string[];
   generationConstraints: string[];
   refinementTargets: string[];
+  sacredGeometry?: SacredGeometrySummary | null;
+};
+
+export type SacredGeometrySummary = {
+  concepts: string[];
+  geometricStructure: string[];
+  symmetryType: string[];
+  movementBehavior: string[];
+  visualComposition: string[];
+  colorMaterialDirection: string[];
+  runtimeRecommendations: string[];
+  audioImplications: string[];
+  generationConstraints: string[];
 };
 
 export type ArtifactCritiqueDimension = {

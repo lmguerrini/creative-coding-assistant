@@ -3446,7 +3446,28 @@ describe("WorkstationShell", () => {
                 refinementTargets: [
                   "Preserve atmosphere: meditative",
                   "Tune motion character: pulse"
-                ]
+                ],
+                sacredGeometry: {
+                  concepts: ["mandala", "radial symmetry"],
+                  geometricStructure: [
+                    "Build nested rings around a clear center."
+                  ],
+                  symmetryType: [
+                    "Use radial symmetry with a limited segment count."
+                  ],
+                  movementBehavior: [
+                    "Animate layers with slow counter-rotation."
+                  ],
+                  visualComposition: ["Keep a strong center."],
+                  colorMaterialDirection: ["Use controlled contrast."],
+                  runtimeRecommendations: ["p5.js", "GLSL", "Tone.js"],
+                  audioImplications: [
+                    "Map concentric layers to frequency bands."
+                  ],
+                  generationConstraints: [
+                    "Do not add unsupported symbolic claims."
+                  ]
+                }
               }
             }
           : artifact
@@ -3464,6 +3485,31 @@ describe("WorkstationShell", () => {
     expect(within(translation).getByText("rhythm")).toBeVisible();
     expect(within(translation).getByText("p5.js / Tone.js")).toBeVisible();
     expect(within(translation).getByText(/Preserve atmosphere/)).toBeVisible();
+    const sacredGeometry = within(translation).getByRole("region", {
+      name: "Sacred geometry guidance"
+    });
+    expect(sacredGeometry).toBeVisible();
+    expect(
+      within(sacredGeometry).getByText("mandala / radial symmetry")
+    ).toBeVisible();
+    expect(
+      within(sacredGeometry).getByText("p5.js / GLSL / Tone.js")
+    ).toBeVisible();
+  });
+
+  it("keeps sacred geometry absent for legacy artifact metadata", () => {
+    renderShell(snapshotWithActiveTab("Artifacts"));
+
+    const translation = screen.getByRole("region", {
+      name: "Creative translation summary"
+    });
+
+    expect(translation).toHaveAttribute("data-state", "legacy");
+    expect(
+      within(translation).queryByRole("region", {
+        name: "Sacred geometry guidance"
+      })
+    ).not.toBeInTheDocument();
   });
 
   it("labels unsupported artifacts as code-only in the artifacts inspector", () => {

@@ -125,7 +125,24 @@ describe("live artifact hydration", () => {
                 refinement_targets: [
                   "Preserve atmosphere: meditative",
                   "Tune motion character: drift"
-                ]
+                ],
+                sacred_geometry: {
+                  concepts: ["spiral"],
+                  geometric_structure: [
+                    "Build from a continuous polar spiral path."
+                  ],
+                  symmetry_type: ["Use rotational progression."],
+                  movement_behavior: ["Move points along the curve."],
+                  visual_composition: ["Protect the spiral origin."],
+                  color_material_direction: [
+                    "Use a directional hue progression."
+                  ],
+                  runtime_recommendations: ["p5.js", "GLSL"],
+                  audio_implications: [],
+                  generation_constraints: [
+                    "Do not add unsupported symbolic claims."
+                  ]
+                }
               },
               content:
                 "function setup() {\n  createCanvas(640, 360);\n}\nfunction draw() {\n  background(12);\n}"
@@ -144,7 +161,12 @@ describe("live artifact hydration", () => {
         outputModality: "visual",
         geometricReferences: ["spiral"],
         movementLanguage: ["drift"],
-        runtimeRecommendations: ["p5.js"]
+        runtimeRecommendations: ["p5.js"],
+        sacredGeometry: {
+          concepts: ["spiral"],
+          symmetryType: ["Use rotational progression."],
+          runtimeRecommendations: ["p5.js", "GLSL"]
+        }
       },
       actions: ["Open", "Preview", "Copy", "Download"]
     });

@@ -1,4 +1,7 @@
-import type { CreativeTranslationSummary } from "./assistant-client";
+import type {
+  CreativeTranslationSummary,
+  SacredGeometrySummary
+} from "./assistant-client";
 
 export function normalizeCreativeTranslation(
   value: unknown
@@ -49,6 +52,51 @@ export function normalizeCreativeTranslation(
     ),
     refinementTargets: readStringList(
       record.refinement_targets ?? record.refinementTargets
+    ),
+    sacredGeometry: normalizeSacredGeometry(
+      record.sacred_geometry ?? record.sacredGeometry
+    )
+  };
+}
+
+function normalizeSacredGeometry(
+  value: unknown
+): SacredGeometrySummary | null {
+  const record = readRecord(value);
+  if (!record) {
+    return null;
+  }
+
+  const concepts = readStringList(record.concepts);
+  if (concepts.length === 0) {
+    return null;
+  }
+
+  return {
+    concepts,
+    geometricStructure: readStringList(
+      record.geometric_structure ?? record.geometricStructure
+    ),
+    symmetryType: readStringList(
+      record.symmetry_type ?? record.symmetryType
+    ),
+    movementBehavior: readStringList(
+      record.movement_behavior ?? record.movementBehavior
+    ),
+    visualComposition: readStringList(
+      record.visual_composition ?? record.visualComposition
+    ),
+    colorMaterialDirection: readStringList(
+      record.color_material_direction ?? record.colorMaterialDirection
+    ),
+    runtimeRecommendations: readStringList(
+      record.runtime_recommendations ?? record.runtimeRecommendations
+    ),
+    audioImplications: readStringList(
+      record.audio_implications ?? record.audioImplications
+    ),
+    generationConstraints: readStringList(
+      record.generation_constraints ?? record.generationConstraints
     )
   };
 }

@@ -113,7 +113,20 @@ describe("assistant stream client", () => {
             runtimeRecommendations: ["p5.js"],
             structureDirection: [],
             generationConstraints: [],
-            refinementTargets: ["Preserve atmosphere: calm"]
+            refinementTargets: ["Preserve atmosphere: calm"],
+            sacredGeometry: {
+              concepts: ["mandala"],
+              geometricStructure: ["Build nested rings."],
+              symmetryType: ["Use radial symmetry."],
+              movementBehavior: [],
+              visualComposition: [],
+              colorMaterialDirection: [],
+              runtimeRecommendations: ["p5.js"],
+              audioImplications: [],
+              generationConstraints: [
+                "Do not add unsupported symbolic claims."
+              ]
+            }
           }
         }
       },
@@ -151,7 +164,11 @@ describe("assistant stream client", () => {
         previewEligible: true,
         creativeTranslation: expect.objectContaining({
           creativeIntent: "Create a calm particle field.",
-          moodAtmosphere: ["calm"]
+          moodAtmosphere: ["calm"],
+          sacredGeometry: expect.objectContaining({
+            concepts: ["mandala"],
+            runtimeRecommendations: ["p5.js"]
+          })
         })
       }),
       attachments: [

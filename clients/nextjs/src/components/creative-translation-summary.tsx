@@ -80,6 +80,53 @@ export function CreativeTranslationSummaryCard({
           ))}
         </dl>
       ) : null}
+      {translation.sacredGeometry ? (
+        <section
+          aria-label="Sacred geometry guidance"
+          className="sacredGeometrySummary"
+        >
+          <header>
+            <span>Sacred geometry</span>
+            <strong>{translation.sacredGeometry.concepts.join(" / ")}</strong>
+          </header>
+          <dl>
+            {translation.sacredGeometry.symmetryType.length > 0 ? (
+              <div>
+                <dt>Symmetry</dt>
+                <dd>
+                  {translation.sacredGeometry.symmetryType.join(" ")}
+                </dd>
+              </div>
+            ) : null}
+            {translation.sacredGeometry.movementBehavior.length > 0 ? (
+              <div>
+                <dt>Movement</dt>
+                <dd>
+                  {translation.sacredGeometry.movementBehavior.join(" ")}
+                </dd>
+              </div>
+            ) : null}
+            {translation.sacredGeometry.runtimeRecommendations.length > 0 ? (
+              <div>
+                <dt>Runtime</dt>
+                <dd>
+                  {translation.sacredGeometry.runtimeRecommendations.join(
+                    " / "
+                  )}
+                </dd>
+              </div>
+            ) : null}
+            {translation.sacredGeometry.audioImplications.length > 0 ? (
+              <div>
+                <dt>Audio</dt>
+                <dd>
+                  {translation.sacredGeometry.audioImplications.join(" ")}
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+        </section>
+      ) : null}
       {translation.refinementTargets.length > 0 ? (
         <p className="creativeTranslationTargets">
           <strong>Refine</strong>
