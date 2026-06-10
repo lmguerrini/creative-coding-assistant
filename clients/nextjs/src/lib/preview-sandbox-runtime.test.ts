@@ -32,6 +32,22 @@ describe("preview sandbox runtime", () => {
     expect(prepared).toContain("const palette = { accent: '#4cd7c8' };");
   });
 
+  it("prepares Hydra source as a bounded execution plan", () => {
+    const source =
+      "osc(10, 0.1, 1.2).modulate(shape(4, 0.3, 0.02), 0.12).out(o1); render(o1);";
+    const prepared = preparePreviewExecutableSource(source, "hydra");
+    const program = JSON.parse(prepared);
+
+    expect(program).toMatchObject({
+      renderTarget: "o1",
+      speed: 1,
+      version: 1
+    });
+    expect(program.outputs.o1.source.name).toBe("osc");
+    expect(program.outputs.o1.operators[0].name).toBe("modulate");
+    expect(prepared).not.toContain(source);
+  });
+
   it("builds an escaped sandbox document with the selected runtime payload", () => {
     const document = buildPreviewSandboxDocument({
       kind: "glsl",

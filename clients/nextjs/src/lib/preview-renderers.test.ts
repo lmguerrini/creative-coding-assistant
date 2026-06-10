@@ -82,6 +82,16 @@ describe("preview renderers", () => {
         summary: "Fragment shader with gl_FragColor and uniforms.",
         title: "chromatic-field.frag"
       })
+    },
+    {
+      id: "surface.hydra",
+      kind: "hydra",
+      artifact: creativeArtifact({
+        domain: "hydra",
+        runtime: "hydra",
+        summary: "Hydra patch built from osc(), shape(), modulation, and out().",
+        title: "feedback-lattice.hydra.js"
+      })
     }
   ])(
     "matches $kind renderer signals and routes them into a supported surface",
@@ -108,12 +118,12 @@ describe("preview renderers", () => {
     }
   );
 
-  it("keeps unsupported Hydra-like code out of live renderer matching", () => {
+  it("keeps unsupported WebGPU code out of live renderer matching", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const artifact = creativeArtifact({
       previewEligible: true,
-      summary: "Hydra patch built from osc(), shape(), and out().",
-      title: "feedback-lattice.hydra.js"
+      summary: "WebGPU compute and render pipeline.",
+      title: "feedback-field.webgpu.ts"
     });
     const preview = creativePreviewSummary(artifact, snapshot.preview);
 
@@ -127,7 +137,7 @@ describe("preview renderers", () => {
     ).toMatchObject({
       supportState: "unsupported",
       supportReason:
-        "Current browser preview foundations cover p5.js, Three.js, and GLSL only.",
+        "Current browser preview foundations cover p5.js, Three.js, GLSL, and Hydra only.",
       surfaceKind: "unsupported"
     });
   });

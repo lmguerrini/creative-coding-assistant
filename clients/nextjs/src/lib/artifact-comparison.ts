@@ -47,15 +47,14 @@ export type ArtifactComparisonModel = {
 const supportedPreviewDomains = new Set([
   "p5_js",
   "glsl",
+  "hydra",
   "three_js",
   "react_three_fiber"
 ]);
 
-const supportedBrowserRuntimeKinds = new Set(["p5", "three", "glsl"]);
+const supportedBrowserRuntimeKinds = new Set(["p5", "three", "glsl", "hydra"]);
 
 const unsupportedBrowserRuntimeExtensions = [
-  ".hydra.js",
-  ".hydra.ts",
   ".wgsl",
   ".webgpu.js",
   ".webgpu.ts",
@@ -327,6 +326,8 @@ function formatArtifactRuntimeLabel(runtime: string) {
       return "Three.js";
     case "glsl":
       return "GLSL";
+    case "hydra":
+      return "Hydra";
     default:
       return sentenceCase(runtime.replace(/[_-]+/g, " "));
   }
@@ -346,6 +347,8 @@ function formatArtifactDomainLabel(domain: string | null | undefined) {
       return "React Three Fiber";
     case "glsl":
       return "GLSL";
+    case "hydra":
+      return "Hydra";
     default:
       return sentenceCase(domain.replace(/_/g, " "));
   }

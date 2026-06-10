@@ -44,7 +44,7 @@ type GeneratedArtifactSource = {
   type?: ArtifactSummary["type"];
 };
 
-type CreativeRuntimeKind = "p5" | "three" | "glsl";
+type CreativeRuntimeKind = "p5" | "three" | "glsl" | "hydra";
 
 type ArtifactInference = {
   content: string;
@@ -72,11 +72,13 @@ const liveGeneratedArtifactId = "live-generated-artifact";
 const liveResponseArtifactId = "live-response-artifact";
 const previewRendererLabels: Record<CreativeRuntimeKind, string> = {
   glsl: "GLSL",
+  hydra: "Hydra",
   p5: "p5.js",
   three: "Three.js"
 };
 const previewRendererIds: Record<CreativeRuntimeKind, string> = {
   glsl: "surface.glsl",
+  hydra: "surface.hydra",
   p5: "surface.p5",
   three: "surface.three"
 };
@@ -501,7 +503,7 @@ function buildArtifactSummary(
     ? `${previewRendererLabels[inferred.previewKind]} runtime signals matched from the generated artifact.`
     : inferred.previewEligible
       ? "Preview target metadata is available, but no supported creative runtime matched this output."
-    : "No supported p5.js, Three.js, or GLSL preview runtime matched this output.";
+    : "No supported p5.js, Three.js, GLSL, or Hydra preview runtime matched this output.";
   const summary =
     inferred.summary ??
     (inferred.type === "code"
@@ -618,7 +620,7 @@ function buildUnavailablePreviewSummary({
     sourceArtifactName: artifact?.title ?? "",
     state: "unavailable",
     status: "Unavailable",
-    summary: `${artifactName} is available in the workspace, but it does not match the supported live p5.js, Three.js, or GLSL preview runtimes yet.`,
+    summary: `${artifactName} is available in the workspace, but it does not match the supported live p5.js, Three.js, GLSL, or Hydra preview runtimes yet.`,
     target: "",
     targetId: "",
     title: "Preview unavailable",
@@ -633,6 +635,16 @@ function inferRuntimeKind(
 ): CreativeRuntimeKind | null {
   const haystack = [content, language, title].join(" ").toLowerCase();
   const normalizedTitle = (title ?? "").toLowerCase();
+
+  if (
+    normalizedTitle.endsWith(".hydra.js") ||
+    normalizedTitle.endsWith(".hydra.ts") ||
+    language === "hydra" ||
+    (/(?:osc|noise|voronoi|shape|gradient|solid|src)\s*\(/.test(haystack) &&
+      /\.out\s*\(/.test(haystack))
+  ) {
+    return "hydra";
+  }
 
   if (
     normalizedTitle.endsWith(".frag") ||
@@ -703,6 +715,10 @@ function defaultArtifactTitle({
     return `generated-shader${orderSuffix}.frag`;
   }
 
+  if (previewKind === "hydra") {
+    return `generated-patch${orderSuffix}.hydra.js`;
+  }
+
   if (language === "javascript") {
     return `generated-artifact${orderSuffix}.js`;
   }
@@ -747,6 +763,10 @@ function formatLanguageLabel(
     return "GLSL";
   }
 
+  if (previewKind === "hydra") {
+    return "JavaScript + Hydra";
+  }
+
   switch (language) {
     case "css":
       return "CSS";
@@ -760,6 +780,8 @@ function formatLanguageLabel(
       return "JSON";
     case "markdown":
       return "Markdown";
+    case "hydra":
+      return "JavaScript + Hydra";
     case "python":
       return "Python";
     case "typescript":
@@ -805,6 +827,10 @@ function normalizeRuntimeKind(value: string): CreativeRuntimeKind | null {
     case "p5":
     case "p5.js":
       return "p5";
+    case "surface.hydra":
+    case "hydra":
+    case "hydra.js":
+      return "hydra";
     case "surface.three":
     case "three":
     case "three.js":

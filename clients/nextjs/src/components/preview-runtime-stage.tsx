@@ -212,7 +212,7 @@ export function PreviewRuntimeStage({
         aria-label={`${route.rendererLabel} preview runtime frame`}
         className="previewRuntimeFrame"
         ref={iframeRef}
-        sandbox="allow-scripts allow-same-origin"
+        sandbox="allow-scripts"
         title={`${route.rendererLabel} preview runtime`}
       />
       <div className="previewRuntimeOverlay" aria-live="polite">

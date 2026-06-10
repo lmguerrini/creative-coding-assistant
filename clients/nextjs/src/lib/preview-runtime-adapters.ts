@@ -1,11 +1,12 @@
 import type { CodeSummary, PreviewSummary } from "./assistant-client";
 import type { PreviewRendererRoute } from "./preview-renderers";
+import { parseHydraRuntimeSource } from "./hydra-runtime";
 import {
   createWorkstationError,
   type WorkstationError
 } from "./workstation-errors";
 
-export type PreviewExecutableRuntimeKind = "p5" | "three" | "glsl";
+export type PreviewExecutableRuntimeKind = "p5" | "three" | "glsl" | "hydra";
 
 export type PreviewRuntimeLifecycleState =
   | "idle"
@@ -134,6 +135,7 @@ export function getExecutablePreviewRuntimeKind(
     case "p5":
     case "three":
     case "glsl":
+    case "hydra":
       return route.surfaceKind;
     default:
       return null;
@@ -216,7 +218,9 @@ export function getInitialPreviewRuntimeStatus({
         ? "Preparing a controlled WebGL fragment shader runtime."
         : kind === "three"
           ? "Preparing a controlled Three.js-compatible browser runtime."
-          : "Preparing a controlled p5.js-compatible browser runtime.",
+          : kind === "hydra"
+            ? "Preparing a controlled Hydra-compatible browser runtime."
+            : "Preparing a controlled p5.js-compatible browser runtime.",
     label: "Runtime starting",
     state: "starting",
     error: null
@@ -237,7 +241,108 @@ export function mountPreviewRuntime({
       return mountThreeRuntime({ canvas, onFrame, onStatus, source });
     case "glsl":
       return mountGlslRuntime({ canvas, onFrame, onStatus, source });
+    case "hydra":
+      return mountHydraRuntime({ canvas, onFrame, onStatus, source });
   }
+}
+
+function mountHydraRuntime({
+  canvas,
+  onFrame,
+  onStatus,
+  source
+}: Omit<MountPreviewRuntimeInput, "kind">): PreviewRuntimeMount {
+  const context = getCanvas2DContext(canvas);
+  const parsed = parseHydraRuntimeSource(source.source);
+
+  if (!context || !parsed.ok) {
+    const message = !context
+      ? "Canvas 2D is unavailable, so the Hydra runtime cannot mount here."
+      : !parsed.ok
+        ? parsed.message
+        : "Hydra runtime could not mount.";
+    onStatus({
+      detail: message,
+      label: "Hydra runtime unavailable",
+      state: "error",
+      error: createRendererRuntimeError({
+        kind: "hydra",
+        message,
+        type: context ? "hydra_source_rejected" : "canvas_2d_unavailable"
+      })
+    });
+    return { dispose: () => undefined };
+  }
+
+  const runtimeWindow = canvas.ownerDocument.defaultView;
+  const context2d = context;
+  const program = parsed.program;
+  const activeChain = program.outputs[program.renderTarget];
+  const sourceCall = activeChain?.source;
+  const frequency = readHydraNumber(sourceCall?.args[0], 8);
+  const sync = readHydraNumber(sourceCall?.args[1], 0.1);
+  const offset = readHydraNumber(sourceCall?.args[2], 1.2);
+  let animationFrame = 0;
+  let disposed = false;
+
+  onStatus({
+    detail: `Rendering ${source.title} through a bounded Hydra synth adapter.`,
+    label: "Hydra runtime running",
+    state: "running",
+    error: null
+  });
+
+  function drawFrame(time: number) {
+    if (disposed) {
+      return;
+    }
+    const { height, pixelRatio, width } = resizeCanvasToDisplaySize(canvas);
+    const columns = Math.min(96, Math.max(32, Math.round(width / 8)));
+    const rows = Math.min(64, Math.max(20, Math.round(height / 8)));
+    const cellWidth = width / columns;
+    const cellHeight = height / rows;
+    const runtimeTime = time * 0.001 * program.speed;
+
+    context2d.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    context2d.clearRect(0, 0, width, height);
+    for (let y = 0; y < rows; y += 1) {
+      for (let x = 0; x < columns; x += 1) {
+        const u = x / columns;
+        const v = y / rows;
+        const wave =
+          0.5 +
+          0.5 *
+            Math.sin(
+              (u * frequency + v * frequency * 0.58 + runtimeTime * sync) *
+                Math.PI *
+                2
+            );
+        const fold = 0.5 + 0.5 * Math.cos((u - v + runtimeTime * 0.08) * Math.PI * 6);
+        const red = clampColor((wave * 0.72 + fold * 0.28) * 255);
+        const green = clampColor((fold * 0.54 + offset * 0.08) * 255);
+        const blue = clampColor((1 - wave * 0.68 + fold * 0.18) * 255);
+        context2d.fillStyle = `rgb(${red}, ${green}, ${blue})`;
+        context2d.fillRect(
+          x * cellWidth,
+          y * cellHeight,
+          cellWidth + 1,
+          cellHeight + 1
+        );
+      }
+    }
+
+    onFrame?.({ renderedAtMs: time });
+    animationFrame = requestRuntimeFrame(runtimeWindow, drawFrame);
+  }
+
+  animationFrame = requestRuntimeFrame(runtimeWindow, drawFrame);
+
+  return {
+    dispose: () => {
+      disposed = true;
+      cancelRuntimeFrame(runtimeWindow, animationFrame);
+    }
+  };
 }
 
 function mountP5Runtime({
@@ -907,7 +1012,9 @@ function createRendererRuntimeError({
       ? "glsl_renderer"
       : kind === "three"
         ? "three_renderer"
-        : "p5_renderer";
+        : kind === "hydra"
+          ? "hydra_renderer"
+          : "p5_renderer";
 
   return createWorkstationError({
     type,
@@ -1019,6 +1126,10 @@ function parseFirstNumber(source: string, pattern: RegExp) {
 
   const value = Number.parseFloat(match[1]);
   return Number.isFinite(value) ? value : null;
+}
+
+function readHydraNumber(value: unknown, fallback: number) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
 function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement) {

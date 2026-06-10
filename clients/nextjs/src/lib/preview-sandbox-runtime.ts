@@ -4,6 +4,7 @@ import type {
   PreviewRuntimeSource,
   PreviewRuntimeStatus
 } from "./preview-runtime-adapters";
+import { prepareHydraRuntimeSource } from "./hydra-runtime";
 import {
   createWorkstationError,
   type WorkstationError
@@ -223,6 +224,7 @@ export function buildPreviewSandboxDocument({
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; media-src 'none'; font-src 'none'" />
 <style>
 html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#05080b;color:#edf3f2;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
 canvas{display:block;width:100%;height:100%;}
@@ -244,6 +246,10 @@ export function preparePreviewExecutableSource(
 ) {
   if (kind === "glsl") {
     return source.replace(/\r\n/g, "\n").trim();
+  }
+
+  if (kind === "hydra") {
+    return prepareHydraRuntimeSource(source);
   }
 
   return source
@@ -268,7 +274,9 @@ function getSandboxStartingStatus(
         ? "Mounting a controlled WebGL shader document."
         : kind === "three"
           ? "Mounting a controlled Three.js-compatible browser document."
-          : "Mounting a controlled p5.js-compatible browser document.",
+          : kind === "hydra"
+            ? "Mounting a controlled Hydra-compatible browser document."
+            : "Mounting a controlled p5.js-compatible browser document.",
     label: "Preview runtime starting",
     state: "starting",
     error: null
@@ -798,6 +806,192 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
     requestAnimationFrame(loop);
   }
 
+  function startHydra() {
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas 2D is unavailable in the preview frame.");
+    const program = JSON.parse(runtime.source.source);
+    if (program.error) throw new Error(program.error);
+    const buffer = document.createElement("canvas");
+    buffer.width = 128;
+    buffer.height = 72;
+    const bufferContext = buffer.getContext("2d");
+    if (!bufferContext) throw new Error("Hydra frame buffer is unavailable.");
+    let previous = {};
+
+    function number(value, fallback) {
+      return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+    }
+    function clamp(value) {
+      return Math.max(0, Math.min(1, value));
+    }
+    function fract(value) {
+      return value - Math.floor(value);
+    }
+    function samplePrevious(name, u, v) {
+      const pixels = previous[name];
+      if (!pixels) return [0, 0, 0];
+      const x = Math.max(0, Math.min(buffer.width - 1, Math.floor(fract(u) * buffer.width)));
+      const y = Math.max(0, Math.min(buffer.height - 1, Math.floor(fract(v) * buffer.height)));
+      const index = (y * buffer.width + x) * 3;
+      return [pixels[index] || 0, pixels[index + 1] || 0, pixels[index + 2] || 0];
+    }
+    function sampleValue(value, u, v, time, depth) {
+      if (typeof value === "string") return samplePrevious(value, u, v);
+      if (value && value.source) return sampleChain(value, u, v, time, depth + 1);
+      const scalar = number(value, 0);
+      return [scalar, scalar, scalar];
+    }
+    function sampleChain(chain, inputU, inputV, time, depth) {
+      if (!chain || !chain.source || depth > 8) return [0, 0, 0];
+      let u = inputU;
+      let v = inputV;
+      const operators = chain.operators || [];
+      operators.forEach(function (operator) {
+        const args = operator.args || [];
+        const modulation = sampleValue(args[0], u, v, time, depth);
+        const amount = number(args[1], number(args[0], 0.1));
+        if (operator.name === "rotate" || operator.name === "modulateRotate") {
+          const angle = number(args[0], 0) + (operator.name === "modulateRotate" ? modulation[0] * amount : 0);
+          const x = u - 0.5;
+          const y = v - 0.5;
+          u = x * Math.cos(angle) - y * Math.sin(angle) + 0.5;
+          v = x * Math.sin(angle) + y * Math.cos(angle) + 0.5;
+        } else if (operator.name === "scale" || operator.name === "modulateScale") {
+          const scale = Math.max(0.05, number(args[0], 1) + (operator.name === "modulateScale" ? modulation[0] * amount : 0));
+          u = (u - 0.5) / scale + 0.5;
+          v = (v - 0.5) / scale + 0.5;
+        } else if (operator.name === "scroll" || operator.name === "scrollX" || operator.name === "modulateScrollX") {
+          u += number(args[0], 0) + (operator.name === "modulateScrollX" ? modulation[0] * amount : 0);
+          if (operator.name === "scroll") v += number(args[1], 0);
+        } else if (operator.name === "scrollY" || operator.name === "modulateScrollY") {
+          v += number(args[0], 0) + (operator.name === "modulateScrollY" ? modulation[0] * amount : 0);
+        } else if (operator.name.indexOf("repeat") !== -1 || operator.name.indexOf("modulateRepeat") === 0) {
+          const repeatX = Math.max(1, number(args[0], 3));
+          const repeatY = Math.max(1, number(args[1], repeatX));
+          if (operator.name !== "repeatY" && operator.name !== "modulateRepeatY") u = fract(u * repeatX + modulation[0] * amount);
+          if (operator.name !== "repeatX" && operator.name !== "modulateRepeatX") v = fract(v * repeatY + modulation[1] * amount);
+        } else if (operator.name === "kaleid" || operator.name === "modulateKaleid") {
+          const sides = Math.max(2, Math.round(number(args[0], 6) + modulation[0] * amount));
+          const radius = Math.hypot(u - 0.5, v - 0.5);
+          const segment = Math.PI * 2 / sides;
+          const angle = Math.abs(((Math.atan2(v - 0.5, u - 0.5) % segment) + segment) % segment - segment / 2);
+          u = 0.5 + Math.cos(angle) * radius;
+          v = 0.5 + Math.sin(angle) * radius;
+        } else if (operator.name === "pixelate" || operator.name === "modulatePixelate") {
+          const cellsX = Math.max(1, number(args[0], 20) + modulation[0] * amount * 20);
+          const cellsY = Math.max(1, number(args[1], cellsX));
+          u = Math.floor(u * cellsX) / cellsX;
+          v = Math.floor(v * cellsY) / cellsY;
+        } else if (operator.name === "modulate" || operator.name === "modulateHue") {
+          u += (modulation[0] - 0.5) * amount;
+          v += (modulation[1] - 0.5) * amount;
+        }
+      });
+
+      const source = chain.source;
+      const args = source.args || [];
+      let color;
+      if (source.name === "solid") {
+        color = [number(args[0], 0), number(args[1], number(args[0], 0)), number(args[2], number(args[0], 0))];
+      } else if (source.name === "gradient") {
+        const speed = number(args[0], 0);
+        color = [fract(u + time * speed), fract(v + u * 0.5), fract(1 - u + time * speed * 0.5)];
+      } else if (source.name === "noise") {
+        const scale = number(args[0], 10);
+        const offset = number(args[1], 0.1);
+        const value = fract(Math.sin((u * scale + v * scale * 1.73 + time * offset) * 12.9898) * 43758.5453);
+        color = [value * 0.72, value, 1 - value * 0.54];
+      } else if (source.name === "voronoi") {
+        const scale = number(args[0], 5);
+        const speed = number(args[1], 0.3);
+        const x = fract(u * scale) - 0.5;
+        const y = fract(v * scale) - 0.5;
+        const value = clamp(Math.hypot(x, y) * 2 + Math.sin(time * speed + Math.floor(u * scale)) * 0.15);
+        color = [value, 1 - value * 0.65, 0.7 + value * 0.3];
+      } else if (source.name === "shape") {
+        const sides = Math.max(2, number(args[0], 3));
+        const radius = number(args[1], 0.3);
+        const smoothing = Math.max(0.001, number(args[2], 0.01));
+        const angle = Math.atan2(v - 0.5, u - 0.5);
+        const distance = Math.hypot(u - 0.5, v - 0.5);
+        const edge = Math.cos(Math.floor(0.5 + angle / (Math.PI * 2 / sides)) * (Math.PI * 2 / sides) - angle) * distance;
+        const value = clamp((radius - edge) / smoothing);
+        color = [value, value * 0.72, 1 - value * 0.35];
+      } else if (source.name === "src") {
+        color = sampleValue(args[0] || "o0", u, v, time, depth);
+      } else {
+        const frequency = number(args[0], 60);
+        const sync = number(args[1], 0.1);
+        const offset = number(args[2], 0);
+        const phase = (u * frequency + time * sync) * Math.PI * 2;
+        color = [0.5 + 0.5 * Math.sin(phase), 0.5 + 0.5 * Math.sin(phase + offset), 0.5 + 0.5 * Math.sin(phase + offset * 2)];
+      }
+
+      operators.forEach(function (operator) {
+        const args = operator.args || [];
+        const other = sampleValue(args[0], u, v, time, depth);
+        const amount = number(args[1], 0.5);
+        if (operator.name === "color") color = color.map(function (channel, index) { return channel * number(args[index], 1); });
+        else if (operator.name === "brightness") color = color.map(function (channel) { return channel + number(args[0], 0.4); });
+        else if (operator.name === "contrast") color = color.map(function (channel) { return (channel - 0.5) * number(args[0], 1.6) + 0.5; });
+        else if (operator.name === "invert") color = color.map(function (channel) { return 1 - channel * number(args[0], 1); });
+        else if (operator.name === "thresh" || operator.name === "luma") color = color.map(function (channel) { return channel >= number(args[0], 0.5) ? 1 : 0; });
+        else if (operator.name === "posterize") {
+          const bins = Math.max(2, number(args[0], 3));
+          color = color.map(function (channel) { return Math.floor(channel * bins) / (bins - 1); });
+        } else if (operator.name === "saturate") {
+          const grey = (color[0] + color[1] + color[2]) / 3;
+          color = color.map(function (channel) { return grey + (channel - grey) * number(args[0], 2); });
+        } else if (operator.name === "hue" || operator.name === "colorama") {
+          const shift = Math.round(number(args[0], 0.4) * 3) % 3;
+          color = [color[shift], color[(shift + 1) % 3], color[(shift + 2) % 3]];
+        } else if (operator.name === "blend") color = color.map(function (channel, index) { return channel * (1 - amount) + other[index] * amount; });
+        else if (operator.name === "add" || operator.name === "layer") color = color.map(function (channel, index) { return channel + other[index] * amount; });
+        else if (operator.name === "mult" || operator.name === "mask") color = color.map(function (channel, index) { return channel * other[index]; });
+        else if (operator.name === "diff") color = color.map(function (channel, index) { return Math.abs(channel - other[index]); });
+      });
+      return color.map(clamp);
+    }
+
+    status("running", "Hydra runtime running", "Rendering " + runtime.source.title + " as a bounded Hydra-compatible synth.");
+    function loop(time) {
+      if (disposed) return;
+      const size = resizeCanvas();
+      const next = {};
+      Object.keys(program.outputs || {}).forEach(function (outputName) {
+        const chain = program.outputs[outputName];
+        const pixels = new Float32Array(buffer.width * buffer.height * 3);
+        for (let y = 0; y < buffer.height; y += 1) {
+          for (let x = 0; x < buffer.width; x += 1) {
+            const color = sampleChain(chain, x / buffer.width, y / buffer.height, time * 0.001 * number(program.speed, 1), 0);
+            const index = (y * buffer.width + x) * 3;
+            pixels[index] = color[0];
+            pixels[index + 1] = color[1];
+            pixels[index + 2] = color[2];
+          }
+        }
+        next[outputName] = pixels;
+      });
+      previous = next;
+      const selected = next[program.renderTarget] || next.o0;
+      if (!selected) throw new Error("Hydra program did not produce a renderable output.");
+      const image = bufferContext.createImageData(buffer.width, buffer.height);
+      for (let index = 0; index < selected.length / 3; index += 1) {
+        image.data[index * 4] = Math.round(selected[index * 3] * 255);
+        image.data[index * 4 + 1] = Math.round(selected[index * 3 + 1] * 255);
+        image.data[index * 4 + 2] = Math.round(selected[index * 3 + 2] * 255);
+        image.data[index * 4 + 3] = 255;
+      }
+      bufferContext.putImageData(image, 0, 0);
+      context.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
+      context.imageSmoothingEnabled = true;
+      context.drawImage(buffer, 0, 0, size.width, size.height);
+      frame(time);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  }
+
   function createProgram(gl, vertexSource, fragmentSource) {
     const vertex = compileShader(gl, gl.VERTEX_SHADER, vertexSource);
     const fragment = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
@@ -829,8 +1023,9 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
     status("starting", "Preview runtime mounted", "Preview document loaded for " + runtime.source.title + ".");
     if (runtime.kind === "p5") startP5();
     else if (runtime.kind === "three") startThree();
+    else if (runtime.kind === "hydra") startHydra();
     else startGlsl();
   } catch (error) {
-    fail(error, runtime.kind === "glsl" ? "GLSL runtime failed" : runtime.kind === "three" ? "Three.js runtime failed" : "p5 runtime failed");
+    fail(error, runtime.kind === "glsl" ? "GLSL runtime failed" : runtime.kind === "three" ? "Three.js runtime failed" : runtime.kind === "hydra" ? "Hydra runtime failed" : "p5 runtime failed");
   }
 }`;

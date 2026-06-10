@@ -788,6 +788,8 @@ function formatRuntimeKindLabel(kind: PreviewExecutableRuntimeKind) {
       return "Three.js";
     case "glsl":
       return "GLSL";
+    case "hydra":
+      return "Hydra";
     default:
       return kind;
   }
@@ -801,6 +803,8 @@ function formatRuntimeKindLabelFromValue(kind: string | undefined) {
       return "Three.js";
     case "glsl":
       return "GLSL";
+    case "hydra":
+      return "Hydra";
     default:
       return kind ?? null;
   }

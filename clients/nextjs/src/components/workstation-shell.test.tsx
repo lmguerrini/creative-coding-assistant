@@ -164,6 +164,48 @@ function snapshotWithThreePreview(): AssistantWorkspaceSnapshot {
   };
 }
 
+function snapshotWithHydraPreview(): AssistantWorkspaceSnapshot {
+  const snapshot = getLocalWorkspaceSnapshot();
+  const title = "feedback-lattice.hydra.js";
+
+  return {
+    ...snapshot,
+    artifacts: [
+      {
+        ...snapshot.artifacts[0],
+        domain: "hydra",
+        language: "JavaScript + Hydra",
+        rendererId: "surface.hydra",
+        runtime: "hydra",
+        summary: "Hydra patch with oscillators, modulation, feedback, and output routing.",
+        title
+      },
+      ...snapshot.artifacts.slice(1)
+    ],
+    preview: {
+      ...snapshot.preview,
+      artifactName: title,
+      renderer: "surface.hydra",
+      sourceArtifactName: title,
+      summary: "Runtime is ready to mount a bounded Hydra synth preview.",
+      target: "Browser preview / Hydra",
+      targetId: "browser_sandbox"
+    },
+    code: {
+      ...snapshot.code,
+      excerpt: [
+        "osc(12, 0.08, 1.4)",
+        "  .kaleid(5)",
+        "  .modulate(noise(3, 0.2), 0.14)",
+        "  .blend(shape(4, 0.36, 0.02), 0.24)",
+        "  .out(o0);"
+      ],
+      language: "JavaScript + Hydra",
+      title
+    }
+  };
+}
+
 function snapshotWithArtifactComparison(): AssistantWorkspaceSnapshot {
   const snapshot = getLocalWorkspaceSnapshot();
   const artifacts: ArtifactSummary[] = [
@@ -228,29 +270,28 @@ function snapshotWithArtifactComparison(): AssistantWorkspaceSnapshot {
       type: "code"
     },
     {
-      actions: ["Open", "Copy", "Download"],
+      actions: ["Open", "Preview", "Copy", "Download"],
       content: "osc(10, 0.1, 1.2).modulate(shape(4)).out();",
       critique: artifactCritique({
         artifactId: "hydra-lattice",
         artifactTitle: "feedback-lattice.hydra.js",
         overallScore: 0.71,
         rank: 3,
-        rationale: "Hydra version is useful as source but has no supported runtime.",
-        refinementGuidance:
-          "Port the feedback logic to p5.js or GLSL before live preview.",
+        rationale: "Hydra version provides a compact feedback-oriented runtime.",
+        refinementGuidance: "Tune modulation depth before increasing source density.",
         recommended: false
       }),
       domain: "hydra",
       id: "hydra-lattice",
       language: "JavaScript",
-      previewEligible: false,
-      previewTarget: "",
+      previewEligible: true,
+      previewTarget: "browser_sandbox",
       qualityRank: 3,
       qualityScore: 0.71,
-      rendererId: null,
-      runtime: null,
+      rendererId: "surface.hydra",
+      runtime: "hydra",
       status: "Generated",
-      summary: "Hydra code remains inspectable without live preview support.",
+      summary: "Hydra code is ready for the bounded live preview runtime.",
       title: "feedback-lattice.hydra.js",
       type: "code"
     }
@@ -2539,6 +2580,36 @@ describe("WorkstationShell", () => {
     expect(await within(surface).findByText("p5 runtime running")).toBeVisible();
   });
 
+  it("mounts supported Hydra artifacts into a controlled live runtime", async () => {
+    renderShell(snapshotWithHydraPreview());
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+
+    const surface = within(preview).getByRole("group", {
+      name: "Preview renderer surface"
+    });
+
+    expect(within(preview).getByText("Hydra synth surface")).toBeVisible();
+    expect(
+      within(surface).getByRole("group", { name: "Hydra live runtime" })
+    ).toBeVisible();
+    const frame = await waitForSandboxRuntimeFrame(
+      surface,
+      "Hydra preview runtime frame"
+    );
+    dispatchSandboxRuntimeStatus(frame, {
+      detail:
+        "Rendering feedback-lattice.hydra.js as a bounded Hydra-compatible synth.",
+      label: "Hydra runtime running",
+      state: "running"
+    });
+    expect(await within(surface).findByText("Hydra runtime running")).toBeVisible();
+  });
+
   it("shows a compact diagnostics overlay for live preview runtimes", async () => {
     renderShell(snapshotWithP5Preview());
 
@@ -2898,6 +2969,14 @@ describe("WorkstationShell", () => {
         "Rendering projection-scene.three.ts inside an isolated Three.js-compatible preview frame.",
       runningLabel: "Three.js runtime running",
       surfaceTitle: "Three scene surface"
+    },
+    {
+      frameLabel: "Hydra preview runtime frame",
+      makeSnapshot: snapshotWithHydraPreview,
+      runningDetail:
+        "Rendering feedback-lattice.hydra.js as a bounded Hydra-compatible synth.",
+      runningLabel: "Hydra runtime running",
+      surfaceTitle: "Hydra synth surface"
     }
   ])(
     "reloads $surfaceTitle artifacts and ignores stale runtime events",
@@ -3010,14 +3089,15 @@ describe("WorkstationShell", () => {
         "Keep the palette restrained while refining motion."
       )
     ).toBeVisible();
-    expect(hydraCandidate).toHaveAttribute("data-runtime-support", "unsupported");
-    expect(within(hydraCandidate).getByText("Unsupported runtime")).toBeVisible();
-    expect(within(hydraCandidate).getByText("No supported live runtime")).toBeVisible();
+    expect(hydraCandidate).toHaveAttribute("data-runtime-support", "previewable");
+    expect(within(hydraCandidate).getByText("Previewable")).toBeVisible();
+    expect(within(hydraCandidate).getAllByText("Hydra").length).toBeGreaterThan(1);
+    expect(within(hydraCandidate).getByText("Browser preview / Hydra")).toBeVisible();
     expect(
-      within(hydraCandidate).queryByRole("button", {
+      within(hydraCandidate).getByRole("button", {
         name: "Preview feedback-lattice.hydra.js from comparison"
       })
-    ).not.toBeInTheDocument();
+    ).toBeVisible();
   });
 
   it("shows a selected-artifact refinement action with guided instructions", () => {
@@ -3235,13 +3315,13 @@ describe("WorkstationShell", () => {
       artifacts: [
         {
           ...snapshot.artifacts[0],
-          id: "hydra-notes",
-          title: "feedback-lattice.hydra.js",
+          id: "webgpu-notes",
+          title: "feedback-field.webgpu.ts",
           language: "JavaScript",
           status: "Generated",
-          summary: "Hydra code remains inspectable without live preview support.",
-          content: "osc(10, 0.1, 1.2).modulate(shape(4)).out();",
-          domain: "hydra",
+          summary: "WebGPU code remains inspectable without live preview support.",
+          content: "const device = await adapter.requestDevice();",
+          domain: "webgpu",
           previewEligible: false,
           previewTarget: "",
           rendererId: null,
@@ -3262,11 +3342,11 @@ describe("WorkstationShell", () => {
     const details = screen.getByRole("group", { name: "Active artifact details" });
 
     expect(within(details).getAllByText("Code-only").length).toBeGreaterThan(0);
-    expect(within(details).getAllByText("Hydra").length).toBeGreaterThan(0);
+    expect(within(details).getAllByText("Webgpu").length).toBeGreaterThan(0);
     expect(within(details).getByText("Runtime")).toBeVisible();
     expect(
       within(details).queryByRole("button", {
-        name: "Preview feedback-lattice.hydra.js"
+        name: "Preview feedback-field.webgpu.ts"
       })
     ).not.toBeInTheDocument();
   });

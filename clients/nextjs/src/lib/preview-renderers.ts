@@ -16,7 +16,7 @@ export type PreviewRendererTone =
   | "danger"
   | "muted";
 
-export type CreativePreviewRendererKind = "p5" | "three" | "glsl";
+export type CreativePreviewRendererKind = "p5" | "three" | "glsl" | "hydra";
 
 export type PreviewRendererSurfaceKind =
   | CreativePreviewRendererKind
@@ -118,19 +118,32 @@ export const creativePreviewRendererRegistry: readonly CreativePreviewRendererDe
       "Compiles fragment shaders inside an isolated preview frame",
       "Rejects unsupported shader features with a visible runtime error"
     ]
+  },
+  {
+    id: "surface.hydra",
+    kind: "hydra",
+    displayName: "Hydra",
+    surfaceLabel: "Hydra synth surface",
+    description: "Feedback-oriented synth surface for Hydra browser previews.",
+    matchExtensions: [".hydra.js", ".hydra.ts"],
+    matchTokens: ["hydra", "osc(", "voronoi(", "modulate(", ".out("],
+    notes: [
+      "Controlled Hydra-compatible browser runtime",
+      "Parses supported source chains into a bounded execution plan",
+      "Feedback frames, status, and errors stay isolated in the preview sandbox"
+    ]
   }
 ] as const;
 
 const supportedPreviewDomains = new Set([
   "p5_js",
   "glsl",
+  "hydra",
   "three_js",
   "react_three_fiber"
 ]);
 
 const unsupportedBrowserRuntimeExtensions = [
-  ".hydra.js",
-  ".hydra.ts",
   ".wgsl",
   ".webgpu.js",
   ".webgpu.ts",
@@ -274,7 +287,7 @@ export function buildPreviewRendererRoute({
       supportState: "unsupported",
       supportLabel: "Unsupported",
       supportReason:
-        "Current browser preview foundations cover p5.js, Three.js, and GLSL only.",
+        "Current browser preview foundations cover p5.js, Three.js, GLSL, and Hydra only.",
       surfaceKind: "unsupported",
       surfaceTitle: "Browser preview without renderer match",
       surfaceEyebrow: "Unsupported creative surface",

@@ -418,6 +418,8 @@ function formatRuntimeKindLabel(kind: PreviewExecutableRuntimeKind) {
       return "Three runtime";
     case "glsl":
       return "GLSL runtime";
+    case "hydra":
+      return "Hydra runtime";
     default:
       return kind;
   }

@@ -38,7 +38,7 @@ describe("preview runtime adapters", () => {
     expect(source.fingerprint).toMatch(/^[a-f0-9]+$/);
   });
 
-  it("marks p5, Three.js, and GLSL routes as executable runtimes", () => {
+  it("marks p5, Three.js, GLSL, and Hydra routes as executable runtimes", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const p5Artifact = {
       ...snapshot.artifacts[0],
@@ -55,6 +55,13 @@ describe("preview runtime adapters", () => {
       language: "GLSL",
       summary: "Fragment shader with gl_FragColor and uniforms.",
       title: "chromatic-field.frag"
+    };
+    const hydraArtifact = {
+      ...snapshot.artifacts[0],
+      domain: "hydra",
+      runtime: "hydra",
+      summary: "Hydra patch with oscillators, modulation, and output routing.",
+      title: "feedback-lattice.hydra.js"
     };
     const p5Route = buildPreviewRendererRoute({
       artifacts: [p5Artifact],
@@ -86,10 +93,21 @@ describe("preview runtime adapters", () => {
       },
       previewArtifactId: glslArtifact.id
     });
+    const hydraRoute = buildPreviewRendererRoute({
+      artifacts: [hydraArtifact],
+      preview: {
+        ...snapshot.preview,
+        active: true,
+        artifactName: hydraArtifact.title,
+        sourceArtifactName: hydraArtifact.title
+      },
+      previewArtifactId: hydraArtifact.id
+    });
 
     expect(getExecutablePreviewRuntimeKind(p5Route)).toBe("p5");
     expect(getExecutablePreviewRuntimeKind(threeRoute)).toBe("three");
     expect(getExecutablePreviewRuntimeKind(glslRoute)).toBe("glsl");
+    expect(getExecutablePreviewRuntimeKind(hydraRoute)).toBe("hydra");
     expect(
       canRunPreviewRuntime({
         preview: { ...snapshot.preview, active: true, state: "ready" },

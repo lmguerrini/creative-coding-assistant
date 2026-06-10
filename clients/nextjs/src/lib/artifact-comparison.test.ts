@@ -97,17 +97,28 @@ describe("artifact comparison", () => {
       title: "notes.md",
       type: "export"
     });
-    const unsupported = artifact({
+    const hydra = artifact({
+      actions: ["Open", "Preview", "Copy"],
       domain: "hydra",
       id: "hydra",
+      previewEligible: true,
+      previewTarget: "browser_sandbox",
+      rendererId: "surface.hydra",
+      runtime: "hydra",
+      title: "feedback-lattice.hydra.js"
+    });
+    const unsupported = artifact({
+      domain: "webgpu",
+      id: "webgpu",
       previewEligible: false,
       previewTarget: "",
       rendererId: null,
       runtime: null,
-      title: "feedback-lattice.hydra.js"
+      title: "feedback-field.webgpu.ts"
     });
 
     expect(classifyArtifactRuntimeSupport(previewable).state).toBe("previewable");
+    expect(classifyArtifactRuntimeSupport(hydra).state).toBe("previewable");
     expect(classifyArtifactRuntimeSupport(codeOnly).state).toBe("code_only");
     expect(classifyArtifactRuntimeSupport(unsupported).state).toBe("unsupported");
   });

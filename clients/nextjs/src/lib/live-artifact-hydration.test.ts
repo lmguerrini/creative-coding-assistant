@@ -276,7 +276,7 @@ describe("live artifact hydration", () => {
     });
   });
 
-  it("keeps unsupported domain code-only when no live runtime is available", () => {
+  it("hydrates Hydra code into a previewable sandbox artifact", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const result = hydrateWorkspaceFromFinalEvent(
       snapshot,
@@ -292,17 +292,19 @@ describe("live artifact hydration", () => {
 
     expect(result.artifact).toMatchObject({
       title: "feedback-lattice.hydra.js",
-      previewEligible: false,
-      rendererId: null,
-      runtime: null,
-      actions: ["Open", "Copy", "Download"]
+      previewEligible: true,
+      rendererId: "surface.hydra",
+      runtime: "hydra",
+      actions: ["Open", "Preview", "Copy", "Download"]
     });
-    expect(result.previewArtifactId).toBe("");
-    expect(result.previewAvailable).toBe(false);
+    expect(result.previewArtifactId).toBe("live-generated-artifact");
+    expect(result.previewAvailable).toBe(true);
     expect(result.snapshot.preview).toMatchObject({
-      available: false,
-      state: "unavailable",
-      targetId: ""
+      available: true,
+      renderer: "surface.hydra",
+      state: "ready",
+      target: "Browser preview / Hydra",
+      targetId: "browser_sandbox"
     });
   });
 });

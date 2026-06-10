@@ -47,7 +47,8 @@ type PreviewRuntimeCallbackProps = {
 const creativeSurfaceLayers: Record<CreativePreviewRendererKind, readonly string[]> = {
   p5: ["setup()", "draw()", "canvas"],
   three: ["scene", "camera", "lights", "renderer"],
-  glsl: ["vertex", "fragment", "uniforms"]
+  glsl: ["vertex", "fragment", "uniforms"],
+  hydra: ["sources", "operators", "feedback", "outputs"]
 };
 
 const mediaSurfaceLayers: Record<
@@ -153,6 +154,7 @@ function renderPreviewSurfaceStage({
           <span>p5.js</span>
           <span>Three.js</span>
           <span>GLSL</span>
+          <span>Hydra</span>
         </div>
         <div className="previewSurfaceMetaGrid">
           <div>
@@ -246,7 +248,8 @@ function isCreativeSurface(
   return (
     surfaceKind === "p5" ||
     surfaceKind === "three" ||
-    surfaceKind === "glsl"
+    surfaceKind === "glsl" ||
+    surfaceKind === "hydra"
   );
 }
 
