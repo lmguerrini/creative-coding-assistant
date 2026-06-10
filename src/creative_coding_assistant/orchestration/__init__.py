@@ -5,6 +5,9 @@ from __future__ import annotations
 from importlib import import_module
 
 _CTX = "creative_coding_assistant.orchestration.context"
+_CREATIVE_TRANSLATION = (
+    "creative_coding_assistant.orchestration.creative_translation"
+)
 _ARTIFACTS = "creative_coding_assistant.orchestration.artifacts"
 _ARTIFACT_CRITIQUE = "creative_coding_assistant.orchestration.artifact_critique"
 _EVENTS = "creative_coding_assistant.orchestration.events"
@@ -33,6 +36,8 @@ _EXPORT_MAP = {
     "ChromaMemoryAdapter": _MEM,
     "ContextAssembler": _CTX,
     "ConversationSummaryContext": _MEM,
+    "CreativeOutputModality": _CREATIVE_TRANSLATION,
+    "CreativeTranslation": _CREATIVE_TRANSLATION,
     "DEFAULT_RECENT_TURN_LIMIT": _MEM,
     "DEFAULT_RETRIEVAL_LIMIT": _RETRIEVAL,
     "DomainSelectionShape": _ROUTING,
@@ -98,6 +103,8 @@ _EXPORT_MAP = {
     "build_retrieval_context_request": _RETRIEVAL,
     "complete_workflow_step": _WORKFLOW,
     "critique_workflow_artifacts": _ARTIFACT_CRITIQUE,
+    "creative_translation_prompt_lines": _CREATIVE_TRANSLATION,
+    "derive_creative_translation": _CREATIVE_TRANSLATION,
     "extract_workflow_artifacts": _ARTIFACTS,
     "fail_workflow": _WORKFLOW,
     "finish_workflow": _WORKFLOW,
