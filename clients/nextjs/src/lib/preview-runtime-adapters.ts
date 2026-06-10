@@ -1,17 +1,25 @@
 import type { CodeSummary, PreviewSummary } from "./assistant-client";
 import type { PreviewRendererRoute } from "./preview-renderers";
 import { parseHydraRuntimeSource } from "./hydra-runtime";
+import { parseToneRuntimeSource } from "./tone-runtime";
 import {
   createWorkstationError,
   type WorkstationError
 } from "./workstation-errors";
 
-export type PreviewExecutableRuntimeKind = "p5" | "three" | "glsl" | "hydra";
+export type PreviewExecutableRuntimeKind =
+  | "p5"
+  | "three"
+  | "glsl"
+  | "hydra"
+  | "tone";
 
 export type PreviewRuntimeLifecycleState =
   | "idle"
   | "starting"
+  | "ready"
   | "running"
+  | "stopped"
   | "error";
 
 export type PreviewRuntimeStatus = {
@@ -136,6 +144,7 @@ export function getExecutablePreviewRuntimeKind(
     case "three":
     case "glsl":
     case "hydra":
+    case "tone":
       return route.surfaceKind;
     default:
       return null;
@@ -220,7 +229,9 @@ export function getInitialPreviewRuntimeStatus({
           ? "Preparing a controlled Three.js-compatible browser runtime."
           : kind === "hydra"
             ? "Preparing a controlled Hydra-compatible browser runtime."
-            : "Preparing a controlled p5.js-compatible browser runtime.",
+            : kind === "tone"
+              ? "Preparing a controlled Tone.js-compatible audio runtime."
+              : "Preparing a controlled p5.js-compatible browser runtime.",
     label: "Runtime starting",
     state: "starting",
     error: null
@@ -243,7 +254,39 @@ export function mountPreviewRuntime({
       return mountGlslRuntime({ canvas, onFrame, onStatus, source });
     case "hydra":
       return mountHydraRuntime({ canvas, onFrame, onStatus, source });
+    case "tone":
+      return mountToneRuntime({ onStatus, source });
   }
+}
+
+function mountToneRuntime({
+  onStatus,
+  source
+}: Pick<MountPreviewRuntimeInput, "onStatus" | "source">): PreviewRuntimeMount {
+  const parsed = parseToneRuntimeSource(source.source);
+
+  if (!parsed.ok) {
+    onStatus({
+      detail: parsed.message,
+      label: "Tone.js runtime unavailable",
+      state: "error",
+      error: createRendererRuntimeError({
+        kind: "tone",
+        message: parsed.message,
+        type: "tone_source_rejected"
+      })
+    });
+    return { dispose: () => undefined };
+  }
+
+  onStatus({
+    detail: `${source.title} is armed and waiting for explicit audio start.`,
+    diagnostics: ["Audio output remains silent until Start audio is selected."],
+    label: "Tone.js runtime ready",
+    state: "ready",
+    error: null
+  });
+  return { dispose: () => undefined };
 }
 
 function mountHydraRuntime({
@@ -1014,7 +1057,9 @@ function createRendererRuntimeError({
         ? "three_renderer"
         : kind === "hydra"
           ? "hydra_renderer"
-          : "p5_renderer";
+          : kind === "tone"
+            ? "tone_renderer"
+            : "p5_renderer";
 
   return createWorkstationError({
     type,

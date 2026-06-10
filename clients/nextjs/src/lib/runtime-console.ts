@@ -246,11 +246,15 @@ export function buildRuntimeConsoleModel({
       ? "Runtime issue detected"
       : runtimeState === "running"
         ? "Live runtime"
-        : runtimeState === "starting"
-          ? "Runtime starting"
-          : runtimeState === "error"
+        : runtimeState === "ready"
+          ? "Runtime ready"
+          : runtimeState === "stopped"
             ? "Runtime stopped"
-            : latestEvent?.label ?? "Runtime activity";
+            : runtimeState === "starting"
+              ? "Runtime starting"
+              : runtimeState === "error"
+                ? "Runtime stopped"
+                : latestEvent?.label ?? "Runtime activity";
   const detail =
     liveRuntime?.status.detail ??
     latestEvent?.detail ??
@@ -458,6 +462,26 @@ function buildRuntimeConsoleHealth({
     };
   }
 
+  if (runtimeState === "ready") {
+    return {
+      signal: "healthy",
+      label: "Ready",
+      explanation:
+        "The audio preview is armed and waiting for an explicit start action.",
+      tone: "success"
+    };
+  }
+
+  if (runtimeState === "stopped") {
+    return {
+      signal: "healthy",
+      label: "Stopped safely",
+      explanation:
+        "The audio preview is silent and its runtime resources have been released.",
+      tone: "success"
+    };
+  }
+
   return {
     signal: "degraded",
     label: "Degraded",
@@ -575,6 +599,7 @@ function classifyRuntimeEvent(
 
   if (
     runtimeState === "idle" ||
+    runtimeState === "stopped" ||
     normalizedCode.includes("stopped") ||
     normalizedCode.endsWith("_stop") ||
     normalizedCode.endsWith("_idle")
@@ -583,8 +608,11 @@ function classifyRuntimeEvent(
   }
 
   if (
+    runtimeState === "ready" ||
     runtimeState === "starting" ||
     runtimeState === "running" ||
+    normalizedCode.includes("ready") ||
+    normalizedCode.includes("armed") ||
     normalizedCode.includes("starting") ||
     normalizedCode.includes("started") ||
     normalizedCode.includes("running") ||
@@ -694,7 +722,12 @@ function toneForRuntimeEvent(
     return "danger";
   }
 
-  if (code.includes("recovered")) {
+  if (
+    runtimeState === "ready" ||
+    code.includes("ready") ||
+    code.includes("armed") ||
+    code.includes("recovered")
+  ) {
     return "success";
   }
 
@@ -732,8 +765,12 @@ function formatRuntimeStateLabel(
       return "Idle";
     case "starting":
       return "Starting";
+    case "ready":
+      return "Ready";
     case "running":
       return "Running";
+    case "stopped":
+      return "Stopped";
     case "error":
       return "Error";
     case "reloading":
@@ -758,6 +795,14 @@ function inferRuntimeStateFromCode(
     return "running";
   }
 
+  if (code.includes("stopped") || code.includes("stop")) {
+    return "stopped";
+  }
+
+  if (code.includes("ready") || code.includes("armed")) {
+    return "ready";
+  }
+
   if (code.includes("starting")) {
     return "starting";
   }
@@ -771,7 +816,9 @@ function normalizeRuntimeState(
   switch (state) {
     case "idle":
     case "starting":
+    case "ready":
     case "running":
+    case "stopped":
     case "error":
     case "reloading":
       return state;
@@ -790,6 +837,8 @@ function formatRuntimeKindLabel(kind: PreviewExecutableRuntimeKind) {
       return "GLSL";
     case "hydra":
       return "Hydra";
+    case "tone":
+      return "Tone.js";
     default:
       return kind;
   }
@@ -805,6 +854,8 @@ function formatRuntimeKindLabelFromValue(kind: string | undefined) {
       return "GLSL";
     case "hydra":
       return "Hydra";
+    case "tone":
+      return "Tone.js";
     default:
       return kind ?? null;
   }

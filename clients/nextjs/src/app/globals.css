@@ -2387,6 +2387,14 @@ a {
   color: var(--amber);
 }
 
+.previewRuntimeStage[data-runtime-state="ready"] .previewRuntimeOverlay small {
+  color: var(--teal);
+}
+
+.previewRuntimeStage[data-runtime-state="stopped"] .previewRuntimeOverlay small {
+  color: var(--muted);
+}
+
 .previewRuntimeMeta {
   display: flex;
   align-items: center;

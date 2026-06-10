@@ -5,6 +5,7 @@ import type {
   PreviewRuntimeStatus
 } from "./preview-runtime-adapters";
 import { prepareHydraRuntimeSource } from "./hydra-runtime";
+import { prepareToneRuntimeSource } from "./tone-runtime";
 import {
   createWorkstationError,
   type WorkstationError
@@ -46,8 +47,15 @@ export type MountPreviewSandboxRuntimeInput = {
 };
 
 export type PreviewSandboxRuntimeMount = {
+  control: (action: PreviewSandboxRuntimeControlAction) => void;
   dispose: () => void;
 };
+
+export type PreviewSandboxRuntimeControlAction =
+  | "start"
+  | "stop"
+  | "mute"
+  | "unmute";
 
 const sandboxMessageSource = "cca-preview-runtime";
 
@@ -117,6 +125,21 @@ export function mountPreviewSandboxRuntime({
     iframe.contentWindow?.postMessage(mountMessage, "*");
   }
 
+  function postControlMessage(action: PreviewSandboxRuntimeControlAction) {
+    if (disposed) {
+      return;
+    }
+    iframe.contentWindow?.postMessage(
+      {
+        action,
+        runtimeId,
+        source: sandboxMessageSource,
+        type: "control"
+      },
+      "*"
+    );
+  }
+
   iframe.dataset.runtimeId = runtimeId;
   window.addEventListener("message", handleMessage);
   iframe.addEventListener("load", postMountMessage);
@@ -125,6 +148,7 @@ export function mountPreviewSandboxRuntime({
   retryTimer = window.setTimeout(postMountMessage, 150);
 
   return {
+    control: postControlMessage,
     dispose() {
       disposed = true;
       window.clearTimeout(retryTimer);
@@ -252,6 +276,10 @@ export function preparePreviewExecutableSource(
     return prepareHydraRuntimeSource(source);
   }
 
+  if (kind === "tone") {
+    return prepareToneRuntimeSource(source);
+  }
+
   return source
     .replace(/\r\n/g, "\n")
     .replace(/^\s*import\s+[^;\n]+;?\s*$/gm, "")
@@ -276,7 +304,9 @@ function getSandboxStartingStatus(
           ? "Mounting a controlled Three.js-compatible browser document."
           : kind === "hydra"
             ? "Mounting a controlled Hydra-compatible browser document."
-            : "Mounting a controlled p5.js-compatible browser document.",
+            : kind === "tone"
+              ? "Mounting a controlled Tone.js-compatible audio document."
+              : "Mounting a controlled p5.js-compatible browser document.",
     label: "Preview runtime starting",
     state: "starting",
     error: null
@@ -340,7 +370,9 @@ function serializeForInlineScript(value: unknown) {
 function readRuntimeState(value: unknown): PreviewRuntimeStatus["state"] | null {
   return value === "idle" ||
     value === "starting" ||
+    value === "ready" ||
     value === "running" ||
+    value === "stopped" ||
     value === "error"
     ? value
     : null;
@@ -806,6 +838,20 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
     requestAnimationFrame(loop);
   }
 
+  function setupTone() {
+    const program = JSON.parse(runtime.source.source);
+    if (program.error) throw new Error(program.error);
+    if (!Array.isArray(program.voices) || program.voices.length === 0) {
+      throw new Error("Tone.js program did not define a supported audio voice.");
+    }
+    status(
+      "ready",
+      "Tone.js runtime ready",
+      runtime.source.title + " is armed. Audio remains silent until Start audio is selected.",
+      { diagnostics: ["Explicit operator interaction is required before audio starts."] }
+    );
+  }
+
   function startHydra() {
     const context = canvas.getContext("2d");
     if (!context) throw new Error("Canvas 2D is unavailable in the preview frame.");
@@ -1024,8 +1070,9 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
     if (runtime.kind === "p5") startP5();
     else if (runtime.kind === "three") startThree();
     else if (runtime.kind === "hydra") startHydra();
+    else if (runtime.kind === "tone") setupTone();
     else startGlsl();
   } catch (error) {
-    fail(error, runtime.kind === "glsl" ? "GLSL runtime failed" : runtime.kind === "three" ? "Three.js runtime failed" : runtime.kind === "hydra" ? "Hydra runtime failed" : "p5 runtime failed");
+    fail(error, runtime.kind === "glsl" ? "GLSL runtime failed" : runtime.kind === "three" ? "Three.js runtime failed" : runtime.kind === "hydra" ? "Hydra runtime failed" : runtime.kind === "tone" ? "Tone.js runtime failed" : "p5 runtime failed");
   }
 }`;

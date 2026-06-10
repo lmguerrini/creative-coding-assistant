@@ -34,10 +34,60 @@
       color: #edf3f2;
       font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace;
     }
+    #audio-controls {
+      position: fixed;
+      left: 50%;
+      bottom: 54px;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      background: rgba(5, 8, 11, 0.82);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+      transform: translateX(-50%);
+      backdrop-filter: blur(14px);
+    }
+    #audio-controls[hidden] {
+      display: none;
+    }
+    #audio-controls button {
+      min-height: 32px;
+      padding: 6px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #edf3f2;
+      cursor: pointer;
+      font: 700 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    #audio-controls button:hover:not(:disabled),
+    #audio-controls button:focus-visible {
+      border-color: rgba(76, 215, 200, 0.55);
+      background: rgba(76, 215, 200, 0.12);
+      outline: none;
+    }
+    #audio-controls button:disabled {
+      cursor: default;
+      opacity: 0.42;
+    }
+    #audio-controls button[aria-pressed="true"] {
+      border-color: rgba(255, 190, 92, 0.55);
+      color: #ffbe5c;
+    }
   </style>
 </head>
 <body>
   <div id="preview-root"><canvas id="preview-canvas"></canvas></div>
+  <div id="audio-controls" aria-label="Tone.js audio controls" hidden>
+    <button id="audio-start" type="button">Start audio</button>
+    <button id="audio-stop" type="button" disabled>Stop audio</button>
+    <button id="audio-mute" type="button" aria-pressed="false" disabled>Mute audio</button>
+  </div>
   <pre id="runtime-status">Runtime host waiting</pre>
   <script>
     (function () {
@@ -45,8 +95,19 @@
       const canvas = document.getElementById("preview-canvas");
       const root = document.getElementById("preview-root");
       const statusNode = document.getElementById("runtime-status");
+      const audioControls = document.getElementById("audio-controls");
+      const audioStartButton = document.getElementById("audio-start");
+      const audioStopButton = document.getElementById("audio-stop");
+      const audioMuteButton = document.getElementById("audio-mute");
       let activeToken = 0;
       let runtime = null;
+      let toneProgram = null;
+      let toneContext = null;
+      let toneMaster = null;
+      let toneIntervals = [];
+      let toneAnimationFrame = 0;
+      let toneMuted = false;
+      let toneStartAttempt = 0;
 
       function isMountMessage(data) {
         return data &&
@@ -62,6 +123,15 @@
           data.type === "dispose" &&
           runtime &&
           data.runtimeId === runtime.runtimeId;
+      }
+
+      function isControlMessage(data) {
+        return data &&
+          data.source === messageSource &&
+          data.type === "control" &&
+          runtime &&
+          data.runtimeId === runtime.runtimeId &&
+          ["start", "stop", "mute", "unmute"].includes(data.action);
       }
 
       function post(message) {
@@ -101,6 +171,8 @@
       function disposeActiveRuntime() {
         const previousRuntime = runtime;
         activeToken += 1;
+        stopToneAudio(false);
+        setToneControlsVisible(false);
         runtime = null;
         document.body.dataset.runtimeState = "idle";
         document.body.dataset.runtimeLabel = "Runtime sandbox disposed";
@@ -147,6 +219,25 @@
           return "rgb(" + values.join(",") + ")";
         }
         return fallback;
+      }
+
+      function setToneControlsVisible(visible) {
+        audioControls.hidden = !visible;
+        if (!visible) {
+          audioStartButton.disabled = false;
+          audioStopButton.disabled = true;
+          audioMuteButton.disabled = true;
+          audioMuteButton.setAttribute("aria-pressed", "false");
+          audioMuteButton.textContent = "Mute audio";
+        }
+      }
+
+      function updateToneControls(running) {
+        audioStartButton.disabled = running;
+        audioStopButton.disabled = !running;
+        audioMuteButton.disabled = !running;
+        audioMuteButton.setAttribute("aria-pressed", toneMuted ? "true" : "false");
+        audioMuteButton.textContent = toneMuted ? "Unmute audio" : "Mute audio";
       }
 
       function startP5(token) {
@@ -725,6 +816,342 @@
         });
       }
 
+      function setupTone(token) {
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Canvas 2D is unavailable in the sandbox.");
+        toneProgram = JSON.parse(runtime.source.source);
+        if (toneProgram.error) throw new Error(toneProgram.error);
+        if (!Array.isArray(toneProgram.voices) || toneProgram.voices.length === 0) {
+          throw new Error("Tone.js program did not define a supported audio voice.");
+        }
+        toneMuted = false;
+        setToneControlsVisible(true);
+        updateToneControls(false);
+        drawToneIdle(context);
+        status(
+          "ready",
+          "Tone.js runtime ready",
+          runtime.source.title + " is armed. Audio remains silent until Start audio is selected.",
+          { diagnostics: ["Explicit operator interaction is required before audio starts."] }
+        );
+      }
+
+      async function startToneAudio(token) {
+        if (!runtime || runtime.kind !== "tone" || token !== activeToken || !toneProgram) {
+          return;
+        }
+        if (toneContext) {
+          return;
+        }
+
+        try {
+          const startAttempt = ++toneStartAttempt;
+          const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextConstructor) {
+            throw new Error("Web Audio is unavailable in this browser.");
+          }
+          toneContext = new AudioContextConstructor();
+          await toneContext.resume();
+          if (
+            startAttempt !== toneStartAttempt ||
+            token !== activeToken ||
+            !runtime
+          ) {
+            stopToneAudio(false);
+            return;
+          }
+
+          toneMaster = toneContext.createGain();
+          toneMaster.gain.value = toneMuted
+            ? 0
+            : Math.pow(10, Number(toneProgram.volumeDb || -12) / 20);
+          connectToneEffects(toneContext, toneMaster, toneProgram.effects || []);
+          toneIntervals = (toneProgram.patterns || []).slice(0, 6).map(function (pattern, patternIndex) {
+            let step = 0;
+            const intervalMs = Math.max(
+              100,
+              subdivisionSeconds(pattern.subdivision, toneProgram.tempo) * 1000
+            );
+            function playStep() {
+              if (!toneContext || token !== activeToken || !runtime) return;
+              const notes = pattern.notes && pattern.notes.length ? pattern.notes : ["C4"];
+              const note = notes[step % notes.length];
+              const voice = toneProgram.voices[patternIndex % toneProgram.voices.length];
+              triggerToneVoice(toneContext, toneMaster, voice, note, intervalMs / 1000);
+              step += 1;
+            }
+            playStep();
+            return window.setInterval(playStep, intervalMs);
+          });
+          updateToneControls(true);
+          status(
+            "running",
+            "Tone.js runtime running",
+            "Playing " + runtime.source.title + " through a bounded Web Audio transport."
+          );
+          animateToneRuntime(token);
+        } catch (error) {
+          stopToneAudio(false);
+          fail(error, "Tone.js runtime failed");
+        }
+      }
+
+      function stopToneAudio(reportStatus) {
+        toneStartAttempt += 1;
+        toneIntervals.forEach(function (timer) {
+          window.clearInterval(timer);
+        });
+        toneIntervals = [];
+        if (toneAnimationFrame) {
+          cancelAnimationFrame(toneAnimationFrame);
+          toneAnimationFrame = 0;
+        }
+        if (toneContext) {
+          const closingContext = toneContext;
+          toneContext = null;
+          toneMaster = null;
+          closingContext.close().catch(function () {});
+        }
+        toneMuted = false;
+        updateToneControls(false);
+        if (reportStatus && runtime && runtime.kind === "tone") {
+          const context = canvas.getContext("2d");
+          if (context) drawToneIdle(context);
+          status(
+            "stopped",
+            "Tone.js runtime stopped",
+            "Audio transport is stopped and output is silent."
+          );
+        }
+      }
+
+      function setToneMuted(muted) {
+        if (!toneContext || !toneMaster || !runtime || runtime.kind !== "tone") {
+          return;
+        }
+        toneMuted = muted;
+        toneMaster.gain.setTargetAtTime(
+          muted ? 0 : Math.pow(10, Number(toneProgram.volumeDb || -12) / 20),
+          toneContext.currentTime,
+          0.015
+        );
+        updateToneControls(true);
+        status(
+          "running",
+          muted ? "Tone.js runtime muted" : "Tone.js runtime running",
+          muted
+            ? "Audio transport is active while output is muted."
+            : "Audio output resumed for " + runtime.source.title + ".",
+          muted ? { diagnostics: ["Audio output is muted."] } : undefined
+        );
+      }
+
+      function connectToneEffects(context, master, effects) {
+        let output = master;
+        effects.slice(0, 6).forEach(function (effect) {
+          const amount = Math.max(0, Math.min(1, Number(effect.amount) || 0.35));
+          let node = null;
+          if (effect.kind === "filter") {
+            node = context.createBiquadFilter();
+            node.type = "lowpass";
+            node.frequency.value = 500 + amount * 5_500;
+          } else if (effect.kind === "delay" || effect.kind === "chorus") {
+            node = context.createDelay(1);
+            node.delayTime.value =
+              effect.kind === "chorus" ? 0.012 + amount * 0.018 : 0.08 + amount * 0.42;
+          } else if (effect.kind === "distortion") {
+            node = context.createWaveShaper();
+            node.curve = createDistortionCurve(amount);
+            node.oversample = "2x";
+          } else if (effect.kind === "reverb") {
+            node = context.createConvolver();
+            node.buffer = createReverbImpulse(context, 0.2 + amount * 0.8);
+          }
+          if (node) {
+            output.connect(node);
+            output = node;
+          }
+        });
+        output.connect(context.destination);
+      }
+
+      function triggerToneVoice(context, output, voice, note, stepSeconds) {
+        const now = context.currentTime;
+        const envelope = voice.envelope || {};
+        const attack = Math.max(0.005, Math.min(2, Number(envelope.attack) || 0.02));
+        const decay = Math.max(0.01, Math.min(3, Number(envelope.decay) || 0.18));
+        const sustain = Math.max(0, Math.min(1, Number(envelope.sustain) || 0.42));
+        const release = Math.max(0.02, Math.min(4, Number(envelope.release) || 0.6));
+        const duration = Math.max(0.06, Math.min(1.8, stepSeconds * 0.72));
+        const gain = context.createGain();
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.42, now + attack);
+        gain.gain.exponentialRampToValueAtTime(
+          Math.max(0.0001, sustain * 0.42),
+          now + attack + decay
+        );
+        gain.gain.setValueAtTime(
+          Math.max(0.0001, sustain * 0.42),
+          now + duration
+        );
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration + release);
+        gain.connect(output);
+
+        if (voice.kind === "noise") {
+          const buffer = context.createBuffer(1, Math.ceil(context.sampleRate * 0.35), context.sampleRate);
+          const channel = buffer.getChannelData(0);
+          for (let index = 0; index < channel.length; index += 1) {
+            channel[index] = Math.random() * 2 - 1;
+          }
+          const noise = context.createBufferSource();
+          noise.buffer = buffer;
+          noise.connect(gain);
+          noise.start(now);
+          noise.stop(now + duration + release + 0.05);
+          return;
+        }
+
+        const oscillator = context.createOscillator();
+        oscillator.type = normalizeToneWaveform(voice.waveform, voice.kind);
+        oscillator.frequency.value =
+          typeof note === "number"
+            ? Math.max(24, Math.min(4_000, note))
+            : noteFrequency(String(note));
+        if (voice.kind === "membrane") {
+          oscillator.frequency.exponentialRampToValueAtTime(
+            Math.max(30, oscillator.frequency.value * 0.52),
+            now + Math.min(0.24, duration)
+          );
+        }
+        oscillator.connect(gain);
+        oscillator.start(now);
+        oscillator.stop(now + duration + release + 0.05);
+      }
+
+      function animateToneRuntime(token) {
+        const context = canvas.getContext("2d");
+        if (!context) return;
+        function loop(time) {
+          if (
+            token !== activeToken ||
+            !runtime ||
+            runtime.kind !== "tone" ||
+            !toneContext
+          ) {
+            return;
+          }
+          const size = resizeCanvas();
+          context.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
+          const gradient = context.createLinearGradient(0, 0, size.width, size.height);
+          gradient.addColorStop(0, "#071313");
+          gradient.addColorStop(1, "#080b14");
+          context.fillStyle = gradient;
+          context.fillRect(0, 0, size.width, size.height);
+          const bars = Math.min(48, Math.max(16, Math.floor(size.width / 18)));
+          const gap = 4;
+          const barWidth = Math.max(2, (size.width - gap * (bars + 1)) / bars);
+          for (let index = 0; index < bars; index += 1) {
+            const phase = time * 0.002 + index * 0.67;
+            const energy = toneMuted ? 0.08 : 0.18 + Math.abs(Math.sin(phase)) * 0.68;
+            const barHeight = Math.max(3, size.height * energy * (0.45 + (index % 7) * 0.06));
+            context.fillStyle = index % 3 === 0 ? "#7ca7ff" : "#4cd7c8";
+            context.globalAlpha = toneMuted ? 0.25 : 0.42 + energy * 0.5;
+            context.fillRect(
+              gap + index * (barWidth + gap),
+              size.height - barHeight,
+              barWidth,
+              barHeight
+            );
+          }
+          context.globalAlpha = 1;
+          frame(time);
+          toneAnimationFrame = requestAnimationFrame(loop);
+        }
+        toneAnimationFrame = requestAnimationFrame(loop);
+      }
+
+      function drawToneIdle(context) {
+        const size = resizeCanvas();
+        context.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
+        const gradient = context.createLinearGradient(0, 0, size.width, size.height);
+        gradient.addColorStop(0, "#071313");
+        gradient.addColorStop(1, "#080b14");
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, size.width, size.height);
+        context.strokeStyle = "rgba(76, 215, 200, 0.32)";
+        context.lineWidth = 1;
+        context.beginPath();
+        for (let index = 0; index <= 80; index += 1) {
+          const x = index / 80 * size.width;
+          const y = size.height * 0.5 + Math.sin(index * 0.42) * size.height * 0.055;
+          if (index === 0) context.moveTo(x, y);
+          else context.lineTo(x, y);
+        }
+        context.stroke();
+      }
+
+      function subdivisionSeconds(subdivision, tempo) {
+        const quarter = 60 / Math.max(40, Math.min(220, Number(tempo) || 96));
+        const multipliers = {
+          "1m": 4,
+          "2n": 2,
+          "4n": 1,
+          "8n": 0.5,
+          "16n": 0.25,
+          "32n": 0.125
+        };
+        return quarter * (multipliers[subdivision] || 0.5);
+      }
+
+      function noteFrequency(note) {
+        const match = /^([A-Ga-g])([#b]?)(-?\d)$/.exec(note);
+        if (!match) return 220;
+        const semitones = {
+          C: 0,
+          D: 2,
+          E: 4,
+          F: 5,
+          G: 7,
+          A: 9,
+          B: 11
+        };
+        let midi = (Number(match[3]) + 1) * 12 + semitones[match[1].toUpperCase()];
+        if (match[2] === "#") midi += 1;
+        if (match[2] === "b") midi -= 1;
+        return 440 * Math.pow(2, (midi - 69) / 12);
+      }
+
+      function normalizeToneWaveform(waveform, kind) {
+        if (kind === "metal") return "square";
+        return ["sine", "square", "triangle", "sawtooth"].includes(waveform)
+          ? waveform
+          : "sine";
+      }
+
+      function createDistortionCurve(amount) {
+        const samples = 256;
+        const curve = new Float32Array(samples);
+        const drive = 1 + amount * 24;
+        for (let index = 0; index < samples; index += 1) {
+          const x = index * 2 / samples - 1;
+          curve[index] = Math.tanh(x * drive);
+        }
+        return curve;
+      }
+
+      function createReverbImpulse(context, amount) {
+        const length = Math.max(1, Math.floor(context.sampleRate * amount));
+        const impulse = context.createBuffer(2, length, context.sampleRate);
+        for (let channelIndex = 0; channelIndex < impulse.numberOfChannels; channelIndex += 1) {
+          const channel = impulse.getChannelData(channelIndex);
+          for (let index = 0; index < length; index += 1) {
+            channel[index] =
+              (Math.random() * 2 - 1) * Math.pow(1 - index / length, 2.4);
+          }
+        }
+        return impulse;
+      }
+
       function createProgram(gl, vertexSource, fragmentSource) {
         const vertex = compileShader(gl, gl.VERTEX_SHADER, vertexSource);
         const fragment = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
@@ -758,15 +1185,33 @@
           if (runtime.kind === "p5") startP5(token);
           else if (runtime.kind === "three") startThree(token);
           else if (runtime.kind === "hydra") startHydra(token);
+          else if (runtime.kind === "tone") setupTone(token);
           else startGlsl(token);
         } catch (error) {
-          fail(error, runtime.kind === "glsl" ? "GLSL runtime failed" : runtime.kind === "three" ? "Three.js runtime failed" : runtime.kind === "hydra" ? "Hydra runtime failed" : "p5 runtime failed");
+          fail(error, runtime.kind === "glsl" ? "GLSL runtime failed" : runtime.kind === "three" ? "Three.js runtime failed" : runtime.kind === "hydra" ? "Hydra runtime failed" : runtime.kind === "tone" ? "Tone.js runtime failed" : "p5 runtime failed");
         }
       }
+
+      audioStartButton.addEventListener("click", function () {
+        startToneAudio(activeToken);
+      });
+      audioStopButton.addEventListener("click", function () {
+        stopToneAudio(true);
+      });
+      audioMuteButton.addEventListener("click", function () {
+        setToneMuted(!toneMuted);
+      });
 
       window.addEventListener("message", function (event) {
         if (isDisposeMessage(event.data)) {
           disposeActiveRuntime();
+          return;
+        }
+        if (isControlMessage(event.data)) {
+          if (event.data.action === "start") startToneAudio(activeToken);
+          else if (event.data.action === "stop") stopToneAudio(true);
+          else if (event.data.action === "mute") setToneMuted(true);
+          else if (event.data.action === "unmute") setToneMuted(false);
           return;
         }
         if (isMountMessage(event.data)) {

@@ -227,6 +227,14 @@ function buildOverlayDiagnostics({
     return ["Collecting first frame samples."];
   }
 
+  if (snapshot.runtimeState === "ready") {
+    return ["Audio is armed and waiting for explicit playback."];
+  }
+
+  if (snapshot.runtimeState === "stopped") {
+    return ["Audio transport is stopped and output is silent."];
+  }
+
   if (snapshot.runtimeState === "running" && !snapshot.metricsAvailable) {
     return ["Waiting for the first completed frame."];
   }
@@ -317,7 +325,9 @@ function deriveRuntimeHealth({
   }
 
   if (runtimeState !== "running") {
-    return runtimeState === "starting" ? "warming" : "unavailable";
+    return runtimeState === "starting" || runtimeState === "ready"
+      ? "warming"
+      : "unavailable";
   }
 
   if (!metricsAvailable || fps == null || frameTimeMs == null) {
@@ -401,8 +411,12 @@ function formatRuntimeStateLabel(state: PreviewRuntimeLifecycleState) {
       return "Idle";
     case "starting":
       return "Starting";
+    case "ready":
+      return "Ready";
     case "running":
       return "Running";
+    case "stopped":
+      return "Stopped";
     case "error":
       return "Error";
     default:
@@ -420,6 +434,8 @@ function formatRuntimeKindLabel(kind: PreviewExecutableRuntimeKind) {
       return "GLSL runtime";
     case "hydra":
       return "Hydra runtime";
+    case "tone":
+      return "Tone.js runtime";
     default:
       return kind;
   }
