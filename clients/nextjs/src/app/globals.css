@@ -5972,6 +5972,91 @@ a {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.creativeTranslationCard {
+  display: grid;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.16);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.055), transparent 72%),
+    rgba(255, 255, 255, 0.03);
+}
+
+.creativeTranslationCard[data-state="legacy"] {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.creativeTranslationCard header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.creativeTranslationCard header span,
+.creativeTranslationGroups dt {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.creativeTranslationCard header strong {
+  display: block;
+  margin-top: 2px;
+  color: var(--teal);
+  font-size: 12px;
+}
+
+.creativeTranslationCard > p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.creativeTranslationGroups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0;
+}
+
+.creativeTranslationGroups div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.creativeTranslationGroups dd {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 10px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.creativeTranslationTargets {
+  display: grid;
+  gap: 3px;
+  padding-left: 8px;
+  border-left: 2px solid rgba(var(--accent-rgb), 0.28);
+}
+
+.creativeTranslationTargets strong {
+  color: var(--teal);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 .artifactCritiqueCard header {
   display: flex;
   align-items: flex-start;

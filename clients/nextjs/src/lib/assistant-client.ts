@@ -80,6 +80,7 @@ export type ArtifactSummary = {
   status: string;
   summary: string;
   content?: string;
+  creativeTranslation?: CreativeTranslationSummary | null;
   domain?: string | null;
   isDefault?: boolean;
   previewEligible?: boolean;
@@ -97,6 +98,21 @@ export type ArtifactSummary = {
   refinementInstruction?: string | null;
   critique?: ArtifactCritique;
   actions: ArtifactAction[];
+};
+
+export type CreativeTranslationSummary = {
+  outputModality: "visual" | "audio" | "audiovisual" | null;
+  creativeIntent: string;
+  symbolicReferences: string[];
+  geometricReferences: string[];
+  musicalReferences: string[];
+  moodAtmosphere: string[];
+  movementLanguage: string[];
+  colorMaterialDirection: string[];
+  runtimeRecommendations: string[];
+  structureDirection: string[];
+  generationConstraints: string[];
+  refinementTargets: string[];
 };
 
 export type ArtifactCritiqueDimension = {

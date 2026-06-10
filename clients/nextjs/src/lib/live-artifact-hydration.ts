@@ -8,6 +8,7 @@ import type {
   PreviewTargetId
 } from "./assistant-client";
 import type { AssistantStreamEvent } from "./assistant-stream";
+import { normalizeCreativeTranslation } from "./creative-translation";
 
 export type LiveArtifactHydrationResult = {
   activeArtifactId: string;
@@ -23,6 +24,7 @@ export type LiveArtifactHydrationOptions = {
 
 type GeneratedArtifactSource = {
   content: string;
+  creativeTranslation?: ArtifactSummary["creativeTranslation"];
   critique?: ArtifactCritique;
   domain?: string | null;
   id?: string;
@@ -48,6 +50,7 @@ type CreativeRuntimeKind = "p5" | "three" | "glsl" | "hydra" | "tone";
 
 type ArtifactInference = {
   content: string;
+  creativeTranslation: ArtifactSummary["creativeTranslation"];
   domain: string | null;
   critique: ArtifactCritique | null;
   id: string;
@@ -249,6 +252,9 @@ function readStructuredArtifactSources(
 
     sources.push({
       content,
+      creativeTranslation: normalizeCreativeTranslation(
+        artifact.creative_translation ?? artifact.creativeTranslation
+      ),
       critique: readArtifactCritique(artifact.critique),
       domain: readString(artifact.domain) ?? null,
       id: readString(artifact.id) ?? undefined,
@@ -446,6 +452,7 @@ function inferGeneratedArtifact(
 
   return {
     content: trimCodeBlock(source.content),
+    creativeTranslation: source.creativeTranslation ?? null,
     critique: source.critique ?? null,
     domain: source.domain ?? null,
     id:
@@ -520,6 +527,7 @@ function buildArtifactSummary(
     status: inferred.status,
     summary,
     content: inferred.content,
+    creativeTranslation: inferred.creativeTranslation,
     critique: inferred.critique ?? undefined,
     domain: inferred.domain,
     isDefault: inferred.isDefault,

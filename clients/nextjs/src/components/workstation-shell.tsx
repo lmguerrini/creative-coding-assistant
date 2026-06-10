@@ -175,6 +175,7 @@ import {
 import { buildZipArchive, downloadZipArchive } from "@/lib/zip-archive";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
 import { CreativeCostIntelligenceDashboard } from "./creative-cost-intelligence-dashboard";
+import { CreativeTranslationSummaryCard } from "./creative-translation-summary";
 import { EvaluationSessionDashboard } from "./evaluation-session-dashboard";
 import { LangSmithTraceDeepDive } from "./langsmith-trace-deep-dive";
 import { ProviderObservabilityDeepDive } from "./provider-observability-deep-dive";
@@ -4422,6 +4423,9 @@ function ArtifactsInspector({
         {activeArtifact.critique ? (
           <ArtifactCritiqueSummaryCard artifact={activeArtifact} />
         ) : null}
+        <CreativeTranslationSummaryCard
+          translation={activeArtifact.creativeTranslation}
+        />
         {activeArtifact.type === "code" && activeArtifact.actions.length > 0 ? (
           <ArtifactRefinementCard
             artifact={activeArtifact}
@@ -5406,6 +5410,7 @@ function buildArtifactRefinementRequest({
     critiqueRationale: artifact.critique?.rationale ?? null,
     refinementGuidance:
       artifact.critique?.refinementGuidance ?? artifact.refinementReason ?? null,
+    creativeTranslation: artifact.creativeTranslation ?? null,
     critique: artifact.critique ?? null
   };
 }

@@ -107,6 +107,26 @@ describe("live artifact hydration", () => {
               title: "graph-sketch.p5.js",
               language: "JavaScript + p5.js",
               source_language: "javascript",
+              creative_translation: {
+                output_modality: "visual",
+                creative_intent:
+                  "Create a meditative spiral with drifting cyan particles.",
+                symbolic_references: [],
+                geometric_references: ["spiral"],
+                musical_references: [],
+                mood_atmosphere: ["meditative"],
+                movement_language: ["drift"],
+                color_material_direction: ["cyan"],
+                runtime_recommendations: ["p5.js"],
+                structure_direction: [
+                  "Build visual structure from the requested geometry: spiral."
+                ],
+                generation_constraints: [],
+                refinement_targets: [
+                  "Preserve atmosphere: meditative",
+                  "Tune motion character: drift"
+                ]
+              },
               content:
                 "function setup() {\n  createCanvas(640, 360);\n}\nfunction draw() {\n  background(12);\n}"
             }
@@ -120,6 +140,12 @@ describe("live artifact hydration", () => {
       id: "graph-sketch",
       title: "graph-sketch.p5.js",
       language: "JavaScript + p5.js",
+      creativeTranslation: {
+        outputModality: "visual",
+        geometricReferences: ["spiral"],
+        movementLanguage: ["drift"],
+        runtimeRecommendations: ["p5.js"]
+      },
       actions: ["Open", "Preview", "Copy", "Download"]
     });
     expect(result.previewArtifactId).toBe("graph-sketch");

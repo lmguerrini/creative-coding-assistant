@@ -1,4 +1,8 @@
-import type { ArtifactCritique, WorkflowNodeId } from "./assistant-client";
+import type {
+  ArtifactCritique,
+  CreativeTranslationSummary,
+  WorkflowNodeId
+} from "./assistant-client";
 import type { AssistantRequestImageAttachment } from "./multimodal-attachments";
 import {
   createWorkstationError,
@@ -98,6 +102,7 @@ export type AssistantArtifactRefinementRequest = {
   qualityRank?: number | null;
   critiqueRationale?: string | null;
   refinementGuidance?: string | null;
+  creativeTranslation?: CreativeTranslationSummary | null;
   critique?: ArtifactCritique | null;
 };
 

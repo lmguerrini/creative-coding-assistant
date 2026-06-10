@@ -100,7 +100,21 @@ describe("assistant stream client", () => {
           qualityScore: 0.91,
           qualityRank: 1,
           critiqueRationale: "Strong visual candidate.",
-          refinementGuidance: "Soften particle motion."
+          refinementGuidance: "Soften particle motion.",
+          creativeTranslation: {
+            outputModality: "visual",
+            creativeIntent: "Create a calm particle field.",
+            symbolicReferences: [],
+            geometricReferences: [],
+            musicalReferences: [],
+            moodAtmosphere: ["calm"],
+            movementLanguage: ["drift"],
+            colorMaterialDirection: [],
+            runtimeRecommendations: ["p5.js"],
+            structureDirection: [],
+            generationConstraints: [],
+            refinementTargets: ["Preserve atmosphere: calm"]
+          }
         }
       },
       {
@@ -134,7 +148,11 @@ describe("assistant stream client", () => {
         domain: "p5_js",
         runtime: "p5",
         rendererId: "surface.p5",
-        previewEligible: true
+        previewEligible: true,
+        creativeTranslation: expect.objectContaining({
+          creativeIntent: "Create a calm particle field.",
+          moodAtmosphere: ["calm"]
+        })
       }),
       attachments: [
         expect.objectContaining({

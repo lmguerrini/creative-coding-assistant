@@ -3411,6 +3411,59 @@ describe("WorkstationShell", () => {
         name: "Download File aurora-field.p5.js"
       })
     ).toBeVisible();
+    expect(
+      within(details).getByRole("region", {
+        name: "Creative translation summary"
+      })
+    ).toHaveAttribute("data-state", "legacy");
+  });
+
+  it("shows compact creative translation guidance for generated artifacts", () => {
+    const snapshot = snapshotWithActiveTab("Artifacts");
+    renderShell({
+      ...snapshot,
+      artifacts: snapshot.artifacts.map((artifact, index) =>
+        index === 0
+          ? {
+              ...artifact,
+              creativeTranslation: {
+                outputModality: "audiovisual",
+                creativeIntent:
+                  "Create an audio-reactive mandala with a meditative pulse.",
+                symbolicReferences: ["mandala"],
+                geometricReferences: ["sacred geometry"],
+                musicalReferences: ["rhythm"],
+                moodAtmosphere: ["meditative"],
+                movementLanguage: ["pulse"],
+                colorMaterialDirection: ["cyan"],
+                runtimeRecommendations: ["p5.js", "Tone.js"],
+                structureDirection: [
+                  "Coordinate visual changes with the requested musical structure."
+                ],
+                generationConstraints: [
+                  "Require explicit user interaction before audio playback"
+                ],
+                refinementTargets: [
+                  "Preserve atmosphere: meditative",
+                  "Tune motion character: pulse"
+                ]
+              }
+            }
+          : artifact
+      )
+    });
+
+    const translation = screen.getByRole("region", {
+      name: "Creative translation summary"
+    });
+
+    expect(translation).toHaveAttribute("data-state", "available");
+    expect(within(translation).getByText("Audiovisual")).toBeVisible();
+    expect(within(translation).getByText("mandala")).toBeVisible();
+    expect(within(translation).getByText("sacred geometry")).toBeVisible();
+    expect(within(translation).getByText("rhythm")).toBeVisible();
+    expect(within(translation).getByText("p5.js / Tone.js")).toBeVisible();
+    expect(within(translation).getByText(/Preserve atmosphere/)).toBeVisible();
   });
 
   it("labels unsupported artifacts as code-only in the artifacts inspector", () => {
