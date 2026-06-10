@@ -134,6 +134,10 @@ class AssistantArtifactRefinement(BaseModel):
         default=None,
         alias="refinementGuidance",
     )
+    creative_translation: dict[str, Any] | None = Field(
+        default=None,
+        alias="creativeTranslation",
+    )
     critique: dict[str, Any] | None = None
 
 

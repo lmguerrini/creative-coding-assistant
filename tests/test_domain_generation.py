@@ -9,6 +9,9 @@ from creative_coding_assistant.orchestration.artifacts import (
     extract_workflow_artifacts,
     prepare_workflow_preview_results,
 )
+from creative_coding_assistant.orchestration.creative_translation import (
+    derive_creative_translation,
+)
 from creative_coding_assistant.orchestration.prompt_inputs import (
     StructuredPromptInputBuilder,
     build_prompt_input_request,
@@ -120,6 +123,54 @@ class DomainGenerationTests(unittest.TestCase):
         ])
         self.assertEqual([artifact.runtime for artifact in artifacts], ["p5", "glsl", "three"])
         self.assertTrue(all(artifact.preview_eligible for artifact in artifacts))
+
+    def test_artifacts_preserve_creative_translation_metadata(self) -> None:
+        request = AssistantRequest(
+            query="Create a meditative spiral with drifting cyan particles.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+        translation = derive_creative_translation(
+            request.query,
+            domains=decision.domains,
+        )
+
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```js spiral-field.p5.js",
+                    "function setup() { createCanvas(640, 360); }",
+                    "function draw() { background(0); circle(120, 120, 24); }",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+            creative_translation=translation,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        self.assertEqual(artifacts[0].creative_translation, translation)
+        self.assertEqual(
+            artifacts[0].creative_translation.geometric_references,
+            ("spiral",),
+        )
+        self.assertEqual(
+            artifacts[0].creative_translation.movement_language,
+            ("drift",),
+        )
+        preview_results = prepare_workflow_preview_results(
+            artifacts,
+            request=request,
+            route_decision=decision,
+        )
+        self.assertEqual(
+            preview_results[0].details["artifact"]["creative_translation"][
+                "output_modality"
+            ],
+            "visual",
+        )
 
     def test_prompt_renderer_adds_runtime_support_guidance(self) -> None:
         request = AssistantRequest(

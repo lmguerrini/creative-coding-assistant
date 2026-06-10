@@ -24,6 +24,9 @@ from creative_coding_assistant.artifacts import (
     ArtifactWorkflowLink,
 )
 from creative_coding_assistant.contracts import AssistantRequest, CreativeCodingDomain
+from creative_coding_assistant.orchestration.creative_translation import (
+    CreativeTranslation,
+)
 from creative_coding_assistant.orchestration.domain_generation import (
     domains_for_runtime,
     get_domain_runtime_support,
@@ -98,6 +101,7 @@ class WorkflowArtifact(BaseModel):
     renderer_id: str | None = None
     preview_target: str | None = None
     content_hash: str = Field(min_length=1)
+    creative_translation: CreativeTranslation | None = None
     critique: WorkflowArtifactCritique | None = None
     quality_score: float | None = Field(default=None, ge=0.0, le=1.0)
     quality_rank: int | None = Field(default=None, ge=1)
@@ -125,6 +129,7 @@ def extract_workflow_artifacts(
     *,
     request: AssistantRequest,
     route_decision: RouteDecision,
+    creative_translation: CreativeTranslation | None = None,
 ) -> tuple[WorkflowArtifact, ...]:
     """Extract code artifacts from generated assistant output."""
 
@@ -136,6 +141,7 @@ def extract_workflow_artifacts(
             index=index,
             request=request,
             route_decision=route_decision,
+            creative_translation=creative_translation,
         )
         if artifact is not None:
             artifacts.append(artifact)
@@ -239,6 +245,7 @@ def _build_workflow_artifact(
     index: int,
     request: AssistantRequest,
     route_decision: RouteDecision,
+    creative_translation: CreativeTranslation | None,
 ) -> WorkflowArtifact | None:
     language = block.language or _infer_language(block.content, block.title)
     if not language:
@@ -292,6 +299,7 @@ def _build_workflow_artifact(
         renderer_id=renderer_id,
         preview_target=preview_target,
         content_hash=content_hash,
+        creative_translation=creative_translation,
     )
 
 
@@ -373,6 +381,11 @@ def _to_artifact_record(
             language=artifact.source_language,
             extra={
                 "content_hash": artifact.content_hash,
+                "creative_translation": (
+                    artifact.creative_translation.model_dump(mode="json")
+                    if artifact.creative_translation is not None
+                    else None
+                ),
                 "domain": artifact.domain,
                 "is_default": artifact.is_default,
                 "preview_eligible": artifact.preview_eligible,

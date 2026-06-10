@@ -590,6 +590,11 @@ def _artifact_extraction_node(
             ),
             request=workflow_state.request,
             route_decision=_route_decision(workflow_state),
+            creative_translation=(
+                workflow_state.prompt_input.creative_translation
+                if workflow_state.prompt_input is not None
+                else None
+            ),
         )
         if not artifacts:
             return {

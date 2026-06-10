@@ -118,6 +118,20 @@ class PromptInputContractsTests(unittest.TestCase):
                 qualityRank=2,
                 critiqueRationale="Stable sketch with useful motion.",
                 refinementGuidance="Reduce visual density.",
+                creativeTranslation={
+                    "output_modality": "visual",
+                    "creative_intent": "Create a calm cyan particle field.",
+                    "symbolic_references": [],
+                    "geometric_references": [],
+                    "musical_references": [],
+                    "mood_atmosphere": ["calm"],
+                    "movement_language": ["drift"],
+                    "color_material_direction": ["cyan"],
+                    "runtime_recommendations": ["p5.js"],
+                    "structure_direction": [],
+                    "generation_constraints": [],
+                    "refinement_targets": ["Preserve atmosphere: calm"],
+                },
             ),
         )
         request = build_prompt_input_request(
@@ -142,6 +156,16 @@ class PromptInputContractsTests(unittest.TestCase):
         self.assertEqual(refinement.runtime, "p5")
         self.assertEqual(refinement.quality_score, 0.88)
         self.assertEqual(refinement.critique_rationale, "Stable sketch with useful motion.")
+        self.assertIsNotNone(refinement.creative_translation)
+        assert refinement.creative_translation is not None
+        self.assertEqual(
+            refinement.creative_translation.creative_intent,
+            "Create a calm cyan particle field.",
+        )
+        self.assertEqual(
+            response.creative_translation.mood_atmosphere,
+            ("calm",),
+        )
 
     def test_prompt_input_builder_keeps_compact_prior_pair_for_follow_up(
         self,

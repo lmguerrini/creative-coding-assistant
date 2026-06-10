@@ -15,6 +15,10 @@ from creative_coding_assistant.contracts import (
 )
 from creative_coding_assistant.memory import ProjectMemoryKind
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
+from creative_coding_assistant.orchestration.creative_translation import (
+    CreativeTranslation,
+    derive_creative_translation,
+)
 from creative_coding_assistant.orchestration.memory import MemoryContextResponse
 from creative_coding_assistant.orchestration.prompt_memory import (
     PromptConversationTurnInput,
@@ -60,6 +64,7 @@ class PromptArtifactRefinementInput(BaseModel):
     quality_rank: int | None = Field(default=None, ge=1)
     critique_rationale: str | None = None
     refinement_guidance: str | None = None
+    creative_translation: CreativeTranslation | None = None
 
 
 class PromptUserInput(BaseModel):
@@ -246,6 +251,7 @@ class PromptInputResponse(BaseModel):
 
     request: PromptInputRequest
     user_input: PromptUserInput
+    creative_translation: CreativeTranslation | None = None
     memory_input: PromptMemoryInput | None = None
     retrieval_input: PromptRetrievalInput | None = None
 
@@ -282,11 +288,27 @@ class StructuredPromptInputBuilder:
             )
         )
 
+        user_input = _build_user_input(
+            request.assistant_request,
+            route_decision=request.route_decision,
+        )
         prompt_input = PromptInputResponse(
             request=request,
-            user_input=_build_user_input(
-                request.assistant_request,
-                route_decision=request.route_decision,
+            user_input=user_input,
+            creative_translation=derive_creative_translation(
+                user_input.query,
+                domains=user_input.effective_domains,
+                selected_runtime=(
+                    user_input.artifact_refinement.runtime
+                    if user_input.artifact_refinement is not None
+                    else None
+                ),
+                has_image_references=bool(user_input.image_references),
+                base_translation=(
+                    user_input.artifact_refinement.creative_translation
+                    if user_input.artifact_refinement is not None
+                    else None
+                ),
             ),
             memory_input=memory_input,
             retrieval_input=retrieval_input,
@@ -370,7 +392,22 @@ def _build_artifact_refinement_input(
         quality_rank=refinement.quality_rank,
         critique_rationale=refinement.critique_rationale,
         refinement_guidance=refinement.refinement_guidance,
+        creative_translation=_parse_creative_translation(
+            refinement.creative_translation
+        ),
     )
+
+
+def _parse_creative_translation(
+    value: dict[str, object] | None,
+) -> CreativeTranslation | None:
+    if value is None:
+        return None
+    try:
+        return CreativeTranslation.model_validate(value)
+    except ValueError:
+        logger.warning("Ignored invalid optional creative translation metadata.")
+        return None
 
 
 def _build_memory_input(

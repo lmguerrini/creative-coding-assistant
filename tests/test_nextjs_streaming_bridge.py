@@ -35,6 +35,20 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
                     "qualityRank": 1,
                     "critiqueRationale": "Strong visual candidate.",
                     "refinementGuidance": "Soften the motion.",
+                    "creativeTranslation": {
+                        "outputModality": "visual",
+                        "creativeIntent": "Create a calm particle field.",
+                        "symbolicReferences": [],
+                        "geometricReferences": [],
+                        "musicalReferences": [],
+                        "moodAtmosphere": ["calm"],
+                        "movementLanguage": ["drift"],
+                        "colorMaterialDirection": [],
+                        "runtimeRecommendations": ["p5.js"],
+                        "structureDirection": [],
+                        "generationConstraints": [],
+                        "refinementTargets": ["Preserve atmosphere: calm"],
+                    },
                 },
                 "attachments": [
                     {
@@ -53,6 +67,12 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
 
         self.assertIsInstance(assistant_request, AssistantRequest)
         self.assertEqual(assistant_request.conversation_id, "browser-session")
+        self.assertEqual(
+            assistant_request.artifact_refinement.creative_translation[
+                "creativeIntent"
+            ],
+            "Create a calm particle field.",
+        )
         self.assertEqual(assistant_request.project_id, "workspace-a")
         self.assertEqual(assistant_request.domain.value, "webgpu_wgsl")
         self.assertEqual(len(assistant_request.attachments), 1)

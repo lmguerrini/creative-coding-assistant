@@ -12,6 +12,10 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.domains import get_domain_prompt_guidance
+from creative_coding_assistant.orchestration.creative_translation import (
+    CreativeTranslation,
+    creative_translation_prompt_lines,
+)
 from creative_coding_assistant.orchestration.domain_generation import (
     domain_generation_guidance_lines,
 )
@@ -67,6 +71,12 @@ Selected Artifact Refinement:
 - Place the refined artifact in a fenced code block with an explicit filename.
 - Source artifact: {{ prompt_input.user_input.artifact_refinement.title }}
   ({{ prompt_input.user_input.artifact_refinement.artifact_id }})
+{% endif %}
+{% if prompt_input.creative_translation is not none -%}
+Creative Translation:
+{% for instruction in creative_translation_lines(prompt_input.creative_translation) -%}
+- {{ instruction }}
+{% endfor %}
 {% endif %}
 Use the provided context sections as working context. Keep responses grounded in
 the structured inputs that follow.
@@ -256,6 +266,7 @@ class JinjaPromptRenderer:
             generation_runtime_guidance_lines=_generation_runtime_guidance_lines,
             effective_domain_scope_label=_effective_domain_scope_label,
             image_reference_line=_image_reference_line,
+            creative_translation_lines=_creative_translation_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
         )
 
@@ -412,6 +423,12 @@ def _global_guardrail_lines() -> tuple[str, ...]:
             "domains require it."
         ),
     )
+
+
+def _creative_translation_lines(
+    translation: CreativeTranslation,
+) -> tuple[str, ...]:
+    return creative_translation_prompt_lines(translation)
 
 
 def _domain_guidance_lines(user_input: PromptUserInput) -> tuple[str, ...]:

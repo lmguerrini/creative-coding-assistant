@@ -259,6 +259,52 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             "Lead with runnable code first",
             rendered.sections[0].content,
         )
+
+    def test_renderer_includes_structured_creative_translation_guidance(
+        self,
+    ) -> None:
+        renderer = JinjaPromptRenderer()
+        assistant_request = AssistantRequest(
+            query=(
+                "Create an audio-reactive golden ratio spiral with a calm "
+                "atmosphere and pulsing motion."
+            ),
+            domains=(
+                CreativeCodingDomain.P5_JS,
+                CreativeCodingDomain.TONE_JS,
+            ),
+        )
+        route_decision = RouteDecision(
+            route=RouteName.GENERATE,
+            mode=AssistantMode.GENERATE,
+            domains=assistant_request.domains,
+            capabilities=(RouteCapability.TOOL_USE,),
+        )
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=assistant_request,
+                route_decision=route_decision,
+                assembled_context=None,
+            )
+        )
+
+        rendered = renderer.render(
+            build_rendered_prompt_request(
+                route_decision=route_decision,
+                prompt_input=prompt_input,
+            )
+        )
+        system_section = rendered.sections[0].content
+
+        self.assertIsNotNone(prompt_input.creative_translation)
+        self.assertIn("Creative Translation:", system_section)
+        self.assertIn("- Intended modality: audiovisual", system_section)
+        self.assertIn("- Geometric references: golden ratio, spiral", system_section)
+        self.assertIn("- Movement language: pulse", system_section)
+        self.assertIn(
+            "- Recommended runtime families: p5.js, Tone.js",
+            system_section,
+        )
         self.assertIn(
             (
                 "Keep explanation short and add setup or run notes only when "
