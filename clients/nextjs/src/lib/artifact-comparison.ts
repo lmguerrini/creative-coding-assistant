@@ -48,11 +48,18 @@ const supportedPreviewDomains = new Set([
   "p5_js",
   "glsl",
   "hydra",
+  "tone_js",
   "three_js",
   "react_three_fiber"
 ]);
 
-const supportedBrowserRuntimeKinds = new Set(["p5", "three", "glsl", "hydra"]);
+const supportedBrowserRuntimeKinds = new Set([
+  "p5",
+  "three",
+  "glsl",
+  "hydra",
+  "tone"
+]);
 
 const unsupportedBrowserRuntimeExtensions = [
   ".wgsl",
@@ -62,8 +69,6 @@ const unsupportedBrowserRuntimeExtensions = [
   ".canvas.ts",
   ".gsap.js",
   ".gsap.ts",
-  ".tone.js",
-  ".tone.ts",
   ".svg"
 ] as const;
 
@@ -328,6 +333,8 @@ function formatArtifactRuntimeLabel(runtime: string) {
       return "GLSL";
     case "hydra":
       return "Hydra";
+    case "tone":
+      return "Tone.js";
     default:
       return sentenceCase(runtime.replace(/[_-]+/g, " "));
   }
@@ -349,6 +356,8 @@ function formatArtifactDomainLabel(domain: string | null | undefined) {
       return "GLSL";
     case "hydra":
       return "Hydra";
+    case "tone_js":
+      return "Tone.js";
     default:
       return sentenceCase(domain.replace(/_/g, " "));
   }

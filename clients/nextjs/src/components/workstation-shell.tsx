@@ -5253,6 +5253,8 @@ function formatArtifactRuntimeLabel(runtime: string) {
       return "GLSL";
     case "hydra":
       return "Hydra";
+    case "tone":
+      return "Tone.js";
     default:
       return sentenceCase(runtime.replace(/[_-]+/g, " "));
   }
@@ -5273,6 +5275,8 @@ function formatArtifactDomainLabel(domain: string | null | undefined) {
       return "GLSL";
     case "hydra":
       return "Hydra";
+    case "tone_js":
+      return "Tone.js";
     default:
       return sentenceCase(domain.replace(/_/g, " "));
   }

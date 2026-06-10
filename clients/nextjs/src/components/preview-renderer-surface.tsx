@@ -48,7 +48,8 @@ const creativeSurfaceLayers: Record<CreativePreviewRendererKind, readonly string
   p5: ["setup()", "draw()", "canvas"],
   three: ["scene", "camera", "lights", "renderer"],
   glsl: ["vertex", "fragment", "uniforms"],
-  hydra: ["sources", "operators", "feedback", "outputs"]
+  hydra: ["sources", "operators", "feedback", "outputs"],
+  tone: ["voices", "envelopes", "sequences", "transport"]
 };
 
 const mediaSurfaceLayers: Record<
@@ -155,6 +156,7 @@ function renderPreviewSurfaceStage({
           <span>Three.js</span>
           <span>GLSL</span>
           <span>Hydra</span>
+          <span>Tone.js</span>
         </div>
         <div className="previewSurfaceMetaGrid">
           <div>
@@ -249,7 +251,8 @@ function isCreativeSurface(
     surfaceKind === "p5" ||
     surfaceKind === "three" ||
     surfaceKind === "glsl" ||
-    surfaceKind === "hydra"
+    surfaceKind === "hydra" ||
+    surfaceKind === "tone"
   );
 }
 

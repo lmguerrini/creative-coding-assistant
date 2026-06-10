@@ -16,7 +16,12 @@ export type PreviewRendererTone =
   | "danger"
   | "muted";
 
-export type CreativePreviewRendererKind = "p5" | "three" | "glsl" | "hydra";
+export type CreativePreviewRendererKind =
+  | "p5"
+  | "three"
+  | "glsl"
+  | "hydra"
+  | "tone";
 
 export type PreviewRendererSurfaceKind =
   | CreativePreviewRendererKind
@@ -132,6 +137,27 @@ export const creativePreviewRendererRegistry: readonly CreativePreviewRendererDe
       "Parses supported source chains into a bounded execution plan",
       "Feedback frames, status, and errors stay isolated in the preview sandbox"
     ]
+  },
+  {
+    id: "surface.tone",
+    kind: "tone",
+    displayName: "Tone.js",
+    surfaceLabel: "Tone.js audio surface",
+    description: "Generative audio surface for controlled Tone.js-compatible previews.",
+    matchExtensions: [".tone.js", ".tone.ts"],
+    matchTokens: [
+      "tone.js",
+      "tone.synth",
+      "tone.oscillator",
+      "tone.sequence",
+      "tone.loop",
+      "tone.transport"
+    ],
+    notes: [
+      "Controlled Tone.js-compatible Web Audio runtime",
+      "Audio remains silent until the operator explicitly starts playback",
+      "Stop, mute, lifecycle status, and runtime errors stay inside the preview sandbox"
+    ]
   }
 ] as const;
 
@@ -139,6 +165,7 @@ const supportedPreviewDomains = new Set([
   "p5_js",
   "glsl",
   "hydra",
+  "tone_js",
   "three_js",
   "react_three_fiber"
 ]);
@@ -151,8 +178,6 @@ const unsupportedBrowserRuntimeExtensions = [
   ".canvas.ts",
   ".gsap.js",
   ".gsap.ts",
-  ".tone.js",
-  ".tone.ts",
   ".svg"
 ] as const;
 
@@ -287,7 +312,7 @@ export function buildPreviewRendererRoute({
       supportState: "unsupported",
       supportLabel: "Unsupported",
       supportReason:
-        "Current browser preview foundations cover p5.js, Three.js, GLSL, and Hydra only.",
+        "Current browser preview foundations cover p5.js, Three.js, GLSL, Hydra, and Tone.js only.",
       surfaceKind: "unsupported",
       surfaceTitle: "Browser preview without renderer match",
       surfaceEyebrow: "Unsupported creative surface",
