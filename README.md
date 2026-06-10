@@ -1,77 +1,96 @@
 # Creative Coding Assistant
 
-Creative Coding Assistant is an AI-powered creative workflow platform for
-creative coding, generative graphics, and realtime media work. It combines a
-LangGraph-orchestrated Python backend with a Next.js workstation that streams
-assistant output into code, multiple artifacts, live previews, comparison tools,
-refinement controls, and runtime inspectors.
+Creative Coding Assistant is an AI-native creative translation workstation for
+professional creative coding workflows. It combines a LangGraph-orchestrated
+Python backend with a Next.js workstation for audio, visual, and audiovisual
+generation, comparison, refinement, preview, observability, validation, and
+export preparation.
 
-The application is a multi-artifact generation environment: requests can route
-through domain-aware retrieval and generation, produce several creative
-candidates, rank them with structured critique, compare alternatives, refine a
-selected artifact, and inspect the resulting runtime behavior from the same
-workstation.
+The current product scope is a creative coding platform and workstation rather
+than a generic chat assistant. Requests can be translated from intent, symbols,
+and concepts into structured creative guidance, grounded with retrieval when
+useful, expanded into multiple candidate artifacts, compared and refined, then
+observed through live preview and runtime inspection from the same interface.
 
 ![Creative Coding Assistant workstation preview](assets/preview.png)
 
 ## Highlights
 
-- AI-powered workstation UX with chat, a compact bottom preview shelf, and
+- AI-native workstation UX with chat, a compact bottom preview shelf, and
   focused inspector tabs for overview, preview, runtime, code, workflow,
   telemetry, artifacts, and retrieval
-- Domain-aware generation for p5.js, Three.js, React Three Fiber, GLSL, and
-  broader creative-coding knowledge domains
-- LangGraph workflow runtime with routing, memory, retrieval, prompt assembly,
-  generation, artifact extraction, preview preparation, artifact critique,
-  deterministic review, bounded refinement, and terminal failure handling
-- Graph-owned preview pipeline that prepares preview metadata before the
-  frontend mounts supported outputs in controlled browser runtimes
-- Streaming NDJSON bridge between the Next.js client and the Python assistant
-  runtime
-- Live artifact hydration that turns final assistant output into active code,
-  artifact, preview, comparison, and refinement state
-- Multi-artifact generation support for comparing, selecting, refining, and
-  previewing multiple creative candidates from one run
-- Structured artifact critique metadata for quality ranking, recommended
-  candidates, runtime suitability, preview readiness, and refinement guidance
-- Artifact comparison and selected-artifact refinement flows that preserve the
-  original candidate while adding refined versions
-- Controlled preview runtimes for p5.js sketches, Three.js and React Three
-  Fiber scene outputs, and GLSL fragment shaders
-- Runtime console with live renderer status, FPS/frame telemetry, reload events,
-  diagnostics, and error surfacing
-- Multimodal image references for grounding creative requests visually
-- Project bundle export with artifacts, runtime metadata, retrieval context, and
-  session state
-- Provider/runtime telemetry, LangSmith trace metadata when available, RAGAs
-  evaluation lineage, renderer diagnostics, and subsystem error surfaces
-- Local workspace persistence with browser restore and SQLite-backed backend
-  session storage
+- Creative Translation Engine that converts user intent into bounded modality,
+  symbolism, geometry, mood, movement, runtime, and refinement guidance
+- Sacred Geometry Prompt Layer for explicit concepts such as mandalas, yantras,
+  torus forms, spirals, Fibonacci structures, and related geometric motifs
+- Multi-artifact generation, critique, comparison, and selected-artifact
+  refinement inside one continuous workstation flow
+- Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL, Hydra,
+  and Tone.js outputs
+- Runtime diagnostics, provider observability, workflow timeline inspection,
+  retrieval intelligence, evaluation surfaces, and creative cost visibility
+- Multimodal image references, local session persistence, and project bundle
+  export
 
 ## Creative Workflow
 
-The workstation is designed around an iterative creative coding loop:
+The workstation is designed around the current V2 creative loop:
 
-`Generate -> Critique -> Compare -> Select -> Refine -> Preview -> Runtime diagnostics`
+`Intent / symbol / concept -> Creative Translation -> Generate -> Compare -> Refine -> Preview -> Observe -> Validate -> Export`
 
-- Generate: the assistant resolves the effective creative-coding domains,
-  retrieves official-source context, assembles the prompt, and streams generated
-  output.
-- Critique: generated artifacts receive structured scores for prompt alignment,
-  creative quality, runtime suitability, code quality, preview readiness, and
-  domain appropriateness.
+- Creative Translation: the assistant derives bounded intent, symbolic,
+  geometric, mood, movement, runtime, and refinement guidance before
+  generation.
+- Generate: the backend resolves effective domains, retrieves official-source
+  context when useful, assembles the prompt, and streams creative output.
 - Compare: multi-artifact runs expose ranked candidates, recommendation
   rationale, runtime support, previewability, and refinement guidance.
-- Select: choosing an artifact keeps the code inspector, preview shelf,
-  artifacts inspector, and comparison state synchronized.
 - Refine: the selected artifact can be sent back with explicit refinement
   instructions while preserving the source candidate and adding a labeled
   refined version.
 - Preview: supported artifacts mount in the bottom preview shelf with visible
   play, reload, collapse, and fullscreen controls.
-- Runtime diagnostics: the Preview, Runtime, Workflow, Telemetry, Artifacts, and
-  Retrieval inspectors expose the runtime state without crowding the visual
-  output.
+- Observe: the Preview, Runtime, Workflow, Telemetry, Artifacts, and Retrieval
+  inspectors expose runtime, workflow, cost, and grounding state without
+  crowding the visual output.
+- Validate: critique scores, runtime diagnostics, retrieval quality, evaluation
+  traces, and workflow review state help verify the result before export.
+- Export: the current export surface is the project bundle workflow. Advanced
+  Blueprint Export and pro DAW/runtime pipeline exports remain roadmap items.
+
+## Implemented Capabilities
+
+### Creative Core
+
+- Creative Translation Engine with deterministic prompt guidance
+- Sacred Geometry Prompt Layer integrated into the existing translation flow
+- Domain-aware generation across supported preview runtimes and broader
+  creative-coding knowledge domains
+- Multi-artifact generation, artifact critique, artifact comparison, and
+  selected-artifact refinement
+- Multimodal image references for visually grounded generation requests
+
+### Runtime And Preview
+
+- p5.js live runtime
+- Three.js live runtime
+- React Three Fiber live runtime
+- GLSL live runtime
+- Hydra live runtime
+- Tone.js live runtime
+- Runtime console and preview runtime diagnostics with lifecycle, error, and
+  renderer telemetry surfaces
+
+### Retrieval, Evaluation, And Observability
+
+- Retrieval Inspector Advanced and Retrieval Source Explorer
+- Retrieval Quality Deep Dive and KB Source Health Dashboard
+- Provider Observability Deep Dive
+- Evaluation Session Dashboard
+- Workflow Timeline Explorer
+- LangSmith Trace Deep Dive when trace metadata is available
+- Creative Cost Intelligence Dashboard
+- Local workspace persistence and project bundle export
 
 ## Architecture
 
@@ -138,13 +157,15 @@ preparation. The Next.js workstation then routes previewable outputs into
 controlled runtime adapters rather than executing arbitrary generated
 application code directly.
 
-Current live preview/runtime support is limited to:
+Current live preview/runtime support includes:
 
 - p5.js sketches through a controlled p5-compatible 2D canvas runtime
 - Three.js scenes through a controlled Three-compatible WebGL runtime
 - React Three Fiber artifacts routed through the Three-compatible preview
   surface when they match the supported browser runtime contract
 - GLSL fragment shaders through a bounded WebGL shader runtime
+- Hydra live-coded visuals through a bounded Hydra-compatible browser runtime
+- Tone.js audio outputs through a controlled user-activated Web Audio runtime
 
 The workstation also exposes:
 
@@ -159,7 +180,7 @@ The workstation also exposes:
 
 ## Feature Areas
 
-### Creative Workstation
+### Workstation
 
 - Streaming conversation workflow designed for iterative creative sessions
 - Inspector surfaces for overview, preview metadata, runtime console, code,
@@ -170,52 +191,26 @@ The workstation also exposes:
 - Workspace-level session restore with active tab, artifact, preview, layout,
   and preference state
 
-### Artifact Generation And Refinement
+### Generation, Retrieval, And Evaluation
 
-- Domain-aware prompt shaping for the effective creative-coding ecosystem
+- Creative Translation prompt shaping for the effective creative-coding
+  ecosystem
 - Multi-artifact extraction with source order, default selection, runtime, and
   preview eligibility metadata
 - Structured artifact critique for ranking, recommendation, and refinement
   guidance
-- Artifact comparison UI for previewable, code-only, and unsupported-runtime
-  candidates
-- Selected-artifact refinement that carries source code, critique context,
-  runtime metadata, and the user instruction into the next generation request
+- Retrieval over curated official documentation sources with chunk-level
+  grounding context
+- Live session recording, offline evaluation helpers, and RAGAs-oriented
+  evaluation runner
 
-### Retrieval And Grounding
-
-- Retrieval over curated official documentation sources
-- Domain and source metadata registries spanning a broad creative coding tool
-  ecosystem
-- Retrieval summaries with request parameters, source scoring, freshness, and
-  chunk-level grounding context
-- Validation coverage for source registry, retrieval foundation, and retrieval
-  integration boundaries
-
-### Memory And Evaluation
-
-- Conversation memory repositories and memory retrieval adapters
-- Live session recording for later evaluation
-- Offline evaluation helpers and RAGAs-oriented evaluation runner
-- In-workstation telemetry surfaces for stream events, provider usage,
-  workflow runtime, preview health, retrieval quality, optional LangSmith trace
-  metadata, and RAGAs evaluation lineage
-- Tests covering memory behavior, session evaluation foundations, and live
-  session flows
-
-### Export And Multimodal
+### Export
 
 - Image reference attachments for PNG, JPEG, WebP, and GIF inputs
 - Frontend-side validation for attachment size/count/type
-- Project bundle export containing:
-  - generated artifacts
-  - workspace session snapshot
-  - workflow summary
-  - retrieval summary
-  - preview routing/runtime metadata
-  - operator approval summary
-  - multimodal image metadata
-  - bundle manifest and bundled README
+- Project bundle export containing generated artifacts, workspace session state,
+  workflow summary, retrieval summary, preview/runtime metadata, operator
+  approval summary, multimodal image metadata, and a bundle manifest
 
 ## Repository Layout
 
@@ -270,12 +265,14 @@ The workstation also exposes:
 ## Domain Coverage
 
 The request/domain registry and approved source registry cover a broad creative
-coding surface. Current live preview/runtime support is limited to:
+coding surface. Current live preview/runtime support includes:
 
+- p5.js
 - Three.js
 - React Three Fiber
-- p5.js
 - GLSL
+- Hydra
+- Tone.js
 
 The broader generation and retrieval domain registry also covers code-oriented
 or documentation-grounded support for:
@@ -284,13 +281,10 @@ or documentation-grounded support for:
 - Canvas 2D
 - WebGPU / WGSL
 - GSAP
-- Tone.js
 - PixiJS
 - Matter.js
 - Rapier
-- Hydra
 - Shadertoy
-- TouchDesigner
 - Houdini
 - Blender
 - openFrameworks
@@ -302,7 +296,7 @@ or documentation-grounded support for:
 - Runway
 - Unreal
 - Unity
-- additional creative-coding and realtime media ecosystems
+- additional curated creative-coding ecosystems
 
 Those broader domains are available for routing, prompt guidance, retrieval, or
 code inspection depending on available source coverage. They should not be read
@@ -311,35 +305,32 @@ runtime support list above.
 
 ## Roadmap
 
-### Current Capabilities
+### High-Priority Creative Core
 
-- Next.js workstation with chat, preview shelf, focused inspector tabs,
-  persistence, themes, command actions, and export flows
-- LangGraph backend runtime with graph-owned artifact extraction, preview
-  preparation, critique, deterministic review, bounded refinement, and failure
-  handling
-- Domain-aware generation for supported preview domains and broader
-  creative-coding knowledge domains
-- Multi-artifact generation, artifact critique, artifact comparison, selected
-  artifact refinement, and synchronized code/preview/artifact state
-- Controlled frontend live preview runtimes for p5.js, Three.js, React Three
-  Fiber, and GLSL outputs
-- Runtime console, workflow telemetry, provider telemetry, retrieval telemetry,
-  optional LangSmith metadata, RAGAs lineage, and offline evaluation helpers
-- Multimodal image references and project bundle export
+- Advanced Shader Presets
+- Visual Style System
+- GSAP Runtime Support
+- SVG / Canvas Runtime Expansion
+- Multi-Preview Comparison Workspace
+- Dynamic Param Control Panel
+- Audio-Reactive Visual Engine
+- Creative Quality Critic
+- Sacred Consistency Evaluator
 
-### Planned Capabilities
+### Later Product And Pro Workflow
 
-- Richer tool-node insertion and capability-based graph branches after routing
-- Deeper review/refinement loops that can return to prompt preparation, not only
-  the current bounded retry path
-- Backend-managed renderer execution, frame capture, or export jobs connected to
-  preview preparation
-- Human approval checkpoints between review and finalization
-- Fuller in-app RAGAs and observability dashboards beyond the current telemetry
-  and metadata surfaces
-- Additional safe live runtimes for domains that are currently code-only or
-  retrieval-guided
+- Export Bundle Enhancements
+- Performance Blueprint Export
+- MIDI / OSC Mapping Export
+- Session Timeline Explorer
+- Prompt Evolution Explorer
+- Artifact Lineage Graph
+- Final UI Polish
+- Audit & Refactor
+- V2 Freeze
+- Local Model Provider Support
+- Hybrid Model Router
+- HoloMind Integration Bridge after HoloMind V1
 
 ## Setup
 
