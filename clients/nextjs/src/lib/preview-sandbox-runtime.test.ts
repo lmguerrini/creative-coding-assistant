@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   buildPreviewSandboxDocument,
   mountPreviewSandboxRuntime,
@@ -46,6 +46,28 @@ describe("preview sandbox runtime", () => {
     expect(program.outputs.o1.source.name).toBe("osc");
     expect(program.outputs.o1.operators[0].name).toBe("modulate");
     expect(prepared).not.toContain(source);
+  });
+
+  it("prepares Tone.js source as a silent bounded audio plan", () => {
+    const source = [
+      "const synth = new Tone.Synth().toDestination();",
+      "new Tone.Sequence((time, note) => synth.triggerAttackRelease(note, '8n', time), ['C4', 'E4', 'G4'], '8n').start(0);",
+      "Tone.Transport.start();"
+    ].join("\n");
+    const prepared = preparePreviewExecutableSource(source, "tone");
+    const program = JSON.parse(prepared);
+
+    expect(program).toMatchObject({
+      version: 1,
+      voices: [{ kind: "synth" }],
+      patterns: [
+        {
+          notes: ["C4", "E4", "G4"],
+          subdivision: "8n"
+        }
+      ]
+    });
+    expect(prepared).not.toContain("Transport.start");
   });
 
   it("builds an escaped sandbox document with the selected runtime payload", () => {
@@ -164,6 +186,81 @@ describe("preview sandbox runtime", () => {
     expect(iframe.dataset.runtimeId).toBeUndefined();
     expect(iframe.getAttribute("src")).toBe("about:blank");
     iframe.remove();
+  });
+
+  it("delivers explicit Tone.js start, stop, and mute controls to the sandbox", () => {
+    const iframe = document.createElement("iframe");
+    document.body.appendChild(iframe);
+    const runtime = mountPreviewSandboxRuntime({
+      iframe,
+      kind: "tone",
+      onStatus: () => undefined,
+      runtimeId: "tone-runtime-1",
+      source: {
+        fingerprint: "tone123",
+        lineCount: 1,
+        source: "const synth = new Tone.Synth().toDestination();",
+        title: "pulse.tone.js"
+      }
+    });
+    const postMessage = vi.spyOn(iframe.contentWindow as Window, "postMessage");
+
+    runtime.control("start");
+    runtime.control("mute");
+    runtime.control("unmute");
+    runtime.control("stop");
+
+    const controlActions = postMessage.mock.calls
+      .map(([message]) => message)
+      .filter(
+        (message): message is { action: string; type: string } =>
+          typeof message === "object" &&
+          message !== null &&
+          "type" in message &&
+          message.type === "control"
+      )
+      .map((message) => message.action);
+    expect(controlActions).toEqual(["start", "mute", "unmute", "stop"]);
+
+    runtime.dispose();
+    iframe.remove();
+  });
+
+  it("accepts Tone.js ready and stopped lifecycle status", () => {
+    expect(
+      readPreviewSandboxRuntimeMessage(
+        {
+          source: "cca-preview-runtime",
+          runtimeId: "tone-runtime-1",
+          type: "status",
+          status: {
+            detail: "Audio is armed.",
+            label: "Tone.js runtime ready",
+            state: "ready"
+          }
+        },
+        "tone-runtime-1"
+      )
+    ).toMatchObject({
+      status: { state: "ready" }
+    });
+    expect(
+      readPreviewSandboxRuntimeMessage(
+        {
+          source: "cca-preview-runtime",
+          runtimeId: "tone-runtime-1",
+          type: "status",
+          status: {
+            detail: "Audio is silent.",
+            label: "Tone.js runtime stopped",
+            state: "stopped"
+          }
+        },
+        "tone-runtime-1"
+      )
+    ).toMatchObject({
+      status: { state: "stopped" }
+    });
   });
 
   it("ignores stale messages after a sandbox remount", () => {

@@ -107,6 +107,16 @@ describe("artifact comparison", () => {
       runtime: "hydra",
       title: "feedback-lattice.hydra.js"
     });
+    const tone = artifact({
+      actions: ["Open", "Preview", "Copy"],
+      domain: "tone_js",
+      id: "tone",
+      previewEligible: true,
+      previewTarget: "browser_sandbox",
+      rendererId: "surface.tone",
+      runtime: "tone",
+      title: "generative-pulse.tone.js"
+    });
     const unsupported = artifact({
       domain: "webgpu",
       id: "webgpu",
@@ -119,6 +129,7 @@ describe("artifact comparison", () => {
 
     expect(classifyArtifactRuntimeSupport(previewable).state).toBe("previewable");
     expect(classifyArtifactRuntimeSupport(hydra).state).toBe("previewable");
+    expect(classifyArtifactRuntimeSupport(tone).state).toBe("previewable");
     expect(classifyArtifactRuntimeSupport(codeOnly).state).toBe("code_only");
     expect(classifyArtifactRuntimeSupport(unsupported).state).toBe("unsupported");
   });

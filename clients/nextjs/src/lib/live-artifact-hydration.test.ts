@@ -307,6 +307,39 @@ describe("live artifact hydration", () => {
       targetId: "browser_sandbox"
     });
   });
+
+  it("hydrates Tone.js code into an explicitly controlled audio preview", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const result = hydrateWorkspaceFromFinalEvent(
+      snapshot,
+      finalEvent({
+        answer: [
+          "Here is the generative audio patch:",
+          "```js generative-pulse.tone.js",
+          "const synth = new Tone.Synth().toDestination();",
+          "new Tone.Sequence((time, note) => synth.triggerAttackRelease(note, '8n', time), ['C4', 'E4', 'G4'], '8n').start(0);",
+          "Tone.Transport.start();",
+          "```"
+        ].join("\n")
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      actions: ["Open", "Preview", "Copy", "Download"],
+      previewEligible: true,
+      rendererId: "surface.tone",
+      runtime: "tone",
+      title: "generative-pulse.tone.js"
+    });
+    expect(result.previewAvailable).toBe(true);
+    expect(result.snapshot.preview).toMatchObject({
+      available: true,
+      renderer: "surface.tone",
+      state: "ready",
+      target: "Browser preview / Tone.js",
+      targetId: "browser_sandbox"
+    });
+  });
 });
 
 function finalEvent(payload: Record<string, unknown>): AssistantStreamEvent {

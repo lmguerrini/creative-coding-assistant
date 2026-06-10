@@ -100,6 +100,59 @@ describe("runtime console diagnostics", () => {
     expect(model.errors).toEqual([]);
   });
 
+  it("reports controlled audio ready and stopped states as healthy", () => {
+    const fixture = createRuntimeFixture();
+    const readyModel = buildRuntimeConsoleModel({
+      ...fixture,
+      liveRuntime: createLiveRuntime(fixture, {
+        status: {
+          detail: "Audio is armed and silent until started.",
+          error: null,
+          label: "Tone.js runtime ready",
+          state: "ready"
+        }
+      }),
+      traceEvents: []
+    });
+    const stoppedModel = buildRuntimeConsoleModel({
+      ...fixture,
+      liveRuntime: createLiveRuntime(fixture, {
+        status: {
+          detail: "Audio transport stopped.",
+          error: null,
+          label: "Tone.js runtime stopped",
+          state: "stopped"
+        }
+      }),
+      traceEvents: [
+        createRuntimeEvent(1, "2026-06-09T10:00:00.000Z", {
+          code: "preview_runtime_stopped",
+          message: "Audio transport stopped.",
+          preview_runtime: {
+            kind: "tone",
+            runtime_id: "runtime-1",
+            state: "stopped"
+          }
+        })
+      ]
+    });
+
+    expect(readyModel.health).toMatchObject({
+      signal: "healthy",
+      label: "Ready"
+    });
+    expect(stoppedModel.health).toMatchObject({
+      signal: "healthy",
+      label: "Stopped safely"
+    });
+    expect(stoppedModel.events).toEqual([
+      expect.objectContaining({
+        kind: "stop",
+        stateLabel: "Stopped"
+      })
+    ]);
+  });
+
   it("maps renderer errors to a failed signal and preserves error history", () => {
     const fixture = createRuntimeFixture();
     const errorMessage = "WebGL context creation failed.";

@@ -206,6 +206,54 @@ function snapshotWithHydraPreview(): AssistantWorkspaceSnapshot {
   };
 }
 
+function snapshotWithTonePreview(): AssistantWorkspaceSnapshot {
+  const snapshot = getLocalWorkspaceSnapshot();
+  const title = "generative-pulse.tone.js";
+
+  return {
+    ...snapshot,
+    artifacts: [
+      {
+        ...snapshot.artifacts[0],
+        domain: "tone_js",
+        language: "JavaScript + Tone.js",
+        rendererId: "surface.tone",
+        runtime: "tone",
+        summary: "Tone.js synth sequence with envelope, delay, and transport.",
+        title
+      },
+      ...snapshot.artifacts.slice(1)
+    ],
+    preview: {
+      ...snapshot.preview,
+      artifactName: title,
+      renderer: "surface.tone",
+      sourceArtifactName: title,
+      summary: "Runtime is ready to mount a controlled Tone.js audio preview.",
+      target: "Browser preview / Tone.js",
+      targetId: "browser_sandbox"
+    },
+    code: {
+      ...snapshot.code,
+      excerpt: [
+        "const synth = new Tone.Synth({",
+        "  envelope: { attack: 0.03, decay: 0.2, sustain: 0.4, release: 0.7 }",
+        "}).toDestination();",
+        "const delay = new Tone.FeedbackDelay('8n', 0.25).toDestination();",
+        "new Tone.Sequence(",
+        "  (time, note) => synth.triggerAttackRelease(note, '8n', time),",
+        "  ['C4', 'E4', 'G4', 'B4'],",
+        "  '8n'",
+        ").start(0);",
+        "Tone.Transport.bpm.value = 104;",
+        "Tone.Transport.start();"
+      ],
+      language: "JavaScript + Tone.js",
+      title
+    }
+  };
+}
+
 function snapshotWithArtifactComparison(): AssistantWorkspaceSnapshot {
   const snapshot = getLocalWorkspaceSnapshot();
   const artifacts: ArtifactSummary[] = [
@@ -472,7 +520,7 @@ function installCanvasContextMock(
 }
 
 type SandboxStatusInput = {
-  state: "idle" | "starting" | "running" | "error";
+  state: "idle" | "starting" | "ready" | "running" | "stopped" | "error";
   label: string;
   detail: string;
   diagnostics?: string[];
@@ -2610,6 +2658,55 @@ describe("WorkstationShell", () => {
     expect(await within(surface).findByText("Hydra runtime running")).toBeVisible();
   });
 
+  it("keeps Tone.js silent until explicit start and reports stop state", async () => {
+    renderShell(snapshotWithTonePreview());
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+
+    const surface = within(preview).getByRole("group", {
+      name: "Preview renderer surface"
+    });
+    expect(within(preview).getByText("Tone.js audio surface")).toBeVisible();
+    expect(
+      within(surface).getByRole("group", { name: "Tone.js live runtime" })
+    ).toBeVisible();
+    const frame = await waitForSandboxRuntimeFrame(
+      surface,
+      "Tone.js preview runtime frame"
+    );
+    expect(frame).toHaveAttribute("sandbox", "allow-scripts");
+
+    dispatchSandboxRuntimeStatus(frame, {
+      detail:
+        "generative-pulse.tone.js is armed. Audio remains silent until Start audio is selected.",
+      diagnostics: ["Explicit operator interaction is required before audio starts."],
+      label: "Tone.js runtime ready",
+      state: "ready"
+    });
+    expect(await within(surface).findByText("Tone.js runtime ready")).toBeVisible();
+    expect(within(surface).getByText("Ready")).toBeVisible();
+
+    dispatchSandboxRuntimeStatus(frame, {
+      detail:
+        "Playing generative-pulse.tone.js through a bounded Web Audio transport.",
+      label: "Tone.js runtime running",
+      state: "running"
+    });
+    expect(await within(surface).findByText("Tone.js runtime running")).toBeVisible();
+
+    dispatchSandboxRuntimeStatus(frame, {
+      detail: "Audio transport is stopped and output is silent.",
+      label: "Tone.js runtime stopped",
+      state: "stopped"
+    });
+    expect(await within(surface).findByText("Tone.js runtime stopped")).toBeVisible();
+    expect(within(surface).getByText("Stopped")).toBeVisible();
+  });
+
   it("shows a compact diagnostics overlay for live preview runtimes", async () => {
     renderShell(snapshotWithP5Preview());
 
@@ -2977,6 +3074,14 @@ describe("WorkstationShell", () => {
         "Rendering feedback-lattice.hydra.js as a bounded Hydra-compatible synth.",
       runningLabel: "Hydra runtime running",
       surfaceTitle: "Hydra synth surface"
+    },
+    {
+      frameLabel: "Tone.js preview runtime frame",
+      makeSnapshot: snapshotWithTonePreview,
+      runningDetail:
+        "Playing generative-pulse.tone.js through a bounded Web Audio transport.",
+      runningLabel: "Tone.js runtime running",
+      surfaceTitle: "Tone.js audio surface"
     }
   ])(
     "reloads $surfaceTitle artifacts and ignores stale runtime events",

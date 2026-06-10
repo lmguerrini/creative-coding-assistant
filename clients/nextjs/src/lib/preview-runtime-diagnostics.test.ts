@@ -124,4 +124,32 @@ describe("preview runtime diagnostics", () => {
     );
     expect(overlay.diagnostics[0]).toContain("texture2D");
   });
+
+  it("reports Tone.js ready and stopped states without pretending audio is running", () => {
+    const readyTracker = createPreviewRuntimeMetricsTracker({
+      detail: "Audio is armed.",
+      label: "Tone.js runtime ready",
+      state: "ready",
+      error: null
+    });
+    const stoppedTracker = createPreviewRuntimeMetricsTracker({
+      detail: "Audio output is silent.",
+      label: "Tone.js runtime stopped",
+      state: "stopped",
+      error: null
+    });
+
+    expect(readyTracker.snapshot()).toMatchObject({
+      frameCount: 0,
+      health: "warming",
+      metricsAvailable: false,
+      runtimeState: "ready"
+    });
+    expect(stoppedTracker.snapshot()).toMatchObject({
+      frameCount: 0,
+      health: "unavailable",
+      metricsAvailable: false,
+      runtimeState: "stopped"
+    });
+  });
 });

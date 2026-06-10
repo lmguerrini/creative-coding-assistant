@@ -92,6 +92,16 @@ describe("preview renderers", () => {
         summary: "Hydra patch built from osc(), shape(), modulation, and out().",
         title: "feedback-lattice.hydra.js"
       })
+    },
+    {
+      id: "surface.tone",
+      kind: "tone",
+      artifact: creativeArtifact({
+        domain: "tone_js",
+        runtime: "tone",
+        summary: "Tone.js synth sequence with transport and delay.",
+        title: "generative-pulse.tone.js"
+      })
     }
   ])(
     "matches $kind renderer signals and routes them into a supported surface",
@@ -137,7 +147,7 @@ describe("preview renderers", () => {
     ).toMatchObject({
       supportState: "unsupported",
       supportReason:
-        "Current browser preview foundations cover p5.js, Three.js, GLSL, and Hydra only.",
+        "Current browser preview foundations cover p5.js, Three.js, GLSL, Hydra, and Tone.js only.",
       surfaceKind: "unsupported"
     });
   });

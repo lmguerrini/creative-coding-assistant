@@ -38,7 +38,7 @@ describe("preview runtime adapters", () => {
     expect(source.fingerprint).toMatch(/^[a-f0-9]+$/);
   });
 
-  it("marks p5, Three.js, GLSL, and Hydra routes as executable runtimes", () => {
+  it("marks visual and Tone.js routes as executable runtimes", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const p5Artifact = {
       ...snapshot.artifacts[0],
@@ -62,6 +62,13 @@ describe("preview runtime adapters", () => {
       runtime: "hydra",
       summary: "Hydra patch with oscillators, modulation, and output routing.",
       title: "feedback-lattice.hydra.js"
+    };
+    const toneArtifact = {
+      ...snapshot.artifacts[0],
+      domain: "tone_js",
+      runtime: "tone",
+      summary: "Tone.js synth sequence with transport and delay.",
+      title: "generative-pulse.tone.js"
     };
     const p5Route = buildPreviewRendererRoute({
       artifacts: [p5Artifact],
@@ -103,11 +110,22 @@ describe("preview runtime adapters", () => {
       },
       previewArtifactId: hydraArtifact.id
     });
+    const toneRoute = buildPreviewRendererRoute({
+      artifacts: [toneArtifact],
+      preview: {
+        ...snapshot.preview,
+        active: true,
+        artifactName: toneArtifact.title,
+        sourceArtifactName: toneArtifact.title
+      },
+      previewArtifactId: toneArtifact.id
+    });
 
     expect(getExecutablePreviewRuntimeKind(p5Route)).toBe("p5");
     expect(getExecutablePreviewRuntimeKind(threeRoute)).toBe("three");
     expect(getExecutablePreviewRuntimeKind(glslRoute)).toBe("glsl");
     expect(getExecutablePreviewRuntimeKind(hydraRoute)).toBe("hydra");
+    expect(getExecutablePreviewRuntimeKind(toneRoute)).toBe("tone");
     expect(
       canRunPreviewRuntime({
         preview: { ...snapshot.preview, active: true, state: "ready" },
