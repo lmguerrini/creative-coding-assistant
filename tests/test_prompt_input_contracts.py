@@ -131,6 +131,21 @@ class PromptInputContractsTests(unittest.TestCase):
                     "structure_direction": [],
                     "generation_constraints": [],
                     "refinement_targets": ["Preserve atmosphere: calm"],
+                    "sacred_geometry": {
+                        "concepts": ["mandala"],
+                        "geometric_structure": [
+                            "Build nested rings around a clear center."
+                        ],
+                        "symmetry_type": ["Use radial symmetry."],
+                        "movement_behavior": [],
+                        "visual_composition": [],
+                        "color_material_direction": [],
+                        "runtime_recommendations": ["p5.js"],
+                        "audio_implications": [],
+                        "generation_constraints": [
+                            "Do not add unsupported symbolic claims."
+                        ],
+                    },
                 },
             ),
         )
@@ -165,6 +180,12 @@ class PromptInputContractsTests(unittest.TestCase):
         self.assertEqual(
             response.creative_translation.mood_atmosphere,
             ("calm",),
+        )
+        self.assertIsNotNone(response.creative_translation.sacred_geometry)
+        assert response.creative_translation.sacred_geometry is not None
+        self.assertEqual(
+            response.creative_translation.sacred_geometry.concepts,
+            ("mandala",),
         )
 
     def test_prompt_input_builder_keeps_compact_prior_pair_for_follow_up(

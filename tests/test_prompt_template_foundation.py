@@ -306,6 +306,15 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             system_section,
         )
         self.assertIn(
+            "- Sacred geometry concepts: golden ratio, spiral",
+            system_section,
+        )
+        self.assertIn("- Symmetry:", system_section)
+        self.assertIn(
+            "not authoritative spiritual claims",
+            system_section,
+        )
+        self.assertIn(
             (
                 "Keep explanation short and add setup or run notes only when "
                 "they are useful."

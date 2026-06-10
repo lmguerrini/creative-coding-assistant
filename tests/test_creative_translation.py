@@ -33,6 +33,16 @@ class CreativeTranslationTests(unittest.TestCase):
             translation.runtime_recommendations,
             ("p5.js", "Tone.js"),
         )
+        self.assertIsNotNone(translation.sacred_geometry)
+        assert translation.sacred_geometry is not None
+        self.assertEqual(
+            translation.sacred_geometry.concepts,
+            ("golden ratio", "mandala", "spiral"),
+        )
+        self.assertIn(
+            "Tone.js",
+            translation.sacred_geometry.runtime_recommendations,
+        )
 
     def test_uses_domain_and_music_metadata_without_inventing_symbols(self) -> None:
         translation = derive_creative_translation(
@@ -75,6 +85,9 @@ class CreativeTranslationTests(unittest.TestCase):
         self.assertTrue(
             any("supplied image references" in line for line in lines)
         )
+        self.assertFalse(
+            any(line.startswith("Sacred geometry concepts:") for line in lines)
+        )
 
     def test_refinement_preserves_existing_translation_and_adds_new_cues(
         self,
@@ -105,6 +118,7 @@ class CreativeTranslationTests(unittest.TestCase):
             refined.runtime_recommendations,
             ("p5.js", "Tone.js"),
         )
+        self.assertEqual(refined.sacred_geometry, base.sacred_geometry)
         self.assertIn("Current refinement:", refined.refinement_targets[-1])
 
 

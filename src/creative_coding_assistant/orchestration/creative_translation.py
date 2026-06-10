@@ -9,6 +9,11 @@ from enum import StrEnum
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
+from creative_coding_assistant.orchestration.sacred_geometry import (
+    SacredGeometryGuidance,
+    derive_sacred_geometry_guidance,
+    sacred_geometry_prompt_lines,
+)
 
 
 def _to_camel(value: str) -> str:
@@ -44,6 +49,7 @@ class CreativeTranslation(BaseModel):
     structure_direction: tuple[str, ...] = Field(default_factory=tuple)
     generation_constraints: tuple[str, ...] = Field(default_factory=tuple)
     refinement_targets: tuple[str, ...] = Field(default_factory=tuple)
+    sacred_geometry: SacredGeometryGuidance | None = None
 
 
 _AUDIO_DOMAINS = frozenset(
@@ -75,21 +81,31 @@ _SYMBOLIC_REFERENCES = (
     "yin yang",
 )
 _GEOMETRIC_REFERENCES = (
+    "cathedral geometry",
     "circle",
     "concentric",
     "fibonacci",
     "fractal",
+    "fractal symmetry",
+    "flower of life",
     "golden ratio",
     "grid",
     "hexagon",
     "lissajous",
+    "merkaba",
+    "metatron's cube",
     "polyhedron",
+    "radial symmetry",
     "sacred geometry",
     "spiral",
+    "sri yantra",
     "symmetry",
+    "temple geometry",
     "tessellation",
     "torus",
+    "vesica piscis",
     "voronoi",
+    "yantra",
 )
 _MUSICAL_REFERENCES = (
     "arpeggio",
@@ -250,6 +266,15 @@ def derive_creative_translation(
     if has_image_references:
         constraints.append("Use supplied image references for visual direction")
 
+    sacred_geometry = derive_sacred_geometry_guidance(
+        query,
+        output_modality=modality.value if modality is not None else None,
+        base_guidance=(
+            base_translation.sacred_geometry
+            if base_translation is not None
+            else None
+        ),
+    )
     current = CreativeTranslation(
         output_modality=modality,
         creative_intent=_truncate_text(query, 280),
@@ -271,6 +296,7 @@ def derive_creative_translation(
             movement=movement,
             color_material=color_material,
         ),
+        sacred_geometry=sacred_geometry,
     )
     if base_translation is None:
         return current
@@ -319,6 +345,8 @@ def creative_translation_prompt_lines(
         translation.generation_constraints,
     )
     _append_list_line(lines, "Refinement targets", translation.refinement_targets)
+    if translation.sacred_geometry is not None:
+        lines.extend(sacred_geometry_prompt_lines(translation.sacred_geometry))
     if translation.symbolic_references:
         lines.append(
             "Use symbolic references as requested motifs only; do not invent "
@@ -400,6 +428,7 @@ def _merge_refinement_translation(
             current.refinement_targets,
             (refinement_target,),
         ),
+        sacred_geometry=current.sacred_geometry or base.sacred_geometry,
     )
 
 

@@ -48,6 +48,19 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
                         "structureDirection": [],
                         "generationConstraints": [],
                         "refinementTargets": ["Preserve atmosphere: calm"],
+                        "sacredGeometry": {
+                            "concepts": ["mandala"],
+                            "geometricStructure": ["Build nested rings."],
+                            "symmetryType": ["Use radial symmetry."],
+                            "movementBehavior": [],
+                            "visualComposition": [],
+                            "colorMaterialDirection": [],
+                            "runtimeRecommendations": ["p5.js"],
+                            "audioImplications": [],
+                            "generationConstraints": [
+                                "Do not add unsupported symbolic claims."
+                            ],
+                        },
                     },
                 },
                 "attachments": [
@@ -72,6 +85,12 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
                 "creativeIntent"
             ],
             "Create a calm particle field.",
+        )
+        self.assertEqual(
+            assistant_request.artifact_refinement.creative_translation[
+                "sacredGeometry"
+            ]["concepts"],
+            ["mandala"],
         )
         self.assertEqual(assistant_request.project_id, "workspace-a")
         self.assertEqual(assistant_request.domain.value, "webgpu_wgsl")

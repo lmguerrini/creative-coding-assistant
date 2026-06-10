@@ -160,6 +160,14 @@ class DomainGenerationTests(unittest.TestCase):
             artifacts[0].creative_translation.movement_language,
             ("drift",),
         )
+        self.assertIsNotNone(
+            artifacts[0].creative_translation.sacred_geometry
+        )
+        assert artifacts[0].creative_translation.sacred_geometry is not None
+        self.assertEqual(
+            artifacts[0].creative_translation.sacred_geometry.concepts,
+            ("spiral",),
+        )
         preview_results = prepare_workflow_preview_results(
             artifacts,
             request=request,
@@ -170,6 +178,12 @@ class DomainGenerationTests(unittest.TestCase):
                 "output_modality"
             ],
             "visual",
+        )
+        self.assertEqual(
+            preview_results[0].details["artifact"]["creative_translation"][
+                "sacred_geometry"
+            ]["concepts"],
+            ["spiral"],
         )
 
     def test_prompt_renderer_adds_runtime_support_guidance(self) -> None:
