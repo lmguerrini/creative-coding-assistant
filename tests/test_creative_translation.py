@@ -88,6 +88,29 @@ class CreativeTranslationTests(unittest.TestCase):
         self.assertFalse(
             any(line.startswith("Sacred geometry concepts:") for line in lines)
         )
+        self.assertIsNone(translation.shader_presets)
+
+    def test_derives_shader_presets_from_translation_metadata(self) -> None:
+        translation = derive_creative_translation(
+            "Create an ethereal neon glass sculpture with slow glowing motion.",
+            domains=(CreativeCodingDomain.THREE_JS,),
+        )
+
+        self.assertIsNotNone(translation.shader_presets)
+        assert translation.shader_presets is not None
+        self.assertEqual(
+            tuple(preset.value for preset in translation.shader_presets.presets),
+            ("glass / crystal", "glow", "aura"),
+        )
+        self.assertEqual(
+            translation.shader_presets.runtime_suitability,
+            ("Use the selected compatible runtime: Three.js.",),
+        )
+        lines = creative_translation_prompt_lines(translation)
+        self.assertIn(
+            "Shader/style presets: glass / crystal, glow, aura",
+            lines,
+        )
 
     def test_refinement_preserves_existing_translation_and_adds_new_cues(
         self,
@@ -119,6 +142,7 @@ class CreativeTranslationTests(unittest.TestCase):
             ("p5.js", "Tone.js"),
         )
         self.assertEqual(refined.sacred_geometry, base.sacred_geometry)
+        self.assertEqual(refined.shader_presets, base.shader_presets)
         self.assertIn("Current refinement:", refined.refinement_targets[-1])
 
 

@@ -14,6 +14,11 @@ from creative_coding_assistant.orchestration.sacred_geometry import (
     derive_sacred_geometry_guidance,
     sacred_geometry_prompt_lines,
 )
+from creative_coding_assistant.orchestration.shader_presets import (
+    ShaderPresetGuidance,
+    derive_shader_preset_guidance,
+    shader_preset_prompt_lines,
+)
 
 
 def _to_camel(value: str) -> str:
@@ -50,6 +55,7 @@ class CreativeTranslation(BaseModel):
     generation_constraints: tuple[str, ...] = Field(default_factory=tuple)
     refinement_targets: tuple[str, ...] = Field(default_factory=tuple)
     sacred_geometry: SacredGeometryGuidance | None = None
+    shader_presets: ShaderPresetGuidance | None = None
 
 
 _AUDIO_DOMAINS = frozenset(
@@ -275,6 +281,20 @@ def derive_creative_translation(
             else None
         ),
     )
+    shader_presets = derive_shader_preset_guidance(
+        query,
+        output_modality=modality.value if modality is not None else None,
+        mood_atmosphere=mood,
+        color_material_direction=color_material,
+        runtime_recommendations=runtimes,
+        selected_runtime=selected_runtime,
+        sacred_geometry=sacred_geometry,
+        base_guidance=(
+            base_translation.shader_presets
+            if base_translation is not None
+            else None
+        ),
+    )
     current = CreativeTranslation(
         output_modality=modality,
         creative_intent=_truncate_text(query, 280),
@@ -297,6 +317,7 @@ def derive_creative_translation(
             color_material=color_material,
         ),
         sacred_geometry=sacred_geometry,
+        shader_presets=shader_presets,
     )
     if base_translation is None:
         return current
@@ -347,6 +368,8 @@ def creative_translation_prompt_lines(
     _append_list_line(lines, "Refinement targets", translation.refinement_targets)
     if translation.sacred_geometry is not None:
         lines.extend(sacred_geometry_prompt_lines(translation.sacred_geometry))
+    if translation.shader_presets is not None:
+        lines.extend(shader_preset_prompt_lines(translation.shader_presets))
     if translation.symbolic_references:
         lines.append(
             "Use symbolic references as requested motifs only; do not invent "
@@ -429,6 +452,7 @@ def _merge_refinement_translation(
             (refinement_target,),
         ),
         sacred_geometry=current.sacred_geometry or base.sacred_geometry,
+        shader_presets=current.shader_presets or base.shader_presets,
     )
 
 

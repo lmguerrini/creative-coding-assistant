@@ -126,7 +126,9 @@ class DomainGenerationTests(unittest.TestCase):
 
     def test_artifacts_preserve_creative_translation_metadata(self) -> None:
         request = AssistantRequest(
-            query="Create a meditative spiral with drifting cyan particles.",
+            query=(
+                "Create a meditative glowing spiral with drifting cyan particles."
+            ),
             domains=(CreativeCodingDomain.P5_JS,),
             mode=AssistantMode.GENERATE,
         )
@@ -168,6 +170,15 @@ class DomainGenerationTests(unittest.TestCase):
             artifacts[0].creative_translation.sacred_geometry.concepts,
             ("spiral",),
         )
+        self.assertIsNotNone(
+            artifacts[0].creative_translation.shader_presets
+        )
+        shader_presets = artifacts[0].creative_translation.shader_presets
+        assert shader_presets is not None
+        self.assertEqual(
+            [preset.value for preset in shader_presets.presets],
+            ["glow"],
+        )
         preview_results = prepare_workflow_preview_results(
             artifacts,
             request=request,
@@ -184,6 +195,12 @@ class DomainGenerationTests(unittest.TestCase):
                 "sacred_geometry"
             ]["concepts"],
             ["spiral"],
+        )
+        self.assertEqual(
+            preview_results[0].details["artifact"]["creative_translation"][
+                "shader_presets"
+            ]["presets"],
+            ["glow"],
         )
 
     def test_prompt_renderer_adds_runtime_support_guidance(self) -> None:

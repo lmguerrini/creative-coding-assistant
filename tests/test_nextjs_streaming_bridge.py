@@ -61,6 +61,21 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
                                 "Do not add unsupported symbolic claims."
                             ],
                         },
+                        "shaderPresets": {
+                            "presets": ["glow"],
+                            "colorBehavior": ["Use a bright core color."],
+                            "lightMaterialBehavior": [
+                                "Use bounded emission layers."
+                            ],
+                            "motionBehavior": ["Pulse intensity slowly."],
+                            "shaderStructure": ["Separate an emission mask."],
+                            "runtimeSuitability": [
+                                "Use the selected compatible runtime: p5.js."
+                            ],
+                            "performanceConstraints": [
+                                "Use a bounded number of glow layers."
+                            ],
+                        },
                     },
                 },
                 "attachments": [
@@ -91,6 +106,12 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
                 "sacredGeometry"
             ]["concepts"],
             ["mandala"],
+        )
+        self.assertEqual(
+            assistant_request.artifact_refinement.creative_translation[
+                "shaderPresets"
+            ]["presets"],
+            ["glow"],
         )
         self.assertEqual(assistant_request.project_id, "workspace-a")
         self.assertEqual(assistant_request.domain.value, "webgpu_wgsl")

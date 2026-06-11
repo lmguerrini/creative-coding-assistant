@@ -266,7 +266,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         renderer = JinjaPromptRenderer()
         assistant_request = AssistantRequest(
             query=(
-                "Create an audio-reactive golden ratio spiral with a calm "
+                "Create an audio-reactive glowing golden ratio spiral with a calm "
                 "atmosphere and pulsing motion."
             ),
             domains=(
@@ -312,6 +312,12 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         self.assertIn("- Symmetry:", system_section)
         self.assertIn(
             "not authoritative spiritual claims",
+            system_section,
+        )
+        self.assertIn("- Shader/style presets: glow", system_section)
+        self.assertIn("- Preset runtime suitability:", system_section)
+        self.assertIn(
+            "not proof of physical accuracy",
             system_section,
         )
         self.assertIn(

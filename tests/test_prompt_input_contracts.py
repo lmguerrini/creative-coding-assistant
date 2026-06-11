@@ -146,6 +146,21 @@ class PromptInputContractsTests(unittest.TestCase):
                             "Do not add unsupported symbolic claims."
                         ],
                     },
+                    "shader_presets": {
+                        "presets": ["glow"],
+                        "color_behavior": ["Use a bright core color."],
+                        "light_material_behavior": [
+                            "Use bounded emission layers."
+                        ],
+                        "motion_behavior": ["Pulse intensity slowly."],
+                        "shader_structure": ["Separate an emission mask."],
+                        "runtime_suitability": [
+                            "Use the selected compatible runtime: p5.js."
+                        ],
+                        "performance_constraints": [
+                            "Use a bounded number of glow layers."
+                        ],
+                    },
                 },
             ),
         )
@@ -186,6 +201,15 @@ class PromptInputContractsTests(unittest.TestCase):
         self.assertEqual(
             response.creative_translation.sacred_geometry.concepts,
             ("mandala",),
+        )
+        self.assertIsNotNone(response.creative_translation.shader_presets)
+        assert response.creative_translation.shader_presets is not None
+        self.assertEqual(
+            tuple(
+                preset.value
+                for preset in response.creative_translation.shader_presets.presets
+            ),
+            ("glow", "kaleidoscopic symmetry"),
         )
 
     def test_prompt_input_builder_keeps_compact_prior_pair_for_follow_up(
