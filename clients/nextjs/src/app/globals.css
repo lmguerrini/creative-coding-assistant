@@ -6111,6 +6111,56 @@ a {
   line-height: 1.4;
 }
 
+.shaderPresetSummary {
+  display: grid;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid rgba(75, 210, 190, 0.18);
+  border-radius: 11px;
+  background:
+    linear-gradient(145deg, rgba(75, 210, 190, 0.07), transparent 68%),
+    rgba(255, 255, 255, 0.025);
+}
+
+.shaderPresetSummary header {
+  display: grid;
+  gap: 2px;
+}
+
+.shaderPresetSummary header span,
+.shaderPresetSummary dt {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.shaderPresetSummary header strong {
+  color: var(--teal);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.shaderPresetSummary dl {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+}
+
+.shaderPresetSummary dl div {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 7px;
+}
+
+.shaderPresetSummary dd {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
 .artifactCritiqueCard header {
   display: flex;
   align-items: flex-start;

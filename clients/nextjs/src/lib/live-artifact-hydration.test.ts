@@ -142,6 +142,19 @@ describe("live artifact hydration", () => {
                   generation_constraints: [
                     "Do not add unsupported symbolic claims."
                   ]
+                },
+                shader_presets: {
+                  presets: ["glow"],
+                  color_behavior: ["Use a bright core color."],
+                  light_material_behavior: ["Use bounded emission layers."],
+                  motion_behavior: ["Pulse intensity slowly."],
+                  shader_structure: ["Separate an emission mask."],
+                  runtime_suitability: [
+                    "Use the selected compatible runtime: p5.js."
+                  ],
+                  performance_constraints: [
+                    "Use a bounded number of glow layers."
+                  ]
                 }
               },
               content:
@@ -166,6 +179,12 @@ describe("live artifact hydration", () => {
           concepts: ["spiral"],
           symmetryType: ["Use rotational progression."],
           runtimeRecommendations: ["p5.js", "GLSL"]
+        },
+        shaderPresets: {
+          presets: ["glow"],
+          runtimeSuitability: [
+            "Use the selected compatible runtime: p5.js."
+          ]
         }
       },
       actions: ["Open", "Preview", "Copy", "Download"]

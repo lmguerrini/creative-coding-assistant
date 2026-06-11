@@ -1,6 +1,8 @@
 import type {
   CreativeTranslationSummary,
-  SacredGeometrySummary
+  SacredGeometrySummary,
+  ShaderPresetName,
+  ShaderPresetSummary
 } from "./assistant-client";
 
 export function normalizeCreativeTranslation(
@@ -55,6 +57,9 @@ export function normalizeCreativeTranslation(
     ),
     sacredGeometry: normalizeSacredGeometry(
       record.sacred_geometry ?? record.sacredGeometry
+    ),
+    shaderPresets: normalizeShaderPresets(
+      record.shader_presets ?? record.shaderPresets
     )
   };
 }
@@ -99,6 +104,60 @@ function normalizeSacredGeometry(
       record.generation_constraints ?? record.generationConstraints
     )
   };
+}
+
+function normalizeShaderPresets(value: unknown): ShaderPresetSummary | null {
+  const record = readRecord(value);
+  if (!record) {
+    return null;
+  }
+
+  const presets = readShaderPresetList(record.presets);
+  if (presets.length === 0) {
+    return null;
+  }
+
+  return {
+    presets,
+    colorBehavior: readStringList(
+      record.color_behavior ?? record.colorBehavior
+    ),
+    lightMaterialBehavior: readStringList(
+      record.light_material_behavior ?? record.lightMaterialBehavior
+    ),
+    motionBehavior: readStringList(
+      record.motion_behavior ?? record.motionBehavior
+    ),
+    shaderStructure: readStringList(
+      record.shader_structure ?? record.shaderStructure
+    ),
+    runtimeSuitability: readStringList(
+      record.runtime_suitability ?? record.runtimeSuitability
+    ),
+    performanceConstraints: readStringList(
+      record.performance_constraints ?? record.performanceConstraints
+    )
+  };
+}
+
+const shaderPresetNames = new Set<ShaderPresetName>([
+  "glow",
+  "aura",
+  "plasma",
+  "bloom-like emission",
+  "refraction",
+  "glass / crystal",
+  "volumetric atmosphere",
+  "fractal field",
+  "kaleidoscopic symmetry",
+  "sacred light / ritual ambience"
+]);
+
+function readShaderPresetList(value: unknown): ShaderPresetName[] {
+  return readStringList(value).filter(
+    (item): item is ShaderPresetName =>
+      shaderPresetNames.has(item as ShaderPresetName)
+  );
 }
 
 function readOutputModality(

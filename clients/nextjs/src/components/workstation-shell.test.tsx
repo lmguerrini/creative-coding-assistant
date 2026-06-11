@@ -3467,6 +3467,20 @@ describe("WorkstationShell", () => {
                   generationConstraints: [
                     "Do not add unsupported symbolic claims."
                   ]
+                },
+                shaderPresets: {
+                  presets: ["glow", "kaleidoscopic symmetry"],
+                  colorBehavior: ["Use a restrained luminous palette."],
+                  lightMaterialBehavior: ["Use bounded emission layers."],
+                  motionBehavior: ["Pulse alternating radial segments."],
+                  shaderStructure: ["Separate an emission mask."],
+                  runtimeSuitability: [
+                    "Use the selected compatible runtime: p5.js."
+                  ],
+                  performanceConstraints: [
+                    "Use a bounded number of glow layers.",
+                    "Treat presets as stylized guidance."
+                  ]
                 }
               }
             }
@@ -3495,9 +3509,21 @@ describe("WorkstationShell", () => {
     expect(
       within(sacredGeometry).getByText("p5.js / GLSL / Tone.js")
     ).toBeVisible();
+    const shaderPresets = within(translation).getByRole("region", {
+      name: "Shader preset guidance"
+    });
+    expect(shaderPresets).toBeVisible();
+    expect(
+      within(shaderPresets).getByText("glow / kaleidoscopic symmetry")
+    ).toBeVisible();
+    expect(
+      within(shaderPresets).getByText(
+        "Use the selected compatible runtime: p5.js."
+      )
+    ).toBeVisible();
   });
 
-  it("keeps sacred geometry absent for legacy artifact metadata", () => {
+  it("keeps optional creative guidance absent for legacy artifact metadata", () => {
     renderShell(snapshotWithActiveTab("Artifacts"));
 
     const translation = screen.getByRole("region", {
@@ -3508,6 +3534,11 @@ describe("WorkstationShell", () => {
     expect(
       within(translation).queryByRole("region", {
         name: "Sacred geometry guidance"
+      })
+    ).not.toBeInTheDocument();
+    expect(
+      within(translation).queryByRole("region", {
+        name: "Shader preset guidance"
       })
     ).not.toBeInTheDocument();
   });

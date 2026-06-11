@@ -114,6 +114,7 @@ export type CreativeTranslationSummary = {
   generationConstraints: string[];
   refinementTargets: string[];
   sacredGeometry?: SacredGeometrySummary | null;
+  shaderPresets?: ShaderPresetSummary | null;
 };
 
 export type SacredGeometrySummary = {
@@ -126,6 +127,28 @@ export type SacredGeometrySummary = {
   runtimeRecommendations: string[];
   audioImplications: string[];
   generationConstraints: string[];
+};
+
+export type ShaderPresetName =
+  | "glow"
+  | "aura"
+  | "plasma"
+  | "bloom-like emission"
+  | "refraction"
+  | "glass / crystal"
+  | "volumetric atmosphere"
+  | "fractal field"
+  | "kaleidoscopic symmetry"
+  | "sacred light / ritual ambience";
+
+export type ShaderPresetSummary = {
+  presets: ShaderPresetName[];
+  colorBehavior: string[];
+  lightMaterialBehavior: string[];
+  motionBehavior: string[];
+  shaderStructure: string[];
+  runtimeSuitability: string[];
+  performanceConstraints: string[];
 };
 
 export type ArtifactCritiqueDimension = {

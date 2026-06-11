@@ -126,6 +126,19 @@ describe("assistant stream client", () => {
               generationConstraints: [
                 "Do not add unsupported symbolic claims."
               ]
+            },
+            shaderPresets: {
+              presets: ["glow"],
+              colorBehavior: ["Use a bright core color."],
+              lightMaterialBehavior: ["Use bounded emission layers."],
+              motionBehavior: ["Pulse intensity slowly."],
+              shaderStructure: ["Separate an emission mask."],
+              runtimeSuitability: [
+                "Use the selected compatible runtime: p5.js."
+              ],
+              performanceConstraints: [
+                "Use a bounded number of glow layers."
+              ]
             }
           }
         }
@@ -168,6 +181,12 @@ describe("assistant stream client", () => {
           sacredGeometry: expect.objectContaining({
             concepts: ["mandala"],
             runtimeRecommendations: ["p5.js"]
+          }),
+          shaderPresets: expect.objectContaining({
+            presets: ["glow"],
+            runtimeSuitability: [
+              "Use the selected compatible runtime: p5.js."
+            ]
           })
         })
       }),

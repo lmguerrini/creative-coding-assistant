@@ -27,6 +27,19 @@ describe("creative translation normalization", () => {
           runtime_recommendations: ["p5.js", "GLSL"],
           audio_implications: ["Map rings to frequency bands."],
           generation_constraints: ["Avoid unsupported symbolic claims."]
+        },
+        shader_presets: {
+          presets: ["glow", "kaleidoscopic symmetry"],
+          color_behavior: ["Use a restrained luminous palette."],
+          light_material_behavior: ["Use bounded emission layers."],
+          motion_behavior: ["Pulse intensity slowly."],
+          shader_structure: ["Separate an emission mask."],
+          runtime_suitability: [
+            "Use the selected compatible runtime: p5.js."
+          ],
+          performance_constraints: [
+            "Use a bounded number of glow layers."
+          ]
         }
       })
     ).toMatchObject({
@@ -38,6 +51,12 @@ describe("creative translation normalization", () => {
         concepts: ["mandala"],
         symmetryType: ["Use radial symmetry."],
         runtimeRecommendations: ["p5.js", "GLSL"]
+      },
+      shaderPresets: {
+        presets: ["glow", "kaleidoscopic symmetry"],
+        runtimeSuitability: [
+          "Use the selected compatible runtime: p5.js."
+        ]
       }
     });
   });
@@ -67,6 +86,32 @@ describe("creative translation normalization", () => {
     });
   });
 
+  it("normalizes persisted camel-case shader preset metadata", () => {
+    expect(
+      normalizeCreativeTranslation({
+        creativeIntent: "Create a refractive crystal.",
+        shaderPresets: {
+          presets: ["refraction", "glass / crystal", "unsupported"],
+          colorBehavior: ["Use restrained tinting."],
+          lightMaterialBehavior: ["Use stylized transmission."],
+          motionBehavior: ["Rotate slowly."],
+          shaderStructure: ["Separate distortion and source sampling."],
+          runtimeSuitability: [
+            "Use the selected compatible runtime: GLSL."
+          ],
+          performanceConstraints: ["Limit texture reads."]
+        }
+      })
+    ).toMatchObject({
+      shaderPresets: {
+        presets: ["refraction", "glass / crystal"],
+        runtimeSuitability: [
+          "Use the selected compatible runtime: GLSL."
+        ]
+      }
+    });
+  });
+
   it("returns a clean legacy fallback for absent metadata", () => {
     expect(normalizeCreativeTranslation(undefined)).toBeNull();
     expect(normalizeCreativeTranslation({ output_modality: "visual" })).toBeNull();
@@ -74,6 +119,6 @@ describe("creative translation normalization", () => {
       normalizeCreativeTranslation({
         creative_intent: "Create a legacy spiral."
       })
-    ).toMatchObject({ sacredGeometry: null });
+    ).toMatchObject({ sacredGeometry: null, shaderPresets: null });
   });
 });

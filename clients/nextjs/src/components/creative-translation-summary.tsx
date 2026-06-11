@@ -127,6 +127,49 @@ export function CreativeTranslationSummaryCard({
           </dl>
         </section>
       ) : null}
+      {translation.shaderPresets ? (
+        <section
+          aria-label="Shader preset guidance"
+          className="shaderPresetSummary"
+        >
+          <header>
+            <span>Shader presets</span>
+            <strong>{translation.shaderPresets.presets.join(" / ")}</strong>
+          </header>
+          <dl>
+            {translation.shaderPresets.lightMaterialBehavior.length > 0 ? (
+              <div>
+                <dt>Material</dt>
+                <dd>
+                  {translation.shaderPresets.lightMaterialBehavior.join(" ")}
+                </dd>
+              </div>
+            ) : null}
+            {translation.shaderPresets.motionBehavior.length > 0 ? (
+              <div>
+                <dt>Motion</dt>
+                <dd>{translation.shaderPresets.motionBehavior.join(" ")}</dd>
+              </div>
+            ) : null}
+            {translation.shaderPresets.runtimeSuitability.length > 0 ? (
+              <div>
+                <dt>Runtime</dt>
+                <dd>
+                  {translation.shaderPresets.runtimeSuitability.join(" ")}
+                </dd>
+              </div>
+            ) : null}
+            {translation.shaderPresets.performanceConstraints.length > 0 ? (
+              <div>
+                <dt>Budget</dt>
+                <dd>
+                  {translation.shaderPresets.performanceConstraints[0]}
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+        </section>
+      ) : null}
       {translation.refinementTargets.length > 0 ? (
         <p className="creativeTranslationTargets">
           <strong>Refine</strong>
