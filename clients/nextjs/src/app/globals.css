@@ -2132,6 +2132,38 @@ a {
     rgba(3, 6, 9, 0.86);
 }
 
+.previewSurface[data-chrome="comparison"] {
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+  min-height: 180px;
+  padding: 5px;
+  border: 0;
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(var(--accent-rgb), 0.14), transparent 26%),
+    rgba(3, 6, 9, 0.9);
+  box-shadow: none;
+}
+
+.previewSurface[data-chrome="comparison"] .previewRuntimeStage,
+.previewSurface[data-chrome="comparison"] .previewRuntimeFrame {
+  min-height: 180px;
+}
+
+.previewSurface[data-chrome="comparison"] .previewRuntimeMeta,
+.previewSurface[data-chrome="comparison"] .previewRuntimeMetrics,
+.previewSurface[data-chrome="comparison"] .previewRuntimeDiagnostics {
+  display: none;
+}
+
+.previewSurface[data-chrome="comparison"] .previewRuntimeOverlay {
+  top: 8px;
+  left: 8px;
+  max-width: calc(100% - 16px);
+  padding: 6px 8px;
+  opacity: 0.72;
+}
+
 .previewSurface[data-runtime-state="generating"] {
   background:
     radial-gradient(circle at 18% 20%, rgba(var(--accent-rgb), 0.2), transparent 26%),
@@ -5788,157 +5820,278 @@ a {
   transform: none;
 }
 
-.artifactComparisonPanel {
+.multiPreviewWorkspace {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(var(--accent-rgb), 0.1), transparent 30%),
+    rgba(255, 255, 255, 0.035);
+  box-shadow: var(--panel-highlight);
 }
 
-.artifactComparisonHeader,
-.artifactComparisonCandidateHeader {
+.multiPreviewWorkspaceHeader,
+.multiPreviewCandidateHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
 }
 
-.artifactComparisonHeader span,
-.artifactComparisonRecommended span,
-.artifactComparisonCandidateHeader span,
-.artifactComparisonRationale strong,
-.artifactComparisonRefinement strong {
-  color: var(--muted);
-  font-size: 11px;
+.multiPreviewWorkspaceHeader > div:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
 }
 
-.artifactComparisonHeader strong,
-.artifactComparisonRecommended strong,
-.artifactComparisonCandidateHeader strong {
+.multiPreviewWorkspaceHeader span,
+.multiPreviewCandidateHeader span,
+.multiPreviewCreativeMetadata dt {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.multiPreviewWorkspaceHeader strong,
+.multiPreviewCandidateHeader strong {
   display: block;
   color: var(--foreground);
 }
 
-.artifactComparisonCount {
-  flex: 0 0 auto;
-  padding: 4px 8px;
-  border-radius: 999px;
-  color: var(--accent-ink);
-  background: rgb(var(--accent-rgb));
-  font-size: 10px;
-  font-weight: 850;
-  text-transform: uppercase;
+.multiPreviewWorkspaceHeader p {
+  max-width: 58ch;
+  font-size: 11px;
+  line-height: 1.45;
 }
 
-.artifactComparisonRecommended {
+.multiPreviewRecommendation {
   display: grid;
-  gap: 5px;
-  padding: 10px;
+  grid-template-columns: auto 1fr;
+  gap: 2px 6px;
+  min-width: 0;
+  padding: 7px 9px;
   border: 1px solid rgba(var(--accent-rgb), 0.22);
-  border-radius: 14px;
-  background:
-    linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), transparent 76%),
-    rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.08);
 }
 
-.artifactComparisonList {
+.multiPreviewRecommendation svg {
+  grid-row: 1 / 3;
+  align-self: center;
+}
+
+.multiPreviewRecommendation strong {
+  overflow: hidden;
+  max-width: 150px;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.multiPreviewRecommendationReason,
+.multiPreviewLegacyMetadata {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.multiPreviewRecommendationReason {
+  padding-left: 9px;
+  border-left: 2px solid rgba(var(--accent-rgb), 0.32);
+}
+
+.multiPreviewGrid {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.multiPreviewWorkspace[data-layout="single"] .multiPreviewGrid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.multiPreviewCandidate {
+  display: grid;
+  grid-template-rows: auto minmax(180px, auto) auto auto auto;
   gap: 8px;
-}
-
-.artifactComparisonCandidate {
-  display: grid;
-  gap: 9px;
-  padding: 10px;
+  min-width: 0;
+  overflow: hidden;
+  padding: 9px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.028);
   transition:
     border-color 180ms ease,
-    background 180ms ease;
+    background 180ms ease,
+    transform 180ms ease;
 }
 
-.artifactComparisonCandidate[data-active="true"] {
+.multiPreviewCandidate[data-active="true"] {
   border-color: rgba(var(--accent-rgb), 0.42);
-  background: rgba(var(--accent-rgb), 0.07);
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.08), transparent 60%),
+    rgba(255, 255, 255, 0.035);
 }
 
-.artifactComparisonCandidate[data-recommended="true"] {
+.multiPreviewCandidate[data-recommended="true"] {
   border-color: rgba(var(--accent-rgb), 0.3);
 }
 
-.artifactComparisonCandidate[data-runtime-support="unsupported"] .artifactType {
-  color: var(--coral);
-  background: rgba(255, 111, 97, 0.11);
+.multiPreviewCandidate:hover {
+  border-color: rgba(var(--accent-rgb), 0.28);
+  transform: translateY(-1px);
 }
 
-.artifactComparisonMeta {
+.multiPreviewCandidateHeader > div:first-child {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin: 0;
+  gap: 3px;
+  min-width: 0;
 }
 
-.artifactComparisonMeta div {
-  display: grid;
+.multiPreviewCandidateHeader strong {
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.multiPreviewCandidateBadges {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 4px;
 }
 
-.artifactComparisonMeta dt {
-  color: var(--muted);
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.multiPreviewCandidateBadges span {
+  padding: 3px 5px;
+  border-radius: 999px;
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.09);
+  font-size: 8px;
 }
 
-.artifactComparisonMeta dd {
-  min-width: 0;
+.multiPreviewCandidateBadges span[data-support="unsupported"] {
+  color: var(--coral);
+  background: rgba(255, 122, 102, 0.09);
+}
+
+.multiPreviewCanvas {
+  min-height: 180px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(3, 6, 9, 0.72);
+}
+
+.multiPreviewFallback {
+  display: grid;
+  min-height: 180px;
+  place-content: center;
+  justify-items: center;
+  gap: 7px;
+  padding: 18px;
+  color: var(--muted);
+  text-align: center;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.04), transparent),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.018) 0,
+      rgba(255, 255, 255, 0.018) 8px,
+      transparent 8px,
+      transparent 16px
+    );
+}
+
+.multiPreviewFallback strong {
   color: var(--foreground);
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 12px;
 }
 
-.artifactComparisonSupport,
-.artifactComparisonRationale,
-.artifactComparisonRefinement,
-.artifactComparisonEmpty {
-  margin: 0;
-  color: var(--muted);
-  font-size: 11px;
+.multiPreviewFallback p {
+  max-width: 32ch;
+  font-size: 10px;
   line-height: 1.45;
 }
 
-.artifactComparisonRationale,
-.artifactComparisonRefinement {
-  display: grid;
-  gap: 4px;
-}
-
-.artifactComparisonRefinement {
+.multiPreviewFallback span {
   color: var(--amber);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
-.artifactComparisonActions {
+.multiPreviewCandidateSignals {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 5px;
 }
 
-.artifactComparisonActions button {
+.multiPreviewCandidateSignals span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.multiPreviewCandidateSignals span:first-child {
+  color: var(--green);
+  border-color: rgba(121, 211, 139, 0.16);
+  background: rgba(121, 211, 139, 0.06);
+}
+
+.multiPreviewCreativeMetadata {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+}
+
+.multiPreviewCreativeMetadata div {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 6px;
+}
+
+.multiPreviewCreativeMetadata dd {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 9px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.multiPreviewCandidateActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.multiPreviewCandidateActions button {
+  display: inline-flex;
   min-height: 30px;
-  padding: 0 9px;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px;
   border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--foreground);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
-    var(--surface-1);
-  box-shadow: var(--panel-highlight);
+  background: var(--surface-1);
   cursor: pointer;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 750;
   transition:
     border-color 180ms ease,
@@ -5947,20 +6100,38 @@ a {
     transform 180ms ease;
 }
 
-.artifactComparisonActions button[data-action="select"],
-.artifactComparisonActions button[data-action="open"] {
-  border-color: rgba(var(--accent-rgb), 0.26);
+.multiPreviewCandidateActions button[data-action="select"] {
+  border-color: rgba(var(--accent-rgb), 0.3);
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.08);
 }
 
-.artifactComparisonActions button[data-action="preview"] {
-  border-color: rgba(243, 184, 82, 0.28);
-}
-
-.artifactComparisonActions button:hover {
+.multiPreviewCandidateActions button:hover {
   border-color: rgba(var(--accent-rgb), 0.35);
   color: var(--teal);
   background: rgba(var(--accent-rgb), 0.08);
   transform: translateY(-1px);
+}
+
+.multiPreviewEmpty {
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  min-height: 150px;
+  padding: 18px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.multiPreviewEmpty strong {
+  color: var(--foreground);
+}
+
+.multiPreviewEmpty p {
+  max-width: 44ch;
+  font-size: 11px;
 }
 
 .artifactCritiqueCard {
@@ -8137,6 +8308,23 @@ html[data-cca-theme="blueprint"] .codeViewer {
 }
 
 @media (max-width: 760px) {
+  .multiPreviewGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .multiPreviewWorkspaceHeader,
+  .multiPreviewCandidateHeader {
+    display: grid;
+  }
+
+  .multiPreviewRecommendation {
+    justify-self: start;
+  }
+
+  .multiPreviewCandidateBadges {
+    justify-content: flex-start;
+  }
+
   .topbar {
     padding: 12px;
   }

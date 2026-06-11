@@ -19,7 +19,7 @@ import {
 } from "./preview-runtime-stage";
 
 type PreviewRendererSurfaceProps = {
-  chrome?: "default" | "immersive";
+  chrome?: "comparison" | "default" | "immersive";
   onRuntimeDiagnostics?: PreviewRuntimeCallbackProps["onRuntimeDiagnostics"];
   onReload?: (() => void) | undefined;
   onRuntimeFrame?: PreviewRuntimeCallbackProps["onRuntimeFrame"];
@@ -210,7 +210,7 @@ function renderPreviewSurfaceStage({
           <div className="previewSurfaceImmersiveHint" aria-hidden="true">
             Visual output focused mode
           </div>
-        ) : (
+        ) : chrome === "default" ? (
           <div className="previewSurfaceGrid" aria-hidden="true">
             {Array.from({ length: 9 }, (_, index) => (
               <span
@@ -219,7 +219,7 @@ function renderPreviewSurfaceStage({
               />
             ))}
           </div>
-        )}
+        ) : null}
       </div>
     );
   }

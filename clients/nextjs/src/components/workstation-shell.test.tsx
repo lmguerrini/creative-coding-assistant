@@ -303,6 +303,50 @@ function snapshotWithArtifactComparison(): AssistantWorkspaceSnapshot {
         recommended: true
       }),
       domain: "glsl",
+      creativeTranslation: {
+        colorMaterialDirection: ["cyan"],
+        creativeIntent: "Create a minimal sacred shader field.",
+        generationConstraints: [],
+        geometricReferences: ["sacred geometry"],
+        moodAtmosphere: ["minimal"],
+        movementLanguage: ["pulse"],
+        musicalReferences: [],
+        outputModality: "visual",
+        refinementTargets: [],
+        runtimeRecommendations: ["GLSL"],
+        sacredGeometry: {
+          audioImplications: [],
+          colorMaterialDirection: [],
+          concepts: ["mandala"],
+          generationConstraints: [],
+          geometricStructure: [],
+          movementBehavior: [],
+          runtimeRecommendations: ["GLSL"],
+          symmetryType: [],
+          visualComposition: []
+        },
+        shaderPresets: {
+          colorBehavior: [],
+          lightMaterialBehavior: [],
+          motionBehavior: [],
+          performanceConstraints: [],
+          presets: ["glow"],
+          runtimeSuitability: ["GLSL"],
+          shaderStructure: []
+        },
+        structureDirection: [],
+        symbolicReferences: [],
+        visualStyle: {
+          compositionTendencies: [],
+          contrastBehavior: [],
+          motionTendencies: [],
+          paletteBehavior: [],
+          runtimeSuitability: ["GLSL"],
+          spatialOrganization: [],
+          styles: ["minimal", "sacred geometry"],
+          textureTendencies: []
+        }
+      },
       id: "shader-field",
       isRecommended: true,
       language: "GLSL",
@@ -341,6 +385,40 @@ function snapshotWithArtifactComparison(): AssistantWorkspaceSnapshot {
       status: "Generated",
       summary: "Hydra code is ready for the bounded live preview runtime.",
       title: "feedback-lattice.hydra.js",
+      type: "code"
+    },
+    {
+      actions: ["Open", "Preview", "Copy", "Download"],
+      content: [
+        "const synth = new Tone.Synth().toDestination();",
+        "new Tone.Sequence(() => {}, ['C4', 'E4'], '8n').start(0);",
+        "Tone.Transport.start();"
+      ].join("\n"),
+      domain: "tone_js",
+      id: "tone-pulse",
+      language: "JavaScript + Tone.js",
+      previewEligible: true,
+      previewTarget: "browser_sandbox",
+      rendererId: "surface.tone",
+      runtime: "tone",
+      status: "Generated",
+      summary: "Tone.js candidate remains silent until explicitly started.",
+      title: "pulse.tone.js",
+      type: "code"
+    },
+    {
+      actions: ["Open", "Copy", "Download"],
+      content: "const shader = `@fragment fn main() {}`;",
+      domain: "webgpu_wgsl",
+      id: "wgsl-fallback",
+      language: "WGSL",
+      previewEligible: false,
+      previewTarget: "",
+      rendererId: null,
+      runtime: null,
+      status: "Generated",
+      summary: "WebGPU candidate remains available for code inspection.",
+      title: "field.wgsl",
       type: "code"
     }
   ];
@@ -3177,32 +3255,66 @@ describe("WorkstationShell", () => {
     const hydraCandidate = within(comparison).getByLabelText(
       "feedback-lattice.hydra.js comparison candidate"
     );
+    const toneCandidate = within(comparison).getByLabelText(
+      "pulse.tone.js comparison candidate"
+    );
+    const codeOnlyCandidate = within(comparison).getByLabelText(
+      "field.wgsl comparison candidate"
+    );
 
-    expect(recommended).toHaveTextContent("Recommended candidate");
+    expect(comparison).toHaveTextContent("Multi-preview workspace");
+    expect(comparison).toHaveTextContent("5 candidates");
+    expect(recommended).toHaveTextContent("Recommended");
     expect(recommended).toHaveTextContent("shader-field.frag");
-    expect(recommended).toHaveTextContent(
+    expect(comparison).toHaveTextContent(
       "Shader candidate has the strongest prompt alignment and preview readiness."
     );
     expect(shaderCandidate).toHaveAttribute("data-recommended", "true");
     expect(within(shaderCandidate).getByText("Previewable")).toBeVisible();
-    expect(within(shaderCandidate).getAllByText("GLSL").length).toBeGreaterThan(1);
-    expect(within(shaderCandidate).getByText("Browser preview / GLSL")).toBeVisible();
+    expect(within(shaderCandidate).getByText("Visual / GLSL")).toBeVisible();
     expect(within(shaderCandidate).getByText("#1")).toBeVisible();
     expect(within(shaderCandidate).getByText("94%")).toBeVisible();
+    expect(within(shaderCandidate).getByText("minimal / sacred geometry")).toBeVisible();
+    expect(within(shaderCandidate).getByText("glow")).toBeVisible();
+    expect(within(shaderCandidate).getByText("mandala")).toBeVisible();
     expect(
-      within(shaderCandidate).getByText(
-        "Keep the palette restrained while refining motion."
-      )
+      within(shaderCandidate).getByRole("group", { name: "GLSL live runtime" })
     ).toBeVisible();
     expect(hydraCandidate).toHaveAttribute("data-runtime-support", "previewable");
     expect(within(hydraCandidate).getByText("Previewable")).toBeVisible();
-    expect(within(hydraCandidate).getAllByText("Hydra").length).toBeGreaterThan(1);
-    expect(within(hydraCandidate).getByText("Browser preview / Hydra")).toBeVisible();
+    expect(within(hydraCandidate).getByText("Visual / Hydra")).toBeVisible();
+    expect(
+      within(hydraCandidate).getByRole("group", { name: "Hydra live runtime" })
+    ).toBeVisible();
     expect(
       within(hydraCandidate).getByRole("button", {
         name: "Preview feedback-lattice.hydra.js from comparison"
       })
     ).toBeVisible();
+    expect(toneCandidate).toHaveAttribute("data-output-kind", "audio");
+    expect(
+      within(toneCandidate).getByText("Silent until explicit start")
+    ).toBeVisible();
+    expect(
+      within(toneCandidate).getByRole("group", {
+        name: "Tone.js live runtime"
+      })
+    ).toHaveAttribute("data-runtime-state", "starting");
+    expect(within(toneCandidate).queryByText("Tone.js runtime running")).not.toBeInTheDocument();
+    expect(codeOnlyCandidate).toHaveAttribute(
+      "data-runtime-support",
+      "unsupported"
+    );
+    expect(
+      within(codeOnlyCandidate).getByLabelText(
+        "field.wgsl safe preview fallback"
+      )
+    ).toHaveTextContent("Unsupported runtime");
+    expect(
+      within(codeOnlyCandidate).queryByRole("button", {
+        name: "Preview field.wgsl from comparison"
+      })
+    ).not.toBeInTheDocument();
   });
 
   it("shows a selected-artifact refinement action with guided instructions", () => {
@@ -3362,7 +3474,7 @@ describe("WorkstationShell", () => {
 
     fireEvent.click(
       within(shaderCandidate).getByRole("button", {
-        name: "Select shader-field.frag"
+        name: "Select shader-field.frag as preferred candidate"
       })
     );
 
@@ -3373,6 +3485,15 @@ describe("WorkstationShell", () => {
       within(screen.getByRole("region", { name: "Preview workspace" })).getByText(
         "shader-field.frag",
         { selector: "summary span" }
+      )
+    ).toBeVisible();
+    expect(
+      within(
+        screen.getByRole("region", {
+          name: "Selected artifact refinement"
+        })
+      ).getByText(
+        "Target shader-field.frag without regenerating every candidate."
       )
     ).toBeVisible();
 
@@ -3386,6 +3507,28 @@ describe("WorkstationShell", () => {
         name: "shader-field.frag content"
       })
     ).toHaveTextContent("void main()");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
+    const refreshedComparison = screen.getByRole("region", {
+      name: "Artifact comparison"
+    });
+    fireEvent.click(
+      within(refreshedComparison).getByRole("button", {
+        name: "Select field.wgsl as preferred candidate"
+      })
+    );
+
+    expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
+      "field.wgsl"
+    );
+    expect(
+      screen.queryByRole("region", { name: "Preview workspace" })
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Code" }));
+    expect(
+      screen.getByRole("tabpanel", { name: "Code inspector" })
+    ).toHaveAttribute("data-opened-artifact", "field.wgsl");
   });
 
   it("shows focused artifact metadata and actions in the artifacts inspector", () => {
