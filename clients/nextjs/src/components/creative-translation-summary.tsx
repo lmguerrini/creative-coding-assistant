@@ -170,6 +170,43 @@ export function CreativeTranslationSummaryCard({
           </dl>
         </section>
       ) : null}
+      {translation.visualStyle ? (
+        <section
+          aria-label="Visual style guidance"
+          className="visualStyleSummary"
+        >
+          <header>
+            <span>Visual style</span>
+            <strong>{translation.visualStyle.styles.join(" / ")}</strong>
+          </header>
+          <dl>
+            {translation.visualStyle.paletteBehavior.length > 0 ? (
+              <div>
+                <dt>Palette</dt>
+                <dd>{translation.visualStyle.paletteBehavior[0]}</dd>
+              </div>
+            ) : null}
+            {translation.visualStyle.compositionTendencies.length > 0 ? (
+              <div>
+                <dt>Compose</dt>
+                <dd>{translation.visualStyle.compositionTendencies[0]}</dd>
+              </div>
+            ) : null}
+            {translation.visualStyle.motionTendencies.length > 0 ? (
+              <div>
+                <dt>Motion</dt>
+                <dd>{translation.visualStyle.motionTendencies[0]}</dd>
+              </div>
+            ) : null}
+            {translation.visualStyle.runtimeSuitability.length > 0 ? (
+              <div>
+                <dt>Runtime</dt>
+                <dd>{translation.visualStyle.runtimeSuitability.join(" ")}</dd>
+              </div>
+            ) : null}
+          </dl>
+        </section>
+      ) : null}
       {translation.refinementTargets.length > 0 ? (
         <p className="creativeTranslationTargets">
           <strong>Refine</strong>

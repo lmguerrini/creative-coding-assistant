@@ -40,6 +40,18 @@ describe("creative translation normalization", () => {
           performance_constraints: [
             "Use a bounded number of glow layers."
           ]
+        },
+        visual_style: {
+          styles: ["minimal", "sacred geometry", "unsupported"],
+          palette_behavior: ["Use one dominant tone."],
+          contrast_behavior: ["Use clear value hierarchy."],
+          composition_tendencies: ["Use deliberate negative space."],
+          motion_tendencies: ["Use slow readable transitions."],
+          texture_tendencies: ["Keep surfaces clean."],
+          spatial_organization: ["Favor a stable focal point."],
+          runtime_suitability: [
+            "Use the selected compatible runtime: p5.js."
+          ]
         }
       })
     ).toMatchObject({
@@ -54,6 +66,13 @@ describe("creative translation normalization", () => {
       },
       shaderPresets: {
         presets: ["glow", "kaleidoscopic symmetry"],
+        runtimeSuitability: [
+          "Use the selected compatible runtime: p5.js."
+        ]
+      },
+      visualStyle: {
+        styles: ["minimal", "sacred geometry"],
+        paletteBehavior: ["Use one dominant tone."],
         runtimeSuitability: [
           "Use the selected compatible runtime: p5.js."
         ]
@@ -112,6 +131,34 @@ describe("creative translation normalization", () => {
     });
   });
 
+  it("normalizes persisted camel-case visual style metadata", () => {
+    expect(
+      normalizeCreativeTranslation({
+        creativeIntent: "Create an architectural field.",
+        visualStyle: {
+          styles: ["architectural", "monochrome", "unknown"],
+          paletteBehavior: ["Use material-led neutrals."],
+          contrastBehavior: ["Clarify planes with light and shadow."],
+          compositionTendencies: ["Use axes and modules."],
+          motionTendencies: ["Use measured camera movement."],
+          textureTendencies: ["Use bounded material cues."],
+          spatialOrganization: ["Prioritize scale and depth."],
+          runtimeSuitability: [
+            "Use the selected compatible runtime: Three.js."
+          ]
+        }
+      })
+    ).toMatchObject({
+      visualStyle: {
+        styles: ["architectural", "monochrome"],
+        compositionTendencies: ["Use axes and modules."],
+        runtimeSuitability: [
+          "Use the selected compatible runtime: Three.js."
+        ]
+      }
+    });
+  });
+
   it("returns a clean legacy fallback for absent metadata", () => {
     expect(normalizeCreativeTranslation(undefined)).toBeNull();
     expect(normalizeCreativeTranslation({ output_modality: "visual" })).toBeNull();
@@ -119,6 +166,10 @@ describe("creative translation normalization", () => {
       normalizeCreativeTranslation({
         creative_intent: "Create a legacy spiral."
       })
-    ).toMatchObject({ sacredGeometry: null, shaderPresets: null });
+    ).toMatchObject({
+      sacredGeometry: null,
+      shaderPresets: null,
+      visualStyle: null
+    });
   });
 });

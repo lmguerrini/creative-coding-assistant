@@ -115,6 +115,7 @@ export type CreativeTranslationSummary = {
   refinementTargets: string[];
   sacredGeometry?: SacredGeometrySummary | null;
   shaderPresets?: ShaderPresetSummary | null;
+  visualStyle?: VisualStyleSummary | null;
 };
 
 export type SacredGeometrySummary = {
@@ -149,6 +150,31 @@ export type ShaderPresetSummary = {
   shaderStructure: string[];
   runtimeSuitability: string[];
   performanceConstraints: string[];
+};
+
+export type VisualStyleName =
+  | "minimal"
+  | "cyberpunk"
+  | "organic"
+  | "ritual"
+  | "sacred geometry"
+  | "generative modernism"
+  | "retro computational"
+  | "ethereal"
+  | "psychedelic"
+  | "architectural"
+  | "monochrome"
+  | "maximalist";
+
+export type VisualStyleSummary = {
+  styles: VisualStyleName[];
+  paletteBehavior: string[];
+  contrastBehavior: string[];
+  compositionTendencies: string[];
+  motionTendencies: string[];
+  textureTendencies: string[];
+  spatialOrganization: string[];
+  runtimeSuitability: string[];
 };
 
 export type ArtifactCritiqueDimension = {

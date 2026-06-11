@@ -139,6 +139,18 @@ describe("assistant stream client", () => {
               performanceConstraints: [
                 "Use a bounded number of glow layers."
               ]
+            },
+            visualStyle: {
+              styles: ["minimal"],
+              paletteBehavior: ["Use one dominant tone."],
+              contrastBehavior: ["Use clear value hierarchy."],
+              compositionTendencies: ["Use deliberate negative space."],
+              motionTendencies: ["Use slow readable transitions."],
+              textureTendencies: ["Keep surfaces clean."],
+              spatialOrganization: ["Favor a stable focal point."],
+              runtimeSuitability: [
+                "Use the selected compatible runtime: p5.js."
+              ]
             }
           }
         }
@@ -184,6 +196,12 @@ describe("assistant stream client", () => {
           }),
           shaderPresets: expect.objectContaining({
             presets: ["glow"],
+            runtimeSuitability: [
+              "Use the selected compatible runtime: p5.js."
+            ]
+          }),
+          visualStyle: expect.objectContaining({
+            styles: ["minimal"],
             runtimeSuitability: [
               "Use the selected compatible runtime: p5.js."
             ]

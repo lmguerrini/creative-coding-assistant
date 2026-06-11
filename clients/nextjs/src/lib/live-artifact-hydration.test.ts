@@ -155,6 +155,20 @@ describe("live artifact hydration", () => {
                   performance_constraints: [
                     "Use a bounded number of glow layers."
                   ]
+                },
+                visual_style: {
+                  styles: ["sacred geometry"],
+                  palette_behavior: ["Use controlled luminous accents."],
+                  contrast_behavior: ["Separate primary geometry."],
+                  composition_tendencies: [
+                    "Build from explicit symmetry."
+                  ],
+                  motion_tendencies: ["Preserve proportional relationships."],
+                  texture_tendencies: ["Keep texture subordinate to line."],
+                  spatial_organization: ["Maintain a clear center."],
+                  runtime_suitability: [
+                    "Use the selected compatible runtime: p5.js."
+                  ]
                 }
               },
               content:
@@ -182,6 +196,12 @@ describe("live artifact hydration", () => {
         },
         shaderPresets: {
           presets: ["glow"],
+          runtimeSuitability: [
+            "Use the selected compatible runtime: p5.js."
+          ]
+        },
+        visualStyle: {
+          styles: ["sacred geometry"],
           runtimeSuitability: [
             "Use the selected compatible runtime: p5.js."
           ]

@@ -3481,6 +3481,20 @@ describe("WorkstationShell", () => {
                     "Use a bounded number of glow layers.",
                     "Treat presets as stylized guidance."
                   ]
+                },
+                visualStyle: {
+                  styles: ["minimal", "sacred geometry"],
+                  paletteBehavior: ["Use one dominant tone."],
+                  contrastBehavior: ["Use clear value hierarchy."],
+                  compositionTendencies: [
+                    "Use deliberate negative space."
+                  ],
+                  motionTendencies: ["Use slow readable transitions."],
+                  textureTendencies: ["Keep surfaces clean."],
+                  spatialOrganization: ["Favor a stable focal point."],
+                  runtimeSuitability: [
+                    "Use the selected compatible runtime: p5.js."
+                  ]
                 }
               }
             }
@@ -3521,6 +3535,18 @@ describe("WorkstationShell", () => {
         "Use the selected compatible runtime: p5.js."
       )
     ).toBeVisible();
+    const visualStyle = within(translation).getByRole("region", {
+      name: "Visual style guidance"
+    });
+    expect(visualStyle).toBeVisible();
+    expect(
+      within(visualStyle).getByText("minimal / sacred geometry")
+    ).toBeVisible();
+    expect(
+      within(visualStyle).getByText(
+        "Use the selected compatible runtime: p5.js."
+      )
+    ).toBeVisible();
   });
 
   it("keeps optional creative guidance absent for legacy artifact metadata", () => {
@@ -3539,6 +3565,11 @@ describe("WorkstationShell", () => {
     expect(
       within(translation).queryByRole("region", {
         name: "Shader preset guidance"
+      })
+    ).not.toBeInTheDocument();
+    expect(
+      within(translation).queryByRole("region", {
+        name: "Visual style guidance"
       })
     ).not.toBeInTheDocument();
   });

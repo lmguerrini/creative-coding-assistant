@@ -2,7 +2,9 @@ import type {
   CreativeTranslationSummary,
   SacredGeometrySummary,
   ShaderPresetName,
-  ShaderPresetSummary
+  ShaderPresetSummary,
+  VisualStyleName,
+  VisualStyleSummary
 } from "./assistant-client";
 
 export function normalizeCreativeTranslation(
@@ -60,6 +62,9 @@ export function normalizeCreativeTranslation(
     ),
     shaderPresets: normalizeShaderPresets(
       record.shader_presets ?? record.shaderPresets
+    ),
+    visualStyle: normalizeVisualStyle(
+      record.visual_style ?? record.visualStyle
     )
   };
 }
@@ -140,6 +145,43 @@ function normalizeShaderPresets(value: unknown): ShaderPresetSummary | null {
   };
 }
 
+function normalizeVisualStyle(value: unknown): VisualStyleSummary | null {
+  const record = readRecord(value);
+  if (!record) {
+    return null;
+  }
+
+  const styles = readVisualStyleList(record.styles);
+  if (styles.length === 0) {
+    return null;
+  }
+
+  return {
+    styles,
+    paletteBehavior: readStringList(
+      record.palette_behavior ?? record.paletteBehavior
+    ),
+    contrastBehavior: readStringList(
+      record.contrast_behavior ?? record.contrastBehavior
+    ),
+    compositionTendencies: readStringList(
+      record.composition_tendencies ?? record.compositionTendencies
+    ),
+    motionTendencies: readStringList(
+      record.motion_tendencies ?? record.motionTendencies
+    ),
+    textureTendencies: readStringList(
+      record.texture_tendencies ?? record.textureTendencies
+    ),
+    spatialOrganization: readStringList(
+      record.spatial_organization ?? record.spatialOrganization
+    ),
+    runtimeSuitability: readStringList(
+      record.runtime_suitability ?? record.runtimeSuitability
+    )
+  };
+}
+
 const shaderPresetNames = new Set<ShaderPresetName>([
   "glow",
   "aura",
@@ -157,6 +199,28 @@ function readShaderPresetList(value: unknown): ShaderPresetName[] {
   return readStringList(value).filter(
     (item): item is ShaderPresetName =>
       shaderPresetNames.has(item as ShaderPresetName)
+  );
+}
+
+const visualStyleNames = new Set<VisualStyleName>([
+  "minimal",
+  "cyberpunk",
+  "organic",
+  "ritual",
+  "sacred geometry",
+  "generative modernism",
+  "retro computational",
+  "ethereal",
+  "psychedelic",
+  "architectural",
+  "monochrome",
+  "maximalist"
+]);
+
+function readVisualStyleList(value: unknown): VisualStyleName[] {
+  return readStringList(value).filter(
+    (item): item is VisualStyleName =>
+      visualStyleNames.has(item as VisualStyleName)
   );
 }
 
