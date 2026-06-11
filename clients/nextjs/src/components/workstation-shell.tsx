@@ -170,6 +170,7 @@ import {
 } from "@/lib/workstation-errors";
 import { buildZipArchive, downloadZipArchive } from "@/lib/zip-archive";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
+import { ArtifactRefinementPanel } from "./artifact-refinement-panel";
 import { CreativeCostIntelligenceDashboard } from "./creative-cost-intelligence-dashboard";
 import { CreativeTranslationSummaryCard } from "./creative-translation-summary";
 import { EvaluationSessionDashboard } from "./evaluation-session-dashboard";
@@ -256,13 +257,6 @@ type PendingArtifactRefinement = AssistantArtifactRefinementRequest & {
 
 const localWorkflowIntervalMs = 850;
 const artifactFeedbackDurationMs = 1400;
-const artifactRefinementSuggestions = [
-  "Make this faster",
-  "Make this more organic",
-  "Add audio-reactive behavior",
-  "Convert this to a calmer version",
-  "Improve performance"
-] as const;
 const defaultWorkspacePersistenceClient = createWorkspacePersistenceClient();
 const persistenceStateLabels = {
   loading: "Restoring session",
@@ -4435,9 +4429,10 @@ function ArtifactsInspector({
           translation={activeArtifact.creativeTranslation}
         />
         {activeArtifact.type === "code" && activeArtifact.actions.length > 0 ? (
-          <ArtifactRefinementCard
+          <ArtifactRefinementPanel
             artifact={activeArtifact}
             disabled={isStreaming}
+            key={activeArtifact.id}
             onArtifactRefine={onArtifactRefine}
           />
         ) : null}
@@ -4768,91 +4763,6 @@ function ThemePresetPicker({
         </div>
       ))}
     </div>
-  );
-}
-
-type ArtifactRefinementCardProps = {
-  artifact: ArtifactSummary;
-  disabled: boolean;
-  onArtifactRefine: (artifact: ArtifactSummary, instruction: string) => Promise<void>;
-};
-
-function ArtifactRefinementCard({
-  artifact,
-  disabled,
-  onArtifactRefine
-}: ArtifactRefinementCardProps) {
-  const [instruction, setInstruction] = useState("");
-  const trimmedInstruction = instruction.trim();
-  const canSubmit = !disabled && trimmedInstruction.length > 0;
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!canSubmit) {
-      return;
-    }
-
-    await onArtifactRefine(artifact, trimmedInstruction);
-    setInstruction("");
-  }
-
-  return (
-    <section
-      aria-label="Selected artifact refinement"
-      className="artifactRefinementCard"
-    >
-      <header>
-        <div>
-          <span>Iterate</span>
-          <strong>Refine selected artifact</strong>
-          <p>{`Target ${artifact.title} without regenerating every candidate.`}</p>
-        </div>
-        {artifact.refinedFromTitle ? (
-          <span className="artifactRefinedBadge">Refined</span>
-        ) : null}
-      </header>
-      {artifact.refinedFromTitle ? (
-        <p className="artifactRefinementHistory">
-          {`Refined from ${artifact.refinedFromTitle}`}
-          {artifact.refinementInstruction
-            ? ` with "${artifact.refinementInstruction}"`
-            : ""}
-        </p>
-      ) : null}
-      <form className="artifactRefinementForm" onSubmit={handleSubmit}>
-        <label htmlFor={`artifact-refinement-${artifact.id}`}>
-          Refinement instruction
-        </label>
-        <textarea
-          disabled={disabled}
-          id={`artifact-refinement-${artifact.id}`}
-          onChange={(event) => setInstruction(event.target.value)}
-          placeholder="Describe the targeted improvement for this artifact."
-          rows={3}
-          value={instruction}
-        />
-        <div className="artifactRefinementSuggestions" aria-label="Refinement examples">
-          {artifactRefinementSuggestions.map((suggestion) => (
-            <button
-              disabled={disabled}
-              key={suggestion}
-              onClick={() => setInstruction(suggestion)}
-              type="button"
-            >
-              {suggestion}
-            </button>
-          ))}
-        </div>
-        <button
-          className="artifactRefinementSubmit"
-          disabled={!canSubmit}
-          type="submit"
-        >
-          {disabled ? "Refinement running" : "Refine selected artifact"}
-        </button>
-      </form>
-    </section>
   );
 }
 

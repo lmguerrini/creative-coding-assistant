@@ -3346,6 +3346,53 @@ describe("WorkstationShell", () => {
     expect(submitButton).toBeEnabled();
   });
 
+  it("serializes local artifact parameter changes into refinement context", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "final",
+          sequence: 0,
+          payload: {
+            answer: "Parameter-guided refinement received."
+          }
+        }
+      ])
+    );
+
+    renderShell(snapshotWithArtifactComparison(), {
+      streamAssistantEvents: backendStream
+    });
+
+    const refinement = screen.getByRole("region", {
+      name: "Selected artifact refinement"
+    });
+
+    fireEvent.change(
+      within(refinement).getByLabelText("Movement complexity parameter"),
+      {
+        target: { value: "9" }
+      }
+    );
+    fireEvent.click(
+      within(refinement).getByRole("button", {
+        name: "Refine with parameter changes"
+      })
+    );
+
+    expect(
+      await screen.findByText("Parameter-guided refinement received.")
+    ).toBeVisible();
+    expect(backendStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: expect.stringContaining("Movement complexity: 9"),
+        artifactRefinement: expect.objectContaining({
+          artifactId: "source-sketch",
+          instruction: expect.stringContaining("Movement complexity: 9")
+        })
+      })
+    );
+  });
+
   it("sends selected artifact context and hydrates the refined artifact as a new version", async () => {
     const backendStream = vi.fn(() =>
       streamEvents([
