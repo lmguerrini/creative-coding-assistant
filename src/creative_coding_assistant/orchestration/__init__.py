@@ -9,6 +9,7 @@ _CREATIVE_TRANSLATION = (
     "creative_coding_assistant.orchestration.creative_translation"
 )
 _SACRED_GEOMETRY = "creative_coding_assistant.orchestration.sacred_geometry"
+_SHADER_PRESETS = "creative_coding_assistant.orchestration.shader_presets"
 _ARTIFACTS = "creative_coding_assistant.orchestration.artifacts"
 _ARTIFACT_CRITIQUE = "creative_coding_assistant.orchestration.artifact_critique"
 _EVENTS = "creative_coding_assistant.orchestration.events"
@@ -40,6 +41,8 @@ _EXPORT_MAP = {
     "CreativeOutputModality": _CREATIVE_TRANSLATION,
     "CreativeTranslation": _CREATIVE_TRANSLATION,
     "SacredGeometryGuidance": _SACRED_GEOMETRY,
+    "ShaderPresetGuidance": _SHADER_PRESETS,
+    "ShaderPresetId": _SHADER_PRESETS,
     "DEFAULT_RECENT_TURN_LIMIT": _MEM,
     "DEFAULT_RETRIEVAL_LIMIT": _RETRIEVAL,
     "DomainSelectionShape": _ROUTING,
@@ -109,6 +112,8 @@ _EXPORT_MAP = {
     "derive_creative_translation": _CREATIVE_TRANSLATION,
     "derive_sacred_geometry_guidance": _SACRED_GEOMETRY,
     "detect_sacred_geometry_concepts": _SACRED_GEOMETRY,
+    "detect_shader_presets": _SHADER_PRESETS,
+    "derive_shader_preset_guidance": _SHADER_PRESETS,
     "extract_workflow_artifacts": _ARTIFACTS,
     "fail_workflow": _WORKFLOW,
     "finish_workflow": _WORKFLOW,
@@ -118,6 +123,7 @@ _EXPORT_MAP = {
     "review_assistant_answer": _WORKFLOW_REVIEW,
     "route_request": _ROUTING,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
+    "shader_preset_prompt_lines": _SHADER_PRESETS,
     "skip_workflow_step": _WORKFLOW,
     "stream_assistant_workflow_events": _WORKFLOW_GRAPH,
     "start_workflow_step": _WORKFLOW,
