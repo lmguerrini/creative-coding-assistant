@@ -43,6 +43,9 @@ class CreativeTranslationTests(unittest.TestCase):
             "Tone.js",
             translation.sacred_geometry.runtime_recommendations,
         )
+        self.assertIsNotNone(translation.visual_style)
+        assert translation.visual_style is not None
+        self.assertIn("sacred geometry", translation.visual_style.styles)
 
     def test_uses_domain_and_music_metadata_without_inventing_symbols(self) -> None:
         translation = derive_creative_translation(
@@ -65,6 +68,7 @@ class CreativeTranslationTests(unittest.TestCase):
             "Require explicit user interaction before audio playback",
             translation.generation_constraints,
         )
+        self.assertIsNone(translation.visual_style)
 
     def test_prompt_lines_remain_compact_and_evidence_bound(self) -> None:
         translation = derive_creative_translation(
@@ -89,6 +93,13 @@ class CreativeTranslationTests(unittest.TestCase):
             any(line.startswith("Sacred geometry concepts:") for line in lines)
         )
         self.assertIsNone(translation.shader_presets)
+        self.assertIsNotNone(translation.visual_style)
+        assert translation.visual_style is not None
+        self.assertEqual(
+            tuple(style.value for style in translation.visual_style.styles),
+            ("monochrome",),
+        )
+        self.assertIn("Visual style identities: monochrome", lines)
 
     def test_derives_shader_presets_from_translation_metadata(self) -> None:
         translation = derive_creative_translation(
@@ -111,6 +122,13 @@ class CreativeTranslationTests(unittest.TestCase):
             "Shader/style presets: glass / crystal, glow, aura",
             lines,
         )
+        self.assertIsNotNone(translation.visual_style)
+        assert translation.visual_style is not None
+        self.assertEqual(
+            tuple(style.value for style in translation.visual_style.styles),
+            ("ethereal",),
+        )
+        self.assertIn("Visual style identities: ethereal", lines)
 
     def test_refinement_preserves_existing_translation_and_adds_new_cues(
         self,
@@ -143,6 +161,7 @@ class CreativeTranslationTests(unittest.TestCase):
         )
         self.assertEqual(refined.sacred_geometry, base.sacred_geometry)
         self.assertEqual(refined.shader_presets, base.shader_presets)
+        self.assertEqual(refined.visual_style, base.visual_style)
         self.assertIn("Current refinement:", refined.refinement_targets[-1])
 
 

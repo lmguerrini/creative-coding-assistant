@@ -161,6 +161,24 @@ class PromptInputContractsTests(unittest.TestCase):
                             "Use a bounded number of glow layers."
                         ],
                     },
+                    "visual_style": {
+                        "styles": ["minimal"],
+                        "palette_behavior": [
+                            "Use one dominant tone plus one restrained accent."
+                        ],
+                        "contrast_behavior": [
+                            "Create hierarchy through spacing and value."
+                        ],
+                        "composition_tendencies": [
+                            "Use deliberate negative space."
+                        ],
+                        "motion_tendencies": ["Use slow, readable transitions."],
+                        "texture_tendencies": ["Keep surfaces clean."],
+                        "spatial_organization": ["Favor a stable focal point."],
+                        "runtime_suitability": [
+                            "Use the selected compatible runtime: p5.js."
+                        ],
+                    },
                 },
             ),
         )
@@ -210,6 +228,15 @@ class PromptInputContractsTests(unittest.TestCase):
                 for preset in response.creative_translation.shader_presets.presets
             ),
             ("glow", "kaleidoscopic symmetry"),
+        )
+        self.assertIsNotNone(response.creative_translation.visual_style)
+        assert response.creative_translation.visual_style is not None
+        self.assertEqual(
+            tuple(
+                style.value
+                for style in response.creative_translation.visual_style.styles
+            ),
+            ("minimal", "sacred geometry", "psychedelic"),
         )
 
     def test_prompt_input_builder_keeps_compact_prior_pair_for_follow_up(

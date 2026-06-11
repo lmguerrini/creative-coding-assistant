@@ -38,7 +38,10 @@ class DomainGenerationTests(unittest.TestCase):
     def test_route_expands_generic_multi_candidate_visual_prompt(self) -> None:
         decision = route_request(
             AssistantRequest(
-                query="Create multiple visual candidates for an animated particle field.",
+                query=(
+                    "Create multiple visual candidates for an animated "
+                    "particle field."
+                ),
                 mode=AssistantMode.GENERATE,
             )
         )
@@ -179,6 +182,13 @@ class DomainGenerationTests(unittest.TestCase):
             [preset.value for preset in shader_presets.presets],
             ["glow"],
         )
+        self.assertIsNotNone(artifacts[0].creative_translation.visual_style)
+        visual_style = artifacts[0].creative_translation.visual_style
+        assert visual_style is not None
+        self.assertEqual(
+            [style.value for style in visual_style.styles],
+            ["sacred geometry"],
+        )
         preview_results = prepare_workflow_preview_results(
             artifacts,
             request=request,
@@ -201,6 +211,12 @@ class DomainGenerationTests(unittest.TestCase):
                 "shader_presets"
             ]["presets"],
             ["glow"],
+        )
+        self.assertEqual(
+            preview_results[0].details["artifact"]["creative_translation"][
+                "visual_style"
+            ]["styles"],
+            ["sacred geometry"],
         )
 
     def test_prompt_renderer_adds_runtime_support_guidance(self) -> None:

@@ -266,8 +266,8 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         renderer = JinjaPromptRenderer()
         assistant_request = AssistantRequest(
             query=(
-                "Create an audio-reactive glowing golden ratio spiral with a calm "
-                "atmosphere and pulsing motion."
+                "Create a minimal audio-reactive glowing golden ratio spiral "
+                "with a calm atmosphere and pulsing motion."
             ),
             domains=(
                 CreativeCodingDomain.P5_JS,
@@ -316,6 +316,12 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         )
         self.assertIn("- Shader/style presets: glow", system_section)
         self.assertIn("- Preset runtime suitability:", system_section)
+        self.assertIn(
+            "- Visual style identities: minimal, sacred geometry",
+            system_section,
+        )
+        self.assertIn("- Style palette behavior:", system_section)
+        self.assertIn("- Style runtime guidance:", system_section)
         self.assertIn(
             "not proof of physical accuracy",
             system_section,

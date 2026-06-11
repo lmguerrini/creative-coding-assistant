@@ -76,6 +76,24 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
                                 "Use a bounded number of glow layers."
                             ],
                         },
+                        "visualStyle": {
+                            "styles": ["minimal"],
+                            "paletteBehavior": [
+                                "Use one dominant tone plus one restrained accent."
+                            ],
+                            "contrastBehavior": [
+                                "Create hierarchy through spacing and value."
+                            ],
+                            "compositionTendencies": [
+                                "Use deliberate negative space."
+                            ],
+                            "motionTendencies": ["Use slow, readable transitions."],
+                            "textureTendencies": ["Keep surfaces clean."],
+                            "spatialOrganization": ["Favor a stable focal point."],
+                            "runtimeSuitability": [
+                                "Use the selected compatible runtime: p5.js."
+                            ],
+                        },
                     },
                 },
                 "attachments": [
@@ -112,6 +130,12 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
                 "shaderPresets"
             ]["presets"],
             ["glow"],
+        )
+        self.assertEqual(
+            assistant_request.artifact_refinement.creative_translation[
+                "visualStyle"
+            ]["styles"],
+            ["minimal"],
         )
         self.assertEqual(assistant_request.project_id, "workspace-a")
         self.assertEqual(assistant_request.domain.value, "webgpu_wgsl")
