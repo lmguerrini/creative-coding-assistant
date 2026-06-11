@@ -5700,14 +5700,14 @@ a {
     rgba(255, 255, 255, 0.035);
 }
 
-.artifactRefinementCard header {
+.artifactRefinementCard > header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
 }
 
-.artifactRefinementCard header span,
+.artifactRefinementCard > header span,
 .artifactRefinementForm label {
   color: var(--muted);
   font-size: 10px;
@@ -5738,6 +5738,334 @@ a {
   color: var(--teal);
   font-size: 11px;
   line-height: 1.45;
+}
+
+.artifactParameterPanel {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(var(--accent-rgb), 0.08), transparent 32%),
+    rgba(3, 6, 9, 0.28);
+}
+
+.artifactParameterHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.artifactParameterHeader > div {
+  display: grid;
+  gap: 3px;
+}
+
+.artifactParameterHeader > div > span,
+.artifactParameterContext dt,
+.artifactParameterField > label small {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.artifactParameterHeader strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--foreground);
+  font-size: 12px;
+}
+
+.artifactParameterHeader strong svg {
+  color: var(--teal);
+}
+
+.artifactParameterMode {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
+  border-radius: 999px;
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.07);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.artifactParameterSafety {
+  margin: 0;
+  padding-left: 8px;
+  border-left: 2px solid rgba(var(--accent-rgb), 0.26);
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.artifactParameterContext {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.artifactParameterContext div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.artifactParameterContext dd {
+  overflow: hidden;
+  margin: 0;
+  color: var(--foreground);
+  font-size: 10px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artifactParameterGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.artifactParameterField {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.artifactParameterField > label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.artifactParameterField > label > span {
+  color: var(--foreground);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.artifactParameterField > label small {
+  overflow: hidden;
+  max-width: 90px;
+  font-size: 7px;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artifactParameterField > p {
+  min-height: 28px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.artifactParameterRange {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.artifactParameterRange input[type="range"] {
+  width: 100%;
+  accent-color: rgb(var(--accent-rgb));
+}
+
+.artifactParameterRange output,
+.artifactParameterColor code,
+.artifactParameterNumber span {
+  color: var(--teal);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.artifactParameterRange output {
+  min-width: 38px;
+  text-align: right;
+}
+
+.artifactParameterField select,
+.artifactParameterNumber input {
+  width: 100%;
+  min-height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--foreground);
+  background: rgba(5, 8, 12, 0.72);
+  font: inherit;
+  font-size: 10px;
+}
+
+.artifactParameterNumber {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+}
+
+.artifactParameterColor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.artifactParameterColor input {
+  width: 34px;
+  height: 30px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: rgba(5, 8, 12, 0.72);
+}
+
+.artifactParameterSwitch {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 7px;
+  cursor: pointer;
+}
+
+.artifactParameterSwitch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.artifactParameterSwitch > span {
+  position: relative;
+  width: 30px;
+  height: 17px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.artifactParameterSwitch > span::after {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--muted);
+  content: "";
+  transition:
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.artifactParameterSwitch input:checked + span {
+  border-color: rgba(var(--accent-rgb), 0.34);
+  background: rgba(var(--accent-rgb), 0.15);
+}
+
+.artifactParameterSwitch input:checked + span::after {
+  background: var(--teal);
+  transform: translateX(13px);
+}
+
+.artifactParameterSwitch strong {
+  color: var(--muted-strong);
+  font-size: 9px;
+}
+
+.artifactParameterFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.artifactParameterFooter > div,
+.artifactParameterFooter button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.artifactParameterFooter > div {
+  color: var(--muted-strong);
+  font-size: 9px;
+}
+
+.artifactParameterFooter > div svg {
+  color: var(--teal);
+}
+
+.artifactParameterFooter button {
+  min-height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--foreground);
+  background: var(--surface-1);
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.artifactParameterFooter button:disabled,
+.artifactParameterField input:disabled,
+.artifactParameterField select:disabled,
+.artifactParameterSwitch[data-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.artifactParameterFallback {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  border: 1px dashed var(--line);
+  border-radius: 11px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.artifactParameterFallback strong {
+  color: var(--foreground);
+  font-size: 11px;
+}
+
+.artifactParameterFallback p {
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.artifactParameterFallback span {
+  color: var(--amber);
+  font-size: 9px;
+  font-weight: 750;
 }
 
 .artifactRefinementForm {
@@ -8361,7 +8689,9 @@ html[data-cca-theme="blueprint"] .codeViewer {
   .previewBody,
   .inspectorHeader,
   .previewSurfacePanelHeader,
-  .artifactRefinementCard header,
+  .artifactRefinementCard > header,
+  .artifactParameterHeader,
+  .artifactParameterFooter,
   .artifactComparisonHeader,
   .artifactComparisonCandidateHeader,
   .artifactDetailHeader,
@@ -8386,7 +8716,9 @@ html[data-cca-theme="blueprint"] .codeViewer {
   }
 
   .artifactComparisonMeta,
-  .artifactDetailMeta {
+  .artifactDetailMeta,
+  .artifactParameterContext,
+  .artifactParameterGrid {
     grid-template-columns: minmax(0, 1fr);
   }
 
