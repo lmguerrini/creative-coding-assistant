@@ -52,6 +52,26 @@ describe("creative translation normalization", () => {
           runtime_suitability: [
             "Use the selected compatible runtime: p5.js."
           ]
+        },
+        audio_reactive: {
+          mappings: [
+            {
+              source: "amplitude",
+              targets: ["scale", "glow", "unsupported"],
+              intensity: "subtle",
+              behavior: "Smooth short peaks.",
+              evidence: ["user prompt", "shader presets"]
+            },
+            {
+              source: "unsupported",
+              targets: ["scale"],
+              behavior: "Ignore unsupported sources."
+            }
+          ],
+          audio_runtime: "Tone.js",
+          visual_runtime: "p5.js",
+          activation: "explicit_user_gesture",
+          summary: "amplitude -> scale / glow"
         }
       })
     ).toMatchObject({
@@ -76,6 +96,21 @@ describe("creative translation normalization", () => {
         runtimeSuitability: [
           "Use the selected compatible runtime: p5.js."
         ]
+      },
+      audioReactive: {
+        activation: "explicit_user_gesture",
+        audioRuntime: "Tone.js",
+        mappings: [
+          {
+            source: "amplitude",
+            targets: ["scale", "glow"],
+            intensity: "subtle",
+            behavior: "Smooth short peaks.",
+            evidence: ["user prompt", "shader presets"]
+          }
+        ],
+        summary: "amplitude -> scale / glow",
+        visualRuntime: "p5.js"
       }
     });
   });
@@ -169,7 +204,8 @@ describe("creative translation normalization", () => {
     ).toMatchObject({
       sacredGeometry: null,
       shaderPresets: null,
-      visualStyle: null
+      visualStyle: null,
+      audioReactive: null
     });
   });
 });

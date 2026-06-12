@@ -170,6 +170,7 @@ import {
 } from "@/lib/workstation-errors";
 import { buildZipArchive, downloadZipArchive } from "@/lib/zip-archive";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
+import { AudioReactiveMappingSummaryCard } from "./audio-reactive-mapping-summary";
 import { ArtifactRefinementPanel } from "./artifact-refinement-panel";
 import { CreativeCostIntelligenceDashboard } from "./creative-cost-intelligence-dashboard";
 import { CreativeTranslationSummaryCard } from "./creative-translation-summary";
@@ -4426,6 +4427,9 @@ function ArtifactsInspector({
           <ArtifactCritiqueSummaryCard artifact={activeArtifact} />
         ) : null}
         <CreativeTranslationSummaryCard
+          translation={activeArtifact.creativeTranslation}
+        />
+        <AudioReactiveMappingSummaryCard
           translation={activeArtifact.creativeTranslation}
         />
         {activeArtifact.type === "code" && activeArtifact.actions.length > 0 ? (

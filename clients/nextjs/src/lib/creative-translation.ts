@@ -1,4 +1,7 @@
 import type {
+  AudioReactiveGuidanceSummary,
+  AudioReactiveSource,
+  AudioReactiveVisualTarget,
   CreativeTranslationSummary,
   SacredGeometrySummary,
   ShaderPresetName,
@@ -65,7 +68,57 @@ export function normalizeCreativeTranslation(
     ),
     visualStyle: normalizeVisualStyle(
       record.visual_style ?? record.visualStyle
+    ),
+    audioReactive: normalizeAudioReactive(
+      record.audio_reactive ??
+        record.audioReactive ??
+        record.audio_reactive_mappings ??
+        record.audioReactiveMappings
     )
+  };
+}
+
+function normalizeAudioReactive(
+  value: unknown
+): AudioReactiveGuidanceSummary | null {
+  const record = readRecord(value);
+  if (!record) {
+    return null;
+  }
+
+  const mappings = readRecordList(record.mappings).flatMap((mapping) => {
+    const source = readAudioReactiveSource(mapping.source);
+    const targets = readAudioReactiveTargets(mapping.targets);
+    const behavior = readString(mapping.behavior);
+    if (!source || targets.length === 0 || !behavior) {
+      return [];
+    }
+
+    return [
+      {
+        source,
+        targets,
+        intensity: readAudioReactiveIntensity(mapping.intensity),
+        behavior,
+        evidence: readStringList(mapping.evidence)
+      }
+    ];
+  });
+  const summary = readString(record.summary);
+  if (mappings.length === 0 || !summary) {
+    return null;
+  }
+
+  return {
+    mappings: mappings.slice(0, 6),
+    audioRuntime: readString(
+      record.audio_runtime ?? record.audioRuntime
+    ),
+    visualRuntime: readString(
+      record.visual_runtime ?? record.visualRuntime
+    ),
+    activation: "explicit_user_gesture",
+    summary
   };
 }
 
@@ -217,11 +270,68 @@ const visualStyleNames = new Set<VisualStyleName>([
   "maximalist"
 ]);
 
+const audioReactiveSources = new Set<AudioReactiveSource>([
+  "amplitude",
+  "bass",
+  "mids",
+  "highs",
+  "rhythm",
+  "envelope",
+  "drone_intensity"
+]);
+
+const audioReactiveTargets = new Set<AudioReactiveVisualTarget>([
+  "scale",
+  "glow",
+  "brightness",
+  "pulse",
+  "expansion",
+  "camera_movement",
+  "color_shift",
+  "texture_modulation",
+  "sparkle",
+  "particles",
+  "detail",
+  "rotation",
+  "pattern_phase",
+  "scene_transitions",
+  "opacity",
+  "bloom",
+  "geometry_emergence",
+  "fog",
+  "aura",
+  "field_density"
+]);
+
 function readVisualStyleList(value: unknown): VisualStyleName[] {
   return readStringList(value).filter(
     (item): item is VisualStyleName =>
       visualStyleNames.has(item as VisualStyleName)
   );
+}
+
+function readAudioReactiveSource(
+  value: unknown
+): AudioReactiveSource | null {
+  return typeof value === "string" &&
+    audioReactiveSources.has(value as AudioReactiveSource)
+    ? (value as AudioReactiveSource)
+    : null;
+}
+
+function readAudioReactiveTargets(
+  value: unknown
+): AudioReactiveVisualTarget[] {
+  return readStringList(value).filter(
+    (target): target is AudioReactiveVisualTarget =>
+      audioReactiveTargets.has(target as AudioReactiveVisualTarget)
+  );
+}
+
+function readAudioReactiveIntensity(
+  value: unknown
+): AudioReactiveGuidanceSummary["mappings"][number]["intensity"] {
+  return value === "subtle" || value === "strong" ? value : "balanced";
 }
 
 function readOutputModality(
@@ -244,6 +354,14 @@ function readStringList(value: unknown) {
         .filter((item): item is string => item !== null)
     )
   ).slice(0, 8);
+}
+
+function readRecordList(value: unknown): Record<string, unknown>[] {
+  return Array.isArray(value)
+    ? value
+        .map((item) => readRecord(item))
+        .filter((item): item is Record<string, unknown> => item !== null)
+    : [];
 }
 
 function readRecord(value: unknown): Record<string, unknown> | null {

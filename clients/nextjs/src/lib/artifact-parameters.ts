@@ -350,6 +350,21 @@ function appendRuntimeParameters(
     runtime: string;
   }
 ) {
+  if (modality === "audiovisual") {
+    parameters.push({
+      id: "audio_reactivity",
+      label: "Audio reactivity",
+      type: "boolean",
+      description:
+        "Requests visual response to audio analysis in a future refinement.",
+      defaultValue:
+        Boolean(artifact.creativeTranslation?.audioReactive) ||
+        inferAudioReactivity(metadataText),
+      effect: "refinement_guidance",
+      source: "modality"
+    });
+  }
+
   if (visualRuntimes.has(runtime) || codeHints.has("rotation")) {
     parameters.push({
       id: "rotation_speed",
@@ -459,18 +474,6 @@ function appendRuntimeParameters(
     );
   }
 
-  if (modality === "audiovisual") {
-    parameters.push({
-      id: "audio_reactivity",
-      label: "Audio reactivity",
-      type: "boolean",
-      description:
-        "Requests visual response to audio analysis in a future refinement.",
-      defaultValue: inferAudioReactivity(metadataText),
-      effect: "refinement_guidance",
-      source: "modality"
-    });
-  }
 }
 
 function appendStructuredMetadataParameters(

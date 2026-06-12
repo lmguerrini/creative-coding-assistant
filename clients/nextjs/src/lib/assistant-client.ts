@@ -116,6 +116,54 @@ export type CreativeTranslationSummary = {
   sacredGeometry?: SacredGeometrySummary | null;
   shaderPresets?: ShaderPresetSummary | null;
   visualStyle?: VisualStyleSummary | null;
+  audioReactive?: AudioReactiveGuidanceSummary | null;
+};
+
+export type AudioReactiveSource =
+  | "amplitude"
+  | "bass"
+  | "mids"
+  | "highs"
+  | "rhythm"
+  | "envelope"
+  | "drone_intensity";
+
+export type AudioReactiveVisualTarget =
+  | "scale"
+  | "glow"
+  | "brightness"
+  | "pulse"
+  | "expansion"
+  | "camera_movement"
+  | "color_shift"
+  | "texture_modulation"
+  | "sparkle"
+  | "particles"
+  | "detail"
+  | "rotation"
+  | "pattern_phase"
+  | "scene_transitions"
+  | "opacity"
+  | "bloom"
+  | "geometry_emergence"
+  | "fog"
+  | "aura"
+  | "field_density";
+
+export type AudioReactiveMappingSummary = {
+  source: AudioReactiveSource;
+  targets: AudioReactiveVisualTarget[];
+  intensity: "subtle" | "balanced" | "strong";
+  behavior: string;
+  evidence: string[];
+};
+
+export type AudioReactiveGuidanceSummary = {
+  mappings: AudioReactiveMappingSummary[];
+  audioRuntime: string | null;
+  visualRuntime: string | null;
+  activation: "explicit_user_gesture";
+  summary: string;
 };
 
 export type SacredGeometrySummary = {

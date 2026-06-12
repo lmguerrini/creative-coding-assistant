@@ -169,6 +169,21 @@ describe("live artifact hydration", () => {
                   runtime_suitability: [
                     "Use the selected compatible runtime: p5.js."
                   ]
+                },
+                audio_reactive: {
+                  mappings: [
+                    {
+                      source: "amplitude",
+                      targets: ["scale", "glow"],
+                      intensity: "subtle",
+                      behavior: "Smooth short peaks.",
+                      evidence: ["user prompt", "shader presets"]
+                    }
+                  ],
+                  audio_runtime: "Tone.js",
+                  visual_runtime: "p5.js",
+                  activation: "explicit_user_gesture",
+                  summary: "amplitude -> scale / glow"
                 }
               },
               content:
@@ -205,6 +220,17 @@ describe("live artifact hydration", () => {
           runtimeSuitability: [
             "Use the selected compatible runtime: p5.js."
           ]
+        },
+        audioReactive: {
+          activation: "explicit_user_gesture",
+          audioRuntime: "Tone.js",
+          mappings: [
+            {
+              source: "amplitude",
+              targets: ["scale", "glow"]
+            }
+          ],
+          visualRuntime: "p5.js"
         }
       },
       actions: ["Open", "Preview", "Copy", "Download"]

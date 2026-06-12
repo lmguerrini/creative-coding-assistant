@@ -82,6 +82,38 @@ describe("artifact parameter model", () => {
     expect(artifact.content).toContain("Tone.Transport.start()");
   });
 
+  it("enables audio reactivity when explicit mapping metadata exists", () => {
+    const artifact = visualArtifact();
+    artifact.creativeTranslation = {
+      ...artifact.creativeTranslation!,
+      audioReactive: {
+        activation: "explicit_user_gesture",
+        audioRuntime: "Tone.js",
+        mappings: [
+          {
+            behavior: "Use a smoothed envelope to shape the visual field.",
+            evidence: ["explicit audiovisual intent"],
+            intensity: "balanced",
+            source: "amplitude",
+            targets: ["scale", "glow"]
+          }
+        ],
+        summary: "Amplitude shapes scale and glow.",
+        visualRuntime: "GLSL"
+      },
+      outputModality: "audiovisual"
+    };
+
+    const model = deriveArtifactParameterModel(artifact);
+
+    expect(model.parameters).toContainEqual(
+      expect.objectContaining({
+        defaultValue: true,
+        id: "audio_reactivity"
+      })
+    );
+  });
+
   it("uses only bounded known code hints for runtime-specific controls", () => {
     const model = deriveArtifactParameterModel({
       actions: ["Open"],

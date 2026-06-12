@@ -3606,6 +3606,11 @@ describe("WorkstationShell", () => {
         name: "Creative translation summary"
       })
     ).toHaveAttribute("data-state", "legacy");
+    expect(
+      within(details).getByRole("region", {
+        name: "Audio-reactive mapping summary"
+      })
+    ).toHaveAttribute("data-state", "legacy");
   });
 
   it("shows compact creative translation guidance for generated artifacts", () => {
@@ -3685,6 +3690,31 @@ describe("WorkstationShell", () => {
                   runtimeSuitability: [
                     "Use the selected compatible runtime: p5.js."
                   ]
+                },
+                audioReactive: {
+                  activation: "explicit_user_gesture",
+                  audioRuntime: "Tone.js",
+                  mappings: [
+                    {
+                      behavior:
+                        "Smooth short peaks so scale and light remain readable.",
+                      evidence: ["user prompt", "shader presets"],
+                      intensity: "subtle",
+                      source: "amplitude",
+                      targets: ["scale", "glow"]
+                    },
+                    {
+                      behavior:
+                        "Quantize structural changes to the requested pulse or BPM.",
+                      evidence: ["user prompt"],
+                      intensity: "subtle",
+                      source: "rhythm",
+                      targets: ["rotation", "pattern_phase"]
+                    }
+                  ],
+                  summary:
+                    "amplitude -> scale / glow; rhythm -> rotation / pattern phase",
+                  visualRuntime: "p5.js"
                 }
               }
             }
@@ -3737,6 +3767,15 @@ describe("WorkstationShell", () => {
         "Use the selected compatible runtime: p5.js."
       )
     ).toBeVisible();
+    const mapping = screen.getByRole("region", {
+      name: "Audio-reactive mapping summary"
+    });
+    expect(mapping).toHaveAttribute("data-state", "available");
+    expect(within(mapping).getByText("2 bounded links")).toBeVisible();
+    expect(within(mapping).getByText("Scale / Glow")).toBeVisible();
+    expect(
+      within(mapping).getByText(/Audio remains silent until explicit start/)
+    ).toBeVisible();
   });
 
   it("keeps optional creative guidance absent for legacy artifact metadata", () => {
@@ -3762,6 +3801,11 @@ describe("WorkstationShell", () => {
         name: "Visual style guidance"
       })
     ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("region", {
+        name: "Audio-reactive mapping summary"
+      })
+    ).toHaveAttribute("data-state", "legacy");
   });
 
   it("labels unsupported artifacts as code-only in the artifacts inspector", () => {
