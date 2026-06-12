@@ -322,6 +322,12 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         )
         self.assertIn("- Style palette behavior:", system_section)
         self.assertIn("- Style runtime guidance:", system_section)
+        self.assertIn("- Audio-reactive mapping plan:", system_section)
+        self.assertIn("- Map amplitude to", system_section)
+        self.assertIn(
+            "Keep audio silent until explicit user activation",
+            system_section,
+        )
         self.assertIn(
             "not proof of physical accuracy",
             system_section,

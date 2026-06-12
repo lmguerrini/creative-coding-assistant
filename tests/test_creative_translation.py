@@ -46,6 +46,19 @@ class CreativeTranslationTests(unittest.TestCase):
         self.assertIsNotNone(translation.visual_style)
         assert translation.visual_style is not None
         self.assertIn("sacred geometry", translation.visual_style.styles)
+        self.assertIsNotNone(translation.audio_reactive)
+        assert translation.audio_reactive is not None
+        self.assertEqual(
+            translation.audio_reactive.activation,
+            "explicit_user_gesture",
+        )
+        self.assertIn(
+            "amplitude",
+            tuple(
+                mapping.source.value
+                for mapping in translation.audio_reactive.mappings
+            ),
+        )
 
     def test_uses_domain_and_music_metadata_without_inventing_symbols(self) -> None:
         translation = derive_creative_translation(
@@ -69,6 +82,7 @@ class CreativeTranslationTests(unittest.TestCase):
             translation.generation_constraints,
         )
         self.assertIsNone(translation.visual_style)
+        self.assertIsNone(translation.audio_reactive)
 
     def test_prompt_lines_remain_compact_and_evidence_bound(self) -> None:
         translation = derive_creative_translation(
@@ -163,6 +177,7 @@ class CreativeTranslationTests(unittest.TestCase):
         self.assertEqual(refined.shader_presets, base.shader_presets)
         self.assertEqual(refined.visual_style, base.visual_style)
         self.assertIn("Current refinement:", refined.refinement_targets[-1])
+        self.assertEqual(refined.audio_reactive, base.audio_reactive)
 
 
 if __name__ == "__main__":

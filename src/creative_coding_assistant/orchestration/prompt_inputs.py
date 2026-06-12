@@ -309,6 +309,16 @@ class StructuredPromptInputBuilder:
                     if user_input.artifact_refinement is not None
                     else None
                 ),
+                artifact_content=(
+                    user_input.artifact_refinement.content
+                    if user_input.artifact_refinement is not None
+                    else None
+                ),
+                refinement_instruction=(
+                    user_input.artifact_refinement.instruction
+                    if user_input.artifact_refinement is not None
+                    else None
+                ),
             ),
             memory_input=memory_input,
             retrieval_input=retrieval_input,

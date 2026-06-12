@@ -9,6 +9,12 @@ from enum import StrEnum
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
+from creative_coding_assistant.orchestration.audio_reactive import (
+    AudioReactiveGuidance,
+    audio_reactive_prompt_lines,
+    audio_reactivity_is_explicitly_disabled,
+    derive_audio_reactive_guidance,
+)
 from creative_coding_assistant.orchestration.sacred_geometry import (
     SacredGeometryGuidance,
     derive_sacred_geometry_guidance,
@@ -62,6 +68,7 @@ class CreativeTranslation(BaseModel):
     sacred_geometry: SacredGeometryGuidance | None = None
     shader_presets: ShaderPresetGuidance | None = None
     visual_style: VisualStyleGuidance | None = None
+    audio_reactive: AudioReactiveGuidance | None = None
 
 
 _AUDIO_DOMAINS = frozenset(
@@ -246,6 +253,8 @@ def derive_creative_translation(
     selected_runtime: str | None = None,
     has_image_references: bool = False,
     base_translation: CreativeTranslation | None = None,
+    artifact_content: str | None = None,
+    refinement_instruction: str | None = None,
 ) -> CreativeTranslation:
     """Translate explicit request cues into bounded generation guidance."""
 
@@ -316,6 +325,39 @@ def derive_creative_translation(
             else None
         ),
     )
+    effective_modality = (
+        base_translation.output_modality
+        if base_translation is not None and base_translation.output_modality is not None
+        else modality
+    )
+    effective_runtimes = _merge_text(
+        runtimes,
+        base_translation.runtime_recommendations if base_translation else (),
+    )
+    audio_reactive = derive_audio_reactive_guidance(
+        query,
+        output_modality=effective_modality,
+        musical_references=_merge_text(
+            musical,
+            base_translation.musical_references if base_translation else (),
+        ),
+        movement_language=_merge_text(
+            movement,
+            base_translation.movement_language if base_translation else (),
+        ),
+        runtime_recommendations=effective_runtimes,
+        selected_runtime=selected_runtime,
+        sacred_geometry=sacred_geometry,
+        shader_presets=shader_presets,
+        visual_style=visual_style,
+        tone_metadata=artifact_content,
+        dynamic_parameter_guidance=refinement_instruction,
+        base_guidance=(
+            base_translation.audio_reactive
+            if base_translation is not None
+            else None
+        ),
+    )
     current = CreativeTranslation(
         output_modality=modality,
         creative_intent=_truncate_text(query, 280),
@@ -340,6 +382,7 @@ def derive_creative_translation(
         sacred_geometry=sacred_geometry,
         shader_presets=shader_presets,
         visual_style=visual_style,
+        audio_reactive=audio_reactive,
     )
     if base_translation is None:
         return current
@@ -394,6 +437,8 @@ def creative_translation_prompt_lines(
         lines.extend(shader_preset_prompt_lines(translation.shader_presets))
     if translation.visual_style is not None:
         lines.extend(visual_style_prompt_lines(translation.visual_style))
+    if translation.audio_reactive is not None:
+        lines.extend(audio_reactive_prompt_lines(translation.audio_reactive))
     if translation.symbolic_references:
         lines.append(
             "Use symbolic references as requested motifs only; do not invent "
@@ -478,6 +523,11 @@ def _merge_refinement_translation(
         sacred_geometry=current.sacred_geometry or base.sacred_geometry,
         shader_presets=current.shader_presets or base.shader_presets,
         visual_style=current.visual_style or base.visual_style,
+        audio_reactive=(
+            None
+            if audio_reactivity_is_explicitly_disabled(refinement_query)
+            else current.audio_reactive or base.audio_reactive
+        ),
     )
 
 

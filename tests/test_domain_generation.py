@@ -124,7 +124,10 @@ class DomainGenerationTests(unittest.TestCase):
             CreativeCodingDomain.GLSL.value,
             CreativeCodingDomain.THREE_JS.value,
         ])
-        self.assertEqual([artifact.runtime for artifact in artifacts], ["p5", "glsl", "three"])
+        self.assertEqual(
+            [artifact.runtime for artifact in artifacts],
+            ["p5", "glsl", "three"],
+        )
         self.assertTrue(all(artifact.preview_eligible for artifact in artifacts))
 
     def test_artifacts_preserve_creative_translation_metadata(self) -> None:
@@ -219,6 +222,59 @@ class DomainGenerationTests(unittest.TestCase):
             ["sacred geometry"],
         )
 
+    def test_artifacts_preserve_audio_reactive_mapping_metadata(self) -> None:
+        request = AssistantRequest(
+            query=(
+                "Create an audio-reactive p5.js field where bass drives pulse "
+                "and rhythm controls rotation."
+            ),
+            domains=(
+                CreativeCodingDomain.P5_JS,
+                CreativeCodingDomain.TONE_JS,
+            ),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+        translation = derive_creative_translation(
+            request.query,
+            domains=decision.domains,
+        )
+
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```js reactive-field.p5.js",
+                    "function setup() { createCanvas(640, 360); }",
+                    "function draw() { background(0); circle(120, 120, 24); }",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+            creative_translation=translation,
+        )
+
+        self.assertIsNotNone(artifacts[0].creative_translation)
+        assert artifacts[0].creative_translation is not None
+        mapping = artifacts[0].creative_translation.audio_reactive
+        self.assertIsNotNone(mapping)
+        assert mapping is not None
+        self.assertEqual(
+            tuple(item.source.value for item in mapping.mappings),
+            ("bass", "rhythm"),
+        )
+
+        preview_results = prepare_workflow_preview_results(
+            artifacts,
+            request=request,
+            route_decision=decision,
+        )
+        mapping_payload = preview_results[0].details["artifact"][
+            "creative_translation"
+        ]["audio_reactive"]
+        self.assertEqual(mapping_payload["activation"], "explicit_user_gesture")
+        self.assertEqual(mapping_payload["mappings"][0]["source"], "bass")
+
     def test_prompt_renderer_adds_runtime_support_guidance(self) -> None:
         request = AssistantRequest(
             query="Create a React Three Fiber installation study.",
@@ -242,5 +298,8 @@ class DomainGenerationTests(unittest.TestCase):
 
         system_section = rendered.sections[0].content
         self.assertIn("Generation Runtime Guidance:", system_section)
-        self.assertIn("react_three_fiber has current live preview support", system_section)
+        self.assertIn(
+            "react_three_fiber has current live preview support",
+            system_section,
+        )
         self.assertIn("Prefer a .r3f.tsx artifact name", system_section)

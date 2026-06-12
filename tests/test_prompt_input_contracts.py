@@ -203,7 +203,10 @@ class PromptInputContractsTests(unittest.TestCase):
         self.assertEqual(refinement.content, "function draw() { background(0); }")
         self.assertEqual(refinement.runtime, "p5")
         self.assertEqual(refinement.quality_score, 0.88)
-        self.assertEqual(refinement.critique_rationale, "Stable sketch with useful motion.")
+        self.assertEqual(
+            refinement.critique_rationale,
+            "Stable sketch with useful motion.",
+        )
         self.assertIsNotNone(refinement.creative_translation)
         assert refinement.creative_translation is not None
         self.assertEqual(
@@ -237,6 +240,72 @@ class PromptInputContractsTests(unittest.TestCase):
                 for style in response.creative_translation.visual_style.styles
             ),
             ("minimal", "sacred geometry", "psychedelic"),
+        )
+
+    def test_prompt_input_uses_bounded_dynamic_parameters_for_mapping(self) -> None:
+        builder = StructuredPromptInputBuilder()
+        assistant_request = AssistantRequest(
+            query="Apply the selected artifact parameter changes.",
+            domains=(
+                CreativeCodingDomain.P5_JS,
+                CreativeCodingDomain.TONE_JS,
+            ),
+            artifact_refinement=AssistantArtifactRefinement(
+                artifactId="reactive-field",
+                title="reactive-field.p5.js",
+                language="p5.js",
+                content=(
+                    "const fft = new Tone.FFT(); "
+                    "Tone.Transport.bpm.value = 96;"
+                ),
+                instruction=(
+                    "Rotation speed: 1.2 x\n"
+                    "Bloom intensity: 1.4 x\n"
+                    "Treat these values as refinement guidance."
+                ),
+                runtime="p5",
+                creativeTranslation={
+                    "outputModality": "audiovisual",
+                    "creativeIntent": "Create an audio-reactive field.",
+                    "runtimeRecommendations": ["p5.js", "Tone.js"],
+                    "audioReactive": {
+                        "mappings": [
+                            {
+                                "source": "amplitude",
+                                "targets": ["scale", "brightness"],
+                                "behavior": "Smooth short peaks.",
+                            }
+                        ],
+                        "audioRuntime": "Tone.js",
+                        "visualRuntime": "p5.js",
+                        "summary": "amplitude -> scale / brightness",
+                    },
+                },
+            ),
+        )
+        route_decision = RouteDecision(
+            route=RouteName.GENERATE,
+            mode=AssistantMode.GENERATE,
+            domains=assistant_request.domains,
+            capabilities=(RouteCapability.TOOL_USE,),
+        )
+
+        response = builder.build(
+            build_prompt_input_request(
+                assistant_request=assistant_request,
+                route_decision=route_decision,
+                assembled_context=None,
+            )
+        )
+
+        mapping = response.creative_translation.audio_reactive
+        self.assertIsNotNone(mapping)
+        assert mapping is not None
+        sources = tuple(item.source.value for item in mapping.mappings)
+        self.assertIn("rhythm", sources)
+        self.assertIn("envelope", sources)
+        self.assertTrue(
+            all("dynamic parameters" in item.evidence for item in mapping.mappings)
         )
 
     def test_prompt_input_builder_keeps_compact_prior_pair_for_follow_up(
