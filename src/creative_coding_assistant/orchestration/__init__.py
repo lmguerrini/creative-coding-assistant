@@ -8,6 +8,7 @@ _CTX = "creative_coding_assistant.orchestration.context"
 _CREATIVE_TRANSLATION = (
     "creative_coding_assistant.orchestration.creative_translation"
 )
+_AUDIO_REACTIVE = "creative_coding_assistant.orchestration.audio_reactive"
 _SACRED_GEOMETRY = "creative_coding_assistant.orchestration.sacred_geometry"
 _SHADER_PRESETS = "creative_coding_assistant.orchestration.shader_presets"
 _VISUAL_STYLES = "creative_coding_assistant.orchestration.visual_styles"
@@ -32,6 +33,11 @@ _EXPORT_MAP = {
     "AssistantWorkflowState": _WORKFLOW,
     "ArtifactCritiqueDimension": _ARTIFACTS,
     "ArtifactCritiqueSummary": _ARTIFACT_CRITIQUE,
+    "AudioReactiveGuidance": _AUDIO_REACTIVE,
+    "AudioReactiveIntensity": _AUDIO_REACTIVE,
+    "AudioReactiveMapping": _AUDIO_REACTIVE,
+    "AudioReactiveSource": _AUDIO_REACTIVE,
+    "AudioReactiveVisualTarget": _AUDIO_REACTIVE,
     "AssistantService": _SERVICE,
     "AssembledContextRequest": _CTX,
     "AssembledContextResponse": _CTX,
@@ -112,6 +118,8 @@ _EXPORT_MAP = {
     "complete_workflow_step": _WORKFLOW,
     "critique_workflow_artifacts": _ARTIFACT_CRITIQUE,
     "creative_translation_prompt_lines": _CREATIVE_TRANSLATION,
+    "audio_reactive_prompt_lines": _AUDIO_REACTIVE,
+    "derive_audio_reactive_guidance": _AUDIO_REACTIVE,
     "derive_creative_translation": _CREATIVE_TRANSLATION,
     "derive_sacred_geometry_guidance": _SACRED_GEOMETRY,
     "detect_sacred_geometry_concepts": _SACRED_GEOMETRY,
