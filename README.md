@@ -1,16 +1,20 @@
 # Creative Coding Assistant
 
-Creative Coding Assistant is an AI-native creative translation workstation for
-professional creative coding workflows. It combines a LangGraph-orchestrated
-Python backend with a Next.js workstation for audio, visual, and audiovisual
-generation, comparison, refinement, preview, observability, validation, and
-export preparation.
+Creative Coding Assistant is an AI-native creative translation workstation
+designed to transform symbolic, conceptual, and multimodal intent into
+professional audio, visual, and audiovisual creative systems.
 
-The current product scope is a creative coding platform and workstation rather
-than a generic chat assistant. Requests can be translated from intent, symbols,
-and concepts into structured creative guidance, grounded with retrieval when
-useful, expanded into multiple candidate artifacts, compared and refined, then
-observed through live preview and runtime inspection from the same interface.
+It combines a LangGraph-orchestrated Python backend with a Next.js workstation
+for creative translation, multi-artifact generation, multi-preview comparison,
+parameter-guided refinement, controlled runtime preview, observability,
+validation, and export preparation.
+
+The current product scope is a creative coding platform rather than a generic
+chat assistant. Requests can be translated from intent, symbols, geometry,
+style, shader language, and audio-reactive mappings into structured creative
+guidance, grounded with retrieval when useful, expanded into multiple candidate
+artifacts, compared and refined, then observed through live preview and runtime
+inspection from the same interface.
 
 ![Creative Coding Assistant workstation preview](assets/preview.png)
 
@@ -23,8 +27,8 @@ observed through live preview and runtime inspection from the same interface.
   symbolism, geometry, mood, movement, runtime, and refinement guidance
 - Sacred Geometry Prompt Layer for explicit concepts such as mandalas, yantras,
   torus forms, spirals, Fibonacci structures, and related geometric motifs
-- Multi-artifact generation, critique, comparison, and selected-artifact
-  refinement inside one continuous workstation flow
+- Multi-artifact generation, critique, multi-preview comparison, parameter-guided refinement,
+  and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL, Hydra,
   and Tone.js outputs
 - Runtime diagnostics, provider observability, workflow timeline inspection,
@@ -34,27 +38,34 @@ observed through live preview and runtime inspection from the same interface.
 
 ## Creative Workflow
 
-The workstation is designed around the current V2 creative loop:
+The workstation is designed around the current V2.5 creative loop:
 
-`Intent / symbol / concept -> Creative Translation -> Generate -> Compare -> Refine -> Preview -> Observe -> Validate -> Export`
+`Intent / symbol / concept -> Creative Translation -> Generate Candidates -> Multi-Preview Compare -> Select -> Parameter-Guided Refine -> Preview -> Observe -> Validate -> Export`
 
-- Creative Translation: the assistant derives bounded intent, symbolic,
-  geometric, mood, movement, runtime, and refinement guidance before
-  generation.
-- Generate: the backend resolves effective domains, retrieves official-source
-  context when useful, assembles the prompt, and streams creative output.
-- Compare: multi-artifact runs expose ranked candidates, recommendation
-  rationale, runtime support, previewability, and refinement guidance.
-- Refine: the selected artifact can be sent back with explicit refinement
-  instructions while preserving the source candidate and adding a labeled
-  refined version.
-- Preview: supported artifacts mount in the bottom preview shelf with visible
-  play, reload, collapse, and fullscreen controls.
+- Creative Translation: the assistant derives bounded modality, symbolic,
+  geometric, mood, movement, runtime, visual style, shader, audio-reactive, and
+  refinement guidance before generation.
+- Generate Candidates: the backend resolves effective domains, retrieves
+  official-source context when useful, assembles the prompt, and streams one or
+  more creative artifacts.
+- Multi-Preview Compare: runtime-capable candidates can be compared visually,
+  sonically, or audiovisually through a HITL selection workflow while preserving
+  critique and recommendation metadata.
+- Select: choosing a candidate synchronizes the active artifact, code inspector,
+  preview shelf, artifacts inspector, comparison state, and refinement context.
+- Parameter-Guided Refine: selected artifacts expose bounded dynamic controls
+  such as symmetry, speed, glow, palette, fog, density, rhythm, and
+  audio-reactivity. Changes stay local until explicitly serialized into
+  refinement guidance.
+- Preview: supported artifacts mount in controlled preview runtimes with visible
+  play, reload, collapse, fullscreen, start, stop, or mute controls depending on
+  runtime type.
 - Observe: the Preview, Runtime, Workflow, Telemetry, Artifacts, and Retrieval
-  inspectors expose runtime, workflow, cost, and grounding state without
-  crowding the visual output.
+  inspectors expose runtime, workflow, cost, grounding, trace, and evaluation
+  state without crowding the creative output.
 - Validate: critique scores, runtime diagnostics, retrieval quality, evaluation
-  traces, and workflow review state help verify the result before export.
+  traces, creative cost, sacred consistency metadata, and workflow review state
+  help verify the result before export.
 - Export: the current export surface is the project bundle workflow. Advanced
   Blueprint Export and pro DAW/runtime pipeline exports remain roadmap items.
 
@@ -64,10 +75,21 @@ The workstation is designed around the current V2 creative loop:
 
 - Creative Translation Engine with deterministic prompt guidance
 - Sacred Geometry Prompt Layer integrated into the existing translation flow
+- Advanced Shader Presets for glow, aura, plasma, bloom-like emission,
+  refraction, glass, volumetric atmosphere, fractal fields, kaleidoscopic
+  symmetry, and sacred light aesthetics
+- Visual Style System with deterministic style guidance and artifact/refinement
+  persistence
+- Audio-Reactive Visual Mapping Layer for bounded relationships such as
+  amplitude-to-glow, bass-to-pulse, rhythm-to-rotation, and drone-to-atmosphere
 - Domain-aware generation across supported preview runtimes and broader
   creative-coding knowledge domains
 - Multi-artifact generation, artifact critique, artifact comparison, and
   selected-artifact refinement
+- Multi-preview comparison workspace for HITL selection across runtime-capable
+  visual, audio, audiovisual, and code-only candidates
+- Dynamic parameter-guided refinement with preview-safe local edits and explicit
+  refinement serialization
 - Multimodal image references for visually grounded generation requests
 
 ### Runtime And Preview
@@ -90,7 +112,31 @@ The workstation is designed around the current V2 creative loop:
 - Workflow Timeline Explorer
 - LangSmith Trace Deep Dive when trace metadata is available
 - Creative Cost Intelligence Dashboard
-- Local workspace persistence and project bundle export
+
+## Creative Translation Layers
+
+The assistant progressively enriches user requests through bounded translation
+layers before and after generation. These layers are deterministic, additive,
+and metadata-driven rather than separate generation pipelines.
+
+Current layers include:
+
+- Creative Translation Engine for modality, intent, mood, movement, runtime,
+  and refinement guidance
+- Sacred Geometry Prompt Layer for bounded symbolic and geometric generation
+  cues
+- Advanced Shader Presets for practical visual effect guidance
+- Visual Style System for coherent aesthetic identity across artifacts and
+  refinements
+- Audio-Reactive Visual Mapping Layer for audiovisual relationships between
+  sound features and visual behavior
+- Runtime Recommendation Layer for matching generated artifacts to supported
+  preview/runtime surfaces
+- Dynamic Parameter Control Layer for artifact-specific local controls and
+  parameter-guided refinement
+
+These layers allow the app to move beyond direct prompt-to-code generation and
+toward a structured creative translation workflow.
 
 ## Architecture
 
@@ -305,19 +351,17 @@ runtime support list above.
 
 ## Roadmap
 
-### High-Priority Creative Core
+### Remaining High-Priority Creative Core
 
-- Advanced Shader Presets
-- Visual Style System
-- GSAP Runtime Support
-- SVG / Canvas Runtime Expansion
-- Multi-Preview Comparison Workspace
-- Dynamic Param Control Panel
-- Audio-Reactive Visual Engine
 - Creative Quality Critic
 - Sacred Consistency Evaluator
 
-### Later Product And Pro Workflow
+### Secondary Runtime Expansion
+
+- GSAP Runtime Support
+- SVG / Canvas Runtime Expansion
+
+### Product And Pro Workflow
 
 - Export Bundle Enhancements
 - Performance Blueprint Export
@@ -325,9 +369,15 @@ runtime support list above.
 - Session Timeline Explorer
 - Prompt Evolution Explorer
 - Artifact Lineage Graph
+
+### Hardening And Freeze
+
 - Final UI Polish
 - Audit & Refactor
 - V2 Freeze
+
+### Future Ecosystem
+
 - Local Model Provider Support
 - Hybrid Model Router
 - HoloMind Integration Bridge after HoloMind V1
