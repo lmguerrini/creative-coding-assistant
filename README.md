@@ -16,7 +16,7 @@ guidance, grounded with retrieval when useful, expanded into multiple candidate
 artifacts, compared and refined, then observed through live preview and runtime
 inspection from the same interface.
 
-![Creative Coding Assistant workstation preview](assets/preview.png)
+![Creative Coding Assistant](assets/preview_current.png)
 
 ## Highlights
 
