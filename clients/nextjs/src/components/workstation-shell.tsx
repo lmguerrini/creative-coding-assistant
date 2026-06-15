@@ -173,6 +173,7 @@ import { PreviewRendererSurface } from "./preview-renderer-surface";
 import { AudioReactiveMappingSummaryCard } from "./audio-reactive-mapping-summary";
 import { ArtifactRefinementPanel } from "./artifact-refinement-panel";
 import { CreativeCostIntelligenceDashboard } from "./creative-cost-intelligence-dashboard";
+import { CreativeQualityCriticSummary } from "./creative-quality-critic-summary";
 import { CreativeTranslationSummaryCard } from "./creative-translation-summary";
 import { EvaluationSessionDashboard } from "./evaluation-session-dashboard";
 import { LangSmithTraceDeepDive } from "./langsmith-trace-deep-dive";
@@ -4818,6 +4819,9 @@ function ArtifactCritiqueSummaryCard({
           <span key={label}>{`${label} ${formatQualityScore(score)}`}</span>
         ))}
       </div>
+      <CreativeQualityCriticSummary
+        evaluation={critique.creativeEvaluation}
+      />
     </section>
   );
 }

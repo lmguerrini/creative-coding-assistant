@@ -230,6 +230,27 @@ export type ArtifactCritiqueDimension = {
   rationale: string;
 };
 
+export type CreativeQualityLevel = "strong" | "developing" | "weak";
+
+export type CreativeQualityObservation = {
+  score: number;
+  level: CreativeQualityLevel;
+  observation: string;
+  evidence: string[];
+};
+
+export type CreativeQualityEvaluation = {
+  overallScore: number;
+  composition: CreativeQualityObservation;
+  originality: CreativeQualityObservation;
+  coherence: CreativeQualityObservation;
+  aestheticConsistency: CreativeQualityObservation;
+  expressiveness: CreativeQualityObservation;
+  strengths: string[];
+  refinementOpportunities: string[];
+  summary: string;
+};
+
 export type ArtifactCritique = {
   artifactId: string;
   artifactTitle: string;
@@ -244,6 +265,7 @@ export type ArtifactCritique = {
   codeQuality: ArtifactCritiqueDimension;
   previewReadiness: ArtifactCritiqueDimension;
   domainAppropriateness: ArtifactCritiqueDimension;
+  creativeEvaluation?: CreativeQualityEvaluation | null;
   reasons: string[];
   rationale: string;
   refinementGuidance: string | null;

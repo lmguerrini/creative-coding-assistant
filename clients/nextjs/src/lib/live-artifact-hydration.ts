@@ -4,6 +4,9 @@ import type {
   ArtifactCritiqueDimension,
   ArtifactSummary,
   AssistantWorkspaceSnapshot,
+  CreativeQualityEvaluation,
+  CreativeQualityLevel,
+  CreativeQualityObservation,
   PreviewSummary,
   PreviewTargetId
 } from "./assistant-client";
@@ -940,6 +943,9 @@ function readArtifactCritique(value: unknown): ArtifactCritique | undefined {
     codeQuality: readCritiqueDimension(record.code_quality),
     previewReadiness: readCritiqueDimension(record.preview_readiness),
     domainAppropriateness: readCritiqueDimension(record.domain_appropriateness),
+    creativeEvaluation: readCreativeQualityEvaluation(
+      record.creative_evaluation ?? record.creativeEvaluation
+    ),
     reasons: readStringList(record.reasons),
     rationale: readString(record.rationale) ?? "Artifact critique completed.",
     refinementGuidance:
@@ -947,6 +953,78 @@ function readArtifactCritique(value: unknown): ArtifactCritique | undefined {
       readString(record.refinementGuidance) ??
       null
   };
+}
+
+function readCreativeQualityEvaluation(
+  value: unknown
+): CreativeQualityEvaluation | null {
+  const record = isRecord(value) ? value : null;
+  const overallScore =
+    readNumber(record?.overall_score) ?? readNumber(record?.overallScore);
+  if (!record || overallScore === null) {
+    return null;
+  }
+
+  const composition = readCreativeQualityObservation(record.composition);
+  const originality = readCreativeQualityObservation(record.originality);
+  const coherence = readCreativeQualityObservation(record.coherence);
+  const aestheticConsistency = readCreativeQualityObservation(
+    record.aesthetic_consistency ?? record.aestheticConsistency
+  );
+  const expressiveness = readCreativeQualityObservation(record.expressiveness);
+  if (
+    !composition ||
+    !originality ||
+    !coherence ||
+    !aestheticConsistency ||
+    !expressiveness
+  ) {
+    return null;
+  }
+
+  return {
+    overallScore,
+    composition,
+    originality,
+    coherence,
+    aestheticConsistency,
+    expressiveness,
+    strengths: readStringList(record.strengths),
+    refinementOpportunities: readStringList(
+      record.refinement_opportunities ?? record.refinementOpportunities
+    ),
+    summary:
+      readString(record.summary) ??
+      "Deterministic creative-quality evaluation completed."
+  };
+}
+
+function readCreativeQualityObservation(
+  value: unknown
+): CreativeQualityObservation | null {
+  const record = isRecord(value) ? value : null;
+  const score = readNumber(record?.score);
+  const observation = readString(record?.observation);
+  if (!record || score === null || !observation) {
+    return null;
+  }
+
+  return {
+    score,
+    level: readCreativeQualityLevel(record.level, score),
+    observation,
+    evidence: readStringList(record.evidence)
+  };
+}
+
+function readCreativeQualityLevel(
+  value: unknown,
+  score: number
+): CreativeQualityLevel {
+  if (value === "strong" || value === "developing" || value === "weak") {
+    return value;
+  }
+  return score >= 0.78 ? "strong" : score >= 0.55 ? "developing" : "weak";
 }
 
 function readCritiqueDimension(value: unknown): ArtifactCritiqueDimension {

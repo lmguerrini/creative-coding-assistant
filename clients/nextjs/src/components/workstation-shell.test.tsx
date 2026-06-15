@@ -2637,6 +2637,44 @@ describe("WorkstationShell", () => {
                   score: 0.86,
                   rationale: "Domain matches."
                 },
+                creativeEvaluation: {
+                  overallScore: 0.87,
+                  composition: {
+                    score: 0.88,
+                    level: "strong",
+                    observation: "Clear focal hierarchy detected.",
+                    evidence: ["marker: center"]
+                  },
+                  originality: {
+                    score: 0.82,
+                    level: "strong",
+                    observation: "Generative variation is present.",
+                    evidence: ["marker: noise"]
+                  },
+                  coherence: {
+                    score: 0.91,
+                    level: "strong",
+                    observation: "Runtime structure is coherent.",
+                    evidence: ["balanced blocks"]
+                  },
+                  aestheticConsistency: {
+                    score: 0.86,
+                    level: "strong",
+                    observation: "Palette signals are consistent.",
+                    evidence: ["marker: color"]
+                  },
+                  expressiveness: {
+                    score: 0.88,
+                    level: "strong",
+                    observation: "Motion develops over time.",
+                    evidence: ["marker: framecount"]
+                  },
+                  strengths: [
+                    "Composition: Clear focal hierarchy detected."
+                  ],
+                  refinementOpportunities: [],
+                  summary: "5 of 5 creative dimensions are strong."
+                },
                 reasons: [],
                 rationale: "aurora-field.p5.js is the recommended candidate.",
                 refinementGuidance: null
@@ -2669,6 +2707,16 @@ describe("WorkstationShell", () => {
     expect(
       within(qualitySummary).getByText(
         "aurora-field.p5.js is the recommended candidate."
+      )
+    ).toBeVisible();
+    expect(
+      within(qualitySummary).getByRole("region", {
+        name: "Creative quality critic"
+      })
+    ).toHaveTextContent("Aesthetic consistency");
+    expect(
+      within(qualitySummary).getByText(
+        "5 of 5 creative dimensions are strong."
       )
     ).toBeVisible();
     expect(

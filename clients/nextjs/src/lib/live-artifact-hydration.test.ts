@@ -308,6 +308,42 @@ describe("live artifact hydration", () => {
                 score: 0.86,
                 rationale: "Domain matches p5."
               },
+              creative_evaluation: {
+                overall_score: 0.87,
+                composition: {
+                  score: 0.88,
+                  level: "strong",
+                  observation: "Clear focal hierarchy detected.",
+                  evidence: ["marker: center"]
+                },
+                originality: {
+                  score: 0.82,
+                  level: "strong",
+                  observation: "Generative variation is present.",
+                  evidence: ["marker: noise"]
+                },
+                coherence: {
+                  score: 0.91,
+                  level: "strong",
+                  observation: "Runtime structure is coherent.",
+                  evidence: ["balanced blocks"]
+                },
+                aesthetic_consistency: {
+                  score: 0.86,
+                  level: "strong",
+                  observation: "Palette signals are consistent.",
+                  evidence: ["marker: color"]
+                },
+                expressiveness: {
+                  score: 0.88,
+                  level: "strong",
+                  observation: "Motion develops over time.",
+                  evidence: ["marker: framecount"]
+                },
+                strengths: ["Composition: Clear focal hierarchy detected."],
+                refinement_opportunities: [],
+                summary: "5 of 5 creative dimensions are strong."
+              },
               reasons: [],
               rationale: "orbit-sketch.p5.js is the recommended candidate.",
               refinement_guidance: null
@@ -330,6 +366,14 @@ describe("live artifact hydration", () => {
     });
     expect(result.artifact?.critique).toMatchObject({
       artifactId: "orbit-sketch",
+      creativeEvaluation: {
+        overallScore: 0.87,
+        aestheticConsistency: {
+          level: "strong",
+          score: 0.86
+        },
+        refinementOpportunities: []
+      },
       overallScore: 0.91,
       rank: 1,
       recommended: true,
