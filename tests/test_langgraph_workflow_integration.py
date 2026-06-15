@@ -375,6 +375,9 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         )
         self.assertTrue(workflow_state.artifacts[0].is_recommended)
         self.assertIsNotNone(workflow_state.artifacts[0].critique)
+        self.assertIsNotNone(
+            workflow_state.artifacts[0].critique.creative_evaluation
+        )
         self.assertGreaterEqual(workflow_state.artifacts[0].quality_score, 0.68)
         critique_events = tuple(
             event
@@ -405,6 +408,10 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             "browser_sandbox",
         )
         self.assertEqual(events[-1].payload["artifacts"][0]["runtime"], "p5")
+        self.assertIn(
+            "creative_evaluation",
+            events[-1].payload["artifacts"][0]["critique"],
+        )
         self.assertEqual(
             events[-1].payload["preview_results"][0]["status"],
             "succeeded",

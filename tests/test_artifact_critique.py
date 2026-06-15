@@ -65,6 +65,15 @@ class ArtifactCritiqueTests(unittest.TestCase):
         self.assertTrue(artifact.is_recommended)
         self.assertIsNotNone(artifact.critique)
         self.assertFalse(artifact.critique.passed)
+        self.assertIsNotNone(artifact.critique.creative_evaluation)
+        self.assertIn(
+            "Creative focus:",
+            artifact.critique.refinement_guidance or "",
+        )
+        self.assertIn(
+            "Clarify focal hierarchy",
+            artifact.critique.refinement_guidance or "",
+        )
         self.assertEqual(artifact.refinement_reason, summary.refinement_guidance)
 
     def test_code_only_domain_fit_scores_unsupported_domain_without_preview(self) -> None:

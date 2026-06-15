@@ -10,8 +10,12 @@ from pydantic import BaseModel, ConfigDict, Field
 from creative_coding_assistant.contracts import AssistantRequest, CreativeCodingDomain
 from creative_coding_assistant.orchestration.artifacts import (
     ArtifactCritiqueDimension,
+    CreativeQualityEvaluation,
     WorkflowArtifact,
     WorkflowArtifactCritique,
+)
+from creative_coding_assistant.orchestration.creative_quality import (
+    evaluate_artifact_creative_quality,
 )
 from creative_coding_assistant.orchestration.domain_generation import (
     get_domain_runtime_support,
@@ -23,21 +27,6 @@ from creative_coding_assistant.preview import PreviewResult
 ARTIFACT_CRITIQUE_PASS_THRESHOLD = 0.68
 
 _TOKEN_PATTERN = re.compile(r"[a-z0-9_.+#-]+")
-_VISUAL_MARKERS = frozenset(
-    {
-        "background",
-        "color",
-        "fill",
-        "gl_fragcolor",
-        "gradient",
-        "hsl",
-        "noise",
-        "palette",
-        "sin",
-        "stroke",
-        "vec",
-    }
-)
 _CODE_MARKERS = frozenset(
     {
         "const",
@@ -165,9 +154,13 @@ def _score_artifact(
     route_decision: RouteDecision,
     preview_artifact_ids: set[str],
 ) -> WorkflowArtifactCritique:
+    creative_evaluation = evaluate_artifact_creative_quality(artifact)
     dimensions = {
         "prompt_alignment": _score_prompt_alignment(artifact, request),
-        "creative_quality": _score_creative_quality(artifact),
+        "creative_quality": _dimension(
+            creative_evaluation.overall_score,
+            creative_evaluation.summary,
+        ),
         "runtime_suitability": _score_runtime_suitability(artifact),
         "code_quality": _score_code_quality(artifact),
         "preview_readiness": _score_preview_readiness(artifact, preview_artifact_ids),
@@ -203,6 +196,7 @@ def _score_artifact(
         code_quality=dimensions["code_quality"],
         preview_readiness=dimensions["preview_readiness"],
         domain_appropriateness=dimensions["domain_appropriateness"],
+        creative_evaluation=creative_evaluation,
         reasons=reasons,
         rationale=_critique_rationale(
             artifact,
@@ -210,7 +204,11 @@ def _score_artifact(
             reasons,
             dimensions["domain_appropriateness"].rationale,
         ),
-        refinement_guidance=_refinement_guidance(artifact, reasons),
+        refinement_guidance=_refinement_guidance(
+            artifact,
+            reasons,
+            creative_evaluation,
+        ),
     )
 
 
@@ -237,18 +235,6 @@ def _score_prompt_alignment(
     if _query_matches_runtime(query_tokens, artifact.runtime):
         score = min(1.0, score + 0.25)
     return _dimension(score, f"{overlap} prompt token(s) matched artifact signals.")
-
-
-def _score_creative_quality(artifact: WorkflowArtifact) -> ArtifactCritiqueDimension:
-    content_tokens = _tokens(artifact.content)
-    marker_count = len(content_tokens.intersection(_VISUAL_MARKERS))
-    score = 0.5
-    if artifact.is_creative:
-        score += 0.2
-    if len(artifact.content) >= 160:
-        score += 0.15
-    score += min(marker_count, 3) * 0.05
-    return _dimension(score, f"{marker_count} visual/composition signal(s) detected.")
 
 
 def _score_runtime_suitability(artifact: WorkflowArtifact) -> ArtifactCritiqueDimension:
@@ -364,12 +350,22 @@ def _critique_rationale(
 def _refinement_guidance(
     artifact: WorkflowArtifact,
     reasons: tuple[str, ...],
+    creative_evaluation: CreativeQualityEvaluation,
 ) -> str | None:
     if not reasons:
         return None
+    creative_focus = " ".join(
+        creative_evaluation.refinement_opportunities[:3]
+    )
+    creative_guidance = (
+        f" Creative focus: {creative_focus}"
+        if creative_focus
+        else ""
+    )
     return (
         f"Revise {artifact.title}: address {', '.join(reasons)}, preserve the "
         "original brief, and return a complete runnable artifact when applicable."
+        f"{creative_guidance}"
     )
 
 

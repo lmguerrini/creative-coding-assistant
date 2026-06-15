@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from hashlib import sha256
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -54,6 +55,36 @@ class ArtifactCritiqueDimension(BaseModel):
     rationale: str = Field(min_length=1)
 
 
+class CreativeQualityObservation(BaseModel):
+    """One bounded creative-quality observation derived from artifact signals."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    score: float = Field(ge=0.0, le=1.0)
+    level: Literal["strong", "developing", "weak"]
+    observation: str = Field(min_length=1, max_length=280)
+    evidence: tuple[str, ...] = Field(default_factory=tuple, max_length=5)
+
+
+class CreativeQualityEvaluation(BaseModel):
+    """Structured creative feedback embedded in the existing artifact critique."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    overall_score: float = Field(ge=0.0, le=1.0)
+    composition: CreativeQualityObservation
+    originality: CreativeQualityObservation
+    coherence: CreativeQualityObservation
+    aesthetic_consistency: CreativeQualityObservation
+    expressiveness: CreativeQualityObservation
+    strengths: tuple[str, ...] = Field(default_factory=tuple, max_length=3)
+    refinement_opportunities: tuple[str, ...] = Field(
+        default_factory=tuple,
+        max_length=5,
+    )
+    summary: str = Field(min_length=1, max_length=360)
+
+
 class WorkflowArtifactCritique(BaseModel):
     """Per-artifact critique metadata used for ranking and refinement guidance."""
 
@@ -72,6 +103,7 @@ class WorkflowArtifactCritique(BaseModel):
     code_quality: ArtifactCritiqueDimension
     preview_readiness: ArtifactCritiqueDimension
     domain_appropriateness: ArtifactCritiqueDimension
+    creative_evaluation: CreativeQualityEvaluation | None = None
     reasons: tuple[str, ...] = ()
     rationale: str = Field(min_length=1)
     refinement_guidance: str | None = None
