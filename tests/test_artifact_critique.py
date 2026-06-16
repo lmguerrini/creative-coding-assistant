@@ -43,6 +43,10 @@ class ArtifactCritiqueTests(unittest.TestCase):
         self.assertTrue(recommended.is_default)
         self.assertEqual(recommended.quality_rank, 1)
         self.assertIsNotNone(recommended.critique)
+        assert recommended.critique is not None
+        self.assertIsNotNone(recommended.critique.calibrated_quality)
+        self.assertEqual(recommended.critique.legacy_rank, 1)
+        self.assertIsNotNone(summary.average_calibrated_score)
         self.assertGreaterEqual(
             recommended.quality_score or 0,
             ARTIFACT_CRITIQUE_PASS_THRESHOLD,
@@ -73,6 +77,12 @@ class ArtifactCritiqueTests(unittest.TestCase):
         self.assertIsNotNone(artifact.critique)
         self.assertFalse(artifact.critique.passed)
         self.assertIsNotNone(artifact.critique.creative_evaluation)
+        self.assertIsNotNone(artifact.critique.calibrated_quality)
+        assert artifact.critique.calibrated_quality is not None
+        self.assertLess(
+            artifact.critique.calibrated_quality.score,
+            ARTIFACT_CRITIQUE_PASS_THRESHOLD,
+        )
         self.assertIn(
             "Creative focus:",
             artifact.critique.refinement_guidance or "",
@@ -118,6 +128,14 @@ class ArtifactCritiqueTests(unittest.TestCase):
         self.assertIsNotNone(critique)
         self.assertEqual(critique.domain_appropriateness.score, 0.88)
         self.assertIn("correctly code-only", critique.domain_appropriateness.rationale)
+        self.assertIsNotNone(critique.calibrated_quality)
+        assert critique.calibrated_quality is not None
+        runtime_signal = next(
+            signal
+            for signal in critique.calibrated_quality.signals
+            if signal.key == "runtime_preview"
+        )
+        self.assertLess(runtime_signal.score, 0.5)
 
     def test_sacred_consistency_is_persisted_and_guides_refinement(self) -> None:
         artifact = _strong_p5_artifact().model_copy(
@@ -170,12 +188,60 @@ function draw() {
         self.assertIsNotNone(critique.sacred_consistency)
         assert critique.sacred_consistency is not None
         self.assertEqual(critique.sacred_consistency.claim_safety.level, "unsupported")
+        self.assertIsNotNone(critique.calibrated_quality)
+        assert critique.calibrated_quality is not None
+        self.assertLessEqual(critique.calibrated_quality.score, 0.58)
+        self.assertEqual(
+            critique.calibrated_quality.decision_band,
+            "needs_refinement",
+        )
         self.assertIn("sacred_claim_safety", critique.reasons)
         self.assertIn("Sacred focus:", critique.refinement_guidance or "")
         self.assertIn(
             "symbolic authority claims",
             critique.refinement_guidance or "",
         )
+
+    def test_calibrated_ranking_preserves_legacy_order_for_near_ties(self) -> None:
+        stable_a = _strong_p5_artifact().model_copy(
+            update={
+                "id": "stable-a",
+                "title": "Stable A",
+                "name": "stable-a.js",
+                "source_order": 1,
+                "content_hash": "stable-a-hash",
+            }
+        )
+        stable_b = _strong_p5_artifact().model_copy(
+            update={
+                "id": "stable-b",
+                "title": "Stable B",
+                "name": "stable-b.js",
+                "source_order": 2,
+                "content_hash": "stable-b-hash",
+            }
+        )
+
+        artifacts, summary = critique_workflow_artifacts(
+            (stable_b, stable_a),
+            request=AssistantRequest(
+                query="Create a p5.js sketch with orbiting color trails.",
+                domain=CreativeCodingDomain.P5_JS,
+            ),
+            route_decision=_route_decision(CreativeCodingDomain.P5_JS),
+        )
+
+        recommended = next(
+            artifact for artifact in artifacts if artifact.is_recommended
+        )
+        rejected = next(
+            artifact for artifact in artifacts if not artifact.is_recommended
+        )
+
+        self.assertEqual(summary.recommended_artifact_id, stable_a.id)
+        self.assertEqual(recommended.id, stable_a.id)
+        self.assertEqual(recommended.critique.legacy_rank, 1)
+        self.assertEqual(rejected.critique.legacy_rank, 2)
 
 
 def _route_decision(domain: CreativeCodingDomain) -> RouteDecision:

@@ -22,6 +22,9 @@ from creative_coding_assistant.orchestration.domain_generation import (
     get_domain_runtime_support,
     is_previewable_generation_domain,
 )
+from creative_coding_assistant.orchestration.quality_calibration import (
+    calibrate_artifact_quality,
+)
 from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.sacred_consistency import (
     evaluate_artifact_sacred_consistency,
@@ -29,6 +32,7 @@ from creative_coding_assistant.orchestration.sacred_consistency import (
 from creative_coding_assistant.preview import PreviewResult
 
 ARTIFACT_CRITIQUE_PASS_THRESHOLD = 0.68
+CALIBRATED_RANK_STABILITY_BUCKET = 0.03
 
 _TOKEN_PATTERN = re.compile(r"[a-z0-9_.+#-]+")
 _CODE_MARKERS = frozenset(
@@ -54,6 +58,7 @@ class ArtifactCritiqueSummary(BaseModel):
     recommended_artifact_id: str | None = None
     recommended_artifact_title: str | None = None
     average_score: float = Field(ge=0.0, le=1.0)
+    average_calibrated_score: float | None = Field(default=None, ge=0.0, le=1.0)
     failed_artifact_count: int = Field(ge=0)
     refinement_required: bool = False
     refinement_reasons: tuple[str, ...] = ()
@@ -90,10 +95,24 @@ def critique_workflow_artifacts(
         )
         for artifact in artifacts
     ]
-    ranked = sorted(
+    legacy_ranked = sorted(
         scored,
         key=lambda critique: (
             critique.overall_score,
+            int(_artifact_by_id(artifacts, critique.artifact_id).preview_eligible),
+            -critique.source_order,
+        ),
+        reverse=True,
+    )
+    legacy_rank_by_id = {
+        critique.artifact_id: index
+        for index, critique in enumerate(legacy_ranked, start=1)
+    }
+    ranked = sorted(
+        scored,
+        key=lambda critique: (
+            _calibrated_rank_bucket(critique),
+            -legacy_rank_by_id[critique.artifact_id],
             int(_artifact_by_id(artifacts, critique.artifact_id).preview_eligible),
             -critique.source_order,
         ),
@@ -104,6 +123,7 @@ def critique_workflow_artifacts(
         critique.artifact_id: critique.model_copy(
             update={
                 "rank": index,
+                "legacy_rank": legacy_rank_by_id[critique.artifact_id],
                 "recommended": critique.artifact_id == recommended_id,
             }
         )
@@ -154,6 +174,15 @@ def critique_workflow_artifacts(
             mean(critique.overall_score for critique in ordered_critiques),
             3,
         ),
+        average_calibrated_score=round(
+            mean(
+                critique.calibrated_quality.score
+                if critique.calibrated_quality is not None
+                else critique.overall_score
+                for critique in ordered_critiques
+            ),
+            3,
+        ),
         failed_artifact_count=len(failed_critiques),
         refinement_required=refinement_required,
         refinement_reasons=refinement_reasons,
@@ -200,7 +229,19 @@ def _score_artifact(
         overall,
         sacred_consistency=sacred_consistency,
     )
-    passed = overall >= ARTIFACT_CRITIQUE_PASS_THRESHOLD and not reasons
+    calibrated_quality = calibrate_artifact_quality(
+        artifact,
+        dimensions=dimensions,
+        legacy_score=overall,
+        creative_evaluation=creative_evaluation,
+        sacred_consistency=sacred_consistency,
+        reasons=reasons,
+    )
+    passed = (
+        overall >= ARTIFACT_CRITIQUE_PASS_THRESHOLD
+        and calibrated_quality.score >= ARTIFACT_CRITIQUE_PASS_THRESHOLD
+        and not reasons
+    )
 
     return WorkflowArtifactCritique(
         artifact_id=artifact.id,
@@ -217,12 +258,14 @@ def _score_artifact(
         domain_appropriateness=dimensions["domain_appropriateness"],
         creative_evaluation=creative_evaluation,
         sacred_consistency=sacred_consistency,
+        calibrated_quality=calibrated_quality,
         reasons=reasons,
         rationale=_critique_rationale(
             artifact,
             overall,
             reasons,
             dimensions["domain_appropriateness"].rationale,
+            calibrated_quality_score=calibrated_quality.score,
         ),
         refinement_guidance=_refinement_guidance(
             artifact,
@@ -403,15 +446,22 @@ def _critique_rationale(
     score: float,
     reasons: tuple[str, ...],
     domain_rationale: str,
+    *,
+    calibrated_quality_score: float | None = None,
 ) -> str:
+    calibration_text = (
+        f" Calibrated decision-support score: {calibrated_quality_score:.2f}."
+        if calibrated_quality_score is not None
+        else ""
+    )
     if not reasons:
         return (
             f"{artifact.title} is a strong candidate with score {score:.2f}. "
-            f"{domain_rationale}"
+            f"{domain_rationale}{calibration_text}"
         )
     return (
         f"{artifact.title} needs refinement for {', '.join(reasons)}. "
-        f"{domain_rationale}"
+        f"{domain_rationale}{calibration_text}"
     )
 
 
@@ -453,6 +503,15 @@ def _dimension(score: float, rationale: str) -> ArtifactCritiqueDimension:
         score=round(min(max(score, 0.0), 1.0), 3),
         rationale=rationale,
     )
+
+
+def _calibrated_rank_bucket(critique: WorkflowArtifactCritique) -> int:
+    score = (
+        critique.calibrated_quality.score
+        if critique.calibrated_quality is not None
+        else critique.overall_score
+    )
+    return int(score / CALIBRATED_RANK_STABILITY_BUCKET)
 
 
 def _query_matches_runtime(query_tokens: set[str], runtime: str | None) -> bool:
