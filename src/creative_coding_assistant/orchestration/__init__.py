@@ -26,6 +26,7 @@ _PROMPT_TEMPLATES = "creative_coding_assistant.orchestration.prompt_templates"
 _QUALITY_CALIBRATION = (
     "creative_coding_assistant.orchestration.quality_calibration"
 )
+_REFINEMENT_PASSES = "creative_coding_assistant.orchestration.refinement_passes"
 _RETRIEVAL = "creative_coding_assistant.orchestration.retrieval"
 _ROUTING = "creative_coding_assistant.orchestration.routing"
 _SERVICE = "creative_coding_assistant.orchestration.service"
@@ -58,6 +59,12 @@ _EXPORT_MAP = {
     "CreativeQualityEvaluation": _ARTIFACTS,
     "CreativeQualityObservation": _ARTIFACTS,
     "CreativeTranslation": _CREATIVE_TRANSLATION,
+    "DEFAULT_REFINEMENT_PASS_LIMIT": _REFINEMENT_PASSES,
+    "MAX_REFINEMENT_PASS_LIMIT": _REFINEMENT_PASSES,
+    "QUALITY_IMPROVEMENT_THRESHOLD": _REFINEMENT_PASSES,
+    "RefinementPassDecision": _REFINEMENT_PASSES,
+    "RefinementPassRecord": _ARTIFACTS,
+    "RefinementPassStopReason": _ARTIFACTS,
     "SacredConsistencyEvaluation": _ARTIFACTS,
     "SacredConsistencyObservation": _ARTIFACTS,
     "SacredGeometryGuidance": _SACRED_GEOMETRY,
@@ -122,7 +129,10 @@ _EXPORT_MAP = {
     "begin_assistant_workflow": _WORKFLOW,
     "build_assistant_workflow_graph": _WORKFLOW_GRAPH,
     "calibrate_artifact_quality": _QUALITY_CALIBRATION,
+    "artifact_quality_score": _REFINEMENT_PASSES,
+    "attach_refinement_history": _REFINEMENT_PASSES,
     "build_initial_workflow_graph_state": _WORKFLOW_GRAPH,
+    "build_refinement_objective": _REFINEMENT_PASSES,
     "build_assembled_context_request": _CTX,
     "build_memory_context_request": _MEM,
     "build_prompt_input_request": _PROMPT_INPUTS,
@@ -130,6 +140,7 @@ _EXPORT_MAP = {
     "build_rendered_prompt_request": _PROMPT_TEMPLATES,
     "build_retrieval_context_request": _RETRIEVAL,
     "complete_workflow_step": _WORKFLOW,
+    "complete_latest_refinement_pass": _REFINEMENT_PASSES,
     "critique_workflow_artifacts": _ARTIFACT_CRITIQUE,
     "creative_translation_prompt_lines": _CREATIVE_TRANSLATION,
     "audio_reactive_prompt_lines": _AUDIO_REACTIVE,
@@ -148,6 +159,8 @@ _EXPORT_MAP = {
     "finish_workflow": _WORKFLOW,
     "next_workflow_step": _WORKFLOW,
     "prepare_workflow_preview_results": _ARTIFACTS,
+    "plan_next_refinement_pass": _REFINEMENT_PASSES,
+    "refinement_opportunities": _REFINEMENT_PASSES,
     "restart_workflow_step": _WORKFLOW,
     "review_assistant_answer": _WORKFLOW_REVIEW,
     "route_request": _ROUTING,
@@ -155,6 +168,7 @@ _EXPORT_MAP = {
     "shader_preset_prompt_lines": _SHADER_PRESETS,
     "visual_style_prompt_lines": _VISUAL_STYLES,
     "skip_workflow_step": _WORKFLOW,
+    "start_refinement_pass_record": _REFINEMENT_PASSES,
     "stream_assistant_workflow_events": _WORKFLOW_GRAPH,
     "start_workflow_step": _WORKFLOW,
 }

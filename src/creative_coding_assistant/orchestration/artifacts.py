@@ -156,6 +156,32 @@ class CalibratedQualityEvaluation(BaseModel):
     summary: str = Field(min_length=1, max_length=360)
 
 
+RefinementPassStopReason = Literal[
+    "continue_available",
+    "quality_improved",
+    "no_useful_opportunities",
+    "runtime_preview_safety_failed",
+    "max_passes_reached",
+]
+
+
+class RefinementPassRecord(BaseModel):
+    """Explicit lineage metadata for one bounded creative refinement pass."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    pass_number: int = Field(ge=1)
+    source_artifact_id: str = Field(min_length=1)
+    source_artifact_title: str | None = None
+    result_artifact_id: str | None = None
+    result_artifact_title: str | None = None
+    refinement_objective: str = Field(min_length=1, max_length=720)
+    quality_before: float | None = Field(default=None, ge=0.0, le=1.0)
+    quality_after: float | None = Field(default=None, ge=0.0, le=1.0)
+    stop_reason: RefinementPassStopReason
+    summary: str = Field(min_length=1, max_length=360)
+
+
 class WorkflowArtifactCritique(BaseModel):
     """Per-artifact critique metadata used for ranking and refinement guidance."""
 
@@ -213,6 +239,7 @@ class WorkflowArtifact(BaseModel):
     quality_rank: int | None = Field(default=None, ge=1)
     is_recommended: bool = False
     refinement_reason: str | None = None
+    refinement_passes: tuple[RefinementPassRecord, ...] = Field(default_factory=tuple)
 
 
 @dataclass(frozen=True)
