@@ -5740,6 +5740,73 @@ a {
   line-height: 1.45;
 }
 
+.artifactRefinementPasses {
+  display: grid;
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(1, 5, 8, 0.28);
+}
+
+.artifactRefinementPasses > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.artifactRefinementPasses > header span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.artifactRefinementPasses > header strong {
+  color: var(--foreground);
+  font-size: 11px;
+}
+
+.artifactRefinementPasses[data-limit-reached="true"] > header strong {
+  color: var(--amber);
+}
+
+.artifactRefinementPasses ol {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.artifactRefinementPasses li {
+  display: grid;
+  gap: 3px;
+  padding: 7px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.artifactRefinementPasses li span,
+.artifactRefinementPasses li strong {
+  font-size: 11px;
+}
+
+.artifactRefinementPasses li span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.artifactRefinementPasses li p,
+.artifactRefinementPasses > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .artifactParameterPanel {
   display: grid;
   gap: 10px;

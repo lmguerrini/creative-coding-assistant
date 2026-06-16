@@ -3591,6 +3591,13 @@ describe("WorkstationShell", () => {
           previewEligible: true,
           qualityScore: 0.88,
           qualityRank: 2,
+          qualityBefore: 0.88,
+          passNumber: 1,
+          maxPasses: 2,
+          refinementObjective: expect.stringContaining(
+            "Make this more organic"
+          ),
+          refinementPasses: [],
           critiqueRationale: "Stable p5 fallback with a direct preview route."
         })
       })
@@ -3627,6 +3634,8 @@ describe("WorkstationShell", () => {
 
     expect(refinedDetails).toHaveTextContent("Refined");
     expect(refinedDetails).toHaveTextContent("Refined from aurora-field.p5.js");
+    expect(refinedDetails).toHaveTextContent("Pass 1");
+    expect(refinedDetails).toHaveTextContent("No useful opportunities");
     expect(
       screen.getByLabelText("aurora-field.p5.js artifact")
     ).toBeInTheDocument();

@@ -135,6 +135,55 @@ describe("ArtifactRefinementPanel", () => {
       "Make the output more concise."
     );
   });
+
+  it("renders compact pass history and disables refinement at the pass limit", () => {
+    const artifact: ArtifactSummary = {
+      ...visualArtifact(),
+      refinementPasses: [
+        {
+          passNumber: 1,
+          qualityAfter: 0.68,
+          qualityBefore: 0.55,
+          refinementObjective: "Clarify focal hierarchy.",
+          resultArtifactId: "shader-field-refined",
+          resultArtifactTitle: "field.refined.frag",
+          sourceArtifactId: "shader-field",
+          sourceArtifactTitle: "field.frag",
+          stopReason: "quality_improved",
+          summary: "Pass 1: Quality improved. Quality 0.55 -> 0.68."
+        },
+        {
+          passNumber: 2,
+          refinementObjective: "Preserve runtime safety.",
+          sourceArtifactId: "shader-field-refined",
+          stopReason: "max_passes_reached",
+          summary: "Pass 2: Max passes reached."
+        }
+      ]
+    };
+    const onArtifactRefine = vi.fn(
+      async (_artifact: ArtifactSummary, _instruction: string) => undefined
+    );
+
+    render(
+      <ArtifactRefinementPanel
+        artifact={artifact}
+        disabled={false}
+        onArtifactRefine={onArtifactRefine}
+      />
+    );
+
+    const passHistory = screen.getByRole("region", {
+      name: "Refinement pass history"
+    });
+
+    expect(within(passHistory).getByText("2 pass limit reached")).toBeVisible();
+    expect(within(passHistory).getByText("Quality improved")).toBeVisible();
+    expect(within(passHistory).getByText("Max passes reached")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Refinement limit reached" })
+    ).toBeDisabled();
+  });
 });
 
 function visualArtifact(): ArtifactSummary {

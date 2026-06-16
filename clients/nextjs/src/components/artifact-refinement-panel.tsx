@@ -21,6 +21,14 @@ import {
   type ArtifactParameterModel,
   type ArtifactParameterValues
 } from "@/lib/artifact-parameters";
+import {
+  canRunRefinementPass,
+  defaultRefinementPassLimit,
+  formatRefinementStopReason,
+  nextRefinementPassNumber,
+  readCompletedRefinementPasses,
+  refinementStoppedBeforeLimit
+} from "@/lib/refinement-passes";
 
 type ArtifactRefinementPanelProps = {
   artifact: ArtifactSummary;
@@ -52,13 +60,19 @@ export function ArtifactRefinementPanel({
     createArtifactParameterValues(parameterModel)
   );
   const [instruction, setInstruction] = useState("");
+  const passHistory = readCompletedRefinementPasses(artifact);
+  const nextPass = nextRefinementPassNumber(artifact);
+  const passAvailable = canRunRefinementPass(artifact);
+  const stoppedBeforeLimit = refinementStoppedBeforeLimit(artifact);
   const parameterGuidance = useMemo(
     () => serializeArtifactParameterGuidance(parameterModel, parameterValues),
     [parameterModel, parameterValues]
   );
   const trimmedInstruction = instruction.trim();
   const canSubmit =
-    !disabled && (trimmedInstruction.length > 0 || parameterGuidance !== null);
+    !disabled &&
+    passAvailable &&
+    (trimmedInstruction.length > 0 || parameterGuidance !== null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -115,6 +129,12 @@ export function ArtifactRefinementPanel({
             : ""}
         </p>
       ) : null}
+      <RefinementPassHistory
+        history={passHistory}
+        nextPass={nextPass}
+        passAvailable={passAvailable}
+        stoppedBeforeLimit={stoppedBeforeLimit}
+      />
       <form className="artifactRefinementForm" onSubmit={handleSubmit}>
         <ArtifactParameterControlPanel
           disabled={disabled}
@@ -155,11 +175,64 @@ export function ArtifactRefinementPanel({
         >
           {disabled
             ? "Refinement running"
+            : stoppedBeforeLimit
+              ? "Refinement stopped"
+            : !passAvailable
+              ? "Refinement limit reached"
             : parameterGuidance
               ? "Refine with parameter changes"
               : "Refine selected artifact"}
         </button>
       </form>
+    </section>
+  );
+}
+
+function RefinementPassHistory({
+  history,
+  nextPass,
+  passAvailable,
+  stoppedBeforeLimit
+}: {
+  history: ArtifactSummary["refinementPasses"];
+  nextPass: number;
+  passAvailable: boolean;
+  stoppedBeforeLimit: boolean;
+}) {
+  const completedPasses = history ?? [];
+
+  return (
+    <section
+      aria-label="Refinement pass history"
+      className="artifactRefinementPasses"
+      data-limit-reached={!passAvailable}
+    >
+      <header>
+        <span>Pass history</span>
+        <strong>
+          {passAvailable
+            ? `Pass ${nextPass} of ${defaultRefinementPassLimit} available`
+            : stoppedBeforeLimit
+              ? "Refinement stopped"
+            : `${defaultRefinementPassLimit} pass limit reached`}
+        </strong>
+      </header>
+      {completedPasses.length > 0 ? (
+        <ol>
+          {completedPasses.map((pass) => (
+            <li key={`${pass.sourceArtifactId}-${pass.passNumber}`}>
+              <span>{`Pass ${pass.passNumber}`}</span>
+              <strong>{formatRefinementStopReason(pass.stopReason)}</strong>
+              <p>{pass.summary}</p>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p>
+          No refinement passes yet. The first pass creates a new explicit
+          artifact version.
+        </p>
+      )}
     </section>
   );
 }

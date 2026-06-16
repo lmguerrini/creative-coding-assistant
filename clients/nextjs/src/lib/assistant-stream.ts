@@ -1,6 +1,7 @@
 import type {
   ArtifactCritique,
   CreativeTranslationSummary,
+  RefinementPassRecord,
   WorkflowNodeId
 } from "./assistant-client";
 import type { AssistantRequestImageAttachment } from "./multimodal-attachments";
@@ -100,6 +101,11 @@ export type AssistantArtifactRefinementRequest = {
   previewEligible?: boolean | null;
   qualityScore?: number | null;
   qualityRank?: number | null;
+  qualityBefore?: number | null;
+  passNumber?: number | null;
+  maxPasses?: number | null;
+  refinementObjective?: string | null;
+  refinementPasses?: RefinementPassRecord[];
   critiqueRationale?: string | null;
   refinementGuidance?: string | null;
   creativeTranslation?: CreativeTranslationSummary | null;

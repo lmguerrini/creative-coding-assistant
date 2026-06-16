@@ -13,6 +13,7 @@ import type {
   CreativeQualityObservation,
   PreviewSummary,
   PreviewTargetId,
+  RefinementPassRecord,
   SacredConsistencyEvaluation,
   SacredConsistencyLevel,
   SacredConsistencyObservation
@@ -48,6 +49,7 @@ type GeneratedArtifactSource = {
   qualityScore?: number | null;
   isRecommended?: boolean;
   refinementReason?: string | null;
+  refinementPasses?: RefinementPassRecord[];
   runtime?: string | null;
   sourceOrder?: number;
   status?: string;
@@ -74,6 +76,7 @@ type ArtifactInference = {
   qualityScore: number | null;
   isRecommended: boolean;
   refinementReason: string | null;
+  refinementPasses: RefinementPassRecord[];
   sourceOrder: number;
   status: string;
   summary: string | null;
@@ -309,6 +312,9 @@ function readStructuredArtifactSources(
         readString(artifact.refinement_reason) ??
         readString(artifact.refinementReason) ??
         null,
+      refinementPasses: readRefinementPasses(
+        artifact.refinement_passes ?? artifact.refinementPasses
+      ),
       runtime: readString(artifact.runtime) ?? null,
       sourceOrder:
         readNumber(artifact.source_order) ??
@@ -478,6 +484,7 @@ function inferGeneratedArtifact(
     isRecommended: source.isRecommended ?? source.critique?.recommended ?? false,
     refinementReason:
       source.refinementReason ?? source.critique?.refinementGuidance ?? null,
+    refinementPasses: source.refinementPasses ?? [],
     rendererId: previewKind
       ? source.rendererId ?? previewRendererIds[previewKind]
       : null,
@@ -547,6 +554,7 @@ function buildArtifactSummary(
     qualityRank: inferred.qualityRank,
     qualityScore: inferred.qualityScore,
     refinementReason: inferred.refinementReason,
+    refinementPasses: inferred.refinementPasses,
     rendererId: inferred.rendererId,
     runtime: inferred.previewKind,
     sourceOrder: inferred.sourceOrder,
@@ -916,6 +924,76 @@ function readArtifactType(value: unknown): ArtifactSummary["type"] | undefined {
   return value === "code" || value === "preview" || value === "export"
     ? value
     : undefined;
+}
+
+function readRefinementPasses(value: unknown): RefinementPassRecord[] {
+  return readRecordList(value).flatMap((record) => {
+    const passNumber =
+      readNumber(record.pass_number) ?? readNumber(record.passNumber);
+    const sourceArtifactId =
+      readString(record.source_artifact_id) ??
+      readString(record.sourceArtifactId);
+    const refinementObjective =
+      readString(record.refinement_objective) ??
+      readString(record.refinementObjective);
+    const stopReason = readRefinementStopReason(
+      readString(record.stop_reason) ?? readString(record.stopReason)
+    );
+    const summary = readString(record.summary);
+
+    if (
+      passNumber === null ||
+      !sourceArtifactId ||
+      !refinementObjective ||
+      !stopReason ||
+      !summary
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        passNumber,
+        sourceArtifactId,
+        sourceArtifactTitle:
+          readString(record.source_artifact_title) ??
+          readString(record.sourceArtifactTitle) ??
+          null,
+        resultArtifactId:
+          readString(record.result_artifact_id) ??
+          readString(record.resultArtifactId) ??
+          null,
+        resultArtifactTitle:
+          readString(record.result_artifact_title) ??
+          readString(record.resultArtifactTitle) ??
+          null,
+        refinementObjective,
+        qualityBefore:
+          readNumber(record.quality_before) ??
+          readNumber(record.qualityBefore) ??
+          null,
+        qualityAfter:
+          readNumber(record.quality_after) ??
+          readNumber(record.qualityAfter) ??
+          null,
+        stopReason,
+        summary
+      }
+    ];
+  });
+}
+
+function readRefinementStopReason(value: string | null) {
+  switch (value) {
+    case "continue_available":
+    case "quality_improved":
+    case "no_useful_opportunities":
+    case "runtime_preview_safety_failed":
+    case "max_passes_reached":
+      return value;
+    default:
+      return null;
+  }
 }
 
 function readArtifactCritique(value: unknown): ArtifactCritique | undefined {

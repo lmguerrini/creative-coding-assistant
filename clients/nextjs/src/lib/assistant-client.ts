@@ -72,6 +72,26 @@ export type ArtifactAction =
   | "Download"
   | "Export";
 
+export type RefinementPassStopReason =
+  | "continue_available"
+  | "quality_improved"
+  | "no_useful_opportunities"
+  | "runtime_preview_safety_failed"
+  | "max_passes_reached";
+
+export type RefinementPassRecord = {
+  passNumber: number;
+  sourceArtifactId: string;
+  sourceArtifactTitle?: string | null;
+  resultArtifactId?: string | null;
+  resultArtifactTitle?: string | null;
+  refinementObjective: string;
+  qualityBefore?: number | null;
+  qualityAfter?: number | null;
+  stopReason: RefinementPassStopReason;
+  summary: string;
+};
+
 export type ArtifactSummary = {
   id: string;
   title: string;
@@ -96,6 +116,7 @@ export type ArtifactSummary = {
   refinedFromArtifactId?: string | null;
   refinedFromTitle?: string | null;
   refinementInstruction?: string | null;
+  refinementPasses?: RefinementPassRecord[];
   critique?: ArtifactCritique;
   actions: ArtifactAction[];
 };

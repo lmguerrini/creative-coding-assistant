@@ -588,6 +588,48 @@ describe("live artifact hydration", () => {
       targetId: "browser_sandbox"
     });
   });
+
+  it("hydrates structured refinement pass history without requiring legacy fields", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const result = hydrateWorkspaceFromFinalEvent(
+      snapshot,
+      finalEvent({
+        answer: "Refined artifact attached.",
+        artifacts: [
+          {
+            id: "refined-sketch",
+            title: "refined-sketch.p5.js",
+            language: "javascript",
+            content: "function draw() { circle(width / 2, height / 2, 120); }",
+            refinement_passes: [
+              {
+                pass_number: 1,
+                source_artifact_id: "source-sketch",
+                source_artifact_title: "source-sketch.p5.js",
+                result_artifact_id: "refined-sketch",
+                result_artifact_title: "refined-sketch.p5.js",
+                refinement_objective: "Clarify focal hierarchy.",
+                quality_before: 0.55,
+                quality_after: 0.72,
+                stop_reason: "quality_improved",
+                summary: "Pass 1: Quality improved. Quality 0.55 -> 0.72."
+              }
+            ]
+          }
+        ]
+      })
+    );
+
+    expect(result.artifact?.refinementPasses).toEqual([
+      expect.objectContaining({
+        passNumber: 1,
+        qualityBefore: 0.55,
+        qualityAfter: 0.72,
+        sourceArtifactId: "source-sketch",
+        stopReason: "quality_improved"
+      })
+    ]);
+  });
 });
 
 function finalEvent(payload: Record<string, unknown>): AssistantStreamEvent {

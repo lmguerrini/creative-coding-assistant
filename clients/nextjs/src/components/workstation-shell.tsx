@@ -105,6 +105,10 @@ import {
   isArtifactPreviewable
 } from "@/lib/preview-runtime";
 import {
+  appendRefinementPassRecord,
+  enrichArtifactRefinementRequest
+} from "@/lib/refinement-passes";
+import {
   hydrateWorkspaceFromArtifactExtractedEvent,
   hydrateWorkspaceFromFinalEvent,
   type LiveArtifactHydrationResult
@@ -5145,7 +5149,7 @@ function buildArtifactRefinementRequest({
   document: ArtifactDocument;
   instruction: string;
 }): AssistantArtifactRefinementRequest {
-  return {
+  return enrichArtifactRefinementRequest({
     artifactId: artifact.id,
     title: artifact.title,
     language: document.languageLabel,
@@ -5162,7 +5166,7 @@ function buildArtifactRefinementRequest({
       artifact.critique?.refinementGuidance ?? artifact.refinementReason ?? null,
     creativeTranslation: artifact.creativeTranslation ?? null,
     critique: artifact.critique ?? null
-  };
+  }, artifact);
 }
 
 function annotateRefinedHydration(
@@ -5179,19 +5183,31 @@ function annotateRefinedHydration(
       (artifact) => artifact.id === refinement.artifactId
     ) ?? null;
   const idCollidesWithSource = hydration.artifact.id === refinement.artifactId;
+  const refinedArtifactId = idCollidesWithSource
+    ? createRefinedArtifactId(refinement.artifactId, sourceSnapshot.artifacts)
+    : hydration.artifact.id;
+  const refinedArtifactTitle = idCollidesWithSource
+    ? createRefinedArtifactTitle(hydration.artifact.title)
+    : hydration.artifact.title;
+  const refinementPasses = appendRefinementPassRecord({
+    refinement,
+    resultArtifact: {
+      ...hydration.artifact,
+      id: refinedArtifactId,
+      title: refinedArtifactTitle
+    },
+    sourceArtifact
+  });
   const refinedArtifact: ArtifactSummary = {
     ...hydration.artifact,
-    id: idCollidesWithSource
-      ? createRefinedArtifactId(refinement.artifactId, sourceSnapshot.artifacts)
-      : hydration.artifact.id,
-    title: idCollidesWithSource
-      ? createRefinedArtifactTitle(hydration.artifact.title)
-      : hydration.artifact.title,
+    id: refinedArtifactId,
+    title: refinedArtifactTitle,
     status: "Refined",
     refinedAt: refinement.requestedAt,
     refinedFromArtifactId: refinement.artifactId,
     refinedFromTitle: refinement.title,
     refinementInstruction: refinement.instruction,
+    refinementPasses,
     refinementReason:
       hydration.artifact.refinementReason ??
       refinement.refinementGuidance ??
