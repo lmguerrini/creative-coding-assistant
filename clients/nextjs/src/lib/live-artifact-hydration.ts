@@ -1,5 +1,9 @@
 import type {
   ArtifactAction,
+  CalibratedQualityDecisionBand,
+  CalibratedQualityEvaluation,
+  CalibratedQualitySignal,
+  CalibratedQualitySignalKey,
   ArtifactCritique,
   ArtifactCritiqueDimension,
   ArtifactSummary,
@@ -952,6 +956,13 @@ function readArtifactCritique(value: unknown): ArtifactCritique | undefined {
     sacredConsistency: readSacredConsistencyEvaluation(
       record.sacred_consistency ?? record.sacredConsistency
     ),
+    calibratedQuality: readCalibratedQualityEvaluation(
+      record.calibrated_quality ?? record.calibratedQuality
+    ),
+    legacyRank:
+      readNumber(record.legacy_rank) ??
+      readNumber(record.legacyRank) ??
+      null,
     reasons: readStringList(record.reasons),
     rationale: readString(record.rationale) ?? "Artifact critique completed.",
     refinementGuidance:
@@ -959,6 +970,96 @@ function readArtifactCritique(value: unknown): ArtifactCritique | undefined {
       readString(record.refinementGuidance) ??
       null
   };
+}
+
+function readCalibratedQualityEvaluation(
+  value: unknown
+): CalibratedQualityEvaluation | null {
+  const record = isRecord(value) ? value : null;
+  const score = readNumber(record?.score);
+  const legacyScore =
+    readNumber(record?.legacy_score) ?? readNumber(record?.legacyScore);
+  const rationale = readString(record?.rationale);
+  const summary = readString(record?.summary);
+  if (
+    !record ||
+    score === null ||
+    legacyScore === null ||
+    !rationale ||
+    !summary
+  ) {
+    return null;
+  }
+
+  return {
+    score,
+    legacyScore,
+    decisionBand: readCalibratedQualityDecisionBand(record.decision_band),
+    confidence:
+      record.confidence === "high" ||
+      record.confidence === "medium" ||
+      record.confidence === "low"
+        ? record.confidence
+        : "low",
+    signals: readCalibratedQualitySignals(record.signals),
+    adjustments: readStringList(record.adjustments),
+    rationale,
+    summary
+  };
+}
+
+function readCalibratedQualitySignals(
+  value: unknown
+): CalibratedQualitySignal[] {
+  return readRecordList(value)
+    .map((record) => {
+      const key = readCalibratedQualitySignalKey(record.key);
+      const label = readString(record.label);
+      const score = readNumber(record.score);
+      const weight = readNumber(record.weight);
+      const rationale = readString(record.rationale);
+      if (!key || !label || score === null || weight === null || !rationale) {
+        return null;
+      }
+      return {
+        key,
+        label,
+        score,
+        weight,
+        rationale
+      };
+    })
+    .filter((signal): signal is CalibratedQualitySignal => signal !== null);
+}
+
+function readCalibratedQualitySignalKey(
+  value: unknown
+): CalibratedQualitySignalKey | null {
+  switch (value) {
+    case "legacy_critique":
+    case "creative_quality":
+    case "sacred_consistency":
+    case "runtime_preview":
+    case "refinement_pressure":
+    case "grounding":
+      return value;
+    default:
+      return null;
+  }
+}
+
+function readCalibratedQualityDecisionBand(
+  value: unknown
+): CalibratedQualityDecisionBand {
+  switch (value) {
+    case "strong_candidate":
+    case "usable_candidate":
+    case "needs_refinement":
+    case "high_risk":
+      return value;
+    default:
+      return "needs_refinement";
+  }
 }
 
 function readSacredConsistencyEvaluation(

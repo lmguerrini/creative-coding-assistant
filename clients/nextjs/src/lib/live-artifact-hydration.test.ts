@@ -377,6 +377,36 @@ describe("live artifact hydration", () => {
                 refinement_opportunities: [],
                 summary: "Checked 2 symbolic/geometric metadata cues."
               },
+              calibrated_quality: {
+                score: 0.86,
+                legacy_score: 0.91,
+                decision_band: "strong_candidate",
+                confidence: "medium",
+                signals: [
+                  {
+                    key: "legacy_critique",
+                    label: "Legacy critique",
+                    score: 0.91,
+                    weight: 0.34,
+                    rationale:
+                      "Existing weighted artifact critique score is preserved."
+                  },
+                  {
+                    key: "runtime_preview",
+                    label: "Runtime and preview",
+                    score: 1,
+                    weight: 0.18,
+                    rationale:
+                      "Runtime suitability and preview readiness are aligned."
+                  }
+                ],
+                adjustments: [],
+                rationale:
+                  "strong candidate at 0.86; legacy score 0.91. No conservative caps were required.",
+                summary:
+                  "Calibrated decision-support score 0.86 from 2 available signal(s)."
+              },
+              legacy_rank: 1,
               reasons: [],
               rationale: "orbit-sketch.p5.js is the recommended candidate.",
               refinement_guidance: null
@@ -419,6 +449,22 @@ describe("live artifact hydration", () => {
         },
         refinementOpportunities: []
       },
+      calibratedQuality: {
+        score: 0.86,
+        legacyScore: 0.91,
+        decisionBand: "strong_candidate",
+        signals: [
+          {
+            key: "legacy_critique",
+            score: 0.91
+          },
+          {
+            key: "runtime_preview",
+            score: 1
+          }
+        ]
+      },
+      legacyRank: 1,
       overallScore: 0.91,
       rank: 1,
       recommended: true,

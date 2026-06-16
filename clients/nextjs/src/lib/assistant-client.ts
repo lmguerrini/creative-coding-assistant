@@ -271,6 +271,39 @@ export type SacredConsistencyEvaluation = {
   summary: string;
 };
 
+export type CalibratedQualitySignalKey =
+  | "legacy_critique"
+  | "creative_quality"
+  | "sacred_consistency"
+  | "runtime_preview"
+  | "refinement_pressure"
+  | "grounding";
+
+export type CalibratedQualitySignal = {
+  key: CalibratedQualitySignalKey;
+  label: string;
+  score: number;
+  weight: number;
+  rationale: string;
+};
+
+export type CalibratedQualityDecisionBand =
+  | "strong_candidate"
+  | "usable_candidate"
+  | "needs_refinement"
+  | "high_risk";
+
+export type CalibratedQualityEvaluation = {
+  score: number;
+  legacyScore: number;
+  decisionBand: CalibratedQualityDecisionBand;
+  confidence: "high" | "medium" | "low";
+  signals: CalibratedQualitySignal[];
+  adjustments: string[];
+  rationale: string;
+  summary: string;
+};
+
 export type ArtifactCritique = {
   artifactId: string;
   artifactTitle: string;
@@ -287,6 +320,8 @@ export type ArtifactCritique = {
   domainAppropriateness: ArtifactCritiqueDimension;
   creativeEvaluation?: CreativeQualityEvaluation | null;
   sacredConsistency?: SacredConsistencyEvaluation | null;
+  calibratedQuality?: CalibratedQualityEvaluation | null;
+  legacyRank?: number | null;
   reasons: string[];
   rationale: string;
   refinementGuidance: string | null;

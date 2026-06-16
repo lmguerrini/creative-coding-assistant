@@ -172,6 +172,7 @@ import { buildZipArchive, downloadZipArchive } from "@/lib/zip-archive";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
 import { AudioReactiveMappingSummaryCard } from "./audio-reactive-mapping-summary";
 import { ArtifactRefinementPanel } from "./artifact-refinement-panel";
+import { CalibratedQualitySummary } from "./calibrated-quality-summary";
 import { CreativeCostIntelligenceDashboard } from "./creative-cost-intelligence-dashboard";
 import { CreativeQualityCriticSummary } from "./creative-quality-critic-summary";
 import { CreativeTranslationSummaryCard } from "./creative-translation-summary";
@@ -4820,6 +4821,9 @@ function ArtifactCritiqueSummaryCard({
           <span key={label}>{`${label} ${formatQualityScore(score)}`}</span>
         ))}
       </div>
+      <CalibratedQualitySummary
+        evaluation={critique.calibratedQuality}
+      />
       <CreativeQualityCriticSummary
         evaluation={critique.creativeEvaluation}
       />

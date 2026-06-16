@@ -2708,6 +2708,36 @@ describe("WorkstationShell", () => {
                   refinementOpportunities: [],
                   summary: "Checked 2 symbolic/geometric metadata cues."
                 },
+                calibratedQuality: {
+                  score: 0.86,
+                  legacyScore: 0.93,
+                  decisionBand: "strong_candidate",
+                  confidence: "medium",
+                  signals: [
+                    {
+                      key: "legacy_critique",
+                      label: "Legacy critique",
+                      score: 0.93,
+                      weight: 0.34,
+                      rationale:
+                        "Existing weighted artifact critique score is preserved."
+                    },
+                    {
+                      key: "runtime_preview",
+                      label: "Runtime and preview",
+                      score: 1,
+                      weight: 0.18,
+                      rationale:
+                        "Runtime suitability and preview readiness are aligned."
+                    }
+                  ],
+                  adjustments: [],
+                  rationale:
+                    "strong candidate at 0.86; legacy score 0.93. No conservative caps were required.",
+                  summary:
+                    "Calibrated decision-support score 0.86 from 2 available signal(s). This is bounded guidance, not an objective measure of artistic quality."
+                },
+                legacyRank: 1,
                 reasons: [],
                 rationale: "aurora-field.p5.js is the recommended candidate.",
                 refinementGuidance: null
@@ -2752,6 +2782,16 @@ describe("WorkstationShell", () => {
         "5 of 5 creative dimensions are strong."
       )
     ).toBeVisible();
+    expect(
+      within(qualitySummary).getByRole("region", {
+        name: "Calibrated quality summary"
+      })
+    ).toHaveTextContent("Strong candidate");
+    expect(
+      within(qualitySummary).getByRole("region", {
+        name: "Calibrated quality summary"
+      })
+    ).toHaveTextContent("Legacy score");
     expect(
       within(qualitySummary).getByRole("region", {
         name: "Sacred consistency evaluator"
