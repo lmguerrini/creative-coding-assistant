@@ -10,6 +10,9 @@ _CREATIVE_TRANSLATION = (
 )
 _AUDIO_REACTIVE = "creative_coding_assistant.orchestration.audio_reactive"
 _CREATIVE_QUALITY = "creative_coding_assistant.orchestration.creative_quality"
+_SACRED_CONSISTENCY = (
+    "creative_coding_assistant.orchestration.sacred_consistency"
+)
 _SACRED_GEOMETRY = "creative_coding_assistant.orchestration.sacred_geometry"
 _SHADER_PRESETS = "creative_coding_assistant.orchestration.shader_presets"
 _VISUAL_STYLES = "creative_coding_assistant.orchestration.visual_styles"
@@ -50,6 +53,8 @@ _EXPORT_MAP = {
     "CreativeQualityEvaluation": _ARTIFACTS,
     "CreativeQualityObservation": _ARTIFACTS,
     "CreativeTranslation": _CREATIVE_TRANSLATION,
+    "SacredConsistencyEvaluation": _ARTIFACTS,
+    "SacredConsistencyObservation": _ARTIFACTS,
     "SacredGeometryGuidance": _SACRED_GEOMETRY,
     "ShaderPresetGuidance": _SHADER_PRESETS,
     "ShaderPresetId": _SHADER_PRESETS,
@@ -124,6 +129,7 @@ _EXPORT_MAP = {
     "audio_reactive_prompt_lines": _AUDIO_REACTIVE,
     "derive_audio_reactive_guidance": _AUDIO_REACTIVE,
     "derive_creative_translation": _CREATIVE_TRANSLATION,
+    "evaluate_artifact_sacred_consistency": _SACRED_CONSISTENCY,
     "evaluate_artifact_creative_quality": _CREATIVE_QUALITY,
     "derive_sacred_geometry_guidance": _SACRED_GEOMETRY,
     "detect_sacred_geometry_concepts": _SACRED_GEOMETRY,

@@ -61,6 +61,7 @@ class CreativeQualityTests(unittest.TestCase):
         )
 
         self.assertIsNone(critique.creative_evaluation)
+        self.assertIsNone(critique.sacred_consistency)
 
 
 def _strong_artifact() -> WorkflowArtifact:

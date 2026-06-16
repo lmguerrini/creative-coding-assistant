@@ -85,6 +85,35 @@ class CreativeQualityEvaluation(BaseModel):
     summary: str = Field(min_length=1, max_length=360)
 
 
+class SacredConsistencyObservation(BaseModel):
+    """One bounded symbolic/geometric consistency observation."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    score: float = Field(ge=0.0, le=1.0)
+    level: Literal["aligned", "partial", "unsupported"]
+    observation: str = Field(min_length=1, max_length=280)
+    evidence: tuple[str, ...] = Field(default_factory=tuple, max_length=5)
+
+
+class SacredConsistencyEvaluation(BaseModel):
+    """Structured sacred-geometry consistency feedback for artifact critiques."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    overall_score: float = Field(ge=0.0, le=1.0)
+    alignment: SacredConsistencyObservation
+    motif_consistency: SacredConsistencyObservation
+    modality_coherence: SacredConsistencyObservation
+    claim_safety: SacredConsistencyObservation
+    strengths: tuple[str, ...] = Field(default_factory=tuple, max_length=3)
+    refinement_opportunities: tuple[str, ...] = Field(
+        default_factory=tuple,
+        max_length=5,
+    )
+    summary: str = Field(min_length=1, max_length=360)
+
+
 class WorkflowArtifactCritique(BaseModel):
     """Per-artifact critique metadata used for ranking and refinement guidance."""
 
@@ -104,6 +133,7 @@ class WorkflowArtifactCritique(BaseModel):
     preview_readiness: ArtifactCritiqueDimension
     domain_appropriateness: ArtifactCritiqueDimension
     creative_evaluation: CreativeQualityEvaluation | None = None
+    sacred_consistency: SacredConsistencyEvaluation | None = None
     reasons: tuple[str, ...] = ()
     rationale: str = Field(min_length=1)
     refinement_guidance: str | None = None
@@ -409,7 +439,11 @@ def _to_artifact_record(
             title=artifact.title,
             summary=artifact.summary,
             tags=_artifact_tags(artifact),
-            domain=_artifact_domain_enum(artifact) or route_decision.domain or request.domain,
+            domain=(
+                _artifact_domain_enum(artifact)
+                or route_decision.domain
+                or request.domain
+            ),
             language=artifact.source_language,
             extra={
                 "content_hash": artifact.content_hash,
@@ -532,7 +566,11 @@ def _infer_artifact_domain(
             is_previewable_generation_domain(domain) for domain in route_domains
         ):
             return route_domains[min(source_order - 1, len(route_domains) - 1)]
-        if runtime == "three" and _looks_like_react_three_fiber(content, language, title):
+        if runtime == "three" and _looks_like_react_three_fiber(
+            content,
+            language,
+            title,
+        ):
             return CreativeCodingDomain.REACT_THREE_FIBER
         return runtime_domains[0]
 
@@ -639,7 +677,7 @@ def _default_artifact_title(
 
 def _workflow_run_id(request: AssistantRequest) -> str:
     raw = request.conversation_id or request.project_id or "assistant-workflow"
-    digest = sha256(f"{raw}:{request.query}".encode("utf-8")).hexdigest()[:12]
+    digest = sha256(f"{raw}:{request.query}".encode()).hexdigest()[:12]
     return f"workflow-{digest}"
 
 
