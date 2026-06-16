@@ -11,6 +11,7 @@ from creative_coding_assistant.contracts import AssistantRequest, CreativeCoding
 from creative_coding_assistant.orchestration.artifacts import (
     ArtifactCritiqueDimension,
     CreativeQualityEvaluation,
+    SacredConsistencyEvaluation,
     WorkflowArtifact,
     WorkflowArtifactCritique,
 )
@@ -22,6 +23,9 @@ from creative_coding_assistant.orchestration.domain_generation import (
     is_previewable_generation_domain,
 )
 from creative_coding_assistant.orchestration.routing import RouteDecision
+from creative_coding_assistant.orchestration.sacred_consistency import (
+    evaluate_artifact_sacred_consistency,
+)
 from creative_coding_assistant.preview import PreviewResult
 
 ARTIFACT_CRITIQUE_PASS_THRESHOLD = 0.68
@@ -122,12 +126,19 @@ def critique_workflow_artifacts(
         critique_by_id[artifact.id]
         for artifact in sorted(annotated, key=lambda item: item.quality_rank or 999)
     )
-    failed_critiques = tuple(critique for critique in ordered_critiques if not critique.passed)
+    failed_critiques = tuple(
+        critique for critique in ordered_critiques if not critique.passed
+    )
     recommended_artifact = (
         _artifact_by_id(annotated, recommended_id) if recommended_id else annotated[0]
     )
-    refinement_required = recommended_artifact.critique is not None and not recommended_artifact.critique.passed
-    refinement_reasons = recommended_artifact.critique.reasons if refinement_required else ()
+    refinement_required = (
+        recommended_artifact.critique is not None
+        and not recommended_artifact.critique.passed
+    )
+    refinement_reasons = (
+        recommended_artifact.critique.reasons if refinement_required else ()
+    )
     refinement_guidance = (
         recommended_artifact.critique.refinement_guidance
         if refinement_required and recommended_artifact.critique is not None
@@ -139,7 +150,10 @@ def critique_workflow_artifacts(
         critiques=ordered_critiques,
         recommended_artifact_id=recommended_artifact.id,
         recommended_artifact_title=recommended_artifact.title,
-        average_score=round(mean(critique.overall_score for critique in ordered_critiques), 3),
+        average_score=round(
+            mean(critique.overall_score for critique in ordered_critiques),
+            3,
+        ),
         failed_artifact_count=len(failed_critiques),
         refinement_required=refinement_required,
         refinement_reasons=refinement_reasons,
@@ -155,6 +169,7 @@ def _score_artifact(
     preview_artifact_ids: set[str],
 ) -> WorkflowArtifactCritique:
     creative_evaluation = evaluate_artifact_creative_quality(artifact)
+    sacred_consistency = evaluate_artifact_sacred_consistency(artifact)
     dimensions = {
         "prompt_alignment": _score_prompt_alignment(artifact, request),
         "creative_quality": _dimension(
@@ -180,7 +195,11 @@ def _score_artifact(
         ),
         3,
     )
-    reasons = _critique_reasons(dimensions, overall)
+    reasons = _critique_reasons(
+        dimensions,
+        overall,
+        sacred_consistency=sacred_consistency,
+    )
     passed = overall >= ARTIFACT_CRITIQUE_PASS_THRESHOLD and not reasons
 
     return WorkflowArtifactCritique(
@@ -197,6 +216,7 @@ def _score_artifact(
         preview_readiness=dimensions["preview_readiness"],
         domain_appropriateness=dimensions["domain_appropriateness"],
         creative_evaluation=creative_evaluation,
+        sacred_consistency=sacred_consistency,
         reasons=reasons,
         rationale=_critique_rationale(
             artifact,
@@ -208,6 +228,7 @@ def _score_artifact(
             artifact,
             reasons,
             creative_evaluation,
+            sacred_consistency,
         ),
     )
 
@@ -239,10 +260,19 @@ def _score_prompt_alignment(
 
 def _score_runtime_suitability(artifact: WorkflowArtifact) -> ArtifactCritiqueDimension:
     if artifact.runtime and artifact.renderer_id:
-        return _dimension(1.0, f"{artifact.runtime} runtime maps to {artifact.renderer_id}.")
+        return _dimension(
+            1.0,
+            f"{artifact.runtime} runtime maps to {artifact.renderer_id}.",
+        )
     if artifact.preview_target:
-        return _dimension(0.72, "Preview target metadata exists without an executable renderer match.")
-    return _dimension(0.45, "No preview runtime or target metadata matched this artifact.")
+        return _dimension(
+            0.72,
+            "Preview target metadata exists without an executable renderer match.",
+        )
+    return _dimension(
+        0.45,
+        "No preview runtime or target metadata matched this artifact.",
+    )
 
 
 def _score_code_quality(artifact: WorkflowArtifact) -> ArtifactCritiqueDimension:
@@ -264,7 +294,10 @@ def _score_preview_readiness(
     if artifact.id in preview_artifact_ids:
         return _dimension(1.0, "Preview preparation succeeded for this artifact.")
     if artifact.preview_eligible:
-        return _dimension(0.72, "Preview eligible, but no prepared preview result was observed.")
+        return _dimension(
+            0.72,
+            "Preview eligible, but no prepared preview result was observed.",
+        )
     return _dimension(0.32, "Artifact is inspectable as code but not previewable.")
 
 
@@ -275,7 +308,10 @@ def _score_domain_appropriateness(
     artifact_domain = _artifact_domain(artifact)
     if not domains:
         if artifact_domain is None:
-            return _dimension(0.75, "No domain was selected, so artifact domain fit is neutral.")
+            return _dimension(
+                0.75,
+                "No domain was selected, so artifact domain fit is neutral.",
+            )
         return _dimension(0.78, f"Artifact declares domain {artifact_domain.value}.")
 
     if artifact_domain in domains:
@@ -284,20 +320,35 @@ def _score_domain_appropriateness(
             if artifact.preview_eligible:
                 return _dimension(
                     0.48,
-                    f"{artifact_domain.value} is code-only here, but the artifact claims preview readiness.",
+                    (
+                        f"{artifact_domain.value} is code-only here, but the "
+                        "artifact claims preview readiness."
+                    ),
                 )
             return _dimension(
                 0.88,
-                f"{artifact_domain.value} matches the requested domain and is correctly code-only.",
+                (
+                    f"{artifact_domain.value} matches the requested domain and "
+                    "is correctly code-only."
+                ),
             )
-        if artifact.runtime == support.runtime and artifact.renderer_id == support.renderer_id:
+        if (
+            artifact.runtime == support.runtime
+            and artifact.renderer_id == support.renderer_id
+        ):
             return _dimension(
                 1.0,
-                f"{artifact.runtime} runtime matches requested domain {artifact_domain.value}.",
+                (
+                    f"{artifact.runtime} runtime matches requested domain "
+                    f"{artifact_domain.value}."
+                ),
             )
         return _dimension(
             0.55,
-            f"{artifact_domain.value} matches the requested domain, but runtime metadata is incomplete.",
+            (
+                f"{artifact_domain.value} matches the requested domain, but "
+                "runtime metadata is incomplete."
+            ),
         )
 
     for domain in domains:
@@ -305,10 +356,15 @@ def _score_domain_appropriateness(
         if support is not None and artifact.runtime == support.runtime:
             return _dimension(
                 0.74,
-                f"{artifact.runtime} runtime fits {domain.value}, but artifact domain metadata differs.",
+                (
+                    f"{artifact.runtime} runtime fits {domain.value}, but "
+                    "artifact domain metadata differs."
+                ),
             )
 
-    if artifact.preview_eligible and any(is_previewable_generation_domain(domain) for domain in domains):
+    if artifact.preview_eligible and any(
+        is_previewable_generation_domain(domain) for domain in domains
+    ):
         return _dimension(
             0.58,
             "Previewable artifact does not directly match the requested domain set.",
@@ -319,6 +375,8 @@ def _score_domain_appropriateness(
 def _critique_reasons(
     dimensions: dict[str, ArtifactCritiqueDimension],
     overall: float,
+    *,
+    sacred_consistency: SacredConsistencyEvaluation | None = None,
 ) -> tuple[str, ...]:
     reasons = [
         name
@@ -327,6 +385,16 @@ def _critique_reasons(
     ]
     if overall < ARTIFACT_CRITIQUE_PASS_THRESHOLD:
         reasons.append("overall_quality_below_threshold")
+    if sacred_consistency is not None:
+        if sacred_consistency.claim_safety.level == "unsupported":
+            reasons.append("sacred_claim_safety")
+        if (
+            sacred_consistency.overall_score < 0.55
+            or sacred_consistency.alignment.level == "unsupported"
+            or sacred_consistency.motif_consistency.level == "unsupported"
+            or sacred_consistency.modality_coherence.level == "unsupported"
+        ):
+            reasons.append("sacred_consistency")
     return tuple(reasons)
 
 
@@ -351,6 +419,7 @@ def _refinement_guidance(
     artifact: WorkflowArtifact,
     reasons: tuple[str, ...],
     creative_evaluation: CreativeQualityEvaluation,
+    sacred_consistency: SacredConsistencyEvaluation | None,
 ) -> str | None:
     if not reasons:
         return None
@@ -362,10 +431,20 @@ def _refinement_guidance(
         if creative_focus
         else ""
     )
+    sacred_focus = (
+        " ".join(sacred_consistency.refinement_opportunities[:3])
+        if sacred_consistency is not None
+        else ""
+    )
+    sacred_guidance = (
+        f" Sacred focus: {sacred_focus}"
+        if sacred_focus
+        else ""
+    )
     return (
         f"Revise {artifact.title}: address {', '.join(reasons)}, preserve the "
         "original brief, and return a complete runnable artifact when applicable."
-        f"{creative_guidance}"
+        f"{creative_guidance}{sacred_guidance}"
     )
 
 
@@ -379,11 +458,15 @@ def _dimension(score: float, rationale: str) -> ArtifactCritiqueDimension:
 def _query_matches_runtime(query_tokens: set[str], runtime: str | None) -> bool:
     normalized_tokens = {token.strip(".,:;!?") for token in query_tokens}
     if runtime == "p5":
-        return bool(normalized_tokens.intersection({"p5", "p5.js", "sketch", "sketches"}))
+        return bool(
+            normalized_tokens.intersection({"p5", "p5.js", "sketch", "sketches"})
+        )
     if runtime == "three":
         return bool(normalized_tokens.intersection({"3d", "scene", "scenes", "three"}))
     if runtime == "glsl":
-        return bool(normalized_tokens.intersection({"fragment", "glsl", "shader", "shaders"}))
+        return bool(
+            normalized_tokens.intersection({"fragment", "glsl", "shader", "shaders"})
+        )
     return False
 
 

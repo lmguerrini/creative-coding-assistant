@@ -10,11 +10,16 @@ from creative_coding_assistant.orchestration.artifact_critique import (
     critique_workflow_artifacts,
 )
 from creative_coding_assistant.orchestration.artifacts import WorkflowArtifact
+from creative_coding_assistant.orchestration.creative_translation import (
+    derive_creative_translation,
+)
 from creative_coding_assistant.orchestration.routing import RouteDecision, RouteName
 
 
 class ArtifactCritiqueTests(unittest.TestCase):
-    def test_ranks_multi_artifact_candidates_and_marks_recommended_default(self) -> None:
+    def test_ranks_multi_artifact_candidates_and_marks_recommended_default(
+        self,
+    ) -> None:
         strong, weak = _strong_p5_artifact(), _weak_python_artifact()
 
         artifacts, summary = critique_workflow_artifacts(
@@ -26,7 +31,9 @@ class ArtifactCritiqueTests(unittest.TestCase):
             route_decision=_route_decision(CreativeCodingDomain.P5_JS),
         )
 
-        recommended = next(artifact for artifact in artifacts if artifact.is_recommended)
+        recommended = next(
+            artifact for artifact in artifacts if artifact.is_recommended
+        )
         rejected = next(artifact for artifact in artifacts if artifact.id == weak.id)
 
         self.assertEqual(summary.artifact_count, 2)
@@ -76,7 +83,9 @@ class ArtifactCritiqueTests(unittest.TestCase):
         )
         self.assertEqual(artifact.refinement_reason, summary.refinement_guidance)
 
-    def test_code_only_domain_fit_scores_unsupported_domain_without_preview(self) -> None:
+    def test_code_only_domain_fit_scores_unsupported_domain_without_preview(
+        self,
+    ) -> None:
         artifact = _weak_python_artifact().model_copy(
             update={
                 "id": "hydra-patch",
@@ -109,6 +118,64 @@ class ArtifactCritiqueTests(unittest.TestCase):
         self.assertIsNotNone(critique)
         self.assertEqual(critique.domain_appropriateness.score, 0.88)
         self.assertIn("correctly code-only", critique.domain_appropriateness.rationale)
+
+    def test_sacred_consistency_is_persisted_and_guides_refinement(self) -> None:
+        artifact = _strong_p5_artifact().model_copy(
+            update={
+                "id": "overclaiming-mandala",
+                "title": "Overclaiming Mandala",
+                "content": """
+const rings = [60, 120, 180];
+function setup() {
+  createCanvas(640, 640);
+}
+function draw() {
+  background(8);
+  translate(width / 2, height / 2);
+  // This sacred geometry activates chakra energy fields.
+  for (let ring of rings) {
+    for (let segment = 0; segment < 16; segment += 1) {
+      const angle = segment * TWO_PI / 16 + frameCount * 0.006;
+      const radius = ring + sin(frameCount * 0.01 + segment) * 8;
+      circle(cos(angle) * radius, sin(angle) * radius, 14);
+    }
+  }
+}
+""".strip(),
+                "summary": (
+                    "A mandala sketch that activates chakra energy fields while "
+                    "using radial symmetry."
+                ),
+                "creative_translation": derive_creative_translation(
+                    "Create a p5.js mandala with radial symmetry.",
+                    domains=(CreativeCodingDomain.P5_JS,),
+                ),
+            }
+        )
+
+        artifacts, summary = critique_workflow_artifacts(
+            (artifact,),
+            request=AssistantRequest(
+                query="Create a p5.js mandala with radial symmetry.",
+                domain=CreativeCodingDomain.P5_JS,
+            ),
+            route_decision=_route_decision(CreativeCodingDomain.P5_JS),
+        )
+
+        critique = artifacts[0].critique
+
+        self.assertTrue(summary.refinement_required)
+        self.assertIsNotNone(critique)
+        assert critique is not None
+        self.assertIsNotNone(critique.sacred_consistency)
+        assert critique.sacred_consistency is not None
+        self.assertEqual(critique.sacred_consistency.claim_safety.level, "unsupported")
+        self.assertIn("sacred_claim_safety", critique.reasons)
+        self.assertIn("Sacred focus:", critique.refinement_guidance or "")
+        self.assertIn(
+            "symbolic authority claims",
+            critique.refinement_guidance or "",
+        )
 
 
 def _route_decision(domain: CreativeCodingDomain) -> RouteDecision:
