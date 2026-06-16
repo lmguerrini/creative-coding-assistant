@@ -181,6 +181,7 @@ import { MultiPreviewComparisonWorkspace } from "./multi-preview-comparison-work
 import { ProviderObservabilityDeepDive } from "./provider-observability-deep-dive";
 import { RetrievalInspector } from "./retrieval-inspector";
 import { RuntimeConsoleInspector } from "./runtime-console-inspector";
+import { SacredConsistencySummary } from "./sacred-consistency-summary";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
 import { WorkflowTimelineExplorer } from "./workflow-timeline-explorer";
 
@@ -4821,6 +4822,9 @@ function ArtifactCritiqueSummaryCard({
       </div>
       <CreativeQualityCriticSummary
         evaluation={critique.creativeEvaluation}
+      />
+      <SacredConsistencySummary
+        evaluation={critique.sacredConsistency}
       />
     </section>
   );

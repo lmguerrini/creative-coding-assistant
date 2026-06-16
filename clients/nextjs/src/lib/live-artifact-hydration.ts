@@ -8,7 +8,10 @@ import type {
   CreativeQualityLevel,
   CreativeQualityObservation,
   PreviewSummary,
-  PreviewTargetId
+  PreviewTargetId,
+  SacredConsistencyEvaluation,
+  SacredConsistencyLevel,
+  SacredConsistencyObservation
 } from "./assistant-client";
 import type { AssistantStreamEvent } from "./assistant-stream";
 import { normalizeCreativeTranslation } from "./creative-translation";
@@ -946,6 +949,9 @@ function readArtifactCritique(value: unknown): ArtifactCritique | undefined {
     creativeEvaluation: readCreativeQualityEvaluation(
       record.creative_evaluation ?? record.creativeEvaluation
     ),
+    sacredConsistency: readSacredConsistencyEvaluation(
+      record.sacred_consistency ?? record.sacredConsistency
+    ),
     reasons: readStringList(record.reasons),
     rationale: readString(record.rationale) ?? "Artifact critique completed.",
     refinementGuidance:
@@ -953,6 +959,74 @@ function readArtifactCritique(value: unknown): ArtifactCritique | undefined {
       readString(record.refinementGuidance) ??
       null
   };
+}
+
+function readSacredConsistencyEvaluation(
+  value: unknown
+): SacredConsistencyEvaluation | null {
+  const record = isRecord(value) ? value : null;
+  const overallScore =
+    readNumber(record?.overall_score) ?? readNumber(record?.overallScore);
+  if (!record || overallScore === null) {
+    return null;
+  }
+
+  const alignment = readSacredConsistencyObservation(record.alignment);
+  const motifConsistency = readSacredConsistencyObservation(
+    record.motif_consistency ?? record.motifConsistency
+  );
+  const modalityCoherence = readSacredConsistencyObservation(
+    record.modality_coherence ?? record.modalityCoherence
+  );
+  const claimSafety = readSacredConsistencyObservation(
+    record.claim_safety ?? record.claimSafety
+  );
+  if (!alignment || !motifConsistency || !modalityCoherence || !claimSafety) {
+    return null;
+  }
+
+  return {
+    overallScore,
+    alignment,
+    motifConsistency,
+    modalityCoherence,
+    claimSafety,
+    strengths: readStringList(record.strengths),
+    refinementOpportunities: readStringList(
+      record.refinement_opportunities ?? record.refinementOpportunities
+    ),
+    summary:
+      readString(record.summary) ??
+      "Deterministic sacred-consistency evaluation completed."
+  };
+}
+
+function readSacredConsistencyObservation(
+  value: unknown
+): SacredConsistencyObservation | null {
+  const record = isRecord(value) ? value : null;
+  const score = readNumber(record?.score);
+  const observation = readString(record?.observation);
+  if (!record || score === null || !observation) {
+    return null;
+  }
+
+  return {
+    score,
+    level: readSacredConsistencyLevel(record.level, score),
+    observation,
+    evidence: readStringList(record.evidence)
+  };
+}
+
+function readSacredConsistencyLevel(
+  value: unknown,
+  score: number
+): SacredConsistencyLevel {
+  if (value === "aligned" || value === "partial" || value === "unsupported") {
+    return value;
+  }
+  return score >= 0.78 ? "aligned" : score >= 0.55 ? "partial" : "unsupported";
 }
 
 function readCreativeQualityEvaluation(

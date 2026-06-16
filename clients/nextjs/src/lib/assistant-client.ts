@@ -251,6 +251,26 @@ export type CreativeQualityEvaluation = {
   summary: string;
 };
 
+export type SacredConsistencyLevel = "aligned" | "partial" | "unsupported";
+
+export type SacredConsistencyObservation = {
+  score: number;
+  level: SacredConsistencyLevel;
+  observation: string;
+  evidence: string[];
+};
+
+export type SacredConsistencyEvaluation = {
+  overallScore: number;
+  alignment: SacredConsistencyObservation;
+  motifConsistency: SacredConsistencyObservation;
+  modalityCoherence: SacredConsistencyObservation;
+  claimSafety: SacredConsistencyObservation;
+  strengths: string[];
+  refinementOpportunities: string[];
+  summary: string;
+};
+
 export type ArtifactCritique = {
   artifactId: string;
   artifactTitle: string;
@@ -266,6 +286,7 @@ export type ArtifactCritique = {
   previewReadiness: ArtifactCritiqueDimension;
   domainAppropriateness: ArtifactCritiqueDimension;
   creativeEvaluation?: CreativeQualityEvaluation | null;
+  sacredConsistency?: SacredConsistencyEvaluation | null;
   reasons: string[];
   rationale: string;
   refinementGuidance: string | null;

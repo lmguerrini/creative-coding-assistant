@@ -344,6 +344,39 @@ describe("live artifact hydration", () => {
                 refinement_opportunities: [],
                 summary: "5 of 5 creative dimensions are strong."
               },
+              sacred_consistency: {
+                overall_score: 0.84,
+                alignment: {
+                  score: 0.86,
+                  level: "aligned",
+                  observation: "Matched mandala metadata cues.",
+                  evidence: ["marker: mandala"]
+                },
+                motif_consistency: {
+                  score: 0.83,
+                  level: "aligned",
+                  observation: "Detected radial geometry signals.",
+                  evidence: ["marker: radial"]
+                },
+                modality_coherence: {
+                  score: 0.78,
+                  level: "aligned",
+                  observation: "Detected visual and motion signals.",
+                  evidence: ["marker: canvas"]
+                },
+                claim_safety: {
+                  score: 0.9,
+                  level: "aligned",
+                  observation:
+                    "No unsupported symbolic authority markers were detected.",
+                  evidence: ["bounded design-motif language"]
+                },
+                strengths: [
+                  "Claim safety: No unsupported symbolic authority markers."
+                ],
+                refinement_opportunities: [],
+                summary: "Checked 2 symbolic/geometric metadata cues."
+              },
               reasons: [],
               rationale: "orbit-sketch.p5.js is the recommended candidate.",
               refinement_guidance: null
@@ -371,6 +404,18 @@ describe("live artifact hydration", () => {
         aestheticConsistency: {
           level: "strong",
           score: 0.86
+        },
+        refinementOpportunities: []
+      },
+      sacredConsistency: {
+        overallScore: 0.84,
+        motifConsistency: {
+          level: "aligned",
+          score: 0.83
+        },
+        claimSafety: {
+          level: "aligned",
+          score: 0.9
         },
         refinementOpportunities: []
       },

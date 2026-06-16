@@ -2675,6 +2675,39 @@ describe("WorkstationShell", () => {
                   refinementOpportunities: [],
                   summary: "5 of 5 creative dimensions are strong."
                 },
+                sacredConsistency: {
+                  overallScore: 0.84,
+                  alignment: {
+                    score: 0.86,
+                    level: "aligned",
+                    observation: "Matched mandala metadata cues.",
+                    evidence: ["marker: mandala"]
+                  },
+                  motifConsistency: {
+                    score: 0.83,
+                    level: "aligned",
+                    observation: "Detected radial geometry signals.",
+                    evidence: ["marker: radial"]
+                  },
+                  modalityCoherence: {
+                    score: 0.78,
+                    level: "aligned",
+                    observation: "Detected visual and motion signals.",
+                    evidence: ["marker: canvas"]
+                  },
+                  claimSafety: {
+                    score: 0.9,
+                    level: "aligned",
+                    observation:
+                      "No unsupported symbolic authority markers were detected.",
+                    evidence: ["bounded design-motif language"]
+                  },
+                  strengths: [
+                    "Claim safety: No unsupported symbolic authority markers."
+                  ],
+                  refinementOpportunities: [],
+                  summary: "Checked 2 symbolic/geometric metadata cues."
+                },
                 reasons: [],
                 rationale: "aurora-field.p5.js is the recommended candidate.",
                 refinementGuidance: null
@@ -2719,6 +2752,11 @@ describe("WorkstationShell", () => {
         "5 of 5 creative dimensions are strong."
       )
     ).toBeVisible();
+    expect(
+      within(qualitySummary).getByRole("region", {
+        name: "Sacred consistency evaluator"
+      })
+    ).toHaveTextContent("Claim safety");
     expect(
       within(artifactsPanel).getByText(/Rank #1 \/ Quality 93%/)
     ).toBeVisible();
