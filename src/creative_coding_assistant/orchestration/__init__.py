@@ -23,6 +23,9 @@ _GEN = "creative_coding_assistant.orchestration.generation"
 _MEM = "creative_coding_assistant.orchestration.memory"
 _PROMPT_INPUTS = "creative_coding_assistant.orchestration.prompt_inputs"
 _PROMPT_TEMPLATES = "creative_coding_assistant.orchestration.prompt_templates"
+_QUALITY_CALIBRATION = (
+    "creative_coding_assistant.orchestration.quality_calibration"
+)
 _RETRIEVAL = "creative_coding_assistant.orchestration.retrieval"
 _ROUTING = "creative_coding_assistant.orchestration.routing"
 _SERVICE = "creative_coding_assistant.orchestration.service"
@@ -49,6 +52,8 @@ _EXPORT_MAP = {
     "ChromaMemoryAdapter": _MEM,
     "ContextAssembler": _CTX,
     "ConversationSummaryContext": _MEM,
+    "CalibratedQualityEvaluation": _ARTIFACTS,
+    "CalibratedQualitySignal": _ARTIFACTS,
     "CreativeOutputModality": _CREATIVE_TRANSLATION,
     "CreativeQualityEvaluation": _ARTIFACTS,
     "CreativeQualityObservation": _ARTIFACTS,
@@ -116,6 +121,7 @@ _EXPORT_MAP = {
     "JinjaPromptRenderer": _PROMPT_TEMPLATES,
     "begin_assistant_workflow": _WORKFLOW,
     "build_assistant_workflow_graph": _WORKFLOW_GRAPH,
+    "calibrate_artifact_quality": _QUALITY_CALIBRATION,
     "build_initial_workflow_graph_state": _WORKFLOW_GRAPH,
     "build_assembled_context_request": _CTX,
     "build_memory_context_request": _MEM,

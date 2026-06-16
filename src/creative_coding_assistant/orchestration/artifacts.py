@@ -114,6 +114,48 @@ class SacredConsistencyEvaluation(BaseModel):
     summary: str = Field(min_length=1, max_length=360)
 
 
+class CalibratedQualitySignal(BaseModel):
+    """One normalized input to the calibrated artifact-quality score."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    key: Literal[
+        "legacy_critique",
+        "creative_quality",
+        "sacred_consistency",
+        "runtime_preview",
+        "refinement_pressure",
+        "grounding",
+    ]
+    label: str = Field(min_length=1, max_length=80)
+    score: float = Field(ge=0.0, le=1.0)
+    weight: float = Field(ge=0.0, le=1.0)
+    rationale: str = Field(min_length=1, max_length=240)
+
+
+class CalibratedQualityEvaluation(BaseModel):
+    """Conservative decision-support score composed from existing signals."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    score: float = Field(ge=0.0, le=1.0)
+    legacy_score: float = Field(ge=0.0, le=1.0)
+    decision_band: Literal[
+        "strong_candidate",
+        "usable_candidate",
+        "needs_refinement",
+        "high_risk",
+    ]
+    confidence: Literal["high", "medium", "low"]
+    signals: tuple[CalibratedQualitySignal, ...] = Field(
+        default_factory=tuple,
+        max_length=8,
+    )
+    adjustments: tuple[str, ...] = Field(default_factory=tuple, max_length=5)
+    rationale: str = Field(min_length=1, max_length=360)
+    summary: str = Field(min_length=1, max_length=360)
+
+
 class WorkflowArtifactCritique(BaseModel):
     """Per-artifact critique metadata used for ranking and refinement guidance."""
 
@@ -134,6 +176,8 @@ class WorkflowArtifactCritique(BaseModel):
     domain_appropriateness: ArtifactCritiqueDimension
     creative_evaluation: CreativeQualityEvaluation | None = None
     sacred_consistency: SacredConsistencyEvaluation | None = None
+    calibrated_quality: CalibratedQualityEvaluation | None = None
+    legacy_rank: int | None = Field(default=None, ge=1)
     reasons: tuple[str, ...] = ()
     rationale: str = Field(min_length=1)
     refinement_guidance: str | None = None
