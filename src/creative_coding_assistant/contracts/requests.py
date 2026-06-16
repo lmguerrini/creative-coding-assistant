@@ -129,6 +129,22 @@ class AssistantArtifactRefinement(BaseModel):
         le=1,
     )
     quality_rank: int | None = Field(default=None, alias="qualityRank", ge=1)
+    quality_before: float | None = Field(
+        default=None,
+        alias="qualityBefore",
+        ge=0,
+        le=1,
+    )
+    pass_number: int | None = Field(default=None, alias="passNumber", ge=1)
+    max_passes: int | None = Field(default=None, alias="maxPasses", ge=1, le=3)
+    refinement_objective: str | None = Field(
+        default=None,
+        alias="refinementObjective",
+    )
+    refinement_passes: tuple[dict[str, Any], ...] = Field(
+        default_factory=tuple,
+        alias="refinementPasses",
+    )
     critique_rationale: str | None = Field(default=None, alias="critiqueRationale")
     refinement_guidance: str | None = Field(
         default=None,

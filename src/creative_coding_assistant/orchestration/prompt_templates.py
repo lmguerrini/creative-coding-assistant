@@ -71,6 +71,15 @@ Selected Artifact Refinement:
 - Place the refined artifact in a fenced code block with an explicit filename.
 - Source artifact: {{ prompt_input.user_input.artifact_refinement.title }}
   ({{ prompt_input.user_input.artifact_refinement.artifact_id }})
+{% if prompt_input.user_input.artifact_refinement.pass_number -%}
+- Refinement pass: {{ prompt_input.user_input.artifact_refinement.pass_number }}
+  of {{ prompt_input.user_input.artifact_refinement.max_passes or 2 }}
+{% endif %}
+{% if prompt_input.user_input.artifact_refinement.refinement_objective -%}
+- Refinement objective: {{
+  prompt_input.user_input.artifact_refinement.refinement_objective
+}}
+{% endif %}
 {% endif %}
 {% if prompt_input.creative_translation is not none -%}
 Creative Translation:
@@ -122,16 +131,43 @@ Refinement Target:
 - Renderer: {{ prompt_input.user_input.artifact_refinement.renderer_id }}
 {% endif %}
 {% if prompt_input.user_input.artifact_refinement.quality_score is not none -%}
-- Quality Score: {{ '%.2f'|format(prompt_input.user_input.artifact_refinement.quality_score) }}
+- Quality Score: {{ '%.2f'|format(
+  prompt_input.user_input.artifact_refinement.quality_score
+) }}
 {% endif %}
 {% if prompt_input.user_input.artifact_refinement.quality_rank is not none -%}
 - Quality Rank: #{{ prompt_input.user_input.artifact_refinement.quality_rank }}
 {% endif %}
+{% if prompt_input.user_input.artifact_refinement.quality_before is not none -%}
+- Quality Before Pass: {{ '%.2f'|format(
+  prompt_input.user_input.artifact_refinement.quality_before
+) }}
+{% endif %}
+{% if prompt_input.user_input.artifact_refinement.pass_number -%}
+- Refinement Pass: {{ prompt_input.user_input.artifact_refinement.pass_number }}
+  of {{ prompt_input.user_input.artifact_refinement.max_passes or 2 }}
+{% endif %}
+{% if prompt_input.user_input.artifact_refinement.refinement_objective -%}
+- Refinement Objective: {{
+  prompt_input.user_input.artifact_refinement.refinement_objective
+}}
+{% endif %}
+{% if prompt_input.user_input.artifact_refinement.refinement_passes -%}
+- Prior Refinement Passes:
+{% for pass_record in prompt_input.user_input.artifact_refinement.refinement_passes -%}
+  - Pass {{ pass_record.pass_number or pass_record.passNumber }}:
+    {{ pass_record.stop_reason or pass_record.stopReason or "recorded" }}
+{% endfor %}
+{% endif %}
 {% if prompt_input.user_input.artifact_refinement.critique_rationale -%}
-- Critique Rationale: {{ prompt_input.user_input.artifact_refinement.critique_rationale }}
+- Critique Rationale: {{
+  prompt_input.user_input.artifact_refinement.critique_rationale
+}}
 {% endif %}
 {% if prompt_input.user_input.artifact_refinement.refinement_guidance -%}
-- Existing Refinement Guidance: {{ prompt_input.user_input.artifact_refinement.refinement_guidance }}
+- Existing Refinement Guidance: {{
+  prompt_input.user_input.artifact_refinement.refinement_guidance
+}}
 {% endif %}
 
 Selected Artifact Code:
@@ -475,14 +511,19 @@ def _generation_runtime_guidance_lines(
 ) -> tuple[str, ...]:
     if not user_input.effective_domains:
         return (
-            "When visual/runtime output is requested without an explicit domain, choose the smallest suitable supported runtime instead of defaulting blindly.",
-            "Current live preview support is limited to p5.js, GLSL, Three.js, and React Three Fiber.",
+            "When visual/runtime output is requested without an explicit domain, "
+            "choose the smallest suitable supported runtime instead of defaulting "
+            "blindly.",
+            "Current live preview support is limited to p5.js, GLSL, Three.js, "
+            "and React Three Fiber.",
         )
 
     guidance = list(domain_generation_guidance_lines(user_input.effective_domains))
     if user_input.domain_selection is DomainSelectionShape.MULTI:
         guidance.append(
-            "For multiple generated candidates, make each artifact meaningfully different by domain, runtime, or implementation strategy instead of changing only names or colors."
+            "For multiple generated candidates, make each artifact meaningfully "
+            "different by domain, runtime, or implementation strategy instead of "
+            "changing only names or colors."
         )
     return tuple(guidance)
 

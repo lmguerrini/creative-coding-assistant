@@ -108,7 +108,11 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertIn(StreamEventType.STATUS, event_types)
         self.assertIn(StreamEventType.REVIEW_PASSED, event_types)
 
-        request_status = _first_event(events, StreamEventType.STATUS, "request_received")
+        request_status = _first_event(
+            events,
+            StreamEventType.STATUS,
+            "request_received",
+        )
         routing_status = _first_event(events, StreamEventType.STATUS, "route_selected")
         review_passed = _first_event(events, StreamEventType.REVIEW_PASSED)
         final = events[-1]
@@ -205,8 +209,14 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         )
 
         self.assertEqual(generation_input.payload["code"], "generation_input_prepared")
-        self.assertEqual([event.payload["text"] for event in token_events], ["Graph ", "answer"])
-        self.assertEqual(generation_completed.payload["decision_reason"], "generation_completed")
+        self.assertEqual(
+            [event.payload["text"] for event in token_events],
+            ["Graph ", "answer"],
+        )
+        self.assertEqual(
+            generation_completed.payload["decision_reason"],
+            "generation_completed",
+        )
         self.assertEqual(events[-1].payload["answer"], "Graph answer")
 
     def test_stream_events_include_workflow_runtime_metadata(self) -> None:
@@ -401,7 +411,10 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             artifact_event.payload["workflow"]["step"],
             "artifact_extraction",
         )
-        self.assertEqual(preview_event.payload["artifact_id"], workflow_state.artifacts[0].id)
+        self.assertEqual(
+            preview_event.payload["artifact_id"],
+            workflow_state.artifacts[0].id,
+        )
         self.assertEqual(preview_event.payload["status"], "succeeded")
         self.assertEqual(
             preview_event.payload["result"]["request"]["target"],
@@ -417,7 +430,9 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             "succeeded",
         )
 
-    def test_generation_extracts_multiple_artifacts_with_selection_metadata(self) -> None:
+    def test_generation_extracts_multiple_artifacts_with_selection_metadata(
+        self,
+    ) -> None:
         graph = build_assistant_workflow_graph()
         answer = "\n".join(
             [
@@ -510,7 +525,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             workflow_state.artifact_critique_summary.recommended_artifact_id,
         )
 
-    def test_review_refinement_is_bounded_to_one_attempt(self) -> None:
+    def test_review_refinement_is_bounded_to_default_pass_limit(self) -> None:
         graph = build_assistant_workflow_graph()
         generation = _SequentialGeneration(
             "Still no fenced code.",
@@ -527,7 +542,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         )
 
         workflow_state = final_state["workflow_state"]
-        self.assertEqual(generation.calls, 2)
+        self.assertEqual(generation.calls, 3)
         self.assertEqual(workflow_state.status, WorkflowStatus.COMPLETED)
         self.assertEqual(
             workflow_state.final_answer,
@@ -541,7 +556,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             workflow_state.review_result.reasons,
             ("missing_code_block",),
         )
-        self.assertEqual(workflow_state.refinement_count, 1)
+        self.assertEqual(workflow_state.refinement_count, 2)
 
     def test_refinement_stream_exposes_review_retry_and_preview_events(self) -> None:
         graph = build_assistant_workflow_graph()
@@ -625,7 +640,10 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(retry_completed.payload["retry_count"], 1)
         self.assertEqual(retry_completed.payload["retry_status"], "passed")
         self.assertEqual(refinement_completed.payload["retry_count"], 1)
-        self.assertEqual(refinement_completed.payload["retry_reason"], "missing_code_block")
+        self.assertEqual(
+            refinement_completed.payload["retry_reason"],
+            "missing_code_block",
+        )
         self.assertEqual(
             review_transition.payload["decision_reason"],
             "review_failed_retry_available",

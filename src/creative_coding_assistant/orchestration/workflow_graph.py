@@ -21,6 +21,7 @@ from creative_coding_assistant.orchestration.artifact_critique import (
     critique_workflow_artifacts,
 )
 from creative_coding_assistant.orchestration.artifacts import (
+    RefinementPassRecord,
     WorkflowArtifactCritique,
     extract_workflow_artifacts,
     prepare_workflow_preview_results,
@@ -31,6 +32,13 @@ from creative_coding_assistant.orchestration.prompt_templates import (
     RenderedPromptRole,
     RenderedPromptSection,
     RenderedPromptSectionName,
+)
+from creative_coding_assistant.orchestration.refinement_passes import (
+    attach_refinement_history,
+    complete_latest_refinement_pass,
+    plan_next_refinement_pass,
+    select_refinement_source,
+    start_refinement_pass_record,
 )
 from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.workflow import (
@@ -736,6 +744,14 @@ def _artifact_critique_node(
             route_decision=_route_decision(workflow_state),
             preview_results=workflow_state.preview_results,
         )
+        refinement_passes = workflow_state.refinement_passes
+        if workflow_state.refinement_count > 0 and refinement_passes:
+            refinement_passes = complete_latest_refinement_pass(
+                pass_history=refinement_passes,
+                result_artifact=select_refinement_source(artifacts),
+                max_passes=MAX_WORKFLOW_REFINEMENT_COUNT,
+            )
+            artifacts = attach_refinement_history(artifacts, refinement_passes)
         for critique in critique_summary.critiques:
             _emit_artifact_scored(runtime_context, workflow_state, critique)
         _emit_artifact_recommendation(runtime_context, workflow_state, critique_summary)
@@ -762,6 +778,7 @@ def _artifact_critique_node(
                 ),
                 artifacts=artifacts,
                 artifact_critique_summary=critique_summary,
+                refinement_passes=refinement_passes,
             )
         }
     except Exception as exc:
@@ -798,7 +815,7 @@ def _review_node(
         )
         transition_target, decision_reason = _review_transition(
             review_result,
-            workflow_state.refinement_count,
+            workflow_state,
         )
         _emit_review_outcome(
             runtime_context,
@@ -807,7 +824,7 @@ def _review_node(
             transition_target=transition_target,
             decision_reason=decision_reason,
         )
-        if _review_requests_retry(review_result, workflow_state.refinement_count):
+        if _review_requests_retry(review_result, workflow_state):
             _emit_refinement_requested(
                 runtime_context,
                 workflow_state,
@@ -855,16 +872,34 @@ def _refinement_node(
         _workflow_state(state),
         runtime_context,
         WorkflowStep.REFINEMENT,
+        allow_reentry=True,
     )
     review_result = workflow_state.review_result
     try:
         if review_result is None:
             raise ValueError("Workflow review result is not available for refinement.")
 
+        pass_record: RefinementPassRecord | None = None
+        source_artifact = select_refinement_source(workflow_state.artifacts)
+        if source_artifact is not None:
+            decision = plan_next_refinement_pass(
+                source_artifact=source_artifact,
+                pass_history=workflow_state.refinement_passes,
+                max_passes=MAX_WORKFLOW_REFINEMENT_COUNT,
+            )
+            if not decision.should_continue:
+                raise ValueError(
+                    "Workflow refinement node entered after stop condition."
+                )
+            pass_record = start_refinement_pass_record(
+                source_artifact=source_artifact,
+                decision=decision,
+            )
         refined_prompt = _append_refinement_guidance(
             rendered_prompt=workflow_state.rendered_prompt,
             review_result=review_result,
             artifact_critique_summary=workflow_state.artifact_critique_summary,
+            refinement_pass=pass_record,
         )
         retry_count = workflow_state.refinement_count + 1
         _emit_refinement_completed(
@@ -882,6 +917,11 @@ def _refinement_node(
                 decision_reason="refinement_completed",
                 rendered_prompt=refined_prompt,
                 refinement_count=retry_count,
+                refinement_passes=(
+                    (*workflow_state.refinement_passes, pass_record)
+                    if pass_record is not None
+                    else workflow_state.refinement_passes
+                ),
             ),
             "generation_result": None,
         }
@@ -1042,10 +1082,7 @@ def _next_node_after_review(state: AssistantWorkflowGraphState) -> str:
     review_result = workflow_state.review_result
     if review_result is None:
         raise ValueError("Workflow review result is not available.")
-    if (
-        review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
-        and workflow_state.refinement_count < MAX_WORKFLOW_REFINEMENT_COUNT
-    ):
+    if _review_requests_retry(review_result, workflow_state):
         return "refinement"
     return "finalization"
 
@@ -1067,9 +1104,9 @@ def _next_node_or_failure(
 
 def _review_transition(
     review_result: WorkflowReviewResult,
-    refinement_count: int,
+    workflow_state: AssistantWorkflowState,
 ) -> tuple[str, str]:
-    if _review_requests_retry(review_result, refinement_count):
+    if _review_requests_retry(review_result, workflow_state):
         return WorkflowStep.REFINEMENT.value, "review_failed_retry_available"
     if review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT:
         return WorkflowStep.FINALIZATION.value, "review_failed_retry_limit_reached"
@@ -1078,11 +1115,23 @@ def _review_transition(
 
 def _review_requests_retry(
     review_result: WorkflowReviewResult,
-    refinement_count: int,
+    workflow_state: AssistantWorkflowState,
 ) -> bool:
+    source_artifact = select_refinement_source(workflow_state.artifacts)
+    if source_artifact is None:
+        return (
+            review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
+            and workflow_state.refinement_count < MAX_WORKFLOW_REFINEMENT_COUNT
+        )
+    decision = plan_next_refinement_pass(
+        source_artifact=source_artifact,
+        pass_history=workflow_state.refinement_passes,
+        max_passes=MAX_WORKFLOW_REFINEMENT_COUNT,
+    )
     return (
         review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
-        and refinement_count < MAX_WORKFLOW_REFINEMENT_COUNT
+        and workflow_state.refinement_count < MAX_WORKFLOW_REFINEMENT_COUNT
+        and decision.should_continue
     )
 
 
@@ -1504,14 +1553,30 @@ def _append_refinement_guidance(
     rendered_prompt: RenderedPromptResponse | None,
     review_result: WorkflowReviewResult,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
+    refinement_pass: RefinementPassRecord | None = None,
 ) -> RenderedPromptResponse | None:
     if rendered_prompt is None:
         return None
     reasons = ", ".join(review_result.reasons) or "quality gate did not pass"
     artifact_guidance = (
-        f"\n- Artifact critique guidance: {artifact_critique_summary.refinement_guidance}"
+        "\n- Artifact critique guidance: "
+        f"{artifact_critique_summary.refinement_guidance}"
         if artifact_critique_summary
         and artifact_critique_summary.refinement_guidance
+        else ""
+    )
+    pass_source = (
+        refinement_pass.source_artifact_title
+        or refinement_pass.source_artifact_id
+        if refinement_pass is not None
+        else None
+    )
+    pass_guidance = (
+        "\n"
+        f"- Refinement pass: {refinement_pass.pass_number}.\n"
+        f"- Source artifact: {pass_source}.\n"
+        f"- Pass objective: {refinement_pass.refinement_objective}"
+        if refinement_pass is not None
         else ""
     )
     refinement_section = RenderedPromptSection(
@@ -1523,6 +1588,7 @@ def _append_refinement_guidance(
             f"- Address review issue(s): {reasons}.\n"
             "- Preserve the original user request and existing context."
             f"{artifact_guidance}"
+            f"{pass_guidance}"
         ),
     )
     return rendered_prompt.model_copy(

@@ -11,8 +11,11 @@ from creative_coding_assistant.contracts import AssistantMode, AssistantRequest
 from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
+from creative_coding_assistant.orchestration.refinement_passes import (
+    DEFAULT_REFINEMENT_PASS_LIMIT,
+)
 
-MAX_WORKFLOW_REFINEMENT_COUNT = 1
+MAX_WORKFLOW_REFINEMENT_COUNT = DEFAULT_REFINEMENT_PASS_LIMIT
 
 _MIN_ANSWER_CHARS = 8
 _TOKEN_PATTERN = re.compile(r"[a-z0-9_.+#-]+")
@@ -174,7 +177,10 @@ def _score_review(
     artifact_critique_summary: ArtifactCritiqueSummary | None,
 ) -> float:
     answer_score = 1.0 if not reasons else max(0.0, 1.0 - (0.25 * len(reasons)))
-    if artifact_critique_summary is None or artifact_critique_summary.artifact_count == 0:
+    if (
+        artifact_critique_summary is None
+        or artifact_critique_summary.artifact_count == 0
+    ):
         return answer_score
     return round(min(answer_score, artifact_critique_summary.average_score), 3)
 
@@ -184,7 +190,10 @@ def _review_rationale(
     artifact_critique_summary: ArtifactCritiqueSummary | None,
 ) -> str:
     if not reasons:
-        if artifact_critique_summary and artifact_critique_summary.recommended_artifact_title:
+        if (
+            artifact_critique_summary
+            and artifact_critique_summary.recommended_artifact_title
+        ):
             return (
                 "Deterministic review passed; recommended artifact is "
                 f"{artifact_critique_summary.recommended_artifact_title}."

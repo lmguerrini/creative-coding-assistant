@@ -10,7 +10,10 @@ from creative_coding_assistant.contracts import AssistantRequest
 from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
-from creative_coding_assistant.orchestration.artifacts import WorkflowArtifact
+from creative_coding_assistant.orchestration.artifacts import (
+    RefinementPassRecord,
+    WorkflowArtifact,
+)
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
 from creative_coding_assistant.orchestration.memory import MemoryContextResponse
 from creative_coding_assistant.orchestration.prompt_inputs import PromptInputResponse
@@ -113,6 +116,7 @@ class AssistantWorkflowState(BaseModel):
     artifact_critique_summary: ArtifactCritiqueSummary | None = None
     review_result: WorkflowReviewResult | None = None
     refinement_count: int = 0
+    refinement_passes: tuple[RefinementPassRecord, ...] = ()
     failure_info: WorkflowFailureInfo | None = None
     final_answer: str | None = None
     error_message: str | None = None

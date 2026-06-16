@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Protocol, Self
+from typing import Any, Protocol, Self
 
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -62,6 +62,11 @@ class PromptArtifactRefinementInput(BaseModel):
     preview_eligible: bool | None = None
     quality_score: float | None = Field(default=None, ge=0, le=1)
     quality_rank: int | None = Field(default=None, ge=1)
+    quality_before: float | None = Field(default=None, ge=0, le=1)
+    pass_number: int | None = Field(default=None, ge=1)
+    max_passes: int | None = Field(default=None, ge=1, le=3)
+    refinement_objective: str | None = None
+    refinement_passes: tuple[dict[str, Any], ...] = Field(default_factory=tuple)
     critique_rationale: str | None = None
     refinement_guidance: str | None = None
     creative_translation: CreativeTranslation | None = None
@@ -400,6 +405,11 @@ def _build_artifact_refinement_input(
         preview_eligible=refinement.preview_eligible,
         quality_score=refinement.quality_score,
         quality_rank=refinement.quality_rank,
+        quality_before=refinement.quality_before,
+        pass_number=refinement.pass_number,
+        max_passes=refinement.max_passes,
+        refinement_objective=refinement.refinement_objective,
+        refinement_passes=refinement.refinement_passes,
         critique_rationale=refinement.critique_rationale,
         refinement_guidance=refinement.refinement_guidance,
         creative_translation=_parse_creative_translation(
