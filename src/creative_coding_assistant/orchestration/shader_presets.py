@@ -348,13 +348,13 @@ def detect_shader_presets(
     color_values = {value.lower() for value in color_material_direction}
     mood_values = {value.lower() for value in mood_atmosphere}
 
-    if "glass" in color_values:
+    if any("glass" in value for value in color_values):
         presets.append(ShaderPresetId.GLASS_CRYSTAL)
-    if "neon" in color_values:
+    if any("neon" in value for value in color_values):
         presets.append(ShaderPresetId.GLOW)
-    if "ethereal" in mood_values:
+    if any("ethereal" in value for value in mood_values):
         presets.append(ShaderPresetId.AURA)
-    if "ritual" in mood_values:
+    if any("ritual" in value for value in mood_values):
         presets.append(ShaderPresetId.SACRED_LIGHT)
 
     if sacred_geometry is not None:

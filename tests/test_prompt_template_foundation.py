@@ -129,7 +129,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             attachments=(
                 AssistantImageReference(
                     id="image-reference-1",
-                    name="palette.png",
+                    name="warm-neon-grid-glass.png",
                     mimeType="image/png",
                     sizeBytes=128,
                     dataUrl="data:image/png;base64,cGFsZXR0ZQ==",
@@ -161,12 +161,23 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             for section in response.sections
             if section.name is RenderedPromptSectionName.USER
         )
+        system_section = next(
+            section
+            for section in response.sections
+            if section.name is RenderedPromptSectionName.SYSTEM
+        )
         self.assertIn("Image References:", user_section.content)
         self.assertIn(
-            "- palette.png (image/png, 128 bytes, id: image-reference-1)",
+            (
+                "- warm-neon-grid-glass.png "
+                "(image/png, 128 bytes, id: image-reference-1)"
+            ),
             user_section.content,
         )
         self.assertNotIn("data:image/png", user_section.content)
+        self.assertIn("- Reference fusion summary:", system_section.content)
+        self.assertIn("- Reference palette direction:", system_section.content)
+        self.assertIn("Do not identify people", system_section.content)
 
     def test_jinja_prompt_renderer_includes_selected_artifact_refinement_context(
         self,

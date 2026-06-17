@@ -1,4 +1,5 @@
 import unittest
+from dataclasses import dataclass
 
 from creative_coding_assistant.contracts import (
     AssistantMode,
@@ -142,6 +143,14 @@ class DomainGenerationTests(unittest.TestCase):
         translation = derive_creative_translation(
             request.query,
             domains=decision.domains,
+            image_references=(
+                _ImageReference(
+                    id="image-reference-1",
+                    name="warm-neon-grid-glass-drift.png",
+                    mime_type="image/png",
+                    size_bytes=128,
+                ),
+            ),
         )
 
         artifacts = extract_workflow_artifacts(
@@ -162,11 +171,11 @@ class DomainGenerationTests(unittest.TestCase):
         self.assertEqual(artifacts[0].creative_translation, translation)
         self.assertEqual(
             artifacts[0].creative_translation.geometric_references,
-            ("spiral",),
+            ("spiral", "rectilinear grid"),
         )
         self.assertEqual(
             artifacts[0].creative_translation.movement_language,
-            ("drift",),
+            ("drift", "slow drifting motion"),
         )
         self.assertIsNotNone(
             artifacts[0].creative_translation.sacred_geometry
@@ -183,7 +192,7 @@ class DomainGenerationTests(unittest.TestCase):
         assert shader_presets is not None
         self.assertEqual(
             [preset.value for preset in shader_presets.presets],
-            ["glow"],
+            ["glow", "glass / crystal"],
         )
         self.assertIsNotNone(artifacts[0].creative_translation.visual_style)
         visual_style = artifacts[0].creative_translation.visual_style
@@ -213,13 +222,25 @@ class DomainGenerationTests(unittest.TestCase):
             preview_results[0].details["artifact"]["creative_translation"][
                 "shader_presets"
             ]["presets"],
-            ["glow"],
+            ["glow", "glass / crystal"],
         )
         self.assertEqual(
             preview_results[0].details["artifact"]["creative_translation"][
                 "visual_style"
             ]["styles"],
             ["sacred geometry"],
+        )
+        self.assertEqual(
+            preview_results[0].details["artifact"]["creative_translation"][
+                "reference_fusion"
+            ]["source_count"],
+            1,
+        )
+        self.assertIn(
+            "warm palette bias",
+            preview_results[0].details["artifact"]["creative_translation"][
+                "reference_fusion"
+            ]["palette_direction"],
         )
 
     def test_artifacts_preserve_audio_reactive_mapping_metadata(self) -> None:
@@ -303,3 +324,11 @@ class DomainGenerationTests(unittest.TestCase):
             system_section,
         )
         self.assertIn("Prefer a .r3f.tsx artifact name", system_section)
+
+
+@dataclass(frozen=True)
+class _ImageReference:
+    id: str
+    name: str
+    mime_type: str
+    size_bytes: int

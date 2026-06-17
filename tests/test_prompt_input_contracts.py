@@ -582,6 +582,12 @@ class PromptInputContractsTests(unittest.TestCase):
                 ),
             ),
         )
+        self.assertIsNotNone(response.creative_translation.reference_fusion)
+        assert response.creative_translation.reference_fusion is not None
+        self.assertEqual(
+            response.creative_translation.reference_fusion.source_count,
+            1,
+        )
 
     def test_prompt_input_builder_preserves_multi_domain_selection(self) -> None:
         builder = StructuredPromptInputBuilder()

@@ -309,6 +309,7 @@ class StructuredPromptInputBuilder:
                     else None
                 ),
                 has_image_references=bool(user_input.image_references),
+                image_references=user_input.image_references,
                 base_translation=(
                     user_input.artifact_refinement.creative_translation
                     if user_input.artifact_refinement is not None

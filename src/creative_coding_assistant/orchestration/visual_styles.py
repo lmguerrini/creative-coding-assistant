@@ -415,13 +415,19 @@ def detect_visual_styles(
     styles = [style for style, pattern in _STYLE_PATTERNS if pattern.search(normalized)]
 
     for mood in mood_atmosphere:
-        style = _MOOD_STYLE_MAP.get(mood.lower())
-        if style is not None:
-            styles.append(style)
+        normalized_mood = mood.lower()
+        styles.extend(
+            style
+            for token, style in _MOOD_STYLE_MAP.items()
+            if token in normalized_mood
+        )
     for color in color_material_direction:
-        style = _COLOR_STYLE_MAP.get(color.lower())
-        if style is not None:
-            styles.append(style)
+        normalized_color = color.lower()
+        styles.extend(
+            style
+            for token, style in _COLOR_STYLE_MAP.items()
+            if token in normalized_color
+        )
 
     if sacred_geometry is not None:
         styles.append(VisualStyleId.SACRED_GEOMETRY)

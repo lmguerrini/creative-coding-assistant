@@ -15,6 +15,12 @@ from creative_coding_assistant.orchestration.audio_reactive import (
     audio_reactivity_is_explicitly_disabled,
     derive_audio_reactive_guidance,
 )
+from creative_coding_assistant.orchestration.reference_fusion import (
+    ReferenceFusionGuidance,
+    ReferenceImageMetadata,
+    derive_reference_fusion_guidance,
+    reference_fusion_prompt_lines,
+)
 from creative_coding_assistant.orchestration.sacred_geometry import (
     SacredGeometryGuidance,
     derive_sacred_geometry_guidance,
@@ -69,6 +75,7 @@ class CreativeTranslation(BaseModel):
     shader_presets: ShaderPresetGuidance | None = None
     visual_style: VisualStyleGuidance | None = None
     audio_reactive: AudioReactiveGuidance | None = None
+    reference_fusion: ReferenceFusionGuidance | None = None
 
 
 _AUDIO_DOMAINS = frozenset(
@@ -252,6 +259,7 @@ def derive_creative_translation(
     domains: Sequence[CreativeCodingDomain] = (),
     selected_runtime: str | None = None,
     has_image_references: bool = False,
+    image_references: Sequence[ReferenceImageMetadata] = (),
     base_translation: CreativeTranslation | None = None,
     artifact_content: str | None = None,
     refinement_instruction: str | None = None,
@@ -284,8 +292,29 @@ def derive_creative_translation(
         CreativeOutputModality.AUDIOVISUAL,
     }:
         constraints.append("Require explicit user interaction before audio playback")
-    if has_image_references:
+    reference_fusion = derive_reference_fusion_guidance(image_references)
+    if has_image_references or reference_fusion is not None:
         constraints.append("Use supplied image references for visual direction")
+    if reference_fusion is not None:
+        constraints.extend(reference_fusion.safety_constraints)
+    effective_mood = _merge_text(
+        mood,
+        reference_fusion.mood_atmosphere if reference_fusion else (),
+    )
+    effective_movement = _merge_text(
+        movement,
+        reference_fusion.motion_implications if reference_fusion else (),
+    )
+    effective_color_material = _merge_text(
+        color_material,
+        reference_fusion.palette_direction if reference_fusion else (),
+        reference_fusion.texture_material_cues if reference_fusion else (),
+        reference_fusion.lighting_contrast if reference_fusion else (),
+    )
+    effective_geometric = _merge_text(
+        geometric,
+        reference_fusion.geometric_structure if reference_fusion else (),
+    )
 
     sacred_geometry = derive_sacred_geometry_guidance(
         query,
@@ -299,8 +328,8 @@ def derive_creative_translation(
     shader_presets = derive_shader_preset_guidance(
         query,
         output_modality=modality.value if modality is not None else None,
-        mood_atmosphere=mood,
-        color_material_direction=color_material,
+        mood_atmosphere=effective_mood,
+        color_material_direction=effective_color_material,
         runtime_recommendations=runtimes,
         selected_runtime=selected_runtime,
         sacred_geometry=sacred_geometry,
@@ -313,8 +342,8 @@ def derive_creative_translation(
     visual_style = derive_visual_style_guidance(
         query,
         output_modality=modality.value if modality is not None else None,
-        mood_atmosphere=mood,
-        color_material_direction=color_material,
+        mood_atmosphere=effective_mood,
+        color_material_direction=effective_color_material,
         runtime_recommendations=runtimes,
         selected_runtime=selected_runtime,
         sacred_geometry=sacred_geometry,
@@ -342,7 +371,7 @@ def derive_creative_translation(
             base_translation.musical_references if base_translation else (),
         ),
         movement_language=_merge_text(
-            movement,
+            effective_movement,
             base_translation.movement_language if base_translation else (),
         ),
         runtime_recommendations=effective_runtimes,
@@ -362,27 +391,30 @@ def derive_creative_translation(
         output_modality=modality,
         creative_intent=_truncate_text(query, 280),
         symbolic_references=symbolic,
-        geometric_references=geometric,
+        geometric_references=effective_geometric,
         musical_references=musical,
-        mood_atmosphere=mood,
-        movement_language=movement,
-        color_material_direction=color_material,
+        mood_atmosphere=effective_mood,
+        movement_language=effective_movement,
+        color_material_direction=effective_color_material,
         runtime_recommendations=runtimes,
         structure_direction=_structure_direction(
             modality=modality,
-            geometric=geometric,
+            geometric=effective_geometric,
             musical=musical,
+            reference_fusion=reference_fusion,
         ),
         generation_constraints=_dedupe_text(constraints),
         refinement_targets=_refinement_targets(
-            mood=mood,
-            movement=movement,
-            color_material=color_material,
+            mood=effective_mood,
+            movement=effective_movement,
+            color_material=effective_color_material,
+            reference_fusion=reference_fusion,
         ),
         sacred_geometry=sacred_geometry,
         shader_presets=shader_presets,
         visual_style=visual_style,
         audio_reactive=audio_reactive,
+        reference_fusion=reference_fusion,
     )
     if base_translation is None:
         return current
@@ -439,6 +471,8 @@ def creative_translation_prompt_lines(
         lines.extend(visual_style_prompt_lines(translation.visual_style))
     if translation.audio_reactive is not None:
         lines.extend(audio_reactive_prompt_lines(translation.audio_reactive))
+    if translation.reference_fusion is not None:
+        lines.extend(reference_fusion_prompt_lines(translation.reference_fusion))
     if translation.symbolic_references:
         lines.append(
             "Use symbolic references as requested motifs only; do not invent "
@@ -528,6 +562,7 @@ def _merge_refinement_translation(
             if audio_reactivity_is_explicitly_disabled(refinement_query)
             else current.audio_reactive or base.audio_reactive
         ),
+        reference_fusion=current.reference_fusion or base.reference_fusion,
     )
 
 
@@ -564,6 +599,7 @@ def _structure_direction(
     modality: CreativeOutputModality | None,
     geometric: tuple[str, ...],
     musical: tuple[str, ...],
+    reference_fusion: ReferenceFusionGuidance | None = None,
 ) -> tuple[str, ...]:
     direction: list[str] = []
     if geometric:
@@ -584,6 +620,11 @@ def _structure_direction(
         direction.append(
             "Coordinate visual changes with the requested musical structure."
         )
+    if reference_fusion is not None:
+        direction.extend(
+            "Reference composition cue: " + cue + "."
+            for cue in reference_fusion.composition[:3]
+        )
     return tuple(direction)
 
 
@@ -592,6 +633,7 @@ def _refinement_targets(
     mood: tuple[str, ...],
     movement: tuple[str, ...],
     color_material: tuple[str, ...],
+    reference_fusion: ReferenceFusionGuidance | None = None,
 ) -> tuple[str, ...]:
     targets: list[str] = []
     if mood:
@@ -602,6 +644,8 @@ def _refinement_targets(
         targets.append(
             "Preserve color and material direction: " + ", ".join(color_material)
         )
+    if reference_fusion is not None:
+        targets.append("Preserve reference fusion: " + reference_fusion.summary)
     return tuple(targets)
 
 

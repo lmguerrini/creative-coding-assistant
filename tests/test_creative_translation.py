@@ -1,4 +1,5 @@
 import unittest
+from dataclasses import dataclass
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.orchestration.creative_translation import (
@@ -115,6 +116,50 @@ class CreativeTranslationTests(unittest.TestCase):
         )
         self.assertIn("Visual style identities: monochrome", lines)
 
+    def test_derives_reference_fusion_from_image_reference_metadata(self) -> None:
+        translation = derive_creative_translation(
+            "Use the attached references for a shader study.",
+            domains=(CreativeCodingDomain.GLSL,),
+            image_references=(
+                _ImageReference(
+                    id="image-reference-1",
+                    name="warm-neon-grid-glass-drift.png",
+                    mime_type="image/png",
+                    size_bytes=128,
+                ),
+            ),
+        )
+
+        self.assertIsNotNone(translation.reference_fusion)
+        assert translation.reference_fusion is not None
+        self.assertIn("warm palette bias", translation.color_material_direction)
+        self.assertTrue(
+            any(
+                "grid-based spatial layout" in item
+                for item in translation.structure_direction
+            )
+        )
+        self.assertIn("slow drifting motion", translation.movement_language)
+        self.assertIsNotNone(translation.shader_presets)
+        assert translation.shader_presets is not None
+        self.assertEqual(
+            tuple(preset.value for preset in translation.shader_presets.presets),
+            ("glass / crystal", "glow"),
+        )
+        self.assertIn(
+            "Preserve reference fusion:",
+            " ".join(translation.refinement_targets),
+        )
+
+        lines = creative_translation_prompt_lines(translation)
+
+        self.assertTrue(
+            any(line.startswith("Reference fusion summary:") for line in lines)
+        )
+        self.assertTrue(
+            any("Do not identify people" in line for line in lines)
+        )
+
     def test_derives_shader_presets_from_translation_metadata(self) -> None:
         translation = derive_creative_translation(
             "Create an ethereal neon glass sculpture with slow glowing motion.",
@@ -153,6 +198,14 @@ class CreativeTranslationTests(unittest.TestCase):
                 CreativeCodingDomain.P5_JS,
                 CreativeCodingDomain.TONE_JS,
             ),
+            image_references=(
+                _ImageReference(
+                    id="image-reference-1",
+                    name="warm-neon-grid-glass-drift.png",
+                    mime_type="image/png",
+                    size_bytes=128,
+                ),
+            ),
         )
 
         refined = derive_creative_translation(
@@ -168,7 +221,10 @@ class CreativeTranslationTests(unittest.TestCase):
             CreativeOutputModality.AUDIOVISUAL,
         )
         self.assertEqual(refined.symbolic_references, ("mandala",))
-        self.assertEqual(refined.movement_language, ("drift", "pulse"))
+        self.assertEqual(
+            refined.movement_language,
+            ("drift", "slow drifting motion", "pulse"),
+        )
         self.assertEqual(
             refined.runtime_recommendations,
             ("p5.js", "Tone.js"),
@@ -176,8 +232,17 @@ class CreativeTranslationTests(unittest.TestCase):
         self.assertEqual(refined.sacred_geometry, base.sacred_geometry)
         self.assertEqual(refined.shader_presets, base.shader_presets)
         self.assertEqual(refined.visual_style, base.visual_style)
+        self.assertEqual(refined.reference_fusion, base.reference_fusion)
         self.assertIn("Current refinement:", refined.refinement_targets[-1])
         self.assertEqual(refined.audio_reactive, base.audio_reactive)
+
+
+@dataclass(frozen=True)
+class _ImageReference:
+    id: str
+    name: str
+    mime_type: str
+    size_bytes: int
 
 
 if __name__ == "__main__":
