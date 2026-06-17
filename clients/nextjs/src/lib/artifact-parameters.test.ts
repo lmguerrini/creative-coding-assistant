@@ -114,6 +114,46 @@ describe("artifact parameter model", () => {
     );
   });
 
+  it("derives bounded visual controls from reference fusion metadata", () => {
+    const artifact = visualArtifact();
+    artifact.summary = "Reference-guided shader.";
+    artifact.creativeTranslation = {
+      ...artifact.creativeTranslation!,
+      colorMaterialDirection: [],
+      referenceFusion: {
+        composition: ["grid-based spatial layout"],
+        geometricStructure: ["rectilinear grid"],
+        lightingContrast: ["soft emissive glow"],
+        moodAtmosphere: ["ethereal atmosphere"],
+        motionImplications: ["slow drifting motion"],
+        paletteDirection: ["amber highlights"],
+        runtimeStyleImplications: [
+          "Shader refraction presets may suit the material direction."
+        ],
+        safetyConstraints: [
+          "Use references for aesthetic, palette, composition, and material guidance only."
+        ],
+        sourceCount: 1,
+        sourceNames: ["amber-grid-reference.png"],
+        summary: "Fused amber-grid-reference.png into non-identifying guidance.",
+        textureMaterialCues: ["glasslike refraction cues"]
+      },
+      visualStyle: null
+    };
+
+    const model = deriveArtifactParameterModel(artifact);
+
+    expect(model.parameters).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          defaultValue: "#f0b85a",
+          id: "accent_color",
+          source: "reference_fusion"
+        })
+      ])
+    );
+  });
+
   it("uses only bounded known code hints for runtime-specific controls", () => {
     const model = deriveArtifactParameterModel({
       actions: ["Open"],

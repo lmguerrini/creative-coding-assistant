@@ -3,6 +3,7 @@ import type {
   AudioReactiveSource,
   AudioReactiveVisualTarget,
   CreativeTranslationSummary,
+  ReferenceFusionSummary,
   SacredGeometrySummary,
   ShaderPresetName,
   ShaderPresetSummary,
@@ -74,7 +75,54 @@ export function normalizeCreativeTranslation(
         record.audioReactive ??
         record.audio_reactive_mappings ??
         record.audioReactiveMappings
+    ),
+    referenceFusion: normalizeReferenceFusion(
+      record.reference_fusion ?? record.referenceFusion
     )
+  };
+}
+
+function normalizeReferenceFusion(value: unknown): ReferenceFusionSummary | null {
+  const record = readRecord(value);
+  if (!record) {
+    return null;
+  }
+
+  const sourceCount = readNumber(record.source_count ?? record.sourceCount);
+  const summary = readString(record.summary);
+  if (!sourceCount || !summary) {
+    return null;
+  }
+
+  return {
+    sourceCount,
+    sourceNames: readStringList(record.source_names ?? record.sourceNames),
+    paletteDirection: readStringList(
+      record.palette_direction ?? record.paletteDirection
+    ),
+    composition: readStringList(record.composition),
+    lightingContrast: readStringList(
+      record.lighting_contrast ?? record.lightingContrast
+    ),
+    textureMaterialCues: readStringList(
+      record.texture_material_cues ?? record.textureMaterialCues
+    ),
+    geometricStructure: readStringList(
+      record.geometric_structure ?? record.geometricStructure
+    ),
+    moodAtmosphere: readStringList(
+      record.mood_atmosphere ?? record.moodAtmosphere
+    ),
+    motionImplications: readStringList(
+      record.motion_implications ?? record.motionImplications
+    ),
+    runtimeStyleImplications: readStringList(
+      record.runtime_style_implications ?? record.runtimeStyleImplications
+    ),
+    safetyConstraints: readStringList(
+      record.safety_constraints ?? record.safetyConstraints
+    ),
+    summary
   };
 }
 
@@ -372,4 +420,8 @@ function readRecord(value: unknown): Record<string, unknown> | null {
 
 function readString(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function readNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }

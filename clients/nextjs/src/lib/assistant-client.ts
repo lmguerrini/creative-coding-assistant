@@ -138,6 +138,22 @@ export type CreativeTranslationSummary = {
   shaderPresets?: ShaderPresetSummary | null;
   visualStyle?: VisualStyleSummary | null;
   audioReactive?: AudioReactiveGuidanceSummary | null;
+  referenceFusion?: ReferenceFusionSummary | null;
+};
+
+export type ReferenceFusionSummary = {
+  sourceCount: number;
+  sourceNames: string[];
+  paletteDirection: string[];
+  composition: string[];
+  lightingContrast: string[];
+  textureMaterialCues: string[];
+  geometricStructure: string[];
+  moodAtmosphere: string[];
+  motionImplications: string[];
+  runtimeStyleImplications: string[];
+  safetyConstraints: string[];
+  summary: string;
 };
 
 export type AudioReactiveSource =

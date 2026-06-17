@@ -18,6 +18,7 @@ export type ArtifactParameterSource =
   | "runtime"
   | "modality"
   | "creative_translation"
+  | "reference_fusion"
   | "sacred_geometry"
   | "shader_preset"
   | "visual_style"
@@ -624,7 +625,15 @@ function collectMetadataText(artifact: ArtifactSummary) {
     ...(translation.sacredGeometry?.audioImplications ?? []),
     ...(translation.shaderPresets?.presets ?? []),
     ...(translation.visualStyle?.styles ?? []),
-    ...(translation.visualStyle?.paletteBehavior ?? [])
+    ...(translation.visualStyle?.paletteBehavior ?? []),
+    ...(translation.referenceFusion?.paletteDirection ?? []),
+    ...(translation.referenceFusion?.composition ?? []),
+    ...(translation.referenceFusion?.lightingContrast ?? []),
+    ...(translation.referenceFusion?.textureMaterialCues ?? []),
+    ...(translation.referenceFusion?.geometricStructure ?? []),
+    ...(translation.referenceFusion?.moodAtmosphere ?? []),
+    ...(translation.referenceFusion?.motionImplications ?? []),
+    ...(translation.referenceFusion?.runtimeStyleImplications ?? [])
   ]
     .join(" ")
     .toLowerCase();
@@ -734,6 +743,9 @@ function resolveColorSource(
 ): ArtifactParameterSource {
   if (artifact.creativeTranslation?.visualStyle) {
     return "visual_style";
+  }
+  if (artifact.creativeTranslation?.referenceFusion) {
+    return "reference_fusion";
   }
   if (artifact.creativeTranslation) {
     return "creative_translation";

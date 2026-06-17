@@ -6623,6 +6623,64 @@ a {
   text-transform: uppercase;
 }
 
+.referenceFusionSummary {
+  display: grid;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid rgba(240, 184, 90, 0.2);
+  border-radius: 11px;
+  background:
+    linear-gradient(145deg, rgba(240, 184, 90, 0.08), transparent 68%),
+    rgba(255, 255, 255, 0.025);
+}
+
+.referenceFusionSummary header {
+  display: grid;
+  gap: 2px;
+}
+
+.referenceFusionSummary header span,
+.referenceFusionSummary dt {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.referenceFusionSummary header strong {
+  color: var(--amber);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.referenceFusionSummary p,
+.referenceFusionSummary small {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.referenceFusionSummary dl {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+}
+
+.referenceFusionSummary dl div {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 7px;
+}
+
+.referenceFusionSummary dd {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
 .audioReactiveCard {
   display: grid;
   gap: 9px;

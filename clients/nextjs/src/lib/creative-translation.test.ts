@@ -53,6 +53,24 @@ describe("creative translation normalization", () => {
             "Use the selected compatible runtime: p5.js."
           ]
         },
+        reference_fusion: {
+          source_count: 2,
+          source_names: ["warm-neon-grid.png", "glass-drift.webp"],
+          palette_direction: ["warm palette bias", "neon accent contrast"],
+          composition: ["grid-based spatial layout"],
+          lighting_contrast: ["soft emissive glow"],
+          texture_material_cues: ["glasslike refraction cues"],
+          geometric_structure: ["rectilinear grid"],
+          mood_atmosphere: ["ethereal atmosphere"],
+          motion_implications: ["slow drifting motion"],
+          runtime_style_implications: [
+            "Shader refraction presets may suit the material direction."
+          ],
+          safety_constraints: [
+            "Use references for aesthetic, palette, composition, and material guidance only."
+          ],
+          summary: "Fused 2 references into non-identifying guidance."
+        },
         audio_reactive: {
           mappings: [
             {
@@ -96,6 +114,15 @@ describe("creative translation normalization", () => {
         runtimeSuitability: [
           "Use the selected compatible runtime: p5.js."
         ]
+      },
+      referenceFusion: {
+        sourceCount: 2,
+        sourceNames: ["warm-neon-grid.png", "glass-drift.webp"],
+        paletteDirection: ["warm palette bias", "neon accent contrast"],
+        composition: ["grid-based spatial layout"],
+        textureMaterialCues: ["glasslike refraction cues"],
+        motionImplications: ["slow drifting motion"],
+        summary: "Fused 2 references into non-identifying guidance."
       },
       audioReactive: {
         activation: "explicit_user_gesture",
@@ -205,7 +232,8 @@ describe("creative translation normalization", () => {
       sacredGeometry: null,
       shaderPresets: null,
       visualStyle: null,
-      audioReactive: null
+      audioReactive: null,
+      referenceFusion: null
     });
   });
 });

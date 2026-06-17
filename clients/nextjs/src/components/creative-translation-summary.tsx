@@ -80,6 +80,61 @@ export function CreativeTranslationSummaryCard({
           ))}
         </dl>
       ) : null}
+      {translation.referenceFusion ? (
+        <section
+          aria-label="Reference fusion guidance"
+          className="referenceFusionSummary"
+        >
+          <header>
+            <span>Reference fusion</span>
+            <strong>
+              {formatSourceCount(translation.referenceFusion.sourceCount)}
+            </strong>
+          </header>
+          <p>{translation.referenceFusion.summary}</p>
+          <dl>
+            {translation.referenceFusion.paletteDirection.length > 0 ? (
+              <div>
+                <dt>Palette</dt>
+                <dd>{translation.referenceFusion.paletteDirection.join(" / ")}</dd>
+              </div>
+            ) : null}
+            {translation.referenceFusion.composition.length > 0 ? (
+              <div>
+                <dt>Compose</dt>
+                <dd>{translation.referenceFusion.composition.join(" / ")}</dd>
+              </div>
+            ) : null}
+            {translation.referenceFusion.textureMaterialCues.length > 0 ? (
+              <div>
+                <dt>Material</dt>
+                <dd>
+                  {translation.referenceFusion.textureMaterialCues.join(" / ")}
+                </dd>
+              </div>
+            ) : null}
+            {translation.referenceFusion.motionImplications.length > 0 ? (
+              <div>
+                <dt>Motion</dt>
+                <dd>
+                  {translation.referenceFusion.motionImplications.join(" / ")}
+                </dd>
+              </div>
+            ) : null}
+            {translation.referenceFusion.runtimeStyleImplications.length > 0 ? (
+              <div>
+                <dt>Runtime</dt>
+                <dd>
+                  {translation.referenceFusion.runtimeStyleImplications[0]}
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+          {translation.referenceFusion.safetyConstraints.length > 0 ? (
+            <small>{translation.referenceFusion.safetyConstraints[0]}</small>
+          ) : null}
+        </section>
+      ) : null}
       {translation.sacredGeometry ? (
         <section
           aria-label="Sacred geometry guidance"
@@ -230,4 +285,8 @@ function formatModality(
     default:
       return "Modality open";
   }
+}
+
+function formatSourceCount(sourceCount: number) {
+  return `${sourceCount} ${sourceCount === 1 ? "reference" : "references"}`;
 }

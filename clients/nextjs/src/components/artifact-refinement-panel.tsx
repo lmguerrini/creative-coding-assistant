@@ -452,6 +452,8 @@ function formatParameterSource(
   switch (source) {
     case "creative_translation":
       return "Creative translation";
+    case "reference_fusion":
+      return "Reference fusion";
     case "sacred_geometry":
       return "Sacred geometry";
     case "shader_preset":

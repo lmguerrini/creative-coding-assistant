@@ -3826,6 +3826,28 @@ describe("WorkstationShell", () => {
                     "Use the selected compatible runtime: p5.js."
                   ]
                 },
+                referenceFusion: {
+                  composition: ["grid-based spatial layout"],
+                  geometricStructure: ["rectilinear grid"],
+                  lightingContrast: ["soft emissive glow"],
+                  moodAtmosphere: ["ethereal atmosphere"],
+                  motionImplications: ["slow drifting motion"],
+                  paletteDirection: [
+                    "warm palette bias",
+                    "neon accent contrast"
+                  ],
+                  runtimeStyleImplications: [
+                    "Shader refraction presets may suit the material direction."
+                  ],
+                  safetyConstraints: [
+                    "Use references for aesthetic, palette, composition, and material guidance only."
+                  ],
+                  sourceCount: 2,
+                  sourceNames: ["warm-neon-grid.png", "glass-drift.webp"],
+                  summary:
+                    "Fused 2 references into non-identifying guidance.",
+                  textureMaterialCues: ["glasslike refraction cues"]
+                },
                 audioReactive: {
                   activation: "explicit_user_gesture",
                   audioRuntime: "Tone.js",
@@ -3868,6 +3890,17 @@ describe("WorkstationShell", () => {
     expect(within(translation).getByText("rhythm")).toBeVisible();
     expect(within(translation).getByText("p5.js / Tone.js")).toBeVisible();
     expect(within(translation).getByText(/Preserve atmosphere/)).toBeVisible();
+    const referenceFusion = within(translation).getByRole("region", {
+      name: "Reference fusion guidance"
+    });
+    expect(referenceFusion).toBeVisible();
+    expect(within(referenceFusion).getByText("2 references")).toBeVisible();
+    expect(
+      within(referenceFusion).getByText(/non-identifying guidance/)
+    ).toBeVisible();
+    expect(
+      within(referenceFusion).getByText("warm palette bias / neon accent contrast")
+    ).toBeVisible();
     const sacredGeometry = within(translation).getByRole("region", {
       name: "Sacred geometry guidance"
     });
@@ -3934,6 +3967,11 @@ describe("WorkstationShell", () => {
     expect(
       within(translation).queryByRole("region", {
         name: "Visual style guidance"
+      })
+    ).not.toBeInTheDocument();
+    expect(
+      within(translation).queryByRole("region", {
+        name: "Reference fusion guidance"
       })
     ).not.toBeInTheDocument();
     expect(
