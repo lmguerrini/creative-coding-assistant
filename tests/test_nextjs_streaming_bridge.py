@@ -21,6 +21,7 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
                 "projectId": "workspace-a",
                 "domain": "webgpu_wgsl",
                 "mode": "generate",
+                "clarificationResponse": "Use one p5.js browser sketch first.",
                 "artifactRefinement": {
                     "artifactId": "source-sketch",
                     "title": "aurora-field.p5.js",
@@ -139,6 +140,10 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
         )
         self.assertEqual(assistant_request.project_id, "workspace-a")
         self.assertEqual(assistant_request.domain.value, "webgpu_wgsl")
+        self.assertEqual(
+            assistant_request.clarification_response,
+            "Use one p5.js browser sketch first.",
+        )
         self.assertEqual(len(assistant_request.attachments), 1)
         self.assertEqual(assistant_request.attachments[0].name, "palette.png")
         self.assertEqual(assistant_request.attachments[0].mime_type, "image/png")

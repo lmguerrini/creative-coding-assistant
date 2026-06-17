@@ -55,6 +55,10 @@ class AssistantStreamRequest(BaseModel):
         default=None,
         alias="artifactRefinement",
     )
+    clarification_response: str | None = Field(
+        default=None,
+        alias="clarificationResponse",
+    )
 
     @field_validator("attachments")
     @classmethod
@@ -80,6 +84,7 @@ class AssistantStreamRequest(BaseModel):
             mode=self.mode,
             attachments=self.attachments,
             artifact_refinement=self.artifact_refinement,
+            clarification_response=self.clarification_response,
         )
 
 

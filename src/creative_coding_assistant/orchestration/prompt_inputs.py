@@ -14,6 +14,10 @@ from creative_coding_assistant.contracts import (
     CreativeCodingDomain,
 )
 from creative_coding_assistant.memory import ProjectMemoryKind
+from creative_coding_assistant.orchestration.clarification import (
+    ClarificationRequest,
+    derive_hitl_clarification,
+)
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
@@ -90,6 +94,7 @@ class PromptUserInput(BaseModel):
         default_factory=tuple
     )
     artifact_refinement: PromptArtifactRefinementInput | None = None
+    clarification_response: str | None = None
 
     @field_validator(
         "domains",
@@ -257,6 +262,7 @@ class PromptInputResponse(BaseModel):
     request: PromptInputRequest
     user_input: PromptUserInput
     creative_translation: CreativeTranslation | None = None
+    clarification: ClarificationRequest | None = None
     memory_input: PromptMemoryInput | None = None
     retrieval_input: PromptRetrievalInput | None = None
 
@@ -297,35 +303,48 @@ class StructuredPromptInputBuilder:
             request.assistant_request,
             route_decision=request.route_decision,
         )
+        creative_translation = derive_creative_translation(
+            user_input.query,
+            domains=user_input.effective_domains,
+            selected_runtime=(
+                user_input.artifact_refinement.runtime
+                if user_input.artifact_refinement is not None
+                else None
+            ),
+            has_image_references=bool(user_input.image_references),
+            image_references=user_input.image_references,
+            base_translation=(
+                user_input.artifact_refinement.creative_translation
+                if user_input.artifact_refinement is not None
+                else None
+            ),
+            artifact_content=(
+                user_input.artifact_refinement.content
+                if user_input.artifact_refinement is not None
+                else None
+            ),
+            refinement_instruction=(
+                user_input.artifact_refinement.instruction
+                if user_input.artifact_refinement is not None
+                else None
+            ),
+        )
+        clarification = (
+            derive_hitl_clarification(
+                query=user_input.query,
+                route_decision=request.route_decision,
+                creative_translation=creative_translation,
+                clarification_response=user_input.clarification_response,
+                artifact_refinement=request.assistant_request.artifact_refinement,
+            )
+            if request.route_decision is not None
+            else None
+        )
         prompt_input = PromptInputResponse(
             request=request,
             user_input=user_input,
-            creative_translation=derive_creative_translation(
-                user_input.query,
-                domains=user_input.effective_domains,
-                selected_runtime=(
-                    user_input.artifact_refinement.runtime
-                    if user_input.artifact_refinement is not None
-                    else None
-                ),
-                has_image_references=bool(user_input.image_references),
-                image_references=user_input.image_references,
-                base_translation=(
-                    user_input.artifact_refinement.creative_translation
-                    if user_input.artifact_refinement is not None
-                    else None
-                ),
-                artifact_content=(
-                    user_input.artifact_refinement.content
-                    if user_input.artifact_refinement is not None
-                    else None
-                ),
-                refinement_instruction=(
-                    user_input.artifact_refinement.instruction
-                    if user_input.artifact_refinement is not None
-                    else None
-                ),
-            ),
+            creative_translation=creative_translation,
+            clarification=clarification,
             memory_input=memory_input,
             retrieval_input=retrieval_input,
         )
@@ -384,6 +403,7 @@ def _build_user_input(
             for attachment in assistant_request.attachments
         ),
         artifact_refinement=_build_artifact_refinement_input(assistant_request),
+        clarification_response=assistant_request.clarification_response,
     )
 
 

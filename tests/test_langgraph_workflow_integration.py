@@ -14,12 +14,14 @@ from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
     AssistantService,
     AssistantWorkflowRuntime,
+    StructuredPromptInputBuilder,
     WorkflowFailureInfo,
     WorkflowReviewOutcome,
     WorkflowStatus,
     WorkflowStep,
     build_assistant_workflow_graph,
     build_initial_workflow_graph_state,
+    build_prompt_input_request,
     stream_assistant_workflow_events,
 )
 from creative_coding_assistant.orchestration.events import StreamEventBuilder
@@ -107,7 +109,6 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(event_types[-1], StreamEventType.FINAL)
         self.assertIn(StreamEventType.STATUS, event_types)
         self.assertIn(StreamEventType.REVIEW_PASSED, event_types)
-
         request_status = _first_event(
             events,
             StreamEventType.STATUS,
@@ -128,6 +129,59 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(review_passed.payload["decision_reason"], "review_passed")
         self.assertEqual(request_status.payload["workflow"]["step"], "intake")
         self.assertIn("generate route", final.payload["answer"])
+
+    def test_graph_short_circuits_before_generation_when_clarification_required(
+        self,
+    ) -> None:
+        graph = build_assistant_workflow_graph()
+        request = AssistantRequest(
+            query="Make something evocative about rain.",
+            mode=AssistantMode.GENERATE,
+        )
+        runtime = _runtime(
+            route_fn=_route_generate_without_domains,
+            stream_prompt_inputs=_stream_prompt_inputs_with_builder,
+            stream_generation=_unexpected_generation,
+        )
+
+        events = tuple(
+            stream_assistant_workflow_events(
+                graph=graph,
+                request=request,
+                runtime=runtime,
+            )
+        )
+        final_event = events[-1]
+        prompt_input_completion = _first_transition(
+            events,
+            StreamEventType.NODE_COMPLETED,
+            source="prompt_input",
+            target="finalization",
+        )
+
+        self.assertNotIn(StreamEventType.PROMPT_RENDERED, _event_types(events))
+        self.assertNotIn(StreamEventType.GENERATION_INPUT, _event_types(events))
+        self.assertEqual(
+            prompt_input_completion.payload["decision_reason"],
+            "clarification_required",
+        )
+        self.assertEqual(
+            final_event.payload["clarification"]["reason"],
+            "ambiguous_modality",
+        )
+        self.assertIn("I need one quick clarification", final_event.payload["answer"])
+        self.assertEqual(
+            final_event.payload["workflow"]["clarification_reason"],
+            "ambiguous_modality",
+        )
+        self.assertIn(
+            "prompt_input",
+            final_event.payload["workflow"]["completed_steps"],
+        )
+        self.assertNotIn(
+            "generation",
+            final_event.payload["workflow"]["completed_steps"],
+        )
 
     def test_graph_completes_workflow_state_after_generation(self) -> None:
         graph = build_assistant_workflow_graph()
@@ -887,6 +941,14 @@ def _route_generate(request: AssistantRequest) -> RouteDecision:
     )
 
 
+def _route_generate_without_domains(request: AssistantRequest) -> RouteDecision:
+    return RouteDecision(
+        route=RouteName.GENERATE,
+        mode=request.mode,
+        capabilities=(RouteCapability.TOOL_USE,),
+    )
+
+
 def _failing_route(request: AssistantRequest) -> RouteDecision:
     del request
     raise RuntimeError("route failed")
@@ -895,6 +957,7 @@ def _failing_route(request: AssistantRequest) -> RouteDecision:
 def _runtime(
     *,
     route_fn=_route_generate,
+    stream_prompt_inputs=None,
     stream_generation=None,
 ) -> AssistantWorkflowRuntime:
     observability = build_langsmith_observability(Settings(_env_file=None))
@@ -908,7 +971,7 @@ def _runtime(
         stream_memory_context=_empty_streaming_step,
         stream_retrieval_context=_empty_streaming_step,
         stream_assembled_context=_empty_streaming_step,
-        stream_prompt_inputs=_empty_streaming_step,
+        stream_prompt_inputs=stream_prompt_inputs or _empty_streaming_step,
         stream_rendered_prompt=_empty_streaming_step,
         stream_generation=stream_generation or _empty_streaming_step,
         build_shell_answer=_shell_answer,
@@ -949,6 +1012,27 @@ def _empty_streaming_step(**kwargs: object) -> Iterator[StreamEvent]:
     return None
 
 
+def _stream_prompt_inputs_with_builder(
+    *,
+    builder: StreamEventBuilder,
+    request: AssistantRequest,
+    decision: RouteDecision,
+    assembled_context,
+) -> Iterator[StreamEvent]:
+    prompt_input_request = build_prompt_input_request(
+        assistant_request=request,
+        route_decision=decision,
+        assembled_context=assembled_context,
+    )
+    prompt_input = StructuredPromptInputBuilder().build(prompt_input_request)
+    yield builder.prompt_input(
+        code="prompt_inputs_prepared",
+        message="Prompt inputs prepared.",
+        prompt_input=prompt_input.model_dump(mode="json"),
+    )
+    return prompt_input
+
+
 def _stream_completed_generation(
     *,
     builder: StreamEventBuilder,
@@ -962,6 +1046,17 @@ def _stream_completed_generation(
     yield builder.token_delta("Graph ")
     yield builder.token_delta("answer")
     return _FakeGenerationResult(answer="Graph answer")
+
+
+def _unexpected_generation(**kwargs: object) -> Iterator[StreamEvent]:
+    del kwargs
+    raise AssertionError("Generation should not run while clarification is pending.")
+    if False:
+        yield StreamEvent(
+            event_type=StreamEventType.STATUS,
+            sequence=0,
+            payload={},
+        )
 
 
 def _stream_failed_generation(

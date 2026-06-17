@@ -175,6 +175,10 @@ class AssistantRequest(BaseModel):
         default=None,
         alias="artifactRefinement",
     )
+    clarification_response: str | None = Field(
+        default=None,
+        alias="clarificationResponse",
+    )
 
     @field_validator("query")
     @classmethod

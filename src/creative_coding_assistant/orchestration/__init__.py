@@ -18,6 +18,7 @@ _SHADER_PRESETS = "creative_coding_assistant.orchestration.shader_presets"
 _VISUAL_STYLES = "creative_coding_assistant.orchestration.visual_styles"
 _ARTIFACTS = "creative_coding_assistant.orchestration.artifacts"
 _ARTIFACT_CRITIQUE = "creative_coding_assistant.orchestration.artifact_critique"
+_CLARIFICATION = "creative_coding_assistant.orchestration.clarification"
 _EVENTS = "creative_coding_assistant.orchestration.events"
 _GEN = "creative_coding_assistant.orchestration.generation"
 _MEM = "creative_coding_assistant.orchestration.memory"
@@ -56,6 +57,9 @@ _EXPORT_MAP = {
     "ConversationSummaryContext": _MEM,
     "CalibratedQualityEvaluation": _ARTIFACTS,
     "CalibratedQualitySignal": _ARTIFACTS,
+    "ClarificationQuestion": _CLARIFICATION,
+    "ClarificationReason": _CLARIFICATION,
+    "ClarificationRequest": _CLARIFICATION,
     "CreativeOutputModality": _CREATIVE_TRANSLATION,
     "CreativeQualityEvaluation": _ARTIFACTS,
     "CreativeQualityObservation": _ARTIFACTS,
@@ -148,6 +152,7 @@ _EXPORT_MAP = {
     "audio_reactive_prompt_lines": _AUDIO_REACTIVE,
     "derive_audio_reactive_guidance": _AUDIO_REACTIVE,
     "derive_creative_translation": _CREATIVE_TRANSLATION,
+    "derive_hitl_clarification": _CLARIFICATION,
     "evaluate_artifact_sacred_consistency": _SACRED_CONSISTENCY,
     "evaluate_artifact_creative_quality": _CREATIVE_QUALITY,
     "derive_sacred_geometry_guidance": _SACRED_GEOMETRY,

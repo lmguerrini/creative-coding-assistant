@@ -14,6 +14,7 @@ from creative_coding_assistant.orchestration.artifacts import (
     RefinementPassRecord,
     WorkflowArtifact,
 )
+from creative_coding_assistant.orchestration.clarification import ClarificationRequest
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
 from creative_coding_assistant.orchestration.memory import MemoryContextResponse
 from creative_coding_assistant.orchestration.prompt_inputs import PromptInputResponse
@@ -110,6 +111,7 @@ class AssistantWorkflowState(BaseModel):
     retrieval_context: RetrievalContextResponse | None = None
     assembled_context: AssembledContextResponse | None = None
     prompt_input: PromptInputResponse | None = None
+    clarification: ClarificationRequest | None = None
     rendered_prompt: RenderedPromptResponse | None = None
     artifacts: tuple[WorkflowArtifact, ...] = ()
     preview_results: tuple[PreviewResult, ...] = ()

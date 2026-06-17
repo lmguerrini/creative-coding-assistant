@@ -115,6 +115,11 @@ Keep explanation, notes, and setup guidance outside code fences.
 _USER_TEMPLATE = """
 User Request:
 {{ prompt_input.user_input.query }}
+{% if prompt_input.user_input.clarification_response -%}
+
+Clarification Answer:
+{{ prompt_input.user_input.clarification_response }}
+{% endif %}
 {% if prompt_input.user_input.artifact_refinement is not none -%}
 
 Refinement Target:

@@ -26,6 +26,7 @@ from creative_coding_assistant.orchestration.artifacts import (
     extract_workflow_artifacts,
     prepare_workflow_preview_results,
 )
+from creative_coding_assistant.orchestration.clarification import ClarificationRequest
 from creative_coding_assistant.orchestration.events import StreamEventBuilder
 from creative_coding_assistant.orchestration.prompt_templates import (
     RenderedPromptResponse,
@@ -147,6 +148,17 @@ def build_assistant_workflow_graph() -> Any:
     for index in range(review_index):
         current_node = ASSISTANT_WORKFLOW_NODE_ORDER[index]
         next_node = ASSISTANT_WORKFLOW_NODE_ORDER[index + 1]
+        if current_node == "prompt_input":
+            graph.add_conditional_edges(
+                current_node,
+                _next_node_after_prompt_input,
+                {
+                    "prompt_rendering": "prompt_rendering",
+                    "finalization": "finalization",
+                    "failure": "failure",
+                },
+            )
+            continue
         graph.add_conditional_edges(
             current_node,
             lambda state, next_node=next_node: _next_node_or_failure(state, next_node),
@@ -444,6 +456,33 @@ def _prompt_input_node(
                     runtime_context,
                     WorkflowStep.PROMPT_INPUT,
                     decision_reason="prompt_input_unavailable",
+                )
+            }
+        if prompt_input.clarification is not None:
+            clarification_state = workflow_state.model_copy(
+                update={
+                    "prompt_input": prompt_input,
+                    "clarification": prompt_input.clarification,
+                }
+            )
+            _emit(
+                runtime_context.event_builder.prompt_input(
+                    code="clarification_required",
+                    message="Clarification required before generation.",
+                    clarification=prompt_input.clarification.model_dump(mode="json"),
+                ),
+                workflow_state=clarification_state,
+                step=WorkflowStep.PROMPT_INPUT,
+            )
+            return {
+                "workflow_state": _complete_node(
+                    workflow_state,
+                    runtime_context,
+                    WorkflowStep.PROMPT_INPUT,
+                    transition_target=WorkflowStep.FINALIZATION.value,
+                    decision_reason="clarification_required",
+                    prompt_input=prompt_input,
+                    clarification=prompt_input.clarification,
                 )
             }
         return {
@@ -949,6 +988,8 @@ def _finalization_node(
         generation_result = state.get("generation_result")
         if generation_result is not None:
             answer = generation_result.answer
+        elif workflow_state.clarification is not None:
+            answer = _format_clarification_answer(workflow_state.clarification)
         else:
             answer = runtime_context.build_shell_answer(_route_decision(workflow_state))
         telemetry = (
@@ -991,6 +1032,14 @@ def _finalization_node(
                     result.model_dump(mode="json")
                     for result in final_state.preview_results
                 ],
+                **_optional_event_payload(
+                    "clarification",
+                    (
+                        final_state.clarification.model_dump(mode="json")
+                        if final_state.clarification is not None
+                        else None
+                    ),
+                ),
                 **_optional_event_payload(
                     "observability",
                     runtime_context.observability.event_payload(
@@ -1100,6 +1149,14 @@ def _next_node_or_failure(
     if _has_pending_failure(state):
         return "failure"
     return next_node
+
+
+def _next_node_after_prompt_input(state: AssistantWorkflowGraphState) -> str:
+    if _has_pending_failure(state):
+        return "failure"
+    if _workflow_state(state).clarification is not None:
+        return WorkflowStep.FINALIZATION.value
+    return WorkflowStep.PROMPT_RENDERING.value
 
 
 def _review_transition(
@@ -1743,6 +1800,7 @@ def _serialize_workflow_runtime(
 ) -> dict[str, object]:
     runtime_step = step or workflow_state.current_step
     review_result = workflow_state.review_result
+    clarification = workflow_state.clarification
 
     return {
         "step": runtime_step.value if runtime_step is not None else None,
@@ -1772,6 +1830,18 @@ def _serialize_workflow_runtime(
             else None
         ),
         "preview_artifact_count": len(workflow_state.preview_results),
+        "clarification_required": clarification is not None,
+        "clarification_reason": (
+            clarification.reason.value if clarification is not None else None
+        ),
+        "clarification_question_count": (
+            len(clarification.questions) if clarification is not None else 0
+        ),
+        "clarification": (
+            clarification.model_dump(mode="json")
+            if clarification is not None
+            else None
+        ),
         "image_reference_count": len(workflow_state.request.attachments),
         "image_references": [
             {
@@ -1790,6 +1860,26 @@ def _optional_event_payload(
     value: dict[str, object] | None,
 ) -> dict[str, dict[str, object]]:
     return {key: value} if value is not None else {}
+
+
+def _format_clarification_answer(clarification: ClarificationRequest) -> str:
+    lines = [
+        "I need one quick clarification before generating.",
+        "",
+        clarification.summary,
+        "",
+    ]
+    for index, question in enumerate(clarification.questions, start=1):
+        lines.append(f"{index}. {question.prompt}")
+        for option in question.suggested_options:
+            lines.append(f"- {option}")
+        if question.default_recommendation:
+            lines.append(
+                f"Default recommendation: {question.default_recommendation}"
+            )
+        lines.append("")
+    lines.append("Reply with your choice and I will continue generation.")
+    return "\n".join(lines).strip()
 
 
 def _transition_payload(
