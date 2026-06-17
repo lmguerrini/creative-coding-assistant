@@ -40,11 +40,13 @@ import type {
   ArtifactAction,
   ArtifactSummary,
   AssistantWorkspaceSnapshot,
+  ClarificationSummary,
   ImageAttachmentSummary,
   InspectorTabName,
   WorkflowStepState
 } from "@/lib/assistant-client";
 import {
+  readClarificationSummary,
   readStreamEventError,
   readPreviewArtifactUpdate,
   streamAssistantEvents as streamBackendAssistantEvents,
@@ -390,6 +392,9 @@ export function WorkstationShell({
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamError, setStreamError] = useState<WorkstationError | null>(null);
   const [streamEvents, setStreamEvents] = useState(initialSnapshot.debug.events);
+  const [clarification, setClarification] = useState<ClarificationSummary | null>(
+    initialSnapshot.clarification ?? null
+  );
   const [workflowTraceEvents, setWorkflowTraceEvents] = useState<
     WorkflowRuntimeTraceEvent[]
   >([]);
@@ -633,6 +638,7 @@ export function WorkstationShell({
           );
           setImageAttachments(restoredImageAttachments);
           setImageUploadError(restoredSnapshot.multimodal.error ?? null);
+          setClarification(restoredSnapshot.clarification ?? null);
           imageAttachmentCounterRef.current = restoredImageAttachments.length;
           streamingAssistantIdRef.current = null;
           setActiveTab(restoredSession.record.activeInspectorTab);
@@ -715,6 +721,7 @@ export function WorkstationShell({
   const interactiveSnapshot: AssistantWorkspaceSnapshot = useMemo(
     () => ({
       ...snapshot,
+      clarification,
       code: buildCodeSummaryForArtifact(snapshot.code, activeArtifact),
       inspectorTabs: snapshot.inspectorTabs.map((tab) => ({
         ...tab,
@@ -752,6 +759,7 @@ export function WorkstationShell({
     [
       activeArtifact,
       activeTab,
+      clarification,
       imageAttachments,
       imageUploadError,
       isPreviewOpen,
@@ -1881,11 +1889,24 @@ export function WorkstationShell({
     });
   }
 
+  async function handleClarificationOptionSelect(option: string) {
+    if (!clarification || isStreaming) {
+      return;
+    }
+
+    await submitAssistantRequest({
+      clarificationResponse: option,
+      prompt: buildClarificationContinuationPrompt(clarification, option)
+    });
+  }
+
   async function submitAssistantRequest({
     artifactRefinement,
+    clarificationResponse,
     prompt
   }: {
     artifactRefinement?: AssistantArtifactRefinementRequest;
+    clarificationResponse?: string;
     prompt: string;
   }) {
     const timestamp = formatMessageTime();
@@ -1897,7 +1918,9 @@ export function WorkstationShell({
           requestedAt: new Date().toISOString()
         }
       : null;
-    const userMessageContent = artifactRefinement
+    const userMessageContent = clarificationResponse
+      ? `Clarification: ${clarificationResponse}`
+      : artifactRefinement
       ? `Refine ${artifactRefinement.title}: ${prompt}`
       : prompt;
 
@@ -1931,6 +1954,7 @@ export function WorkstationShell({
     setWorkflowRunId(0);
     setStreamError(null);
     setStreamEvents([]);
+    setClarification(null);
     setWorkflowTraceEvents([]);
     hasPreviewRuntimeEventRef.current = false;
     previewRuntimeTelemetryKeysRef.current.clear();
@@ -1949,14 +1973,16 @@ export function WorkstationShell({
         query: prompt
       };
 
+      if (clarificationResponse) {
+        streamRequest.clarificationResponse = clarificationResponse;
+      }
+
       if (artifactRefinement) {
         streamRequest.artifactRefinement = artifactRefinement;
         if (artifactRefinement.domain) {
           streamRequest.domain = artifactRefinement.domain;
           streamRequest.domains = [artifactRefinement.domain];
         }
-      } else {
-        streamRequest.domain = "webgpu_wgsl";
       }
 
       if (requestAttachments.length > 0) {
@@ -2104,6 +2130,14 @@ export function WorkstationShell({
           "Live response event received."
       }
     ]);
+
+    const clarificationUpdate = readClarificationSummary(
+      streamEvent.payload.clarification
+    );
+    if (clarificationUpdate) {
+      setClarification(clarificationUpdate);
+      setActiveTab("Overview");
+    }
 
     const workflowNode = workflowNodeFromAssistantStreamEvent(streamEvent);
     if (workflowNode) {
@@ -2829,6 +2863,7 @@ export function WorkstationShell({
                     onArtifactRefine={handleArtifactRefine}
                     onArtifactSelect={handleArtifactSelect}
                     onArtifactTransfer={handleArtifactTransfer}
+                    onClarificationOptionSelect={handleClarificationOptionSelect}
                     providerTelemetry={providerTelemetry}
                     previewController={previewController}
                     runtimeConsole={runtimeConsole}
@@ -3241,6 +3276,7 @@ type InspectorPanelProps = {
   onArtifactRefine: (artifact: ArtifactSummary, instruction: string) => Promise<void>;
   onArtifactSelect: (artifact: ArtifactSummary) => void;
   onArtifactTransfer: (artifact: ArtifactSummary) => void;
+  onClarificationOptionSelect: (option: string) => Promise<void>;
   providerTelemetry: ProviderTelemetryModel;
   previewController: PreviewControllerModel;
   runtimeConsole: RuntimeConsoleModel;
@@ -3269,6 +3305,7 @@ function InspectorPanel({
   onArtifactRefine,
   onArtifactSelect,
   onArtifactTransfer,
+  onClarificationOptionSelect,
   providerTelemetry,
   previewController,
   runtimeConsole,
@@ -3362,6 +3399,8 @@ function InspectorPanel({
       retrieval={retrievalRuntime}
       runtime={workflowRuntime}
       telemetry={providerTelemetry}
+      isStreaming={isStreaming}
+      onClarificationOptionSelect={onClarificationOptionSelect}
       showDebugPanels={showDebugPanels}
       snapshot={snapshot}
     />
@@ -3370,6 +3409,8 @@ function InspectorPanel({
 
 function OverviewInspector({
   activeArtifact,
+  isStreaming,
+  onClarificationOptionSelect,
   retrieval,
   runtime,
   telemetry,
@@ -3377,6 +3418,8 @@ function OverviewInspector({
   snapshot
 }: {
   activeArtifact: ArtifactSummary;
+  isStreaming: boolean;
+  onClarificationOptionSelect: (option: string) => Promise<void>;
   retrieval: RetrievalRuntimeModel;
   runtime: WorkflowRuntimeModel;
   telemetry: ProviderTelemetryModel;
@@ -3466,6 +3509,13 @@ function OverviewInspector({
           <strong>{snapshot.artifacts.length}</strong>
           <p>{activeArtifact.title}</p>
         </div>
+        {snapshot.clarification ? (
+          <ClarificationOverviewTile
+            clarification={snapshot.clarification}
+            disabled={isStreaming}
+            onOptionSelect={onClarificationOptionSelect}
+          />
+        ) : null}
         <div
           aria-label="Preview summary"
           className="overviewTile"
@@ -3515,6 +3565,58 @@ function OverviewInspector({
         </div>
       </div>
     </section>
+  );
+}
+
+function ClarificationOverviewTile({
+  clarification,
+  disabled,
+  onOptionSelect
+}: {
+  clarification: ClarificationSummary;
+  disabled: boolean;
+  onOptionSelect: (option: string) => Promise<void>;
+}) {
+  return (
+    <div
+      aria-label="Clarification summary"
+      className="overviewTile overviewClarificationTile"
+      data-state="pending"
+      role="group"
+    >
+      <span>Clarification</span>
+      <strong>{formatClarificationReason(clarification.reason)}</strong>
+      <p>{clarification.summary}</p>
+      <small>
+        {`${clarification.questions.length} question${
+          clarification.questions.length === 1 ? "" : "s"
+        } / ${formatConfidenceLabel(clarification.confidence)} confidence`}
+      </small>
+      <div className="clarificationQuestionStack">
+        {clarification.questions.map((question) => (
+          <article className="clarificationQuestion" key={question.id}>
+            <p>{question.prompt}</p>
+            {question.suggestedOptions.length > 0 ? (
+              <div className="clarificationOptionGrid">
+                {question.suggestedOptions.map((option) => (
+                  <button
+                    disabled={disabled}
+                    key={option}
+                    onClick={() => void onOptionSelect(option)}
+                    type="button"
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {question.defaultRecommendation ? (
+              <small>{`Recommended: ${question.defaultRecommendation}`}</small>
+            ) : null}
+          </article>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -5567,6 +5669,24 @@ function formatWorkflowStatusCopy(status: string) {
 
 function formatRetryCount(retryCount: number) {
   return retryCount === 1 ? "1 retry loop" : `${retryCount} retry loops`;
+}
+
+function formatClarificationReason(reason: string) {
+  return reason
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function formatConfidenceLabel(confidence: number) {
+  return `${Math.round(confidence * 100)}%`;
+}
+
+function buildClarificationContinuationPrompt(
+  clarification: ClarificationSummary,
+  answer: string
+) {
+  return `${clarification.originalQuery}\n\nClarification answer: ${answer}`;
 }
 
 function formatSessionTelemetryLabel(telemetry: ProviderTelemetryModel) {

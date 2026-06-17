@@ -2996,6 +2996,59 @@ a {
   border-color: rgba(243, 184, 82, 0.22);
 }
 
+.overviewClarificationTile {
+  gap: 10px;
+}
+
+.clarificationQuestionStack {
+  display: grid;
+  gap: 10px;
+}
+
+.clarificationQuestion {
+  display: grid;
+  gap: 8px;
+}
+
+.clarificationQuestion p {
+  margin: 0;
+}
+
+.clarificationOptionGrid {
+  display: grid;
+  gap: 7px;
+}
+
+.clarificationOptionGrid button {
+  width: 100%;
+  border: 1px solid rgba(var(--accent-rgb), 0.24);
+  border-radius: 12px;
+  padding: 8px 10px;
+  color: var(--foreground);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), transparent 78%),
+    rgba(255, 255, 255, 0.04);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease,
+    background 160ms ease;
+}
+
+.clarificationOptionGrid button:hover:not(:disabled) {
+  border-color: rgba(var(--accent-rgb), 0.42);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.16), transparent 78%),
+    rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+}
+
+.clarificationOptionGrid button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
 .overviewTile[data-state="error"],
 .overviewTile[data-state="failed"] {
   border-color: rgba(255, 122, 102, 0.24);

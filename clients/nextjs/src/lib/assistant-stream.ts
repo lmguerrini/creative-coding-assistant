@@ -1,5 +1,6 @@
 import type {
   ArtifactCritique,
+  ClarificationSummary,
   CreativeTranslationSummary,
   RefinementPassRecord,
   WorkflowNodeId
@@ -69,6 +70,10 @@ export type AssistantStreamWorkflowMetadata = {
   preview_artifact_count: number;
   image_reference_count: number;
   image_references: AssistantStreamImageReferenceMetadata[];
+  clarification?: ClarificationSummary | null;
+  clarification_required?: boolean;
+  clarification_reason?: string | null;
+  clarification_question_count?: number;
 };
 
 export type AssistantPreviewArtifactStatus =
@@ -121,6 +126,7 @@ export type AssistantStreamRequest = {
   mode?: string;
   attachments?: AssistantRequestImageAttachment[];
   artifactRefinement?: AssistantArtifactRefinementRequest;
+  clarificationResponse?: string;
 };
 
 export type AssistantStreamOptions = {
@@ -179,6 +185,7 @@ const streamEventWorkflowNodes: Partial<
     context_assembled: "context_assembly"
   },
   prompt_input: {
+    clarification_required: "prompt_input",
     prompt_inputs_prepared: "prompt_input"
   },
   prompt_rendered: {
@@ -440,6 +447,17 @@ export function readWorkflowMetadata(
     typeof rawWorkflow.image_reference_count === "number"
       ? rawWorkflow.image_reference_count
       : imageReferences.length;
+  const clarification = readClarificationSummary(rawWorkflow.clarification);
+  const clarificationRequired =
+    rawWorkflow.clarification_required === true || clarification !== null;
+  const clarificationReason =
+    typeof rawWorkflow.clarification_reason === "string"
+      ? rawWorkflow.clarification_reason
+      : clarification?.reason ?? null;
+  const clarificationQuestionCount =
+    typeof rawWorkflow.clarification_question_count === "number"
+      ? rawWorkflow.clarification_question_count
+      : clarification?.questions.length ?? 0;
 
   if (
     (phase !== "running" && phase !== "completed" && phase !== "failed") ||
@@ -463,7 +481,62 @@ export function readWorkflowMetadata(
     recommended_artifact_id: recommendedArtifactId,
     preview_artifact_count: previewArtifactCount,
     image_reference_count: imageReferenceCount,
-    image_references: imageReferences
+    image_references: imageReferences,
+    ...(clarificationRequired
+      ? {
+          clarification,
+          clarification_required: true,
+          clarification_reason: clarificationReason,
+          clarification_question_count: clarificationQuestionCount
+        }
+      : {})
+  };
+}
+
+export function readClarificationSummary(
+  value: unknown
+): ClarificationSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const reason = readStringField(value, "reason");
+  const confidence = readFiniteNumberField(value, "confidence");
+  const summary = readStringField(value, "summary");
+  const originalQuery =
+    readStringField(value, "original_query") ??
+    readStringField(value, "originalQuery");
+  const questions = parseClarificationQuestions(value.questions);
+
+  if (
+    !reason ||
+    confidence === null ||
+    !summary ||
+    !originalQuery ||
+    questions.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    reason,
+    confidence,
+    summary,
+    originalQuery,
+    questions,
+    suggestedOptions: readStringListField(
+      value,
+      "suggested_options",
+      "suggestedOptions"
+    ),
+    defaultRecommendation:
+      readStringField(value, "default_recommendation") ??
+      readStringField(value, "defaultRecommendation"),
+    signalSummary: readStringListField(
+      value,
+      "signal_summary",
+      "signalSummary"
+    )
   };
 }
 
@@ -773,6 +846,76 @@ function parseStringList(value: unknown): string[] {
   }
 
   return value.filter((item): item is string => typeof item === "string");
+}
+
+function readStringField(
+  value: Record<string, unknown>,
+  key: string
+): string | null {
+  const item = value[key];
+  return typeof item === "string" && item.trim() ? item : null;
+}
+
+function readFiniteNumberField(
+  value: Record<string, unknown>,
+  key: string
+): number | null {
+  const item = value[key];
+  return typeof item === "number" && Number.isFinite(item) ? item : null;
+}
+
+function readStringListField(
+  value: Record<string, unknown>,
+  snakeKey: string,
+  camelKey: string
+): string[] {
+  const snakeValue = parseStringList(value[snakeKey]);
+  if (snakeValue.length > 0) {
+    return snakeValue;
+  }
+  return parseStringList(value[camelKey]);
+}
+
+function parseClarificationQuestions(
+  value: unknown
+): ClarificationSummary["questions"] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const id = readStringField(item, "id");
+    const prompt = readStringField(item, "prompt");
+    const kind = readStringField(item, "kind");
+    const normalizedKind =
+      kind === "short_answer" || kind === "single_choice"
+        ? kind
+        : "single_choice";
+
+    if (!id || !prompt) {
+      return [];
+    }
+
+    return [
+      {
+        id,
+        prompt,
+        kind: normalizedKind,
+        suggestedOptions: readStringListField(
+          item,
+          "suggested_options",
+          "suggestedOptions"
+        ),
+        defaultRecommendation:
+          readStringField(item, "default_recommendation") ??
+          readStringField(item, "defaultRecommendation")
+      }
+    ];
+  });
 }
 
 function parseImageReferenceMetadataList(

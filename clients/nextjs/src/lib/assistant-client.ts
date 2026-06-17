@@ -41,6 +41,25 @@ export type WorkflowStepState = {
   detail: string;
 };
 
+export type ClarificationQuestionSummary = {
+  id: string;
+  prompt: string;
+  kind: "single_choice" | "short_answer";
+  suggestedOptions: string[];
+  defaultRecommendation: string | null;
+};
+
+export type ClarificationSummary = {
+  reason: string;
+  confidence: number;
+  summary: string;
+  originalQuery: string;
+  questions: ClarificationQuestionSummary[];
+  suggestedOptions: string[];
+  defaultRecommendation: string | null;
+  signalSummary: string[];
+};
+
 export type AssistantMessage = {
   role: "user" | "assistant";
   time: string;
@@ -523,6 +542,7 @@ export type AssistantWorkspaceSnapshot = {
     steps: WorkflowStepState[];
   };
   artifacts: ArtifactSummary[];
+  clarification?: ClarificationSummary | null;
   multimodal: MultimodalSummary;
   preview: PreviewSummary;
   code: CodeSummary;

@@ -16,7 +16,10 @@ import {
   type AssistantWorkspaceSnapshot,
   type InspectorTabName
 } from "@/lib/assistant-client";
-import type { AssistantStreamEvent } from "@/lib/assistant-stream";
+import type {
+  AssistantStreamEvent,
+  AssistantStreamRequest
+} from "@/lib/assistant-stream";
 import {
   createWorkspaceSessionRecord,
   type WorkspacePersistenceClient,
@@ -1500,12 +1503,17 @@ describe("WorkstationShell", () => {
     expect(backendStream).toHaveBeenCalledWith(
       expect.objectContaining({
         conversationId: "local-nextjs-session",
-        domain: "webgpu_wgsl",
         mode: "generate",
         projectId: "local-nextjs-workspace",
         query: "Make the low-frequency motion calmer."
       })
     );
+    const submittedRequest = (
+      backendStream.mock.calls as unknown as Array<[AssistantStreamRequest]>
+    )[0]?.[0];
+    expect(submittedRequest).toBeDefined();
+    expect(submittedRequest).not.toHaveProperty("domain");
+    expect(submittedRequest).not.toHaveProperty("domains");
     expect(screen.getByLabelText("Current session")).toHaveTextContent(
       "Finalization"
     );
@@ -1540,6 +1548,111 @@ describe("WorkstationShell", () => {
         "p5.js runtime ready for browser preview execution."
       )
     ).toBeVisible();
+  });
+
+  it("surfaces clarification questions and sends selected answers", async () => {
+    const clarification = {
+      reason: "ambiguous_modality",
+      confidence: 0.44,
+      summary: "The request has creative intent but no explicit output modality.",
+      original_query: "Make something evocative about rain.",
+      suggested_options: ["Visual sketch", "Audio piece", "Audiovisual piece"],
+      default_recommendation: "Visual sketch",
+      signal_summary: ["route=generate", "modality=unspecified"],
+      questions: [
+        {
+          id: "output_modality",
+          prompt: "What should the assistant generate first?",
+          kind: "single_choice",
+          suggested_options: ["Visual sketch", "Audio piece", "Audiovisual piece"],
+          default_recommendation: "Visual sketch"
+        }
+      ]
+    };
+    const backendStream = vi
+      .fn()
+      .mockImplementationOnce(() =>
+        streamEvents([
+          {
+            event_type: "prompt_input",
+            sequence: 0,
+            payload: {
+              code: "clarification_required",
+              message: "Clarification required before generation.",
+              clarification,
+              workflow: {
+                step: "prompt_input",
+                phase: "running",
+                status: "running",
+                current_step: "prompt_input",
+                completed_steps: ["intake", "routing"],
+                skipped_steps: [],
+                refinement_count: 0,
+                review_outcome: null,
+                review_reasons: [],
+                artifact_count: 0,
+                preview_artifact_count: 0,
+                image_reference_count: 0,
+                image_references: [],
+                clarification_required: true,
+                clarification_reason: "ambiguous_modality",
+                clarification_question_count: 1,
+                clarification
+              }
+            }
+          },
+          {
+            event_type: "final",
+            sequence: 1,
+            payload: {
+              answer: "I need one quick clarification before generating.",
+              clarification
+            }
+          }
+        ])
+      )
+      .mockImplementationOnce(() =>
+        streamEvents([
+          {
+            event_type: "token_delta",
+            sequence: 0,
+            payload: { text: "Generated after clarification." }
+          },
+          {
+            event_type: "final",
+            sequence: 1,
+            payload: { answer: "Generated after clarification." }
+          }
+        ])
+      );
+
+    renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Make something evocative about rain." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    const clarificationCard = await screen.findByRole("group", {
+      name: "Clarification summary"
+    });
+    expect(clarificationCard).toHaveTextContent("Ambiguous Modality");
+    expect(
+      within(clarificationCard).getByText("What should the assistant generate first?")
+    ).toBeVisible();
+
+    fireEvent.click(
+      within(clarificationCard).getByRole("button", { name: "Visual sketch" })
+    );
+
+    expect(await screen.findByText("Generated after clarification.")).toBeVisible();
+    expect(backendStream).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        clarificationResponse: "Visual sketch",
+        query:
+          "Make something evocative about rain.\n\nClarification answer: Visual sketch"
+      })
+    );
   });
 
   it("hydrates final stream output into the active artifact and routed preview", async () => {

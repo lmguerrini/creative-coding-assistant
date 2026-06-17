@@ -3,6 +3,7 @@ import {
   AssistantStreamError,
   decodeAssistantStream,
   parseAssistantStreamLine,
+  readClarificationSummary,
   readEventTimestamp,
   readPreviewArtifactUpdate,
   readStreamEventError,
@@ -408,6 +409,87 @@ describe("assistant stream client", () => {
       ]
     });
     expect(workflowNodeFromAssistantStreamEvent(event)).toBe("generation");
+  });
+
+  it("reads clarification metadata from prompt input workflow events", () => {
+    const clarification = {
+      reason: "ambiguous_modality",
+      confidence: 0.44,
+      summary: "The output modality is unclear.",
+      original_query: "Make something evocative about rain.",
+      suggested_options: ["Visual sketch", "Audio piece", "Audiovisual piece"],
+      default_recommendation: "Visual sketch",
+      signal_summary: ["route=generate", "modality=unspecified"],
+      questions: [
+        {
+          id: "output_modality",
+          prompt: "What should the assistant generate first?",
+          kind: "single_choice",
+          suggested_options: ["Visual sketch", "Audio piece", "Audiovisual piece"],
+          default_recommendation: "Visual sketch"
+        }
+      ]
+    };
+    const event: AssistantStreamEvent = {
+      event_type: "prompt_input",
+      sequence: 4,
+      payload: {
+        code: "clarification_required",
+        clarification,
+        workflow: {
+          step: "prompt_input",
+          phase: "running",
+          status: "running",
+          current_step: "prompt_input",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_outcome: null,
+          review_reasons: [],
+          artifact_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          clarification_required: true,
+          clarification_reason: "ambiguous_modality",
+          clarification_question_count: 1,
+          clarification
+        }
+      }
+    };
+
+    expect(workflowNodeFromAssistantStreamEvent(event)).toBe("prompt_input");
+    expect(readClarificationSummary(event.payload.clarification)).toEqual({
+      reason: "ambiguous_modality",
+      confidence: 0.44,
+      summary: "The output modality is unclear.",
+      originalQuery: "Make something evocative about rain.",
+      suggestedOptions: ["Visual sketch", "Audio piece", "Audiovisual piece"],
+      defaultRecommendation: "Visual sketch",
+      signalSummary: ["route=generate", "modality=unspecified"],
+      questions: [
+        {
+          id: "output_modality",
+          prompt: "What should the assistant generate first?",
+          kind: "single_choice",
+          suggestedOptions: ["Visual sketch", "Audio piece", "Audiovisual piece"],
+          defaultRecommendation: "Visual sketch"
+        }
+      ]
+    });
+    expect(readWorkflowMetadata(event)).toEqual(
+      expect.objectContaining({
+        clarification: expect.objectContaining({
+          reason: "ambiguous_modality",
+          questions: expect.arrayContaining([
+            expect.objectContaining({ id: "output_modality" })
+          ])
+        }),
+        clarification_question_count: 1,
+        clarification_reason: "ambiguous_modality",
+        clarification_required: true
+      })
+    );
   });
 
   it("reads preview runtime updates from preview artifact events", () => {
