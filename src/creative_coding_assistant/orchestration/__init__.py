@@ -27,6 +27,7 @@ _QUALITY_CALIBRATION = (
     "creative_coding_assistant.orchestration.quality_calibration"
 )
 _REFINEMENT_PASSES = "creative_coding_assistant.orchestration.refinement_passes"
+_REFERENCE_FUSION = "creative_coding_assistant.orchestration.reference_fusion"
 _RETRIEVAL = "creative_coding_assistant.orchestration.retrieval"
 _ROUTING = "creative_coding_assistant.orchestration.routing"
 _SERVICE = "creative_coding_assistant.orchestration.service"
@@ -65,6 +66,7 @@ _EXPORT_MAP = {
     "RefinementPassDecision": _REFINEMENT_PASSES,
     "RefinementPassRecord": _ARTIFACTS,
     "RefinementPassStopReason": _ARTIFACTS,
+    "ReferenceFusionGuidance": _REFERENCE_FUSION,
     "SacredConsistencyEvaluation": _ARTIFACTS,
     "SacredConsistencyObservation": _ARTIFACTS,
     "SacredGeometryGuidance": _SACRED_GEOMETRY,
@@ -153,6 +155,7 @@ _EXPORT_MAP = {
     "detect_shader_presets": _SHADER_PRESETS,
     "derive_shader_preset_guidance": _SHADER_PRESETS,
     "derive_visual_style_guidance": _VISUAL_STYLES,
+    "derive_reference_fusion_guidance": _REFERENCE_FUSION,
     "detect_visual_styles": _VISUAL_STYLES,
     "extract_workflow_artifacts": _ARTIFACTS,
     "fail_workflow": _WORKFLOW,
@@ -161,6 +164,7 @@ _EXPORT_MAP = {
     "prepare_workflow_preview_results": _ARTIFACTS,
     "plan_next_refinement_pass": _REFINEMENT_PASSES,
     "refinement_opportunities": _REFINEMENT_PASSES,
+    "reference_fusion_prompt_lines": _REFERENCE_FUSION,
     "restart_workflow_step": _WORKFLOW,
     "review_assistant_answer": _WORKFLOW_REVIEW,
     "route_request": _ROUTING,
