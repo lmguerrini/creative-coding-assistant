@@ -306,6 +306,8 @@ function getSandboxStartingStatus(
             ? "Mounting a controlled Hydra-compatible browser document."
             : kind === "tone"
               ? "Mounting a controlled Tone.js-compatible audio document."
+              : kind === "gsap"
+                ? "Mounting a controlled GSAP-compatible motion document."
               : "Mounting a controlled p5.js-compatible browser document.",
     label: "Preview runtime starting",
     state: "starting",

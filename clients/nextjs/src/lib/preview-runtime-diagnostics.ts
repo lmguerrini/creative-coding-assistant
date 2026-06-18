@@ -232,7 +232,9 @@ function buildOverlayDiagnostics({
   }
 
   if (snapshot.runtimeState === "stopped") {
-    return ["Audio transport is stopped and output is silent."];
+    return kind === "tone"
+      ? ["Audio transport is stopped and output is silent."]
+      : ["All scheduled motion completed and the stage is idle."];
   }
 
   if (snapshot.runtimeState === "running" && !snapshot.metricsAvailable) {
@@ -434,6 +436,8 @@ function formatRuntimeKindLabel(kind: PreviewExecutableRuntimeKind) {
       return "GLSL runtime";
     case "hydra":
       return "Hydra runtime";
+    case "gsap":
+      return "GSAP runtime";
     case "tone":
       return "Tone.js runtime";
     default:

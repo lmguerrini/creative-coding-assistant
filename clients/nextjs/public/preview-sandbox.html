@@ -17,10 +17,154 @@
       inset: 0;
       overflow: hidden;
     }
+    #preview-root > * {
+      position: absolute;
+      inset: 0;
+    }
     canvas {
       display: block;
       width: 100%;
       height: 100%;
+    }
+    #preview-canvas[hidden] {
+      display: none;
+    }
+    #gsap-stage {
+      isolation: isolate;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(124, 167, 255, 0.24), transparent 38%),
+        radial-gradient(circle at 78% 18%, rgba(76, 215, 200, 0.22), transparent 36%),
+        linear-gradient(180deg, #071016 0%, #05080b 52%, #060b12 100%);
+    }
+    #gsap-stage[hidden] {
+      display: none;
+    }
+    #gsap-stage .gsap-node {
+      position: absolute;
+      box-sizing: border-box;
+      will-change: transform, opacity;
+      transform-origin: center center;
+      user-select: none;
+      pointer-events: none;
+    }
+    #gsap-stage .backdrop {
+      inset: 0;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.03), transparent 48%),
+        radial-gradient(circle at 50% 50%, rgba(76, 215, 200, 0.08), transparent 46%);
+    }
+    #gsap-stage .grid {
+      inset: 6%;
+      border-radius: 28px;
+      border: 1px solid rgba(237, 243, 242, 0.08);
+      background-image:
+        linear-gradient(rgba(237, 243, 242, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(237, 243, 242, 0.04) 1px, transparent 1px);
+      background-size: 34px 34px;
+      opacity: 0.5;
+    }
+    #gsap-stage .hero,
+    #gsap-stage .panel,
+    #gsap-stage .card {
+      left: 50%;
+      top: 50%;
+      width: min(46vw, 420px);
+      height: min(32vw, 280px);
+      border: 1px solid rgba(237, 243, 242, 0.14);
+      border-radius: 32px;
+      background:
+        linear-gradient(160deg, rgba(124, 167, 255, 0.22), rgba(7, 16, 22, 0.18) 46%, rgba(76, 215, 200, 0.14)),
+        rgba(7, 16, 22, 0.72);
+      box-shadow:
+        0 28px 80px rgba(0, 0, 0, 0.42),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      transform: translate3d(-50%, -50%, 0);
+    }
+    #gsap-stage .title {
+      left: 50%;
+      top: calc(50% - min(11vw, 92px));
+      width: min(40vw, 320px);
+      height: 22px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(237, 243, 242, 0.96), rgba(124, 167, 255, 0.94));
+      transform: translate3d(-50%, -50%, 0);
+      box-shadow: 0 0 26px rgba(124, 167, 255, 0.18);
+    }
+    #gsap-stage .subtitle {
+      left: 50%;
+      top: calc(50% - min(4vw, 30px));
+      width: min(26vw, 220px);
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(237, 243, 242, 0.42);
+      transform: translate3d(-50%, -50%, 0);
+    }
+    #gsap-stage .ring {
+      left: 50%;
+      top: 50%;
+      border: 1px solid rgba(76, 215, 200, 0.28);
+      border-radius: 999px;
+      transform: translate3d(-50%, -50%, 0);
+      mix-blend-mode: screen;
+    }
+    #gsap-stage .ring.small {
+      width: min(18vw, 150px);
+      height: min(18vw, 150px);
+    }
+    #gsap-stage .ring.medium {
+      width: min(28vw, 250px);
+      height: min(28vw, 250px);
+      border-color: rgba(124, 167, 255, 0.22);
+    }
+    #gsap-stage .ring.large {
+      width: min(40vw, 360px);
+      height: min(40vw, 360px);
+      border-color: rgba(237, 243, 242, 0.14);
+    }
+    #gsap-stage .orb,
+    #gsap-stage .particle,
+    #gsap-stage .dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 35% 35%, rgba(237, 243, 242, 0.92), rgba(76, 215, 200, 0.82) 58%, rgba(76, 215, 200, 0.18) 100%);
+      box-shadow: 0 0 22px rgba(76, 215, 200, 0.28);
+    }
+    #gsap-stage .bar,
+    #gsap-stage .line {
+      width: 10px;
+      height: 110px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(124, 167, 255, 0.92), rgba(76, 215, 200, 0.2));
+      transform-origin: center bottom;
+    }
+    #gsap-stage .chip,
+    #gsap-stage .square,
+    #gsap-stage .box,
+    #gsap-stage .shape {
+      width: 70px;
+      height: 70px;
+      border-radius: 18px;
+      background: linear-gradient(160deg, rgba(124, 167, 255, 0.46), rgba(76, 215, 200, 0.18));
+      border: 1px solid rgba(237, 243, 242, 0.12);
+      box-shadow: 0 18px 32px rgba(0, 0, 0, 0.24);
+    }
+    #gsap-stage .column {
+      width: 14px;
+      height: 160px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(237, 243, 242, 0.4), rgba(124, 167, 255, 0.1));
+      transform-origin: center bottom;
+    }
+    #gsap-stage .accent {
+      width: 120px;
+      height: 120px;
+      border-radius: 28px;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 190, 92, 0.68), rgba(255, 190, 92, 0.08) 72%);
+      filter: blur(0px);
+      mix-blend-mode: screen;
     }
     #runtime-status {
       position: fixed;
@@ -82,7 +226,10 @@
   </style>
 </head>
 <body>
-  <div id="preview-root"><canvas id="preview-canvas"></canvas></div>
+  <div id="preview-root">
+    <canvas id="preview-canvas"></canvas>
+    <div id="gsap-stage" aria-label="GSAP motion stage" hidden></div>
+  </div>
   <div id="audio-controls" aria-label="Tone.js audio controls" hidden>
     <button id="audio-start" type="button">Start audio</button>
     <button id="audio-stop" type="button" disabled>Stop audio</button>
@@ -93,6 +240,7 @@
     (function () {
       const messageSource = "cca-preview-runtime";
       const canvas = document.getElementById("preview-canvas");
+      const gsapStage = document.getElementById("gsap-stage");
       const root = document.getElementById("preview-root");
       const statusNode = document.getElementById("runtime-status");
       const audioControls = document.getElementById("audio-controls");
@@ -108,6 +256,10 @@
       let toneAnimationFrame = 0;
       let toneMuted = false;
       let toneStartAttempt = 0;
+      let gsapAnimations = [];
+      let gsapFrameHandle = 0;
+      let gsapTimeouts = [];
+      let gsapState = null;
 
       function isMountMessage(data) {
         return data &&
@@ -172,11 +324,14 @@
         const previousRuntime = runtime;
         activeToken += 1;
         stopToneAudio(false);
+        stopGsapRuntime();
         setToneControlsVisible(false);
         runtime = null;
         document.body.dataset.runtimeState = "idle";
         document.body.dataset.runtimeLabel = "Runtime sandbox disposed";
         statusNode.textContent = "Runtime sandbox disposed";
+        canvas.hidden = false;
+        gsapStage.hidden = true;
         if (previousRuntime && previousRuntime.kind !== "glsl") {
           const context = canvas.getContext("2d");
           if (context) {
@@ -219,6 +374,859 @@
           return "rgb(" + values.join(",") + ")";
         }
         return fallback;
+      }
+
+      function stopGsapRuntime() {
+        if (gsapFrameHandle) {
+          cancelAnimationFrame(gsapFrameHandle);
+          gsapFrameHandle = 0;
+        }
+        gsapTimeouts.forEach(function (timer) {
+          window.clearTimeout(timer);
+        });
+        gsapTimeouts = [];
+        gsapAnimations.forEach(function (animation) {
+          try {
+            animation.cancel();
+          } catch (error) {}
+        });
+        gsapAnimations = [];
+        gsapState = null;
+        gsapStage.innerHTML = "";
+      }
+
+      function startGsap(token) {
+        const supportIssue = getGsapSupportIssue(runtime.source.source);
+        if (supportIssue) throw new Error(supportIssue);
+
+        canvas.hidden = true;
+        gsapStage.hidden = false;
+        const stage = buildGsapStage();
+        const sandboxDocument = createGsapSandboxDocument(stage);
+        const sandboxWindow = createGsapSandboxWindow(stage, sandboxDocument);
+        const gsap = createGsapFacade(stage);
+
+        new Function(
+          "gsap",
+          "document",
+          "window",
+          "console",
+          "requestAnimationFrame",
+          "cancelAnimationFrame",
+          "performance",
+          "'use strict'; const self = window; const parent = undefined; const top = undefined; const globalThis = undefined;\n" +
+            runtime.source.source
+        )(
+          gsap.api,
+          sandboxDocument,
+          sandboxWindow,
+          console,
+          requestAnimationFrame.bind(window),
+          cancelAnimationFrame.bind(window),
+          performance
+        );
+
+        const started = gsap.start();
+        if (started.tweenCount === 0) {
+          throw new Error("GSAP source did not schedule any supported tweens or timelines.");
+        }
+
+        gsapState = started;
+        status(
+          "running",
+          "GSAP runtime running",
+          "Animating " + runtime.source.title + " inside a bounded GSAP motion stage.",
+          { diagnostics: started.diagnostics }
+        );
+        startGsapFrameLoop(token);
+      }
+
+      function startGsapFrameLoop(token) {
+        if (gsapFrameHandle) {
+          cancelAnimationFrame(gsapFrameHandle);
+        }
+
+        function loop(time) {
+          if (token !== activeToken || !runtime || runtime.kind !== "gsap") {
+            gsapFrameHandle = 0;
+            return;
+          }
+
+          if (!hasActiveGsapAnimations()) {
+            gsapFrameHandle = 0;
+            if (gsapState && !gsapState.hasInfiniteAnimation) {
+              status(
+                "stopped",
+                "GSAP runtime stopped",
+                "All scheduled GSAP tweens completed."
+              );
+            }
+            return;
+          }
+
+          frame(time);
+          gsapFrameHandle = requestAnimationFrame(loop);
+        }
+
+        gsapFrameHandle = requestAnimationFrame(loop);
+      }
+
+      function hasActiveGsapAnimations() {
+        return gsapAnimations.some(function (animation) {
+          return animation.playState === "running" || animation.playState === "pending";
+        });
+      }
+
+      function buildGsapStage() {
+        gsapStage.innerHTML = "";
+        const created = [];
+
+        function appendNode(className, options) {
+          const element = document.createElement("div");
+          element.className = "gsap-node " + className;
+          if (options && options.id) element.id = options.id;
+          element.dataset.baseTransform = options && options.baseTransform
+            ? options.baseTransform
+            : "translate3d(0px, 0px, 0px)";
+          element.style.transform = element.dataset.baseTransform;
+          if (options && options.left != null) element.style.left = options.left;
+          if (options && options.top != null) element.style.top = options.top;
+          if (options && options.width != null) {
+            element.style.width = typeof options.width === "number"
+              ? options.width + "px"
+              : options.width;
+          }
+          if (options && options.height != null) {
+            element.style.height = typeof options.height === "number"
+              ? options.height + "px"
+              : options.height;
+          }
+          if (options && options.text) {
+            element.textContent = options.text;
+            element.style.background = "none";
+            element.style.color = "#edf3f2";
+            element.style.font = options.font || "700 16px/1 ui-monospace, SFMono-Regular, Menlo, monospace";
+            element.style.letterSpacing = "0.08em";
+            element.style.textTransform = "uppercase";
+          }
+          gsapStage.appendChild(element);
+          created.push(element);
+          return element;
+        }
+
+        appendNode("backdrop layer", { id: "backdrop" });
+        appendNode("grid layer", { id: "grid", left: "0", top: "0" });
+        appendNode("accent glow layer", {
+          id: "accent",
+          left: "16%",
+          top: "18%"
+        });
+        appendNode("hero panel card box shape", {
+          id: "hero",
+          left: "50%",
+          top: "50%",
+          baseTransform: "translate3d(-50%, -50%, 0)"
+        });
+        appendNode("title copy line", {
+          id: "title",
+          left: "50%",
+          top: "50%",
+          baseTransform: "translate3d(-50%, -50%, 0)"
+        });
+        appendNode("subtitle copy line", {
+          id: "subtitle",
+          left: "50%",
+          top: "50%",
+          baseTransform: "translate3d(-50%, -50%, 0)"
+        });
+        appendNode("ring large", {
+          id: "ring-large",
+          left: "50%",
+          top: "50%",
+          baseTransform: "translate3d(-50%, -50%, 0)"
+        });
+        appendNode("ring medium", {
+          id: "ring-medium",
+          left: "50%",
+          top: "50%",
+          baseTransform: "translate3d(-50%, -50%, 0)"
+        });
+        appendNode("ring small", {
+          id: "ring-small",
+          left: "50%",
+          top: "50%",
+          baseTransform: "translate3d(-50%, -50%, 0)"
+        });
+
+        const orbPositions = [
+          ["18%", "26%"],
+          ["74%", "20%"],
+          ["82%", "66%"],
+          ["26%", "74%"]
+        ];
+        orbPositions.forEach(function (position, index) {
+          appendNode("orb particle dot shape", {
+            id: "orb-" + index,
+            left: position[0],
+            top: position[1]
+          });
+        });
+
+        for (let index = 0; index < 12; index += 1) {
+          appendNode("particle dot", {
+            id: "particle-" + index,
+            left: 14 + index * 6 + "%",
+            top: 68 + (index % 3) * 6 + "%"
+          });
+        }
+
+        for (let index = 0; index < 6; index += 1) {
+          appendNode("bar line column", {
+            id: "bar-" + index,
+            left: 24 + index * 10 + "%",
+            top: "72%"
+          });
+        }
+
+        for (let index = 0; index < 5; index += 1) {
+          appendNode("chip square box shape", {
+            id: "shape-" + index,
+            left: 18 + index * 14 + "%",
+            top: index % 2 === 0 ? "14%" : "78%",
+            width: 56 + index * 6,
+            height: 56 + index * 6
+          });
+        }
+
+        return gsapStage;
+      }
+
+      function createGsapSandboxDocument(stage) {
+        return {
+          getElementById: function (id) {
+            return stage.querySelector('[id="' + String(id).replace(/"/g, '\\"') + '"]');
+          },
+          querySelector: function (selector) {
+            assertSafeGsapSelector(selector);
+            return stage.querySelector(selector);
+          },
+          querySelectorAll: function (selector) {
+            assertSafeGsapSelector(selector);
+            return stage.querySelectorAll(selector);
+          }
+        };
+      }
+
+      function createGsapSandboxWindow(stage, sandboxDocument) {
+        return {
+          cancelAnimationFrame: cancelAnimationFrame.bind(window),
+          clearTimeout: clearTimeout.bind(window),
+          console,
+          document: sandboxDocument,
+          getComputedStyle: function (element) {
+            if (!stage.contains(element)) {
+              throw new Error("GSAP preview code can only inspect sandbox stage nodes.");
+            }
+            return window.getComputedStyle(element);
+          },
+          innerHeight: root.clientHeight || innerHeight,
+          innerWidth: root.clientWidth || innerWidth,
+          matchMedia: function () {
+            return {
+              matches: false,
+              media: "not all",
+              addListener: function () {},
+              removeListener: function () {},
+              addEventListener: function () {},
+              removeEventListener: function () {}
+            };
+          },
+          performance,
+          requestAnimationFrame: requestAnimationFrame.bind(window),
+          setTimeout: setTimeout.bind(window)
+        };
+      }
+
+      function createGsapFacade(stage) {
+        const reservedKeys = {
+          autoAlpha: true,
+          delay: true,
+          duration: true,
+          ease: true,
+          onComplete: true,
+          repeat: true,
+          scale: true,
+          stagger: true,
+          yoyo: true
+        };
+        const stateMap = new WeakMap();
+        const scheduled = [];
+        const defaultOptions = {
+          delay: 0,
+          duration: 0.8,
+          ease: "power1.inOut",
+          repeat: 0,
+          stagger: 0,
+          yoyo: false
+        };
+
+        function ensureState(element) {
+          if (stateMap.has(element)) {
+            return cloneState(stateMap.get(element));
+          }
+
+          const initial = {
+            backgroundColor: "",
+            baseTransform: element.dataset.baseTransform || "translate3d(0px, 0px, 0px)",
+            borderRadius: "",
+            filter: "",
+            height: "",
+            opacity: 1,
+            rotation: 0,
+            scaleX: 1,
+            scaleY: 1,
+            transformOrigin: "50% 50%",
+            width: "",
+            x: 0,
+            y: 0
+          };
+          stateMap.set(element, initial);
+          return cloneState(initial);
+        }
+
+        function cloneState(state) {
+          return Object.assign({}, state);
+        }
+
+        function commitState(element, nextState) {
+          stateMap.set(element, cloneState(nextState));
+        }
+
+        function resolveTargets(targets) {
+          if (typeof targets === "string") {
+            assertSafeGsapSelector(targets);
+            return Array.from(stage.querySelectorAll(targets));
+          }
+          if (targets == null) {
+            return [];
+          }
+          if (targets === stage || stage.contains(targets)) {
+            return [targets];
+          }
+          const list = Array.isArray(targets) ? targets : Array.from(targets);
+          return list.filter(function (entry) {
+            return entry && (entry === stage || stage.contains(entry));
+          });
+        }
+
+        function resolveValue(value, index, element, elements) {
+          const nextValue =
+            typeof value === "function" ? value(index, element, elements) : value;
+          return nextValue;
+        }
+
+        function toCssSize(value, fallback) {
+          if (value == null || value === "") {
+            return fallback || "";
+          }
+          if (typeof value === "number") {
+            return value + "px";
+          }
+          return String(value);
+        }
+
+        function resolveNumericValue(value, baseValue, fallback) {
+          const nextValue = value == null ? fallback : value;
+          if (typeof nextValue === "number" && Number.isFinite(nextValue)) {
+            return nextValue;
+          }
+          if (typeof nextValue === "string") {
+            const relative = /^([+-]=)(-?\d+(?:\.\d+)?)$/.exec(nextValue.trim());
+            if (relative) {
+              const delta = Number(relative[2]) || 0;
+              return baseValue + (relative[1] === "+=" ? delta : -delta);
+            }
+            const parsed = Number(nextValue);
+            if (Number.isFinite(parsed)) {
+              return parsed;
+            }
+          }
+          return fallback;
+        }
+
+        function normalizeEase(ease) {
+          switch (String(ease || "").toLowerCase()) {
+            case "none":
+            case "linear":
+              return "linear";
+            case "power1.in":
+            case "sine.in":
+              return "cubic-bezier(0.32, 0, 0.67, 0)";
+            case "power1.out":
+            case "sine.out":
+              return "cubic-bezier(0.33, 1, 0.68, 1)";
+            case "back.out":
+              return "cubic-bezier(0.34, 1.56, 0.64, 1)";
+            case "bounce.out":
+              return "cubic-bezier(0.34, 1.56, 0.64, 1)";
+            default:
+              return "cubic-bezier(0.42, 0, 0.18, 1)";
+          }
+        }
+
+        function extractOptions(vars) {
+          return {
+            delay: readNumber(vars.delay, defaultOptions.delay),
+            duration: Math.max(0, readNumber(vars.duration, defaultOptions.duration)),
+            ease: vars.ease || defaultOptions.ease,
+            onComplete:
+              typeof vars.onComplete === "function" ? vars.onComplete : null,
+            repeat: readNumber(vars.repeat, defaultOptions.repeat),
+            stagger: vars.stagger != null ? vars.stagger : defaultOptions.stagger,
+            yoyo: Boolean(vars.yoyo)
+          };
+        }
+
+        function resolveStaggerDelay(stagger, index, count) {
+          if (typeof stagger === "number" && Number.isFinite(stagger)) {
+            return Math.max(0, stagger) * index;
+          }
+          if (stagger && typeof stagger === "object") {
+            if (typeof stagger.each === "number" && Number.isFinite(stagger.each)) {
+              return Math.max(0, stagger.each) * index;
+            }
+            if (
+              typeof stagger.amount === "number" &&
+              Number.isFinite(stagger.amount) &&
+              count > 1
+            ) {
+              return Math.max(0, stagger.amount) * (index / (count - 1));
+            }
+          }
+          return 0;
+        }
+
+        function mergeState(currentState, vars, index, element, elements) {
+          const next = cloneState(currentState);
+
+          if ("opacity" in vars || "autoAlpha" in vars) {
+            const opacitySource = "autoAlpha" in vars ? vars.autoAlpha : vars.opacity;
+            next.opacity = Math.max(
+              0,
+              Math.min(
+                1,
+                resolveNumericValue(
+                  resolveValue(opacitySource, index, element, elements),
+                  currentState.opacity,
+                  currentState.opacity
+                )
+              )
+            );
+          }
+
+          if ("x" in vars) {
+            next.x = resolveNumericValue(
+              resolveValue(vars.x, index, element, elements),
+              currentState.x,
+              currentState.x
+            );
+          }
+          if ("y" in vars) {
+            next.y = resolveNumericValue(
+              resolveValue(vars.y, index, element, elements),
+              currentState.y,
+              currentState.y
+            );
+          }
+          if ("rotation" in vars) {
+            next.rotation = resolveNumericValue(
+              resolveValue(vars.rotation, index, element, elements),
+              currentState.rotation,
+              currentState.rotation
+            );
+          }
+          if ("scale" in vars) {
+            const scale = resolveNumericValue(
+              resolveValue(vars.scale, index, element, elements),
+              currentState.scaleX,
+              currentState.scaleX
+            );
+            next.scaleX = scale;
+            next.scaleY = scale;
+          }
+          if ("scaleX" in vars) {
+            next.scaleX = resolveNumericValue(
+              resolveValue(vars.scaleX, index, element, elements),
+              currentState.scaleX,
+              currentState.scaleX
+            );
+          }
+          if ("scaleY" in vars) {
+            next.scaleY = resolveNumericValue(
+              resolveValue(vars.scaleY, index, element, elements),
+              currentState.scaleY,
+              currentState.scaleY
+            );
+          }
+          if ("backgroundColor" in vars) {
+            next.backgroundColor = normalizeColor(
+              resolveValue(vars.backgroundColor, index, element, elements),
+              currentState.backgroundColor || "#4cd7c8"
+            );
+          }
+          if ("borderRadius" in vars) {
+            next.borderRadius = toCssSize(
+              resolveValue(vars.borderRadius, index, element, elements),
+              currentState.borderRadius
+            );
+          }
+          if ("filter" in vars) {
+            next.filter = String(
+              resolveValue(vars.filter, index, element, elements) || currentState.filter
+            );
+          }
+          if ("width" in vars) {
+            next.width = toCssSize(
+              resolveValue(vars.width, index, element, elements),
+              currentState.width
+            );
+          }
+          if ("height" in vars) {
+            next.height = toCssSize(
+              resolveValue(vars.height, index, element, elements),
+              currentState.height
+            );
+          }
+          if ("transformOrigin" in vars) {
+            next.transformOrigin = String(
+              resolveValue(vars.transformOrigin, index, element, elements) ||
+                currentState.transformOrigin
+            );
+          }
+
+          return next;
+        }
+
+        function buildTransform(state) {
+          const parts = [];
+          if (state.baseTransform && state.baseTransform !== "none") {
+            parts.push(state.baseTransform);
+          }
+          parts.push(
+            "translate3d(" +
+              state.x +
+              "px, " +
+              state.y +
+              "px, 0px) rotate(" +
+              state.rotation +
+              "deg) scale(" +
+              state.scaleX +
+              ", " +
+              state.scaleY +
+              ")"
+          );
+          return parts.join(" ").trim();
+        }
+
+        function applyState(element, state) {
+          element.style.transform = buildTransform(state);
+          element.style.transformOrigin = state.transformOrigin;
+          element.style.opacity = String(state.opacity);
+          if (state.backgroundColor) element.style.backgroundColor = state.backgroundColor;
+          if (state.borderRadius) element.style.borderRadius = state.borderRadius;
+          if (state.filter) element.style.filter = state.filter;
+          if (state.width) element.style.width = state.width;
+          if (state.height) element.style.height = state.height;
+        }
+
+        function toKeyframe(state) {
+          return {
+            backgroundColor: state.backgroundColor || undefined,
+            borderRadius: state.borderRadius || undefined,
+            filter: state.filter || undefined,
+            height: state.height || undefined,
+            opacity: state.opacity,
+            transform: buildTransform(state),
+            transformOrigin: state.transformOrigin,
+            width: state.width || undefined
+          };
+        }
+
+        function scheduleTween(kind, targets, firstVars, secondVars, positionSeconds) {
+          const elements = resolveTargets(targets);
+          if (elements.length === 0) {
+            throw new Error("GSAP selector did not match any sandbox stage nodes.");
+          }
+
+          const vars = kind === "fromTo" ? secondVars : firstVars;
+          const options = extractOptions(vars);
+          const spanSeconds =
+            options.duration * Math.max(1, options.repeat < 0 ? 1 : options.repeat + 1);
+
+          elements.forEach(function (element, index) {
+            const currentState = ensureState(element);
+            const fromState =
+              kind === "to"
+                ? currentState
+                : mergeState(
+                    currentState,
+                    kind === "fromTo" ? firstVars : firstVars,
+                    index,
+                    element,
+                    elements
+                  );
+            const toState =
+              kind === "from"
+                ? currentState
+                : mergeState(
+                    currentState,
+                    kind === "fromTo" ? secondVars : firstVars,
+                    index,
+                    element,
+                    elements
+                  );
+            const delaySeconds =
+              positionSeconds +
+              options.delay +
+              resolveStaggerDelay(options.stagger, index, elements.length);
+
+            scheduled.push({
+              delayMs: Math.max(0, delaySeconds) * 1000,
+              direction: options.yoyo ? "alternate" : "normal",
+              durationMs: Math.max(0, options.duration) * 1000,
+              easing: normalizeEase(options.ease),
+              element,
+              fromState,
+              iterations: options.repeat < 0 ? Infinity : options.repeat + 1,
+              onComplete: options.onComplete,
+              toState
+            });
+            commitState(element, toState);
+          });
+
+          return positionSeconds + spanSeconds;
+        }
+
+        function parsePosition(position, cursor, previousStart, previousEnd) {
+          if (typeof position === "number" && Number.isFinite(position)) {
+            return position;
+          }
+          if (typeof position === "string") {
+            if (position === "<") {
+              return previousStart;
+            }
+            if (position === ">") {
+              return previousEnd;
+            }
+            const relative = /^([+-]=)(-?\d+(?:\.\d+)?)$/.exec(position.trim());
+            if (relative) {
+              const delta = Number(relative[2]) || 0;
+              return cursor + (relative[1] === "+=" ? delta : -delta);
+            }
+          }
+          return cursor;
+        }
+
+        function createTimeline(baseOptions) {
+          let cursor = 0;
+          let previousStart = 0;
+          let previousEnd = 0;
+          const options = baseOptions || {};
+          const inheritedOptions = {};
+
+          ["delay", "duration", "ease", "repeat", "stagger", "yoyo"].forEach(function (key) {
+            if (options[key] != null) {
+              inheritedOptions[key] = options[key];
+            }
+          });
+
+          function schedule(method, targets, firstVars, secondVars, position) {
+            const at = parsePosition(position, cursor, previousStart, previousEnd);
+            const mergedFirst =
+              firstVars && typeof firstVars === "object"
+                ? Object.assign({}, inheritedOptions, options.defaults || {}, firstVars)
+                : firstVars;
+            const mergedSecond =
+              secondVars && typeof secondVars === "object"
+                ? Object.assign({}, inheritedOptions, options.defaults || {}, secondVars)
+                : secondVars;
+            const nextEnd = scheduleTween(method, targets, mergedFirst, mergedSecond, at);
+            previousStart = at;
+            previousEnd = nextEnd;
+            cursor = Math.max(cursor, nextEnd);
+            return timeline;
+          }
+
+          const timeline = {
+            from: function (targets, vars, position) {
+              return schedule("from", targets, vars, null, position);
+            },
+            fromTo: function (targets, fromVars, toVars, position) {
+              return schedule("fromTo", targets, fromVars, toVars, position);
+            },
+            set: function (targets, vars, position) {
+              return schedule("to", targets, Object.assign({}, vars, { duration: 0 }), null, position);
+            },
+            to: function (targets, vars, position) {
+              return schedule("to", targets, vars, null, position);
+            }
+          };
+
+          return timeline;
+        }
+
+        function start() {
+          let targetCount = 0;
+          let tweenCount = 0;
+          let usesStagger = false;
+          let usesYoyo = false;
+          let hasInfiniteAnimation = false;
+
+          scheduled.forEach(function (entry) {
+            targetCount += 1;
+            tweenCount += 1;
+            if (entry.iterations === Infinity) {
+              hasInfiniteAnimation = true;
+            }
+            if (entry.direction === "alternate") {
+              usesYoyo = true;
+            }
+            if (entry.delayMs > 0) {
+              usesStagger = true;
+            }
+
+            applyState(entry.element, entry.fromState);
+            if (entry.durationMs === 0) {
+              const timer = window.setTimeout(function () {
+                applyState(entry.element, entry.toState);
+                if (entry.onComplete) entry.onComplete();
+              }, entry.delayMs);
+              gsapTimeouts.push(timer);
+              return;
+            }
+
+            const animation = entry.element.animate(
+              [toKeyframe(entry.fromState), toKeyframe(entry.toState)],
+              {
+                delay: entry.delayMs,
+                direction: entry.direction,
+                duration: entry.durationMs,
+                easing: entry.easing,
+                fill: "both",
+                iterations: entry.iterations
+              }
+            );
+            if (entry.onComplete && entry.iterations !== Infinity) {
+              animation.finished.then(function () {
+                entry.onComplete();
+              }).catch(function () {});
+            }
+            gsapAnimations.push(animation);
+          });
+
+          return {
+            diagnostics: [
+              targetCount + " sandbox nodes / " + tweenCount + " tweens",
+              (usesStagger ? "stagger enabled" : "timeline sequencing only") +
+                (usesYoyo ? " / yoyo enabled" : "")
+            ],
+            hasInfiniteAnimation,
+            tweenCount
+          };
+        }
+
+        const api = {
+          context: function (callback) {
+            if (typeof callback === "function") {
+              callback();
+            }
+            return { revert: function () {} };
+          },
+          defaults: function (nextDefaults) {
+            Object.assign(defaultOptions, nextDefaults || {});
+            return api;
+          },
+          from: function (targets, vars) {
+            scheduleTween("from", targets, Object.assign({}, defaultOptions, vars), null, 0);
+            return api;
+          },
+          fromTo: function (targets, fromVars, toVars) {
+            scheduleTween(
+              "fromTo",
+              targets,
+              Object.assign({}, fromVars),
+              Object.assign({}, defaultOptions, toVars),
+              0
+            );
+            return api;
+          },
+          set: function (targets, vars) {
+            scheduleTween("to", targets, Object.assign({}, defaultOptions, vars, { duration: 0 }), null, 0);
+            return api;
+          },
+          timeline: function (options) {
+            return createTimeline(options || {});
+          },
+          to: function (targets, vars) {
+            scheduleTween("to", targets, Object.assign({}, defaultOptions, vars), null, 0);
+            return api;
+          },
+          utils: {
+            toArray: function (targets) {
+              return resolveTargets(targets);
+            }
+          }
+        };
+
+        return {
+          api,
+          start
+        };
+      }
+
+      function assertSafeGsapSelector(selector) {
+        const value = String(selector || "").trim();
+        if (!value) {
+          throw new Error("GSAP preview selectors cannot be empty.");
+        }
+        if (/(?:^|[\s>+~])(html|body|script|iframe|canvas)(?:$|[\s.#[:])/i.test(value) || /:root/.test(value)) {
+          throw new Error("GSAP previews can only target the bounded sandbox stage.");
+        }
+      }
+
+      function getGsapSupportIssue(source) {
+        if (!source || !source.trim()) {
+          return "GSAP preview source is empty.";
+        }
+        if (source.length > 16000) {
+          return "The GSAP motion source is too large for the bounded preview runtime.";
+        }
+
+        const checks = [
+          [/\b(?:fetch|XMLHttpRequest|WebSocket)\b/i, "Remote network access is not allowed in the GSAP preview sandbox."],
+          [/\b(?:eval|Function)\s*\(/i, "Dynamic code execution is not allowed in the GSAP preview sandbox."],
+          [/\b(?:document|window)\.(?:body|documentElement|head)\b/i, "GSAP previews can only target the bounded sandbox stage."],
+          [/\b(?:ScrollTrigger|MotionPathPlugin|Draggable|Flip|MorphSVGPlugin|DrawSVGPlugin)\b/i, "GSAP preview support is limited to core tweens and timelines without plugins."],
+          [/\bgsap\.registerPlugin\b/i, "GSAP preview support is limited to core tweens and timelines without plugins."],
+          [/\b(?:createElement|appendChild|prepend|insertAdjacentHTML|innerHTML|outerHTML)\b/i, "GSAP previews must animate the provided sandbox nodes instead of injecting new DOM."],
+          [/https?:\/\//i, "Remote assets are not allowed in the GSAP preview sandbox."]
+        ];
+
+        for (let index = 0; index < checks.length; index += 1) {
+          if (checks[index][0].test(source)) {
+            return checks[index][1];
+          }
+        }
+
+        return null;
+      }
+
+      function readNumber(value, fallback) {
+        return typeof value === "number" && Number.isFinite(value)
+          ? value
+          : typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))
+            ? Number(value)
+            : fallback;
       }
 
       function setToneControlsVisible(visible) {
@@ -1186,9 +2194,10 @@
           else if (runtime.kind === "three") startThree(token);
           else if (runtime.kind === "hydra") startHydra(token);
           else if (runtime.kind === "tone") setupTone(token);
+          else if (runtime.kind === "gsap") startGsap(token);
           else startGlsl(token);
         } catch (error) {
-          fail(error, runtime.kind === "glsl" ? "GLSL runtime failed" : runtime.kind === "three" ? "Three.js runtime failed" : runtime.kind === "hydra" ? "Hydra runtime failed" : runtime.kind === "tone" ? "Tone.js runtime failed" : "p5 runtime failed");
+          fail(error, runtime.kind === "glsl" ? "GLSL runtime failed" : runtime.kind === "three" ? "Three.js runtime failed" : runtime.kind === "hydra" ? "Hydra runtime failed" : runtime.kind === "tone" ? "Tone.js runtime failed" : runtime.kind === "gsap" ? "GSAP runtime failed" : "p5 runtime failed");
         }
       }
 

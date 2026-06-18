@@ -12,7 +12,8 @@ export type PreviewExecutableRuntimeKind =
   | "three"
   | "glsl"
   | "hydra"
-  | "tone";
+  | "tone"
+  | "gsap";
 
 export type PreviewRuntimeLifecycleState =
   | "idle"
@@ -145,6 +146,7 @@ export function getExecutablePreviewRuntimeKind(
     case "glsl":
     case "hydra":
     case "tone":
+    case "gsap":
       return route.surfaceKind;
     default:
       return null;
@@ -231,6 +233,8 @@ export function getInitialPreviewRuntimeStatus({
             ? "Preparing a controlled Hydra-compatible browser runtime."
             : kind === "tone"
               ? "Preparing a controlled Tone.js-compatible audio runtime."
+              : kind === "gsap"
+                ? "Preparing a controlled GSAP-compatible motion stage."
               : "Preparing a controlled p5.js-compatible browser runtime.",
     label: "Runtime starting",
     state: "starting",
@@ -256,7 +260,26 @@ export function mountPreviewRuntime({
       return mountHydraRuntime({ canvas, onFrame, onStatus, source });
     case "tone":
       return mountToneRuntime({ onStatus, source });
+    case "gsap":
+      return mountGsapRuntime({ onStatus, source });
   }
+}
+
+function mountGsapRuntime({
+  onStatus,
+  source
+}: Pick<MountPreviewRuntimeInput, "onStatus" | "source">): PreviewRuntimeMount {
+  onStatus({
+    detail: `${source.title} requires the DOM-based sandbox preview runtime.`,
+    label: "GSAP runtime unavailable",
+    state: "error",
+    error: createRendererRuntimeError({
+      kind: "gsap",
+      message: "The GSAP preview runtime must mount inside the sandbox browser stage.",
+      type: "gsap_sandbox_required"
+    })
+  });
+  return { dispose: () => undefined };
 }
 
 function mountToneRuntime({
@@ -1059,6 +1082,8 @@ function createRendererRuntimeError({
           ? "hydra_renderer"
           : kind === "tone"
             ? "tone_renderer"
+            : kind === "gsap"
+              ? "gsap_renderer"
             : "p5_renderer";
 
   return createWorkstationError({

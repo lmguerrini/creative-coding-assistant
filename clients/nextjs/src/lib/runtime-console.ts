@@ -837,6 +837,8 @@ function formatRuntimeKindLabel(kind: PreviewExecutableRuntimeKind) {
       return "GLSL";
     case "hydra":
       return "Hydra";
+    case "gsap":
+      return "GSAP";
     case "tone":
       return "Tone.js";
     default:
@@ -854,6 +856,8 @@ function formatRuntimeKindLabelFromValue(kind: string | undefined) {
       return "GLSL";
     case "hydra":
       return "Hydra";
+    case "gsap":
+      return "GSAP";
     case "tone":
       return "Tone.js";
     default:
