@@ -117,6 +117,17 @@ describe("artifact comparison", () => {
       runtime: "tone",
       title: "generative-pulse.tone.js"
     });
+    const gsap = artifact({
+      actions: ["Open", "Preview", "Copy"],
+      content: "gsap.to('.particle', { x: 80, stagger: 0.05, yoyo: true, repeat: -1 });",
+      domain: "gsap",
+      id: "gsap",
+      previewEligible: true,
+      previewTarget: "browser_sandbox",
+      rendererId: "surface.gsap",
+      runtime: "gsap",
+      title: "signal-bloom.gsap.js"
+    });
     const unsupported = artifact({
       domain: "webgpu",
       id: "webgpu",
@@ -130,6 +141,7 @@ describe("artifact comparison", () => {
     expect(classifyArtifactRuntimeSupport(previewable).state).toBe("previewable");
     expect(classifyArtifactRuntimeSupport(hydra).state).toBe("previewable");
     expect(classifyArtifactRuntimeSupport(tone).state).toBe("previewable");
+    expect(classifyArtifactRuntimeSupport(gsap).state).toBe("previewable");
     expect(classifyArtifactRuntimeSupport(codeOnly).state).toBe("code_only");
     expect(classifyArtifactRuntimeSupport(unsupported).state).toBe("unsupported");
   });

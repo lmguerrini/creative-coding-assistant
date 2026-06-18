@@ -276,6 +276,51 @@ function snapshotWithTonePreview(): AssistantWorkspaceSnapshot {
   };
 }
 
+function snapshotWithGsapPreview(): AssistantWorkspaceSnapshot {
+  const snapshot = getLocalWorkspaceSnapshot();
+  const title = "signal-bloom.gsap.ts";
+
+  return {
+    ...snapshot,
+    artifacts: [
+      {
+        ...snapshot.artifacts[0],
+        content: [
+          "const tl = gsap.timeline({ repeat: -1, yoyo: true });",
+          "tl.to('.particle', { x: 140, rotation: 90, opacity: 0.35, stagger: 0.08 });",
+          "tl.to('.ring', { scale: 1.2, duration: 1.4 }, 0);"
+        ].join("\n"),
+        domain: "gsap",
+        language: "TypeScript + GSAP",
+        rendererId: "surface.gsap",
+        runtime: "gsap",
+        summary: "GSAP timeline with bounded DOM transforms, stagger, and yoyo motion.",
+        title
+      },
+      ...snapshot.artifacts.slice(1)
+    ],
+    preview: {
+      ...snapshot.preview,
+      artifactName: title,
+      renderer: "surface.gsap",
+      sourceArtifactName: title,
+      summary: "Runtime is ready to mount a bounded GSAP motion preview.",
+      target: "Browser preview / GSAP",
+      targetId: "browser_sandbox"
+    },
+    code: {
+      ...snapshot.code,
+      excerpt: [
+        "const tl = gsap.timeline({ repeat: -1, yoyo: true });",
+        "tl.to('.particle', { x: 140, rotation: 90, opacity: 0.35, stagger: 0.08 });",
+        "tl.to('.ring', { scale: 1.2, duration: 1.4 }, 0);"
+      ],
+      language: "TypeScript + GSAP",
+      title
+    }
+  };
+}
+
 function snapshotWithArtifactComparison(): AssistantWorkspaceSnapshot {
   const snapshot = getLocalWorkspaceSnapshot();
   const artifacts: ArtifactSummary[] = [
@@ -3077,6 +3122,38 @@ describe("WorkstationShell", () => {
     expect(within(surface).getByText("Stopped")).toBeVisible();
   });
 
+  it("mounts supported GSAP artifacts into the bounded motion runtime", async () => {
+    renderShell(snapshotWithGsapPreview());
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+
+    const surface = within(preview).getByRole("group", {
+      name: "Preview renderer surface"
+    });
+
+    expect(within(preview).getByText("GSAP motion stage")).toBeVisible();
+    expect(
+      within(surface).getByRole("group", { name: "GSAP live runtime" })
+    ).toBeVisible();
+    const frame = await waitForSandboxRuntimeFrame(
+      surface,
+      "GSAP preview runtime frame"
+    );
+    dispatchSandboxRuntimeStatus(frame, {
+      detail:
+        "Animating signal-bloom.gsap.ts inside a bounded GSAP motion stage.",
+      diagnostics: ["16 sandbox nodes / 16 tweens", "stagger enabled / yoyo enabled"],
+      label: "GSAP runtime running",
+      state: "running"
+    });
+    expect(await within(surface).findByText("GSAP runtime running")).toBeVisible();
+    expect(within(surface).getByText("stagger enabled / yoyo enabled")).toBeVisible();
+  });
+
   it("shows a compact diagnostics overlay for live preview runtimes", async () => {
     renderShell(snapshotWithP5Preview());
 
@@ -3452,6 +3529,14 @@ describe("WorkstationShell", () => {
         "Playing generative-pulse.tone.js through a bounded Web Audio transport.",
       runningLabel: "Tone.js runtime running",
       surfaceTitle: "Tone.js audio surface"
+    },
+    {
+      frameLabel: "GSAP preview runtime frame",
+      makeSnapshot: snapshotWithGsapPreview,
+      runningDetail:
+        "Animating signal-bloom.gsap.ts inside a bounded GSAP motion stage.",
+      runningLabel: "GSAP runtime running",
+      surfaceTitle: "GSAP motion stage"
     }
   ])(
     "reloads $surfaceTitle artifacts and ignores stale runtime events",

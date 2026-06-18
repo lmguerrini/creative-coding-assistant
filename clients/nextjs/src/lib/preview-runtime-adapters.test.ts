@@ -70,6 +70,13 @@ describe("preview runtime adapters", () => {
       summary: "Tone.js synth sequence with transport and delay.",
       title: "generative-pulse.tone.js"
     };
+    const gsapArtifact = {
+      ...snapshot.artifacts[0],
+      domain: "gsap",
+      runtime: "gsap",
+      summary: "GSAP timeline with stagger, repeat, and yoyo transforms.",
+      title: "signal-bloom.gsap.ts"
+    };
     const p5Route = buildPreviewRendererRoute({
       artifacts: [p5Artifact],
       preview: {
@@ -120,12 +127,23 @@ describe("preview runtime adapters", () => {
       },
       previewArtifactId: toneArtifact.id
     });
+    const gsapRoute = buildPreviewRendererRoute({
+      artifacts: [gsapArtifact],
+      preview: {
+        ...snapshot.preview,
+        active: true,
+        artifactName: gsapArtifact.title,
+        sourceArtifactName: gsapArtifact.title
+      },
+      previewArtifactId: gsapArtifact.id
+    });
 
     expect(getExecutablePreviewRuntimeKind(p5Route)).toBe("p5");
     expect(getExecutablePreviewRuntimeKind(threeRoute)).toBe("three");
     expect(getExecutablePreviewRuntimeKind(glslRoute)).toBe("glsl");
     expect(getExecutablePreviewRuntimeKind(hydraRoute)).toBe("hydra");
     expect(getExecutablePreviewRuntimeKind(toneRoute)).toBe("tone");
+    expect(getExecutablePreviewRuntimeKind(gsapRoute)).toBe("gsap");
     expect(
       canRunPreviewRuntime({
         preview: { ...snapshot.preview, active: true, state: "ready" },

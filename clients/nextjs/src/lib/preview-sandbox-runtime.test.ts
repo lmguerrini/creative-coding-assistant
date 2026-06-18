@@ -48,6 +48,26 @@ describe("preview sandbox runtime", () => {
     expect(prepared).not.toContain(source);
   });
 
+  it("prepares TypeScript-flavored GSAP source for sandbox execution", () => {
+    const prepared = preparePreviewExecutableSource(
+      [
+        "import { gsap } from 'gsap';",
+        "interface MotionStep { x: number; }",
+        "const step: MotionStep = { x: 120 };",
+        "export function animate(): void {",
+        "  gsap.to('.particle', { x: step.x, stagger: 0.08, repeat: -1, yoyo: true });",
+        "}"
+      ].join("\n"),
+      "gsap"
+    );
+
+    expect(prepared).not.toContain("import { gsap }");
+    expect(prepared).not.toContain("interface MotionStep");
+    expect(prepared).not.toContain(": number");
+    expect(prepared).toContain("const step = { x: 120 };");
+    expect(prepared).toContain("function animate()");
+  });
+
   it("prepares Tone.js source as a silent bounded audio plan", () => {
     const source = [
       "const synth = new Tone.Synth().toDestination();",
@@ -185,6 +205,31 @@ describe("preview sandbox runtime", () => {
     runtime.dispose();
     expect(iframe.dataset.runtimeId).toBeUndefined();
     expect(iframe.getAttribute("src")).toBe("about:blank");
+    iframe.remove();
+  });
+
+  it("mounts GSAP previews on the shared sandbox host", () => {
+    const iframe = document.createElement("iframe");
+    const statuses: string[] = [];
+    document.body.appendChild(iframe);
+
+    const runtime = mountPreviewSandboxRuntime({
+      iframe,
+      kind: "gsap",
+      onStatus: (status) => statuses.push(status.label),
+      runtimeId: "gsap-runtime-1",
+      source: {
+        fingerprint: "gsap123",
+        lineCount: 2,
+        source: "gsap.to('.particle', { x: 80, stagger: 0.08, repeat: -1, yoyo: true });",
+        title: "signal-bloom.gsap.js"
+      }
+    });
+
+    expect(iframe.getAttribute("src")).toBe("/preview-sandbox.html");
+    expect(statuses).toEqual(["Preview runtime starting"]);
+
+    runtime.dispose();
     iframe.remove();
   });
 

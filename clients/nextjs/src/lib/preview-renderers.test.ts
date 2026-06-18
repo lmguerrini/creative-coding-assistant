@@ -102,6 +102,19 @@ describe("preview renderers", () => {
         summary: "Tone.js synth sequence with transport and delay.",
         title: "generative-pulse.tone.js"
       })
+    },
+    {
+      id: "surface.gsap",
+      kind: "gsap",
+      artifact: creativeArtifact({
+        content:
+          "const tl = gsap.timeline({ repeat: -1, yoyo: true });\n" +
+          "tl.to('.particle', { x: 120, rotation: 90, stagger: 0.08 });",
+        domain: "gsap",
+        runtime: "gsap",
+        summary: "GSAP timeline with staggered transform motion and yoyo repeats.",
+        title: "signal-bloom.gsap.ts"
+      })
     }
   ])(
     "matches $kind renderer signals and routes them into a supported surface",
@@ -147,7 +160,35 @@ describe("preview renderers", () => {
     ).toMatchObject({
       supportState: "unsupported",
       supportReason:
-        "Current browser preview foundations cover p5.js, Three.js, GLSL, Hydra, and Tone.js only.",
+        "Current browser preview foundations cover p5.js, Three.js, GLSL, Hydra, Tone.js, and GSAP only.",
+      surfaceKind: "unsupported"
+    });
+  });
+
+  it("falls back safely when GSAP source exceeds the bounded sandbox rules", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const artifact = creativeArtifact({
+      content:
+        "gsap.registerPlugin(ScrollTrigger);\n" +
+        "gsap.to(document.body, { opacity: 0.5, scrollTrigger: '.hero' });",
+      domain: "gsap",
+      previewEligible: true,
+      previewTarget: "browser_sandbox",
+      runtime: "gsap",
+      title: "unsafe-scroll.gsap.js"
+    });
+    const preview = creativePreviewSummary(artifact, snapshot.preview);
+
+    expect(matchCreativePreviewRenderer(artifact)).toBeNull();
+    expect(
+      buildPreviewRendererRoute({
+        artifacts: [artifact],
+        preview,
+        previewArtifactId: artifact.id
+      })
+    ).toMatchObject({
+      supportState: "unsupported",
+      supportReason: "GSAP previews can only target the bounded sandbox stage.",
       surfaceKind: "unsupported"
     });
   });

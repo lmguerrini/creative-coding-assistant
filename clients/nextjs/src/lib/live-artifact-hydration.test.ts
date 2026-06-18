@@ -64,6 +64,54 @@ describe("live artifact hydration", () => {
     });
   });
 
+  it("hydrates final stream code into a previewable GSAP artifact", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const result = hydrateWorkspaceFromFinalEvent(
+      snapshot,
+      finalEvent({
+        answer: [
+          "Here is the motion study:",
+          "```ts",
+          "const tl = gsap.timeline({ repeat: -1, yoyo: true });",
+          "tl.to('.particle', { x: 140, rotation: 90, opacity: 0.3, stagger: 0.08 });",
+          "tl.to('.ring', { scale: 1.2, duration: 1.4 }, 0);",
+          "```"
+        ].join("\n")
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      id: "live-generated-artifact",
+      title: "generated-motion.gsap.ts",
+      type: "code",
+      language: "TypeScript + GSAP",
+      status: "Generated",
+      actions: ["Open", "Preview", "Copy", "Download"]
+    });
+    expect(result.previewArtifactId).toBe("live-generated-artifact");
+    expect(result.previewAvailable).toBe(true);
+    expect(result.snapshot.preview).toMatchObject({
+      available: true,
+      artifactName: "generated-motion.gsap.ts",
+      outputArtifactName: "generated-motion.gsap.ts",
+      renderer: "surface.gsap",
+      state: "ready",
+      target: "Browser preview / GSAP",
+      targetId: "browser_sandbox"
+    });
+    expect(
+      buildPreviewRendererRoute({
+        artifacts: result.snapshot.artifacts,
+        preview: result.snapshot.preview,
+        previewArtifactId: result.previewArtifactId
+      })
+    ).toMatchObject({
+      rendererId: "surface.gsap",
+      supportState: "supported",
+      surfaceKind: "gsap"
+    });
+  });
+
   it("uses structured artifact payloads before parsing chat prose", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const result = hydrateWorkspaceFromFinalEvent(
