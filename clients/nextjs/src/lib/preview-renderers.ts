@@ -4,6 +4,10 @@ import type {
   PreviewTargetId
 } from "./assistant-client";
 import {
+  getGsapRuntimeSupportIssue,
+  hasGsapPreviewSignal
+} from "./gsap-runtime";
+import {
   derivePreviewTargetIdFromArtifact,
   formatPreviewTargetLabel,
   normalizePreviewTargetId
@@ -21,7 +25,8 @@ export type CreativePreviewRendererKind =
   | "three"
   | "glsl"
   | "hydra"
-  | "tone";
+  | "tone"
+  | "gsap";
 
 export type PreviewRendererSurfaceKind =
   | CreativePreviewRendererKind
@@ -158,6 +163,20 @@ export const creativePreviewRendererRegistry: readonly CreativePreviewRendererDe
       "Audio remains silent until the operator explicitly starts playback",
       "Stop, mute, lifecycle status, and runtime errors stay inside the preview sandbox"
     ]
+  },
+  {
+    id: "surface.gsap",
+    kind: "gsap",
+    displayName: "GSAP",
+    surfaceLabel: "GSAP motion stage",
+    description: "DOM motion stage for bounded GSAP browser previews.",
+    matchExtensions: [".gsap.js", ".gsap.ts"],
+    matchTokens: ["gsap.", "gsap.timeline", "stagger:", "repeat:", "yoyo:"],
+    notes: [
+      "Controlled GSAP-compatible DOM motion runtime",
+      "Targets only the bounded sandbox stage and its prebuilt nodes",
+      "Rejects plugins, remote assets, and unrestricted DOM access"
+    ]
   }
 ] as const;
 
@@ -166,6 +185,7 @@ const supportedPreviewDomains = new Set([
   "glsl",
   "hydra",
   "tone_js",
+  "gsap",
   "three_js",
   "react_three_fiber"
 ]);
@@ -176,8 +196,6 @@ const unsupportedBrowserRuntimeExtensions = [
   ".webgpu.ts",
   ".canvas.js",
   ".canvas.ts",
-  ".gsap.js",
-  ".gsap.ts",
   ".svg"
 ] as const;
 
@@ -274,6 +292,10 @@ export function buildPreviewRendererRoute({
     const rendererArtifact =
       selectedArtifact?.type === "code" ? selectedArtifact : sourceArtifact ?? selectedArtifact;
     const matchedRenderer = matchCreativePreviewRenderer(rendererArtifact);
+    const gsapSupportIssue =
+      rendererArtifact && hasGsapPreviewSignal(rendererArtifact)
+        ? getGsapRuntimeSupportIssue(rendererArtifact.content)
+        : null;
 
     if (matchedRenderer) {
       return {
@@ -312,16 +334,25 @@ export function buildPreviewRendererRoute({
       supportState: "unsupported",
       supportLabel: "Unsupported",
       supportReason:
-        "Current browser preview foundations cover p5.js, Three.js, GLSL, Hydra, and Tone.js only.",
+        gsapSupportIssue ??
+        "Current browser preview foundations cover p5.js, Three.js, GLSL, Hydra, Tone.js, and GSAP only.",
       surfaceKind: "unsupported",
       surfaceTitle: "Browser preview without renderer match",
       surfaceEyebrow: "Unsupported creative surface",
-      surfaceSummary: `${sourceArtifactName} still resolves to the browser preview, but no safe live renderer foundation matches its current signals yet.`,
-      notes: [
-        "Runtime target metadata is still preserved",
-        "The preview shelf stays stable without executing arbitrary code",
-        "A dedicated WebGPU or browser runtime surface can be added later"
-      ],
+      surfaceSummary: gsapSupportIssue
+        ? `${sourceArtifactName} was identified as a GSAP motion artifact, but the current source exceeds the bounded sandbox rules for live execution.`
+        : `${sourceArtifactName} still resolves to the browser preview, but no safe live renderer foundation matches its current signals yet.`,
+      notes: gsapSupportIssue
+        ? [
+            "The artifact remains inspectable as code",
+            "Remove plugin, network, or unrestricted DOM patterns to restore live preview support",
+            "Only bounded GSAP tweens and timelines can execute in the browser preview"
+          ]
+        : [
+            "Runtime target metadata is still preserved",
+            "The preview shelf stays stable without executing arbitrary code",
+            "A dedicated WebGPU or browser runtime surface can be added later"
+          ],
       tone
     };
   }
@@ -357,7 +388,7 @@ export function matchCreativePreviewRenderer(
   const explicitRenderer = matchExplicitPreviewRenderer(artifact);
 
   if (explicitRenderer !== undefined) {
-    return explicitRenderer;
+    return validateCreativePreviewRenderer(artifact, explicitRenderer);
   }
 
   const extensionMatch = creativePreviewRendererRegistry.find((renderer) =>
@@ -365,10 +396,11 @@ export function matchCreativePreviewRenderer(
   );
 
   if (extensionMatch) {
-    return extensionMatch;
+    return validateCreativePreviewRenderer(artifact, extensionMatch);
   }
 
-  return (
+  return validateCreativePreviewRenderer(
+    artifact,
     creativePreviewRendererRegistry.find((renderer) => {
       return renderer.matchTokens.some((token) => haystack.includes(token));
     }) ?? null
@@ -409,6 +441,21 @@ function hasUnsupportedBrowserRuntimeSignal(
   return unsupportedBrowserRuntimeExtensions.some((extension) =>
     normalizedTitle.endsWith(extension)
   );
+}
+
+function validateCreativePreviewRenderer(
+  artifact: ArtifactSummary,
+  renderer: CreativePreviewRendererDefinition | null | undefined
+) {
+  if (!renderer) {
+    return renderer ?? null;
+  }
+
+  if (renderer.kind !== "gsap") {
+    return renderer;
+  }
+
+  return getGsapRuntimeSupportIssue(artifact.content) ? null : renderer;
 }
 
 function buildNonBrowserPreviewRendererRoute({

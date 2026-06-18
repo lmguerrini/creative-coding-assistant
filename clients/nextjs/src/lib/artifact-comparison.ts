@@ -48,6 +48,7 @@ const supportedPreviewDomains = new Set([
   "p5_js",
   "glsl",
   "hydra",
+  "gsap",
   "tone_js",
   "three_js",
   "react_three_fiber"
@@ -58,6 +59,7 @@ const supportedBrowserRuntimeKinds = new Set([
   "three",
   "glsl",
   "hydra",
+  "gsap",
   "tone"
 ]);
 
@@ -67,8 +69,6 @@ const unsupportedBrowserRuntimeExtensions = [
   ".webgpu.ts",
   ".canvas.js",
   ".canvas.ts",
-  ".gsap.js",
-  ".gsap.ts",
   ".svg"
 ] as const;
 
@@ -333,6 +333,8 @@ function formatArtifactRuntimeLabel(runtime: string) {
       return "GLSL";
     case "hydra":
       return "Hydra";
+    case "gsap":
+      return "GSAP";
     case "tone":
       return "Tone.js";
     default:
@@ -356,6 +358,8 @@ function formatArtifactDomainLabel(domain: string | null | undefined) {
       return "GLSL";
     case "hydra":
       return "Hydra";
+    case "gsap":
+      return "GSAP";
     case "tone_js":
       return "Tone.js";
     default:

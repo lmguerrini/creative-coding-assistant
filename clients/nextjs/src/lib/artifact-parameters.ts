@@ -796,6 +796,9 @@ function formatRuntimeLabel(runtime: string, artifact: ArtifactSummary) {
   if (runtime === "hydra") {
     return "Hydra";
   }
+  if (runtime === "gsap") {
+    return "GSAP";
+  }
   return runtime;
 }
 

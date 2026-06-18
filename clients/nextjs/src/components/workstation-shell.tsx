@@ -5252,6 +5252,8 @@ function formatArtifactRuntimeLabel(runtime: string) {
       return "GLSL";
     case "hydra":
       return "Hydra";
+    case "gsap":
+      return "GSAP";
     case "tone":
       return "Tone.js";
     default:
@@ -5274,6 +5276,8 @@ function formatArtifactDomainLabel(domain: string | null | undefined) {
       return "GLSL";
     case "hydra":
       return "Hydra";
+    case "gsap":
+      return "GSAP";
     case "tone_js":
       return "Tone.js";
     default:

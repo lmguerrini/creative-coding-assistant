@@ -22,6 +22,7 @@ import type {
 import type { AssistantStreamEvent } from "./assistant-stream";
 import { readCreativeExecutionPlanSummary } from "./assistant-stream";
 import { normalizeCreativeTranslation } from "./creative-translation";
+import { hasGsapPreviewSignal } from "./gsap-runtime";
 
 export type LiveArtifactHydrationResult = {
   activeArtifactId: string;
@@ -61,7 +62,7 @@ type GeneratedArtifactSource = {
   type?: ArtifactSummary["type"];
 };
 
-type CreativeRuntimeKind = "p5" | "three" | "glsl" | "hydra" | "tone";
+type CreativeRuntimeKind = "p5" | "three" | "glsl" | "hydra" | "tone" | "gsap";
 
 type ArtifactInference = {
   content: string;
@@ -91,6 +92,7 @@ type ArtifactInference = {
 const liveGeneratedArtifactId = "live-generated-artifact";
 const liveResponseArtifactId = "live-response-artifact";
 const previewRendererLabels: Record<CreativeRuntimeKind, string> = {
+  gsap: "GSAP",
   glsl: "GLSL",
   hydra: "Hydra",
   p5: "p5.js",
@@ -98,6 +100,7 @@ const previewRendererLabels: Record<CreativeRuntimeKind, string> = {
   three: "Three.js"
 };
 const previewRendererIds: Record<CreativeRuntimeKind, string> = {
+  gsap: "surface.gsap",
   glsl: "surface.glsl",
   hydra: "surface.hydra",
   p5: "surface.p5",
@@ -537,7 +540,7 @@ function buildArtifactSummary(
     ? `${previewRendererLabels[inferred.previewKind]} runtime signals matched from the generated artifact.`
     : inferred.previewEligible
       ? "Preview target metadata is available, but no supported creative runtime matched this output."
-    : "No supported p5.js, Three.js, GLSL, Hydra, or Tone.js preview runtime matched this output.";
+    : "No supported p5.js, Three.js, GLSL, Hydra, Tone.js, or GSAP preview runtime matched this output.";
   const summary =
     inferred.summary ??
     (inferred.type === "code"
@@ -657,7 +660,7 @@ function buildUnavailablePreviewSummary({
     sourceArtifactName: artifact?.title ?? "",
     state: "unavailable",
     status: "Unavailable",
-    summary: `${artifactName} is available in the workspace, but it does not match the supported live p5.js, Three.js, GLSL, Hydra, or Tone.js preview runtimes yet.`,
+    summary: `${artifactName} is available in the workspace, but it does not match the supported live p5.js, Three.js, GLSL, Hydra, Tone.js, or GSAP preview runtimes yet.`,
     target: "",
     targetId: "",
     title: "Preview unavailable",
@@ -672,6 +675,19 @@ function inferRuntimeKind(
 ): CreativeRuntimeKind | null {
   const haystack = [content, language, title].join(" ").toLowerCase();
   const normalizedTitle = (title ?? "").toLowerCase();
+
+  if (
+    normalizedTitle.endsWith(".gsap.js") ||
+    normalizedTitle.endsWith(".gsap.ts") ||
+    language === "gsap" ||
+    hasGsapPreviewSignal({
+      content,
+      language,
+      title
+    })
+  ) {
+    return "gsap";
+  }
 
   if (
     normalizedTitle.endsWith(".tone.js") ||
@@ -773,6 +789,12 @@ function defaultArtifactTitle({
     return `generated-audio${orderSuffix}.tone.js`;
   }
 
+  if (previewKind === "gsap") {
+    return language === "javascript"
+      ? `generated-motion${orderSuffix}.gsap.js`
+      : `generated-motion${orderSuffix}.gsap.ts`;
+  }
+
   if (language === "javascript") {
     return `generated-artifact${orderSuffix}.js`;
   }
@@ -823,6 +845,10 @@ function formatLanguageLabel(
 
   if (previewKind === "tone") {
     return "JavaScript + Tone.js";
+  }
+
+  if (previewKind === "gsap") {
+    return language === "javascript" ? "JavaScript + GSAP" : "TypeScript + GSAP";
   }
 
   switch (language) {
@@ -895,6 +921,9 @@ function normalizeRuntimeKind(value: string): CreativeRuntimeKind | null {
     case "tone":
     case "tone.js":
       return "tone";
+    case "surface.gsap":
+    case "gsap":
+      return "gsap";
     case "surface.three":
     case "three":
     case "three.js":
