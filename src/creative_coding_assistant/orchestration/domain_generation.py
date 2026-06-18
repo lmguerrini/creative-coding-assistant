@@ -99,19 +99,24 @@ _P5_INFERENCE_PATTERN = re.compile(
 
 _DOMAIN_GENERATION_GUIDANCE: dict[CreativeCodingDomain, tuple[str, ...]] = {
     CreativeCodingDomain.P5_JS: (
-        "For p5.js generation, return a self-contained sketch using setup() and draw().",
+        "For p5.js generation, return a self-contained sketch using setup() "
+        "and draw().",
         "Prefer a .p5.js artifact name and keep browser-preview-safe globals clear.",
     ),
     CreativeCodingDomain.GLSL: (
-        "For GLSL generation, return a fragment shader with uniforms such as u_time and u_resolution when animation is useful.",
-        "Prefer a .frag artifact name and avoid host-framework boilerplate unless requested.",
+        "For GLSL generation, return a fragment shader with uniforms such as "
+        "u_time and u_resolution when animation is useful.",
+        "Prefer a .frag artifact name and avoid host-framework boilerplate "
+        "unless requested.",
     ),
     CreativeCodingDomain.THREE_JS: (
-        "For Three.js generation, return a browser-oriented scene using scene, camera, renderer, geometry/material, and animation-loop concepts.",
+        "For Three.js generation, return a browser-oriented scene using scene, "
+        "camera, renderer, geometry/material, and animation-loop concepts.",
         "Prefer a .three.js artifact name and avoid React wrappers unless requested.",
     ),
     CreativeCodingDomain.REACT_THREE_FIBER: (
-        "For React Three Fiber generation, return React component code using Canvas-friendly components and hooks such as useFrame.",
+        "For React Three Fiber generation, return React component code using "
+        "Canvas-friendly components and hooks such as useFrame.",
         "Prefer a .r3f.tsx artifact name and keep Three.js imperative escapes minimal.",
     ),
 }
@@ -122,7 +127,7 @@ def resolve_generation_domains(
     query: str,
     selected_domains: Sequence[CreativeCodingDomain],
 ) -> tuple[CreativeCodingDomain, ...]:
-    """Resolve effective generation domains without falling back to one hardcoded domain."""
+    """Resolve effective generation domains without one hardcoded fallback."""
 
     explicit_domains = detect_explicit_query_domains(query)
     if explicit_domains:
@@ -146,7 +151,9 @@ def infer_likely_generation_domains(query: str) -> tuple[CreativeCodingDomain, .
 
     if _GLSL_INFERENCE_PATTERN.search(normalized):
         inferred.append(CreativeCodingDomain.GLSL)
-    if _R3F_INFERENCE_PATTERN.search(normalized) and _THREE_INFERENCE_PATTERN.search(normalized):
+    if _R3F_INFERENCE_PATTERN.search(
+        normalized
+    ) and _THREE_INFERENCE_PATTERN.search(normalized):
         inferred.append(CreativeCodingDomain.REACT_THREE_FIBER)
     elif _THREE_INFERENCE_PATTERN.search(normalized):
         inferred.append(CreativeCodingDomain.THREE_JS)
@@ -202,11 +209,13 @@ def domain_generation_guidance_lines(
         support = get_domain_runtime_support(domain)
         if support is not None:
             lines.append(
-                f"{domain.value} has current live preview support through {support.label}."
+                f"{domain.value} has current live preview support through "
+                f"{support.label}."
             )
         else:
             lines.append(
-                f"{domain.value} is code-only in the current workstation; do not claim live preview readiness for it."
+                f"{domain.value} is code-only in the current workstation; do "
+                "not claim live preview readiness for it."
             )
         lines.extend(_DOMAIN_GENERATION_GUIDANCE.get(domain, ()))
     return tuple(lines)

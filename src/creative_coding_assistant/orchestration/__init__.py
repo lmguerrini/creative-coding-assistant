@@ -8,6 +8,7 @@ _CTX = "creative_coding_assistant.orchestration.context"
 _CREATIVE_TRANSLATION = (
     "creative_coding_assistant.orchestration.creative_translation"
 )
+_CREATIVE_PLANNING = "creative_coding_assistant.orchestration.creative_planning"
 _AUDIO_REACTIVE = "creative_coding_assistant.orchestration.audio_reactive"
 _CREATIVE_QUALITY = "creative_coding_assistant.orchestration.creative_quality"
 _SACRED_CONSISTENCY = (
@@ -61,6 +62,7 @@ _EXPORT_MAP = {
     "ClarificationReason": _CLARIFICATION,
     "ClarificationRequest": _CLARIFICATION,
     "CreativeOutputModality": _CREATIVE_TRANSLATION,
+    "CreativeExecutionPlan": _CREATIVE_PLANNING,
     "CreativeQualityEvaluation": _ARTIFACTS,
     "CreativeQualityObservation": _ARTIFACTS,
     "CreativeTranslation": _CREATIVE_TRANSLATION,
@@ -152,6 +154,8 @@ _EXPORT_MAP = {
     "audio_reactive_prompt_lines": _AUDIO_REACTIVE,
     "derive_audio_reactive_guidance": _AUDIO_REACTIVE,
     "derive_creative_translation": _CREATIVE_TRANSLATION,
+    "derive_creative_execution_plan": _CREATIVE_PLANNING,
+    "creative_execution_plan_prompt_lines": _CREATIVE_PLANNING,
     "derive_hitl_clarification": _CLARIFICATION,
     "evaluate_artifact_sacred_consistency": _SACRED_CONSISTENCY,
     "evaluate_artifact_creative_quality": _CREATIVE_QUALITY,

@@ -19,6 +19,9 @@ from creative_coding_assistant.orchestration.clarification import (
     derive_hitl_clarification,
 )
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
+from creative_coding_assistant.orchestration.creative_planning import (
+    CreativeExecutionPlan,
+)
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
     derive_creative_translation,
@@ -74,6 +77,7 @@ class PromptArtifactRefinementInput(BaseModel):
     critique_rationale: str | None = None
     refinement_guidance: str | None = None
     creative_translation: CreativeTranslation | None = None
+    creative_plan: CreativeExecutionPlan | None = None
 
 
 class PromptUserInput(BaseModel):
@@ -262,6 +266,7 @@ class PromptInputResponse(BaseModel):
     request: PromptInputRequest
     user_input: PromptUserInput
     creative_translation: CreativeTranslation | None = None
+    creative_plan: CreativeExecutionPlan | None = None
     clarification: ClarificationRequest | None = None
     memory_input: PromptMemoryInput | None = None
     retrieval_input: PromptRetrievalInput | None = None
@@ -436,6 +441,7 @@ def _build_artifact_refinement_input(
         creative_translation=_parse_creative_translation(
             refinement.creative_translation
         ),
+        creative_plan=_parse_creative_plan(refinement.creative_plan),
     )
 
 
@@ -448,6 +454,18 @@ def _parse_creative_translation(
         return CreativeTranslation.model_validate(value)
     except ValueError:
         logger.warning("Ignored invalid optional creative translation metadata.")
+        return None
+
+
+def _parse_creative_plan(
+    value: dict[str, object] | None,
+) -> CreativeExecutionPlan | None:
+    if value is None:
+        return None
+    try:
+        return CreativeExecutionPlan.model_validate(value)
+    except ValueError:
+        logger.warning("Ignored invalid optional creative plan metadata.")
         return None
 
 

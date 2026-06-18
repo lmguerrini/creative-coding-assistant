@@ -12,6 +12,10 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.domains import get_domain_prompt_guidance
+from creative_coding_assistant.orchestration.creative_planning import (
+    CreativeExecutionPlan,
+    creative_execution_plan_prompt_lines,
+)
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
     creative_translation_prompt_lines,
@@ -84,6 +88,12 @@ Selected Artifact Refinement:
 {% if prompt_input.creative_translation is not none -%}
 Creative Translation:
 {% for instruction in creative_translation_lines(prompt_input.creative_translation) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% if prompt_input.creative_plan is not none -%}
+Creative Execution Plan:
+{% for instruction in creative_execution_plan_lines(prompt_input.creative_plan) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -308,6 +318,7 @@ class JinjaPromptRenderer:
             effective_domain_scope_label=_effective_domain_scope_label,
             image_reference_line=_image_reference_line,
             creative_translation_lines=_creative_translation_lines,
+            creative_execution_plan_lines=_creative_execution_plan_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
         )
 
@@ -470,6 +481,12 @@ def _creative_translation_lines(
     translation: CreativeTranslation,
 ) -> tuple[str, ...]:
     return creative_translation_prompt_lines(translation)
+
+
+def _creative_execution_plan_lines(
+    plan: CreativeExecutionPlan,
+) -> tuple[str, ...]:
+    return creative_execution_plan_prompt_lines(plan)
 
 
 def _domain_guidance_lines(user_input: PromptUserInput) -> tuple[str, ...]:
