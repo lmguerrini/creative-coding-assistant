@@ -192,6 +192,7 @@ const allStreamEventTypes: AssistantStreamEventType[] = [
   "retrieval",
   "context",
   "prompt_input",
+  "planning",
   "prompt_rendered",
   "generation_input",
   "tool_start",

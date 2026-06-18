@@ -4,6 +4,7 @@ import {
   decodeAssistantStream,
   parseAssistantStreamLine,
   readClarificationSummary,
+  readCreativeExecutionPlanSummary,
   readEventTimestamp,
   readPreviewArtifactUpdate,
   readStreamEventError,
@@ -260,13 +261,18 @@ describe("assistant stream client", () => {
         payload: { code: "route_selected" }
       },
       {
-        event_type: "prompt_rendered",
+        event_type: "planning",
         sequence: 2,
+        payload: { code: "creative_plan_prepared" }
+      },
+      {
+        event_type: "prompt_rendered",
+        sequence: 3,
         payload: { code: "prompt_rendered" }
       },
       {
         event_type: "token_delta",
-        sequence: 3,
+        sequence: 4,
         payload: { text: "Hello" }
       },
       {
@@ -334,6 +340,7 @@ describe("assistant stream client", () => {
     expect(events.map(workflowNodeFromAssistantStreamEvent)).toEqual([
       "intake",
       "routing",
+      "planning",
       "prompt_rendering",
       "generation",
       "review",
@@ -352,6 +359,24 @@ describe("assistant stream client", () => {
   });
 
   it("reads workflow runtime metadata from enriched stream events", () => {
+    const creativePlan = {
+      output_modality: "visual",
+      generation_strategy: "Generate one p5 candidate.",
+      recommended_runtime: "p5",
+      recommended_renderer_id: "surface.p5",
+      recommended_preview_target: "browser_sandbox",
+      recommended_shader_style: "glow",
+      candidate_count: 1,
+      refinement_budget: 1,
+      expected_complexity: "medium",
+      estimated_token_cost: 2800,
+      export_readiness: "ready",
+      runtime_available: true,
+      runtime_support_summary: "p5.js browser preview is available.",
+      plan_steps: ["Target p5 output."],
+      constraints: ["Keep code browser-safe."],
+      evidence: ["Route selected: generate."]
+    };
     const event: AssistantStreamEvent = {
       event_type: "generation_input",
       sequence: 2,
@@ -371,6 +396,8 @@ describe("assistant stream client", () => {
           artifact_count: 1,
           preview_artifact_count: 0,
           image_reference_count: 1,
+          planning_available: true,
+          creative_plan: creativePlan,
           image_references: [
             {
               id: "image-reference-1",
@@ -398,6 +425,25 @@ describe("assistant stream client", () => {
       artifact_critique_count: 0,
       recommended_artifact_id: null,
       preview_artifact_count: 0,
+      creative_plan: {
+        outputModality: "visual",
+        generationStrategy: "Generate one p5 candidate.",
+        recommendedRuntime: "p5",
+        recommendedRendererId: "surface.p5",
+        recommendedPreviewTarget: "browser_sandbox",
+        recommendedShaderStyle: "glow",
+        candidateCount: 1,
+        refinementBudget: 1,
+        expectedComplexity: "medium",
+        estimatedTokenCost: 2800,
+        exportReadiness: "ready",
+        runtimeAvailable: true,
+        runtimeSupportSummary: "p5.js browser preview is available.",
+        planSteps: ["Target p5 output."],
+        constraints: ["Keep code browser-safe."],
+        evidence: ["Route selected: generate."]
+      },
+      planning_available: true,
       image_reference_count: 1,
       image_references: [
         {
@@ -409,6 +455,33 @@ describe("assistant stream client", () => {
       ]
     });
     expect(workflowNodeFromAssistantStreamEvent(event)).toBe("generation");
+  });
+
+  it("reads creative execution plans from planning events", () => {
+    const plan = readCreativeExecutionPlanSummary({
+      outputModality: "visual",
+      generationStrategy: "Generate one p5 candidate.",
+      recommendedRuntime: "p5",
+      recommendedRendererId: "surface.p5",
+      recommendedPreviewTarget: "browser_sandbox",
+      candidateCount: 1,
+      refinementBudget: 1,
+      expectedComplexity: "medium",
+      estimatedTokenCost: 2800,
+      exportReadiness: "ready",
+      runtimeAvailable: true,
+      runtimeSupportSummary: "p5.js browser preview is available.",
+      planSteps: ["Target p5 output."],
+      constraints: ["Keep code browser-safe."],
+      evidence: ["Route selected: generate."]
+    });
+
+    expect(plan).toMatchObject({
+      outputModality: "visual",
+      recommendedRuntime: "p5",
+      candidateCount: 1,
+      exportReadiness: "ready"
+    });
   });
 
   it("reads clarification metadata from prompt input workflow events", () => {

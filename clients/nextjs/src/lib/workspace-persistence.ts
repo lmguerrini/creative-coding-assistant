@@ -4,7 +4,9 @@ import type {
   AssistantWorkspaceSnapshot,
   InspectorTabName,
   MultimodalSummary,
-  PreviewSummary
+  PreviewSummary,
+  WorkflowNodeId,
+  WorkflowStepState
 } from "./assistant-client";
 import {
   buildMultimodalSummary,
@@ -271,7 +273,10 @@ export function snapshotFromWorkspaceSessionRecord(
       active: tab.label === record.activeInspectorTab
     })),
     messages: record.messages.length ? record.messages : restoredSnapshot.messages,
-    workflow: record.workflow ?? restoredSnapshot.workflow,
+    workflow: normalizeWorkspaceWorkflow(
+      fallback.workflow,
+      record.workflow ?? restoredSnapshot.workflow
+    ),
     artifacts,
     multimodal,
     preview
@@ -390,6 +395,103 @@ function normalizeWorkspaceMultimodal(
     imageAttachments: normalizeImageAttachments(value.imageAttachments),
     uploadError: null
   });
+}
+
+function normalizeWorkspaceWorkflow(
+  fallback: AssistantWorkspaceSnapshot["workflow"],
+  value: unknown
+): AssistantWorkspaceSnapshot["workflow"] {
+  if (!isRecord(value)) {
+    return fallback;
+  }
+
+  const rawSteps = Array.isArray(value.steps) ? value.steps : [];
+  const fallbackNodeIds = new Set(
+    fallback.steps.map((step) => step.nodeId as string)
+  );
+  const restoredSteps = new Map<string, WorkflowStepState>();
+
+  for (const rawStep of rawSteps) {
+    if (!isRecord(rawStep)) {
+      continue;
+    }
+    if (
+      typeof rawStep.nodeId !== "string" ||
+      !fallbackNodeIds.has(rawStep.nodeId) ||
+      typeof rawStep.displayLabel !== "string" ||
+      !isWorkflowStepState(rawStep.state) ||
+      typeof rawStep.detail !== "string"
+    ) {
+      continue;
+    }
+    restoredSteps.set(rawStep.nodeId, {
+      nodeId: rawStep.nodeId as WorkflowStepState["nodeId"],
+      displayLabel: rawStep.displayLabel,
+      state: rawStep.state,
+      detail: rawStep.detail
+    });
+  }
+
+  const mergedSteps = fallback.steps.map((fallbackStep, index) => {
+    const restoredStep = restoredSteps.get(fallbackStep.nodeId);
+    if (restoredStep) {
+      return restoredStep;
+    }
+    return inferInsertedWorkflowStepState(
+      fallbackStep,
+      index,
+      fallback.steps,
+      restoredSteps
+    );
+  });
+
+  return {
+    ...fallback,
+    status: typeof value.status === "string" ? value.status : fallback.status,
+    currentNode:
+      typeof value.currentNode === "string" &&
+      fallbackNodeIds.has(value.currentNode)
+        ? (value.currentNode as WorkflowNodeId)
+        : fallback.currentNode,
+    currentStep:
+      typeof value.currentStep === "string" ? value.currentStep : fallback.currentStep,
+    steps: mergedSteps
+  };
+}
+
+function inferInsertedWorkflowStepState(
+  fallbackStep: WorkflowStepState,
+  index: number,
+  canonicalSteps: WorkflowStepState[],
+  restoredSteps: Map<string, WorkflowStepState>
+): WorkflowStepState {
+  const laterStepReached = canonicalSteps
+    .slice(index + 1)
+    .some((step) => isReachedWorkflowState(restoredSteps.get(step.nodeId)?.state));
+  if (!laterStepReached) {
+    return fallbackStep;
+  }
+  return {
+    ...fallbackStep,
+    state: "complete",
+    detail: `${fallbackStep.displayLabel} completed in restored session.`
+  };
+}
+
+function isWorkflowStepState(value: unknown): value is WorkflowStepState["state"] {
+  return (
+    value === "complete" ||
+    value === "active" ||
+    value === "queued" ||
+    value === "skipped" ||
+    value === "branch"
+  );
+}
+
+function isReachedWorkflowState(
+  value: WorkflowStepState["state"] | undefined
+): boolean {
+  return value === "complete" || value === "active" || value === "skipped";
 }
 
 async function loadRemoteSession({

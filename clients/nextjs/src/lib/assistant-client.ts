@@ -24,6 +24,7 @@ export type WorkflowNodeId =
   | "retrieval"
   | "context_assembly"
   | "prompt_input"
+  | "planning"
   | "prompt_rendering"
   | "generation"
   | "artifact_extraction"
@@ -58,6 +59,25 @@ export type ClarificationSummary = {
   suggestedOptions: string[];
   defaultRecommendation: string | null;
   signalSummary: string[];
+};
+
+export type CreativeExecutionPlanSummary = {
+  outputModality: "visual" | "audio" | "audiovisual";
+  generationStrategy: string;
+  recommendedRuntime: string | null;
+  recommendedRendererId: string | null;
+  recommendedPreviewTarget: string | null;
+  recommendedShaderStyle: string | null;
+  candidateCount: number;
+  refinementBudget: number;
+  expectedComplexity: "low" | "medium" | "high";
+  estimatedTokenCost: number;
+  exportReadiness: "ready" | "partial" | "blocked";
+  runtimeAvailable: boolean;
+  runtimeSupportSummary: string;
+  planSteps: string[];
+  constraints: string[];
+  evidence: string[];
 };
 
 export type AssistantMessage = {
@@ -120,6 +140,7 @@ export type ArtifactSummary = {
   summary: string;
   content?: string;
   creativeTranslation?: CreativeTranslationSummary | null;
+  creativePlan?: CreativeExecutionPlanSummary | null;
   domain?: string | null;
   isDefault?: boolean;
   previewEligible?: boolean;
@@ -543,6 +564,7 @@ export type AssistantWorkspaceSnapshot = {
   };
   artifacts: ArtifactSummary[];
   clarification?: ClarificationSummary | null;
+  creativePlan?: CreativeExecutionPlanSummary | null;
   multimodal: MultimodalSummary;
   preview: PreviewSummary;
   code: CodeSummary;
@@ -662,6 +684,12 @@ export function getInitialWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
           displayLabel: "Prompt input",
           state: "queued",
           detail: "Structure prompt inputs for the provider request."
+        },
+        {
+          nodeId: "planning",
+          displayLabel: "Planning",
+          state: "queued",
+          detail: "Prepare a deterministic execution plan before generation."
         },
         {
           nodeId: "prompt_rendering",
@@ -888,6 +916,12 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
           displayLabel: "Prompt input",
           state: "complete",
           detail: "Prompt inputs structured for rendering."
+        },
+        {
+          nodeId: "planning",
+          displayLabel: "Planning",
+          state: "complete",
+          detail: "Execution strategy and runtime plan prepared."
         },
         {
           nodeId: "prompt_rendering",

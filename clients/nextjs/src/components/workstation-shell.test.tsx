@@ -34,6 +34,25 @@ const originalRequestAnimationFrame = window.requestAnimationFrame;
 const originalCreateObjectURL = URL.createObjectURL;
 const originalRevokeObjectURL = URL.revokeObjectURL;
 
+const testCreativePlan = {
+  outputModality: "visual" as const,
+  generationStrategy: "Generate one p5 candidate with a browser-safe runtime.",
+  recommendedRuntime: "p5",
+  recommendedRendererId: "surface.p5",
+  recommendedPreviewTarget: "browser_sandbox",
+  recommendedShaderStyle: "glow",
+  candidateCount: 1,
+  refinementBudget: 1,
+  expectedComplexity: "medium" as const,
+  estimatedTokenCost: 2800,
+  exportReadiness: "ready" as const,
+  runtimeAvailable: true,
+  runtimeSupportSummary: "p5.js browser preview is available.",
+  planSteps: ["Target p5 output.", "Preserve translated creative intent."],
+  constraints: ["Keep code browser-safe."],
+  evidence: ["Route selected: generate."]
+};
+
 function snapshotWithActiveTab(
   activeTab: InspectorTabName
 ): AssistantWorkspaceSnapshot {
@@ -962,7 +981,7 @@ describe("WorkstationShell", () => {
     );
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
-    ).toHaveAttribute("aria-valuetext", "0 of 14 workflow nodes reached");
+    ).toHaveAttribute("aria-valuetext", "0 of 15 workflow nodes reached");
 
     fireEvent.click(
       screen.getByRole("button", {
@@ -1196,7 +1215,7 @@ describe("WorkstationShell", () => {
     );
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
-    ).toHaveAttribute("aria-valuetext", "8 of 14 workflow nodes reached");
+    ).toHaveAttribute("aria-valuetext", "9 of 15 workflow nodes reached");
     expect(screen.queryByRole("tabpanel", { name: "Code inspector" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tabpanel", { name: "Preview inspector" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Review" })).not.toBeInTheDocument();
@@ -1446,18 +1465,44 @@ describe("WorkstationShell", () => {
           payload: { code: "route_selected", message: "Route selected." }
         },
         {
-          event_type: "token_delta",
+          event_type: "planning",
           sequence: 2,
-          payload: { text: "Streaming " }
+          payload: {
+            code: "creative_plan_prepared",
+            message: "Creative execution plan prepared.",
+            creative_plan: testCreativePlan,
+            workflow: {
+              step: "planning",
+              phase: "running",
+              status: "running",
+              current_step: "planning",
+              completed_steps: ["intake", "routing", "prompt_input"],
+              skipped_steps: [],
+              refinement_count: 0,
+              review_outcome: null,
+              review_reasons: [],
+              artifact_count: 0,
+              preview_artifact_count: 0,
+              image_reference_count: 0,
+              image_references: [],
+              planning_available: true,
+              creative_plan: testCreativePlan
+            }
+          }
         },
         {
           event_type: "token_delta",
           sequence: 3,
+          payload: { text: "Streaming " }
+        },
+        {
+          event_type: "token_delta",
+          sequence: 4,
           payload: { text: "answer." }
         },
         {
           event_type: "preview_artifact",
-          sequence: 4,
+          sequence: 5,
           payload: {
             artifact_id: "source-sketch",
             status: "succeeded",
@@ -1475,8 +1520,11 @@ describe("WorkstationShell", () => {
         },
         {
           event_type: "final",
-          sequence: 5,
-          payload: { answer: "Final backend answer." }
+          sequence: 6,
+          payload: {
+            answer: "Final backend answer.",
+            creative_plan: testCreativePlan
+          }
         }
       ])
     );
@@ -1524,7 +1572,12 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Overview" }));
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
-    ).toHaveAttribute("aria-valuenow", "14");
+    ).toHaveAttribute("aria-valuenow", "15");
+    const planningSummary = screen.getByRole("group", {
+      name: "Planning summary"
+    });
+    expect(planningSummary).toHaveTextContent("Visual / p5");
+    expect(planningSummary).toHaveTextContent("2800 est. tokens");
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
     expect(
@@ -3556,6 +3609,31 @@ describe("WorkstationShell", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("renders creative execution plan metadata in the artifacts inspector", () => {
+    const snapshot = snapshotWithActiveTab("Artifacts");
+    const plannedSnapshot: AssistantWorkspaceSnapshot = {
+      ...snapshot,
+      creativePlan: testCreativePlan,
+      artifacts: snapshot.artifacts.map((artifact, index) =>
+        index === 0 ? { ...artifact, creativePlan: testCreativePlan } : artifact
+      )
+    };
+
+    renderShell(plannedSnapshot);
+
+    const artifactsPanel = screen.getByRole("tabpanel", {
+      name: "Artifacts inspector"
+    });
+    const planningSummary = within(artifactsPanel).getByRole("region", {
+      name: "Artifact planning summary"
+    });
+
+    expect(planningSummary).toHaveTextContent("Execution plan");
+    expect(planningSummary).toHaveTextContent("Visual / p5");
+    expect(planningSummary).toHaveTextContent("Export ready");
+    expect(planningSummary).toHaveTextContent("Target p5 output.");
+  });
+
   it("shows a selected-artifact refinement action with guided instructions", () => {
     renderShell(snapshotWithArtifactComparison());
 
@@ -4309,7 +4387,7 @@ describe("WorkstationShell", () => {
     expect(screen.getByLabelText("Workflow execution summary")).toBeVisible();
     expect(
       screen.getByRole("progressbar", { name: "Workflow inspector progress" })
-    ).toHaveAttribute("aria-valuetext", "8 of 14 workflow nodes reached");
+    ).toHaveAttribute("aria-valuetext", "9 of 15 workflow nodes reached");
     expect(within(graph).getByText("Generation")).toBeVisible();
     expect(within(graph).getByText("Generation").closest("article")).toHaveAttribute(
       "aria-current",

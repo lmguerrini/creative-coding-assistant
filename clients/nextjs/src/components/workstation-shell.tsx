@@ -47,6 +47,7 @@ import type {
 } from "@/lib/assistant-client";
 import {
   readClarificationSummary,
+  readCreativeExecutionPlanSummary,
   readStreamEventError,
   readPreviewArtifactUpdate,
   streamAssistantEvents as streamBackendAssistantEvents,
@@ -2139,6 +2140,24 @@ export function WorkstationShell({
       setActiveTab("Overview");
     }
 
+    const workflowMetadata =
+      typeof streamEvent.payload.workflow === "object" &&
+      streamEvent.payload.workflow !== null
+        ? (streamEvent.payload.workflow as Record<string, unknown>)
+        : null;
+    const creativePlanUpdate = readCreativeExecutionPlanSummary(
+      streamEvent.payload.creative_plan ??
+        streamEvent.payload.creativePlan ??
+        workflowMetadata?.creative_plan ??
+        workflowMetadata?.creativePlan
+    );
+    if (creativePlanUpdate) {
+      setSnapshot((currentSnapshot) => ({
+        ...currentSnapshot,
+        creativePlan: creativePlanUpdate
+      }));
+    }
+
     const workflowNode = workflowNodeFromAssistantStreamEvent(streamEvent);
     if (workflowNode) {
       setWorkflowProgressIndex(
@@ -2173,7 +2192,11 @@ export function WorkstationShell({
       );
 
       if (hydration.artifact) {
-        setSnapshot(hydration.snapshot);
+        setSnapshot(
+          creativePlanUpdate
+            ? { ...hydration.snapshot, creativePlan: creativePlanUpdate }
+            : hydration.snapshot
+        );
         setActiveArtifactId(hydration.activeArtifactId);
         setPreviewArtifactId(hydration.previewArtifactId);
         setPreviewSessionOverride(null);
@@ -2223,7 +2246,11 @@ export function WorkstationShell({
         return;
       }
 
-      setSnapshot(hydration.snapshot);
+      setSnapshot(
+        creativePlanUpdate
+          ? { ...hydration.snapshot, creativePlan: creativePlanUpdate }
+          : hydration.snapshot
+      );
       setActiveArtifactId(hydration.activeArtifactId);
       setPreviewArtifactId(hydration.previewArtifactId);
       setPreviewSessionOverride(null);
@@ -3509,6 +3536,9 @@ function OverviewInspector({
           <strong>{snapshot.artifacts.length}</strong>
           <p>{activeArtifact.title}</p>
         </div>
+        {snapshot.creativePlan ? (
+          <CreativePlanOverviewTile plan={snapshot.creativePlan} />
+        ) : null}
         {snapshot.clarification ? (
           <ClarificationOverviewTile
             clarification={snapshot.clarification}
@@ -3565,6 +3595,32 @@ function OverviewInspector({
         </div>
       </div>
     </section>
+  );
+}
+
+function CreativePlanOverviewTile({
+  plan
+}: {
+  plan: NonNullable<AssistantWorkspaceSnapshot["creativePlan"]>;
+}) {
+  return (
+    <div
+      aria-label="Planning summary"
+      className="overviewTile overviewPlanningTile"
+      data-state={plan.exportReadiness}
+      role="group"
+    >
+      <span>Planning</span>
+      <strong>{formatPlanningHeadline(plan)}</strong>
+      <p>{plan.generationStrategy}</p>
+      <small>
+        {`${plan.candidateCount} candidate${
+          plan.candidateCount === 1 ? "" : "s"
+        } / ${plan.refinementBudget} refinement pass${
+          plan.refinementBudget === 1 ? "" : "es"
+        } / ${plan.estimatedTokenCost} est. tokens`}
+      </small>
+    </div>
   );
 }
 
@@ -4535,6 +4591,7 @@ function ArtifactsInspector({
         {activeArtifact.critique ? (
           <ArtifactCritiqueSummaryCard artifact={activeArtifact} />
         ) : null}
+        <ArtifactPlanSummaryCard artifact={activeArtifact} />
         <CreativeTranslationSummaryCard
           translation={activeArtifact.creativeTranslation}
         />
@@ -4940,6 +4997,60 @@ function ArtifactCritiqueSummaryCard({
   );
 }
 
+function ArtifactPlanSummaryCard({
+  artifact
+}: {
+  artifact: ArtifactSummary;
+}) {
+  const plan = artifact.creativePlan;
+  if (!plan) {
+    return null;
+  }
+
+  return (
+    <section
+      aria-label="Artifact planning summary"
+      className="artifactPlanCard"
+    >
+      <header>
+        <div>
+          <span>Execution plan</span>
+          <strong>{formatPlanningHeadline(plan)}</strong>
+        </div>
+        <span className="artifactQualityBadge">
+          {formatExportReadiness(plan.exportReadiness)}
+        </span>
+      </header>
+      <p>{plan.generationStrategy}</p>
+      <dl className="artifactPlanMeta">
+        <div>
+          <dt>Runtime</dt>
+          <dd>{plan.recommendedRuntime ?? "Code-only"}</dd>
+        </div>
+        <div>
+          <dt>Candidates</dt>
+          <dd>{plan.candidateCount}</dd>
+        </div>
+        <div>
+          <dt>Refinement</dt>
+          <dd>{plan.refinementBudget}</dd>
+        </div>
+        <div>
+          <dt>Complexity</dt>
+          <dd>{formatPlanningComplexity(plan.expectedComplexity)}</dd>
+        </div>
+      </dl>
+      {plan.planSteps.length > 0 ? (
+        <ul className="artifactPlanSteps">
+          {plan.planSteps.slice(0, 4).map((step) => (
+            <li key={step}>{step}</li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
+  );
+}
+
 type ArtifactCardProps = {
   artifact: ArtifactSummary;
   copyFeedback: ArtifactActionFeedback | null;
@@ -5085,6 +5196,34 @@ function getArtifactTypeLabel(type: ArtifactSummary["type"]) {
 
 function formatQualityScore(score: number) {
   return `${Math.round(score * 100)}%`;
+}
+
+function formatPlanningHeadline(
+  plan: NonNullable<AssistantWorkspaceSnapshot["creativePlan"]>
+) {
+  const runtime = plan.recommendedRuntime ?? "code-only";
+  return `${formatOutputModality(plan.outputModality)} / ${runtime}`;
+}
+
+function formatOutputModality(value: string) {
+  if (value === "audiovisual") {
+    return "Audiovisual";
+  }
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function formatPlanningComplexity(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function formatExportReadiness(value: string) {
+  if (value === "ready") {
+    return "Export ready";
+  }
+  if (value === "blocked") {
+    return "Blocked";
+  }
+  return "Partially ready";
 }
 
 function getArtifactRuntimeSupportLabel(artifact: ArtifactSummary) {
@@ -5267,6 +5406,7 @@ function buildArtifactRefinementRequest({
     refinementGuidance:
       artifact.critique?.refinementGuidance ?? artifact.refinementReason ?? null,
     creativeTranslation: artifact.creativeTranslation ?? null,
+    creativePlan: artifact.creativePlan ?? null,
     critique: artifact.critique ?? null
   }, artifact);
 }

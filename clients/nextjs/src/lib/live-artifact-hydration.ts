@@ -8,6 +8,7 @@ import type {
   ArtifactCritiqueDimension,
   ArtifactSummary,
   AssistantWorkspaceSnapshot,
+  CreativeExecutionPlanSummary,
   CreativeQualityEvaluation,
   CreativeQualityLevel,
   CreativeQualityObservation,
@@ -19,6 +20,7 @@ import type {
   SacredConsistencyObservation
 } from "./assistant-client";
 import type { AssistantStreamEvent } from "./assistant-stream";
+import { readCreativeExecutionPlanSummary } from "./assistant-stream";
 import { normalizeCreativeTranslation } from "./creative-translation";
 
 export type LiveArtifactHydrationResult = {
@@ -35,6 +37,7 @@ export type LiveArtifactHydrationOptions = {
 
 type GeneratedArtifactSource = {
   content: string;
+  creativePlan?: CreativeExecutionPlanSummary | null;
   creativeTranslation?: ArtifactSummary["creativeTranslation"];
   critique?: ArtifactCritique;
   domain?: string | null;
@@ -63,6 +66,7 @@ type CreativeRuntimeKind = "p5" | "three" | "glsl" | "hydra" | "tone";
 type ArtifactInference = {
   content: string;
   creativeTranslation: ArtifactSummary["creativeTranslation"];
+  creativePlan: CreativeExecutionPlanSummary | null;
   domain: string | null;
   critique: ArtifactCritique | null;
   id: string;
@@ -265,6 +269,9 @@ function readStructuredArtifactSources(
 
     sources.push({
       content,
+      creativePlan: readCreativeExecutionPlanSummary(
+        artifact.creative_plan ?? artifact.creativePlan
+      ),
       creativeTranslation: normalizeCreativeTranslation(
         artifact.creative_translation ?? artifact.creativeTranslation
       ),
@@ -469,6 +476,7 @@ function inferGeneratedArtifact(
   return {
     content: trimCodeBlock(source.content),
     creativeTranslation: source.creativeTranslation ?? null,
+    creativePlan: source.creativePlan ?? null,
     critique: source.critique ?? null,
     domain: source.domain ?? null,
     id:
@@ -545,6 +553,7 @@ function buildArtifactSummary(
     summary,
     content: inferred.content,
     creativeTranslation: inferred.creativeTranslation,
+    creativePlan: inferred.creativePlan,
     critique: inferred.critique ?? undefined,
     domain: inferred.domain,
     isDefault: inferred.isDefault,

@@ -46,6 +46,7 @@ describe("assistant frontend client", () => {
       "retrieval",
       "context_assembly",
       "prompt_input",
+      "planning",
       "prompt_rendering",
       "generation",
       "artifact_extraction",

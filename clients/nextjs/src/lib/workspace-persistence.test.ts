@@ -110,6 +110,51 @@ describe("workspace persistence client", () => {
     expect(restored.preview.collapsed).toBe(false);
   });
 
+  it("normalizes legacy workflow snapshots with newly introduced nodes", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const record = createWorkspaceSessionRecord({
+      activeArtifactId: "source-sketch",
+      activeInspectorTab: "Workflow",
+      previewArtifactId: "preview-manifest",
+      previewOpen: false,
+      snapshot
+    });
+    const legacyWorkflow = {
+      ...record.workflow,
+      currentNode: "generation" as const,
+      currentStep: "Generation",
+      steps: record.workflow.steps
+        .filter((step) => step.nodeId !== "planning")
+        .map((step) =>
+          step.nodeId === "prompt_rendering" || step.nodeId === "generation"
+            ? { ...step, state: "active" as const }
+            : step
+        )
+    };
+
+    const restored = snapshotFromWorkspaceSessionRecord(snapshot, {
+      ...record,
+      workflow: legacyWorkflow,
+      snapshot: {
+        ...record.snapshot,
+        workflow: legacyWorkflow
+      }
+    });
+
+    expect(restored.workflow.steps.map((step) => step.nodeId)).toContain(
+      "planning"
+    );
+    expect(restored.workflow.steps.map((step) => step.nodeId)).toEqual(
+      snapshot.workflow.steps.map((step) => step.nodeId)
+    );
+    expect(
+      restored.workflow.steps.find((step) => step.nodeId === "planning")
+    ).toMatchObject({
+      displayLabel: "Planning",
+      state: "complete"
+    });
+  });
+
   it("loads a remote session and mirrors it to local storage", async () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const storage = new MemoryStorage();

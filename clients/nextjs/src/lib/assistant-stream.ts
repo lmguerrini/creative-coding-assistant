@@ -1,6 +1,7 @@
 import type {
   ArtifactCritique,
   ClarificationSummary,
+  CreativeExecutionPlanSummary,
   CreativeTranslationSummary,
   RefinementPassRecord,
   WorkflowNodeId
@@ -18,6 +19,7 @@ export type AssistantStreamEventType =
   | "retrieval"
   | "context"
   | "prompt_input"
+  | "planning"
   | "prompt_rendered"
   | "generation_input"
   | "tool_start"
@@ -74,6 +76,8 @@ export type AssistantStreamWorkflowMetadata = {
   clarification_required?: boolean;
   clarification_reason?: string | null;
   clarification_question_count?: number;
+  creative_plan?: CreativeExecutionPlanSummary | null;
+  planning_available?: boolean;
 };
 
 export type AssistantPreviewArtifactStatus =
@@ -114,6 +118,7 @@ export type AssistantArtifactRefinementRequest = {
   critiqueRationale?: string | null;
   refinementGuidance?: string | null;
   creativeTranslation?: CreativeTranslationSummary | null;
+  creativePlan?: CreativeExecutionPlanSummary | null;
   critique?: ArtifactCritique | null;
 };
 
@@ -144,6 +149,7 @@ const streamEventTypes = new Set<AssistantStreamEventType>([
   "retrieval",
   "context",
   "prompt_input",
+  "planning",
   "prompt_rendered",
   "generation_input",
   "tool_start",
@@ -187,6 +193,9 @@ const streamEventWorkflowNodes: Partial<
   prompt_input: {
     clarification_required: "prompt_input",
     prompt_inputs_prepared: "prompt_input"
+  },
+  planning: {
+    creative_plan_prepared: "planning"
   },
   prompt_rendered: {
     prompt_rendered: "prompt_rendering"
@@ -458,6 +467,11 @@ export function readWorkflowMetadata(
     typeof rawWorkflow.clarification_question_count === "number"
       ? rawWorkflow.clarification_question_count
       : clarification?.questions.length ?? 0;
+  const creativePlan = readCreativeExecutionPlanSummary(
+    rawWorkflow.creative_plan ?? rawWorkflow.creativePlan
+  );
+  const planningAvailable =
+    rawWorkflow.planning_available === true || creativePlan !== null;
 
   if (
     (phase !== "running" && phase !== "completed" && phase !== "failed") ||
@@ -489,7 +503,98 @@ export function readWorkflowMetadata(
           clarification_reason: clarificationReason,
           clarification_question_count: clarificationQuestionCount
         }
+      : {}),
+    ...(planningAvailable
+      ? {
+          creative_plan: creativePlan,
+          planning_available: true
+        }
       : {})
+  };
+}
+
+export function readCreativeExecutionPlanSummary(
+  value: unknown
+): CreativeExecutionPlanSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const outputModality = readStringUnion(value, "output_modality", "outputModality", [
+    "visual",
+    "audio",
+    "audiovisual"
+  ]);
+  const generationStrategy =
+    readStringField(value, "generation_strategy") ??
+    readStringField(value, "generationStrategy");
+  const expectedComplexity = readStringUnion(
+    value,
+    "expected_complexity",
+    "expectedComplexity",
+    ["low", "medium", "high"]
+  );
+  const exportReadiness = readStringUnion(
+    value,
+    "export_readiness",
+    "exportReadiness",
+    ["ready", "partial", "blocked"]
+  );
+  const candidateCount =
+    readFiniteNumberField(value, "candidate_count") ??
+    readFiniteNumberField(value, "candidateCount");
+  const refinementBudget =
+    readFiniteNumberField(value, "refinement_budget") ??
+    readFiniteNumberField(value, "refinementBudget");
+  const estimatedTokenCost =
+    readFiniteNumberField(value, "estimated_token_cost") ??
+    readFiniteNumberField(value, "estimatedTokenCost");
+  const runtimeSupportSummary =
+    readStringField(value, "runtime_support_summary") ??
+    readStringField(value, "runtimeSupportSummary");
+  const runtimeAvailable =
+    readBooleanField(value, "runtime_available") ??
+    readBooleanField(value, "runtimeAvailable");
+
+  if (
+    !outputModality ||
+    !generationStrategy ||
+    !expectedComplexity ||
+    !exportReadiness ||
+    candidateCount === null ||
+    refinementBudget === null ||
+    estimatedTokenCost === null ||
+    !runtimeSupportSummary ||
+    runtimeAvailable === null
+  ) {
+    return null;
+  }
+
+  return {
+    outputModality,
+    generationStrategy,
+    recommendedRuntime:
+      readStringField(value, "recommended_runtime") ??
+      readStringField(value, "recommendedRuntime"),
+    recommendedRendererId:
+      readStringField(value, "recommended_renderer_id") ??
+      readStringField(value, "recommendedRendererId"),
+    recommendedPreviewTarget:
+      readStringField(value, "recommended_preview_target") ??
+      readStringField(value, "recommendedPreviewTarget"),
+    recommendedShaderStyle:
+      readStringField(value, "recommended_shader_style") ??
+      readStringField(value, "recommendedShaderStyle"),
+    candidateCount,
+    refinementBudget,
+    expectedComplexity,
+    estimatedTokenCost,
+    exportReadiness,
+    runtimeAvailable,
+    runtimeSupportSummary,
+    planSteps: readStringListField(value, "plan_steps", "planSteps"),
+    constraints: readStringListField(value, "constraints", "constraints"),
+    evidence: readStringListField(value, "evidence", "evidence")
   };
 }
 
@@ -856,6 +961,26 @@ function readStringField(
   return typeof item === "string" && item.trim() ? item : null;
 }
 
+function readBooleanField(
+  value: Record<string, unknown>,
+  key: string
+): boolean | null {
+  const item = value[key];
+  return typeof item === "boolean" ? item : null;
+}
+
+function readStringUnion<const TValue extends string>(
+  value: Record<string, unknown>,
+  snakeKey: string,
+  camelKey: string,
+  allowedValues: readonly TValue[]
+): TValue | null {
+  const item = readStringField(value, snakeKey) ?? readStringField(value, camelKey);
+  return item !== null && allowedValues.includes(item as TValue)
+    ? (item as TValue)
+    : null;
+}
+
 function readFiniteNumberField(
   value: Record<string, unknown>,
   key: string
@@ -954,6 +1079,7 @@ const workflowNodeIds = new Set<WorkflowNodeId>([
   "retrieval",
   "context_assembly",
   "prompt_input",
+  "planning",
   "prompt_rendering",
   "generation",
   "artifact_extraction",

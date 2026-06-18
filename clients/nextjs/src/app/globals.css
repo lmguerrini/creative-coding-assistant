@@ -3000,6 +3000,13 @@ a {
   gap: 10px;
 }
 
+.overviewPlanningTile {
+  border-color: rgba(var(--accent-rgb), 0.22);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.075), transparent 74%),
+    var(--panel-soft);
+}
+
 .clarificationQuestionStack {
   display: grid;
   gap: 10px;
@@ -5740,6 +5747,77 @@ a {
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+.artifactPlanCard {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.06), transparent 70%),
+    rgba(255, 255, 255, 0.035);
+}
+
+.artifactPlanCard > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.artifactPlanCard > header span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.artifactPlanCard header strong {
+  display: block;
+  color: var(--foreground);
+}
+
+.artifactPlanCard p,
+.artifactPlanSteps {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.artifactPlanMeta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.artifactPlanMeta div {
+  display: grid;
+  gap: 3px;
+}
+
+.artifactPlanMeta dt {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.artifactPlanMeta dd {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 11px;
+}
+
+.artifactPlanSteps {
+  display: grid;
+  gap: 5px;
+  padding-left: 16px;
 }
 
 .artifactRefinementCard {
