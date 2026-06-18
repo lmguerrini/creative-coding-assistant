@@ -27,6 +27,9 @@ from creative_coding_assistant.orchestration.artifacts import (
     prepare_workflow_preview_results,
 )
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
+from creative_coding_assistant.orchestration.creative_planning import (
+    derive_creative_execution_plan,
+)
 from creative_coding_assistant.orchestration.events import StreamEventBuilder
 from creative_coding_assistant.orchestration.prompt_templates import (
     RenderedPromptResponse,
@@ -104,6 +107,7 @@ ASSISTANT_WORKFLOW_NODE_ORDER: tuple[str, ...] = (
     "retrieval",
     "context_assembly",
     "prompt_input",
+    "planning",
     "prompt_rendering",
     "generation",
     "artifact_extraction",
@@ -133,6 +137,7 @@ def build_assistant_workflow_graph() -> Any:
     graph.add_node("retrieval", _retrieval_node)
     graph.add_node("context_assembly", _context_assembly_node)
     graph.add_node("prompt_input", _prompt_input_node)
+    graph.add_node("planning", _planning_node)
     graph.add_node("prompt_rendering", _prompt_rendering_node)
     graph.add_node("generation", _generation_node)
     graph.add_node("artifact_extraction", _artifact_extraction_node)
@@ -153,7 +158,7 @@ def build_assistant_workflow_graph() -> Any:
                 current_node,
                 _next_node_after_prompt_input,
                 {
-                    "prompt_rendering": "prompt_rendering",
+                    "planning": "planning",
                     "finalization": "finalization",
                     "failure": "failure",
                 },
@@ -503,6 +508,73 @@ def _prompt_input_node(
         )
 
 
+def _planning_node(
+    state: AssistantWorkflowGraphState,
+    runtime: Runtime[AssistantWorkflowGraphContext],
+) -> AssistantWorkflowGraphState:
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
+        _workflow_state(state),
+        runtime_context,
+        WorkflowStep.PLANNING,
+    )
+    try:
+        prompt_input = workflow_state.prompt_input
+        if prompt_input is None:
+            return {
+                "workflow_state": _skip_node(
+                    workflow_state,
+                    runtime_context,
+                    WorkflowStep.PLANNING,
+                    decision_reason="prompt_input_unavailable_for_planning",
+                )
+            }
+
+        plan = derive_creative_execution_plan(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_translation=prompt_input.creative_translation,
+            retrieval_chunk_count=(
+                len(prompt_input.retrieval_input.chunks)
+                if prompt_input.retrieval_input is not None
+                else 0
+            ),
+        )
+        planned_prompt_input = prompt_input.model_copy(
+            update={"creative_plan": plan}
+        )
+        planned_state = workflow_state.model_copy(
+            update={
+                "creative_plan": plan,
+                "prompt_input": planned_prompt_input,
+            }
+        )
+        _emit(
+            runtime_context.event_builder.planning(
+                code="creative_plan_prepared",
+                message="Creative execution plan prepared.",
+                creative_plan=plan.model_dump(mode="json"),
+            ),
+            workflow_state=planned_state,
+            step=WorkflowStep.PLANNING,
+        )
+        return {
+            "workflow_state": _complete_node(
+                planned_state,
+                runtime_context,
+                WorkflowStep.PLANNING,
+                decision_reason="creative_plan_prepared",
+            )
+        }
+    except Exception as exc:
+        return _handle_workflow_exception(
+            workflow_state=workflow_state,
+            runtime=runtime_context,
+            step=WorkflowStep.PLANNING,
+            exc=exc,
+        )
+
+
 def _prompt_rendering_node(
     state: AssistantWorkflowGraphState,
     runtime: Runtime[AssistantWorkflowGraphContext],
@@ -642,6 +714,7 @@ def _artifact_extraction_node(
                 if workflow_state.prompt_input is not None
                 else None
             ),
+            creative_plan=workflow_state.creative_plan,
         )
         if not artifacts:
             return {
@@ -1041,6 +1114,14 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "creative_plan",
+                    (
+                        final_state.creative_plan.model_dump(mode="json")
+                        if final_state.creative_plan is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "observability",
                     runtime_context.observability.event_payload(
                         runtime_context.observability_run,
@@ -1156,7 +1237,7 @@ def _next_node_after_prompt_input(state: AssistantWorkflowGraphState) -> str:
         return "failure"
     if _workflow_state(state).clarification is not None:
         return WorkflowStep.FINALIZATION.value
-    return WorkflowStep.PROMPT_RENDERING.value
+    return WorkflowStep.PLANNING.value
 
 
 def _review_transition(
@@ -1801,6 +1882,7 @@ def _serialize_workflow_runtime(
     runtime_step = step or workflow_state.current_step
     review_result = workflow_state.review_result
     clarification = workflow_state.clarification
+    creative_plan = workflow_state.creative_plan
 
     return {
         "step": runtime_step.value if runtime_step is not None else None,
@@ -1842,6 +1924,12 @@ def _serialize_workflow_runtime(
             if clarification is not None
             else None
         ),
+        "creative_plan": (
+            creative_plan.model_dump(mode="json")
+            if creative_plan is not None
+            else None
+        ),
+        "planning_available": creative_plan is not None,
         "image_reference_count": len(workflow_state.request.attachments),
         "image_references": [
             {

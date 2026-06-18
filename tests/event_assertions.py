@@ -2,7 +2,6 @@ from collections.abc import Iterable
 
 from creative_coding_assistant.contracts import StreamEvent, StreamEventType
 
-
 WORKFLOW_TRUTH_EVENT_TYPES = {
     StreamEventType.NODE_STARTED,
     StreamEventType.NODE_COMPLETED,

@@ -43,6 +43,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "retrieval",
                 "context_assembly",
                 "prompt_input",
+                "planning",
                 "prompt_rendering",
                 "generation",
                 "artifact_extraction",
@@ -78,6 +79,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "retrieval",
                 "context_assembly",
                 "prompt_input",
+                "planning",
                 "prompt_rendering",
                 "generation",
                 "artifact_extraction",
@@ -96,6 +98,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "retrieval",
                 "context_assembly",
                 "prompt_input",
+                "planning",
                 "prompt_rendering",
                 "generation",
                 "artifact_extraction",
@@ -183,6 +186,51 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             final_event.payload["workflow"]["completed_steps"],
         )
 
+    def test_graph_plans_between_prompt_input_and_prompt_rendering(self) -> None:
+        graph = build_assistant_workflow_graph()
+        request = _request(
+            query="Generate a luminous p5.js mandala sketch.",
+            domain=CreativeCodingDomain.P5_JS,
+        )
+        runtime = _runtime(
+            stream_prompt_inputs=_stream_prompt_inputs_with_builder,
+            stream_generation=_stream_completed_generation,
+        )
+
+        events = tuple(
+            stream_assistant_workflow_events(
+                graph=graph,
+                request=request,
+                runtime=runtime,
+            )
+        )
+
+        planning_event = _first_event(
+            events,
+            StreamEventType.PLANNING,
+            "creative_plan_prepared",
+        )
+        final_event = events[-1]
+        plan = planning_event.payload["creative_plan"]
+
+        self.assertEqual(planning_event.payload["workflow"]["step"], "planning")
+        self.assertEqual(plan["output_modality"], "visual")
+        self.assertEqual(plan["recommended_runtime"], "p5")
+        self.assertEqual(
+            final_event.payload["creative_plan"]["recommended_runtime"],
+            "p5",
+        )
+        self.assertIn(
+            "planning",
+            final_event.payload["workflow"]["completed_steps"],
+        )
+        _first_transition(
+            events,
+            StreamEventType.NODE_COMPLETED,
+            source="planning",
+            target="prompt_rendering",
+        )
+
     def test_graph_completes_workflow_state_after_generation(self) -> None:
         graph = build_assistant_workflow_graph()
         request = _request()
@@ -213,6 +261,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 WorkflowStep.RETRIEVAL,
                 WorkflowStep.CONTEXT_ASSEMBLY,
                 WorkflowStep.PROMPT_INPUT,
+                WorkflowStep.PLANNING,
                 WorkflowStep.PROMPT_RENDERING,
                 WorkflowStep.ARTIFACT_EXTRACTION,
                 WorkflowStep.PREVIEW_PREPARATION,
@@ -316,6 +365,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "retrieval",
                 "context_assembly",
                 "prompt_input",
+                "planning",
                 "prompt_rendering",
                 "artifact_extraction",
                 "preview_preparation",
@@ -482,6 +532,43 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(
             events[-1].payload["preview_results"][0]["status"],
             "succeeded",
+        )
+
+    def test_planning_metadata_flows_into_generated_artifacts(self) -> None:
+        graph = build_assistant_workflow_graph()
+        answer = "\n".join(
+            [
+                "```javascript",
+                "function setup() { createCanvas(640, 360); }",
+                "function draw() { background(12); }",
+                "```",
+            ]
+        )
+        request = _request(
+            query="Write a p5.js mandala sketch.",
+            domain=CreativeCodingDomain.P5_JS,
+        )
+
+        final_state = graph.invoke(
+            build_initial_workflow_graph_state(request),
+            context={
+                "runtime": _runtime(
+                    stream_prompt_inputs=_stream_prompt_inputs_with_builder,
+                    stream_generation=_single_generation(answer),
+                )
+            },
+        )
+
+        workflow_state = final_state["workflow_state"]
+        self.assertIsNotNone(workflow_state.creative_plan)
+        self.assertIsNotNone(workflow_state.artifacts[0].creative_plan)
+        self.assertEqual(
+            workflow_state.artifacts[0].creative_plan.recommended_runtime,
+            "p5",
+        )
+        self.assertEqual(
+            workflow_state.creative_plan,
+            workflow_state.artifacts[0].creative_plan,
         )
 
     def test_generation_extracts_multiple_artifacts_with_selection_metadata(
@@ -923,11 +1010,12 @@ def _assert_subsequence(
 def _request(
     *,
     query: str = "Generate a Three.js scene.",
+    domain: CreativeCodingDomain = CreativeCodingDomain.THREE_JS,
     mode: AssistantMode = AssistantMode.GENERATE,
 ) -> AssistantRequest:
     return AssistantRequest(
         query=query,
-        domain=CreativeCodingDomain.THREE_JS,
+        domain=domain,
         mode=mode,
     )
 

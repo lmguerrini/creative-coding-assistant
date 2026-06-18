@@ -16,6 +16,9 @@ from creative_coding_assistant.orchestration.artifacts import (
 )
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
+from creative_coding_assistant.orchestration.creative_planning import (
+    CreativeExecutionPlan,
+)
 from creative_coding_assistant.orchestration.memory import MemoryContextResponse
 from creative_coding_assistant.orchestration.prompt_inputs import PromptInputResponse
 from creative_coding_assistant.orchestration.prompt_templates import (
@@ -36,6 +39,7 @@ class WorkflowStep(StrEnum):
     RETRIEVAL = "retrieval"
     CONTEXT_ASSEMBLY = "context_assembly"
     PROMPT_INPUT = "prompt_input"
+    PLANNING = "planning"
     PROMPT_RENDERING = "prompt_rendering"
     GENERATION = "generation"
     ARTIFACT_EXTRACTION = "artifact_extraction"
@@ -60,6 +64,7 @@ WORKFLOW_STEP_ORDER: tuple[WorkflowStep, ...] = (
     WorkflowStep.RETRIEVAL,
     WorkflowStep.CONTEXT_ASSEMBLY,
     WorkflowStep.PROMPT_INPUT,
+    WorkflowStep.PLANNING,
     WorkflowStep.PROMPT_RENDERING,
     WorkflowStep.GENERATION,
     WorkflowStep.ARTIFACT_EXTRACTION,
@@ -112,6 +117,7 @@ class AssistantWorkflowState(BaseModel):
     assembled_context: AssembledContextResponse | None = None
     prompt_input: PromptInputResponse | None = None
     clarification: ClarificationRequest | None = None
+    creative_plan: CreativeExecutionPlan | None = None
     rendered_prompt: RenderedPromptResponse | None = None
     artifacts: tuple[WorkflowArtifact, ...] = ()
     preview_results: tuple[PreviewResult, ...] = ()

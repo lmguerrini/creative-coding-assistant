@@ -141,7 +141,11 @@ class ContextAssemblyFoundationTests(unittest.TestCase):
                 StreamEventType.FINAL,
             ],
         )
-        context_event = first_event(events, StreamEventType.CONTEXT, "context_assembled")
+        context_event = first_event(
+            events,
+            StreamEventType.CONTEXT,
+            "context_assembled",
+        )
 
         self.assertEqual(context_event.payload["code"], "context_assembled")
         self.assertEqual(len(assembler.requests), 1)

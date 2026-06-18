@@ -14,6 +14,7 @@ class StreamEventType(StrEnum):
     RETRIEVAL = "retrieval"
     CONTEXT = "context"
     PROMPT_INPUT = "prompt_input"
+    PLANNING = "planning"
     PROMPT_RENDERED = "prompt_rendered"
     GENERATION_INPUT = "generation_input"
     TOOL_START = "tool_start"

@@ -819,15 +819,19 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
             ],
         )
         self.assertEqual(
-            first_event(events, StreamEventType.RETRIEVAL, "retrieval_requested").payload[
-                "code"
-            ],
+            first_event(
+                events,
+                StreamEventType.RETRIEVAL,
+                "retrieval_requested",
+            ).payload["code"],
             "retrieval_requested",
         )
         self.assertEqual(
-            first_event(events, StreamEventType.RETRIEVAL, "retrieval_completed").payload[
-                "code"
-            ],
+            first_event(
+                events,
+                StreamEventType.RETRIEVAL,
+                "retrieval_completed",
+            ).payload["code"],
             "retrieval_completed",
         )
         self.assertEqual(len(gateway.requests), 1)

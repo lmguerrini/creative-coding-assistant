@@ -25,6 +25,9 @@ from creative_coding_assistant.artifacts import (
     ArtifactWorkflowLink,
 )
 from creative_coding_assistant.contracts import AssistantRequest, CreativeCodingDomain
+from creative_coding_assistant.orchestration.creative_planning import (
+    CreativeExecutionPlan,
+)
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
@@ -234,6 +237,7 @@ class WorkflowArtifact(BaseModel):
     preview_target: str | None = None
     content_hash: str = Field(min_length=1)
     creative_translation: CreativeTranslation | None = None
+    creative_plan: CreativeExecutionPlan | None = None
     critique: WorkflowArtifactCritique | None = None
     quality_score: float | None = Field(default=None, ge=0.0, le=1.0)
     quality_rank: int | None = Field(default=None, ge=1)
@@ -263,6 +267,7 @@ def extract_workflow_artifacts(
     request: AssistantRequest,
     route_decision: RouteDecision,
     creative_translation: CreativeTranslation | None = None,
+    creative_plan: CreativeExecutionPlan | None = None,
 ) -> tuple[WorkflowArtifact, ...]:
     """Extract code artifacts from generated assistant output."""
 
@@ -275,6 +280,7 @@ def extract_workflow_artifacts(
             request=request,
             route_decision=route_decision,
             creative_translation=creative_translation,
+            creative_plan=creative_plan,
         )
         if artifact is not None:
             artifacts.append(artifact)
@@ -379,6 +385,7 @@ def _build_workflow_artifact(
     request: AssistantRequest,
     route_decision: RouteDecision,
     creative_translation: CreativeTranslation | None,
+    creative_plan: CreativeExecutionPlan | None,
 ) -> WorkflowArtifact | None:
     language = block.language or _infer_language(block.content, block.title)
     if not language:
@@ -433,6 +440,7 @@ def _build_workflow_artifact(
         preview_target=preview_target,
         content_hash=content_hash,
         creative_translation=creative_translation,
+        creative_plan=creative_plan,
     )
 
 

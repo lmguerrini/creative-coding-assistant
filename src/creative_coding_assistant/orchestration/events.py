@@ -60,6 +60,18 @@ class StreamEventBuilder:
             {"code": code, "message": message, **details},
         )
 
+    def planning(
+        self,
+        *,
+        code: str,
+        message: str,
+        **details: Any,
+    ) -> StreamEvent:
+        return self._event(
+            StreamEventType.PLANNING,
+            {"code": code, "message": message, **details},
+        )
+
     def prompt_rendered(
         self,
         *,
