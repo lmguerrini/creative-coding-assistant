@@ -799,6 +799,12 @@ function formatRuntimeLabel(runtime: string, artifact: ArtifactSummary) {
   if (runtime === "gsap") {
     return "GSAP";
   }
+  if (runtime === "svg") {
+    return "SVG";
+  }
+  if (runtime === "canvas") {
+    return "Canvas";
+  }
   return runtime;
 }
 

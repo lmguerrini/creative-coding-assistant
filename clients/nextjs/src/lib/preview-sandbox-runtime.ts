@@ -272,6 +272,10 @@ export function preparePreviewExecutableSource(
     return source.replace(/\r\n/g, "\n").trim();
   }
 
+  if (kind === "svg") {
+    return source.replace(/\r\n/g, "\n").trim();
+  }
+
   if (kind === "hydra") {
     return prepareHydraRuntimeSource(source);
   }
@@ -297,18 +301,7 @@ function getSandboxStartingStatus(
   kind: PreviewExecutableRuntimeKind
 ): PreviewRuntimeStatus {
   return {
-    detail:
-      kind === "glsl"
-        ? "Mounting a controlled WebGL shader document."
-        : kind === "three"
-          ? "Mounting a controlled Three.js-compatible browser document."
-          : kind === "hydra"
-            ? "Mounting a controlled Hydra-compatible browser document."
-            : kind === "tone"
-              ? "Mounting a controlled Tone.js-compatible audio document."
-              : kind === "gsap"
-                ? "Mounting a controlled GSAP-compatible motion document."
-              : "Mounting a controlled p5.js-compatible browser document.",
+    detail: describeSandboxRuntimeStart(kind),
     label: "Preview runtime starting",
     state: "starting",
     error: null
@@ -358,6 +351,28 @@ function createSandboxRuntimeError({
     retryLabel: "Reload preview state",
     resetLabel: "Reset preview session"
   });
+}
+
+function describeSandboxRuntimeStart(kind: PreviewExecutableRuntimeKind) {
+  switch (kind) {
+    case "glsl":
+      return "Mounting a controlled WebGL shader document.";
+    case "three":
+      return "Mounting a controlled Three.js-compatible browser document.";
+    case "hydra":
+      return "Mounting a controlled Hydra-compatible browser document.";
+    case "tone":
+      return "Mounting a controlled Tone.js-compatible audio document.";
+    case "gsap":
+      return "Mounting a controlled GSAP-compatible motion document.";
+    case "svg":
+      return "Mounting a controlled SVG vector document.";
+    case "canvas":
+      return "Mounting a controlled Canvas 2D document.";
+    case "p5":
+    default:
+      return "Mounting a controlled p5.js-compatible browser document.";
+  }
 }
 
 function serializeForInlineScript(value: unknown) {

@@ -50,7 +50,9 @@ const creativeSurfaceLayers: Record<CreativePreviewRendererKind, readonly string
   glsl: ["vertex", "fragment", "uniforms"],
   hydra: ["sources", "operators", "feedback", "outputs"],
   tone: ["voices", "envelopes", "sequences", "transport"],
-  gsap: ["timeline", "tweens", "stagger", "transforms"]
+  gsap: ["timeline", "tweens", "stagger", "transforms"],
+  svg: ["paths", "gradients", "viewBox", "animate"],
+  canvas: ["context", "paths", "fills", "frames"]
 };
 
 const mediaSurfaceLayers: Record<
@@ -159,6 +161,8 @@ function renderPreviewSurfaceStage({
           <span>Hydra</span>
           <span>Tone.js</span>
           <span>GSAP</span>
+          <span>SVG</span>
+          <span>Canvas</span>
         </div>
         <div className="previewSurfaceMetaGrid">
           <div>
@@ -255,7 +259,9 @@ function isCreativeSurface(
     surfaceKind === "glsl" ||
     surfaceKind === "hydra" ||
     surfaceKind === "tone" ||
-    surfaceKind === "gsap"
+    surfaceKind === "gsap" ||
+    surfaceKind === "svg" ||
+    surfaceKind === "canvas"
   );
 }
 

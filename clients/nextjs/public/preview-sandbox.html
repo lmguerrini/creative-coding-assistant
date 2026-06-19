@@ -40,6 +40,36 @@
     #gsap-stage[hidden] {
       display: none;
     }
+    #svg-stage {
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+      box-sizing: border-box;
+      padding: 18px;
+      background:
+        radial-gradient(circle at 16% 18%, rgba(124, 167, 255, 0.18), transparent 34%),
+        radial-gradient(circle at 82% 22%, rgba(76, 215, 200, 0.18), transparent 36%),
+        linear-gradient(180deg, #071016 0%, #05080b 56%, #060b12 100%);
+    }
+    #svg-stage[hidden] {
+      display: none;
+    }
+    #svg-stage .svg-frame {
+      width: 100%;
+      height: 100%;
+      border: 1px solid rgba(237, 243, 242, 0.08);
+      border-radius: 24px;
+      background: rgba(7, 16, 22, 0.82);
+      box-shadow:
+        0 28px 80px rgba(0, 0, 0, 0.34),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+    }
+    #svg-stage svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
     #gsap-stage .gsap-node {
       position: absolute;
       box-sizing: border-box;
@@ -229,6 +259,7 @@
   <div id="preview-root">
     <canvas id="preview-canvas"></canvas>
     <div id="gsap-stage" aria-label="GSAP motion stage" hidden></div>
+    <div id="svg-stage" aria-label="SVG vector stage" hidden></div>
   </div>
   <div id="audio-controls" aria-label="Tone.js audio controls" hidden>
     <button id="audio-start" type="button">Start audio</button>
@@ -241,6 +272,7 @@
       const messageSource = "cca-preview-runtime";
       const canvas = document.getElementById("preview-canvas");
       const gsapStage = document.getElementById("gsap-stage");
+      const svgStage = document.getElementById("svg-stage");
       const root = document.getElementById("preview-root");
       const statusNode = document.getElementById("runtime-status");
       const audioControls = document.getElementById("audio-controls");
@@ -260,6 +292,10 @@
       let gsapFrameHandle = 0;
       let gsapTimeouts = [];
       let gsapState = null;
+      let svgFrameHandle = 0;
+      let canvasFrameHandles = new Set();
+      let canvasIntervalHandles = new Set();
+      let canvasTimeoutHandles = new Set();
 
       function isMountMessage(data) {
         return data &&
@@ -325,6 +361,8 @@
         activeToken += 1;
         stopToneAudio(false);
         stopGsapRuntime();
+        stopSvgRuntime();
+        stopCanvasRuntime();
         setToneControlsVisible(false);
         runtime = null;
         document.body.dataset.runtimeState = "idle";
@@ -332,6 +370,7 @@
         statusNode.textContent = "Runtime sandbox disposed";
         canvas.hidden = false;
         gsapStage.hidden = true;
+        svgStage.hidden = true;
         if (previousRuntime && previousRuntime.kind !== "glsl") {
           const context = canvas.getContext("2d");
           if (context) {
@@ -374,6 +413,99 @@
           return "rgb(" + values.join(",") + ")";
         }
         return fallback;
+      }
+
+      function resizeCanvasSurface() {
+        const rect = root.getBoundingClientRect();
+        const width = Math.max(1, Math.floor(rect.width || innerWidth || 640));
+        const height = Math.max(1, Math.floor(rect.height || innerHeight || 360));
+        if (canvas.width !== width || canvas.height !== height) {
+          canvas.width = width;
+          canvas.height = height;
+        }
+        return { height: height, width: width };
+      }
+
+      function stopSvgRuntime() {
+        if (svgFrameHandle) {
+          cancelAnimationFrame(svgFrameHandle);
+          svgFrameHandle = 0;
+        }
+        svgStage.innerHTML = "";
+      }
+
+      function stopCanvasRuntime() {
+        canvasFrameHandles.forEach(function (handle) {
+          cancelAnimationFrame(handle);
+        });
+        canvasFrameHandles.clear();
+        canvasIntervalHandles.forEach(function (handle) {
+          window.clearInterval(handle);
+        });
+        canvasIntervalHandles.clear();
+        canvasTimeoutHandles.forEach(function (handle) {
+          window.clearTimeout(handle);
+        });
+        canvasTimeoutHandles.clear();
+      }
+
+      function getCanvasSupportIssue(source) {
+        if (!source || !source.trim()) {
+          return "Canvas preview source is empty.";
+        }
+        if (source.length > 20000) {
+          return "The Canvas source is too large for the bounded preview runtime.";
+        }
+        if (/\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|Worker|SharedWorker|navigator\.serviceWorker)\b/i.test(source)) {
+          return "Remote network access and worker execution are not allowed in the Canvas preview sandbox.";
+        }
+        if (/\b(?:eval|Function)\s*\(/i.test(source) || /\bimport\s*\(/i.test(source)) {
+          return "Dynamic code execution is not allowed in the Canvas preview sandbox.";
+        }
+        if (/\b(?:document|window)\.(?:body|documentElement|head|write|open|parent|top|location)\b/i.test(source)) {
+          return "Canvas previews can only use the bounded preview surface APIs.";
+        }
+        if (/\b(?:createElement|appendChild|prepend|insertAdjacentHTML|innerHTML|outerHTML)\b/i.test(source)) {
+          return "Canvas previews must draw into the provided preview surface instead of mutating the DOM.";
+        }
+        if (/\b(?:new\s+Image|createImageBitmap|OffscreenCanvas|drawImage|captureStream|toBlob|toDataURL)\b/i.test(source)) {
+          return "Canvas preview support is limited to direct 2D drawing without image assets or auxiliary canvases.";
+        }
+        if (/\baddEventListener\s*\(\s*['"](?:mouse|pointer|touch|key|click|wheel|input)/i.test(source) || /\bon(?:mouse|pointer|touch|key|click|wheel|input)[a-z]*\s*=/i.test(source)) {
+          return "Canvas preview support is limited to deterministic animation without interactive input handlers.";
+        }
+        if (/https?:\/\//i.test(source)) {
+          return "Remote assets are not allowed in the Canvas preview sandbox.";
+        }
+        return null;
+      }
+
+      function getSvgSupportIssue(source) {
+        if (!source || !source.trim()) {
+          return "SVG preview source is empty.";
+        }
+        if (source.length > 40000) {
+          return "The SVG source is too large for the bounded preview runtime.";
+        }
+        if (!/<svg[\s>]/i.test(source)) {
+          return "SVG preview source must contain an <svg> root element.";
+        }
+        if (/<(?:script|foreignObject|iframe|object|embed)\b/i.test(source)) {
+          return "SVG preview support is limited to sanitized inline SVG markup without scriptable DOM containers.";
+        }
+        if (/\bon[a-z]+\s*=/i.test(source)) {
+          return "SVG preview support is limited to sanitized inline SVG markup without event handlers.";
+        }
+        if (/\b(?:javascript:|data:text\/html)/i.test(source)) {
+          return "SVG previews cannot embed executable URLs.";
+        }
+        if (/<(?:image|audio|video)\b/i.test(source)) {
+          return "SVG preview support is limited to self-contained vector markup without external media assets.";
+        }
+        if (/https?:\/\/(?!www\.w3\.org\/2000\/svg\b)/i.test(source)) {
+          return "Remote assets are not allowed in the SVG preview sandbox.";
+        }
+        return null;
       }
 
       function stopGsapRuntime() {
@@ -1219,6 +1351,586 @@
         }
 
         return null;
+      }
+
+      function startCanvas(token) {
+        const supportIssue = getCanvasSupportIssue(runtime.source.source);
+        if (supportIssue) throw new Error(supportIssue);
+
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Canvas 2D is unavailable in the sandbox.");
+
+        canvas.hidden = false;
+        gsapStage.hidden = true;
+        svgStage.hidden = true;
+        stopCanvasRuntime();
+        resizeCanvasSurface();
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        function assertSafeCanvasSelector(selector) {
+          const value = String(selector || "").trim().toLowerCase();
+          if (!value) {
+            throw new Error("Canvas preview selectors cannot be empty.");
+          }
+          if (
+            value === "canvas" ||
+            value === "#canvas" ||
+            value === "#preview-canvas" ||
+            value === "canvas#canvas" ||
+            value === "canvas#preview-canvas"
+          ) {
+            return;
+          }
+          throw new Error("Canvas previews can only target the bounded preview canvas.");
+        }
+
+        function createCanvasSandboxContext() {
+          let sandboxCanvas = null;
+          const contextFacade = new Proxy(context, {
+            get: function (target, key) {
+              if (key === "canvas") {
+                return sandboxCanvas;
+              }
+              const value = target[key];
+              return typeof value === "function" ? value.bind(target) : value;
+            },
+            set: function (target, key, value) {
+              target[key] = value;
+              return true;
+            }
+          });
+
+          sandboxCanvas = {
+            addEventListener: function () {},
+            clientHeight: resizeCanvasSurface().height,
+            clientWidth: resizeCanvasSurface().width,
+            getBoundingClientRect: function () {
+              return root.getBoundingClientRect();
+            },
+            getContext: function (type) {
+              if (type !== "2d") {
+                throw new Error("Canvas preview support is limited to 2D contexts.");
+              }
+              return contextFacade;
+            },
+            id: "canvas",
+            removeEventListener: function () {},
+            style: {},
+            get height() {
+              return canvas.height;
+            },
+            set height(value) {
+              canvas.height = Math.max(1, Math.floor(Number(value) || 1));
+              sandboxCanvas.clientHeight = canvas.height;
+            },
+            get width() {
+              return canvas.width;
+            },
+            set width(value) {
+              canvas.width = Math.max(1, Math.floor(Number(value) || 1));
+              sandboxCanvas.clientWidth = canvas.width;
+            }
+          };
+
+          return { canvas: sandboxCanvas, context: contextFacade };
+        }
+
+        const sandboxContext = createCanvasSandboxContext();
+        const sandboxCanvas = sandboxContext.canvas;
+        const contextFacade = sandboxContext.context;
+
+        function requestCanvasAnimationFrame(callback) {
+          if (typeof callback !== "function") {
+            throw new Error("Canvas preview animation frames require a function callback.");
+          }
+          const handle = requestAnimationFrame(function (time) {
+            canvasFrameHandles.delete(handle);
+            if (token !== activeToken || !runtime || runtime.kind !== "canvas") {
+              return;
+            }
+            try {
+              resizeCanvasSurface();
+              sandboxCanvas.clientWidth = canvas.width;
+              sandboxCanvas.clientHeight = canvas.height;
+              callback(time);
+              frame(time);
+            } catch (error) {
+              fail(error, "Canvas runtime failed");
+            }
+          });
+          canvasFrameHandles.add(handle);
+          return handle;
+        }
+
+        function cancelCanvasAnimationFrame(handle) {
+          canvasFrameHandles.delete(handle);
+          cancelAnimationFrame(handle);
+        }
+
+        function setCanvasTimeout(callback, delay) {
+          if (typeof callback !== "function") {
+            throw new Error("Canvas preview timers require a function callback.");
+          }
+          const handle = window.setTimeout(function () {
+            canvasTimeoutHandles.delete(handle);
+            if (token !== activeToken || !runtime || runtime.kind !== "canvas") {
+              return;
+            }
+            try {
+              resizeCanvasSurface();
+              callback(performance.now());
+              frame(performance.now());
+            } catch (error) {
+              fail(error, "Canvas runtime failed");
+            }
+          }, delay);
+          canvasTimeoutHandles.add(handle);
+          return handle;
+        }
+
+        function clearCanvasTimeout(handle) {
+          canvasTimeoutHandles.delete(handle);
+          window.clearTimeout(handle);
+        }
+
+        function setCanvasInterval(callback, delay) {
+          if (typeof callback !== "function") {
+            throw new Error("Canvas preview timers require a function callback.");
+          }
+          const handle = window.setInterval(function () {
+            if (token !== activeToken || !runtime || runtime.kind !== "canvas") {
+              return;
+            }
+            try {
+              resizeCanvasSurface();
+              callback(performance.now());
+              frame(performance.now());
+            } catch (error) {
+              fail(error, "Canvas runtime failed");
+            }
+          }, delay);
+          canvasIntervalHandles.add(handle);
+          return handle;
+        }
+
+        function clearCanvasInterval(handle) {
+          canvasIntervalHandles.delete(handle);
+          window.clearInterval(handle);
+        }
+
+        const sandboxDocument = {
+          getElementById: function (id) {
+            return id === "canvas" || id === "preview-canvas" ? sandboxCanvas : null;
+          },
+          querySelector: function (selector) {
+            assertSafeCanvasSelector(selector);
+            return sandboxCanvas;
+          },
+          querySelectorAll: function (selector) {
+            assertSafeCanvasSelector(selector);
+            return [sandboxCanvas];
+          }
+        };
+
+        const sandboxWindow = {
+          addEventListener: function () {},
+          cancelAnimationFrame: cancelCanvasAnimationFrame,
+          clearInterval: clearCanvasInterval,
+          clearTimeout: clearCanvasTimeout,
+          console: console,
+          devicePixelRatio: 1,
+          document: sandboxDocument,
+          get innerHeight() {
+            return resizeCanvasSurface().height;
+          },
+          get innerWidth() {
+            return resizeCanvasSurface().width;
+          },
+          matchMedia: function () {
+            return {
+              matches: false,
+              media: "not all",
+              addListener: function () {},
+              removeListener: function () {},
+              addEventListener: function () {},
+              removeEventListener: function () {}
+            };
+          },
+          performance: performance,
+          removeEventListener: function () {},
+          requestAnimationFrame: requestCanvasAnimationFrame,
+          setInterval: setCanvasInterval,
+          setTimeout: setCanvasTimeout
+        };
+        sandboxWindow.self = sandboxWindow;
+        sandboxWindow.window = sandboxWindow;
+
+        const globals = Object.create(null);
+        Object.assign(globals, {
+          AudioContext: undefined,
+          Function: undefined,
+          Image: undefined,
+          Math: Math,
+          OffscreenCanvas: undefined,
+          SharedWorker: undefined,
+          WebSocket: undefined,
+          Worker: undefined,
+          XMLHttpRequest: undefined,
+          cancelAnimationFrame: cancelCanvasAnimationFrame,
+          canvas: sandboxCanvas,
+          clearInterval: clearCanvasInterval,
+          clearTimeout: clearCanvasTimeout,
+          console: console,
+          context: contextFacade,
+          createImageBitmap: undefined,
+          ctx: contextFacade,
+          document: sandboxDocument,
+          eval: undefined,
+          fetch: undefined,
+          globalThis: undefined,
+          navigator: undefined,
+          parent: undefined,
+          performance: performance,
+          requestAnimationFrame: requestCanvasAnimationFrame,
+          self: sandboxWindow,
+          setInterval: setCanvasInterval,
+          setTimeout: setCanvasTimeout,
+          top: undefined,
+          webkitAudioContext: undefined,
+          window: sandboxWindow
+        });
+        Object.defineProperties(globals, {
+          devicePixelRatio: {
+            get: function () {
+              return 1;
+            }
+          },
+          innerHeight: {
+            get: function () {
+              return resizeCanvasSurface().height;
+            }
+          },
+          innerWidth: {
+            get: function () {
+              return resizeCanvasSurface().width;
+            }
+          }
+        });
+
+        new Function(
+          "globals",
+          "with (globals) {\n" + runtime.source.source + "\n}"
+        )(globals);
+
+        status(
+          "running",
+          "Canvas runtime running",
+          "Executing " + runtime.source.title + " inside a bounded Canvas 2D surface.",
+          {
+            diagnostics: [
+              /\brequestAnimationFrame\s*\(/i.test(runtime.source.source) ||
+              /\bset(?:Interval|Timeout)\s*\(/i.test(runtime.source.source)
+                ? "Deterministic animation enabled"
+                : "Static Canvas render"
+            ]
+          }
+        );
+
+        if (
+          canvasFrameHandles.size === 0 &&
+          canvasIntervalHandles.size === 0 &&
+          canvasTimeoutHandles.size === 0
+        ) {
+          frame(performance.now());
+        }
+      }
+
+      function startSvg(token) {
+        const supportIssue = getSvgSupportIssue(runtime.source.source);
+        if (supportIssue) throw new Error(supportIssue);
+
+        canvas.hidden = true;
+        gsapStage.hidden = true;
+        svgStage.hidden = false;
+        stopSvgRuntime();
+
+        const svgNamespace = "http://www.w3.org/2000/svg";
+        const allowedElements = new Set([
+          "svg",
+          "g",
+          "defs",
+          "path",
+          "circle",
+          "ellipse",
+          "rect",
+          "line",
+          "polyline",
+          "polygon",
+          "text",
+          "tspan",
+          "linearGradient",
+          "radialGradient",
+          "stop",
+          "clipPath",
+          "mask",
+          "pattern",
+          "filter",
+          "feGaussianBlur",
+          "feColorMatrix",
+          "feBlend",
+          "feComposite",
+          "feOffset",
+          "feTurbulence",
+          "feDisplacementMap",
+          "animate",
+          "animateTransform",
+          "animateMotion",
+          "mpath",
+          "set"
+        ]);
+        const allowedAttributes = new Set([
+          "id",
+          "class",
+          "x",
+          "y",
+          "x1",
+          "y1",
+          "x2",
+          "y2",
+          "cx",
+          "cy",
+          "r",
+          "rx",
+          "ry",
+          "width",
+          "height",
+          "viewBox",
+          "d",
+          "points",
+          "fill",
+          "fill-opacity",
+          "fill-rule",
+          "stroke",
+          "stroke-width",
+          "stroke-opacity",
+          "stroke-linecap",
+          "stroke-linejoin",
+          "stroke-dasharray",
+          "opacity",
+          "transform",
+          "transform-origin",
+          "gradientUnits",
+          "gradientTransform",
+          "offset",
+          "stop-color",
+          "stop-opacity",
+          "preserveAspectRatio",
+          "patternUnits",
+          "patternTransform",
+          "patternContentUnits",
+          "filterUnits",
+          "primitiveUnits",
+          "in",
+          "in2",
+          "operator",
+          "result",
+          "stdDeviation",
+          "values",
+          "type",
+          "begin",
+          "dur",
+          "end",
+          "repeatCount",
+          "repeatDur",
+          "attributeName",
+          "attributeType",
+          "from",
+          "to",
+          "by",
+          "calcMode",
+          "keyTimes",
+          "keySplines",
+          "additive",
+          "accumulate",
+          "path",
+          "href",
+          "xlink:href",
+          "font-size",
+          "font-family",
+          "font-weight",
+          "text-anchor",
+          "dominant-baseline",
+          "letter-spacing",
+          "style"
+        ]);
+        const allowedStyleProperties = new Set([
+          "fill",
+          "fill-opacity",
+          "fill-rule",
+          "stroke",
+          "stroke-width",
+          "stroke-opacity",
+          "stroke-linecap",
+          "stroke-linejoin",
+          "stroke-dasharray",
+          "opacity",
+          "transform",
+          "transform-origin",
+          "filter",
+          "stop-color",
+          "stop-opacity",
+          "font-size",
+          "font-family",
+          "font-weight",
+          "letter-spacing",
+          "text-anchor",
+          "dominant-baseline",
+          "mix-blend-mode"
+        ]);
+
+        function sanitizeSvgStyle(styleText) {
+          return String(styleText || "")
+            .split(";")
+            .map(function (declaration) {
+              const separator = declaration.indexOf(":");
+              if (separator < 0) {
+                return "";
+              }
+              const name = declaration.slice(0, separator).trim().toLowerCase();
+              const value = declaration.slice(separator + 1).trim();
+              if (!allowedStyleProperties.has(name)) {
+                return "";
+              }
+              if (!value || /(?:javascript:|@import|https?:\/\/)/i.test(value)) {
+                return "";
+              }
+              if (/url\(/i.test(value) && !/url\(\s*#[-\w]+\s*\)/i.test(value)) {
+                return "";
+              }
+              return name + ":" + value;
+            })
+            .filter(Boolean)
+            .join("; ");
+        }
+
+        function isSafeSvgReference(value) {
+          return value && (value[0] === "#" || /^data:image\//i.test(value));
+        }
+
+        function sanitizeSvgNode(node, isRoot) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            return document.createTextNode(node.textContent || "");
+          }
+
+          if (node.nodeType !== Node.ELEMENT_NODE) {
+            return null;
+          }
+
+          const tagName = node.localName;
+          if (!allowedElements.has(tagName)) {
+            return null;
+          }
+
+          const sanitized = document.createElementNS(svgNamespace, tagName);
+          if (isRoot) {
+            sanitized.setAttribute("xmlns", svgNamespace);
+          }
+
+          Array.from(node.attributes || []).forEach(function (attribute) {
+            const name = attribute.name;
+            const value = attribute.value;
+            if (!allowedAttributes.has(name) || /^on/i.test(name)) {
+              return;
+            }
+            if (name === "xmlns" || name === "xmlns:xlink") {
+              return;
+            }
+            if ((name === "href" || name === "xlink:href") && !isSafeSvgReference(value)) {
+              return;
+            }
+            if (/https?:\/\/(?!www\.w3\.org\/2000\/svg\b)/i.test(value) || /javascript:/i.test(value)) {
+              return;
+            }
+            if (/url\(/i.test(value) && !/url\(\s*#[-\w]+\s*\)/i.test(value)) {
+              return;
+            }
+            if (name === "style") {
+              const safeStyle = sanitizeSvgStyle(value);
+              if (safeStyle) {
+                sanitized.setAttribute("style", safeStyle);
+              }
+              return;
+            }
+            sanitized.setAttribute(name, value);
+          });
+
+          Array.from(node.childNodes || []).forEach(function (child) {
+            const sanitizedChild = sanitizeSvgNode(child, false);
+            if (sanitizedChild) {
+              sanitized.appendChild(sanitizedChild);
+            }
+          });
+
+          return sanitized;
+        }
+
+        const parsed = new DOMParser().parseFromString(runtime.source.source, "image/svg+xml");
+        if (parsed.querySelector("parsererror")) {
+          throw new Error("SVG markup could not be parsed.");
+        }
+        const rawRoot = parsed.documentElement && parsed.documentElement.localName === "svg"
+          ? parsed.documentElement
+          : parsed.querySelector("svg");
+        if (!rawRoot) {
+          throw new Error("SVG preview source must contain an <svg> root element.");
+        }
+
+        const frameNode = document.createElement("div");
+        frameNode.className = "svg-frame";
+        const sanitizedRoot = sanitizeSvgNode(rawRoot, true);
+        if (!sanitizedRoot) {
+          throw new Error("SVG preview markup did not contain a supported vector stage.");
+        }
+        if (!sanitizedRoot.getAttribute("viewBox") &&
+          !(sanitizedRoot.getAttribute("width") && sanitizedRoot.getAttribute("height"))) {
+          sanitizedRoot.setAttribute("viewBox", "0 0 640 360");
+        }
+        if (!sanitizedRoot.getAttribute("preserveAspectRatio")) {
+          sanitizedRoot.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        }
+        frameNode.appendChild(sanitizedRoot);
+        svgStage.appendChild(frameNode);
+
+        const hasAnimation = sanitizedRoot.querySelector(
+          "animate, animateTransform, animateMotion, set"
+        ) !== null;
+
+        status(
+          "running",
+          "SVG runtime running",
+          "Rendering " + runtime.source.title + " inside a sanitized SVG stage.",
+          {
+            diagnostics: [
+              hasAnimation ? "Native SVG animation enabled" : "Static inline SVG stage"
+            ]
+          }
+        );
+
+        function loop(time) {
+          if (token !== activeToken || !runtime || runtime.kind !== "svg") {
+            svgFrameHandle = 0;
+            return;
+          }
+          frame(time);
+          if (!hasAnimation) {
+            svgFrameHandle = 0;
+            return;
+          }
+          svgFrameHandle = requestAnimationFrame(loop);
+        }
+
+        svgFrameHandle = requestAnimationFrame(loop);
       }
 
       function readNumber(value, fallback) {
@@ -2195,9 +2907,11 @@
           else if (runtime.kind === "hydra") startHydra(token);
           else if (runtime.kind === "tone") setupTone(token);
           else if (runtime.kind === "gsap") startGsap(token);
+          else if (runtime.kind === "svg") startSvg(token);
+          else if (runtime.kind === "canvas") startCanvas(token);
           else startGlsl(token);
         } catch (error) {
-          fail(error, runtime.kind === "glsl" ? "GLSL runtime failed" : runtime.kind === "three" ? "Three.js runtime failed" : runtime.kind === "hydra" ? "Hydra runtime failed" : runtime.kind === "tone" ? "Tone.js runtime failed" : runtime.kind === "gsap" ? "GSAP runtime failed" : "p5 runtime failed");
+          fail(error, runtime.kind === "glsl" ? "GLSL runtime failed" : runtime.kind === "three" ? "Three.js runtime failed" : runtime.kind === "hydra" ? "Hydra runtime failed" : runtime.kind === "tone" ? "Tone.js runtime failed" : runtime.kind === "gsap" ? "GSAP runtime failed" : runtime.kind === "svg" ? "SVG runtime failed" : runtime.kind === "canvas" ? "Canvas runtime failed" : "p5 runtime failed");
         }
       }
 

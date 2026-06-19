@@ -438,6 +438,10 @@ function formatRuntimeKindLabel(kind: PreviewExecutableRuntimeKind) {
       return "Hydra runtime";
     case "gsap":
       return "GSAP runtime";
+    case "svg":
+      return "SVG runtime";
+    case "canvas":
+      return "Canvas runtime";
     case "tone":
       return "Tone.js runtime";
     default:

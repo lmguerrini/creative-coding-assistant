@@ -13,7 +13,9 @@ export type PreviewExecutableRuntimeKind =
   | "glsl"
   | "hydra"
   | "tone"
-  | "gsap";
+  | "gsap"
+  | "svg"
+  | "canvas";
 
 export type PreviewRuntimeLifecycleState =
   | "idle"
@@ -147,6 +149,8 @@ export function getExecutablePreviewRuntimeKind(
     case "hydra":
     case "tone":
     case "gsap":
+    case "svg":
+    case "canvas":
       return route.surfaceKind;
     default:
       return null;
@@ -224,18 +228,7 @@ export function getInitialPreviewRuntimeStatus({
   }
 
   return {
-    detail:
-      kind === "glsl"
-        ? "Preparing a controlled WebGL fragment shader runtime."
-        : kind === "three"
-          ? "Preparing a controlled Three.js-compatible browser runtime."
-          : kind === "hydra"
-            ? "Preparing a controlled Hydra-compatible browser runtime."
-            : kind === "tone"
-              ? "Preparing a controlled Tone.js-compatible audio runtime."
-              : kind === "gsap"
-                ? "Preparing a controlled GSAP-compatible motion stage."
-              : "Preparing a controlled p5.js-compatible browser runtime.",
+    detail: describePreviewRuntimeStart(kind),
     label: "Runtime starting",
     state: "starting",
     error: null
@@ -262,6 +255,10 @@ export function mountPreviewRuntime({
       return mountToneRuntime({ onStatus, source });
     case "gsap":
       return mountGsapRuntime({ onStatus, source });
+    case "svg":
+      return mountSvgRuntime({ onStatus, source });
+    case "canvas":
+      return mountCanvasRuntime({ onStatus, source });
   }
 }
 
@@ -277,6 +274,40 @@ function mountGsapRuntime({
       kind: "gsap",
       message: "The GSAP preview runtime must mount inside the sandbox browser stage.",
       type: "gsap_sandbox_required"
+    })
+  });
+  return { dispose: () => undefined };
+}
+
+function mountSvgRuntime({
+  onStatus,
+  source
+}: Pick<MountPreviewRuntimeInput, "onStatus" | "source">): PreviewRuntimeMount {
+  onStatus({
+    detail: `${source.title} requires the DOM-based sandbox preview runtime.`,
+    label: "SVG runtime unavailable",
+    state: "error",
+    error: createRendererRuntimeError({
+      kind: "svg",
+      message: "The SVG preview runtime must mount inside the sandbox browser stage.",
+      type: "svg_sandbox_required"
+    })
+  });
+  return { dispose: () => undefined };
+}
+
+function mountCanvasRuntime({
+  onStatus,
+  source
+}: Pick<MountPreviewRuntimeInput, "onStatus" | "source">): PreviewRuntimeMount {
+  onStatus({
+    detail: `${source.title} requires the DOM-based sandbox preview runtime.`,
+    label: "Canvas runtime unavailable",
+    state: "error",
+    error: createRendererRuntimeError({
+      kind: "canvas",
+      message: "The Canvas preview runtime must mount inside the sandbox browser stage.",
+      type: "canvas_sandbox_required"
     })
   });
   return { dispose: () => undefined };
@@ -1073,18 +1104,7 @@ function createRendererRuntimeError({
   message: string;
   type: string;
 }) {
-  const subsystem =
-    kind === "glsl"
-      ? "glsl_renderer"
-      : kind === "three"
-        ? "three_renderer"
-        : kind === "hydra"
-          ? "hydra_renderer"
-          : kind === "tone"
-            ? "tone_renderer"
-            : kind === "gsap"
-              ? "gsap_renderer"
-            : "p5_renderer";
+  const subsystem = getRendererSubsystem(kind);
 
   return createWorkstationError({
     type,
@@ -1098,6 +1118,50 @@ function createRendererRuntimeError({
     retryLabel: "Reload preview state",
     resetLabel: "Reset preview session"
   });
+}
+
+function describePreviewRuntimeStart(kind: PreviewExecutableRuntimeKind) {
+  switch (kind) {
+    case "glsl":
+      return "Preparing a controlled WebGL fragment shader runtime.";
+    case "three":
+      return "Preparing a controlled Three.js-compatible browser runtime.";
+    case "hydra":
+      return "Preparing a controlled Hydra-compatible browser runtime.";
+    case "tone":
+      return "Preparing a controlled Tone.js-compatible audio runtime.";
+    case "gsap":
+      return "Preparing a controlled GSAP-compatible motion stage.";
+    case "svg":
+      return "Preparing a controlled SVG vector stage.";
+    case "canvas":
+      return "Preparing a controlled Canvas 2D runtime.";
+    case "p5":
+    default:
+      return "Preparing a controlled p5.js-compatible browser runtime.";
+  }
+}
+
+function getRendererSubsystem(kind: PreviewExecutableRuntimeKind) {
+  switch (kind) {
+    case "glsl":
+      return "glsl_renderer";
+    case "three":
+      return "three_renderer";
+    case "hydra":
+      return "hydra_renderer";
+    case "tone":
+      return "tone_renderer";
+    case "gsap":
+      return "gsap_renderer";
+    case "svg":
+      return "svg_renderer";
+    case "canvas":
+      return "canvas_renderer";
+    case "p5":
+    default:
+      return "p5_renderer";
+  }
 }
 
 function createShaderProgram(

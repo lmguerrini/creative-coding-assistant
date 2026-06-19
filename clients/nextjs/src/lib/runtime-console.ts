@@ -839,6 +839,10 @@ function formatRuntimeKindLabel(kind: PreviewExecutableRuntimeKind) {
       return "Hydra";
     case "gsap":
       return "GSAP";
+    case "svg":
+      return "SVG";
+    case "canvas":
+      return "Canvas";
     case "tone":
       return "Tone.js";
     default:
@@ -858,6 +862,10 @@ function formatRuntimeKindLabelFromValue(kind: string | undefined) {
       return "Hydra";
     case "gsap":
       return "GSAP";
+    case "svg":
+      return "SVG";
+    case "canvas":
+      return "Canvas";
     case "tone":
       return "Tone.js";
     default:
