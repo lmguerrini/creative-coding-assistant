@@ -17,6 +17,7 @@ codex_starter_pack/
 
 # Internal planning and Codex/development notes stay local.
 docs/
+_project_context/
 
 # Runtime data is persisted locally; keep only directory placeholders.
 data/chroma/
