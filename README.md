@@ -1,20 +1,22 @@
 # Creative Coding Assistant
 
-Creative Coding Assistant is an AI-native creative translation workstation
-designed to transform symbolic, conceptual, and multimodal intent into
-professional audio, visual, and audiovisual creative systems.
+Creative Coding Assistant is a V2.5 AI-native creative translation
+workstation designed to transform symbolic, conceptual, geometric, stylistic,
+and multimodal intent into professional audio, visual, and audiovisual
+creative systems.
 
 It combines a LangGraph-orchestrated Python backend with a Next.js workstation
-for creative translation, multi-artifact generation, multi-preview comparison,
-parameter-guided refinement, controlled runtime preview, observability,
-validation, and export preparation.
+for the full Creative Core, multi-artifact generation, multi-preview
+comparison, controlled runtime preview, critique and scoring, parameter
+control, observability, validation, and export preparation.
 
 The current product scope is a creative coding platform rather than a generic
 chat assistant. Requests can be translated from intent, symbols, geometry,
-style, shader language, and audio-reactive mappings into structured creative
-guidance, grounded with retrieval when useful, expanded into multiple candidate
-artifacts, compared and refined, then observed through live preview and runtime
-inspection from the same interface.
+style, shader language, motion systems, audio-reactive mappings, and visual
+references into structured creative guidance, grounded with retrieval when
+useful, expanded into multiple candidate artifacts, compared, critiqued,
+refined, and observed through live preview and runtime inspection from the
+same interface.
 
 ![Creative Coding Assistant](assets/preview_current.png)
 
@@ -23,14 +25,14 @@ inspection from the same interface.
 - AI-native workstation UX with chat, a compact bottom preview shelf, and
   focused inspector tabs for overview, preview, runtime, code, workflow,
   telemetry, artifacts, and retrieval
-- Creative Translation Engine that converts user intent into bounded modality,
-  symbolism, geometry, mood, movement, runtime, and refinement guidance
-- Sacred Geometry Prompt Layer for explicit concepts such as mandalas, yantras,
-  torus forms, spirals, Fibonacci structures, and related geometric motifs
-- Multi-artifact generation, critique, multi-preview comparison, parameter-guided refinement,
-  and HITL candidate selection inside one continuous workstation flow
-- Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL, Hydra,
-  and Tone.js outputs
+- Complete V2.5 Creative Core including Creative Translation, Sacred Geometry,
+  Visual Style, Shader Presets, Reference Fusion, Creative Planning, advanced
+  HITL questioning, critique, sacred consistency, calibrated scoring, and
+  multi-pass refinement
+- Multi-artifact generation, multi-preview comparison, dynamic parameter
+  control, and HITL candidate selection inside one continuous workstation flow
+- Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
+  Hydra, Tone.js, GSAP, SVG, and Canvas outputs
 - Runtime diagnostics, provider observability, workflow timeline inspection,
   retrieval intelligence, evaluation surfaces, and creative cost visibility
 - Multimodal image references, local session persistence, and project bundle
@@ -40,34 +42,34 @@ inspection from the same interface.
 
 The workstation is designed around the current V2.5 creative loop:
 
-`Intent / symbol / concept -> Creative Translation -> Generate Candidates -> Multi-Preview Compare -> Select -> Parameter-Guided Refine -> Preview -> Observe -> Validate -> Export`
+`Intent -> HITL Clarification -> Creative Translation -> Reference Fusion -> Creative Planning -> Generation -> Preview -> Critique -> Sacred Consistency -> Calibrated Quality -> Multi-Pass Refinement -> Export Preparation`
 
+- HITL Clarification: the assistant can ask targeted questions to lock
+  modality, intent, symbolism, geometry, runtime, or refinement direction
+  before generation.
 - Creative Translation: the assistant derives bounded modality, symbolic,
-  geometric, mood, movement, runtime, visual style, shader, audio-reactive, and
-  refinement guidance before generation.
-- Generate Candidates: the backend resolves effective domains, retrieves
-  official-source context when useful, assembles the prompt, and streams one or
-  more creative artifacts.
-- Multi-Preview Compare: runtime-capable candidates can be compared visually,
-  sonically, or audiovisually through a HITL selection workflow while preserving
-  critique and recommendation metadata.
-- Select: choosing a candidate synchronizes the active artifact, code inspector,
-  preview shelf, artifacts inspector, comparison state, and refinement context.
-- Parameter-Guided Refine: selected artifacts expose bounded dynamic controls
-  such as symmetry, speed, glow, palette, fog, density, rhythm, and
-  audio-reactivity. Changes stay local until explicitly serialized into
-  refinement guidance.
-- Preview: supported artifacts mount in controlled preview runtimes with visible
-  play, reload, collapse, fullscreen, start, stop, or mute controls depending on
-  runtime type.
-- Observe: the Preview, Runtime, Workflow, Telemetry, Artifacts, and Retrieval
-  inspectors expose runtime, workflow, cost, grounding, trace, and evaluation
-  state without crowding the creative output.
-- Validate: critique scores, runtime diagnostics, retrieval quality, evaluation
-  traces, creative cost, sacred consistency metadata, and workflow review state
-  help verify the result before export.
-- Export: the current export surface is the project bundle workflow. Advanced
-  Blueprint Export and pro DAW/runtime pipeline exports remain roadmap items.
+  geometric, mood, movement, runtime, visual style, shader, audio-reactive,
+  and refinement guidance.
+- Reference Fusion: multimodal image references and retrieved context are fused
+  into the structured creative brief when they improve grounding.
+- Creative Planning: the planning layer organizes generation strategy, runtime
+  fit, and artifact expectations before provider execution.
+- Generation: the backend resolves effective domains, assembles the prompt,
+  and streams one or more creative artifacts.
+- Preview: supported artifacts mount in controlled preview runtimes with
+  visible play, reload, collapse, fullscreen, start, stop, or mute controls
+  depending on runtime type.
+- Critique: generated artifacts receive structured quality review, ranking,
+  recommendation, and refinement guidance.
+- Sacred Consistency: symbolic, geometric, and style coherence can be checked
+  as a distinct evaluation layer.
+- Calibrated Quality: critique, consistency, runtime health, and workflow
+  review metadata are combined into a more legible decision surface.
+- Multi-Pass Refinement: selected artifacts can be refined through iterative
+  review with parameter control and explicit refinement serialization.
+- Export Preparation: the current export surface is the project bundle
+  workflow. Blueprint Export, MIDI / OSC, lineage, and live performance
+  workflows remain future roadmap items.
 
 ## Implemented Capabilities
 
@@ -80,16 +82,29 @@ The workstation is designed around the current V2.5 creative loop:
   symmetry, and sacred light aesthetics
 - Visual Style System with deterministic style guidance and artifact/refinement
   persistence
-- Audio-Reactive Visual Mapping Layer for bounded relationships such as
+- Reference Fusion Layer for multimodal image references and grounded context
+  incorporation
+- Creative Planning Agent for generation strategy, runtime fit, and artifact
+  shaping
+- Advanced HITL Questioning Engine for targeted clarification before generation
+- Audio-Reactive Visual Engine for bounded relationships such as
   amplitude-to-glow, bass-to-pulse, rhythm-to-rotation, and drone-to-atmosphere
+- Creative Quality Critic for structured artifact ranking, recommendation, and
+  refinement guidance
+- Sacred Consistency Evaluator for symbolic, geometric, and style-coherence
+  review
+- Calibrated Quality Scoring for combining critique, consistency, and runtime
+  review into clearer selection signals
 - Domain-aware generation across supported preview runtimes and broader
   creative-coding knowledge domains
 - Multi-artifact generation, artifact critique, artifact comparison, and
   selected-artifact refinement
-- Multi-preview comparison workspace for HITL selection across runtime-capable
+- Multi-Preview Comparison Workspace for HITL selection across runtime-capable
   visual, audio, audiovisual, and code-only candidates
-- Dynamic parameter-guided refinement with preview-safe local edits and explicit
+- Dynamic Parameter Control Panel with preview-safe local edits and explicit
   refinement serialization
+- Multi-Pass Creative Refinement with structured review feedback threaded back
+  into generation and refinement
 - Multimodal image references for visually grounded generation requests
 
 ### Runtime And Preview
@@ -100,6 +115,9 @@ The workstation is designed around the current V2.5 creative loop:
 - GLSL live runtime
 - Hydra live runtime
 - Tone.js live runtime
+- GSAP live runtime
+- SVG live runtime
+- Canvas live runtime
 - Runtime console and preview runtime diagnostics with lifecycle, error, and
   renderer telemetry surfaces
 
@@ -113,7 +131,7 @@ The workstation is designed around the current V2.5 creative loop:
 - LangSmith Trace Deep Dive when trace metadata is available
 - Creative Cost Intelligence Dashboard
 
-## Creative Translation Layers
+## Creative Core Layers
 
 The assistant progressively enriches user requests through bounded translation
 layers before and after generation. These layers are deterministic, additive,
@@ -128,12 +146,19 @@ Current layers include:
 - Advanced Shader Presets for practical visual effect guidance
 - Visual Style System for coherent aesthetic identity across artifacts and
   refinements
-- Audio-Reactive Visual Mapping Layer for audiovisual relationships between
-  sound features and visual behavior
+- Reference Fusion Layer for multimodal grounding and context-aware creative
+  shaping
+- Creative Planning Agent for pre-generation strategy and runtime fit
+- Audio-Reactive Visual Engine for audiovisual relationships between sound
+  features and visual behavior
 - Runtime Recommendation Layer for matching generated artifacts to supported
   preview/runtime surfaces
+- Creative Quality Critic, Sacred Consistency Evaluator, and Calibrated
+  Quality Scoring for structured post-generation review
 - Dynamic Parameter Control Layer for artifact-specific local controls and
   parameter-guided refinement
+- Multi-Pass Creative Refinement for iterative improvement across generation
+  and refinement cycles
 
 These layers allow the app to move beyond direct prompt-to-code generation and
 toward a structured creative translation workflow.
@@ -212,6 +237,9 @@ Current live preview/runtime support includes:
 - GLSL fragment shaders through a bounded WebGL shader runtime
 - Hydra live-coded visuals through a bounded Hydra-compatible browser runtime
 - Tone.js audio outputs through a controlled user-activated Web Audio runtime
+- GSAP motion studies through a bounded DOM motion runtime
+- SVG artifacts through a sanitized inline SVG runtime surface
+- Canvas artifacts through a bounded Canvas 2D runtime surface
 
 The workstation also exposes:
 
@@ -319,14 +347,15 @@ coding surface. Current live preview/runtime support includes:
 - GLSL
 - Hydra
 - Tone.js
+- GSAP
+- SVG
+- Canvas
 
 The broader generation and retrieval domain registry also covers code-oriented
 or documentation-grounded support for:
 
 - Processing
-- Canvas 2D
 - WebGPU / WGSL
-- GSAP
 - PixiJS
 - Matter.js
 - Rapier
@@ -351,36 +380,54 @@ runtime support list above.
 
 ## Roadmap
 
-### Remaining High-Priority Creative Core
+### Project Context Snapshot
 
-- Creative Quality Critic
-- Sacred Consistency Evaluator
+- V2.5 now includes the full Creative Core and the complete first-pass runtime
+  layer for p5.js, Three.js, React Three Fiber, GLSL, Hydra, Tone.js, GSAP,
+  SVG, and Canvas.
+- The next roadmap phase is no longer about finishing baseline creative
+  translation. It is about consolidating the platform, sharpening export and
+  performance workflows, and defining the V3 architecture line cleanly.
 
-### Secondary Runtime Expansion
+### Roadmap Audit & Consolidation
 
-- GSAP Runtime Support
-- SVG / Canvas Runtime Expansion
+- Audit the implemented V2.5 surface for overlap, naming drift, and inspector
+  complexity before expanding feature count again.
+- Consolidate workflow, critique, scoring, and preview metadata into a cleaner
+  operator-facing mental model.
+- Tighten documentation, product framing, and portfolio presentation around the
+  now-complete V2.5 platform scope.
 
-### Product And Pro Workflow
+### V3 Bootstrap
 
-- Export Bundle Enhancements
-- Performance Blueprint Export
-- MIDI / OSC Mapping Export
-- Session Timeline Explorer
-- Prompt Evolution Explorer
-- Artifact Lineage Graph
+- Define the V3 product boundary around creative direction, generation,
+  critique, refinement, preview, and export as one coherent professional
+  workstation.
+- Revisit session structure, artifact lineage, and creative planning state so
+  longer-form project workflows can scale without degrading clarity.
+- Establish the next architecture layer for richer project context snapshots,
+  deeper planning memory, and better cross-artifact continuity.
 
-### Hardening And Freeze
+### Future Export And Performance Work
 
-- Final UI Polish
-- Audit & Refactor
-- V2 Freeze
+- Performance Blueprint Export for structured handoff into rehearsable or
+  production-ready runtime setups.
+- MIDI / OSC mapping export for external controller and live-system
+  integration.
+- Artifact lineage and project lineage views for tracing prompt, plan,
+  refinement, and selection history.
+- Live performance workflow expansion across timing, triggering, staging, and
+  operator-control surfaces.
 
-### Future Ecosystem
+### V3 Creative Core Ideas
 
-- Local Model Provider Support
-- Hybrid Model Router
-- HoloMind Integration Bridge after HoloMind V1
+- Richer project context snapshots that persist aesthetic goals, symbolic
+  systems, runtime constraints, and evolving creative decisions across longer
+  sessions.
+- Expanded roadmap-audit intelligence that can identify weak planning coverage,
+  repetitive refinement loops, and missing creative context before generation.
+- Stronger multi-artifact direction layers for cross-output narrative, series
+  cohesion, and portfolio-scale creative development.
 
 ## Setup
 
