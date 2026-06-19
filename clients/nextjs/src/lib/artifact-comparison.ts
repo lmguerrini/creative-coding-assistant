@@ -49,6 +49,10 @@ const supportedPreviewDomains = new Set([
   "glsl",
   "hydra",
   "gsap",
+  "svg",
+  "svg_markup",
+  "canvas",
+  "canvas_2d",
   "tone_js",
   "three_js",
   "react_three_fiber"
@@ -60,16 +64,15 @@ const supportedBrowserRuntimeKinds = new Set([
   "glsl",
   "hydra",
   "gsap",
-  "tone"
+  "tone",
+  "svg",
+  "canvas"
 ]);
 
 const unsupportedBrowserRuntimeExtensions = [
   ".wgsl",
   ".webgpu.js",
-  ".webgpu.ts",
-  ".canvas.js",
-  ".canvas.ts",
-  ".svg"
+  ".webgpu.ts"
 ] as const;
 
 export function buildArtifactComparisonModel({
@@ -335,6 +338,10 @@ function formatArtifactRuntimeLabel(runtime: string) {
       return "Hydra";
     case "gsap":
       return "GSAP";
+    case "svg":
+      return "SVG";
+    case "canvas":
+      return "Canvas";
     case "tone":
       return "Tone.js";
     default:
@@ -360,6 +367,11 @@ function formatArtifactDomainLabel(domain: string | null | undefined) {
       return "Hydra";
     case "gsap":
       return "GSAP";
+    case "svg":
+      return "SVG";
+    case "canvas":
+    case "canvas_2d":
+      return "Canvas";
     case "tone_js":
       return "Tone.js";
     default:

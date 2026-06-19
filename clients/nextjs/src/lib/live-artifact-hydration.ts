@@ -23,6 +23,10 @@ import type { AssistantStreamEvent } from "./assistant-stream";
 import { readCreativeExecutionPlanSummary } from "./assistant-stream";
 import { normalizeCreativeTranslation } from "./creative-translation";
 import { hasGsapPreviewSignal } from "./gsap-runtime";
+import {
+  hasCanvasPreviewSignal,
+  hasSvgPreviewSignal
+} from "./svg-canvas-runtime";
 
 export type LiveArtifactHydrationResult = {
   activeArtifactId: string;
@@ -62,7 +66,15 @@ type GeneratedArtifactSource = {
   type?: ArtifactSummary["type"];
 };
 
-type CreativeRuntimeKind = "p5" | "three" | "glsl" | "hydra" | "tone" | "gsap";
+type CreativeRuntimeKind =
+  | "p5"
+  | "three"
+  | "glsl"
+  | "hydra"
+  | "tone"
+  | "gsap"
+  | "svg"
+  | "canvas";
 
 type ArtifactInference = {
   content: string;
@@ -92,18 +104,22 @@ type ArtifactInference = {
 const liveGeneratedArtifactId = "live-generated-artifact";
 const liveResponseArtifactId = "live-response-artifact";
 const previewRendererLabels: Record<CreativeRuntimeKind, string> = {
+  canvas: "Canvas",
   gsap: "GSAP",
   glsl: "GLSL",
   hydra: "Hydra",
   p5: "p5.js",
+  svg: "SVG",
   tone: "Tone.js",
   three: "Three.js"
 };
 const previewRendererIds: Record<CreativeRuntimeKind, string> = {
+  canvas: "surface.canvas",
   gsap: "surface.gsap",
   glsl: "surface.glsl",
   hydra: "surface.hydra",
   p5: "surface.p5",
+  svg: "surface.svg",
   tone: "surface.tone",
   three: "surface.three"
 };
@@ -540,7 +556,7 @@ function buildArtifactSummary(
     ? `${previewRendererLabels[inferred.previewKind]} runtime signals matched from the generated artifact.`
     : inferred.previewEligible
       ? "Preview target metadata is available, but no supported creative runtime matched this output."
-    : "No supported p5.js, Three.js, GLSL, Hydra, Tone.js, or GSAP preview runtime matched this output.";
+    : "No supported p5.js, Three.js, GLSL, Hydra, Tone.js, GSAP, SVG, or Canvas preview runtime matched this output.";
   const summary =
     inferred.summary ??
     (inferred.type === "code"
@@ -660,7 +676,7 @@ function buildUnavailablePreviewSummary({
     sourceArtifactName: artifact?.title ?? "",
     state: "unavailable",
     status: "Unavailable",
-    summary: `${artifactName} is available in the workspace, but it does not match the supported live p5.js, Three.js, GLSL, Hydra, Tone.js, or GSAP preview runtimes yet.`,
+    summary: `${artifactName} is available in the workspace, but it does not match the supported live p5.js, Three.js, GLSL, Hydra, Tone.js, GSAP, SVG, or Canvas preview runtimes yet.`,
     target: "",
     targetId: "",
     title: "Preview unavailable",
@@ -687,6 +703,31 @@ function inferRuntimeKind(
     })
   ) {
     return "gsap";
+  }
+
+  if (
+    normalizedTitle.endsWith(".svg") ||
+    language === "svg" ||
+    hasSvgPreviewSignal({
+      content,
+      language,
+      title
+    })
+  ) {
+    return "svg";
+  }
+
+  if (
+    normalizedTitle.endsWith(".canvas.js") ||
+    normalizedTitle.endsWith(".canvas.ts") ||
+    language === "canvas" ||
+    hasCanvasPreviewSignal({
+      content,
+      language,
+      title
+    })
+  ) {
+    return "canvas";
   }
 
   if (
@@ -795,6 +836,16 @@ function defaultArtifactTitle({
       : `generated-motion${orderSuffix}.gsap.ts`;
   }
 
+  if (previewKind === "svg") {
+    return `generated-vector${orderSuffix}.svg`;
+  }
+
+  if (previewKind === "canvas") {
+    return language === "javascript"
+      ? `generated-canvas${orderSuffix}.canvas.js`
+      : `generated-canvas${orderSuffix}.canvas.ts`;
+  }
+
   if (language === "javascript") {
     return `generated-artifact${orderSuffix}.js`;
   }
@@ -851,7 +902,19 @@ function formatLanguageLabel(
     return language === "javascript" ? "JavaScript + GSAP" : "TypeScript + GSAP";
   }
 
+  if (previewKind === "svg") {
+    return "SVG";
+  }
+
+  if (previewKind === "canvas") {
+    return language === "javascript"
+      ? "JavaScript + Canvas"
+      : "TypeScript + Canvas";
+  }
+
   switch (language) {
+    case "canvas":
+      return "JavaScript + Canvas";
     case "css":
       return "CSS";
     case "glsl":
@@ -870,6 +933,8 @@ function formatLanguageLabel(
       return "JavaScript + Tone.js";
     case "python":
       return "Python";
+    case "svg":
+      return "SVG";
     case "typescript":
       return title.endsWith(".tsx") ? "TypeScript + React" : "TypeScript";
     default:
@@ -889,6 +954,9 @@ function normalizeLanguageToken(value: string) {
     case "jsx":
     case "mjs":
       return "javascript";
+    case "canvas2d":
+    case "canvas_2d":
+      return "canvas";
     case "md":
     case "markdown":
       return "markdown";
@@ -917,6 +985,10 @@ function normalizeRuntimeKind(value: string): CreativeRuntimeKind | null {
     case "hydra":
     case "hydra.js":
       return "hydra";
+    case "surface.canvas":
+    case "canvas":
+    case "canvas_2d":
+      return "canvas";
     case "surface.tone":
     case "tone":
     case "tone.js":
@@ -924,6 +996,9 @@ function normalizeRuntimeKind(value: string): CreativeRuntimeKind | null {
     case "surface.gsap":
     case "gsap":
       return "gsap";
+    case "surface.svg":
+    case "svg":
+      return "svg";
     case "surface.three":
     case "three":
     case "three.js":

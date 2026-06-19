@@ -1,4 +1,5 @@
 import type { ArtifactSummary, PreviewTargetId } from "./assistant-client";
+import { hasSvgPreviewSignal } from "./svg-canvas-runtime";
 
 const previewTargetLabels: Record<PreviewTargetId, string> = {
   audio_asset: "Audio asset",
@@ -51,6 +52,14 @@ export function derivePreviewTargetIdFromArtifact(
   }
 
   const normalizedTitle = artifact.title.trim().toLowerCase();
+
+  if (
+    artifact.type === "code" &&
+    normalizedTitle.endsWith(".svg") &&
+    hasSvgPreviewSignal(artifact)
+  ) {
+    return "browser_sandbox";
+  }
 
   if (normalizedTitle.endsWith(".json")) {
     return "json_panel";

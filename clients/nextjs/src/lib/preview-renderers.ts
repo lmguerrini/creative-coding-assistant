@@ -12,6 +12,12 @@ import {
   formatPreviewTargetLabel,
   normalizePreviewTargetId
 } from "./preview-targets";
+import {
+  getCanvasRuntimeSupportIssue,
+  getSvgRuntimeSupportIssue,
+  hasCanvasPreviewSignal,
+  hasSvgPreviewSignal
+} from "./svg-canvas-runtime";
 
 export type PreviewRendererTone =
   | "active"
@@ -26,7 +32,9 @@ export type CreativePreviewRendererKind =
   | "glsl"
   | "hydra"
   | "tone"
-  | "gsap";
+  | "gsap"
+  | "svg"
+  | "canvas";
 
 export type PreviewRendererSurfaceKind =
   | CreativePreviewRendererKind
@@ -177,6 +185,40 @@ export const creativePreviewRendererRegistry: readonly CreativePreviewRendererDe
       "Targets only the bounded sandbox stage and its prebuilt nodes",
       "Rejects plugins, remote assets, and unrestricted DOM access"
     ]
+  },
+  {
+    id: "surface.svg",
+    kind: "svg",
+    displayName: "SVG",
+    surfaceLabel: "SVG vector stage",
+    description: "Sanitized inline SVG stage for bounded browser previews.",
+    matchExtensions: [".svg"],
+    matchTokens: ["<svg", "viewbox=", "<path", "<circle", "<animate"],
+    notes: [
+      "Sanitized inline SVG runtime",
+      "Allows self-contained vector markup and deterministic native SVG animation",
+      "Rejects scriptable containers, event handlers, and remote assets"
+    ]
+  },
+  {
+    id: "surface.canvas",
+    kind: "canvas",
+    displayName: "Canvas",
+    surfaceLabel: "Canvas 2D stage",
+    description: "Bounded HTML5 Canvas 2D surface for deterministic browser previews.",
+    matchExtensions: [".canvas.js", ".canvas.ts"],
+    matchTokens: [
+      "getcontext(",
+      "fillrect(",
+      "clearrect(",
+      "requestanimationframe(",
+      "canvasrenderingcontext2d"
+    ],
+    notes: [
+      "Controlled Canvas 2D runtime",
+      "Runs deterministic drawing code against the provided preview surface only",
+      "Rejects DOM mutation, remote assets, and interactive input handlers"
+    ]
   }
 ] as const;
 
@@ -186,6 +228,10 @@ const supportedPreviewDomains = new Set([
   "hydra",
   "tone_js",
   "gsap",
+  "svg",
+  "svg_markup",
+  "canvas",
+  "canvas_2d",
   "three_js",
   "react_three_fiber"
 ]);
@@ -193,11 +239,11 @@ const supportedPreviewDomains = new Set([
 const unsupportedBrowserRuntimeExtensions = [
   ".wgsl",
   ".webgpu.js",
-  ".webgpu.ts",
-  ".canvas.js",
-  ".canvas.ts",
-  ".svg"
+  ".webgpu.ts"
 ] as const;
+
+const supportedBrowserFoundationSummary =
+  "Current browser preview foundations cover p5.js, Three.js, GLSL, Hydra, Tone.js, GSAP, SVG, and Canvas only.";
 
 export function buildPreviewRendererRoute({
   artifacts,
@@ -296,6 +342,46 @@ export function buildPreviewRendererRoute({
       rendererArtifact && hasGsapPreviewSignal(rendererArtifact)
         ? getGsapRuntimeSupportIssue(rendererArtifact.content)
         : null;
+    const svgSupportIssue =
+      rendererArtifact && hasSvgPreviewSignal(rendererArtifact)
+        ? getSvgRuntimeSupportIssue(rendererArtifact.content)
+        : null;
+    const canvasSupportIssue =
+      rendererArtifact && hasCanvasPreviewSignal(rendererArtifact)
+        ? getCanvasRuntimeSupportIssue(rendererArtifact.content)
+        : null;
+    const runtimeSupportIssue =
+      gsapSupportIssue ?? svgSupportIssue ?? canvasSupportIssue;
+    const unsupportedSurfaceSummary = gsapSupportIssue
+      ? `${sourceArtifactName} was identified as a GSAP motion artifact, but the current source exceeds the bounded sandbox rules for live execution.`
+      : svgSupportIssue
+        ? `${sourceArtifactName} was identified as an SVG artifact, but the current source exceeds the bounded sandbox rules for live execution.`
+        : canvasSupportIssue
+          ? `${sourceArtifactName} was identified as a Canvas artifact, but the current source exceeds the bounded sandbox rules for live execution.`
+          : `${sourceArtifactName} still resolves to the browser preview, but no safe live renderer foundation matches its current signals yet.`;
+    const unsupportedNotes = gsapSupportIssue
+      ? [
+          "The artifact remains inspectable as code",
+          "Remove plugin, network, or unrestricted DOM patterns to restore live preview support",
+          "Only bounded GSAP tweens and timelines can execute in the browser preview"
+        ]
+      : svgSupportIssue
+        ? [
+            "The artifact remains inspectable as code",
+            "Remove scriptable containers, event handlers, or external asset patterns to restore live preview support",
+            "Only sanitized inline SVG markup can execute in the browser preview"
+          ]
+        : canvasSupportIssue
+          ? [
+              "The artifact remains inspectable as code",
+              "Remove DOM, image-asset, or interactive input patterns to restore live preview support",
+              "Only bounded Canvas 2D drawing and deterministic timers can execute in the browser preview"
+            ]
+          : [
+              "Runtime target metadata is still preserved",
+              "The preview shelf stays stable without executing arbitrary code",
+              "A dedicated WebGPU or browser runtime surface can be added later"
+            ];
 
     if (matchedRenderer) {
       return {
@@ -334,25 +420,12 @@ export function buildPreviewRendererRoute({
       supportState: "unsupported",
       supportLabel: "Unsupported",
       supportReason:
-        gsapSupportIssue ??
-        "Current browser preview foundations cover p5.js, Three.js, GLSL, Hydra, Tone.js, and GSAP only.",
+        runtimeSupportIssue ?? supportedBrowserFoundationSummary,
       surfaceKind: "unsupported",
       surfaceTitle: "Browser preview without renderer match",
       surfaceEyebrow: "Unsupported creative surface",
-      surfaceSummary: gsapSupportIssue
-        ? `${sourceArtifactName} was identified as a GSAP motion artifact, but the current source exceeds the bounded sandbox rules for live execution.`
-        : `${sourceArtifactName} still resolves to the browser preview, but no safe live renderer foundation matches its current signals yet.`,
-      notes: gsapSupportIssue
-        ? [
-            "The artifact remains inspectable as code",
-            "Remove plugin, network, or unrestricted DOM patterns to restore live preview support",
-            "Only bounded GSAP tweens and timelines can execute in the browser preview"
-          ]
-        : [
-            "Runtime target metadata is still preserved",
-            "The preview shelf stays stable without executing arbitrary code",
-            "A dedicated WebGPU or browser runtime surface can be added later"
-          ],
+      surfaceSummary: unsupportedSurfaceSummary,
+      notes: unsupportedNotes,
       tone
     };
   }
@@ -389,6 +462,12 @@ export function matchCreativePreviewRenderer(
 
   if (explicitRenderer !== undefined) {
     return validateCreativePreviewRenderer(artifact, explicitRenderer);
+  }
+
+  const signaledRenderer = matchSignaledPreviewRenderer(artifact);
+
+  if (signaledRenderer) {
+    return validateCreativePreviewRenderer(artifact, signaledRenderer);
   }
 
   const extensionMatch = creativePreviewRendererRegistry.find((renderer) =>
@@ -429,6 +508,22 @@ function matchExplicitPreviewRenderer(
   );
 }
 
+function matchSignaledPreviewRenderer(artifact: ArtifactSummary) {
+  if (hasGsapPreviewSignal(artifact)) {
+    return creativePreviewRendererRegistry.find((renderer) => renderer.kind === "gsap");
+  }
+
+  if (hasSvgPreviewSignal(artifact)) {
+    return creativePreviewRendererRegistry.find((renderer) => renderer.kind === "svg");
+  }
+
+  if (hasCanvasPreviewSignal(artifact)) {
+    return creativePreviewRendererRegistry.find((renderer) => renderer.kind === "canvas");
+  }
+
+  return null;
+}
+
 function hasUnsupportedBrowserRuntimeSignal(
   artifact: ArtifactSummary,
   normalizedTitle: string
@@ -452,6 +547,14 @@ function validateCreativePreviewRenderer(
   }
 
   if (renderer.kind !== "gsap") {
+    if (renderer.kind === "svg") {
+      return getSvgRuntimeSupportIssue(artifact.content) ? null : renderer;
+    }
+
+    if (renderer.kind === "canvas") {
+      return getCanvasRuntimeSupportIssue(artifact.content) ? null : renderer;
+    }
+
     return renderer;
   }
 
