@@ -68,6 +68,23 @@ describe("preview sandbox runtime", () => {
     expect(prepared).toContain("function animate()");
   });
 
+  it("preserves inline SVG markup for sandbox execution", () => {
+    const prepared = preparePreviewExecutableSource(
+      [
+        '<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">',
+        '  <circle cx="60" cy="60" r="24" fill="#4cd7c8">',
+        '    <animate attributeName="r" values="22;30;22" dur="2s" repeatCount="indefinite" />',
+        "  </circle>",
+        "</svg>"
+      ].join("\n"),
+      "svg"
+    );
+
+    expect(prepared).toContain("<svg");
+    expect(prepared).toContain("<animate");
+    expect(prepared).not.toContain("function");
+  });
+
   it("prepares Tone.js source as a silent bounded audio plan", () => {
     const source = [
       "const synth = new Tone.Synth().toDestination();",
@@ -231,6 +248,53 @@ describe("preview sandbox runtime", () => {
 
     runtime.dispose();
     iframe.remove();
+  });
+
+  it("mounts SVG and Canvas previews on the shared sandbox host", () => {
+    const svgIframe = document.createElement("iframe");
+    const canvasIframe = document.createElement("iframe");
+    const statuses: string[] = [];
+    document.body.appendChild(svgIframe);
+    document.body.appendChild(canvasIframe);
+
+    const svgRuntime = mountPreviewSandboxRuntime({
+      iframe: svgIframe,
+      kind: "svg",
+      onStatus: (status) => statuses.push(status.label),
+      runtimeId: "svg-runtime-1",
+      source: {
+        fingerprint: "svg123",
+        lineCount: 1,
+        source:
+          '<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="60" r="24" fill="#4cd7c8" /></svg>',
+        title: "signal-markup.svg"
+      }
+    });
+    const canvasRuntime = mountPreviewSandboxRuntime({
+      iframe: canvasIframe,
+      kind: "canvas",
+      onStatus: (status) => statuses.push(status.label),
+      runtimeId: "canvas-runtime-1",
+      source: {
+        fingerprint: "canvas123",
+        lineCount: 2,
+        source:
+          "const canvas = document.querySelector('canvas'); const ctx = canvas.getContext('2d'); ctx.fillRect(0, 0, 10, 10);",
+        title: "signal-grid.canvas.js"
+      }
+    });
+
+    expect(svgIframe.getAttribute("src")).toBe("/preview-sandbox.html");
+    expect(canvasIframe.getAttribute("src")).toBe("/preview-sandbox.html");
+    expect(statuses).toEqual([
+      "Preview runtime starting",
+      "Preview runtime starting"
+    ]);
+
+    svgRuntime.dispose();
+    canvasRuntime.dispose();
+    svgIframe.remove();
+    canvasIframe.remove();
   });
 
   it("delivers explicit Tone.js start, stop, and mute controls to the sandbox", () => {

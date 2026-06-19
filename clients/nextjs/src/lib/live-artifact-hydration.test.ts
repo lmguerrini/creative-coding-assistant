@@ -112,6 +112,94 @@ describe("live artifact hydration", () => {
     });
   });
 
+  it("hydrates final stream SVG into a previewable vector artifact", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const result = hydrateWorkspaceFromFinalEvent(
+      snapshot,
+      finalEvent({
+        answer: [
+          "```svg",
+          '<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">',
+          '  <circle cx="60" cy="60" r="24" fill="#4cd7c8">',
+          '    <animate attributeName="r" values="22;30;22" dur="2s" repeatCount="indefinite" />',
+          "  </circle>",
+          "</svg>",
+          "```"
+        ].join("\n")
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      title: "generated-vector.svg",
+      type: "code",
+      language: "SVG",
+      runtime: "svg"
+    });
+    expect(result.snapshot.preview).toMatchObject({
+      artifactName: "generated-vector.svg",
+      renderer: "surface.svg",
+      target: "Browser preview / SVG",
+      targetId: "browser_sandbox"
+    });
+    expect(
+      buildPreviewRendererRoute({
+        artifacts: result.snapshot.artifacts,
+        preview: result.snapshot.preview,
+        previewArtifactId: result.previewArtifactId
+      })
+    ).toMatchObject({
+      rendererId: "surface.svg",
+      supportState: "supported",
+      surfaceKind: "svg"
+    });
+  });
+
+  it("hydrates final stream Canvas code into a previewable runtime artifact", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const result = hydrateWorkspaceFromFinalEvent(
+      snapshot,
+      finalEvent({
+        answer: [
+          "```js",
+          "const canvas = document.querySelector('canvas');",
+          "const ctx = canvas.getContext('2d');",
+          "function draw(time) {",
+          "  ctx.clearRect(0, 0, canvas.width, canvas.height);",
+          "  ctx.fillStyle = '#4cd7c8';",
+          "  ctx.fillRect(24 + Math.sin(time * 0.002) * 32, 24, 96, 96);",
+          "  requestAnimationFrame(draw);",
+          "}",
+          "requestAnimationFrame(draw);",
+          "```"
+        ].join("\n")
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      title: "generated-canvas.canvas.js",
+      type: "code",
+      language: "JavaScript + Canvas",
+      runtime: "canvas"
+    });
+    expect(result.snapshot.preview).toMatchObject({
+      artifactName: "generated-canvas.canvas.js",
+      renderer: "surface.canvas",
+      target: "Browser preview / Canvas",
+      targetId: "browser_sandbox"
+    });
+    expect(
+      buildPreviewRendererRoute({
+        artifacts: result.snapshot.artifacts,
+        preview: result.snapshot.preview,
+        previewArtifactId: result.previewArtifactId
+      })
+    ).toMatchObject({
+      rendererId: "surface.canvas",
+      supportState: "supported",
+      surfaceKind: "canvas"
+    });
+  });
+
   it("uses structured artifact payloads before parsing chat prose", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const result = hydrateWorkspaceFromFinalEvent(

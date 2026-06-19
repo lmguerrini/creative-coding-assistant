@@ -115,6 +115,42 @@ describe("preview renderers", () => {
         summary: "GSAP timeline with staggered transform motion and yoyo repeats.",
         title: "signal-bloom.gsap.ts"
       })
+    },
+    {
+      id: "surface.svg",
+      kind: "svg",
+      artifact: creativeArtifact({
+        content:
+          '<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">' +
+          '<circle cx="60" cy="60" r="28" fill="#4cd7c8">' +
+          '<animate attributeName="r" values="24;32;24" dur="2s" repeatCount="indefinite" />' +
+          "</circle></svg>",
+        language: "SVG",
+        runtime: "svg",
+        summary: "Inline SVG composition with circle geometry and native animate timing.",
+        title: "signal-markup.svg"
+      })
+    },
+    {
+      id: "surface.canvas",
+      kind: "canvas",
+      artifact: creativeArtifact({
+        content: [
+          "const canvas = document.querySelector('canvas');",
+          "const ctx = canvas.getContext('2d');",
+          "function draw(time) {",
+          "  ctx.clearRect(0, 0, canvas.width, canvas.height);",
+          "  ctx.fillStyle = '#4cd7c8';",
+          "  ctx.fillRect(24 + Math.sin(time * 0.002) * 40, 24, 88, 88);",
+          "  requestAnimationFrame(draw);",
+          "}",
+          "requestAnimationFrame(draw);"
+        ].join("\n"),
+        domain: "canvas_2d",
+        runtime: "canvas",
+        summary: "Canvas 2D sketch with requestAnimationFrame and fillRect motion.",
+        title: "signal-grid.canvas.js"
+      })
     }
   ])(
     "matches $kind renderer signals and routes them into a supported surface",
@@ -160,7 +196,7 @@ describe("preview renderers", () => {
     ).toMatchObject({
       supportState: "unsupported",
       supportReason:
-        "Current browser preview foundations cover p5.js, Three.js, GLSL, Hydra, Tone.js, and GSAP only.",
+        "Current browser preview foundations cover p5.js, Three.js, GLSL, Hydra, Tone.js, GSAP, SVG, and Canvas only.",
       surfaceKind: "unsupported"
     });
   });
@@ -189,6 +225,67 @@ describe("preview renderers", () => {
     ).toMatchObject({
       supportState: "unsupported",
       supportReason: "GSAP previews can only target the bounded sandbox stage.",
+      surfaceKind: "unsupported"
+    });
+  });
+
+  it("falls back safely when SVG source exceeds the bounded sandbox rules", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const artifact = creativeArtifact({
+      content:
+        '<svg viewBox="0 0 100 100"><foreignObject width="100" height="100"><div>unsafe</div></foreignObject></svg>',
+      language: "SVG",
+      previewEligible: true,
+      previewTarget: "browser_sandbox",
+      runtime: "svg",
+      title: "unsafe-markup.svg"
+    });
+    const preview = creativePreviewSummary(artifact, snapshot.preview);
+
+    expect(matchCreativePreviewRenderer(artifact)).toBeNull();
+    expect(
+      buildPreviewRendererRoute({
+        artifacts: [artifact],
+        preview,
+        previewArtifactId: artifact.id
+      })
+    ).toMatchObject({
+      supportState: "unsupported",
+      supportReason:
+        "SVG preview support is limited to sanitized inline SVG markup without scriptable DOM containers.",
+      surfaceKind: "unsupported"
+    });
+  });
+
+  it("falls back safely when Canvas source exceeds the bounded sandbox rules", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const artifact = creativeArtifact({
+      content: [
+        "const canvas = document.querySelector('canvas');",
+        "const ctx = canvas.getContext('2d');",
+        "const image = new Image();",
+        "image.src = 'https://example.com/remote.png';",
+        "ctx.drawImage(image, 0, 0);"
+      ].join("\n"),
+      domain: "canvas_2d",
+      previewEligible: true,
+      previewTarget: "browser_sandbox",
+      runtime: "canvas",
+      title: "unsafe-grid.canvas.js"
+    });
+    const preview = creativePreviewSummary(artifact, snapshot.preview);
+
+    expect(matchCreativePreviewRenderer(artifact)).toBeNull();
+    expect(
+      buildPreviewRendererRoute({
+        artifacts: [artifact],
+        preview,
+        previewArtifactId: artifact.id
+      })
+    ).toMatchObject({
+      supportState: "unsupported",
+      supportReason:
+        "Canvas preview support is limited to direct 2D drawing without image assets or auxiliary canvases.",
       surfaceKind: "unsupported"
     });
   });

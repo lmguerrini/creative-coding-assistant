@@ -128,6 +128,31 @@ describe("artifact comparison", () => {
       runtime: "gsap",
       title: "signal-bloom.gsap.js"
     });
+    const svg = artifact({
+      actions: ["Open", "Preview", "Copy"],
+      content:
+        '<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="60" r="24" fill="#4cd7c8" /></svg>',
+      domain: "svg",
+      id: "svg",
+      language: "SVG",
+      previewEligible: true,
+      previewTarget: "browser_sandbox",
+      rendererId: "surface.svg",
+      runtime: "svg",
+      title: "signal-markup.svg"
+    });
+    const canvas = artifact({
+      actions: ["Open", "Preview", "Copy"],
+      content:
+        "const canvas = document.querySelector('canvas'); const ctx = canvas.getContext('2d'); ctx.fillRect(0, 0, 10, 10);",
+      domain: "canvas_2d",
+      id: "canvas",
+      previewEligible: true,
+      previewTarget: "browser_sandbox",
+      rendererId: "surface.canvas",
+      runtime: "canvas",
+      title: "signal-grid.canvas.js"
+    });
     const unsupported = artifact({
       domain: "webgpu",
       id: "webgpu",
@@ -142,6 +167,8 @@ describe("artifact comparison", () => {
     expect(classifyArtifactRuntimeSupport(hydra).state).toBe("previewable");
     expect(classifyArtifactRuntimeSupport(tone).state).toBe("previewable");
     expect(classifyArtifactRuntimeSupport(gsap).state).toBe("previewable");
+    expect(classifyArtifactRuntimeSupport(svg).state).toBe("previewable");
+    expect(classifyArtifactRuntimeSupport(canvas).state).toBe("previewable");
     expect(classifyArtifactRuntimeSupport(codeOnly).state).toBe("code_only");
     expect(classifyArtifactRuntimeSupport(unsupported).state).toBe("unsupported");
   });
