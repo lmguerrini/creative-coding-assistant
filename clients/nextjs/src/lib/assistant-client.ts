@@ -129,6 +129,47 @@ export type CreativeStrategySummary = {
   evidence: string[];
 };
 
+export type CreativeTechniqueId =
+  | "fractal_recursion"
+  | "particle_systems"
+  | "reaction_diffusion"
+  | "boids"
+  | "cellular_automata"
+  | "voronoi"
+  | "noise_fields"
+  | "recursive_geometry"
+  | "sdf"
+  | "signed_distance_composition"
+  | "feedback_systems"
+  | "audio_reactive_mappings";
+
+export type CreativeTechniqueCompatibility = "strong" | "moderate" | "weak";
+
+export type CreativeTechniquePressure = "low" | "medium" | "high";
+
+export type CreativeTechniqueAlternativeSummary = {
+  technique: CreativeTechniqueId;
+  confidence: number;
+  rationale: string;
+};
+
+export type CreativeTechniqueSummary = {
+  role: "creative_technique_selector";
+  primaryTechnique: CreativeTechniqueId;
+  confidence: number;
+  rationale: string;
+  strategyAlignment: CreativeStrategyId | null;
+  compatibility: CreativeTechniqueCompatibility;
+  complexityPressure: CreativeTechniquePressure;
+  performancePressure: CreativeTechniquePressure;
+  artisticSuitability: string[];
+  implementationNotes: string[];
+  alternativeTechniques: CreativeTechniqueAlternativeSummary[];
+  techniqueConstraints: string[];
+  selectionBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeConstraintAxis =
   | "intent"
   | "modality"

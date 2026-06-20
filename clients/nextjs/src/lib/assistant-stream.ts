@@ -12,6 +12,11 @@ import {
   type CreativeStrategyAlternativeSummary,
   type CreativeStrategyId,
   type CreativeStrategySummary,
+  type CreativeTechniqueAlternativeSummary,
+  type CreativeTechniqueCompatibility,
+  type CreativeTechniqueId,
+  type CreativeTechniquePressure,
+  type CreativeTechniqueSummary,
   type CreativeTranslationSummary,
   type RefinementPassRecord,
   type WorkflowNodeId
@@ -88,6 +93,8 @@ export type AssistantStreamWorkflowMetadata = {
   clarification_question_count?: number;
   creative_strategy?: CreativeStrategySummary | null;
   strategy_available?: boolean;
+  creative_techniques?: CreativeTechniqueSummary | null;
+  technique_selector_available?: boolean;
   creative_plan?: CreativeExecutionPlanSummary | null;
   planning_available?: boolean;
   creative_constraints?: CreativeConstraintSolverSummary | null;
@@ -489,6 +496,12 @@ export function readWorkflowMetadata(
   );
   const strategyAvailable =
     rawWorkflow.strategy_available === true || creativeStrategy !== null;
+  const creativeTechniques = readCreativeTechniqueSummary(
+    rawWorkflow.creative_techniques ?? rawWorkflow.creativeTechniques
+  );
+  const techniqueSelectorAvailable =
+    rawWorkflow.technique_selector_available === true ||
+    creativeTechniques !== null;
   const creativePlan = readCreativeExecutionPlanSummary(
     rawWorkflow.creative_plan ?? rawWorkflow.creativePlan
   );
@@ -541,6 +554,12 @@ export function readWorkflowMetadata(
       ? {
           creative_strategy: creativeStrategy,
           strategy_available: true
+        }
+      : {}),
+    ...(techniqueSelectorAvailable
+      ? {
+          creative_techniques: creativeTechniques,
+          technique_selector_available: true
         }
       : {}),
     ...(planningAvailable
@@ -664,6 +683,163 @@ function readCreativeStrategyAlternativeSummaryList(
     return [
       {
         strategy,
+        confidence,
+        rationale
+      }
+    ];
+  });
+}
+
+export function readCreativeTechniqueSummary(
+  value: unknown
+): CreativeTechniqueSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const primaryTechnique = readStringUnion(
+    value,
+    "primary_technique",
+    "primaryTechnique",
+    creativeTechniqueIds
+  );
+  const confidence = readFiniteNumberField(value, "confidence");
+  const rationale = readStringField(value, "rationale");
+  const strategyAlignment = readStringUnion(
+    value,
+    "strategy_alignment",
+    "strategyAlignment",
+    creativeStrategyIds
+  );
+  const compatibility = readStringUnion(
+    value,
+    "compatibility",
+    "compatibility",
+    creativeTechniqueCompatibilities
+  );
+  const complexityPressure = readStringUnion(
+    value,
+    "complexity_pressure",
+    "complexityPressure",
+    creativeTechniquePressures
+  );
+  const performancePressure = readStringUnion(
+    value,
+    "performance_pressure",
+    "performancePressure",
+    creativeTechniquePressures
+  );
+  const artisticSuitability = readStringListField(
+    value,
+    "artistic_suitability",
+    "artisticSuitability"
+  );
+  const implementationNotes = readStringListField(
+    value,
+    "implementation_notes",
+    "implementationNotes"
+  );
+  const techniqueConstraints = readStringListField(
+    value,
+    "technique_constraints",
+    "techniqueConstraints"
+  );
+  const selectionBoundary =
+    readStringField(value, "selection_boundary") ??
+    readStringField(value, "selectionBoundary");
+
+  if (
+    role !== "creative_technique_selector" ||
+    !primaryTechnique ||
+    confidence === null ||
+    !rationale ||
+    !compatibility ||
+    !complexityPressure ||
+    !performancePressure ||
+    artisticSuitability.length === 0 ||
+    implementationNotes.length === 0 ||
+    techniqueConstraints.length === 0 ||
+    !selectionBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    primaryTechnique,
+    confidence,
+    rationale,
+    strategyAlignment,
+    compatibility,
+    complexityPressure,
+    performancePressure,
+    artisticSuitability,
+    implementationNotes,
+    alternativeTechniques: readCreativeTechniqueAlternativeSummaryList(
+      value.alternative_techniques ?? value.alternativeTechniques
+    ),
+    techniqueConstraints,
+    selectionBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const creativeTechniqueIds = [
+  "fractal_recursion",
+  "particle_systems",
+  "reaction_diffusion",
+  "boids",
+  "cellular_automata",
+  "voronoi",
+  "noise_fields",
+  "recursive_geometry",
+  "sdf",
+  "signed_distance_composition",
+  "feedback_systems",
+  "audio_reactive_mappings"
+] as const satisfies readonly CreativeTechniqueId[];
+
+const creativeTechniqueCompatibilities = [
+  "strong",
+  "moderate",
+  "weak"
+] as const satisfies readonly CreativeTechniqueCompatibility[];
+
+const creativeTechniquePressures = [
+  "low",
+  "medium",
+  "high"
+] as const satisfies readonly CreativeTechniquePressure[];
+
+function readCreativeTechniqueAlternativeSummaryList(
+  value: unknown
+): CreativeTechniqueAlternativeSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const technique = readStringUnion(
+      item,
+      "technique",
+      "technique",
+      creativeTechniqueIds
+    );
+    const confidence = readFiniteNumberField(item, "confidence");
+    const rationale = readStringField(item, "rationale");
+
+    if (!technique || confidence === null || !rationale) {
+      return [];
+    }
+
+    return [
+      {
+        technique,
         confidence,
         rationale
       }

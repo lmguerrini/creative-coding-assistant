@@ -7,6 +7,7 @@ import {
   readCreativeConstraintSolverSummary,
   readCreativeExecutionPlanSummary,
   readCreativeStrategySummary,
+  readCreativeTechniqueSummary,
   readEventTimestamp,
   readPreviewArtifactUpdate,
   readStreamEventError,
@@ -406,6 +407,31 @@ describe("assistant stream client", () => {
         "The Creative Strategy Engine selects high-level artistic strategy only.",
       evidence: ["Primary signals: particle."]
     };
+    const creativeTechniques = {
+      role: "creative_technique_selector",
+      primary_technique: "particle_systems",
+      confidence: 0.79,
+      rationale: "Particle Systems best matches detected signals: particle.",
+      strategy_alignment: "particle_cosmology",
+      compatibility: "strong",
+      complexity_pressure: "medium",
+      performance_pressure: "high",
+      artistic_suitability: ["Supports strategy: particle_cosmology."],
+      implementation_notes: ["Keep counts and lifetimes bounded."],
+      alternative_techniques: [
+        {
+          technique: "noise_fields",
+          confidence: 0.51,
+          rationale: "Also relevant because of drift."
+        }
+      ],
+      technique_constraints: [
+        "Do not treat technique selection as runtime or renderer selection."
+      ],
+      selection_boundary:
+        "The Creative Technique Selector recommends creative implementation techniques only.",
+      evidence: ["Primary technique signals: particle."]
+    };
     const creativeConstraints = {
       role: "creative_constraint_solver",
       intent_summary: "Generate a luminous field.",
@@ -480,6 +506,8 @@ describe("assistant stream client", () => {
           image_reference_count: 1,
           strategy_available: true,
           creative_strategy: creativeStrategy,
+          technique_selector_available: true,
+          creative_techniques: creativeTechniques,
           planning_available: true,
           creative_plan: creativePlan,
           constraint_solver_available: true,
@@ -537,6 +565,32 @@ describe("assistant stream client", () => {
         evidence: ["Primary signals: particle."]
       },
       strategy_available: true,
+      creative_techniques: {
+        role: "creative_technique_selector",
+        primaryTechnique: "particle_systems",
+        confidence: 0.79,
+        rationale: "Particle Systems best matches detected signals: particle.",
+        strategyAlignment: "particle_cosmology",
+        compatibility: "strong",
+        complexityPressure: "medium",
+        performancePressure: "high",
+        artisticSuitability: ["Supports strategy: particle_cosmology."],
+        implementationNotes: ["Keep counts and lifetimes bounded."],
+        alternativeTechniques: [
+          {
+            technique: "noise_fields",
+            confidence: 0.51,
+            rationale: "Also relevant because of drift."
+          }
+        ],
+        techniqueConstraints: [
+          "Do not treat technique selection as runtime or renderer selection."
+        ],
+        selectionBoundary:
+          "The Creative Technique Selector recommends creative implementation techniques only.",
+        evidence: ["Primary technique signals: particle."]
+      },
+      technique_selector_available: true,
       creative_plan: {
         outputModality: "visual",
         generationStrategy: "Generate one p5 candidate.",
@@ -644,6 +698,32 @@ describe("assistant stream client", () => {
     expect(strategy?.strategyDirectives).toEqual([
       "Preserve symbolic structure."
     ]);
+  });
+
+  it("reads creative technique selector metadata", () => {
+    const techniques = readCreativeTechniqueSummary({
+      role: "creative_technique_selector",
+      primaryTechnique: "recursive_geometry",
+      confidence: 0.83,
+      rationale: "Recursive Geometry best matches detected signals: mandala.",
+      strategyAlignment: "sacred_geometry",
+      compatibility: "strong",
+      complexityPressure: "medium",
+      performancePressure: "medium",
+      artisticSuitability: ["Supports strategy: sacred_geometry."],
+      implementationNotes: ["Preserve the symbolic hierarchy of shapes."],
+      alternativeTechniques: [],
+      techniqueConstraints: [
+        "Do not treat technique selection as runtime or renderer selection."
+      ],
+      selectionBoundary:
+        "The Creative Technique Selector recommends creative implementation techniques only.",
+      evidence: ["Primary technique signals: mandala."]
+    });
+
+    expect(techniques?.role).toBe("creative_technique_selector");
+    expect(techniques?.primaryTechnique).toBe("recursive_geometry");
+    expect(techniques?.compatibility).toBe("strong");
   });
 
   it("reads creative constraint solver metadata", () => {
