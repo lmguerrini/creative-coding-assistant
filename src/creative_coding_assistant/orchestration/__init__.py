@@ -9,6 +9,9 @@ _CREATIVE_TRANSLATION = (
     "creative_coding_assistant.orchestration.creative_translation"
 )
 _CREATIVE_PLANNING = "creative_coding_assistant.orchestration.creative_planning"
+_CREATIVE_CONSTRAINTS = (
+    "creative_coding_assistant.orchestration.creative_constraints"
+)
 _CREATIVE_DIRECTOR = "creative_coding_assistant.orchestration.creative_director"
 _AUDIO_REACTIVE = "creative_coding_assistant.orchestration.audio_reactive"
 _CREATIVE_QUALITY = "creative_coding_assistant.orchestration.creative_quality"
@@ -65,6 +68,9 @@ _EXPORT_MAP = {
     "ClarificationRequest": _CLARIFICATION,
     "CreativeOutputModality": _CREATIVE_TRANSLATION,
     "CreativeExecutionPlan": _CREATIVE_PLANNING,
+    "CreativeConstraint": _CREATIVE_CONSTRAINTS,
+    "CreativeConstraintSolution": _CREATIVE_CONSTRAINTS,
+    "CreativeConstraintTradeoff": _CREATIVE_CONSTRAINTS,
     "CreativeAssistantDirectorBrief": _CREATIVE_DIRECTOR,
     "CreativeQualityEvaluation": _ARTIFACTS,
     "CreativeQualityObservation": _ARTIFACTS,
@@ -159,6 +165,8 @@ _EXPORT_MAP = {
     "derive_creative_translation": _CREATIVE_TRANSLATION,
     "derive_creative_execution_plan": _CREATIVE_PLANNING,
     "creative_execution_plan_prompt_lines": _CREATIVE_PLANNING,
+    "derive_creative_constraint_solution": _CREATIVE_CONSTRAINTS,
+    "creative_constraint_solution_prompt_lines": _CREATIVE_CONSTRAINTS,
     "derive_creative_assistant_director_brief": _CREATIVE_DIRECTOR,
     "creative_assistant_director_prompt_lines": _CREATIVE_DIRECTOR,
     "derive_hitl_clarification": _CLARIFICATION,

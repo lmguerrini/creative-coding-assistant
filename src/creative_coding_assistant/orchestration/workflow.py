@@ -16,6 +16,9 @@ from creative_coding_assistant.orchestration.artifacts import (
 )
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
+from creative_coding_assistant.orchestration.creative_constraints import (
+    CreativeConstraintSolution,
+)
 from creative_coding_assistant.orchestration.creative_director import (
     CreativeAssistantDirectorBrief,
 )
@@ -123,6 +126,7 @@ class AssistantWorkflowState(BaseModel):
     prompt_input: PromptInputResponse | None = None
     clarification: ClarificationRequest | None = None
     creative_plan: CreativeExecutionPlan | None = None
+    creative_constraints: CreativeConstraintSolution | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     rendered_prompt: RenderedPromptResponse | None = None
     artifacts: tuple[WorkflowArtifact, ...] = ()

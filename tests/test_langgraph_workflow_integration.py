@@ -221,16 +221,26 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         )
         final_event = events[-1]
         plan = planning_event.payload["creative_plan"]
+        constraints = planning_event.payload["creative_constraints"]
         director = director_event.payload["creative_director"]
 
         self.assertEqual(planning_event.payload["workflow"]["step"], "planning")
         self.assertEqual(director_event.payload["workflow"]["step"], "director")
         self.assertEqual(plan["output_modality"], "visual")
         self.assertEqual(plan["recommended_runtime"], "p5")
+        self.assertEqual(constraints["role"], "creative_constraint_solver")
+        self.assertEqual(constraints["runtime_fit"], "supported")
+        self.assertTrue(
+            planning_event.payload["workflow"]["constraint_solver_available"]
+        )
         self.assertEqual(director["role"], "creative_assistant_director")
         self.assertEqual(director["runtime_direction"], "p5")
         self.assertEqual(
             final_event.payload["creative_plan"]["recommended_runtime"],
+            "p5",
+        )
+        self.assertEqual(
+            final_event.payload["creative_constraints"]["recommended_runtime"],
             "p5",
         )
         self.assertEqual(

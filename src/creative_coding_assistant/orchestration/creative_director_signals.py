@@ -7,6 +7,9 @@ from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
+from creative_coding_assistant.orchestration.creative_constraints import (
+    CreativeConstraintSolution,
+)
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
@@ -29,6 +32,7 @@ def build_director_brief_payload(
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None,
     creative_plan: CreativeExecutionPlan | None,
+    creative_constraints: CreativeConstraintSolution | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -51,9 +55,10 @@ def build_director_brief_payload(
             creative_plan.output_modality.value if creative_plan is not None else None
         ),
         "runtime_direction": _runtime_direction(creative_plan),
-        "planning_focus": _planning_focus(creative_plan),
+        "planning_focus": _planning_focus(creative_plan, creative_constraints),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
+            creative_constraints=creative_constraints,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -65,6 +70,7 @@ def build_director_brief_payload(
         "next_actions": _next_actions(
             clarification=clarification,
             creative_plan=creative_plan,
+            creative_constraints=creative_constraints,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -75,6 +81,7 @@ def build_director_brief_payload(
             route_decision=route_decision,
             creative_translation=creative_translation,
             creative_plan=creative_plan,
+            creative_constraints=creative_constraints,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -144,13 +151,22 @@ def _runtime_direction(plan: CreativeExecutionPlan | None) -> str | None:
     return plan.runtime_support_summary
 
 
-def _planning_focus(plan: CreativeExecutionPlan | None) -> tuple[str, ...]:
+def _planning_focus(
+    plan: CreativeExecutionPlan | None,
+    creative_constraints: CreativeConstraintSolution | None,
+) -> tuple[str, ...]:
+    focus: list[str] = []
+    if creative_constraints is not None:
+        focus.extend(creative_constraints.prompt_guidance[:2])
     if plan is None:
-        return (
-            "Preserve the user's creative brief as the source of truth.",
-            "Keep guidance bounded to the selected route and domains.",
+        focus.extend(
+            (
+                "Preserve the user's creative brief as the source of truth.",
+                "Keep guidance bounded to the selected route and domains.",
+            )
         )
-    focus = [plan.generation_strategy, *plan.plan_steps[:3]]
+        return _dedupe_text(focus)[:6]
+    focus.extend([plan.generation_strategy, *plan.plan_steps[:3]])
     if plan.constraints:
         focus.append(f"Primary constraint: {plan.constraints[0]}")
     return _dedupe_text(focus)[:6]
@@ -159,6 +175,7 @@ def _planning_focus(plan: CreativeExecutionPlan | None) -> tuple[str, ...]:
 def _critique_focus(
     *,
     creative_plan: CreativeExecutionPlan | None,
+    creative_constraints: CreativeConstraintSolution | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -166,6 +183,11 @@ def _critique_focus(
     if creative_plan is not None:
         focus.append(
             "Check output against runtime support, domain scope, and plan constraints."
+        )
+    if creative_constraints is not None:
+        focus.extend(creative_constraints.conflicts[:2])
+        focus.extend(
+            tradeoff.summary for tradeoff in creative_constraints.tradeoffs[:2]
         )
     if artifact_critique_summary is not None:
         focus.append(
@@ -210,11 +232,17 @@ def _next_actions(
     *,
     clarification: ClarificationRequest | None,
     creative_plan: CreativeExecutionPlan | None,
+    creative_constraints: CreativeConstraintSolution | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
     if clarification is not None:
         return ("Ask the listed HITL clarification before generation.",)
+    if creative_constraints is not None and creative_constraints.hitl_advisable:
+        return (
+            creative_constraints.hitl_reason
+            or "Surface the unresolved constraint trade-off before generation.",
+        )
     if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
@@ -237,6 +265,7 @@ def _evidence(
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None,
     creative_plan: CreativeExecutionPlan | None,
+    creative_constraints: CreativeConstraintSolution | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -256,6 +285,14 @@ def _evidence(
     if creative_plan is not None:
         evidence.append(f"Plan complexity: {creative_plan.expected_complexity}.")
         evidence.append(f"Export readiness: {creative_plan.export_readiness}.")
+    if creative_constraints is not None:
+        evidence.append(
+            "Constraint solver: "
+            f"{len(creative_constraints.active_constraints)} active constraint(s)."
+        )
+        evidence.append(
+            f"Runtime fit: {creative_constraints.runtime_fit}."
+        )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")
     if clarification is not None:

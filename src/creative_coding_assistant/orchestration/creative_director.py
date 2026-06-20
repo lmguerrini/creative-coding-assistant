@@ -11,6 +11,9 @@ from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
+from creative_coding_assistant.orchestration.creative_constraints import (
+    CreativeConstraintSolution,
+)
 from creative_coding_assistant.orchestration.creative_director_signals import (
     build_director_brief_payload,
 )
@@ -61,6 +64,7 @@ def derive_creative_assistant_director_brief(
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None,
     creative_plan: CreativeExecutionPlan | None,
+    creative_constraints: CreativeConstraintSolution | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -75,6 +79,7 @@ def derive_creative_assistant_director_brief(
             route_decision=route_decision,
             creative_translation=creative_translation,
             creative_plan=creative_plan,
+            creative_constraints=creative_constraints,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

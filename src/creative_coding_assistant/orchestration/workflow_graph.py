@@ -27,6 +27,9 @@ from creative_coding_assistant.orchestration.artifacts import (
     prepare_workflow_preview_results,
 )
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
+from creative_coding_assistant.orchestration.creative_constraints import (
+    derive_creative_constraint_solution,
+)
 from creative_coding_assistant.orchestration.creative_director import (
     CreativeAssistantDirectorBrief,
     derive_creative_assistant_director_brief,
@@ -538,22 +541,35 @@ def _planning_node(
                 )
             }
 
+        retrieval_chunk_count = (
+            len(prompt_input.retrieval_input.chunks)
+            if prompt_input.retrieval_input is not None
+            else 0
+        )
         plan = derive_creative_execution_plan(
             request=workflow_state.request,
             route_decision=workflow_state.route_decision,
             creative_translation=prompt_input.creative_translation,
-            retrieval_chunk_count=(
-                len(prompt_input.retrieval_input.chunks)
-                if prompt_input.retrieval_input is not None
-                else 0
-            ),
+            retrieval_chunk_count=retrieval_chunk_count,
+        )
+        constraints = derive_creative_constraint_solution(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_translation=prompt_input.creative_translation,
+            creative_plan=plan,
+            clarification=workflow_state.clarification,
+            retrieval_chunk_count=retrieval_chunk_count,
         )
         planned_prompt_input = prompt_input.model_copy(
-            update={"creative_plan": plan}
+            update={
+                "creative_plan": plan,
+                "creative_constraints": constraints,
+            }
         )
         planned_state = workflow_state.model_copy(
             update={
                 "creative_plan": plan,
+                "creative_constraints": constraints,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -562,6 +578,7 @@ def _planning_node(
                 code="creative_plan_prepared",
                 message="Creative execution plan prepared.",
                 creative_plan=plan.model_dump(mode="json"),
+                creative_constraints=constraints.model_dump(mode="json"),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -1190,6 +1207,14 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "creative_constraints",
+                    (
+                        final_state.creative_constraints.model_dump(mode="json")
+                        if final_state.creative_constraints is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_director",
                     (
                         final_state.creative_director.model_dump(mode="json")
@@ -1759,6 +1784,7 @@ def _derive_director_brief(
             prompt_input.creative_translation if prompt_input is not None else None
         ),
         creative_plan=workflow_state.creative_plan,
+        creative_constraints=workflow_state.creative_constraints,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -1982,6 +2008,7 @@ def _serialize_workflow_runtime(
     review_result = workflow_state.review_result
     clarification = workflow_state.clarification
     creative_plan = workflow_state.creative_plan
+    creative_constraints = workflow_state.creative_constraints
     creative_director = workflow_state.creative_director
 
     return {
@@ -2030,6 +2057,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "planning_available": creative_plan is not None,
+        "creative_constraints": (
+            creative_constraints.model_dump(mode="json")
+            if creative_constraints is not None
+            else None
+        ),
+        "constraint_solver_available": creative_constraints is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None
