@@ -23,6 +23,9 @@ from creative_coding_assistant.orchestration.creative_planning import (
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
 )
+from creative_coding_assistant.orchestration.creative_technique import (
+    CreativeTechniqueProfile,
+)
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
@@ -68,6 +71,7 @@ def derive_creative_assistant_director_brief(
     creative_translation: CreativeTranslation | None,
     creative_plan: CreativeExecutionPlan | None,
     creative_strategy: CreativeStrategyProfile | None = None,
+    creative_techniques: CreativeTechniqueProfile | None = None,
     creative_constraints: CreativeConstraintSolution | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
@@ -83,6 +87,7 @@ def derive_creative_assistant_director_brief(
             route_decision=route_decision,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
+            creative_techniques=creative_techniques,
             creative_plan=creative_plan,
             creative_constraints=creative_constraints,
             retrieval_chunk_count=retrieval_chunk_count,

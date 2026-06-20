@@ -221,6 +221,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         )
         final_event = events[-1]
         strategy = planning_event.payload["creative_strategy"]
+        techniques = planning_event.payload["creative_techniques"]
         plan = planning_event.payload["creative_plan"]
         constraints = planning_event.payload["creative_constraints"]
         director = director_event.payload["creative_director"]
@@ -229,6 +230,10 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(director_event.payload["workflow"]["step"], "director")
         self.assertEqual(strategy["role"], "creative_strategy_engine")
         self.assertTrue(planning_event.payload["workflow"]["strategy_available"])
+        self.assertEqual(techniques["role"], "creative_technique_selector")
+        self.assertTrue(
+            planning_event.payload["workflow"]["technique_selector_available"]
+        )
         self.assertEqual(plan["output_modality"], "visual")
         self.assertEqual(plan["recommended_runtime"], "p5")
         self.assertEqual(constraints["role"], "creative_constraint_solver")
@@ -241,6 +246,10 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(
             final_event.payload["creative_strategy"]["role"],
             "creative_strategy_engine",
+        )
+        self.assertEqual(
+            final_event.payload["creative_techniques"]["role"],
+            "creative_technique_selector",
         )
         self.assertEqual(
             final_event.payload["creative_plan"]["recommended_runtime"],

@@ -40,6 +40,9 @@ from creative_coding_assistant.orchestration.creative_planning import (
 from creative_coding_assistant.orchestration.creative_strategy import (
     derive_creative_strategy_profile,
 )
+from creative_coding_assistant.orchestration.creative_technique import (
+    derive_creative_technique_profile,
+)
 from creative_coding_assistant.orchestration.events import StreamEventBuilder
 from creative_coding_assistant.orchestration.prompt_templates import (
     RenderedPromptResponse,
@@ -554,11 +557,18 @@ def _planning_node(
             route_decision=workflow_state.route_decision,
             creative_translation=prompt_input.creative_translation,
         )
+        techniques = derive_creative_technique_profile(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_translation=prompt_input.creative_translation,
+            creative_strategy=strategy,
+        )
         plan = derive_creative_execution_plan(
             request=workflow_state.request,
             route_decision=workflow_state.route_decision,
             creative_translation=prompt_input.creative_translation,
             creative_strategy=strategy,
+            creative_techniques=techniques,
             retrieval_chunk_count=retrieval_chunk_count,
         )
         constraints = derive_creative_constraint_solution(
@@ -567,12 +577,14 @@ def _planning_node(
             creative_translation=prompt_input.creative_translation,
             creative_plan=plan,
             creative_strategy=strategy,
+            creative_techniques=techniques,
             clarification=workflow_state.clarification,
             retrieval_chunk_count=retrieval_chunk_count,
         )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
+                "creative_techniques": techniques,
                 "creative_plan": plan,
                 "creative_constraints": constraints,
             }
@@ -580,6 +592,7 @@ def _planning_node(
         planned_state = workflow_state.model_copy(
             update={
                 "creative_strategy": strategy,
+                "creative_techniques": techniques,
                 "creative_plan": plan,
                 "creative_constraints": constraints,
                 "prompt_input": planned_prompt_input,
@@ -590,6 +603,7 @@ def _planning_node(
                 code="creative_plan_prepared",
                 message="Creative execution plan prepared.",
                 creative_strategy=strategy.model_dump(mode="json"),
+                creative_techniques=techniques.model_dump(mode="json"),
                 creative_plan=plan.model_dump(mode="json"),
                 creative_constraints=constraints.model_dump(mode="json"),
             ),
@@ -1220,6 +1234,14 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "creative_techniques",
+                    (
+                        final_state.creative_techniques.model_dump(mode="json")
+                        if final_state.creative_techniques is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_plan",
                     (
                         final_state.creative_plan.model_dump(mode="json")
@@ -1805,6 +1827,7 @@ def _derive_director_brief(
             prompt_input.creative_translation if prompt_input is not None else None
         ),
         creative_strategy=workflow_state.creative_strategy,
+        creative_techniques=workflow_state.creative_techniques,
         creative_plan=workflow_state.creative_plan,
         creative_constraints=workflow_state.creative_constraints,
         clarification=workflow_state.clarification,
@@ -2030,6 +2053,7 @@ def _serialize_workflow_runtime(
     review_result = workflow_state.review_result
     clarification = workflow_state.clarification
     creative_strategy = workflow_state.creative_strategy
+    creative_techniques = workflow_state.creative_techniques
     creative_plan = workflow_state.creative_plan
     creative_constraints = workflow_state.creative_constraints
     creative_director = workflow_state.creative_director
@@ -2086,6 +2110,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "strategy_available": creative_strategy is not None,
+        "creative_techniques": (
+            creative_techniques.model_dump(mode="json")
+            if creative_techniques is not None
+            else None
+        ),
+        "technique_selector_available": creative_techniques is not None,
         "creative_constraints": (
             creative_constraints.model_dump(mode="json")
             if creative_constraints is not None

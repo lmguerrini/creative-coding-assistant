@@ -28,6 +28,10 @@ from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
     creative_strategy_prompt_lines,
 )
+from creative_coding_assistant.orchestration.creative_technique import (
+    CreativeTechniqueProfile,
+    creative_technique_prompt_lines,
+)
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
     creative_translation_prompt_lines,
@@ -107,6 +111,13 @@ Creative Translation:
 {% if strategy is not none -%}
 Creative Strategy Engine:
 {% for instruction in creative_strategy_lines(strategy) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set techniques = prompt_input.creative_techniques -%}
+{% if techniques is not none -%}
+Creative Technique Selector:
+{% for instruction in creative_technique_lines(techniques) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -352,6 +363,7 @@ class JinjaPromptRenderer:
             image_reference_line=_image_reference_line,
             creative_translation_lines=_creative_translation_lines,
             creative_strategy_lines=_creative_strategy_lines,
+            creative_technique_lines=_creative_technique_lines,
             creative_execution_plan_lines=_creative_execution_plan_lines,
             creative_constraint_solution_lines=_creative_constraint_solution_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
@@ -523,6 +535,12 @@ def _creative_strategy_lines(
     strategy: CreativeStrategyProfile,
 ) -> tuple[str, ...]:
     return creative_strategy_prompt_lines(strategy)
+
+
+def _creative_technique_lines(
+    profile: CreativeTechniqueProfile,
+) -> tuple[str, ...]:
+    return creative_technique_prompt_lines(profile)
 
 
 def _creative_execution_plan_lines(

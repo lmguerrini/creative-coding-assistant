@@ -15,6 +15,9 @@ from creative_coding_assistant.orchestration.creative_planning import (
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
 )
+from creative_coding_assistant.orchestration.creative_technique import (
+    CreativeTechniqueProfile,
+)
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeOutputModality,
     CreativeTranslation,
@@ -107,6 +110,7 @@ def derive_creative_constraint_solution(
     creative_translation: CreativeTranslation | None,
     creative_plan: CreativeExecutionPlan | None,
     creative_strategy: CreativeStrategyProfile | None = None,
+    creative_techniques: CreativeTechniqueProfile | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
 ) -> CreativeConstraintSolution:
@@ -139,6 +143,7 @@ def derive_creative_constraint_solution(
         request=request,
         creative_translation=creative_translation,
         creative_strategy=creative_strategy,
+        creative_techniques=creative_techniques,
         creative_plan=creative_plan,
         runtime_fit=runtime_fit,
         safety_pressure=safety_pressure,
@@ -188,12 +193,14 @@ def derive_creative_constraint_solution(
             safety_pressure=safety_pressure,
             hitl_advisable=hitl_advisable,
             creative_strategy=creative_strategy,
+            creative_techniques=creative_techniques,
         ),
         evidence=_evidence(
             request=request,
             route_decision=route_decision,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
+            creative_techniques=creative_techniques,
             creative_plan=creative_plan,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
@@ -366,6 +373,7 @@ def _active_constraints(
     request: AssistantRequest,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
+    creative_techniques: CreativeTechniqueProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     runtime_fit: RuntimeFit,
     safety_pressure: ConstraintPressure,
@@ -448,6 +456,24 @@ def _active_constraints(
                     "technique selection."
                 ),
                 evidence=creative_strategy.strategy_directives[:3],
+            )
+        )
+    if creative_techniques is not None:
+        constraints.append(
+            CreativeConstraint(
+                axis="complexity",
+                severity=_severity_for_pressure(
+                    creative_techniques.complexity_pressure
+                ),
+                summary=(
+                    "Creative technique: "
+                    f"{creative_techniques.primary_technique}."
+                ),
+                recommendation=(
+                    "Use technique guidance only where it supports the selected "
+                    "strategy and constraints."
+                ),
+                evidence=creative_techniques.implementation_notes[:3],
             )
         )
     return tuple(constraints[:12])
@@ -587,11 +613,18 @@ def _prompt_guidance(
     safety_pressure: ConstraintPressure,
     hitl_advisable: bool,
     creative_strategy: CreativeStrategyProfile | None,
+    creative_techniques: CreativeTechniqueProfile | None,
 ) -> tuple[str, ...]:
     guidance = ["Preserve the user's creative intent while making constraints visible."]
     if creative_strategy is not None:
         guidance.append(
             f"Preserve {creative_strategy.primary_strategy} as high-level strategy."
+        )
+    if creative_techniques is not None:
+        guidance.append(
+            "Use "
+            f"{creative_techniques.primary_technique} "
+            "as bounded technique guidance."
         )
     if creative_plan is not None and creative_plan.recommended_runtime is not None:
         guidance.append(f"Target {creative_plan.recommended_runtime} output.")
@@ -614,6 +647,7 @@ def _evidence(
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
+    creative_techniques: CreativeTechniqueProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
@@ -630,6 +664,10 @@ def _evidence(
         evidence.append(f"Intent: {creative_translation.creative_intent}.")
     if creative_strategy is not None:
         evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
+    if creative_techniques is not None:
+        evidence.append(
+            f"Creative technique: {creative_techniques.primary_technique}."
+        )
     if creative_plan is not None:
         evidence.append(f"Runtime available: {creative_plan.runtime_available}.")
         evidence.append(f"Complexity: {creative_plan.expected_complexity}.")

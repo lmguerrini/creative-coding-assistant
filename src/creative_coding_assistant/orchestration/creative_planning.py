@@ -15,6 +15,9 @@ from creative_coding_assistant.contracts import (
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
 )
+from creative_coding_assistant.orchestration.creative_technique import (
+    CreativeTechniqueProfile,
+)
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeOutputModality,
     CreativeTranslation,
@@ -69,6 +72,7 @@ def derive_creative_execution_plan(
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None = None,
+    creative_techniques: CreativeTechniqueProfile | None = None,
     retrieval_chunk_count: int = 0,
 ) -> CreativeExecutionPlan:
     """Build a deterministic execution plan from existing metadata only."""
@@ -113,6 +117,7 @@ def derive_creative_execution_plan(
             candidate_count=candidate_count,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
+            creative_techniques=creative_techniques,
         ),
         recommended_runtime=support.runtime if support is not None else None,
         recommended_renderer_id=support.renderer_id if support is not None else None,
@@ -140,11 +145,13 @@ def derive_creative_execution_plan(
             candidate_count=candidate_count,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
+            creative_techniques=creative_techniques,
         ),
         constraints=_constraints(
             request=request,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
+            creative_techniques=creative_techniques,
             support=support,
         ),
         evidence=_evidence(
@@ -152,6 +159,7 @@ def derive_creative_execution_plan(
             route_decision=route_decision,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
+            creative_techniques=creative_techniques,
             support=support,
             retrieval_chunk_count=retrieval_chunk_count,
         ),
@@ -391,6 +399,7 @@ def _generation_strategy(
     candidate_count: int,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
+    creative_techniques: CreativeTechniqueProfile | None,
 ) -> str:
     action = (
         "Refine the selected artifact" if request.artifact_refinement else "Generate"
@@ -411,9 +420,14 @@ def _generation_strategy(
         if creative_strategy is not None
         else ""
     )
+    technique = (
+        f" and {creative_techniques.primary_technique} technique guidance"
+        if creative_techniques is not None
+        else ""
+    )
     return (
         f"{action} {target} for a {modality.value} output using {runtime}; "
-        f"optimize for {intent}{strategy}."
+        f"optimize for {intent}{strategy}{technique}."
     )
 
 
@@ -458,6 +472,7 @@ def _plan_steps(
     candidate_count: int,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
+    creative_techniques: CreativeTechniqueProfile | None,
 ) -> tuple[str, ...]:
     steps = [
         "Use the translated creative intent as the source of truth.",
@@ -467,6 +482,10 @@ def _plan_steps(
     if creative_strategy is not None:
         steps.append(
             f"Use {creative_strategy.primary_strategy} as high-level strategy only."
+        )
+    if creative_techniques is not None:
+        steps.append(
+            f"Use {creative_techniques.primary_technique} as technique guidance only."
         )
     if request.clarification_response:
         steps.append(f"Honor clarification answer: {request.clarification_response}.")
@@ -488,12 +507,17 @@ def _constraints(
     request: AssistantRequest,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
+    creative_techniques: CreativeTechniqueProfile | None,
     support: DomainRuntimeSupport | None,
 ) -> tuple[str, ...]:
     constraints: list[str] = []
     if creative_strategy is not None:
         constraints.append(
             "Do not treat creative strategy as runtime or implementation technique."
+        )
+    if creative_techniques is not None:
+        constraints.append(
+            "Do not treat creative technique as runtime or renderer selection."
         )
     if creative_translation is not None:
         constraints.extend(creative_translation.generation_constraints)
@@ -518,6 +542,7 @@ def _evidence(
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
+    creative_techniques: CreativeTechniqueProfile | None,
     support: DomainRuntimeSupport | None,
     retrieval_chunk_count: int,
 ) -> tuple[str, ...]:
@@ -539,6 +564,10 @@ def _evidence(
             evidence.append("Audio-reactive mapping guidance present.")
     if creative_strategy is not None:
         evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
+    if creative_techniques is not None:
+        evidence.append(
+            f"Creative technique: {creative_techniques.primary_technique}."
+        )
     if support is not None:
         evidence.append(f"Runtime support: {support.label}.")
     if retrieval_chunk_count:
