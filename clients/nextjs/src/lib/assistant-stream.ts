@@ -9,6 +9,9 @@ import {
   type ClarificationSummary,
   type CreativeAssistantDirectorSummary,
   type CreativeExecutionPlanSummary,
+  type CreativeStrategyAlternativeSummary,
+  type CreativeStrategyId,
+  type CreativeStrategySummary,
   type CreativeTranslationSummary,
   type RefinementPassRecord,
   type WorkflowNodeId
@@ -83,6 +86,8 @@ export type AssistantStreamWorkflowMetadata = {
   clarification_required?: boolean;
   clarification_reason?: string | null;
   clarification_question_count?: number;
+  creative_strategy?: CreativeStrategySummary | null;
+  strategy_available?: boolean;
   creative_plan?: CreativeExecutionPlanSummary | null;
   planning_available?: boolean;
   creative_constraints?: CreativeConstraintSolverSummary | null;
@@ -479,6 +484,11 @@ export function readWorkflowMetadata(
     typeof rawWorkflow.clarification_question_count === "number"
       ? rawWorkflow.clarification_question_count
       : clarification?.questions.length ?? 0;
+  const creativeStrategy = readCreativeStrategySummary(
+    rawWorkflow.creative_strategy ?? rawWorkflow.creativeStrategy
+  );
+  const strategyAvailable =
+    rawWorkflow.strategy_available === true || creativeStrategy !== null;
   const creativePlan = readCreativeExecutionPlanSummary(
     rawWorkflow.creative_plan ?? rawWorkflow.creativePlan
   );
@@ -527,6 +537,12 @@ export function readWorkflowMetadata(
           clarification_question_count: clarificationQuestionCount
         }
       : {}),
+    ...(strategyAvailable
+      ? {
+          creative_strategy: creativeStrategy,
+          strategy_available: true
+        }
+      : {}),
     ...(planningAvailable
       ? {
           creative_plan: creativePlan,
@@ -546,6 +562,113 @@ export function readWorkflowMetadata(
         }
       : {})
   };
+}
+
+export function readCreativeStrategySummary(
+  value: unknown
+): CreativeStrategySummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const primaryStrategy = readStringUnion(
+    value,
+    "primary_strategy",
+    "primaryStrategy",
+    creativeStrategyIds
+  );
+  const confidence = readFiniteNumberField(value, "confidence");
+  const rationale = readStringField(value, "rationale");
+  const implementationBoundary =
+    readStringField(value, "implementation_boundary") ??
+    readStringField(value, "implementationBoundary");
+  const creativeGoals = readStringListField(
+    value,
+    "creative_goals",
+    "creativeGoals"
+  );
+  const strategyDirectives = readStringListField(
+    value,
+    "strategy_directives",
+    "strategyDirectives"
+  );
+
+  if (
+    role !== "creative_strategy_engine" ||
+    !primaryStrategy ||
+    confidence === null ||
+    !rationale ||
+    !implementationBoundary ||
+    creativeGoals.length === 0 ||
+    strategyDirectives.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    primaryStrategy,
+    confidence,
+    rationale,
+    creativeGoals,
+    symbolicAlignment: readStringListField(
+      value,
+      "symbolic_alignment",
+      "symbolicAlignment"
+    ),
+    alternativeStrategies: readCreativeStrategyAlternativeSummaryList(
+      value.alternative_strategies ?? value.alternativeStrategies
+    ),
+    strategyDirectives,
+    implementationBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const creativeStrategyIds = [
+  "recursive_emergence",
+  "fractal_growth",
+  "particle_cosmology",
+  "cellular_evolution",
+  "sacred_geometry",
+  "field_dynamics",
+  "minimal_generative_systems"
+] as const satisfies readonly CreativeStrategyId[];
+
+function readCreativeStrategyAlternativeSummaryList(
+  value: unknown
+): CreativeStrategyAlternativeSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const strategy = readStringUnion(
+      item,
+      "strategy",
+      "strategy",
+      creativeStrategyIds
+    );
+    const confidence = readFiniteNumberField(item, "confidence");
+    const rationale = readStringField(item, "rationale");
+
+    if (!strategy || confidence === null || !rationale) {
+      return [];
+    }
+
+    return [
+      {
+        strategy,
+        confidence,
+        rationale
+      }
+    ];
+  });
 }
 
 export function readCreativeConstraintSolverSummary(

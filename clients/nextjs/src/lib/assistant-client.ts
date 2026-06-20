@@ -101,6 +101,34 @@ export type CreativeExecutionPlanSummary = {
   evidence: string[];
 };
 
+export type CreativeStrategyId =
+  | "recursive_emergence"
+  | "fractal_growth"
+  | "particle_cosmology"
+  | "cellular_evolution"
+  | "sacred_geometry"
+  | "field_dynamics"
+  | "minimal_generative_systems";
+
+export type CreativeStrategyAlternativeSummary = {
+  strategy: CreativeStrategyId;
+  confidence: number;
+  rationale: string;
+};
+
+export type CreativeStrategySummary = {
+  role: "creative_strategy_engine";
+  primaryStrategy: CreativeStrategyId;
+  confidence: number;
+  rationale: string;
+  creativeGoals: string[];
+  symbolicAlignment: string[];
+  alternativeStrategies: CreativeStrategyAlternativeSummary[];
+  strategyDirectives: string[];
+  implementationBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeConstraintAxis =
   | "intent"
   | "modality"

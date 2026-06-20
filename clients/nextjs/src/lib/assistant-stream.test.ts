@@ -6,6 +6,7 @@ import {
   readClarificationSummary,
   readCreativeConstraintSolverSummary,
   readCreativeExecutionPlanSummary,
+  readCreativeStrategySummary,
   readEventTimestamp,
   readPreviewArtifactUpdate,
   readStreamEventError,
@@ -384,6 +385,27 @@ describe("assistant stream client", () => {
       constraints: ["Keep code browser-safe."],
       evidence: ["Route selected: generate."]
     };
+    const creativeStrategy = {
+      role: "creative_strategy_engine",
+      primary_strategy: "particle_cosmology",
+      confidence: 0.75,
+      rationale: "Particle Cosmology best matches detected signals: particle.",
+      creative_goals: ["Evoke a coherent world through small moving elements."],
+      symbolic_alignment: ["Particle Cosmology", "constellation"],
+      alternative_strategies: [
+        {
+          strategy: "field_dynamics",
+          confidence: 0.51,
+          rationale: "Also relevant because of drift."
+        }
+      ],
+      strategy_directives: [
+        "Frame the concept around collective motion and spatial density."
+      ],
+      implementation_boundary:
+        "The Creative Strategy Engine selects high-level artistic strategy only.",
+      evidence: ["Primary signals: particle."]
+    };
     const creativeConstraints = {
       role: "creative_constraint_solver",
       intent_summary: "Generate a luminous field.",
@@ -456,6 +478,8 @@ describe("assistant stream client", () => {
           artifact_count: 1,
           preview_artifact_count: 0,
           image_reference_count: 1,
+          strategy_available: true,
+          creative_strategy: creativeStrategy,
           planning_available: true,
           creative_plan: creativePlan,
           constraint_solver_available: true,
@@ -489,6 +513,30 @@ describe("assistant stream client", () => {
       artifact_critique_count: 0,
       recommended_artifact_id: null,
       preview_artifact_count: 0,
+      creative_strategy: {
+        role: "creative_strategy_engine",
+        primaryStrategy: "particle_cosmology",
+        confidence: 0.75,
+        rationale: "Particle Cosmology best matches detected signals: particle.",
+        creativeGoals: [
+          "Evoke a coherent world through small moving elements."
+        ],
+        symbolicAlignment: ["Particle Cosmology", "constellation"],
+        alternativeStrategies: [
+          {
+            strategy: "field_dynamics",
+            confidence: 0.51,
+            rationale: "Also relevant because of drift."
+          }
+        ],
+        strategyDirectives: [
+          "Frame the concept around collective motion and spatial density."
+        ],
+        implementationBoundary:
+          "The Creative Strategy Engine selects high-level artistic strategy only.",
+        evidence: ["Primary signals: particle."]
+      },
+      strategy_available: true,
       creative_plan: {
         outputModality: "visual",
         generationStrategy: "Generate one p5 candidate.",
@@ -574,6 +622,28 @@ describe("assistant stream client", () => {
       ]
     });
     expect(workflowNodeFromAssistantStreamEvent(event)).toBe("generation");
+  });
+
+  it("reads creative strategy metadata", () => {
+    const strategy = readCreativeStrategySummary({
+      role: "creative_strategy_engine",
+      primaryStrategy: "sacred_geometry",
+      confidence: 0.83,
+      rationale: "Sacred Geometry best matches detected signals: mandala.",
+      creativeGoals: ["Align form, rhythm, and symmetry."],
+      symbolicAlignment: ["Sacred Geometry", "mandala"],
+      alternativeStrategies: [],
+      strategyDirectives: ["Preserve symbolic structure."],
+      implementationBoundary:
+        "The Creative Strategy Engine selects high-level artistic strategy only.",
+      evidence: ["Primary signals: mandala."]
+    });
+
+    expect(strategy?.role).toBe("creative_strategy_engine");
+    expect(strategy?.primaryStrategy).toBe("sacred_geometry");
+    expect(strategy?.strategyDirectives).toEqual([
+      "Preserve symbolic structure."
+    ]);
   });
 
   it("reads creative constraint solver metadata", () => {
