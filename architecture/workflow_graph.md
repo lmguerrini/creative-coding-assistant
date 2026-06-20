@@ -47,6 +47,7 @@ flowchart TB
         direction TB
         prompt_input["Prompt input<br/>build prompt inputs<br/>complete or skip"]
         planning["Planning<br/>derive creative execution plan<br/>complete or skip"]
+        director["Director<br/>derive bounded assistant-director guidance<br/>complete or skip"]
         prompt_rendering["Prompt rendering<br/>render provider prompt<br/>complete or skip"]
     end
 
@@ -62,7 +63,7 @@ flowchart TB
         failure["Failure<br/>emit final failure answer<br/>mark workflow FAILED"]
     end
 
-    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
+    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
     review -->|"pass or max retry"| finalization --> finish
     review -->|"needs refinement and count < 1"| refinement --> generation
     intake -. intake_error .-> failure
@@ -72,6 +73,7 @@ flowchart TB
     context_assembly -. context_error .-> failure
     prompt_input -. prompt_input_error .-> failure
     planning -. planning_error .-> failure
+    director -. director_error .-> failure
     prompt_rendering -. prompt_rendering_error .-> failure
     generation -. stream_error / provider_error .-> failure
     artifact_extraction -. extraction_error .-> failure
@@ -84,7 +86,7 @@ flowchart TB
 
     class start boundary
     class finish terminal
-    class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
+    class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
     style phase_1 rx:6px,ry:6px
@@ -110,15 +112,16 @@ The raw Mermaid source for the implemented graph is also available in [workflow_
 5. `context_assembly`
 6. `prompt_input`
 7. `planning`
-8. `prompt_rendering`
-9. `generation`
-10. `artifact_extraction`
-11. `preview_preparation`
-12. `artifact_critique`
-13. `review`
-14. `refinement`
-15. `finalization`
-16. `failure`
+8. `director`
+9. `prompt_rendering`
+10. `generation`
+11. `artifact_extraction`
+12. `preview_preparation`
+13. `artifact_critique`
+14. `review`
+15. `refinement`
+16. `finalization`
+17. `failure`
 
 Current transition rules:
 
@@ -143,6 +146,7 @@ Node responsibilities:
 - `context_assembly`: combines memory and retrieval context when a context assembler is configured
 - `prompt_input`: builds prompt inputs when a prompt input builder is configured
 - `planning`: derives `CreativeExecutionPlan`, stores it in workflow state and prompt input metadata, and emits `planning/creative_plan_prepared`
+- `director`: derives bounded `CreativeAssistantDirectorBrief` metadata from route, retrieval, plan, clarification, critique, review, and refinement signals; stores it in workflow state and prompt input metadata; and emits `planning/creative_director_prepared`
 - `prompt_rendering`: renders the final provider prompt when prompt inputs exist
 - `generation`: prepares provider input, forwards generation stream events, and stores the transient `generation_result`
 - `artifact_extraction`: detects generated code artifacts, normalizes workflow artifact metadata, stores `artifacts`, and emits `artifact_extracted`
@@ -164,7 +168,7 @@ There are two layers of runtime state.
 - Starts as `status=running`, `current_step=None`
 - Moves one step at a time through `start_workflow_step()`
 - Resolves each step through `complete_workflow_step()` or `skip_workflow_step()`
-- Stores durable outputs such as `route_decision`, `memory_context`, `retrieval_context`, `assembled_context`, `prompt_input`, `rendered_prompt`, extracted `artifacts`, prepared `preview_results`, `artifact_critique_summary`, and `final_answer`
+- Stores durable outputs such as `route_decision`, `memory_context`, `retrieval_context`, `assembled_context`, `prompt_input`, `creative_director`, `rendered_prompt`, extracted `artifacts`, prepared `preview_results`, `artifact_critique_summary`, and `final_answer`
 - Stores review metadata through `review_result` and `refinement_count`
 - Stores typed failure metadata through `failure_info`
 - Reaches terminal completion only through `finish_workflow()` while `FINALIZATION` is active
@@ -283,6 +287,7 @@ flowchart TB
         context_assembly["Context assembly"]
         prompt_input["Prompt input"]
         planning["Planning"]
+        director["Director"]
         prompt_rendering["Prompt rendering"]
         generation["Generation"]
         artifact_extraction["Artifact extraction"]
@@ -292,7 +297,7 @@ flowchart TB
         refinement["Refinement<br/>max one attempt"]
         finalization["Finalization"]
         failure["Failure"]
-        routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
+        routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
         review -->|"pass or max retry"| finalization
         review -->|"needs refinement"| refinement --> generation
         generation -. provider error .-> failure
@@ -327,7 +332,7 @@ flowchart TB
     review -. human approval .-> hitl
     hitl -. rejoin .-> finalization
 
-    class routing,memory,retrieval,context_assembly,prompt_input,planning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
+    class routing,memory,retrieval,context_assembly,prompt_input,planning,director,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
     class tool_gate,tool_loop,preview,retry,hitl future

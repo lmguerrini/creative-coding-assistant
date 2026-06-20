@@ -784,6 +784,7 @@ class PromptInputContractsTests(unittest.TestCase):
                 StreamEventType.CONTEXT,
                 StreamEventType.PROMPT_INPUT,
                 StreamEventType.PLANNING,
+                StreamEventType.PLANNING,
                 StreamEventType.FINAL,
             ],
         )

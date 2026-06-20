@@ -196,14 +196,15 @@ an implemented LangGraph workflow in
 
 The current workflow order is:
 
-`intake -> routing -> memory -> retrieval -> context_assembly -> prompt_input -> planning -> prompt_rendering -> generation -> artifact_extraction -> preview_preparation -> artifact_critique -> review -> refinement -> finalization -> failure`
+`intake -> routing -> memory -> retrieval -> context_assembly -> prompt_input -> planning -> director -> prompt_rendering -> generation -> artifact_extraction -> preview_preparation -> artifact_critique -> review -> refinement -> finalization -> failure`
 
 Key backend capabilities include:
 
 - domain-aware routing, generation-domain resolution, and request shaping
 - curated official-source retrieval and query grounding
 - conversation memory and memory recording
-- prompt input assembly, deterministic creative planning, and rendered provider prompts
+- prompt input assembly, deterministic creative planning, bounded Director
+  guidance, and rendered provider prompts
 - streamed generation, lifecycle, review, retry, artifact, and preview events
   carrying workflow and telemetry metadata
 - multi-artifact extraction metadata including source order, default selection,

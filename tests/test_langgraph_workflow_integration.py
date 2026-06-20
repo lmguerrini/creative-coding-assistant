@@ -12,6 +12,7 @@ from creative_coding_assistant.contracts import (
 from creative_coding_assistant.core import Settings
 from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
+    ASSISTANT_WORKFLOW_RECURSION_LIMIT,
     AssistantService,
     AssistantWorkflowRuntime,
     StructuredPromptInputBuilder,
@@ -44,6 +45,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "context_assembly",
                 "prompt_input",
                 "planning",
+                "director",
                 "prompt_rendering",
                 "generation",
                 "artifact_extraction",
@@ -80,6 +82,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "context_assembly",
                 "prompt_input",
                 "planning",
+                "director",
                 "prompt_rendering",
                 "generation",
                 "artifact_extraction",
@@ -99,6 +102,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "context_assembly",
                 "prompt_input",
                 "planning",
+                "director",
                 "prompt_rendering",
                 "generation",
                 "artifact_extraction",
@@ -210,24 +214,47 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             StreamEventType.PLANNING,
             "creative_plan_prepared",
         )
+        director_event = _first_event(
+            events,
+            StreamEventType.PLANNING,
+            "creative_director_prepared",
+        )
         final_event = events[-1]
         plan = planning_event.payload["creative_plan"]
+        director = director_event.payload["creative_director"]
 
         self.assertEqual(planning_event.payload["workflow"]["step"], "planning")
+        self.assertEqual(director_event.payload["workflow"]["step"], "director")
         self.assertEqual(plan["output_modality"], "visual")
         self.assertEqual(plan["recommended_runtime"], "p5")
+        self.assertEqual(director["role"], "creative_assistant_director")
+        self.assertEqual(director["runtime_direction"], "p5")
         self.assertEqual(
             final_event.payload["creative_plan"]["recommended_runtime"],
+            "p5",
+        )
+        self.assertEqual(
+            final_event.payload["creative_director"]["runtime_direction"],
             "p5",
         )
         self.assertIn(
             "planning",
             final_event.payload["workflow"]["completed_steps"],
         )
+        self.assertIn(
+            "director",
+            final_event.payload["workflow"]["completed_steps"],
+        )
         _first_transition(
             events,
             StreamEventType.NODE_COMPLETED,
             source="planning",
+            target="director",
+        )
+        _first_transition(
+            events,
+            StreamEventType.NODE_COMPLETED,
+            source="director",
             target="prompt_rendering",
         )
 
@@ -236,6 +263,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         request = _request()
         final_state = graph.invoke(
             build_initial_workflow_graph_state(request),
+            config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
             context={
                 "runtime": _runtime(stream_generation=_stream_completed_generation)
             },
@@ -262,6 +290,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 WorkflowStep.CONTEXT_ASSEMBLY,
                 WorkflowStep.PROMPT_INPUT,
                 WorkflowStep.PLANNING,
+                WorkflowStep.DIRECTOR,
                 WorkflowStep.PROMPT_RENDERING,
                 WorkflowStep.ARTIFACT_EXTRACTION,
                 WorkflowStep.PREVIEW_PREPARATION,
@@ -366,6 +395,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "context_assembly",
                 "prompt_input",
                 "planning",
+                "director",
                 "prompt_rendering",
                 "artifact_extraction",
                 "preview_preparation",
@@ -398,6 +428,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             build_initial_workflow_graph_state(
                 _request(query="Write code for a Three.js scene.")
             ),
+            config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
             context={
                 "runtime": _runtime(stream_generation=generation.stream)
             },
@@ -453,6 +484,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             build_initial_workflow_graph_state(
                 _request(query="Write a p5.js sketch.")
             ),
+            config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
             context={"runtime": _runtime(stream_generation=_single_generation(answer))},
         )
 
@@ -551,6 +583,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
 
         final_state = graph.invoke(
             build_initial_workflow_graph_state(request),
+            config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
             context={
                 "runtime": _runtime(
                     stream_prompt_inputs=_stream_prompt_inputs_with_builder,
@@ -604,6 +637,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             build_initial_workflow_graph_state(
                 _request(query="Generate two candidate sketches.")
             ),
+            config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
             context={"runtime": _runtime(stream_generation=_single_generation(answer))},
         )
 
@@ -677,6 +711,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             build_initial_workflow_graph_state(
                 _request(query="Write code for a Three.js scene.")
             ),
+            config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
             context={
                 "runtime": _runtime(stream_generation=generation.stream)
             },
@@ -823,6 +858,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         )
         final_state = graph.invoke(
             build_initial_workflow_graph_state(request),
+            config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
             context={"runtime": _runtime(route_fn=_failing_route)},
         )
 
@@ -873,6 +909,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         )
         final_state = graph.invoke(
             build_initial_workflow_graph_state(request),
+            config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
             context={"runtime": _runtime(stream_generation=_stream_failed_generation)},
         )
 

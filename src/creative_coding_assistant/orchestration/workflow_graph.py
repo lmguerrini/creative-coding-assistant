@@ -27,6 +27,10 @@ from creative_coding_assistant.orchestration.artifacts import (
     prepare_workflow_preview_results,
 )
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
+from creative_coding_assistant.orchestration.creative_director import (
+    CreativeAssistantDirectorBrief,
+    derive_creative_assistant_director_brief,
+)
 from creative_coding_assistant.orchestration.creative_planning import (
     derive_creative_execution_plan,
 )
@@ -108,6 +112,7 @@ ASSISTANT_WORKFLOW_NODE_ORDER: tuple[str, ...] = (
     "context_assembly",
     "prompt_input",
     "planning",
+    "director",
     "prompt_rendering",
     "generation",
     "artifact_extraction",
@@ -118,6 +123,7 @@ ASSISTANT_WORKFLOW_NODE_ORDER: tuple[str, ...] = (
     "finalization",
     "failure",
 )
+ASSISTANT_WORKFLOW_RECURSION_LIMIT = 40
 
 
 def build_initial_workflow_graph_state(
@@ -138,6 +144,7 @@ def build_assistant_workflow_graph() -> Any:
     graph.add_node("context_assembly", _context_assembly_node)
     graph.add_node("prompt_input", _prompt_input_node)
     graph.add_node("planning", _planning_node)
+    graph.add_node("director", _director_node)
     graph.add_node("prompt_rendering", _prompt_rendering_node)
     graph.add_node("generation", _generation_node)
     graph.add_node("artifact_extraction", _artifact_extraction_node)
@@ -210,6 +217,7 @@ def stream_assistant_workflow_events(
     initial_state = build_initial_workflow_graph_state(request)
     for item in graph.stream(
         initial_state,
+        config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
         context={"runtime": runtime},
         stream_mode="custom",
     ):
@@ -571,6 +579,63 @@ def _planning_node(
             workflow_state=workflow_state,
             runtime=runtime_context,
             step=WorkflowStep.PLANNING,
+            exc=exc,
+        )
+
+
+def _director_node(
+    state: AssistantWorkflowGraphState,
+    runtime: Runtime[AssistantWorkflowGraphContext],
+) -> AssistantWorkflowGraphState:
+    runtime_context = _runtime(runtime)
+    workflow_state = _start_node(
+        _workflow_state(state),
+        runtime_context,
+        WorkflowStep.DIRECTOR,
+    )
+    try:
+        if workflow_state.prompt_input is None or workflow_state.creative_plan is None:
+            return {
+                "workflow_state": _skip_node(
+                    workflow_state,
+                    runtime_context,
+                    WorkflowStep.DIRECTOR,
+                    decision_reason="director_inputs_unavailable",
+                )
+            }
+
+        director = _derive_director_brief(workflow_state)
+        directed_prompt_input = workflow_state.prompt_input.model_copy(
+            update={"creative_director": director}
+        )
+        directed_state = workflow_state.model_copy(
+            update={
+                "creative_director": director,
+                "prompt_input": directed_prompt_input,
+            }
+        )
+        _emit(
+            runtime_context.event_builder.planning(
+                code="creative_director_prepared",
+                message="Creative Assistant Director guidance prepared.",
+                creative_director=director.model_dump(mode="json"),
+            ),
+            workflow_state=directed_state,
+            step=WorkflowStep.DIRECTOR,
+        )
+        return {
+            "workflow_state": _complete_node(
+                directed_state,
+                runtime_context,
+                WorkflowStep.DIRECTOR,
+                decision_reason="creative_director_prepared",
+            )
+        }
+    except Exception as exc:
+        return _handle_workflow_exception(
+            workflow_state=workflow_state,
+            runtime=runtime_context,
+            step=WorkflowStep.DIRECTOR,
             exc=exc,
         )
 
@@ -1071,7 +1136,10 @@ def _finalization_node(
             else None
         )
 
-        final_state = finish_workflow(workflow_state, final_answer=answer)
+        directed_state = workflow_state.model_copy(
+            update={"creative_director": _derive_director_brief(workflow_state)}
+        )
+        final_state = finish_workflow(directed_state, final_answer=answer)
         _emit_node_completed(
             runtime_context,
             final_state,
@@ -1118,6 +1186,14 @@ def _finalization_node(
                     (
                         final_state.creative_plan.model_dump(mode="json")
                         if final_state.creative_plan is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
+                    "creative_director",
+                    (
+                        final_state.creative_director.model_dump(mode="json")
+                        if final_state.creative_director is not None
                         else None
                     ),
                 ),
@@ -1672,6 +1748,29 @@ def _answer_for_review(
     return runtime.build_shell_answer(_route_decision(workflow_state))
 
 
+def _derive_director_brief(
+    workflow_state: AssistantWorkflowState,
+) -> CreativeAssistantDirectorBrief:
+    prompt_input = workflow_state.prompt_input
+    return derive_creative_assistant_director_brief(
+        request=workflow_state.request,
+        route_decision=workflow_state.route_decision,
+        creative_translation=(
+            prompt_input.creative_translation if prompt_input is not None else None
+        ),
+        creative_plan=workflow_state.creative_plan,
+        clarification=workflow_state.clarification,
+        retrieval_chunk_count=(
+            len(prompt_input.retrieval_input.chunks)
+            if prompt_input is not None and prompt_input.retrieval_input is not None
+            else 0
+        ),
+        artifact_critique_summary=workflow_state.artifact_critique_summary,
+        review_result=workflow_state.review_result,
+        refinement_count=workflow_state.refinement_count,
+    )
+
+
 def _failure_info_from_generation_result(
     generation_result: object,
 ) -> WorkflowFailureInfo | None:
@@ -1883,6 +1982,7 @@ def _serialize_workflow_runtime(
     review_result = workflow_state.review_result
     clarification = workflow_state.clarification
     creative_plan = workflow_state.creative_plan
+    creative_director = workflow_state.creative_director
 
     return {
         "step": runtime_step.value if runtime_step is not None else None,
@@ -1930,6 +2030,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "planning_available": creative_plan is not None,
+        "creative_director": (
+            creative_director.model_dump(mode="json")
+            if creative_director is not None
+            else None
+        ),
+        "director_available": creative_director is not None,
         "image_reference_count": len(workflow_state.request.attachments),
         "image_references": [
             {

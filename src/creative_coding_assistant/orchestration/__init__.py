@@ -9,6 +9,7 @@ _CREATIVE_TRANSLATION = (
     "creative_coding_assistant.orchestration.creative_translation"
 )
 _CREATIVE_PLANNING = "creative_coding_assistant.orchestration.creative_planning"
+_CREATIVE_DIRECTOR = "creative_coding_assistant.orchestration.creative_director"
 _AUDIO_REACTIVE = "creative_coding_assistant.orchestration.audio_reactive"
 _CREATIVE_QUALITY = "creative_coding_assistant.orchestration.creative_quality"
 _SACRED_CONSISTENCY = (
@@ -39,6 +40,7 @@ _WORKFLOW_REVIEW = "creative_coding_assistant.orchestration.workflow_review"
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
+    "ASSISTANT_WORKFLOW_RECURSION_LIMIT": _WORKFLOW_GRAPH,
     "AssistantWorkflowGraphState": _WORKFLOW_GRAPH,
     "AssistantWorkflowRuntime": _WORKFLOW_GRAPH,
     "AssistantWorkflowState": _WORKFLOW,
@@ -63,6 +65,7 @@ _EXPORT_MAP = {
     "ClarificationRequest": _CLARIFICATION,
     "CreativeOutputModality": _CREATIVE_TRANSLATION,
     "CreativeExecutionPlan": _CREATIVE_PLANNING,
+    "CreativeAssistantDirectorBrief": _CREATIVE_DIRECTOR,
     "CreativeQualityEvaluation": _ARTIFACTS,
     "CreativeQualityObservation": _ARTIFACTS,
     "CreativeTranslation": _CREATIVE_TRANSLATION,
@@ -156,6 +159,8 @@ _EXPORT_MAP = {
     "derive_creative_translation": _CREATIVE_TRANSLATION,
     "derive_creative_execution_plan": _CREATIVE_PLANNING,
     "creative_execution_plan_prompt_lines": _CREATIVE_PLANNING,
+    "derive_creative_assistant_director_brief": _CREATIVE_DIRECTOR,
+    "creative_assistant_director_prompt_lines": _CREATIVE_DIRECTOR,
     "derive_hitl_clarification": _CLARIFICATION,
     "evaluate_artifact_sacred_consistency": _SACRED_CONSISTENCY,
     "evaluate_artifact_creative_quality": _CREATIVE_QUALITY,

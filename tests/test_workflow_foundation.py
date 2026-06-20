@@ -153,6 +153,14 @@ class WorkflowFoundationTests(unittest.TestCase):
             next_workflow_step(WorkflowStep.REFINEMENT),
             WorkflowStep.FINALIZATION,
         )
+        self.assertEqual(
+            next_workflow_step(WorkflowStep.PLANNING),
+            WorkflowStep.DIRECTOR,
+        )
+        self.assertEqual(
+            next_workflow_step(WorkflowStep.DIRECTOR),
+            WorkflowStep.PROMPT_RENDERING,
+        )
         self.assertIsNone(next_workflow_step(WorkflowStep.FINALIZATION))
 
     def test_workflow_step_can_be_restarted_for_bounded_graph_retries(self) -> None:

@@ -12,6 +12,10 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.domains import get_domain_prompt_guidance
+from creative_coding_assistant.orchestration.creative_director import (
+    CreativeAssistantDirectorBrief,
+    creative_assistant_director_prompt_lines,
+)
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
     creative_execution_plan_prompt_lines,
@@ -94,6 +98,13 @@ Creative Translation:
 {% if prompt_input.creative_plan is not none -%}
 Creative Execution Plan:
 {% for instruction in creative_execution_plan_lines(prompt_input.creative_plan) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set director = prompt_input.creative_director -%}
+{% if director is not none -%}
+Creative Assistant Director:
+{% for instruction in creative_assistant_director_lines(director) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -319,6 +330,7 @@ class JinjaPromptRenderer:
             image_reference_line=_image_reference_line,
             creative_translation_lines=_creative_translation_lines,
             creative_execution_plan_lines=_creative_execution_plan_lines,
+            creative_assistant_director_lines=_creative_assistant_director_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
         )
 
@@ -487,6 +499,12 @@ def _creative_execution_plan_lines(
     plan: CreativeExecutionPlan,
 ) -> tuple[str, ...]:
     return creative_execution_plan_prompt_lines(plan)
+
+
+def _creative_assistant_director_lines(
+    brief: CreativeAssistantDirectorBrief,
+) -> tuple[str, ...]:
+    return creative_assistant_director_prompt_lines(brief)
 
 
 def _domain_guidance_lines(user_input: PromptUserInput) -> tuple[str, ...]:

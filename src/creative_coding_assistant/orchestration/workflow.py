@@ -16,6 +16,9 @@ from creative_coding_assistant.orchestration.artifacts import (
 )
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
+from creative_coding_assistant.orchestration.creative_director import (
+    CreativeAssistantDirectorBrief,
+)
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
@@ -40,6 +43,7 @@ class WorkflowStep(StrEnum):
     CONTEXT_ASSEMBLY = "context_assembly"
     PROMPT_INPUT = "prompt_input"
     PLANNING = "planning"
+    DIRECTOR = "director"
     PROMPT_RENDERING = "prompt_rendering"
     GENERATION = "generation"
     ARTIFACT_EXTRACTION = "artifact_extraction"
@@ -65,6 +69,7 @@ WORKFLOW_STEP_ORDER: tuple[WorkflowStep, ...] = (
     WorkflowStep.CONTEXT_ASSEMBLY,
     WorkflowStep.PROMPT_INPUT,
     WorkflowStep.PLANNING,
+    WorkflowStep.DIRECTOR,
     WorkflowStep.PROMPT_RENDERING,
     WorkflowStep.GENERATION,
     WorkflowStep.ARTIFACT_EXTRACTION,
@@ -118,6 +123,7 @@ class AssistantWorkflowState(BaseModel):
     prompt_input: PromptInputResponse | None = None
     clarification: ClarificationRequest | None = None
     creative_plan: CreativeExecutionPlan | None = None
+    creative_director: CreativeAssistantDirectorBrief | None = None
     rendered_prompt: RenderedPromptResponse | None = None
     artifacts: tuple[WorkflowArtifact, ...] = ()
     preview_results: tuple[PreviewResult, ...] = ()

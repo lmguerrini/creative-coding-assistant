@@ -973,6 +973,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
                 StreamEventType.CONTEXT,
                 StreamEventType.PROMPT_INPUT,
                 StreamEventType.PLANNING,
+                StreamEventType.PLANNING,
                 StreamEventType.PROMPT_RENDERED,
                 StreamEventType.FINAL,
             ],

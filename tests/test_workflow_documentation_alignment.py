@@ -4,7 +4,6 @@ from pathlib import Path
 
 from creative_coding_assistant.orchestration import ASSISTANT_WORKFLOW_NODE_ORDER
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -19,7 +18,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         architecture_doc = (
             REPO_ROOT / "architecture" / "workflow_graph.md"
         ).read_text(encoding="utf-8")
-        marker = "`ASSISTANT_WORKFLOW_NODE_ORDER` is the source of truth for node ordering:"
+        marker = (
+            "`ASSISTANT_WORKFLOW_NODE_ORDER` is the source of truth for node "
+            "ordering:"
+        )
         section = architecture_doc.split(marker, maxsplit=1)[1].split(
             "Current transition rules:",
             maxsplit=1,
@@ -33,18 +35,21 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn(
             "start --> intake --> routing --> memory --> retrieval --> "
             "context_assembly --> prompt_input --> planning --> "
-            "prompt_rendering --> generation",
+            "director --> prompt_rendering --> generation",
             architecture_doc,
         )
 
-    def test_mermaid_source_keeps_planning_between_prompt_input_and_prompt_rendering(
+    def test_mermaid_source_keeps_director_between_planning_and_prompt_rendering(
         self,
     ) -> None:
         mermaid = (
             REPO_ROOT / "architecture" / "workflow_graph.mmd"
         ).read_text(encoding="utf-8")
 
-        self.assertIn("prompt_input --> planning --> prompt_rendering", mermaid)
+        self.assertIn(
+            "prompt_input --> planning --> director --> prompt_rendering",
+            mermaid,
+        )
 
 
 if __name__ == "__main__":

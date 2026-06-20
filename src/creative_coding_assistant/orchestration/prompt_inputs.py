@@ -19,6 +19,9 @@ from creative_coding_assistant.orchestration.clarification import (
     derive_hitl_clarification,
 )
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
+from creative_coding_assistant.orchestration.creative_director import (
+    CreativeAssistantDirectorBrief,
+)
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
@@ -267,6 +270,7 @@ class PromptInputResponse(BaseModel):
     user_input: PromptUserInput
     creative_translation: CreativeTranslation | None = None
     creative_plan: CreativeExecutionPlan | None = None
+    creative_director: CreativeAssistantDirectorBrief | None = None
     clarification: ClarificationRequest | None = None
     memory_input: PromptMemoryInput | None = None
     retrieval_input: PromptRetrievalInput | None = None
