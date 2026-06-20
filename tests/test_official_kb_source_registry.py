@@ -86,7 +86,7 @@ class OfficialKnowledgeBaseSourceRegistryTests(unittest.TestCase):
 
         self.assertEqual(
             [source.source_id for source in sources],
-            ["three_docs", "three_manual", "three_examples"],
+            ["three_docs", "three_manual", "three_manual_effects", "three_examples"],
         )
 
     def test_source_lookup_returns_registered_source(self) -> None:

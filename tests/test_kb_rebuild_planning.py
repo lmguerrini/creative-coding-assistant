@@ -37,7 +37,12 @@ class KnowledgeBaseRebuildPlanningTests(unittest.TestCase):
 
         self.assertEqual(
             plan.source_ids,
-            ("three_docs", "three_manual", "three_examples"),
+            (
+                "three_docs",
+                "three_manual",
+                "three_manual_effects",
+                "three_examples",
+            ),
         )
         self.assertEqual(plan.affected_domains, (CreativeCodingDomain.THREE_JS,))
 
