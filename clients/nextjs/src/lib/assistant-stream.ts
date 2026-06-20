@@ -1,6 +1,11 @@
 import {
   workflowNodeOrder,
   type ArtifactCritique,
+  type CreativeConstraintAxis,
+  type CreativeConstraintSeverity,
+  type CreativeConstraintSolverSummary,
+  type CreativeConstraintSummary,
+  type CreativeConstraintTradeoffSummary,
   type ClarificationSummary,
   type CreativeAssistantDirectorSummary,
   type CreativeExecutionPlanSummary,
@@ -80,6 +85,8 @@ export type AssistantStreamWorkflowMetadata = {
   clarification_question_count?: number;
   creative_plan?: CreativeExecutionPlanSummary | null;
   planning_available?: boolean;
+  creative_constraints?: CreativeConstraintSolverSummary | null;
+  constraint_solver_available?: boolean;
   creative_director?: CreativeAssistantDirectorSummary | null;
   director_available?: boolean;
 };
@@ -477,6 +484,12 @@ export function readWorkflowMetadata(
   );
   const planningAvailable =
     rawWorkflow.planning_available === true || creativePlan !== null;
+  const creativeConstraints = readCreativeConstraintSolverSummary(
+    rawWorkflow.creative_constraints ?? rawWorkflow.creativeConstraints
+  );
+  const constraintSolverAvailable =
+    rawWorkflow.constraint_solver_available === true ||
+    creativeConstraints !== null;
   const creativeDirector = readCreativeAssistantDirectorSummary(
     rawWorkflow.creative_director ?? rawWorkflow.creativeDirector
   );
@@ -520,6 +533,12 @@ export function readWorkflowMetadata(
           planning_available: true
         }
       : {}),
+    ...(constraintSolverAvailable
+      ? {
+          creative_constraints: creativeConstraints,
+          constraint_solver_available: true
+        }
+      : {}),
     ...(directorAvailable
       ? {
           creative_director: creativeDirector,
@@ -527,6 +546,213 @@ export function readWorkflowMetadata(
         }
       : {})
   };
+}
+
+export function readCreativeConstraintSolverSummary(
+  value: unknown
+): CreativeConstraintSolverSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const intentSummary =
+    readStringField(value, "intent_summary") ??
+    readStringField(value, "intentSummary");
+  const outputGoal =
+    readStringField(value, "output_goal") ??
+    readStringField(value, "outputGoal");
+  const runtimeFit = readStringUnion(value, "runtime_fit", "runtimeFit", [
+    "supported",
+    "code_only",
+    "undetermined"
+  ]);
+  const complexityPressure = readStringUnion(
+    value,
+    "complexity_pressure",
+    "complexityPressure",
+    ["low", "medium", "high"]
+  );
+  const safetyPressure = readStringUnion(
+    value,
+    "safety_pressure",
+    "safetyPressure",
+    ["low", "medium", "high"]
+  );
+  const performancePressure = readStringUnion(
+    value,
+    "performance_pressure",
+    "performancePressure",
+    ["low", "medium", "high"]
+  );
+  const costPressure = readStringUnion(
+    value,
+    "cost_pressure",
+    "costPressure",
+    ["low", "medium", "high"]
+  );
+  const hitlAdvisable =
+    readBooleanField(value, "hitl_advisable") ??
+    readBooleanField(value, "hitlAdvisable");
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+  const activeConstraints = readCreativeConstraintSummaryList(
+    value.active_constraints ?? value.activeConstraints
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+
+  if (
+    role !== "creative_constraint_solver" ||
+    !intentSummary ||
+    !outputGoal ||
+    !runtimeFit ||
+    !complexityPressure ||
+    !safetyPressure ||
+    !performancePressure ||
+    !costPressure ||
+    hitlAdvisable === null ||
+    !authorityBoundary ||
+    activeConstraints.length === 0 ||
+    promptGuidance.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    intentSummary,
+    outputGoal,
+    modality: readStringField(value, "modality"),
+    runtimeFit,
+    recommendedRuntime:
+      readStringField(value, "recommended_runtime") ??
+      readStringField(value, "recommendedRuntime"),
+    complexityPressure,
+    safetyPressure,
+    performancePressure,
+    costPressure,
+    hitlAdvisable,
+    hitlReason:
+      readStringField(value, "hitl_reason") ??
+      readStringField(value, "hitlReason"),
+    activeConstraints,
+    tradeoffs: readCreativeConstraintTradeoffSummaryList(value.tradeoffs),
+    conflicts: readStringListField(value, "conflicts", "conflicts"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const creativeConstraintAxes = [
+  "intent",
+  "modality",
+  "runtime",
+  "safety",
+  "performance",
+  "complexity",
+  "cost",
+  "hitl",
+  "output_goal"
+] as const satisfies readonly CreativeConstraintAxis[];
+
+const creativeConstraintSeverities = [
+  "info",
+  "watch",
+  "risk",
+  "blocking"
+] as const satisfies readonly CreativeConstraintSeverity[];
+
+function readCreativeConstraintSummaryList(
+  value: unknown
+): CreativeConstraintSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const axis = readStringUnion(item, "axis", "axis", creativeConstraintAxes);
+    const severity = readStringUnion(
+      item,
+      "severity",
+      "severity",
+      creativeConstraintSeverities
+    );
+    const summary = readStringField(item, "summary");
+    const recommendation = readStringField(item, "recommendation");
+
+    if (!axis || !severity || !summary || !recommendation) {
+      return [];
+    }
+
+    return [
+      {
+        axis,
+        severity,
+        summary,
+        recommendation,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readCreativeConstraintTradeoffSummaryList(
+  value: unknown
+): CreativeConstraintTradeoffSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const sourceAxis = readStringUnion(
+      item,
+      "source_axis",
+      "sourceAxis",
+      creativeConstraintAxes
+    );
+    const targetAxis = readStringUnion(
+      item,
+      "target_axis",
+      "targetAxis",
+      creativeConstraintAxes
+    );
+    const severity = readStringUnion(
+      item,
+      "severity",
+      "severity",
+      creativeConstraintSeverities
+    );
+    const summary = readStringField(item, "summary");
+    const recommendation = readStringField(item, "recommendation");
+
+    if (!sourceAxis || !targetAxis || !severity || !summary || !recommendation) {
+      return [];
+    }
+
+    return [
+      {
+        sourceAxis,
+        targetAxis,
+        severity,
+        summary,
+        recommendation
+      }
+    ];
+  });
 }
 
 export function readCreativeExecutionPlanSummary(

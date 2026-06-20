@@ -4,6 +4,7 @@ import {
   decodeAssistantStream,
   parseAssistantStreamLine,
   readClarificationSummary,
+  readCreativeConstraintSolverSummary,
   readCreativeExecutionPlanSummary,
   readEventTimestamp,
   readPreviewArtifactUpdate,
@@ -383,6 +384,42 @@ describe("assistant stream client", () => {
       constraints: ["Keep code browser-safe."],
       evidence: ["Route selected: generate."]
     };
+    const creativeConstraints = {
+      role: "creative_constraint_solver",
+      intent_summary: "Generate a luminous field.",
+      output_goal: "Generate one p5 candidate.",
+      modality: "visual",
+      runtime_fit: "supported",
+      recommended_runtime: "p5",
+      complexity_pressure: "medium",
+      safety_pressure: "low",
+      performance_pressure: "medium",
+      cost_pressure: "low",
+      hitl_advisable: false,
+      hitl_reason: null,
+      active_constraints: [
+        {
+          axis: "runtime",
+          severity: "info",
+          summary: "p5.js browser preview is available.",
+          recommendation: "Use p5 through surface.p5.",
+          evidence: ["recommended_runtime: p5"]
+        }
+      ],
+      tradeoffs: [
+        {
+          source_axis: "complexity",
+          target_axis: "performance",
+          severity: "watch",
+          summary: "Keep effects bounded.",
+          recommendation: "Reduce particle count before adding candidates."
+        }
+      ],
+      conflicts: [],
+      prompt_guidance: ["Target p5 output."],
+      authority_boundary: "The solver structures trade-offs for inspection.",
+      evidence: ["Route selected: generate."]
+    };
     const creativeDirector = {
       role: "creative_assistant_director",
       creative_brief: "Generate a luminous field.",
@@ -421,6 +458,8 @@ describe("assistant stream client", () => {
           image_reference_count: 1,
           planning_available: true,
           creative_plan: creativePlan,
+          constraint_solver_available: true,
+          creative_constraints: creativeConstraints,
           director_available: true,
           creative_director: creativeDirector,
           image_references: [
@@ -469,6 +508,43 @@ describe("assistant stream client", () => {
         evidence: ["Route selected: generate."]
       },
       planning_available: true,
+      creative_constraints: {
+        role: "creative_constraint_solver",
+        intentSummary: "Generate a luminous field.",
+        outputGoal: "Generate one p5 candidate.",
+        modality: "visual",
+        runtimeFit: "supported",
+        recommendedRuntime: "p5",
+        complexityPressure: "medium",
+        safetyPressure: "low",
+        performancePressure: "medium",
+        costPressure: "low",
+        hitlAdvisable: false,
+        hitlReason: null,
+        activeConstraints: [
+          {
+            axis: "runtime",
+            severity: "info",
+            summary: "p5.js browser preview is available.",
+            recommendation: "Use p5 through surface.p5.",
+            evidence: ["recommended_runtime: p5"]
+          }
+        ],
+        tradeoffs: [
+          {
+            sourceAxis: "complexity",
+            targetAxis: "performance",
+            severity: "watch",
+            summary: "Keep effects bounded.",
+            recommendation: "Reduce particle count before adding candidates."
+          }
+        ],
+        conflicts: [],
+        promptGuidance: ["Target p5 output."],
+        authorityBoundary: "The solver structures trade-offs for inspection.",
+        evidence: ["Route selected: generate."]
+      },
+      constraint_solver_available: true,
       creative_director: {
         role: "creative_assistant_director",
         creativeBrief: "Generate a luminous field.",
@@ -498,6 +574,40 @@ describe("assistant stream client", () => {
       ]
     });
     expect(workflowNodeFromAssistantStreamEvent(event)).toBe("generation");
+  });
+
+  it("reads creative constraint solver metadata", () => {
+    const solution = readCreativeConstraintSolverSummary({
+      role: "creative_constraint_solver",
+      intentSummary: "Generate a luminous field.",
+      outputGoal: "Generate one p5 candidate.",
+      runtimeFit: "supported",
+      recommendedRuntime: "p5",
+      complexityPressure: "medium",
+      safetyPressure: "low",
+      performancePressure: "medium",
+      costPressure: "low",
+      hitlAdvisable: false,
+      activeConstraints: [
+        {
+          axis: "runtime",
+          severity: "info",
+          summary: "p5.js browser preview is available.",
+          recommendation: "Use p5 through surface.p5.",
+          evidence: ["recommendedRuntime: p5"]
+        }
+      ],
+      tradeoffs: [],
+      conflicts: [],
+      promptGuidance: ["Target p5 output."],
+      authorityBoundary: "The solver structures trade-offs for inspection.",
+      evidence: ["Route selected: generate."]
+    });
+
+    expect(solution?.role).toBe("creative_constraint_solver");
+    expect(solution?.runtimeFit).toBe("supported");
+    expect(solution?.activeConstraints[0]?.axis).toBe("runtime");
+    expect(solution?.promptGuidance).toEqual(["Target p5 output."]);
   });
 
   it("reads creative execution plans from planning events", () => {

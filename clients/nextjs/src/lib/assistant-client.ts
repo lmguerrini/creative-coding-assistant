@@ -101,6 +101,58 @@ export type CreativeExecutionPlanSummary = {
   evidence: string[];
 };
 
+export type CreativeConstraintAxis =
+  | "intent"
+  | "modality"
+  | "runtime"
+  | "safety"
+  | "performance"
+  | "complexity"
+  | "cost"
+  | "hitl"
+  | "output_goal";
+
+export type CreativeConstraintSeverity = "info" | "watch" | "risk" | "blocking";
+
+export type CreativeConstraintPressure = "low" | "medium" | "high";
+
+export type CreativeConstraintSummary = {
+  axis: CreativeConstraintAxis;
+  severity: CreativeConstraintSeverity;
+  summary: string;
+  recommendation: string;
+  evidence: string[];
+};
+
+export type CreativeConstraintTradeoffSummary = {
+  sourceAxis: CreativeConstraintAxis;
+  targetAxis: CreativeConstraintAxis;
+  severity: CreativeConstraintSeverity;
+  summary: string;
+  recommendation: string;
+};
+
+export type CreativeConstraintSolverSummary = {
+  role: "creative_constraint_solver";
+  intentSummary: string;
+  outputGoal: string;
+  modality: string | null;
+  runtimeFit: "supported" | "code_only" | "undetermined";
+  recommendedRuntime: string | null;
+  complexityPressure: CreativeConstraintPressure;
+  safetyPressure: CreativeConstraintPressure;
+  performancePressure: CreativeConstraintPressure;
+  costPressure: CreativeConstraintPressure;
+  hitlAdvisable: boolean;
+  hitlReason: string | null;
+  activeConstraints: CreativeConstraintSummary[];
+  tradeoffs: CreativeConstraintTradeoffSummary[];
+  conflicts: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeAssistantDirectorSummary = {
   role: "creative_assistant_director";
   creativeBrief: string;
