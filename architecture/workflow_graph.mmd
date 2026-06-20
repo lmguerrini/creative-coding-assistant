@@ -24,6 +24,7 @@ flowchart TB
     subgraph phase_3["Phase 3: Prompt preparation"]
         direction TB
         prompt_input["Prompt input<br/>build prompt inputs<br/>complete or skip"]
+        planning["Planning<br/>derive creative execution plan<br/>complete or skip"]
         prompt_rendering["Prompt rendering<br/>render provider prompt<br/>complete or skip"]
     end
 
@@ -39,7 +40,7 @@ flowchart TB
         failure["Failure<br/>emit final failure answer<br/>mark workflow FAILED"]
     end
 
-    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
+    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
     review -->|"pass or max retry"| finalization --> finish
     review -->|"needs refinement and count < 1"| refinement --> generation
     intake -. intake_error .-> failure
@@ -48,6 +49,7 @@ flowchart TB
     retrieval -. retrieval_error .-> failure
     context_assembly -. context_error .-> failure
     prompt_input -. prompt_input_error .-> failure
+    planning -. planning_error .-> failure
     prompt_rendering -. prompt_rendering_error .-> failure
     generation -. stream_error / provider_error .-> failure
     artifact_extraction -. extraction_error .-> failure
@@ -60,7 +62,7 @@ flowchart TB
 
     class start boundary
     class finish terminal
-    class intake,routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
+    class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
     style phase_1 rx:6px,ry:6px

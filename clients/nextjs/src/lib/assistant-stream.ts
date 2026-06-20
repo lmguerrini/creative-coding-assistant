@@ -1,10 +1,11 @@
-import type {
-  ArtifactCritique,
-  ClarificationSummary,
-  CreativeExecutionPlanSummary,
-  CreativeTranslationSummary,
-  RefinementPassRecord,
-  WorkflowNodeId
+import {
+  workflowNodeOrder,
+  type ArtifactCritique,
+  type ClarificationSummary,
+  type CreativeExecutionPlanSummary,
+  type CreativeTranslationSummary,
+  type RefinementPassRecord,
+  type WorkflowNodeId
 } from "./assistant-client";
 import type { AssistantRequestImageAttachment } from "./multimodal-attachments";
 import {
@@ -1072,21 +1073,4 @@ function parseImageReferenceMetadataList(
   });
 }
 
-const workflowNodeIds = new Set<WorkflowNodeId>([
-  "intake",
-  "routing",
-  "memory",
-  "retrieval",
-  "context_assembly",
-  "prompt_input",
-  "planning",
-  "prompt_rendering",
-  "generation",
-  "artifact_extraction",
-  "preview_preparation",
-  "artifact_critique",
-  "review",
-  "refinement",
-  "finalization",
-  "failure"
-]);
+const workflowNodeIds = new Set<WorkflowNodeId>(workflowNodeOrder);

@@ -19,6 +19,60 @@ describe("workflow runtime model", () => {
     });
   });
 
+  it("preserves explicit planning transition metadata", () => {
+    const workflow = getLocalWorkspaceSnapshot().workflow;
+    const traceEvents: WorkflowRuntimeTraceEvent[] = [
+      traceEvent({
+        at: "2026-05-22T09:59:00Z",
+        currentStep: "planning",
+        event_type: "node_started",
+        sequence: 0,
+        step: "planning"
+      }),
+      traceEvent({
+        at: "2026-05-22T09:59:01Z",
+        code: "creative_plan_prepared",
+        currentStep: "planning",
+        event_type: "planning",
+        sequence: 1,
+        step: "planning"
+      }),
+      traceEvent({
+        at: "2026-05-22T09:59:02Z",
+        completedSteps: ["planning"],
+        currentStep: null,
+        decisionReason: "creative_plan_prepared",
+        event_type: "node_completed",
+        phase: "completed",
+        sequence: 2,
+        step: "planning",
+        transitionSource: "planning",
+        transitionTarget: "prompt_rendering"
+      }),
+      traceEvent({
+        at: "2026-05-22T09:59:03Z",
+        completedSteps: ["planning"],
+        currentStep: "prompt_rendering",
+        event_type: "node_started",
+        sequence: 3,
+        step: "prompt_rendering"
+      })
+    ];
+
+    const runtime = buildWorkflowRuntimeModel(workflow, traceEvents);
+    const planningTransition = runtime.transitions.find(
+      (transition) =>
+        transition.fromNodeId === "planning" &&
+        transition.toNodeId === "prompt_rendering"
+    );
+
+    expect(planningTransition).toMatchObject({
+      kind: "advance",
+      label: "Planning -> Prompt rendering",
+      reason: "creative_plan_prepared"
+    });
+  });
+
   it("derives retries, timing, and completed review steps from explicit graph events", () => {
     const workflow = getLocalWorkspaceSnapshot().workflow;
     const skippedSteps = [

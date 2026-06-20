@@ -35,6 +35,25 @@ export type WorkflowNodeId =
   | "finalization"
   | "failure";
 
+export const workflowNodeOrder = [
+  "intake",
+  "routing",
+  "memory",
+  "retrieval",
+  "context_assembly",
+  "prompt_input",
+  "planning",
+  "prompt_rendering",
+  "generation",
+  "artifact_extraction",
+  "preview_preparation",
+  "artifact_critique",
+  "review",
+  "refinement",
+  "finalization",
+  "failure"
+] as const satisfies readonly WorkflowNodeId[];
+
 export type WorkflowStepState = {
   nodeId: WorkflowNodeId;
   displayLabel: string;

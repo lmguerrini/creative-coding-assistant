@@ -1,7 +1,8 @@
-import type {
-  AssistantWorkspaceSnapshot,
-  WorkflowNodeId,
-  WorkflowStepState
+import {
+  workflowNodeOrder,
+  type AssistantWorkspaceSnapshot,
+  type WorkflowNodeId,
+  type WorkflowStepState
 } from "./assistant-client";
 import {
   readEventTimestamp,
@@ -635,23 +636,7 @@ function isRetryMarkerEvent(
   return nodeId === "generation" && event.event_type === "generation_input";
 }
 
-const workflowNodeIds = new Set<string>([
-  "intake",
-  "routing",
-  "memory",
-  "retrieval",
-  "context_assembly",
-  "prompt_input",
-  "prompt_rendering",
-  "generation",
-  "artifact_extraction",
-  "preview_preparation",
-  "artifact_critique",
-  "review",
-  "refinement",
-  "finalization",
-  "failure"
-]);
+const workflowNodeIds = new Set<string>(workflowNodeOrder);
 
 function readWorkflowNodeId(value: unknown): WorkflowNodeId | null {
   return typeof value === "string" && workflowNodeIds.has(value)

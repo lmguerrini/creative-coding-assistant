@@ -10,7 +10,7 @@ This document describes the real LangGraph workflow currently executed by the ba
 
 ## Current Implemented Flow
 
-The graph is compiled once in `AssistantService.__init__()` and executed through `graph.stream(..., stream_mode="custom")`. Control flow is linear through generation, workflow-owned artifact extraction, preview preparation, and artifact critique before `review`, where the graph applies a bounded quality gate. Passing outputs continue to `finalization`; failing outputs enter one `refinement` attempt and loop back to `generation`. Explicit provider failures and caught node errors route into a terminal `failure` node.
+The graph is compiled once in `AssistantService.__init__()` and executed through `graph.stream(..., stream_mode="custom")`. Control flow is linear through prompt input, deterministic planning, prompt rendering, generation, workflow-owned artifact extraction, preview preparation, and artifact critique before `review`, where the graph applies a bounded quality gate. Passing outputs continue to `finalization`; failing outputs enter one `refinement` attempt and loop back to `generation`. Explicit provider failures and caught node errors route into a terminal `failure` node.
 
 In the diagrams below:
 
@@ -46,6 +46,7 @@ flowchart TB
     subgraph phase_3["Phase 3: Prompt preparation"]
         direction TB
         prompt_input["Prompt input<br/>build prompt inputs<br/>complete or skip"]
+        planning["Planning<br/>derive creative execution plan<br/>complete or skip"]
         prompt_rendering["Prompt rendering<br/>render provider prompt<br/>complete or skip"]
     end
 
@@ -61,7 +62,7 @@ flowchart TB
         failure["Failure<br/>emit final failure answer<br/>mark workflow FAILED"]
     end
 
-    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
+    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
     review -->|"pass or max retry"| finalization --> finish
     review -->|"needs refinement and count < 1"| refinement --> generation
     intake -. intake_error .-> failure
@@ -70,6 +71,7 @@ flowchart TB
     retrieval -. retrieval_error .-> failure
     context_assembly -. context_error .-> failure
     prompt_input -. prompt_input_error .-> failure
+    planning -. planning_error .-> failure
     prompt_rendering -. prompt_rendering_error .-> failure
     generation -. stream_error / provider_error .-> failure
     artifact_extraction -. extraction_error .-> failure
@@ -82,7 +84,7 @@ flowchart TB
 
     class start boundary
     class finish terminal
-    class intake,routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
+    class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
     style phase_1 rx:6px,ry:6px
@@ -107,15 +109,16 @@ The raw Mermaid source for the implemented graph is also available in [workflow_
 4. `retrieval`
 5. `context_assembly`
 6. `prompt_input`
-7. `prompt_rendering`
-8. `generation`
-9. `artifact_extraction`
-10. `preview_preparation`
-11. `artifact_critique`
-12. `review`
-13. `refinement`
-14. `finalization`
-15. `failure`
+7. `planning`
+8. `prompt_rendering`
+9. `generation`
+10. `artifact_extraction`
+11. `preview_preparation`
+12. `artifact_critique`
+13. `review`
+14. `refinement`
+15. `finalization`
+16. `failure`
 
 Current transition rules:
 
@@ -139,6 +142,7 @@ Node responsibilities:
 - `retrieval`: calls the retrieval step generator and either stores `retrieval_context` or skips the step
 - `context_assembly`: combines memory and retrieval context when a context assembler is configured
 - `prompt_input`: builds prompt inputs when a prompt input builder is configured
+- `planning`: derives `CreativeExecutionPlan`, stores it in workflow state and prompt input metadata, and emits `planning/creative_plan_prepared`
 - `prompt_rendering`: renders the final provider prompt when prompt inputs exist
 - `generation`: prepares provider input, forwards generation stream events, and stores the transient `generation_result`
 - `artifact_extraction`: detects generated code artifacts, normalizes workflow artifact metadata, stores `artifacts`, and emits `artifact_extracted`
@@ -227,6 +231,7 @@ What actually flows through the stream:
 - `retrieval` emits `retrieval`
 - `context_assembly` emits `context`
 - `prompt_input` emits `prompt_input`
+- `planning` emits `planning`
 - `prompt_rendering` emits `prompt_rendered`
 - `generation` emits `generation_input`, `token_delta`, and possibly `error`
 - `artifact_extraction` emits `artifact_extracted` when code artifacts are detected
@@ -251,7 +256,7 @@ Important stream guarantees:
 
 Current implemented flow:
 
-- Linear path through generation, artifact extraction, preview preparation, artifact critique, and `review`
+- Linear path through prompt input, planning, prompt rendering, generation, artifact extraction, preview preparation, artifact critique, and `review`
 - Conditional review edge
 - Bounded one-attempt refinement loop
 - Workflow-owned artifact extraction, preview metadata preparation, and artifact critique metadata
@@ -277,6 +282,7 @@ flowchart TB
         retrieval["Retrieval"]
         context_assembly["Context assembly"]
         prompt_input["Prompt input"]
+        planning["Planning"]
         prompt_rendering["Prompt rendering"]
         generation["Generation"]
         artifact_extraction["Artifact extraction"]
@@ -286,7 +292,7 @@ flowchart TB
         refinement["Refinement<br/>max one attempt"]
         finalization["Finalization"]
         failure["Failure"]
-        routing --> memory --> retrieval --> context_assembly --> prompt_input --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
+        routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
         review -->|"pass or max retry"| finalization
         review -->|"needs refinement"| refinement --> generation
         generation -. provider error .-> failure
@@ -321,7 +327,7 @@ flowchart TB
     review -. human approval .-> hitl
     hitl -. rejoin .-> finalization
 
-    class routing,memory,retrieval,context_assembly,prompt_input,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
+    class routing,memory,retrieval,context_assembly,prompt_input,planning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
     class tool_gate,tool_loop,preview,retry,hitl future
