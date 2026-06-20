@@ -25,6 +25,7 @@ export type WorkflowNodeId =
   | "context_assembly"
   | "prompt_input"
   | "planning"
+  | "director"
   | "prompt_rendering"
   | "generation"
   | "artifact_extraction"
@@ -43,6 +44,7 @@ export const workflowNodeOrder = [
   "context_assembly",
   "prompt_input",
   "planning",
+  "director",
   "prompt_rendering",
   "generation",
   "artifact_extraction",
@@ -96,6 +98,24 @@ export type CreativeExecutionPlanSummary = {
   runtimeSupportSummary: string;
   planSteps: string[];
   constraints: string[];
+  evidence: string[];
+};
+
+export type CreativeAssistantDirectorSummary = {
+  role: "creative_assistant_director";
+  creativeBrief: string;
+  ambiguityLevel: "low" | "medium" | "high";
+  ambiguitySignals: string[];
+  retrievalPosture: "not_requested" | "useful" | "available";
+  modalityDirection: string | null;
+  runtimeDirection: string | null;
+  planningFocus: string[];
+  critiqueFocus: string[];
+  refinementFocus: string[];
+  nextActions: string[];
+  hitlRequired: boolean;
+  hitlReason: string | null;
+  authorityBoundary: string;
   evidence: string[];
 };
 
@@ -711,6 +731,12 @@ export function getInitialWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
           detail: "Prepare a deterministic execution plan before generation."
         },
         {
+          nodeId: "director",
+          displayLabel: "Director",
+          state: "queued",
+          detail: "Prepare bounded creative decision support for the run."
+        },
+        {
           nodeId: "prompt_rendering",
           displayLabel: "Prompt rendering",
           state: "queued",
@@ -941,6 +967,12 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
           displayLabel: "Planning",
           state: "complete",
           detail: "Execution strategy and runtime plan prepared."
+        },
+        {
+          nodeId: "director",
+          displayLabel: "Director",
+          state: "complete",
+          detail: "Creative Assistant Director guidance prepared."
         },
         {
           nodeId: "prompt_rendering",

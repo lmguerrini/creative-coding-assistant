@@ -2,6 +2,7 @@ import {
   workflowNodeOrder,
   type ArtifactCritique,
   type ClarificationSummary,
+  type CreativeAssistantDirectorSummary,
   type CreativeExecutionPlanSummary,
   type CreativeTranslationSummary,
   type RefinementPassRecord,
@@ -79,6 +80,8 @@ export type AssistantStreamWorkflowMetadata = {
   clarification_question_count?: number;
   creative_plan?: CreativeExecutionPlanSummary | null;
   planning_available?: boolean;
+  creative_director?: CreativeAssistantDirectorSummary | null;
+  director_available?: boolean;
 };
 
 export type AssistantPreviewArtifactStatus =
@@ -196,7 +199,8 @@ const streamEventWorkflowNodes: Partial<
     prompt_inputs_prepared: "prompt_input"
   },
   planning: {
-    creative_plan_prepared: "planning"
+    creative_plan_prepared: "planning",
+    creative_director_prepared: "director"
   },
   prompt_rendered: {
     prompt_rendered: "prompt_rendering"
@@ -473,6 +477,11 @@ export function readWorkflowMetadata(
   );
   const planningAvailable =
     rawWorkflow.planning_available === true || creativePlan !== null;
+  const creativeDirector = readCreativeAssistantDirectorSummary(
+    rawWorkflow.creative_director ?? rawWorkflow.creativeDirector
+  );
+  const directorAvailable =
+    rawWorkflow.director_available === true || creativeDirector !== null;
 
   if (
     (phase !== "running" && phase !== "completed" && phase !== "failed") ||
@@ -509,6 +518,12 @@ export function readWorkflowMetadata(
       ? {
           creative_plan: creativePlan,
           planning_available: true
+        }
+      : {}),
+    ...(directorAvailable
+      ? {
+          creative_director: creativeDirector,
+          director_available: true
         }
       : {})
   };
@@ -595,6 +610,90 @@ export function readCreativeExecutionPlanSummary(
     runtimeSupportSummary,
     planSteps: readStringListField(value, "plan_steps", "planSteps"),
     constraints: readStringListField(value, "constraints", "constraints"),
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+export function readCreativeAssistantDirectorSummary(
+  value: unknown
+): CreativeAssistantDirectorSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const creativeBrief =
+    readStringField(value, "creative_brief") ??
+    readStringField(value, "creativeBrief");
+  const ambiguityLevel = readStringUnion(
+    value,
+    "ambiguity_level",
+    "ambiguityLevel",
+    ["low", "medium", "high"]
+  );
+  const retrievalPosture = readStringUnion(
+    value,
+    "retrieval_posture",
+    "retrievalPosture",
+    ["not_requested", "useful", "available"]
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+  const hitlRequired =
+    readBooleanField(value, "hitl_required") ??
+    readBooleanField(value, "hitlRequired");
+  const nextActions = readStringListField(
+    value,
+    "next_actions",
+    "nextActions"
+  );
+
+  if (
+    role !== "creative_assistant_director" ||
+    !creativeBrief ||
+    !ambiguityLevel ||
+    !retrievalPosture ||
+    !authorityBoundary ||
+    hitlRequired === null ||
+    nextActions.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    creativeBrief,
+    ambiguityLevel,
+    ambiguitySignals: readStringListField(
+      value,
+      "ambiguity_signals",
+      "ambiguitySignals"
+    ),
+    retrievalPosture,
+    modalityDirection:
+      readStringField(value, "modality_direction") ??
+      readStringField(value, "modalityDirection"),
+    runtimeDirection:
+      readStringField(value, "runtime_direction") ??
+      readStringField(value, "runtimeDirection"),
+    planningFocus: readStringListField(
+      value,
+      "planning_focus",
+      "planningFocus"
+    ),
+    critiqueFocus: readStringListField(value, "critique_focus", "critiqueFocus"),
+    refinementFocus: readStringListField(
+      value,
+      "refinement_focus",
+      "refinementFocus"
+    ),
+    nextActions,
+    hitlRequired,
+    hitlReason:
+      readStringField(value, "hitl_reason") ??
+      readStringField(value, "hitlReason"),
+    authorityBoundary,
     evidence: readStringListField(value, "evidence", "evidence")
   };
 }

@@ -266,73 +266,78 @@ describe("assistant stream client", () => {
         payload: { code: "creative_plan_prepared" }
       },
       {
-        event_type: "prompt_rendered",
+        event_type: "planning",
         sequence: 3,
+        payload: { code: "creative_director_prepared" }
+      },
+      {
+        event_type: "prompt_rendered",
+        sequence: 4,
         payload: { code: "prompt_rendered" }
       },
       {
         event_type: "token_delta",
-        sequence: 4,
+        sequence: 5,
         payload: { text: "Hello" }
       },
       {
         event_type: "node_started",
-        sequence: 4,
+        sequence: 6,
         payload: { code: "node_started", node: "review" }
       },
       {
         event_type: "review_failed",
-        sequence: 5,
+        sequence: 7,
         payload: { code: "review_failed" }
       },
       {
         event_type: "refinement_requested",
-        sequence: 6,
+        sequence: 8,
         payload: { code: "refinement_requested" }
       },
       {
         event_type: "retry_started",
-        sequence: 7,
+        sequence: 9,
         payload: { code: "retry_started" }
       },
       {
         event_type: "refinement_completed",
-        sequence: 8,
+        sequence: 10,
         payload: { code: "refinement_completed" }
       },
       {
         event_type: "node_completed",
-        sequence: 9,
+        sequence: 11,
         payload: { code: "node_completed", node: "refinement" }
       },
       {
         event_type: "retry_completed",
-        sequence: 10,
+        sequence: 12,
         payload: { code: "retry_completed" }
       },
       {
         event_type: "review_passed",
-        sequence: 11,
+        sequence: 13,
         payload: { code: "review_passed" }
       },
       {
         event_type: "node_failed",
-        sequence: 12,
+        sequence: 14,
         payload: { code: "node_failed", node: "generation" }
       },
       {
         event_type: "artifact_extracted",
-        sequence: 13,
+        sequence: 15,
         payload: { code: "artifact_extracted" }
       },
       {
         event_type: "preview_artifact",
-        sequence: 14,
+        sequence: 16,
         payload: { code: "preview_artifact_prepared", status: "succeeded" }
       },
       {
         event_type: "final",
-        sequence: 15,
+        sequence: 17,
         payload: { answer: "Done." }
       }
     ];
@@ -341,6 +346,7 @@ describe("assistant stream client", () => {
       "intake",
       "routing",
       "planning",
+      "director",
       "prompt_rendering",
       "generation",
       "review",
@@ -377,6 +383,23 @@ describe("assistant stream client", () => {
       constraints: ["Keep code browser-safe."],
       evidence: ["Route selected: generate."]
     };
+    const creativeDirector = {
+      role: "creative_assistant_director",
+      creative_brief: "Generate a luminous field.",
+      ambiguity_level: "low",
+      ambiguity_signals: [],
+      retrieval_posture: "available",
+      modality_direction: "visual",
+      runtime_direction: "p5",
+      planning_focus: ["Generate one p5 candidate."],
+      critique_focus: ["Check output against runtime support."],
+      refinement_focus: ["Use bounded refinement only for concrete gaps."],
+      next_actions: ["Render the prompt and continue."],
+      hitl_required: false,
+      hitl_reason: null,
+      authority_boundary: "The user remains the Creative Director.",
+      evidence: ["Route selected: generate."]
+    };
     const event: AssistantStreamEvent = {
       event_type: "generation_input",
       sequence: 2,
@@ -398,6 +421,8 @@ describe("assistant stream client", () => {
           image_reference_count: 1,
           planning_available: true,
           creative_plan: creativePlan,
+          director_available: true,
+          creative_director: creativeDirector,
           image_references: [
             {
               id: "image-reference-1",
@@ -444,6 +469,24 @@ describe("assistant stream client", () => {
         evidence: ["Route selected: generate."]
       },
       planning_available: true,
+      creative_director: {
+        role: "creative_assistant_director",
+        creativeBrief: "Generate a luminous field.",
+        ambiguityLevel: "low",
+        ambiguitySignals: [],
+        retrievalPosture: "available",
+        modalityDirection: "visual",
+        runtimeDirection: "p5",
+        planningFocus: ["Generate one p5 candidate."],
+        critiqueFocus: ["Check output against runtime support."],
+        refinementFocus: ["Use bounded refinement only for concrete gaps."],
+        nextActions: ["Render the prompt and continue."],
+        hitlRequired: false,
+        hitlReason: null,
+        authorityBoundary: "The user remains the Creative Director.",
+        evidence: ["Route selected: generate."]
+      },
+      director_available: true,
       image_reference_count: 1,
       image_references: [
         {

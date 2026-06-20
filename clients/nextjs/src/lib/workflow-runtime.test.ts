@@ -19,7 +19,7 @@ describe("workflow runtime model", () => {
     });
   });
 
-  it("preserves explicit planning transition metadata", () => {
+  it("preserves explicit planning and director transition metadata", () => {
     const workflow = getLocalWorkspaceSnapshot().workflow;
     const traceEvents: WorkflowRuntimeTraceEvent[] = [
       traceEvent({
@@ -47,14 +47,43 @@ describe("workflow runtime model", () => {
         sequence: 2,
         step: "planning",
         transitionSource: "planning",
-        transitionTarget: "prompt_rendering"
+        transitionTarget: "director"
       }),
       traceEvent({
         at: "2026-05-22T09:59:03Z",
         completedSteps: ["planning"],
-        currentStep: "prompt_rendering",
+        currentStep: "director",
         event_type: "node_started",
         sequence: 3,
+        step: "director"
+      }),
+      traceEvent({
+        at: "2026-05-22T09:59:04Z",
+        code: "creative_director_prepared",
+        completedSteps: ["planning"],
+        currentStep: "director",
+        event_type: "planning",
+        sequence: 4,
+        step: "director"
+      }),
+      traceEvent({
+        at: "2026-05-22T09:59:05Z",
+        completedSteps: ["planning", "director"],
+        currentStep: null,
+        decisionReason: "creative_director_prepared",
+        event_type: "node_completed",
+        phase: "completed",
+        sequence: 5,
+        step: "director",
+        transitionSource: "director",
+        transitionTarget: "prompt_rendering"
+      }),
+      traceEvent({
+        at: "2026-05-22T09:59:06Z",
+        completedSteps: ["planning", "director"],
+        currentStep: "prompt_rendering",
+        event_type: "node_started",
+        sequence: 6,
         step: "prompt_rendering"
       })
     ];
@@ -63,13 +92,23 @@ describe("workflow runtime model", () => {
     const planningTransition = runtime.transitions.find(
       (transition) =>
         transition.fromNodeId === "planning" &&
+        transition.toNodeId === "director"
+    );
+    const directorTransition = runtime.transitions.find(
+      (transition) =>
+        transition.fromNodeId === "director" &&
         transition.toNodeId === "prompt_rendering"
     );
 
     expect(planningTransition).toMatchObject({
       kind: "advance",
-      label: "Planning -> Prompt rendering",
+      label: "Planning -> Director",
       reason: "creative_plan_prepared"
+    });
+    expect(directorTransition).toMatchObject({
+      kind: "advance",
+      label: "Director -> Prompt rendering",
+      reason: "creative_director_prepared"
     });
   });
 

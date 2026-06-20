@@ -1026,7 +1026,7 @@ describe("WorkstationShell", () => {
     );
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
-    ).toHaveAttribute("aria-valuetext", "0 of 15 workflow nodes reached");
+    ).toHaveAttribute("aria-valuetext", "0 of 16 workflow nodes reached");
 
     fireEvent.click(
       screen.getByRole("button", {
@@ -1260,7 +1260,7 @@ describe("WorkstationShell", () => {
     );
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
-    ).toHaveAttribute("aria-valuetext", "9 of 15 workflow nodes reached");
+    ).toHaveAttribute("aria-valuetext", "10 of 16 workflow nodes reached");
     expect(screen.queryByRole("tabpanel", { name: "Code inspector" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tabpanel", { name: "Preview inspector" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Review" })).not.toBeInTheDocument();
@@ -1617,7 +1617,7 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Overview" }));
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
-    ).toHaveAttribute("aria-valuenow", "15");
+    ).toHaveAttribute("aria-valuenow", "16");
     const planningSummary = screen.getByRole("group", {
       name: "Planning summary"
     });
@@ -4472,7 +4472,7 @@ describe("WorkstationShell", () => {
     expect(screen.getByLabelText("Workflow execution summary")).toBeVisible();
     expect(
       screen.getByRole("progressbar", { name: "Workflow inspector progress" })
-    ).toHaveAttribute("aria-valuetext", "9 of 15 workflow nodes reached");
+    ).toHaveAttribute("aria-valuetext", "10 of 16 workflow nodes reached");
     expect(within(graph).getByText("Generation")).toBeVisible();
     expect(within(graph).getByText("Generation").closest("article")).toHaveAttribute(
       "aria-current",

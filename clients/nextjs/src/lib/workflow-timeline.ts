@@ -72,6 +72,7 @@ const eventLabels: Record<string, string> = {
   context_assembled: "Context assembled",
   prompt_inputs_prepared: "Prompt inputs prepared",
   creative_plan_prepared: "Creative plan prepared",
+  creative_director_prepared: "Director guidance prepared",
   prompt_rendered: "Prompt assembled",
   generation_input_prepared: "Provider generation started",
   artifact_extracted: "Artifact extraction completed",
