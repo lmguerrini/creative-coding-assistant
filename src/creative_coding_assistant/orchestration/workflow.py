@@ -25,6 +25,9 @@ from creative_coding_assistant.orchestration.creative_director import (
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
+from creative_coding_assistant.orchestration.creative_strategy import (
+    CreativeStrategyProfile,
+)
 from creative_coding_assistant.orchestration.memory import MemoryContextResponse
 from creative_coding_assistant.orchestration.prompt_inputs import PromptInputResponse
 from creative_coding_assistant.orchestration.prompt_templates import (
@@ -125,6 +128,7 @@ class AssistantWorkflowState(BaseModel):
     assembled_context: AssembledContextResponse | None = None
     prompt_input: PromptInputResponse | None = None
     clarification: ClarificationRequest | None = None
+    creative_strategy: CreativeStrategyProfile | None = None
     creative_plan: CreativeExecutionPlan | None = None
     creative_constraints: CreativeConstraintSolution | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None

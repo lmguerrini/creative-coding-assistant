@@ -12,6 +12,9 @@ from creative_coding_assistant.contracts import (
     AssistantRequest,
     CreativeCodingDomain,
 )
+from creative_coding_assistant.orchestration.creative_strategy import (
+    CreativeStrategyProfile,
+)
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeOutputModality,
     CreativeTranslation,
@@ -65,6 +68,7 @@ def derive_creative_execution_plan(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None,
+    creative_strategy: CreativeStrategyProfile | None = None,
     retrieval_chunk_count: int = 0,
 ) -> CreativeExecutionPlan:
     """Build a deterministic execution plan from existing metadata only."""
@@ -108,6 +112,7 @@ def derive_creative_execution_plan(
             support=support,
             candidate_count=candidate_count,
             creative_translation=creative_translation,
+            creative_strategy=creative_strategy,
         ),
         recommended_runtime=support.runtime if support is not None else None,
         recommended_renderer_id=support.renderer_id if support is not None else None,
@@ -134,16 +139,19 @@ def derive_creative_execution_plan(
             support=support,
             candidate_count=candidate_count,
             creative_translation=creative_translation,
+            creative_strategy=creative_strategy,
         ),
         constraints=_constraints(
             request=request,
             creative_translation=creative_translation,
+            creative_strategy=creative_strategy,
             support=support,
         ),
         evidence=_evidence(
             request=request,
             route_decision=route_decision,
             creative_translation=creative_translation,
+            creative_strategy=creative_strategy,
             support=support,
             retrieval_chunk_count=retrieval_chunk_count,
         ),
@@ -382,6 +390,7 @@ def _generation_strategy(
     support: DomainRuntimeSupport | None,
     candidate_count: int,
     creative_translation: CreativeTranslation | None,
+    creative_strategy: CreativeStrategyProfile | None,
 ) -> str:
     action = (
         "Refine the selected artifact" if request.artifact_refinement else "Generate"
@@ -397,9 +406,14 @@ def _generation_strategy(
         if creative_translation is not None
         else "the user request"
     )
+    strategy = (
+        f" with {creative_strategy.primary_strategy} as the high-level strategy"
+        if creative_strategy is not None
+        else ""
+    )
     return (
         f"{action} {target} for a {modality.value} output using {runtime}; "
-        f"optimize for {intent}."
+        f"optimize for {intent}{strategy}."
     )
 
 
@@ -443,12 +457,17 @@ def _plan_steps(
     support: DomainRuntimeSupport | None,
     candidate_count: int,
     creative_translation: CreativeTranslation | None,
+    creative_strategy: CreativeStrategyProfile | None,
 ) -> tuple[str, ...]:
     steps = [
         "Use the translated creative intent as the source of truth.",
         f"Produce {candidate_count} {modality.value} candidate"
         f"{'' if candidate_count == 1 else 's'} without planning-time code.",
     ]
+    if creative_strategy is not None:
+        steps.append(
+            f"Use {creative_strategy.primary_strategy} as high-level strategy only."
+        )
     if request.clarification_response:
         steps.append(f"Honor clarification answer: {request.clarification_response}.")
     if creative_translation and creative_translation.reference_fusion is not None:
@@ -468,9 +487,14 @@ def _constraints(
     *,
     request: AssistantRequest,
     creative_translation: CreativeTranslation | None,
+    creative_strategy: CreativeStrategyProfile | None,
     support: DomainRuntimeSupport | None,
 ) -> tuple[str, ...]:
     constraints: list[str] = []
+    if creative_strategy is not None:
+        constraints.append(
+            "Do not treat creative strategy as runtime or implementation technique."
+        )
     if creative_translation is not None:
         constraints.extend(creative_translation.generation_constraints)
         if creative_translation.reference_fusion is not None:
@@ -493,6 +517,7 @@ def _evidence(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None,
+    creative_strategy: CreativeStrategyProfile | None,
     support: DomainRuntimeSupport | None,
     retrieval_chunk_count: int,
 ) -> tuple[str, ...]:
@@ -512,6 +537,8 @@ def _evidence(
             evidence.append("Sacred geometry guidance present.")
         if creative_translation.audio_reactive is not None:
             evidence.append("Audio-reactive mapping guidance present.")
+    if creative_strategy is not None:
+        evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
     if support is not None:
         evidence.append(f"Runtime support: {support.label}.")
     if retrieval_chunk_count:

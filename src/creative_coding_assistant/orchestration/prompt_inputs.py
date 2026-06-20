@@ -28,6 +28,9 @@ from creative_coding_assistant.orchestration.creative_director import (
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
+from creative_coding_assistant.orchestration.creative_strategy import (
+    CreativeStrategyProfile,
+)
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
     derive_creative_translation,
@@ -272,6 +275,7 @@ class PromptInputResponse(BaseModel):
     request: PromptInputRequest
     user_input: PromptUserInput
     creative_translation: CreativeTranslation | None = None
+    creative_strategy: CreativeStrategyProfile | None = None
     creative_plan: CreativeExecutionPlan | None = None
     creative_constraints: CreativeConstraintSolution | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None

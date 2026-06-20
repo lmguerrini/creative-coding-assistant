@@ -13,6 +13,9 @@ from creative_coding_assistant.orchestration.creative_constraints import (
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
+from creative_coding_assistant.orchestration.creative_strategy import (
+    CreativeStrategyProfile,
+)
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
@@ -31,6 +34,7 @@ def build_director_brief_payload(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None,
+    creative_strategy: CreativeStrategyProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     creative_constraints: CreativeConstraintSolution | None,
     clarification: ClarificationRequest | None,
@@ -55,9 +59,14 @@ def build_director_brief_payload(
             creative_plan.output_modality.value if creative_plan is not None else None
         ),
         "runtime_direction": _runtime_direction(creative_plan),
-        "planning_focus": _planning_focus(creative_plan, creative_constraints),
+        "planning_focus": _planning_focus(
+            creative_plan,
+            creative_strategy,
+            creative_constraints,
+        ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
+            creative_strategy=creative_strategy,
             creative_constraints=creative_constraints,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
@@ -80,6 +89,7 @@ def build_director_brief_payload(
             request=request,
             route_decision=route_decision,
             creative_translation=creative_translation,
+            creative_strategy=creative_strategy,
             creative_plan=creative_plan,
             creative_constraints=creative_constraints,
             retrieval_chunk_count=retrieval_chunk_count,
@@ -153,9 +163,13 @@ def _runtime_direction(plan: CreativeExecutionPlan | None) -> str | None:
 
 def _planning_focus(
     plan: CreativeExecutionPlan | None,
+    creative_strategy: CreativeStrategyProfile | None,
     creative_constraints: CreativeConstraintSolution | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
+    if creative_strategy is not None:
+        focus.append(f"High-level strategy: {creative_strategy.primary_strategy}.")
+        focus.extend(creative_strategy.strategy_directives[:2])
     if creative_constraints is not None:
         focus.extend(creative_constraints.prompt_guidance[:2])
     if plan is None:
@@ -175,6 +189,7 @@ def _planning_focus(
 def _critique_focus(
     *,
     creative_plan: CreativeExecutionPlan | None,
+    creative_strategy: CreativeStrategyProfile | None,
     creative_constraints: CreativeConstraintSolution | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
@@ -184,6 +199,8 @@ def _critique_focus(
         focus.append(
             "Check output against runtime support, domain scope, and plan constraints."
         )
+    if creative_strategy is not None:
+        focus.append(f"Strategy rationale: {creative_strategy.rationale}")
     if creative_constraints is not None:
         focus.extend(creative_constraints.conflicts[:2])
         focus.extend(
@@ -264,6 +281,7 @@ def _evidence(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None,
+    creative_strategy: CreativeStrategyProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     creative_constraints: CreativeConstraintSolution | None,
     retrieval_chunk_count: int,
@@ -282,6 +300,9 @@ def _evidence(
             )
     if creative_translation is not None:
         evidence.append(f"Creative intent: {creative_translation.creative_intent}.")
+    if creative_strategy is not None:
+        evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
+        evidence.append(f"Strategy confidence: {creative_strategy.confidence:.2f}.")
     if creative_plan is not None:
         evidence.append(f"Plan complexity: {creative_plan.expected_complexity}.")
         evidence.append(f"Export readiness: {creative_plan.export_readiness}.")
