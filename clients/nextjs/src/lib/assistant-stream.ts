@@ -17,6 +17,11 @@ import {
   type CreativeTechniqueId,
   type CreativeTechniquePressure,
   type CreativeTechniqueSummary,
+  type CreativeTradeoffAxis,
+  type CreativeTradeoffExplorerSummary,
+  type CreativeTradeoffPressure,
+  type CreativeTradeoffSeverity,
+  type CreativeTradeoffSummary,
   type CreativeTranslationSummary,
   type RefinementPassRecord,
   type RuntimeCapabilityCandidateSummary,
@@ -107,6 +112,8 @@ export type AssistantStreamWorkflowMetadata = {
   constraint_solver_available?: boolean;
   runtime_capabilities?: RuntimeCapabilityReasonerSummary | null;
   runtime_capability_reasoner_available?: boolean;
+  creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
+  tradeoff_explorer_available?: boolean;
   creative_director?: CreativeAssistantDirectorSummary | null;
   director_available?: boolean;
 };
@@ -527,6 +534,12 @@ export function readWorkflowMetadata(
   const runtimeCapabilityReasonerAvailable =
     rawWorkflow.runtime_capability_reasoner_available === true ||
     runtimeCapabilities !== null;
+  const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
+    rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
+  );
+  const tradeoffExplorerAvailable =
+    rawWorkflow.tradeoff_explorer_available === true ||
+    creativeTradeoffs !== null;
   const creativeDirector = readCreativeAssistantDirectorSummary(
     rawWorkflow.creative_director ?? rawWorkflow.creativeDirector
   );
@@ -592,6 +605,12 @@ export function readWorkflowMetadata(
       ? {
           runtime_capabilities: runtimeCapabilities,
           runtime_capability_reasoner_available: true
+        }
+      : {}),
+    ...(tradeoffExplorerAvailable
+      ? {
+          creative_tradeoffs: creativeTradeoffs,
+          tradeoff_explorer_available: true
         }
       : {}),
     ...(directorAvailable
@@ -1080,6 +1099,223 @@ function readRuntimeCapabilityCandidateSummaryList(
         limitations,
         risks,
         promptGuidance,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+export function readCreativeTradeoffExplorerSummary(
+  value: unknown
+): CreativeTradeoffExplorerSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const outputGoal =
+    readStringField(value, "output_goal") ??
+    readStringField(value, "outputGoal");
+  const primaryTradeoffs = readCreativeTradeoffSummaryList(
+    value.primary_tradeoffs ?? value.primaryTradeoffs
+  );
+  const creativeBenefits = readStringListField(
+    value,
+    "creative_benefits",
+    "creativeBenefits"
+  );
+  const technicalCosts = readStringListField(
+    value,
+    "technical_costs",
+    "technicalCosts"
+  );
+  const costSensitivity = readStringUnion(
+    value,
+    "cost_sensitivity",
+    "costSensitivity",
+    creativeTradeoffPressures
+  );
+  const hitlAdvisable =
+    readBooleanField(value, "hitl_advisable") ??
+    readBooleanField(value, "hitlAdvisable");
+  const directorDiscussionPoints = readStringListField(
+    value,
+    "director_discussion_points",
+    "directorDiscussionPoints"
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "creative_tradeoff_explorer" ||
+    !outputGoal ||
+    primaryTradeoffs.length === 0 ||
+    creativeBenefits.length === 0 ||
+    technicalCosts.length === 0 ||
+    !costSensitivity ||
+    hitlAdvisable === null ||
+    directorDiscussionPoints.length === 0 ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    outputGoal,
+    primaryTradeoffs,
+    creativeBenefits,
+    technicalCosts,
+    runtimeRisks: readStringListField(
+      value,
+      "runtime_risks",
+      "runtimeRisks"
+    ),
+    performanceConcerns: readStringListField(
+      value,
+      "performance_concerns",
+      "performanceConcerns"
+    ),
+    complexityRisks: readStringListField(
+      value,
+      "complexity_risks",
+      "complexityRisks"
+    ),
+    fidelityRisks: readStringListField(
+      value,
+      "fidelity_risks",
+      "fidelityRisks"
+    ),
+    costSensitivity,
+    safetyConcerns: readStringListField(
+      value,
+      "safety_concerns",
+      "safetyConcerns"
+    ),
+    maintainabilityConcerns: readStringListField(
+      value,
+      "maintainability_concerns",
+      "maintainabilityConcerns"
+    ),
+    hitlAdvisable,
+    hitlReason:
+      readStringField(value, "hitl_reason") ??
+      readStringField(value, "hitlReason"),
+    directorDiscussionPoints,
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const creativeTradeoffAxes = [
+  "creative_expressiveness",
+  "concept_fidelity",
+  "implementation_complexity",
+  "performance",
+  "runtime_support",
+  "previewability",
+  "cost_sensitivity",
+  "safety",
+  "maintainability",
+  "hitl"
+] as const satisfies readonly CreativeTradeoffAxis[];
+
+const creativeTradeoffSeverities = [
+  "info",
+  "watch",
+  "risk",
+  "blocking"
+] as const satisfies readonly CreativeTradeoffSeverity[];
+
+const creativeTradeoffPressures = [
+  "low",
+  "medium",
+  "high"
+] as const satisfies readonly CreativeTradeoffPressure[];
+
+function readCreativeTradeoffSummaryList(
+  value: unknown
+): CreativeTradeoffSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const sourceAxis = readStringUnion(
+      item,
+      "source_axis",
+      "sourceAxis",
+      creativeTradeoffAxes
+    );
+    const targetAxis = readStringUnion(
+      item,
+      "target_axis",
+      "targetAxis",
+      creativeTradeoffAxes
+    );
+    const severity = readStringUnion(
+      item,
+      "severity",
+      "severity",
+      creativeTradeoffSeverities
+    );
+    const summary = readStringField(item, "summary");
+    const creativeBenefit =
+      readStringField(item, "creative_benefit") ??
+      readStringField(item, "creativeBenefit");
+    const technicalCost =
+      readStringField(item, "technical_cost") ??
+      readStringField(item, "technicalCost");
+    const runtimeImplication =
+      readStringField(item, "runtime_implication") ??
+      readStringField(item, "runtimeImplication");
+    const mitigation = readStringField(item, "mitigation");
+    const directorDiscussionPoint =
+      readStringField(item, "director_discussion_point") ??
+      readStringField(item, "directorDiscussionPoint");
+    const hitlRecommended =
+      readBooleanField(item, "hitl_recommended") ??
+      readBooleanField(item, "hitlRecommended");
+
+    if (
+      !sourceAxis ||
+      !targetAxis ||
+      !severity ||
+      !summary ||
+      !creativeBenefit ||
+      !technicalCost ||
+      !runtimeImplication ||
+      !mitigation ||
+      !directorDiscussionPoint ||
+      hitlRecommended === null
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        sourceAxis,
+        targetAxis,
+        severity,
+        summary,
+        creativeBenefit,
+        technicalCost,
+        runtimeImplication,
+        mitigation,
+        directorDiscussionPoint,
+        hitlRecommended,
         evidence: readStringListField(item, "evidence", "evidence")
       }
     ];

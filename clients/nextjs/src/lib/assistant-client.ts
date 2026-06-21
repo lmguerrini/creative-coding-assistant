@@ -223,6 +223,61 @@ export type RuntimeCapabilityReasonerSummary = {
   evidence: string[];
 };
 
+export type CreativeTradeoffAxis =
+  | "creative_expressiveness"
+  | "concept_fidelity"
+  | "implementation_complexity"
+  | "performance"
+  | "runtime_support"
+  | "previewability"
+  | "cost_sensitivity"
+  | "safety"
+  | "maintainability"
+  | "hitl";
+
+export type CreativeTradeoffSeverity =
+  | "info"
+  | "watch"
+  | "risk"
+  | "blocking";
+
+export type CreativeTradeoffPressure = "low" | "medium" | "high";
+
+export type CreativeTradeoffSummary = {
+  sourceAxis: CreativeTradeoffAxis;
+  targetAxis: CreativeTradeoffAxis;
+  severity: CreativeTradeoffSeverity;
+  summary: string;
+  creativeBenefit: string;
+  technicalCost: string;
+  runtimeImplication: string;
+  mitigation: string;
+  directorDiscussionPoint: string;
+  hitlRecommended: boolean;
+  evidence: string[];
+};
+
+export type CreativeTradeoffExplorerSummary = {
+  role: "creative_tradeoff_explorer";
+  outputGoal: string;
+  primaryTradeoffs: CreativeTradeoffSummary[];
+  creativeBenefits: string[];
+  technicalCosts: string[];
+  runtimeRisks: string[];
+  performanceConcerns: string[];
+  complexityRisks: string[];
+  fidelityRisks: string[];
+  costSensitivity: CreativeTradeoffPressure;
+  safetyConcerns: string[];
+  maintainabilityConcerns: string[];
+  hitlAdvisable: boolean;
+  hitlReason: string | null;
+  directorDiscussionPoints: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeConstraintAxis =
   | "intent"
   | "modality"

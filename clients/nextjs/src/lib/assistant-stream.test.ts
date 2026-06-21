@@ -8,6 +8,7 @@ import {
   readCreativeExecutionPlanSummary,
   readCreativeStrategySummary,
   readCreativeTechniqueSummary,
+  readCreativeTradeoffExplorerSummary,
   readEventTimestamp,
   readPreviewArtifactUpdate,
   readRuntimeCapabilityReasonerSummary,
@@ -505,6 +506,51 @@ describe("assistant stream client", () => {
         "The Runtime Capability Reasoner evaluates runtime fit for inspection only.",
       evidence: ["Top runtime scores: p5_js=12."]
     };
+    const creativeTradeoffs = {
+      role: "creative_tradeoff_explorer",
+      output_goal: "Generate one p5 candidate.",
+      primary_tradeoffs: [
+        {
+          source_axis: "creative_expressiveness",
+          target_axis: "implementation_complexity",
+          severity: "risk",
+          summary:
+            "Expressive strategy and technique choices can increase implementation scope.",
+          creative_benefit:
+            "Particle cosmology with particle systems preserves a distinct direction.",
+          technical_cost:
+            "Requires managing plan complexity medium and technique complexity medium.",
+          runtime_implication:
+            "p5.js has strong suitability and backend preview support.",
+          mitigation:
+            "Keep the selected strategy visible while bounding the number of systems.",
+          director_discussion_point:
+            "Should the output prioritize richness or a simpler implementation?",
+          hitl_recommended: false,
+          evidence: ["Strategy: particle_cosmology."]
+        }
+      ],
+      creative_benefits: ["Fits the selected creative technique."],
+      technical_costs: ["Expected complexity: medium."],
+      runtime_risks: ["High performance pressure requires bounded effect scope."],
+      performance_concerns: ["Technique performance pressure: high."],
+      complexity_risks: ["Plan complexity is medium."],
+      fidelity_risks: [],
+      cost_sensitivity: "low",
+      safety_concerns: [],
+      maintainability_concerns: ["Keep particle_systems behavior readable."],
+      hitl_advisable: false,
+      hitl_reason: null,
+      director_discussion_points: [
+        "Should the output prioritize richness or a simpler implementation?"
+      ],
+      prompt_guidance: [
+        "Use trade-off metadata to explain consequences, not to select an outcome."
+      ],
+      authority_boundary:
+        "The Creative Trade-off Explorer structures consequences and discussion points only.",
+      evidence: ["Runtime candidates: p5_js, canvas, svg."]
+    };
     const creativeDirector = {
       role: "creative_assistant_director",
       creative_brief: "Generate a luminous field.",
@@ -551,6 +597,8 @@ describe("assistant stream client", () => {
           creative_constraints: creativeConstraints,
           runtime_capability_reasoner_available: true,
           runtime_capabilities: runtimeCapabilities,
+          tradeoff_explorer_available: true,
+          creative_tradeoffs: creativeTradeoffs,
           director_available: true,
           creative_director: creativeDirector,
           image_references: [
@@ -723,6 +771,56 @@ describe("assistant stream client", () => {
         evidence: ["Top runtime scores: p5_js=12."]
       },
       runtime_capability_reasoner_available: true,
+      creative_tradeoffs: {
+        role: "creative_tradeoff_explorer",
+        outputGoal: "Generate one p5 candidate.",
+        primaryTradeoffs: [
+          {
+            sourceAxis: "creative_expressiveness",
+            targetAxis: "implementation_complexity",
+            severity: "risk",
+            summary:
+              "Expressive strategy and technique choices can increase implementation scope.",
+            creativeBenefit:
+              "Particle cosmology with particle systems preserves a distinct direction.",
+            technicalCost:
+              "Requires managing plan complexity medium and technique complexity medium.",
+            runtimeImplication:
+              "p5.js has strong suitability and backend preview support.",
+            mitigation:
+              "Keep the selected strategy visible while bounding the number of systems.",
+            directorDiscussionPoint:
+              "Should the output prioritize richness or a simpler implementation?",
+            hitlRecommended: false,
+            evidence: ["Strategy: particle_cosmology."]
+          }
+        ],
+        creativeBenefits: ["Fits the selected creative technique."],
+        technicalCosts: ["Expected complexity: medium."],
+        runtimeRisks: [
+          "High performance pressure requires bounded effect scope."
+        ],
+        performanceConcerns: ["Technique performance pressure: high."],
+        complexityRisks: ["Plan complexity is medium."],
+        fidelityRisks: [],
+        costSensitivity: "low",
+        safetyConcerns: [],
+        maintainabilityConcerns: [
+          "Keep particle_systems behavior readable."
+        ],
+        hitlAdvisable: false,
+        hitlReason: null,
+        directorDiscussionPoints: [
+          "Should the output prioritize richness or a simpler implementation?"
+        ],
+        promptGuidance: [
+          "Use trade-off metadata to explain consequences, not to select an outcome."
+        ],
+        authorityBoundary:
+          "The Creative Trade-off Explorer structures consequences and discussion points only.",
+        evidence: ["Runtime candidates: p5_js, canvas, svg."]
+      },
+      tradeoff_explorer_available: true,
       creative_director: {
         role: "creative_assistant_director",
         creativeBrief: "Generate a luminous field.",
@@ -844,6 +942,53 @@ describe("assistant stream client", () => {
     expect(profile?.candidateRuntimes[0]?.previewSupport).toBe(
       "backend_preview_supported"
     );
+  });
+
+  it("reads creative trade-off explorer metadata", () => {
+    const profile = readCreativeTradeoffExplorerSummary({
+      role: "creative_tradeoff_explorer",
+      outputGoal: "Generate one p5 candidate.",
+      primaryTradeoffs: [
+        {
+          sourceAxis: "runtime_support",
+          targetAxis: "concept_fidelity",
+          severity: "watch",
+          summary: "Supported runtime may preserve only part of the concept.",
+          creativeBenefit: "Keeps the result aligned with the concept.",
+          technicalCost: "Requires explaining runtime limits.",
+          runtimeImplication:
+            "p5.js has strong suitability and backend preview support.",
+          mitigation: "Do not switch runtimes automatically.",
+          directorDiscussionPoint:
+            "Should fidelity or the lowest-risk runtime path lead?",
+          hitlRecommended: false,
+          evidence: ["Runtime candidates: p5_js."]
+        }
+      ],
+      creativeBenefits: ["Fits the selected creative technique."],
+      technicalCosts: ["Expected complexity: medium."],
+      runtimeRisks: ["High performance pressure requires bounded effect scope."],
+      performanceConcerns: ["Technique performance pressure: high."],
+      complexityRisks: ["Plan complexity is medium."],
+      fidelityRisks: [],
+      costSensitivity: "low",
+      safetyConcerns: [],
+      maintainabilityConcerns: ["Keep particle_systems behavior readable."],
+      hitlAdvisable: false,
+      directorDiscussionPoints: [
+        "Should fidelity or the lowest-risk runtime path lead?"
+      ],
+      promptGuidance: [
+        "Use trade-off metadata to explain consequences, not to select an outcome."
+      ],
+      authorityBoundary:
+        "The Creative Trade-off Explorer structures consequences and discussion points only.",
+      evidence: ["Runtime candidates: p5_js."]
+    });
+
+    expect(profile?.role).toBe("creative_tradeoff_explorer");
+    expect(profile?.primaryTradeoffs[0]?.sourceAxis).toBe("runtime_support");
+    expect(profile?.costSensitivity).toBe("low");
   });
 
   it("reads creative constraint solver metadata", () => {
