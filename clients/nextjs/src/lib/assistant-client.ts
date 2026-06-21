@@ -170,6 +170,59 @@ export type CreativeTechniqueSummary = {
   evidence: string[];
 };
 
+export type RuntimeCapabilityId =
+  | "p5_js"
+  | "three_js"
+  | "react_three_fiber"
+  | "glsl"
+  | "hydra"
+  | "tone_js"
+  | "gsap"
+  | "svg"
+  | "canvas";
+
+export type RuntimeCapabilityFit = "strong" | "moderate" | "weak";
+
+export type RuntimeCapabilityComplexity = "low" | "medium" | "high";
+
+export type RuntimePreviewSupport =
+  | "backend_preview_supported"
+  | "workstation_preview_bounded"
+  | "code_only";
+
+export type RuntimeCapabilityCandidateSummary = {
+  runtime: RuntimeCapabilityId;
+  label: string;
+  suitability: RuntimeCapabilityFit;
+  confidence: number;
+  strategyAlignment: RuntimeCapabilityFit;
+  techniqueCompatibility: RuntimeCapabilityFit;
+  outputGoalFit: RuntimeCapabilityFit;
+  implementationComplexity: RuntimeCapabilityComplexity;
+  performancePressure: CreativeConstraintPressure;
+  previewSupport: RuntimePreviewSupport;
+  strengths: string[];
+  limitations: string[];
+  risks: string[];
+  promptGuidance: string[];
+  evidence: string[];
+};
+
+export type RuntimeCapabilityReasonerSummary = {
+  role: "runtime_capability_reasoner";
+  outputGoal: string;
+  likelyCandidates: RuntimeCapabilityId[];
+  candidateRuntimes: RuntimeCapabilityCandidateSummary[];
+  strategyContext: string | null;
+  techniqueContext: string | null;
+  constraintContext: string | null;
+  hitlAdvisable: boolean;
+  hitlReason: string | null;
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeConstraintAxis =
   | "intent"
   | "modality"

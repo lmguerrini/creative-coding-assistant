@@ -10,6 +10,7 @@ import {
   readCreativeTechniqueSummary,
   readEventTimestamp,
   readPreviewArtifactUpdate,
+  readRuntimeCapabilityReasonerSummary,
   readStreamEventError,
   readWorkflowMetadata,
   streamAssistantEvents,
@@ -468,6 +469,42 @@ describe("assistant stream client", () => {
       authority_boundary: "The solver structures trade-offs for inspection.",
       evidence: ["Route selected: generate."]
     };
+    const runtimeCapabilities = {
+      role: "runtime_capability_reasoner",
+      output_goal: "Generate one p5 candidate.",
+      likely_candidates: ["p5_js", "canvas", "svg"],
+      candidate_runtimes: [
+        {
+          runtime: "p5_js",
+          label: "p5.js",
+          suitability: "strong",
+          confidence: 0.86,
+          strategy_alignment: "strong",
+          technique_compatibility: "strong",
+          output_goal_fit: "strong",
+          implementation_complexity: "medium",
+          performance_pressure: "high",
+          preview_support: "backend_preview_supported",
+          strengths: ["Fits the selected creative technique."],
+          limitations: ["Less natural for deep 3D scenes."],
+          risks: ["High performance pressure requires bounded effect scope."],
+          prompt_guidance: ["Use p5.js capability for sketch output."],
+          evidence: ["Capability score: 12."]
+        }
+      ],
+      strategy_context: "particle_cosmology with confidence 0.75.",
+      technique_context: "particle_systems with high performance pressure.",
+      constraint_context:
+        "Runtime fit supported; complexity medium; performance medium; HITL false.",
+      hitl_advisable: false,
+      hitl_reason: null,
+      prompt_guidance: [
+        "Use runtime capability metadata to explain trade-offs."
+      ],
+      authority_boundary:
+        "The Runtime Capability Reasoner evaluates runtime fit for inspection only.",
+      evidence: ["Top runtime scores: p5_js=12."]
+    };
     const creativeDirector = {
       role: "creative_assistant_director",
       creative_brief: "Generate a luminous field.",
@@ -512,6 +549,8 @@ describe("assistant stream client", () => {
           creative_plan: creativePlan,
           constraint_solver_available: true,
           creative_constraints: creativeConstraints,
+          runtime_capability_reasoner_available: true,
+          runtime_capabilities: runtimeCapabilities,
           director_available: true,
           creative_director: creativeDirector,
           image_references: [
@@ -647,6 +686,43 @@ describe("assistant stream client", () => {
         evidence: ["Route selected: generate."]
       },
       constraint_solver_available: true,
+      runtime_capabilities: {
+        role: "runtime_capability_reasoner",
+        outputGoal: "Generate one p5 candidate.",
+        likelyCandidates: ["p5_js", "canvas", "svg"],
+        candidateRuntimes: [
+          {
+            runtime: "p5_js",
+            label: "p5.js",
+            suitability: "strong",
+            confidence: 0.86,
+            strategyAlignment: "strong",
+            techniqueCompatibility: "strong",
+            outputGoalFit: "strong",
+            implementationComplexity: "medium",
+            performancePressure: "high",
+            previewSupport: "backend_preview_supported",
+            strengths: ["Fits the selected creative technique."],
+            limitations: ["Less natural for deep 3D scenes."],
+            risks: ["High performance pressure requires bounded effect scope."],
+            promptGuidance: ["Use p5.js capability for sketch output."],
+            evidence: ["Capability score: 12."]
+          }
+        ],
+        strategyContext: "particle_cosmology with confidence 0.75.",
+        techniqueContext: "particle_systems with high performance pressure.",
+        constraintContext:
+          "Runtime fit supported; complexity medium; performance medium; HITL false.",
+        hitlAdvisable: false,
+        hitlReason: null,
+        promptGuidance: [
+          "Use runtime capability metadata to explain trade-offs."
+        ],
+        authorityBoundary:
+          "The Runtime Capability Reasoner evaluates runtime fit for inspection only.",
+        evidence: ["Top runtime scores: p5_js=12."]
+      },
+      runtime_capability_reasoner_available: true,
       creative_director: {
         role: "creative_assistant_director",
         creativeBrief: "Generate a luminous field.",
@@ -724,6 +800,50 @@ describe("assistant stream client", () => {
     expect(techniques?.role).toBe("creative_technique_selector");
     expect(techniques?.primaryTechnique).toBe("recursive_geometry");
     expect(techniques?.compatibility).toBe("strong");
+  });
+
+  it("reads runtime capability reasoner metadata", () => {
+    const profile = readRuntimeCapabilityReasonerSummary({
+      role: "runtime_capability_reasoner",
+      outputGoal: "Generate one p5 candidate.",
+      likelyCandidates: ["p5_js", "canvas"],
+      candidateRuntimes: [
+        {
+          runtime: "p5_js",
+          label: "p5.js",
+          suitability: "strong",
+          confidence: 0.86,
+          strategyAlignment: "strong",
+          techniqueCompatibility: "strong",
+          outputGoalFit: "strong",
+          implementationComplexity: "medium",
+          performancePressure: "high",
+          previewSupport: "backend_preview_supported",
+          strengths: ["Fits the selected creative technique."],
+          limitations: ["Less natural for deep 3D scenes."],
+          risks: ["High performance pressure requires bounded effect scope."],
+          promptGuidance: ["Use p5.js capability for sketch output."],
+          evidence: ["Capability score: 12."]
+        }
+      ],
+      strategyContext: "particle_cosmology with confidence 0.75.",
+      techniqueContext: "particle_systems with high performance pressure.",
+      constraintContext:
+        "Runtime fit supported; complexity medium; performance medium; HITL false.",
+      hitlAdvisable: false,
+      promptGuidance: [
+        "Use runtime capability metadata to explain trade-offs."
+      ],
+      authorityBoundary:
+        "The Runtime Capability Reasoner evaluates runtime fit for inspection only.",
+      evidence: ["Top runtime scores: p5_js=12."]
+    });
+
+    expect(profile?.role).toBe("runtime_capability_reasoner");
+    expect(profile?.likelyCandidates).toEqual(["p5_js", "canvas"]);
+    expect(profile?.candidateRuntimes[0]?.previewSupport).toBe(
+      "backend_preview_supported"
+    );
   });
 
   it("reads creative constraint solver metadata", () => {

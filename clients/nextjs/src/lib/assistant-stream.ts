@@ -19,6 +19,12 @@ import {
   type CreativeTechniqueSummary,
   type CreativeTranslationSummary,
   type RefinementPassRecord,
+  type RuntimeCapabilityCandidateSummary,
+  type RuntimeCapabilityComplexity,
+  type RuntimeCapabilityFit,
+  type RuntimeCapabilityId,
+  type RuntimeCapabilityReasonerSummary,
+  type RuntimePreviewSupport,
   type WorkflowNodeId
 } from "./assistant-client";
 import type { AssistantRequestImageAttachment } from "./multimodal-attachments";
@@ -99,6 +105,8 @@ export type AssistantStreamWorkflowMetadata = {
   planning_available?: boolean;
   creative_constraints?: CreativeConstraintSolverSummary | null;
   constraint_solver_available?: boolean;
+  runtime_capabilities?: RuntimeCapabilityReasonerSummary | null;
+  runtime_capability_reasoner_available?: boolean;
   creative_director?: CreativeAssistantDirectorSummary | null;
   director_available?: boolean;
 };
@@ -513,6 +521,12 @@ export function readWorkflowMetadata(
   const constraintSolverAvailable =
     rawWorkflow.constraint_solver_available === true ||
     creativeConstraints !== null;
+  const runtimeCapabilities = readRuntimeCapabilityReasonerSummary(
+    rawWorkflow.runtime_capabilities ?? rawWorkflow.runtimeCapabilities
+  );
+  const runtimeCapabilityReasonerAvailable =
+    rawWorkflow.runtime_capability_reasoner_available === true ||
+    runtimeCapabilities !== null;
   const creativeDirector = readCreativeAssistantDirectorSummary(
     rawWorkflow.creative_director ?? rawWorkflow.creativeDirector
   );
@@ -572,6 +586,12 @@ export function readWorkflowMetadata(
       ? {
           creative_constraints: creativeConstraints,
           constraint_solver_available: true
+        }
+      : {}),
+    ...(runtimeCapabilityReasonerAvailable
+      ? {
+          runtime_capabilities: runtimeCapabilities,
+          runtime_capability_reasoner_available: true
         }
       : {}),
     ...(directorAvailable
@@ -842,6 +862,225 @@ function readCreativeTechniqueAlternativeSummaryList(
         technique,
         confidence,
         rationale
+      }
+    ];
+  });
+}
+
+export function readRuntimeCapabilityReasonerSummary(
+  value: unknown
+): RuntimeCapabilityReasonerSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const outputGoal =
+    readStringField(value, "output_goal") ??
+    readStringField(value, "outputGoal");
+  const likelyCandidates = readRuntimeCapabilityIdList(
+    value.likely_candidates ?? value.likelyCandidates
+  );
+  const candidateRuntimes = readRuntimeCapabilityCandidateSummaryList(
+    value.candidate_runtimes ?? value.candidateRuntimes
+  );
+  const hitlAdvisable =
+    readBooleanField(value, "hitl_advisable") ??
+    readBooleanField(value, "hitlAdvisable");
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "runtime_capability_reasoner" ||
+    !outputGoal ||
+    likelyCandidates.length === 0 ||
+    candidateRuntimes.length === 0 ||
+    hitlAdvisable === null ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    outputGoal,
+    likelyCandidates,
+    candidateRuntimes,
+    strategyContext:
+      readStringField(value, "strategy_context") ??
+      readStringField(value, "strategyContext"),
+    techniqueContext:
+      readStringField(value, "technique_context") ??
+      readStringField(value, "techniqueContext"),
+    constraintContext:
+      readStringField(value, "constraint_context") ??
+      readStringField(value, "constraintContext"),
+    hitlAdvisable,
+    hitlReason:
+      readStringField(value, "hitl_reason") ??
+      readStringField(value, "hitlReason"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const runtimeCapabilityIds = [
+  "p5_js",
+  "three_js",
+  "react_three_fiber",
+  "glsl",
+  "hydra",
+  "tone_js",
+  "gsap",
+  "svg",
+  "canvas"
+] as const satisfies readonly RuntimeCapabilityId[];
+
+const runtimeCapabilityFits = [
+  "strong",
+  "moderate",
+  "weak"
+] as const satisfies readonly RuntimeCapabilityFit[];
+
+const runtimeCapabilityComplexities = [
+  "low",
+  "medium",
+  "high"
+] as const satisfies readonly RuntimeCapabilityComplexity[];
+
+const runtimePreviewSupports = [
+  "backend_preview_supported",
+  "workstation_preview_bounded",
+  "code_only"
+] as const satisfies readonly RuntimePreviewSupport[];
+
+function readRuntimeCapabilityIdList(value: unknown): RuntimeCapabilityId[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (item): item is RuntimeCapabilityId =>
+      typeof item === "string" &&
+      runtimeCapabilityIds.includes(item as RuntimeCapabilityId)
+  );
+}
+
+function readRuntimeCapabilityCandidateSummaryList(
+  value: unknown
+): RuntimeCapabilityCandidateSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const runtime = readStringUnion(
+      item,
+      "runtime",
+      "runtime",
+      runtimeCapabilityIds
+    );
+    const label = readStringField(item, "label");
+    const suitability = readStringUnion(
+      item,
+      "suitability",
+      "suitability",
+      runtimeCapabilityFits
+    );
+    const confidence = readFiniteNumberField(item, "confidence");
+    const strategyAlignment = readStringUnion(
+      item,
+      "strategy_alignment",
+      "strategyAlignment",
+      runtimeCapabilityFits
+    );
+    const techniqueCompatibility = readStringUnion(
+      item,
+      "technique_compatibility",
+      "techniqueCompatibility",
+      runtimeCapabilityFits
+    );
+    const outputGoalFit = readStringUnion(
+      item,
+      "output_goal_fit",
+      "outputGoalFit",
+      runtimeCapabilityFits
+    );
+    const implementationComplexity = readStringUnion(
+      item,
+      "implementation_complexity",
+      "implementationComplexity",
+      runtimeCapabilityComplexities
+    );
+    const performancePressure = readStringUnion(
+      item,
+      "performance_pressure",
+      "performancePressure",
+      ["low", "medium", "high"]
+    );
+    const previewSupport = readStringUnion(
+      item,
+      "preview_support",
+      "previewSupport",
+      runtimePreviewSupports
+    );
+    const strengths = readStringListField(item, "strengths", "strengths");
+    const limitations = readStringListField(item, "limitations", "limitations");
+    const risks = readStringListField(item, "risks", "risks");
+    const promptGuidance = readStringListField(
+      item,
+      "prompt_guidance",
+      "promptGuidance"
+    );
+
+    if (
+      !runtime ||
+      !label ||
+      !suitability ||
+      confidence === null ||
+      !strategyAlignment ||
+      !techniqueCompatibility ||
+      !outputGoalFit ||
+      !implementationComplexity ||
+      !performancePressure ||
+      !previewSupport ||
+      strengths.length === 0 ||
+      limitations.length === 0 ||
+      risks.length === 0 ||
+      promptGuidance.length === 0
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        runtime,
+        label,
+        suitability,
+        confidence,
+        strategyAlignment,
+        techniqueCompatibility,
+        outputGoalFit,
+        implementationComplexity,
+        performancePressure,
+        previewSupport,
+        strengths,
+        limitations,
+        risks,
+        promptGuidance,
+        evidence: readStringListField(item, "evidence", "evidence")
       }
     ];
   });
