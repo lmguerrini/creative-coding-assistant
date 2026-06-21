@@ -26,6 +26,7 @@ export type WorkflowNodeId =
   | "prompt_input"
   | "planning"
   | "director"
+  | "reasoning"
   | "prompt_rendering"
   | "generation"
   | "artifact_extraction"
@@ -45,6 +46,7 @@ export const workflowNodeOrder = [
   "prompt_input",
   "planning",
   "director",
+  "reasoning",
   "prompt_rendering",
   "generation",
   "artifact_extraction",
@@ -346,6 +348,59 @@ export type CreativeAssistantDirectorSummary = {
   hitlReason: string | null;
   authorityBoundary: string;
   evidence: string[];
+};
+
+export type CreativeReasoningStage =
+  | "strategy"
+  | "technique"
+  | "runtime"
+  | "tradeoff"
+  | "recommendation";
+
+export type CreativeReasoningEvidenceSource =
+  | "request"
+  | "translation"
+  | "planning"
+  | "director"
+  | "constraint_solver"
+  | "creative_strategy"
+  | "creative_technique"
+  | "runtime_capability"
+  | "tradeoff_explorer"
+  | "future_knowledge";
+
+export type CreativeReasoningStepSummary = {
+  stage: CreativeReasoningStage;
+  claim: string;
+  because: string;
+  implications: string[];
+};
+
+export type CreativeReasoningEvidenceSummary = {
+  source: CreativeReasoningEvidenceSource;
+  signal: string;
+  interpretation: string;
+};
+
+export type CreativeRejectedAlternativeSummary = {
+  alternative: string;
+  reason: string;
+  evidence: string[];
+};
+
+export type CreativeReasoningSummary = {
+  role: "creative_reasoning_engine";
+  recommendedCreativeDirection: string;
+  reasoningPath: CreativeReasoningStepSummary[];
+  evidenceChain: CreativeReasoningEvidenceSummary[];
+  strongestSupportingSignals: string[];
+  rejectedAlternatives: CreativeRejectedAlternativeSummary[];
+  unresolvedDecisions: string[];
+  implementationGuidance: string[];
+  promptGuidance: string[];
+  hitlQuestions: string[];
+  futureKnowledgeContext: Record<string, unknown>;
+  authorityBoundary: string;
 };
 
 export type AssistantMessage = {
@@ -966,6 +1021,12 @@ export function getInitialWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
           detail: "Prepare bounded creative decision support for the run."
         },
         {
+          nodeId: "reasoning",
+          displayLabel: "Reasoning",
+          state: "queued",
+          detail: "Synthesize creative intelligence into a decision brief."
+        },
+        {
           nodeId: "prompt_rendering",
           displayLabel: "Prompt rendering",
           state: "queued",
@@ -1202,6 +1263,12 @@ export function getLocalWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
           displayLabel: "Director",
           state: "complete",
           detail: "Creative Assistant Director guidance prepared."
+        },
+        {
+          nodeId: "reasoning",
+          displayLabel: "Reasoning",
+          state: "complete",
+          detail: "Creative reasoning synthesis prepared."
         },
         {
           nodeId: "prompt_rendering",

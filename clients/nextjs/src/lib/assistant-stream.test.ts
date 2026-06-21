@@ -6,6 +6,7 @@ import {
   readClarificationSummary,
   readCreativeConstraintSolverSummary,
   readCreativeExecutionPlanSummary,
+  readCreativeReasoningSummary,
   readCreativeStrategySummary,
   readCreativeTechniqueSummary,
   readCreativeTradeoffExplorerSummary,
@@ -276,73 +277,78 @@ describe("assistant stream client", () => {
         payload: { code: "creative_director_prepared" }
       },
       {
-        event_type: "prompt_rendered",
+        event_type: "planning",
         sequence: 4,
+        payload: { code: "creative_reasoning_prepared" }
+      },
+      {
+        event_type: "prompt_rendered",
+        sequence: 5,
         payload: { code: "prompt_rendered" }
       },
       {
         event_type: "token_delta",
-        sequence: 5,
+        sequence: 6,
         payload: { text: "Hello" }
       },
       {
         event_type: "node_started",
-        sequence: 6,
+        sequence: 7,
         payload: { code: "node_started", node: "review" }
       },
       {
         event_type: "review_failed",
-        sequence: 7,
+        sequence: 8,
         payload: { code: "review_failed" }
       },
       {
         event_type: "refinement_requested",
-        sequence: 8,
+        sequence: 9,
         payload: { code: "refinement_requested" }
       },
       {
         event_type: "retry_started",
-        sequence: 9,
+        sequence: 10,
         payload: { code: "retry_started" }
       },
       {
         event_type: "refinement_completed",
-        sequence: 10,
+        sequence: 11,
         payload: { code: "refinement_completed" }
       },
       {
         event_type: "node_completed",
-        sequence: 11,
+        sequence: 12,
         payload: { code: "node_completed", node: "refinement" }
       },
       {
         event_type: "retry_completed",
-        sequence: 12,
+        sequence: 13,
         payload: { code: "retry_completed" }
       },
       {
         event_type: "review_passed",
-        sequence: 13,
+        sequence: 14,
         payload: { code: "review_passed" }
       },
       {
         event_type: "node_failed",
-        sequence: 14,
+        sequence: 15,
         payload: { code: "node_failed", node: "generation" }
       },
       {
         event_type: "artifact_extracted",
-        sequence: 15,
+        sequence: 16,
         payload: { code: "artifact_extracted" }
       },
       {
         event_type: "preview_artifact",
-        sequence: 16,
+        sequence: 17,
         payload: { code: "preview_artifact_prepared", status: "succeeded" }
       },
       {
         event_type: "final",
-        sequence: 17,
+        sequence: 18,
         payload: { answer: "Done." }
       }
     ];
@@ -352,6 +358,7 @@ describe("assistant stream client", () => {
       "routing",
       "planning",
       "director",
+      "reasoning",
       "prompt_rendering",
       "generation",
       "review",
@@ -568,6 +575,94 @@ describe("assistant stream client", () => {
       authority_boundary: "The user remains the Creative Director.",
       evidence: ["Route selected: generate."]
     };
+    const creativeReasoning = {
+      role: "creative_reasoning_engine",
+      recommended_creative_direction:
+        "Recommend a particle_cosmology direction expressed through particle_systems because it best preserves the luminous field.",
+      reasoning_path: [
+        {
+          stage: "strategy",
+          claim: "Use particle_cosmology as the conceptual spine.",
+          because:
+            "Particle Cosmology best matches detected signals: particle.",
+          implications: ["Keep one visible creative idea in focus."]
+        },
+        {
+          stage: "technique",
+          claim: "Translate that strategy through particle_systems.",
+          because:
+            "Particle Systems best matches detected signals: particle.",
+          implications: ["Technique choices should serve the strategy."]
+        },
+        {
+          stage: "runtime",
+          claim: "Shape implementation around inspected capability: p5.js.",
+          because: "p5.js shows strong suitability.",
+          implications: ["Runtime guidance remains non-binding."]
+        },
+        {
+          stage: "tradeoff",
+          claim:
+            "Manage the main consequence: creative_expressiveness vs implementation_complexity.",
+          because:
+            "The creative benefit is distinct direction while the technical cost is complexity.",
+          implications: ["Prefer bounded implementation over feature growth."]
+        },
+        {
+          stage: "recommendation",
+          claim:
+            "Recommend a particle_cosmology direction expressed through particle_systems because it best preserves the luminous field.",
+          because:
+            "Strategy, technique, runtime capability, and trade-off signals converge.",
+          implications: ["Use this as the prompt spine before generation."]
+        }
+      ],
+      evidence_chain: [
+        {
+          source: "creative_strategy",
+          signal: "particle_cosmology confidence 0.75.",
+          interpretation:
+            "Particle Cosmology best matches detected signals: particle."
+        },
+        {
+          source: "creative_technique",
+          signal: "particle_systems compatibility strong.",
+          interpretation: "Technique shows how strategy becomes behavior."
+        },
+        {
+          source: "runtime_capability",
+          signal: "p5_js, canvas, svg",
+          interpretation:
+            "Runtime evidence informs feasibility without selecting runtime."
+        }
+      ],
+      strongest_supporting_signals: [
+        "Strategy particle_cosmology confidence 0.75."
+      ],
+      rejected_alternatives: [
+        {
+          alternative: "Unbounded feature expansion",
+          reason:
+            "Rejected because inspected capability and the primary trade-off favor a bounded execution path.",
+          evidence: ["High performance pressure requires bounded effect scope."]
+        }
+      ],
+      unresolved_decisions: [
+        "No blocking creative decision remains unresolved in current metadata."
+      ],
+      implementation_guidance: [
+        "Make particle_systems visibly serve the selected strategy."
+      ],
+      prompt_guidance: [
+        "Use the Creative Reasoning Engine recommendation as the creative spine."
+      ],
+      hitl_questions: [],
+      future_knowledge_context: {
+        status: "not_attached"
+      },
+      authority_boundary:
+        "The Creative Reasoning Engine synthesizes inspectable guidance only."
+    };
     const event: AssistantStreamEvent = {
       event_type: "generation_input",
       sequence: 2,
@@ -601,6 +696,8 @@ describe("assistant stream client", () => {
           creative_tradeoffs: creativeTradeoffs,
           director_available: true,
           creative_director: creativeDirector,
+          creative_reasoning_available: true,
+          creative_reasoning: creativeReasoning,
           image_references: [
             {
               id: "image-reference-1",
@@ -839,6 +936,95 @@ describe("assistant stream client", () => {
         evidence: ["Route selected: generate."]
       },
       director_available: true,
+      creative_reasoning: {
+        role: "creative_reasoning_engine",
+        recommendedCreativeDirection:
+          "Recommend a particle_cosmology direction expressed through particle_systems because it best preserves the luminous field.",
+        reasoningPath: [
+          {
+            stage: "strategy",
+            claim: "Use particle_cosmology as the conceptual spine.",
+            because:
+              "Particle Cosmology best matches detected signals: particle.",
+            implications: ["Keep one visible creative idea in focus."]
+          },
+          {
+            stage: "technique",
+            claim: "Translate that strategy through particle_systems.",
+            because:
+              "Particle Systems best matches detected signals: particle.",
+            implications: ["Technique choices should serve the strategy."]
+          },
+          {
+            stage: "runtime",
+            claim: "Shape implementation around inspected capability: p5.js.",
+            because: "p5.js shows strong suitability.",
+            implications: ["Runtime guidance remains non-binding."]
+          },
+          {
+            stage: "tradeoff",
+            claim:
+              "Manage the main consequence: creative_expressiveness vs implementation_complexity.",
+            because:
+              "The creative benefit is distinct direction while the technical cost is complexity.",
+            implications: ["Prefer bounded implementation over feature growth."]
+          },
+          {
+            stage: "recommendation",
+            claim:
+              "Recommend a particle_cosmology direction expressed through particle_systems because it best preserves the luminous field.",
+            because:
+              "Strategy, technique, runtime capability, and trade-off signals converge.",
+            implications: ["Use this as the prompt spine before generation."]
+          }
+        ],
+        evidenceChain: [
+          {
+            source: "creative_strategy",
+            signal: "particle_cosmology confidence 0.75.",
+            interpretation:
+              "Particle Cosmology best matches detected signals: particle."
+          },
+          {
+            source: "creative_technique",
+            signal: "particle_systems compatibility strong.",
+            interpretation: "Technique shows how strategy becomes behavior."
+          },
+          {
+            source: "runtime_capability",
+            signal: "p5_js, canvas, svg",
+            interpretation:
+              "Runtime evidence informs feasibility without selecting runtime."
+          }
+        ],
+        strongestSupportingSignals: [
+          "Strategy particle_cosmology confidence 0.75."
+        ],
+        rejectedAlternatives: [
+          {
+            alternative: "Unbounded feature expansion",
+            reason:
+              "Rejected because inspected capability and the primary trade-off favor a bounded execution path.",
+            evidence: ["High performance pressure requires bounded effect scope."]
+          }
+        ],
+        unresolvedDecisions: [
+          "No blocking creative decision remains unresolved in current metadata."
+        ],
+        implementationGuidance: [
+          "Make particle_systems visibly serve the selected strategy."
+        ],
+        promptGuidance: [
+          "Use the Creative Reasoning Engine recommendation as the creative spine."
+        ],
+        hitlQuestions: [],
+        futureKnowledgeContext: {
+          status: "not_attached"
+        },
+        authorityBoundary:
+          "The Creative Reasoning Engine synthesizes inspectable guidance only."
+      },
+      creative_reasoning_available: true,
       image_reference_count: 1,
       image_references: [
         {
@@ -989,6 +1175,96 @@ describe("assistant stream client", () => {
     expect(profile?.role).toBe("creative_tradeoff_explorer");
     expect(profile?.primaryTradeoffs[0]?.sourceAxis).toBe("runtime_support");
     expect(profile?.costSensitivity).toBe("low");
+  });
+
+  it("reads creative reasoning engine metadata", () => {
+    const profile = readCreativeReasoningSummary({
+      role: "creative_reasoning_engine",
+      recommendedCreativeDirection:
+        "Recommend sacred_geometry through recursive_geometry because the signals converge.",
+      reasoningPath: [
+        {
+          stage: "strategy",
+          claim: "Use sacred_geometry as the conceptual spine.",
+          because: "Sacred Geometry best matches mandala signals.",
+          implications: ["Keep symbolic structure visible."]
+        },
+        {
+          stage: "technique",
+          claim: "Translate that strategy through recursive_geometry.",
+          because: "Recursive geometry matches the selected strategy.",
+          implications: ["Technique choices should serve the strategy."]
+        },
+        {
+          stage: "runtime",
+          claim: "Shape implementation around inspected p5.js capability.",
+          because: "p5.js has strong suitability.",
+          implications: ["Runtime guidance remains non-binding."]
+        },
+        {
+          stage: "tradeoff",
+          claim: "Manage expressiveness versus implementation complexity.",
+          because: "Complexity increases with recursive detail.",
+          implications: ["Prefer bounded implementation over feature growth."]
+        },
+        {
+          stage: "recommendation",
+          claim:
+            "Recommend sacred_geometry through recursive_geometry because the signals converge.",
+          because:
+            "Strategy, technique, runtime, and trade-offs point to the same direction.",
+          implications: ["Use this as the prompt spine."]
+        }
+      ],
+      evidenceChain: [
+        {
+          source: "creative_strategy",
+          signal: "sacred_geometry confidence 0.83.",
+          interpretation: "Strategy preserves symbolic structure."
+        },
+        {
+          source: "creative_technique",
+          signal: "recursive_geometry compatibility strong.",
+          interpretation: "Technique makes the strategy concrete."
+        },
+        {
+          source: "tradeoff_explorer",
+          signal: "creative_expressiveness vs implementation_complexity.",
+          interpretation: "Trade-off evidence bounds scope."
+        }
+      ],
+      strongestSupportingSignals: ["Strategy sacred_geometry confidence 0.83."],
+      rejectedAlternatives: [
+        {
+          alternative: "Technique: particle_systems",
+          reason:
+            "Deferred because recursive_geometry more directly carries the selected strategy.",
+          evidence: ["Alternative confidence 0.42."]
+        }
+      ],
+      unresolvedDecisions: [
+        "No blocking creative decision remains unresolved in current metadata."
+      ],
+      implementationGuidance: ["Preserve the symbolic hierarchy of shapes."],
+      promptGuidance: [
+        "Use the Creative Reasoning Engine recommendation as the creative spine."
+      ],
+      hitlQuestions: [],
+      futureKnowledgeContext: { status: "not_attached" },
+      authorityBoundary:
+        "The Creative Reasoning Engine synthesizes inspectable guidance only."
+    });
+
+    expect(profile?.role).toBe("creative_reasoning_engine");
+    expect(profile?.reasoningPath.map((step) => step.stage)).toEqual([
+      "strategy",
+      "technique",
+      "runtime",
+      "tradeoff",
+      "recommendation"
+    ]);
+    expect(profile?.evidenceChain[0]?.source).toBe("creative_strategy");
+    expect(profile?.futureKnowledgeContext.status).toBe("not_attached");
   });
 
   it("reads creative constraint solver metadata", () => {

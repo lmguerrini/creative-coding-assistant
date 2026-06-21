@@ -76,14 +76,43 @@ describe("workflow runtime model", () => {
         sequence: 5,
         step: "director",
         transitionSource: "director",
-        transitionTarget: "prompt_rendering"
+        transitionTarget: "reasoning"
       }),
       traceEvent({
         at: "2026-05-22T09:59:06Z",
         completedSteps: ["planning", "director"],
-        currentStep: "prompt_rendering",
+        currentStep: "reasoning",
         event_type: "node_started",
         sequence: 6,
+        step: "reasoning"
+      }),
+      traceEvent({
+        at: "2026-05-22T09:59:07Z",
+        code: "creative_reasoning_prepared",
+        completedSteps: ["planning", "director"],
+        currentStep: "reasoning",
+        event_type: "planning",
+        sequence: 7,
+        step: "reasoning"
+      }),
+      traceEvent({
+        at: "2026-05-22T09:59:08Z",
+        completedSteps: ["planning", "director", "reasoning"],
+        currentStep: null,
+        decisionReason: "creative_reasoning_prepared",
+        event_type: "node_completed",
+        phase: "completed",
+        sequence: 8,
+        step: "reasoning",
+        transitionSource: "reasoning",
+        transitionTarget: "prompt_rendering"
+      }),
+      traceEvent({
+        at: "2026-05-22T09:59:09Z",
+        completedSteps: ["planning", "director", "reasoning"],
+        currentStep: "prompt_rendering",
+        event_type: "node_started",
+        sequence: 9,
         step: "prompt_rendering"
       })
     ];
@@ -97,6 +126,11 @@ describe("workflow runtime model", () => {
     const directorTransition = runtime.transitions.find(
       (transition) =>
         transition.fromNodeId === "director" &&
+        transition.toNodeId === "reasoning"
+    );
+    const reasoningTransition = runtime.transitions.find(
+      (transition) =>
+        transition.fromNodeId === "reasoning" &&
         transition.toNodeId === "prompt_rendering"
     );
 
@@ -107,8 +141,13 @@ describe("workflow runtime model", () => {
     });
     expect(directorTransition).toMatchObject({
       kind: "advance",
-      label: "Director -> Prompt rendering",
+      label: "Director -> Reasoning",
       reason: "creative_director_prepared"
+    });
+    expect(reasoningTransition).toMatchObject({
+      kind: "advance",
+      label: "Reasoning -> Prompt rendering",
+      reason: "creative_reasoning_prepared"
     });
   });
 
@@ -119,6 +158,9 @@ describe("workflow runtime model", () => {
       "retrieval",
       "context_assembly",
       "prompt_input",
+      "planning",
+      "director",
+      "reasoning",
       "prompt_rendering"
     ];
     const traceEvents: WorkflowRuntimeTraceEvent[] = [

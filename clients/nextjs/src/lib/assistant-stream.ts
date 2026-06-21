@@ -9,6 +9,12 @@ import {
   type ClarificationSummary,
   type CreativeAssistantDirectorSummary,
   type CreativeExecutionPlanSummary,
+  type CreativeReasoningEvidenceSource,
+  type CreativeReasoningEvidenceSummary,
+  type CreativeReasoningStage,
+  type CreativeReasoningStepSummary,
+  type CreativeReasoningSummary,
+  type CreativeRejectedAlternativeSummary,
   type CreativeStrategyAlternativeSummary,
   type CreativeStrategyId,
   type CreativeStrategySummary,
@@ -116,6 +122,8 @@ export type AssistantStreamWorkflowMetadata = {
   tradeoff_explorer_available?: boolean;
   creative_director?: CreativeAssistantDirectorSummary | null;
   director_available?: boolean;
+  creative_reasoning?: CreativeReasoningSummary | null;
+  creative_reasoning_available?: boolean;
 };
 
 export type AssistantPreviewArtifactStatus =
@@ -234,7 +242,8 @@ const streamEventWorkflowNodes: Partial<
   },
   planning: {
     creative_plan_prepared: "planning",
-    creative_director_prepared: "director"
+    creative_director_prepared: "director",
+    creative_reasoning_prepared: "reasoning"
   },
   prompt_rendered: {
     prompt_rendered: "prompt_rendering"
@@ -545,6 +554,12 @@ export function readWorkflowMetadata(
   );
   const directorAvailable =
     rawWorkflow.director_available === true || creativeDirector !== null;
+  const creativeReasoning = readCreativeReasoningSummary(
+    rawWorkflow.creative_reasoning ?? rawWorkflow.creativeReasoning
+  );
+  const creativeReasoningAvailable =
+    rawWorkflow.creative_reasoning_available === true ||
+    creativeReasoning !== null;
 
   if (
     (phase !== "running" && phase !== "completed" && phase !== "failed") ||
@@ -617,6 +632,12 @@ export function readWorkflowMetadata(
       ? {
           creative_director: creativeDirector,
           director_available: true
+        }
+      : {}),
+    ...(creativeReasoningAvailable
+      ? {
+          creative_reasoning: creativeReasoning,
+          creative_reasoning_available: true
         }
       : {})
   };
@@ -1316,6 +1337,197 @@ function readCreativeTradeoffSummaryList(
         mitigation,
         directorDiscussionPoint,
         hitlRecommended,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+export function readCreativeReasoningSummary(
+  value: unknown
+): CreativeReasoningSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const recommendedCreativeDirection =
+    readStringField(value, "recommended_creative_direction") ??
+    readStringField(value, "recommendedCreativeDirection");
+  const reasoningPath = readCreativeReasoningStepSummaryList(
+    value.reasoning_path ?? value.reasoningPath
+  );
+  const evidenceChain = readCreativeReasoningEvidenceSummaryList(
+    value.evidence_chain ?? value.evidenceChain
+  );
+  const strongestSupportingSignals = readStringListField(
+    value,
+    "strongest_supporting_signals",
+    "strongestSupportingSignals"
+  );
+  const unresolvedDecisions = readStringListField(
+    value,
+    "unresolved_decisions",
+    "unresolvedDecisions"
+  );
+  const implementationGuidance = readStringListField(
+    value,
+    "implementation_guidance",
+    "implementationGuidance"
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "creative_reasoning_engine" ||
+    !recommendedCreativeDirection ||
+    reasoningPath.length === 0 ||
+    evidenceChain.length === 0 ||
+    strongestSupportingSignals.length === 0 ||
+    unresolvedDecisions.length === 0 ||
+    implementationGuidance.length === 0 ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    recommendedCreativeDirection,
+    reasoningPath,
+    evidenceChain,
+    strongestSupportingSignals,
+    rejectedAlternatives: readCreativeRejectedAlternativeSummaryList(
+      value.rejected_alternatives ?? value.rejectedAlternatives
+    ),
+    unresolvedDecisions,
+    implementationGuidance,
+    promptGuidance,
+    hitlQuestions: readStringListField(
+      value,
+      "hitl_questions",
+      "hitlQuestions"
+    ),
+    futureKnowledgeContext: readRecordField(
+      value.future_knowledge_context ?? value.futureKnowledgeContext
+    ),
+    authorityBoundary
+  };
+}
+
+const creativeReasoningStages = [
+  "strategy",
+  "technique",
+  "runtime",
+  "tradeoff",
+  "recommendation"
+] as const satisfies readonly CreativeReasoningStage[];
+
+const creativeReasoningEvidenceSources = [
+  "request",
+  "translation",
+  "planning",
+  "director",
+  "constraint_solver",
+  "creative_strategy",
+  "creative_technique",
+  "runtime_capability",
+  "tradeoff_explorer",
+  "future_knowledge"
+] as const satisfies readonly CreativeReasoningEvidenceSource[];
+
+function readCreativeReasoningStepSummaryList(
+  value: unknown
+): CreativeReasoningStepSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const stage = readStringUnion(
+      item,
+      "stage",
+      "stage",
+      creativeReasoningStages
+    );
+    const claim = readStringField(item, "claim");
+    const because = readStringField(item, "because");
+    const implications = readStringListField(
+      item,
+      "implications",
+      "implications"
+    );
+
+    if (!stage || !claim || !because || implications.length === 0) {
+      return [];
+    }
+
+    return [{ stage, claim, because, implications }];
+  });
+}
+
+function readCreativeReasoningEvidenceSummaryList(
+  value: unknown
+): CreativeReasoningEvidenceSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const source = readStringUnion(
+      item,
+      "source",
+      "source",
+      creativeReasoningEvidenceSources
+    );
+    const signal = readStringField(item, "signal");
+    const interpretation = readStringField(item, "interpretation");
+
+    if (!source || !signal || !interpretation) {
+      return [];
+    }
+
+    return [{ source, signal, interpretation }];
+  });
+}
+
+function readCreativeRejectedAlternativeSummaryList(
+  value: unknown
+): CreativeRejectedAlternativeSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const alternative = readStringField(item, "alternative");
+    const reason = readStringField(item, "reason");
+    if (!alternative || !reason) {
+      return [];
+    }
+
+    return [
+      {
+        alternative,
+        reason,
         evidence: readStringListField(item, "evidence", "evidence")
       }
     ];
@@ -2067,6 +2279,10 @@ function readBooleanField(
 ): boolean | null {
   const item = value[key];
   return typeof item === "boolean" ? item : null;
+}
+
+function readRecordField(value: unknown): Record<string, unknown> {
+  return isRecord(value) ? { ...value } : {};
 }
 
 function readStringUnion<const TValue extends string>(

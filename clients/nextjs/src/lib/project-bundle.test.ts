@@ -49,6 +49,7 @@ describe("project bundle export", () => {
       expect.arrayContaining([
         "intake",
         "context_assembly",
+        "reasoning",
         "prompt_rendering",
         "generation",
         "review",
