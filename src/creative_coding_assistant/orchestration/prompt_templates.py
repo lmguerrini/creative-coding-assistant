@@ -36,6 +36,10 @@ from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
     creative_execution_plan_prompt_lines,
 )
+from creative_coding_assistant.orchestration.creative_quality_prediction import (
+    CreativeQualityPrediction,
+    creative_quality_prediction_prompt_lines,
+)
 from creative_coding_assistant.orchestration.creative_reasoning import (
     CreativeReasoningResult,
     creative_reasoning_prompt_lines,
@@ -190,6 +194,13 @@ Runtime Capability Reasoner:
 {% if tradeoffs is not none -%}
 Creative Trade-off Explorer:
 {% for instruction in creative_tradeoff_lines(tradeoffs) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set quality_prediction = prompt_input.creative_quality_prediction -%}
+{% if quality_prediction is not none -%}
+Creative Quality Predictor:
+{% for instruction in creative_quality_prediction_lines(quality_prediction) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -437,6 +448,7 @@ class JinjaPromptRenderer:
             creative_constraint_priority_lines=_creative_constraint_priority_lines,
             runtime_capability_lines=_runtime_capability_lines,
             creative_tradeoff_lines=_creative_tradeoff_lines,
+            creative_quality_prediction_lines=_creative_quality_prediction_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -655,6 +667,12 @@ def _creative_tradeoff_lines(
     profile: CreativeTradeoffProfile,
 ) -> tuple[str, ...]:
     return creative_tradeoff_prompt_lines(profile)
+
+
+def _creative_quality_prediction_lines(
+    prediction: CreativeQualityPrediction,
+) -> tuple[str, ...]:
+    return creative_quality_prediction_prompt_lines(prediction)
 
 
 def _creative_assistant_director_lines(

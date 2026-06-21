@@ -22,6 +22,9 @@ from creative_coding_assistant.orchestration.creative_intent import (
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
+from creative_coding_assistant.orchestration.creative_quality_prediction import (
+    CreativeQualityPrediction,
+)
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
 )
@@ -61,6 +64,7 @@ def build_director_brief_payload(
     creative_constraint_priorities: CreativeConstraintPrioritization | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
+    creative_quality_prediction: CreativeQualityPrediction | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -73,6 +77,7 @@ def build_director_brief_payload(
         creative_intent=creative_intent,
         creative_hierarchy=creative_hierarchy,
         creative_constraint_priorities=creative_constraint_priorities,
+        creative_quality_prediction=creative_quality_prediction,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -100,6 +105,7 @@ def build_director_brief_payload(
             creative_constraint_priorities,
             runtime_capabilities,
             creative_tradeoffs,
+            creative_quality_prediction,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -111,6 +117,7 @@ def build_director_brief_payload(
             creative_hierarchy=creative_hierarchy,
             runtime_capabilities=runtime_capabilities,
             creative_tradeoffs=creative_tradeoffs,
+            creative_quality_prediction=creative_quality_prediction,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -123,6 +130,7 @@ def build_director_brief_payload(
             clarification=clarification,
             creative_plan=creative_plan,
             creative_constraints=creative_constraints,
+            creative_quality_prediction=creative_quality_prediction,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -141,6 +149,7 @@ def build_director_brief_payload(
             creative_constraint_priorities=creative_constraint_priorities,
             runtime_capabilities=runtime_capabilities,
             creative_tradeoffs=creative_tradeoffs,
+            creative_quality_prediction=creative_quality_prediction,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -179,6 +188,7 @@ def _ambiguity_signals(
     creative_intent: CreativeIntentDecomposition | None,
     creative_hierarchy: CreativeHierarchyPlan | None,
     creative_constraint_priorities: CreativeConstraintPrioritization | None,
+    creative_quality_prediction: CreativeQualityPrediction | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -194,6 +204,18 @@ def _ambiguity_signals(
             item.summary
             for item in creative_constraint_priorities.conflict_relationships[:2]
         )
+    if creative_quality_prediction is not None:
+        if creative_quality_prediction.predicted_quality_level in {
+            "ambiguous",
+            "risky",
+            "blocked",
+        }:
+            signals.append(
+                "Creative quality readiness is "
+                f"{creative_quality_prediction.predicted_quality_level} "
+                f"({creative_quality_prediction.readiness_score}/100)."
+            )
+        signals.extend(creative_quality_prediction.missing_information[:2])
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -235,10 +257,19 @@ def _planning_focus(
     creative_constraint_priorities: CreativeConstraintPrioritization | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
+    creative_quality_prediction: CreativeQualityPrediction | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_intent is not None:
         focus.append(f"Intent substrate: {creative_intent.primary_expression}.")
+    if creative_quality_prediction is not None:
+        focus.append(
+            "Quality readiness: "
+            f"{creative_quality_prediction.predicted_quality_level} "
+            f"({creative_quality_prediction.readiness_score}/100)."
+        )
+        focus.extend(creative_quality_prediction.prompt_guidance[:1])
+    if creative_intent is not None:
         focus.extend(creative_intent.prompt_guidance[:2])
     if creative_hierarchy is not None:
         focus.append(
@@ -253,9 +284,7 @@ def _planning_focus(
     if creative_strategy is not None:
         focus.append(f"High-level strategy: {creative_strategy.primary_strategy}.")
     if creative_techniques is not None:
-        focus.append(
-            f"Primary technique: {creative_techniques.primary_technique}."
-        )
+        focus.append(f"Primary technique: {creative_techniques.primary_technique}.")
     if runtime_capabilities is not None:
         focus.append(
             "Runtime capability candidates: "
@@ -265,8 +294,7 @@ def _planning_focus(
         focus.extend(runtime_capabilities.prompt_guidance[:2])
     if creative_tradeoffs is not None:
         focus.append(
-            "Trade-off discussion: "
-            + creative_tradeoffs.director_discussion_points[0]
+            "Trade-off discussion: " + creative_tradeoffs.director_discussion_points[0]
         )
     if creative_strategy is not None:
         focus.extend(creative_strategy.strategy_directives[:2])
@@ -301,6 +329,7 @@ def _critique_focus(
     creative_hierarchy: CreativeHierarchyPlan | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
+    creative_quality_prediction: CreativeQualityPrediction | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -350,8 +379,16 @@ def _critique_focus(
             "declared consequences."
         )
         focus.extend(
-            tradeoff.summary
-            for tradeoff in creative_tradeoffs.primary_tradeoffs[:2]
+            tradeoff.summary for tradeoff in creative_tradeoffs.primary_tradeoffs[:2]
+        )
+    if creative_quality_prediction is not None:
+        focus.append(
+            "Quality predictor is pre-generation only; compare output against "
+            "predicted weak signals during normal review."
+        )
+        focus.extend(
+            item.summary
+            for item in creative_quality_prediction.weakest_quality_signals[:2]
         )
     if artifact_critique_summary is not None:
         focus.append(
@@ -397,6 +434,7 @@ def _next_actions(
     clarification: ClarificationRequest | None,
     creative_plan: CreativeExecutionPlan | None,
     creative_constraints: CreativeConstraintSolution | None,
+    creative_quality_prediction: CreativeQualityPrediction | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
@@ -407,6 +445,11 @@ def _next_actions(
             creative_constraints.hitl_reason
             or "Surface the unresolved constraint trade-off before generation.",
         )
+    if (
+        creative_quality_prediction is not None
+        and creative_quality_prediction.hitl_questions
+    ):
+        return (creative_quality_prediction.hitl_questions[0],)
     if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
@@ -437,6 +480,7 @@ def _evidence(
     creative_constraint_priorities: CreativeConstraintPrioritization | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
+    creative_quality_prediction: CreativeQualityPrediction | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -457,16 +501,13 @@ def _evidence(
         evidence.append(f"Intent gaps: {len(creative_intent.unresolved_intent_gaps)}.")
     if creative_hierarchy is not None:
         evidence.append(
-            "Hierarchy confidence: "
-            f"{creative_hierarchy.hierarchy_confidence:.2f}."
+            f"Hierarchy confidence: {creative_hierarchy.hierarchy_confidence:.2f}."
         )
     if creative_strategy is not None:
         evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
         evidence.append(f"Strategy confidence: {creative_strategy.confidence:.2f}.")
     if creative_techniques is not None:
-        evidence.append(
-            f"Creative technique: {creative_techniques.primary_technique}."
-        )
+        evidence.append(f"Creative technique: {creative_techniques.primary_technique}.")
         evidence.append(f"Technique confidence: {creative_techniques.confidence:.2f}.")
     if creative_plan is not None:
         evidence.append(f"Plan complexity: {creative_plan.expected_complexity}.")
@@ -476,9 +517,7 @@ def _evidence(
             "Constraint solver: "
             f"{len(creative_constraints.active_constraints)} active constraint(s)."
         )
-        evidence.append(
-            f"Runtime fit: {creative_constraints.runtime_fit}."
-        )
+        evidence.append(f"Runtime fit: {creative_constraints.runtime_fit}.")
     if creative_constraint_priorities is not None:
         evidence.append(
             "Constraint prioritizer: "
@@ -499,6 +538,12 @@ def _evidence(
             f"Trade-offs: {len(creative_tradeoffs.primary_tradeoffs)} primary."
         )
         evidence.append(f"Trade-off HITL: {creative_tradeoffs.hitl_advisable}.")
+    if creative_quality_prediction is not None:
+        evidence.append(
+            "Quality prediction: "
+            f"{creative_quality_prediction.predicted_quality_level} "
+            f"({creative_quality_prediction.readiness_score}/100)."
+        )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")
     if clarification is not None:

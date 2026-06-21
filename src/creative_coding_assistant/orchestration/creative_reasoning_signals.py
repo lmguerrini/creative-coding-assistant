@@ -15,6 +15,9 @@ from creative_coding_assistant.orchestration.creative_intent import (
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
+from creative_coding_assistant.orchestration.creative_quality_prediction import (
+    CreativeQualityPrediction,
+)
 from creative_coding_assistant.orchestration.creative_reasoning_contracts import (
     CreativeReasoningStep,
 )
@@ -48,6 +51,7 @@ def build_recommended_direction(
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
     creative_constraint_priorities: CreativeConstraintPrioritization | None,
+    creative_quality_prediction: CreativeQualityPrediction | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -69,7 +73,9 @@ def build_recommended_direction(
         f"Fit the output goal: {_clip(output_goal, 90)} "
         f"Use inspected runtime guidance: "
         f"{_clip(_runtime_label(runtime_capabilities, creative_plan), 70)}. "
-        f"Bound the trade-off: {_clip(_tradeoff_summary(creative_tradeoffs), 100)}"
+        f"Bound the trade-off: {_clip(_tradeoff_summary(creative_tradeoffs), 100)}. "
+        f"Quality readiness: "
+        f"{_clip(_quality_label(creative_quality_prediction), 70)}"
     )
     return _clip(direction, 500)
 
@@ -85,6 +91,7 @@ def build_reasoning_path(
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
     creative_constraint_priorities: CreativeConstraintPrioritization | None,
+    creative_quality_prediction: CreativeQualityPrediction | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -138,7 +145,8 @@ def build_reasoning_path(
             claim=direction,
             because=(
                 "Strategy, technique, runtime capability, and trade-off "
-                "signals converge on the same bounded direction."
+                "signals converge on the same bounded direction, with "
+                f"{_quality_label(creative_quality_prediction)}."
             ),
             implications=("Use this as the prompt spine before generation.",),
         ),
@@ -212,6 +220,15 @@ def _tradeoff_summary(profile: CreativeTradeoffProfile | None) -> str:
         return "preserve intent while keeping implementation scope bounded."
     tradeoff = profile.primary_tradeoffs[0]
     return f"{tradeoff.source_axis} vs {tradeoff.target_axis}: {tradeoff.summary}"
+
+
+def _quality_label(profile: CreativeQualityPrediction | None) -> str:
+    if profile is None:
+        return "quality readiness not predicted"
+    return (
+        f"{profile.predicted_quality_level} "
+        f"({profile.readiness_score}/100 readiness)"
+    )
 
 
 def _technique_reason(

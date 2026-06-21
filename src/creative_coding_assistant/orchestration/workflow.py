@@ -34,6 +34,9 @@ from creative_coding_assistant.orchestration.creative_intent import (
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
+from creative_coding_assistant.orchestration.creative_quality_prediction import (
+    CreativeQualityPrediction,
+)
 from creative_coding_assistant.orchestration.creative_reasoning import (
     CreativeReasoningResult,
 )
@@ -160,6 +163,7 @@ class AssistantWorkflowState(BaseModel):
     creative_constraint_priorities: CreativeConstraintPrioritization | None = None
     runtime_capabilities: RuntimeCapabilityProfile | None = None
     creative_tradeoffs: CreativeTradeoffProfile | None = None
+    creative_quality_prediction: CreativeQualityPrediction | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     rendered_prompt: RenderedPromptResponse | None = None

@@ -46,6 +46,9 @@ from creative_coding_assistant.orchestration.creative_intent import (
 from creative_coding_assistant.orchestration.creative_planning import (
     derive_creative_execution_plan,
 )
+from creative_coding_assistant.orchestration.creative_quality_prediction import (
+    derive_creative_quality_prediction,
+)
 from creative_coding_assistant.orchestration.creative_reasoning import (
     CreativeReasoningResult,
     derive_creative_reasoning_result,
@@ -653,6 +656,20 @@ def _planning_node(
             runtime_capabilities=runtime_capabilities,
             creative_tradeoffs=tradeoffs,
         )
+        quality_prediction = derive_creative_quality_prediction(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_translation=prompt_input.creative_translation,
+            creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
+            creative_plan=plan,
+            creative_constraints=constraints,
+            creative_constraint_priorities=constraint_priorities,
+            creative_strategy=strategy,
+            creative_techniques=techniques,
+            runtime_capabilities=runtime_capabilities,
+            creative_tradeoffs=tradeoffs,
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -664,6 +681,7 @@ def _planning_node(
                 "creative_constraint_priorities": constraint_priorities,
                 "runtime_capabilities": runtime_capabilities,
                 "creative_tradeoffs": tradeoffs,
+                "creative_quality_prediction": quality_prediction,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -677,6 +695,7 @@ def _planning_node(
                 "creative_constraint_priorities": constraint_priorities,
                 "runtime_capabilities": runtime_capabilities,
                 "creative_tradeoffs": tradeoffs,
+                "creative_quality_prediction": quality_prediction,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -695,6 +714,9 @@ def _planning_node(
                 ),
                 runtime_capabilities=runtime_capabilities.model_dump(mode="json"),
                 creative_tradeoffs=tradeoffs.model_dump(mode="json"),
+                creative_quality_prediction=quality_prediction.model_dump(
+                    mode="json"
+                ),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -1454,6 +1476,16 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "creative_quality_prediction",
+                    (
+                        final_state.creative_quality_prediction.model_dump(
+                            mode="json"
+                        )
+                        if final_state.creative_quality_prediction is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_director",
                     (
                         final_state.creative_director.model_dump(mode="json")
@@ -2039,6 +2071,7 @@ def _derive_director_brief(
         creative_constraint_priorities=workflow_state.creative_constraint_priorities,
         runtime_capabilities=workflow_state.runtime_capabilities,
         creative_tradeoffs=workflow_state.creative_tradeoffs,
+        creative_quality_prediction=workflow_state.creative_quality_prediction,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2071,6 +2104,7 @@ def _derive_reasoning_result(
         creative_techniques=workflow_state.creative_techniques,
         runtime_capabilities=workflow_state.runtime_capabilities,
         creative_tradeoffs=workflow_state.creative_tradeoffs,
+        creative_quality_prediction=workflow_state.creative_quality_prediction,
     )
 
 
@@ -2293,6 +2327,7 @@ def _serialize_workflow_runtime(
     creative_constraint_priorities = workflow_state.creative_constraint_priorities
     runtime_capabilities = workflow_state.runtime_capabilities
     creative_tradeoffs = workflow_state.creative_tradeoffs
+    creative_quality_prediction = workflow_state.creative_quality_prediction
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -2392,6 +2427,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "tradeoff_explorer_available": creative_tradeoffs is not None,
+        "creative_quality_prediction": (
+            creative_quality_prediction.model_dump(mode="json")
+            if creative_quality_prediction is not None
+            else None
+        ),
+        "quality_predictor_available": creative_quality_prediction is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None

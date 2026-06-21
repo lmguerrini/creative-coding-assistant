@@ -23,6 +23,9 @@ from creative_coding_assistant.orchestration.creative_intent import (
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
+from creative_coding_assistant.orchestration.creative_quality_prediction import (
+    CreativeQualityPrediction,
+)
 from creative_coding_assistant.orchestration.creative_reasoning_contracts import (
     CREATIVE_REASONING_AUTHORITY_BOUNDARY,
     CreativeReasoningEvidence,
@@ -79,6 +82,7 @@ def derive_creative_reasoning_result(
     creative_techniques: CreativeTechniqueProfile | None = None,
     runtime_capabilities: RuntimeCapabilityProfile | None = None,
     creative_tradeoffs: CreativeTradeoffProfile | None = None,
+    creative_quality_prediction: CreativeQualityPrediction | None = None,
     future_knowledge_context: Mapping[str, object] | None = None,
 ) -> CreativeReasoningResult:
     """Synthesize prior Creative Intelligence outputs into one decision brief."""
@@ -94,6 +98,7 @@ def derive_creative_reasoning_result(
         runtime_capabilities=runtime_capabilities,
         creative_tradeoffs=creative_tradeoffs,
         creative_constraint_priorities=creative_constraint_priorities,
+        creative_quality_prediction=creative_quality_prediction,
     )
     unresolved = build_unresolved_decisions(
         creative_director=creative_director,
@@ -105,6 +110,7 @@ def derive_creative_reasoning_result(
         creative_tradeoffs=creative_tradeoffs,
         creative_strategy=creative_strategy,
         creative_techniques=creative_techniques,
+        creative_quality_prediction=creative_quality_prediction,
     )
     return CreativeReasoningResult(
         recommended_creative_direction=direction,
@@ -118,6 +124,7 @@ def derive_creative_reasoning_result(
             runtime_capabilities=runtime_capabilities,
             creative_tradeoffs=creative_tradeoffs,
             creative_constraint_priorities=creative_constraint_priorities,
+            creative_quality_prediction=creative_quality_prediction,
         ),
         evidence_chain=build_evidence_chain(
             request=request,
@@ -133,6 +140,7 @@ def derive_creative_reasoning_result(
             creative_techniques=creative_techniques,
             runtime_capabilities=runtime_capabilities,
             creative_tradeoffs=creative_tradeoffs,
+            creative_quality_prediction=creative_quality_prediction,
         ),
         strongest_supporting_signals=build_strongest_signals(
             creative_director=creative_director,
@@ -144,6 +152,7 @@ def derive_creative_reasoning_result(
             creative_techniques=creative_techniques,
             runtime_capabilities=runtime_capabilities,
             creative_tradeoffs=creative_tradeoffs,
+            creative_quality_prediction=creative_quality_prediction,
         ),
         rejected_alternatives=build_rejected_alternatives(
             creative_strategy=creative_strategy,
@@ -161,6 +170,7 @@ def derive_creative_reasoning_result(
             creative_techniques=creative_techniques,
             runtime_capabilities=runtime_capabilities,
             creative_tradeoffs=creative_tradeoffs,
+            creative_quality_prediction=creative_quality_prediction,
         ),
         prompt_guidance=build_prompt_guidance(unresolved),
         hitl_questions=build_hitl_questions(unresolved),

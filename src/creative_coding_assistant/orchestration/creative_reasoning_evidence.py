@@ -21,6 +21,9 @@ from creative_coding_assistant.orchestration.creative_intent import (
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
+from creative_coding_assistant.orchestration.creative_quality_prediction import (
+    CreativeQualityPrediction,
+)
 from creative_coding_assistant.orchestration.creative_reasoning_contracts import (
     CreativeReasoningEvidence,
 )
@@ -60,6 +63,7 @@ def build_evidence_chain(
     creative_techniques: CreativeTechniqueProfile | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
+    creative_quality_prediction: CreativeQualityPrediction | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -156,6 +160,20 @@ def build_evidence_chain(
                 interpretation="Trade-off evidence explains the bounded stance.",
             )
         )
+    if creative_quality_prediction is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="quality_predictor",
+                signal=(
+                    f"{creative_quality_prediction.predicted_quality_level} "
+                    f"readiness {creative_quality_prediction.readiness_score}/100."
+                ),
+                interpretation=(
+                    "Quality prediction estimates pre-generation readiness "
+                    "without critiquing generated artifacts."
+                ),
+            )
+        )
     if creative_director is not None:
         evidence.append(
             CreativeReasoningEvidence(
@@ -164,7 +182,7 @@ def build_evidence_chain(
                 interpretation="Director guidance frames brief and HITL posture.",
             )
         )
-    return tuple(evidence[:10])
+    return tuple(evidence[:14])
 
 
 def _append_strategy_evidence(

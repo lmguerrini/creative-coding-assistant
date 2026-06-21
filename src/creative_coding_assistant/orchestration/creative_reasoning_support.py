@@ -22,6 +22,9 @@ from creative_coding_assistant.orchestration.creative_intent import (
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
+from creative_coding_assistant.orchestration.creative_quality_prediction import (
+    CreativeQualityPrediction,
+)
 from creative_coding_assistant.orchestration.creative_reasoning_contracts import (
     CreativeRejectedAlternative,
 )
@@ -54,6 +57,7 @@ def build_strongest_signals(
     creative_techniques: CreativeTechniqueProfile | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
+    creative_quality_prediction: CreativeQualityPrediction | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -85,6 +89,16 @@ def build_strongest_signals(
         )
     if creative_tradeoffs is not None:
         signals.append(f"Primary trade-off: {_tradeoff_summary(creative_tradeoffs)}")
+    if creative_quality_prediction is not None:
+        signals.append(
+            "Quality readiness: "
+            f"{creative_quality_prediction.predicted_quality_level} "
+            f"({creative_quality_prediction.readiness_score}/100)."
+        )
+        signals.extend(
+            f"Quality signal {item.dimension}: {item.summary}"
+            for item in creative_quality_prediction.strongest_quality_signals[:2]
+        )
     if creative_constraints is not None:
         signals.append(
             f"Constraints: complexity {creative_constraints.complexity_pressure}, "
@@ -168,6 +182,7 @@ def build_unresolved_decisions(
     creative_tradeoffs: CreativeTradeoffProfile | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
+    creative_quality_prediction: CreativeQualityPrediction | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -184,6 +199,9 @@ def build_unresolved_decisions(
     _append_hitl(unresolved, creative_constraints)
     _append_hitl(unresolved, runtime_capabilities)
     _append_hitl(unresolved, creative_tradeoffs)
+    if creative_quality_prediction is not None:
+        unresolved.extend(creative_quality_prediction.hitl_questions[:3])
+        unresolved.extend(creative_quality_prediction.missing_information[:2])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -203,6 +221,7 @@ def build_implementation_guidance(
     creative_techniques: CreativeTechniqueProfile | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
+    creative_quality_prediction: CreativeQualityPrediction | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -226,6 +245,8 @@ def build_implementation_guidance(
         guidance.append(top.prompt_guidance[0])
     if creative_tradeoffs is not None:
         guidance.append(creative_tradeoffs.primary_tradeoffs[0].mitigation)
+    if creative_quality_prediction is not None:
+        guidance.extend(creative_quality_prediction.prompt_guidance[:2])
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",
     )
