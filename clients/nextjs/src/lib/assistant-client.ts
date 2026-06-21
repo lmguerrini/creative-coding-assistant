@@ -142,6 +142,57 @@ export type CreativeIntentDecompositionSummary = {
   evidence: string[];
 };
 
+export type CreativeHierarchyDimension =
+  | "symbolism"
+  | "narrative"
+  | "emotion"
+  | "geometry"
+  | "motion"
+  | "rhythm"
+  | "light_color"
+  | "audio"
+  | "interaction"
+  | "visual_impact"
+  | "performance"
+  | "simplicity"
+  | "complexity"
+  | "runtime_safety"
+  | "experiential_depth";
+
+export type CreativeHierarchyTier = "primary" | "secondary" | "flexible";
+
+export type CreativeHierarchySource =
+  | "explicit"
+  | "implied"
+  | "coherence"
+  | "constraint";
+
+export type CreativeHierarchyPrioritySummary = {
+  dimension: CreativeHierarchyDimension;
+  tier: CreativeHierarchyTier;
+  rank: number;
+  priorityScore: number;
+  source: CreativeHierarchySource;
+  rationale: string;
+  evidence: string[];
+  sacrificeGuidance: string;
+};
+
+export type CreativeHierarchyPlanSummary = {
+  role: "creative_hierarchy_planner";
+  primaryCreativePriorities: CreativeHierarchyPrioritySummary[];
+  secondaryCreativePriorities: CreativeHierarchyPrioritySummary[];
+  nonNegotiableDimensions: CreativeHierarchyDimension[];
+  flexibleDimensions: CreativeHierarchyDimension[];
+  priorityRationale: string[];
+  priorityConflicts: string[];
+  hierarchyConfidence: number;
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeExecutionPlanSummary = {
   outputModality: "visual" | "audio" | "audiovisual";
   generationStrategy: string;
@@ -419,6 +470,7 @@ export type CreativeReasoningEvidenceSource =
   | "request"
   | "translation"
   | "creative_intent"
+  | "creative_hierarchy"
   | "planning"
   | "director"
   | "constraint_solver"

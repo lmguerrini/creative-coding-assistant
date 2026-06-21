@@ -14,6 +14,11 @@ import {
   type CreativeIntentDimensionName,
   type CreativeIntentDimensionSummary,
   type CreativeIntentExplicitness,
+  type CreativeHierarchyDimension,
+  type CreativeHierarchyPlanSummary,
+  type CreativeHierarchyPrioritySummary,
+  type CreativeHierarchySource,
+  type CreativeHierarchyTier,
   type CreativeReasoningEvidenceSource,
   type CreativeReasoningEvidenceSummary,
   type CreativeReasoningStage,
@@ -115,6 +120,8 @@ export type AssistantStreamWorkflowMetadata = {
   clarification_question_count?: number;
   creative_intent?: CreativeIntentDecompositionSummary | null;
   intent_decomposer_available?: boolean;
+  creative_hierarchy?: CreativeHierarchyPlanSummary | null;
+  hierarchy_planner_available?: boolean;
   creative_strategy?: CreativeStrategySummary | null;
   strategy_available?: boolean;
   creative_techniques?: CreativeTechniqueSummary | null;
@@ -527,6 +534,12 @@ export function readWorkflowMetadata(
   );
   const intentDecomposerAvailable =
     rawWorkflow.intent_decomposer_available === true || creativeIntent !== null;
+  const creativeHierarchy = readCreativeHierarchyPlanSummary(
+    rawWorkflow.creative_hierarchy ?? rawWorkflow.creativeHierarchy
+  );
+  const hierarchyPlannerAvailable =
+    rawWorkflow.hierarchy_planner_available === true ||
+    creativeHierarchy !== null;
   const creativeStrategy = readCreativeStrategySummary(
     rawWorkflow.creative_strategy ?? rawWorkflow.creativeStrategy
   );
@@ -608,6 +621,12 @@ export function readWorkflowMetadata(
       ? {
           creative_intent: creativeIntent,
           intent_decomposer_available: true
+        }
+      : {}),
+    ...(hierarchyPlannerAvailable
+      ? {
+          creative_hierarchy: creativeHierarchy,
+          hierarchy_planner_available: true
         }
       : {}),
     ...(strategyAvailable
@@ -913,6 +932,173 @@ function readCreativeIntentDimensionSummary(
     signals: readStringListField(value, "signals", "signals"),
     guidance
   };
+}
+
+export function readCreativeHierarchyPlanSummary(
+  value: unknown
+): CreativeHierarchyPlanSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const primaryCreativePriorities = readCreativeHierarchyPrioritySummaryList(
+    value.primary_creative_priorities ?? value.primaryCreativePriorities
+  );
+  const hierarchyConfidence =
+    readFiniteNumberField(value, "hierarchy_confidence") ??
+    readFiniteNumberField(value, "hierarchyConfidence");
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+
+  if (
+    role !== "creative_hierarchy_planner" ||
+    primaryCreativePriorities.length === 0 ||
+    hierarchyConfidence === null ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    primaryCreativePriorities,
+    secondaryCreativePriorities: readCreativeHierarchyPrioritySummaryList(
+      value.secondary_creative_priorities ?? value.secondaryCreativePriorities
+    ),
+    nonNegotiableDimensions: readCreativeHierarchyDimensionList(
+      value.non_negotiable_dimensions ?? value.nonNegotiableDimensions
+    ),
+    flexibleDimensions: readCreativeHierarchyDimensionList(
+      value.flexible_dimensions ?? value.flexibleDimensions
+    ),
+    priorityRationale: readStringListField(
+      value,
+      "priority_rationale",
+      "priorityRationale"
+    ),
+    priorityConflicts: readStringListField(
+      value,
+      "priority_conflicts",
+      "priorityConflicts"
+    ),
+    hierarchyConfidence,
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const creativeHierarchyDimensions = [
+  "symbolism",
+  "narrative",
+  "emotion",
+  "geometry",
+  "motion",
+  "rhythm",
+  "light_color",
+  "audio",
+  "interaction",
+  "visual_impact",
+  "performance",
+  "simplicity",
+  "complexity",
+  "runtime_safety",
+  "experiential_depth"
+] as const satisfies readonly CreativeHierarchyDimension[];
+
+const creativeHierarchyTiers = [
+  "primary",
+  "secondary",
+  "flexible"
+] as const satisfies readonly CreativeHierarchyTier[];
+
+const creativeHierarchySources = [
+  "explicit",
+  "implied",
+  "coherence",
+  "constraint"
+] as const satisfies readonly CreativeHierarchySource[];
+
+function readCreativeHierarchyPrioritySummaryList(
+  value: unknown
+): CreativeHierarchyPrioritySummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const dimension = readStringUnion(
+      item,
+      "dimension",
+      "dimension",
+      creativeHierarchyDimensions
+    );
+    const tier = readStringUnion(item, "tier", "tier", creativeHierarchyTiers);
+    const rank = readFiniteNumberField(item, "rank");
+    const priorityScore =
+      readFiniteNumberField(item, "priority_score") ??
+      readFiniteNumberField(item, "priorityScore");
+    const source = readStringUnion(
+      item,
+      "source",
+      "source",
+      creativeHierarchySources
+    );
+    const rationale = readStringField(item, "rationale");
+    const sacrificeGuidance =
+      readStringField(item, "sacrifice_guidance") ??
+      readStringField(item, "sacrificeGuidance");
+
+    if (
+      !dimension ||
+      !tier ||
+      rank === null ||
+      priorityScore === null ||
+      !source ||
+      !rationale ||
+      !sacrificeGuidance
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        dimension,
+        tier,
+        rank,
+        priorityScore,
+        source,
+        rationale,
+        evidence: readStringListField(item, "evidence", "evidence"),
+        sacrificeGuidance
+      }
+    ];
+  });
+}
+
+function readCreativeHierarchyDimensionList(
+  value: unknown
+): CreativeHierarchyDimension[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((item): item is CreativeHierarchyDimension =>
+    creativeHierarchyDimensions.includes(item as CreativeHierarchyDimension)
+  );
 }
 
 const creativeStrategyIds = [
@@ -1644,6 +1830,7 @@ const creativeReasoningEvidenceSources = [
   "request",
   "translation",
   "creative_intent",
+  "creative_hierarchy",
   "planning",
   "director",
   "constraint_solver",

@@ -569,6 +569,84 @@ describe("assistant stream client", () => {
       authorityBoundary: creativeIntent.authority_boundary,
       evidence: creativeIntent.evidence
     };
+    const creativeHierarchy = {
+      role: "creative_hierarchy_planner",
+      primary_creative_priorities: [
+        {
+          dimension: "visual_impact",
+          tier: "primary",
+          rank: 1,
+          priority_score: 9,
+          source: "explicit",
+          rationale: "visual impact should dominate because score 9 is strongest.",
+          evidence: ["keyword:visual_impact"],
+          sacrifice_guidance:
+            "Do not sacrifice visual_impact unless the user explicitly redirects."
+        }
+      ],
+      secondary_creative_priorities: [
+        {
+          dimension: "performance",
+          tier: "secondary",
+          rank: 1,
+          priority_score: 4,
+          source: "constraint",
+          rationale:
+            "performance supports coherence but should not override primary intent.",
+          evidence: ["constraint:performance"],
+          sacrifice_guidance:
+            "Keep performance visible when reducing creative scope."
+        }
+      ],
+      non_negotiable_dimensions: ["visual_impact"],
+      flexible_dimensions: ["audio", "rhythm"],
+      priority_rationale: ["Primary hierarchy: visual_impact."],
+      priority_conflicts: [
+        "Visual impact may compete with performance priority."
+      ],
+      hierarchy_confidence: 0.78,
+      hitl_questions: ["Should visual richness or performance win first?"],
+      prompt_guidance: [
+        "Use hierarchy priorities as ordering guidance, not as new features."
+      ],
+      authority_boundary:
+        "The Creative Hierarchy Planner ranks creative priorities for inspection only.",
+      evidence: ["Top hierarchy scores: visual_impact=9."]
+    };
+    const expectedCreativeHierarchy = {
+      role: creativeHierarchy.role,
+      primaryCreativePriorities:
+        creativeHierarchy.primary_creative_priorities.map((item) => ({
+          dimension: item.dimension,
+          tier: item.tier,
+          rank: item.rank,
+          priorityScore: item.priority_score,
+          source: item.source,
+          rationale: item.rationale,
+          evidence: item.evidence,
+          sacrificeGuidance: item.sacrifice_guidance
+        })),
+      secondaryCreativePriorities:
+        creativeHierarchy.secondary_creative_priorities.map((item) => ({
+          dimension: item.dimension,
+          tier: item.tier,
+          rank: item.rank,
+          priorityScore: item.priority_score,
+          source: item.source,
+          rationale: item.rationale,
+          evidence: item.evidence,
+          sacrificeGuidance: item.sacrifice_guidance
+        })),
+      nonNegotiableDimensions: creativeHierarchy.non_negotiable_dimensions,
+      flexibleDimensions: creativeHierarchy.flexible_dimensions,
+      priorityRationale: creativeHierarchy.priority_rationale,
+      priorityConflicts: creativeHierarchy.priority_conflicts,
+      hierarchyConfidence: creativeHierarchy.hierarchy_confidence,
+      hitlQuestions: creativeHierarchy.hitl_questions,
+      promptGuidance: creativeHierarchy.prompt_guidance,
+      authorityBoundary: creativeHierarchy.authority_boundary,
+      evidence: creativeHierarchy.evidence
+    };
     const creativeStrategy = {
       role: "creative_strategy_engine",
       primary_strategy: "particle_cosmology",
@@ -858,6 +936,8 @@ describe("assistant stream client", () => {
           image_reference_count: 1,
           intent_decomposer_available: true,
           creative_intent: creativeIntent,
+          hierarchy_planner_available: true,
+          creative_hierarchy: creativeHierarchy,
           strategy_available: true,
           creative_strategy: creativeStrategy,
           technique_selector_available: true,
@@ -903,6 +983,8 @@ describe("assistant stream client", () => {
       preview_artifact_count: 0,
       creative_intent: expectedCreativeIntent,
       intent_decomposer_available: true,
+      creative_hierarchy: expectedCreativeHierarchy,
+      hierarchy_planner_available: true,
       creative_strategy: {
         role: "creative_strategy_engine",
         primaryStrategy: "particle_cosmology",
