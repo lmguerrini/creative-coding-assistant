@@ -31,6 +31,9 @@ from creative_coding_assistant.orchestration.creative_strategy import (
 from creative_coding_assistant.orchestration.creative_technique import (
     CreativeTechniqueProfile,
 )
+from creative_coding_assistant.orchestration.creative_tradeoffs import (
+    CreativeTradeoffProfile,
+)
 from creative_coding_assistant.orchestration.memory import MemoryContextResponse
 from creative_coding_assistant.orchestration.prompt_inputs import PromptInputResponse
 from creative_coding_assistant.orchestration.prompt_templates import (
@@ -139,6 +142,7 @@ class AssistantWorkflowState(BaseModel):
     creative_plan: CreativeExecutionPlan | None = None
     creative_constraints: CreativeConstraintSolution | None = None
     runtime_capabilities: RuntimeCapabilityProfile | None = None
+    creative_tradeoffs: CreativeTradeoffProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     rendered_prompt: RenderedPromptResponse | None = None
     artifacts: tuple[WorkflowArtifact, ...] = ()

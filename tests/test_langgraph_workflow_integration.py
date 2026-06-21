@@ -225,6 +225,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         plan = planning_event.payload["creative_plan"]
         constraints = planning_event.payload["creative_constraints"]
         runtime_capabilities = planning_event.payload["runtime_capabilities"]
+        tradeoffs = planning_event.payload["creative_tradeoffs"]
         director = director_event.payload["creative_director"]
 
         self.assertEqual(planning_event.payload["workflow"]["step"], "planning")
@@ -252,6 +253,11 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "runtime_capability_reasoner_available"
             ]
         )
+        self.assertEqual(tradeoffs["role"], "creative_tradeoff_explorer")
+        self.assertTrue(tradeoffs["primary_tradeoffs"])
+        self.assertTrue(
+            planning_event.payload["workflow"]["tradeoff_explorer_available"]
+        )
         self.assertEqual(director["role"], "creative_assistant_director")
         self.assertEqual(director["runtime_direction"], "p5")
         self.assertEqual(
@@ -273,6 +279,10 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(
             final_event.payload["runtime_capabilities"]["role"],
             "runtime_capability_reasoner",
+        )
+        self.assertEqual(
+            final_event.payload["creative_tradeoffs"]["role"],
+            "creative_tradeoff_explorer",
         )
         self.assertEqual(
             final_event.payload["creative_director"]["runtime_direction"],

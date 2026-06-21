@@ -19,6 +19,9 @@ from creative_coding_assistant.orchestration.creative_strategy import (
 from creative_coding_assistant.orchestration.creative_technique import (
     CreativeTechniqueProfile,
 )
+from creative_coding_assistant.orchestration.creative_tradeoffs import (
+    CreativeTradeoffProfile,
+)
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
@@ -45,6 +48,7 @@ def build_director_brief_payload(
     creative_plan: CreativeExecutionPlan | None,
     creative_constraints: CreativeConstraintSolution | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
+    creative_tradeoffs: CreativeTradeoffProfile | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -73,6 +77,7 @@ def build_director_brief_payload(
             creative_techniques,
             creative_constraints,
             runtime_capabilities,
+            creative_tradeoffs,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -80,6 +85,7 @@ def build_director_brief_payload(
             creative_techniques=creative_techniques,
             creative_constraints=creative_constraints,
             runtime_capabilities=runtime_capabilities,
+            creative_tradeoffs=creative_tradeoffs,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -106,6 +112,7 @@ def build_director_brief_payload(
             creative_plan=creative_plan,
             creative_constraints=creative_constraints,
             runtime_capabilities=runtime_capabilities,
+            creative_tradeoffs=creative_tradeoffs,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -181,6 +188,7 @@ def _planning_focus(
     creative_techniques: CreativeTechniqueProfile | None,
     creative_constraints: CreativeConstraintSolution | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
+    creative_tradeoffs: CreativeTradeoffProfile | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_strategy is not None:
@@ -196,6 +204,11 @@ def _planning_focus(
             + "."
         )
         focus.extend(runtime_capabilities.prompt_guidance[:2])
+    if creative_tradeoffs is not None:
+        focus.append(
+            "Trade-off discussion: "
+            + creative_tradeoffs.director_discussion_points[0]
+        )
     if creative_strategy is not None:
         focus.extend(creative_strategy.strategy_directives[:2])
     if creative_techniques is not None:
@@ -223,6 +236,7 @@ def _critique_focus(
     creative_techniques: CreativeTechniqueProfile | None,
     creative_constraints: CreativeConstraintSolution | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
+    creative_tradeoffs: CreativeTradeoffProfile | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -246,6 +260,15 @@ def _critique_focus(
             "inside selected route/runtime contract."
         )
         focus.extend(runtime_capabilities.candidate_runtimes[0].risks[:2])
+    if creative_tradeoffs is not None:
+        focus.append(
+            "Trade-off explorer is non-binding; verify output reflects "
+            "declared consequences."
+        )
+        focus.extend(
+            tradeoff.summary
+            for tradeoff in creative_tradeoffs.primary_tradeoffs[:2]
+        )
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -326,6 +349,7 @@ def _evidence(
     creative_plan: CreativeExecutionPlan | None,
     creative_constraints: CreativeConstraintSolution | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
+    creative_tradeoffs: CreativeTradeoffProfile | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -370,6 +394,11 @@ def _evidence(
         evidence.append(
             f"Runtime capability HITL: {runtime_capabilities.hitl_advisable}."
         )
+    if creative_tradeoffs is not None:
+        evidence.append(
+            f"Trade-offs: {len(creative_tradeoffs.primary_tradeoffs)} primary."
+        )
+        evidence.append(f"Trade-off HITL: {creative_tradeoffs.hitl_advisable}.")
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")
     if clarification is not None:

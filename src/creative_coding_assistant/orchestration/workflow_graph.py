@@ -43,6 +43,9 @@ from creative_coding_assistant.orchestration.creative_strategy import (
 from creative_coding_assistant.orchestration.creative_technique import (
     derive_creative_technique_profile,
 )
+from creative_coding_assistant.orchestration.creative_tradeoffs import (
+    derive_creative_tradeoff_profile,
+)
 from creative_coding_assistant.orchestration.events import StreamEventBuilder
 from creative_coding_assistant.orchestration.prompt_templates import (
     RenderedPromptResponse,
@@ -593,6 +596,16 @@ def _planning_node(
             creative_plan=plan,
             creative_constraints=constraints,
         )
+        tradeoffs = derive_creative_tradeoff_profile(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_translation=prompt_input.creative_translation,
+            creative_strategy=strategy,
+            creative_techniques=techniques,
+            creative_plan=plan,
+            creative_constraints=constraints,
+            runtime_capabilities=runtime_capabilities,
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -600,6 +613,7 @@ def _planning_node(
                 "creative_plan": plan,
                 "creative_constraints": constraints,
                 "runtime_capabilities": runtime_capabilities,
+                "creative_tradeoffs": tradeoffs,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -609,6 +623,7 @@ def _planning_node(
                 "creative_plan": plan,
                 "creative_constraints": constraints,
                 "runtime_capabilities": runtime_capabilities,
+                "creative_tradeoffs": tradeoffs,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -621,6 +636,7 @@ def _planning_node(
                 creative_plan=plan.model_dump(mode="json"),
                 creative_constraints=constraints.model_dump(mode="json"),
                 runtime_capabilities=runtime_capabilities.model_dump(mode="json"),
+                creative_tradeoffs=tradeoffs.model_dump(mode="json"),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -1281,6 +1297,14 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "creative_tradeoffs",
+                    (
+                        final_state.creative_tradeoffs.model_dump(mode="json")
+                        if final_state.creative_tradeoffs is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_director",
                     (
                         final_state.creative_director.model_dump(mode="json")
@@ -1854,6 +1878,7 @@ def _derive_director_brief(
         creative_plan=workflow_state.creative_plan,
         creative_constraints=workflow_state.creative_constraints,
         runtime_capabilities=workflow_state.runtime_capabilities,
+        creative_tradeoffs=workflow_state.creative_tradeoffs,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2081,6 +2106,7 @@ def _serialize_workflow_runtime(
     creative_plan = workflow_state.creative_plan
     creative_constraints = workflow_state.creative_constraints
     runtime_capabilities = workflow_state.runtime_capabilities
+    creative_tradeoffs = workflow_state.creative_tradeoffs
     creative_director = workflow_state.creative_director
 
     return {
@@ -2153,6 +2179,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "runtime_capability_reasoner_available": runtime_capabilities is not None,
+        "creative_tradeoffs": (
+            creative_tradeoffs.model_dump(mode="json")
+            if creative_tradeoffs is not None
+            else None
+        ),
+        "tradeoff_explorer_available": creative_tradeoffs is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None

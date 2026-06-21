@@ -32,6 +32,10 @@ from creative_coding_assistant.orchestration.creative_technique import (
     CreativeTechniqueProfile,
     creative_technique_prompt_lines,
 )
+from creative_coding_assistant.orchestration.creative_tradeoffs import (
+    CreativeTradeoffProfile,
+    creative_tradeoff_prompt_lines,
+)
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
     creative_translation_prompt_lines,
@@ -142,6 +146,13 @@ Creative Constraint Solver:
 {% if runtime_capabilities is not none -%}
 Runtime Capability Reasoner:
 {% for instruction in runtime_capability_lines(runtime_capabilities) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set tradeoffs = prompt_input.creative_tradeoffs -%}
+{% if tradeoffs is not none -%}
+Creative Trade-off Explorer:
+{% for instruction in creative_tradeoff_lines(tradeoffs) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -378,6 +389,7 @@ class JinjaPromptRenderer:
             creative_execution_plan_lines=_creative_execution_plan_lines,
             creative_constraint_solution_lines=_creative_constraint_solution_lines,
             runtime_capability_lines=_runtime_capability_lines,
+            creative_tradeoff_lines=_creative_tradeoff_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
         )
@@ -571,6 +583,12 @@ def _runtime_capability_lines(
     profile: RuntimeCapabilityProfile,
 ) -> tuple[str, ...]:
     return runtime_capability_prompt_lines(profile)
+
+
+def _creative_tradeoff_lines(
+    profile: CreativeTradeoffProfile,
+) -> tuple[str, ...]:
+    return creative_tradeoff_prompt_lines(profile)
 
 
 def _creative_assistant_director_lines(

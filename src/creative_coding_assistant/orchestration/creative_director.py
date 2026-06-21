@@ -26,6 +26,9 @@ from creative_coding_assistant.orchestration.creative_strategy import (
 from creative_coding_assistant.orchestration.creative_technique import (
     CreativeTechniqueProfile,
 )
+from creative_coding_assistant.orchestration.creative_tradeoffs import (
+    CreativeTradeoffProfile,
+)
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
@@ -77,6 +80,7 @@ def derive_creative_assistant_director_brief(
     creative_techniques: CreativeTechniqueProfile | None = None,
     creative_constraints: CreativeConstraintSolution | None = None,
     runtime_capabilities: RuntimeCapabilityProfile | None = None,
+    creative_tradeoffs: CreativeTradeoffProfile | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -95,6 +99,7 @@ def derive_creative_assistant_director_brief(
             creative_plan=creative_plan,
             creative_constraints=creative_constraints,
             runtime_capabilities=runtime_capabilities,
+            creative_tradeoffs=creative_tradeoffs,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
