@@ -9,6 +9,11 @@ import {
   type ClarificationSummary,
   type CreativeAssistantDirectorSummary,
   type CreativeExecutionPlanSummary,
+  type CreativeAbstractionLevel,
+  type CreativeIntentDecompositionSummary,
+  type CreativeIntentDimensionName,
+  type CreativeIntentDimensionSummary,
+  type CreativeIntentExplicitness,
   type CreativeReasoningEvidenceSource,
   type CreativeReasoningEvidenceSummary,
   type CreativeReasoningStage,
@@ -108,6 +113,8 @@ export type AssistantStreamWorkflowMetadata = {
   clarification_required?: boolean;
   clarification_reason?: string | null;
   clarification_question_count?: number;
+  creative_intent?: CreativeIntentDecompositionSummary | null;
+  intent_decomposer_available?: boolean;
   creative_strategy?: CreativeStrategySummary | null;
   strategy_available?: boolean;
   creative_techniques?: CreativeTechniqueSummary | null;
@@ -515,6 +522,11 @@ export function readWorkflowMetadata(
     typeof rawWorkflow.clarification_question_count === "number"
       ? rawWorkflow.clarification_question_count
       : clarification?.questions.length ?? 0;
+  const creativeIntent = readCreativeIntentDecompositionSummary(
+    rawWorkflow.creative_intent ?? rawWorkflow.creativeIntent
+  );
+  const intentDecomposerAvailable =
+    rawWorkflow.intent_decomposer_available === true || creativeIntent !== null;
   const creativeStrategy = readCreativeStrategySummary(
     rawWorkflow.creative_strategy ?? rawWorkflow.creativeStrategy
   );
@@ -590,6 +602,12 @@ export function readWorkflowMetadata(
           clarification_required: true,
           clarification_reason: clarificationReason,
           clarification_question_count: clarificationQuestionCount
+        }
+      : {}),
+    ...(intentDecomposerAvailable
+      ? {
+          creative_intent: creativeIntent,
+          intent_decomposer_available: true
         }
       : {}),
     ...(strategyAvailable
@@ -702,6 +720,198 @@ export function readCreativeStrategySummary(
     strategyDirectives,
     implementationBoundary,
     evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+export function readCreativeIntentDecompositionSummary(
+  value: unknown
+): CreativeIntentDecompositionSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const normalizedIntent =
+    readStringField(value, "normalized_intent") ??
+    readStringField(value, "normalizedIntent");
+  const primaryExpression =
+    readStringField(value, "primary_expression") ??
+    readStringField(value, "primaryExpression");
+  const abstractionLevel = readStringUnion(
+    value,
+    "abstraction_level",
+    "abstractionLevel",
+    creativeAbstractionLevels
+  );
+  const experientialGoal =
+    readStringField(value, "experiential_goal") ??
+    readStringField(value, "experientialGoal");
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+  const atomicDimensions = readCreativeIntentDimensionSummaryList(
+    value.atomic_dimensions ?? value.atomicDimensions
+  );
+  const narrativeIntent = readCreativeIntentDimensionSummary(
+    value.narrative_intent ?? value.narrativeIntent
+  );
+  const symbolicIntent = readCreativeIntentDimensionSummary(
+    value.symbolic_intent ?? value.symbolicIntent
+  );
+  const emotionalIntent = readCreativeIntentDimensionSummary(
+    value.emotional_intent ?? value.emotionalIntent
+  );
+  const geometricIntent = readCreativeIntentDimensionSummary(
+    value.geometric_intent ?? value.geometricIntent
+  );
+  const motionIntent = readCreativeIntentDimensionSummary(
+    value.motion_intent ?? value.motionIntent
+  );
+  const rhythmIntent = readCreativeIntentDimensionSummary(
+    value.rhythm_intent ?? value.rhythmIntent
+  );
+  const lightColorIntent = readCreativeIntentDimensionSummary(
+    value.light_color_intent ?? value.lightColorIntent
+  );
+  const audioIntent = readCreativeIntentDimensionSummary(
+    value.audio_intent ?? value.audioIntent
+  );
+  const interactionIntent = readCreativeIntentDimensionSummary(
+    value.interaction_intent ?? value.interactionIntent
+  );
+  const climaxTransformationIntent = readCreativeIntentDimensionSummary(
+    value.climax_transformation_intent ?? value.climaxTransformationIntent
+  );
+
+  if (
+    role !== "creative_intent_decomposer" ||
+    !normalizedIntent ||
+    !primaryExpression ||
+    !abstractionLevel ||
+    !experientialGoal ||
+    !authorityBoundary ||
+    atomicDimensions.length === 0 ||
+    !narrativeIntent ||
+    !symbolicIntent ||
+    !emotionalIntent ||
+    !geometricIntent ||
+    !motionIntent ||
+    !rhythmIntent ||
+    !lightColorIntent ||
+    !audioIntent ||
+    !interactionIntent ||
+    !climaxTransformationIntent
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    normalizedIntent,
+    primaryExpression,
+    narrativeIntent,
+    symbolicIntent,
+    emotionalIntent,
+    geometricIntent,
+    motionIntent,
+    rhythmIntent,
+    lightColorIntent,
+    audioIntent,
+    interactionIntent,
+    climaxTransformationIntent,
+    abstractionLevel,
+    experientialGoal,
+    unresolvedIntentGaps: readStringListField(
+      value,
+      "unresolved_intent_gaps",
+      "unresolvedIntentGaps"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    atomicDimensions,
+    promptGuidance: readStringListField(
+      value,
+      "prompt_guidance",
+      "promptGuidance"
+    ),
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const creativeIntentDimensionNames = [
+  "narrative",
+  "symbolic",
+  "emotional",
+  "geometric",
+  "motion",
+  "rhythm",
+  "light_color",
+  "audio",
+  "interaction",
+  "climax_transformation"
+] as const satisfies readonly CreativeIntentDimensionName[];
+
+const creativeIntentExplicitnessValues = [
+  "explicit",
+  "inferred",
+  "absent",
+  "ambiguous"
+] as const satisfies readonly CreativeIntentExplicitness[];
+
+const creativeAbstractionLevels = [
+  "literal",
+  "stylized",
+  "symbolic",
+  "abstract",
+  "mixed",
+  "unspecified"
+] as const satisfies readonly CreativeAbstractionLevel[];
+
+function readCreativeIntentDimensionSummaryList(
+  value: unknown
+): CreativeIntentDimensionSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    const parsed = readCreativeIntentDimensionSummary(item);
+    return parsed ? [parsed] : [];
+  });
+}
+
+function readCreativeIntentDimensionSummary(
+  value: unknown
+): CreativeIntentDimensionSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const name = readStringUnion(
+    value,
+    "name",
+    "name",
+    creativeIntentDimensionNames
+  );
+  const explicitness = readStringUnion(
+    value,
+    "explicitness",
+    "explicitness",
+    creativeIntentExplicitnessValues
+  );
+  const summary = readStringField(value, "summary");
+  const guidance = readStringListField(value, "guidance", "guidance");
+
+  if (!name || !explicitness || !summary || guidance.length === 0) {
+    return null;
+  }
+
+  return {
+    name,
+    explicitness,
+    summary,
+    signals: readStringListField(value, "signals", "signals"),
+    guidance
   };
 }
 
@@ -1433,6 +1643,7 @@ const creativeReasoningStages = [
 const creativeReasoningEvidenceSources = [
   "request",
   "translation",
+  "creative_intent",
   "planning",
   "director",
   "constraint_solver",

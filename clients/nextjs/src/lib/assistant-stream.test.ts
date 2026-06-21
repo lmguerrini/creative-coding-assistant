@@ -395,6 +395,180 @@ describe("assistant stream client", () => {
       constraints: ["Keep code browser-safe."],
       evidence: ["Route selected: generate."]
     };
+    const intentDimension = (
+      name: string,
+      explicitness: string,
+      summary: string,
+      signals: string[]
+    ) => ({
+      name,
+      explicitness,
+      summary,
+      signals,
+      guidance: [`Preserve ${name} intent.`]
+    });
+    const creativeIntent = {
+      role: "creative_intent_decomposer",
+      normalized_intent: "Generate a luminous particle field.",
+      primary_expression: "emotional=awe; motion=drift; light color=glow",
+      narrative_intent: intentDimension(
+        "narrative",
+        "absent",
+        "No explicit narrative intent was detected.",
+        []
+      ),
+      symbolic_intent: intentDimension(
+        "symbolic",
+        "inferred",
+        "Use symbolic cues around constellation as an atomic design dimension.",
+        ["constellation"]
+      ),
+      emotional_intent: intentDimension(
+        "emotional",
+        "explicit",
+        "Use emotional cues around awe as an atomic design dimension.",
+        ["awe"]
+      ),
+      geometric_intent: intentDimension(
+        "geometric",
+        "absent",
+        "No explicit geometric intent was detected.",
+        []
+      ),
+      motion_intent: intentDimension(
+        "motion",
+        "explicit",
+        "Use motion cues around drift as an atomic design dimension.",
+        ["drift"]
+      ),
+      rhythm_intent: intentDimension(
+        "rhythm",
+        "absent",
+        "No explicit rhythm intent was detected.",
+        []
+      ),
+      light_color_intent: intentDimension(
+        "light_color",
+        "explicit",
+        "Use light color cues around glow as an atomic design dimension.",
+        ["glow"]
+      ),
+      audio_intent: intentDimension(
+        "audio",
+        "absent",
+        "No explicit audio intent was detected.",
+        []
+      ),
+      interaction_intent: intentDimension(
+        "interaction",
+        "absent",
+        "No explicit interaction intent was detected.",
+        []
+      ),
+      climax_transformation_intent: intentDimension(
+        "climax_transformation",
+        "absent",
+        "No explicit climax transformation intent was detected.",
+        []
+      ),
+      abstraction_level: "abstract",
+      experiential_goal:
+        "Create an abstract experience that balances emotional, motion, and light color cues.",
+      unresolved_intent_gaps: ["Interaction is not explicit."],
+      hitl_questions: ["What should change when the user interacts?"],
+      atomic_dimensions: [
+        intentDimension(
+          "narrative",
+          "absent",
+          "No explicit narrative intent was detected.",
+          []
+        ),
+        intentDimension(
+          "symbolic",
+          "inferred",
+          "Use symbolic cues around constellation as an atomic design dimension.",
+          ["constellation"]
+        ),
+        intentDimension(
+          "emotional",
+          "explicit",
+          "Use emotional cues around awe as an atomic design dimension.",
+          ["awe"]
+        ),
+        intentDimension(
+          "geometric",
+          "absent",
+          "No explicit geometric intent was detected.",
+          []
+        ),
+        intentDimension(
+          "motion",
+          "explicit",
+          "Use motion cues around drift as an atomic design dimension.",
+          ["drift"]
+        ),
+        intentDimension(
+          "rhythm",
+          "absent",
+          "No explicit rhythm intent was detected.",
+          []
+        ),
+        intentDimension(
+          "light_color",
+          "explicit",
+          "Use light color cues around glow as an atomic design dimension.",
+          ["glow"]
+        ),
+        intentDimension(
+          "audio",
+          "absent",
+          "No explicit audio intent was detected.",
+          []
+        ),
+        intentDimension(
+          "interaction",
+          "absent",
+          "No explicit interaction intent was detected.",
+          []
+        ),
+        intentDimension(
+          "climax_transformation",
+          "absent",
+          "No explicit climax transformation intent was detected.",
+          []
+        )
+      ],
+      prompt_guidance: [
+        "Use decomposed intent dimensions as design constraints."
+      ],
+      authority_boundary:
+        "The Creative Intent Decomposer structures user intent for inspection only.",
+      evidence: ["Active intent dimensions: symbolic, emotional, motion."]
+    };
+    const expectedCreativeIntent = {
+      role: creativeIntent.role,
+      normalizedIntent: creativeIntent.normalized_intent,
+      primaryExpression: creativeIntent.primary_expression,
+      narrativeIntent: creativeIntent.narrative_intent,
+      symbolicIntent: creativeIntent.symbolic_intent,
+      emotionalIntent: creativeIntent.emotional_intent,
+      geometricIntent: creativeIntent.geometric_intent,
+      motionIntent: creativeIntent.motion_intent,
+      rhythmIntent: creativeIntent.rhythm_intent,
+      lightColorIntent: creativeIntent.light_color_intent,
+      audioIntent: creativeIntent.audio_intent,
+      interactionIntent: creativeIntent.interaction_intent,
+      climaxTransformationIntent:
+        creativeIntent.climax_transformation_intent,
+      abstractionLevel: creativeIntent.abstraction_level,
+      experientialGoal: creativeIntent.experiential_goal,
+      unresolvedIntentGaps: creativeIntent.unresolved_intent_gaps,
+      hitlQuestions: creativeIntent.hitl_questions,
+      atomicDimensions: creativeIntent.atomic_dimensions,
+      promptGuidance: creativeIntent.prompt_guidance,
+      authorityBoundary: creativeIntent.authority_boundary,
+      evidence: creativeIntent.evidence
+    };
     const creativeStrategy = {
       role: "creative_strategy_engine",
       primary_strategy: "particle_cosmology",
@@ -682,6 +856,8 @@ describe("assistant stream client", () => {
           artifact_count: 1,
           preview_artifact_count: 0,
           image_reference_count: 1,
+          intent_decomposer_available: true,
+          creative_intent: creativeIntent,
           strategy_available: true,
           creative_strategy: creativeStrategy,
           technique_selector_available: true,
@@ -725,6 +901,8 @@ describe("assistant stream client", () => {
       artifact_critique_count: 0,
       recommended_artifact_id: null,
       preview_artifact_count: 0,
+      creative_intent: expectedCreativeIntent,
+      intent_decomposer_available: true,
       creative_strategy: {
         role: "creative_strategy_engine",
         primaryStrategy: "particle_cosmology",

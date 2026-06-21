@@ -84,6 +84,64 @@ export type ClarificationSummary = {
   signalSummary: string[];
 };
 
+export type CreativeIntentDimensionName =
+  | "narrative"
+  | "symbolic"
+  | "emotional"
+  | "geometric"
+  | "motion"
+  | "rhythm"
+  | "light_color"
+  | "audio"
+  | "interaction"
+  | "climax_transformation";
+
+export type CreativeIntentExplicitness =
+  | "explicit"
+  | "inferred"
+  | "absent"
+  | "ambiguous";
+
+export type CreativeAbstractionLevel =
+  | "literal"
+  | "stylized"
+  | "symbolic"
+  | "abstract"
+  | "mixed"
+  | "unspecified";
+
+export type CreativeIntentDimensionSummary = {
+  name: CreativeIntentDimensionName;
+  explicitness: CreativeIntentExplicitness;
+  summary: string;
+  signals: string[];
+  guidance: string[];
+};
+
+export type CreativeIntentDecompositionSummary = {
+  role: "creative_intent_decomposer";
+  normalizedIntent: string;
+  primaryExpression: string;
+  narrativeIntent: CreativeIntentDimensionSummary;
+  symbolicIntent: CreativeIntentDimensionSummary;
+  emotionalIntent: CreativeIntentDimensionSummary;
+  geometricIntent: CreativeIntentDimensionSummary;
+  motionIntent: CreativeIntentDimensionSummary;
+  rhythmIntent: CreativeIntentDimensionSummary;
+  lightColorIntent: CreativeIntentDimensionSummary;
+  audioIntent: CreativeIntentDimensionSummary;
+  interactionIntent: CreativeIntentDimensionSummary;
+  climaxTransformationIntent: CreativeIntentDimensionSummary;
+  abstractionLevel: CreativeAbstractionLevel;
+  experientialGoal: string;
+  unresolvedIntentGaps: string[];
+  hitlQuestions: string[];
+  atomicDimensions: CreativeIntentDimensionSummary[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeExecutionPlanSummary = {
   outputModality: "visual" | "audio" | "audiovisual";
   generationStrategy: string;
@@ -360,6 +418,7 @@ export type CreativeReasoningStage =
 export type CreativeReasoningEvidenceSource =
   | "request"
   | "translation"
+  | "creative_intent"
   | "planning"
   | "director"
   | "constraint_solver"
