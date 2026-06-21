@@ -5,6 +5,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.creative_constraint_priorities import (
+    CreativeConstraintPrioritization,
+)
 from creative_coding_assistant.orchestration.creative_constraints import (
     CreativeConstraintSolution,
 )
@@ -71,6 +74,7 @@ def derive_creative_reasoning_result(
     creative_plan: CreativeExecutionPlan | None = None,
     creative_director: CreativeAssistantDirectorBrief | None = None,
     creative_constraints: CreativeConstraintSolution | None = None,
+    creative_constraint_priorities: CreativeConstraintPrioritization | None = None,
     creative_strategy: CreativeStrategyProfile | None = None,
     creative_techniques: CreativeTechniqueProfile | None = None,
     runtime_capabilities: RuntimeCapabilityProfile | None = None,
@@ -89,12 +93,14 @@ def derive_creative_reasoning_result(
         creative_techniques=creative_techniques,
         runtime_capabilities=runtime_capabilities,
         creative_tradeoffs=creative_tradeoffs,
+        creative_constraint_priorities=creative_constraint_priorities,
     )
     unresolved = build_unresolved_decisions(
         creative_director=creative_director,
         creative_intent=creative_intent,
         creative_hierarchy=creative_hierarchy,
         creative_constraints=creative_constraints,
+        creative_constraint_priorities=creative_constraint_priorities,
         runtime_capabilities=runtime_capabilities,
         creative_tradeoffs=creative_tradeoffs,
         creative_strategy=creative_strategy,
@@ -111,6 +117,7 @@ def derive_creative_reasoning_result(
             creative_plan=creative_plan,
             runtime_capabilities=runtime_capabilities,
             creative_tradeoffs=creative_tradeoffs,
+            creative_constraint_priorities=creative_constraint_priorities,
         ),
         evidence_chain=build_evidence_chain(
             request=request,
@@ -121,6 +128,7 @@ def derive_creative_reasoning_result(
             creative_plan=creative_plan,
             creative_director=creative_director,
             creative_constraints=creative_constraints,
+            creative_constraint_priorities=creative_constraint_priorities,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
             runtime_capabilities=runtime_capabilities,
@@ -131,6 +139,7 @@ def derive_creative_reasoning_result(
             creative_intent=creative_intent,
             creative_hierarchy=creative_hierarchy,
             creative_constraints=creative_constraints,
+            creative_constraint_priorities=creative_constraint_priorities,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
             runtime_capabilities=runtime_capabilities,
@@ -148,6 +157,7 @@ def derive_creative_reasoning_result(
             creative_intent=creative_intent,
             creative_hierarchy=creative_hierarchy,
             creative_constraints=creative_constraints,
+            creative_constraint_priorities=creative_constraint_priorities,
             creative_techniques=creative_techniques,
             runtime_capabilities=runtime_capabilities,
             creative_tradeoffs=creative_tradeoffs,

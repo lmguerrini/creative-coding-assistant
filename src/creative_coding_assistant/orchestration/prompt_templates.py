@@ -12,6 +12,10 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.domains import get_domain_prompt_guidance
+from creative_coding_assistant.orchestration.creative_constraint_priorities import (
+    CreativeConstraintPrioritization,
+    creative_constraint_priorities_prompt_lines,
+)
 from creative_coding_assistant.orchestration.creative_constraints import (
     CreativeConstraintSolution,
     creative_constraint_solution_prompt_lines,
@@ -165,6 +169,13 @@ Creative Execution Plan:
 {% if constraints is not none -%}
 Creative Constraint Solver:
 {% for instruction in creative_constraint_solution_lines(constraints) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set constraint_priorities = prompt_input.creative_constraint_priorities -%}
+{% if constraint_priorities is not none -%}
+Creative Constraint Prioritizer:
+{% for instruction in creative_constraint_priority_lines(constraint_priorities) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -423,6 +434,7 @@ class JinjaPromptRenderer:
             creative_technique_lines=_creative_technique_lines,
             creative_execution_plan_lines=_creative_execution_plan_lines,
             creative_constraint_solution_lines=_creative_constraint_solution_lines,
+            creative_constraint_priority_lines=_creative_constraint_priority_lines,
             runtime_capability_lines=_runtime_capability_lines,
             creative_tradeoff_lines=_creative_tradeoff_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
@@ -625,6 +637,12 @@ def _creative_constraint_solution_lines(
     solution: CreativeConstraintSolution,
 ) -> tuple[str, ...]:
     return creative_constraint_solution_prompt_lines(solution)
+
+
+def _creative_constraint_priority_lines(
+    prioritization: CreativeConstraintPrioritization,
+) -> tuple[str, ...]:
+    return creative_constraint_priorities_prompt_lines(prioritization)
 
 
 def _runtime_capability_lines(

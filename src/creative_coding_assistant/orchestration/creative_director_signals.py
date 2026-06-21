@@ -7,6 +7,9 @@ from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
+from creative_coding_assistant.orchestration.creative_constraint_priorities import (
+    CreativeConstraintPrioritization,
+)
 from creative_coding_assistant.orchestration.creative_constraints import (
     CreativeConstraintSolution,
 )
@@ -55,6 +58,7 @@ def build_director_brief_payload(
     creative_techniques: CreativeTechniqueProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     creative_constraints: CreativeConstraintSolution | None,
+    creative_constraint_priorities: CreativeConstraintPrioritization | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
     clarification: ClarificationRequest | None,
@@ -68,6 +72,7 @@ def build_director_brief_payload(
         route_decision=route_decision,
         creative_intent=creative_intent,
         creative_hierarchy=creative_hierarchy,
+        creative_constraint_priorities=creative_constraint_priorities,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -92,6 +97,7 @@ def build_director_brief_payload(
             creative_strategy,
             creative_techniques,
             creative_constraints,
+            creative_constraint_priorities,
             runtime_capabilities,
             creative_tradeoffs,
         ),
@@ -100,6 +106,7 @@ def build_director_brief_payload(
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
             creative_constraints=creative_constraints,
+            creative_constraint_priorities=creative_constraint_priorities,
             creative_intent=creative_intent,
             creative_hierarchy=creative_hierarchy,
             runtime_capabilities=runtime_capabilities,
@@ -131,6 +138,7 @@ def build_director_brief_payload(
             creative_techniques=creative_techniques,
             creative_plan=creative_plan,
             creative_constraints=creative_constraints,
+            creative_constraint_priorities=creative_constraint_priorities,
             runtime_capabilities=runtime_capabilities,
             creative_tradeoffs=creative_tradeoffs,
             retrieval_chunk_count=retrieval_chunk_count,
@@ -170,6 +178,7 @@ def _ambiguity_signals(
     route_decision: RouteDecision | None,
     creative_intent: CreativeIntentDecomposition | None,
     creative_hierarchy: CreativeHierarchyPlan | None,
+    creative_constraint_priorities: CreativeConstraintPrioritization | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -180,6 +189,11 @@ def _ambiguity_signals(
         signals.extend(creative_intent.unresolved_intent_gaps[:2])
     if creative_hierarchy is not None:
         signals.extend(creative_hierarchy.priority_conflicts[:2])
+    if creative_constraint_priorities is not None:
+        signals.extend(
+            item.summary
+            for item in creative_constraint_priorities.conflict_relationships[:2]
+        )
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -218,6 +232,7 @@ def _planning_focus(
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
     creative_constraints: CreativeConstraintSolution | None,
+    creative_constraint_priorities: CreativeConstraintPrioritization | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
 ) -> tuple[str, ...]:
@@ -259,6 +274,8 @@ def _planning_focus(
         focus.extend(creative_techniques.implementation_notes[:2])
     if creative_constraints is not None:
         focus.extend(creative_constraints.prompt_guidance[:2])
+    if creative_constraint_priorities is not None:
+        focus.extend(creative_constraint_priorities.prompt_guidance[:2])
     if plan is None:
         focus.extend(
             (
@@ -279,6 +296,7 @@ def _critique_focus(
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
     creative_constraints: CreativeConstraintSolution | None,
+    creative_constraint_priorities: CreativeConstraintPrioritization | None,
     creative_intent: CreativeIntentDecomposition | None,
     creative_hierarchy: CreativeHierarchyPlan | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
@@ -310,6 +328,15 @@ def _critique_focus(
         focus.extend(creative_constraints.conflicts[:2])
         focus.extend(
             tradeoff.summary for tradeoff in creative_constraints.tradeoffs[:2]
+        )
+    if creative_constraint_priorities is not None:
+        focus.append(
+            "Verify output protects non-negotiable constraint priorities before "
+            "relaxable or sacrificial constraints."
+        )
+        focus.extend(
+            item.negotiation_note
+            for item in creative_constraint_priorities.conflict_relationships[:2]
         )
     if runtime_capabilities is not None:
         focus.append(
@@ -407,6 +434,7 @@ def _evidence(
     creative_techniques: CreativeTechniqueProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     creative_constraints: CreativeConstraintSolution | None,
+    creative_constraint_priorities: CreativeConstraintPrioritization | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
     retrieval_chunk_count: int,
@@ -450,6 +478,12 @@ def _evidence(
         )
         evidence.append(
             f"Runtime fit: {creative_constraints.runtime_fit}."
+        )
+    if creative_constraint_priorities is not None:
+        evidence.append(
+            "Constraint prioritizer: "
+            f"{len(creative_constraint_priorities.non_negotiable_constraints)} "
+            "non-negotiable constraint(s)."
         )
     if runtime_capabilities is not None:
         evidence.append(

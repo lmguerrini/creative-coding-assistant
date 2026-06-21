@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+from creative_coding_assistant.orchestration.creative_constraint_priorities import (
+    CreativeConstraintPrioritization,
+)
 from creative_coding_assistant.orchestration.creative_constraints import (
     CreativeConstraintSolution,
 )
@@ -46,6 +49,7 @@ def build_strongest_signals(
     creative_intent: CreativeIntentDecomposition | None,
     creative_hierarchy: CreativeHierarchyPlan | None,
     creative_constraints: CreativeConstraintSolution | None,
+    creative_constraint_priorities: CreativeConstraintPrioritization | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
@@ -86,6 +90,18 @@ def build_strongest_signals(
             f"Constraints: complexity {creative_constraints.complexity_pressure}, "
             f"performance {creative_constraints.performance_pressure}, "
             f"safety {creative_constraints.safety_pressure}."
+        )
+    if creative_constraint_priorities is not None:
+        signals.append(
+            "Constraint priorities: "
+            + ", ".join(
+                item.category
+                for item in (
+                    creative_constraint_priorities.non_negotiable_constraints
+                    or creative_constraint_priorities.high_priority_constraints
+                )
+            )
+            + "."
         )
     if creative_director is not None:
         signals.append(
@@ -147,6 +163,7 @@ def build_unresolved_decisions(
     creative_intent: CreativeIntentDecomposition | None,
     creative_hierarchy: CreativeHierarchyPlan | None,
     creative_constraints: CreativeConstraintSolution | None,
+    creative_constraint_priorities: CreativeConstraintPrioritization | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
     creative_strategy: CreativeStrategyProfile | None,
@@ -157,6 +174,12 @@ def build_unresolved_decisions(
         unresolved.extend(creative_intent.unresolved_intent_gaps[:3])
     if creative_hierarchy is not None:
         unresolved.extend(creative_hierarchy.priority_conflicts[:3])
+    if creative_constraint_priorities is not None:
+        unresolved.extend(creative_constraint_priorities.hitl_questions[:3])
+        unresolved.extend(
+            item.summary
+            for item in creative_constraint_priorities.conflict_relationships[:2]
+        )
     _append_hitl(unresolved, creative_director)
     _append_hitl(unresolved, creative_constraints)
     _append_hitl(unresolved, runtime_capabilities)
@@ -176,6 +199,7 @@ def build_implementation_guidance(
     creative_intent: CreativeIntentDecomposition | None,
     creative_hierarchy: CreativeHierarchyPlan | None,
     creative_constraints: CreativeConstraintSolution | None,
+    creative_constraint_priorities: CreativeConstraintPrioritization | None,
     creative_techniques: CreativeTechniqueProfile | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
@@ -195,6 +219,8 @@ def build_implementation_guidance(
         guidance.extend(creative_plan.plan_steps[:2])
     if creative_constraints is not None:
         guidance.extend(creative_constraints.prompt_guidance[:2])
+    if creative_constraint_priorities is not None:
+        guidance.extend(creative_constraint_priorities.prompt_guidance[:2])
     top = _top_runtime(runtime_capabilities)
     if top is not None:
         guidance.append(top.prompt_guidance[0])

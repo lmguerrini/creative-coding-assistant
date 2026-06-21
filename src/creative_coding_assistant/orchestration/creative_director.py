@@ -11,6 +11,9 @@ from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
+from creative_coding_assistant.orchestration.creative_constraint_priorities import (
+    CreativeConstraintPrioritization,
+)
 from creative_coding_assistant.orchestration.creative_constraints import (
     CreativeConstraintSolution,
 )
@@ -87,6 +90,7 @@ def derive_creative_assistant_director_brief(
     creative_strategy: CreativeStrategyProfile | None = None,
     creative_techniques: CreativeTechniqueProfile | None = None,
     creative_constraints: CreativeConstraintSolution | None = None,
+    creative_constraint_priorities: CreativeConstraintPrioritization | None = None,
     runtime_capabilities: RuntimeCapabilityProfile | None = None,
     creative_tradeoffs: CreativeTradeoffProfile | None = None,
     clarification: ClarificationRequest | None = None,
@@ -108,6 +112,7 @@ def derive_creative_assistant_director_brief(
             creative_techniques=creative_techniques,
             creative_plan=creative_plan,
             creative_constraints=creative_constraints,
+            creative_constraint_priorities=creative_constraint_priorities,
             runtime_capabilities=runtime_capabilities,
             creative_tradeoffs=creative_tradeoffs,
             retrieval_chunk_count=retrieval_chunk_count,

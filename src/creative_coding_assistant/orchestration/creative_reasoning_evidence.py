@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.creative_constraint_priorities import (
+    CreativeConstraintPrioritization,
+)
 from creative_coding_assistant.orchestration.creative_constraints import (
     CreativeConstraintSolution,
 )
@@ -52,6 +55,7 @@ def build_evidence_chain(
     creative_plan: CreativeExecutionPlan | None,
     creative_director: CreativeAssistantDirectorBrief | None,
     creative_constraints: CreativeConstraintSolution | None,
+    creative_constraint_priorities: CreativeConstraintPrioritization | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
@@ -117,6 +121,23 @@ def build_evidence_chain(
             )
         )
     _append_constraint_evidence(evidence, creative_constraints)
+    if creative_constraint_priorities is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="constraint_prioritizer",
+                signal=", ".join(
+                    item.category
+                    for item in (
+                        creative_constraint_priorities.non_negotiable_constraints
+                        or creative_constraint_priorities.high_priority_constraints
+                    )
+                ),
+                interpretation=(
+                    "Constraint prioritization explains what to protect, "
+                    "relax, or sacrifice when trade-offs tighten."
+                ),
+            )
+        )
     if runtime_capabilities is not None:
         evidence.append(
             CreativeReasoningEvidence(

@@ -21,6 +21,7 @@ ReasoningEvidenceSource = Literal[
     "planning",
     "director",
     "constraint_solver",
+    "constraint_prioritizer",
     "creative_strategy",
     "creative_technique",
     "runtime_capability",

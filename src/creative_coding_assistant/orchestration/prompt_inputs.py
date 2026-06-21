@@ -19,6 +19,9 @@ from creative_coding_assistant.orchestration.clarification import (
     derive_hitl_clarification,
 )
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
+from creative_coding_assistant.orchestration.creative_constraint_priorities import (
+    CreativeConstraintPrioritization,
+)
 from creative_coding_assistant.orchestration.creative_constraints import (
     CreativeConstraintSolution,
 )
@@ -299,6 +302,7 @@ class PromptInputResponse(BaseModel):
     creative_techniques: CreativeTechniqueProfile | None = None
     creative_plan: CreativeExecutionPlan | None = None
     creative_constraints: CreativeConstraintSolution | None = None
+    creative_constraint_priorities: CreativeConstraintPrioritization | None = None
     runtime_capabilities: RuntimeCapabilityProfile | None = None
     creative_tradeoffs: CreativeTradeoffProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None

@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.creative_constraint_priorities import (
+    CreativeConstraintPrioritization,
+)
 from creative_coding_assistant.orchestration.creative_hierarchy import (
     CreativeHierarchyPlan,
 )
@@ -44,6 +47,7 @@ def build_recommended_direction(
     creative_techniques: CreativeTechniqueProfile | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
+    creative_constraint_priorities: CreativeConstraintPrioritization | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -55,16 +59,19 @@ def build_recommended_direction(
         if creative_plan is not None
         else "Produce a bounded creative-coding response."
     )
-    return (
+    direction = (
         f"Recommend {_strategy_label(creative_strategy)} via "
         f"{_technique_label(creative_techniques)} because it protects "
         f"'{_clip(intent, 70)}'. Prioritize "
         f"{_clip(_hierarchy_label(creative_hierarchy), 70)}. "
+        f"Protect constraints: "
+        f"{_clip(_constraint_priority_label(creative_constraint_priorities), 70)}. "
         f"Fit the output goal: {_clip(output_goal, 90)} "
         f"Use inspected runtime guidance: "
         f"{_clip(_runtime_label(runtime_capabilities, creative_plan), 70)}. "
         f"Bound the trade-off: {_clip(_tradeoff_summary(creative_tradeoffs), 100)}"
     )
+    return _clip(direction, 500)
 
 
 def build_reasoning_path(
@@ -77,6 +84,7 @@ def build_reasoning_path(
     creative_plan: CreativeExecutionPlan | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
+    creative_constraint_priorities: CreativeConstraintPrioritization | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -116,8 +124,14 @@ def build_reasoning_path(
                 "Manage the main consequence: "
                 f"{_tradeoff_summary(creative_tradeoffs)}"
             ),
-            because=_tradeoff_reason(creative_tradeoffs),
-            implications=("Prefer bounded implementation over feature growth.",),
+            because=_tradeoff_reason(
+                creative_tradeoffs,
+                creative_constraint_priorities,
+            ),
+            implications=(
+                "Prefer bounded implementation over feature growth.",
+                _constraint_priority_implication(creative_constraint_priorities),
+            ),
         ),
         CreativeReasoningStep(
             stage="recommendation",
@@ -156,6 +170,25 @@ def _hierarchy_label(profile: CreativeHierarchyPlan | None) -> str:
     if profile is None:
         return "the current creative hierarchy"
     return ", ".join(item.dimension for item in profile.primary_creative_priorities)
+
+
+def _constraint_priority_label(
+    profile: CreativeConstraintPrioritization | None,
+) -> str:
+    if profile is None or not profile.non_negotiable_constraints:
+        return "the current constraint priority order"
+    return ", ".join(item.category for item in profile.non_negotiable_constraints)
+
+
+def _constraint_priority_implication(
+    profile: CreativeConstraintPrioritization | None,
+) -> str:
+    if profile is None or not profile.sacrificial_constraints:
+        return "Constraint priority remains advisory."
+    sacrificed = ", ".join(
+        item.category for item in profile.sacrificial_constraints[:2]
+    )
+    return f"Relax {sacrificed} before protected constraints."
 
 
 def _technique_label(profile: CreativeTechniqueProfile | None) -> str:
@@ -230,14 +263,20 @@ def _runtime_reason(
     return "No runtime capability profile is available, so avoid runtime claims."
 
 
-def _tradeoff_reason(profile: CreativeTradeoffProfile | None) -> str:
+def _tradeoff_reason(
+    profile: CreativeTradeoffProfile | None,
+    priorities: CreativeConstraintPrioritization | None,
+) -> str:
     if profile is None:
         return "No trade-off profile is available; stay conservative."
     tradeoff = profile.primary_tradeoffs[0]
-    return (
+    reason = (
         f"The creative benefit is '{tradeoff.creative_benefit}' while the "
         f"technical cost is '{tradeoff.technical_cost}'."
     )
+    if priorities is not None and priorities.negotiation_notes:
+        reason += f" Constraint priority says: {priorities.negotiation_notes[0]}"
+    return reason
 
 
 def _clip(value: str, limit: int) -> str:

@@ -12,6 +12,9 @@ _CREATIVE_PLANNING = "creative_coding_assistant.orchestration.creative_planning"
 _CREATIVE_CONSTRAINTS = (
     "creative_coding_assistant.orchestration.creative_constraints"
 )
+_CREATIVE_CONSTRAINT_PRIORITIES = (
+    "creative_coding_assistant.orchestration.creative_constraint_priorities"
+)
 _CREATIVE_HIERARCHY = "creative_coding_assistant.orchestration.creative_hierarchy"
 _CREATIVE_INTENT = "creative_coding_assistant.orchestration.creative_intent"
 _CREATIVE_STRATEGY = "creative_coding_assistant.orchestration.creative_strategy"
@@ -82,6 +85,9 @@ _EXPORT_MAP = {
     "CreativeIntentDecomposition": _CREATIVE_INTENT,
     "CreativeIntentDimension": _CREATIVE_INTENT,
     "CreativeConstraint": _CREATIVE_CONSTRAINTS,
+    "CreativeConstraintPrioritization": _CREATIVE_CONSTRAINT_PRIORITIES,
+    "CreativeConstraintPriority": _CREATIVE_CONSTRAINT_PRIORITIES,
+    "CreativeConstraintPriorityConflict": _CREATIVE_CONSTRAINT_PRIORITIES,
     "CreativeConstraintSolution": _CREATIVE_CONSTRAINTS,
     "CreativeConstraintTradeoff": _CREATIVE_CONSTRAINTS,
     "CreativeStrategyAlternative": _CREATIVE_STRATEGY,
@@ -196,6 +202,8 @@ _EXPORT_MAP = {
     "creative_execution_plan_prompt_lines": _CREATIVE_PLANNING,
     "derive_creative_constraint_solution": _CREATIVE_CONSTRAINTS,
     "creative_constraint_solution_prompt_lines": _CREATIVE_CONSTRAINTS,
+    "derive_creative_constraint_priorities": _CREATIVE_CONSTRAINT_PRIORITIES,
+    "creative_constraint_priorities_prompt_lines": _CREATIVE_CONSTRAINT_PRIORITIES,
     "derive_creative_strategy_profile": _CREATIVE_STRATEGY,
     "creative_strategy_prompt_lines": _CREATIVE_STRATEGY,
     "derive_creative_technique_profile": _CREATIVE_TECHNIQUE,

@@ -27,6 +27,9 @@ from creative_coding_assistant.orchestration.artifacts import (
     prepare_workflow_preview_results,
 )
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
+from creative_coding_assistant.orchestration.creative_constraint_priorities import (
+    derive_creative_constraint_priorities,
+)
 from creative_coding_assistant.orchestration.creative_constraints import (
     derive_creative_constraint_solution,
 )
@@ -637,6 +640,19 @@ def _planning_node(
             creative_constraints=constraints,
             runtime_capabilities=runtime_capabilities,
         )
+        constraint_priorities = derive_creative_constraint_priorities(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_translation=prompt_input.creative_translation,
+            creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
+            creative_plan=plan,
+            creative_constraints=constraints,
+            creative_strategy=strategy,
+            creative_techniques=techniques,
+            runtime_capabilities=runtime_capabilities,
+            creative_tradeoffs=tradeoffs,
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -645,6 +661,7 @@ def _planning_node(
                 "creative_techniques": techniques,
                 "creative_plan": plan,
                 "creative_constraints": constraints,
+                "creative_constraint_priorities": constraint_priorities,
                 "runtime_capabilities": runtime_capabilities,
                 "creative_tradeoffs": tradeoffs,
             }
@@ -657,6 +674,7 @@ def _planning_node(
                 "creative_techniques": techniques,
                 "creative_plan": plan,
                 "creative_constraints": constraints,
+                "creative_constraint_priorities": constraint_priorities,
                 "runtime_capabilities": runtime_capabilities,
                 "creative_tradeoffs": tradeoffs,
                 "prompt_input": planned_prompt_input,
@@ -672,6 +690,9 @@ def _planning_node(
                 creative_techniques=techniques.model_dump(mode="json"),
                 creative_plan=plan.model_dump(mode="json"),
                 creative_constraints=constraints.model_dump(mode="json"),
+                creative_constraint_priorities=constraint_priorities.model_dump(
+                    mode="json"
+                ),
                 runtime_capabilities=runtime_capabilities.model_dump(mode="json"),
                 creative_tradeoffs=tradeoffs.model_dump(mode="json"),
             ),
@@ -1407,6 +1428,16 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "creative_constraint_priorities",
+                    (
+                        final_state.creative_constraint_priorities.model_dump(
+                            mode="json"
+                        )
+                        if final_state.creative_constraint_priorities is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "runtime_capabilities",
                     (
                         final_state.runtime_capabilities.model_dump(mode="json")
@@ -2005,6 +2036,7 @@ def _derive_director_brief(
         creative_techniques=workflow_state.creative_techniques,
         creative_plan=workflow_state.creative_plan,
         creative_constraints=workflow_state.creative_constraints,
+        creative_constraint_priorities=workflow_state.creative_constraint_priorities,
         runtime_capabilities=workflow_state.runtime_capabilities,
         creative_tradeoffs=workflow_state.creative_tradeoffs,
         clarification=workflow_state.clarification,
@@ -2034,6 +2066,7 @@ def _derive_reasoning_result(
         creative_plan=workflow_state.creative_plan,
         creative_director=workflow_state.creative_director,
         creative_constraints=workflow_state.creative_constraints,
+        creative_constraint_priorities=workflow_state.creative_constraint_priorities,
         creative_strategy=workflow_state.creative_strategy,
         creative_techniques=workflow_state.creative_techniques,
         runtime_capabilities=workflow_state.runtime_capabilities,
@@ -2257,6 +2290,7 @@ def _serialize_workflow_runtime(
     creative_techniques = workflow_state.creative_techniques
     creative_plan = workflow_state.creative_plan
     creative_constraints = workflow_state.creative_constraints
+    creative_constraint_priorities = workflow_state.creative_constraint_priorities
     runtime_capabilities = workflow_state.runtime_capabilities
     creative_tradeoffs = workflow_state.creative_tradeoffs
     creative_director = workflow_state.creative_director
@@ -2338,6 +2372,14 @@ def _serialize_workflow_runtime(
             else None
         ),
         "constraint_solver_available": creative_constraints is not None,
+        "creative_constraint_priorities": (
+            creative_constraint_priorities.model_dump(mode="json")
+            if creative_constraint_priorities is not None
+            else None
+        ),
+        "constraint_prioritizer_available": (
+            creative_constraint_priorities is not None
+        ),
         "runtime_capabilities": (
             runtime_capabilities.model_dump(mode="json")
             if runtime_capabilities is not None
