@@ -20,6 +20,10 @@ from creative_coding_assistant.orchestration.creative_director import (
     CreativeAssistantDirectorBrief,
     creative_assistant_director_prompt_lines,
 )
+from creative_coding_assistant.orchestration.creative_intent import (
+    CreativeIntentDecomposition,
+    creative_intent_decomposition_prompt_lines,
+)
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
     creative_execution_plan_prompt_lines,
@@ -116,6 +120,13 @@ Selected Artifact Refinement:
 {% if prompt_input.creative_translation is not none -%}
 Creative Translation:
 {% for instruction in creative_translation_lines(prompt_input.creative_translation) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set creative_intent = prompt_input.creative_intent -%}
+{% if creative_intent is not none -%}
+Creative Intent Decomposer:
+{% for instruction in creative_intent_lines(creative_intent) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -395,6 +406,7 @@ class JinjaPromptRenderer:
             effective_domain_scope_label=_effective_domain_scope_label,
             image_reference_line=_image_reference_line,
             creative_translation_lines=_creative_translation_lines,
+            creative_intent_lines=_creative_intent_lines,
             creative_strategy_lines=_creative_strategy_lines,
             creative_technique_lines=_creative_technique_lines,
             creative_execution_plan_lines=_creative_execution_plan_lines,
@@ -565,6 +577,12 @@ def _creative_translation_lines(
     translation: CreativeTranslation,
 ) -> tuple[str, ...]:
     return creative_translation_prompt_lines(translation)
+
+
+def _creative_intent_lines(
+    decomposition: CreativeIntentDecomposition,
+) -> tuple[str, ...]:
+    return creative_intent_decomposition_prompt_lines(decomposition)
 
 
 def _creative_strategy_lines(

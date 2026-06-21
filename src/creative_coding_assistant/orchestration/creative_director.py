@@ -17,6 +17,9 @@ from creative_coding_assistant.orchestration.creative_constraints import (
 from creative_coding_assistant.orchestration.creative_director_signals import (
     build_director_brief_payload,
 )
+from creative_coding_assistant.orchestration.creative_intent import (
+    CreativeIntentDecomposition,
+)
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
@@ -74,8 +77,9 @@ def derive_creative_assistant_director_brief(
     *,
     request: AssistantRequest,
     route_decision: RouteDecision | None,
-    creative_translation: CreativeTranslation | None,
-    creative_plan: CreativeExecutionPlan | None,
+    creative_translation: CreativeTranslation | None = None,
+    creative_intent: CreativeIntentDecomposition | None = None,
+    creative_plan: CreativeExecutionPlan | None = None,
     creative_strategy: CreativeStrategyProfile | None = None,
     creative_techniques: CreativeTechniqueProfile | None = None,
     creative_constraints: CreativeConstraintSolution | None = None,
@@ -94,6 +98,7 @@ def derive_creative_assistant_director_brief(
             request=request,
             route_decision=route_decision,
             creative_translation=creative_translation,
+            creative_intent=creative_intent,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
             creative_plan=creative_plan,

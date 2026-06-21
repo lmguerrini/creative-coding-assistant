@@ -9,6 +9,9 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest, CreativeCodingDomain
+from creative_coding_assistant.orchestration.creative_intent import (
+    CreativeIntentDecomposition,
+)
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
@@ -68,11 +71,12 @@ def derive_creative_strategy_profile(
     *,
     request: AssistantRequest,
     route_decision: RouteDecision | None,
-    creative_translation: CreativeTranslation | None,
+    creative_intent: CreativeIntentDecomposition | None = None,
+    creative_translation: CreativeTranslation | None = None,
 ) -> CreativeStrategyProfile:
     """Select high-level creative strategy using deterministic request signals."""
 
-    normalized = _strategy_text(request, creative_translation)
+    normalized = _strategy_text(request, creative_intent, creative_translation)
     domains = _effective_domains(request, route_decision)
     scored = sorted(
         (
@@ -81,6 +85,7 @@ def derive_creative_strategy_profile(
                 normalized=normalized,
                 request=request,
                 route_decision=route_decision,
+                creative_intent=creative_intent,
                 creative_translation=creative_translation,
             )
             for strategy in _STRATEGIES
@@ -105,10 +110,12 @@ def derive_creative_strategy_profile(
         creative_goals=_creative_goals(
             strategy=primary.strategy,
             request=request,
+            creative_intent=creative_intent,
             creative_translation=creative_translation,
         ),
         symbolic_alignment=_symbolic_alignment(
             strategy=primary.strategy,
+            creative_intent=creative_intent,
             creative_translation=creative_translation,
         ),
         alternative_strategies=alternatives,
@@ -116,6 +123,7 @@ def derive_creative_strategy_profile(
         evidence=_evidence(
             request=request,
             route_decision=route_decision,
+            creative_intent=creative_intent,
             creative_translation=creative_translation,
             domains=domains,
             scored=scored,
@@ -167,6 +175,7 @@ def _score_strategy(
     normalized: str,
     request: AssistantRequest,
     route_decision: RouteDecision | None,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
 ) -> _ScoredStrategy:
     matched: list[str] = []
@@ -177,6 +186,8 @@ def _score_strategy(
             score += 2
     if creative_translation is not None:
         score += _translation_score(signal, creative_translation, matched)
+    if creative_intent is not None:
+        score += _intent_score(signal, creative_intent, matched)
     if route_decision is not None and len(route_decision.domains) > 1:
         score += int(signal.strategy in _MULTI_DOMAIN_STRATEGIES)
     if request.attachments:
@@ -224,6 +235,40 @@ def _translation_score(
     return score
 
 
+def _intent_score(
+    signal: _StrategySignal,
+    intent: CreativeIntentDecomposition,
+    matched: list[str],
+) -> int:
+    score = 0
+    active_names = {
+        item.name for item in intent.atomic_dimensions if item.explicitness != "absent"
+    }
+    active_signals = tuple(
+        signal_value
+        for item in intent.atomic_dimensions
+        for signal_value in item.signals
+    )
+    if signal.strategy == "sacred_geometry" and (
+        "geometric" in active_names or "symbolic" in active_names
+    ):
+        score += 2
+        matched.append("decomposed symbolic/geometric intent")
+    if signal.strategy == "field_dynamics" and (
+        "motion" in active_names or "rhythm" in active_names or "audio" in active_names
+    ):
+        score += 2
+        matched.append("decomposed motion/rhythm/audio intent")
+    if signal.strategy == "particle_cosmology" and "light_color" in active_names:
+        score += 1
+        matched.append("decomposed light/color intent")
+    for value in active_signals:
+        if any(keyword in value.lower() for keyword in signal.keywords):
+            score += 1
+            matched.append(value)
+    return score
+
+
 def _confidence(score: int) -> float:
     return min(0.95, max(0.35, round(0.35 + score * 0.08, 2)))
 
@@ -247,10 +292,16 @@ def _creative_goals(
     *,
     strategy: CreativeStrategyId,
     request: AssistantRequest,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
 ) -> tuple[str, ...]:
     signal = _SIGNAL_BY_STRATEGY[strategy]
     goals = list(signal.goals)
+    if creative_intent is not None:
+        goals.insert(
+            0,
+            f"Preserve decomposed intent: {creative_intent.primary_expression}.",
+        )
     if creative_translation is not None:
         goals.insert(0, f"Preserve intent: {creative_translation.creative_intent}.")
         if creative_translation.mood_atmosphere:
@@ -267,9 +318,13 @@ def _creative_goals(
 def _symbolic_alignment(
     *,
     strategy: CreativeStrategyId,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
 ) -> tuple[str, ...]:
     alignment: list[str] = [_SIGNAL_BY_STRATEGY[strategy].label]
+    if creative_intent is not None:
+        alignment.extend(creative_intent.symbolic_intent.signals)
+        alignment.extend(creative_intent.geometric_intent.signals)
     if creative_translation is not None:
         alignment.extend(creative_translation.symbolic_references)
         alignment.extend(creative_translation.geometric_references)
@@ -285,6 +340,7 @@ def _evidence(
     *,
     request: AssistantRequest,
     route_decision: RouteDecision | None,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
     domains: tuple[CreativeCodingDomain, ...],
     scored: list[_ScoredStrategy],
@@ -298,6 +354,16 @@ def _evidence(
         )
     if creative_translation is not None:
         evidence.append(f"Creative intent: {creative_translation.creative_intent}.")
+    if creative_intent is not None:
+        evidence.append(
+            "Intent dimensions: "
+            + ", ".join(
+                item.name
+                for item in creative_intent.atomic_dimensions
+                if item.explicitness != "absent"
+            )
+            + "."
+        )
     if scored and scored[0].matched_signals:
         evidence.append(
             "Primary signals: " + ", ".join(scored[0].matched_signals[:4]) + "."
@@ -312,9 +378,22 @@ def _evidence(
 
 def _strategy_text(
     request: AssistantRequest,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
 ) -> str:
     parts = [request.query]
+    if creative_intent is not None:
+        parts.extend(
+            (
+                creative_intent.primary_expression,
+                creative_intent.experiential_goal,
+                " ".join(
+                    signal
+                    for dimension in creative_intent.atomic_dimensions
+                    for signal in dimension.signals
+                ),
+            )
+        )
     if creative_translation is not None:
         parts.extend(
             (

@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.creative_intent import (
+    CreativeIntentDecomposition,
+)
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
@@ -30,6 +33,7 @@ from creative_coding_assistant.orchestration.runtime_capabilities import (
 def build_recommended_direction(
     *,
     request: AssistantRequest,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
     creative_plan: CreativeExecutionPlan | None,
     creative_strategy: CreativeStrategyProfile | None,
@@ -38,9 +42,9 @@ def build_recommended_direction(
     creative_tradeoffs: CreativeTradeoffProfile | None,
 ) -> str:
     intent = (
-        creative_translation.creative_intent
-        if creative_translation is not None
-        else request.query
+        creative_intent.primary_expression
+        if creative_intent is not None
+        else _translation_or_request_intent(creative_translation, request)
     )
     output_goal = (
         creative_plan.generation_strategy
@@ -60,6 +64,7 @@ def build_recommended_direction(
 def build_reasoning_path(
     *,
     direction: str,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
     creative_plan: CreativeExecutionPlan | None,
@@ -73,7 +78,7 @@ def build_reasoning_path(
             stage="strategy",
             claim=f"Use {strategy} as the conceptual spine.",
             because=(
-                creative_strategy.rationale
+                _strategy_reason(creative_strategy, creative_intent)
                 if creative_strategy is not None
                 else "No strategy profile is available, so user intent leads."
             ),
@@ -127,6 +132,15 @@ def _strategy_label(profile: CreativeStrategyProfile | None) -> str:
     return profile.primary_strategy if profile is not None else "bounded creative"
 
 
+def _translation_or_request_intent(
+    creative_translation: CreativeTranslation | None,
+    request: AssistantRequest,
+) -> str:
+    if creative_translation is not None:
+        return creative_translation.creative_intent
+    return request.query
+
+
 def _technique_label(profile: CreativeTechniqueProfile | None) -> str:
     return profile.primary_technique if profile is not None else "minimal viable"
 
@@ -159,6 +173,18 @@ def _technique_reason(
     return (
         f"{profile.rationale} This connects the technique to {strategy} "
         f"with {profile.compatibility} compatibility."
+    )
+
+
+def _strategy_reason(
+    profile: CreativeStrategyProfile,
+    creative_intent: CreativeIntentDecomposition | None,
+) -> str:
+    if creative_intent is None:
+        return profile.rationale
+    return (
+        f"{profile.rationale} Decomposed intent substrate: "
+        f"{_clip(creative_intent.primary_expression, 120)}."
     )
 
 

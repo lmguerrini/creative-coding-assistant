@@ -9,6 +9,9 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.creative_intent import (
+    CreativeIntentDecomposition,
+)
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyId,
     CreativeStrategyProfile,
@@ -83,18 +86,25 @@ def derive_creative_technique_profile(
     *,
     request: AssistantRequest,
     route_decision: RouteDecision | None,
-    creative_translation: CreativeTranslation | None,
-    creative_strategy: CreativeStrategyProfile | None,
+    creative_intent: CreativeIntentDecomposition | None = None,
+    creative_translation: CreativeTranslation | None = None,
+    creative_strategy: CreativeStrategyProfile | None = None,
 ) -> CreativeTechniqueProfile:
     """Select implementation technique guidance without selecting runtime."""
 
-    normalized = _technique_text(request, creative_translation, creative_strategy)
+    normalized = _technique_text(
+        request,
+        creative_intent,
+        creative_translation,
+        creative_strategy,
+    )
     scored = sorted(
         (
             _score_technique(
                 signal,
                 normalized=normalized,
                 request=request,
+                creative_intent=creative_intent,
                 creative_translation=creative_translation,
                 creative_strategy=creative_strategy,
             )
@@ -132,6 +142,7 @@ def derive_creative_technique_profile(
         evidence=_evidence(
             request=request,
             route_decision=route_decision,
+            creative_intent=creative_intent,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
             scored=scored,
@@ -197,6 +208,7 @@ def _score_technique(
     *,
     normalized: str,
     request: AssistantRequest,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
 ) -> _ScoredTechnique:
@@ -214,6 +226,8 @@ def _score_technique(
         matched.append(f"strategy:{creative_strategy.primary_strategy}")
     if creative_translation is not None:
         score += _translation_score(signal, creative_translation, matched)
+    if creative_intent is not None:
+        score += _intent_score(signal, creative_intent, matched)
     if request.attachments and signal.technique in _REFERENCE_FRIENDLY_TECHNIQUES:
         score += 1
         matched.append("reference input")
@@ -268,6 +282,36 @@ def _translation_score(
         if any(keyword in value.lower() for keyword in signal.keywords):
             score += 1
             matched.append(value)
+    return score
+
+
+def _intent_score(
+    signal: _TechniqueSignal,
+    intent: CreativeIntentDecomposition,
+    matched: list[str],
+) -> int:
+    score = 0
+    active_names = {
+        item.name for item in intent.atomic_dimensions if item.explicitness != "absent"
+    }
+    if signal.technique == "audio_reactive_mappings" and (
+        "audio" in active_names or "rhythm" in active_names
+    ):
+        score += 4
+        matched.append("decomposed audio/rhythm intent")
+    if signal.technique in {"recursive_geometry", "fractal_recursion", "sdf"} and (
+        "geometric" in active_names or "symbolic" in active_names
+    ):
+        score += 2
+        matched.append("decomposed geometric/symbolic intent")
+    if signal.technique == "particle_systems" and "motion" in active_names:
+        score += 2
+        matched.append("decomposed motion intent")
+    for dimension in intent.atomic_dimensions:
+        for value in dimension.signals:
+            if any(keyword in value.lower() for keyword in signal.keywords):
+                score += 1
+                matched.append(value)
     return score
 
 
@@ -330,6 +374,7 @@ def _evidence(
     *,
     request: AssistantRequest,
     route_decision: RouteDecision | None,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
     scored: list[_ScoredTechnique],
@@ -339,6 +384,8 @@ def _evidence(
         evidence.append(f"Route selected: {route_decision.route.value}.")
     if creative_translation is not None:
         evidence.append(f"Creative intent: {creative_translation.creative_intent}.")
+    if creative_intent is not None:
+        evidence.append(f"Intent substrate: {creative_intent.primary_expression}.")
     if creative_strategy is not None:
         evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
     if scored and scored[0].matched_signals:
@@ -357,10 +404,23 @@ def _evidence(
 
 def _technique_text(
     request: AssistantRequest,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
 ) -> str:
     parts = [request.query]
+    if creative_intent is not None:
+        parts.extend(
+            (
+                creative_intent.primary_expression,
+                creative_intent.experiential_goal,
+                " ".join(
+                    signal
+                    for dimension in creative_intent.atomic_dimensions
+                    for signal in dimension.signals
+                ),
+            )
+        )
     if creative_translation is not None:
         parts.extend(
             (

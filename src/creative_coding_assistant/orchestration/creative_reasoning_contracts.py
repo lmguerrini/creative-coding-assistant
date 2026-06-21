@@ -16,6 +16,7 @@ ReasoningStage = Literal[
 ReasoningEvidenceSource = Literal[
     "request",
     "translation",
+    "creative_intent",
     "planning",
     "director",
     "constraint_solver",

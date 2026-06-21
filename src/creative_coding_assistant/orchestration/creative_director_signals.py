@@ -10,6 +10,9 @@ from creative_coding_assistant.orchestration.clarification import ClarificationR
 from creative_coding_assistant.orchestration.creative_constraints import (
     CreativeConstraintSolution,
 )
+from creative_coding_assistant.orchestration.creative_intent import (
+    CreativeIntentDecomposition,
+)
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
@@ -43,6 +46,7 @@ def build_director_brief_payload(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
     creative_plan: CreativeExecutionPlan | None,
@@ -58,12 +62,17 @@ def build_director_brief_payload(
     retrieval_posture = _retrieval_posture(route_decision, retrieval_chunk_count)
     ambiguity_signals = _ambiguity_signals(
         route_decision=route_decision,
+        creative_intent=creative_intent,
         creative_plan=creative_plan,
         clarification=clarification,
     )
 
     return {
-        "creative_brief": _creative_brief(request, creative_translation),
+        "creative_brief": _creative_brief(
+            request,
+            creative_intent,
+            creative_translation,
+        ),
         "ambiguity_level": _ambiguity_level(clarification, ambiguity_signals),
         "ambiguity_signals": ambiguity_signals,
         "retrieval_posture": retrieval_posture,
@@ -73,6 +82,7 @@ def build_director_brief_payload(
         "runtime_direction": _runtime_direction(creative_plan),
         "planning_focus": _planning_focus(
             creative_plan,
+            creative_intent,
             creative_strategy,
             creative_techniques,
             creative_constraints,
@@ -84,6 +94,7 @@ def build_director_brief_payload(
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
             creative_constraints=creative_constraints,
+            creative_intent=creative_intent,
             runtime_capabilities=runtime_capabilities,
             creative_tradeoffs=creative_tradeoffs,
             artifact_critique_summary=artifact_critique_summary,
@@ -107,6 +118,7 @@ def build_director_brief_payload(
             request=request,
             route_decision=route_decision,
             creative_translation=creative_translation,
+            creative_intent=creative_intent,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
             creative_plan=creative_plan,
@@ -124,8 +136,11 @@ def build_director_brief_payload(
 
 def _creative_brief(
     request: AssistantRequest,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
 ) -> str:
+    if creative_intent is not None:
+        return creative_intent.primary_expression
     if creative_translation is not None:
         return creative_translation.creative_intent
     return " ".join(request.query.split())[:360]
@@ -145,12 +160,15 @@ def _ambiguity_level(
 def _ambiguity_signals(
     *,
     route_decision: RouteDecision | None,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if clarification is not None:
         signals.append(f"Clarification required: {clarification.reason.value}.")
+    if creative_intent is not None:
+        signals.extend(creative_intent.unresolved_intent_gaps[:2])
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -184,6 +202,7 @@ def _runtime_direction(plan: CreativeExecutionPlan | None) -> str | None:
 
 def _planning_focus(
     plan: CreativeExecutionPlan | None,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
     creative_constraints: CreativeConstraintSolution | None,
@@ -191,6 +210,9 @@ def _planning_focus(
     creative_tradeoffs: CreativeTradeoffProfile | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
+    if creative_intent is not None:
+        focus.append(f"Intent substrate: {creative_intent.primary_expression}.")
+        focus.extend(creative_intent.prompt_guidance[:2])
     if creative_strategy is not None:
         focus.append(f"High-level strategy: {creative_strategy.primary_strategy}.")
     if creative_techniques is not None:
@@ -235,12 +257,18 @@ def _critique_focus(
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
     creative_constraints: CreativeConstraintSolution | None,
+    creative_intent: CreativeIntentDecomposition | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
+    if creative_intent is not None:
+        focus.append(
+            "Check output against decomposed symbolic, emotional, formal, "
+            "motion, audio, and interaction intent."
+        )
     if creative_plan is not None:
         focus.append(
             "Check output against runtime support, domain scope, and plan constraints."
@@ -344,6 +372,7 @@ def _evidence(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
     creative_plan: CreativeExecutionPlan | None,
@@ -366,6 +395,8 @@ def _evidence(
             )
     if creative_translation is not None:
         evidence.append(f"Creative intent: {creative_translation.creative_intent}.")
+    if creative_intent is not None:
+        evidence.append(f"Intent gaps: {len(creative_intent.unresolved_intent_gaps)}.")
     if creative_strategy is not None:
         evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
         evidence.append(f"Strategy confidence: {creative_strategy.confidence:.2f}.")

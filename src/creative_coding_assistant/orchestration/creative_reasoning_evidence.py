@@ -9,6 +9,9 @@ from creative_coding_assistant.orchestration.creative_constraints import (
 from creative_coding_assistant.orchestration.creative_director import (
     CreativeAssistantDirectorBrief,
 )
+from creative_coding_assistant.orchestration.creative_intent import (
+    CreativeIntentDecomposition,
+)
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
@@ -41,6 +44,7 @@ def build_evidence_chain(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_plan: CreativeExecutionPlan | None,
     creative_director: CreativeAssistantDirectorBrief | None,
     creative_constraints: CreativeConstraintSolution | None,
@@ -73,13 +77,24 @@ def build_evidence_chain(
                 interpretation="Creative translation supplies intent to protect.",
             )
         )
+    if creative_intent is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="creative_intent",
+                signal=creative_intent.primary_expression,
+                interpretation=(
+                    "Intent decomposition separates expressive dimensions "
+                    "before strategy or technique decisions."
+                ),
+            )
+        )
     _append_strategy_evidence(evidence, creative_strategy)
     _append_technique_evidence(evidence, creative_techniques)
     if creative_plan is not None:
         evidence.append(
             CreativeReasoningEvidence(
                 source="planning",
-                signal=creative_plan.generation_strategy,
+                signal=_clip(creative_plan.generation_strategy, 240),
                 interpretation="The output goal constrains executable scope.",
             )
         )
@@ -163,3 +178,10 @@ def _append_constraint_evidence(
             interpretation="Constraint pressures bound the recommendation.",
         )
     )
+
+
+def _clip(value: str, limit: int) -> str:
+    normalized = " ".join(value.strip().split())
+    if len(normalized) <= limit:
+        return normalized
+    return normalized[: limit - 1].rstrip() + "."

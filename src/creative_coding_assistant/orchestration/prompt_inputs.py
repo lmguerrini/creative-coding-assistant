@@ -25,6 +25,9 @@ from creative_coding_assistant.orchestration.creative_constraints import (
 from creative_coding_assistant.orchestration.creative_director import (
     CreativeAssistantDirectorBrief,
 )
+from creative_coding_assistant.orchestration.creative_intent import (
+    CreativeIntentDecomposition,
+)
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
@@ -287,6 +290,7 @@ class PromptInputResponse(BaseModel):
     request: PromptInputRequest
     user_input: PromptUserInput
     creative_translation: CreativeTranslation | None = None
+    creative_intent: CreativeIntentDecomposition | None = None
     creative_strategy: CreativeStrategyProfile | None = None
     creative_techniques: CreativeTechniqueProfile | None = None
     creative_plan: CreativeExecutionPlan | None = None

@@ -12,6 +12,10 @@ from creative_coding_assistant.contracts import (
     AssistantRequest,
     CreativeCodingDomain,
 )
+from creative_coding_assistant.orchestration.creative_intent import (
+    CreativeIntentDecomposition,
+    active_intent_dimension_names,
+)
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
 )
@@ -70,7 +74,8 @@ def derive_creative_execution_plan(
     *,
     request: AssistantRequest,
     route_decision: RouteDecision | None,
-    creative_translation: CreativeTranslation | None,
+    creative_intent: CreativeIntentDecomposition | None = None,
+    creative_translation: CreativeTranslation | None = None,
     creative_strategy: CreativeStrategyProfile | None = None,
     creative_techniques: CreativeTechniqueProfile | None = None,
     retrieval_chunk_count: int = 0,
@@ -92,6 +97,7 @@ def derive_creative_execution_plan(
     candidate_count = _candidate_count(request=request, domains=domains)
     complexity = _expected_complexity(
         request=request,
+        creative_intent=creative_intent,
         creative_translation=creative_translation,
         candidate_count=candidate_count,
         retrieval_chunk_count=retrieval_chunk_count,
@@ -115,6 +121,7 @@ def derive_creative_execution_plan(
             modality=modality,
             support=support,
             candidate_count=candidate_count,
+            creative_intent=creative_intent,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
@@ -143,12 +150,14 @@ def derive_creative_execution_plan(
             modality=modality,
             support=support,
             candidate_count=candidate_count,
+            creative_intent=creative_intent,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
         ),
         constraints=_constraints(
             request=request,
+            creative_intent=creative_intent,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
@@ -157,6 +166,7 @@ def derive_creative_execution_plan(
         evidence=_evidence(
             request=request,
             route_decision=route_decision,
+            creative_intent=creative_intent,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
@@ -335,6 +345,7 @@ def _candidate_count(
 def _expected_complexity(
     *,
     request: AssistantRequest,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
     candidate_count: int,
     retrieval_chunk_count: int,
@@ -344,6 +355,9 @@ def _expected_complexity(
         score += 2
     if request.attachments:
         score += 1
+    if creative_intent is not None:
+        score += int(len(active_intent_dimension_names(creative_intent)) >= 5)
+        score += int(bool(creative_intent.unresolved_intent_gaps))
     if retrieval_chunk_count >= 3:
         score += 1
     if creative_translation is not None:
@@ -397,6 +411,7 @@ def _generation_strategy(
     modality: CreativeOutputModality,
     support: DomainRuntimeSupport | None,
     candidate_count: int,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
@@ -410,11 +425,7 @@ def _generation_strategy(
         else f"{candidate_count} candidates"
     )
     runtime = support.label if support is not None else "a code-only creative surface"
-    intent = (
-        creative_translation.creative_intent
-        if creative_translation is not None
-        else "the user request"
-    )
+    intent = _planning_intent_summary(creative_intent, creative_translation)
     strategy = (
         f" with {creative_strategy.primary_strategy} as the high-level strategy"
         if creative_strategy is not None
@@ -464,12 +475,24 @@ def _runtime_support_summary(
     return "No explicit runtime support selected; plan conservatively."
 
 
+def _planning_intent_summary(
+    creative_intent: CreativeIntentDecomposition | None,
+    creative_translation: CreativeTranslation | None,
+) -> str:
+    if creative_intent is not None:
+        return creative_intent.primary_expression
+    if creative_translation is not None:
+        return creative_translation.creative_intent
+    return "the user request"
+
+
 def _plan_steps(
     *,
     request: AssistantRequest,
     modality: CreativeOutputModality,
     support: DomainRuntimeSupport | None,
     candidate_count: int,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
@@ -479,6 +502,12 @@ def _plan_steps(
         f"Produce {candidate_count} {modality.value} candidate"
         f"{'' if candidate_count == 1 else 's'} without planning-time code.",
     ]
+    if creative_intent is not None:
+        steps.append(
+            "Preserve decomposed intent dimensions: "
+            + ", ".join(active_intent_dimension_names(creative_intent)[:5])
+            + "."
+        )
     if creative_strategy is not None:
         steps.append(
             f"Use {creative_strategy.primary_strategy} as high-level strategy only."
@@ -505,6 +534,7 @@ def _plan_steps(
 def _constraints(
     *,
     request: AssistantRequest,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
@@ -523,6 +553,10 @@ def _constraints(
         constraints.extend(creative_translation.generation_constraints)
         if creative_translation.reference_fusion is not None:
             constraints.extend(creative_translation.reference_fusion.safety_constraints)
+    if creative_intent is not None:
+        constraints.append("Do not flatten decomposed intent dimensions into one cue.")
+        if creative_intent.unresolved_intent_gaps:
+            constraints.append("Surface unresolved intent gaps before expanding scope.")
     if request.artifact_refinement is not None:
         constraints.append("Preserve selected artifact lineage during refinement.")
     if support is not None:
@@ -540,6 +574,7 @@ def _evidence(
     *,
     request: AssistantRequest,
     route_decision: RouteDecision | None,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
@@ -562,6 +597,8 @@ def _evidence(
             evidence.append("Sacred geometry guidance present.")
         if creative_translation.audio_reactive is not None:
             evidence.append("Audio-reactive mapping guidance present.")
+    if creative_intent is not None:
+        evidence.append(f"Intent decomposition: {creative_intent.primary_expression}.")
     if creative_strategy is not None:
         evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
     if creative_techniques is not None:

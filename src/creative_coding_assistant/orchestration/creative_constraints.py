@@ -9,6 +9,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest, CreativeCodingDomain
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
+from creative_coding_assistant.orchestration.creative_intent import (
+    CreativeIntentDecomposition,
+)
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
@@ -107,8 +110,9 @@ def derive_creative_constraint_solution(
     *,
     request: AssistantRequest,
     route_decision: RouteDecision | None,
-    creative_translation: CreativeTranslation | None,
-    creative_plan: CreativeExecutionPlan | None,
+    creative_intent: CreativeIntentDecomposition | None = None,
+    creative_translation: CreativeTranslation | None = None,
+    creative_plan: CreativeExecutionPlan | None = None,
     creative_strategy: CreativeStrategyProfile | None = None,
     creative_techniques: CreativeTechniqueProfile | None = None,
     clarification: ClarificationRequest | None = None,
@@ -128,19 +132,21 @@ def derive_creative_constraint_solution(
     )
     hitl_reason = _hitl_reason(
         clarification=clarification,
+        creative_intent=creative_intent,
         route_decision=route_decision,
         creative_plan=creative_plan,
         runtime_fit=runtime_fit,
         complexity_pressure=complexity_pressure,
     )
     hitl_advisable = hitl_reason is not None
-    intent_summary = _intent_summary(request, creative_translation)
+    intent_summary = _intent_summary(request, creative_intent, creative_translation)
     output_goal = _output_goal(request, creative_plan)
 
     active_constraints = _active_constraints(
         intent_summary=intent_summary,
         output_goal=output_goal,
         request=request,
+        creative_intent=creative_intent,
         creative_translation=creative_translation,
         creative_strategy=creative_strategy,
         creative_techniques=creative_techniques,
@@ -156,6 +162,7 @@ def derive_creative_constraint_solution(
     conflicts = _conflicts(
         clarification=clarification,
         creative_plan=creative_plan,
+        creative_intent=creative_intent,
         creative_translation=creative_translation,
         runtime_fit=runtime_fit,
         performance_pressure=performance_pressure,
@@ -187,6 +194,7 @@ def derive_creative_constraint_solution(
         conflicts=conflicts,
         prompt_guidance=_prompt_guidance(
             creative_plan=creative_plan,
+            creative_intent=creative_intent,
             runtime_fit=runtime_fit,
             complexity_pressure=complexity_pressure,
             cost_pressure=cost_pressure,
@@ -198,6 +206,7 @@ def derive_creative_constraint_solution(
         evidence=_evidence(
             request=request,
             route_decision=route_decision,
+            creative_intent=creative_intent,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
@@ -236,8 +245,11 @@ def creative_constraint_solution_prompt_lines(
 
 def _intent_summary(
     request: AssistantRequest,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
 ) -> str:
+    if creative_intent is not None:
+        return creative_intent.primary_expression
     if creative_translation is not None:
         return creative_translation.creative_intent
     return _compact(request.query)[:280]
@@ -350,6 +362,7 @@ def _performance_pressure(
 def _hitl_reason(
     *,
     clarification: ClarificationRequest | None,
+    creative_intent: CreativeIntentDecomposition | None,
     route_decision: RouteDecision | None,
     creative_plan: CreativeExecutionPlan | None,
     runtime_fit: RuntimeFit,
@@ -357,6 +370,8 @@ def _hitl_reason(
 ) -> str | None:
     if clarification is not None:
         return clarification.summary
+    if creative_intent is not None and creative_intent.unresolved_intent_gaps:
+        return creative_intent.unresolved_intent_gaps[0]
     if route_decision is not None and len(route_decision.domains) > 2:
         return "Multiple domains are active; confirm which runtime should lead."
     if runtime_fit == "code_only" and creative_plan is not None:
@@ -371,6 +386,7 @@ def _active_constraints(
     intent_summary: str,
     output_goal: str,
     request: AssistantRequest,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
@@ -390,6 +406,7 @@ def _active_constraints(
             summary=f"Preserve creative intent: {intent_summary}",
             recommendation=_intent_recommendation(creative_strategy),
             evidence=_constraint_evidence(
+                creative_intent,
                 creative_translation,
                 creative_strategy,
                 "intent",
@@ -398,7 +415,7 @@ def _active_constraints(
         CreativeConstraint(
             axis="output_goal",
             severity="info",
-            summary=output_goal,
+            summary=_clip(output_goal, 240),
             recommendation="Keep the response aligned to the planned output goal.",
             evidence=(request.mode.value,),
         ),
@@ -440,6 +457,16 @@ def _active_constraints(
                 summary="Human-in-the-loop input is advisable.",
                 recommendation=hitl_reason,
                 evidence=(hitl_reason,),
+            )
+        )
+    if creative_intent is not None and creative_intent.unresolved_intent_gaps:
+        constraints.append(
+            CreativeConstraint(
+                axis="hitl",
+                severity="watch",
+                summary="Creative intent has unresolved decomposition gaps.",
+                recommendation=creative_intent.unresolved_intent_gaps[0],
+                evidence=creative_intent.hitl_questions[:3],
             )
         )
     if creative_strategy is not None:
@@ -578,6 +605,7 @@ def _conflicts(
     *,
     clarification: ClarificationRequest | None,
     creative_plan: CreativeExecutionPlan | None,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
     runtime_fit: RuntimeFit,
     performance_pressure: ConstraintPressure,
@@ -586,6 +614,10 @@ def _conflicts(
     conflicts: list[str] = []
     if clarification is not None:
         conflicts.append(f"Clarification pending: {clarification.reason.value}.")
+    if creative_intent is not None and creative_intent.unresolved_intent_gaps:
+        conflicts.append(
+            "Intent ambiguity: " + creative_intent.unresolved_intent_gaps[0]
+        )
     if runtime_fit == "code_only":
         conflicts.append(
             "Requested scope does not map to current live preview support."
@@ -607,6 +639,7 @@ def _conflicts(
 def _prompt_guidance(
     *,
     creative_plan: CreativeExecutionPlan | None,
+    creative_intent: CreativeIntentDecomposition | None,
     runtime_fit: RuntimeFit,
     complexity_pressure: ConstraintPressure,
     cost_pressure: ConstraintPressure,
@@ -616,6 +649,10 @@ def _prompt_guidance(
     creative_techniques: CreativeTechniqueProfile | None,
 ) -> tuple[str, ...]:
     guidance = ["Preserve the user's creative intent while making constraints visible."]
+    if creative_intent is not None:
+        guidance.append(
+            "Treat decomposed intent dimensions as separate constraints."
+        )
     if creative_strategy is not None:
         guidance.append(
             f"Preserve {creative_strategy.primary_strategy} as high-level strategy."
@@ -645,6 +682,7 @@ def _evidence(
     *,
     request: AssistantRequest,
     route_decision: RouteDecision | None,
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
@@ -662,6 +700,8 @@ def _evidence(
         )
     if creative_translation is not None:
         evidence.append(f"Intent: {creative_translation.creative_intent}.")
+    if creative_intent is not None:
+        evidence.append(f"Intent gaps: {len(creative_intent.unresolved_intent_gaps)}.")
     if creative_strategy is not None:
         evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
     if creative_techniques is not None:
@@ -746,12 +786,15 @@ def _plan_evidence(
 
 
 def _constraint_evidence(
+    creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
     fallback: str,
 ) -> tuple[str, ...]:
     evidence: list[str] = []
-    if creative_translation is None:
+    if creative_intent is not None:
+        evidence.append(creative_intent.primary_expression)
+    elif creative_translation is None:
         evidence.append(fallback)
     else:
         evidence.append(creative_translation.creative_intent)
@@ -788,6 +831,13 @@ def _safety_evidence(
 
 def _compact(value: str) -> str:
     return " ".join(value.strip().split())
+
+
+def _clip(value: str, limit: int) -> str:
+    normalized = _compact(value)
+    if len(normalized) <= limit:
+        return normalized
+    return normalized[: limit - 1].rstrip() + "."
 
 
 def _dedupe_text(values: list[str]) -> tuple[str, ...]:
