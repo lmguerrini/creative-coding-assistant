@@ -6,6 +6,7 @@ import {
   readClarificationSummary,
   readCreativeConstraintSolverSummary,
   readCreativeExecutionPlanSummary,
+  readCreativeQualityPredictionSummary,
   readCreativeReasoningSummary,
   readCreativeStrategySummary,
   readCreativeTechniqueSummary,
@@ -1591,6 +1592,51 @@ describe("assistant stream client", () => {
     expect(profile?.costSensitivity).toBe("low");
   });
 
+  it("reads creative quality predictor metadata", () => {
+    const profile = readCreativeQualityPredictionSummary({
+      role: "creative_quality_predictor",
+      predictedQualityLevel: "promising",
+      confidence: 0.82,
+      readinessScore: 78,
+      strongestQualitySignals: [
+        {
+          dimension: "geometric_formal_clarity",
+          score: 9,
+          summary: "Formal structure is specific.",
+          evidence: ["mandala"]
+        }
+      ],
+      weakestQualitySignals: [
+        {
+          dimension: "performance_risk",
+          score: 5,
+          summary: "Performance pressure should stay bounded.",
+          evidence: ["particle density"]
+        }
+      ],
+      qualityRisks: ["Performance may force simplification."],
+      missingInformation: [],
+      likelyFailureModes: [
+        "No high-likelihood failure mode is visible before generation."
+      ],
+      suggestedImprovements: ["Cap density and animation cost."],
+      hitlQuestions: [],
+      promptGuidance: [
+        "Treat this as pre-generation readiness guidance."
+      ],
+      authorityBoundary:
+        "The Creative Quality Predictor estimates pre-generation readiness only.",
+      evidence: ["Readiness score: 78/100."]
+    });
+
+    expect(profile?.role).toBe("creative_quality_predictor");
+    expect(profile?.predictedQualityLevel).toBe("promising");
+    expect(profile?.readinessScore).toBe(78);
+    expect(profile?.strongestQualitySignals[0]?.dimension).toBe(
+      "geometric_formal_clarity"
+    );
+  });
+
   it("reads creative reasoning engine metadata", () => {
     const profile = readCreativeReasoningSummary({
       role: "creative_reasoning_engine",
@@ -1645,6 +1691,12 @@ describe("assistant stream client", () => {
           source: "tradeoff_explorer",
           signal: "creative_expressiveness vs implementation_complexity.",
           interpretation: "Trade-off evidence bounds scope."
+        },
+        {
+          source: "quality_predictor",
+          signal: "promising readiness 78/100.",
+          interpretation:
+            "Quality prediction estimates pre-generation readiness."
         }
       ],
       strongestSupportingSignals: ["Strategy sacred_geometry confidence 0.83."],
@@ -1678,6 +1730,9 @@ describe("assistant stream client", () => {
       "recommendation"
     ]);
     expect(profile?.evidenceChain[0]?.source).toBe("creative_strategy");
+    expect(profile?.evidenceChain.map((item) => item.source)).toContain(
+      "quality_predictor"
+    );
     expect(profile?.futureKnowledgeContext.status).toBe("not_attached");
   });
 
@@ -1739,6 +1794,105 @@ describe("assistant stream client", () => {
       recommendedRuntime: "p5",
       candidateCount: 1,
       exportReadiness: "ready"
+    });
+  });
+
+  it("hydrates creative quality prediction workflow metadata", () => {
+    const creativeQualityPrediction = {
+      role: "creative_quality_predictor",
+      predicted_quality_level: "ambiguous",
+      confidence: 0.61,
+      readiness_score: 57,
+      strongest_quality_signals: [
+        {
+          dimension: "runtime_suitability",
+          score: 8,
+          summary: "Runtime support is suitable.",
+          evidence: ["p5_js strong fit"]
+        }
+      ],
+      weakest_quality_signals: [
+        {
+          dimension: "intent_clarity",
+          score: 4,
+          summary: "Intent needs sharper subject detail.",
+          evidence: ["ambiguous wording"]
+        }
+      ],
+      quality_risks: ["Intent may remain generic."],
+      missing_information: ["Palette direction is missing."],
+      likely_failure_modes: ["Generation may invent missing details."],
+      suggested_improvements: ["Clarify palette before generation."],
+      hitl_questions: ["What palette should lead the piece?"],
+      prompt_guidance: [
+        "Treat this as pre-generation readiness guidance."
+      ],
+      authority_boundary:
+        "The Creative Quality Predictor estimates pre-generation readiness only.",
+      evidence: ["Readiness score: 57/100."]
+    };
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 7,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          creative_quality_prediction: creativeQualityPrediction,
+          quality_predictor_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      creative_quality_prediction: {
+        role: "creative_quality_predictor",
+        predictedQualityLevel: "ambiguous",
+        confidence: 0.61,
+        readinessScore: 57,
+        strongestQualitySignals: [
+          {
+            dimension: "runtime_suitability",
+            score: 8,
+            summary: "Runtime support is suitable.",
+            evidence: ["p5_js strong fit"]
+          }
+        ],
+        weakestQualitySignals: [
+          {
+            dimension: "intent_clarity",
+            score: 4,
+            summary: "Intent needs sharper subject detail.",
+            evidence: ["ambiguous wording"]
+          }
+        ],
+        qualityRisks: ["Intent may remain generic."],
+        missingInformation: ["Palette direction is missing."],
+        likelyFailureModes: ["Generation may invent missing details."],
+        suggestedImprovements: ["Clarify palette before generation."],
+        hitlQuestions: ["What palette should lead the piece?"],
+        promptGuidance: [
+          "Treat this as pre-generation readiness guidance."
+        ],
+        authorityBoundary:
+          "The Creative Quality Predictor estimates pre-generation readiness only.",
+        evidence: ["Readiness score: 57/100."]
+      },
+      quality_predictor_available: true
     });
   });
 

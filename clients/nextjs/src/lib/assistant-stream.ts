@@ -25,6 +25,10 @@ import {
   type CreativeHierarchyPrioritySummary,
   type CreativeHierarchySource,
   type CreativeHierarchyTier,
+  type CreativeQualityDimension,
+  type CreativeQualityPredictionSummary,
+  type CreativeQualityPredictionLevel,
+  type CreativeQualitySignalSummary,
   type CreativeReasoningEvidenceSource,
   type CreativeReasoningEvidenceSummary,
   type CreativeReasoningStage,
@@ -142,6 +146,8 @@ export type AssistantStreamWorkflowMetadata = {
   runtime_capability_reasoner_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
+  creative_quality_prediction?: CreativeQualityPredictionSummary | null;
+  quality_predictor_available?: boolean;
   creative_director?: CreativeAssistantDirectorSummary | null;
   director_available?: boolean;
   creative_reasoning?: CreativeReasoningSummary | null;
@@ -590,6 +596,13 @@ export function readWorkflowMetadata(
   const tradeoffExplorerAvailable =
     rawWorkflow.tradeoff_explorer_available === true ||
     creativeTradeoffs !== null;
+  const creativeQualityPrediction = readCreativeQualityPredictionSummary(
+    rawWorkflow.creative_quality_prediction ??
+      rawWorkflow.creativeQualityPrediction
+  );
+  const qualityPredictorAvailable =
+    rawWorkflow.quality_predictor_available === true ||
+    creativeQualityPrediction !== null;
   const creativeDirector = readCreativeAssistantDirectorSummary(
     rawWorkflow.creative_director ?? rawWorkflow.creativeDirector
   );
@@ -685,6 +698,12 @@ export function readWorkflowMetadata(
       ? {
           creative_tradeoffs: creativeTradeoffs,
           tradeoff_explorer_available: true
+        }
+      : {}),
+    ...(qualityPredictorAvailable
+      ? {
+          creative_quality_prediction: creativeQualityPrediction,
+          quality_predictor_available: true
         }
       : {}),
     ...(directorAvailable
@@ -1761,6 +1780,149 @@ function readCreativeTradeoffSummaryList(
   });
 }
 
+export function readCreativeQualityPredictionSummary(
+  value: unknown
+): CreativeQualityPredictionSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const predictedQualityLevel = readStringUnion(
+    value,
+    "predicted_quality_level",
+    "predictedQualityLevel",
+    creativeQualityLevels
+  );
+  const confidence = readFiniteNumberField(value, "confidence");
+  const readinessScore =
+    readFiniteNumberField(value, "readiness_score") ??
+    readFiniteNumberField(value, "readinessScore");
+  const strongestQualitySignals = readCreativeQualitySignalSummaryList(
+    value.strongest_quality_signals ?? value.strongestQualitySignals
+  );
+  const weakestQualitySignals = readCreativeQualitySignalSummaryList(
+    value.weakest_quality_signals ?? value.weakestQualitySignals
+  );
+  const likelyFailureModes = readStringListField(
+    value,
+    "likely_failure_modes",
+    "likelyFailureModes"
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "creative_quality_predictor" ||
+    !predictedQualityLevel ||
+    confidence === null ||
+    readinessScore === null ||
+    strongestQualitySignals.length === 0 ||
+    weakestQualitySignals.length === 0 ||
+    likelyFailureModes.length === 0 ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    predictedQualityLevel,
+    confidence,
+    readinessScore,
+    strongestQualitySignals,
+    weakestQualitySignals,
+    qualityRisks: readStringListField(
+      value,
+      "quality_risks",
+      "qualityRisks"
+    ),
+    missingInformation: readStringListField(
+      value,
+      "missing_information",
+      "missingInformation"
+    ),
+    likelyFailureModes,
+    suggestedImprovements: readStringListField(
+      value,
+      "suggested_improvements",
+      "suggestedImprovements"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const creativeQualityLevels = [
+  "strong",
+  "promising",
+  "ambiguous",
+  "risky",
+  "blocked"
+] as const satisfies readonly CreativeQualityPredictionLevel[];
+
+const creativeQualityDimensions = [
+  "intent_clarity",
+  "symbolic_coherence",
+  "narrative_coherence",
+  "emotional_coherence",
+  "geometric_formal_clarity",
+  "technique_suitability",
+  "runtime_suitability",
+  "tradeoff_balance",
+  "constraint_alignment",
+  "implementation_feasibility",
+  "previewability",
+  "performance_risk",
+  "originality_potential",
+  "aesthetic_coherence_potential"
+] as const satisfies readonly CreativeQualityDimension[];
+
+function readCreativeQualitySignalSummaryList(
+  value: unknown
+): CreativeQualitySignalSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const dimension = readStringUnion(
+      item,
+      "dimension",
+      "dimension",
+      creativeQualityDimensions
+    );
+    const score = readFiniteNumberField(item, "score");
+    const summary = readStringField(item, "summary");
+
+    if (!dimension || score === null || !summary) {
+      return [];
+    }
+
+    return [
+      {
+        dimension,
+        score,
+        summary,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
 export function readCreativeReasoningSummary(
   value: unknown
 ): CreativeReasoningSummary | null {
@@ -1861,6 +2023,7 @@ const creativeReasoningEvidenceSources = [
   "creative_technique",
   "runtime_capability",
   "tradeoff_explorer",
+  "quality_predictor",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

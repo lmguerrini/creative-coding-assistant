@@ -389,6 +389,53 @@ export type CreativeTradeoffExplorerSummary = {
   evidence: string[];
 };
 
+export type CreativeQualityPredictionLevel =
+  | "strong"
+  | "promising"
+  | "ambiguous"
+  | "risky"
+  | "blocked";
+
+export type CreativeQualityDimension =
+  | "intent_clarity"
+  | "symbolic_coherence"
+  | "narrative_coherence"
+  | "emotional_coherence"
+  | "geometric_formal_clarity"
+  | "technique_suitability"
+  | "runtime_suitability"
+  | "tradeoff_balance"
+  | "constraint_alignment"
+  | "implementation_feasibility"
+  | "previewability"
+  | "performance_risk"
+  | "originality_potential"
+  | "aesthetic_coherence_potential";
+
+export type CreativeQualitySignalSummary = {
+  dimension: CreativeQualityDimension;
+  score: number;
+  summary: string;
+  evidence: string[];
+};
+
+export type CreativeQualityPredictionSummary = {
+  role: "creative_quality_predictor";
+  predictedQualityLevel: CreativeQualityPredictionLevel;
+  confidence: number;
+  readinessScore: number;
+  strongestQualitySignals: CreativeQualitySignalSummary[];
+  weakestQualitySignals: CreativeQualitySignalSummary[];
+  qualityRisks: string[];
+  missingInformation: string[];
+  likelyFailureModes: string[];
+  suggestedImprovements: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeConstraintAxis =
   | "intent"
   | "modality"
@@ -546,6 +593,7 @@ export type CreativeReasoningEvidenceSource =
   | "creative_technique"
   | "runtime_capability"
   | "tradeoff_explorer"
+  | "quality_predictor"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {
