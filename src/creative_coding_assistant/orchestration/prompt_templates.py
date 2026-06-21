@@ -20,6 +20,10 @@ from creative_coding_assistant.orchestration.creative_director import (
     CreativeAssistantDirectorBrief,
     creative_assistant_director_prompt_lines,
 )
+from creative_coding_assistant.orchestration.creative_hierarchy import (
+    CreativeHierarchyPlan,
+    creative_hierarchy_plan_prompt_lines,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     CreativeIntentDecomposition,
     creative_intent_decomposition_prompt_lines,
@@ -127,6 +131,13 @@ Creative Translation:
 {% if creative_intent is not none -%}
 Creative Intent Decomposer:
 {% for instruction in creative_intent_lines(creative_intent) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set hierarchy = prompt_input.creative_hierarchy -%}
+{% if hierarchy is not none -%}
+Creative Hierarchy Planner:
+{% for instruction in creative_hierarchy_lines(hierarchy) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -407,6 +418,7 @@ class JinjaPromptRenderer:
             image_reference_line=_image_reference_line,
             creative_translation_lines=_creative_translation_lines,
             creative_intent_lines=_creative_intent_lines,
+            creative_hierarchy_lines=_creative_hierarchy_lines,
             creative_strategy_lines=_creative_strategy_lines,
             creative_technique_lines=_creative_technique_lines,
             creative_execution_plan_lines=_creative_execution_plan_lines,
@@ -583,6 +595,12 @@ def _creative_intent_lines(
     decomposition: CreativeIntentDecomposition,
 ) -> tuple[str, ...]:
     return creative_intent_decomposition_prompt_lines(decomposition)
+
+
+def _creative_hierarchy_lines(
+    hierarchy: CreativeHierarchyPlan,
+) -> tuple[str, ...]:
+    return creative_hierarchy_plan_prompt_lines(hierarchy)
 
 
 def _creative_strategy_lines(

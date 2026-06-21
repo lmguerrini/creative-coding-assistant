@@ -22,6 +22,9 @@ from creative_coding_assistant.orchestration.creative_constraints import (
 from creative_coding_assistant.orchestration.creative_director import (
     CreativeAssistantDirectorBrief,
 )
+from creative_coding_assistant.orchestration.creative_hierarchy import (
+    CreativeHierarchyPlan,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     CreativeIntentDecomposition,
 )
@@ -146,6 +149,7 @@ class AssistantWorkflowState(BaseModel):
     prompt_input: PromptInputResponse | None = None
     clarification: ClarificationRequest | None = None
     creative_intent: CreativeIntentDecomposition | None = None
+    creative_hierarchy: CreativeHierarchyPlan | None = None
     creative_strategy: CreativeStrategyProfile | None = None
     creative_techniques: CreativeTechniqueProfile | None = None
     creative_plan: CreativeExecutionPlan | None = None

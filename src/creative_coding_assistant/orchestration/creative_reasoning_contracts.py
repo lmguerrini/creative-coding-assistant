@@ -17,6 +17,7 @@ ReasoningEvidenceSource = Literal[
     "request",
     "translation",
     "creative_intent",
+    "creative_hierarchy",
     "planning",
     "director",
     "constraint_solver",

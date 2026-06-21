@@ -34,6 +34,9 @@ from creative_coding_assistant.orchestration.creative_director import (
     CreativeAssistantDirectorBrief,
     derive_creative_assistant_director_brief,
 )
+from creative_coding_assistant.orchestration.creative_hierarchy import (
+    derive_creative_hierarchy_plan,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     derive_creative_intent_decomposition,
 )
@@ -572,16 +575,24 @@ def _planning_node(
             route_decision=workflow_state.route_decision,
             creative_translation=prompt_input.creative_translation,
         )
+        creative_hierarchy = derive_creative_hierarchy_plan(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_intent=creative_intent,
+            creative_translation=prompt_input.creative_translation,
+        )
         strategy = derive_creative_strategy_profile(
             request=workflow_state.request,
             route_decision=workflow_state.route_decision,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_translation=prompt_input.creative_translation,
         )
         techniques = derive_creative_technique_profile(
             request=workflow_state.request,
             route_decision=workflow_state.route_decision,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_translation=prompt_input.creative_translation,
             creative_strategy=strategy,
         )
@@ -589,6 +600,7 @@ def _planning_node(
             request=workflow_state.request,
             route_decision=workflow_state.route_decision,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_translation=prompt_input.creative_translation,
             creative_strategy=strategy,
             creative_techniques=techniques,
@@ -598,6 +610,7 @@ def _planning_node(
             request=workflow_state.request,
             route_decision=workflow_state.route_decision,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_translation=prompt_input.creative_translation,
             creative_plan=plan,
             creative_strategy=strategy,
@@ -628,6 +641,7 @@ def _planning_node(
             update={
                 "creative_strategy": strategy,
                 "creative_intent": creative_intent,
+                "creative_hierarchy": creative_hierarchy,
                 "creative_techniques": techniques,
                 "creative_plan": plan,
                 "creative_constraints": constraints,
@@ -639,6 +653,7 @@ def _planning_node(
             update={
                 "creative_strategy": strategy,
                 "creative_intent": creative_intent,
+                "creative_hierarchy": creative_hierarchy,
                 "creative_techniques": techniques,
                 "creative_plan": plan,
                 "creative_constraints": constraints,
@@ -652,6 +667,7 @@ def _planning_node(
                 code="creative_plan_prepared",
                 message="Creative execution plan prepared.",
                 creative_intent=creative_intent.model_dump(mode="json"),
+                creative_hierarchy=creative_hierarchy.model_dump(mode="json"),
                 creative_strategy=strategy.model_dump(mode="json"),
                 creative_techniques=techniques.model_dump(mode="json"),
                 creative_plan=plan.model_dump(mode="json"),
@@ -1351,6 +1367,14 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "creative_hierarchy",
+                    (
+                        final_state.creative_hierarchy.model_dump(mode="json")
+                        if final_state.creative_hierarchy is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_strategy",
                     (
                         final_state.creative_strategy.model_dump(mode="json")
@@ -1976,6 +2000,7 @@ def _derive_director_brief(
             prompt_input.creative_translation if prompt_input is not None else None
         ),
         creative_intent=workflow_state.creative_intent,
+        creative_hierarchy=workflow_state.creative_hierarchy,
         creative_strategy=workflow_state.creative_strategy,
         creative_techniques=workflow_state.creative_techniques,
         creative_plan=workflow_state.creative_plan,
@@ -2005,6 +2030,7 @@ def _derive_reasoning_result(
             prompt_input.creative_translation if prompt_input is not None else None
         ),
         creative_intent=workflow_state.creative_intent,
+        creative_hierarchy=workflow_state.creative_hierarchy,
         creative_plan=workflow_state.creative_plan,
         creative_director=workflow_state.creative_director,
         creative_constraints=workflow_state.creative_constraints,
@@ -2227,6 +2253,7 @@ def _serialize_workflow_runtime(
     clarification = workflow_state.clarification
     creative_strategy = workflow_state.creative_strategy
     creative_intent = workflow_state.creative_intent
+    creative_hierarchy = workflow_state.creative_hierarchy
     creative_techniques = workflow_state.creative_techniques
     creative_plan = workflow_state.creative_plan
     creative_constraints = workflow_state.creative_constraints
@@ -2287,6 +2314,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "intent_decomposer_available": creative_intent is not None,
+        "creative_hierarchy": (
+            creative_hierarchy.model_dump(mode="json")
+            if creative_hierarchy is not None
+            else None
+        ),
+        "hierarchy_planner_available": creative_hierarchy is not None,
         "creative_strategy": (
             creative_strategy.model_dump(mode="json")
             if creative_strategy is not None

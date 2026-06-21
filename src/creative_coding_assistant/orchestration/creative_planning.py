@@ -12,6 +12,9 @@ from creative_coding_assistant.contracts import (
     AssistantRequest,
     CreativeCodingDomain,
 )
+from creative_coding_assistant.orchestration.creative_hierarchy import (
+    CreativeHierarchyPlan,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     CreativeIntentDecomposition,
     active_intent_dimension_names,
@@ -75,6 +78,7 @@ def derive_creative_execution_plan(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
     creative_intent: CreativeIntentDecomposition | None = None,
+    creative_hierarchy: CreativeHierarchyPlan | None = None,
     creative_translation: CreativeTranslation | None = None,
     creative_strategy: CreativeStrategyProfile | None = None,
     creative_techniques: CreativeTechniqueProfile | None = None,
@@ -98,6 +102,7 @@ def derive_creative_execution_plan(
     complexity = _expected_complexity(
         request=request,
         creative_intent=creative_intent,
+        creative_hierarchy=creative_hierarchy,
         creative_translation=creative_translation,
         candidate_count=candidate_count,
         retrieval_chunk_count=retrieval_chunk_count,
@@ -122,6 +127,7 @@ def derive_creative_execution_plan(
             support=support,
             candidate_count=candidate_count,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
@@ -151,6 +157,7 @@ def derive_creative_execution_plan(
             support=support,
             candidate_count=candidate_count,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
@@ -158,6 +165,7 @@ def derive_creative_execution_plan(
         constraints=_constraints(
             request=request,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
@@ -167,6 +175,7 @@ def derive_creative_execution_plan(
             request=request,
             route_decision=route_decision,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
@@ -346,6 +355,7 @@ def _expected_complexity(
     *,
     request: AssistantRequest,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_translation: CreativeTranslation | None,
     candidate_count: int,
     retrieval_chunk_count: int,
@@ -358,6 +368,12 @@ def _expected_complexity(
     if creative_intent is not None:
         score += int(len(active_intent_dimension_names(creative_intent)) >= 5)
         score += int(bool(creative_intent.unresolved_intent_gaps))
+    if creative_hierarchy is not None:
+        primary = {
+            item.dimension for item in creative_hierarchy.primary_creative_priorities
+        }
+        score += int(bool(primary & {"complexity", "interaction", "audio"}))
+        score += int(bool(creative_hierarchy.priority_conflicts))
     if retrieval_chunk_count >= 3:
         score += 1
     if creative_translation is not None:
@@ -412,6 +428,7 @@ def _generation_strategy(
     support: DomainRuntimeSupport | None,
     candidate_count: int,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
@@ -436,9 +453,18 @@ def _generation_strategy(
         if creative_techniques is not None
         else ""
     )
-    return (
+    hierarchy = (
+        " while preserving hierarchy priorities "
+        + ", ".join(
+            item.dimension for item in creative_hierarchy.primary_creative_priorities
+        )
+        if creative_hierarchy is not None
+        else ""
+    )
+    return _clip(
         f"{action} {target} for a {modality.value} output using {runtime}; "
-        f"optimize for {intent}{strategy}{technique}."
+        f"optimize for {intent}{strategy}{technique}{hierarchy}.",
+        360,
     )
 
 
@@ -493,6 +519,7 @@ def _plan_steps(
     support: DomainRuntimeSupport | None,
     candidate_count: int,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
@@ -506,6 +533,15 @@ def _plan_steps(
         steps.append(
             "Preserve decomposed intent dimensions: "
             + ", ".join(active_intent_dimension_names(creative_intent)[:5])
+            + "."
+        )
+    if creative_hierarchy is not None:
+        steps.append(
+            "Preserve hierarchy priorities before secondary dimensions: "
+            + ", ".join(
+                item.dimension
+                for item in creative_hierarchy.primary_creative_priorities[:3]
+            )
             + "."
         )
     if creative_strategy is not None:
@@ -535,6 +571,7 @@ def _constraints(
     *,
     request: AssistantRequest,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
@@ -557,6 +594,14 @@ def _constraints(
         constraints.append("Do not flatten decomposed intent dimensions into one cue.")
         if creative_intent.unresolved_intent_gaps:
             constraints.append("Surface unresolved intent gaps before expanding scope.")
+    if creative_hierarchy is not None:
+        constraints.append(
+            "Do not sacrifice non-negotiable hierarchy dimensions silently."
+        )
+        constraints.extend(
+            f"Hierarchy conflict: {item}"
+            for item in creative_hierarchy.priority_conflicts[:2]
+        )
     if request.artifact_refinement is not None:
         constraints.append("Preserve selected artifact lineage during refinement.")
     if support is not None:
@@ -575,6 +620,7 @@ def _evidence(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
@@ -599,6 +645,11 @@ def _evidence(
             evidence.append("Audio-reactive mapping guidance present.")
     if creative_intent is not None:
         evidence.append(f"Intent decomposition: {creative_intent.primary_expression}.")
+    if creative_hierarchy is not None:
+        evidence.append(
+            "Hierarchy confidence: "
+            f"{creative_hierarchy.hierarchy_confidence:.2f}."
+        )
     if creative_strategy is not None:
         evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
     if creative_techniques is not None:
@@ -625,10 +676,21 @@ def _contains_visual_domain(domains: tuple[CreativeCodingDomain, ...]) -> bool:
 def _dedupe_text(values: list[str]) -> tuple[str, ...]:
     normalized: list[str] = []
     for value in values:
-        cleaned = " ".join(value.strip().split())
+        cleaned = _compact(value)
         if cleaned and cleaned not in normalized:
             normalized.append(cleaned)
     return tuple(normalized)
+
+
+def _compact(value: str) -> str:
+    return " ".join(value.strip().split())
+
+
+def _clip(value: str, limit: int) -> str:
+    normalized = _compact(value)
+    if len(normalized) <= limit:
+        return normalized
+    return normalized[: limit - 1].rstrip() + "."
 
 
 def _value_label(value: object) -> str:

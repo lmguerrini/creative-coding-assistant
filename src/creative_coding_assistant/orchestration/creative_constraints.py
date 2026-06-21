@@ -9,6 +9,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest, CreativeCodingDomain
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
+from creative_coding_assistant.orchestration.creative_hierarchy import (
+    CreativeHierarchyPlan,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     CreativeIntentDecomposition,
 )
@@ -111,6 +114,7 @@ def derive_creative_constraint_solution(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
     creative_intent: CreativeIntentDecomposition | None = None,
+    creative_hierarchy: CreativeHierarchyPlan | None = None,
     creative_translation: CreativeTranslation | None = None,
     creative_plan: CreativeExecutionPlan | None = None,
     creative_strategy: CreativeStrategyProfile | None = None,
@@ -133,6 +137,7 @@ def derive_creative_constraint_solution(
     hitl_reason = _hitl_reason(
         clarification=clarification,
         creative_intent=creative_intent,
+        creative_hierarchy=creative_hierarchy,
         route_decision=route_decision,
         creative_plan=creative_plan,
         runtime_fit=runtime_fit,
@@ -147,6 +152,7 @@ def derive_creative_constraint_solution(
         output_goal=output_goal,
         request=request,
         creative_intent=creative_intent,
+        creative_hierarchy=creative_hierarchy,
         creative_translation=creative_translation,
         creative_strategy=creative_strategy,
         creative_techniques=creative_techniques,
@@ -163,6 +169,7 @@ def derive_creative_constraint_solution(
         clarification=clarification,
         creative_plan=creative_plan,
         creative_intent=creative_intent,
+        creative_hierarchy=creative_hierarchy,
         creative_translation=creative_translation,
         runtime_fit=runtime_fit,
         performance_pressure=performance_pressure,
@@ -195,6 +202,7 @@ def derive_creative_constraint_solution(
         prompt_guidance=_prompt_guidance(
             creative_plan=creative_plan,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             runtime_fit=runtime_fit,
             complexity_pressure=complexity_pressure,
             cost_pressure=cost_pressure,
@@ -207,6 +215,7 @@ def derive_creative_constraint_solution(
             request=request,
             route_decision=route_decision,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
@@ -363,6 +372,7 @@ def _hitl_reason(
     *,
     clarification: ClarificationRequest | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     route_decision: RouteDecision | None,
     creative_plan: CreativeExecutionPlan | None,
     runtime_fit: RuntimeFit,
@@ -370,6 +380,8 @@ def _hitl_reason(
 ) -> str | None:
     if clarification is not None:
         return clarification.summary
+    if creative_hierarchy is not None and creative_hierarchy.hitl_questions:
+        return creative_hierarchy.hitl_questions[0]
     if creative_intent is not None and creative_intent.unresolved_intent_gaps:
         return creative_intent.unresolved_intent_gaps[0]
     if route_decision is not None and len(route_decision.domains) > 2:
@@ -387,6 +399,7 @@ def _active_constraints(
     output_goal: str,
     request: AssistantRequest,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
@@ -469,6 +482,16 @@ def _active_constraints(
                 evidence=creative_intent.hitl_questions[:3],
             )
         )
+    if creative_hierarchy is not None:
+        constraints.append(
+            CreativeConstraint(
+                axis="intent",
+                severity="info",
+                summary=_hierarchy_constraint_summary(creative_hierarchy),
+                recommendation=creative_hierarchy.prompt_guidance[0],
+                evidence=creative_hierarchy.priority_rationale[:3],
+            )
+        )
     if creative_strategy is not None:
         constraints.append(
             CreativeConstraint(
@@ -534,6 +557,19 @@ def _runtime_constraint(
         ),
         evidence=(domain_label,),
     )
+
+
+def _hierarchy_constraint_summary(
+    creative_hierarchy: CreativeHierarchyPlan,
+) -> str:
+    if creative_hierarchy.non_negotiable_dimensions:
+        return _clip(
+            "Creative hierarchy non-negotiables: "
+            + ", ".join(creative_hierarchy.non_negotiable_dimensions)
+            + ".",
+            240,
+        )
+    return "Creative hierarchy priorities are advisory."
 
 
 def _tradeoffs(
@@ -606,6 +642,7 @@ def _conflicts(
     clarification: ClarificationRequest | None,
     creative_plan: CreativeExecutionPlan | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_translation: CreativeTranslation | None,
     runtime_fit: RuntimeFit,
     performance_pressure: ConstraintPressure,
@@ -618,6 +655,8 @@ def _conflicts(
         conflicts.append(
             "Intent ambiguity: " + creative_intent.unresolved_intent_gaps[0]
         )
+    if creative_hierarchy is not None:
+        conflicts.extend(creative_hierarchy.priority_conflicts[:2])
     if runtime_fit == "code_only":
         conflicts.append(
             "Requested scope does not map to current live preview support."
@@ -640,6 +679,7 @@ def _prompt_guidance(
     *,
     creative_plan: CreativeExecutionPlan | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     runtime_fit: RuntimeFit,
     complexity_pressure: ConstraintPressure,
     cost_pressure: ConstraintPressure,
@@ -653,6 +693,8 @@ def _prompt_guidance(
         guidance.append(
             "Treat decomposed intent dimensions as separate constraints."
         )
+    if creative_hierarchy is not None:
+        guidance.append("Preserve non-negotiable hierarchy dimensions first.")
     if creative_strategy is not None:
         guidance.append(
             f"Preserve {creative_strategy.primary_strategy} as high-level strategy."
@@ -683,6 +725,7 @@ def _evidence(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
@@ -702,6 +745,11 @@ def _evidence(
         evidence.append(f"Intent: {creative_translation.creative_intent}.")
     if creative_intent is not None:
         evidence.append(f"Intent gaps: {len(creative_intent.unresolved_intent_gaps)}.")
+    if creative_hierarchy is not None:
+        evidence.append(
+            "Hierarchy confidence: "
+            f"{creative_hierarchy.hierarchy_confidence:.2f}."
+        )
     if creative_strategy is not None:
         evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
     if creative_techniques is not None:

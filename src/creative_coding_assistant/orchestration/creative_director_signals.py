@@ -10,6 +10,9 @@ from creative_coding_assistant.orchestration.clarification import ClarificationR
 from creative_coding_assistant.orchestration.creative_constraints import (
     CreativeConstraintSolution,
 )
+from creative_coding_assistant.orchestration.creative_hierarchy import (
+    CreativeHierarchyPlan,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     CreativeIntentDecomposition,
 )
@@ -47,6 +50,7 @@ def build_director_brief_payload(
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
     creative_plan: CreativeExecutionPlan | None,
@@ -63,6 +67,7 @@ def build_director_brief_payload(
     ambiguity_signals = _ambiguity_signals(
         route_decision=route_decision,
         creative_intent=creative_intent,
+        creative_hierarchy=creative_hierarchy,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -83,6 +88,7 @@ def build_director_brief_payload(
         "planning_focus": _planning_focus(
             creative_plan,
             creative_intent,
+            creative_hierarchy,
             creative_strategy,
             creative_techniques,
             creative_constraints,
@@ -95,6 +101,7 @@ def build_director_brief_payload(
             creative_techniques=creative_techniques,
             creative_constraints=creative_constraints,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             runtime_capabilities=runtime_capabilities,
             creative_tradeoffs=creative_tradeoffs,
             artifact_critique_summary=artifact_critique_summary,
@@ -119,6 +126,7 @@ def build_director_brief_payload(
             route_decision=route_decision,
             creative_translation=creative_translation,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
             creative_plan=creative_plan,
@@ -161,6 +169,7 @@ def _ambiguity_signals(
     *,
     route_decision: RouteDecision | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -169,6 +178,8 @@ def _ambiguity_signals(
         signals.append(f"Clarification required: {clarification.reason.value}.")
     if creative_intent is not None:
         signals.extend(creative_intent.unresolved_intent_gaps[:2])
+    if creative_hierarchy is not None:
+        signals.extend(creative_hierarchy.priority_conflicts[:2])
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -203,6 +214,7 @@ def _runtime_direction(plan: CreativeExecutionPlan | None) -> str | None:
 def _planning_focus(
     plan: CreativeExecutionPlan | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
     creative_constraints: CreativeConstraintSolution | None,
@@ -213,6 +225,16 @@ def _planning_focus(
     if creative_intent is not None:
         focus.append(f"Intent substrate: {creative_intent.primary_expression}.")
         focus.extend(creative_intent.prompt_guidance[:2])
+    if creative_hierarchy is not None:
+        focus.append(
+            "Hierarchy priorities: "
+            + ", ".join(
+                item.dimension
+                for item in creative_hierarchy.primary_creative_priorities[:3]
+            )
+            + "."
+        )
+        focus.extend(creative_hierarchy.prompt_guidance[:2])
     if creative_strategy is not None:
         focus.append(f"High-level strategy: {creative_strategy.primary_strategy}.")
     if creative_techniques is not None:
@@ -258,6 +280,7 @@ def _critique_focus(
     creative_techniques: CreativeTechniqueProfile | None,
     creative_constraints: CreativeConstraintSolution | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -269,6 +292,12 @@ def _critique_focus(
             "Check output against decomposed symbolic, emotional, formal, "
             "motion, audio, and interaction intent."
         )
+    if creative_hierarchy is not None:
+        focus.append(
+            "Verify output protects hierarchy primary priorities before "
+            "secondary dimensions."
+        )
+        focus.extend(creative_hierarchy.priority_conflicts[:2])
     if creative_plan is not None:
         focus.append(
             "Check output against runtime support, domain scope, and plan constraints."
@@ -373,6 +402,7 @@ def _evidence(
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
     creative_plan: CreativeExecutionPlan | None,
@@ -397,6 +427,11 @@ def _evidence(
         evidence.append(f"Creative intent: {creative_translation.creative_intent}.")
     if creative_intent is not None:
         evidence.append(f"Intent gaps: {len(creative_intent.unresolved_intent_gaps)}.")
+    if creative_hierarchy is not None:
+        evidence.append(
+            "Hierarchy confidence: "
+            f"{creative_hierarchy.hierarchy_confidence:.2f}."
+        )
     if creative_strategy is not None:
         evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
         evidence.append(f"Strategy confidence: {creative_strategy.confidence:.2f}.")

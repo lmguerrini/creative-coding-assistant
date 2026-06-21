@@ -229,6 +229,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         )
         final_event = events[-1]
         creative_intent = planning_event.payload["creative_intent"]
+        creative_hierarchy = planning_event.payload["creative_hierarchy"]
         strategy = planning_event.payload["creative_strategy"]
         techniques = planning_event.payload["creative_techniques"]
         plan = planning_event.payload["creative_plan"]
@@ -244,6 +245,10 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(creative_intent["role"], "creative_intent_decomposer")
         self.assertTrue(
             planning_event.payload["workflow"]["intent_decomposer_available"]
+        )
+        self.assertEqual(creative_hierarchy["role"], "creative_hierarchy_planner")
+        self.assertTrue(
+            planning_event.payload["workflow"]["hierarchy_planner_available"]
         )
         self.assertEqual(strategy["role"], "creative_strategy_engine")
         self.assertTrue(planning_event.payload["workflow"]["strategy_available"])
@@ -286,6 +291,10 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(
             final_event.payload["creative_intent"]["role"],
             "creative_intent_decomposer",
+        )
+        self.assertEqual(
+            final_event.payload["creative_hierarchy"]["role"],
+            "creative_hierarchy_planner",
         )
         self.assertEqual(
             final_event.payload["creative_strategy"]["role"],

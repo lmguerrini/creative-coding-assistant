@@ -9,6 +9,9 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest, CreativeCodingDomain
+from creative_coding_assistant.orchestration.creative_hierarchy import (
+    CreativeHierarchyPlan,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     CreativeIntentDecomposition,
 )
@@ -72,11 +75,17 @@ def derive_creative_strategy_profile(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
     creative_intent: CreativeIntentDecomposition | None = None,
+    creative_hierarchy: CreativeHierarchyPlan | None = None,
     creative_translation: CreativeTranslation | None = None,
 ) -> CreativeStrategyProfile:
     """Select high-level creative strategy using deterministic request signals."""
 
-    normalized = _strategy_text(request, creative_intent, creative_translation)
+    normalized = _strategy_text(
+        request,
+        creative_intent,
+        creative_hierarchy,
+        creative_translation,
+    )
     domains = _effective_domains(request, route_decision)
     scored = sorted(
         (
@@ -86,6 +95,7 @@ def derive_creative_strategy_profile(
                 request=request,
                 route_decision=route_decision,
                 creative_intent=creative_intent,
+                creative_hierarchy=creative_hierarchy,
                 creative_translation=creative_translation,
             )
             for strategy in _STRATEGIES
@@ -111,6 +121,7 @@ def derive_creative_strategy_profile(
             strategy=primary.strategy,
             request=request,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_translation=creative_translation,
         ),
         symbolic_alignment=_symbolic_alignment(
@@ -124,6 +135,7 @@ def derive_creative_strategy_profile(
             request=request,
             route_decision=route_decision,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_translation=creative_translation,
             domains=domains,
             scored=scored,
@@ -176,6 +188,7 @@ def _score_strategy(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_translation: CreativeTranslation | None,
 ) -> _ScoredStrategy:
     matched: list[str] = []
@@ -188,6 +201,8 @@ def _score_strategy(
         score += _translation_score(signal, creative_translation, matched)
     if creative_intent is not None:
         score += _intent_score(signal, creative_intent, matched)
+    if creative_hierarchy is not None:
+        score += _hierarchy_score(signal, creative_hierarchy, matched)
     if route_decision is not None and len(route_decision.domains) > 1:
         score += int(signal.strategy in _MULTI_DOMAIN_STRATEGIES)
     if request.attachments:
@@ -269,6 +284,47 @@ def _intent_score(
     return score
 
 
+def _hierarchy_score(
+    signal: _StrategySignal,
+    hierarchy: CreativeHierarchyPlan,
+    matched: list[str],
+) -> int:
+    score = 0
+    primary = {
+        priority.dimension
+        for priority in hierarchy.primary_creative_priorities
+    }
+    if signal.strategy == "sacred_geometry" and primary & {
+        "symbolism",
+        "geometry",
+        "experiential_depth",
+    }:
+        score += 3
+        matched.append("hierarchy:symbolism/geometry")
+    if signal.strategy == "field_dynamics" and primary & {
+        "motion",
+        "rhythm",
+        "audio",
+    }:
+        score += 3
+        matched.append("hierarchy:motion/rhythm/audio")
+    if signal.strategy == "minimal_generative_systems" and primary & {
+        "simplicity",
+        "performance",
+        "runtime_safety",
+    }:
+        score += 3
+        matched.append("hierarchy:simplicity/performance")
+    if signal.strategy == "particle_cosmology" and primary & {
+        "visual_impact",
+        "light_color",
+        "motion",
+    }:
+        score += 2
+        matched.append("hierarchy:visual impact")
+    return score
+
+
 def _confidence(score: int) -> float:
     return min(0.95, max(0.35, round(0.35 + score * 0.08, 2)))
 
@@ -293,10 +349,21 @@ def _creative_goals(
     strategy: CreativeStrategyId,
     request: AssistantRequest,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_translation: CreativeTranslation | None,
 ) -> tuple[str, ...]:
     signal = _SIGNAL_BY_STRATEGY[strategy]
     goals = list(signal.goals)
+    if creative_hierarchy is not None:
+        goals.insert(
+            0,
+            "Respect hierarchy: "
+            + ", ".join(
+                item.dimension
+                for item in creative_hierarchy.primary_creative_priorities
+            )
+            + ".",
+        )
     if creative_intent is not None:
         goals.insert(
             0,
@@ -341,6 +408,7 @@ def _evidence(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_translation: CreativeTranslation | None,
     domains: tuple[CreativeCodingDomain, ...],
     scored: list[_ScoredStrategy],
@@ -364,6 +432,15 @@ def _evidence(
             )
             + "."
         )
+    if creative_hierarchy is not None:
+        evidence.append(
+            "Hierarchy priorities: "
+            + ", ".join(
+                item.dimension
+                for item in creative_hierarchy.primary_creative_priorities
+            )
+            + "."
+        )
     if scored and scored[0].matched_signals:
         evidence.append(
             "Primary signals: " + ", ".join(scored[0].matched_signals[:4]) + "."
@@ -379,9 +456,21 @@ def _evidence(
 def _strategy_text(
     request: AssistantRequest,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_translation: CreativeTranslation | None,
 ) -> str:
     parts = [request.query]
+    if creative_hierarchy is not None:
+        parts.extend(
+            (
+                " ".join(
+                    item.dimension
+                    for item in creative_hierarchy.primary_creative_priorities
+                ),
+                " ".join(creative_hierarchy.non_negotiable_dimensions),
+                " ".join(creative_hierarchy.priority_rationale),
+            )
+        )
     if creative_intent is not None:
         parts.extend(
             (

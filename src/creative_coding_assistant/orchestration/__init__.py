@@ -12,6 +12,7 @@ _CREATIVE_PLANNING = "creative_coding_assistant.orchestration.creative_planning"
 _CREATIVE_CONSTRAINTS = (
     "creative_coding_assistant.orchestration.creative_constraints"
 )
+_CREATIVE_HIERARCHY = "creative_coding_assistant.orchestration.creative_hierarchy"
 _CREATIVE_INTENT = "creative_coding_assistant.orchestration.creative_intent"
 _CREATIVE_STRATEGY = "creative_coding_assistant.orchestration.creative_strategy"
 _CREATIVE_TECHNIQUE = "creative_coding_assistant.orchestration.creative_technique"
@@ -76,6 +77,8 @@ _EXPORT_MAP = {
     "ClarificationRequest": _CLARIFICATION,
     "CreativeOutputModality": _CREATIVE_TRANSLATION,
     "CreativeExecutionPlan": _CREATIVE_PLANNING,
+    "CreativeHierarchyPlan": _CREATIVE_HIERARCHY,
+    "CreativeHierarchyPriority": _CREATIVE_HIERARCHY,
     "CreativeIntentDecomposition": _CREATIVE_INTENT,
     "CreativeIntentDimension": _CREATIVE_INTENT,
     "CreativeConstraint": _CREATIVE_CONSTRAINTS,
@@ -185,6 +188,8 @@ _EXPORT_MAP = {
     "audio_reactive_prompt_lines": _AUDIO_REACTIVE,
     "derive_audio_reactive_guidance": _AUDIO_REACTIVE,
     "derive_creative_translation": _CREATIVE_TRANSLATION,
+    "derive_creative_hierarchy_plan": _CREATIVE_HIERARCHY,
+    "creative_hierarchy_plan_prompt_lines": _CREATIVE_HIERARCHY,
     "derive_creative_intent_decomposition": _CREATIVE_INTENT,
     "creative_intent_decomposition_prompt_lines": _CREATIVE_INTENT,
     "derive_creative_execution_plan": _CREATIVE_PLANNING,

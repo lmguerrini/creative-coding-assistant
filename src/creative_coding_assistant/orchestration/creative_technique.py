@@ -9,6 +9,9 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.creative_hierarchy import (
+    CreativeHierarchyPlan,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     CreativeIntentDecomposition,
 )
@@ -87,6 +90,7 @@ def derive_creative_technique_profile(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
     creative_intent: CreativeIntentDecomposition | None = None,
+    creative_hierarchy: CreativeHierarchyPlan | None = None,
     creative_translation: CreativeTranslation | None = None,
     creative_strategy: CreativeStrategyProfile | None = None,
 ) -> CreativeTechniqueProfile:
@@ -95,6 +99,7 @@ def derive_creative_technique_profile(
     normalized = _technique_text(
         request,
         creative_intent,
+        creative_hierarchy,
         creative_translation,
         creative_strategy,
     )
@@ -105,6 +110,7 @@ def derive_creative_technique_profile(
                 normalized=normalized,
                 request=request,
                 creative_intent=creative_intent,
+                creative_hierarchy=creative_hierarchy,
                 creative_translation=creative_translation,
                 creative_strategy=creative_strategy,
             )
@@ -143,6 +149,7 @@ def derive_creative_technique_profile(
             request=request,
             route_decision=route_decision,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_translation=creative_translation,
             creative_strategy=creative_strategy,
             scored=scored,
@@ -209,6 +216,7 @@ def _score_technique(
     normalized: str,
     request: AssistantRequest,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
 ) -> _ScoredTechnique:
@@ -228,6 +236,8 @@ def _score_technique(
         score += _translation_score(signal, creative_translation, matched)
     if creative_intent is not None:
         score += _intent_score(signal, creative_intent, matched)
+    if creative_hierarchy is not None:
+        score += _hierarchy_score(signal, creative_hierarchy, matched)
     if request.attachments and signal.technique in _REFERENCE_FRIENDLY_TECHNIQUES:
         score += 1
         matched.append("reference input")
@@ -315,6 +325,40 @@ def _intent_score(
     return score
 
 
+def _hierarchy_score(
+    signal: _TechniqueSignal,
+    hierarchy: CreativeHierarchyPlan,
+    matched: list[str],
+) -> int:
+    score = 0
+    primary = {
+        priority.dimension
+        for priority in hierarchy.primary_creative_priorities
+    }
+    if signal.technique == "audio_reactive_mappings" and primary & {
+        "audio",
+        "rhythm",
+    }:
+        score += 4
+        matched.append("hierarchy:audio/rhythm")
+    if signal.technique in {"recursive_geometry", "fractal_recursion", "sdf"} and (
+        primary & {"geometry", "symbolism", "experiential_depth"}
+    ):
+        score += 3
+        matched.append("hierarchy:geometry/symbolism")
+    if signal.technique == "particle_systems" and primary & {
+        "motion",
+        "visual_impact",
+        "light_color",
+    }:
+        score += 3
+        matched.append("hierarchy:motion/visual impact")
+    if signal.technique == "noise_fields" and primary & {"simplicity", "performance"}:
+        score += 2
+        matched.append("hierarchy:simplicity/performance")
+    return score
+
+
 def _confidence(score: int) -> float:
     return min(0.95, max(0.35, round(0.35 + score * 0.08, 2)))
 
@@ -375,6 +419,7 @@ def _evidence(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
     scored: list[_ScoredTechnique],
@@ -386,6 +431,15 @@ def _evidence(
         evidence.append(f"Creative intent: {creative_translation.creative_intent}.")
     if creative_intent is not None:
         evidence.append(f"Intent substrate: {creative_intent.primary_expression}.")
+    if creative_hierarchy is not None:
+        evidence.append(
+            "Hierarchy priorities: "
+            + ", ".join(
+                item.dimension
+                for item in creative_hierarchy.primary_creative_priorities
+            )
+            + "."
+        )
     if creative_strategy is not None:
         evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
     if scored and scored[0].matched_signals:
@@ -405,10 +459,21 @@ def _evidence(
 def _technique_text(
     request: AssistantRequest,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_translation: CreativeTranslation | None,
     creative_strategy: CreativeStrategyProfile | None,
 ) -> str:
     parts = [request.query]
+    if creative_hierarchy is not None:
+        parts.extend(
+            (
+                " ".join(
+                    item.dimension
+                    for item in creative_hierarchy.primary_creative_priorities
+                ),
+                " ".join(creative_hierarchy.non_negotiable_dimensions),
+            )
+        )
     if creative_intent is not None:
         parts.extend(
             (

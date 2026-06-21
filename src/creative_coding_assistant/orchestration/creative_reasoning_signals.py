@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.creative_hierarchy import (
+    CreativeHierarchyPlan,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     CreativeIntentDecomposition,
 )
@@ -34,6 +37,7 @@ def build_recommended_direction(
     *,
     request: AssistantRequest,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_translation: CreativeTranslation | None,
     creative_plan: CreativeExecutionPlan | None,
     creative_strategy: CreativeStrategyProfile | None,
@@ -54,7 +58,9 @@ def build_recommended_direction(
     return (
         f"Recommend {_strategy_label(creative_strategy)} via "
         f"{_technique_label(creative_techniques)} because it protects "
-        f"'{_clip(intent, 70)}'. Fit the output goal: {_clip(output_goal, 90)} "
+        f"'{_clip(intent, 70)}'. Prioritize "
+        f"{_clip(_hierarchy_label(creative_hierarchy), 70)}. "
+        f"Fit the output goal: {_clip(output_goal, 90)} "
         f"Use inspected runtime guidance: "
         f"{_clip(_runtime_label(runtime_capabilities, creative_plan), 70)}. "
         f"Bound the trade-off: {_clip(_tradeoff_summary(creative_tradeoffs), 100)}"
@@ -65,6 +71,7 @@ def build_reasoning_path(
     *,
     direction: str,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
     creative_plan: CreativeExecutionPlan | None,
@@ -78,7 +85,11 @@ def build_reasoning_path(
             stage="strategy",
             claim=f"Use {strategy} as the conceptual spine.",
             because=(
-                _strategy_reason(creative_strategy, creative_intent)
+                _strategy_reason(
+                    creative_strategy,
+                    creative_intent,
+                    creative_hierarchy,
+                )
                 if creative_strategy is not None
                 else "No strategy profile is available, so user intent leads."
             ),
@@ -141,6 +152,12 @@ def _translation_or_request_intent(
     return request.query
 
 
+def _hierarchy_label(profile: CreativeHierarchyPlan | None) -> str:
+    if profile is None:
+        return "the current creative hierarchy"
+    return ", ".join(item.dimension for item in profile.primary_creative_priorities)
+
+
 def _technique_label(profile: CreativeTechniqueProfile | None) -> str:
     return profile.primary_technique if profile is not None else "minimal viable"
 
@@ -179,12 +196,21 @@ def _technique_reason(
 def _strategy_reason(
     profile: CreativeStrategyProfile,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
 ) -> str:
-    if creative_intent is None:
-        return profile.rationale
+    details: list[str] = [profile.rationale]
+    if creative_intent is not None:
+        details.append(
+            "Decomposed intent substrate: "
+            f"{_clip(creative_intent.primary_expression, 120)}."
+        )
+    if creative_hierarchy is not None:
+        details.append(
+            "Hierarchy priorities: "
+            f"{_clip(_hierarchy_label(creative_hierarchy), 120)}."
+        )
     return (
-        f"{profile.rationale} Decomposed intent substrate: "
-        f"{_clip(creative_intent.primary_expression, 120)}."
+        " ".join(details)
     )
 
 

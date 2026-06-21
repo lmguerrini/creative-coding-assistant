@@ -11,6 +11,9 @@ from creative_coding_assistant.orchestration.creative_constraints import (
 from creative_coding_assistant.orchestration.creative_director import (
     CreativeAssistantDirectorBrief,
 )
+from creative_coding_assistant.orchestration.creative_hierarchy import (
+    CreativeHierarchyPlan,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     CreativeIntentDecomposition,
 )
@@ -64,6 +67,7 @@ def derive_creative_reasoning_result(
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None = None,
     creative_intent: CreativeIntentDecomposition | None = None,
+    creative_hierarchy: CreativeHierarchyPlan | None = None,
     creative_plan: CreativeExecutionPlan | None = None,
     creative_director: CreativeAssistantDirectorBrief | None = None,
     creative_constraints: CreativeConstraintSolution | None = None,
@@ -78,6 +82,7 @@ def derive_creative_reasoning_result(
     direction = build_recommended_direction(
         request=request,
         creative_intent=creative_intent,
+        creative_hierarchy=creative_hierarchy,
         creative_translation=creative_translation,
         creative_plan=creative_plan,
         creative_strategy=creative_strategy,
@@ -88,6 +93,7 @@ def derive_creative_reasoning_result(
     unresolved = build_unresolved_decisions(
         creative_director=creative_director,
         creative_intent=creative_intent,
+        creative_hierarchy=creative_hierarchy,
         creative_constraints=creative_constraints,
         runtime_capabilities=runtime_capabilities,
         creative_tradeoffs=creative_tradeoffs,
@@ -99,6 +105,7 @@ def derive_creative_reasoning_result(
         reasoning_path=build_reasoning_path(
             direction=direction,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
             creative_plan=creative_plan,
@@ -110,6 +117,7 @@ def derive_creative_reasoning_result(
             route_decision=route_decision,
             creative_translation=creative_translation,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_plan=creative_plan,
             creative_director=creative_director,
             creative_constraints=creative_constraints,
@@ -121,6 +129,7 @@ def derive_creative_reasoning_result(
         strongest_supporting_signals=build_strongest_signals(
             creative_director=creative_director,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_constraints=creative_constraints,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
@@ -137,6 +146,7 @@ def derive_creative_reasoning_result(
         implementation_guidance=build_implementation_guidance(
             creative_plan=creative_plan,
             creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
             creative_constraints=creative_constraints,
             creative_techniques=creative_techniques,
             runtime_capabilities=runtime_capabilities,

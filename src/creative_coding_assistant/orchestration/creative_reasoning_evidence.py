@@ -9,6 +9,9 @@ from creative_coding_assistant.orchestration.creative_constraints import (
 from creative_coding_assistant.orchestration.creative_director import (
     CreativeAssistantDirectorBrief,
 )
+from creative_coding_assistant.orchestration.creative_hierarchy import (
+    CreativeHierarchyPlan,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     CreativeIntentDecomposition,
 )
@@ -45,6 +48,7 @@ def build_evidence_chain(
     route_decision: RouteDecision | None,
     creative_translation: CreativeTranslation | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_plan: CreativeExecutionPlan | None,
     creative_director: CreativeAssistantDirectorBrief | None,
     creative_constraints: CreativeConstraintSolution | None,
@@ -85,6 +89,20 @@ def build_evidence_chain(
                 interpretation=(
                     "Intent decomposition separates expressive dimensions "
                     "before strategy or technique decisions."
+                ),
+            )
+        )
+    if creative_hierarchy is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="creative_hierarchy",
+                signal=", ".join(
+                    item.dimension
+                    for item in creative_hierarchy.primary_creative_priorities
+                ),
+                interpretation=(
+                    "Hierarchy planning determines which intent dimensions "
+                    "should dominate before trade-offs are explained."
                 ),
             )
         )

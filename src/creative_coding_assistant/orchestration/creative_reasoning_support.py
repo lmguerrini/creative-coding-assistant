@@ -10,6 +10,9 @@ from creative_coding_assistant.orchestration.creative_constraints import (
 from creative_coding_assistant.orchestration.creative_director import (
     CreativeAssistantDirectorBrief,
 )
+from creative_coding_assistant.orchestration.creative_hierarchy import (
+    CreativeHierarchyPlan,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     CreativeIntentDecomposition,
 )
@@ -41,6 +44,7 @@ def build_strongest_signals(
     *,
     creative_director: CreativeAssistantDirectorBrief | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_constraints: CreativeConstraintSolution | None,
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
@@ -50,6 +54,15 @@ def build_strongest_signals(
     signals: list[str] = []
     if creative_intent is not None:
         signals.append(f"Intent substrate: {creative_intent.primary_expression}.")
+    if creative_hierarchy is not None:
+        signals.append(
+            "Hierarchy priorities: "
+            + ", ".join(
+                item.dimension
+                for item in creative_hierarchy.primary_creative_priorities
+            )
+            + "."
+        )
     if creative_strategy is not None:
         signals.append(
             f"Strategy {creative_strategy.primary_strategy} confidence "
@@ -132,6 +145,7 @@ def build_unresolved_decisions(
     *,
     creative_director: CreativeAssistantDirectorBrief | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_constraints: CreativeConstraintSolution | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
@@ -141,6 +155,8 @@ def build_unresolved_decisions(
     unresolved: list[str] = []
     if creative_intent is not None:
         unresolved.extend(creative_intent.unresolved_intent_gaps[:3])
+    if creative_hierarchy is not None:
+        unresolved.extend(creative_hierarchy.priority_conflicts[:3])
     _append_hitl(unresolved, creative_director)
     _append_hitl(unresolved, creative_constraints)
     _append_hitl(unresolved, runtime_capabilities)
@@ -158,6 +174,7 @@ def build_implementation_guidance(
     *,
     creative_plan: CreativeExecutionPlan | None,
     creative_intent: CreativeIntentDecomposition | None,
+    creative_hierarchy: CreativeHierarchyPlan | None,
     creative_constraints: CreativeConstraintSolution | None,
     creative_techniques: CreativeTechniqueProfile | None,
     runtime_capabilities: RuntimeCapabilityProfile | None,
@@ -166,6 +183,8 @@ def build_implementation_guidance(
     guidance: list[str] = []
     if creative_intent is not None:
         guidance.extend(creative_intent.prompt_guidance[:2])
+    if creative_hierarchy is not None:
+        guidance.extend(creative_hierarchy.prompt_guidance[:2])
     if creative_techniques is not None:
         guidance.append(
             f"Make {creative_techniques.primary_technique} visibly serve the "
