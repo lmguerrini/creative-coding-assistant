@@ -10,7 +10,7 @@ This document describes the real LangGraph workflow currently executed by the ba
 
 ## Current Implemented Flow
 
-The graph is compiled once in `AssistantService.__init__()` and executed through `graph.stream(..., stream_mode="custom")`. Control flow is linear through prompt input, deterministic planning, prompt rendering, generation, workflow-owned artifact extraction, preview preparation, and artifact critique before `review`, where the graph applies a bounded quality gate. Passing outputs continue to `finalization`; failing outputs enter one `refinement` attempt and loop back to `generation`. Explicit provider failures and caught node errors route into a terminal `failure` node.
+The graph is compiled once in `AssistantService.__init__()` and executed through `graph.stream(..., stream_mode="custom")`. Control flow is linear through prompt input, deterministic planning, Director guidance, Creative Reasoning synthesis, prompt rendering, generation, workflow-owned artifact extraction, preview preparation, and artifact critique before `review`, where the graph applies a bounded quality gate. Passing outputs continue to `finalization`; failing outputs enter one `refinement` attempt and loop back to `generation`. Explicit provider failures and caught node errors route into a terminal `failure` node.
 
 In the diagrams below:
 
@@ -48,6 +48,7 @@ flowchart TB
         prompt_input["Prompt input<br/>build prompt inputs<br/>complete or skip"]
         planning["Planning<br/>derive creative execution plan<br/>complete or skip"]
         director["Director<br/>derive bounded assistant-director guidance<br/>complete or skip"]
+        reasoning["Reasoning<br/>synthesize creative intelligence signals<br/>complete or skip"]
         prompt_rendering["Prompt rendering<br/>render provider prompt<br/>complete or skip"]
     end
 
@@ -63,7 +64,7 @@ flowchart TB
         failure["Failure<br/>emit final failure answer<br/>mark workflow FAILED"]
     end
 
-    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
+    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
     review -->|"pass or max retry"| finalization --> finish
     review -->|"needs refinement and count < 1"| refinement --> generation
     intake -. intake_error .-> failure
@@ -74,6 +75,7 @@ flowchart TB
     prompt_input -. prompt_input_error .-> failure
     planning -. planning_error .-> failure
     director -. director_error .-> failure
+    reasoning -. reasoning_error .-> failure
     prompt_rendering -. prompt_rendering_error .-> failure
     generation -. stream_error / provider_error .-> failure
     artifact_extraction -. extraction_error .-> failure
@@ -86,7 +88,7 @@ flowchart TB
 
     class start boundary
     class finish terminal
-    class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
+    class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,reasoning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
     style phase_1 rx:6px,ry:6px
@@ -113,15 +115,16 @@ The raw Mermaid source for the implemented graph is also available in [workflow_
 6. `prompt_input`
 7. `planning`
 8. `director`
-9. `prompt_rendering`
-10. `generation`
-11. `artifact_extraction`
-12. `preview_preparation`
-13. `artifact_critique`
-14. `review`
-15. `refinement`
-16. `finalization`
-17. `failure`
+9. `reasoning`
+10. `prompt_rendering`
+11. `generation`
+12. `artifact_extraction`
+13. `preview_preparation`
+14. `artifact_critique`
+15. `review`
+16. `refinement`
+17. `finalization`
+18. `failure`
 
 Current transition rules:
 
@@ -288,6 +291,7 @@ flowchart TB
         prompt_input["Prompt input"]
         planning["Planning"]
         director["Director"]
+        reasoning["Reasoning"]
         prompt_rendering["Prompt rendering"]
         generation["Generation"]
         artifact_extraction["Artifact extraction"]
@@ -297,7 +301,7 @@ flowchart TB
         refinement["Refinement<br/>max one attempt"]
         finalization["Finalization"]
         failure["Failure"]
-        routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
+        routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
         review -->|"pass or max retry"| finalization
         review -->|"needs refinement"| refinement --> generation
         generation -. provider error .-> failure

@@ -25,6 +25,9 @@ from creative_coding_assistant.orchestration.creative_director import (
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
+from creative_coding_assistant.orchestration.creative_reasoning import (
+    CreativeReasoningResult,
+)
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
 )
@@ -59,6 +62,7 @@ class WorkflowStep(StrEnum):
     PROMPT_INPUT = "prompt_input"
     PLANNING = "planning"
     DIRECTOR = "director"
+    REASONING = "reasoning"
     PROMPT_RENDERING = "prompt_rendering"
     GENERATION = "generation"
     ARTIFACT_EXTRACTION = "artifact_extraction"
@@ -85,6 +89,7 @@ WORKFLOW_STEP_ORDER: tuple[WorkflowStep, ...] = (
     WorkflowStep.PROMPT_INPUT,
     WorkflowStep.PLANNING,
     WorkflowStep.DIRECTOR,
+    WorkflowStep.REASONING,
     WorkflowStep.PROMPT_RENDERING,
     WorkflowStep.GENERATION,
     WorkflowStep.ARTIFACT_EXTRACTION,
@@ -144,6 +149,7 @@ class AssistantWorkflowState(BaseModel):
     runtime_capabilities: RuntimeCapabilityProfile | None = None
     creative_tradeoffs: CreativeTradeoffProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
+    creative_reasoning: CreativeReasoningResult | None = None
     rendered_prompt: RenderedPromptResponse | None = None
     artifacts: tuple[WorkflowArtifact, ...] = ()
     preview_results: tuple[PreviewResult, ...] = ()

@@ -1,0 +1,228 @@
+"""Support builders for Creative Reasoning Engine synthesis."""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+
+from creative_coding_assistant.orchestration.creative_constraints import (
+    CreativeConstraintSolution,
+)
+from creative_coding_assistant.orchestration.creative_director import (
+    CreativeAssistantDirectorBrief,
+)
+from creative_coding_assistant.orchestration.creative_planning import (
+    CreativeExecutionPlan,
+)
+from creative_coding_assistant.orchestration.creative_reasoning_contracts import (
+    CreativeRejectedAlternative,
+)
+from creative_coding_assistant.orchestration.creative_reasoning_signals import (
+    _top_runtime,
+    _tradeoff_summary,
+)
+from creative_coding_assistant.orchestration.creative_strategy import (
+    CreativeStrategyProfile,
+)
+from creative_coding_assistant.orchestration.creative_technique import (
+    CreativeTechniqueProfile,
+)
+from creative_coding_assistant.orchestration.creative_tradeoffs import (
+    CreativeTradeoffProfile,
+)
+from creative_coding_assistant.orchestration.runtime_capabilities import (
+    RuntimeCapabilityProfile,
+)
+
+
+def build_strongest_signals(
+    *,
+    creative_director: CreativeAssistantDirectorBrief | None,
+    creative_constraints: CreativeConstraintSolution | None,
+    creative_strategy: CreativeStrategyProfile | None,
+    creative_techniques: CreativeTechniqueProfile | None,
+    runtime_capabilities: RuntimeCapabilityProfile | None,
+    creative_tradeoffs: CreativeTradeoffProfile | None,
+) -> tuple[str, ...]:
+    signals: list[str] = []
+    if creative_strategy is not None:
+        signals.append(
+            f"Strategy {creative_strategy.primary_strategy} confidence "
+            f"{creative_strategy.confidence:.2f}: {creative_strategy.rationale}"
+        )
+    if creative_techniques is not None:
+        signals.append(
+            f"Technique {creative_techniques.primary_technique} has "
+            f"{creative_techniques.compatibility} strategy compatibility."
+        )
+    top = _top_runtime(runtime_capabilities)
+    if top is not None:
+        signals.append(
+            f"Runtime capability {top.label} has {top.suitability} suitability "
+            f"with confidence {top.confidence:.2f}."
+        )
+    if creative_tradeoffs is not None:
+        signals.append(f"Primary trade-off: {_tradeoff_summary(creative_tradeoffs)}")
+    if creative_constraints is not None:
+        signals.append(
+            f"Constraints: complexity {creative_constraints.complexity_pressure}, "
+            f"performance {creative_constraints.performance_pressure}, "
+            f"safety {creative_constraints.safety_pressure}."
+        )
+    if creative_director is not None:
+        signals.append(
+            f"Director ambiguity posture is {creative_director.ambiguity_level}."
+        )
+    return tuple(signals[:8]) or ("Use the user request as the strongest signal.",)
+
+
+def build_rejected_alternatives(
+    *,
+    creative_strategy: CreativeStrategyProfile | None,
+    creative_techniques: CreativeTechniqueProfile | None,
+    runtime_capabilities: RuntimeCapabilityProfile | None,
+    creative_tradeoffs: CreativeTradeoffProfile | None,
+) -> tuple[CreativeRejectedAlternative, ...]:
+    rejected: list[CreativeRejectedAlternative] = []
+    if creative_strategy is not None:
+        for alternative in creative_strategy.alternative_strategies[:2]:
+            rejected.append(
+                CreativeRejectedAlternative(
+                    alternative=f"Strategy: {alternative.strategy}",
+                    reason=(
+                        f"Kept secondary because {creative_strategy.primary_strategy} "
+                        f"has stronger support; {alternative.rationale}"
+                    ),
+                    evidence=(f"alternative confidence {alternative.confidence:.2f}",),
+                )
+            )
+    if creative_techniques is not None:
+        for alternative in creative_techniques.alternative_techniques[:2]:
+            rejected.append(
+                CreativeRejectedAlternative(
+                    alternative=f"Technique: {alternative.technique}",
+                    reason=(
+                        f"Deferred because {creative_techniques.primary_technique} "
+                        "more directly carries the selected strategy."
+                    ),
+                    evidence=(alternative.rationale,),
+                )
+            )
+    top = _top_runtime(runtime_capabilities)
+    if top is not None and creative_tradeoffs is not None:
+        rejected.append(
+            CreativeRejectedAlternative(
+                alternative="Unbounded feature expansion",
+                reason=(
+                    "Rejected because inspected capability and the primary "
+                    "trade-off favor a bounded execution path."
+                ),
+                evidence=(top.risks[0], _tradeoff_summary(creative_tradeoffs)),
+            )
+        )
+    return tuple(rejected[:6])
+
+
+def build_unresolved_decisions(
+    *,
+    creative_director: CreativeAssistantDirectorBrief | None,
+    creative_constraints: CreativeConstraintSolution | None,
+    runtime_capabilities: RuntimeCapabilityProfile | None,
+    creative_tradeoffs: CreativeTradeoffProfile | None,
+    creative_strategy: CreativeStrategyProfile | None,
+    creative_techniques: CreativeTechniqueProfile | None,
+) -> tuple[str, ...]:
+    unresolved: list[str] = []
+    _append_hitl(unresolved, creative_director)
+    _append_hitl(unresolved, creative_constraints)
+    _append_hitl(unresolved, runtime_capabilities)
+    _append_hitl(unresolved, creative_tradeoffs)
+    if creative_strategy is not None and creative_strategy.confidence < 0.55:
+        unresolved.append("Creative strategy confidence is low; confirm direction.")
+    if creative_techniques is not None and creative_techniques.compatibility == "weak":
+        unresolved.append("Technique compatibility is weak; confirm technique.")
+    return _dedupe(unresolved)[:6] or (
+        "No blocking creative decision remains unresolved in current metadata.",
+    )
+
+
+def build_implementation_guidance(
+    *,
+    creative_plan: CreativeExecutionPlan | None,
+    creative_constraints: CreativeConstraintSolution | None,
+    creative_techniques: CreativeTechniqueProfile | None,
+    runtime_capabilities: RuntimeCapabilityProfile | None,
+    creative_tradeoffs: CreativeTradeoffProfile | None,
+) -> tuple[str, ...]:
+    guidance: list[str] = []
+    if creative_techniques is not None:
+        guidance.append(
+            f"Make {creative_techniques.primary_technique} visibly serve the "
+            "selected strategy before adding secondary effects."
+        )
+        guidance.extend(creative_techniques.implementation_notes[:2])
+    if creative_plan is not None:
+        guidance.extend(creative_plan.plan_steps[:2])
+    if creative_constraints is not None:
+        guidance.extend(creative_constraints.prompt_guidance[:2])
+    top = _top_runtime(runtime_capabilities)
+    if top is not None:
+        guidance.append(top.prompt_guidance[0])
+    if creative_tradeoffs is not None:
+        guidance.append(creative_tradeoffs.primary_tradeoffs[0].mitigation)
+    return _dedupe(guidance)[:8] or (
+        "Implement the smallest coherent version that preserves direction.",
+    )
+
+
+def build_prompt_guidance(unresolved: tuple[str, ...]) -> tuple[str, ...]:
+    guidance = [
+        "Use the Creative Reasoning Engine recommendation as the creative spine.",
+        (
+            "Explain why via strategy -> technique -> runtime -> trade-off "
+            "-> recommendation."
+        ),
+        (
+            "Do not treat reasoning as artifact selection, routing, or runtime "
+            "auto-selection."
+        ),
+    ]
+    if any("No blocking" not in item for item in unresolved):
+        guidance.append("Ask HITL questions before expanding unresolved scope.")
+    return tuple(guidance)
+
+
+def build_hitl_questions(unresolved: tuple[str, ...]) -> tuple[str, ...]:
+    return tuple(
+        f"Should we resolve this before generation: {item}"
+        for item in unresolved
+        if "No blocking" not in item
+    )[:6]
+
+
+def normalize_future_knowledge_context(
+    value: Mapping[str, object] | None,
+) -> dict[str, object]:
+    if value is not None:
+        return dict(value)
+    return {
+        "status": "not_attached",
+        "purpose": "Schema-neutral slot for future HoloMind knowledge reasoning.",
+    }
+
+
+def _append_hitl(unresolved: list[str], profile: object | None) -> None:
+    if profile is None:
+        return
+    hitl_required = getattr(profile, "hitl_required", False)
+    hitl_advisable = getattr(profile, "hitl_advisable", False)
+    if hitl_required or hitl_advisable:
+        reason = getattr(profile, "hitl_reason", None)
+        unresolved.append(str(reason or "HITL input is advisable."))
+
+
+def _dedupe(values: list[str]) -> tuple[str, ...]:
+    deduped: list[str] = []
+    for value in values:
+        if value and value not in deduped:
+            deduped.append(value)
+    return tuple(deduped)

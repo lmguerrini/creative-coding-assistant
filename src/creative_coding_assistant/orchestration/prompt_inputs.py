@@ -28,6 +28,9 @@ from creative_coding_assistant.orchestration.creative_director import (
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
+from creative_coding_assistant.orchestration.creative_reasoning import (
+    CreativeReasoningResult,
+)
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
 )
@@ -291,6 +294,7 @@ class PromptInputResponse(BaseModel):
     runtime_capabilities: RuntimeCapabilityProfile | None = None
     creative_tradeoffs: CreativeTradeoffProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
+    creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None
     memory_input: PromptMemoryInput | None = None
     retrieval_input: PromptRetrievalInput | None = None

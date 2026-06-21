@@ -974,6 +974,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
                 StreamEventType.PROMPT_INPUT,
                 StreamEventType.PLANNING,
                 StreamEventType.PLANNING,
+                StreamEventType.PLANNING,
                 StreamEventType.PROMPT_RENDERED,
                 StreamEventType.FINAL,
             ],

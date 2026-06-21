@@ -24,6 +24,10 @@ from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
     creative_execution_plan_prompt_lines,
 )
+from creative_coding_assistant.orchestration.creative_reasoning import (
+    CreativeReasoningResult,
+    creative_reasoning_prompt_lines,
+)
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
     creative_strategy_prompt_lines,
@@ -160,6 +164,13 @@ Creative Trade-off Explorer:
 {% if director is not none -%}
 Creative Assistant Director:
 {% for instruction in creative_assistant_director_lines(director) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set reasoning = prompt_input.creative_reasoning -%}
+{% if reasoning is not none -%}
+Creative Reasoning Engine:
+{% for instruction in creative_reasoning_lines(reasoning) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -391,6 +402,7 @@ class JinjaPromptRenderer:
             runtime_capability_lines=_runtime_capability_lines,
             creative_tradeoff_lines=_creative_tradeoff_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
+            creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
         )
 
@@ -595,6 +607,12 @@ def _creative_assistant_director_lines(
     brief: CreativeAssistantDirectorBrief,
 ) -> tuple[str, ...]:
     return creative_assistant_director_prompt_lines(brief)
+
+
+def _creative_reasoning_lines(
+    result: CreativeReasoningResult,
+) -> tuple[str, ...]:
+    return creative_reasoning_prompt_lines(result)
 
 
 def _domain_guidance_lines(user_input: PromptUserInput) -> tuple[str, ...]:

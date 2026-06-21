@@ -159,6 +159,10 @@ class WorkflowFoundationTests(unittest.TestCase):
         )
         self.assertEqual(
             next_workflow_step(WorkflowStep.DIRECTOR),
+            WorkflowStep.REASONING,
+        )
+        self.assertEqual(
+            next_workflow_step(WorkflowStep.REASONING),
             WorkflowStep.PROMPT_RENDERING,
         )
         self.assertIsNone(next_workflow_step(WorkflowStep.FINALIZATION))

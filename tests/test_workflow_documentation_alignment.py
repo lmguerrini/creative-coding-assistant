@@ -35,11 +35,11 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn(
             "start --> intake --> routing --> memory --> retrieval --> "
             "context_assembly --> prompt_input --> planning --> "
-            "director --> prompt_rendering --> generation",
+            "director --> reasoning --> prompt_rendering --> generation",
             architecture_doc,
         )
 
-    def test_mermaid_source_keeps_director_between_planning_and_prompt_rendering(
+    def test_mermaid_source_keeps_reasoning_between_director_and_prompt_rendering(
         self,
     ) -> None:
         mermaid = (
@@ -47,7 +47,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn(
-            "prompt_input --> planning --> director --> prompt_rendering",
+            "prompt_input --> planning --> director --> reasoning --> prompt_rendering",
             mermaid,
         )
 

@@ -46,6 +46,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "prompt_input",
                 "planning",
                 "director",
+                "reasoning",
                 "prompt_rendering",
                 "generation",
                 "artifact_extraction",
@@ -83,6 +84,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "prompt_input",
                 "planning",
                 "director",
+                "reasoning",
                 "prompt_rendering",
                 "generation",
                 "artifact_extraction",
@@ -103,6 +105,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "prompt_input",
                 "planning",
                 "director",
+                "reasoning",
                 "prompt_rendering",
                 "generation",
                 "artifact_extraction",
@@ -219,6 +222,11 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             StreamEventType.PLANNING,
             "creative_director_prepared",
         )
+        reasoning_event = _first_event(
+            events,
+            StreamEventType.PLANNING,
+            "creative_reasoning_prepared",
+        )
         final_event = events[-1]
         strategy = planning_event.payload["creative_strategy"]
         techniques = planning_event.payload["creative_techniques"]
@@ -227,9 +235,11 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         runtime_capabilities = planning_event.payload["runtime_capabilities"]
         tradeoffs = planning_event.payload["creative_tradeoffs"]
         director = director_event.payload["creative_director"]
+        reasoning = reasoning_event.payload["creative_reasoning"]
 
         self.assertEqual(planning_event.payload["workflow"]["step"], "planning")
         self.assertEqual(director_event.payload["workflow"]["step"], "director")
+        self.assertEqual(reasoning_event.payload["workflow"]["step"], "reasoning")
         self.assertEqual(strategy["role"], "creative_strategy_engine")
         self.assertTrue(planning_event.payload["workflow"]["strategy_available"])
         self.assertEqual(techniques["role"], "creative_technique_selector")
@@ -260,6 +270,14 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         )
         self.assertEqual(director["role"], "creative_assistant_director")
         self.assertEqual(director["runtime_direction"], "p5")
+        self.assertEqual(reasoning["role"], "creative_reasoning_engine")
+        self.assertIn(
+            strategy["primary_strategy"],
+            reasoning["recommended_creative_direction"],
+        )
+        self.assertTrue(
+            reasoning_event.payload["workflow"]["creative_reasoning_available"]
+        )
         self.assertEqual(
             final_event.payload["creative_strategy"]["role"],
             "creative_strategy_engine",
@@ -288,12 +306,20 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             final_event.payload["creative_director"]["runtime_direction"],
             "p5",
         )
+        self.assertEqual(
+            final_event.payload["creative_reasoning"]["role"],
+            "creative_reasoning_engine",
+        )
         self.assertIn(
             "planning",
             final_event.payload["workflow"]["completed_steps"],
         )
         self.assertIn(
             "director",
+            final_event.payload["workflow"]["completed_steps"],
+        )
+        self.assertIn(
+            "reasoning",
             final_event.payload["workflow"]["completed_steps"],
         )
         _first_transition(
@@ -306,6 +332,12 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             events,
             StreamEventType.NODE_COMPLETED,
             source="director",
+            target="reasoning",
+        )
+        _first_transition(
+            events,
+            StreamEventType.NODE_COMPLETED,
+            source="reasoning",
             target="prompt_rendering",
         )
 
@@ -342,6 +374,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 WorkflowStep.PROMPT_INPUT,
                 WorkflowStep.PLANNING,
                 WorkflowStep.DIRECTOR,
+                WorkflowStep.REASONING,
                 WorkflowStep.PROMPT_RENDERING,
                 WorkflowStep.ARTIFACT_EXTRACTION,
                 WorkflowStep.PREVIEW_PREPARATION,
@@ -447,6 +480,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 "prompt_input",
                 "planning",
                 "director",
+                "reasoning",
                 "prompt_rendering",
                 "artifact_extraction",
                 "preview_preparation",

@@ -15,6 +15,7 @@ _CREATIVE_CONSTRAINTS = (
 _CREATIVE_STRATEGY = "creative_coding_assistant.orchestration.creative_strategy"
 _CREATIVE_TECHNIQUE = "creative_coding_assistant.orchestration.creative_technique"
 _CREATIVE_TRADEOFFS = "creative_coding_assistant.orchestration.creative_tradeoffs"
+_CREATIVE_REASONING = "creative_coding_assistant.orchestration.creative_reasoning"
 _RUNTIME_CAPABILITIES = (
     "creative_coding_assistant.orchestration.runtime_capabilities"
 )
@@ -83,6 +84,10 @@ _EXPORT_MAP = {
     "CreativeTechniqueProfile": _CREATIVE_TECHNIQUE,
     "CreativeTradeoff": _CREATIVE_TRADEOFFS,
     "CreativeTradeoffProfile": _CREATIVE_TRADEOFFS,
+    "CreativeReasoningEvidence": _CREATIVE_REASONING,
+    "CreativeReasoningResult": _CREATIVE_REASONING,
+    "CreativeReasoningStep": _CREATIVE_REASONING,
+    "CreativeRejectedAlternative": _CREATIVE_REASONING,
     "RuntimeCapabilityCandidate": _RUNTIME_CAPABILITIES,
     "RuntimeCapabilityProfile": _RUNTIME_CAPABILITIES,
     "CreativeAssistantDirectorBrief": _CREATIVE_DIRECTOR,
@@ -187,6 +192,8 @@ _EXPORT_MAP = {
     "creative_technique_prompt_lines": _CREATIVE_TECHNIQUE,
     "derive_creative_tradeoff_profile": _CREATIVE_TRADEOFFS,
     "creative_tradeoff_prompt_lines": _CREATIVE_TRADEOFFS,
+    "derive_creative_reasoning_result": _CREATIVE_REASONING,
+    "creative_reasoning_prompt_lines": _CREATIVE_REASONING,
     "derive_runtime_capability_profile": _RUNTIME_CAPABILITIES,
     "runtime_capability_prompt_lines": _RUNTIME_CAPABILITIES,
     "derive_creative_assistant_director_brief": _CREATIVE_DIRECTOR,

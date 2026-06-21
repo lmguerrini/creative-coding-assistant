@@ -221,6 +221,7 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
                 StreamEventType.PROMPT_INPUT,
                 StreamEventType.PLANNING,
                 StreamEventType.PLANNING,
+                StreamEventType.PLANNING,
                 StreamEventType.PROMPT_RENDERED,
                 StreamEventType.GENERATION_INPUT,
                 StreamEventType.TOKEN_DELTA,
