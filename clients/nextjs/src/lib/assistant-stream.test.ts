@@ -729,6 +729,156 @@ describe("assistant stream client", () => {
       authority_boundary: "The solver structures trade-offs for inspection.",
       evidence: ["Route selected: generate."]
     };
+    const creativeConstraintPriorities = {
+      role: "creative_constraint_prioritizer",
+      non_negotiable_constraints: [
+        {
+          category: "symbolic_fidelity",
+          priority_level: "non_negotiable",
+          rank: 1,
+          priority_score: 12,
+          source: "hierarchy",
+          rationale:
+            "symbolic fidelity is non-negotiable because hierarchy evidence dominates.",
+          negotiation_guidance:
+            "Do not relax symbolic fidelity without explicit user confirmation.",
+          evidence: ["hierarchy primary:symbolism"]
+        }
+      ],
+      high_priority_constraints: [
+        {
+          category: "performance",
+          priority_level: "high_priority",
+          rank: 2,
+          priority_score: 8,
+          source: "solver",
+          rationale:
+            "performance is high priority because solver pressure is visible.",
+          negotiation_guidance:
+            "Protect performance unless a non-negotiable constraint conflicts.",
+          evidence: ["solver performance medium"]
+        }
+      ],
+      flexible_constraints: [],
+      relaxable_constraints: [
+        {
+          category: "interaction_complexity",
+          priority_level: "relaxable",
+          rank: 3,
+          priority_score: 4,
+          source: "explicit",
+          rationale:
+            "interaction complexity is relaxable because optional wording is present.",
+          negotiation_guidance:
+            "Relax interaction complexity before weakening protected constraints.",
+          evidence: ["keyword:interaction_complexity"]
+        }
+      ],
+      sacrificial_constraints: [
+        {
+          category: "previewability",
+          priority_level: "sacrificial",
+          rank: 4,
+          priority_score: 2,
+          source: "explicit",
+          rationale:
+            "previewability is sacrificial because the user allowed sacrifice.",
+          negotiation_guidance:
+            "Sacrifice previewability first if feasibility requires reduction.",
+          evidence: ["keyword:previewability"]
+        }
+      ],
+      priority_rationale: [
+        "Constraint priorities are ranked from user emphasis and solver pressure."
+      ],
+      negotiation_notes: [
+        "Do not relax symbolic fidelity without explicit user confirmation."
+      ],
+      conflict_relationships: [
+        {
+          protected_category: "symbolic_fidelity",
+          competing_category: "implementation_simplicity",
+          severity: "watch",
+          summary:
+            "symbolic_fidelity has stronger priority than implementation_simplicity.",
+          negotiation_note:
+            "Protect symbolic_fidelity first; relax implementation_simplicity explicitly.",
+          hitl_recommended: true
+        }
+      ],
+      hitl_questions: [
+        "May implementation_simplicity be relaxed to protect symbolic_fidelity?"
+      ],
+      prompt_guidance: [
+        "Protect non-negotiable constraints before optimizing flexible ones."
+      ],
+      authority_boundary:
+        "The Creative Constraint Prioritizer ranks constraint importance only.",
+      evidence: ["Solver pressures: performance medium."]
+    };
+    const expectedCreativeConstraintPriorities = {
+      role: creativeConstraintPriorities.role,
+      nonNegotiableConstraints:
+        creativeConstraintPriorities.non_negotiable_constraints.map((item) => ({
+          category: item.category,
+          priorityLevel: item.priority_level,
+          rank: item.rank,
+          priorityScore: item.priority_score,
+          source: item.source,
+          rationale: item.rationale,
+          negotiationGuidance: item.negotiation_guidance,
+          evidence: item.evidence
+        })),
+      highPriorityConstraints:
+        creativeConstraintPriorities.high_priority_constraints.map((item) => ({
+          category: item.category,
+          priorityLevel: item.priority_level,
+          rank: item.rank,
+          priorityScore: item.priority_score,
+          source: item.source,
+          rationale: item.rationale,
+          negotiationGuidance: item.negotiation_guidance,
+          evidence: item.evidence
+        })),
+      flexibleConstraints: [],
+      relaxableConstraints:
+        creativeConstraintPriorities.relaxable_constraints.map((item) => ({
+          category: item.category,
+          priorityLevel: item.priority_level,
+          rank: item.rank,
+          priorityScore: item.priority_score,
+          source: item.source,
+          rationale: item.rationale,
+          negotiationGuidance: item.negotiation_guidance,
+          evidence: item.evidence
+        })),
+      sacrificialConstraints:
+        creativeConstraintPriorities.sacrificial_constraints.map((item) => ({
+          category: item.category,
+          priorityLevel: item.priority_level,
+          rank: item.rank,
+          priorityScore: item.priority_score,
+          source: item.source,
+          rationale: item.rationale,
+          negotiationGuidance: item.negotiation_guidance,
+          evidence: item.evidence
+        })),
+      priorityRationale: creativeConstraintPriorities.priority_rationale,
+      negotiationNotes: creativeConstraintPriorities.negotiation_notes,
+      conflictRelationships:
+        creativeConstraintPriorities.conflict_relationships.map((item) => ({
+          protectedCategory: item.protected_category,
+          competingCategory: item.competing_category,
+          severity: item.severity,
+          summary: item.summary,
+          negotiationNote: item.negotiation_note,
+          hitlRecommended: item.hitl_recommended
+        })),
+      hitlQuestions: creativeConstraintPriorities.hitl_questions,
+      promptGuidance: creativeConstraintPriorities.prompt_guidance,
+      authorityBoundary: creativeConstraintPriorities.authority_boundary,
+      evidence: creativeConstraintPriorities.evidence
+    };
     const runtimeCapabilities = {
       role: "runtime_capability_reasoner",
       output_goal: "Generate one p5 candidate.",
@@ -946,6 +1096,8 @@ describe("assistant stream client", () => {
           creative_plan: creativePlan,
           constraint_solver_available: true,
           creative_constraints: creativeConstraints,
+          constraint_prioritizer_available: true,
+          creative_constraint_priorities: creativeConstraintPriorities,
           runtime_capability_reasoner_available: true,
           runtime_capabilities: runtimeCapabilities,
           tradeoff_explorer_available: true,
@@ -1091,6 +1243,8 @@ describe("assistant stream client", () => {
         evidence: ["Route selected: generate."]
       },
       constraint_solver_available: true,
+      creative_constraint_priorities: expectedCreativeConstraintPriorities,
+      constraint_prioritizer_available: true,
       runtime_capabilities: {
         role: "runtime_capability_reasoner",
         outputGoal: "Generate one p5 candidate.",

@@ -441,6 +441,73 @@ export type CreativeConstraintSolverSummary = {
   evidence: string[];
 };
 
+export type CreativeConstraintPriorityCategory =
+  | "symbolic_fidelity"
+  | "narrative_fidelity"
+  | "emotional_fidelity"
+  | "geometric_fidelity"
+  | "visual_quality"
+  | "motion_quality"
+  | "audio_quality"
+  | "runtime_safety"
+  | "previewability"
+  | "performance"
+  | "implementation_simplicity"
+  | "cost_sensitivity"
+  | "interaction_complexity"
+  | "maintainability";
+
+export type CreativeConstraintPriorityLevel =
+  | "non_negotiable"
+  | "high_priority"
+  | "flexible"
+  | "relaxable"
+  | "sacrificial";
+
+export type CreativeConstraintPrioritySource =
+  | "explicit"
+  | "hierarchy"
+  | "solver"
+  | "runtime"
+  | "tradeoff"
+  | "coherence";
+
+export type CreativeConstraintPrioritySummary = {
+  category: CreativeConstraintPriorityCategory;
+  priorityLevel: CreativeConstraintPriorityLevel;
+  rank: number;
+  priorityScore: number;
+  source: CreativeConstraintPrioritySource;
+  rationale: string;
+  negotiationGuidance: string;
+  evidence: string[];
+};
+
+export type CreativeConstraintPriorityConflictSummary = {
+  protectedCategory: CreativeConstraintPriorityCategory;
+  competingCategory: CreativeConstraintPriorityCategory;
+  severity: CreativeConstraintSeverity;
+  summary: string;
+  negotiationNote: string;
+  hitlRecommended: boolean;
+};
+
+export type CreativeConstraintPrioritizationSummary = {
+  role: "creative_constraint_prioritizer";
+  nonNegotiableConstraints: CreativeConstraintPrioritySummary[];
+  highPriorityConstraints: CreativeConstraintPrioritySummary[];
+  flexibleConstraints: CreativeConstraintPrioritySummary[];
+  relaxableConstraints: CreativeConstraintPrioritySummary[];
+  sacrificialConstraints: CreativeConstraintPrioritySummary[];
+  priorityRationale: string[];
+  negotiationNotes: string[];
+  conflictRelationships: CreativeConstraintPriorityConflictSummary[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeAssistantDirectorSummary = {
   role: "creative_assistant_director";
   creativeBrief: string;
@@ -474,6 +541,7 @@ export type CreativeReasoningEvidenceSource =
   | "planning"
   | "director"
   | "constraint_solver"
+  | "constraint_prioritizer"
   | "creative_strategy"
   | "creative_technique"
   | "runtime_capability"

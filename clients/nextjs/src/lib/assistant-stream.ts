@@ -2,6 +2,12 @@ import {
   workflowNodeOrder,
   type ArtifactCritique,
   type CreativeConstraintAxis,
+  type CreativeConstraintPrioritizationSummary,
+  type CreativeConstraintPriorityCategory,
+  type CreativeConstraintPriorityConflictSummary,
+  type CreativeConstraintPriorityLevel,
+  type CreativeConstraintPrioritySource,
+  type CreativeConstraintPrioritySummary,
   type CreativeConstraintSeverity,
   type CreativeConstraintSolverSummary,
   type CreativeConstraintSummary,
@@ -130,6 +136,8 @@ export type AssistantStreamWorkflowMetadata = {
   planning_available?: boolean;
   creative_constraints?: CreativeConstraintSolverSummary | null;
   constraint_solver_available?: boolean;
+  creative_constraint_priorities?: CreativeConstraintPrioritizationSummary | null;
+  constraint_prioritizer_available?: boolean;
   runtime_capabilities?: RuntimeCapabilityReasonerSummary | null;
   runtime_capability_reasoner_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
@@ -562,6 +570,14 @@ export function readWorkflowMetadata(
   const constraintSolverAvailable =
     rawWorkflow.constraint_solver_available === true ||
     creativeConstraints !== null;
+  const creativeConstraintPriorities =
+    readCreativeConstraintPrioritizationSummary(
+      rawWorkflow.creative_constraint_priorities ??
+        rawWorkflow.creativeConstraintPriorities
+    );
+  const constraintPrioritizerAvailable =
+    rawWorkflow.constraint_prioritizer_available === true ||
+    creativeConstraintPriorities !== null;
   const runtimeCapabilities = readRuntimeCapabilityReasonerSummary(
     rawWorkflow.runtime_capabilities ?? rawWorkflow.runtimeCapabilities
   );
@@ -651,6 +667,12 @@ export function readWorkflowMetadata(
       ? {
           creative_constraints: creativeConstraints,
           constraint_solver_available: true
+        }
+      : {}),
+    ...(constraintPrioritizerAvailable
+      ? {
+          creative_constraint_priorities: creativeConstraintPriorities,
+          constraint_prioritizer_available: true
         }
       : {}),
     ...(runtimeCapabilityReasonerAvailable
@@ -1834,6 +1856,7 @@ const creativeReasoningEvidenceSources = [
   "planning",
   "director",
   "constraint_solver",
+  "constraint_prioritizer",
   "creative_strategy",
   "creative_technique",
   "runtime_capability",
@@ -2134,6 +2157,244 @@ function readCreativeConstraintTradeoffSummaryList(
         severity,
         summary,
         recommendation
+      }
+    ];
+  });
+}
+
+export function readCreativeConstraintPrioritizationSummary(
+  value: unknown
+): CreativeConstraintPrioritizationSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const nonNegotiableConstraints = readCreativeConstraintPrioritySummaryList(
+    value.non_negotiable_constraints ?? value.nonNegotiableConstraints
+  );
+  const highPriorityConstraints = readCreativeConstraintPrioritySummaryList(
+    value.high_priority_constraints ?? value.highPriorityConstraints
+  );
+  const flexibleConstraints = readCreativeConstraintPrioritySummaryList(
+    value.flexible_constraints ?? value.flexibleConstraints
+  );
+  const relaxableConstraints = readCreativeConstraintPrioritySummaryList(
+    value.relaxable_constraints ?? value.relaxableConstraints
+  );
+  const sacrificialConstraints = readCreativeConstraintPrioritySummaryList(
+    value.sacrificial_constraints ?? value.sacrificialConstraints
+  );
+  const priorityRationale = readStringListField(
+    value,
+    "priority_rationale",
+    "priorityRationale"
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+  const priorityCount =
+    nonNegotiableConstraints.length +
+    highPriorityConstraints.length +
+    flexibleConstraints.length +
+    relaxableConstraints.length +
+    sacrificialConstraints.length;
+
+  if (
+    role !== "creative_constraint_prioritizer" ||
+    priorityCount === 0 ||
+    priorityRationale.length === 0 ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    nonNegotiableConstraints,
+    highPriorityConstraints,
+    flexibleConstraints,
+    relaxableConstraints,
+    sacrificialConstraints,
+    priorityRationale,
+    negotiationNotes: readStringListField(
+      value,
+      "negotiation_notes",
+      "negotiationNotes"
+    ),
+    conflictRelationships: readCreativeConstraintPriorityConflictSummaryList(
+      value.conflict_relationships ?? value.conflictRelationships
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const creativeConstraintPriorityCategories = [
+  "symbolic_fidelity",
+  "narrative_fidelity",
+  "emotional_fidelity",
+  "geometric_fidelity",
+  "visual_quality",
+  "motion_quality",
+  "audio_quality",
+  "runtime_safety",
+  "previewability",
+  "performance",
+  "implementation_simplicity",
+  "cost_sensitivity",
+  "interaction_complexity",
+  "maintainability"
+] as const satisfies readonly CreativeConstraintPriorityCategory[];
+
+const creativeConstraintPriorityLevels = [
+  "non_negotiable",
+  "high_priority",
+  "flexible",
+  "relaxable",
+  "sacrificial"
+] as const satisfies readonly CreativeConstraintPriorityLevel[];
+
+const creativeConstraintPrioritySources = [
+  "explicit",
+  "hierarchy",
+  "solver",
+  "runtime",
+  "tradeoff",
+  "coherence"
+] as const satisfies readonly CreativeConstraintPrioritySource[];
+
+function readCreativeConstraintPrioritySummaryList(
+  value: unknown
+): CreativeConstraintPrioritySummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const category = readStringUnion(
+      item,
+      "category",
+      "category",
+      creativeConstraintPriorityCategories
+    );
+    const priorityLevel = readStringUnion(
+      item,
+      "priority_level",
+      "priorityLevel",
+      creativeConstraintPriorityLevels
+    );
+    const rank = readFiniteNumberField(item, "rank");
+    const priorityScore =
+      readFiniteNumberField(item, "priority_score") ??
+      readFiniteNumberField(item, "priorityScore");
+    const source = readStringUnion(
+      item,
+      "source",
+      "source",
+      creativeConstraintPrioritySources
+    );
+    const rationale = readStringField(item, "rationale");
+    const negotiationGuidance =
+      readStringField(item, "negotiation_guidance") ??
+      readStringField(item, "negotiationGuidance");
+
+    if (
+      !category ||
+      !priorityLevel ||
+      rank === null ||
+      priorityScore === null ||
+      !source ||
+      !rationale ||
+      !negotiationGuidance
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        category,
+        priorityLevel,
+        rank,
+        priorityScore,
+        source,
+        rationale,
+        negotiationGuidance,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readCreativeConstraintPriorityConflictSummaryList(
+  value: unknown
+): CreativeConstraintPriorityConflictSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const protectedCategory = readStringUnion(
+      item,
+      "protected_category",
+      "protectedCategory",
+      creativeConstraintPriorityCategories
+    );
+    const competingCategory = readStringUnion(
+      item,
+      "competing_category",
+      "competingCategory",
+      creativeConstraintPriorityCategories
+    );
+    const severity = readStringUnion(
+      item,
+      "severity",
+      "severity",
+      creativeConstraintSeverities
+    );
+    const summary = readStringField(item, "summary");
+    const negotiationNote =
+      readStringField(item, "negotiation_note") ??
+      readStringField(item, "negotiationNote");
+    const hitlRecommended =
+      readBooleanField(item, "hitl_recommended") ??
+      readBooleanField(item, "hitlRecommended");
+
+    if (
+      !protectedCategory ||
+      !competingCategory ||
+      !severity ||
+      !summary ||
+      !negotiationNote ||
+      hitlRecommended === null
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        protectedCategory,
+        competingCategory,
+        severity,
+        summary,
+        negotiationNote,
+        hitlRecommended
       }
     ];
   });
