@@ -58,6 +58,9 @@ from creative_coding_assistant.orchestration.refinement_passes import (
     start_refinement_pass_record,
 )
 from creative_coding_assistant.orchestration.routing import RouteDecision
+from creative_coding_assistant.orchestration.runtime_capabilities import (
+    derive_runtime_capability_profile,
+)
 from creative_coding_assistant.orchestration.workflow import (
     AssistantWorkflowState,
     WorkflowFailureInfo,
@@ -581,12 +584,22 @@ def _planning_node(
             clarification=workflow_state.clarification,
             retrieval_chunk_count=retrieval_chunk_count,
         )
+        runtime_capabilities = derive_runtime_capability_profile(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_translation=prompt_input.creative_translation,
+            creative_strategy=strategy,
+            creative_techniques=techniques,
+            creative_plan=plan,
+            creative_constraints=constraints,
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
                 "creative_techniques": techniques,
                 "creative_plan": plan,
                 "creative_constraints": constraints,
+                "runtime_capabilities": runtime_capabilities,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -595,6 +608,7 @@ def _planning_node(
                 "creative_techniques": techniques,
                 "creative_plan": plan,
                 "creative_constraints": constraints,
+                "runtime_capabilities": runtime_capabilities,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -606,6 +620,7 @@ def _planning_node(
                 creative_techniques=techniques.model_dump(mode="json"),
                 creative_plan=plan.model_dump(mode="json"),
                 creative_constraints=constraints.model_dump(mode="json"),
+                runtime_capabilities=runtime_capabilities.model_dump(mode="json"),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -1258,6 +1273,14 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "runtime_capabilities",
+                    (
+                        final_state.runtime_capabilities.model_dump(mode="json")
+                        if final_state.runtime_capabilities is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_director",
                     (
                         final_state.creative_director.model_dump(mode="json")
@@ -1830,6 +1853,7 @@ def _derive_director_brief(
         creative_techniques=workflow_state.creative_techniques,
         creative_plan=workflow_state.creative_plan,
         creative_constraints=workflow_state.creative_constraints,
+        runtime_capabilities=workflow_state.runtime_capabilities,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2056,6 +2080,7 @@ def _serialize_workflow_runtime(
     creative_techniques = workflow_state.creative_techniques
     creative_plan = workflow_state.creative_plan
     creative_constraints = workflow_state.creative_constraints
+    runtime_capabilities = workflow_state.runtime_capabilities
     creative_director = workflow_state.creative_director
 
     return {
@@ -2122,6 +2147,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "constraint_solver_available": creative_constraints is not None,
+        "runtime_capabilities": (
+            runtime_capabilities.model_dump(mode="json")
+            if runtime_capabilities is not None
+            else None
+        ),
+        "runtime_capability_reasoner_available": runtime_capabilities is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None

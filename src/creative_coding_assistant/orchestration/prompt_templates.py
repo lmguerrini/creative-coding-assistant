@@ -49,6 +49,10 @@ from creative_coding_assistant.orchestration.routing import (
     RouteDecision,
     RouteName,
 )
+from creative_coding_assistant.orchestration.runtime_capabilities import (
+    RuntimeCapabilityProfile,
+    runtime_capability_prompt_lines,
+)
 
 _SYSTEM_TEMPLATE = """
 Route: {{ route.value }}
@@ -131,6 +135,13 @@ Creative Execution Plan:
 {% if constraints is not none -%}
 Creative Constraint Solver:
 {% for instruction in creative_constraint_solution_lines(constraints) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set runtime_capabilities = prompt_input.runtime_capabilities -%}
+{% if runtime_capabilities is not none -%}
+Runtime Capability Reasoner:
+{% for instruction in runtime_capability_lines(runtime_capabilities) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -366,6 +377,7 @@ class JinjaPromptRenderer:
             creative_technique_lines=_creative_technique_lines,
             creative_execution_plan_lines=_creative_execution_plan_lines,
             creative_constraint_solution_lines=_creative_constraint_solution_lines,
+            runtime_capability_lines=_runtime_capability_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
         )
@@ -553,6 +565,12 @@ def _creative_constraint_solution_lines(
     solution: CreativeConstraintSolution,
 ) -> tuple[str, ...]:
     return creative_constraint_solution_prompt_lines(solution)
+
+
+def _runtime_capability_lines(
+    profile: RuntimeCapabilityProfile,
+) -> tuple[str, ...]:
+    return runtime_capability_prompt_lines(profile)
 
 
 def _creative_assistant_director_lines(

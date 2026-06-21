@@ -38,6 +38,9 @@ from creative_coding_assistant.orchestration.prompt_templates import (
 )
 from creative_coding_assistant.orchestration.retrieval import RetrievalContextResponse
 from creative_coding_assistant.orchestration.routing import RouteDecision
+from creative_coding_assistant.orchestration.runtime_capabilities import (
+    RuntimeCapabilityProfile,
+)
 from creative_coding_assistant.orchestration.workflow_review import (
     WorkflowReviewResult,
 )
@@ -135,6 +138,7 @@ class AssistantWorkflowState(BaseModel):
     creative_techniques: CreativeTechniqueProfile | None = None
     creative_plan: CreativeExecutionPlan | None = None
     creative_constraints: CreativeConstraintSolution | None = None
+    runtime_capabilities: RuntimeCapabilityProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     rendered_prompt: RenderedPromptResponse | None = None
     artifacts: tuple[WorkflowArtifact, ...] = ()

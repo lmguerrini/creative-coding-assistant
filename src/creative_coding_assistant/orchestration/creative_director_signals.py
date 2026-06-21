@@ -26,6 +26,9 @@ from creative_coding_assistant.orchestration.routing import (
     RouteCapability,
     RouteDecision,
 )
+from creative_coding_assistant.orchestration.runtime_capabilities import (
+    RuntimeCapabilityProfile,
+)
 from creative_coding_assistant.orchestration.workflow_review import (
     WorkflowReviewOutcome,
     WorkflowReviewResult,
@@ -41,6 +44,7 @@ def build_director_brief_payload(
     creative_techniques: CreativeTechniqueProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     creative_constraints: CreativeConstraintSolution | None,
+    runtime_capabilities: RuntimeCapabilityProfile | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -68,12 +72,14 @@ def build_director_brief_payload(
             creative_strategy,
             creative_techniques,
             creative_constraints,
+            runtime_capabilities,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
             creative_strategy=creative_strategy,
             creative_techniques=creative_techniques,
             creative_constraints=creative_constraints,
+            runtime_capabilities=runtime_capabilities,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -99,6 +105,7 @@ def build_director_brief_payload(
             creative_techniques=creative_techniques,
             creative_plan=creative_plan,
             creative_constraints=creative_constraints,
+            runtime_capabilities=runtime_capabilities,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -173,15 +180,25 @@ def _planning_focus(
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
     creative_constraints: CreativeConstraintSolution | None,
+    runtime_capabilities: RuntimeCapabilityProfile | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_strategy is not None:
         focus.append(f"High-level strategy: {creative_strategy.primary_strategy}.")
-        focus.extend(creative_strategy.strategy_directives[:2])
     if creative_techniques is not None:
         focus.append(
             f"Primary technique: {creative_techniques.primary_technique}."
         )
+    if runtime_capabilities is not None:
+        focus.append(
+            "Runtime capability candidates: "
+            + ", ".join(runtime_capabilities.likely_candidates)
+            + "."
+        )
+        focus.extend(runtime_capabilities.prompt_guidance[:2])
+    if creative_strategy is not None:
+        focus.extend(creative_strategy.strategy_directives[:2])
+    if creative_techniques is not None:
         focus.extend(creative_techniques.implementation_notes[:2])
     if creative_constraints is not None:
         focus.extend(creative_constraints.prompt_guidance[:2])
@@ -205,6 +222,7 @@ def _critique_focus(
     creative_strategy: CreativeStrategyProfile | None,
     creative_techniques: CreativeTechniqueProfile | None,
     creative_constraints: CreativeConstraintSolution | None,
+    runtime_capabilities: RuntimeCapabilityProfile | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -222,6 +240,12 @@ def _critique_focus(
         focus.extend(
             tradeoff.summary for tradeoff in creative_constraints.tradeoffs[:2]
         )
+    if runtime_capabilities is not None:
+        focus.append(
+            "Runtime capability reasoner is non-binding; verify output stays "
+            "inside selected route/runtime contract."
+        )
+        focus.extend(runtime_capabilities.candidate_runtimes[0].risks[:2])
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -301,6 +325,7 @@ def _evidence(
     creative_techniques: CreativeTechniqueProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     creative_constraints: CreativeConstraintSolution | None,
+    runtime_capabilities: RuntimeCapabilityProfile | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -335,6 +360,15 @@ def _evidence(
         )
         evidence.append(
             f"Runtime fit: {creative_constraints.runtime_fit}."
+        )
+    if runtime_capabilities is not None:
+        evidence.append(
+            "Runtime capability candidates: "
+            + ", ".join(runtime_capabilities.likely_candidates)
+            + "."
+        )
+        evidence.append(
+            f"Runtime capability HITL: {runtime_capabilities.hitl_advisable}."
         )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")
