@@ -4,6 +4,7 @@ import {
   decodeAssistantStream,
   parseAssistantStreamLine,
   readClarificationSummary,
+  readCreativeCompositionPlanSummary,
   readCreativeConstraintSolverSummary,
   readCreativeExecutionPlanSummary,
   readCreativeQualityPredictionSummary,
@@ -106,6 +107,51 @@ function symbolicNarrativePhaseFixture(
     audio_state: "supporting tone",
     guidance: [`Make the ${phase} phase visible.`],
     evidence: ["threshold"]
+  };
+}
+
+function creativeCompositionFixture() {
+  return {
+    role: "creative_composition_planner",
+    composition_pattern: "threshold_composition",
+    primary_focal_point: "A gate-like focal boundary at center stage.",
+    secondary_focal_elements: [
+      "threshold cue: Crossing",
+      "resolution cue: Integration"
+    ],
+    spatial_organization:
+      "Organize before/after zones separated by a readable threshold.",
+    foreground_background_relationship:
+      "Foreground marks the crossing; background reveals what lies beyond.",
+    visual_hierarchy: [
+      "Lead with threshold composition as the layout spine.",
+      "Protect symbolism before secondary composition details."
+    ],
+    density_plan:
+      "Keep density lower at the threshold so the boundary reads clearly.",
+    rhythm_plan: "Use approach, pause, crossing, and release as rhythm.",
+    balance_plan: "Balance both sides while making the crossing decisive.",
+    symmetry_asymmetry_guidance:
+      "Use bilateral tension or asymmetry to show transition.",
+    depth_layering_guidance:
+      "Layer near-side, threshold plane, and far-side space distinctly.",
+    transition_guidance: [
+      "Compose transition through narrative phase: Invitation -> Crossing."
+    ],
+    camera_viewpoint_guidance:
+      "Use a stable viewpoint looking into or across the threshold.",
+    audiovisual_composition_notes: [
+      "Use audio as a compositional timing cue, not as a new feature layer."
+    ],
+    composition_risks: ["Composition may lose focal clarity."],
+    unresolved_composition_gaps: ["Primary visible focal motif is unclear."],
+    hitl_questions: ["What should be the primary visible focal motif?"],
+    prompt_guidance: [
+      "Use the composition plan as layout guidance, not code structure."
+    ],
+    authority_boundary:
+      "The Creative Composition Planner structures artwork organization.",
+    evidence: ["Composition pattern: threshold_composition."]
   };
 }
 
@@ -1742,6 +1788,27 @@ describe("assistant stream client", () => {
     );
   });
 
+  it("reads creative composition planner metadata", () => {
+    const profile = readCreativeCompositionPlanSummary(
+      creativeCompositionFixture()
+    );
+
+    expect(profile?.role).toBe("creative_composition_planner");
+    expect(profile?.compositionPattern).toBe("threshold_composition");
+    expect(profile?.primaryFocalPoint).toBe(
+      "A gate-like focal boundary at center stage."
+    );
+    expect(profile?.visualHierarchy).toContain(
+      "Lead with threshold composition as the layout spine."
+    );
+    expect(profile?.audiovisualCompositionNotes).toContain(
+      "Use audio as a compositional timing cue, not as a new feature layer."
+    );
+    expect(profile?.hitlQuestions).toContain(
+      "What should be the primary visible focal motif?"
+    );
+  });
+
   it("reads creative reasoning engine metadata", () => {
     const profile = readCreativeReasoningSummary({
       role: "creative_reasoning_engine",
@@ -1807,6 +1874,11 @@ describe("assistant stream client", () => {
           source: "symbolic_narrative",
           signal: "threshold_crossing arc.",
           interpretation: "Narrative evidence orders the experiential arc."
+        },
+        {
+          source: "creative_composition",
+          signal: "threshold_composition focal boundary.",
+          interpretation: "Composition evidence defines focal structure."
         }
       ],
       strongestSupportingSignals: ["Strategy sacred_geometry confidence 0.83."],
@@ -1845,6 +1917,9 @@ describe("assistant stream client", () => {
     );
     expect(profile?.evidenceChain.map((item) => item.source)).toContain(
       "symbolic_narrative"
+    );
+    expect(profile?.evidenceChain.map((item) => item.source)).toContain(
+      "creative_composition"
     );
     expect(profile?.futureKnowledgeContext.status).toBe("not_attached");
   });
@@ -2056,6 +2131,57 @@ describe("assistant stream client", () => {
         hitlQuestions: ["What narrative state should interaction change?"]
       },
       symbolic_narrative_available: true
+    });
+  });
+
+  it("hydrates creative composition workflow metadata", () => {
+    const creativeComposition = creativeCompositionFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 9,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          creative_composition: creativeComposition,
+          creative_composition_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      creative_composition: {
+        role: "creative_composition_planner",
+        compositionPattern: "threshold_composition",
+        primaryFocalPoint: "A gate-like focal boundary at center stage.",
+        spatialOrganization:
+          "Organize before/after zones separated by a readable threshold.",
+        visualHierarchy: [
+          "Lead with threshold composition as the layout spine.",
+          "Protect symbolism before secondary composition details."
+        ],
+        densityPlan:
+          "Keep density lower at the threshold so the boundary reads clearly.",
+        unresolvedCompositionGaps: [
+          "Primary visible focal motif is unclear."
+        ],
+        hitlQuestions: ["What should be the primary visible focal motif?"]
+      },
+      creative_composition_available: true
     });
   });
 

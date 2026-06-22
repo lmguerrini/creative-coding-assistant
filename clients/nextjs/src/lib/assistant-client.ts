@@ -492,6 +492,44 @@ export type SymbolicNarrativePlanSummary = {
   evidence: string[];
 };
 
+export type CreativeCompositionPattern =
+  | "central_emergence"
+  | "radial_expansion"
+  | "spiral_composition"
+  | "layered_depth"
+  | "field_composition"
+  | "threshold_composition"
+  | "descent_ascent_composition"
+  | "fragmented_recomposition"
+  | "mirrored_composition"
+  | "orbiting_focal_structure"
+  | "distributed_constellation"
+  | "minimal_void_and_form_composition";
+
+export type CreativeCompositionPlanSummary = {
+  role: "creative_composition_planner";
+  compositionPattern: CreativeCompositionPattern;
+  primaryFocalPoint: string;
+  secondaryFocalElements: string[];
+  spatialOrganization: string;
+  foregroundBackgroundRelationship: string;
+  visualHierarchy: string[];
+  densityPlan: string;
+  rhythmPlan: string;
+  balancePlan: string;
+  symmetryAsymmetryGuidance: string;
+  depthLayeringGuidance: string;
+  transitionGuidance: string[];
+  cameraViewpointGuidance: string | null;
+  audiovisualCompositionNotes: string[];
+  compositionRisks: string[];
+  unresolvedCompositionGaps: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeConstraintAxis =
   | "intent"
   | "modality"
@@ -651,6 +689,7 @@ export type CreativeReasoningEvidenceSource =
   | "tradeoff_explorer"
   | "quality_predictor"
   | "symbolic_narrative"
+  | "creative_composition"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {

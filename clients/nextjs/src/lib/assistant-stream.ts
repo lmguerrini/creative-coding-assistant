@@ -12,6 +12,8 @@ import {
   type CreativeConstraintSolverSummary,
   type CreativeConstraintSummary,
   type CreativeConstraintTradeoffSummary,
+  type CreativeCompositionPattern,
+  type CreativeCompositionPlanSummary,
   type ClarificationSummary,
   type CreativeAssistantDirectorSummary,
   type CreativeExecutionPlanSummary,
@@ -154,6 +156,8 @@ export type AssistantStreamWorkflowMetadata = {
   quality_predictor_available?: boolean;
   symbolic_narrative?: SymbolicNarrativePlanSummary | null;
   symbolic_narrative_available?: boolean;
+  creative_composition?: CreativeCompositionPlanSummary | null;
+  creative_composition_available?: boolean;
   creative_director?: CreativeAssistantDirectorSummary | null;
   director_available?: boolean;
   creative_reasoning?: CreativeReasoningSummary | null;
@@ -615,6 +619,12 @@ export function readWorkflowMetadata(
   const symbolicNarrativeAvailable =
     rawWorkflow.symbolic_narrative_available === true ||
     symbolicNarrative !== null;
+  const creativeComposition = readCreativeCompositionPlanSummary(
+    rawWorkflow.creative_composition ?? rawWorkflow.creativeComposition
+  );
+  const creativeCompositionAvailable =
+    rawWorkflow.creative_composition_available === true ||
+    creativeComposition !== null;
   const creativeDirector = readCreativeAssistantDirectorSummary(
     rawWorkflow.creative_director ?? rawWorkflow.creativeDirector
   );
@@ -722,6 +732,12 @@ export function readWorkflowMetadata(
       ? {
           symbolic_narrative: symbolicNarrative,
           symbolic_narrative_available: true
+        }
+      : {}),
+    ...(creativeCompositionAvailable
+      ? {
+          creative_composition: creativeComposition,
+          creative_composition_available: true
         }
       : {}),
     ...(directorAvailable
@@ -2133,6 +2149,142 @@ const symbolicNarrativePhaseNames = [
   "resolution"
 ] as const satisfies readonly SymbolicNarrativePhaseName[];
 
+export function readCreativeCompositionPlanSummary(
+  value: unknown
+): CreativeCompositionPlanSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const compositionPattern = readStringUnion(
+    value,
+    "composition_pattern",
+    "compositionPattern",
+    creativeCompositionPatterns
+  );
+  const primaryFocalPoint =
+    readStringField(value, "primary_focal_point") ??
+    readStringField(value, "primaryFocalPoint");
+  const spatialOrganization =
+    readStringField(value, "spatial_organization") ??
+    readStringField(value, "spatialOrganization");
+  const foregroundBackgroundRelationship =
+    readStringField(value, "foreground_background_relationship") ??
+    readStringField(value, "foregroundBackgroundRelationship");
+  const densityPlan =
+    readStringField(value, "density_plan") ??
+    readStringField(value, "densityPlan");
+  const rhythmPlan =
+    readStringField(value, "rhythm_plan") ??
+    readStringField(value, "rhythmPlan");
+  const balancePlan =
+    readStringField(value, "balance_plan") ??
+    readStringField(value, "balancePlan");
+  const symmetryAsymmetryGuidance =
+    readStringField(value, "symmetry_asymmetry_guidance") ??
+    readStringField(value, "symmetryAsymmetryGuidance");
+  const depthLayeringGuidance =
+    readStringField(value, "depth_layering_guidance") ??
+    readStringField(value, "depthLayeringGuidance");
+  const secondaryFocalElements = readStringListField(
+    value,
+    "secondary_focal_elements",
+    "secondaryFocalElements"
+  );
+  const visualHierarchy = readStringListField(
+    value,
+    "visual_hierarchy",
+    "visualHierarchy"
+  );
+  const transitionGuidance = readStringListField(
+    value,
+    "transition_guidance",
+    "transitionGuidance"
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "creative_composition_planner" ||
+    !compositionPattern ||
+    !primaryFocalPoint ||
+    secondaryFocalElements.length === 0 ||
+    !spatialOrganization ||
+    !foregroundBackgroundRelationship ||
+    visualHierarchy.length === 0 ||
+    !densityPlan ||
+    !rhythmPlan ||
+    !balancePlan ||
+    !symmetryAsymmetryGuidance ||
+    !depthLayeringGuidance ||
+    transitionGuidance.length === 0 ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    compositionPattern,
+    primaryFocalPoint,
+    secondaryFocalElements,
+    spatialOrganization,
+    foregroundBackgroundRelationship,
+    visualHierarchy,
+    densityPlan,
+    rhythmPlan,
+    balancePlan,
+    symmetryAsymmetryGuidance,
+    depthLayeringGuidance,
+    transitionGuidance,
+    cameraViewpointGuidance:
+      readStringField(value, "camera_viewpoint_guidance") ??
+      readStringField(value, "cameraViewpointGuidance"),
+    audiovisualCompositionNotes: readStringListField(
+      value,
+      "audiovisual_composition_notes",
+      "audiovisualCompositionNotes"
+    ),
+    compositionRisks: readStringListField(
+      value,
+      "composition_risks",
+      "compositionRisks"
+    ),
+    unresolvedCompositionGaps: readStringListField(
+      value,
+      "unresolved_composition_gaps",
+      "unresolvedCompositionGaps"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const creativeCompositionPatterns = [
+  "central_emergence",
+  "radial_expansion",
+  "spiral_composition",
+  "layered_depth",
+  "field_composition",
+  "threshold_composition",
+  "descent_ascent_composition",
+  "fragmented_recomposition",
+  "mirrored_composition",
+  "orbiting_focal_structure",
+  "distributed_constellation",
+  "minimal_void_and_form_composition"
+] as const satisfies readonly CreativeCompositionPattern[];
+
 export function readCreativeReasoningSummary(
   value: unknown
 ): CreativeReasoningSummary | null {
@@ -2235,6 +2387,7 @@ const creativeReasoningEvidenceSources = [
   "tradeoff_explorer",
   "quality_predictor",
   "symbolic_narrative",
+  "creative_composition",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 
