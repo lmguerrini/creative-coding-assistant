@@ -12,6 +12,7 @@ import {
   readCreativeStrategySummary,
   readCreativeTechniqueSummary,
   readCreativeTradeoffExplorerSummary,
+  readProceduralStructurePlanSummary,
   readSymbolicNarrativePlanSummary,
   readEventTimestamp,
   readPreviewArtifactUpdate,
@@ -152,6 +153,79 @@ function creativeCompositionFixture() {
     authority_boundary:
       "The Creative Composition Planner structures artwork organization.",
     evidence: ["Composition pattern: threshold_composition."]
+  };
+}
+
+function proceduralStructureFixture() {
+  return {
+    role: "procedural_structure_planner",
+    recommended_families: [
+      "recursive_geometry",
+      "polar_radial_systems",
+      "particle_systems"
+    ],
+    primary_structure: {
+      family: "recursive_geometry",
+      label: "Recursive Geometry",
+      rationale:
+        "Recursive geometry best matches the spiral transformation request.",
+      evidence: ["Matched request terms: recursive, spiral."]
+    },
+    secondary_structures: [
+      {
+        family: "polar_radial_systems",
+        label: "Polar/Radial Systems",
+        rationale:
+          "Use polar/radial systems as a supporting layer for orbiting rings.",
+        evidence: ["composition signal favors polar_radial_systems."]
+      },
+      {
+        family: "particle_systems",
+        label: "Particle Systems",
+        rationale:
+          "Use particle systems as a supporting layer for dissolution.",
+        evidence: ["narrative signal favors particle_systems."]
+      }
+    ],
+    combination_strategy:
+      "Lead with recursive geometry as the structural spine and use polar/radial systems as a bounded secondary system.",
+    spatial_structure_plan:
+      "Build geometry by repeatedly transforming a simple form with explicit depth caps.",
+    temporal_structure_plan:
+      "Animate recursive depth, rotation, scale, or reveal order over time.",
+    interaction_structure_plan:
+      "Map direct interaction to parameters of recursive geometry.",
+    audiovisual_structure_plan:
+      "Map audio or rhythm to procedural parameters of recursive geometry.",
+    complexity_level: "medium",
+    runtime_suitability_notes: [
+      "Use inspected runtime candidates as non-binding feasibility notes: p5_js."
+    ],
+    performance_risks: [
+      "Nested drawing can become expensive if each level adds many children."
+    ],
+    implementation_risks: [
+      "Recursive transforms need clear stopping rules and readable parameters."
+    ],
+    fallback_structure_options: [
+      {
+        family: "polar_radial_systems",
+        label: "Polar/Radial Systems",
+        rationale:
+          "Use polar/radial systems as a lower-risk procedural fallback.",
+        evidence: ["Fallback from procedural structure planner."]
+      }
+    ],
+    unresolved_procedural_gaps: [
+      "Interaction is relevant but the controlling gesture is unclear."
+    ],
+    hitl_questions: ["What user gesture should control the structure?"],
+    prompt_guidance: [
+      "Use procedural structure guidance as an implementation spine, not as code generation."
+    ],
+    authority_boundary:
+      "The Procedural Structure Planner recommends inspectable procedural families.",
+    evidence: ["Primary procedural family: recursive_geometry."]
   };
 }
 
@@ -1809,6 +1883,26 @@ describe("assistant stream client", () => {
     );
   });
 
+  it("reads procedural structure planner metadata", () => {
+    const profile = readProceduralStructurePlanSummary(
+      proceduralStructureFixture()
+    );
+
+    expect(profile?.role).toBe("procedural_structure_planner");
+    expect(profile?.recommendedFamilies).toContain("recursive_geometry");
+    expect(profile?.primaryStructure.family).toBe("recursive_geometry");
+    expect(profile?.secondaryStructures[0]?.family).toBe(
+      "polar_radial_systems"
+    );
+    expect(profile?.fallbackStructureOptions[0]?.family).toBe(
+      "polar_radial_systems"
+    );
+    expect(profile?.runtimeSuitabilityNotes[0]).toContain("p5_js");
+    expect(profile?.hitlQuestions).toContain(
+      "What user gesture should control the structure?"
+    );
+  });
+
   it("reads creative reasoning engine metadata", () => {
     const profile = readCreativeReasoningSummary({
       role: "creative_reasoning_engine",
@@ -1879,6 +1973,11 @@ describe("assistant stream client", () => {
           source: "creative_composition",
           signal: "threshold_composition focal boundary.",
           interpretation: "Composition evidence defines focal structure."
+        },
+        {
+          source: "procedural_structure",
+          signal: "recursive_geometry procedural spine.",
+          interpretation: "Procedural evidence defines structure."
         }
       ],
       strongestSupportingSignals: ["Strategy sacred_geometry confidence 0.83."],
@@ -1920,6 +2019,9 @@ describe("assistant stream client", () => {
     );
     expect(profile?.evidenceChain.map((item) => item.source)).toContain(
       "creative_composition"
+    );
+    expect(profile?.evidenceChain.map((item) => item.source)).toContain(
+      "procedural_structure"
     );
     expect(profile?.futureKnowledgeContext.status).toBe("not_attached");
   });
@@ -2182,6 +2284,68 @@ describe("assistant stream client", () => {
         hitlQuestions: ["What should be the primary visible focal motif?"]
       },
       creative_composition_available: true
+    });
+  });
+
+  it("hydrates procedural structure workflow metadata", () => {
+    const proceduralStructure = proceduralStructureFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 10,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          procedural_structure: proceduralStructure,
+          procedural_structure_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      procedural_structure: {
+        role: "procedural_structure_planner",
+        recommendedFamilies: [
+          "recursive_geometry",
+          "polar_radial_systems",
+          "particle_systems"
+        ],
+        primaryStructure: {
+          family: "recursive_geometry",
+          label: "Recursive Geometry"
+        },
+        secondaryStructures: [
+          {
+            family: "polar_radial_systems"
+          },
+          {
+            family: "particle_systems"
+          }
+        ],
+        complexityLevel: "medium",
+        runtimeSuitabilityNotes: [
+          "Use inspected runtime candidates as non-binding feasibility notes: p5_js."
+        ],
+        unresolvedProceduralGaps: [
+          "Interaction is relevant but the controlling gesture is unclear."
+        ],
+        hitlQuestions: ["What user gesture should control the structure?"]
+      },
+      procedural_structure_available: true
     });
   });
 

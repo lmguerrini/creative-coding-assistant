@@ -15,6 +15,10 @@ import {
   type CreativeCompositionPattern,
   type CreativeCompositionPlanSummary,
   type ClarificationSummary,
+  type ProceduralComplexityLevel,
+  type ProceduralFamily,
+  type ProceduralStructureChoiceSummary,
+  type ProceduralStructurePlanSummary,
   type CreativeAssistantDirectorSummary,
   type CreativeExecutionPlanSummary,
   type CreativeAbstractionLevel,
@@ -158,6 +162,8 @@ export type AssistantStreamWorkflowMetadata = {
   symbolic_narrative_available?: boolean;
   creative_composition?: CreativeCompositionPlanSummary | null;
   creative_composition_available?: boolean;
+  procedural_structure?: ProceduralStructurePlanSummary | null;
+  procedural_structure_available?: boolean;
   creative_director?: CreativeAssistantDirectorSummary | null;
   director_available?: boolean;
   creative_reasoning?: CreativeReasoningSummary | null;
@@ -625,6 +631,12 @@ export function readWorkflowMetadata(
   const creativeCompositionAvailable =
     rawWorkflow.creative_composition_available === true ||
     creativeComposition !== null;
+  const proceduralStructure = readProceduralStructurePlanSummary(
+    rawWorkflow.procedural_structure ?? rawWorkflow.proceduralStructure
+  );
+  const proceduralStructureAvailable =
+    rawWorkflow.procedural_structure_available === true ||
+    proceduralStructure !== null;
   const creativeDirector = readCreativeAssistantDirectorSummary(
     rawWorkflow.creative_director ?? rawWorkflow.creativeDirector
   );
@@ -738,6 +750,12 @@ export function readWorkflowMetadata(
       ? {
           creative_composition: creativeComposition,
           creative_composition_available: true
+        }
+      : {}),
+    ...(proceduralStructureAvailable
+      ? {
+          procedural_structure: proceduralStructure,
+          procedural_structure_available: true
         }
       : {}),
     ...(directorAvailable
@@ -2285,6 +2303,192 @@ const creativeCompositionPatterns = [
   "minimal_void_and_form_composition"
 ] as const satisfies readonly CreativeCompositionPattern[];
 
+export function readProceduralStructurePlanSummary(
+  value: unknown
+): ProceduralStructurePlanSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const recommendedFamilies = readProceduralFamilyList(
+    value.recommended_families ?? value.recommendedFamilies
+  );
+  const primaryStructure = readProceduralStructureChoiceSummary(
+    value.primary_structure ?? value.primaryStructure
+  );
+  const secondaryStructures = readProceduralStructureChoiceSummaryList(
+    value.secondary_structures ?? value.secondaryStructures
+  );
+  const fallbackStructureOptions = readProceduralStructureChoiceSummaryList(
+    value.fallback_structure_options ?? value.fallbackStructureOptions
+  );
+  const combinationStrategy =
+    readStringField(value, "combination_strategy") ??
+    readStringField(value, "combinationStrategy");
+  const spatialStructurePlan =
+    readStringField(value, "spatial_structure_plan") ??
+    readStringField(value, "spatialStructurePlan");
+  const temporalStructurePlan =
+    readStringField(value, "temporal_structure_plan") ??
+    readStringField(value, "temporalStructurePlan");
+  const complexityLevel = readStringUnion(
+    value,
+    "complexity_level",
+    "complexityLevel",
+    proceduralComplexityLevels
+  );
+  const runtimeSuitabilityNotes = readStringListField(
+    value,
+    "runtime_suitability_notes",
+    "runtimeSuitabilityNotes"
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "procedural_structure_planner" ||
+    recommendedFamilies.length === 0 ||
+    !primaryStructure ||
+    secondaryStructures.length === 0 ||
+    !combinationStrategy ||
+    !spatialStructurePlan ||
+    !temporalStructurePlan ||
+    !complexityLevel ||
+    runtimeSuitabilityNotes.length === 0 ||
+    fallbackStructureOptions.length === 0 ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    recommendedFamilies,
+    primaryStructure,
+    secondaryStructures,
+    combinationStrategy,
+    spatialStructurePlan,
+    temporalStructurePlan,
+    interactionStructurePlan:
+      readStringField(value, "interaction_structure_plan") ??
+      readStringField(value, "interactionStructurePlan"),
+    audiovisualStructurePlan:
+      readStringField(value, "audiovisual_structure_plan") ??
+      readStringField(value, "audiovisualStructurePlan"),
+    complexityLevel,
+    runtimeSuitabilityNotes,
+    performanceRisks: readStringListField(
+      value,
+      "performance_risks",
+      "performanceRisks"
+    ),
+    implementationRisks: readStringListField(
+      value,
+      "implementation_risks",
+      "implementationRisks"
+    ),
+    fallbackStructureOptions,
+    unresolvedProceduralGaps: readStringListField(
+      value,
+      "unresolved_procedural_gaps",
+      "unresolvedProceduralGaps"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const proceduralFamilies = [
+  "fractals",
+  "recursive_geometry",
+  "l_systems",
+  "particle_systems",
+  "boids",
+  "cellular_automata",
+  "reaction_diffusion",
+  "voronoi_systems",
+  "noise_fields",
+  "flow_fields",
+  "signed_distance_fields",
+  "polar_radial_systems",
+  "grid_systems",
+  "graph_network_systems",
+  "swarm_systems",
+  "wave_systems",
+  "harmonic_oscillators",
+  "modular_tiling",
+  "sacred_geometry_pattern_systems"
+] as const satisfies readonly ProceduralFamily[];
+
+const proceduralComplexityLevels = [
+  "low",
+  "medium",
+  "high"
+] as const satisfies readonly ProceduralComplexityLevel[];
+
+function readProceduralFamilyList(value: unknown): ProceduralFamily[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (item): item is ProceduralFamily =>
+      typeof item === "string" &&
+      proceduralFamilies.includes(item as ProceduralFamily)
+  );
+}
+
+function readProceduralStructureChoiceSummaryList(
+  value: unknown
+): ProceduralStructureChoiceSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    const parsed = readProceduralStructureChoiceSummary(item);
+    return parsed ? [parsed] : [];
+  });
+}
+
+function readProceduralStructureChoiceSummary(
+  value: unknown
+): ProceduralStructureChoiceSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const family = readStringUnion(
+    value,
+    "family",
+    "family",
+    proceduralFamilies
+  );
+  const label = readStringField(value, "label");
+  const rationale = readStringField(value, "rationale");
+
+  if (!family || !label || !rationale) {
+    return null;
+  }
+
+  return {
+    family,
+    label,
+    rationale,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
 export function readCreativeReasoningSummary(
   value: unknown
 ): CreativeReasoningSummary | null {
@@ -2388,6 +2592,7 @@ const creativeReasoningEvidenceSources = [
   "quality_predictor",
   "symbolic_narrative",
   "creative_composition",
+  "procedural_structure",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

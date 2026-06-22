@@ -530,6 +530,58 @@ export type CreativeCompositionPlanSummary = {
   evidence: string[];
 };
 
+export type ProceduralFamily =
+  | "fractals"
+  | "recursive_geometry"
+  | "l_systems"
+  | "particle_systems"
+  | "boids"
+  | "cellular_automata"
+  | "reaction_diffusion"
+  | "voronoi_systems"
+  | "noise_fields"
+  | "flow_fields"
+  | "signed_distance_fields"
+  | "polar_radial_systems"
+  | "grid_systems"
+  | "graph_network_systems"
+  | "swarm_systems"
+  | "wave_systems"
+  | "harmonic_oscillators"
+  | "modular_tiling"
+  | "sacred_geometry_pattern_systems";
+
+export type ProceduralComplexityLevel = "low" | "medium" | "high";
+
+export type ProceduralStructureChoiceSummary = {
+  family: ProceduralFamily;
+  label: string;
+  rationale: string;
+  evidence: string[];
+};
+
+export type ProceduralStructurePlanSummary = {
+  role: "procedural_structure_planner";
+  recommendedFamilies: ProceduralFamily[];
+  primaryStructure: ProceduralStructureChoiceSummary;
+  secondaryStructures: ProceduralStructureChoiceSummary[];
+  combinationStrategy: string;
+  spatialStructurePlan: string;
+  temporalStructurePlan: string;
+  interactionStructurePlan: string | null;
+  audiovisualStructurePlan: string | null;
+  complexityLevel: ProceduralComplexityLevel;
+  runtimeSuitabilityNotes: string[];
+  performanceRisks: string[];
+  implementationRisks: string[];
+  fallbackStructureOptions: ProceduralStructureChoiceSummary[];
+  unresolvedProceduralGaps: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeConstraintAxis =
   | "intent"
   | "modality"
@@ -690,6 +742,7 @@ export type CreativeReasoningEvidenceSource =
   | "quality_predictor"
   | "symbolic_narrative"
   | "creative_composition"
+  | "procedural_structure"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {
