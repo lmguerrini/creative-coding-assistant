@@ -582,6 +582,158 @@ export type ProceduralStructurePlanSummary = {
   evidence: string[];
 };
 
+export type GenerativeArchitecture =
+  | "recursive_modular_blueprint"
+  | "agent_field_blueprint"
+  | "grid_state_blueprint"
+  | "radial_pattern_blueprint"
+  | "network_relation_blueprint"
+  | "wave_modulation_blueprint"
+  | "minimal_parameter_blueprint";
+
+export type GenerativeModuleKind =
+  | "seed_system"
+  | "recursive_module"
+  | "particle_emitter"
+  | "force_field"
+  | "attractor_field"
+  | "noise_modulation_layer"
+  | "symmetry_transform"
+  | "tiling_layer"
+  | "graph_network_layer"
+  | "cellular_grid_layer"
+  | "wave_oscillator"
+  | "geometry_reassembly_layer"
+  | "color_modulation_layer"
+  | "audio_reactive_modulation_layer"
+  | "camera_motion_path_hook";
+
+export type GenerativeRelationshipType =
+  | "feeds"
+  | "modulates"
+  | "constrains"
+  | "emits"
+  | "attracts"
+  | "mirrors"
+  | "samples"
+  | "reassembles"
+  | "times"
+  | "fallback_for";
+
+export type GenerativeParameterValueType =
+  | "integer"
+  | "float"
+  | "boolean"
+  | "vector"
+  | "color"
+  | "enum";
+
+export type GenerativeParameterRole = "control" | "derived" | "constraint";
+
+export type GenerativeEvolutionPhase =
+  | "seed"
+  | "growth"
+  | "fragmentation"
+  | "threshold"
+  | "reassembly"
+  | "stabilization"
+  | "loop";
+
+export type GenerativeEvolutionTrigger =
+  | "time"
+  | "interaction"
+  | "audio"
+  | "parameter"
+  | "narrative_phase";
+
+export type GenerativeHookType = "interaction" | "audiovisual";
+
+export type GenerativeModuleSummary = {
+  moduleId: string;
+  kind: GenerativeModuleKind;
+  label: string;
+  sourceFamily: ProceduralFamily | null;
+  purpose: string;
+  inputs: string[];
+  outputs: string[];
+  parameters: string[];
+  evolutionRole: string;
+  implementationNotes: string[];
+  safeguards: string[];
+  evidence: string[];
+};
+
+export type GenerativeModuleRelationshipSummary = {
+  sourceModuleId: string;
+  targetModuleId: string;
+  relationshipType: GenerativeRelationshipType;
+  description: string;
+  parameters: string[];
+  evidence: string[];
+};
+
+export type GenerativeParameterSummary = {
+  name: string;
+  label: string;
+  valueType: GenerativeParameterValueType;
+  role: GenerativeParameterRole;
+  defaultValue: string;
+  bounds: string | null;
+  controlledBy: string | null;
+  targetModules: string[];
+  rationale: string;
+};
+
+export type GenerativeEvolutionRuleSummary = {
+  phase: GenerativeEvolutionPhase;
+  trigger: GenerativeEvolutionTrigger;
+  rule: string;
+  affectedModules: string[];
+  parameterChanges: string[];
+  safeguards: string[];
+};
+
+export type GenerativeStructureHookSummary = {
+  hookId: string;
+  hookType: GenerativeHookType;
+  signal: string;
+  targetModules: string[];
+  parameterMapping: string[];
+  fallbackBehavior: string;
+};
+
+export type GenerativeFallbackBlueprintSummary = {
+  name: string;
+  architecture: GenerativeArchitecture;
+  moduleKinds: GenerativeModuleKind[];
+  parameterReductions: string[];
+  reason: string;
+  promptGuidance: string[];
+};
+
+export type GenerativeStructureBlueprintSummary = {
+  role: "generative_structure_engine";
+  blueprintName: string;
+  generativeArchitecture: GenerativeArchitecture;
+  proceduralModules: GenerativeModuleSummary[];
+  moduleRelationships: GenerativeModuleRelationshipSummary[];
+  parameterSchema: GenerativeParameterSummary[];
+  controlParameters: string[];
+  evolutionRules: GenerativeEvolutionRuleSummary[];
+  spatialEvolution: string;
+  temporalEvolution: string;
+  interactionHooks: GenerativeStructureHookSummary[];
+  audiovisualHooks: GenerativeStructureHookSummary[];
+  runtimeImplementationGuidance: string[];
+  performanceSafeguards: string[];
+  fallbackBlueprint: GenerativeFallbackBlueprintSummary;
+  unresolvedImplementationGaps: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeConstraintAxis =
   | "intent"
   | "modality"
@@ -743,6 +895,7 @@ export type CreativeReasoningEvidenceSource =
   | "symbolic_narrative"
   | "creative_composition"
   | "procedural_structure"
+  | "generative_structure"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {

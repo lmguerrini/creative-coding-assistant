@@ -12,6 +12,7 @@ import {
   readCreativeStrategySummary,
   readCreativeTechniqueSummary,
   readCreativeTradeoffExplorerSummary,
+  readGenerativeStructureBlueprintSummary,
   readProceduralStructurePlanSummary,
   readSymbolicNarrativePlanSummary,
   readEventTimestamp,
@@ -225,6 +226,199 @@ function proceduralStructureFixture() {
     ],
     authority_boundary:
       "The Procedural Structure Planner recommends inspectable procedural families.",
+    evidence: ["Primary procedural family: recursive_geometry."]
+  };
+}
+
+function generativeStructureFixture() {
+  return {
+    role: "generative_structure_engine",
+    blueprint_name: "Recursive Geometry Blueprint for spiral threshold",
+    generative_architecture: "recursive_modular_blueprint",
+    procedural_modules: [
+      {
+        module_id: "seed_system",
+        kind: "seed_system",
+        label: "Seed System",
+        source_family: "recursive_geometry",
+        purpose: "Define deterministic origin values and shared state.",
+        inputs: ["user intent", "procedural structure plan"],
+        outputs: ["seeded coordinate state", "global timing state"],
+        parameters: ["random_seed", "global_scale", "time_phase"],
+        evolution_role:
+          "Initializes the blueprint before procedural modules evolve.",
+        implementation_notes: ["Keep seeding deterministic and inspectable."],
+        safeguards: ["Avoid hidden random loops."],
+        evidence: ["Required root module."]
+      },
+      {
+        module_id: "recursive_module_0",
+        kind: "recursive_module",
+        label: "Recursive Module",
+        source_family: "recursive_geometry",
+        purpose: "Build recursive geometry through bounded depth.",
+        inputs: ["seed_system", "time_phase"],
+        outputs: ["recursive geometry state"],
+        parameters: ["recursion_depth", "spiral_tightness"],
+        evolution_role: "Controls recursive build-up.",
+        implementation_notes: ["Prefer iterative depth counters."],
+        safeguards: ["Clamp recursion_depth."],
+        evidence: ["Source procedural family: recursive_geometry."]
+      },
+      {
+        module_id: "particle_emitter_1",
+        kind: "particle_emitter",
+        label: "Particle Emitter",
+        source_family: "particle_systems",
+        purpose: "Emit bounded particles with lifecycle state.",
+        inputs: ["seed_system", "time_phase"],
+        outputs: ["particle state"],
+        parameters: ["particle_count", "max_particle_count"],
+        evolution_role: "Controls dissolution and reassembly material.",
+        implementation_notes: ["Represent particle lifecycle explicitly."],
+        safeguards: ["Clamp particle_count and max_particle_count."],
+        evidence: ["Secondary procedural family: particle_systems."]
+      }
+    ],
+    module_relationships: [
+      {
+        source_module_id: "seed_system",
+        target_module_id: "recursive_module_0",
+        relationship_type: "feeds",
+        description: "Seeded coordinates initialize the recursive module.",
+        parameters: ["random_seed", "global_scale"],
+        evidence: ["All modules depend on deterministic seed state."]
+      },
+      {
+        source_module_id: "recursive_module_0",
+        target_module_id: "particle_emitter_1",
+        relationship_type: "attracts",
+        description: "Particles inherit the recursive attractor path.",
+        parameters: ["spiral_tightness"],
+        evidence: ["Recursive and particle modules coexist."]
+      }
+    ],
+    parameter_schema: [
+      {
+        name: "random_seed",
+        label: "Random Seed",
+        value_type: "integer",
+        role: "control",
+        default_value: "1",
+        bounds: "0..99999",
+        controlled_by: null,
+        target_modules: ["seed_system"],
+        rationale: "Keeps stochastic variation deterministic."
+      },
+      {
+        name: "recursion_depth",
+        label: "Recursion Depth",
+        value_type: "integer",
+        role: "control",
+        default_value: "5",
+        bounds: "1..9",
+        controlled_by: null,
+        target_modules: ["recursive_module_0"],
+        rationale: "Caps recursive expansion."
+      },
+      {
+        name: "max_particle_count",
+        label: "Max Particle Count",
+        value_type: "integer",
+        role: "constraint",
+        default_value: "800",
+        bounds: "50..2000",
+        controlled_by: null,
+        target_modules: ["particle_emitter_1"],
+        rationale: "Caps particle memory and update cost."
+      }
+    ],
+    control_parameters: ["random_seed", "recursion_depth"],
+    evolution_rules: [
+      {
+        phase: "seed",
+        trigger: "time",
+        rule: "Initialize seed, scale, coordinate frame, and phase clock.",
+        affected_modules: ["seed_system"],
+        parameter_changes: ["random_seed fixed"],
+        safeguards: ["No hidden randomness after initialization."]
+      },
+      {
+        phase: "growth",
+        trigger: "narrative_phase",
+        rule: "Grow modules according to symbolic phase order.",
+        affected_modules: ["seed_system", "recursive_module_0"],
+        parameter_changes: ["recursion_depth increases within bounds"],
+        safeguards: ["Clamp depth before adding detail."]
+      },
+      {
+        phase: "stabilization",
+        trigger: "time",
+        rule: "Resolve toward a stable readable final hierarchy.",
+        affected_modules: ["recursive_module_0"],
+        parameter_changes: ["global_scale stabilizes"],
+        safeguards: ["Avoid autonomous loops or runtime repair behavior."]
+      }
+    ],
+    spatial_evolution:
+      "Anchor recursive geometry to a central focal threshold and preserve spiral readability.",
+    temporal_evolution:
+      "Advance through seed, growth, reassembly, and stabilization phases.",
+    interaction_hooks: [
+      {
+        hook_id: "interaction_control_hook",
+        hook_type: "interaction",
+        signal: "unspecified interaction gesture",
+        target_modules: ["recursive_module_0"],
+        parameter_mapping: [
+          "pointer or gesture -> interaction_strength",
+          "interaction_strength -> density, radius, or force"
+        ],
+        fallback_behavior: "Use time-based evolution if interaction is unresolved."
+      }
+    ],
+    audiovisual_hooks: [
+      {
+        hook_id: "audiovisual_modulation_hook",
+        hook_type: "audiovisual",
+        signal: "unspecified audio envelope",
+        target_modules: ["particle_emitter_1"],
+        parameter_mapping: [
+          "audio envelope -> audio_gain",
+          "audio_gain -> phase, amplitude, density, or color shift"
+        ],
+        fallback_behavior: "Use a slow oscillator if no audio signal exists."
+      }
+    ],
+    runtime_implementation_guidance: [
+      "Treat inspected runtime candidates as feasibility guidance only: p5_js."
+    ],
+    performance_safeguards: [
+      "Expose frame_budget_ms as a constraint parameter.",
+      "Clamp particle_count and max_particle_count."
+    ],
+    fallback_blueprint: {
+      name: "Bounded Polar/Radial System Fallback",
+      architecture: "radial_pattern_blueprint",
+      module_kinds: ["seed_system", "symmetry_transform"],
+      parameter_reductions: [
+        "Reduce active module count to seed plus one primary structure."
+      ],
+      reason:
+        "Use when performance pressure or ambiguity makes the primary blueprint too expensive.",
+      prompt_guidance: [
+        "Keep the same creative intent while reducing module count."
+      ]
+    },
+    unresolved_implementation_gaps: [
+      "Interaction hook exists but the controlling gesture is unclear."
+    ],
+    hitl_questions: ["Which gesture should control the generative structure?"],
+    prompt_guidance: [
+      "Use the generative blueprint as structure guidance, not executable code."
+    ],
+    authority_boundary:
+      "The Generative Structure Engine turns procedural metadata into an inspectable generative blueprint only.",
     evidence: ["Primary procedural family: recursive_geometry."]
   };
 }
@@ -1903,6 +2097,35 @@ describe("assistant stream client", () => {
     );
   });
 
+  it("reads generative structure engine metadata", () => {
+    const profile = readGenerativeStructureBlueprintSummary(
+      generativeStructureFixture()
+    );
+
+    expect(profile?.role).toBe("generative_structure_engine");
+    expect(profile?.blueprintName).toBe(
+      "Recursive Geometry Blueprint for spiral threshold"
+    );
+    expect(profile?.generativeArchitecture).toBe(
+      "recursive_modular_blueprint"
+    );
+    expect(profile?.proceduralModules.map((module) => module.kind)).toContain(
+      "particle_emitter"
+    );
+    expect(profile?.moduleRelationships[1]?.relationshipType).toBe("attracts");
+    expect(profile?.parameterSchema.map((parameter) => parameter.name)).toContain(
+      "max_particle_count"
+    );
+    expect(profile?.evolutionRules.map((rule) => rule.phase)).toContain(
+      "stabilization"
+    );
+    expect(profile?.interactionHooks[0]?.hookType).toBe("interaction");
+    expect(profile?.audiovisualHooks[0]?.hookType).toBe("audiovisual");
+    expect(profile?.fallbackBlueprint.moduleKinds).toContain(
+      "symmetry_transform"
+    );
+  });
+
   it("reads creative reasoning engine metadata", () => {
     const profile = readCreativeReasoningSummary({
       role: "creative_reasoning_engine",
@@ -1978,6 +2201,11 @@ describe("assistant stream client", () => {
           source: "procedural_structure",
           signal: "recursive_geometry procedural spine.",
           interpretation: "Procedural evidence defines structure."
+        },
+        {
+          source: "generative_structure",
+          signal: "recursive_modular_blueprint.",
+          interpretation: "Generative evidence defines blueprint modules."
         }
       ],
       strongestSupportingSignals: ["Strategy sacred_geometry confidence 0.83."],
@@ -2022,6 +2250,9 @@ describe("assistant stream client", () => {
     );
     expect(profile?.evidenceChain.map((item) => item.source)).toContain(
       "procedural_structure"
+    );
+    expect(profile?.evidenceChain.map((item) => item.source)).toContain(
+      "generative_structure"
     );
     expect(profile?.futureKnowledgeContext.status).toBe("not_attached");
   });
@@ -2346,6 +2577,77 @@ describe("assistant stream client", () => {
         hitlQuestions: ["What user gesture should control the structure?"]
       },
       procedural_structure_available: true
+    });
+  });
+
+  it("hydrates generative structure workflow metadata", () => {
+    const generativeStructure = generativeStructureFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 11,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          generative_structure: generativeStructure,
+          generative_structure_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      generative_structure: {
+        role: "generative_structure_engine",
+        blueprintName: "Recursive Geometry Blueprint for spiral threshold",
+        generativeArchitecture: "recursive_modular_blueprint",
+        proceduralModules: [
+          {
+            moduleId: "seed_system",
+            kind: "seed_system"
+          },
+          {
+            moduleId: "recursive_module_0",
+            kind: "recursive_module"
+          },
+          {
+            moduleId: "particle_emitter_1",
+            kind: "particle_emitter"
+          }
+        ],
+        moduleRelationships: [
+          {
+            sourceModuleId: "seed_system",
+            targetModuleId: "recursive_module_0",
+            relationshipType: "feeds"
+          },
+          {
+            sourceModuleId: "recursive_module_0",
+            targetModuleId: "particle_emitter_1",
+            relationshipType: "attracts"
+          }
+        ],
+        controlParameters: ["random_seed", "recursion_depth"],
+        fallbackBlueprint: {
+          architecture: "radial_pattern_blueprint",
+          moduleKinds: ["seed_system", "symmetry_transform"]
+        },
+        hitlQuestions: ["Which gesture should control the generative structure?"]
+      },
+      generative_structure_available: true
     });
   });
 

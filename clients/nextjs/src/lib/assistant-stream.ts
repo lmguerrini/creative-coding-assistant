@@ -55,6 +55,21 @@ import {
   type CreativeTradeoffSeverity,
   type CreativeTradeoffSummary,
   type CreativeTranslationSummary,
+  type GenerativeArchitecture,
+  type GenerativeEvolutionPhase,
+  type GenerativeEvolutionRuleSummary,
+  type GenerativeEvolutionTrigger,
+  type GenerativeFallbackBlueprintSummary,
+  type GenerativeHookType,
+  type GenerativeModuleKind,
+  type GenerativeModuleRelationshipSummary,
+  type GenerativeModuleSummary,
+  type GenerativeParameterRole,
+  type GenerativeParameterSummary,
+  type GenerativeParameterValueType,
+  type GenerativeRelationshipType,
+  type GenerativeStructureBlueprintSummary,
+  type GenerativeStructureHookSummary,
   type RefinementPassRecord,
   type RuntimeCapabilityCandidateSummary,
   type RuntimeCapabilityComplexity,
@@ -164,6 +179,8 @@ export type AssistantStreamWorkflowMetadata = {
   creative_composition_available?: boolean;
   procedural_structure?: ProceduralStructurePlanSummary | null;
   procedural_structure_available?: boolean;
+  generative_structure?: GenerativeStructureBlueprintSummary | null;
+  generative_structure_available?: boolean;
   creative_director?: CreativeAssistantDirectorSummary | null;
   director_available?: boolean;
   creative_reasoning?: CreativeReasoningSummary | null;
@@ -637,6 +654,12 @@ export function readWorkflowMetadata(
   const proceduralStructureAvailable =
     rawWorkflow.procedural_structure_available === true ||
     proceduralStructure !== null;
+  const generativeStructure = readGenerativeStructureBlueprintSummary(
+    rawWorkflow.generative_structure ?? rawWorkflow.generativeStructure
+  );
+  const generativeStructureAvailable =
+    rawWorkflow.generative_structure_available === true ||
+    generativeStructure !== null;
   const creativeDirector = readCreativeAssistantDirectorSummary(
     rawWorkflow.creative_director ?? rawWorkflow.creativeDirector
   );
@@ -756,6 +779,12 @@ export function readWorkflowMetadata(
       ? {
           procedural_structure: proceduralStructure,
           procedural_structure_available: true
+        }
+      : {}),
+    ...(generativeStructureAvailable
+      ? {
+          generative_structure: generativeStructure,
+          generative_structure_available: true
         }
       : {}),
     ...(directorAvailable
@@ -2489,6 +2518,550 @@ function readProceduralStructureChoiceSummary(
   };
 }
 
+export function readGenerativeStructureBlueprintSummary(
+  value: unknown
+): GenerativeStructureBlueprintSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const blueprintName =
+    readStringField(value, "blueprint_name") ??
+    readStringField(value, "blueprintName");
+  const generativeArchitecture = readStringUnion(
+    value,
+    "generative_architecture",
+    "generativeArchitecture",
+    generativeArchitectures
+  );
+  const proceduralModules = readGenerativeModuleSummaryList(
+    value.procedural_modules ?? value.proceduralModules
+  );
+  const moduleRelationships = readGenerativeModuleRelationshipSummaryList(
+    value.module_relationships ?? value.moduleRelationships
+  );
+  const parameterSchema = readGenerativeParameterSummaryList(
+    value.parameter_schema ?? value.parameterSchema
+  );
+  const controlParameters = readStringListField(
+    value,
+    "control_parameters",
+    "controlParameters"
+  );
+  const evolutionRules = readGenerativeEvolutionRuleSummaryList(
+    value.evolution_rules ?? value.evolutionRules
+  );
+  const spatialEvolution =
+    readStringField(value, "spatial_evolution") ??
+    readStringField(value, "spatialEvolution");
+  const temporalEvolution =
+    readStringField(value, "temporal_evolution") ??
+    readStringField(value, "temporalEvolution");
+  const runtimeImplementationGuidance = readStringListField(
+    value,
+    "runtime_implementation_guidance",
+    "runtimeImplementationGuidance"
+  );
+  const performanceSafeguards = readStringListField(
+    value,
+    "performance_safeguards",
+    "performanceSafeguards"
+  );
+  const fallbackBlueprint = readGenerativeFallbackBlueprintSummary(
+    value.fallback_blueprint ?? value.fallbackBlueprint
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "generative_structure_engine" ||
+    !blueprintName ||
+    !generativeArchitecture ||
+    proceduralModules.length === 0 ||
+    moduleRelationships.length === 0 ||
+    parameterSchema.length === 0 ||
+    controlParameters.length === 0 ||
+    evolutionRules.length === 0 ||
+    !spatialEvolution ||
+    !temporalEvolution ||
+    runtimeImplementationGuidance.length === 0 ||
+    performanceSafeguards.length === 0 ||
+    !fallbackBlueprint ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    blueprintName,
+    generativeArchitecture,
+    proceduralModules,
+    moduleRelationships,
+    parameterSchema,
+    controlParameters,
+    evolutionRules,
+    spatialEvolution,
+    temporalEvolution,
+    interactionHooks: readGenerativeStructureHookSummaryList(
+      value.interaction_hooks ?? value.interactionHooks
+    ),
+    audiovisualHooks: readGenerativeStructureHookSummaryList(
+      value.audiovisual_hooks ?? value.audiovisualHooks
+    ),
+    runtimeImplementationGuidance,
+    performanceSafeguards,
+    fallbackBlueprint,
+    unresolvedImplementationGaps: readStringListField(
+      value,
+      "unresolved_implementation_gaps",
+      "unresolvedImplementationGaps"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const generativeArchitectures = [
+  "recursive_modular_blueprint",
+  "agent_field_blueprint",
+  "grid_state_blueprint",
+  "radial_pattern_blueprint",
+  "network_relation_blueprint",
+  "wave_modulation_blueprint",
+  "minimal_parameter_blueprint"
+] as const satisfies readonly GenerativeArchitecture[];
+
+const generativeModuleKinds = [
+  "seed_system",
+  "recursive_module",
+  "particle_emitter",
+  "force_field",
+  "attractor_field",
+  "noise_modulation_layer",
+  "symmetry_transform",
+  "tiling_layer",
+  "graph_network_layer",
+  "cellular_grid_layer",
+  "wave_oscillator",
+  "geometry_reassembly_layer",
+  "color_modulation_layer",
+  "audio_reactive_modulation_layer",
+  "camera_motion_path_hook"
+] as const satisfies readonly GenerativeModuleKind[];
+
+const generativeRelationshipTypes = [
+  "feeds",
+  "modulates",
+  "constrains",
+  "emits",
+  "attracts",
+  "mirrors",
+  "samples",
+  "reassembles",
+  "times",
+  "fallback_for"
+] as const satisfies readonly GenerativeRelationshipType[];
+
+const generativeParameterValueTypes = [
+  "integer",
+  "float",
+  "boolean",
+  "vector",
+  "color",
+  "enum"
+] as const satisfies readonly GenerativeParameterValueType[];
+
+const generativeParameterRoles = [
+  "control",
+  "derived",
+  "constraint"
+] as const satisfies readonly GenerativeParameterRole[];
+
+const generativeEvolutionPhases = [
+  "seed",
+  "growth",
+  "fragmentation",
+  "threshold",
+  "reassembly",
+  "stabilization",
+  "loop"
+] as const satisfies readonly GenerativeEvolutionPhase[];
+
+const generativeEvolutionTriggers = [
+  "time",
+  "interaction",
+  "audio",
+  "parameter",
+  "narrative_phase"
+] as const satisfies readonly GenerativeEvolutionTrigger[];
+
+const generativeHookTypes = [
+  "interaction",
+  "audiovisual"
+] as const satisfies readonly GenerativeHookType[];
+
+function readGenerativeModuleSummaryList(
+  value: unknown
+): GenerativeModuleSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    const parsed = readGenerativeModuleSummary(item);
+    return parsed ? [parsed] : [];
+  });
+}
+
+function readGenerativeModuleSummary(
+  value: unknown
+): GenerativeModuleSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const moduleId =
+    readStringField(value, "module_id") ?? readStringField(value, "moduleId");
+  const kind = readStringUnion(value, "kind", "kind", generativeModuleKinds);
+  const label = readStringField(value, "label");
+  const sourceFamily = readStringUnion(
+    value,
+    "source_family",
+    "sourceFamily",
+    proceduralFamilies
+  );
+  const purpose = readStringField(value, "purpose");
+  const outputs = readStringListField(value, "outputs", "outputs");
+  const evolutionRole =
+    readStringField(value, "evolution_role") ??
+    readStringField(value, "evolutionRole");
+  const implementationNotes = readStringListField(
+    value,
+    "implementation_notes",
+    "implementationNotes"
+  );
+
+  if (
+    !moduleId ||
+    !kind ||
+    !label ||
+    !purpose ||
+    outputs.length === 0 ||
+    !evolutionRole ||
+    implementationNotes.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    moduleId,
+    kind,
+    label,
+    sourceFamily,
+    purpose,
+    inputs: readStringListField(value, "inputs", "inputs"),
+    outputs,
+    parameters: readStringListField(value, "parameters", "parameters"),
+    evolutionRole,
+    implementationNotes,
+    safeguards: readStringListField(value, "safeguards", "safeguards"),
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+function readGenerativeModuleRelationshipSummaryList(
+  value: unknown
+): GenerativeModuleRelationshipSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const sourceModuleId =
+      readStringField(item, "source_module_id") ??
+      readStringField(item, "sourceModuleId");
+    const targetModuleId =
+      readStringField(item, "target_module_id") ??
+      readStringField(item, "targetModuleId");
+    const relationshipType = readStringUnion(
+      item,
+      "relationship_type",
+      "relationshipType",
+      generativeRelationshipTypes
+    );
+    const description = readStringField(item, "description");
+
+    if (!sourceModuleId || !targetModuleId || !relationshipType || !description) {
+      return [];
+    }
+
+    return [
+      {
+        sourceModuleId,
+        targetModuleId,
+        relationshipType,
+        description,
+        parameters: readStringListField(item, "parameters", "parameters"),
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readGenerativeParameterSummaryList(
+  value: unknown
+): GenerativeParameterSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const name = readStringField(item, "name");
+    const label = readStringField(item, "label");
+    const valueType = readStringUnion(
+      item,
+      "value_type",
+      "valueType",
+      generativeParameterValueTypes
+    );
+    const role = readStringUnion(
+      item,
+      "role",
+      "role",
+      generativeParameterRoles
+    );
+    const defaultValue =
+      readStringField(item, "default_value") ??
+      readStringField(item, "defaultValue");
+    const targetModules = readStringListField(
+      item,
+      "target_modules",
+      "targetModules"
+    );
+    const rationale = readStringField(item, "rationale");
+
+    if (
+      !name ||
+      !label ||
+      !valueType ||
+      !role ||
+      !defaultValue ||
+      targetModules.length === 0 ||
+      !rationale
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        name,
+        label,
+        valueType,
+        role,
+        defaultValue,
+        bounds: readStringField(item, "bounds"),
+        controlledBy:
+          readStringField(item, "controlled_by") ??
+          readStringField(item, "controlledBy"),
+        targetModules,
+        rationale
+      }
+    ];
+  });
+}
+
+function readGenerativeEvolutionRuleSummaryList(
+  value: unknown
+): GenerativeEvolutionRuleSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const phase = readStringUnion(
+      item,
+      "phase",
+      "phase",
+      generativeEvolutionPhases
+    );
+    const trigger = readStringUnion(
+      item,
+      "trigger",
+      "trigger",
+      generativeEvolutionTriggers
+    );
+    const rule = readStringField(item, "rule");
+    const affectedModules = readStringListField(
+      item,
+      "affected_modules",
+      "affectedModules"
+    );
+
+    if (!phase || !trigger || !rule || affectedModules.length === 0) {
+      return [];
+    }
+
+    return [
+      {
+        phase,
+        trigger,
+        rule,
+        affectedModules,
+        parameterChanges: readStringListField(
+          item,
+          "parameter_changes",
+          "parameterChanges"
+        ),
+        safeguards: readStringListField(item, "safeguards", "safeguards")
+      }
+    ];
+  });
+}
+
+function readGenerativeStructureHookSummaryList(
+  value: unknown
+): GenerativeStructureHookSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const hookId =
+      readStringField(item, "hook_id") ?? readStringField(item, "hookId");
+    const hookType = readStringUnion(
+      item,
+      "hook_type",
+      "hookType",
+      generativeHookTypes
+    );
+    const signal = readStringField(item, "signal");
+    const targetModules = readStringListField(
+      item,
+      "target_modules",
+      "targetModules"
+    );
+    const parameterMapping = readStringListField(
+      item,
+      "parameter_mapping",
+      "parameterMapping"
+    );
+    const fallbackBehavior =
+      readStringField(item, "fallback_behavior") ??
+      readStringField(item, "fallbackBehavior");
+
+    if (
+      !hookId ||
+      !hookType ||
+      !signal ||
+      targetModules.length === 0 ||
+      parameterMapping.length === 0 ||
+      !fallbackBehavior
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        hookId,
+        hookType,
+        signal,
+        targetModules,
+        parameterMapping,
+        fallbackBehavior
+      }
+    ];
+  });
+}
+
+function readGenerativeFallbackBlueprintSummary(
+  value: unknown
+): GenerativeFallbackBlueprintSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const name = readStringField(value, "name");
+  const architecture = readStringUnion(
+    value,
+    "architecture",
+    "architecture",
+    generativeArchitectures
+  );
+  const moduleKinds = readGenerativeModuleKindList(
+    value.module_kinds ?? value.moduleKinds
+  );
+  const parameterReductions = readStringListField(
+    value,
+    "parameter_reductions",
+    "parameterReductions"
+  );
+  const reason = readStringField(value, "reason");
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+
+  if (
+    !name ||
+    !architecture ||
+    moduleKinds.length === 0 ||
+    parameterReductions.length === 0 ||
+    !reason ||
+    promptGuidance.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    name,
+    architecture,
+    moduleKinds,
+    parameterReductions,
+    reason,
+    promptGuidance
+  };
+}
+
+function readGenerativeModuleKindList(value: unknown): GenerativeModuleKind[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (item): item is GenerativeModuleKind =>
+      typeof item === "string" &&
+      generativeModuleKinds.includes(item as GenerativeModuleKind)
+  );
+}
+
 export function readCreativeReasoningSummary(
   value: unknown
 ): CreativeReasoningSummary | null {
@@ -2593,6 +3166,7 @@ const creativeReasoningEvidenceSources = [
   "symbolic_narrative",
   "creative_composition",
   "procedural_structure",
+  "generative_structure",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 
