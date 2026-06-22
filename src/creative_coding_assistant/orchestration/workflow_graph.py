@@ -80,6 +80,9 @@ from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     derive_runtime_capability_profile,
 )
+from creative_coding_assistant.orchestration.symbolic_narrative import (
+    derive_symbolic_narrative_plan,
+)
 from creative_coding_assistant.orchestration.workflow import (
     AssistantWorkflowState,
     WorkflowFailureInfo,
@@ -670,6 +673,21 @@ def _planning_node(
             runtime_capabilities=runtime_capabilities,
             creative_tradeoffs=tradeoffs,
         )
+        symbolic_narrative = derive_symbolic_narrative_plan(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_translation=prompt_input.creative_translation,
+            creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
+            creative_plan=plan,
+            creative_constraints=constraints,
+            creative_constraint_priorities=constraint_priorities,
+            creative_strategy=strategy,
+            creative_techniques=techniques,
+            runtime_capabilities=runtime_capabilities,
+            creative_tradeoffs=tradeoffs,
+            creative_quality_prediction=quality_prediction,
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -682,6 +700,7 @@ def _planning_node(
                 "runtime_capabilities": runtime_capabilities,
                 "creative_tradeoffs": tradeoffs,
                 "creative_quality_prediction": quality_prediction,
+                "symbolic_narrative": symbolic_narrative,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -696,6 +715,7 @@ def _planning_node(
                 "runtime_capabilities": runtime_capabilities,
                 "creative_tradeoffs": tradeoffs,
                 "creative_quality_prediction": quality_prediction,
+                "symbolic_narrative": symbolic_narrative,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -717,6 +737,7 @@ def _planning_node(
                 creative_quality_prediction=quality_prediction.model_dump(
                     mode="json"
                 ),
+                symbolic_narrative=symbolic_narrative.model_dump(mode="json"),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -1486,6 +1507,14 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "symbolic_narrative",
+                    (
+                        final_state.symbolic_narrative.model_dump(mode="json")
+                        if final_state.symbolic_narrative is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_director",
                     (
                         final_state.creative_director.model_dump(mode="json")
@@ -2072,6 +2101,7 @@ def _derive_director_brief(
         runtime_capabilities=workflow_state.runtime_capabilities,
         creative_tradeoffs=workflow_state.creative_tradeoffs,
         creative_quality_prediction=workflow_state.creative_quality_prediction,
+        symbolic_narrative=workflow_state.symbolic_narrative,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2105,6 +2135,7 @@ def _derive_reasoning_result(
         runtime_capabilities=workflow_state.runtime_capabilities,
         creative_tradeoffs=workflow_state.creative_tradeoffs,
         creative_quality_prediction=workflow_state.creative_quality_prediction,
+        symbolic_narrative=workflow_state.symbolic_narrative,
     )
 
 
@@ -2328,6 +2359,7 @@ def _serialize_workflow_runtime(
     runtime_capabilities = workflow_state.runtime_capabilities
     creative_tradeoffs = workflow_state.creative_tradeoffs
     creative_quality_prediction = workflow_state.creative_quality_prediction
+    symbolic_narrative = workflow_state.symbolic_narrative
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -2433,6 +2465,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "quality_predictor_available": creative_quality_prediction is not None,
+        "symbolic_narrative": (
+            symbolic_narrative.model_dump(mode="json")
+            if symbolic_narrative is not None
+            else None
+        ),
+        "symbolic_narrative_available": symbolic_narrative is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None

@@ -73,6 +73,9 @@ from creative_coding_assistant.orchestration.routing import (
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
 )
+from creative_coding_assistant.orchestration.symbolic_narrative import (
+    SymbolicNarrativePlan,
+)
 from creative_coding_assistant.rag.retrieval.domain_intent import (
     detect_explicit_query_domains,
 )
@@ -309,6 +312,7 @@ class PromptInputResponse(BaseModel):
     runtime_capabilities: RuntimeCapabilityProfile | None = None
     creative_tradeoffs: CreativeTradeoffProfile | None = None
     creative_quality_prediction: CreativeQualityPrediction | None = None
+    symbolic_narrative: SymbolicNarrativePlan | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None

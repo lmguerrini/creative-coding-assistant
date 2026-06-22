@@ -37,6 +37,9 @@ from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityCandidate,
     RuntimeCapabilityProfile,
 )
+from creative_coding_assistant.orchestration.symbolic_narrative import (
+    SymbolicNarrativePlan,
+)
 
 
 def build_recommended_direction(
@@ -52,6 +55,7 @@ def build_recommended_direction(
     creative_tradeoffs: CreativeTradeoffProfile | None,
     creative_constraint_priorities: CreativeConstraintPrioritization | None,
     creative_quality_prediction: CreativeQualityPrediction | None,
+    symbolic_narrative: SymbolicNarrativePlan | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -68,6 +72,7 @@ def build_recommended_direction(
         f"{_technique_label(creative_techniques)} because it protects "
         f"'{_clip(intent, 70)}'. Prioritize "
         f"{_clip(_hierarchy_label(creative_hierarchy), 70)}. "
+        f"Shape symbolic arc: {_clip(_narrative_label(symbolic_narrative), 90)}. "
         f"Protect constraints: "
         f"{_clip(_constraint_priority_label(creative_constraint_priorities), 70)}. "
         f"Fit the output goal: {_clip(output_goal, 90)} "
@@ -92,6 +97,7 @@ def build_reasoning_path(
     creative_tradeoffs: CreativeTradeoffProfile | None,
     creative_constraint_priorities: CreativeConstraintPrioritization | None,
     creative_quality_prediction: CreativeQualityPrediction | None,
+    symbolic_narrative: SymbolicNarrativePlan | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -99,21 +105,24 @@ def build_reasoning_path(
         CreativeReasoningStep(
             stage="strategy",
             claim=f"Use {strategy} as the conceptual spine.",
-            because=(
-                _strategy_reason(
-                    creative_strategy,
-                    creative_intent,
-                    creative_hierarchy,
-                )
-                if creative_strategy is not None
-                else "No strategy profile is available, so user intent leads."
+            because=_clip(
+                (
+                    _strategy_reason(
+                        creative_strategy,
+                        creative_intent,
+                        creative_hierarchy,
+                    )
+                    if creative_strategy is not None
+                    else "No strategy profile is available, so user intent leads."
+                ),
+                360,
             ),
             implications=("Keep one visible creative idea in focus.",),
         ),
         CreativeReasoningStep(
             stage="technique",
             claim=f"Translate that strategy through {technique}.",
-            because=_technique_reason(creative_techniques, strategy),
+            because=_clip(_technique_reason(creative_techniques, strategy), 360),
             implications=("Technique choices should serve the strategy.",),
         ),
         CreativeReasoningStep(
@@ -122,7 +131,7 @@ def build_reasoning_path(
                 "Shape implementation around inspected capability: "
                 f"{_runtime_label(runtime_capabilities, creative_plan)}."
             ),
-            because=_runtime_reason(runtime_capabilities, creative_plan),
+            because=_clip(_runtime_reason(runtime_capabilities, creative_plan), 360),
             implications=("Runtime guidance remains non-binding.",),
         ),
         CreativeReasoningStep(
@@ -131,9 +140,12 @@ def build_reasoning_path(
                 "Manage the main consequence: "
                 f"{_tradeoff_summary(creative_tradeoffs)}"
             ),
-            because=_tradeoff_reason(
-                creative_tradeoffs,
-                creative_constraint_priorities,
+            because=_clip(
+                _tradeoff_reason(
+                    creative_tradeoffs,
+                    creative_constraint_priorities,
+                ),
+                360,
             ),
             implications=(
                 "Prefer bounded implementation over feature growth.",
@@ -145,7 +157,8 @@ def build_reasoning_path(
             claim=direction,
             because=(
                 "Strategy, technique, runtime capability, and trade-off "
-                "signals converge on the same bounded direction, with "
+                "signals converge on the same bounded direction, shaped by "
+                f"{_narrative_label(symbolic_narrative)}, with "
                 f"{_quality_label(creative_quality_prediction)}."
             ),
             implications=("Use this as the prompt spine before generation.",),
@@ -229,6 +242,12 @@ def _quality_label(profile: CreativeQualityPrediction | None) -> str:
         f"{profile.predicted_quality_level} "
         f"({profile.readiness_score}/100 readiness)"
     )
+
+
+def _narrative_label(profile: SymbolicNarrativePlan | None) -> str:
+    if profile is None:
+        return "no symbolic narrative plan"
+    return f"{profile.narrative_archetype} arc"
 
 
 def _technique_reason(

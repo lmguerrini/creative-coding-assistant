@@ -48,6 +48,9 @@ from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
 )
+from creative_coding_assistant.orchestration.symbolic_narrative import (
+    SymbolicNarrativePlan,
+)
 from creative_coding_assistant.orchestration.workflow_review import WorkflowReviewResult
 
 AmbiguityLevel = Literal["low", "medium", "high"]
@@ -97,6 +100,7 @@ def derive_creative_assistant_director_brief(
     runtime_capabilities: RuntimeCapabilityProfile | None = None,
     creative_tradeoffs: CreativeTradeoffProfile | None = None,
     creative_quality_prediction: CreativeQualityPrediction | None = None,
+    symbolic_narrative: SymbolicNarrativePlan | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -120,6 +124,7 @@ def derive_creative_assistant_director_brief(
             runtime_capabilities=runtime_capabilities,
             creative_tradeoffs=creative_tradeoffs,
             creative_quality_prediction=creative_quality_prediction,
+            symbolic_narrative=symbolic_narrative,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

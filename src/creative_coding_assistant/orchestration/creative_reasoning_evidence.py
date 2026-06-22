@@ -46,6 +46,9 @@ from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
 )
+from creative_coding_assistant.orchestration.symbolic_narrative import (
+    SymbolicNarrativePlan,
+)
 
 
 def build_evidence_chain(
@@ -64,6 +67,7 @@ def build_evidence_chain(
     runtime_capabilities: RuntimeCapabilityProfile | None,
     creative_tradeoffs: CreativeTradeoffProfile | None,
     creative_quality_prediction: CreativeQualityPrediction | None,
+    symbolic_narrative: SymbolicNarrativePlan | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -174,6 +178,23 @@ def build_evidence_chain(
                 ),
             )
         )
+    if symbolic_narrative is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="symbolic_narrative",
+                signal=_clip(
+                    (
+                        f"{symbolic_narrative.narrative_archetype}: "
+                        f"{symbolic_narrative.symbolic_arc}"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Symbolic narrative evidence orders the experiential arc "
+                    "without claiming doctrine or changing execution."
+                ),
+            )
+        )
     if creative_director is not None:
         evidence.append(
             CreativeReasoningEvidence(
@@ -182,7 +203,7 @@ def build_evidence_chain(
                 interpretation="Director guidance frames brief and HITL posture.",
             )
         )
-    return tuple(evidence[:14])
+    return tuple(evidence[:16])
 
 
 def _append_strategy_evidence(

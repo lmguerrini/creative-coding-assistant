@@ -77,6 +77,10 @@ from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
     runtime_capability_prompt_lines,
 )
+from creative_coding_assistant.orchestration.symbolic_narrative import (
+    SymbolicNarrativePlan,
+    symbolic_narrative_prompt_lines,
+)
 
 _SYSTEM_TEMPLATE = """
 Route: {{ route.value }}
@@ -201,6 +205,13 @@ Creative Trade-off Explorer:
 {% if quality_prediction is not none -%}
 Creative Quality Predictor:
 {% for instruction in creative_quality_prediction_lines(quality_prediction) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set symbolic_narrative = prompt_input.symbolic_narrative -%}
+{% if symbolic_narrative is not none -%}
+Symbolic Narrative Planner:
+{% for instruction in symbolic_narrative_lines(symbolic_narrative) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -449,6 +460,7 @@ class JinjaPromptRenderer:
             runtime_capability_lines=_runtime_capability_lines,
             creative_tradeoff_lines=_creative_tradeoff_lines,
             creative_quality_prediction_lines=_creative_quality_prediction_lines,
+            symbolic_narrative_lines=_symbolic_narrative_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -673,6 +685,12 @@ def _creative_quality_prediction_lines(
     prediction: CreativeQualityPrediction,
 ) -> tuple[str, ...]:
     return creative_quality_prediction_prompt_lines(prediction)
+
+
+def _symbolic_narrative_lines(
+    plan: SymbolicNarrativePlan,
+) -> tuple[str, ...]:
+    return symbolic_narrative_prompt_lines(plan)
 
 
 def _creative_assistant_director_lines(

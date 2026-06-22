@@ -240,6 +240,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         runtime_capabilities = planning_event.payload["runtime_capabilities"]
         tradeoffs = planning_event.payload["creative_tradeoffs"]
         quality_prediction = planning_event.payload["creative_quality_prediction"]
+        symbolic_narrative = planning_event.payload["symbolic_narrative"]
         director = director_event.payload["creative_director"]
         reasoning = reasoning_event.payload["creative_reasoning"]
 
@@ -299,6 +300,14 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertTrue(
             planning_event.payload["workflow"]["quality_predictor_available"]
         )
+        self.assertEqual(
+            symbolic_narrative["role"],
+            "symbolic_narrative_planner",
+        )
+        self.assertTrue(symbolic_narrative["symbolic_transitions"])
+        self.assertTrue(
+            planning_event.payload["workflow"]["symbolic_narrative_available"]
+        )
         self.assertEqual(director["role"], "creative_assistant_director")
         self.assertEqual(director["runtime_direction"], "p5")
         self.assertEqual(reasoning["role"], "creative_reasoning_engine")
@@ -348,6 +357,10 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(
             final_event.payload["creative_quality_prediction"]["role"],
             "creative_quality_predictor",
+        )
+        self.assertEqual(
+            final_event.payload["symbolic_narrative"]["role"],
+            "symbolic_narrative_planner",
         )
         self.assertEqual(
             final_event.payload["creative_director"]["runtime_direction"],
