@@ -11,6 +11,7 @@ import {
   readCreativeStrategySummary,
   readCreativeTechniqueSummary,
   readCreativeTradeoffExplorerSummary,
+  readSymbolicNarrativePlanSummary,
   readEventTimestamp,
   readPreviewArtifactUpdate,
   readRuntimeCapabilityReasonerSummary,
@@ -20,6 +21,93 @@ import {
   workflowNodeFromAssistantStreamEvent,
   type AssistantStreamEvent
 } from "./assistant-stream";
+
+function symbolicNarrativeFixture() {
+  return {
+    role: "symbolic_narrative_planner",
+    narrative_archetype: "threshold_crossing",
+    symbolic_arc:
+      "Move from invitation through boundary crossing into integrated form.",
+    opening_phase: symbolicNarrativePhaseFixture(
+      "opening",
+      "Invitation",
+      "Present the symbolic gate.",
+      "anticipation",
+      "threshold frame",
+      "slow approach"
+    ),
+    development_phase: symbolicNarrativePhaseFixture(
+      "development",
+      "Pressure",
+      "Complicate the motif.",
+      "tension",
+      "veiled geometry",
+      "testing oscillation"
+    ),
+    threshold_phase: symbolicNarrativePhaseFixture(
+      "threshold",
+      "Crossing",
+      "Mark the liminal boundary.",
+      "focus",
+      "gate line",
+      "single decisive pass"
+    ),
+    climax_phase: symbolicNarrativePhaseFixture(
+      "climax",
+      "Revelation",
+      "Reveal the reorganized order.",
+      "wonder",
+      "bright geometry",
+      "expansion from center"
+    ),
+    resolution_phase: symbolicNarrativePhaseFixture(
+      "resolution",
+      "Integration",
+      "Stabilize the revealed order.",
+      "settled meaning",
+      "balanced field",
+      "slow cycle"
+    ),
+    symbolic_transitions: [
+      "Invitation -> Pressure: Complicate the motif.",
+      "Pressure -> Crossing: Mark the liminal boundary."
+    ],
+    emotional_progression: ["opening: anticipation", "climax: wonder"],
+    visual_progression: ["opening: threshold frame", "climax: bright geometry"],
+    motion_progression: ["opening: slow approach", "climax: expansion"],
+    audio_progression: ["opening: low tone", "resolution: soft cadence"],
+    experiential_goal: "Guide the audience through a threshold crossing.",
+    unresolved_narrative_gaps: ["Interaction state is ambiguous."],
+    hitl_questions: ["What narrative state should interaction change?"],
+    prompt_guidance: [
+      "Use the symbolic narrative as an ordering spine, not as doctrine."
+    ],
+    authority_boundary:
+      "The Symbolic Narrative Planner structures a symbolic artwork journey.",
+    evidence: ["Narrative archetype: threshold_crossing."]
+  };
+}
+
+function symbolicNarrativePhaseFixture(
+  phase: string,
+  title: string,
+  symbolicFunction: string,
+  emotionalState: string,
+  visualState: string,
+  motionState: string
+) {
+  return {
+    phase,
+    title,
+    symbolic_function: symbolicFunction,
+    emotional_state: emotionalState,
+    visual_state: visualState,
+    motion_state: motionState,
+    audio_state: "supporting tone",
+    guidance: [`Make the ${phase} phase visible.`],
+    evidence: ["threshold"]
+  };
+}
 
 describe("assistant stream client", () => {
   it("parses backend NDJSON lines into typed events", () => {
@@ -1637,6 +1725,23 @@ describe("assistant stream client", () => {
     );
   });
 
+  it("reads symbolic narrative planner metadata", () => {
+    const profile = readSymbolicNarrativePlanSummary(symbolicNarrativeFixture());
+
+    expect(profile?.role).toBe("symbolic_narrative_planner");
+    expect(profile?.narrativeArchetype).toBe("threshold_crossing");
+    expect(profile?.openingPhase.title).toBe("Invitation");
+    expect(profile?.thresholdPhase.symbolicFunction).toBe(
+      "Mark the liminal boundary."
+    );
+    expect(profile?.symbolicTransitions).toContain(
+      "Invitation -> Pressure: Complicate the motif."
+    );
+    expect(profile?.hitlQuestions).toContain(
+      "What narrative state should interaction change?"
+    );
+  });
+
   it("reads creative reasoning engine metadata", () => {
     const profile = readCreativeReasoningSummary({
       role: "creative_reasoning_engine",
@@ -1697,6 +1802,11 @@ describe("assistant stream client", () => {
           signal: "promising readiness 78/100.",
           interpretation:
             "Quality prediction estimates pre-generation readiness."
+        },
+        {
+          source: "symbolic_narrative",
+          signal: "threshold_crossing arc.",
+          interpretation: "Narrative evidence orders the experiential arc."
         }
       ],
       strongestSupportingSignals: ["Strategy sacred_geometry confidence 0.83."],
@@ -1732,6 +1842,9 @@ describe("assistant stream client", () => {
     expect(profile?.evidenceChain[0]?.source).toBe("creative_strategy");
     expect(profile?.evidenceChain.map((item) => item.source)).toContain(
       "quality_predictor"
+    );
+    expect(profile?.evidenceChain.map((item) => item.source)).toContain(
+      "symbolic_narrative"
     );
     expect(profile?.futureKnowledgeContext.status).toBe("not_attached");
   });
@@ -1893,6 +2006,56 @@ describe("assistant stream client", () => {
         evidence: ["Readiness score: 57/100."]
       },
       quality_predictor_available: true
+    });
+  });
+
+  it("hydrates symbolic narrative workflow metadata", () => {
+    const symbolicNarrative = symbolicNarrativeFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 8,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          symbolic_narrative: symbolicNarrative,
+          symbolic_narrative_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      symbolic_narrative: {
+        role: "symbolic_narrative_planner",
+        narrativeArchetype: "threshold_crossing",
+        openingPhase: {
+          phase: "opening",
+          title: "Invitation",
+          symbolicFunction: "Present the symbolic gate."
+        },
+        climaxPhase: {
+          phase: "climax",
+          title: "Revelation",
+          visualState: "bright geometry"
+        },
+        unresolvedNarrativeGaps: ["Interaction state is ambiguous."],
+        hitlQuestions: ["What narrative state should interaction change?"]
+      },
+      symbolic_narrative_available: true
     });
   });
 

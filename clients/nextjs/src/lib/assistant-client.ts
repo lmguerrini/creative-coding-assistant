@@ -436,6 +436,62 @@ export type CreativeQualityPredictionSummary = {
   evidence: string[];
 };
 
+export type SymbolicNarrativeArchetype =
+  | "descent_and_return"
+  | "death_and_rebirth"
+  | "emergence_from_chaos"
+  | "initiation"
+  | "ascent"
+  | "dissolution_and_reintegration"
+  | "expansion_from_seed_to_cosmos"
+  | "fragmentation_and_recomposition"
+  | "threshold_crossing"
+  | "spiral_transformation"
+  | "mirror_reflection_journey"
+  | "dark_to_light_transformation"
+  | "symbolic_vignette";
+
+export type SymbolicNarrativePhaseName =
+  | "opening"
+  | "development"
+  | "threshold"
+  | "climax"
+  | "resolution";
+
+export type SymbolicNarrativePhaseSummary = {
+  phase: SymbolicNarrativePhaseName;
+  title: string;
+  symbolicFunction: string;
+  emotionalState: string;
+  visualState: string;
+  motionState: string;
+  audioState: string | null;
+  guidance: string[];
+  evidence: string[];
+};
+
+export type SymbolicNarrativePlanSummary = {
+  role: "symbolic_narrative_planner";
+  narrativeArchetype: SymbolicNarrativeArchetype;
+  symbolicArc: string;
+  openingPhase: SymbolicNarrativePhaseSummary;
+  developmentPhase: SymbolicNarrativePhaseSummary;
+  thresholdPhase: SymbolicNarrativePhaseSummary;
+  climaxPhase: SymbolicNarrativePhaseSummary;
+  resolutionPhase: SymbolicNarrativePhaseSummary;
+  symbolicTransitions: string[];
+  emotionalProgression: string[];
+  visualProgression: string[];
+  motionProgression: string[];
+  audioProgression: string[];
+  experientialGoal: string;
+  unresolvedNarrativeGaps: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeConstraintAxis =
   | "intent"
   | "modality"
@@ -594,6 +650,7 @@ export type CreativeReasoningEvidenceSource =
   | "runtime_capability"
   | "tradeoff_explorer"
   | "quality_predictor"
+  | "symbolic_narrative"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {

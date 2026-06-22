@@ -56,6 +56,10 @@ import {
   type RuntimeCapabilityId,
   type RuntimeCapabilityReasonerSummary,
   type RuntimePreviewSupport,
+  type SymbolicNarrativeArchetype,
+  type SymbolicNarrativePhaseName,
+  type SymbolicNarrativePhaseSummary,
+  type SymbolicNarrativePlanSummary,
   type WorkflowNodeId
 } from "./assistant-client";
 import type { AssistantRequestImageAttachment } from "./multimodal-attachments";
@@ -148,6 +152,8 @@ export type AssistantStreamWorkflowMetadata = {
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
   quality_predictor_available?: boolean;
+  symbolic_narrative?: SymbolicNarrativePlanSummary | null;
+  symbolic_narrative_available?: boolean;
   creative_director?: CreativeAssistantDirectorSummary | null;
   director_available?: boolean;
   creative_reasoning?: CreativeReasoningSummary | null;
@@ -603,6 +609,12 @@ export function readWorkflowMetadata(
   const qualityPredictorAvailable =
     rawWorkflow.quality_predictor_available === true ||
     creativeQualityPrediction !== null;
+  const symbolicNarrative = readSymbolicNarrativePlanSummary(
+    rawWorkflow.symbolic_narrative ?? rawWorkflow.symbolicNarrative
+  );
+  const symbolicNarrativeAvailable =
+    rawWorkflow.symbolic_narrative_available === true ||
+    symbolicNarrative !== null;
   const creativeDirector = readCreativeAssistantDirectorSummary(
     rawWorkflow.creative_director ?? rawWorkflow.creativeDirector
   );
@@ -704,6 +716,12 @@ export function readWorkflowMetadata(
       ? {
           creative_quality_prediction: creativeQualityPrediction,
           quality_predictor_available: true
+        }
+      : {}),
+    ...(symbolicNarrativeAvailable
+      ? {
+          symbolic_narrative: symbolicNarrative,
+          symbolic_narrative_available: true
         }
       : {}),
     ...(directorAvailable
@@ -1923,6 +1941,198 @@ function readCreativeQualitySignalSummaryList(
   });
 }
 
+export function readSymbolicNarrativePlanSummary(
+  value: unknown
+): SymbolicNarrativePlanSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const narrativeArchetype = readStringUnion(
+    value,
+    "narrative_archetype",
+    "narrativeArchetype",
+    symbolicNarrativeArchetypes
+  );
+  const symbolicArc =
+    readStringField(value, "symbolic_arc") ??
+    readStringField(value, "symbolicArc");
+  const openingPhase = readSymbolicNarrativePhaseSummary(
+    value.opening_phase ?? value.openingPhase
+  );
+  const developmentPhase = readSymbolicNarrativePhaseSummary(
+    value.development_phase ?? value.developmentPhase
+  );
+  const thresholdPhase = readSymbolicNarrativePhaseSummary(
+    value.threshold_phase ?? value.thresholdPhase
+  );
+  const climaxPhase = readSymbolicNarrativePhaseSummary(
+    value.climax_phase ?? value.climaxPhase
+  );
+  const resolutionPhase = readSymbolicNarrativePhaseSummary(
+    value.resolution_phase ?? value.resolutionPhase
+  );
+  const symbolicTransitions = readStringListField(
+    value,
+    "symbolic_transitions",
+    "symbolicTransitions"
+  );
+  const emotionalProgression = readStringListField(
+    value,
+    "emotional_progression",
+    "emotionalProgression"
+  );
+  const visualProgression = readStringListField(
+    value,
+    "visual_progression",
+    "visualProgression"
+  );
+  const motionProgression = readStringListField(
+    value,
+    "motion_progression",
+    "motionProgression"
+  );
+  const experientialGoal =
+    readStringField(value, "experiential_goal") ??
+    readStringField(value, "experientialGoal");
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "symbolic_narrative_planner" ||
+    !narrativeArchetype ||
+    !symbolicArc ||
+    !openingPhase ||
+    !developmentPhase ||
+    !thresholdPhase ||
+    !climaxPhase ||
+    !resolutionPhase ||
+    symbolicTransitions.length === 0 ||
+    emotionalProgression.length === 0 ||
+    visualProgression.length === 0 ||
+    motionProgression.length === 0 ||
+    !experientialGoal ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    narrativeArchetype,
+    symbolicArc,
+    openingPhase,
+    developmentPhase,
+    thresholdPhase,
+    climaxPhase,
+    resolutionPhase,
+    symbolicTransitions,
+    emotionalProgression,
+    visualProgression,
+    motionProgression,
+    audioProgression: readStringListField(
+      value,
+      "audio_progression",
+      "audioProgression"
+    ),
+    experientialGoal,
+    unresolvedNarrativeGaps: readStringListField(
+      value,
+      "unresolved_narrative_gaps",
+      "unresolvedNarrativeGaps"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+function readSymbolicNarrativePhaseSummary(
+  value: unknown
+): SymbolicNarrativePhaseSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const phase = readStringUnion(
+    value,
+    "phase",
+    "phase",
+    symbolicNarrativePhaseNames
+  );
+  const title = readStringField(value, "title");
+  const symbolicFunction =
+    readStringField(value, "symbolic_function") ??
+    readStringField(value, "symbolicFunction");
+  const emotionalState =
+    readStringField(value, "emotional_state") ??
+    readStringField(value, "emotionalState");
+  const visualState =
+    readStringField(value, "visual_state") ??
+    readStringField(value, "visualState");
+  const motionState =
+    readStringField(value, "motion_state") ??
+    readStringField(value, "motionState");
+
+  if (
+    !phase ||
+    !title ||
+    !symbolicFunction ||
+    !emotionalState ||
+    !visualState ||
+    !motionState
+  ) {
+    return null;
+  }
+
+  return {
+    phase,
+    title,
+    symbolicFunction,
+    emotionalState,
+    visualState,
+    motionState,
+    audioState:
+      readStringField(value, "audio_state") ??
+      readStringField(value, "audioState"),
+    guidance: readStringListField(value, "guidance", "guidance"),
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const symbolicNarrativeArchetypes = [
+  "descent_and_return",
+  "death_and_rebirth",
+  "emergence_from_chaos",
+  "initiation",
+  "ascent",
+  "dissolution_and_reintegration",
+  "expansion_from_seed_to_cosmos",
+  "fragmentation_and_recomposition",
+  "threshold_crossing",
+  "spiral_transformation",
+  "mirror_reflection_journey",
+  "dark_to_light_transformation",
+  "symbolic_vignette"
+] as const satisfies readonly SymbolicNarrativeArchetype[];
+
+const symbolicNarrativePhaseNames = [
+  "opening",
+  "development",
+  "threshold",
+  "climax",
+  "resolution"
+] as const satisfies readonly SymbolicNarrativePhaseName[];
+
 export function readCreativeReasoningSummary(
   value: unknown
 ): CreativeReasoningSummary | null {
@@ -2024,6 +2234,7 @@ const creativeReasoningEvidenceSources = [
   "runtime_capability",
   "tradeoff_explorer",
   "quality_predictor",
+  "symbolic_narrative",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 
