@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.creative_composition import (
+    CreativeCompositionPlan,
+)
 from creative_coding_assistant.orchestration.creative_constraint_priorities import (
     CreativeConstraintPrioritization,
 )
@@ -56,6 +59,7 @@ def build_recommended_direction(
     creative_constraint_priorities: CreativeConstraintPrioritization | None,
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
+    creative_composition: CreativeCompositionPlan | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -73,6 +77,7 @@ def build_recommended_direction(
         f"'{_clip(intent, 70)}'. Prioritize "
         f"{_clip(_hierarchy_label(creative_hierarchy), 70)}. "
         f"Shape symbolic arc: {_clip(_narrative_label(symbolic_narrative), 90)}. "
+        f"Compose as {_clip(_composition_label(creative_composition), 90)}. "
         f"Protect constraints: "
         f"{_clip(_constraint_priority_label(creative_constraint_priorities), 70)}. "
         f"Fit the output goal: {_clip(output_goal, 90)} "
@@ -98,6 +103,7 @@ def build_reasoning_path(
     creative_constraint_priorities: CreativeConstraintPrioritization | None,
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
+    creative_composition: CreativeCompositionPlan | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -155,11 +161,15 @@ def build_reasoning_path(
         CreativeReasoningStep(
             stage="recommendation",
             claim=direction,
-            because=(
-                "Strategy, technique, runtime capability, and trade-off "
-                "signals converge on the same bounded direction, shaped by "
-                f"{_narrative_label(symbolic_narrative)}, with "
-                f"{_quality_label(creative_quality_prediction)}."
+            because=_clip(
+                (
+                    "Strategy, technique, runtime capability, and trade-off "
+                    "signals converge on the same bounded direction, shaped by "
+                    f"{_narrative_label(symbolic_narrative)} and "
+                    f"{_composition_label(creative_composition)}, with "
+                    f"{_quality_label(creative_quality_prediction)}."
+                ),
+                360,
             ),
             implications=("Use this as the prompt spine before generation.",),
         ),
@@ -248,6 +258,12 @@ def _narrative_label(profile: SymbolicNarrativePlan | None) -> str:
     if profile is None:
         return "no symbolic narrative plan"
     return f"{profile.narrative_archetype} arc"
+
+
+def _composition_label(profile: CreativeCompositionPlan | None) -> str:
+    if profile is None:
+        return "no composition plan"
+    return f"{profile.composition_pattern} around {profile.primary_focal_point}"
 
 
 def _technique_reason(

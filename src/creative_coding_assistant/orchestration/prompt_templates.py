@@ -12,6 +12,10 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.domains import get_domain_prompt_guidance
+from creative_coding_assistant.orchestration.creative_composition import (
+    CreativeCompositionPlan,
+    creative_composition_prompt_lines,
+)
 from creative_coding_assistant.orchestration.creative_constraint_priorities import (
     CreativeConstraintPrioritization,
     creative_constraint_priorities_prompt_lines,
@@ -212,6 +216,13 @@ Creative Quality Predictor:
 {% if symbolic_narrative is not none -%}
 Symbolic Narrative Planner:
 {% for instruction in symbolic_narrative_lines(symbolic_narrative) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set composition = prompt_input.creative_composition -%}
+{% if composition is not none -%}
+Creative Composition Planner:
+{% for instruction in creative_composition_lines(composition) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -461,6 +472,7 @@ class JinjaPromptRenderer:
             creative_tradeoff_lines=_creative_tradeoff_lines,
             creative_quality_prediction_lines=_creative_quality_prediction_lines,
             symbolic_narrative_lines=_symbolic_narrative_lines,
+            creative_composition_lines=_creative_composition_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -691,6 +703,12 @@ def _symbolic_narrative_lines(
     plan: SymbolicNarrativePlan,
 ) -> tuple[str, ...]:
     return symbolic_narrative_prompt_lines(plan)
+
+
+def _creative_composition_lines(
+    plan: CreativeCompositionPlan,
+) -> tuple[str, ...]:
+    return creative_composition_prompt_lines(plan)
 
 
 def _creative_assistant_director_lines(

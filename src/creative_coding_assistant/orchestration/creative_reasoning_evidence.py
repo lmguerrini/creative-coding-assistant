@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.creative_composition import (
+    CreativeCompositionPlan,
+)
 from creative_coding_assistant.orchestration.creative_constraint_priorities import (
     CreativeConstraintPrioritization,
 )
@@ -68,6 +71,7 @@ def build_evidence_chain(
     creative_tradeoffs: CreativeTradeoffProfile | None,
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
+    creative_composition: CreativeCompositionPlan | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -195,6 +199,23 @@ def build_evidence_chain(
                 ),
             )
         )
+    if creative_composition is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="creative_composition",
+                signal=_clip(
+                    (
+                        f"{creative_composition.composition_pattern}: "
+                        f"{creative_composition.primary_focal_point}"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Composition evidence defines focal structure, hierarchy, "
+                    "density, rhythm, and spatial organization before generation."
+                ),
+            )
+        )
     if creative_director is not None:
         evidence.append(
             CreativeReasoningEvidence(
@@ -203,7 +224,7 @@ def build_evidence_chain(
                 interpretation="Director guidance frames brief and HITL posture.",
             )
         )
-    return tuple(evidence[:16])
+    return tuple(evidence[:18])
 
 
 def _append_strategy_evidence(

@@ -7,6 +7,9 @@ from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
+from creative_coding_assistant.orchestration.creative_composition import (
+    CreativeCompositionPlan,
+)
 from creative_coding_assistant.orchestration.creative_constraint_priorities import (
     CreativeConstraintPrioritization,
 )
@@ -69,6 +72,7 @@ def build_director_brief_payload(
     creative_tradeoffs: CreativeTradeoffProfile | None,
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
+    creative_composition: CreativeCompositionPlan | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -83,6 +87,7 @@ def build_director_brief_payload(
         creative_constraint_priorities=creative_constraint_priorities,
         creative_quality_prediction=creative_quality_prediction,
         symbolic_narrative=symbolic_narrative,
+        creative_composition=creative_composition,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -112,6 +117,7 @@ def build_director_brief_payload(
             creative_tradeoffs,
             creative_quality_prediction,
             symbolic_narrative,
+            creative_composition,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -125,6 +131,7 @@ def build_director_brief_payload(
             creative_tradeoffs=creative_tradeoffs,
             creative_quality_prediction=creative_quality_prediction,
             symbolic_narrative=symbolic_narrative,
+            creative_composition=creative_composition,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -139,6 +146,7 @@ def build_director_brief_payload(
             creative_constraints=creative_constraints,
             creative_quality_prediction=creative_quality_prediction,
             symbolic_narrative=symbolic_narrative,
+            creative_composition=creative_composition,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -159,6 +167,7 @@ def build_director_brief_payload(
             creative_tradeoffs=creative_tradeoffs,
             creative_quality_prediction=creative_quality_prediction,
             symbolic_narrative=symbolic_narrative,
+            creative_composition=creative_composition,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -199,6 +208,7 @@ def _ambiguity_signals(
     creative_constraint_priorities: CreativeConstraintPrioritization | None,
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
+    creative_composition: CreativeCompositionPlan | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -228,6 +238,8 @@ def _ambiguity_signals(
         signals.extend(creative_quality_prediction.missing_information[:2])
     if symbolic_narrative is not None:
         signals.extend(symbolic_narrative.unresolved_narrative_gaps[:2])
+    if creative_composition is not None:
+        signals.extend(creative_composition.unresolved_composition_gaps[:2])
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -271,6 +283,7 @@ def _planning_focus(
     creative_tradeoffs: CreativeTradeoffProfile | None,
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
+    creative_composition: CreativeCompositionPlan | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_intent is not None:
@@ -289,6 +302,13 @@ def _planning_focus(
             f"{symbolic_narrative.symbolic_arc}"
         )
         focus.extend(symbolic_narrative.prompt_guidance[:1])
+    if creative_composition is not None:
+        focus.append(
+            "Composition pattern: "
+            f"{creative_composition.composition_pattern}; "
+            f"{creative_composition.primary_focal_point}"
+        )
+        focus.extend(creative_composition.prompt_guidance[:1])
     if creative_intent is not None:
         focus.extend(creative_intent.prompt_guidance[:2])
     if creative_hierarchy is not None:
@@ -351,6 +371,7 @@ def _critique_focus(
     creative_tradeoffs: CreativeTradeoffProfile | None,
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
+    creative_composition: CreativeCompositionPlan | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -420,6 +441,12 @@ def _critique_focus(
             f"{phase.phase} phase: {phase.title}"
             for phase in symbolic_narrative.phases[:2]
         )
+    if creative_composition is not None:
+        focus.append(
+            "Composition planner is pre-generation only; compare output "
+            "against focal structure, hierarchy, density, and rhythm."
+        )
+        focus.extend(creative_composition.composition_risks[:2])
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -466,6 +493,7 @@ def _next_actions(
     creative_constraints: CreativeConstraintSolution | None,
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
+    creative_composition: CreativeCompositionPlan | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
@@ -483,6 +511,8 @@ def _next_actions(
         return (creative_quality_prediction.hitl_questions[0],)
     if symbolic_narrative is not None and symbolic_narrative.hitl_questions:
         return (symbolic_narrative.hitl_questions[0],)
+    if creative_composition is not None and creative_composition.hitl_questions:
+        return (creative_composition.hitl_questions[0],)
     if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
@@ -515,6 +545,7 @@ def _evidence(
     creative_tradeoffs: CreativeTradeoffProfile | None,
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
+    creative_composition: CreativeCompositionPlan | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -582,6 +613,11 @@ def _evidence(
         evidence.append(
             "Symbolic narrative: "
             f"{symbolic_narrative.narrative_archetype}."
+        )
+    if creative_composition is not None:
+        evidence.append(
+            "Creative composition: "
+            f"{creative_composition.composition_pattern}."
         )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")

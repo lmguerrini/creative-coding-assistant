@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+from creative_coding_assistant.orchestration.creative_composition import (
+    CreativeCompositionPlan,
+)
 from creative_coding_assistant.orchestration.creative_constraint_priorities import (
     CreativeConstraintPrioritization,
 )
@@ -62,6 +65,7 @@ def build_strongest_signals(
     creative_tradeoffs: CreativeTradeoffProfile | None,
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
+    creative_composition: CreativeCompositionPlan | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -109,6 +113,12 @@ def build_strongest_signals(
             f"{symbolic_narrative.narrative_archetype}; "
             f"{symbolic_narrative.opening_phase.title} to "
             f"{symbolic_narrative.resolution_phase.title}."
+        )
+    if creative_composition is not None:
+        signals.append(
+            "Composition pattern: "
+            f"{creative_composition.composition_pattern}; "
+            f"{creative_composition.primary_focal_point}."
         )
     if creative_constraints is not None:
         signals.append(
@@ -195,6 +205,7 @@ def build_unresolved_decisions(
     creative_techniques: CreativeTechniqueProfile | None,
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
+    creative_composition: CreativeCompositionPlan | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -217,6 +228,9 @@ def build_unresolved_decisions(
     if symbolic_narrative is not None:
         unresolved.extend(symbolic_narrative.hitl_questions[:3])
         unresolved.extend(symbolic_narrative.unresolved_narrative_gaps[:2])
+    if creative_composition is not None:
+        unresolved.extend(creative_composition.hitl_questions[:3])
+        unresolved.extend(creative_composition.unresolved_composition_gaps[:2])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -238,6 +252,7 @@ def build_implementation_guidance(
     creative_tradeoffs: CreativeTradeoffProfile | None,
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
+    creative_composition: CreativeCompositionPlan | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -267,6 +282,11 @@ def build_implementation_guidance(
         guidance.extend(symbolic_narrative.prompt_guidance[:2])
         guidance.append(
             "Preserve the symbolic phase order from opening through resolution."
+        )
+    if creative_composition is not None:
+        guidance.extend(creative_composition.prompt_guidance[:2])
+        guidance.append(
+            "Preserve the primary focal point and visual hierarchy before effects."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

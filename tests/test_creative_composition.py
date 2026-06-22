@@ -1,0 +1,349 @@
+import unittest
+from dataclasses import dataclass
+
+from creative_coding_assistant.contracts import (
+    AssistantMode,
+    AssistantRequest,
+    CreativeCodingDomain,
+)
+from creative_coding_assistant.orchestration import (
+    JinjaPromptRenderer,
+    RouteCapability,
+    RouteDecision,
+    RouteName,
+    StructuredPromptInputBuilder,
+    build_prompt_input_request,
+    build_rendered_prompt_request,
+    creative_composition_prompt_lines,
+    derive_creative_assistant_director_brief,
+    derive_creative_composition_plan,
+    derive_creative_constraint_priorities,
+    derive_creative_constraint_solution,
+    derive_creative_execution_plan,
+    derive_creative_hierarchy_plan,
+    derive_creative_intent_decomposition,
+    derive_creative_quality_prediction,
+    derive_creative_reasoning_result,
+    derive_creative_strategy_profile,
+    derive_creative_technique_profile,
+    derive_creative_tradeoff_profile,
+    derive_runtime_capability_profile,
+    derive_symbolic_narrative_plan,
+)
+
+
+class CreativeCompositionPlannerTests(unittest.TestCase):
+    def test_derives_focal_structure_density_and_narrative_alignment(self) -> None:
+        stack = _stack(
+            "Generate a p5.js death and rebirth phoenix with fragmented "
+            "geometry, dark central void, gold sparks, slow pulse, and a "
+            "visible recomposition climax."
+        )
+        composition = stack.creative_composition
+
+        self.assertEqual(composition.role, "creative_composition_planner")
+        self.assertEqual(
+            composition.composition_pattern,
+            "fragmented_recomposition",
+        )
+        self.assertIn("focal", composition.primary_focal_point.lower())
+        self.assertTrue(composition.secondary_focal_elements)
+        self.assertTrue(composition.visual_hierarchy)
+        self.assertIn("density", composition.density_plan.lower())
+        self.assertIn("rhythm", composition.rhythm_plan.lower())
+        self.assertTrue(
+            any("narrative phase" in item for item in composition.transition_guidance),
+            composition.transition_guidance,
+        )
+        self.assertTrue(composition.audiovisual_composition_notes)
+        self.assertTrue(creative_composition_prompt_lines(composition))
+
+    def test_surfaces_ambiguous_composition_gaps_and_hitl(self) -> None:
+        stack = _stack(
+            "Make something profound and symbolic, maybe interactive or "
+            "audio-reactive, but keep it simple and cinematic."
+        )
+        composition = stack.creative_composition
+
+        self.assertEqual(
+            composition.composition_pattern,
+            "minimal_void_and_form_composition",
+        )
+        self.assertTrue(composition.unresolved_composition_gaps)
+        self.assertTrue(composition.hitl_questions)
+        self.assertTrue(composition.audiovisual_composition_notes)
+        self.assertTrue(
+            any("focal" in item.lower() for item in composition.hitl_questions),
+            composition.hitl_questions,
+        )
+
+    def test_integrates_with_prompt_director_and_reasoning_metadata(self) -> None:
+        stack = _stack(
+            "Generate a symbolic spiral threshold crossing in p5.js with "
+            "sacred geometry, slow orbiting motion, and an explicit resolution."
+        )
+        prompt_input = stack.prompt_input.model_copy(
+            update={
+                "creative_intent": stack.intent,
+                "creative_hierarchy": stack.hierarchy,
+                "creative_strategy": stack.strategy,
+                "creative_techniques": stack.techniques,
+                "creative_plan": stack.plan,
+                "creative_constraints": stack.constraints,
+                "creative_constraint_priorities": stack.prioritization,
+                "runtime_capabilities": stack.runtime_capabilities,
+                "creative_tradeoffs": stack.tradeoffs,
+                "creative_quality_prediction": stack.quality_prediction,
+                "symbolic_narrative": stack.symbolic_narrative,
+                "creative_composition": stack.creative_composition,
+                "creative_director": stack.director,
+                "creative_reasoning": stack.reasoning,
+            }
+        )
+
+        rendered = JinjaPromptRenderer().render(
+            build_rendered_prompt_request(
+                route_decision=stack.route,
+                prompt_input=prompt_input,
+            )
+        )
+        system = rendered.sections[0].content
+
+        self.assertIn("Creative Composition Planner:", system)
+        self.assertIn("Composition pattern:", system)
+        self.assertTrue(
+            any(
+                "Composition pattern:" in item
+                for item in stack.director.planning_focus
+            ),
+            stack.director.planning_focus,
+        )
+        self.assertIn(
+            "creative_composition",
+            {item.source for item in stack.reasoning.evidence_chain},
+        )
+        self.assertIn("Compose as", stack.reasoning.recommended_creative_direction)
+        self.assertNotIn("runtime auto-selection enabled", system)
+
+
+@dataclass(frozen=True)
+class _DerivedStack:
+    request: AssistantRequest
+    route: RouteDecision
+    prompt_input: object
+    intent: object
+    hierarchy: object
+    strategy: object
+    techniques: object
+    plan: object
+    constraints: object
+    runtime_capabilities: object
+    tradeoffs: object
+    prioritization: object
+    quality_prediction: object
+    symbolic_narrative: object
+    creative_composition: object
+    director: object
+    reasoning: object
+
+
+def _stack(query: str) -> _DerivedStack:
+    request = AssistantRequest(
+        query=query,
+        mode=AssistantMode.GENERATE,
+        domain=CreativeCodingDomain.P5_JS,
+    )
+    route = RouteDecision(
+        route=RouteName.GENERATE,
+        mode=AssistantMode.GENERATE,
+        domain=CreativeCodingDomain.P5_JS,
+        domains=(CreativeCodingDomain.P5_JS,),
+        capabilities=(RouteCapability.TOOL_USE,),
+    )
+    prompt_input = StructuredPromptInputBuilder().build(
+        build_prompt_input_request(
+            assistant_request=request,
+            route_decision=route,
+            assembled_context=None,
+        )
+    )
+    intent = derive_creative_intent_decomposition(
+        request=request,
+        route_decision=route,
+        creative_translation=prompt_input.creative_translation,
+    )
+    hierarchy = derive_creative_hierarchy_plan(
+        request=request,
+        route_decision=route,
+        creative_intent=intent,
+        creative_translation=prompt_input.creative_translation,
+    )
+    strategy = derive_creative_strategy_profile(
+        request=request,
+        route_decision=route,
+        creative_intent=intent,
+        creative_hierarchy=hierarchy,
+        creative_translation=prompt_input.creative_translation,
+    )
+    techniques = derive_creative_technique_profile(
+        request=request,
+        route_decision=route,
+        creative_intent=intent,
+        creative_hierarchy=hierarchy,
+        creative_translation=prompt_input.creative_translation,
+        creative_strategy=strategy,
+    )
+    plan = derive_creative_execution_plan(
+        request=request,
+        route_decision=route,
+        creative_intent=intent,
+        creative_hierarchy=hierarchy,
+        creative_translation=prompt_input.creative_translation,
+        creative_strategy=strategy,
+        creative_techniques=techniques,
+    )
+    constraints = derive_creative_constraint_solution(
+        request=request,
+        route_decision=route,
+        creative_intent=intent,
+        creative_hierarchy=hierarchy,
+        creative_translation=prompt_input.creative_translation,
+        creative_plan=plan,
+        creative_strategy=strategy,
+        creative_techniques=techniques,
+    )
+    runtime_capabilities = derive_runtime_capability_profile(
+        request=request,
+        route_decision=route,
+        creative_translation=prompt_input.creative_translation,
+        creative_strategy=strategy,
+        creative_techniques=techniques,
+        creative_plan=plan,
+        creative_constraints=constraints,
+    )
+    tradeoffs = derive_creative_tradeoff_profile(
+        request=request,
+        route_decision=route,
+        creative_translation=prompt_input.creative_translation,
+        creative_strategy=strategy,
+        creative_techniques=techniques,
+        creative_plan=plan,
+        creative_constraints=constraints,
+        runtime_capabilities=runtime_capabilities,
+    )
+    prioritization = derive_creative_constraint_priorities(
+        request=request,
+        route_decision=route,
+        creative_translation=prompt_input.creative_translation,
+        creative_intent=intent,
+        creative_hierarchy=hierarchy,
+        creative_plan=plan,
+        creative_constraints=constraints,
+        creative_strategy=strategy,
+        creative_techniques=techniques,
+        runtime_capabilities=runtime_capabilities,
+        creative_tradeoffs=tradeoffs,
+    )
+    quality_prediction = derive_creative_quality_prediction(
+        request=request,
+        route_decision=route,
+        creative_translation=prompt_input.creative_translation,
+        creative_intent=intent,
+        creative_hierarchy=hierarchy,
+        creative_plan=plan,
+        creative_constraints=constraints,
+        creative_constraint_priorities=prioritization,
+        creative_strategy=strategy,
+        creative_techniques=techniques,
+        runtime_capabilities=runtime_capabilities,
+        creative_tradeoffs=tradeoffs,
+    )
+    symbolic_narrative = derive_symbolic_narrative_plan(
+        request=request,
+        route_decision=route,
+        creative_translation=prompt_input.creative_translation,
+        creative_intent=intent,
+        creative_hierarchy=hierarchy,
+        creative_plan=plan,
+        creative_constraints=constraints,
+        creative_constraint_priorities=prioritization,
+        creative_strategy=strategy,
+        creative_techniques=techniques,
+        runtime_capabilities=runtime_capabilities,
+        creative_tradeoffs=tradeoffs,
+        creative_quality_prediction=quality_prediction,
+    )
+    creative_composition = derive_creative_composition_plan(
+        request=request,
+        route_decision=route,
+        creative_translation=prompt_input.creative_translation,
+        creative_intent=intent,
+        creative_hierarchy=hierarchy,
+        creative_plan=plan,
+        creative_constraints=constraints,
+        creative_constraint_priorities=prioritization,
+        creative_strategy=strategy,
+        creative_techniques=techniques,
+        runtime_capabilities=runtime_capabilities,
+        creative_tradeoffs=tradeoffs,
+        creative_quality_prediction=quality_prediction,
+        symbolic_narrative=symbolic_narrative,
+    )
+    director = derive_creative_assistant_director_brief(
+        request=request,
+        route_decision=route,
+        creative_translation=prompt_input.creative_translation,
+        creative_intent=intent,
+        creative_hierarchy=hierarchy,
+        creative_strategy=strategy,
+        creative_techniques=techniques,
+        creative_plan=plan,
+        creative_constraints=constraints,
+        creative_constraint_priorities=prioritization,
+        runtime_capabilities=runtime_capabilities,
+        creative_tradeoffs=tradeoffs,
+        creative_quality_prediction=quality_prediction,
+        symbolic_narrative=symbolic_narrative,
+        creative_composition=creative_composition,
+    )
+    reasoning = derive_creative_reasoning_result(
+        request=request,
+        route_decision=route,
+        creative_translation=prompt_input.creative_translation,
+        creative_intent=intent,
+        creative_hierarchy=hierarchy,
+        creative_plan=plan,
+        creative_director=director,
+        creative_constraints=constraints,
+        creative_constraint_priorities=prioritization,
+        creative_strategy=strategy,
+        creative_techniques=techniques,
+        runtime_capabilities=runtime_capabilities,
+        creative_tradeoffs=tradeoffs,
+        creative_quality_prediction=quality_prediction,
+        symbolic_narrative=symbolic_narrative,
+        creative_composition=creative_composition,
+    )
+    return _DerivedStack(
+        request=request,
+        route=route,
+        prompt_input=prompt_input,
+        intent=intent,
+        hierarchy=hierarchy,
+        strategy=strategy,
+        techniques=techniques,
+        plan=plan,
+        constraints=constraints,
+        runtime_capabilities=runtime_capabilities,
+        tradeoffs=tradeoffs,
+        prioritization=prioritization,
+        quality_prediction=quality_prediction,
+        symbolic_narrative=symbolic_narrative,
+        creative_composition=creative_composition,
+        director=director,
+        reasoning=reasoning,
+    )
+
+
+if __name__ == "__main__":
+    unittest.main()
