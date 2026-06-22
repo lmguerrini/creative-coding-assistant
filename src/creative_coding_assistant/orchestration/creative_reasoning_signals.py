@@ -36,6 +36,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.procedural_structure import (
+    ProceduralStructurePlan,
+)
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityCandidate,
     RuntimeCapabilityProfile,
@@ -60,6 +63,7 @@ def build_recommended_direction(
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
+    procedural_structure: ProceduralStructurePlan | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -78,6 +82,8 @@ def build_recommended_direction(
         f"{_clip(_hierarchy_label(creative_hierarchy), 70)}. "
         f"Shape symbolic arc: {_clip(_narrative_label(symbolic_narrative), 90)}. "
         f"Compose as {_clip(_composition_label(creative_composition), 90)}. "
+        f"Structure procedurally as "
+        f"{_clip(_procedural_label(procedural_structure), 90)}. "
         f"Protect constraints: "
         f"{_clip(_constraint_priority_label(creative_constraint_priorities), 70)}. "
         f"Fit the output goal: {_clip(output_goal, 90)} "
@@ -104,6 +110,7 @@ def build_reasoning_path(
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
+    procedural_structure: ProceduralStructurePlan | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -166,12 +173,16 @@ def build_reasoning_path(
                     "Strategy, technique, runtime capability, and trade-off "
                     "signals converge on the same bounded direction, shaped by "
                     f"{_narrative_label(symbolic_narrative)} and "
-                    f"{_composition_label(creative_composition)}, with "
+                    f"{_composition_label(creative_composition)}, structured as "
+                    f"{_procedural_label(procedural_structure)}, with "
                     f"{_quality_label(creative_quality_prediction)}."
                 ),
                 360,
             ),
-            implications=("Use this as the prompt spine before generation.",),
+            implications=(
+                "Use this as the prompt spine before generation.",
+                "Treat procedural guidance as structure, not runtime selection.",
+            ),
         ),
     )
 
@@ -264,6 +275,15 @@ def _composition_label(profile: CreativeCompositionPlan | None) -> str:
     if profile is None:
         return "no composition plan"
     return f"{profile.composition_pattern} around {profile.primary_focal_point}"
+
+
+def _procedural_label(profile: ProceduralStructurePlan | None) -> str:
+    if profile is None:
+        return "no procedural structure plan"
+    return (
+        f"{profile.primary_structure.family} with "
+        f"{', '.join(profile.recommended_families[:3])}"
+    )
 
 
 def _technique_reason(

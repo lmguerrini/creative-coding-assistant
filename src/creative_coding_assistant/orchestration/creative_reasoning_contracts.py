@@ -29,6 +29,7 @@ ReasoningEvidenceSource = Literal[
     "quality_predictor",
     "symbolic_narrative",
     "creative_composition",
+    "procedural_structure",
     "future_knowledge",
 ]
 

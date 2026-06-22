@@ -45,6 +45,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.procedural_structure import (
+    ProceduralStructurePlan,
+)
 from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
@@ -72,6 +75,7 @@ def build_evidence_chain(
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
+    procedural_structure: ProceduralStructurePlan | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -213,6 +217,23 @@ def build_evidence_chain(
                 interpretation=(
                     "Composition evidence defines focal structure, hierarchy, "
                     "density, rhythm, and spatial organization before generation."
+                ),
+            )
+        )
+    if procedural_structure is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="procedural_structure",
+                signal=_clip(
+                    (
+                        f"{procedural_structure.primary_structure.family}: "
+                        f"{procedural_structure.combination_strategy}"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Procedural structure evidence maps intent, composition, "
+                    "runtime suitability, risks, and fallbacks before generation."
                 ),
             )
         )

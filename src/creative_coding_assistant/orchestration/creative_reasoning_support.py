@@ -35,6 +35,9 @@ from creative_coding_assistant.orchestration.creative_reasoning_signals import (
     _top_runtime,
     _tradeoff_summary,
 )
+from creative_coding_assistant.orchestration.procedural_structure import (
+    ProceduralStructurePlan,
+)
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
 )
@@ -66,6 +69,7 @@ def build_strongest_signals(
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
+    procedural_structure: ProceduralStructurePlan | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -119,6 +123,12 @@ def build_strongest_signals(
             "Composition pattern: "
             f"{creative_composition.composition_pattern}; "
             f"{creative_composition.primary_focal_point}."
+        )
+    if procedural_structure is not None:
+        signals.append(
+            "Procedural structure: "
+            f"{procedural_structure.primary_structure.family}; "
+            f"{procedural_structure.combination_strategy}"
         )
     if creative_constraints is not None:
         signals.append(
@@ -206,6 +216,7 @@ def build_unresolved_decisions(
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
+    procedural_structure: ProceduralStructurePlan | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -231,6 +242,9 @@ def build_unresolved_decisions(
     if creative_composition is not None:
         unresolved.extend(creative_composition.hitl_questions[:3])
         unresolved.extend(creative_composition.unresolved_composition_gaps[:2])
+    if procedural_structure is not None:
+        unresolved.extend(procedural_structure.hitl_questions[:3])
+        unresolved.extend(procedural_structure.unresolved_procedural_gaps[:2])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -253,6 +267,7 @@ def build_implementation_guidance(
     creative_quality_prediction: CreativeQualityPrediction | None,
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
+    procedural_structure: ProceduralStructurePlan | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -287,6 +302,11 @@ def build_implementation_guidance(
         guidance.extend(creative_composition.prompt_guidance[:2])
         guidance.append(
             "Preserve the primary focal point and visual hierarchy before effects."
+        )
+    if procedural_structure is not None:
+        guidance.extend(procedural_structure.prompt_guidance[:2])
+        guidance.append(
+            "Preserve the primary procedural family before adding secondary systems."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

@@ -53,6 +53,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
     CreativeTradeoffProfile,
 )
 from creative_coding_assistant.orchestration.memory import MemoryContextResponse
+from creative_coding_assistant.orchestration.procedural_structure import (
+    ProceduralStructurePlan,
+)
 from creative_coding_assistant.orchestration.prompt_inputs import PromptInputResponse
 from creative_coding_assistant.orchestration.prompt_templates import (
     RenderedPromptResponse,
@@ -172,6 +175,7 @@ class AssistantWorkflowState(BaseModel):
     creative_quality_prediction: CreativeQualityPrediction | None = None
     symbolic_narrative: SymbolicNarrativePlan | None = None
     creative_composition: CreativeCompositionPlan | None = None
+    procedural_structure: ProceduralStructurePlan | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     rendered_prompt: RenderedPromptResponse | None = None

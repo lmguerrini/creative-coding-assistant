@@ -27,6 +27,9 @@ _CREATIVE_QUALITY_PREDICTION = (
 _CREATIVE_COMPOSITION = (
     "creative_coding_assistant.orchestration.creative_composition"
 )
+_PROCEDURAL_STRUCTURE = (
+    "creative_coding_assistant.orchestration.procedural_structure"
+)
 _SYMBOLIC_NARRATIVE = "creative_coding_assistant.orchestration.symbolic_narrative"
 _RUNTIME_CAPABILITIES = (
     "creative_coding_assistant.orchestration.runtime_capabilities"
@@ -107,6 +110,10 @@ _EXPORT_MAP = {
     "CreativeQualitySignal": _CREATIVE_QUALITY_PREDICTION,
     "CompositionPattern": _CREATIVE_COMPOSITION,
     "CreativeCompositionPlan": _CREATIVE_COMPOSITION,
+    "ProceduralComplexityLevel": _PROCEDURAL_STRUCTURE,
+    "ProceduralFamily": _PROCEDURAL_STRUCTURE,
+    "ProceduralStructureChoice": _PROCEDURAL_STRUCTURE,
+    "ProceduralStructurePlan": _PROCEDURAL_STRUCTURE,
     "NarrativeArchetype": _SYMBOLIC_NARRATIVE,
     "NarrativePhaseName": _SYMBOLIC_NARRATIVE,
     "SymbolicNarrativePhase": _SYMBOLIC_NARRATIVE,
@@ -229,6 +236,8 @@ _EXPORT_MAP = {
     "creative_quality_prediction_prompt_lines": _CREATIVE_QUALITY_PREDICTION,
     "derive_creative_composition_plan": _CREATIVE_COMPOSITION,
     "creative_composition_prompt_lines": _CREATIVE_COMPOSITION,
+    "derive_procedural_structure_plan": _PROCEDURAL_STRUCTURE,
+    "procedural_structure_prompt_lines": _PROCEDURAL_STRUCTURE,
     "derive_symbolic_narrative_plan": _SYMBOLIC_NARRATIVE,
     "symbolic_narrative_prompt_lines": _SYMBOLIC_NARRATIVE,
     "derive_creative_reasoning_result": _CREATIVE_REASONING,

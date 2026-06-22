@@ -64,6 +64,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.procedural_structure import (
+    ProceduralStructurePlan,
+)
 from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
@@ -91,6 +94,7 @@ def derive_creative_reasoning_result(
     creative_quality_prediction: CreativeQualityPrediction | None = None,
     symbolic_narrative: SymbolicNarrativePlan | None = None,
     creative_composition: CreativeCompositionPlan | None = None,
+    procedural_structure: ProceduralStructurePlan | None = None,
     future_knowledge_context: Mapping[str, object] | None = None,
 ) -> CreativeReasoningResult:
     """Synthesize prior Creative Intelligence outputs into one decision brief."""
@@ -109,6 +113,7 @@ def derive_creative_reasoning_result(
         creative_quality_prediction=creative_quality_prediction,
         symbolic_narrative=symbolic_narrative,
         creative_composition=creative_composition,
+        procedural_structure=procedural_structure,
     )
     unresolved = build_unresolved_decisions(
         creative_director=creative_director,
@@ -123,6 +128,7 @@ def derive_creative_reasoning_result(
         creative_quality_prediction=creative_quality_prediction,
         symbolic_narrative=symbolic_narrative,
         creative_composition=creative_composition,
+        procedural_structure=procedural_structure,
     )
     return CreativeReasoningResult(
         recommended_creative_direction=direction,
@@ -139,6 +145,7 @@ def derive_creative_reasoning_result(
             creative_quality_prediction=creative_quality_prediction,
             symbolic_narrative=symbolic_narrative,
             creative_composition=creative_composition,
+            procedural_structure=procedural_structure,
         ),
         evidence_chain=build_evidence_chain(
             request=request,
@@ -157,6 +164,7 @@ def derive_creative_reasoning_result(
             creative_quality_prediction=creative_quality_prediction,
             symbolic_narrative=symbolic_narrative,
             creative_composition=creative_composition,
+            procedural_structure=procedural_structure,
         ),
         strongest_supporting_signals=build_strongest_signals(
             creative_director=creative_director,
@@ -171,6 +179,7 @@ def derive_creative_reasoning_result(
             creative_quality_prediction=creative_quality_prediction,
             symbolic_narrative=symbolic_narrative,
             creative_composition=creative_composition,
+            procedural_structure=procedural_structure,
         ),
         rejected_alternatives=build_rejected_alternatives(
             creative_strategy=creative_strategy,
@@ -191,6 +200,7 @@ def derive_creative_reasoning_result(
             creative_quality_prediction=creative_quality_prediction,
             symbolic_narrative=symbolic_narrative,
             creative_composition=creative_composition,
+            procedural_structure=procedural_structure,
         ),
         prompt_guidance=build_prompt_guidance(unresolved),
         hitl_questions=build_hitl_questions(unresolved),

@@ -47,6 +47,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.procedural_structure import (
+    ProceduralStructurePlan,
+)
 from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
@@ -105,6 +108,7 @@ def derive_creative_assistant_director_brief(
     creative_quality_prediction: CreativeQualityPrediction | None = None,
     symbolic_narrative: SymbolicNarrativePlan | None = None,
     creative_composition: CreativeCompositionPlan | None = None,
+    procedural_structure: ProceduralStructurePlan | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -130,6 +134,7 @@ def derive_creative_assistant_director_brief(
             creative_quality_prediction=creative_quality_prediction,
             symbolic_narrative=symbolic_narrative,
             creative_composition=creative_composition,
+            procedural_structure=procedural_structure,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

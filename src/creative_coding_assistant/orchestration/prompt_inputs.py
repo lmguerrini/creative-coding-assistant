@@ -60,6 +60,9 @@ from creative_coding_assistant.orchestration.creative_translation import (
     derive_creative_translation,
 )
 from creative_coding_assistant.orchestration.memory import MemoryContextResponse
+from creative_coding_assistant.orchestration.procedural_structure import (
+    ProceduralStructurePlan,
+)
 from creative_coding_assistant.orchestration.prompt_memory import (
     PromptConversationTurnInput,
     PromptSessionMemorySummaryInput,
@@ -317,6 +320,7 @@ class PromptInputResponse(BaseModel):
     creative_quality_prediction: CreativeQualityPrediction | None = None
     symbolic_narrative: SymbolicNarrativePlan | None = None
     creative_composition: CreativeCompositionPlan | None = None
+    procedural_structure: ProceduralStructurePlan | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None
