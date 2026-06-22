@@ -47,6 +47,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.generative_structure import (
+    GenerativeStructureBlueprint,
+)
 from creative_coding_assistant.orchestration.procedural_structure import (
     ProceduralStructurePlan,
 )
@@ -109,6 +112,7 @@ def derive_creative_assistant_director_brief(
     symbolic_narrative: SymbolicNarrativePlan | None = None,
     creative_composition: CreativeCompositionPlan | None = None,
     procedural_structure: ProceduralStructurePlan | None = None,
+    generative_structure: GenerativeStructureBlueprint | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -135,6 +139,7 @@ def derive_creative_assistant_director_brief(
             symbolic_narrative=symbolic_narrative,
             creative_composition=creative_composition,
             procedural_structure=procedural_structure,
+            generative_structure=generative_structure,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

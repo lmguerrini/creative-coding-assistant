@@ -30,6 +30,9 @@ _CREATIVE_COMPOSITION = (
 _PROCEDURAL_STRUCTURE = (
     "creative_coding_assistant.orchestration.procedural_structure"
 )
+_GENERATIVE_STRUCTURE = (
+    "creative_coding_assistant.orchestration.generative_structure"
+)
 _SYMBOLIC_NARRATIVE = "creative_coding_assistant.orchestration.symbolic_narrative"
 _RUNTIME_CAPABILITIES = (
     "creative_coding_assistant.orchestration.runtime_capabilities"
@@ -114,6 +117,21 @@ _EXPORT_MAP = {
     "ProceduralFamily": _PROCEDURAL_STRUCTURE,
     "ProceduralStructureChoice": _PROCEDURAL_STRUCTURE,
     "ProceduralStructurePlan": _PROCEDURAL_STRUCTURE,
+    "GenerativeArchitecture": _GENERATIVE_STRUCTURE,
+    "GenerativeEvolutionPhase": _GENERATIVE_STRUCTURE,
+    "GenerativeEvolutionRule": _GENERATIVE_STRUCTURE,
+    "GenerativeEvolutionTrigger": _GENERATIVE_STRUCTURE,
+    "GenerativeFallbackBlueprint": _GENERATIVE_STRUCTURE,
+    "GenerativeHookType": _GENERATIVE_STRUCTURE,
+    "GenerativeModule": _GENERATIVE_STRUCTURE,
+    "GenerativeModuleKind": _GENERATIVE_STRUCTURE,
+    "GenerativeModuleRelationship": _GENERATIVE_STRUCTURE,
+    "GenerativeParameter": _GENERATIVE_STRUCTURE,
+    "GenerativeParameterRole": _GENERATIVE_STRUCTURE,
+    "GenerativeParameterValueType": _GENERATIVE_STRUCTURE,
+    "GenerativeRelationshipType": _GENERATIVE_STRUCTURE,
+    "GenerativeStructureBlueprint": _GENERATIVE_STRUCTURE,
+    "GenerativeStructureHook": _GENERATIVE_STRUCTURE,
     "NarrativeArchetype": _SYMBOLIC_NARRATIVE,
     "NarrativePhaseName": _SYMBOLIC_NARRATIVE,
     "SymbolicNarrativePhase": _SYMBOLIC_NARRATIVE,
@@ -238,6 +256,8 @@ _EXPORT_MAP = {
     "creative_composition_prompt_lines": _CREATIVE_COMPOSITION,
     "derive_procedural_structure_plan": _PROCEDURAL_STRUCTURE,
     "procedural_structure_prompt_lines": _PROCEDURAL_STRUCTURE,
+    "derive_generative_structure_blueprint": _GENERATIVE_STRUCTURE,
+    "generative_structure_prompt_lines": _GENERATIVE_STRUCTURE,
     "derive_symbolic_narrative_plan": _SYMBOLIC_NARRATIVE,
     "symbolic_narrative_prompt_lines": _SYMBOLIC_NARRATIVE,
     "derive_creative_reasoning_result": _CREATIVE_REASONING,

@@ -64,6 +64,10 @@ from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
     creative_translation_prompt_lines,
 )
+from creative_coding_assistant.orchestration.generative_structure import (
+    GenerativeStructureBlueprint,
+    generative_structure_prompt_lines,
+)
 from creative_coding_assistant.orchestration.domain_generation import (
     domain_generation_guidance_lines,
 )
@@ -234,6 +238,13 @@ Creative Composition Planner:
 {% if procedural_structure is not none -%}
 Procedural Structure Planner:
 {% for instruction in procedural_structure_lines(procedural_structure) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set generative_structure = prompt_input.generative_structure -%}
+{% if generative_structure is not none -%}
+Generative Structure Engine:
+{% for instruction in generative_structure_lines(generative_structure) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -485,6 +496,7 @@ class JinjaPromptRenderer:
             symbolic_narrative_lines=_symbolic_narrative_lines,
             creative_composition_lines=_creative_composition_lines,
             procedural_structure_lines=_procedural_structure_lines,
+            generative_structure_lines=_generative_structure_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -727,6 +739,12 @@ def _procedural_structure_lines(
     plan: ProceduralStructurePlan,
 ) -> tuple[str, ...]:
     return procedural_structure_prompt_lines(plan)
+
+
+def _generative_structure_lines(
+    blueprint: GenerativeStructureBlueprint,
+) -> tuple[str, ...]:
+    return generative_structure_prompt_lines(blueprint)
 
 
 def _creative_assistant_director_lines(

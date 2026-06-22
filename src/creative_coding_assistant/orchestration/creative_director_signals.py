@@ -40,6 +40,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.generative_structure import (
+    GenerativeStructureBlueprint,
+)
 from creative_coding_assistant.orchestration.procedural_structure import (
     ProceduralStructurePlan,
 )
@@ -77,6 +80,7 @@ def build_director_brief_payload(
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
+    generative_structure: GenerativeStructureBlueprint | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -93,6 +97,7 @@ def build_director_brief_payload(
         symbolic_narrative=symbolic_narrative,
         creative_composition=creative_composition,
         procedural_structure=procedural_structure,
+        generative_structure=generative_structure,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -124,6 +129,7 @@ def build_director_brief_payload(
             symbolic_narrative,
             creative_composition,
             procedural_structure,
+            generative_structure,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -139,6 +145,7 @@ def build_director_brief_payload(
             symbolic_narrative=symbolic_narrative,
             creative_composition=creative_composition,
             procedural_structure=procedural_structure,
+            generative_structure=generative_structure,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -155,6 +162,7 @@ def build_director_brief_payload(
             symbolic_narrative=symbolic_narrative,
             creative_composition=creative_composition,
             procedural_structure=procedural_structure,
+            generative_structure=generative_structure,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -177,6 +185,7 @@ def build_director_brief_payload(
             symbolic_narrative=symbolic_narrative,
             creative_composition=creative_composition,
             procedural_structure=procedural_structure,
+            generative_structure=generative_structure,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -219,6 +228,7 @@ def _ambiguity_signals(
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
+    generative_structure: GenerativeStructureBlueprint | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -252,6 +262,8 @@ def _ambiguity_signals(
         signals.extend(creative_composition.unresolved_composition_gaps[:2])
     if procedural_structure is not None:
         signals.extend(procedural_structure.unresolved_procedural_gaps[:2])
+    if generative_structure is not None:
+        signals.extend(generative_structure.unresolved_implementation_gaps[:2])
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -297,6 +309,7 @@ def _planning_focus(
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
+    generative_structure: GenerativeStructureBlueprint | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_intent is not None:
@@ -308,6 +321,13 @@ def _planning_focus(
             f"{procedural_structure.combination_strategy}"
         )
         focus.extend(procedural_structure.prompt_guidance[:1])
+    if generative_structure is not None:
+        focus.append(
+            "Generative blueprint: "
+            f"{generative_structure.blueprint_name}; "
+            f"{generative_structure.generative_architecture}"
+        )
+        focus.extend(generative_structure.prompt_guidance[:1])
     if creative_quality_prediction is not None:
         focus.append(
             "Quality readiness: "
@@ -393,6 +413,7 @@ def _critique_focus(
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
+    generative_structure: GenerativeStructureBlueprint | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -475,6 +496,12 @@ def _critique_focus(
         )
         focus.extend(procedural_structure.performance_risks[:1])
         focus.extend(procedural_structure.implementation_risks[:1])
+    if generative_structure is not None:
+        focus.append(
+            "Generative Structure Engine is pre-generation only; compare output "
+            "against blueprint modules, parameters, evolution, and safeguards."
+        )
+        focus.extend(generative_structure.performance_safeguards[:2])
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -523,6 +550,7 @@ def _next_actions(
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
+    generative_structure: GenerativeStructureBlueprint | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
@@ -544,6 +572,8 @@ def _next_actions(
         return (creative_composition.hitl_questions[0],)
     if procedural_structure is not None and procedural_structure.hitl_questions:
         return (procedural_structure.hitl_questions[0],)
+    if generative_structure is not None and generative_structure.hitl_questions:
+        return (generative_structure.hitl_questions[0],)
     if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
@@ -578,6 +608,7 @@ def _evidence(
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
+    generative_structure: GenerativeStructureBlueprint | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -655,6 +686,11 @@ def _evidence(
         evidence.append(
             "Procedural structure: "
             f"{procedural_structure.primary_structure.family}."
+        )
+    if generative_structure is not None:
+        evidence.append(
+            "Generative structure: "
+            f"{generative_structure.generative_architecture}."
         )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")

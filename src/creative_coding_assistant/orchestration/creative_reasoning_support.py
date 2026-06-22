@@ -35,9 +35,6 @@ from creative_coding_assistant.orchestration.creative_reasoning_signals import (
     _top_runtime,
     _tradeoff_summary,
 )
-from creative_coding_assistant.orchestration.procedural_structure import (
-    ProceduralStructurePlan,
-)
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
 )
@@ -46,6 +43,12 @@ from creative_coding_assistant.orchestration.creative_technique import (
 )
 from creative_coding_assistant.orchestration.creative_tradeoffs import (
     CreativeTradeoffProfile,
+)
+from creative_coding_assistant.orchestration.generative_structure import (
+    GenerativeStructureBlueprint,
+)
+from creative_coding_assistant.orchestration.procedural_structure import (
+    ProceduralStructurePlan,
 )
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
@@ -70,6 +73,7 @@ def build_strongest_signals(
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
+    generative_structure: GenerativeStructureBlueprint | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -129,6 +133,14 @@ def build_strongest_signals(
             "Procedural structure: "
             f"{procedural_structure.primary_structure.family}; "
             f"{procedural_structure.combination_strategy}"
+        )
+    if generative_structure is not None:
+        module_kinds = ", ".join(
+            module.kind for module in generative_structure.procedural_modules[:4]
+        )
+        signals.append(
+            "Generative blueprint: "
+            f"{generative_structure.generative_architecture}; {module_kinds}."
         )
     if creative_constraints is not None:
         signals.append(
@@ -217,6 +229,7 @@ def build_unresolved_decisions(
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
+    generative_structure: GenerativeStructureBlueprint | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -245,6 +258,9 @@ def build_unresolved_decisions(
     if procedural_structure is not None:
         unresolved.extend(procedural_structure.hitl_questions[:3])
         unresolved.extend(procedural_structure.unresolved_procedural_gaps[:2])
+    if generative_structure is not None:
+        unresolved.extend(generative_structure.hitl_questions[:3])
+        unresolved.extend(generative_structure.unresolved_implementation_gaps[:2])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -268,6 +284,7 @@ def build_implementation_guidance(
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
+    generative_structure: GenerativeStructureBlueprint | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -307,6 +324,13 @@ def build_implementation_guidance(
         guidance.extend(procedural_structure.prompt_guidance[:2])
         guidance.append(
             "Preserve the primary procedural family before adding secondary systems."
+        )
+    if generative_structure is not None:
+        guidance.extend(generative_structure.prompt_guidance[:2])
+        guidance.extend(generative_structure.runtime_implementation_guidance[:2])
+        guidance.extend(generative_structure.performance_safeguards[:1])
+        guidance.append(
+            "Preserve named generative modules and parameters as metadata guidance."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

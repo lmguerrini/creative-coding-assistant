@@ -45,6 +45,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.generative_structure import (
+    GenerativeStructureBlueprint,
+)
 from creative_coding_assistant.orchestration.procedural_structure import (
     ProceduralStructurePlan,
 )
@@ -76,6 +79,7 @@ def build_evidence_chain(
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
+    generative_structure: GenerativeStructureBlueprint | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -234,6 +238,24 @@ def build_evidence_chain(
                 interpretation=(
                     "Procedural structure evidence maps intent, composition, "
                     "runtime suitability, risks, and fallbacks before generation."
+                ),
+            )
+        )
+    if generative_structure is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="generative_structure",
+                signal=_clip(
+                    (
+                        f"{generative_structure.blueprint_name}: "
+                        f"{generative_structure.generative_architecture}"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Generative structure evidence translates procedural "
+                    "metadata into modules, parameters, evolution rules, "
+                    "fallbacks, and bounded prompt guidance."
                 ),
             )
         )

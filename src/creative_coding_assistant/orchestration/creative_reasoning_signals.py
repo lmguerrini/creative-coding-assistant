@@ -36,6 +36,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.generative_structure import (
+    GenerativeStructureBlueprint,
+)
 from creative_coding_assistant.orchestration.procedural_structure import (
     ProceduralStructurePlan,
 )
@@ -64,6 +67,7 @@ def build_recommended_direction(
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
+    generative_structure: GenerativeStructureBlueprint | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -84,6 +88,7 @@ def build_recommended_direction(
         f"Compose as {_clip(_composition_label(creative_composition), 90)}. "
         f"Structure procedurally as "
         f"{_clip(_procedural_label(procedural_structure), 90)}. "
+        f"Blueprint as {_clip(_generative_label(generative_structure), 90)}. "
         f"Protect constraints: "
         f"{_clip(_constraint_priority_label(creative_constraint_priorities), 70)}. "
         f"Fit the output goal: {_clip(output_goal, 90)} "
@@ -111,6 +116,7 @@ def build_reasoning_path(
     symbolic_narrative: SymbolicNarrativePlan | None,
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
+    generative_structure: GenerativeStructureBlueprint | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -174,7 +180,8 @@ def build_reasoning_path(
                     "signals converge on the same bounded direction, shaped by "
                     f"{_narrative_label(symbolic_narrative)} and "
                     f"{_composition_label(creative_composition)}, structured as "
-                    f"{_procedural_label(procedural_structure)}, with "
+                    f"{_procedural_label(procedural_structure)}, blueprinted as "
+                    f"{_generative_label(generative_structure)}, with "
                     f"{_quality_label(creative_quality_prediction)}."
                 ),
                 360,
@@ -182,6 +189,7 @@ def build_reasoning_path(
             implications=(
                 "Use this as the prompt spine before generation.",
                 "Treat procedural guidance as structure, not runtime selection.",
+                "Treat generative blueprint metadata as guidance, not code.",
             ),
         ),
     )
@@ -283,6 +291,15 @@ def _procedural_label(profile: ProceduralStructurePlan | None) -> str:
     return (
         f"{profile.primary_structure.family} with "
         f"{', '.join(profile.recommended_families[:3])}"
+    )
+
+
+def _generative_label(profile: GenerativeStructureBlueprint | None) -> str:
+    if profile is None:
+        return "no generative structure blueprint"
+    return (
+        f"{profile.generative_architecture} using "
+        f"{len(profile.procedural_modules)} modules"
     )
 
 
