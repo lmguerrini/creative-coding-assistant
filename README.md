@@ -1,14 +1,15 @@
 # Creative Coding Assistant
 
-Creative Coding Assistant is a V2.5 AI-native creative translation
+Creative Coding Assistant is a V3.1 AI-native creative translation
 workstation designed to transform symbolic, conceptual, geometric, stylistic,
 and multimodal intent into professional audio, visual, and audiovisual
 creative systems.
 
 It combines a LangGraph-orchestrated Python backend with a Next.js workstation
-for the full Creative Core, multi-artifact generation, multi-preview
-comparison, controlled runtime preview, critique and scoring, parameter
-control, observability, validation, and export preparation.
+for the full V2.5 Creative Core, the V3.1 Creative Cognition Core,
+multi-artifact generation, multi-preview comparison, controlled runtime
+preview, critique and scoring, parameter control, observability, validation,
+and export preparation.
 
 The current product scope is a creative coding platform rather than a generic
 chat assistant. Requests can be translated from intent, symbols, geometry,
@@ -25,10 +26,10 @@ same interface.
 - AI-native workstation UX with chat, a compact bottom preview shelf, and
   focused inspector tabs for overview, preview, runtime, code, workflow,
   telemetry, artifacts, and retrieval
-- Complete V2.5 Creative Core including Creative Translation, Sacred Geometry,
-  Visual Style, Shader Presets, Reference Fusion, Creative Planning, advanced
-  HITL questioning, critique, sacred consistency, calibrated scoring, and
-  multi-pass refinement
+- Complete V2.5 Creative Core plus the implemented V3.1 Creative Cognition
+  Core for intent decomposition, hierarchy, strategy, technique, constraints,
+  runtime reasoning, trade-offs, quality prediction, narrative, composition,
+  and creative reasoning
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -38,9 +39,46 @@ same interface.
 - Multimodal image references, local session persistence, and project bundle
   export
 
+## Current Branch Status
+
+The current branch, `feature/creative-intelligence-core`, implements the
+V3.1 Creative Cognition Core.
+
+V3.1 adds bounded internal metadata and reasoning layers that run before
+generation and feed planning, Director guidance, Creative Reasoning synthesis,
+and prompt rendering. These capabilities are inspectable and typed, but they
+are not all separate LangGraph runtime nodes.
+
+Implemented V3.1 capabilities:
+
+- Creative Intent Decomposer
+- Creative Hierarchy Planner
+- Creative Strategy Engine
+- Creative Technique Selector
+- Creative Constraint Solver
+- Runtime Capability Reasoner
+- Creative Trade-off Explorer
+- Creative Constraint Prioritizer
+- Creative Quality Predictor
+- Symbolic Narrative Planner
+- Creative Composition Planner
+- Creative Reasoning Engine
+
+The architecture intentionally documents two layers:
+
+- the real runtime graph in
+  [`architecture/workflow_graph.md`](architecture/workflow_graph.md)
+- the internal Creative Intelligence capability graph in
+  [`architecture/creative_intelligence_graph.md`](architecture/creative_intelligence_graph.md)
+
+The runtime graph remains compact and truthful. The internal capability graph
+documents the V3.1 sub-capabilities and acts as the blueprint for future V4
+multi-agent decomposition rather than claiming that V4 already exists.
+
 ## Creative Workflow
 
-The workstation is designed around the current V2.5 creative loop:
+The workstation still centers on the V2.5 creative loop, now enriched by the
+V3.1 Creative Cognition Core before generation:
 
 `Intent -> HITL Clarification -> Creative Translation -> Reference Fusion -> Creative Planning -> Generation -> Preview -> Critique -> Sacred Consistency -> Calibrated Quality -> Multi-Pass Refinement -> Export Preparation`
 
@@ -54,6 +92,10 @@ The workstation is designed around the current V2.5 creative loop:
   into the structured creative brief when they improve grounding.
 - Creative Planning: the planning layer organizes generation strategy, runtime
   fit, and artifact expectations before provider execution.
+- Creative Cognition Core: deterministic intent, hierarchy, strategy,
+  technique, constraints, runtime, trade-off, quality, narrative, composition,
+  Director, and Reasoning layers refine the final creative brief without
+  inflating the public runtime graph into dozens of nodes.
 - Generation: the backend resolves effective domains, assembles the prompt,
   and streams one or more creative artifacts.
 - Preview: supported artifacts mount in controlled preview runtimes with
@@ -72,6 +114,30 @@ The workstation is designed around the current V2.5 creative loop:
   workflows remain future roadmap items.
 
 ## Implemented Capabilities
+
+### V3.1 Creative Cognition Core
+
+- Creative Intent Decomposer for atomic creative-intent dimensions
+- Creative Hierarchy Planner for ranked creative priorities
+- Creative Strategy Engine for high-level artistic strategy
+- Creative Technique Selector for bounded implementation technique guidance
+- Creative Constraint Solver for intent/runtime/safety/performance/cost/HITL
+  tensions
+- Runtime Capability Reasoner for supported runtime fit evaluation
+- Creative Trade-off Explorer for structured creative-versus-technical
+  consequences
+- Creative Constraint Prioritizer for non-negotiable, flexible, and
+  sacrificial constraint tiers
+- Creative Quality Predictor for pre-generation readiness and likely failure
+  modes
+- Symbolic Narrative Planner for symbolic arc and phase structure
+- Creative Composition Planner for focal hierarchy, density, balance, and
+  transition structure
+- Creative Reasoning Engine for final synthesis of the stored V3.1 metadata
+
+These V3.1 capabilities are internal metadata/reasoning layers. They enrich the
+existing workflow state, Director, Reasoning, and rendered prompt, but they do
+not each become a separate LangGraph node in the runtime graph.
 
 ### Creative Core
 
@@ -219,7 +285,9 @@ Key backend capabilities include:
   evaluation support
 
 Architecture documentation for the current workflow graph is available in
-[`architecture/workflow_graph.md`](architecture/workflow_graph.md).
+[`architecture/workflow_graph.md`](architecture/workflow_graph.md). The
+corresponding internal Creative Intelligence capability graph is documented in
+[`architecture/creative_intelligence_graph.md`](architecture/creative_intelligence_graph.md).
 
 ### Preview, Runtime, And Safety Model
 
@@ -291,7 +359,7 @@ The workstation also exposes:
 
 ```text
 .
-├── architecture/                # Workflow graph docs and Mermaid source
+├── architecture/                # Runtime graph docs plus internal capability graph docs
 ├── assets/                      # README assets
 ├── clients/
 │   ├── nextjs/                  # Primary workstation UI
@@ -326,6 +394,10 @@ The workstation also exposes:
   [`architecture/workflow_graph.md`](architecture/workflow_graph.md)
 - Workflow graph Mermaid source:
   [`architecture/workflow_graph.mmd`](architecture/workflow_graph.mmd)
+- Creative Intelligence graph docs:
+  [`architecture/creative_intelligence_graph.md`](architecture/creative_intelligence_graph.md)
+- Creative Intelligence Mermaid source:
+  [`architecture/creative_intelligence_graph.mmd`](architecture/creative_intelligence_graph.mmd)
 - Next.js workstation shell:
   [`clients/nextjs/src/components/workstation-shell.tsx`](clients/nextjs/src/components/workstation-shell.tsx)
 - Frontend workstation tests:
@@ -381,54 +453,47 @@ runtime support list above.
 
 ## Roadmap
 
-### Project Context Snapshot
+### Program Increment Versioning
 
-- V2.5 now includes the full Creative Core and the complete first-pass runtime
-  layer for p5.js, Three.js, React Three Fiber, GLSL, Hydra, Tone.js, GSAP,
-  SVG, and Canvas.
-- The next roadmap phase is no longer about finishing baseline creative
-  translation. It is about consolidating the platform, sharpening export and
-  performance workflows, and defining the V3 architecture line cleanly.
+V3 now follows Program Increment style versioning rather than one long,
+undifferentiated milestone.
 
-### Roadmap Audit & Consolidation
+- `v3.1.0`: Creative Cognition Core
+- `v3.2.0`: next macro-capability family after V3.1 closeout
+- `v3.3.0`: subsequent macro-capability family after V3.2 closeout
 
-- Audit the implemented V2.5 surface for overlap, naming drift, and inspector
-  complexity before expanding feature count again.
-- Consolidate workflow, critique, scoring, and preview metadata into a cleaner
-  operator-facing mental model.
-- Tighten documentation, product framing, and portfolio presentation around the
-  now-complete V2.5 platform scope.
+### V3.1.0 Status
 
-### V3 Bootstrap
+- V2.5 remains the base workstation/runtime milestone.
+- V3.1.0 adds the implemented Creative Cognition Core on the current branch.
+- The runtime graph remains the compact LangGraph workflow documented in
+  `architecture/workflow_graph.md`.
+- The internal Creative Intelligence graph documents the V3.1 sub-capabilities
+  in `architecture/creative_intelligence_graph.md`.
+- That internal graph is the blueprint for future V4 multi-agent work, but it
+  is not yet a V4 runtime implementation.
 
-- Define the V3 product boundary around creative direction, generation,
-  critique, refinement, preview, and export as one coherent professional
-  workstation.
-- Revisit session structure, artifact lineage, and creative planning state so
-  longer-form project workflows can scale without degrading clarity.
-- Establish the next architecture layer for richer project context snapshots,
-  deeper planning memory, and better cross-artifact continuity.
+### Macro-Capability Lifecycle
 
-### Future Export And Performance Work
+Each V3 macro-capability is expected to close through the same bounded
+lifecycle:
 
-- Performance Blueprint Export for structured handoff into rehearsable or
-  production-ready runtime setups.
-- MIDI / OSC mapping export for external controller and live-system
-  integration.
-- Artifact lineage and project lineage views for tracing prompt, plan,
-  refinement, and selection history.
-- Live performance workflow expansion across timing, triggering, staging, and
-  operator-control surfaces.
+1. Implementation
+2. Architecture Update
+3. Documentation Update
+4. Capability Validation
+5. Create Version Tag
+6. Merge & Push
 
-### V3 Creative Core Ideas
+### Continuing Direction
 
-- Richer project context snapshots that persist aesthetic goals, symbolic
-  systems, runtime constraints, and evolving creative decisions across longer
-  sessions.
-- Expanded roadmap-audit intelligence that can identify weak planning coverage,
-  repetitive refinement loops, and missing creative context before generation.
-- Stronger multi-artifact direction layers for cross-output narrative, series
-  cohesion, and portfolio-scale creative development.
+- close `v3.1.0` cleanly before opening a larger new increment
+- keep the runtime graph truthful instead of mapping every internal helper to a
+  public runtime node
+- keep using bounded internal creative-intelligence metadata as the bridge
+  toward future V4 multi-agent decomposition
+- continue later V3 increments around deeper creative intelligence,
+  export/performance workflows, and supporting platform improvements
 
 ## Setup
 
