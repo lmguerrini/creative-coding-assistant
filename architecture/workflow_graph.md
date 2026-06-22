@@ -8,9 +8,52 @@ This document describes the real LangGraph workflow currently executed by the ba
 - `src/creative_coding_assistant/orchestration/events.py`
 - `tests/test_langgraph_workflow_integration.py`
 
+## Runtime Graph Vs Internal Capability Graph
+
+This file documents the real LangGraph runtime graph compiled by
+`build_assistant_workflow_graph()`. It should stay small and truthful to the
+current backend execution order rather than expanding every internal helper into
+its own graph node.
+
+The V3.1 Creative Cognition Core currently runs as an internal capability graph
+inside the single `planning` runtime node. `_planning_node()` deterministically
+derives and stores:
+
+- `creative_intent`
+- `creative_hierarchy`
+- `creative_strategy`
+- `creative_techniques`
+- `creative_plan`
+- `creative_constraints`
+- `runtime_capabilities`
+- `creative_tradeoffs`
+- `creative_constraint_priorities`
+- `creative_quality_prediction`
+- `symbolic_narrative`
+- `creative_composition`
+
+Those typed results are persisted on `AssistantWorkflowState` and mirrored into
+`PromptInputResponse`. The downstream `director` and `reasoning` runtime nodes
+consume that metadata, and `prompt_rendering` serializes it into provider prompt
+sections. The internal capability graph is documented separately in
+[creative_intelligence_graph.md](creative_intelligence_graph.md) and
+[creative_intelligence_graph.mmd](creative_intelligence_graph.mmd).
+
+This separation is intentional:
+
+- LangGraph owns execution order, retries, lifecycle events, and failure routing
+- The Creative Cognition Core owns bounded, inspectable metadata derivation
+- The internal capability graph is a V4 decomposition candidate, but it is not
+  yet a true multi-agent or multi-node runtime graph
+
 ## Current Implemented Flow
 
 The graph is compiled once in `AssistantService.__init__()` and executed through `graph.stream(..., stream_mode="custom")`. Control flow is linear through prompt input, deterministic planning, Director guidance, Creative Reasoning synthesis, prompt rendering, generation, workflow-owned artifact extraction, preview preparation, and artifact critique before `review`, where the graph applies a bounded quality gate. Passing outputs continue to `finalization`; failing outputs enter one `refinement` attempt and loop back to `generation`. Explicit provider failures and caught node errors route into a terminal `failure` node.
+
+The `planning` node remains one LangGraph node even though it derives the full
+Creative Cognition Core internally. `director` and `reasoning` remain separate
+runtime nodes because they synthesize and package that stored metadata after the
+planning pass completes.
 
 In the diagrams below:
 
@@ -101,7 +144,10 @@ The failure edges above remain real LangGraph transitions into the single termin
 
 Frontend-only workstation errors are not LangGraph runtime nodes. Preview/renderer runtime errors render in the Preview shelf, artifact/export UI errors render in the Artifacts tab, persistence/session errors render near session controls, and HITL local approval errors render in the Workflow inspector.
 
-The raw Mermaid source for the implemented graph is also available in [workflow_graph.mmd](/Users/k/Desktop/CC/the_turing_college/extra_projects/creative_coding_assistant/architecture/workflow_graph.mmd).
+The raw Mermaid source for the implemented runtime graph is also available in
+[workflow_graph.mmd](workflow_graph.mmd). The corresponding internal capability
+graph is documented in [creative_intelligence_graph.md](creative_intelligence_graph.md)
+and [creative_intelligence_graph.mmd](creative_intelligence_graph.mmd).
 
 ## Nodes And Transitions
 
@@ -148,9 +194,10 @@ Node responsibilities:
 - `retrieval`: calls the retrieval step generator and either stores `retrieval_context` or skips the step
 - `context_assembly`: combines memory and retrieval context when a context assembler is configured
 - `prompt_input`: builds prompt inputs when a prompt input builder is configured
-- `planning`: derives `CreativeExecutionPlan`, stores it in workflow state and prompt input metadata, and emits `planning/creative_plan_prepared`
-- `director`: derives bounded `CreativeAssistantDirectorBrief` metadata from route, retrieval, plan, clarification, critique, review, and refinement signals; stores it in workflow state and prompt input metadata; and emits `planning/creative_director_prepared`
-- `prompt_rendering`: renders the final provider prompt when prompt inputs exist
+- `planning`: derives `CreativeExecutionPlan` plus the bounded Creative Cognition Core metadata (`creative_intent`, `creative_hierarchy`, `creative_strategy`, `creative_techniques`, `creative_constraints`, `runtime_capabilities`, `creative_tradeoffs`, `creative_constraint_priorities`, `creative_quality_prediction`, `symbolic_narrative`, and `creative_composition`), stores them in workflow state and prompt input metadata, and emits `planning/creative_plan_prepared`
+- `director`: derives bounded `CreativeAssistantDirectorBrief` metadata from route, retrieval, clarification, critique/review/refinement signals, and the stored Creative Cognition Core metadata; stores it in workflow state and prompt input metadata; and emits `planning/creative_director_prepared`
+- `reasoning`: derives `CreativeReasoningResult` from the stored Creative Cognition Core metadata plus the Director brief, stores it in workflow state and prompt input metadata, and emits `planning/creative_reasoning_prepared`
+- `prompt_rendering`: renders the final provider prompt from prompt inputs plus the stored Creative Cognition Core, Director, and Reasoning metadata when prompt inputs exist
 - `generation`: prepares provider input, forwards generation stream events, and stores the transient `generation_result`
 - `artifact_extraction`: detects generated code artifacts, normalizes workflow artifact metadata, stores `artifacts`, and emits `artifact_extracted`
 - `preview_preparation`: prepares preview-ready runtime metadata for previewable artifacts, stores `preview_results`, and emits `preview_artifact`
@@ -171,7 +218,7 @@ There are two layers of runtime state.
 - Starts as `status=running`, `current_step=None`
 - Moves one step at a time through `start_workflow_step()`
 - Resolves each step through `complete_workflow_step()` or `skip_workflow_step()`
-- Stores durable outputs such as `route_decision`, `memory_context`, `retrieval_context`, `assembled_context`, `prompt_input`, `creative_director`, `rendered_prompt`, extracted `artifacts`, prepared `preview_results`, `artifact_critique_summary`, and `final_answer`
+- Stores durable outputs such as `route_decision`, `memory_context`, `retrieval_context`, `assembled_context`, `prompt_input`, `creative_intent`, `creative_hierarchy`, `creative_strategy`, `creative_techniques`, `creative_plan`, `creative_constraints`, `creative_constraint_priorities`, `runtime_capabilities`, `creative_tradeoffs`, `creative_quality_prediction`, `symbolic_narrative`, `creative_composition`, `creative_director`, `creative_reasoning`, `rendered_prompt`, extracted `artifacts`, prepared `preview_results`, `artifact_critique_summary`, and `final_answer`
 - Stores review metadata through `review_result` and `refinement_count`
 - Stores typed failure metadata through `failure_info`
 - Reaches terminal completion only through `finish_workflow()` while `FINALIZATION` is active
@@ -263,7 +310,7 @@ Important stream guarantees:
 
 Current implemented flow:
 
-- Linear path through prompt input, planning, prompt rendering, generation, artifact extraction, preview preparation, artifact critique, and `review`
+- Linear path through prompt input, planning, director, reasoning, prompt rendering, generation, artifact extraction, preview preparation, artifact critique, and `review`
 - Conditional review edge
 - Bounded one-attempt refinement loop
 - Workflow-owned artifact extraction, preview metadata preparation, and artifact critique metadata
@@ -336,7 +383,7 @@ flowchart TB
     review -. human approval .-> hitl
     hitl -. rejoin .-> finalization
 
-    class routing,memory,retrieval,context_assembly,prompt_input,planning,director,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
+    class routing,memory,retrieval,context_assembly,prompt_input,planning,director,reasoning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
     class tool_gate,tool_loop,preview,retry,hitl future
@@ -348,10 +395,12 @@ Conservative insertion points:
 - Review loops: the current `review` gate is the natural anchor for richer future retry loops back to `prompt_input` or `generation`
 - Preview execution: renderer execution and capture can branch from `preview_preparation` and rejoin before artifact critique or `review` without changing the request/response contract
 - HITL checkpoints: the safest first checkpoint is between `review` and `finalization`, where a human can approve, edit, or reject a nearly complete result
+- Creative Cognition Core decomposition: the internal capability graph documented in `creative_intelligence_graph.*` is the current blueprint for any future V4 split into smaller nodes or agents
 
 ## Known Limits In The Current Runtime
 
 - Route selection does not currently alter graph control flow
+- Creative Cognition Core helpers do not yet own separate LangGraph nodes, retries, or failure transitions; they execute synchronously inside `planning`
 - `artifact_critique` and `review` are deterministic and intentionally lightweight; they are not LLM evaluators
 - Preview preparation creates runtime metadata but does not execute renderers or capture frames
 - Unexpected failures are normalized into the workflow only when a node catches them and records `pending_failure`

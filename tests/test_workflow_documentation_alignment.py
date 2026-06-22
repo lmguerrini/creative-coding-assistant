@@ -5,6 +5,20 @@ from pathlib import Path
 from creative_coding_assistant.orchestration import ASSISTANT_WORKFLOW_NODE_ORDER
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+CREATIVE_COGNITION_CORE_CAPABILITIES = (
+    "Creative Intent Decomposer",
+    "Creative Hierarchy Planner",
+    "Creative Strategy Engine",
+    "Creative Technique Selector",
+    "Creative Constraint Solver",
+    "Runtime Capability Reasoner",
+    "Creative Trade-off Explorer",
+    "Creative Constraint Prioritizer",
+    "Creative Quality Predictor",
+    "Symbolic Narrative Planner",
+    "Creative Composition Planner",
+    "Creative Reasoning Engine",
+)
 
 
 class WorkflowDocumentationAlignmentTests(unittest.TestCase):
@@ -50,6 +64,44 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "prompt_input --> planning --> director --> reasoning --> prompt_rendering",
             mermaid,
         )
+
+    def test_workflow_doc_distinguishes_runtime_and_internal_graphs(self) -> None:
+        architecture_doc = (
+            REPO_ROOT / "architecture" / "workflow_graph.md"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn(
+            "## Runtime Graph Vs Internal Capability Graph",
+            architecture_doc,
+        )
+        self.assertIn("creative_intelligence_graph.md", architecture_doc)
+        self.assertIn("creative_intelligence_graph.mmd", architecture_doc)
+        self.assertIn("true multi-agent", architecture_doc)
+        self.assertIn("multi-node runtime graph", architecture_doc)
+
+    def test_creative_intelligence_graph_docs_cover_current_capabilities(self) -> None:
+        architecture_doc = (
+            REPO_ROOT / "architecture" / "creative_intelligence_graph.md"
+        ).read_text(encoding="utf-8")
+        mermaid = (
+            REPO_ROOT / "architecture" / "creative_intelligence_graph.mmd"
+        ).read_text(encoding="utf-8")
+
+        for capability in CREATIVE_COGNITION_CORE_CAPABILITIES:
+            self.assertIn(capability, architecture_doc)
+            self.assertIn(capability, mermaid)
+
+        self.assertIn("Creative Execution Plan", architecture_doc)
+        self.assertIn("Creative Execution Plan", mermaid)
+        self.assertIn("Creative Assistant Director runtime node", architecture_doc)
+        self.assertIn("Creative Reasoning Engine runtime node", architecture_doc)
+        self.assertIn("prompt_rendering", mermaid)
+        self.assertIn(
+            "Why This Is Not Yet A True Multi-Agent Graph",
+            architecture_doc,
+        )
+        self.assertIn("metadata_store --> director", mermaid)
+        self.assertIn("director --> reasoning --> prompt_rendering", mermaid)
 
 
 if __name__ == "__main__":
