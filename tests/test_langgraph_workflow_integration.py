@@ -242,6 +242,14 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         quality_prediction = planning_event.payload["creative_quality_prediction"]
         symbolic_narrative = planning_event.payload["symbolic_narrative"]
         creative_composition = planning_event.payload["creative_composition"]
+        v32_engine_roles = {
+            "procedural_structure": "procedural_structure_planner",
+            "generative_structure": "generative_structure_engine",
+            "semantic_motif": "semantic_motif_engine",
+            "emotional_consistency": "emotional_consistency_engine",
+            "cross_modality": "cross_modality_composer",
+            "audio_visual_scene": "audio_visual_scene_system",
+        }
         director = director_event.payload["creative_director"]
         reasoning = reasoning_event.payload["creative_reasoning"]
 
@@ -375,6 +383,13 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             final_event.payload["creative_composition"]["role"],
             "creative_composition_planner",
         )
+        for payload_key, role in v32_engine_roles.items():
+            self.assertIn(payload_key, final_event.payload)
+            self.assertEqual(final_event.payload[payload_key]["role"], role)
+            self.assertEqual(
+                final_event.payload[payload_key],
+                planning_event.payload[payload_key],
+            )
         self.assertEqual(
             final_event.payload["creative_director"]["runtime_direction"],
             "p5",

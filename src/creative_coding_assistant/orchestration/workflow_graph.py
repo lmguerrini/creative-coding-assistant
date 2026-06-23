@@ -1729,6 +1729,22 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "cross_modality",
+                    (
+                        final_state.cross_modality.model_dump(mode="json")
+                        if final_state.cross_modality is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
+                    "audio_visual_scene",
+                    (
+                        final_state.audio_visual_scene.model_dump(mode="json")
+                        if final_state.audio_visual_scene is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_director",
                     (
                         final_state.creative_director.model_dump(mode="json")
