@@ -857,6 +857,111 @@ export type SemanticMotifSystemSummary = {
   evidence: string[];
 };
 
+export type EmotionalTone =
+  | "awe"
+  | "wonder"
+  | "mystery"
+  | "serenity"
+  | "tension"
+  | "rupture"
+  | "grief"
+  | "dissolution"
+  | "suspension"
+  | "emergence"
+  | "ecstasy"
+  | "clarity"
+  | "intimacy"
+  | "vastness"
+  | "ritual solemnity"
+  | "playful curiosity"
+  | "dread"
+  | "release"
+  | "transformation"
+  | "integration";
+
+export type EmotionalIntensity = "low" | "medium" | "high" | "variable";
+
+export type EmotionalPhaseMappingSummary = {
+  phase: SymbolicNarrativePhaseName;
+  tone: EmotionalTone;
+  intensity: EmotionalIntensity;
+  guidance: string;
+  evidence: string[];
+};
+
+export type EmotionalNarrativeMappingSummary = {
+  tone: EmotionalTone;
+  narrativePhase: SymbolicNarrativePhaseName;
+  narrativeFunction: string;
+  evidence: string[];
+};
+
+export type EmotionalMotifMappingSummary = {
+  tone: EmotionalTone;
+  motifId: SemanticMotifId | null;
+  emotionalFunction: string;
+  evidence: string[];
+};
+
+export type EmotionalCompositionMappingSummary = {
+  tone: EmotionalTone;
+  compositionPattern: CreativeCompositionPattern | null;
+  compositionGuidance: string;
+  spatialOrDensityGuidance: string;
+  evidence: string[];
+};
+
+export type EmotionalStructureMappingSummary = {
+  tone: EmotionalTone;
+  proceduralFamilies: ProceduralFamily[];
+  generativeModuleKinds: GenerativeModuleKind[];
+  structuralGuidance: string;
+  evidence: string[];
+};
+
+export type EmotionalParameterMappingSummary = {
+  tone: EmotionalTone;
+  parameterNames: string[];
+  parameterGuidance: string;
+  evidence: string[];
+};
+
+export type EmotionalFallbackStrategySummary = {
+  fallbackPrimaryTone: EmotionalTone;
+  fallbackSecondaryTones: EmotionalTone[];
+  simplificationStrategy: string;
+  preservedFeeling: string;
+  promptGuidance: string[];
+};
+
+export type EmotionalConsistencyProfileSummary = {
+  role: "emotional_consistency_engine";
+  primaryEmotionalTone: EmotionalTone;
+  secondaryEmotionalTones: EmotionalTone[];
+  emotionalArc: string[];
+  emotionalPhaseMapping: EmotionalPhaseMappingSummary[];
+  emotionalToNarrativeMapping: EmotionalNarrativeMappingSummary[];
+  emotionalToMotifMapping: EmotionalMotifMappingSummary[];
+  emotionalToCompositionMapping: EmotionalCompositionMappingSummary[];
+  emotionalToStructureMapping: EmotionalStructureMappingSummary[];
+  emotionalToParameterMapping: EmotionalParameterMappingSummary[];
+  colorLightGuidance: string[];
+  motionRhythmGuidance: string[];
+  audiovisualGuidance: string[];
+  emotionalCoherenceScore: number;
+  emotionalTensions: string[];
+  mismatchRisks: string[];
+  flatteningRisks: string[];
+  overIntensityRisks: string[];
+  underIntensityRisks: string[];
+  fallbackEmotionalStrategy: EmotionalFallbackStrategySummary;
+  unresolvedEmotionalGaps: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeConstraintAxis =
   | "intent"
   | "modality"
@@ -1020,6 +1125,7 @@ export type CreativeReasoningEvidenceSource =
   | "procedural_structure"
   | "generative_structure"
   | "semantic_motif"
+  | "emotional_consistency"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {

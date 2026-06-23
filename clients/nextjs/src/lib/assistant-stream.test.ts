@@ -12,6 +12,7 @@ import {
   readCreativeStrategySummary,
   readCreativeTechniqueSummary,
   readCreativeTradeoffExplorerSummary,
+  readEmotionalConsistencyProfileSummary,
   readGenerativeStructureBlueprintSummary,
   readProceduralStructurePlanSummary,
   readSemanticMotifSystemSummary,
@@ -563,6 +564,149 @@ function semanticMotifEntry(
     recurrence_guidance: [`Introduce ${motifId} early.`],
     transformation_guidance: [`Let ${motifId} transform through parameters.`],
     evidence: [`Motif evidence: ${motifId}.`]
+  };
+}
+
+function emotionalConsistencyFixture() {
+  return {
+    role: "emotional_consistency_engine",
+    primary_emotional_tone: "transformation",
+    secondary_emotional_tones: [
+      "rupture",
+      "suspension",
+      "release",
+      "integration"
+    ],
+    emotional_arc: [
+      "contraction",
+      "fragmentation or destabilization",
+      "threshold stillness",
+      "emergence",
+      "integration"
+    ],
+    emotional_phase_mapping: [
+      {
+        phase: "opening",
+        tone: "tension",
+        intensity: "medium",
+        guidance: "Use tension as the opening emotional state.",
+        evidence: ["Narrative phase: opening."]
+      },
+      {
+        phase: "threshold",
+        tone: "suspension",
+        intensity: "high",
+        guidance: "Slow motion near the threshold.",
+        evidence: ["Narrative phase: threshold."]
+      }
+    ],
+    emotional_to_narrative_mapping: [
+      {
+        tone: "transformation",
+        narrative_phase: "climax",
+        narrative_function:
+          "Use transformation to support death_and_rebirth without universal claims.",
+        evidence: ["Narrative archetype: death_and_rebirth."]
+      }
+    ],
+    emotional_to_motif_mapping: [
+      {
+        tone: "rupture",
+        motif_id: "fragmentation",
+        emotional_function:
+          "Let fragmentation carry rupture as a recurring design cue.",
+        evidence: ["Semantic Motif Engine primary motifs: fragmentation."]
+      },
+      {
+        tone: "integration",
+        motif_id: "reintegration",
+        emotional_function:
+          "Let reintegration carry integration as a recurring design cue.",
+        evidence: ["Semantic Motif Engine primary motifs: reintegration."]
+      }
+    ],
+    emotional_to_composition_mapping: [
+      {
+        tone: "transformation",
+        composition_pattern: "fragmented_recomposition",
+        composition_guidance:
+          "Use transformation inside fragmented recomposition.",
+        spatial_or_density_guidance:
+          "Keep density shifts tied to the emotional arc.",
+        evidence: ["Composition pattern: fragmented_recomposition."]
+      }
+    ],
+    emotional_to_structure_mapping: [
+      {
+        tone: "rupture",
+        procedural_families: ["particle_systems"],
+        generative_module_kinds: ["particle_emitter"],
+        structural_guidance:
+          "Preserve rupture through existing particle structure.",
+        evidence: ["Generative modules: particle_emitter."]
+      }
+    ],
+    emotional_to_parameter_mapping: [
+      {
+        tone: "rupture",
+        parameter_names: ["fragmentation_amount", "particle_count"],
+        parameter_guidance:
+          "Use fragmentation_amount to tune rupture without new runtime behavior.",
+        evidence: ["Emotional-to-parameter mapping for rupture."]
+      },
+      {
+        tone: "integration",
+        parameter_names: ["reassembly_speed"],
+        parameter_guidance:
+          "Use reassembly_speed to tune integration without new runtime behavior.",
+        evidence: ["Emotional-to-parameter mapping for integration."]
+      }
+    ],
+    color_light_guidance: [
+      "Begin muted, pass through low-contrast threshold light, then use luminous reintegration for transformation."
+    ],
+    motion_rhythm_guidance: [
+      "Stage motion as contraction, scatter, pause, acceleration, then calm expansion."
+    ],
+    audiovisual_guidance: [
+      "Use audio or audiovisual changes to reinforce transformation."
+    ],
+    emotional_coherence_score: 86,
+    emotional_tensions: [
+      "Calm or resolving tones must be staged separately from rupture."
+    ],
+    mismatch_risks: [
+      "Playful motion may weaken solemn transformation or ritual weight."
+    ],
+    flattening_risks: [
+      "Treating transformation as a single constant mood may flatten the emotional arc."
+    ],
+    over_intensity_risks: [
+      "Over-intensifying rupture may exhaust the viewer before resolution."
+    ],
+    under_intensity_risks: [
+      "Underplaying transformation may make the arc feel unresolved."
+    ],
+    fallback_emotional_strategy: {
+      fallback_primary_tone: "transformation",
+      fallback_secondary_tones: ["release", "integration"],
+      simplification_strategy:
+        "Preserve transformation and reduce secondary emotional cues first.",
+      preserved_feeling: "Preserve the death_and_rebirth arc through transformation.",
+      prompt_guidance: [
+        "Use fewer emotional tones before adding new visual systems."
+      ]
+    },
+    unresolved_emotional_gaps: [
+      "Emotional language is abstract; confirm the dominant tone."
+    ],
+    hitl_questions: ["Which emotional tone should remain dominant?"],
+    prompt_guidance: [
+      "Use emotional consistency as design guidance, not executable code."
+    ],
+    authority_boundary:
+      "The Emotional Consistency Engine organizes emotional direction as inspectable design metadata only.",
+    evidence: ["Primary emotional tone: transformation."]
   };
 }
 
@@ -2297,6 +2441,39 @@ describe("assistant stream client", () => {
     );
   });
 
+  it("reads emotional consistency engine metadata", () => {
+    const profile = readEmotionalConsistencyProfileSummary(
+      emotionalConsistencyFixture()
+    );
+
+    expect(profile?.role).toBe("emotional_consistency_engine");
+    expect(profile?.primaryEmotionalTone).toBe("transformation");
+    expect(profile?.secondaryEmotionalTones).toContain("rupture");
+    expect(profile?.emotionalArc).toContain("threshold stillness");
+    expect(profile?.emotionalPhaseMapping[1]).toMatchObject({
+      phase: "threshold",
+      tone: "suspension",
+      intensity: "high"
+    });
+    expect(profile?.emotionalToMotifMapping[0]).toMatchObject({
+      tone: "rupture",
+      motifId: "fragmentation"
+    });
+    expect(profile?.emotionalToStructureMapping[0]?.generativeModuleKinds).toContain(
+      "particle_emitter"
+    );
+    expect(profile?.emotionalToParameterMapping[1]?.parameterNames).toContain(
+      "reassembly_speed"
+    );
+    expect(profile?.emotionalCoherenceScore).toBe(86);
+    expect(profile?.fallbackEmotionalStrategy.fallbackPrimaryTone).toBe(
+      "transformation"
+    );
+    expect(profile?.hitlQuestions).toContain(
+      "Which emotional tone should remain dominant?"
+    );
+  });
+
   it("reads creative reasoning engine metadata", () => {
     const profile = readCreativeReasoningSummary({
       role: "creative_reasoning_engine",
@@ -2382,6 +2559,12 @@ describe("assistant stream client", () => {
           source: "semantic_motif",
           signal: "fragmentation, reintegration.",
           interpretation: "Motif evidence defines recurrence and risk guidance."
+        },
+        {
+          source: "emotional_consistency",
+          signal: "transformation 86/100.",
+          interpretation:
+            "Emotional evidence defines tone hierarchy and mismatch guidance."
         }
       ],
       strongestSupportingSignals: ["Strategy sacred_geometry confidence 0.83."],
@@ -2432,6 +2615,9 @@ describe("assistant stream client", () => {
     );
     expect(profile?.evidenceChain.map((item) => item.source)).toContain(
       "semantic_motif"
+    );
+    expect(profile?.evidenceChain.map((item) => item.source)).toContain(
+      "emotional_consistency"
     );
     expect(profile?.futureKnowledgeContext.status).toBe("not_attached");
   });
@@ -2902,6 +3088,87 @@ describe("assistant stream client", () => {
         hitlQuestions: ["Which motif should remain visually dominant?"]
       },
       semantic_motif_available: true
+    });
+  });
+
+  it("hydrates emotional consistency workflow metadata", () => {
+    const emotionalConsistency = emotionalConsistencyFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 13,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          emotional_consistency: emotionalConsistency,
+          emotional_consistency_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      emotional_consistency: {
+        role: "emotional_consistency_engine",
+        primaryEmotionalTone: "transformation",
+        secondaryEmotionalTones: [
+          "rupture",
+          "suspension",
+          "release",
+          "integration"
+        ],
+        emotionalPhaseMapping: [
+          {
+            phase: "opening",
+            tone: "tension",
+            intensity: "medium"
+          },
+          {
+            phase: "threshold",
+            tone: "suspension",
+            intensity: "high"
+          }
+        ],
+        emotionalToMotifMapping: [
+          {
+            tone: "rupture",
+            motifId: "fragmentation"
+          },
+          {
+            tone: "integration",
+            motifId: "reintegration"
+          }
+        ],
+        emotionalToParameterMapping: [
+          {
+            tone: "rupture",
+            parameterNames: ["fragmentation_amount", "particle_count"]
+          },
+          {
+            tone: "integration",
+            parameterNames: ["reassembly_speed"]
+          }
+        ],
+        fallbackEmotionalStrategy: {
+          fallbackPrimaryTone: "transformation",
+          fallbackSecondaryTones: ["release", "integration"]
+        },
+        hitlQuestions: ["Which emotional tone should remain dominant?"]
+      },
+      emotional_consistency_available: true
     });
   });
 

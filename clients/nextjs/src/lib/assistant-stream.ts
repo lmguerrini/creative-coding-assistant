@@ -55,6 +55,16 @@ import {
   type CreativeTradeoffSeverity,
   type CreativeTradeoffSummary,
   type CreativeTranslationSummary,
+  type EmotionalCompositionMappingSummary,
+  type EmotionalConsistencyProfileSummary,
+  type EmotionalFallbackStrategySummary,
+  type EmotionalIntensity,
+  type EmotionalMotifMappingSummary,
+  type EmotionalNarrativeMappingSummary,
+  type EmotionalParameterMappingSummary,
+  type EmotionalPhaseMappingSummary,
+  type EmotionalStructureMappingSummary,
+  type EmotionalTone,
   type GenerativeArchitecture,
   type GenerativeEvolutionPhase,
   type GenerativeEvolutionRuleSummary,
@@ -193,6 +203,8 @@ export type AssistantStreamWorkflowMetadata = {
   generative_structure_available?: boolean;
   semantic_motif?: SemanticMotifSystemSummary | null;
   semantic_motif_available?: boolean;
+  emotional_consistency?: EmotionalConsistencyProfileSummary | null;
+  emotional_consistency_available?: boolean;
   creative_director?: CreativeAssistantDirectorSummary | null;
   director_available?: boolean;
   creative_reasoning?: CreativeReasoningSummary | null;
@@ -677,6 +689,12 @@ export function readWorkflowMetadata(
   );
   const semanticMotifAvailable =
     rawWorkflow.semantic_motif_available === true || semanticMotif !== null;
+  const emotionalConsistency = readEmotionalConsistencyProfileSummary(
+    rawWorkflow.emotional_consistency ?? rawWorkflow.emotionalConsistency
+  );
+  const emotionalConsistencyAvailable =
+    rawWorkflow.emotional_consistency_available === true ||
+    emotionalConsistency !== null;
   const creativeDirector = readCreativeAssistantDirectorSummary(
     rawWorkflow.creative_director ?? rawWorkflow.creativeDirector
   );
@@ -808,6 +826,12 @@ export function readWorkflowMetadata(
       ? {
           semantic_motif: semanticMotif,
           semantic_motif_available: true
+        }
+      : {}),
+    ...(emotionalConsistencyAvailable
+      ? {
+          emotional_consistency: emotionalConsistency,
+          emotional_consistency_available: true
         }
       : {}),
     ...(directorAvailable
@@ -3546,6 +3570,486 @@ function readSemanticMotifIdList(value: unknown): SemanticMotifId[] {
   );
 }
 
+export function readEmotionalConsistencyProfileSummary(
+  value: unknown
+): EmotionalConsistencyProfileSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const primaryEmotionalTone = readStringUnion(
+    value,
+    "primary_emotional_tone",
+    "primaryEmotionalTone",
+    emotionalTones
+  );
+  const secondaryEmotionalTones = readEmotionalToneList(
+    value.secondary_emotional_tones ?? value.secondaryEmotionalTones
+  );
+  const emotionalArc = readStringListField(
+    value,
+    "emotional_arc",
+    "emotionalArc"
+  );
+  const emotionalPhaseMapping = readEmotionalPhaseMappingSummaryList(
+    value.emotional_phase_mapping ?? value.emotionalPhaseMapping
+  );
+  const emotionalToNarrativeMapping =
+    readEmotionalNarrativeMappingSummaryList(
+      value.emotional_to_narrative_mapping ?? value.emotionalToNarrativeMapping
+    );
+  const emotionalToMotifMapping = readEmotionalMotifMappingSummaryList(
+    value.emotional_to_motif_mapping ?? value.emotionalToMotifMapping
+  );
+  const emotionalToCompositionMapping =
+    readEmotionalCompositionMappingSummaryList(
+      value.emotional_to_composition_mapping ??
+        value.emotionalToCompositionMapping
+    );
+  const emotionalToStructureMapping = readEmotionalStructureMappingSummaryList(
+    value.emotional_to_structure_mapping ?? value.emotionalToStructureMapping
+  );
+  const emotionalToParameterMapping = readEmotionalParameterMappingSummaryList(
+    value.emotional_to_parameter_mapping ?? value.emotionalToParameterMapping
+  );
+  const colorLightGuidance = readStringListField(
+    value,
+    "color_light_guidance",
+    "colorLightGuidance"
+  );
+  const motionRhythmGuidance = readStringListField(
+    value,
+    "motion_rhythm_guidance",
+    "motionRhythmGuidance"
+  );
+  const emotionalCoherenceScore =
+    readFiniteNumberField(value, "emotional_coherence_score") ??
+    readFiniteNumberField(value, "emotionalCoherenceScore");
+  const fallbackEmotionalStrategy = readEmotionalFallbackStrategySummary(
+    value.fallback_emotional_strategy ?? value.fallbackEmotionalStrategy
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "emotional_consistency_engine" ||
+    !primaryEmotionalTone ||
+    secondaryEmotionalTones.length === 0 ||
+    emotionalArc.length === 0 ||
+    emotionalPhaseMapping.length === 0 ||
+    emotionalToNarrativeMapping.length === 0 ||
+    emotionalToMotifMapping.length === 0 ||
+    emotionalToCompositionMapping.length === 0 ||
+    emotionalToStructureMapping.length === 0 ||
+    emotionalToParameterMapping.length === 0 ||
+    colorLightGuidance.length === 0 ||
+    motionRhythmGuidance.length === 0 ||
+    emotionalCoherenceScore === null ||
+    emotionalCoherenceScore < 0 ||
+    emotionalCoherenceScore > 100 ||
+    !fallbackEmotionalStrategy ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    primaryEmotionalTone,
+    secondaryEmotionalTones,
+    emotionalArc,
+    emotionalPhaseMapping,
+    emotionalToNarrativeMapping,
+    emotionalToMotifMapping,
+    emotionalToCompositionMapping,
+    emotionalToStructureMapping,
+    emotionalToParameterMapping,
+    colorLightGuidance,
+    motionRhythmGuidance,
+    audiovisualGuidance: readStringListField(
+      value,
+      "audiovisual_guidance",
+      "audiovisualGuidance"
+    ),
+    emotionalCoherenceScore,
+    emotionalTensions: readStringListField(
+      value,
+      "emotional_tensions",
+      "emotionalTensions"
+    ),
+    mismatchRisks: readStringListField(value, "mismatch_risks", "mismatchRisks"),
+    flatteningRisks: readStringListField(
+      value,
+      "flattening_risks",
+      "flatteningRisks"
+    ),
+    overIntensityRisks: readStringListField(
+      value,
+      "over_intensity_risks",
+      "overIntensityRisks"
+    ),
+    underIntensityRisks: readStringListField(
+      value,
+      "under_intensity_risks",
+      "underIntensityRisks"
+    ),
+    fallbackEmotionalStrategy,
+    unresolvedEmotionalGaps: readStringListField(
+      value,
+      "unresolved_emotional_gaps",
+      "unresolvedEmotionalGaps"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const emotionalTones = [
+  "awe",
+  "wonder",
+  "mystery",
+  "serenity",
+  "tension",
+  "rupture",
+  "grief",
+  "dissolution",
+  "suspension",
+  "emergence",
+  "ecstasy",
+  "clarity",
+  "intimacy",
+  "vastness",
+  "ritual solemnity",
+  "playful curiosity",
+  "dread",
+  "release",
+  "transformation",
+  "integration"
+] as const satisfies readonly EmotionalTone[];
+
+const emotionalIntensities = [
+  "low",
+  "medium",
+  "high",
+  "variable"
+] as const satisfies readonly EmotionalIntensity[];
+
+function readEmotionalToneList(value: unknown): EmotionalTone[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (item): item is EmotionalTone =>
+      typeof item === "string" && emotionalTones.includes(item as EmotionalTone)
+  );
+}
+
+function readEmotionalPhaseMappingSummaryList(
+  value: unknown
+): EmotionalPhaseMappingSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const phase = readStringUnion(
+      item,
+      "phase",
+      "phase",
+      symbolicNarrativePhaseNames
+    );
+    const tone = readStringUnion(item, "tone", "tone", emotionalTones);
+    const intensity = readStringUnion(
+      item,
+      "intensity",
+      "intensity",
+      emotionalIntensities
+    );
+    const guidance = readStringField(item, "guidance");
+
+    if (!phase || !tone || !intensity || !guidance) {
+      return [];
+    }
+
+    return [
+      {
+        phase,
+        tone,
+        intensity,
+        guidance,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readEmotionalNarrativeMappingSummaryList(
+  value: unknown
+): EmotionalNarrativeMappingSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const tone = readStringUnion(item, "tone", "tone", emotionalTones);
+    const narrativePhase = readStringUnion(
+      item,
+      "narrative_phase",
+      "narrativePhase",
+      symbolicNarrativePhaseNames
+    );
+    const narrativeFunction =
+      readStringField(item, "narrative_function") ??
+      readStringField(item, "narrativeFunction");
+
+    if (!tone || !narrativePhase || !narrativeFunction) {
+      return [];
+    }
+
+    return [
+      {
+        tone,
+        narrativePhase,
+        narrativeFunction,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readEmotionalMotifMappingSummaryList(
+  value: unknown
+): EmotionalMotifMappingSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const tone = readStringUnion(item, "tone", "tone", emotionalTones);
+    const rawMotifId = item.motif_id ?? item.motifId;
+    const motifId =
+      rawMotifId === null || rawMotifId === undefined
+        ? null
+        : readStringUnion(item, "motif_id", "motifId", semanticMotifIds);
+    const emotionalFunction =
+      readStringField(item, "emotional_function") ??
+      readStringField(item, "emotionalFunction");
+
+    if (
+      !tone ||
+      (rawMotifId !== null && rawMotifId !== undefined && motifId === null) ||
+      !emotionalFunction
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        tone,
+        motifId,
+        emotionalFunction,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readEmotionalCompositionMappingSummaryList(
+  value: unknown
+): EmotionalCompositionMappingSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const tone = readStringUnion(item, "tone", "tone", emotionalTones);
+    const rawCompositionPattern =
+      item.composition_pattern ?? item.compositionPattern;
+    const compositionPattern =
+      rawCompositionPattern === null || rawCompositionPattern === undefined
+        ? null
+        : readStringUnion(
+            item,
+            "composition_pattern",
+            "compositionPattern",
+            creativeCompositionPatterns
+          );
+    const compositionGuidance =
+      readStringField(item, "composition_guidance") ??
+      readStringField(item, "compositionGuidance");
+    const spatialOrDensityGuidance =
+      readStringField(item, "spatial_or_density_guidance") ??
+      readStringField(item, "spatialOrDensityGuidance");
+
+    if (
+      !tone ||
+      (rawCompositionPattern !== null &&
+        rawCompositionPattern !== undefined &&
+        compositionPattern === null) ||
+      !compositionGuidance ||
+      !spatialOrDensityGuidance
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        tone,
+        compositionPattern,
+        compositionGuidance,
+        spatialOrDensityGuidance,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readEmotionalStructureMappingSummaryList(
+  value: unknown
+): EmotionalStructureMappingSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const tone = readStringUnion(item, "tone", "tone", emotionalTones);
+    const structuralGuidance =
+      readStringField(item, "structural_guidance") ??
+      readStringField(item, "structuralGuidance");
+
+    if (!tone || !structuralGuidance) {
+      return [];
+    }
+
+    return [
+      {
+        tone,
+        proceduralFamilies: readProceduralFamilyList(
+          item.procedural_families ?? item.proceduralFamilies
+        ),
+        generativeModuleKinds: readGenerativeModuleKindList(
+          item.generative_module_kinds ?? item.generativeModuleKinds
+        ),
+        structuralGuidance,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readEmotionalParameterMappingSummaryList(
+  value: unknown
+): EmotionalParameterMappingSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const tone = readStringUnion(item, "tone", "tone", emotionalTones);
+    const parameterNames = readStringListField(
+      item,
+      "parameter_names",
+      "parameterNames"
+    );
+    const parameterGuidance =
+      readStringField(item, "parameter_guidance") ??
+      readStringField(item, "parameterGuidance");
+
+    if (!tone || parameterNames.length === 0 || !parameterGuidance) {
+      return [];
+    }
+
+    return [
+      {
+        tone,
+        parameterNames,
+        parameterGuidance,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readEmotionalFallbackStrategySummary(
+  value: unknown
+): EmotionalFallbackStrategySummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const fallbackPrimaryTone = readStringUnion(
+    value,
+    "fallback_primary_tone",
+    "fallbackPrimaryTone",
+    emotionalTones
+  );
+  const simplificationStrategy =
+    readStringField(value, "simplification_strategy") ??
+    readStringField(value, "simplificationStrategy");
+  const preservedFeeling =
+    readStringField(value, "preserved_feeling") ??
+    readStringField(value, "preservedFeeling");
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+
+  if (
+    !fallbackPrimaryTone ||
+    !simplificationStrategy ||
+    !preservedFeeling ||
+    promptGuidance.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    fallbackPrimaryTone,
+    fallbackSecondaryTones: readEmotionalToneList(
+      value.fallback_secondary_tones ?? value.fallbackSecondaryTones
+    ),
+    simplificationStrategy,
+    preservedFeeling,
+    promptGuidance
+  };
+}
+
 export function readCreativeReasoningSummary(
   value: unknown
 ): CreativeReasoningSummary | null {
@@ -3652,6 +4156,7 @@ const creativeReasoningEvidenceSources = [
   "procedural_structure",
   "generative_structure",
   "semantic_motif",
+  "emotional_consistency",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 
