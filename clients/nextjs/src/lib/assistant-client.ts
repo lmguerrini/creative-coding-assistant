@@ -1162,6 +1162,46 @@ export type AudioVisualSceneProfileSummary = {
   evidence: string[];
 };
 
+export type ArtifactType =
+  | "runnable_code"
+  | "design_spec"
+  | "explanation"
+  | "debug_patch"
+  | "review_report"
+  | "refinement_patch"
+  | "preview_request";
+
+export type ArtifactFamily =
+  | "p5_sketch"
+  | "three_scene"
+  | "react_three_fiber_scene"
+  | "glsl_shader"
+  | "hydra_patch"
+  | "tone_sketch"
+  | "canvas_sketch"
+  | "audiovisual_scene"
+  | "generative_artifact"
+  | "multimodal_reference_artifact"
+  | "creative_coding_response";
+
+export type ArtifactPlanSummary = {
+  role: "artifact_planner";
+  primaryArtifactIntent: string;
+  artifactType: ArtifactType;
+  artifactFamily: ArtifactFamily;
+  requiredComponents: string[];
+  runtimeRequirements: string[];
+  creativeDependencies: string[];
+  generativeDependencies: string[];
+  expectedOutputStructure: string[];
+  implementationRisks: string[];
+  missingInformation: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeConstraintAxis =
   | "intent"
   | "modality"
@@ -1328,6 +1368,7 @@ export type CreativeReasoningEvidenceSource =
   | "emotional_consistency"
   | "cross_modality"
   | "audio_visual_scene"
+  | "artifact_plan"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {

@@ -14,14 +14,15 @@ from creative_coding_assistant.contracts import (
     CreativeCodingDomain,
 )
 from creative_coding_assistant.memory import ProjectMemoryKind
+from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
+from creative_coding_assistant.orchestration.audio_visual_scene import (
+    AudioVisualSceneProfile,
+)
 from creative_coding_assistant.orchestration.clarification import (
     ClarificationRequest,
     derive_hitl_clarification,
 )
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
-from creative_coding_assistant.orchestration.audio_visual_scene import (
-    AudioVisualSceneProfile,
-)
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
 )
@@ -339,6 +340,7 @@ class PromptInputResponse(BaseModel):
     emotional_consistency: EmotionalConsistencyProfile | None = None
     cross_modality: CrossModalityCompositionProfile | None = None
     audio_visual_scene: AudioVisualSceneProfile | None = None
+    artifact_plan: ArtifactPlan | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None

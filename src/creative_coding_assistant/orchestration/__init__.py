@@ -21,6 +21,7 @@ _CREATIVE_STRATEGY = "creative_coding_assistant.orchestration.creative_strategy"
 _CREATIVE_TECHNIQUE = "creative_coding_assistant.orchestration.creative_technique"
 _CREATIVE_TRADEOFFS = "creative_coding_assistant.orchestration.creative_tradeoffs"
 _CREATIVE_REASONING = "creative_coding_assistant.orchestration.creative_reasoning"
+_ARTIFACT_PLANNER = "creative_coding_assistant.orchestration.artifact_planner"
 _CREATIVE_QUALITY_PREDICTION = (
     "creative_coding_assistant.orchestration.creative_quality_prediction"
 )
@@ -82,6 +83,9 @@ _EXPORT_MAP = {
     "AssistantWorkflowState": _WORKFLOW,
     "ArtifactCritiqueDimension": _ARTIFACTS,
     "ArtifactCritiqueSummary": _ARTIFACT_CRITIQUE,
+    "ArtifactFamily": _ARTIFACT_PLANNER,
+    "ArtifactPlan": _ARTIFACT_PLANNER,
+    "ArtifactType": _ARTIFACT_PLANNER,
     "AudioReactiveGuidance": _AUDIO_REACTIVE,
     "AudioReactiveIntensity": _AUDIO_REACTIVE,
     "AudioReactiveMapping": _AUDIO_REACTIVE,
@@ -308,6 +312,8 @@ _EXPORT_MAP = {
     "cross_modality_prompt_lines": _CROSS_MODALITY,
     "derive_audio_visual_scene_profile": _AUDIO_VISUAL_SCENE,
     "audio_visual_scene_prompt_lines": _AUDIO_VISUAL_SCENE,
+    "artifact_plan_prompt_lines": _ARTIFACT_PLANNER,
+    "derive_artifact_plan": _ARTIFACT_PLANNER,
     "derive_symbolic_narrative_plan": _SYMBOLIC_NARRATIVE,
     "symbolic_narrative_prompt_lines": _SYMBOLIC_NARRATIVE,
     "derive_creative_reasoning_result": _CREATIVE_REASONING,

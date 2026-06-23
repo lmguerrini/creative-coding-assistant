@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
 )
@@ -94,6 +95,7 @@ def build_evidence_chain(
     emotional_consistency: EmotionalConsistencyProfile | None,
     cross_modality: CrossModalityCompositionProfile | None,
     audio_visual_scene: AudioVisualSceneProfile | None,
+    artifact_plan: ArtifactPlan | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -352,6 +354,26 @@ def build_evidence_chain(
                     "Audio-visual scene evidence orders phases, cues, "
                     "transitions, synchronization, climax, and resolution as "
                     "design metadata without generating media."
+                ),
+            )
+        )
+    if artifact_plan is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="artifact_plan",
+                signal=_clip(
+                    (
+                        f"{artifact_plan.artifact_type}: "
+                        f"{artifact_plan.artifact_family}; "
+                        f"{artifact_plan.primary_artifact_intent}"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Artifact planning evidence defines artifact intent, "
+                    "type, family, components, runtime-facing requirements, "
+                    "dependencies, risks, and output structure without "
+                    "selecting, critiquing, refining, or executing artifacts."
                 ),
             )
         )

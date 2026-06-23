@@ -12,6 +12,10 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.domains import get_domain_prompt_guidance
+from creative_coding_assistant.orchestration.artifact_planner import (
+    ArtifactPlan,
+    artifact_plan_prompt_lines,
+)
 from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
     audio_visual_scene_prompt_lines,
@@ -72,6 +76,9 @@ from creative_coding_assistant.orchestration.cross_modality import (
     CrossModalityCompositionProfile,
     cross_modality_prompt_lines,
 )
+from creative_coding_assistant.orchestration.domain_generation import (
+    domain_generation_guidance_lines,
+)
 from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
     emotional_consistency_prompt_lines,
@@ -80,17 +87,14 @@ from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
     generative_structure_prompt_lines,
 )
-from creative_coding_assistant.orchestration.domain_generation import (
-    domain_generation_guidance_lines,
+from creative_coding_assistant.orchestration.procedural_structure import (
+    ProceduralStructurePlan,
+    procedural_structure_prompt_lines,
 )
 from creative_coding_assistant.orchestration.prompt_inputs import (
     PromptImageReferenceInput,
     PromptInputResponse,
     PromptUserInput,
-)
-from creative_coding_assistant.orchestration.procedural_structure import (
-    ProceduralStructurePlan,
-    procedural_structure_prompt_lines,
 )
 from creative_coding_assistant.orchestration.routing import (
     DomainSelectionShape,
@@ -289,6 +293,13 @@ Cross-Modality Composer:
 {% if audio_visual_scene is not none -%}
 Audio-Visual Scene System:
 {% for instruction in audio_visual_scene_lines(audio_visual_scene) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set artifact_plan = prompt_input.artifact_plan -%}
+{% if artifact_plan is not none -%}
+Artifact Planner:
+{% for instruction in artifact_plan_lines(artifact_plan) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -545,6 +556,7 @@ class JinjaPromptRenderer:
             emotional_consistency_lines=_emotional_consistency_lines,
             cross_modality_lines=_cross_modality_lines,
             audio_visual_scene_lines=_audio_visual_scene_lines,
+            artifact_plan_lines=_artifact_plan_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -817,6 +829,12 @@ def _audio_visual_scene_lines(
     profile: AudioVisualSceneProfile,
 ) -> tuple[str, ...]:
     return audio_visual_scene_prompt_lines(profile)
+
+
+def _artifact_plan_lines(
+    plan: ArtifactPlan,
+) -> tuple[str, ...]:
+    return artifact_plan_prompt_lines(plan)
 
 
 def _creative_assistant_director_lines(

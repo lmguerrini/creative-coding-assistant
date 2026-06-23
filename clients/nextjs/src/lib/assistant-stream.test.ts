@@ -3,6 +3,7 @@ import {
   AssistantStreamError,
   decodeAssistantStream,
   parseAssistantStreamLine,
+  readArtifactPlanSummary,
   readAudioVisualSceneProfileSummary,
   readClarificationSummary,
   readCrossModalityCompositionProfileSummary,
@@ -955,6 +956,53 @@ function audioVisualSceneFixture() {
     authority_boundary:
       "The Audio-Visual Scene System organizes scene phases, cues, transitions, climax, resolution, and timing guidance as inspectable design metadata only.",
     evidence: ["Scene pattern: fragmentation_to_reintegration."]
+  };
+}
+
+function artifactPlanFixture() {
+  return {
+    role: "artifact_planner",
+    primary_artifact_intent:
+      "Generate a luminous p5.js mandala that preserves the symbolic scene arc.",
+    artifact_type: "runnable_code",
+    artifact_family: "p5_sketch",
+    required_components: [
+      "One clearly labeled primary artifact.",
+      "A fenced code block with an explicit language tag.",
+      "p5.js setup/draw lifecycle."
+    ],
+    runtime_requirements: [
+      "Respect existing runtime hint: p5.",
+      "Keep renderer compatibility with surface.p5."
+    ],
+    creative_dependencies: [
+      "Strategy: sacred_geometry.",
+      "Technique: recursive_geometry."
+    ],
+    generative_dependencies: [
+      "Procedural structure: recursive_geometry.",
+      "Audio-visual scene: fragmentation_to_reintegration."
+    ],
+    expected_output_structure: [
+      "Lead with the primary runnable artifact.",
+      "Use a fenced code block with an explicit filename or language tag."
+    ],
+    implementation_risks: [
+      "Recursive transforms need clear stopping rules and readable parameters."
+    ],
+    missing_information: [
+      "Target runtime/domain is inferred rather than explicit."
+    ],
+    hitl_questions: [
+      "Should we resolve this artifact planning gap before generation: target runtime?"
+    ],
+    prompt_guidance: [
+      "Use the Artifact Planner as artifact-shape guidance only.",
+      "Satisfy required artifact components before adding secondary effects."
+    ],
+    authority_boundary:
+      "The Artifact Planner structures intended artifact shape as inspectable metadata only.",
+    evidence: ["Artifact family: p5_sketch."]
   };
 }
 
@@ -3668,6 +3716,75 @@ describe("assistant stream client", () => {
         ]
       },
       audio_visual_scene_available: true
+    });
+  });
+
+  it("reads artifact planner summaries", () => {
+    const plan = readArtifactPlanSummary(artifactPlanFixture());
+
+    expect(plan).toMatchObject({
+      role: "artifact_planner",
+      primaryArtifactIntent:
+        "Generate a luminous p5.js mandala that preserves the symbolic scene arc.",
+      artifactType: "runnable_code",
+      artifactFamily: "p5_sketch",
+      requiredComponents: [
+        "One clearly labeled primary artifact.",
+        "A fenced code block with an explicit language tag.",
+        "p5.js setup/draw lifecycle."
+      ],
+      runtimeRequirements: [
+        "Respect existing runtime hint: p5.",
+        "Keep renderer compatibility with surface.p5."
+      ],
+      expectedOutputStructure: [
+        "Lead with the primary runnable artifact.",
+        "Use a fenced code block with an explicit filename or language tag."
+      ]
+    });
+  });
+
+  it("hydrates artifact planner workflow metadata", () => {
+    const artifactPlan = artifactPlanFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 16,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          artifact_plan: artifactPlan,
+          artifact_planner_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      artifact_plan: {
+        role: "artifact_planner",
+        artifactType: "runnable_code",
+        artifactFamily: "p5_sketch",
+        requiredComponents: [
+          "One clearly labeled primary artifact.",
+          "A fenced code block with an explicit language tag.",
+          "p5.js setup/draw lifecycle."
+        ]
+      },
+      artifact_planner_available: true
     });
   });
 

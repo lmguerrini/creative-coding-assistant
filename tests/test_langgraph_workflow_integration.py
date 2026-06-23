@@ -250,6 +250,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             "cross_modality": "cross_modality_composer",
             "audio_visual_scene": "audio_visual_scene_system",
         }
+        artifact_plan = planning_event.payload["artifact_plan"]
         director = director_event.payload["creative_director"]
         reasoning = reasoning_event.payload["creative_reasoning"]
 
@@ -390,6 +391,15 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 final_event.payload[payload_key],
                 planning_event.payload[payload_key],
             )
+        self.assertEqual(artifact_plan["role"], "artifact_planner")
+        self.assertEqual(artifact_plan["artifact_family"], "p5_sketch")
+        self.assertTrue(
+            planning_event.payload["workflow"]["artifact_planner_available"]
+        )
+        self.assertEqual(
+            final_event.payload["artifact_plan"],
+            planning_event.payload["artifact_plan"],
+        )
         self.assertEqual(
             final_event.payload["creative_director"]["runtime_direction"],
             "p5",

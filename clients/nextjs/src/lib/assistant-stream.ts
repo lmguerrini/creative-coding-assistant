@@ -1,6 +1,9 @@
 import {
   workflowNodeOrder,
   type ArtifactCritique,
+  type ArtifactFamily,
+  type ArtifactPlanSummary,
+  type ArtifactType,
   type AudioVisualCueType,
   type AudioVisualFallbackSceneStrategySummary,
   type AudioVisualSceneCueSummary,
@@ -223,6 +226,8 @@ export type AssistantStreamWorkflowMetadata = {
   cross_modality_available?: boolean;
   audio_visual_scene?: AudioVisualSceneProfileSummary | null;
   audio_visual_scene_available?: boolean;
+  artifact_plan?: ArtifactPlanSummary | null;
+  artifact_planner_available?: boolean;
   creative_director?: CreativeAssistantDirectorSummary | null;
   director_available?: boolean;
   creative_reasoning?: CreativeReasoningSummary | null;
@@ -724,6 +729,11 @@ export function readWorkflowMetadata(
   const audioVisualSceneAvailable =
     rawWorkflow.audio_visual_scene_available === true ||
     audioVisualScene !== null;
+  const artifactPlan = readArtifactPlanSummary(
+    rawWorkflow.artifact_plan ?? rawWorkflow.artifactPlan
+  );
+  const artifactPlannerAvailable =
+    rawWorkflow.artifact_planner_available === true || artifactPlan !== null;
   const creativeDirector = readCreativeAssistantDirectorSummary(
     rawWorkflow.creative_director ?? rawWorkflow.creativeDirector
   );
@@ -873,6 +883,12 @@ export function readWorkflowMetadata(
       ? {
           audio_visual_scene: audioVisualScene,
           audio_visual_scene_available: true
+        }
+      : {}),
+    ...(artifactPlannerAvailable
+      ? {
+          artifact_plan: artifactPlan,
+          artifact_planner_available: true
         }
       : {}),
     ...(directorAvailable
@@ -4682,6 +4698,124 @@ const audioVisualScenePatterns = [
   "calm_expansion_after_rupture"
 ] as const satisfies readonly AudioVisualScenePattern[];
 
+export function readArtifactPlanSummary(
+  value: unknown
+): ArtifactPlanSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const primaryArtifactIntent =
+    readStringField(value, "primary_artifact_intent") ??
+    readStringField(value, "primaryArtifactIntent");
+  const artifactType = readStringUnion(
+    value,
+    "artifact_type",
+    "artifactType",
+    artifactTypes
+  );
+  const artifactFamily = readStringUnion(
+    value,
+    "artifact_family",
+    "artifactFamily",
+    artifactFamilies
+  );
+  const requiredComponents = readStringListField(
+    value,
+    "required_components",
+    "requiredComponents"
+  );
+  const expectedOutputStructure = readStringListField(
+    value,
+    "expected_output_structure",
+    "expectedOutputStructure"
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "artifact_planner" ||
+    !primaryArtifactIntent ||
+    !artifactType ||
+    !artifactFamily ||
+    requiredComponents.length === 0 ||
+    expectedOutputStructure.length === 0 ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    primaryArtifactIntent,
+    artifactType,
+    artifactFamily,
+    requiredComponents,
+    runtimeRequirements: readStringListField(
+      value,
+      "runtime_requirements",
+      "runtimeRequirements"
+    ),
+    creativeDependencies: readStringListField(
+      value,
+      "creative_dependencies",
+      "creativeDependencies"
+    ),
+    generativeDependencies: readStringListField(
+      value,
+      "generative_dependencies",
+      "generativeDependencies"
+    ),
+    expectedOutputStructure,
+    implementationRisks: readStringListField(
+      value,
+      "implementation_risks",
+      "implementationRisks"
+    ),
+    missingInformation: readStringListField(
+      value,
+      "missing_information",
+      "missingInformation"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const artifactTypes = [
+  "runnable_code",
+  "design_spec",
+  "explanation",
+  "debug_patch",
+  "review_report",
+  "refinement_patch",
+  "preview_request"
+] as const satisfies readonly ArtifactType[];
+
+const artifactFamilies = [
+  "p5_sketch",
+  "three_scene",
+  "react_three_fiber_scene",
+  "glsl_shader",
+  "hydra_patch",
+  "tone_sketch",
+  "canvas_sketch",
+  "audiovisual_scene",
+  "generative_artifact",
+  "multimodal_reference_artifact",
+  "creative_coding_response"
+] as const satisfies readonly ArtifactFamily[];
+
 const audioVisualCueTypes = [
   "visual",
   "motion",
@@ -5068,6 +5202,7 @@ const creativeReasoningEvidenceSources = [
   "emotional_consistency",
   "cross_modality",
   "audio_visual_scene",
+  "artifact_plan",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

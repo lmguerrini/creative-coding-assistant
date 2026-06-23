@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
 )
@@ -82,6 +83,7 @@ def build_recommended_direction(
     emotional_consistency: EmotionalConsistencyProfile | None,
     cross_modality: CrossModalityCompositionProfile | None,
     audio_visual_scene: AudioVisualSceneProfile | None,
+    artifact_plan: ArtifactPlan | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -113,6 +115,11 @@ def build_recommended_direction(
         if audio_visual_scene is not None
         else ""
     )
+    artifact_clause = (
+        f"Artifact as {_clip(_artifact_label(artifact_plan), 90)}. "
+        if artifact_plan is not None
+        else ""
+    )
     direction = (
         f"Recommend {_strategy_label(creative_strategy)} via "
         f"{_technique_label(creative_techniques)} because it protects "
@@ -121,6 +128,7 @@ def build_recommended_direction(
         f"Shape symbolic arc: {_clip(_narrative_label(symbolic_narrative), 90)}. "
         f"Compose as {_clip(_composition_label(creative_composition), 90)}. "
         f"{scene_clause}"
+        f"{artifact_clause}"
         f"{motif_clause}"
         f"{emotion_clause}"
         f"{modality_clause}"
@@ -159,6 +167,7 @@ def build_reasoning_path(
     emotional_consistency: EmotionalConsistencyProfile | None,
     cross_modality: CrossModalityCompositionProfile | None,
     audio_visual_scene: AudioVisualSceneProfile | None,
+    artifact_plan: ArtifactPlan | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -228,15 +237,26 @@ def build_reasoning_path(
                     f"{_emotional_label(emotional_consistency)}, composed "
                     f"cross-modally as {_modality_label(cross_modality)}, "
                     f"scene-timed as {_scene_label(audio_visual_scene)}, with "
+                    f"artifact shape {_artifact_label(artifact_plan)} and "
                     f"{_quality_label(creative_quality_prediction)}."
                 ),
                 360,
             ),
             implications=(
                 "Use this as the prompt spine before generation.",
-                "Treat procedural and generative metadata as guidance, not code or runtime selection.",
-                "Treat motifs and emotion as design guidance, not doctrine or objective truth.",
-                "Treat cross-modality and scene timing as design guidance, not runtime behavior.",
+                (
+                    "Treat procedural and generative metadata as guidance, "
+                    "not code or runtime selection."
+                ),
+                (
+                    "Treat motifs and emotion as design guidance, not doctrine "
+                    "or objective truth."
+                ),
+                (
+                    "Treat cross-modality, scene timing, and artifact planning "
+                    "as guidance, not runtime behavior, artifact selection, "
+                    "or critique."
+                ),
             ),
         ),
     )
@@ -369,7 +389,10 @@ def _modality_label(profile: CrossModalityCompositionProfile | None) -> str:
     if profile is None:
         return "no cross-modality composition profile"
     supporting = ", ".join(profile.supporting_modalities[:3])
-    return f"{profile.primary_modality} leading {profile.modality_pattern}; supports {supporting}"
+    return (
+        f"{profile.primary_modality} leading {profile.modality_pattern}; "
+        f"supports {supporting}"
+    )
 
 
 def _scene_label(profile: AudioVisualSceneProfile | None) -> str:
@@ -378,6 +401,15 @@ def _scene_label(profile: AudioVisualSceneProfile | None) -> str:
     return (
         f"{profile.scene_pattern} with {profile.climax_scene.title} climax "
         f"and {profile.resolution_scene.title} resolution"
+    )
+
+
+def _artifact_label(profile: ArtifactPlan | None) -> str:
+    if profile is None:
+        return "no artifact plan"
+    return (
+        f"{profile.artifact_type}/{profile.artifact_family} with "
+        f"{len(profile.required_components)} required components"
     )
 
 

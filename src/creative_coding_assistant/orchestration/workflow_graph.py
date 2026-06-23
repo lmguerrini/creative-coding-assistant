@@ -20,6 +20,9 @@ from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
     critique_workflow_artifacts,
 )
+from creative_coding_assistant.orchestration.artifact_planner import (
+    derive_artifact_plan,
+)
 from creative_coding_assistant.orchestration.artifacts import (
     RefinementPassRecord,
     WorkflowArtifactCritique,
@@ -841,6 +844,29 @@ def _planning_node(
             emotional_consistency=emotional_consistency,
             cross_modality=cross_modality,
         )
+        artifact_plan = derive_artifact_plan(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_translation=prompt_input.creative_translation,
+            creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
+            creative_plan=plan,
+            creative_constraints=constraints,
+            creative_constraint_priorities=constraint_priorities,
+            creative_strategy=strategy,
+            creative_techniques=techniques,
+            runtime_capabilities=runtime_capabilities,
+            creative_tradeoffs=tradeoffs,
+            creative_quality_prediction=quality_prediction,
+            symbolic_narrative=symbolic_narrative,
+            creative_composition=creative_composition,
+            procedural_structure=procedural_structure,
+            generative_structure=generative_structure,
+            semantic_motif=semantic_motif,
+            emotional_consistency=emotional_consistency,
+            cross_modality=cross_modality,
+            audio_visual_scene=audio_visual_scene,
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -861,6 +887,7 @@ def _planning_node(
                 "emotional_consistency": emotional_consistency,
                 "cross_modality": cross_modality,
                 "audio_visual_scene": audio_visual_scene,
+                "artifact_plan": artifact_plan,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -883,6 +910,7 @@ def _planning_node(
                 "emotional_consistency": emotional_consistency,
                 "cross_modality": cross_modality,
                 "audio_visual_scene": audio_visual_scene,
+                "artifact_plan": artifact_plan,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -912,6 +940,7 @@ def _planning_node(
                 emotional_consistency=emotional_consistency.model_dump(mode="json"),
                 cross_modality=cross_modality.model_dump(mode="json"),
                 audio_visual_scene=audio_visual_scene.model_dump(mode="json"),
+                artifact_plan=artifact_plan.model_dump(mode="json"),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -1745,6 +1774,14 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "artifact_plan",
+                    (
+                        final_state.artifact_plan.model_dump(mode="json")
+                        if final_state.artifact_plan is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_director",
                     (
                         final_state.creative_director.model_dump(mode="json")
@@ -2339,6 +2376,7 @@ def _derive_director_brief(
         emotional_consistency=workflow_state.emotional_consistency,
         cross_modality=workflow_state.cross_modality,
         audio_visual_scene=workflow_state.audio_visual_scene,
+        artifact_plan=workflow_state.artifact_plan,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2380,6 +2418,7 @@ def _derive_reasoning_result(
         emotional_consistency=workflow_state.emotional_consistency,
         cross_modality=workflow_state.cross_modality,
         audio_visual_scene=workflow_state.audio_visual_scene,
+        artifact_plan=workflow_state.artifact_plan,
     )
 
 
@@ -2611,6 +2650,7 @@ def _serialize_workflow_runtime(
     emotional_consistency = workflow_state.emotional_consistency
     cross_modality = workflow_state.cross_modality
     audio_visual_scene = workflow_state.audio_visual_scene
+    artifact_plan = workflow_state.artifact_plan
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -2764,6 +2804,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "audio_visual_scene_available": audio_visual_scene is not None,
+        "artifact_plan": (
+            artifact_plan.model_dump(mode="json")
+            if artifact_plan is not None
+            else None
+        ),
+        "artifact_planner_available": artifact_plan is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None
