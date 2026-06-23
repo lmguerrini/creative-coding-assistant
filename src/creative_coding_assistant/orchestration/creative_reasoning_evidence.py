@@ -45,6 +45,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.cross_modality import (
+    CrossModalityCompositionProfile,
+)
 from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
 )
@@ -86,6 +89,7 @@ def build_evidence_chain(
     generative_structure: GenerativeStructureBlueprint | None,
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
+    cross_modality: CrossModalityCompositionProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -308,6 +312,25 @@ def build_evidence_chain(
                 ),
             )
         )
+    if cross_modality is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="cross_modality",
+                signal=_clip(
+                    (
+                        f"{cross_modality.modality_pattern}: "
+                        f"{cross_modality.primary_modality} -> "
+                        + ", ".join(cross_modality.supporting_modalities[:4])
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Cross-modality evidence coordinates visual, motion, audio, "
+                    "rhythm, camera, structure, motif, and emotion as design "
+                    "metadata without selecting runtime or generating media."
+                ),
+            )
+        )
     if creative_director is not None:
         evidence.append(
             CreativeReasoningEvidence(
@@ -316,7 +339,7 @@ def build_evidence_chain(
                 interpretation="Director guidance frames brief and HITL posture.",
             )
         )
-    return tuple(evidence[:20])
+    return tuple(evidence[:22])
 
 
 def _append_strategy_evidence(

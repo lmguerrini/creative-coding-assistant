@@ -40,6 +40,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.cross_modality import (
+    CrossModalityCompositionProfile,
+)
 from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
 )
@@ -87,6 +90,7 @@ def build_director_brief_payload(
     generative_structure: GenerativeStructureBlueprint | None,
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
+    cross_modality: CrossModalityCompositionProfile | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -106,6 +110,7 @@ def build_director_brief_payload(
         generative_structure=generative_structure,
         semantic_motif=semantic_motif,
         emotional_consistency=emotional_consistency,
+        cross_modality=cross_modality,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -140,6 +145,7 @@ def build_director_brief_payload(
             generative_structure,
             semantic_motif,
             emotional_consistency,
+            cross_modality,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -158,6 +164,7 @@ def build_director_brief_payload(
             generative_structure=generative_structure,
             semantic_motif=semantic_motif,
             emotional_consistency=emotional_consistency,
+            cross_modality=cross_modality,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -177,6 +184,7 @@ def build_director_brief_payload(
             generative_structure=generative_structure,
             semantic_motif=semantic_motif,
             emotional_consistency=emotional_consistency,
+            cross_modality=cross_modality,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -202,6 +210,7 @@ def build_director_brief_payload(
             generative_structure=generative_structure,
             semantic_motif=semantic_motif,
             emotional_consistency=emotional_consistency,
+            cross_modality=cross_modality,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -247,6 +256,7 @@ def _ambiguity_signals(
     generative_structure: GenerativeStructureBlueprint | None,
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
+    cross_modality: CrossModalityCompositionProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -286,6 +296,8 @@ def _ambiguity_signals(
         signals.extend(semantic_motif.unresolved_motif_gaps[:2])
     if emotional_consistency is not None:
         signals.extend(emotional_consistency.unresolved_emotional_gaps[:2])
+    if cross_modality is not None:
+        signals.extend(cross_modality.unresolved_modality_gaps[:2])
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -334,6 +346,7 @@ def _planning_focus(
     generative_structure: GenerativeStructureBlueprint | None,
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
+    cross_modality: CrossModalityCompositionProfile | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_intent is not None:
@@ -367,6 +380,12 @@ def _planning_focus(
             "Emotional consistency: "
             f"{emotional_consistency.primary_emotional_tone}; "
             f"{emotional_consistency.emotional_coherence_score}/100."
+        )
+    if cross_modality is not None:
+        focus.append(
+            "Cross-modality: "
+            f"{cross_modality.primary_modality}; "
+            f"{cross_modality.modality_pattern}."
         )
     if creative_quality_prediction is not None:
         focus.append(
@@ -456,6 +475,7 @@ def _critique_focus(
     generative_structure: GenerativeStructureBlueprint | None,
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
+    cross_modality: CrossModalityCompositionProfile | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -559,6 +579,14 @@ def _critique_focus(
         )
         focus.extend(emotional_consistency.mismatch_risks[:1])
         focus.extend(emotional_consistency.flattening_risks[:1])
+    if cross_modality is not None:
+        focus.append(
+            "Cross-Modality Composer is pre-generation only; compare output "
+            "against modality hierarchy, synchronization, conflicts, and "
+            "overload risks."
+        )
+        focus.extend(cross_modality.modality_conflicts[:1])
+        focus.extend(cross_modality.overload_risks[:1])
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -610,6 +638,7 @@ def _next_actions(
     generative_structure: GenerativeStructureBlueprint | None,
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
+    cross_modality: CrossModalityCompositionProfile | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
@@ -637,6 +666,8 @@ def _next_actions(
         return (semantic_motif.hitl_questions[0],)
     if emotional_consistency is not None and emotional_consistency.hitl_questions:
         return (emotional_consistency.hitl_questions[0],)
+    if cross_modality is not None and cross_modality.hitl_questions:
+        return (cross_modality.hitl_questions[0],)
     if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
@@ -674,6 +705,7 @@ def _evidence(
     generative_structure: GenerativeStructureBlueprint | None,
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
+    cross_modality: CrossModalityCompositionProfile | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -768,6 +800,12 @@ def _evidence(
             "Emotional consistency: "
             f"{emotional_consistency.primary_emotional_tone} "
             f"({emotional_consistency.emotional_coherence_score}/100)."
+        )
+    if cross_modality is not None:
+        evidence.append(
+            "Cross-modality: "
+            f"{cross_modality.primary_modality}; "
+            f"{cross_modality.modality_pattern}."
         )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")

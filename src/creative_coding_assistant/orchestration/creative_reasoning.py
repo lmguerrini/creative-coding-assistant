@@ -64,6 +64,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.cross_modality import (
+    CrossModalityCompositionProfile,
+)
 from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
 )
@@ -105,6 +108,7 @@ def derive_creative_reasoning_result(
     generative_structure: GenerativeStructureBlueprint | None = None,
     semantic_motif: SemanticMotifSystem | None = None,
     emotional_consistency: EmotionalConsistencyProfile | None = None,
+    cross_modality: CrossModalityCompositionProfile | None = None,
     future_knowledge_context: Mapping[str, object] | None = None,
 ) -> CreativeReasoningResult:
     """Synthesize prior Creative Intelligence outputs into one decision brief."""
@@ -127,6 +131,7 @@ def derive_creative_reasoning_result(
         generative_structure=generative_structure,
         semantic_motif=semantic_motif,
         emotional_consistency=emotional_consistency,
+        cross_modality=cross_modality,
     )
     unresolved = build_unresolved_decisions(
         creative_director=creative_director,
@@ -145,6 +150,7 @@ def derive_creative_reasoning_result(
         generative_structure=generative_structure,
         semantic_motif=semantic_motif,
         emotional_consistency=emotional_consistency,
+        cross_modality=cross_modality,
     )
     return CreativeReasoningResult(
         recommended_creative_direction=direction,
@@ -165,6 +171,7 @@ def derive_creative_reasoning_result(
             generative_structure=generative_structure,
             semantic_motif=semantic_motif,
             emotional_consistency=emotional_consistency,
+            cross_modality=cross_modality,
         ),
         evidence_chain=build_evidence_chain(
             request=request,
@@ -187,6 +194,7 @@ def derive_creative_reasoning_result(
             generative_structure=generative_structure,
             semantic_motif=semantic_motif,
             emotional_consistency=emotional_consistency,
+            cross_modality=cross_modality,
         ),
         strongest_supporting_signals=build_strongest_signals(
             creative_director=creative_director,
@@ -205,6 +213,7 @@ def derive_creative_reasoning_result(
             generative_structure=generative_structure,
             semantic_motif=semantic_motif,
             emotional_consistency=emotional_consistency,
+            cross_modality=cross_modality,
         ),
         rejected_alternatives=build_rejected_alternatives(
             creative_strategy=creative_strategy,
@@ -229,6 +238,7 @@ def derive_creative_reasoning_result(
             generative_structure=generative_structure,
             semantic_motif=semantic_motif,
             emotional_consistency=emotional_consistency,
+            cross_modality=cross_modality,
         ),
         prompt_guidance=build_prompt_guidance(unresolved),
         hitl_questions=build_hitl_questions(unresolved),

@@ -59,6 +59,9 @@ from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
     derive_creative_translation,
 )
+from creative_coding_assistant.orchestration.cross_modality import (
+    CrossModalityCompositionProfile,
+)
 from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
 )
@@ -331,6 +334,7 @@ class PromptInputResponse(BaseModel):
     generative_structure: GenerativeStructureBlueprint | None = None
     semantic_motif: SemanticMotifSystem | None = None
     emotional_consistency: EmotionalConsistencyProfile | None = None
+    cross_modality: CrossModalityCompositionProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None

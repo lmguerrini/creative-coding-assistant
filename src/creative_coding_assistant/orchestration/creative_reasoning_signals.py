@@ -36,6 +36,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.cross_modality import (
+    CrossModalityCompositionProfile,
+)
 from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
 )
@@ -74,6 +77,7 @@ def build_recommended_direction(
     generative_structure: GenerativeStructureBlueprint | None,
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
+    cross_modality: CrossModalityCompositionProfile | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -95,6 +99,11 @@ def build_recommended_direction(
         if emotional_consistency is not None
         else ""
     )
+    modality_clause = (
+        f"Modalities as {_clip(_modality_label(cross_modality), 90)}. "
+        if cross_modality is not None
+        else ""
+    )
     direction = (
         f"Recommend {_strategy_label(creative_strategy)} via "
         f"{_technique_label(creative_techniques)} because it protects "
@@ -104,6 +113,7 @@ def build_recommended_direction(
         f"Compose as {_clip(_composition_label(creative_composition), 90)}. "
         f"{motif_clause}"
         f"{emotion_clause}"
+        f"{modality_clause}"
         f"Structure procedurally as "
         f"{_clip(_procedural_label(procedural_structure), 90)}. "
         f"Blueprint as {_clip(_generative_label(generative_structure), 90)}. "
@@ -137,6 +147,7 @@ def build_reasoning_path(
     generative_structure: GenerativeStructureBlueprint | None,
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
+    cross_modality: CrossModalityCompositionProfile | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -203,16 +214,17 @@ def build_reasoning_path(
                     f"{_procedural_label(procedural_structure)}, blueprinted as "
                     f"{_generative_label(generative_structure)}, motif-bound as "
                     f"{_motif_label(semantic_motif)}, emotionally framed as "
-                    f"{_emotional_label(emotional_consistency)}, with "
+                    f"{_emotional_label(emotional_consistency)}, composed "
+                    f"cross-modally as {_modality_label(cross_modality)}, with "
                     f"{_quality_label(creative_quality_prediction)}."
                 ),
                 360,
             ),
             implications=(
                 "Use this as the prompt spine before generation.",
-                "Treat procedural guidance as structure, not runtime selection.",
-                "Treat generative blueprint metadata as guidance, not code.",
+                "Treat procedural and generative metadata as guidance, not code or runtime selection.",
                 "Treat motifs and emotion as design guidance, not doctrine or objective truth.",
+                "Treat cross-modality mapping as design guidance, not runtime behavior.",
             ),
         ),
     )
@@ -339,6 +351,13 @@ def _emotional_label(profile: EmotionalConsistencyProfile | None) -> str:
         f"{profile.primary_emotional_tone} "
         f"({profile.emotional_coherence_score}/100)"
     )
+
+
+def _modality_label(profile: CrossModalityCompositionProfile | None) -> str:
+    if profile is None:
+        return "no cross-modality composition profile"
+    supporting = ", ".join(profile.supporting_modalities[:3])
+    return f"{profile.primary_modality} leading {profile.modality_pattern}; supports {supporting}"
 
 
 def _technique_reason(

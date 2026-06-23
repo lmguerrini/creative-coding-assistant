@@ -64,6 +64,10 @@ from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
     creative_translation_prompt_lines,
 )
+from creative_coding_assistant.orchestration.cross_modality import (
+    CrossModalityCompositionProfile,
+    cross_modality_prompt_lines,
+)
 from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
     emotional_consistency_prompt_lines,
@@ -267,6 +271,13 @@ Semantic Motif Engine:
 {% if emotional_consistency is not none -%}
 Emotional Consistency Engine:
 {% for instruction in emotional_consistency_lines(emotional_consistency) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set cross_modality = prompt_input.cross_modality -%}
+{% if cross_modality is not none -%}
+Cross-Modality Composer:
+{% for instruction in cross_modality_lines(cross_modality) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -521,6 +532,7 @@ class JinjaPromptRenderer:
             generative_structure_lines=_generative_structure_lines,
             semantic_motif_lines=_semantic_motif_lines,
             emotional_consistency_lines=_emotional_consistency_lines,
+            cross_modality_lines=_cross_modality_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -781,6 +793,12 @@ def _emotional_consistency_lines(
     profile: EmotionalConsistencyProfile,
 ) -> tuple[str, ...]:
     return emotional_consistency_prompt_lines(profile)
+
+
+def _cross_modality_lines(
+    profile: CrossModalityCompositionProfile,
+) -> tuple[str, ...]:
+    return cross_modality_prompt_lines(profile)
 
 
 def _creative_assistant_director_lines(

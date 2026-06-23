@@ -44,6 +44,9 @@ from creative_coding_assistant.orchestration.creative_technique import (
 from creative_coding_assistant.orchestration.creative_tradeoffs import (
     CreativeTradeoffProfile,
 )
+from creative_coding_assistant.orchestration.cross_modality import (
+    CrossModalityCompositionProfile,
+)
 from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
 )
@@ -80,6 +83,7 @@ def build_strongest_signals(
     generative_structure: GenerativeStructureBlueprint | None,
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
+    cross_modality: CrossModalityCompositionProfile | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -159,6 +163,12 @@ def build_strongest_signals(
             "Emotional consistency: "
             f"{emotional_consistency.primary_emotional_tone} "
             f"({emotional_consistency.emotional_coherence_score}/100)."
+        )
+    if cross_modality is not None:
+        signals.append(
+            "Cross-modality: "
+            f"{cross_modality.primary_modality}; "
+            f"{cross_modality.modality_pattern}."
         )
     if creative_constraints is not None:
         signals.append(
@@ -250,6 +260,7 @@ def build_unresolved_decisions(
     generative_structure: GenerativeStructureBlueprint | None,
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
+    cross_modality: CrossModalityCompositionProfile | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -287,6 +298,9 @@ def build_unresolved_decisions(
     if emotional_consistency is not None:
         unresolved.extend(emotional_consistency.hitl_questions[:3])
         unresolved.extend(emotional_consistency.unresolved_emotional_gaps[:2])
+    if cross_modality is not None:
+        unresolved.extend(cross_modality.hitl_questions[:3])
+        unresolved.extend(cross_modality.unresolved_modality_gaps[:2])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -313,6 +327,7 @@ def build_implementation_guidance(
     generative_structure: GenerativeStructureBlueprint | None,
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
+    cross_modality: CrossModalityCompositionProfile | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -373,6 +388,13 @@ def build_implementation_guidance(
         guidance.extend(emotional_consistency.motion_rhythm_guidance[:1])
         guidance.append(
             "Preserve emotional tone hierarchy as guidance, not objective truth."
+        )
+    if cross_modality is not None:
+        guidance.extend(cross_modality.prompt_guidance[:2])
+        guidance.extend(cross_modality.modality_synchronization_plan[:1])
+        guidance.extend(cross_modality.contrast_balance_plan[:1])
+        guidance.append(
+            "Preserve cross-modality mappings as design guidance, not runtime behavior."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

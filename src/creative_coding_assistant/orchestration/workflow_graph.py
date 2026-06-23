@@ -65,6 +65,9 @@ from creative_coding_assistant.orchestration.creative_technique import (
 from creative_coding_assistant.orchestration.creative_tradeoffs import (
     derive_creative_tradeoff_profile,
 )
+from creative_coding_assistant.orchestration.cross_modality import (
+    derive_cross_modality_composition_profile,
+)
 from creative_coding_assistant.orchestration.emotional_consistency import (
     derive_emotional_consistency_profile,
 )
@@ -792,6 +795,27 @@ def _planning_node(
             generative_structure=generative_structure,
             semantic_motif=semantic_motif,
         )
+        cross_modality = derive_cross_modality_composition_profile(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_translation=prompt_input.creative_translation,
+            creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
+            creative_plan=plan,
+            creative_constraints=constraints,
+            creative_constraint_priorities=constraint_priorities,
+            creative_strategy=strategy,
+            creative_techniques=techniques,
+            runtime_capabilities=runtime_capabilities,
+            creative_tradeoffs=tradeoffs,
+            creative_quality_prediction=quality_prediction,
+            symbolic_narrative=symbolic_narrative,
+            creative_composition=creative_composition,
+            procedural_structure=procedural_structure,
+            generative_structure=generative_structure,
+            semantic_motif=semantic_motif,
+            emotional_consistency=emotional_consistency,
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -810,6 +834,7 @@ def _planning_node(
                 "generative_structure": generative_structure,
                 "semantic_motif": semantic_motif,
                 "emotional_consistency": emotional_consistency,
+                "cross_modality": cross_modality,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -830,6 +855,7 @@ def _planning_node(
                 "generative_structure": generative_structure,
                 "semantic_motif": semantic_motif,
                 "emotional_consistency": emotional_consistency,
+                "cross_modality": cross_modality,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -857,6 +883,7 @@ def _planning_node(
                 generative_structure=generative_structure.model_dump(mode="json"),
                 semantic_motif=semantic_motif.model_dump(mode="json"),
                 emotional_consistency=emotional_consistency.model_dump(mode="json"),
+                cross_modality=cross_modality.model_dump(mode="json"),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -2266,6 +2293,7 @@ def _derive_director_brief(
         generative_structure=workflow_state.generative_structure,
         semantic_motif=workflow_state.semantic_motif,
         emotional_consistency=workflow_state.emotional_consistency,
+        cross_modality=workflow_state.cross_modality,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2305,6 +2333,7 @@ def _derive_reasoning_result(
         generative_structure=workflow_state.generative_structure,
         semantic_motif=workflow_state.semantic_motif,
         emotional_consistency=workflow_state.emotional_consistency,
+        cross_modality=workflow_state.cross_modality,
     )
 
 
@@ -2534,6 +2563,7 @@ def _serialize_workflow_runtime(
     generative_structure = workflow_state.generative_structure
     semantic_motif = workflow_state.semantic_motif
     emotional_consistency = workflow_state.emotional_consistency
+    cross_modality = workflow_state.cross_modality
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -2675,6 +2705,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "emotional_consistency_available": emotional_consistency is not None,
+        "cross_modality": (
+            cross_modality.model_dump(mode="json")
+            if cross_modality is not None
+            else None
+        ),
+        "cross_modality_available": cross_modality is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None

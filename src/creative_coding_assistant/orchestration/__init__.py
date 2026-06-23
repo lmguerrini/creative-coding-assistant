@@ -37,6 +37,7 @@ _SEMANTIC_MOTIF = "creative_coding_assistant.orchestration.semantic_motif"
 _EMOTIONAL_CONSISTENCY = (
     "creative_coding_assistant.orchestration.emotional_consistency"
 )
+_CROSS_MODALITY = "creative_coding_assistant.orchestration.cross_modality"
 _SYMBOLIC_NARRATIVE = "creative_coding_assistant.orchestration.symbolic_narrative"
 _RUNTIME_CAPABILITIES = (
     "creative_coding_assistant.orchestration.runtime_capabilities"
@@ -156,6 +157,13 @@ _EXPORT_MAP = {
     "EmotionalPhaseMapping": _EMOTIONAL_CONSISTENCY,
     "EmotionalStructureMapping": _EMOTIONAL_CONSISTENCY,
     "EmotionalTone": _EMOTIONAL_CONSISTENCY,
+    "CrossModalityChannel": _CROSS_MODALITY,
+    "CrossModalityCompositionProfile": _CROSS_MODALITY,
+    "CrossModalityFallbackStrategy": _CROSS_MODALITY,
+    "CrossModalityMapping": _CROSS_MODALITY,
+    "CrossModalityPattern": _CROSS_MODALITY,
+    "CrossModalityRole": _CROSS_MODALITY,
+    "CrossModalityTemporalCue": _CROSS_MODALITY,
     "NarrativeArchetype": _SYMBOLIC_NARRATIVE,
     "NarrativePhaseName": _SYMBOLIC_NARRATIVE,
     "SymbolicNarrativePhase": _SYMBOLIC_NARRATIVE,
@@ -286,6 +294,8 @@ _EXPORT_MAP = {
     "semantic_motif_prompt_lines": _SEMANTIC_MOTIF,
     "derive_emotional_consistency_profile": _EMOTIONAL_CONSISTENCY,
     "emotional_consistency_prompt_lines": _EMOTIONAL_CONSISTENCY,
+    "derive_cross_modality_composition_profile": _CROSS_MODALITY,
+    "cross_modality_prompt_lines": _CROSS_MODALITY,
     "derive_symbolic_narrative_plan": _SYMBOLIC_NARRATIVE,
     "symbolic_narrative_prompt_lines": _SYMBOLIC_NARRATIVE,
     "derive_creative_reasoning_result": _CREATIVE_REASONING,
