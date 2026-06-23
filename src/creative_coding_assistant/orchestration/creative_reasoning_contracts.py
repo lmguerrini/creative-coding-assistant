@@ -31,6 +31,7 @@ ReasoningEvidenceSource = Literal[
     "creative_composition",
     "procedural_structure",
     "generative_structure",
+    "semantic_motif",
     "future_knowledge",
 ]
 

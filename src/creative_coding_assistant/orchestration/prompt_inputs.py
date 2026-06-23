@@ -82,6 +82,7 @@ from creative_coding_assistant.orchestration.routing import (
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
 )
+from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -325,6 +326,7 @@ class PromptInputResponse(BaseModel):
     creative_composition: CreativeCompositionPlan | None = None
     procedural_structure: ProceduralStructurePlan | None = None
     generative_structure: GenerativeStructureBlueprint | None = None
+    semantic_motif: SemanticMotifSystem | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None

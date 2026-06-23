@@ -33,6 +33,7 @@ _PROCEDURAL_STRUCTURE = (
 _GENERATIVE_STRUCTURE = (
     "creative_coding_assistant.orchestration.generative_structure"
 )
+_SEMANTIC_MOTIF = "creative_coding_assistant.orchestration.semantic_motif"
 _SYMBOLIC_NARRATIVE = "creative_coding_assistant.orchestration.symbolic_narrative"
 _RUNTIME_CAPABILITIES = (
     "creative_coding_assistant.orchestration.runtime_capabilities"
@@ -132,6 +133,16 @@ _EXPORT_MAP = {
     "GenerativeRelationshipType": _GENERATIVE_STRUCTURE,
     "GenerativeStructureBlueprint": _GENERATIVE_STRUCTURE,
     "GenerativeStructureHook": _GENERATIVE_STRUCTURE,
+    "SemanticMotif": _SEMANTIC_MOTIF,
+    "SemanticMotifCompositionMapping": _SEMANTIC_MOTIF,
+    "SemanticMotifFallbackPlan": _SEMANTIC_MOTIF,
+    "SemanticMotifHierarchyLevel": _SEMANTIC_MOTIF,
+    "SemanticMotifId": _SEMANTIC_MOTIF,
+    "SemanticMotifNarrativeMapping": _SEMANTIC_MOTIF,
+    "SemanticMotifParameterMapping": _SEMANTIC_MOTIF,
+    "SemanticMotifRole": _SEMANTIC_MOTIF,
+    "SemanticMotifStructureMapping": _SEMANTIC_MOTIF,
+    "SemanticMotifSystem": _SEMANTIC_MOTIF,
     "NarrativeArchetype": _SYMBOLIC_NARRATIVE,
     "NarrativePhaseName": _SYMBOLIC_NARRATIVE,
     "SymbolicNarrativePhase": _SYMBOLIC_NARRATIVE,
@@ -258,6 +269,8 @@ _EXPORT_MAP = {
     "procedural_structure_prompt_lines": _PROCEDURAL_STRUCTURE,
     "derive_generative_structure_blueprint": _GENERATIVE_STRUCTURE,
     "generative_structure_prompt_lines": _GENERATIVE_STRUCTURE,
+    "derive_semantic_motif_system": _SEMANTIC_MOTIF,
+    "semantic_motif_prompt_lines": _SEMANTIC_MOTIF,
     "derive_symbolic_narrative_plan": _SYMBOLIC_NARRATIVE,
     "symbolic_narrative_prompt_lines": _SYMBOLIC_NARRATIVE,
     "derive_creative_reasoning_result": _CREATIVE_REASONING,

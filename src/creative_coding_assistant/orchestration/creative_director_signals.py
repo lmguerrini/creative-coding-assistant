@@ -53,6 +53,7 @@ from creative_coding_assistant.orchestration.routing import (
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
 )
+from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -81,6 +82,7 @@ def build_director_brief_payload(
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
     generative_structure: GenerativeStructureBlueprint | None,
+    semantic_motif: SemanticMotifSystem | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -98,6 +100,7 @@ def build_director_brief_payload(
         creative_composition=creative_composition,
         procedural_structure=procedural_structure,
         generative_structure=generative_structure,
+        semantic_motif=semantic_motif,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -130,6 +133,7 @@ def build_director_brief_payload(
             creative_composition,
             procedural_structure,
             generative_structure,
+            semantic_motif,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -146,6 +150,7 @@ def build_director_brief_payload(
             creative_composition=creative_composition,
             procedural_structure=procedural_structure,
             generative_structure=generative_structure,
+            semantic_motif=semantic_motif,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -163,6 +168,7 @@ def build_director_brief_payload(
             creative_composition=creative_composition,
             procedural_structure=procedural_structure,
             generative_structure=generative_structure,
+            semantic_motif=semantic_motif,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -186,6 +192,7 @@ def build_director_brief_payload(
             creative_composition=creative_composition,
             procedural_structure=procedural_structure,
             generative_structure=generative_structure,
+            semantic_motif=semantic_motif,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -229,6 +236,7 @@ def _ambiguity_signals(
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
     generative_structure: GenerativeStructureBlueprint | None,
+    semantic_motif: SemanticMotifSystem | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -264,6 +272,8 @@ def _ambiguity_signals(
         signals.extend(procedural_structure.unresolved_procedural_gaps[:2])
     if generative_structure is not None:
         signals.extend(generative_structure.unresolved_implementation_gaps[:2])
+    if semantic_motif is not None:
+        signals.extend(semantic_motif.unresolved_motif_gaps[:2])
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -310,6 +320,7 @@ def _planning_focus(
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
     generative_structure: GenerativeStructureBlueprint | None,
+    semantic_motif: SemanticMotifSystem | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_intent is not None:
@@ -328,6 +339,13 @@ def _planning_focus(
             f"{generative_structure.generative_architecture}"
         )
         focus.extend(generative_structure.prompt_guidance[:1])
+    if semantic_motif is not None:
+        focus.append(
+            "Semantic motifs: "
+            + ", ".join(motif.motif_id for motif in semantic_motif.primary_motifs)
+            + "."
+        )
+        focus.extend(semantic_motif.prompt_guidance[:1])
     if creative_quality_prediction is not None:
         focus.append(
             "Quality readiness: "
@@ -414,6 +432,7 @@ def _critique_focus(
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
     generative_structure: GenerativeStructureBlueprint | None,
+    semantic_motif: SemanticMotifSystem | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -502,6 +521,13 @@ def _critique_focus(
             "against blueprint modules, parameters, evolution, and safeguards."
         )
         focus.extend(generative_structure.performance_safeguards[:2])
+    if semantic_motif is not None:
+        focus.append(
+            "Semantic Motif Engine is pre-generation only; compare output "
+            "against primary motifs, recurrence, mappings, and symbolic risks."
+        )
+        focus.extend(semantic_motif.coherence_risks[:1])
+        focus.extend(semantic_motif.overuse_risks[:1])
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -551,6 +577,7 @@ def _next_actions(
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
     generative_structure: GenerativeStructureBlueprint | None,
+    semantic_motif: SemanticMotifSystem | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
@@ -574,6 +601,8 @@ def _next_actions(
         return (procedural_structure.hitl_questions[0],)
     if generative_structure is not None and generative_structure.hitl_questions:
         return (generative_structure.hitl_questions[0],)
+    if semantic_motif is not None and semantic_motif.hitl_questions:
+        return (semantic_motif.hitl_questions[0],)
     if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
@@ -609,6 +638,7 @@ def _evidence(
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
     generative_structure: GenerativeStructureBlueprint | None,
+    semantic_motif: SemanticMotifSystem | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -691,6 +721,12 @@ def _evidence(
         evidence.append(
             "Generative structure: "
             f"{generative_structure.generative_architecture}."
+        )
+    if semantic_motif is not None:
+        evidence.append(
+            "Semantic motifs: "
+            + ", ".join(motif.motif_id for motif in semantic_motif.primary_motifs)
+            + "."
         )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")

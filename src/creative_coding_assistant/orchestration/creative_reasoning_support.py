@@ -53,6 +53,7 @@ from creative_coding_assistant.orchestration.procedural_structure import (
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
 )
+from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -74,6 +75,7 @@ def build_strongest_signals(
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
     generative_structure: GenerativeStructureBlueprint | None,
+    semantic_motif: SemanticMotifSystem | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -141,6 +143,12 @@ def build_strongest_signals(
         signals.append(
             "Generative blueprint: "
             f"{generative_structure.generative_architecture}; {module_kinds}."
+        )
+    if semantic_motif is not None:
+        signals.append(
+            "Semantic motifs: "
+            + ", ".join(motif.motif_id for motif in semantic_motif.primary_motifs)
+            + "."
         )
     if creative_constraints is not None:
         signals.append(
@@ -230,6 +238,7 @@ def build_unresolved_decisions(
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
     generative_structure: GenerativeStructureBlueprint | None,
+    semantic_motif: SemanticMotifSystem | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -261,6 +270,9 @@ def build_unresolved_decisions(
     if generative_structure is not None:
         unresolved.extend(generative_structure.hitl_questions[:3])
         unresolved.extend(generative_structure.unresolved_implementation_gaps[:2])
+    if semantic_motif is not None:
+        unresolved.extend(semantic_motif.hitl_questions[:3])
+        unresolved.extend(semantic_motif.unresolved_motif_gaps[:2])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -285,6 +297,7 @@ def build_implementation_guidance(
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
     generative_structure: GenerativeStructureBlueprint | None,
+    semantic_motif: SemanticMotifSystem | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -331,6 +344,13 @@ def build_implementation_guidance(
         guidance.extend(generative_structure.performance_safeguards[:1])
         guidance.append(
             "Preserve named generative modules and parameters as metadata guidance."
+        )
+    if semantic_motif is not None:
+        guidance.extend(semantic_motif.prompt_guidance[:2])
+        guidance.extend(semantic_motif.motif_recurrence_plan[:1])
+        guidance.extend(semantic_motif.motif_transformation_plan[:1])
+        guidance.append(
+            "Preserve primary motifs as design metaphors, not factual claims."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

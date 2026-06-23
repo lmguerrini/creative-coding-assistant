@@ -74,6 +74,7 @@ from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
 )
+from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -99,6 +100,7 @@ def derive_creative_reasoning_result(
     creative_composition: CreativeCompositionPlan | None = None,
     procedural_structure: ProceduralStructurePlan | None = None,
     generative_structure: GenerativeStructureBlueprint | None = None,
+    semantic_motif: SemanticMotifSystem | None = None,
     future_knowledge_context: Mapping[str, object] | None = None,
 ) -> CreativeReasoningResult:
     """Synthesize prior Creative Intelligence outputs into one decision brief."""
@@ -119,6 +121,7 @@ def derive_creative_reasoning_result(
         creative_composition=creative_composition,
         procedural_structure=procedural_structure,
         generative_structure=generative_structure,
+        semantic_motif=semantic_motif,
     )
     unresolved = build_unresolved_decisions(
         creative_director=creative_director,
@@ -135,6 +138,7 @@ def derive_creative_reasoning_result(
         creative_composition=creative_composition,
         procedural_structure=procedural_structure,
         generative_structure=generative_structure,
+        semantic_motif=semantic_motif,
     )
     return CreativeReasoningResult(
         recommended_creative_direction=direction,
@@ -153,6 +157,7 @@ def derive_creative_reasoning_result(
             creative_composition=creative_composition,
             procedural_structure=procedural_structure,
             generative_structure=generative_structure,
+            semantic_motif=semantic_motif,
         ),
         evidence_chain=build_evidence_chain(
             request=request,
@@ -173,6 +178,7 @@ def derive_creative_reasoning_result(
             creative_composition=creative_composition,
             procedural_structure=procedural_structure,
             generative_structure=generative_structure,
+            semantic_motif=semantic_motif,
         ),
         strongest_supporting_signals=build_strongest_signals(
             creative_director=creative_director,
@@ -189,6 +195,7 @@ def derive_creative_reasoning_result(
             creative_composition=creative_composition,
             procedural_structure=procedural_structure,
             generative_structure=generative_structure,
+            semantic_motif=semantic_motif,
         ),
         rejected_alternatives=build_rejected_alternatives(
             creative_strategy=creative_strategy,
@@ -211,6 +218,7 @@ def derive_creative_reasoning_result(
             creative_composition=creative_composition,
             procedural_structure=procedural_structure,
             generative_structure=generative_structure,
+            semantic_motif=semantic_motif,
         ),
         prompt_guidance=build_prompt_guidance(unresolved),
         hitl_questions=build_hitl_questions(unresolved),

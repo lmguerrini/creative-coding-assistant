@@ -55,6 +55,7 @@ from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
 )
+from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -80,6 +81,7 @@ def build_evidence_chain(
     creative_composition: CreativeCompositionPlan | None,
     procedural_structure: ProceduralStructurePlan | None,
     generative_structure: GenerativeStructureBlueprint | None,
+    semantic_motif: SemanticMotifSystem | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -256,6 +258,27 @@ def build_evidence_chain(
                     "Generative structure evidence translates procedural "
                     "metadata into modules, parameters, evolution rules, "
                     "fallbacks, and bounded prompt guidance."
+                ),
+            )
+        )
+    if semantic_motif is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="semantic_motif",
+                signal=_clip(
+                    (
+                        f"{semantic_motif.motif_system_name}: "
+                        + ", ".join(
+                            motif.motif_id
+                            for motif in semantic_motif.primary_motifs
+                        )
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Semantic motif evidence binds narrative, composition, "
+                    "structure, blueprint parameters, recurrence, and symbolic "
+                    "risk guidance without asserting doctrine."
                 ),
             )
         )

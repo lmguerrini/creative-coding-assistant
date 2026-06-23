@@ -89,6 +89,10 @@ from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
     runtime_capability_prompt_lines,
 )
+from creative_coding_assistant.orchestration.semantic_motif import (
+    SemanticMotifSystem,
+    semantic_motif_prompt_lines,
+)
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
     symbolic_narrative_prompt_lines,
@@ -245,6 +249,13 @@ Procedural Structure Planner:
 {% if generative_structure is not none -%}
 Generative Structure Engine:
 {% for instruction in generative_structure_lines(generative_structure) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set semantic_motif = prompt_input.semantic_motif -%}
+{% if semantic_motif is not none -%}
+Semantic Motif Engine:
+{% for instruction in semantic_motif_lines(semantic_motif) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -497,6 +508,7 @@ class JinjaPromptRenderer:
             creative_composition_lines=_creative_composition_lines,
             procedural_structure_lines=_procedural_structure_lines,
             generative_structure_lines=_generative_structure_lines,
+            semantic_motif_lines=_semantic_motif_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -745,6 +757,12 @@ def _generative_structure_lines(
     blueprint: GenerativeStructureBlueprint,
 ) -> tuple[str, ...]:
     return generative_structure_prompt_lines(blueprint)
+
+
+def _semantic_motif_lines(
+    system: SemanticMotifSystem,
+) -> tuple[str, ...]:
+    return semantic_motif_prompt_lines(system)
 
 
 def _creative_assistant_director_lines(

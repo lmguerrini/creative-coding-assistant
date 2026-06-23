@@ -57,6 +57,7 @@ from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
 )
+from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -113,6 +114,7 @@ def derive_creative_assistant_director_brief(
     creative_composition: CreativeCompositionPlan | None = None,
     procedural_structure: ProceduralStructurePlan | None = None,
     generative_structure: GenerativeStructureBlueprint | None = None,
+    semantic_motif: SemanticMotifSystem | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -140,6 +142,7 @@ def derive_creative_assistant_director_brief(
             creative_composition=creative_composition,
             procedural_structure=procedural_structure,
             generative_structure=generative_structure,
+            semantic_motif=semantic_motif,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

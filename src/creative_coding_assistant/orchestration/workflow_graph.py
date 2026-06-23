@@ -89,6 +89,9 @@ from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     derive_runtime_capability_profile,
 )
+from creative_coding_assistant.orchestration.semantic_motif import (
+    derive_semantic_motif_system,
+)
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     derive_symbolic_narrative_plan,
 )
@@ -748,6 +751,24 @@ def _planning_node(
             creative_composition=creative_composition,
             procedural_structure=procedural_structure,
         )
+        semantic_motif = derive_semantic_motif_system(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_translation=prompt_input.creative_translation,
+            creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
+            creative_plan=plan,
+            creative_constraints=constraints,
+            creative_constraint_priorities=constraint_priorities,
+            creative_strategy=strategy,
+            creative_techniques=techniques,
+            creative_tradeoffs=tradeoffs,
+            creative_quality_prediction=quality_prediction,
+            symbolic_narrative=symbolic_narrative,
+            creative_composition=creative_composition,
+            procedural_structure=procedural_structure,
+            generative_structure=generative_structure,
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -764,6 +785,7 @@ def _planning_node(
                 "creative_composition": creative_composition,
                 "procedural_structure": procedural_structure,
                 "generative_structure": generative_structure,
+                "semantic_motif": semantic_motif,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -782,6 +804,7 @@ def _planning_node(
                 "creative_composition": creative_composition,
                 "procedural_structure": procedural_structure,
                 "generative_structure": generative_structure,
+                "semantic_motif": semantic_motif,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -807,6 +830,7 @@ def _planning_node(
                 creative_composition=creative_composition.model_dump(mode="json"),
                 procedural_structure=procedural_structure.model_dump(mode="json"),
                 generative_structure=generative_structure.model_dump(mode="json"),
+                semantic_motif=semantic_motif.model_dump(mode="json"),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -1608,6 +1632,14 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "semantic_motif",
+                    (
+                        final_state.semantic_motif.model_dump(mode="json")
+                        if final_state.semantic_motif is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_director",
                     (
                         final_state.creative_director.model_dump(mode="json")
@@ -2198,6 +2230,7 @@ def _derive_director_brief(
         creative_composition=workflow_state.creative_composition,
         procedural_structure=workflow_state.procedural_structure,
         generative_structure=workflow_state.generative_structure,
+        semantic_motif=workflow_state.semantic_motif,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2235,6 +2268,7 @@ def _derive_reasoning_result(
         creative_composition=workflow_state.creative_composition,
         procedural_structure=workflow_state.procedural_structure,
         generative_structure=workflow_state.generative_structure,
+        semantic_motif=workflow_state.semantic_motif,
     )
 
 
@@ -2462,6 +2496,7 @@ def _serialize_workflow_runtime(
     creative_composition = workflow_state.creative_composition
     procedural_structure = workflow_state.procedural_structure
     generative_structure = workflow_state.generative_structure
+    semantic_motif = workflow_state.semantic_motif
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -2591,6 +2626,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "generative_structure_available": generative_structure is not None,
+        "semantic_motif": (
+            semantic_motif.model_dump(mode="json")
+            if semantic_motif is not None
+            else None
+        ),
+        "semantic_motif_available": semantic_motif is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None
