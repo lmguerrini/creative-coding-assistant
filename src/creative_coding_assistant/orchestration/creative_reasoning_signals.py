@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.artifact_dependency_graph import (
+    ArtifactDependencyGraph,
+)
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
@@ -84,6 +87,7 @@ def build_recommended_direction(
     cross_modality: CrossModalityCompositionProfile | None,
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
+    artifact_dependency_graph: ArtifactDependencyGraph | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -120,6 +124,12 @@ def build_recommended_direction(
         if artifact_plan is not None
         else ""
     )
+    dependency_clause = (
+        "Dependencies as "
+        f"{_clip(_artifact_dependency_label(artifact_dependency_graph), 90)}. "
+        if artifact_dependency_graph is not None
+        else ""
+    )
     direction = (
         f"Recommend {_strategy_label(creative_strategy)} via "
         f"{_technique_label(creative_techniques)} because it protects "
@@ -129,6 +139,7 @@ def build_recommended_direction(
         f"Compose as {_clip(_composition_label(creative_composition), 90)}. "
         f"{scene_clause}"
         f"{artifact_clause}"
+        f"{dependency_clause}"
         f"{motif_clause}"
         f"{emotion_clause}"
         f"{modality_clause}"
@@ -168,6 +179,7 @@ def build_reasoning_path(
     cross_modality: CrossModalityCompositionProfile | None,
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
+    artifact_dependency_graph: ArtifactDependencyGraph | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -237,7 +249,9 @@ def build_reasoning_path(
                     f"{_emotional_label(emotional_consistency)}, composed "
                     f"cross-modally as {_modality_label(cross_modality)}, "
                     f"scene-timed as {_scene_label(audio_visual_scene)}, with "
-                    f"artifact shape {_artifact_label(artifact_plan)} and "
+                    f"artifact shape {_artifact_label(artifact_plan)}, "
+                    "artifact dependencies "
+                    f"{_artifact_dependency_label(artifact_dependency_graph)}, and "
                     f"{_quality_label(creative_quality_prediction)}."
                 ),
                 360,
@@ -254,7 +268,8 @@ def build_reasoning_path(
                 ),
                 (
                     "Treat cross-modality, scene timing, and artifact planning "
-                    "as guidance, not runtime behavior, artifact selection, "
+                    "plus dependency graph metadata as guidance, not runtime "
+                    "behavior, compatibility selection, artifact selection, "
                     "or critique."
                 ),
             ),
@@ -410,6 +425,16 @@ def _artifact_label(profile: ArtifactPlan | None) -> str:
     return (
         f"{profile.artifact_type}/{profile.artifact_family} with "
         f"{len(profile.required_components)} required components"
+    )
+
+
+def _artifact_dependency_label(profile: ArtifactDependencyGraph | None) -> str:
+    if profile is None:
+        return "no artifact dependency graph"
+    return (
+        f"{len(profile.artifact_nodes)} nodes, "
+        f"{len(profile.dependency_edges)} edges, "
+        f"{len(profile.blocking_dependencies)} blocking"
     )
 
 

@@ -3,6 +3,7 @@ import {
   AssistantStreamError,
   decodeAssistantStream,
   parseAssistantStreamLine,
+  readArtifactDependencyGraphSummary,
   readArtifactPlanSummary,
   readAudioVisualSceneProfileSummary,
   readClarificationSummary,
@@ -1003,6 +1004,82 @@ function artifactPlanFixture() {
     authority_boundary:
       "The Artifact Planner structures intended artifact shape as inspectable metadata only.",
     evidence: ["Artifact family: p5_sketch."]
+  };
+}
+
+function artifactDependencyGraphFixture() {
+  return {
+    role: "artifact_dependency_graph",
+    primary_artifact_node_id: "primary_artifact",
+    artifact_nodes: [
+      {
+        node_id: "primary_artifact",
+        label: "Primary planned artifact",
+        node_type: "planned_artifact",
+        status: "available",
+        summary: "runnable_code/p5_sketch: luminous mandala",
+        evidence: ["Artifact plan: runnable_code; p5_sketch."]
+      },
+      {
+        node_id: "runtime_requirements",
+        label: "Runtime-facing requirements",
+        node_type: "runtime_requirement",
+        status: "available",
+        summary: "Respect existing runtime hint: p5.",
+        evidence: ["Respect existing runtime hint: p5."]
+      }
+    ],
+    dependency_edges: [
+      {
+        source_node_id: "runtime_requirements",
+        target_node_id: "primary_artifact",
+        relationship: "requires",
+        strength: "required",
+        rationale:
+          "Runtime-facing requirements constrain artifact implementation notes."
+      }
+    ],
+    required_upstream_metadata: [
+      "assistant_request:available",
+      "artifact_plan:available"
+    ],
+    optional_upstream_metadata: [
+      "creative_plan:available",
+      "runtime_capabilities:available"
+    ],
+    blocking_dependencies: [],
+    soft_dependencies: [
+      "Use creative_plan as non-blocking context."
+    ],
+    runtime_facing_dependencies: [
+      "Respect existing runtime hint: p5."
+    ],
+    prompt_facing_dependencies: [
+      "Use the Artifact Dependency Graph as dependency metadata only."
+    ],
+    downstream_consumers: [
+      "prompt_renderer",
+      "creative_assistant_director",
+      "creative_reasoning_engine",
+      "workflow_serialization",
+      "final_payload",
+      "nextjs_stream_hydration"
+    ],
+    missing_dependency_risks: [
+      "Artifact Plan missing information: target runtime is inferred."
+    ],
+    dependency_conflicts: [
+      "intent vs performance: keep recursive depth bounded."
+    ],
+    hitl_questions: [
+      "Should we resolve this missing artifact dependency risk?"
+    ],
+    prompt_guidance: [
+      "Use the Artifact Dependency Graph as dependency metadata only."
+    ],
+    authority_boundary:
+      "The Artifact Dependency Graph structures inspectable metadata only.",
+    evidence: ["Artifact dependency graph: 2 nodes; 1 edges."]
   };
 }
 
@@ -3785,6 +3862,107 @@ describe("assistant stream client", () => {
         ]
       },
       artifact_planner_available: true
+    });
+  });
+
+  it("reads artifact dependency graph summaries", () => {
+    const graph = readArtifactDependencyGraphSummary(
+      artifactDependencyGraphFixture()
+    );
+
+    expect(graph).toMatchObject({
+      role: "artifact_dependency_graph",
+      primaryArtifactNodeId: "primary_artifact",
+      artifactNodes: [
+        {
+          nodeId: "primary_artifact",
+          nodeType: "planned_artifact",
+          status: "available"
+        },
+        {
+          nodeId: "runtime_requirements",
+          nodeType: "runtime_requirement",
+          status: "available"
+        }
+      ],
+      dependencyEdges: [
+        {
+          sourceNodeId: "runtime_requirements",
+          targetNodeId: "primary_artifact",
+          relationship: "requires",
+          strength: "required"
+        }
+      ],
+      requiredUpstreamMetadata: [
+        "assistant_request:available",
+        "artifact_plan:available"
+      ],
+      downstreamConsumers: [
+        "prompt_renderer",
+        "creative_assistant_director",
+        "creative_reasoning_engine",
+        "workflow_serialization",
+        "final_payload",
+        "nextjs_stream_hydration"
+      ]
+    });
+  });
+
+  it("hydrates artifact dependency graph workflow metadata", () => {
+    const graph = artifactDependencyGraphFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 17,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          artifact_dependency_graph: graph,
+          artifact_dependency_graph_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      artifact_dependency_graph: {
+        role: "artifact_dependency_graph",
+        primaryArtifactNodeId: "primary_artifact",
+        artifactNodes: [
+          {
+            nodeId: "primary_artifact",
+            nodeType: "planned_artifact",
+            status: "available"
+          },
+          {
+            nodeId: "runtime_requirements",
+            nodeType: "runtime_requirement",
+            status: "available"
+          }
+        ],
+        dependencyEdges: [
+          {
+            sourceNodeId: "runtime_requirements",
+            targetNodeId: "primary_artifact",
+            relationship: "requires",
+            strength: "required"
+          }
+        ]
+      },
+      artifact_dependency_graph_available: true
     });
   });
 

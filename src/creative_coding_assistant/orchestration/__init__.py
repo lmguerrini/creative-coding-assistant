@@ -22,6 +22,9 @@ _CREATIVE_TECHNIQUE = "creative_coding_assistant.orchestration.creative_techniqu
 _CREATIVE_TRADEOFFS = "creative_coding_assistant.orchestration.creative_tradeoffs"
 _CREATIVE_REASONING = "creative_coding_assistant.orchestration.creative_reasoning"
 _ARTIFACT_PLANNER = "creative_coding_assistant.orchestration.artifact_planner"
+_ARTIFACT_DEPENDENCY_GRAPH = (
+    "creative_coding_assistant.orchestration.artifact_dependency_graph"
+)
 _CREATIVE_QUALITY_PREDICTION = (
     "creative_coding_assistant.orchestration.creative_quality_prediction"
 )
@@ -81,6 +84,13 @@ _EXPORT_MAP = {
     "AssistantWorkflowGraphState": _WORKFLOW_GRAPH,
     "AssistantWorkflowRuntime": _WORKFLOW_GRAPH,
     "AssistantWorkflowState": _WORKFLOW,
+    "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
+    "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
+    "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
+    "DependencyNodeStatus": _ARTIFACT_DEPENDENCY_GRAPH,
+    "DependencyNodeType": _ARTIFACT_DEPENDENCY_GRAPH,
+    "DependencyRelationship": _ARTIFACT_DEPENDENCY_GRAPH,
+    "DependencyStrength": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactCritiqueDimension": _ARTIFACTS,
     "ArtifactCritiqueSummary": _ARTIFACT_CRITIQUE,
     "ArtifactFamily": _ARTIFACT_PLANNER,
@@ -312,6 +322,8 @@ _EXPORT_MAP = {
     "cross_modality_prompt_lines": _CROSS_MODALITY,
     "derive_audio_visual_scene_profile": _AUDIO_VISUAL_SCENE,
     "audio_visual_scene_prompt_lines": _AUDIO_VISUAL_SCENE,
+    "artifact_dependency_graph_prompt_lines": _ARTIFACT_DEPENDENCY_GRAPH,
+    "derive_artifact_dependency_graph": _ARTIFACT_DEPENDENCY_GRAPH,
     "artifact_plan_prompt_lines": _ARTIFACT_PLANNER,
     "derive_artifact_plan": _ARTIFACT_PLANNER,
     "derive_symbolic_narrative_plan": _SYMBOLIC_NARRATIVE,

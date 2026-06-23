@@ -14,6 +14,9 @@ from creative_coding_assistant.contracts import (
     CreativeCodingDomain,
 )
 from creative_coding_assistant.memory import ProjectMemoryKind
+from creative_coding_assistant.orchestration.artifact_dependency_graph import (
+    ArtifactDependencyGraph,
+)
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
@@ -341,6 +344,7 @@ class PromptInputResponse(BaseModel):
     cross_modality: CrossModalityCompositionProfile | None = None
     audio_visual_scene: AudioVisualSceneProfile | None = None
     artifact_plan: ArtifactPlan | None = None
+    artifact_dependency_graph: ArtifactDependencyGraph | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None

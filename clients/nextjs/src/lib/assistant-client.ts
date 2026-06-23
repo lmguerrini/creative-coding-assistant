@@ -1202,6 +1202,69 @@ export type ArtifactPlanSummary = {
   evidence: string[];
 };
 
+export type DependencyNodeType =
+  | "planned_artifact"
+  | "required_component"
+  | "runtime_requirement"
+  | "creative_metadata"
+  | "generative_metadata"
+  | "output_structure"
+  | "prompt_guidance"
+  | "downstream_consumer";
+
+export type DependencyNodeStatus = "available" | "inferred" | "missing";
+
+export type DependencyRelationship =
+  | "requires"
+  | "informs"
+  | "blocks"
+  | "soft_informs"
+  | "feeds_prompt"
+  | "consumed_by";
+
+export type DependencyStrength =
+  | "required"
+  | "optional"
+  | "blocking"
+  | "soft";
+
+export type ArtifactDependencyNodeSummary = {
+  nodeId: string;
+  label: string;
+  nodeType: DependencyNodeType;
+  status: DependencyNodeStatus;
+  summary: string;
+  evidence: string[];
+};
+
+export type ArtifactDependencyEdgeSummary = {
+  sourceNodeId: string;
+  targetNodeId: string;
+  relationship: DependencyRelationship;
+  strength: DependencyStrength;
+  rationale: string;
+};
+
+export type ArtifactDependencyGraphSummary = {
+  role: "artifact_dependency_graph";
+  primaryArtifactNodeId: string;
+  artifactNodes: ArtifactDependencyNodeSummary[];
+  dependencyEdges: ArtifactDependencyEdgeSummary[];
+  requiredUpstreamMetadata: string[];
+  optionalUpstreamMetadata: string[];
+  blockingDependencies: string[];
+  softDependencies: string[];
+  runtimeFacingDependencies: string[];
+  promptFacingDependencies: string[];
+  downstreamConsumers: string[];
+  missingDependencyRisks: string[];
+  dependencyConflicts: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeConstraintAxis =
   | "intent"
   | "modality"
@@ -1369,6 +1432,7 @@ export type CreativeReasoningEvidenceSource =
   | "cross_modality"
   | "audio_visual_scene"
   | "artifact_plan"
+  | "artifact_dependency_graph"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {

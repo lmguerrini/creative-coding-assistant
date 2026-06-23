@@ -10,6 +10,9 @@ from creative_coding_assistant.contracts import AssistantRequest
 from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
+from creative_coding_assistant.orchestration.artifact_dependency_graph import (
+    ArtifactDependencyGraph,
+)
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.artifacts import (
     RefinementPassRecord,
@@ -196,6 +199,7 @@ class AssistantWorkflowState(BaseModel):
     cross_modality: CrossModalityCompositionProfile | None = None
     audio_visual_scene: AudioVisualSceneProfile | None = None
     artifact_plan: ArtifactPlan | None = None
+    artifact_dependency_graph: ArtifactDependencyGraph | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     rendered_prompt: RenderedPromptResponse | None = None

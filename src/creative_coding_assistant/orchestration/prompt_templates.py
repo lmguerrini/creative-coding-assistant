@@ -12,6 +12,10 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.domains import get_domain_prompt_guidance
+from creative_coding_assistant.orchestration.artifact_dependency_graph import (
+    ArtifactDependencyGraph,
+    artifact_dependency_graph_prompt_lines,
+)
 from creative_coding_assistant.orchestration.artifact_planner import (
     ArtifactPlan,
     artifact_plan_prompt_lines,
@@ -303,6 +307,13 @@ Artifact Planner:
 - {{ instruction }}
 {% endfor %}
 {% endif %}
+{% set artifact_dependency_graph = prompt_input.artifact_dependency_graph -%}
+{% if artifact_dependency_graph is not none -%}
+Artifact Dependency Graph:
+{% for instruction in artifact_dependency_graph_lines(artifact_dependency_graph) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
 {% set director = prompt_input.creative_director -%}
 {% if director is not none -%}
 Creative Assistant Director:
@@ -557,6 +568,7 @@ class JinjaPromptRenderer:
             cross_modality_lines=_cross_modality_lines,
             audio_visual_scene_lines=_audio_visual_scene_lines,
             artifact_plan_lines=_artifact_plan_lines,
+            artifact_dependency_graph_lines=_artifact_dependency_graph_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -835,6 +847,12 @@ def _artifact_plan_lines(
     plan: ArtifactPlan,
 ) -> tuple[str, ...]:
     return artifact_plan_prompt_lines(plan)
+
+
+def _artifact_dependency_graph_lines(
+    graph: ArtifactDependencyGraph,
+) -> tuple[str, ...]:
+    return artifact_dependency_graph_prompt_lines(graph)
 
 
 def _creative_assistant_director_lines(

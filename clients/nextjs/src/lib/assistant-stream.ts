@@ -1,6 +1,9 @@
 import {
   workflowNodeOrder,
   type ArtifactCritique,
+  type ArtifactDependencyEdgeSummary,
+  type ArtifactDependencyGraphSummary,
+  type ArtifactDependencyNodeSummary,
   type ArtifactFamily,
   type ArtifactPlanSummary,
   type ArtifactType,
@@ -32,6 +35,10 @@ import {
   type CrossModalityPattern,
   type CrossModalityRoleSummary,
   type CrossModalityTemporalCueSummary,
+  type DependencyNodeStatus,
+  type DependencyNodeType,
+  type DependencyRelationship,
+  type DependencyStrength,
   type ProceduralComplexityLevel,
   type ProceduralFamily,
   type ProceduralStructureChoiceSummary,
@@ -228,6 +235,8 @@ export type AssistantStreamWorkflowMetadata = {
   audio_visual_scene_available?: boolean;
   artifact_plan?: ArtifactPlanSummary | null;
   artifact_planner_available?: boolean;
+  artifact_dependency_graph?: ArtifactDependencyGraphSummary | null;
+  artifact_dependency_graph_available?: boolean;
   creative_director?: CreativeAssistantDirectorSummary | null;
   director_available?: boolean;
   creative_reasoning?: CreativeReasoningSummary | null;
@@ -734,6 +743,12 @@ export function readWorkflowMetadata(
   );
   const artifactPlannerAvailable =
     rawWorkflow.artifact_planner_available === true || artifactPlan !== null;
+  const artifactDependencyGraph = readArtifactDependencyGraphSummary(
+    rawWorkflow.artifact_dependency_graph ?? rawWorkflow.artifactDependencyGraph
+  );
+  const artifactDependencyGraphAvailable =
+    rawWorkflow.artifact_dependency_graph_available === true ||
+    artifactDependencyGraph !== null;
   const creativeDirector = readCreativeAssistantDirectorSummary(
     rawWorkflow.creative_director ?? rawWorkflow.creativeDirector
   );
@@ -889,6 +904,12 @@ export function readWorkflowMetadata(
       ? {
           artifact_plan: artifactPlan,
           artifact_planner_available: true
+        }
+      : {}),
+    ...(artifactDependencyGraphAvailable
+      ? {
+          artifact_dependency_graph: artifactDependencyGraph,
+          artifact_dependency_graph_available: true
         }
       : {}),
     ...(directorAvailable
@@ -4792,6 +4813,207 @@ export function readArtifactPlanSummary(
   };
 }
 
+export function readArtifactDependencyGraphSummary(
+  value: unknown
+): ArtifactDependencyGraphSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const primaryArtifactNodeId =
+    readStringField(value, "primary_artifact_node_id") ??
+    readStringField(value, "primaryArtifactNodeId");
+  const artifactNodes = readArtifactDependencyNodeSummaryList(
+    value.artifact_nodes ?? value.artifactNodes
+  );
+  const dependencyEdges = readArtifactDependencyEdgeSummaryList(
+    value.dependency_edges ?? value.dependencyEdges
+  );
+  const requiredUpstreamMetadata = readStringListField(
+    value,
+    "required_upstream_metadata",
+    "requiredUpstreamMetadata"
+  );
+  const downstreamConsumers = readStringListField(
+    value,
+    "downstream_consumers",
+    "downstreamConsumers"
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "artifact_dependency_graph" ||
+    !primaryArtifactNodeId ||
+    artifactNodes.length === 0 ||
+    requiredUpstreamMetadata.length === 0 ||
+    downstreamConsumers.length === 0 ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    primaryArtifactNodeId,
+    artifactNodes,
+    dependencyEdges,
+    requiredUpstreamMetadata,
+    optionalUpstreamMetadata: readStringListField(
+      value,
+      "optional_upstream_metadata",
+      "optionalUpstreamMetadata"
+    ),
+    blockingDependencies: readStringListField(
+      value,
+      "blocking_dependencies",
+      "blockingDependencies"
+    ),
+    softDependencies: readStringListField(
+      value,
+      "soft_dependencies",
+      "softDependencies"
+    ),
+    runtimeFacingDependencies: readStringListField(
+      value,
+      "runtime_facing_dependencies",
+      "runtimeFacingDependencies"
+    ),
+    promptFacingDependencies: readStringListField(
+      value,
+      "prompt_facing_dependencies",
+      "promptFacingDependencies"
+    ),
+    downstreamConsumers,
+    missingDependencyRisks: readStringListField(
+      value,
+      "missing_dependency_risks",
+      "missingDependencyRisks"
+    ),
+    dependencyConflicts: readStringListField(
+      value,
+      "dependency_conflicts",
+      "dependencyConflicts"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+function readArtifactDependencyNodeSummaryList(
+  value: unknown
+): ArtifactDependencyNodeSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    const node = readArtifactDependencyNodeSummary(item);
+    return node ? [node] : [];
+  });
+}
+
+function readArtifactDependencyNodeSummary(
+  value: unknown
+): ArtifactDependencyNodeSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const nodeId =
+    readStringField(value, "node_id") ?? readStringField(value, "nodeId");
+  const label = readStringField(value, "label");
+  const nodeType = readStringUnion(
+    value,
+    "node_type",
+    "nodeType",
+    dependencyNodeTypes
+  );
+  const status = readStringUnion(
+    value,
+    "status",
+    "status",
+    dependencyNodeStatuses
+  );
+  const summary = readStringField(value, "summary");
+
+  if (!nodeId || !label || !nodeType || !status || !summary) {
+    return null;
+  }
+
+  return {
+    nodeId,
+    label,
+    nodeType,
+    status,
+    summary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+function readArtifactDependencyEdgeSummaryList(
+  value: unknown
+): ArtifactDependencyEdgeSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    const edge = readArtifactDependencyEdgeSummary(item);
+    return edge ? [edge] : [];
+  });
+}
+
+function readArtifactDependencyEdgeSummary(
+  value: unknown
+): ArtifactDependencyEdgeSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const sourceNodeId =
+    readStringField(value, "source_node_id") ??
+    readStringField(value, "sourceNodeId");
+  const targetNodeId =
+    readStringField(value, "target_node_id") ??
+    readStringField(value, "targetNodeId");
+  const relationship = readStringUnion(
+    value,
+    "relationship",
+    "relationship",
+    dependencyRelationships
+  );
+  const strength = readStringUnion(
+    value,
+    "strength",
+    "strength",
+    dependencyStrengths
+  );
+  const rationale = readStringField(value, "rationale");
+
+  if (!sourceNodeId || !targetNodeId || !relationship || !strength || !rationale) {
+    return null;
+  }
+
+  return {
+    sourceNodeId,
+    targetNodeId,
+    relationship,
+    strength,
+    rationale
+  };
+}
+
 const artifactTypes = [
   "runnable_code",
   "design_spec",
@@ -4815,6 +5037,39 @@ const artifactFamilies = [
   "multimodal_reference_artifact",
   "creative_coding_response"
 ] as const satisfies readonly ArtifactFamily[];
+
+const dependencyNodeTypes = [
+  "planned_artifact",
+  "required_component",
+  "runtime_requirement",
+  "creative_metadata",
+  "generative_metadata",
+  "output_structure",
+  "prompt_guidance",
+  "downstream_consumer"
+] as const satisfies readonly DependencyNodeType[];
+
+const dependencyNodeStatuses = [
+  "available",
+  "inferred",
+  "missing"
+] as const satisfies readonly DependencyNodeStatus[];
+
+const dependencyRelationships = [
+  "requires",
+  "informs",
+  "blocks",
+  "soft_informs",
+  "feeds_prompt",
+  "consumed_by"
+] as const satisfies readonly DependencyRelationship[];
+
+const dependencyStrengths = [
+  "required",
+  "optional",
+  "blocking",
+  "soft"
+] as const satisfies readonly DependencyStrength[];
 
 const audioVisualCueTypes = [
   "visual",
@@ -5203,6 +5458,7 @@ const creativeReasoningEvidenceSources = [
   "cross_modality",
   "audio_visual_scene",
   "artifact_plan",
+  "artifact_dependency_graph",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

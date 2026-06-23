@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+from creative_coding_assistant.orchestration.artifact_dependency_graph import (
+    ArtifactDependencyGraph,
+)
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
@@ -90,6 +93,7 @@ def build_strongest_signals(
     cross_modality: CrossModalityCompositionProfile | None,
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
+    artifact_dependency_graph: ArtifactDependencyGraph | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -189,6 +193,13 @@ def build_strongest_signals(
             f"{artifact_plan.artifact_type}; {artifact_plan.artifact_family}; "
             f"{len(artifact_plan.required_components)} required components."
         )
+    if artifact_dependency_graph is not None:
+        signals.append(
+            "Artifact dependency graph: "
+            f"{len(artifact_dependency_graph.artifact_nodes)} nodes; "
+            f"{len(artifact_dependency_graph.dependency_edges)} edges; "
+            f"{len(artifact_dependency_graph.blocking_dependencies)} blocking."
+        )
     if creative_constraints is not None:
         signals.append(
             f"Constraints: complexity {creative_constraints.complexity_pressure}, "
@@ -282,6 +293,7 @@ def build_unresolved_decisions(
     cross_modality: CrossModalityCompositionProfile | None,
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
+    artifact_dependency_graph: ArtifactDependencyGraph | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -328,6 +340,10 @@ def build_unresolved_decisions(
     if artifact_plan is not None:
         unresolved.extend(artifact_plan.hitl_questions[:3])
         unresolved.extend(artifact_plan.missing_information[:2])
+    if artifact_dependency_graph is not None:
+        unresolved.extend(artifact_dependency_graph.hitl_questions[:3])
+        unresolved.extend(artifact_dependency_graph.missing_dependency_risks[:2])
+        unresolved.extend(artifact_dependency_graph.dependency_conflicts[:2])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -357,6 +373,7 @@ def build_implementation_guidance(
     cross_modality: CrossModalityCompositionProfile | None,
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
+    artifact_dependency_graph: ArtifactDependencyGraph | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -439,6 +456,14 @@ def build_implementation_guidance(
         guidance.append(
             "Preserve artifact planning as shape guidance, not artifact "
             "selection or critique."
+        )
+    if artifact_dependency_graph is not None:
+        guidance.extend(artifact_dependency_graph.prompt_guidance[:2])
+        guidance.extend(artifact_dependency_graph.prompt_facing_dependencies[:2])
+        guidance.extend(artifact_dependency_graph.runtime_facing_dependencies[:1])
+        guidance.append(
+            "Preserve artifact dependency graph metadata as dependency "
+            "guidance, not runtime compatibility selection or execution."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

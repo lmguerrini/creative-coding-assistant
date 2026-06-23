@@ -20,6 +20,9 @@ from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
     critique_workflow_artifacts,
 )
+from creative_coding_assistant.orchestration.artifact_dependency_graph import (
+    derive_artifact_dependency_graph,
+)
 from creative_coding_assistant.orchestration.artifact_planner import (
     derive_artifact_plan,
 )
@@ -867,6 +870,30 @@ def _planning_node(
             cross_modality=cross_modality,
             audio_visual_scene=audio_visual_scene,
         )
+        artifact_dependency_graph = derive_artifact_dependency_graph(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            artifact_plan=artifact_plan,
+            creative_translation=prompt_input.creative_translation,
+            creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
+            creative_plan=plan,
+            creative_constraints=constraints,
+            creative_constraint_priorities=constraint_priorities,
+            creative_strategy=strategy,
+            creative_techniques=techniques,
+            runtime_capabilities=runtime_capabilities,
+            creative_tradeoffs=tradeoffs,
+            creative_quality_prediction=quality_prediction,
+            symbolic_narrative=symbolic_narrative,
+            creative_composition=creative_composition,
+            procedural_structure=procedural_structure,
+            generative_structure=generative_structure,
+            semantic_motif=semantic_motif,
+            emotional_consistency=emotional_consistency,
+            cross_modality=cross_modality,
+            audio_visual_scene=audio_visual_scene,
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -888,6 +915,7 @@ def _planning_node(
                 "cross_modality": cross_modality,
                 "audio_visual_scene": audio_visual_scene,
                 "artifact_plan": artifact_plan,
+                "artifact_dependency_graph": artifact_dependency_graph,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -911,6 +939,7 @@ def _planning_node(
                 "cross_modality": cross_modality,
                 "audio_visual_scene": audio_visual_scene,
                 "artifact_plan": artifact_plan,
+                "artifact_dependency_graph": artifact_dependency_graph,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -941,6 +970,9 @@ def _planning_node(
                 cross_modality=cross_modality.model_dump(mode="json"),
                 audio_visual_scene=audio_visual_scene.model_dump(mode="json"),
                 artifact_plan=artifact_plan.model_dump(mode="json"),
+                artifact_dependency_graph=artifact_dependency_graph.model_dump(
+                    mode="json"
+                ),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -1782,6 +1814,14 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "artifact_dependency_graph",
+                    (
+                        final_state.artifact_dependency_graph.model_dump(mode="json")
+                        if final_state.artifact_dependency_graph is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_director",
                     (
                         final_state.creative_director.model_dump(mode="json")
@@ -2377,6 +2417,7 @@ def _derive_director_brief(
         cross_modality=workflow_state.cross_modality,
         audio_visual_scene=workflow_state.audio_visual_scene,
         artifact_plan=workflow_state.artifact_plan,
+        artifact_dependency_graph=workflow_state.artifact_dependency_graph,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2419,6 +2460,7 @@ def _derive_reasoning_result(
         cross_modality=workflow_state.cross_modality,
         audio_visual_scene=workflow_state.audio_visual_scene,
         artifact_plan=workflow_state.artifact_plan,
+        artifact_dependency_graph=workflow_state.artifact_dependency_graph,
     )
 
 
@@ -2651,6 +2693,7 @@ def _serialize_workflow_runtime(
     cross_modality = workflow_state.cross_modality
     audio_visual_scene = workflow_state.audio_visual_scene
     artifact_plan = workflow_state.artifact_plan
+    artifact_dependency_graph = workflow_state.artifact_dependency_graph
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -2810,6 +2853,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "artifact_planner_available": artifact_plan is not None,
+        "artifact_dependency_graph": (
+            artifact_dependency_graph.model_dump(mode="json")
+            if artifact_dependency_graph is not None
+            else None
+        ),
+        "artifact_dependency_graph_available": artifact_dependency_graph is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None

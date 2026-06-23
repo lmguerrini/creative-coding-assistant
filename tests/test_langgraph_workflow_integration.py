@@ -251,6 +251,9 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             "audio_visual_scene": "audio_visual_scene_system",
         }
         artifact_plan = planning_event.payload["artifact_plan"]
+        artifact_dependency_graph = planning_event.payload[
+            "artifact_dependency_graph"
+        ]
         director = director_event.payload["creative_director"]
         reasoning = reasoning_event.payload["creative_reasoning"]
 
@@ -397,8 +400,27 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             planning_event.payload["workflow"]["artifact_planner_available"]
         )
         self.assertEqual(
+            artifact_dependency_graph["role"],
+            "artifact_dependency_graph",
+        )
+        self.assertEqual(
+            artifact_dependency_graph["primary_artifact_node_id"],
+            "primary_artifact",
+        )
+        self.assertTrue(artifact_dependency_graph["artifact_nodes"])
+        self.assertTrue(artifact_dependency_graph["dependency_edges"])
+        self.assertTrue(
+            planning_event.payload["workflow"][
+                "artifact_dependency_graph_available"
+            ]
+        )
+        self.assertEqual(
             final_event.payload["artifact_plan"],
             planning_event.payload["artifact_plan"],
+        )
+        self.assertEqual(
+            final_event.payload["artifact_dependency_graph"],
+            planning_event.payload["artifact_dependency_graph"],
         )
         self.assertEqual(
             final_event.payload["creative_director"]["runtime_direction"],

@@ -5,6 +5,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.artifact_dependency_graph import (
+    ArtifactDependencyGraph,
+)
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
@@ -115,6 +118,7 @@ def derive_creative_reasoning_result(
     cross_modality: CrossModalityCompositionProfile | None = None,
     audio_visual_scene: AudioVisualSceneProfile | None = None,
     artifact_plan: ArtifactPlan | None = None,
+    artifact_dependency_graph: ArtifactDependencyGraph | None = None,
     future_knowledge_context: Mapping[str, object] | None = None,
 ) -> CreativeReasoningResult:
     """Synthesize prior Creative Intelligence outputs into one decision brief."""
@@ -140,6 +144,7 @@ def derive_creative_reasoning_result(
         cross_modality=cross_modality,
         audio_visual_scene=audio_visual_scene,
         artifact_plan=artifact_plan,
+        artifact_dependency_graph=artifact_dependency_graph,
     )
     unresolved = build_unresolved_decisions(
         creative_director=creative_director,
@@ -161,6 +166,7 @@ def derive_creative_reasoning_result(
         cross_modality=cross_modality,
         audio_visual_scene=audio_visual_scene,
         artifact_plan=artifact_plan,
+        artifact_dependency_graph=artifact_dependency_graph,
     )
     return CreativeReasoningResult(
         recommended_creative_direction=direction,
@@ -184,6 +190,7 @@ def derive_creative_reasoning_result(
             cross_modality=cross_modality,
             audio_visual_scene=audio_visual_scene,
             artifact_plan=artifact_plan,
+            artifact_dependency_graph=artifact_dependency_graph,
         ),
         evidence_chain=build_evidence_chain(
             request=request,
@@ -209,6 +216,7 @@ def derive_creative_reasoning_result(
             cross_modality=cross_modality,
             audio_visual_scene=audio_visual_scene,
             artifact_plan=artifact_plan,
+            artifact_dependency_graph=artifact_dependency_graph,
         ),
         strongest_supporting_signals=build_strongest_signals(
             creative_director=creative_director,
@@ -230,6 +238,7 @@ def derive_creative_reasoning_result(
             cross_modality=cross_modality,
             audio_visual_scene=audio_visual_scene,
             artifact_plan=artifact_plan,
+            artifact_dependency_graph=artifact_dependency_graph,
         ),
         rejected_alternatives=build_rejected_alternatives(
             creative_strategy=creative_strategy,
@@ -257,6 +266,7 @@ def derive_creative_reasoning_result(
             cross_modality=cross_modality,
             audio_visual_scene=audio_visual_scene,
             artifact_plan=artifact_plan,
+            artifact_dependency_graph=artifact_dependency_graph,
         ),
         prompt_guidance=build_prompt_guidance(unresolved),
         hitl_questions=build_hitl_questions(unresolved),
