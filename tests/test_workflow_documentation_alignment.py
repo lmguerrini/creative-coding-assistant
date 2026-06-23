@@ -5,7 +5,7 @@ from pathlib import Path
 from creative_coding_assistant.orchestration import ASSISTANT_WORKFLOW_NODE_ORDER
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CREATIVE_COGNITION_CORE_CAPABILITIES = (
+CREATIVE_COGNITION_CAPABILITIES = (
     "Creative Intent Decomposer",
     "Creative Hierarchy Planner",
     "Creative Strategy Engine",
@@ -17,7 +17,14 @@ CREATIVE_COGNITION_CORE_CAPABILITIES = (
     "Creative Quality Predictor",
     "Symbolic Narrative Planner",
     "Creative Composition Planner",
-    "Creative Reasoning Engine",
+)
+V32_GENERATIVE_DESIGN_CAPABILITIES = (
+    "Procedural Structure Planner",
+    "Generative Structure Engine",
+    "Semantic Motif Engine",
+    "Emotional Consistency Engine",
+    "Cross-Modality Composer",
+    "Audio-Visual Scene System",
 )
 
 
@@ -65,7 +72,9 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             mermaid,
         )
 
-    def test_workflow_doc_distinguishes_runtime_and_internal_graphs(self) -> None:
+    def test_workflow_doc_distinguishes_runtime_pipeline_and_dependency_views(
+        self,
+    ) -> None:
         architecture_doc = (
             REPO_ROOT / "architecture" / "workflow_graph.md"
         ).read_text(encoding="utf-8")
@@ -76,10 +85,14 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         )
         self.assertIn("creative_intelligence_graph.md", architecture_doc)
         self.assertIn("creative_intelligence_graph.mmd", architecture_doc)
+        self.assertIn("generative_design_graph.md", architecture_doc)
+        self.assertIn("generative_design_graph.mmd", architecture_doc)
+        self.assertIn("metadata and design guidance", architecture_doc)
+        self.assertIn("not code generation execution", architecture_doc)
         self.assertIn("true multi-agent", architecture_doc)
         self.assertIn("multi-node runtime graph", architecture_doc)
 
-    def test_creative_intelligence_graph_docs_cover_current_capabilities(self) -> None:
+    def test_creative_intelligence_graph_docs_cover_current_pipeline(self) -> None:
         architecture_doc = (
             REPO_ROOT / "architecture" / "creative_intelligence_graph.md"
         ).read_text(encoding="utf-8")
@@ -87,19 +100,47 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             REPO_ROOT / "architecture" / "creative_intelligence_graph.mmd"
         ).read_text(encoding="utf-8")
 
-        for capability in CREATIVE_COGNITION_CORE_CAPABILITIES:
+        for capability in (
+            *CREATIVE_COGNITION_CAPABILITIES,
+            *V32_GENERATIVE_DESIGN_CAPABILITIES,
+        ):
             self.assertIn(capability, architecture_doc)
             self.assertIn(capability, mermaid)
 
         self.assertIn("Creative Execution Plan", architecture_doc)
         self.assertIn("Creative Execution Plan", mermaid)
+        self.assertIn("Metadata Store", architecture_doc)
+        self.assertIn("Metadata Store", mermaid)
         self.assertIn("Creative Assistant Director runtime node", architecture_doc)
+        self.assertIn("Creative Assistant Director runtime node", mermaid)
         self.assertIn("Creative Reasoning Engine runtime node", architecture_doc)
-        self.assertIn("prompt_rendering", mermaid)
-        self.assertIn(
-            "Why This Is Not Yet A True Multi-Agent Graph",
-            architecture_doc,
-        )
+        self.assertIn("Creative Reasoning Engine runtime node", mermaid)
+        self.assertIn("human-readable pipeline", architecture_doc)
+        self.assertIn("not separate LangGraph nodes", architecture_doc)
+        self.assertIn("future V4 multi-agent blueprint", architecture_doc)
+        self.assertIn("director --> reasoning --> prompt_rendering", mermaid)
+
+    def test_generative_design_graph_docs_cover_current_capabilities_and_matrix(
+        self,
+    ) -> None:
+        architecture_doc = (
+            REPO_ROOT / "architecture" / "generative_design_graph.md"
+        ).read_text(encoding="utf-8")
+        mermaid = (
+            REPO_ROOT / "architecture" / "generative_design_graph.mmd"
+        ).read_text(encoding="utf-8")
+
+        for capability in V32_GENERATIVE_DESIGN_CAPABILITIES:
+            self.assertIn(capability, architecture_doc)
+            self.assertIn(capability, mermaid)
+
+        self.assertIn("## Dependency Matrix", architecture_doc)
+        self.assertIn("| Capability | Reads | Produces | Used by |", architecture_doc)
+        self.assertIn("preferred way to show dense dependencies", architecture_doc)
+        self.assertIn("metadata and design guidance", architecture_doc)
+        self.assertIn("future V4 multi-agent blueprint", architecture_doc)
+        self.assertIn("AssistantWorkflowState", architecture_doc)
+        self.assertIn("PromptInputResponse", architecture_doc)
         self.assertIn("metadata_store --> director", mermaid)
         self.assertIn("director --> reasoning --> prompt_rendering", mermaid)
 

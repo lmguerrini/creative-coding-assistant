@@ -1,6 +1,7 @@
-flowchart TB
+flowchart LR
     classDef runtime fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
-    classDef capability fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
+    classDef cognition fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
+    classDef design fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px;
     classDef store fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px;
     classDef consumer fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px;
     classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
@@ -8,105 +9,40 @@ flowchart TB
     prompt_input["Prompt input context<br/>request + route + translation + retrieval + clarification"]:::runtime
     planning["Planning runtime node<br/>bounded deterministic execution"]:::runtime
 
-    subgraph core["V3.1 Creative Cognition Core internal capability graph"]
-        direction TB
-        intent["Creative Intent Decomposer<br/>atomic intent dimensions"]:::capability
-        hierarchy["Creative Hierarchy Planner<br/>ranked creative priorities"]:::capability
-        strategy["Creative Strategy Engine<br/>high-level artistic strategy"]:::capability
-        techniques["Creative Technique Selector<br/>implementation technique guidance"]:::capability
-        plan["Creative Execution Plan<br/>runtime / preview / cost plan"]:::capability
-        constraints["Creative Constraint Solver<br/>bounded constraints + tradeoffs"]:::capability
-        runtime_reasoner["Runtime Capability Reasoner<br/>supported runtime fit"]:::capability
-        tradeoffs["Creative Trade-off Explorer<br/>creative vs technical consequences"]:::capability
-        priorities["Creative Constraint Prioritizer<br/>negotiated priority tiers"]:::capability
-        quality["Creative Quality Predictor<br/>pre-generation readiness"]:::capability
-        narrative["Symbolic Narrative Planner<br/>symbolic arc + phases"]:::capability
-        composition["Creative Composition Planner<br/>composition pattern + structure"]:::capability
+    subgraph cognition_core["V3.1 Creative Cognition spine"]
+        direction LR
+        intent["Creative Intent Decomposer"]:::cognition
+        hierarchy["Creative Hierarchy Planner"]:::cognition
+        strategy["Creative Strategy Engine"]:::cognition
+        techniques["Creative Technique Selector"]:::cognition
+        plan["Creative Execution Plan"]:::cognition
+        constraints["Creative Constraint Solver"]:::cognition
+        runtime_reasoner["Runtime Capability Reasoner"]:::cognition
+        tradeoffs["Creative Trade-off Explorer"]:::cognition
+        priorities["Creative Constraint Prioritizer"]:::cognition
+        quality["Creative Quality Predictor"]:::cognition
+        narrative["Symbolic Narrative Planner"]:::cognition
+        composition["Creative Composition Planner"]:::cognition
     end
 
-    metadata_store["Stored creative cognition metadata<br/>AssistantWorkflowState + PromptInputResponse"]:::store
+    subgraph generative_design["V3.2 Generative Design Core"]
+        direction LR
+        procedural["Procedural Structure Planner"]:::design
+        generative["Generative Structure Engine"]:::design
+        motif["Semantic Motif Engine"]:::design
+        emotion["Emotional Consistency Engine"]:::design
+        cross["Cross-Modality Composer"]:::design
+        scene["Audio-Visual Scene System"]:::design
+    end
+
+    metadata_store["Metadata Store<br/>AssistantWorkflowState + PromptInputResponse"]:::store
     director["Creative Assistant Director runtime node<br/>CreativeAssistantDirectorBrief"]:::consumer
     reasoning["Creative Reasoning Engine runtime node<br/>CreativeReasoningResult"]:::consumer
     prompt_rendering["Prompt rendering runtime node<br/>provider prompt sections"]:::consumer
-    note["Not separate LangGraph nodes<br/>No per-capability retries or failure edges"]:::note
+    note["Readable pipeline only<br/>Use generative_design_graph.* for dense dependencies"]:::note
 
-    prompt_input --> planning --> intent
-    intent --> hierarchy
-    intent --> strategy
-    hierarchy --> strategy
-    intent --> techniques
-    hierarchy --> techniques
-    strategy --> techniques
-    intent --> plan
-    hierarchy --> plan
-    strategy --> plan
-    techniques --> plan
-    intent --> constraints
-    hierarchy --> constraints
-    plan --> constraints
-    strategy --> constraints
-    techniques --> constraints
-    strategy --> runtime_reasoner
-    techniques --> runtime_reasoner
-    plan --> runtime_reasoner
-    constraints --> runtime_reasoner
-    strategy --> tradeoffs
-    techniques --> tradeoffs
-    plan --> tradeoffs
-    constraints --> tradeoffs
-    runtime_reasoner --> tradeoffs
-    intent --> priorities
-    hierarchy --> priorities
-    plan --> priorities
-    constraints --> priorities
-    strategy --> priorities
-    techniques --> priorities
-    runtime_reasoner --> priorities
-    tradeoffs --> priorities
-    intent --> quality
-    hierarchy --> quality
-    plan --> quality
-    constraints --> quality
-    priorities --> quality
-    strategy --> quality
-    techniques --> quality
-    runtime_reasoner --> quality
-    tradeoffs --> quality
-    intent --> narrative
-    hierarchy --> narrative
-    plan --> narrative
-    constraints --> narrative
-    priorities --> narrative
-    strategy --> narrative
-    techniques --> narrative
-    runtime_reasoner --> narrative
-    tradeoffs --> narrative
-    quality --> narrative
-    intent --> composition
-    hierarchy --> composition
-    plan --> composition
-    constraints --> composition
-    priorities --> composition
-    strategy --> composition
-    techniques --> composition
-    runtime_reasoner --> composition
-    tradeoffs --> composition
-    quality --> composition
-    narrative --> composition
-
-    intent -.-> metadata_store
-    hierarchy -.-> metadata_store
-    strategy -.-> metadata_store
-    techniques -.-> metadata_store
-    plan -.-> metadata_store
-    constraints -.-> metadata_store
-    runtime_reasoner -.-> metadata_store
-    tradeoffs -.-> metadata_store
-    priorities -.-> metadata_store
-    quality -.-> metadata_store
-    narrative -.-> metadata_store
-    composition -.-> metadata_store
-
+    prompt_input --> planning --> intent --> hierarchy --> strategy --> techniques --> plan --> constraints --> runtime_reasoner --> tradeoffs --> priorities --> quality --> narrative --> composition --> procedural --> generative --> motif --> emotion --> cross --> scene
+    scene --> metadata_store
     metadata_store --> director
     metadata_store --> reasoning
     metadata_store --> prompt_rendering
