@@ -26,6 +26,16 @@ V32_GENERATIVE_DESIGN_CAPABILITIES = (
     "Cross-Modality Composer",
     "Audio-Visual Scene System",
 )
+CAPABILITY_CLOSEOUT_STEPS = (
+    "Architecture Update",
+    "Documentation Update",
+    "Junie Engineering Review",
+    "ChatGPT review of Junie report",
+    "Codex Review Fixes if approved",
+    "Engineering Validation",
+    "Create Version Tag",
+    "Merge & Push",
+)
 
 
 class WorkflowDocumentationAlignmentTests(unittest.TestCase):
@@ -34,6 +44,34 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         expected_order = " -> ".join(ASSISTANT_WORKFLOW_NODE_ORDER)
 
         self.assertIn(f"`{expected_order}`", readme)
+
+    def test_readme_covers_v32_docs_closeout_and_roadmap(self) -> None:
+        readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn("V3.2 AI-native creative translation", readme)
+        self.assertIn("feature/generative-design-core", readme)
+        self.assertIn("V3.2 Generative Design Core", readme)
+        self.assertIn("architecture/engine_matrix.md", readme)
+
+        for capability in V32_GENERATIVE_DESIGN_CAPABILITIES:
+            self.assertIn(capability, readme)
+
+        for step in CAPABILITY_CLOSEOUT_STEPS:
+            self.assertIn(step, readme)
+
+        self.assertIn(
+            "ChatGPT is architect, planner, and reviewer of Junie reports.",
+            readme,
+        )
+        self.assertIn("Codex is the implementation tool.", readme)
+        self.assertIn("Junie is the independent engineering reviewer.", readme)
+        self.assertIn("Git and GitHub are the delivery source of truth.", readme)
+        self.assertIn("V4: Agentic Studio", readme)
+        self.assertIn(
+            "V5: Execution Optimization & Production Intelligence",
+            readme,
+        )
+        self.assertIn("V6: Learning & Evolution", readme)
 
     def test_architecture_doc_node_order_matches_backend_node_order(self) -> None:
         architecture_doc = (
@@ -143,6 +181,34 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("PromptInputResponse", architecture_doc)
         self.assertIn("metadata_store --> director", mermaid)
         self.assertIn("director --> reasoning --> prompt_rendering", mermaid)
+
+    def test_engine_matrix_covers_cross_cutting_layers_and_versions(self) -> None:
+        engine_matrix = (
+            REPO_ROOT / "architecture" / "engine_matrix.md"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("Versions are chronological delivery increments.", engine_matrix)
+        self.assertIn("cross-cutting architecture layers", engine_matrix)
+
+        for layer in (
+            "Core Engine",
+            "Knowledge Engine",
+            "Execution Engine",
+            "Experience Layer",
+        ):
+            self.assertIn(layer, engine_matrix)
+
+        for version_marker in (
+            "V3.1",
+            "V3.2",
+            "V4",
+            "Agentic Studio",
+            "V5",
+            "Execution Optimization & Production Intelligence",
+            "V6",
+            "Learning & Evolution",
+        ):
+            self.assertIn(version_marker, engine_matrix)
 
 
 if __name__ == "__main__":

@@ -1,15 +1,15 @@
 # Creative Coding Assistant
 
-Creative Coding Assistant is a V3.1 AI-native creative translation
+Creative Coding Assistant is a V3.2 AI-native creative translation
 workstation designed to transform symbolic, conceptual, geometric, stylistic,
 and multimodal intent into professional audio, visual, and audiovisual
 creative systems.
 
 It combines a LangGraph-orchestrated Python backend with a Next.js workstation
-for the full V2.5 Creative Core, the V3.1 Creative Cognition Core,
-multi-artifact generation, multi-preview comparison, controlled runtime
-preview, critique and scoring, parameter control, observability, validation,
-and export preparation.
+for the full V2.5 Creative Core, the V3.1 Creative Cognition Core, the V3.2
+Generative Design Core, multi-artifact generation, multi-preview comparison,
+controlled runtime preview, critique and scoring, parameter control,
+observability, validation, and export preparation.
 
 The current product scope is a creative coding platform rather than a generic
 chat assistant. Requests can be translated from intent, symbols, geometry,
@@ -27,9 +27,10 @@ same interface.
   focused inspector tabs for overview, preview, runtime, code, workflow,
   telemetry, artifacts, and retrieval
 - Complete V2.5 Creative Core plus the implemented V3.1 Creative Cognition
-  Core for intent decomposition, hierarchy, strategy, technique, constraints,
-  runtime reasoning, trade-offs, quality prediction, narrative, composition,
-  and creative reasoning
+  Core and V3.2 Generative Design Core for intent decomposition, hierarchy,
+  strategy, technique, constraints, runtime reasoning, trade-offs, quality
+  prediction, narrative, composition, procedural structure, generative
+  structure, motifs, emotional consistency, cross-modality, and scene design
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -41,44 +42,42 @@ same interface.
 
 ## Current Branch Status
 
-The current branch, `feature/creative-intelligence-core`, implements the
-V3.1 Creative Cognition Core.
+The current branch, `feature/generative-design-core`, closes the V3.2
+Generative Design Core on top of the tagged V3.1 foundation.
 
-V3.1 adds bounded internal metadata and reasoning layers that run before
-generation and feed planning, Director guidance, Creative Reasoning synthesis,
-and prompt rendering. These capabilities are inspectable and typed, but they
-are not all separate LangGraph runtime nodes.
+V3.2 extends the bounded planning pass with inspectable generative-design
+metadata and design guidance that feed Director guidance, Creative Reasoning
+synthesis, and prompt rendering. These capabilities remain internal helpers
+inside the existing runtime graph rather than separate LangGraph runtime nodes.
 
-Implemented V3.1 capabilities:
+Implemented V3.2 capabilities:
 
-- Creative Intent Decomposer
-- Creative Hierarchy Planner
-- Creative Strategy Engine
-- Creative Technique Selector
-- Creative Constraint Solver
-- Runtime Capability Reasoner
-- Creative Trade-off Explorer
-- Creative Constraint Prioritizer
-- Creative Quality Predictor
-- Symbolic Narrative Planner
-- Creative Composition Planner
-- Creative Reasoning Engine
+- Procedural Structure Planner
+- Generative Structure Engine
+- Semantic Motif Engine
+- Emotional Consistency Engine
+- Cross-Modality Composer
+- Audio-Visual Scene System
 
-The architecture intentionally documents two layers:
+The architecture now documents four complementary views:
 
 - the real runtime graph in
   [`architecture/workflow_graph.md`](architecture/workflow_graph.md)
-- the internal Creative Intelligence capability graph in
+- the human-readable Creative Intelligence pipeline in
   [`architecture/creative_intelligence_graph.md`](architecture/creative_intelligence_graph.md)
+- the V3.2 Generative Design dependency graph in
+  [`architecture/generative_design_graph.md`](architecture/generative_design_graph.md)
+- the cross-cutting engine matrix in
+  [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
-The runtime graph remains compact and truthful. The internal capability graph
-documents the V3.1 sub-capabilities and acts as the blueprint for future V4
-multi-agent decomposition rather than claiming that V4 already exists.
+The runtime graph remains compact and truthful. The internal pipeline and
+dependency views remain blueprints for future V4 Agentic Studio decomposition
+rather than claims that a V4 multi-agent runtime already exists.
 
 ## Creative Workflow
 
 The workstation still centers on the V2.5 creative loop, now enriched by the
-V3.1 Creative Cognition Core before generation:
+V3.1 Creative Cognition Core and V3.2 Generative Design Core before generation:
 
 `Intent -> HITL Clarification -> Creative Translation -> Reference Fusion -> Creative Planning -> Generation -> Preview -> Critique -> Sacred Consistency -> Calibrated Quality -> Multi-Pass Refinement -> Export Preparation`
 
@@ -96,6 +95,9 @@ V3.1 Creative Cognition Core before generation:
   technique, constraints, runtime, trade-off, quality, narrative, composition,
   Director, and Reasoning layers refine the final creative brief without
   inflating the public runtime graph into dozens of nodes.
+- Generative Design Core: procedural structure, generative systems, semantic
+  motifs, emotional continuity, cross-modality alignment, and scene scaffolds
+  extend the stored creative brief as metadata and design guidance.
 - Generation: the backend resolves effective domains, assembles the prompt,
   and streams one or more creative artifacts.
 - Preview: supported artifacts mount in controlled preview runtimes with
@@ -138,6 +140,26 @@ V3.1 Creative Cognition Core before generation:
 These V3.1 capabilities are internal metadata/reasoning layers. They enrich the
 existing workflow state, Director, Reasoning, and rendered prompt, but they do
 not each become a separate LangGraph node in the runtime graph.
+
+### V3.2 Generative Design Core
+
+- Procedural Structure Planner for selecting bounded structural systems and
+  layout grammars before generation
+- Generative Structure Engine for deriving inspectable generative-system
+  blueprints from upstream creative intent and composition metadata
+- Semantic Motif Engine for recurring symbolic motif systems, recurrence rules,
+  and thematic anchors
+- Emotional Consistency Engine for emotional tone continuity across palette,
+  motion, composition pressure, and atmosphere
+- Cross-Modality Composer for alignment across audio, visual, motion, shader,
+  and camera behaviors
+- Audio-Visual Scene System for phase, cue, transition, climax, and timing
+  scaffolds across complex audiovisual outputs
+
+These V3.2 capabilities are internal metadata/design-guidance layers. They
+enrich the stored workflow state, Director, Reasoning, and rendered prompt, but
+they do not become separate LangGraph runtime nodes or runtime auto-selection
+logic.
 
 ### Creative Core
 
@@ -286,8 +308,11 @@ Key backend capabilities include:
 
 Architecture documentation for the current workflow graph is available in
 [`architecture/workflow_graph.md`](architecture/workflow_graph.md). The
-corresponding internal Creative Intelligence capability graph is documented in
-[`architecture/creative_intelligence_graph.md`](architecture/creative_intelligence_graph.md).
+corresponding internal Creative Intelligence pipeline, V3.2 Generative Design
+dependency graph, and engine matrix are documented in
+[`architecture/creative_intelligence_graph.md`](architecture/creative_intelligence_graph.md),
+[`architecture/generative_design_graph.md`](architecture/generative_design_graph.md),
+and [`architecture/engine_matrix.md`](architecture/engine_matrix.md).
 
 ### Preview, Runtime, And Safety Model
 
@@ -398,6 +423,12 @@ The workstation also exposes:
   [`architecture/creative_intelligence_graph.md`](architecture/creative_intelligence_graph.md)
 - Creative Intelligence Mermaid source:
   [`architecture/creative_intelligence_graph.mmd`](architecture/creative_intelligence_graph.mmd)
+- Generative Design graph docs:
+  [`architecture/generative_design_graph.md`](architecture/generative_design_graph.md)
+- Generative Design Mermaid source:
+  [`architecture/generative_design_graph.mmd`](architecture/generative_design_graph.mmd)
+- Engine matrix:
+  [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 - Next.js workstation shell:
   [`clients/nextjs/src/components/workstation-shell.tsx`](clients/nextjs/src/components/workstation-shell.tsx)
 - Frontend workstation tests:
@@ -459,19 +490,24 @@ V3 now follows Program Increment style versioning rather than one long,
 undifferentiated milestone.
 
 - `v3.1.0`: Creative Cognition Core
-- `v3.2.0`: next macro-capability family after V3.1 closeout
+- `v3.2.0`: Generative Design Core
 - `v3.3.0`: subsequent macro-capability family after V3.2 closeout
 
-### V3.1.0 Status
+### V3.2.0 Status
 
+- `v3.1.0` is tagged on `main` as the Creative Cognition milestone.
 - V2.5 remains the base workstation/runtime milestone.
-- V3.1.0 adds the implemented Creative Cognition Core on the current branch.
+- The current branch implements the V3.2 Generative Design Core and its
+  architecture/documentation closeout.
 - The runtime graph remains the compact LangGraph workflow documented in
   `architecture/workflow_graph.md`.
-- The internal Creative Intelligence graph documents the V3.1 sub-capabilities
-  in `architecture/creative_intelligence_graph.md`.
-- That internal graph is the blueprint for future V4 multi-agent work, but it
-  is not yet a V4 runtime implementation.
+- The internal Creative Intelligence pipeline and V3.2 Generative Design
+  dependency graph document the bounded internal capabilities in
+  `architecture/creative_intelligence_graph.md` and
+  `architecture/generative_design_graph.md`.
+- The engine matrix in `architecture/engine_matrix.md` explains how versions
+  remain chronological while the Core Engine, Knowledge Engine, Execution
+  Engine, and Experience Layer cut across multiple increments.
 
 ### Macro-Capability Lifecycle
 
@@ -481,17 +517,36 @@ lifecycle:
 1. Implementation
 2. Architecture Update
 3. Documentation Update
-4. Capability Validation
-5. Create Version Tag
-6. Merge & Push
+4. Junie Engineering Review
+5. ChatGPT review of Junie report
+6. Codex Review Fixes if approved
+7. Engineering Validation
+8. Create Version Tag
+9. Merge & Push
+
+### Role Split
+
+- ChatGPT is architect, planner, and reviewer of Junie reports.
+- Codex is the implementation tool.
+- Junie is the independent engineering reviewer.
+- Git and GitHub are the delivery source of truth.
+
+### Roadmap Through V6
+
+- V3: Creative Intelligence and Generative Design continuation
+- V4: Agentic Studio
+- V5: Execution Optimization & Production Intelligence
+- V6: Learning & Evolution
 
 ### Continuing Direction
 
-- close `v3.1.0` cleanly before opening a larger new increment
+- close `v3.2.0` cleanly before opening a larger new increment
 - keep the runtime graph truthful instead of mapping every internal helper to a
   public runtime node
-- keep using bounded internal creative-intelligence metadata as the bridge
-  toward future V4 multi-agent decomposition
+- keep using bounded internal creative-intelligence and generative-design
+  metadata as the bridge toward future V4 Agentic Studio decomposition
+- preserve the engine-matrix view so roadmap versions and architecture layers
+  do not collapse into one axis
 - continue later V3 increments around deeper creative intelligence,
   export/performance workflows, and supporting platform improvements
 
