@@ -23,13 +23,18 @@ It documents the deterministic capability flow implemented inside:
   [generative_design_graph.mmd](generative_design_graph.mmd)
 - This file is intentionally the human-readable pipeline, not the exhaustive
   dependency reference
+- The Mermaid below is a compact serpentine readability view that folds one
+  long pipeline into alternating rows so labels stay legible in typical
+  Markdown renderers
 - The capabilities below are internal deterministic helpers executed inside the
   single `planning` runtime node; they are not separate LangGraph nodes
+- The serpentine layout does not imply separate LangGraph runtime nodes,
+  branching semantics, changed provider routing, or changed preview behavior
 - V3.2 remains metadata and design guidance, not code generation execution,
   runtime mutation, or preview behavior changes
 
 ```mermaid
-flowchart LR
+flowchart TB
     classDef runtime fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
     classDef cognition fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
     classDef design fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px;
@@ -37,48 +42,68 @@ flowchart LR
     classDef consumer fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px;
     classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
 
-    prompt_input["Prompt input context<br/>request + route + translation + retrieval + clarification"]:::runtime
-    planning["Planning runtime node<br/>bounded deterministic execution"]:::runtime
-
-    subgraph cognition_core["V3.1 Creative Cognition spine"]
+    subgraph row_1[" "]
         direction LR
-        intent["Creative Intent Decomposer"]:::cognition
-        hierarchy["Creative Hierarchy Planner"]:::cognition
-        strategy["Creative Strategy Engine"]:::cognition
-        techniques["Creative Technique Selector"]:::cognition
-        plan["Creative Execution Plan"]:::cognition
-        constraints["Creative Constraint Solver"]:::cognition
-        runtime_reasoner["Runtime Capability Reasoner"]:::cognition
-        tradeoffs["Creative Trade-off Explorer"]:::cognition
-        priorities["Creative Constraint Prioritizer"]:::cognition
-        quality["Creative Quality Predictor"]:::cognition
-        narrative["Symbolic Narrative Planner"]:::cognition
-        composition["Creative Composition Planner"]:::cognition
+        prompt_input["1. Prompt Input<br/>request + route + translation<br/>retrieval + clarification"]:::runtime
+        planning["2. Planning<br/>single runtime node"]:::runtime
+        intent["3. Intent<br/>Creative Intent Decomposer"]:::cognition
+        hierarchy["4. Hierarchy<br/>Creative Hierarchy Planner"]:::cognition
+        strategy["5. Strategy<br/>Creative Strategy Engine"]:::cognition
     end
 
-    subgraph generative_design["V3.2 Generative Design Core"]
-        direction LR
-        procedural["Procedural Structure Planner"]:::design
-        generative["Generative Structure Engine"]:::design
-        motif["Semantic Motif Engine"]:::design
-        emotion["Emotional Consistency Engine"]:::design
-        cross["Cross-Modality Composer"]:::design
-        scene["Audio-Visual Scene System"]:::design
+    subgraph row_2[" "]
+        direction RL
+        techniques["6. Technique<br/>Creative Technique Selector"]:::cognition
+        plan["7. Plan<br/>Creative Execution Plan"]:::cognition
+        constraints["8. Constraints<br/>Creative Constraint Solver"]:::cognition
+        runtime_reasoner["9. Runtime Fit<br/>Runtime Capability Reasoner"]:::cognition
+        tradeoffs["10. Trade-offs<br/>Creative Trade-off Explorer"]:::cognition
     end
 
-    metadata_store["Metadata Store<br/>AssistantWorkflowState + PromptInputResponse"]:::store
-    director["Creative Assistant Director runtime node<br/>CreativeAssistantDirectorBrief"]:::consumer
-    reasoning["Creative Reasoning Engine runtime node<br/>CreativeReasoningResult"]:::consumer
-    prompt_rendering["Prompt rendering runtime node<br/>provider prompt sections"]:::consumer
-    note["Readable pipeline only<br/>Use generative_design_graph.* for dense dependencies"]:::note
+    subgraph row_3[" "]
+        direction LR
+        priorities["11. Priorities<br/>Creative Constraint Prioritizer"]:::cognition
+        quality["12. Quality<br/>Creative Quality Predictor"]:::cognition
+        narrative["13. Narrative<br/>Symbolic Narrative Planner"]:::cognition
+        composition["14. Composition<br/>Creative Composition Planner"]:::cognition
+        procedural["15. Procedural<br/>Procedural Structure Planner"]:::design
+    end
 
-    prompt_input --> planning --> intent --> hierarchy --> strategy --> techniques --> plan --> constraints --> runtime_reasoner --> tradeoffs --> priorities --> quality --> narrative --> composition --> procedural --> generative --> motif --> emotion --> cross --> scene
+    subgraph row_4[" "]
+        direction RL
+        generative["16. Generative<br/>Generative Structure Engine"]:::design
+        motif["17. Motif<br/>Semantic Motif Engine"]:::design
+        emotion["18. Emotion<br/>Emotional Consistency Engine"]:::design
+        cross["19. Cross-Modality<br/>Cross-Modality Composer"]:::design
+        scene["20. Scene<br/>Audio-Visual Scene System"]:::design
+    end
+
+    subgraph row_5[" "]
+        direction LR
+        metadata_store["21. Metadata Store<br/>AssistantWorkflowState +<br/>PromptInputResponse"]:::store
+        director["22. Director<br/>Creative Assistant Director runtime node"]:::consumer
+        reasoning["23. Reasoning<br/>Creative Reasoning Engine runtime node"]:::consumer
+        prompt_rendering["24. Prompt Rendering<br/>provider prompt sections"]:::consumer
+    end
+
+    note["Serpentine readability view only<br/>Not separate LangGraph runtime nodes<br/>Use generative_design_graph.* + dependency matrix<br/>for dense relationships"]:::note
+
+    prompt_input --> planning --> intent --> hierarchy --> strategy
+    strategy --> techniques --> plan --> constraints --> runtime_reasoner --> tradeoffs
+    tradeoffs --> priorities --> quality --> narrative --> composition --> procedural
+    procedural --> generative --> motif --> emotion --> cross --> scene
     scene --> metadata_store
     metadata_store --> director
     metadata_store --> reasoning
     metadata_store --> prompt_rendering
     director --> reasoning --> prompt_rendering
     note -.-> planning
+
+    style row_1 fill:none,stroke:none
+    style row_2 fill:none,stroke:none
+    style row_3 fill:none,stroke:none
+    style row_4 fill:none,stroke:none
+    style row_5 fill:none,stroke:none
 ```
 
 The raw Mermaid source for this readable pipeline is available in
@@ -89,6 +114,9 @@ The raw Mermaid source for this readable pipeline is available in
 - `Prompt input context` contributes normalized request context, route
   direction, translated creative cues, retrieval payload, and clarification
   state
+- The Mermaid above is intentionally a serpentine readability view: it bends a
+  single linear pipeline into alternating rows so the flow stays readable
+  without changing the meaning of the pipeline
 - The V3.1 Creative Cognition spine derives intent, hierarchy, strategy,
   technique, planning, feasibility, quality, narrative, and composition
   metadata in one deterministic pass
@@ -101,6 +129,8 @@ The raw Mermaid source for this readable pipeline is available in
 - The `Creative Assistant Director runtime node`, `Creative Reasoning Engine
   runtime node`, and `prompt rendering runtime node` consume the stored
   metadata after the single `planning` runtime node completes
+- The serpentine layout is a readability view only and does not imply separate
+  LangGraph runtime nodes, changed runtime execution, or new branching logic
 
 ## Why This View Stays Simplified
 
@@ -110,6 +140,7 @@ The raw Mermaid source for this readable pipeline is available in
   would reduce readability
 - The detailed developer inspection view and the dependency matrix are therefore
   split into `generative_design_graph.*`
+- The dependency matrix remains the preferred way to read dense relationships
 - This separation keeps the runtime graph truthful, the pipeline readable, and
   the dense dependency reference inspectable
 

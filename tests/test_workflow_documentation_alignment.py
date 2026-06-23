@@ -154,8 +154,12 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("Creative Reasoning Engine runtime node", architecture_doc)
         self.assertIn("Creative Reasoning Engine runtime node", mermaid)
         self.assertIn("human-readable pipeline", architecture_doc)
+        self.assertIn("serpentine readability view", architecture_doc)
+        self.assertIn("dependency matrix remains the preferred way", architecture_doc)
         self.assertIn("not separate LangGraph nodes", architecture_doc)
         self.assertIn("future V4 multi-agent blueprint", architecture_doc)
+        self.assertIn("flowchart TB", mermaid)
+        self.assertIn("direction RL", mermaid)
         self.assertIn("director --> reasoning --> prompt_rendering", mermaid)
 
     def test_generative_design_graph_docs_cover_current_capabilities_and_matrix(
