@@ -3,6 +3,7 @@ import {
   AssistantStreamError,
   decodeAssistantStream,
   parseAssistantStreamLine,
+  readAudioVisualSceneProfileSummary,
   readClarificationSummary,
   readCrossModalityCompositionProfileSummary,
   readCreativeCompositionPlanSummary,
@@ -847,6 +848,132 @@ function crossModalityFixture() {
     authority_boundary:
       "The Cross-Modality Composer organizes modality signals as inspectable design metadata only.",
     evidence: ["Pattern: fragmentation_reassembly_visual_motion_layers."]
+  };
+}
+
+function audioVisualSceneFixture() {
+  const opening = audioVisualScenePhaseFixture("opening", "Whole Form");
+  const development = audioVisualScenePhaseFixture("development", "Fragmentation");
+  const threshold = audioVisualScenePhaseFixture("threshold", "Sparse Stillness");
+  const climax = audioVisualScenePhaseFixture("climax", "Reassembly");
+  const resolution = audioVisualScenePhaseFixture("resolution", "Integrated Geometry");
+
+  return {
+    role: "audio_visual_scene_system",
+    scene_pattern: "fragmentation_to_reintegration",
+    scene_arc:
+      "Open with a coherent form, fragment into turbulent pieces, hold sparse threshold stillness, reassemble at climax, and resolve as integrated geometry.",
+    scene_phases: [opening, development, threshold, climax, resolution],
+    opening_scene: opening,
+    development_scene: development,
+    threshold_scene: threshold,
+    climax_scene: climax,
+    resolution_scene: resolution,
+    cue_plan: [
+      {
+        cue_id: "opening_visual",
+        phase: "opening",
+        cue_type: "visual",
+        description: "Show the coherent form before rupture.",
+        timing: "Lead opening with visual state before secondary cues.",
+        modalities: ["visual_structure"],
+        evidence: ["Scene phase: opening."]
+      },
+      {
+        cue_id: "threshold_sync",
+        phase: "threshold",
+        cue_type: "synchronization",
+        description: "Align visual, motion, rhythm, motif, and emotional cues.",
+        timing: "Checkpoint after threshold before entering the next phase.",
+        modalities: ["visual_structure", "motion", "audio", "rhythm"],
+        evidence: ["Scene synchronization checkpoint."]
+      }
+    ],
+    transition_plan: [
+      {
+        from_phase: "opening",
+        to_phase: "development",
+        transition: "Let coherent form contract or fracture.",
+        visual_motion_guidance:
+          "Carry Whole Form into Fragmentation by changing visual density.",
+        audio_rhythm_guidance:
+          "Use rhythm or audio density to mark opening -> development.",
+        continuity_guidance:
+          "Keep fragmentation visible enough to connect opening and development.",
+        evidence: ["opening to development."]
+      }
+    ],
+    climax_strategy:
+      "Make Reassembly the only peak-density scene with synchronized convergence.",
+    resolution_strategy:
+      "After climax, reduce density and stabilize motif, motion, and procedural behavior.",
+    visual_timing_plan: ["opening: coherent luminous form"],
+    motion_timing_plan: ["opening: slow contraction or orbit"],
+    audio_timing_plan: ["threshold: silence or thin pulse"],
+    rhythm_timing_plan: ["opening: measured pulse"],
+    camera_timing_plan: ["threshold: reserve active viewpoint emphasis"],
+    motif_timing_plan: ["opening: introduce fragmentation"],
+    emotional_timing_plan: ["opening: transformation at medium intensity"],
+    procedural_timing_plan: ["opening: use particle emitter as scene basis"],
+    synchronization_checkpoints: [
+      "threshold: align visual_structure, motion, audio, rhythm before transition."
+    ],
+    scene_contrast_plan: [
+      "Make climax the only maximum-density scene."
+    ],
+    scene_continuity_plan: [
+      "Carry one visual anchor, one motion rule, and one rhythm rule through all scenes."
+    ],
+    scene_risks: [
+      "Scene structure is broad; the lead phase emphasis may need HITL confirmation."
+    ],
+    pacing_risks: [
+      "Dense cues can collapse development, threshold, and climax into one flat peak."
+    ],
+    overload_risks: [
+      "Audio, camera, and dense motion should not peak in every scene."
+    ],
+    fallback_scene_strategy: {
+      fallback_pattern: "seed_to_expansion",
+      preserved_phases: ["opening", "threshold", "climax", "resolution"],
+      reduced_elements: ["audio timing", "camera/viewpoint timing"],
+      simplification_strategy:
+        "Preserve the five-phase scene arc, but reduce optional audio and camera cues first.",
+      prompt_guidance: [
+        "If scene scope is too broad, keep opening, threshold, climax, and resolution legible."
+      ]
+    },
+    unresolved_scene_gaps: [
+      "Scene language is broad; confirm desired pacing if precision matters."
+    ],
+    hitl_questions: [
+      "Should audio timing drive scene transitions, or only support visual rhythm?"
+    ],
+    prompt_guidance: [
+      "Use fragmentation_to_reintegration as the bounded audio-visual scene arc."
+    ],
+    authority_boundary:
+      "The Audio-Visual Scene System organizes scene phases, cues, transitions, climax, resolution, and timing guidance as inspectable design metadata only.",
+    evidence: ["Scene pattern: fragmentation_to_reintegration."]
+  };
+}
+
+function audioVisualScenePhaseFixture(phase: string, title: string) {
+  return {
+    phase,
+    title,
+    scene_function: `Scene function for ${title}.`,
+    visual_state: `Visual state for ${title}.`,
+    motion_state: `Motion state for ${title}.`,
+    audio_state: `Audio state for ${title}.`,
+    rhythm_state: `Rhythm state for ${title}.`,
+    camera_state: `Camera state for ${title}.`,
+    motif_state: `Motif state for ${title}.`,
+    emotional_state: `Emotional state for ${title}.`,
+    procedural_state: `Procedural state for ${title}.`,
+    cue_ids: [`${phase}_visual`, `${phase}_sync`],
+    transition_out: `Transition out from ${title}.`,
+    evidence: [`Scene phase: ${phase}.`]
   };
 }
 
@@ -2652,6 +2779,37 @@ describe("assistant stream client", () => {
     expect(profile?.hitlQuestions[0]).toContain("Which modality should lead");
   });
 
+  it("reads audio-visual scene system metadata", () => {
+    const profile = readAudioVisualSceneProfileSummary(audioVisualSceneFixture());
+
+    expect(profile?.role).toBe("audio_visual_scene_system");
+    expect(profile?.scenePattern).toBe("fragmentation_to_reintegration");
+    expect(profile?.scenePhases.map((phase) => phase.phase)).toEqual([
+      "opening",
+      "development",
+      "threshold",
+      "climax",
+      "resolution"
+    ]);
+    expect(profile?.openingScene.title).toBe("Whole Form");
+    expect(profile?.climaxScene.phase).toBe("climax");
+    expect(profile?.cuePlan[1]).toMatchObject({
+      cueId: "threshold_sync",
+      cueType: "synchronization",
+      modalities: ["visual_structure", "motion", "audio", "rhythm"]
+    });
+    expect(profile?.transitionPlan[0]).toMatchObject({
+      fromPhase: "opening",
+      toPhase: "development"
+    });
+    expect(profile?.audioTimingPlan[0]).toContain("silence");
+    expect(profile?.cameraTimingPlan[0]).toContain("viewpoint");
+    expect(profile?.fallbackSceneStrategy.reducedElements).toContain(
+      "audio timing"
+    );
+    expect(profile?.hitlQuestions[0]).toContain("audio timing");
+  });
+
   it("reads creative reasoning engine metadata", () => {
     const profile = readCreativeReasoningSummary({
       role: "creative_reasoning_engine",
@@ -2750,6 +2908,13 @@ describe("assistant stream client", () => {
             "fragmentation_reassembly_visual_motion_layers: visual_structure -> motion, audio.",
           interpretation:
             "Cross-modality evidence coordinates modalities as design metadata."
+        },
+        {
+          source: "audio_visual_scene",
+          signal:
+            "fragmentation_to_reintegration: Whole Form -> Reassembly -> Integrated Geometry",
+          interpretation:
+            "Audio-visual scene evidence orders phases and cues as design metadata."
         }
       ],
       strongestSupportingSignals: ["Strategy sacred_geometry confidence 0.83."],
@@ -2806,6 +2971,9 @@ describe("assistant stream client", () => {
     );
     expect(profile?.evidenceChain.map((item) => item.source)).toContain(
       "cross_modality"
+    );
+    expect(profile?.evidenceChain.map((item) => item.source)).toContain(
+      "audio_visual_scene"
     );
     expect(profile?.futureKnowledgeContext.status).toBe("not_attached");
   });
@@ -3431,6 +3599,75 @@ describe("assistant stream client", () => {
         ]
       },
       cross_modality_available: true
+    });
+  });
+
+  it("hydrates audio-visual scene workflow metadata", () => {
+    const audioVisualScene = audioVisualSceneFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 15,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          audio_visual_scene: audioVisualScene,
+          audio_visual_scene_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      audio_visual_scene: {
+        role: "audio_visual_scene_system",
+        scenePattern: "fragmentation_to_reintegration",
+        openingScene: {
+          phase: "opening",
+          title: "Whole Form"
+        },
+        climaxScene: {
+          phase: "climax",
+          title: "Reassembly"
+        },
+        cuePlan: [
+          {
+            cueId: "opening_visual",
+            cueType: "visual"
+          },
+          {
+            cueId: "threshold_sync",
+            cueType: "synchronization"
+          }
+        ],
+        transitionPlan: [
+          {
+            fromPhase: "opening",
+            toPhase: "development"
+          }
+        ],
+        fallbackSceneStrategy: {
+          fallbackPattern: "seed_to_expansion",
+          reducedElements: ["audio timing", "camera/viewpoint timing"]
+        },
+        hitlQuestions: [
+          "Should audio timing drive scene transitions, or only support visual rhythm?"
+        ]
+      },
+      audio_visual_scene_available: true
     });
   });
 

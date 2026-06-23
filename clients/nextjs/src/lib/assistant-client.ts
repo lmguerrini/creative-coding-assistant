@@ -1054,6 +1054,114 @@ export type CrossModalityCompositionProfileSummary = {
   evidence: string[];
 };
 
+export type AudioVisualScenePattern =
+  | "seed_to_expansion"
+  | "descent_to_return"
+  | "fragmentation_to_reintegration"
+  | "threshold_crossing"
+  | "spiral_ascent"
+  | "chaos_to_order"
+  | "void_to_emergence"
+  | "contraction_to_release"
+  | "ritual_opening_to_climax"
+  | "wave_build_and_collapse"
+  | "constellation_activation"
+  | "mirror_inversion"
+  | "pulse_escalation"
+  | "calm_expansion_after_rupture";
+
+export type AudioVisualCueType =
+  | "visual"
+  | "motion"
+  | "audio"
+  | "rhythm"
+  | "camera"
+  | "motif"
+  | "emotion"
+  | "procedural"
+  | "synchronization";
+
+export type AudioVisualScenePhaseSummary = {
+  phase: SymbolicNarrativePhaseName;
+  title: string;
+  sceneFunction: string;
+  visualState: string;
+  motionState: string;
+  audioState: string | null;
+  rhythmState: string;
+  cameraState: string | null;
+  motifState: string;
+  emotionalState: string;
+  proceduralState: string;
+  cueIds: string[];
+  transitionOut: string;
+  evidence: string[];
+};
+
+export type AudioVisualSceneCueSummary = {
+  cueId: string;
+  phase: SymbolicNarrativePhaseName;
+  cueType: AudioVisualCueType;
+  description: string;
+  timing: string;
+  modalities: CrossModalityChannel[];
+  evidence: string[];
+};
+
+export type AudioVisualSceneTransitionSummary = {
+  fromPhase: SymbolicNarrativePhaseName;
+  toPhase: SymbolicNarrativePhaseName;
+  transition: string;
+  visualMotionGuidance: string;
+  audioRhythmGuidance: string | null;
+  continuityGuidance: string;
+  evidence: string[];
+};
+
+export type AudioVisualFallbackSceneStrategySummary = {
+  fallbackPattern: AudioVisualScenePattern;
+  preservedPhases: SymbolicNarrativePhaseName[];
+  reducedElements: string[];
+  simplificationStrategy: string;
+  promptGuidance: string[];
+};
+
+export type AudioVisualSceneProfileSummary = {
+  role: "audio_visual_scene_system";
+  scenePattern: AudioVisualScenePattern;
+  sceneArc: string;
+  scenePhases: AudioVisualScenePhaseSummary[];
+  openingScene: AudioVisualScenePhaseSummary;
+  developmentScene: AudioVisualScenePhaseSummary;
+  thresholdScene: AudioVisualScenePhaseSummary;
+  climaxScene: AudioVisualScenePhaseSummary;
+  resolutionScene: AudioVisualScenePhaseSummary;
+  cuePlan: AudioVisualSceneCueSummary[];
+  transitionPlan: AudioVisualSceneTransitionSummary[];
+  climaxStrategy: string;
+  resolutionStrategy: string;
+  visualTimingPlan: string[];
+  motionTimingPlan: string[];
+  audioTimingPlan: string[];
+  rhythmTimingPlan: string[];
+  cameraTimingPlan: string[];
+  motifTimingPlan: string[];
+  emotionalTimingPlan: string[];
+  proceduralTimingPlan: string[];
+  synchronizationCheckpoints: string[];
+  sceneContrastPlan: string[];
+  sceneContinuityPlan: string[];
+  sceneRisks: string[];
+  pacingRisks: string[];
+  overloadRisks: string[];
+  fallbackSceneStrategy: AudioVisualFallbackSceneStrategySummary;
+  unresolvedSceneGaps: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeConstraintAxis =
   | "intent"
   | "modality"
@@ -1219,6 +1327,7 @@ export type CreativeReasoningEvidenceSource =
   | "semantic_motif"
   | "emotional_consistency"
   | "cross_modality"
+  | "audio_visual_scene"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {

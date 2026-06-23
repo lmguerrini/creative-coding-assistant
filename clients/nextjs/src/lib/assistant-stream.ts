@@ -1,6 +1,13 @@
 import {
   workflowNodeOrder,
   type ArtifactCritique,
+  type AudioVisualCueType,
+  type AudioVisualFallbackSceneStrategySummary,
+  type AudioVisualSceneCueSummary,
+  type AudioVisualScenePattern,
+  type AudioVisualScenePhaseSummary,
+  type AudioVisualSceneProfileSummary,
+  type AudioVisualSceneTransitionSummary,
   type CreativeConstraintAxis,
   type CreativeConstraintPrioritizationSummary,
   type CreativeConstraintPriorityCategory,
@@ -214,6 +221,8 @@ export type AssistantStreamWorkflowMetadata = {
   emotional_consistency_available?: boolean;
   cross_modality?: CrossModalityCompositionProfileSummary | null;
   cross_modality_available?: boolean;
+  audio_visual_scene?: AudioVisualSceneProfileSummary | null;
+  audio_visual_scene_available?: boolean;
   creative_director?: CreativeAssistantDirectorSummary | null;
   director_available?: boolean;
   creative_reasoning?: CreativeReasoningSummary | null;
@@ -709,6 +718,12 @@ export function readWorkflowMetadata(
   );
   const crossModalityAvailable =
     rawWorkflow.cross_modality_available === true || crossModality !== null;
+  const audioVisualScene = readAudioVisualSceneProfileSummary(
+    rawWorkflow.audio_visual_scene ?? rawWorkflow.audioVisualScene
+  );
+  const audioVisualSceneAvailable =
+    rawWorkflow.audio_visual_scene_available === true ||
+    audioVisualScene !== null;
   const creativeDirector = readCreativeAssistantDirectorSummary(
     rawWorkflow.creative_director ?? rawWorkflow.creativeDirector
   );
@@ -852,6 +867,12 @@ export function readWorkflowMetadata(
       ? {
           cross_modality: crossModality,
           cross_modality_available: true
+        }
+      : {}),
+    ...(audioVisualSceneAvailable
+      ? {
+          audio_visual_scene: audioVisualScene,
+          audio_visual_scene_available: true
         }
       : {}),
     ...(directorAvailable
@@ -4462,6 +4483,482 @@ function readCrossModalityFallbackStrategySummary(
   };
 }
 
+export function readAudioVisualSceneProfileSummary(
+  value: unknown
+): AudioVisualSceneProfileSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const scenePattern = readStringUnion(
+    value,
+    "scene_pattern",
+    "scenePattern",
+    audioVisualScenePatterns
+  );
+  const sceneArc =
+    readStringField(value, "scene_arc") ?? readStringField(value, "sceneArc");
+  const scenePhases = readAudioVisualScenePhaseSummaryList(
+    value.scene_phases ?? value.scenePhases
+  );
+  const openingScene = readAudioVisualScenePhaseSummary(
+    value.opening_scene ?? value.openingScene
+  );
+  const developmentScene = readAudioVisualScenePhaseSummary(
+    value.development_scene ?? value.developmentScene
+  );
+  const thresholdScene = readAudioVisualScenePhaseSummary(
+    value.threshold_scene ?? value.thresholdScene
+  );
+  const climaxScene = readAudioVisualScenePhaseSummary(
+    value.climax_scene ?? value.climaxScene
+  );
+  const resolutionScene = readAudioVisualScenePhaseSummary(
+    value.resolution_scene ?? value.resolutionScene
+  );
+  const cuePlan = readAudioVisualSceneCueSummaryList(
+    value.cue_plan ?? value.cuePlan
+  );
+  const transitionPlan = readAudioVisualSceneTransitionSummaryList(
+    value.transition_plan ?? value.transitionPlan
+  );
+  const climaxStrategy =
+    readStringField(value, "climax_strategy") ??
+    readStringField(value, "climaxStrategy");
+  const resolutionStrategy =
+    readStringField(value, "resolution_strategy") ??
+    readStringField(value, "resolutionStrategy");
+  const visualTimingPlan = readStringListField(
+    value,
+    "visual_timing_plan",
+    "visualTimingPlan"
+  );
+  const motionTimingPlan = readStringListField(
+    value,
+    "motion_timing_plan",
+    "motionTimingPlan"
+  );
+  const rhythmTimingPlan = readStringListField(
+    value,
+    "rhythm_timing_plan",
+    "rhythmTimingPlan"
+  );
+  const motifTimingPlan = readStringListField(
+    value,
+    "motif_timing_plan",
+    "motifTimingPlan"
+  );
+  const emotionalTimingPlan = readStringListField(
+    value,
+    "emotional_timing_plan",
+    "emotionalTimingPlan"
+  );
+  const proceduralTimingPlan = readStringListField(
+    value,
+    "procedural_timing_plan",
+    "proceduralTimingPlan"
+  );
+  const synchronizationCheckpoints = readStringListField(
+    value,
+    "synchronization_checkpoints",
+    "synchronizationCheckpoints"
+  );
+  const sceneContrastPlan = readStringListField(
+    value,
+    "scene_contrast_plan",
+    "sceneContrastPlan"
+  );
+  const sceneContinuityPlan = readStringListField(
+    value,
+    "scene_continuity_plan",
+    "sceneContinuityPlan"
+  );
+  const fallbackSceneStrategy = readAudioVisualFallbackSceneStrategySummary(
+    value.fallback_scene_strategy ?? value.fallbackSceneStrategy
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "audio_visual_scene_system" ||
+    !scenePattern ||
+    !sceneArc ||
+    scenePhases.length === 0 ||
+    !openingScene ||
+    !developmentScene ||
+    !thresholdScene ||
+    !climaxScene ||
+    !resolutionScene ||
+    cuePlan.length === 0 ||
+    transitionPlan.length === 0 ||
+    !climaxStrategy ||
+    !resolutionStrategy ||
+    visualTimingPlan.length === 0 ||
+    motionTimingPlan.length === 0 ||
+    rhythmTimingPlan.length === 0 ||
+    motifTimingPlan.length === 0 ||
+    emotionalTimingPlan.length === 0 ||
+    proceduralTimingPlan.length === 0 ||
+    synchronizationCheckpoints.length === 0 ||
+    sceneContrastPlan.length === 0 ||
+    sceneContinuityPlan.length === 0 ||
+    !fallbackSceneStrategy ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    scenePattern,
+    sceneArc,
+    scenePhases,
+    openingScene,
+    developmentScene,
+    thresholdScene,
+    climaxScene,
+    resolutionScene,
+    cuePlan,
+    transitionPlan,
+    climaxStrategy,
+    resolutionStrategy,
+    visualTimingPlan,
+    motionTimingPlan,
+    audioTimingPlan: readStringListField(
+      value,
+      "audio_timing_plan",
+      "audioTimingPlan"
+    ),
+    rhythmTimingPlan,
+    cameraTimingPlan: readStringListField(
+      value,
+      "camera_timing_plan",
+      "cameraTimingPlan"
+    ),
+    motifTimingPlan,
+    emotionalTimingPlan,
+    proceduralTimingPlan,
+    synchronizationCheckpoints,
+    sceneContrastPlan,
+    sceneContinuityPlan,
+    sceneRisks: readStringListField(value, "scene_risks", "sceneRisks"),
+    pacingRisks: readStringListField(value, "pacing_risks", "pacingRisks"),
+    overloadRisks: readStringListField(value, "overload_risks", "overloadRisks"),
+    fallbackSceneStrategy,
+    unresolvedSceneGaps: readStringListField(
+      value,
+      "unresolved_scene_gaps",
+      "unresolvedSceneGaps"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const audioVisualScenePatterns = [
+  "seed_to_expansion",
+  "descent_to_return",
+  "fragmentation_to_reintegration",
+  "threshold_crossing",
+  "spiral_ascent",
+  "chaos_to_order",
+  "void_to_emergence",
+  "contraction_to_release",
+  "ritual_opening_to_climax",
+  "wave_build_and_collapse",
+  "constellation_activation",
+  "mirror_inversion",
+  "pulse_escalation",
+  "calm_expansion_after_rupture"
+] as const satisfies readonly AudioVisualScenePattern[];
+
+const audioVisualCueTypes = [
+  "visual",
+  "motion",
+  "audio",
+  "rhythm",
+  "camera",
+  "motif",
+  "emotion",
+  "procedural",
+  "synchronization"
+] as const satisfies readonly AudioVisualCueType[];
+
+function readAudioVisualScenePhaseSummary(
+  value: unknown
+): AudioVisualScenePhaseSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const phase = readStringUnion(
+    value,
+    "phase",
+    "phase",
+    symbolicNarrativePhaseNames
+  );
+  const title = readStringField(value, "title");
+  const sceneFunction =
+    readStringField(value, "scene_function") ??
+    readStringField(value, "sceneFunction");
+  const visualState =
+    readStringField(value, "visual_state") ??
+    readStringField(value, "visualState");
+  const motionState =
+    readStringField(value, "motion_state") ??
+    readStringField(value, "motionState");
+  const rhythmState =
+    readStringField(value, "rhythm_state") ??
+    readStringField(value, "rhythmState");
+  const motifState =
+    readStringField(value, "motif_state") ??
+    readStringField(value, "motifState");
+  const emotionalState =
+    readStringField(value, "emotional_state") ??
+    readStringField(value, "emotionalState");
+  const proceduralState =
+    readStringField(value, "procedural_state") ??
+    readStringField(value, "proceduralState");
+  const cueIds = readStringListField(value, "cue_ids", "cueIds");
+  const transitionOut =
+    readStringField(value, "transition_out") ??
+    readStringField(value, "transitionOut");
+
+  if (
+    !phase ||
+    !title ||
+    !sceneFunction ||
+    !visualState ||
+    !motionState ||
+    !rhythmState ||
+    !motifState ||
+    !emotionalState ||
+    !proceduralState ||
+    cueIds.length === 0 ||
+    !transitionOut
+  ) {
+    return null;
+  }
+
+  return {
+    phase,
+    title,
+    sceneFunction,
+    visualState,
+    motionState,
+    audioState:
+      readStringField(value, "audio_state") ??
+      readStringField(value, "audioState"),
+    rhythmState,
+    cameraState:
+      readStringField(value, "camera_state") ??
+      readStringField(value, "cameraState"),
+    motifState,
+    emotionalState,
+    proceduralState,
+    cueIds,
+    transitionOut,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+function readAudioVisualScenePhaseSummaryList(
+  value: unknown
+): AudioVisualScenePhaseSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    const phase = readAudioVisualScenePhaseSummary(item);
+    return phase ? [phase] : [];
+  });
+}
+
+function readAudioVisualSceneCueSummaryList(
+  value: unknown
+): AudioVisualSceneCueSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const cueId =
+      readStringField(item, "cue_id") ?? readStringField(item, "cueId");
+    const phase = readStringUnion(
+      item,
+      "phase",
+      "phase",
+      symbolicNarrativePhaseNames
+    );
+    const cueType = readStringUnion(
+      item,
+      "cue_type",
+      "cueType",
+      audioVisualCueTypes
+    );
+    const description = readStringField(item, "description");
+    const timing = readStringField(item, "timing");
+    const modalities = readCrossModalityChannelList(item.modalities);
+
+    if (
+      !cueId ||
+      !phase ||
+      !cueType ||
+      !description ||
+      !timing ||
+      modalities.length === 0
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        cueId,
+        phase,
+        cueType,
+        description,
+        timing,
+        modalities,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readAudioVisualSceneTransitionSummaryList(
+  value: unknown
+): AudioVisualSceneTransitionSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const fromPhase = readStringUnion(
+      item,
+      "from_phase",
+      "fromPhase",
+      symbolicNarrativePhaseNames
+    );
+    const toPhase = readStringUnion(
+      item,
+      "to_phase",
+      "toPhase",
+      symbolicNarrativePhaseNames
+    );
+    const transition = readStringField(item, "transition");
+    const visualMotionGuidance =
+      readStringField(item, "visual_motion_guidance") ??
+      readStringField(item, "visualMotionGuidance");
+    const continuityGuidance =
+      readStringField(item, "continuity_guidance") ??
+      readStringField(item, "continuityGuidance");
+
+    if (
+      !fromPhase ||
+      !toPhase ||
+      !transition ||
+      !visualMotionGuidance ||
+      !continuityGuidance
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        fromPhase,
+        toPhase,
+        transition,
+        visualMotionGuidance,
+        audioRhythmGuidance:
+          readStringField(item, "audio_rhythm_guidance") ??
+          readStringField(item, "audioRhythmGuidance"),
+        continuityGuidance,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readAudioVisualFallbackSceneStrategySummary(
+  value: unknown
+): AudioVisualFallbackSceneStrategySummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const fallbackPattern = readStringUnion(
+    value,
+    "fallback_pattern",
+    "fallbackPattern",
+    audioVisualScenePatterns
+  );
+  const preservedPhases = readAudioVisualScenePhaseNameList(
+    value.preserved_phases ?? value.preservedPhases
+  );
+  const simplificationStrategy =
+    readStringField(value, "simplification_strategy") ??
+    readStringField(value, "simplificationStrategy");
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+
+  if (
+    !fallbackPattern ||
+    preservedPhases.length === 0 ||
+    !simplificationStrategy ||
+    promptGuidance.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    fallbackPattern,
+    preservedPhases,
+    reducedElements: readStringListField(
+      value,
+      "reduced_elements",
+      "reducedElements"
+    ),
+    simplificationStrategy,
+    promptGuidance
+  };
+}
+
+function readAudioVisualScenePhaseNameList(
+  value: unknown
+): SymbolicNarrativePhaseName[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (item): item is SymbolicNarrativePhaseName =>
+      typeof item === "string" &&
+      symbolicNarrativePhaseNames.includes(item as SymbolicNarrativePhaseName)
+  );
+}
+
 export function readCreativeReasoningSummary(
   value: unknown
 ): CreativeReasoningSummary | null {
@@ -4570,6 +5067,7 @@ const creativeReasoningEvidenceSources = [
   "semantic_motif",
   "emotional_consistency",
   "cross_modality",
+  "audio_visual_scene",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 
