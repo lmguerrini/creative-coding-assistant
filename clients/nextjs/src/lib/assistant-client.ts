@@ -962,6 +962,98 @@ export type EmotionalConsistencyProfileSummary = {
   evidence: string[];
 };
 
+export type CrossModalityChannel =
+  | "visual_structure"
+  | "motion"
+  | "audio"
+  | "rhythm"
+  | "camera"
+  | "structure"
+  | "motif"
+  | "emotion"
+  | "interaction";
+
+export type CrossModalityPattern =
+  | "visual_led_composition"
+  | "audio_reactive_composition"
+  | "motion_led_transformation"
+  | "rhythm_led_scene_evolution"
+  | "camera_led_immersion"
+  | "motif_led_symbolic_recurrence"
+  | "structure_led_procedural_evolution"
+  | "emotion_led_modulation"
+  | "balanced_audiovisual_composition"
+  | "minimal_visual_strong_sonic_cueing"
+  | "dense_visual_restrained_audio"
+  | "ritual_pulse_geometry_synchronization"
+  | "fragmentation_reassembly_visual_motion_layers";
+
+export type CrossModalityRoleSummary = {
+  modality: CrossModalityChannel;
+  role: string;
+  priority: "primary" | "secondary" | "supporting" | "fallback";
+  evidence: string[];
+};
+
+export type CrossModalityMappingSummary = {
+  sourceModality: CrossModalityChannel;
+  targetModality: CrossModalityChannel;
+  mapping: string;
+  cues: string[];
+  motifId: SemanticMotifId | null;
+  emotionalTone: EmotionalTone | null;
+  evidence: string[];
+};
+
+export type CrossModalityTemporalCueSummary = {
+  phase: SymbolicNarrativePhaseName;
+  cue: string;
+  modalities: CrossModalityChannel[];
+  timingGuidance: string;
+  evidence: string[];
+};
+
+export type CrossModalityFallbackStrategySummary = {
+  fallbackPattern: CrossModalityPattern;
+  preservedModalities: CrossModalityChannel[];
+  reducedModalities: CrossModalityChannel[];
+  simplificationStrategy: string;
+  promptGuidance: string[];
+};
+
+export type CrossModalityCompositionProfileSummary = {
+  role: "cross_modality_composer";
+  modalityPattern: CrossModalityPattern;
+  primaryModality: CrossModalityChannel;
+  supportingModalities: CrossModalityChannel[];
+  modalityHierarchy: CrossModalityRoleSummary[];
+  visualRole: string;
+  motionRole: string;
+  audioRole: string | null;
+  rhythmRole: string;
+  cameraViewpointRole: string | null;
+  structureRole: string;
+  motifRole: string;
+  emotionRole: string;
+  modalitySynchronizationPlan: string[];
+  visualToAudioMapping: CrossModalityMappingSummary[];
+  audioToMotionMapping: CrossModalityMappingSummary[];
+  motionToStructureMapping: CrossModalityMappingSummary[];
+  motifToModalityMapping: CrossModalityMappingSummary[];
+  emotionalToModalityMapping: CrossModalityMappingSummary[];
+  temporalCuePlan: CrossModalityTemporalCueSummary[];
+  contrastBalancePlan: string[];
+  modalityConflicts: string[];
+  overloadRisks: string[];
+  underuseRisks: string[];
+  fallbackMultimodalStrategy: CrossModalityFallbackStrategySummary;
+  unresolvedModalityGaps: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeConstraintAxis =
   | "intent"
   | "modality"
@@ -1126,6 +1218,7 @@ export type CreativeReasoningEvidenceSource =
   | "generative_structure"
   | "semantic_motif"
   | "emotional_consistency"
+  | "cross_modality"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {

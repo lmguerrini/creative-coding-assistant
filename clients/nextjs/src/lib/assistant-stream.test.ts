@@ -4,6 +4,7 @@ import {
   decodeAssistantStream,
   parseAssistantStreamLine,
   readClarificationSummary,
+  readCrossModalityCompositionProfileSummary,
   readCreativeCompositionPlanSummary,
   readCreativeConstraintSolverSummary,
   readCreativeExecutionPlanSummary,
@@ -707,6 +708,145 @@ function emotionalConsistencyFixture() {
     authority_boundary:
       "The Emotional Consistency Engine organizes emotional direction as inspectable design metadata only.",
     evidence: ["Primary emotional tone: transformation."]
+  };
+}
+
+function crossModalityFixture() {
+  return {
+    role: "cross_modality_composer",
+    modality_pattern: "fragmentation_reassembly_visual_motion_layers",
+    primary_modality: "visual_structure",
+    supporting_modalities: ["motion", "audio", "rhythm", "structure", "motif", "emotion"],
+    modality_hierarchy: [
+      {
+        modality: "visual_structure",
+        role: "Carry fragmentation and reassembly as the visible anchor.",
+        priority: "primary",
+        evidence: ["Primary modality selected from composer pattern."]
+      },
+      {
+        modality: "audio",
+        role: "Use audio as pulse and restraint guidance.",
+        priority: "secondary",
+        evidence: ["Audio relevance detected."]
+      }
+    ],
+    visual_role: "Show rupture, particle dispersal, and reassembly.",
+    motion_role: "Stage motion as contraction, scatter, pause, acceleration, then calm expansion.",
+    audio_role: "Use audio as a design cue for pulse and thresholds.",
+    rhythm_role: "Coordinate visual rhythm with requested audio pacing.",
+    camera_viewpoint_role: null,
+    structure_role:
+      "Bind modalities to particle and geometry reassembly modules.",
+    motif_role:
+      "Let recurring motifs bridge visual, motion, rhythm, and emotional cues.",
+    emotion_role:
+      "Use transformation as the modality modulation target.",
+    modality_synchronization_plan: [
+      "Synchronize phase changes before adding decorative effects."
+    ],
+    visual_to_audio_mapping: [
+      {
+        source_modality: "visual_structure",
+        target_modality: "audio",
+        mapping:
+          "Treat density and brightness changes as cues for stronger pulse.",
+        cues: ["visual density", "brightness", "phase threshold"],
+        motif_id: null,
+        emotional_tone: null,
+        evidence: ["Audio relevance detected."]
+      }
+    ],
+    audio_to_motion_mapping: [
+      {
+        source_modality: "audio",
+        target_modality: "motion",
+        mapping:
+          "Use pulse and silence as advisory timing for particle speed.",
+        cues: ["pulse", "silence"],
+        motif_id: null,
+        emotional_tone: null,
+        evidence: ["Audio-to-motion mapping remains design guidance."]
+      }
+    ],
+    motion_to_structure_mapping: [
+      {
+        source_modality: "motion",
+        target_modality: "structure",
+        mapping:
+          "Let motion phases expose growth, rupture, threshold, and reassembly.",
+        cues: ["particle_emitter", "geometry_reassembly_layer"],
+        motif_id: null,
+        emotional_tone: null,
+        evidence: ["Motion must remain attached to structure."]
+      }
+    ],
+    motif_to_modality_mapping: [
+      {
+        source_modality: "motif",
+        target_modality: "motion",
+        mapping: "Use fragmentation as a recurring motion cue.",
+        cues: ["fragmentation", "motion", "recurrence"],
+        motif_id: "fragmentation",
+        emotional_tone: null,
+        evidence: ["Semantic motif metadata mapped to modality role."]
+      }
+    ],
+    emotional_to_modality_mapping: [
+      {
+        source_modality: "emotion",
+        target_modality: "visual_structure",
+        mapping: "Use transformation to shape color, density, and contrast.",
+        cues: ["transformation", "color", "density"],
+        motif_id: null,
+        emotional_tone: "transformation",
+        evidence: ["Emotional consistency mapped to visual structure."]
+      }
+    ],
+    temporal_cue_plan: [
+      {
+        phase: "threshold",
+        cue: "Threshold stillness",
+        modalities: ["visual_structure", "motion", "audio"],
+        timing_guidance:
+          "Coordinate visual state, motion state, and rhythm before adding extra layers.",
+        evidence: ["Narrative threshold."]
+      }
+    ],
+    contrast_balance_plan: [
+      "Keep one leading modality per phase; use the others as reinforcement."
+    ],
+    modality_conflicts: [
+      "Dense visuals and loud/intense audio may compete for attention."
+    ],
+    overload_risks: [
+      "Dense visual systems can overload motion and motif readability."
+    ],
+    underuse_risks: [
+      "Broad multimodal phrasing can underuse one modality."
+    ],
+    fallback_multimodal_strategy: {
+      fallback_pattern: "visual_led_composition",
+      preserved_modalities: ["visual_structure", "motion", "rhythm"],
+      reduced_modalities: ["audio"],
+      simplification_strategy:
+        "Preserve visual structure and motion timing; reduce audio to optional prompt cues.",
+      prompt_guidance: [
+        "When multimodal scope is broad, keep visual-motion structure first."
+      ]
+    },
+    unresolved_modality_gaps: [
+      "Multimodal intent is broad; confirm which modality should lead."
+    ],
+    hitl_questions: [
+      "Which modality should lead if visual, motion, audio, and emotion compete?"
+    ],
+    prompt_guidance: [
+      "Treat cross-modality mappings as design guidance, not generated media."
+    ],
+    authority_boundary:
+      "The Cross-Modality Composer organizes modality signals as inspectable design metadata only.",
+    evidence: ["Pattern: fragmentation_reassembly_visual_motion_layers."]
   };
 }
 
@@ -2474,6 +2614,44 @@ describe("assistant stream client", () => {
     );
   });
 
+  it("reads cross-modality composer metadata", () => {
+    const profile = readCrossModalityCompositionProfileSummary(
+      crossModalityFixture()
+    );
+
+    expect(profile?.role).toBe("cross_modality_composer");
+    expect(profile?.modalityPattern).toBe(
+      "fragmentation_reassembly_visual_motion_layers"
+    );
+    expect(profile?.primaryModality).toBe("visual_structure");
+    expect(profile?.supportingModalities).toContain("audio");
+    expect(profile?.modalityHierarchy[0]).toMatchObject({
+      modality: "visual_structure",
+      priority: "primary"
+    });
+    expect(profile?.visualToAudioMapping[0]).toMatchObject({
+      sourceModality: "visual_structure",
+      targetModality: "audio"
+    });
+    expect(profile?.audioToMotionMapping[0]?.cues).toContain("pulse");
+    expect(profile?.motifToModalityMapping[0]).toMatchObject({
+      motifId: "fragmentation",
+      targetModality: "motion"
+    });
+    expect(profile?.emotionalToModalityMapping[0]).toMatchObject({
+      emotionalTone: "transformation",
+      targetModality: "visual_structure"
+    });
+    expect(profile?.temporalCuePlan[0]).toMatchObject({
+      phase: "threshold",
+      modalities: ["visual_structure", "motion", "audio"]
+    });
+    expect(profile?.fallbackMultimodalStrategy.reducedModalities).toContain(
+      "audio"
+    );
+    expect(profile?.hitlQuestions[0]).toContain("Which modality should lead");
+  });
+
   it("reads creative reasoning engine metadata", () => {
     const profile = readCreativeReasoningSummary({
       role: "creative_reasoning_engine",
@@ -2565,6 +2743,13 @@ describe("assistant stream client", () => {
           signal: "transformation 86/100.",
           interpretation:
             "Emotional evidence defines tone hierarchy and mismatch guidance."
+        },
+        {
+          source: "cross_modality",
+          signal:
+            "fragmentation_reassembly_visual_motion_layers: visual_structure -> motion, audio.",
+          interpretation:
+            "Cross-modality evidence coordinates modalities as design metadata."
         }
       ],
       strongestSupportingSignals: ["Strategy sacred_geometry confidence 0.83."],
@@ -2618,6 +2803,9 @@ describe("assistant stream client", () => {
     );
     expect(profile?.evidenceChain.map((item) => item.source)).toContain(
       "emotional_consistency"
+    );
+    expect(profile?.evidenceChain.map((item) => item.source)).toContain(
+      "cross_modality"
     );
     expect(profile?.futureKnowledgeContext.status).toBe("not_attached");
   });
@@ -3169,6 +3357,80 @@ describe("assistant stream client", () => {
         hitlQuestions: ["Which emotional tone should remain dominant?"]
       },
       emotional_consistency_available: true
+    });
+  });
+
+  it("hydrates cross-modality workflow metadata", () => {
+    const crossModality = crossModalityFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 14,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          cross_modality: crossModality,
+          cross_modality_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      cross_modality: {
+        role: "cross_modality_composer",
+        modalityPattern: "fragmentation_reassembly_visual_motion_layers",
+        primaryModality: "visual_structure",
+        supportingModalities: [
+          "motion",
+          "audio",
+          "rhythm",
+          "structure",
+          "motif",
+          "emotion"
+        ],
+        visualToAudioMapping: [
+          {
+            sourceModality: "visual_structure",
+            targetModality: "audio",
+            cues: ["visual density", "brightness", "phase threshold"]
+          }
+        ],
+        audioToMotionMapping: [
+          {
+            sourceModality: "audio",
+            targetModality: "motion",
+            cues: ["pulse", "silence"]
+          }
+        ],
+        temporalCuePlan: [
+          {
+            phase: "threshold",
+            modalities: ["visual_structure", "motion", "audio"]
+          }
+        ],
+        fallbackMultimodalStrategy: {
+          fallbackPattern: "visual_led_composition",
+          reducedModalities: ["audio"]
+        },
+        hitlQuestions: [
+          "Which modality should lead if visual, motion, audio, and emotion compete?"
+        ]
+      },
+      cross_modality_available: true
     });
   });
 

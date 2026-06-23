@@ -15,6 +15,13 @@ import {
   type CreativeCompositionPattern,
   type CreativeCompositionPlanSummary,
   type ClarificationSummary,
+  type CrossModalityChannel,
+  type CrossModalityCompositionProfileSummary,
+  type CrossModalityFallbackStrategySummary,
+  type CrossModalityMappingSummary,
+  type CrossModalityPattern,
+  type CrossModalityRoleSummary,
+  type CrossModalityTemporalCueSummary,
   type ProceduralComplexityLevel,
   type ProceduralFamily,
   type ProceduralStructureChoiceSummary,
@@ -205,6 +212,8 @@ export type AssistantStreamWorkflowMetadata = {
   semantic_motif_available?: boolean;
   emotional_consistency?: EmotionalConsistencyProfileSummary | null;
   emotional_consistency_available?: boolean;
+  cross_modality?: CrossModalityCompositionProfileSummary | null;
+  cross_modality_available?: boolean;
   creative_director?: CreativeAssistantDirectorSummary | null;
   director_available?: boolean;
   creative_reasoning?: CreativeReasoningSummary | null;
@@ -695,6 +704,11 @@ export function readWorkflowMetadata(
   const emotionalConsistencyAvailable =
     rawWorkflow.emotional_consistency_available === true ||
     emotionalConsistency !== null;
+  const crossModality = readCrossModalityCompositionProfileSummary(
+    rawWorkflow.cross_modality ?? rawWorkflow.crossModality
+  );
+  const crossModalityAvailable =
+    rawWorkflow.cross_modality_available === true || crossModality !== null;
   const creativeDirector = readCreativeAssistantDirectorSummary(
     rawWorkflow.creative_director ?? rawWorkflow.creativeDirector
   );
@@ -832,6 +846,12 @@ export function readWorkflowMetadata(
       ? {
           emotional_consistency: emotionalConsistency,
           emotional_consistency_available: true
+        }
+      : {}),
+    ...(crossModalityAvailable
+      ? {
+          cross_modality: crossModality,
+          cross_modality_available: true
         }
       : {}),
     ...(directorAvailable
@@ -4050,6 +4070,398 @@ function readEmotionalFallbackStrategySummary(
   };
 }
 
+export function readCrossModalityCompositionProfileSummary(
+  value: unknown
+): CrossModalityCompositionProfileSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const modalityPattern = readStringUnion(
+    value,
+    "modality_pattern",
+    "modalityPattern",
+    crossModalityPatterns
+  );
+  const primaryModality = readStringUnion(
+    value,
+    "primary_modality",
+    "primaryModality",
+    crossModalityChannels
+  );
+  const supportingModalities = readCrossModalityChannelList(
+    value.supporting_modalities ?? value.supportingModalities
+  );
+  const modalityHierarchy = readCrossModalityRoleSummaryList(
+    value.modality_hierarchy ?? value.modalityHierarchy
+  );
+  const visualRole =
+    readStringField(value, "visual_role") ?? readStringField(value, "visualRole");
+  const motionRole =
+    readStringField(value, "motion_role") ?? readStringField(value, "motionRole");
+  const rhythmRole =
+    readStringField(value, "rhythm_role") ?? readStringField(value, "rhythmRole");
+  const structureRole =
+    readStringField(value, "structure_role") ??
+    readStringField(value, "structureRole");
+  const motifRole =
+    readStringField(value, "motif_role") ?? readStringField(value, "motifRole");
+  const emotionRole =
+    readStringField(value, "emotion_role") ??
+    readStringField(value, "emotionRole");
+  const modalitySynchronizationPlan = readStringListField(
+    value,
+    "modality_synchronization_plan",
+    "modalitySynchronizationPlan"
+  );
+  const visualToAudioMapping = readCrossModalityMappingSummaryList(
+    value.visual_to_audio_mapping ?? value.visualToAudioMapping
+  );
+  const audioToMotionMapping = readCrossModalityMappingSummaryList(
+    value.audio_to_motion_mapping ?? value.audioToMotionMapping
+  );
+  const motionToStructureMapping = readCrossModalityMappingSummaryList(
+    value.motion_to_structure_mapping ?? value.motionToStructureMapping
+  );
+  const motifToModalityMapping = readCrossModalityMappingSummaryList(
+    value.motif_to_modality_mapping ?? value.motifToModalityMapping
+  );
+  const emotionalToModalityMapping = readCrossModalityMappingSummaryList(
+    value.emotional_to_modality_mapping ?? value.emotionalToModalityMapping
+  );
+  const temporalCuePlan = readCrossModalityTemporalCueSummaryList(
+    value.temporal_cue_plan ?? value.temporalCuePlan
+  );
+  const contrastBalancePlan = readStringListField(
+    value,
+    "contrast_balance_plan",
+    "contrastBalancePlan"
+  );
+  const fallbackMultimodalStrategy = readCrossModalityFallbackStrategySummary(
+    value.fallback_multimodal_strategy ?? value.fallbackMultimodalStrategy
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "cross_modality_composer" ||
+    !modalityPattern ||
+    !primaryModality ||
+    supportingModalities.length === 0 ||
+    modalityHierarchy.length === 0 ||
+    !visualRole ||
+    !motionRole ||
+    !rhythmRole ||
+    !structureRole ||
+    !motifRole ||
+    !emotionRole ||
+    modalitySynchronizationPlan.length === 0 ||
+    motionToStructureMapping.length === 0 ||
+    motifToModalityMapping.length === 0 ||
+    emotionalToModalityMapping.length === 0 ||
+    temporalCuePlan.length === 0 ||
+    contrastBalancePlan.length === 0 ||
+    !fallbackMultimodalStrategy ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    modalityPattern,
+    primaryModality,
+    supportingModalities,
+    modalityHierarchy,
+    visualRole,
+    motionRole,
+    audioRole:
+      readStringField(value, "audio_role") ?? readStringField(value, "audioRole"),
+    rhythmRole,
+    cameraViewpointRole:
+      readStringField(value, "camera_viewpoint_role") ??
+      readStringField(value, "cameraViewpointRole"),
+    structureRole,
+    motifRole,
+    emotionRole,
+    modalitySynchronizationPlan,
+    visualToAudioMapping,
+    audioToMotionMapping,
+    motionToStructureMapping,
+    motifToModalityMapping,
+    emotionalToModalityMapping,
+    temporalCuePlan,
+    contrastBalancePlan,
+    modalityConflicts: readStringListField(
+      value,
+      "modality_conflicts",
+      "modalityConflicts"
+    ),
+    overloadRisks: readStringListField(value, "overload_risks", "overloadRisks"),
+    underuseRisks: readStringListField(value, "underuse_risks", "underuseRisks"),
+    fallbackMultimodalStrategy,
+    unresolvedModalityGaps: readStringListField(
+      value,
+      "unresolved_modality_gaps",
+      "unresolvedModalityGaps"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const crossModalityChannels = [
+  "visual_structure",
+  "motion",
+  "audio",
+  "rhythm",
+  "camera",
+  "structure",
+  "motif",
+  "emotion",
+  "interaction"
+] as const satisfies readonly CrossModalityChannel[];
+
+const crossModalityPatterns = [
+  "visual_led_composition",
+  "audio_reactive_composition",
+  "motion_led_transformation",
+  "rhythm_led_scene_evolution",
+  "camera_led_immersion",
+  "motif_led_symbolic_recurrence",
+  "structure_led_procedural_evolution",
+  "emotion_led_modulation",
+  "balanced_audiovisual_composition",
+  "minimal_visual_strong_sonic_cueing",
+  "dense_visual_restrained_audio",
+  "ritual_pulse_geometry_synchronization",
+  "fragmentation_reassembly_visual_motion_layers"
+] as const satisfies readonly CrossModalityPattern[];
+
+const crossModalityRolePriorities = [
+  "primary",
+  "secondary",
+  "supporting",
+  "fallback"
+] as const satisfies readonly CrossModalityRoleSummary["priority"][];
+
+function readCrossModalityChannelList(value: unknown): CrossModalityChannel[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (item): item is CrossModalityChannel =>
+      typeof item === "string" &&
+      crossModalityChannels.includes(item as CrossModalityChannel)
+  );
+}
+
+function readCrossModalityRoleSummaryList(
+  value: unknown
+): CrossModalityRoleSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const modality = readStringUnion(
+      item,
+      "modality",
+      "modality",
+      crossModalityChannels
+    );
+    const role = readStringField(item, "role");
+    const priority = readStringUnion(
+      item,
+      "priority",
+      "priority",
+      crossModalityRolePriorities
+    );
+
+    if (!modality || !role || !priority) {
+      return [];
+    }
+
+    return [
+      {
+        modality,
+        role,
+        priority,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readCrossModalityMappingSummaryList(
+  value: unknown
+): CrossModalityMappingSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const sourceModality = readStringUnion(
+      item,
+      "source_modality",
+      "sourceModality",
+      crossModalityChannels
+    );
+    const targetModality = readStringUnion(
+      item,
+      "target_modality",
+      "targetModality",
+      crossModalityChannels
+    );
+    const mapping = readStringField(item, "mapping");
+    const cues = readStringListField(item, "cues", "cues");
+    const rawMotifId = item.motif_id ?? item.motifId;
+    const motifId =
+      rawMotifId === null || rawMotifId === undefined
+        ? null
+        : readStringUnion(item, "motif_id", "motifId", semanticMotifIds);
+    const rawEmotionalTone = item.emotional_tone ?? item.emotionalTone;
+    const emotionalTone =
+      rawEmotionalTone === null || rawEmotionalTone === undefined
+        ? null
+        : readStringUnion(
+            item,
+            "emotional_tone",
+            "emotionalTone",
+            emotionalTones
+          );
+
+    if (
+      !sourceModality ||
+      !targetModality ||
+      !mapping ||
+      cues.length === 0 ||
+      (rawMotifId !== null && rawMotifId !== undefined && motifId === null) ||
+      (rawEmotionalTone !== null &&
+        rawEmotionalTone !== undefined &&
+        emotionalTone === null)
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        sourceModality,
+        targetModality,
+        mapping,
+        cues,
+        motifId,
+        emotionalTone,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readCrossModalityTemporalCueSummaryList(
+  value: unknown
+): CrossModalityTemporalCueSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const phase = readStringUnion(
+      item,
+      "phase",
+      "phase",
+      symbolicNarrativePhaseNames
+    );
+    const cue = readStringField(item, "cue");
+    const modalities = readCrossModalityChannelList(item.modalities);
+    const timingGuidance =
+      readStringField(item, "timing_guidance") ??
+      readStringField(item, "timingGuidance");
+
+    if (!phase || !cue || modalities.length === 0 || !timingGuidance) {
+      return [];
+    }
+
+    return [
+      {
+        phase,
+        cue,
+        modalities,
+        timingGuidance,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readCrossModalityFallbackStrategySummary(
+  value: unknown
+): CrossModalityFallbackStrategySummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const fallbackPattern = readStringUnion(
+    value,
+    "fallback_pattern",
+    "fallbackPattern",
+    crossModalityPatterns
+  );
+  const preservedModalities = readCrossModalityChannelList(
+    value.preserved_modalities ?? value.preservedModalities
+  );
+  const simplificationStrategy =
+    readStringField(value, "simplification_strategy") ??
+    readStringField(value, "simplificationStrategy");
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+
+  if (
+    !fallbackPattern ||
+    preservedModalities.length === 0 ||
+    !simplificationStrategy ||
+    promptGuidance.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    fallbackPattern,
+    preservedModalities,
+    reducedModalities: readCrossModalityChannelList(
+      value.reduced_modalities ?? value.reducedModalities
+    ),
+    simplificationStrategy,
+    promptGuidance
+  };
+}
+
 export function readCreativeReasoningSummary(
   value: unknown
 ): CreativeReasoningSummary | null {
@@ -4157,6 +4569,7 @@ const creativeReasoningEvidenceSources = [
   "generative_structure",
   "semantic_motif",
   "emotional_consistency",
+  "cross_modality",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 
