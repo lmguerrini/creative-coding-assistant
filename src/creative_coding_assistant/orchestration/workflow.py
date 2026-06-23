@@ -52,6 +52,9 @@ from creative_coding_assistant.orchestration.creative_technique import (
 from creative_coding_assistant.orchestration.creative_tradeoffs import (
     CreativeTradeoffProfile,
 )
+from creative_coding_assistant.orchestration.emotional_consistency import (
+    EmotionalConsistencyProfile,
+)
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
@@ -182,6 +185,7 @@ class AssistantWorkflowState(BaseModel):
     procedural_structure: ProceduralStructurePlan | None = None
     generative_structure: GenerativeStructureBlueprint | None = None
     semantic_motif: SemanticMotifSystem | None = None
+    emotional_consistency: EmotionalConsistencyProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     rendered_prompt: RenderedPromptResponse | None = None

@@ -47,6 +47,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.emotional_consistency import (
+    EmotionalConsistencyProfile,
+)
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
@@ -115,6 +118,7 @@ def derive_creative_assistant_director_brief(
     procedural_structure: ProceduralStructurePlan | None = None,
     generative_structure: GenerativeStructureBlueprint | None = None,
     semantic_motif: SemanticMotifSystem | None = None,
+    emotional_consistency: EmotionalConsistencyProfile | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -143,6 +147,7 @@ def derive_creative_assistant_director_brief(
             procedural_structure=procedural_structure,
             generative_structure=generative_structure,
             semantic_motif=semantic_motif,
+            emotional_consistency=emotional_consistency,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

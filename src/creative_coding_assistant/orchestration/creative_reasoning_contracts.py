@@ -32,6 +32,7 @@ ReasoningEvidenceSource = Literal[
     "procedural_structure",
     "generative_structure",
     "semantic_motif",
+    "emotional_consistency",
     "future_knowledge",
 ]
 
@@ -87,7 +88,7 @@ class CreativeReasoningResult(BaseModel):
     )
     evidence_chain: tuple[CreativeReasoningEvidence, ...] = Field(
         min_length=3,
-        max_length=18,
+        max_length=20,
     )
     strongest_supporting_signals: tuple[str, ...] = Field(min_length=1, max_length=8)
     rejected_alternatives: tuple[CreativeRejectedAlternative, ...] = Field(

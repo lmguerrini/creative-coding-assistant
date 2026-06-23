@@ -34,6 +34,9 @@ _GENERATIVE_STRUCTURE = (
     "creative_coding_assistant.orchestration.generative_structure"
 )
 _SEMANTIC_MOTIF = "creative_coding_assistant.orchestration.semantic_motif"
+_EMOTIONAL_CONSISTENCY = (
+    "creative_coding_assistant.orchestration.emotional_consistency"
+)
 _SYMBOLIC_NARRATIVE = "creative_coding_assistant.orchestration.symbolic_narrative"
 _RUNTIME_CAPABILITIES = (
     "creative_coding_assistant.orchestration.runtime_capabilities"
@@ -143,6 +146,16 @@ _EXPORT_MAP = {
     "SemanticMotifRole": _SEMANTIC_MOTIF,
     "SemanticMotifStructureMapping": _SEMANTIC_MOTIF,
     "SemanticMotifSystem": _SEMANTIC_MOTIF,
+    "EmotionalCompositionMapping": _EMOTIONAL_CONSISTENCY,
+    "EmotionalConsistencyProfile": _EMOTIONAL_CONSISTENCY,
+    "EmotionalFallbackStrategy": _EMOTIONAL_CONSISTENCY,
+    "EmotionalIntensity": _EMOTIONAL_CONSISTENCY,
+    "EmotionalMotifMapping": _EMOTIONAL_CONSISTENCY,
+    "EmotionalNarrativeMapping": _EMOTIONAL_CONSISTENCY,
+    "EmotionalParameterMapping": _EMOTIONAL_CONSISTENCY,
+    "EmotionalPhaseMapping": _EMOTIONAL_CONSISTENCY,
+    "EmotionalStructureMapping": _EMOTIONAL_CONSISTENCY,
+    "EmotionalTone": _EMOTIONAL_CONSISTENCY,
     "NarrativeArchetype": _SYMBOLIC_NARRATIVE,
     "NarrativePhaseName": _SYMBOLIC_NARRATIVE,
     "SymbolicNarrativePhase": _SYMBOLIC_NARRATIVE,
@@ -271,6 +284,8 @@ _EXPORT_MAP = {
     "generative_structure_prompt_lines": _GENERATIVE_STRUCTURE,
     "derive_semantic_motif_system": _SEMANTIC_MOTIF,
     "semantic_motif_prompt_lines": _SEMANTIC_MOTIF,
+    "derive_emotional_consistency_profile": _EMOTIONAL_CONSISTENCY,
+    "emotional_consistency_prompt_lines": _EMOTIONAL_CONSISTENCY,
     "derive_symbolic_narrative_plan": _SYMBOLIC_NARRATIVE,
     "symbolic_narrative_prompt_lines": _SYMBOLIC_NARRATIVE,
     "derive_creative_reasoning_result": _CREATIVE_REASONING,

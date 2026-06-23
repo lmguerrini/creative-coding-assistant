@@ -45,6 +45,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.emotional_consistency import (
+    EmotionalConsistencyProfile,
+)
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
@@ -82,6 +85,7 @@ def build_evidence_chain(
     procedural_structure: ProceduralStructurePlan | None,
     generative_structure: GenerativeStructureBlueprint | None,
     semantic_motif: SemanticMotifSystem | None,
+    emotional_consistency: EmotionalConsistencyProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -282,6 +286,28 @@ def build_evidence_chain(
                 ),
             )
         )
+    if emotional_consistency is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="emotional_consistency",
+                signal=_clip(
+                    (
+                        f"{emotional_consistency.primary_emotional_tone} "
+                        f"({emotional_consistency.emotional_coherence_score}/100): "
+                        + ", ".join(
+                            emotional_consistency.secondary_emotional_tones[:4]
+                        )
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Emotional consistency evidence aligns tone hierarchy, "
+                    "narrative phases, motifs, composition, structure, "
+                    "parameters, light, rhythm, and mismatch guidance as "
+                    "design metadata."
+                ),
+            )
+        )
     if creative_director is not None:
         evidence.append(
             CreativeReasoningEvidence(
@@ -290,7 +316,7 @@ def build_evidence_chain(
                 interpretation="Director guidance frames brief and HITL posture.",
             )
         )
-    return tuple(evidence[:18])
+    return tuple(evidence[:20])
 
 
 def _append_strategy_evidence(

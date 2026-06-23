@@ -36,6 +36,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.emotional_consistency import (
+    EmotionalConsistencyProfile,
+)
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
@@ -70,6 +73,7 @@ def build_recommended_direction(
     procedural_structure: ProceduralStructurePlan | None,
     generative_structure: GenerativeStructureBlueprint | None,
     semantic_motif: SemanticMotifSystem | None,
+    emotional_consistency: EmotionalConsistencyProfile | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -86,6 +90,11 @@ def build_recommended_direction(
         if semantic_motif is not None
         else ""
     )
+    emotion_clause = (
+        f"Emotion as {_clip(_emotional_label(emotional_consistency), 90)}. "
+        if emotional_consistency is not None
+        else ""
+    )
     direction = (
         f"Recommend {_strategy_label(creative_strategy)} via "
         f"{_technique_label(creative_techniques)} because it protects "
@@ -94,6 +103,7 @@ def build_recommended_direction(
         f"Shape symbolic arc: {_clip(_narrative_label(symbolic_narrative), 90)}. "
         f"Compose as {_clip(_composition_label(creative_composition), 90)}. "
         f"{motif_clause}"
+        f"{emotion_clause}"
         f"Structure procedurally as "
         f"{_clip(_procedural_label(procedural_structure), 90)}. "
         f"Blueprint as {_clip(_generative_label(generative_structure), 90)}. "
@@ -126,6 +136,7 @@ def build_reasoning_path(
     procedural_structure: ProceduralStructurePlan | None,
     generative_structure: GenerativeStructureBlueprint | None,
     semantic_motif: SemanticMotifSystem | None,
+    emotional_consistency: EmotionalConsistencyProfile | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -191,7 +202,8 @@ def build_reasoning_path(
                     f"{_composition_label(creative_composition)}, structured as "
                     f"{_procedural_label(procedural_structure)}, blueprinted as "
                     f"{_generative_label(generative_structure)}, motif-bound as "
-                    f"{_motif_label(semantic_motif)}, with "
+                    f"{_motif_label(semantic_motif)}, emotionally framed as "
+                    f"{_emotional_label(emotional_consistency)}, with "
                     f"{_quality_label(creative_quality_prediction)}."
                 ),
                 360,
@@ -200,7 +212,7 @@ def build_reasoning_path(
                 "Use this as the prompt spine before generation.",
                 "Treat procedural guidance as structure, not runtime selection.",
                 "Treat generative blueprint metadata as guidance, not code.",
-                "Treat semantic motifs as design metaphors, not doctrine.",
+                "Treat motifs and emotion as design guidance, not doctrine or objective truth.",
             ),
         ),
     )
@@ -318,6 +330,15 @@ def _motif_label(profile: SemanticMotifSystem | None) -> str:
     if profile is None:
         return "no semantic motif system"
     return ", ".join(motif.motif_id for motif in profile.primary_motifs)
+
+
+def _emotional_label(profile: EmotionalConsistencyProfile | None) -> str:
+    if profile is None:
+        return "no emotional consistency profile"
+    return (
+        f"{profile.primary_emotional_tone} "
+        f"({profile.emotional_coherence_score}/100)"
+    )
 
 
 def _technique_reason(
