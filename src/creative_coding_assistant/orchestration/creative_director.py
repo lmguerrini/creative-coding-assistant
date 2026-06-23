@@ -7,6 +7,9 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.audio_visual_scene import (
+    AudioVisualSceneProfile,
+)
 from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
@@ -123,6 +126,7 @@ def derive_creative_assistant_director_brief(
     semantic_motif: SemanticMotifSystem | None = None,
     emotional_consistency: EmotionalConsistencyProfile | None = None,
     cross_modality: CrossModalityCompositionProfile | None = None,
+    audio_visual_scene: AudioVisualSceneProfile | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -153,6 +157,7 @@ def derive_creative_assistant_director_brief(
             semantic_motif=semantic_motif,
             emotional_consistency=emotional_consistency,
             cross_modality=cross_modality,
+            audio_visual_scene=audio_visual_scene,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

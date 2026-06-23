@@ -34,6 +34,7 @@ ReasoningEvidenceSource = Literal[
     "semantic_motif",
     "emotional_consistency",
     "cross_modality",
+    "audio_visual_scene",
     "future_knowledge",
 ]
 

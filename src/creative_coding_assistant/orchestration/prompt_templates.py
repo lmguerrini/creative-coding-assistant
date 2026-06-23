@@ -12,6 +12,10 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.domains import get_domain_prompt_guidance
+from creative_coding_assistant.orchestration.audio_visual_scene import (
+    AudioVisualSceneProfile,
+    audio_visual_scene_prompt_lines,
+)
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
     creative_composition_prompt_lines,
@@ -281,6 +285,13 @@ Cross-Modality Composer:
 - {{ instruction }}
 {% endfor %}
 {% endif %}
+{% set audio_visual_scene = prompt_input.audio_visual_scene -%}
+{% if audio_visual_scene is not none -%}
+Audio-Visual Scene System:
+{% for instruction in audio_visual_scene_lines(audio_visual_scene) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
 {% set director = prompt_input.creative_director -%}
 {% if director is not none -%}
 Creative Assistant Director:
@@ -533,6 +544,7 @@ class JinjaPromptRenderer:
             semantic_motif_lines=_semantic_motif_lines,
             emotional_consistency_lines=_emotional_consistency_lines,
             cross_modality_lines=_cross_modality_lines,
+            audio_visual_scene_lines=_audio_visual_scene_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -799,6 +811,12 @@ def _cross_modality_lines(
     profile: CrossModalityCompositionProfile,
 ) -> tuple[str, ...]:
     return cross_modality_prompt_lines(profile)
+
+
+def _audio_visual_scene_lines(
+    profile: AudioVisualSceneProfile,
+) -> tuple[str, ...]:
+    return audio_visual_scene_prompt_lines(profile)
 
 
 def _creative_assistant_director_lines(

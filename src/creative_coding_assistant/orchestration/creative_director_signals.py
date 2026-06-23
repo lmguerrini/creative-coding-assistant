@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from creative_coding_assistant.contracts import AssistantRequest, CreativeCodingDomain
+from creative_coding_assistant.orchestration.audio_visual_scene import (
+    AudioVisualSceneProfile,
+)
 from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
@@ -91,6 +94,7 @@ def build_director_brief_payload(
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
     cross_modality: CrossModalityCompositionProfile | None,
+    audio_visual_scene: AudioVisualSceneProfile | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -111,6 +115,7 @@ def build_director_brief_payload(
         semantic_motif=semantic_motif,
         emotional_consistency=emotional_consistency,
         cross_modality=cross_modality,
+        audio_visual_scene=audio_visual_scene,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -146,6 +151,7 @@ def build_director_brief_payload(
             semantic_motif,
             emotional_consistency,
             cross_modality,
+            audio_visual_scene,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -165,6 +171,7 @@ def build_director_brief_payload(
             semantic_motif=semantic_motif,
             emotional_consistency=emotional_consistency,
             cross_modality=cross_modality,
+            audio_visual_scene=audio_visual_scene,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -185,6 +192,7 @@ def build_director_brief_payload(
             semantic_motif=semantic_motif,
             emotional_consistency=emotional_consistency,
             cross_modality=cross_modality,
+            audio_visual_scene=audio_visual_scene,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -211,6 +219,7 @@ def build_director_brief_payload(
             semantic_motif=semantic_motif,
             emotional_consistency=emotional_consistency,
             cross_modality=cross_modality,
+            audio_visual_scene=audio_visual_scene,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -257,6 +266,7 @@ def _ambiguity_signals(
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
     cross_modality: CrossModalityCompositionProfile | None,
+    audio_visual_scene: AudioVisualSceneProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -298,6 +308,8 @@ def _ambiguity_signals(
         signals.extend(emotional_consistency.unresolved_emotional_gaps[:2])
     if cross_modality is not None:
         signals.extend(cross_modality.unresolved_modality_gaps[:2])
+    if audio_visual_scene is not None:
+        signals.extend(audio_visual_scene.unresolved_scene_gaps[:2])
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -347,6 +359,7 @@ def _planning_focus(
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
     cross_modality: CrossModalityCompositionProfile | None,
+    audio_visual_scene: AudioVisualSceneProfile | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_intent is not None:
@@ -380,6 +393,12 @@ def _planning_focus(
             "Emotional consistency: "
             f"{emotional_consistency.primary_emotional_tone}; "
             f"{emotional_consistency.emotional_coherence_score}/100."
+        )
+    if audio_visual_scene is not None:
+        focus.append(
+            "Audio-visual scene: "
+            f"{audio_visual_scene.scene_pattern}; "
+            f"{audio_visual_scene.climax_scene.title}."
         )
     if cross_modality is not None:
         focus.append(
@@ -476,6 +495,7 @@ def _critique_focus(
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
     cross_modality: CrossModalityCompositionProfile | None,
+    audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -587,6 +607,14 @@ def _critique_focus(
         )
         focus.extend(cross_modality.modality_conflicts[:1])
         focus.extend(cross_modality.overload_risks[:1])
+    if audio_visual_scene is not None:
+        focus.append(
+            "Audio-Visual Scene System is pre-generation only; compare output "
+            "against scene phases, cues, transitions, climax, resolution, "
+            "timing, and pacing risks."
+        )
+        focus.extend(audio_visual_scene.scene_risks[:1])
+        focus.extend(audio_visual_scene.pacing_risks[:1])
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -639,6 +667,7 @@ def _next_actions(
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
     cross_modality: CrossModalityCompositionProfile | None,
+    audio_visual_scene: AudioVisualSceneProfile | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
@@ -668,6 +697,8 @@ def _next_actions(
         return (emotional_consistency.hitl_questions[0],)
     if cross_modality is not None and cross_modality.hitl_questions:
         return (cross_modality.hitl_questions[0],)
+    if audio_visual_scene is not None and audio_visual_scene.hitl_questions:
+        return (audio_visual_scene.hitl_questions[0],)
     if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
@@ -706,6 +737,7 @@ def _evidence(
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
     cross_modality: CrossModalityCompositionProfile | None,
+    audio_visual_scene: AudioVisualSceneProfile | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -806,6 +838,12 @@ def _evidence(
             "Cross-modality: "
             f"{cross_modality.primary_modality}; "
             f"{cross_modality.modality_pattern}."
+        )
+    if audio_visual_scene is not None:
+        evidence.append(
+            "Audio-visual scene: "
+            f"{audio_visual_scene.scene_pattern}; "
+            f"{len(audio_visual_scene.scene_phases)} phases."
         )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")

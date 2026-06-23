@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.audio_visual_scene import (
+    AudioVisualSceneProfile,
+)
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
 )
@@ -90,6 +93,7 @@ def build_evidence_chain(
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
     cross_modality: CrossModalityCompositionProfile | None,
+    audio_visual_scene: AudioVisualSceneProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -328,6 +332,26 @@ def build_evidence_chain(
                     "Cross-modality evidence coordinates visual, motion, audio, "
                     "rhythm, camera, structure, motif, and emotion as design "
                     "metadata without selecting runtime or generating media."
+                ),
+            )
+        )
+    if audio_visual_scene is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="audio_visual_scene",
+                signal=_clip(
+                    (
+                        f"{audio_visual_scene.scene_pattern}: "
+                        f"{audio_visual_scene.opening_scene.title} -> "
+                        f"{audio_visual_scene.climax_scene.title} -> "
+                        f"{audio_visual_scene.resolution_scene.title}"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Audio-visual scene evidence orders phases, cues, "
+                    "transitions, synchronization, climax, and resolution as "
+                    "design metadata without generating media."
                 ),
             )
         )

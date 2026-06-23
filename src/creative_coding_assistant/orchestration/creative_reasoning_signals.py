@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.audio_visual_scene import (
+    AudioVisualSceneProfile,
+)
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
 )
@@ -78,6 +81,7 @@ def build_recommended_direction(
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
     cross_modality: CrossModalityCompositionProfile | None,
+    audio_visual_scene: AudioVisualSceneProfile | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -104,6 +108,11 @@ def build_recommended_direction(
         if cross_modality is not None
         else ""
     )
+    scene_clause = (
+        f"Scenes as {_clip(_scene_label(audio_visual_scene), 90)}. "
+        if audio_visual_scene is not None
+        else ""
+    )
     direction = (
         f"Recommend {_strategy_label(creative_strategy)} via "
         f"{_technique_label(creative_techniques)} because it protects "
@@ -111,6 +120,7 @@ def build_recommended_direction(
         f"{_clip(_hierarchy_label(creative_hierarchy), 70)}. "
         f"Shape symbolic arc: {_clip(_narrative_label(symbolic_narrative), 90)}. "
         f"Compose as {_clip(_composition_label(creative_composition), 90)}. "
+        f"{scene_clause}"
         f"{motif_clause}"
         f"{emotion_clause}"
         f"{modality_clause}"
@@ -148,6 +158,7 @@ def build_reasoning_path(
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
     cross_modality: CrossModalityCompositionProfile | None,
+    audio_visual_scene: AudioVisualSceneProfile | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -215,7 +226,8 @@ def build_reasoning_path(
                     f"{_generative_label(generative_structure)}, motif-bound as "
                     f"{_motif_label(semantic_motif)}, emotionally framed as "
                     f"{_emotional_label(emotional_consistency)}, composed "
-                    f"cross-modally as {_modality_label(cross_modality)}, with "
+                    f"cross-modally as {_modality_label(cross_modality)}, "
+                    f"scene-timed as {_scene_label(audio_visual_scene)}, with "
                     f"{_quality_label(creative_quality_prediction)}."
                 ),
                 360,
@@ -224,7 +236,7 @@ def build_reasoning_path(
                 "Use this as the prompt spine before generation.",
                 "Treat procedural and generative metadata as guidance, not code or runtime selection.",
                 "Treat motifs and emotion as design guidance, not doctrine or objective truth.",
-                "Treat cross-modality mapping as design guidance, not runtime behavior.",
+                "Treat cross-modality and scene timing as design guidance, not runtime behavior.",
             ),
         ),
     )
@@ -358,6 +370,15 @@ def _modality_label(profile: CrossModalityCompositionProfile | None) -> str:
         return "no cross-modality composition profile"
     supporting = ", ".join(profile.supporting_modalities[:3])
     return f"{profile.primary_modality} leading {profile.modality_pattern}; supports {supporting}"
+
+
+def _scene_label(profile: AudioVisualSceneProfile | None) -> str:
+    if profile is None:
+        return "no audio-visual scene profile"
+    return (
+        f"{profile.scene_pattern} with {profile.climax_scene.title} climax "
+        f"and {profile.resolution_scene.title} resolution"
+    )
 
 
 def _technique_reason(

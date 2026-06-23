@@ -5,6 +5,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.audio_visual_scene import (
+    AudioVisualSceneProfile,
+)
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
 )
@@ -109,6 +112,7 @@ def derive_creative_reasoning_result(
     semantic_motif: SemanticMotifSystem | None = None,
     emotional_consistency: EmotionalConsistencyProfile | None = None,
     cross_modality: CrossModalityCompositionProfile | None = None,
+    audio_visual_scene: AudioVisualSceneProfile | None = None,
     future_knowledge_context: Mapping[str, object] | None = None,
 ) -> CreativeReasoningResult:
     """Synthesize prior Creative Intelligence outputs into one decision brief."""
@@ -132,6 +136,7 @@ def derive_creative_reasoning_result(
         semantic_motif=semantic_motif,
         emotional_consistency=emotional_consistency,
         cross_modality=cross_modality,
+        audio_visual_scene=audio_visual_scene,
     )
     unresolved = build_unresolved_decisions(
         creative_director=creative_director,
@@ -151,6 +156,7 @@ def derive_creative_reasoning_result(
         semantic_motif=semantic_motif,
         emotional_consistency=emotional_consistency,
         cross_modality=cross_modality,
+        audio_visual_scene=audio_visual_scene,
     )
     return CreativeReasoningResult(
         recommended_creative_direction=direction,
@@ -172,6 +178,7 @@ def derive_creative_reasoning_result(
             semantic_motif=semantic_motif,
             emotional_consistency=emotional_consistency,
             cross_modality=cross_modality,
+            audio_visual_scene=audio_visual_scene,
         ),
         evidence_chain=build_evidence_chain(
             request=request,
@@ -195,6 +202,7 @@ def derive_creative_reasoning_result(
             semantic_motif=semantic_motif,
             emotional_consistency=emotional_consistency,
             cross_modality=cross_modality,
+            audio_visual_scene=audio_visual_scene,
         ),
         strongest_supporting_signals=build_strongest_signals(
             creative_director=creative_director,
@@ -214,6 +222,7 @@ def derive_creative_reasoning_result(
             semantic_motif=semantic_motif,
             emotional_consistency=emotional_consistency,
             cross_modality=cross_modality,
+            audio_visual_scene=audio_visual_scene,
         ),
         rejected_alternatives=build_rejected_alternatives(
             creative_strategy=creative_strategy,
@@ -239,6 +248,7 @@ def derive_creative_reasoning_result(
             semantic_motif=semantic_motif,
             emotional_consistency=emotional_consistency,
             cross_modality=cross_modality,
+            audio_visual_scene=audio_visual_scene,
         ),
         prompt_guidance=build_prompt_guidance(unresolved),
         hitl_questions=build_hitl_questions(unresolved),

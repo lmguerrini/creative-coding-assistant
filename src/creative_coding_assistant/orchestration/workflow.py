@@ -14,6 +14,9 @@ from creative_coding_assistant.orchestration.artifacts import (
     RefinementPassRecord,
     WorkflowArtifact,
 )
+from creative_coding_assistant.orchestration.audio_visual_scene import (
+    AudioVisualSceneProfile,
+)
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
 from creative_coding_assistant.orchestration.creative_composition import (
@@ -190,6 +193,7 @@ class AssistantWorkflowState(BaseModel):
     semantic_motif: SemanticMotifSystem | None = None
     emotional_consistency: EmotionalConsistencyProfile | None = None
     cross_modality: CrossModalityCompositionProfile | None = None
+    audio_visual_scene: AudioVisualSceneProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     rendered_prompt: RenderedPromptResponse | None = None

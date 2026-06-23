@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+from creative_coding_assistant.orchestration.audio_visual_scene import (
+    AudioVisualSceneProfile,
+)
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
 )
@@ -84,6 +87,7 @@ def build_strongest_signals(
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
     cross_modality: CrossModalityCompositionProfile | None,
+    audio_visual_scene: AudioVisualSceneProfile | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -169,6 +173,13 @@ def build_strongest_signals(
             "Cross-modality: "
             f"{cross_modality.primary_modality}; "
             f"{cross_modality.modality_pattern}."
+        )
+    if audio_visual_scene is not None:
+        signals.append(
+            "Audio-visual scene: "
+            f"{audio_visual_scene.scene_pattern}; "
+            f"{audio_visual_scene.climax_scene.title} -> "
+            f"{audio_visual_scene.resolution_scene.title}."
         )
     if creative_constraints is not None:
         signals.append(
@@ -261,6 +272,7 @@ def build_unresolved_decisions(
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
     cross_modality: CrossModalityCompositionProfile | None,
+    audio_visual_scene: AudioVisualSceneProfile | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -301,6 +313,9 @@ def build_unresolved_decisions(
     if cross_modality is not None:
         unresolved.extend(cross_modality.hitl_questions[:3])
         unresolved.extend(cross_modality.unresolved_modality_gaps[:2])
+    if audio_visual_scene is not None:
+        unresolved.extend(audio_visual_scene.hitl_questions[:3])
+        unresolved.extend(audio_visual_scene.unresolved_scene_gaps[:2])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -328,6 +343,7 @@ def build_implementation_guidance(
     semantic_motif: SemanticMotifSystem | None,
     emotional_consistency: EmotionalConsistencyProfile | None,
     cross_modality: CrossModalityCompositionProfile | None,
+    audio_visual_scene: AudioVisualSceneProfile | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -395,6 +411,13 @@ def build_implementation_guidance(
         guidance.extend(cross_modality.contrast_balance_plan[:1])
         guidance.append(
             "Preserve cross-modality mappings as design guidance, not runtime behavior."
+        )
+    if audio_visual_scene is not None:
+        guidance.extend(audio_visual_scene.prompt_guidance[:2])
+        guidance.extend(audio_visual_scene.synchronization_checkpoints[:1])
+        guidance.extend(audio_visual_scene.scene_continuity_plan[:1])
+        guidance.append(
+            "Preserve scene timing as guidance, not generated audio or runtime behavior."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",
