@@ -734,6 +734,129 @@ export type GenerativeStructureBlueprintSummary = {
   evidence: string[];
 };
 
+export type SemanticMotifId =
+  | "seed"
+  | "spiral"
+  | "threshold"
+  | "mirror"
+  | "void"
+  | "center"
+  | "circumference"
+  | "axis"
+  | "descent"
+  | "ascent"
+  | "fragmentation"
+  | "reintegration"
+  | "wave"
+  | "lattice"
+  | "network"
+  | "pearl"
+  | "flame"
+  | "root"
+  | "tree"
+  | "vessel"
+  | "mandala"
+  | "grid"
+  | "swarm"
+  | "orbit"
+  | "pulse"
+  | "breath"
+  | "gate"
+  | "eye"
+  | "river"
+  | "constellation";
+
+export type SemanticMotifRole =
+  | "anchor"
+  | "threshold"
+  | "transformation"
+  | "connector"
+  | "counterpoint"
+  | "rhythm"
+  | "spatial_order"
+  | "material_signal"
+  | "fallback";
+
+export type SemanticMotifHierarchyLevel =
+  | "primary"
+  | "secondary"
+  | "supporting"
+  | "fallback";
+
+export type SemanticMotifSummary = {
+  motifId: SemanticMotifId;
+  label: string;
+  role: SemanticMotifRole;
+  hierarchyLevel: SemanticMotifHierarchyLevel;
+  rationale: string;
+  recurrenceGuidance: string[];
+  transformationGuidance: string[];
+  evidence: string[];
+};
+
+export type SemanticMotifStructureMappingSummary = {
+  motifId: SemanticMotifId;
+  proceduralFamilies: ProceduralFamily[];
+  generativeModuleIds: string[];
+  generativeModuleKinds: GenerativeModuleKind[];
+  structuralBehavior: string;
+  evidence: string[];
+};
+
+export type SemanticMotifCompositionMappingSummary = {
+  motifId: SemanticMotifId;
+  compositionRole: string;
+  spatialAnchor: string;
+  rhythmOrDensityGuidance: string;
+  evidence: string[];
+};
+
+export type SemanticMotifNarrativeMappingSummary = {
+  motifId: SemanticMotifId;
+  narrativeFunction: string;
+  phaseAlignment: string[];
+  evidence: string[];
+};
+
+export type SemanticMotifParameterMappingSummary = {
+  motifId: SemanticMotifId;
+  parameterNames: string[];
+  parameterGuidance: string;
+  evidence: string[];
+};
+
+export type SemanticMotifFallbackPlanSummary = {
+  fallbackPrimaryMotif: SemanticMotifId;
+  fallbackSecondaryMotifs: SemanticMotifId[];
+  simplificationStrategy: string;
+  preservedMeaning: string;
+  promptGuidance: string[];
+};
+
+export type SemanticMotifSystemSummary = {
+  role: "semantic_motif_engine";
+  motifSystemName: string;
+  primaryMotifs: SemanticMotifSummary[];
+  secondaryMotifs: SemanticMotifSummary[];
+  motifHierarchy: string[];
+  motifRecurrencePlan: string[];
+  motifTransformationPlan: string[];
+  motifToStructureMapping: SemanticMotifStructureMappingSummary[];
+  motifToCompositionMapping: SemanticMotifCompositionMappingSummary[];
+  motifToNarrativeMapping: SemanticMotifNarrativeMappingSummary[];
+  motifToParameterMapping: SemanticMotifParameterMappingSummary[];
+  coherenceRisks: string[];
+  overuseRisks: string[];
+  underuseRisks: string[];
+  unsupportedSymbolicClaims: string[];
+  motifFallbackPlan: SemanticMotifFallbackPlanSummary;
+  unresolvedMotifGaps: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeConstraintAxis =
   | "intent"
   | "modality"
@@ -896,6 +1019,7 @@ export type CreativeReasoningEvidenceSource =
   | "creative_composition"
   | "procedural_structure"
   | "generative_structure"
+  | "semantic_motif"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {

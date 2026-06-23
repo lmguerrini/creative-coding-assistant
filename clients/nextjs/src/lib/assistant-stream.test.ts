@@ -14,6 +14,7 @@ import {
   readCreativeTradeoffExplorerSummary,
   readGenerativeStructureBlueprintSummary,
   readProceduralStructurePlanSummary,
+  readSemanticMotifSystemSummary,
   readSymbolicNarrativePlanSummary,
   readEventTimestamp,
   readPreviewArtifactUpdate,
@@ -420,6 +421,148 @@ function generativeStructureFixture() {
     authority_boundary:
       "The Generative Structure Engine turns procedural metadata into an inspectable generative blueprint only.",
     evidence: ["Primary procedural family: recursive_geometry."]
+  };
+}
+
+function semanticMotifFixture() {
+  return {
+    role: "semantic_motif_engine",
+    motif_system_name: "Fragmentation / Reintegration Motif System",
+    primary_motifs: [
+      semanticMotifEntry(
+        "fragmentation",
+        "Fragmentation",
+        "transformation",
+        "primary"
+      ),
+      semanticMotifEntry(
+        "reintegration",
+        "Reintegration",
+        "transformation",
+        "primary"
+      )
+    ],
+    secondary_motifs: [
+      semanticMotifEntry("spiral", "Spiral", "rhythm", "secondary"),
+      semanticMotifEntry("flame", "Flame", "material_signal", "secondary")
+    ],
+    motif_hierarchy: [
+      "Primary motif 1: fragmentation acts as transformation.",
+      "Primary motif 2: reintegration acts as transformation.",
+      "Secondary motif: spiral supports fragmentation."
+    ],
+    motif_recurrence_plan: [
+      "Repeat fragmentation at each major visual or narrative phase.",
+      "Repeat reintegration at each major visual or narrative phase."
+    ],
+    motif_transformation_plan: [
+      "Transform fragmentation through bounded parameter changes.",
+      "Align motif transformation with generative phases: seed, growth, reassembly."
+    ],
+    motif_to_structure_mapping: [
+      {
+        motif_id: "fragmentation",
+        procedural_families: ["particle_systems"],
+        generative_module_ids: ["particle_emitter_1"],
+        generative_module_kinds: ["particle_emitter"],
+        structural_behavior: "Break form into bounded fragments or particles.",
+        evidence: ["Generative modules: particle_emitter."]
+      },
+      {
+        motif_id: "reintegration",
+        procedural_families: ["particle_systems"],
+        generative_module_ids: ["geometry_reassembly_layer"],
+        generative_module_kinds: ["geometry_reassembly_layer"],
+        structural_behavior: "Reassemble fragments into a readable structure.",
+        evidence: ["Generative modules: geometry_reassembly_layer."]
+      }
+    ],
+    motif_to_composition_mapping: [
+      {
+        motif_id: "fragmentation",
+        composition_role: "Use fragmentation inside fragmented recomposition.",
+        spatial_anchor: "A gate-like focal boundary at center stage.",
+        rhythm_or_density_guidance:
+          "Use approach, pause, crossing, and release as rhythm.",
+        evidence: ["Composition pattern: fragmented_recomposition."]
+      }
+    ],
+    motif_to_narrative_mapping: [
+      {
+        motif_id: "reintegration",
+        narrative_function:
+          "Use reintegration to clarify rebirth without asserting doctrine.",
+        phase_alignment: ["climax", "resolution"],
+        evidence: ["Narrative archetype: death_and_rebirth."]
+      }
+    ],
+    motif_to_parameter_mapping: [
+      {
+        motif_id: "fragmentation",
+        parameter_names: ["fragmentation_amount", "particle_count"],
+        parameter_guidance:
+          "Use fragmentation_amount to make fragmentation recur.",
+        evidence: ["Motif-to-parameter mapping for fragmentation."]
+      },
+      {
+        motif_id: "reintegration",
+        parameter_names: ["reassembly_speed"],
+        parameter_guidance:
+          "Use reassembly_speed to make reintegration transform.",
+        evidence: ["Motif-to-parameter mapping for reintegration."]
+      }
+    ],
+    coherence_risks: [
+      "Keep fragmentation visibly dominant over decorative motifs."
+    ],
+    overuse_risks: [
+      "Overusing fragmentation literally may flatten symbolic ambiguity."
+    ],
+    underuse_risks: [
+      "Underusing spiral may make the motif system feel disconnected."
+    ],
+    unsupported_symbolic_claims: [
+      "Treat symbolic terms as user-supplied design language, not factual doctrine."
+    ],
+    motif_fallback_plan: {
+      fallback_primary_motif: "fragmentation",
+      fallback_secondary_motifs: ["spiral", "flame"],
+      simplification_strategy:
+        "Preserve fragmentation and remove weak secondary motifs first.",
+      preserved_meaning:
+        "Preserve transformation through fragmentation and reintegration.",
+      prompt_guidance: [
+        "Use fewer motifs before adding new symbolic material."
+      ]
+    },
+    unresolved_motif_gaps: [
+      "Motif language is abstract; confirm the primary motif emphasis."
+    ],
+    hitl_questions: ["Which motif should remain visually dominant?"],
+    prompt_guidance: [
+      "Use the motif system as semantic guidance, not executable code."
+    ],
+    authority_boundary:
+      "The Semantic Motif Engine organizes recurring symbolic motifs as inspectable design metadata only.",
+    evidence: ["Primary motifs: fragmentation, reintegration."]
+  };
+}
+
+function semanticMotifEntry(
+  motifId: string,
+  label: string,
+  role: string,
+  hierarchyLevel: string
+) {
+  return {
+    motif_id: motifId,
+    label,
+    role,
+    hierarchy_level: hierarchyLevel,
+    rationale: `Use ${motifId} as a motif because it is supported by signals.`,
+    recurrence_guidance: [`Introduce ${motifId} early.`],
+    transformation_guidance: [`Let ${motifId} transform through parameters.`],
+    evidence: [`Motif evidence: ${motifId}.`]
   };
 }
 
@@ -2126,6 +2269,34 @@ describe("assistant stream client", () => {
     );
   });
 
+  it("reads semantic motif engine metadata", () => {
+    const profile = readSemanticMotifSystemSummary(semanticMotifFixture());
+
+    expect(profile?.role).toBe("semantic_motif_engine");
+    expect(profile?.motifSystemName).toBe(
+      "Fragmentation / Reintegration Motif System"
+    );
+    expect(profile?.primaryMotifs.map((motif) => motif.motifId)).toEqual([
+      "fragmentation",
+      "reintegration"
+    ]);
+    expect(profile?.primaryMotifs[0]?.role).toBe("transformation");
+    expect(profile?.secondaryMotifs.map((motif) => motif.motifId)).toContain(
+      "spiral"
+    );
+    expect(profile?.motifToStructureMapping[0]?.generativeModuleKinds).toContain(
+      "particle_emitter"
+    );
+    expect(profile?.motifToParameterMapping[1]?.parameterNames).toContain(
+      "reassembly_speed"
+    );
+    expect(profile?.unsupportedSymbolicClaims[0]).toContain("doctrine");
+    expect(profile?.motifFallbackPlan.fallbackPrimaryMotif).toBe("fragmentation");
+    expect(profile?.hitlQuestions).toContain(
+      "Which motif should remain visually dominant?"
+    );
+  });
+
   it("reads creative reasoning engine metadata", () => {
     const profile = readCreativeReasoningSummary({
       role: "creative_reasoning_engine",
@@ -2206,6 +2377,11 @@ describe("assistant stream client", () => {
           source: "generative_structure",
           signal: "recursive_modular_blueprint.",
           interpretation: "Generative evidence defines blueprint modules."
+        },
+        {
+          source: "semantic_motif",
+          signal: "fragmentation, reintegration.",
+          interpretation: "Motif evidence defines recurrence and risk guidance."
         }
       ],
       strongestSupportingSignals: ["Strategy sacred_geometry confidence 0.83."],
@@ -2253,6 +2429,9 @@ describe("assistant stream client", () => {
     );
     expect(profile?.evidenceChain.map((item) => item.source)).toContain(
       "generative_structure"
+    );
+    expect(profile?.evidenceChain.map((item) => item.source)).toContain(
+      "semantic_motif"
     );
     expect(profile?.futureKnowledgeContext.status).toBe("not_attached");
   });
@@ -2648,6 +2827,81 @@ describe("assistant stream client", () => {
         hitlQuestions: ["Which gesture should control the generative structure?"]
       },
       generative_structure_available: true
+    });
+  });
+
+  it("hydrates semantic motif workflow metadata", () => {
+    const semanticMotif = semanticMotifFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 12,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          semantic_motif: semanticMotif,
+          semantic_motif_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      semantic_motif: {
+        role: "semantic_motif_engine",
+        motifSystemName: "Fragmentation / Reintegration Motif System",
+        primaryMotifs: [
+          {
+            motifId: "fragmentation",
+            role: "transformation",
+            hierarchyLevel: "primary"
+          },
+          {
+            motifId: "reintegration",
+            role: "transformation",
+            hierarchyLevel: "primary"
+          }
+        ],
+        motifToStructureMapping: [
+          {
+            motifId: "fragmentation",
+            generativeModuleKinds: ["particle_emitter"]
+          },
+          {
+            motifId: "reintegration",
+            generativeModuleKinds: ["geometry_reassembly_layer"]
+          }
+        ],
+        motifToParameterMapping: [
+          {
+            motifId: "fragmentation",
+            parameterNames: ["fragmentation_amount", "particle_count"]
+          },
+          {
+            motifId: "reintegration",
+            parameterNames: ["reassembly_speed"]
+          }
+        ],
+        motifFallbackPlan: {
+          fallbackPrimaryMotif: "fragmentation",
+          fallbackSecondaryMotifs: ["spiral", "flame"]
+        },
+        hitlQuestions: ["Which motif should remain visually dominant?"]
+      },
+      semantic_motif_available: true
     });
   });
 

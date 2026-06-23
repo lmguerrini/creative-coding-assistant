@@ -77,6 +77,16 @@ import {
   type RuntimeCapabilityId,
   type RuntimeCapabilityReasonerSummary,
   type RuntimePreviewSupport,
+  type SemanticMotifCompositionMappingSummary,
+  type SemanticMotifFallbackPlanSummary,
+  type SemanticMotifHierarchyLevel,
+  type SemanticMotifId,
+  type SemanticMotifNarrativeMappingSummary,
+  type SemanticMotifParameterMappingSummary,
+  type SemanticMotifRole,
+  type SemanticMotifStructureMappingSummary,
+  type SemanticMotifSummary,
+  type SemanticMotifSystemSummary,
   type SymbolicNarrativeArchetype,
   type SymbolicNarrativePhaseName,
   type SymbolicNarrativePhaseSummary,
@@ -181,6 +191,8 @@ export type AssistantStreamWorkflowMetadata = {
   procedural_structure_available?: boolean;
   generative_structure?: GenerativeStructureBlueprintSummary | null;
   generative_structure_available?: boolean;
+  semantic_motif?: SemanticMotifSystemSummary | null;
+  semantic_motif_available?: boolean;
   creative_director?: CreativeAssistantDirectorSummary | null;
   director_available?: boolean;
   creative_reasoning?: CreativeReasoningSummary | null;
@@ -660,6 +672,11 @@ export function readWorkflowMetadata(
   const generativeStructureAvailable =
     rawWorkflow.generative_structure_available === true ||
     generativeStructure !== null;
+  const semanticMotif = readSemanticMotifSystemSummary(
+    rawWorkflow.semantic_motif ?? rawWorkflow.semanticMotif
+  );
+  const semanticMotifAvailable =
+    rawWorkflow.semantic_motif_available === true || semanticMotif !== null;
   const creativeDirector = readCreativeAssistantDirectorSummary(
     rawWorkflow.creative_director ?? rawWorkflow.creativeDirector
   );
@@ -785,6 +802,12 @@ export function readWorkflowMetadata(
       ? {
           generative_structure: generativeStructure,
           generative_structure_available: true
+        }
+      : {}),
+    ...(semanticMotifAvailable
+      ? {
+          semantic_motif: semanticMotif,
+          semantic_motif_available: true
         }
       : {}),
     ...(directorAvailable
@@ -3062,6 +3085,467 @@ function readGenerativeModuleKindList(value: unknown): GenerativeModuleKind[] {
   );
 }
 
+export function readSemanticMotifSystemSummary(
+  value: unknown
+): SemanticMotifSystemSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const motifSystemName =
+    readStringField(value, "motif_system_name") ??
+    readStringField(value, "motifSystemName");
+  const primaryMotifs = readSemanticMotifSummaryList(
+    value.primary_motifs ?? value.primaryMotifs
+  );
+  const secondaryMotifs = readSemanticMotifSummaryList(
+    value.secondary_motifs ?? value.secondaryMotifs
+  );
+  const motifHierarchy = readStringListField(
+    value,
+    "motif_hierarchy",
+    "motifHierarchy"
+  );
+  const motifRecurrencePlan = readStringListField(
+    value,
+    "motif_recurrence_plan",
+    "motifRecurrencePlan"
+  );
+  const motifTransformationPlan = readStringListField(
+    value,
+    "motif_transformation_plan",
+    "motifTransformationPlan"
+  );
+  const motifToStructureMapping = readSemanticMotifStructureMappingSummaryList(
+    value.motif_to_structure_mapping ?? value.motifToStructureMapping
+  );
+  const motifToCompositionMapping = readSemanticMotifCompositionMappingSummaryList(
+    value.motif_to_composition_mapping ?? value.motifToCompositionMapping
+  );
+  const motifToNarrativeMapping = readSemanticMotifNarrativeMappingSummaryList(
+    value.motif_to_narrative_mapping ?? value.motifToNarrativeMapping
+  );
+  const motifToParameterMapping = readSemanticMotifParameterMappingSummaryList(
+    value.motif_to_parameter_mapping ?? value.motifToParameterMapping
+  );
+  const motifFallbackPlan = readSemanticMotifFallbackPlanSummary(
+    value.motif_fallback_plan ?? value.motifFallbackPlan
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "semantic_motif_engine" ||
+    !motifSystemName ||
+    primaryMotifs.length === 0 ||
+    secondaryMotifs.length === 0 ||
+    motifHierarchy.length === 0 ||
+    motifRecurrencePlan.length === 0 ||
+    motifTransformationPlan.length === 0 ||
+    motifToStructureMapping.length === 0 ||
+    motifToCompositionMapping.length === 0 ||
+    motifToNarrativeMapping.length === 0 ||
+    motifToParameterMapping.length === 0 ||
+    !motifFallbackPlan ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    motifSystemName,
+    primaryMotifs,
+    secondaryMotifs,
+    motifHierarchy,
+    motifRecurrencePlan,
+    motifTransformationPlan,
+    motifToStructureMapping,
+    motifToCompositionMapping,
+    motifToNarrativeMapping,
+    motifToParameterMapping,
+    coherenceRisks: readStringListField(
+      value,
+      "coherence_risks",
+      "coherenceRisks"
+    ),
+    overuseRisks: readStringListField(value, "overuse_risks", "overuseRisks"),
+    underuseRisks: readStringListField(value, "underuse_risks", "underuseRisks"),
+    unsupportedSymbolicClaims: readStringListField(
+      value,
+      "unsupported_symbolic_claims",
+      "unsupportedSymbolicClaims"
+    ),
+    motifFallbackPlan,
+    unresolvedMotifGaps: readStringListField(
+      value,
+      "unresolved_motif_gaps",
+      "unresolvedMotifGaps"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const semanticMotifIds = [
+  "seed",
+  "spiral",
+  "threshold",
+  "mirror",
+  "void",
+  "center",
+  "circumference",
+  "axis",
+  "descent",
+  "ascent",
+  "fragmentation",
+  "reintegration",
+  "wave",
+  "lattice",
+  "network",
+  "pearl",
+  "flame",
+  "root",
+  "tree",
+  "vessel",
+  "mandala",
+  "grid",
+  "swarm",
+  "orbit",
+  "pulse",
+  "breath",
+  "gate",
+  "eye",
+  "river",
+  "constellation"
+] as const satisfies readonly SemanticMotifId[];
+
+const semanticMotifRoles = [
+  "anchor",
+  "threshold",
+  "transformation",
+  "connector",
+  "counterpoint",
+  "rhythm",
+  "spatial_order",
+  "material_signal",
+  "fallback"
+] as const satisfies readonly SemanticMotifRole[];
+
+const semanticMotifHierarchyLevels = [
+  "primary",
+  "secondary",
+  "supporting",
+  "fallback"
+] as const satisfies readonly SemanticMotifHierarchyLevel[];
+
+function readSemanticMotifSummaryList(
+  value: unknown
+): SemanticMotifSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const motifId = readStringUnion(
+      item,
+      "motif_id",
+      "motifId",
+      semanticMotifIds
+    );
+    const label = readStringField(item, "label");
+    const role = readStringUnion(item, "role", "role", semanticMotifRoles);
+    const hierarchyLevel = readStringUnion(
+      item,
+      "hierarchy_level",
+      "hierarchyLevel",
+      semanticMotifHierarchyLevels
+    );
+    const rationale = readStringField(item, "rationale");
+    const recurrenceGuidance = readStringListField(
+      item,
+      "recurrence_guidance",
+      "recurrenceGuidance"
+    );
+    const transformationGuidance = readStringListField(
+      item,
+      "transformation_guidance",
+      "transformationGuidance"
+    );
+
+    if (
+      !motifId ||
+      !label ||
+      !role ||
+      !hierarchyLevel ||
+      !rationale ||
+      recurrenceGuidance.length === 0 ||
+      transformationGuidance.length === 0
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        motifId,
+        label,
+        role,
+        hierarchyLevel,
+        rationale,
+        recurrenceGuidance,
+        transformationGuidance,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readSemanticMotifStructureMappingSummaryList(
+  value: unknown
+): SemanticMotifStructureMappingSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const motifId = readStringUnion(
+      item,
+      "motif_id",
+      "motifId",
+      semanticMotifIds
+    );
+    const structuralBehavior =
+      readStringField(item, "structural_behavior") ??
+      readStringField(item, "structuralBehavior");
+
+    if (!motifId || !structuralBehavior) {
+      return [];
+    }
+
+    return [
+      {
+        motifId,
+        proceduralFamilies: readProceduralFamilyList(
+          item.procedural_families ?? item.proceduralFamilies
+        ),
+        generativeModuleIds: readStringListField(
+          item,
+          "generative_module_ids",
+          "generativeModuleIds"
+        ),
+        generativeModuleKinds: readGenerativeModuleKindList(
+          item.generative_module_kinds ?? item.generativeModuleKinds
+        ),
+        structuralBehavior,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readSemanticMotifCompositionMappingSummaryList(
+  value: unknown
+): SemanticMotifCompositionMappingSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const motifId = readStringUnion(
+      item,
+      "motif_id",
+      "motifId",
+      semanticMotifIds
+    );
+    const compositionRole =
+      readStringField(item, "composition_role") ??
+      readStringField(item, "compositionRole");
+    const spatialAnchor =
+      readStringField(item, "spatial_anchor") ??
+      readStringField(item, "spatialAnchor");
+    const rhythmOrDensityGuidance =
+      readStringField(item, "rhythm_or_density_guidance") ??
+      readStringField(item, "rhythmOrDensityGuidance");
+
+    if (!motifId || !compositionRole || !spatialAnchor || !rhythmOrDensityGuidance) {
+      return [];
+    }
+
+    return [
+      {
+        motifId,
+        compositionRole,
+        spatialAnchor,
+        rhythmOrDensityGuidance,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readSemanticMotifNarrativeMappingSummaryList(
+  value: unknown
+): SemanticMotifNarrativeMappingSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const motifId = readStringUnion(
+      item,
+      "motif_id",
+      "motifId",
+      semanticMotifIds
+    );
+    const narrativeFunction =
+      readStringField(item, "narrative_function") ??
+      readStringField(item, "narrativeFunction");
+    const phaseAlignment = readStringListField(
+      item,
+      "phase_alignment",
+      "phaseAlignment"
+    );
+
+    if (!motifId || !narrativeFunction || phaseAlignment.length === 0) {
+      return [];
+    }
+
+    return [
+      {
+        motifId,
+        narrativeFunction,
+        phaseAlignment,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readSemanticMotifParameterMappingSummaryList(
+  value: unknown
+): SemanticMotifParameterMappingSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const motifId = readStringUnion(
+      item,
+      "motif_id",
+      "motifId",
+      semanticMotifIds
+    );
+    const parameterNames = readStringListField(
+      item,
+      "parameter_names",
+      "parameterNames"
+    );
+    const parameterGuidance =
+      readStringField(item, "parameter_guidance") ??
+      readStringField(item, "parameterGuidance");
+
+    if (!motifId || parameterNames.length === 0 || !parameterGuidance) {
+      return [];
+    }
+
+    return [
+      {
+        motifId,
+        parameterNames,
+        parameterGuidance,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readSemanticMotifFallbackPlanSummary(
+  value: unknown
+): SemanticMotifFallbackPlanSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const fallbackPrimaryMotif = readStringUnion(
+    value,
+    "fallback_primary_motif",
+    "fallbackPrimaryMotif",
+    semanticMotifIds
+  );
+  const simplificationStrategy =
+    readStringField(value, "simplification_strategy") ??
+    readStringField(value, "simplificationStrategy");
+  const preservedMeaning =
+    readStringField(value, "preserved_meaning") ??
+    readStringField(value, "preservedMeaning");
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+
+  if (
+    !fallbackPrimaryMotif ||
+    !simplificationStrategy ||
+    !preservedMeaning ||
+    promptGuidance.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    fallbackPrimaryMotif,
+    fallbackSecondaryMotifs: readSemanticMotifIdList(
+      value.fallback_secondary_motifs ?? value.fallbackSecondaryMotifs
+    ),
+    simplificationStrategy,
+    preservedMeaning,
+    promptGuidance
+  };
+}
+
+function readSemanticMotifIdList(value: unknown): SemanticMotifId[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (item): item is SemanticMotifId =>
+      typeof item === "string" &&
+      semanticMotifIds.includes(item as SemanticMotifId)
+  );
+}
+
 export function readCreativeReasoningSummary(
   value: unknown
 ): CreativeReasoningSummary | null {
@@ -3167,6 +3651,7 @@ const creativeReasoningEvidenceSources = [
   "creative_composition",
   "procedural_structure",
   "generative_structure",
+  "semantic_motif",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 
