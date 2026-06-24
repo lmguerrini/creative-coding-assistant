@@ -32,6 +32,9 @@ from creative_coding_assistant.orchestration.artifact_dependency_graph import (
 from creative_coding_assistant.orchestration.artifact_intelligence_synthesis import (
     derive_artifact_intelligence_synthesis_profile,
 )
+from creative_coding_assistant.orchestration.artifact_merge_planner import (
+    derive_artifact_merge_planner_profile,
+)
 from creative_coding_assistant.orchestration.artifact_planner import (
     derive_artifact_plan,
 )
@@ -979,6 +982,18 @@ def _planning_node(
                 artifact_refiner=artifact_refiner,
             )
         )
+        artifact_merge_planner = derive_artifact_merge_planner_profile(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            artifact_plan=artifact_plan,
+            artifact_dependency_graph=artifact_dependency_graph,
+            runtime_compatibility=runtime_compatibility,
+            artifact_capability_matrix=artifact_capability_matrix,
+            multi_artifact_strategy=multi_artifact_strategy,
+            artifact_critic=artifact_critic,
+            artifact_refiner=artifact_refiner,
+            artifact_intelligence_synthesis=artifact_intelligence_synthesis,
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -1009,6 +1024,7 @@ def _planning_node(
                 "artifact_intelligence_synthesis": (
                     artifact_intelligence_synthesis
                 ),
+                "artifact_merge_planner": artifact_merge_planner,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -1041,6 +1057,7 @@ def _planning_node(
                 "artifact_intelligence_synthesis": (
                     artifact_intelligence_synthesis
                 ),
+                "artifact_merge_planner": artifact_merge_planner,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -1085,6 +1102,9 @@ def _planning_node(
                 artifact_refiner=artifact_refiner.model_dump(mode="json"),
                 artifact_intelligence_synthesis=(
                     artifact_intelligence_synthesis.model_dump(mode="json")
+                ),
+                artifact_merge_planner=artifact_merge_planner.model_dump(
+                    mode="json"
                 ),
             ),
             workflow_state=planned_state,
@@ -1985,6 +2005,14 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "artifact_merge_planner",
+                    (
+                        final_state.artifact_merge_planner.model_dump(mode="json")
+                        if final_state.artifact_merge_planner is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_director",
                     (
                         final_state.creative_director.model_dump(mode="json")
@@ -2589,6 +2617,7 @@ def _derive_director_brief(
         artifact_intelligence_synthesis=(
             workflow_state.artifact_intelligence_synthesis
         ),
+        artifact_merge_planner=workflow_state.artifact_merge_planner,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2640,6 +2669,7 @@ def _derive_reasoning_result(
         artifact_intelligence_synthesis=(
             workflow_state.artifact_intelligence_synthesis
         ),
+        artifact_merge_planner=workflow_state.artifact_merge_planner,
     )
 
 
@@ -2881,6 +2911,7 @@ def _serialize_workflow_runtime(
     artifact_intelligence_synthesis = (
         workflow_state.artifact_intelligence_synthesis
     )
+    artifact_merge_planner = workflow_state.artifact_merge_planner
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -3086,6 +3117,12 @@ def _serialize_workflow_runtime(
         "artifact_intelligence_synthesis_available": (
             artifact_intelligence_synthesis is not None
         ),
+        "artifact_merge_planner": (
+            artifact_merge_planner.model_dump(mode="json")
+            if artifact_merge_planner is not None
+            else None
+        ),
+        "artifact_merge_planner_available": artifact_merge_planner is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None

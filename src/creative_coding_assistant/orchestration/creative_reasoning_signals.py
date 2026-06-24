@@ -15,6 +15,9 @@ from creative_coding_assistant.orchestration.artifact_dependency_graph import (
 from creative_coding_assistant.orchestration.artifact_intelligence_synthesis import (
     ArtifactIntelligenceSynthesisProfile,
 )
+from creative_coding_assistant.orchestration.artifact_merge_planner import (
+    ArtifactMergePlannerProfile,
+)
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.artifact_refiner import (
     ArtifactRefinerProfile,
@@ -112,6 +115,7 @@ def build_recommended_direction(
     artifact_critic: ArtifactCriticProfile | None,
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
+    artifact_merge_planner: ArtifactMergePlannerProfile | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -192,6 +196,12 @@ def build_recommended_direction(
         if artifact_intelligence_synthesis is not None
         else ""
     )
+    merge_planner_label = _artifact_merge_planner_label(artifact_merge_planner)
+    artifact_merge_planner_clause = (
+        f"Artifact merge planner as {_clip(merge_planner_label, 90)}. "
+        if artifact_merge_planner is not None
+        else ""
+    )
     direction = (
         f"Recommend {_strategy_label(creative_strategy)} via "
         f"{_technique_label(creative_techniques)} because it protects "
@@ -208,6 +218,7 @@ def build_recommended_direction(
         f"{artifact_critic_clause}"
         f"{artifact_refiner_clause}"
         f"{artifact_intelligence_synthesis_clause}"
+        f"{artifact_merge_planner_clause}"
         f"{motif_clause}"
         f"{emotion_clause}"
         f"{modality_clause}"
@@ -254,12 +265,14 @@ def build_reasoning_path(
     artifact_critic: ArtifactCriticProfile | None,
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
+    artifact_merge_planner: ArtifactMergePlannerProfile | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
     synthesis_label = _artifact_intelligence_synthesis_label(
         artifact_intelligence_synthesis
     )
+    merge_planner_label = _artifact_merge_planner_label(artifact_merge_planner)
     return (
         CreativeReasoningStep(
             stage="strategy",
@@ -341,6 +354,8 @@ def build_reasoning_path(
                     f"{_artifact_refiner_label(artifact_refiner)}, "
                     "artifact intelligence synthesis "
                     f"{synthesis_label}, "
+                    "artifact merge planner "
+                    f"{merge_planner_label}, "
                     "plus "
                     f"{_quality_label(creative_quality_prediction)}."
                 ),
@@ -361,7 +376,7 @@ def build_reasoning_path(
                     "plus dependency graph, runtime compatibility, and "
                     "capability matrix and multi-artifact strategy metadata "
                     "plus artifact critic, artifact refiner, and artifact "
-                    "intelligence synthesis metadata as "
+                    "intelligence synthesis and merge planner metadata as "
                     "guidance, not runtime behavior, runtime auto-selection, "
                     "provider routing, artifact generation, artifact "
                     "modification, final implementation choice, automatic "
@@ -607,6 +622,19 @@ def _artifact_intelligence_synthesis_label(
         f"{profile.implementation_risk} risk, "
         f"{profile.implementation_priority} priority, "
         f"{profile.synthesis_confidence:.2f} confidence"
+    )
+
+
+def _artifact_merge_planner_label(
+    profile: ArtifactMergePlannerProfile | None,
+) -> str:
+    if profile is None:
+        return "no artifact merge planner profile"
+    return (
+        f"{profile.merge_strategy}, "
+        f"{profile.merge_confidence:.2f} confidence, "
+        f"{len(profile.artifact_join_points)} join points, "
+        f"{len(profile.composition_risks)} composition risks"
     )
 
 

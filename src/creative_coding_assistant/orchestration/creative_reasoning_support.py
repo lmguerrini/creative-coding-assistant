@@ -16,6 +16,9 @@ from creative_coding_assistant.orchestration.artifact_dependency_graph import (
 from creative_coding_assistant.orchestration.artifact_intelligence_synthesis import (
     ArtifactIntelligenceSynthesisProfile,
 )
+from creative_coding_assistant.orchestration.artifact_merge_planner import (
+    ArtifactMergePlannerProfile,
+)
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.artifact_refiner import (
     ArtifactRefinerProfile,
@@ -118,6 +121,7 @@ def build_strongest_signals(
     artifact_critic: ArtifactCriticProfile | None,
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
+    artifact_merge_planner: ArtifactMergePlannerProfile | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -271,6 +275,13 @@ def build_strongest_signals(
             f"{artifact_intelligence_synthesis.implementation_priority} "
             "priority."
         )
+    if artifact_merge_planner is not None:
+        signals.append(
+            "Artifact merge planner: "
+            f"{artifact_merge_planner.merge_strategy}; "
+            f"{artifact_merge_planner.merge_confidence:.2f} confidence; "
+            f"{len(artifact_merge_planner.artifact_join_points)} join points."
+        )
     if creative_constraints is not None:
         signals.append(
             f"Constraints: complexity {creative_constraints.complexity_pressure}, "
@@ -371,6 +382,7 @@ def build_unresolved_decisions(
     artifact_critic: ArtifactCriticProfile | None,
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
+    artifact_merge_planner: ArtifactMergePlannerProfile | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -445,6 +457,10 @@ def build_unresolved_decisions(
         unresolved.extend(artifact_intelligence_synthesis.hitl_questions[:3])
         unresolved.extend(artifact_intelligence_synthesis.major_risks[:2])
         unresolved.extend(artifact_intelligence_synthesis.major_weaknesses[:1])
+    if artifact_merge_planner is not None:
+        unresolved.extend(artifact_merge_planner.hitl_questions[:3])
+        unresolved.extend(artifact_merge_planner.composition_risks[:2])
+        unresolved.extend(artifact_merge_planner.dependency_merge_risks[:1])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -481,6 +497,7 @@ def build_implementation_guidance(
     artifact_critic: ArtifactCriticProfile | None,
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
+    artifact_merge_planner: ArtifactMergePlannerProfile | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -628,6 +645,17 @@ def build_implementation_guidance(
             "modification, execution, runtime auto-selection, provider "
             "routing, preview behavior, escalation behavior, workflow "
             "triggering, retries, merging, or export."
+        )
+    if artifact_merge_planner is not None:
+        guidance.extend(artifact_merge_planner.prompt_guidance[:2])
+        guidance.append(artifact_merge_planner.recommended_merge_path)
+        guidance.extend(artifact_merge_planner.artifact_separation_points[:1])
+        guidance.append(
+            "Preserve Artifact Merge Planner metadata as advisory "
+            "composition guidance only, not artifact merging, artifact "
+            "modification, final implementation choice, execution, export, "
+            "runtime selection, provider routing, preview behavior, workflow "
+            "triggering, retry behavior, or escalation."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

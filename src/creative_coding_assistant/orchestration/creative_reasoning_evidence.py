@@ -15,6 +15,9 @@ from creative_coding_assistant.orchestration.artifact_dependency_graph import (
 from creative_coding_assistant.orchestration.artifact_intelligence_synthesis import (
     ArtifactIntelligenceSynthesisProfile,
 )
+from creative_coding_assistant.orchestration.artifact_merge_planner import (
+    ArtifactMergePlannerProfile,
+)
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.artifact_refiner import (
     ArtifactRefinerProfile,
@@ -124,6 +127,7 @@ def build_evidence_chain(
     artifact_critic: ArtifactCriticProfile | None,
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
+    artifact_merge_planner: ArtifactMergePlannerProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -573,6 +577,33 @@ def build_evidence_chain(
                 ),
             )
         )
+    if artifact_merge_planner is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="artifact_merge_planner",
+                signal=_clip(
+                    (
+                        f"{artifact_merge_planner.merge_strategy}; "
+                        f"{artifact_merge_planner.merge_confidence:.2f} "
+                        "confidence; "
+                        f"{len(artifact_merge_planner.artifact_join_points)} "
+                        "join points; "
+                        f"{len(artifact_merge_planner.composition_risks)} "
+                        "composition risks"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Artifact merge planner evidence recommends merge and "
+                    "composition strategy, boundaries, join points, "
+                    "separation points, integration order, alternatives, "
+                    "rejected paths, and risks as advisory metadata only, "
+                    "without merging, modifying, executing, exporting, "
+                    "selecting runtime, routing providers, changing previews, "
+                    "triggering workflows, retrying, or escalating."
+                ),
+            )
+        )
     if creative_director is not None:
         evidence.append(
             CreativeReasoningEvidence(
@@ -581,7 +612,7 @@ def build_evidence_chain(
                 interpretation="Director guidance frames brief and HITL posture.",
             )
         )
-    return tuple(evidence[:31])
+    return tuple(evidence[:30])
 
 
 def _append_strategy_evidence(

@@ -22,6 +22,9 @@ from creative_coding_assistant.orchestration.artifact_dependency_graph import (
 from creative_coding_assistant.orchestration.artifact_intelligence_synthesis import (
     ArtifactIntelligenceSynthesisProfile,
 )
+from creative_coding_assistant.orchestration.artifact_merge_planner import (
+    ArtifactMergePlannerProfile,
+)
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.artifact_refiner import (
     ArtifactRefinerProfile,
@@ -226,6 +229,7 @@ class AssistantWorkflowState(BaseModel):
     artifact_intelligence_synthesis: (
         ArtifactIntelligenceSynthesisProfile | None
     ) = None
+    artifact_merge_planner: ArtifactMergePlannerProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     rendered_prompt: RenderedPromptResponse | None = None

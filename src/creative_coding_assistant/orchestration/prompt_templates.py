@@ -28,6 +28,10 @@ from creative_coding_assistant.orchestration.artifact_intelligence_synthesis imp
     ArtifactIntelligenceSynthesisProfile,
     artifact_intelligence_synthesis_prompt_lines,
 )
+from creative_coding_assistant.orchestration.artifact_merge_planner import (
+    ArtifactMergePlannerProfile,
+    artifact_merge_planner_prompt_lines,
+)
 from creative_coding_assistant.orchestration.artifact_planner import (
     ArtifactPlan,
     artifact_plan_prompt_lines,
@@ -380,6 +384,13 @@ Artifact Intelligence Synthesis:
 - {{ instruction }}
 {% endfor %}
 {% endif %}
+{% set merge_planner = prompt_input.artifact_merge_planner -%}
+{% if merge_planner is not none -%}
+Artifact Merge Planner:
+{% for instruction in artifact_merge_planner_lines(merge_planner) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
 {% set director = prompt_input.creative_director -%}
 {% if director is not none -%}
 Creative Assistant Director:
@@ -643,6 +654,7 @@ class JinjaPromptRenderer:
             artifact_intelligence_synthesis_lines=(
                 _artifact_intelligence_synthesis_lines
             ),
+            artifact_merge_planner_lines=_artifact_merge_planner_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -963,6 +975,12 @@ def _artifact_intelligence_synthesis_lines(
     profile: ArtifactIntelligenceSynthesisProfile,
 ) -> tuple[str, ...]:
     return artifact_intelligence_synthesis_prompt_lines(profile)
+
+
+def _artifact_merge_planner_lines(
+    profile: ArtifactMergePlannerProfile,
+) -> tuple[str, ...]:
+    return artifact_merge_planner_prompt_lines(profile)
 
 
 def _creative_assistant_director_lines(

@@ -18,6 +18,9 @@ from creative_coding_assistant.orchestration.artifact_dependency_graph import (
 from creative_coding_assistant.orchestration.artifact_intelligence_synthesis import (
     ArtifactIntelligenceSynthesisProfile,
 )
+from creative_coding_assistant.orchestration.artifact_merge_planner import (
+    ArtifactMergePlannerProfile,
+)
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.artifact_refiner import (
     ArtifactRefinerProfile,
@@ -125,6 +128,7 @@ def build_director_brief_payload(
     artifact_critic: ArtifactCriticProfile | None,
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
+    artifact_merge_planner: ArtifactMergePlannerProfile | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -154,6 +158,7 @@ def build_director_brief_payload(
         artifact_critic=artifact_critic,
         artifact_refiner=artifact_refiner,
         artifact_intelligence_synthesis=artifact_intelligence_synthesis,
+        artifact_merge_planner=artifact_merge_planner,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -198,6 +203,7 @@ def build_director_brief_payload(
             artifact_critic,
             artifact_refiner,
             artifact_intelligence_synthesis,
+            artifact_merge_planner,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -226,6 +232,7 @@ def build_director_brief_payload(
             artifact_critic=artifact_critic,
             artifact_refiner=artifact_refiner,
             artifact_intelligence_synthesis=artifact_intelligence_synthesis,
+            artifact_merge_planner=artifact_merge_planner,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -255,6 +262,7 @@ def build_director_brief_payload(
             artifact_critic=artifact_critic,
             artifact_refiner=artifact_refiner,
             artifact_intelligence_synthesis=artifact_intelligence_synthesis,
+            artifact_merge_planner=artifact_merge_planner,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -290,6 +298,7 @@ def build_director_brief_payload(
             artifact_critic=artifact_critic,
             artifact_refiner=artifact_refiner,
             artifact_intelligence_synthesis=artifact_intelligence_synthesis,
+            artifact_merge_planner=artifact_merge_planner,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -345,6 +354,7 @@ def _ambiguity_signals(
     artifact_critic: ArtifactCriticProfile | None,
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
+    artifact_merge_planner: ArtifactMergePlannerProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -411,6 +421,9 @@ def _ambiguity_signals(
     if artifact_intelligence_synthesis is not None:
         signals.extend(artifact_intelligence_synthesis.hitl_questions[:1])
         signals.extend(artifact_intelligence_synthesis.major_risks[:1])
+    if artifact_merge_planner is not None:
+        signals.extend(artifact_merge_planner.hitl_questions[:1])
+        signals.extend(artifact_merge_planner.composition_risks[:1])
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -452,6 +465,16 @@ def _artifact_intelligence_synthesis_focus(
     )
 
 
+def _artifact_merge_planner_focus(
+    profile: ArtifactMergePlannerProfile,
+) -> str:
+    return (
+        " Artifact merge planner: "
+        f"{profile.merge_strategy}; "
+        f"{len(profile.artifact_join_points)} join points; metadata only."
+    )
+
+
 def _planning_focus(
     plan: CreativeExecutionPlan | None,
     creative_intent: CreativeIntentDecomposition | None,
@@ -479,6 +502,7 @@ def _planning_focus(
     artifact_critic: ArtifactCriticProfile | None,
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
+    artifact_merge_planner: ArtifactMergePlannerProfile | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_intent is not None:
@@ -529,6 +553,8 @@ def _planning_focus(
             runtime_focus += _artifact_intelligence_synthesis_focus(
                 artifact_intelligence_synthesis
             )
+        if artifact_merge_planner is not None:
+            runtime_focus += _artifact_merge_planner_focus(artifact_merge_planner)
         focus.append(runtime_focus)
         if (
             artifact_capability_matrix is None
@@ -536,6 +562,7 @@ def _planning_focus(
             and artifact_critic is None
             and artifact_refiner is None
             and artifact_intelligence_synthesis is None
+            and artifact_merge_planner is None
         ):
             focus.extend(runtime_compatibility.prompt_guidance[:1])
     elif artifact_capability_matrix is not None:
@@ -565,12 +592,15 @@ def _planning_focus(
             capability_focus += _artifact_intelligence_synthesis_focus(
                 artifact_intelligence_synthesis
             )
+        if artifact_merge_planner is not None:
+            capability_focus += _artifact_merge_planner_focus(artifact_merge_planner)
         focus.append(capability_focus)
         if (
             multi_artifact_strategy is None
             and artifact_critic is None
             and artifact_refiner is None
             and artifact_intelligence_synthesis is None
+            and artifact_merge_planner is None
         ):
             focus.extend(artifact_capability_matrix.prompt_guidance[:1])
     elif multi_artifact_strategy is not None:
@@ -594,11 +624,14 @@ def _planning_focus(
             strategy_focus += _artifact_intelligence_synthesis_focus(
                 artifact_intelligence_synthesis
             )
+        if artifact_merge_planner is not None:
+            strategy_focus += _artifact_merge_planner_focus(artifact_merge_planner)
         focus.append(strategy_focus)
         if (
             artifact_critic is None
             and artifact_refiner is None
             and artifact_intelligence_synthesis is None
+            and artifact_merge_planner is None
         ):
             focus.extend(multi_artifact_strategy.prompt_guidance[:1])
     elif artifact_critic is not None:
@@ -617,8 +650,14 @@ def _planning_focus(
             critic_focus += _artifact_intelligence_synthesis_focus(
                 artifact_intelligence_synthesis
             )
+        if artifact_merge_planner is not None:
+            critic_focus += _artifact_merge_planner_focus(artifact_merge_planner)
         focus.append(critic_focus)
-        if artifact_refiner is None and artifact_intelligence_synthesis is None:
+        if (
+            artifact_refiner is None
+            and artifact_intelligence_synthesis is None
+            and artifact_merge_planner is None
+        ):
             focus.extend(artifact_critic.prompt_guidance[:1])
     elif artifact_refiner is not None:
         refiner_focus = (
@@ -631,17 +670,31 @@ def _planning_focus(
             refiner_focus += _artifact_intelligence_synthesis_focus(
                 artifact_intelligence_synthesis
             )
+        if artifact_merge_planner is not None:
+            refiner_focus += _artifact_merge_planner_focus(artifact_merge_planner)
         focus.append(refiner_focus)
-        if artifact_intelligence_synthesis is None:
+        if artifact_intelligence_synthesis is None and artifact_merge_planner is None:
             focus.extend(artifact_refiner.prompt_guidance[:1])
     elif artifact_intelligence_synthesis is not None:
-        focus.append(
+        synthesis_focus = (
             "Artifact intelligence synthesis: "
             f"{artifact_intelligence_synthesis.implementation_readiness}; "
             f"{artifact_intelligence_synthesis.implementation_priority} "
             "priority; metadata only."
         )
-        focus.extend(artifact_intelligence_synthesis.prompt_guidance[:1])
+        if artifact_merge_planner is not None:
+            synthesis_focus += _artifact_merge_planner_focus(artifact_merge_planner)
+        focus.append(synthesis_focus)
+        if artifact_merge_planner is None:
+            focus.extend(artifact_intelligence_synthesis.prompt_guidance[:1])
+    elif artifact_merge_planner is not None:
+        focus.append(
+            "Artifact merge planner: "
+            f"{artifact_merge_planner.merge_strategy}; "
+            f"{len(artifact_merge_planner.artifact_join_points)} join points; "
+            "metadata only."
+        )
+        focus.extend(artifact_merge_planner.prompt_guidance[:1])
     if procedural_structure is not None:
         focus.append(
             "Procedural structure: "
@@ -782,6 +835,7 @@ def _critique_focus(
     artifact_critic: ArtifactCriticProfile | None,
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
+    artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -968,6 +1022,17 @@ def _critique_focus(
         )
         focus.extend(artifact_intelligence_synthesis.major_risks[:1])
         focus.extend(artifact_intelligence_synthesis.major_weaknesses[:1])
+    if artifact_merge_planner is not None:
+        focus.append(
+            "Artifact Merge Planner is pre-generation metadata merge "
+            "planning only; compare output against boundaries, join points, "
+            "separation points, integration order, alternatives, rejected "
+            "paths, risks, and HITL questions without merging, modifying, "
+            "executing, exporting, selecting runtimes, routing, previewing, "
+            "triggering workflows, retrying, or escalating."
+        )
+        focus.extend(artifact_merge_planner.composition_risks[:1])
+        focus.extend(artifact_merge_planner.rejected_merge_paths[:1])
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -1029,6 +1094,7 @@ def _next_actions(
     artifact_critic: ArtifactCriticProfile | None,
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
+    artifact_merge_planner: ArtifactMergePlannerProfile | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
@@ -1085,6 +1151,8 @@ def _next_actions(
         and artifact_intelligence_synthesis.hitl_questions
     ):
         return (artifact_intelligence_synthesis.hitl_questions[0],)
+    if artifact_merge_planner is not None and artifact_merge_planner.hitl_questions:
+        return (artifact_merge_planner.hitl_questions[0],)
     if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
@@ -1132,6 +1200,7 @@ def _evidence(
     artifact_critic: ArtifactCriticProfile | None,
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
+    artifact_merge_planner: ArtifactMergePlannerProfile | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -1289,6 +1358,13 @@ def _evidence(
             f"{artifact_intelligence_synthesis.implementation_risk} risk; "
             f"{artifact_intelligence_synthesis.synthesis_confidence:.2f} "
             "confidence."
+        )
+    if artifact_merge_planner is not None:
+        evidence.append(
+            "Artifact merge planner: "
+            f"{artifact_merge_planner.merge_strategy}; "
+            f"{artifact_merge_planner.merge_confidence:.2f} confidence; "
+            f"{len(artifact_merge_planner.artifact_join_points)} join points."
         )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")

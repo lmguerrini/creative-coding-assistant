@@ -22,6 +22,9 @@ from creative_coding_assistant.orchestration.artifact_dependency_graph import (
 from creative_coding_assistant.orchestration.artifact_intelligence_synthesis import (
     ArtifactIntelligenceSynthesisProfile,
 )
+from creative_coding_assistant.orchestration.artifact_merge_planner import (
+    ArtifactMergePlannerProfile,
+)
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.artifact_refiner import (
     ArtifactRefinerProfile,
@@ -159,6 +162,7 @@ def derive_creative_assistant_director_brief(
     artifact_intelligence_synthesis: (
         ArtifactIntelligenceSynthesisProfile | None
     ) = None,
+    artifact_merge_planner: ArtifactMergePlannerProfile | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -198,6 +202,7 @@ def derive_creative_assistant_director_brief(
             artifact_critic=artifact_critic,
             artifact_refiner=artifact_refiner,
             artifact_intelligence_synthesis=artifact_intelligence_synthesis,
+            artifact_merge_planner=artifact_merge_planner,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
