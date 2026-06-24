@@ -12,6 +12,10 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.domains import get_domain_prompt_guidance
+from creative_coding_assistant.orchestration.artifact_capability_matrix import (
+    ArtifactCapabilityMatrix,
+    artifact_capability_matrix_prompt_lines,
+)
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
     artifact_dependency_graph_prompt_lines,
@@ -325,6 +329,13 @@ Runtime Compatibility Engine:
 - {{ instruction }}
 {% endfor %}
 {% endif %}
+{% set artifact_capability_matrix = prompt_input.artifact_capability_matrix -%}
+{% if artifact_capability_matrix is not none -%}
+Artifact Capability Matrix:
+{% for instruction in artifact_capability_matrix_lines(artifact_capability_matrix) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
 {% set director = prompt_input.creative_director -%}
 {% if director is not none -%}
 Creative Assistant Director:
@@ -581,6 +592,7 @@ class JinjaPromptRenderer:
             artifact_plan_lines=_artifact_plan_lines,
             artifact_dependency_graph_lines=_artifact_dependency_graph_lines,
             runtime_compatibility_lines=_runtime_compatibility_lines,
+            artifact_capability_matrix_lines=_artifact_capability_matrix_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -871,6 +883,12 @@ def _runtime_compatibility_lines(
     profile: RuntimeCompatibilityProfile,
 ) -> tuple[str, ...]:
     return runtime_compatibility_prompt_lines(profile)
+
+
+def _artifact_capability_matrix_lines(
+    matrix: ArtifactCapabilityMatrix,
+) -> tuple[str, ...]:
+    return artifact_capability_matrix_prompt_lines(matrix)
 
 
 def _creative_assistant_director_lines(

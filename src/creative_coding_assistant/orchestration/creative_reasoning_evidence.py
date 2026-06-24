@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.artifact_capability_matrix import (
+    ArtifactCapabilityMatrix,
+)
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
@@ -104,6 +107,7 @@ def build_evidence_chain(
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
     runtime_compatibility: RuntimeCompatibilityProfile | None,
+    artifact_capability_matrix: ArtifactCapabilityMatrix | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -432,6 +436,34 @@ def build_evidence_chain(
                 ),
             )
         )
+    if artifact_capability_matrix is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="artifact_capability_matrix",
+                signal=_clip(
+                    (
+                        "Strongest "
+                        + ", ".join(artifact_capability_matrix.strongest_targets)
+                        + "; profiles "
+                        + str(len(artifact_capability_matrix.capability_profiles))
+                        + "; unsupported/risky "
+                        + str(
+                            len(
+                                artifact_capability_matrix.unsupported_or_risky_capabilities
+                            )
+                        )
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Artifact capability matrix evidence describes target "
+                    "strengths, weaknesses, fit dimensions, unsupported "
+                    "capabilities, and risks as planning guidance only, "
+                    "without runtime selection, execution, routing, or preview "
+                    "changes."
+                ),
+            )
+        )
     if creative_director is not None:
         evidence.append(
             CreativeReasoningEvidence(
@@ -440,7 +472,7 @@ def build_evidence_chain(
                 interpretation="Director guidance frames brief and HITL posture.",
             )
         )
-    return tuple(evidence[:26])
+    return tuple(evidence[:27])
 
 
 def _append_strategy_evidence(

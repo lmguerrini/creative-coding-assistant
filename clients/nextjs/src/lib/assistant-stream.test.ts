@@ -3,6 +3,7 @@ import {
   AssistantStreamError,
   decodeAssistantStream,
   parseAssistantStreamLine,
+  readArtifactCapabilityMatrixSummary,
   readArtifactDependencyGraphSummary,
   readArtifactPlanSummary,
   readAudioVisualSceneProfileSummary,
@@ -1159,6 +1160,90 @@ function runtimeCompatibilityFixture() {
     authority_boundary:
       "The Runtime Compatibility Engine evaluates runtime compatibility as inspectable metadata only.",
     evidence: ["Compatibility order: p5_js:compatible:0.93."]
+  };
+}
+
+function artifactCapabilityMatrixFixture() {
+  return {
+    role: "artifact_capability_matrix",
+    capability_profiles: [
+      {
+        target: "p5_js",
+        label: "p5.js",
+        capability_confidence: 0.91,
+        capability_reasons: [
+          "p5.js artifact capability fit is strong."
+        ],
+        strengths: [
+          "Fast iteration for sketches, particles, geometry, and interaction."
+        ],
+        weaknesses: [
+          "Large particle counts can pressure frame rate."
+        ],
+        unsupported_capabilities: [
+          "Native shader pipelines require additional scaffolding."
+        ],
+        risky_capabilities: [
+          "Dense animation can become CPU-bound without caps."
+        ],
+        artifact_fit: "strong",
+        creative_fit: "strong",
+        generative_fit: "strong",
+        interaction_fit: "strong",
+        audiovisual_fit: "moderate",
+        export_fit: "moderate",
+        interoperability_fit: "strong",
+        portability_fit: "strong",
+        capability_risks: [
+          "Do not use capability metadata to auto-select targets."
+        ],
+        prompt_guidance: [
+          "Use p5.js capability notes as planning metadata only."
+        ],
+        evidence: ["Target evaluated: p5_js."]
+      }
+    ],
+    strongest_targets: ["p5_js", "canvas"],
+    weakest_targets: ["glsl"],
+    target_strengths: [
+      "p5.js: Fast iteration for sketches, particles, geometry, and interaction."
+    ],
+    target_weaknesses: [
+      "p5.js: Large particle counts can pressure frame rate."
+    ],
+    unsupported_or_risky_capabilities: [
+      "p5.js: Native shader pipelines require additional scaffolding."
+    ],
+    capability_confidence: [
+      {
+        target: "p5_js",
+        label: "p5.js",
+        confidence: 0.91
+      }
+    ],
+    artifact_fit: "strong",
+    creative_fit: "strong",
+    generative_fit: "strong",
+    interaction_fit: "strong",
+    audiovisual_fit: "moderate",
+    export_fit: "moderate",
+    interoperability_fit: "strong",
+    portability_fit: "strong",
+    missing_capability_information: [
+      "Creative plan does not provide an explicit runtime hint."
+    ],
+    capability_risks: [
+      "Do not use capability metadata to auto-select targets."
+    ],
+    hitl_questions: [
+      "Should weak or unsupported targets be explicitly de-emphasized: GLSL?"
+    ],
+    prompt_guidance: [
+      "Use Artifact Capability Matrix output as target capability metadata only."
+    ],
+    authority_boundary:
+      "The Artifact Capability Matrix describes runtime and artifact target capabilities as inspectable planning metadata only.",
+    evidence: ["Capability order: p5_js:strong:0.91."]
   };
 }
 
@@ -2726,6 +2811,28 @@ describe("assistant stream client", () => {
     });
   });
 
+  it("reads artifact capability matrix metadata", () => {
+    const matrix = readArtifactCapabilityMatrixSummary(
+      artifactCapabilityMatrixFixture()
+    );
+
+    expect(matrix?.role).toBe("artifact_capability_matrix");
+    expect(matrix?.strongestTargets).toEqual(["p5_js", "canvas"]);
+    expect(matrix?.weakestTargets).toEqual(["glsl"]);
+    expect(matrix?.capabilityConfidence[0]).toMatchObject({
+      target: "p5_js",
+      confidence: 0.91
+    });
+    expect(matrix?.capabilityProfiles[0]).toMatchObject({
+      target: "p5_js",
+      artifactFit: "strong",
+      creativeFit: "strong",
+      generativeFit: "strong",
+      interoperabilityFit: "strong",
+      portabilityFit: "strong"
+    });
+  });
+
   it("reads creative trade-off explorer metadata", () => {
     const profile = readCreativeTradeoffExplorerSummary({
       role: "creative_tradeoff_explorer",
@@ -4111,6 +4218,53 @@ describe("assistant stream client", () => {
         ]
       },
       runtime_compatibility_available: true
+    });
+  });
+
+  it("hydrates artifact capability matrix workflow metadata", () => {
+    const artifactCapabilityMatrix = artifactCapabilityMatrixFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 19,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          artifact_capability_matrix: artifactCapabilityMatrix,
+          artifact_capability_matrix_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      artifact_capability_matrix: {
+        role: "artifact_capability_matrix",
+        strongestTargets: ["p5_js", "canvas"],
+        weakestTargets: ["glsl"],
+        capabilityProfiles: [
+          {
+            target: "p5_js",
+            artifactFit: "strong",
+            generativeFit: "strong",
+            portabilityFit: "strong"
+          }
+        ]
+      },
+      artifact_capability_matrix_available: true
     });
   });
 

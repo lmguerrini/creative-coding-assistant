@@ -387,6 +387,65 @@ export type RuntimeCompatibilityProfileSummary = {
   evidence: string[];
 };
 
+export type ArtifactCapabilityFit =
+  | "strong"
+  | "moderate"
+  | "weak"
+  | "unsupported";
+
+export type ArtifactCapabilityConfidenceSummary = {
+  target: RuntimeCapabilityId;
+  label: string;
+  confidence: number;
+};
+
+export type ArtifactCapabilityProfileSummary = {
+  target: RuntimeCapabilityId;
+  label: string;
+  capabilityConfidence: number;
+  capabilityReasons: string[];
+  strengths: string[];
+  weaknesses: string[];
+  unsupportedCapabilities: string[];
+  riskyCapabilities: string[];
+  artifactFit: ArtifactCapabilityFit;
+  creativeFit: ArtifactCapabilityFit;
+  generativeFit: ArtifactCapabilityFit;
+  interactionFit: ArtifactCapabilityFit;
+  audiovisualFit: ArtifactCapabilityFit;
+  exportFit: ArtifactCapabilityFit;
+  interoperabilityFit: ArtifactCapabilityFit;
+  portabilityFit: ArtifactCapabilityFit;
+  capabilityRisks: string[];
+  promptGuidance: string[];
+  evidence: string[];
+};
+
+export type ArtifactCapabilityMatrixSummary = {
+  role: "artifact_capability_matrix";
+  capabilityProfiles: ArtifactCapabilityProfileSummary[];
+  strongestTargets: RuntimeCapabilityId[];
+  weakestTargets: RuntimeCapabilityId[];
+  targetStrengths: string[];
+  targetWeaknesses: string[];
+  unsupportedOrRiskyCapabilities: string[];
+  capabilityConfidence: ArtifactCapabilityConfidenceSummary[];
+  artifactFit: ArtifactCapabilityFit;
+  creativeFit: ArtifactCapabilityFit;
+  generativeFit: ArtifactCapabilityFit;
+  interactionFit: ArtifactCapabilityFit;
+  audiovisualFit: ArtifactCapabilityFit;
+  exportFit: ArtifactCapabilityFit;
+  interoperabilityFit: ArtifactCapabilityFit;
+  portabilityFit: ArtifactCapabilityFit;
+  missingCapabilityInformation: string[];
+  capabilityRisks: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeTradeoffAxis =
   | "creative_expressiveness"
   | "concept_fidelity"
@@ -1487,6 +1546,7 @@ export type CreativeReasoningEvidenceSource =
   | "artifact_plan"
   | "artifact_dependency_graph"
   | "runtime_compatibility"
+  | "artifact_capability_matrix"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {

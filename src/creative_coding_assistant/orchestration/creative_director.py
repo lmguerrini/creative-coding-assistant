@@ -7,6 +7,9 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.artifact_capability_matrix import (
+    ArtifactCapabilityMatrix,
+)
 from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
@@ -137,6 +140,7 @@ def derive_creative_assistant_director_brief(
     artifact_plan: ArtifactPlan | None = None,
     artifact_dependency_graph: ArtifactDependencyGraph | None = None,
     runtime_compatibility: RuntimeCompatibilityProfile | None = None,
+    artifact_capability_matrix: ArtifactCapabilityMatrix | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -171,6 +175,7 @@ def derive_creative_assistant_director_brief(
             artifact_plan=artifact_plan,
             artifact_dependency_graph=artifact_dependency_graph,
             runtime_compatibility=runtime_compatibility,
+            artifact_capability_matrix=artifact_capability_matrix,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

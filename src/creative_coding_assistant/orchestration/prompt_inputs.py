@@ -14,6 +14,9 @@ from creative_coding_assistant.contracts import (
     CreativeCodingDomain,
 )
 from creative_coding_assistant.memory import ProjectMemoryKind
+from creative_coding_assistant.orchestration.artifact_capability_matrix import (
+    ArtifactCapabilityMatrix,
+)
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
@@ -349,6 +352,7 @@ class PromptInputResponse(BaseModel):
     artifact_plan: ArtifactPlan | None = None
     artifact_dependency_graph: ArtifactDependencyGraph | None = None
     runtime_compatibility: RuntimeCompatibilityProfile | None = None
+    artifact_capability_matrix: ArtifactCapabilityMatrix | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None

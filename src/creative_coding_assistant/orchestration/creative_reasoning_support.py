@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+from creative_coding_assistant.orchestration.artifact_capability_matrix import (
+    ArtifactCapabilityMatrix,
+)
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
@@ -98,6 +101,7 @@ def build_strongest_signals(
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
     runtime_compatibility: RuntimeCompatibilityProfile | None,
+    artifact_capability_matrix: ArtifactCapabilityMatrix | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -212,6 +216,15 @@ def build_strongest_signals(
             f"{len(runtime_compatibility.compatible_runtimes)} compatible; "
             f"{len(runtime_compatibility.unsupported_runtimes)} unsupported."
         )
+    if artifact_capability_matrix is not None:
+        signals.append(
+            "Artifact capability matrix: "
+            + ", ".join(artifact_capability_matrix.strongest_targets)
+            + " strongest; "
+            f"{len(artifact_capability_matrix.capability_profiles)} profiles; "
+            f"{len(artifact_capability_matrix.unsupported_or_risky_capabilities)} "
+            "unsupported/risky."
+        )
     if creative_constraints is not None:
         signals.append(
             f"Constraints: complexity {creative_constraints.complexity_pressure}, "
@@ -307,6 +320,7 @@ def build_unresolved_decisions(
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
     runtime_compatibility: RuntimeCompatibilityProfile | None,
+    artifact_capability_matrix: ArtifactCapabilityMatrix | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -361,6 +375,10 @@ def build_unresolved_decisions(
         unresolved.extend(runtime_compatibility.hitl_questions[:3])
         unresolved.extend(runtime_compatibility.missing_runtime_information[:2])
         unresolved.extend(runtime_compatibility.implementation_risks[:2])
+    if artifact_capability_matrix is not None:
+        unresolved.extend(artifact_capability_matrix.hitl_questions[:3])
+        unresolved.extend(artifact_capability_matrix.missing_capability_information[:2])
+        unresolved.extend(artifact_capability_matrix.capability_risks[:2])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -392,6 +410,7 @@ def build_implementation_guidance(
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
     runtime_compatibility: RuntimeCompatibilityProfile | None,
+    artifact_capability_matrix: ArtifactCapabilityMatrix | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -490,6 +509,15 @@ def build_implementation_guidance(
         guidance.append(
             "Preserve runtime compatibility as metadata only, not runtime "
             "auto-selection, provider routing, preview behavior, or execution."
+        )
+    if artifact_capability_matrix is not None:
+        guidance.extend(artifact_capability_matrix.prompt_guidance[:2])
+        guidance.extend(artifact_capability_matrix.target_strengths[:1])
+        guidance.extend(artifact_capability_matrix.target_weaknesses[:1])
+        guidance.append(
+            "Preserve artifact capability matrix metadata as target capability "
+            "guidance, not runtime auto-selection, export intelligence, "
+            "provider routing, preview behavior, or execution."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

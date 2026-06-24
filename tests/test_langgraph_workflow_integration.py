@@ -255,6 +255,9 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             "artifact_dependency_graph"
         ]
         runtime_compatibility = planning_event.payload["runtime_compatibility"]
+        artifact_capability_matrix = planning_event.payload[
+            "artifact_capability_matrix"
+        ]
         director = director_event.payload["creative_director"]
         reasoning = reasoning_event.payload["creative_reasoning"]
 
@@ -425,6 +428,17 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             planning_event.payload["workflow"]["runtime_compatibility_available"]
         )
         self.assertEqual(
+            artifact_capability_matrix["role"],
+            "artifact_capability_matrix",
+        )
+        self.assertIn("p5_js", artifact_capability_matrix["strongest_targets"])
+        self.assertTrue(artifact_capability_matrix["capability_profiles"])
+        self.assertTrue(
+            planning_event.payload["workflow"][
+                "artifact_capability_matrix_available"
+            ]
+        )
+        self.assertEqual(
             final_event.payload["artifact_plan"],
             planning_event.payload["artifact_plan"],
         )
@@ -435,6 +449,10 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(
             final_event.payload["runtime_compatibility"],
             planning_event.payload["runtime_compatibility"],
+        )
+        self.assertEqual(
+            final_event.payload["artifact_capability_matrix"],
+            planning_event.payload["artifact_capability_matrix"],
         )
         self.assertEqual(
             final_event.payload["creative_director"]["runtime_direction"],

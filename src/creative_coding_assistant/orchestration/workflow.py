@@ -7,6 +7,9 @@ from enum import StrEnum
 from pydantic import BaseModel, ConfigDict
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.artifact_capability_matrix import (
+    ArtifactCapabilityMatrix,
+)
 from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
@@ -204,6 +207,7 @@ class AssistantWorkflowState(BaseModel):
     artifact_plan: ArtifactPlan | None = None
     artifact_dependency_graph: ArtifactDependencyGraph | None = None
     runtime_compatibility: RuntimeCompatibilityProfile | None = None
+    artifact_capability_matrix: ArtifactCapabilityMatrix | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     rendered_prompt: RenderedPromptResponse | None = None

@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration.artifact_capability_matrix import (
+    ArtifactCapabilityMatrix,
+)
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
@@ -92,6 +95,7 @@ def build_recommended_direction(
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
     runtime_compatibility: RuntimeCompatibilityProfile | None,
+    artifact_capability_matrix: ArtifactCapabilityMatrix | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -140,6 +144,12 @@ def build_recommended_direction(
         if runtime_compatibility is not None
         else ""
     )
+    capability_clause = (
+        "Capabilities as "
+        f"{_clip(_artifact_capability_matrix_label(artifact_capability_matrix), 90)}. "
+        if artifact_capability_matrix is not None
+        else ""
+    )
     direction = (
         f"Recommend {_strategy_label(creative_strategy)} via "
         f"{_technique_label(creative_techniques)} because it protects "
@@ -151,6 +161,7 @@ def build_recommended_direction(
         f"{artifact_clause}"
         f"{dependency_clause}"
         f"{compatibility_clause}"
+        f"{capability_clause}"
         f"{motif_clause}"
         f"{emotion_clause}"
         f"{modality_clause}"
@@ -192,6 +203,7 @@ def build_reasoning_path(
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
     runtime_compatibility: RuntimeCompatibilityProfile | None,
+    artifact_capability_matrix: ArtifactCapabilityMatrix | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -266,6 +278,9 @@ def build_reasoning_path(
                     f"{_artifact_dependency_label(artifact_dependency_graph)}, "
                     "runtime compatibility "
                     f"{_runtime_compatibility_label(runtime_compatibility)}, and "
+                    "target capabilities "
+                    f"{_artifact_capability_matrix_label(artifact_capability_matrix)}, "
+                    "plus "
                     f"{_quality_label(creative_quality_prediction)}."
                 ),
                 360,
@@ -282,9 +297,10 @@ def build_reasoning_path(
                 ),
                 (
                     "Treat cross-modality, scene timing, and artifact planning "
-                    "plus dependency graph and runtime compatibility metadata "
-                    "as guidance, not runtime behavior, runtime auto-selection, "
-                    "provider routing, artifact selection, or critique."
+                    "plus dependency graph, runtime compatibility, and "
+                    "capability matrix metadata as guidance, not runtime "
+                    "behavior, runtime auto-selection, provider routing, "
+                    "artifact selection, export intelligence, or critique."
                 ),
             ),
         ),
@@ -462,6 +478,19 @@ def _runtime_compatibility_label(
         f"{preferred} preferred, "
         f"{len(profile.compatible_runtimes)} compatible, "
         f"{len(profile.unsupported_runtimes)} unsupported"
+    )
+
+
+def _artifact_capability_matrix_label(
+    matrix: ArtifactCapabilityMatrix | None,
+) -> str:
+    if matrix is None:
+        return "no artifact capability matrix"
+    strongest = ", ".join(matrix.strongest_targets) or "none"
+    return (
+        f"{strongest} strongest, "
+        f"{len(matrix.capability_profiles)} profiles, "
+        f"{len(matrix.unsupported_or_risky_capabilities)} unsupported/risky"
     )
 
 

@@ -1,6 +1,10 @@
 import {
   workflowNodeOrder,
   type ArtifactCritique,
+  type ArtifactCapabilityConfidenceSummary,
+  type ArtifactCapabilityFit,
+  type ArtifactCapabilityMatrixSummary,
+  type ArtifactCapabilityProfileSummary,
   type ArtifactDependencyEdgeSummary,
   type ArtifactDependencyGraphSummary,
   type ArtifactDependencyNodeSummary,
@@ -221,6 +225,8 @@ export type AssistantStreamWorkflowMetadata = {
   runtime_capability_reasoner_available?: boolean;
   runtime_compatibility?: RuntimeCompatibilityProfileSummary | null;
   runtime_compatibility_available?: boolean;
+  artifact_capability_matrix?: ArtifactCapabilityMatrixSummary | null;
+  artifact_capability_matrix_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -693,6 +699,13 @@ export function readWorkflowMetadata(
   const runtimeCompatibilityAvailable =
     rawWorkflow.runtime_compatibility_available === true ||
     runtimeCompatibility !== null;
+  const artifactCapabilityMatrix = readArtifactCapabilityMatrixSummary(
+    rawWorkflow.artifact_capability_matrix ??
+      rawWorkflow.artifactCapabilityMatrix
+  );
+  const artifactCapabilityMatrixAvailable =
+    rawWorkflow.artifact_capability_matrix_available === true ||
+    artifactCapabilityMatrix !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -858,6 +871,12 @@ export function readWorkflowMetadata(
       ? {
           runtime_compatibility: runtimeCompatibility,
           runtime_compatibility_available: true
+        }
+      : {}),
+    ...(artifactCapabilityMatrixAvailable
+      ? {
+          artifact_capability_matrix: artifactCapabilityMatrix,
+          artifact_capability_matrix_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -1875,6 +1894,280 @@ function readRuntimeCompatibilityAssessmentSummary(
   };
 }
 
+export function readArtifactCapabilityMatrixSummary(
+  value: unknown
+): ArtifactCapabilityMatrixSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const capabilityProfiles = readArtifactCapabilityProfileSummaryList(
+    value.capability_profiles ?? value.capabilityProfiles
+  );
+  const capabilityConfidence = readArtifactCapabilityConfidenceSummaryList(
+    value.capability_confidence ?? value.capabilityConfidence
+  );
+  const artifactFit = readArtifactCapabilityFit(value, "artifact_fit", "artifactFit");
+  const creativeFit = readArtifactCapabilityFit(value, "creative_fit", "creativeFit");
+  const generativeFit = readArtifactCapabilityFit(
+    value,
+    "generative_fit",
+    "generativeFit"
+  );
+  const interactionFit = readArtifactCapabilityFit(
+    value,
+    "interaction_fit",
+    "interactionFit"
+  );
+  const audiovisualFit = readArtifactCapabilityFit(
+    value,
+    "audiovisual_fit",
+    "audiovisualFit"
+  );
+  const exportFit = readArtifactCapabilityFit(value, "export_fit", "exportFit");
+  const interoperabilityFit = readArtifactCapabilityFit(
+    value,
+    "interoperability_fit",
+    "interoperabilityFit"
+  );
+  const portabilityFit = readArtifactCapabilityFit(
+    value,
+    "portability_fit",
+    "portabilityFit"
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "artifact_capability_matrix" ||
+    capabilityProfiles.length === 0 ||
+    !artifactFit ||
+    !creativeFit ||
+    !generativeFit ||
+    !interactionFit ||
+    !audiovisualFit ||
+    !exportFit ||
+    !interoperabilityFit ||
+    !portabilityFit ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    capabilityProfiles,
+    strongestTargets: readRuntimeCapabilityIdList(
+      value.strongest_targets ?? value.strongestTargets
+    ),
+    weakestTargets: readRuntimeCapabilityIdList(
+      value.weakest_targets ?? value.weakestTargets
+    ),
+    targetStrengths: readStringListField(
+      value,
+      "target_strengths",
+      "targetStrengths"
+    ),
+    targetWeaknesses: readStringListField(
+      value,
+      "target_weaknesses",
+      "targetWeaknesses"
+    ),
+    unsupportedOrRiskyCapabilities: readStringListField(
+      value,
+      "unsupported_or_risky_capabilities",
+      "unsupportedOrRiskyCapabilities"
+    ),
+    capabilityConfidence,
+    artifactFit,
+    creativeFit,
+    generativeFit,
+    interactionFit,
+    audiovisualFit,
+    exportFit,
+    interoperabilityFit,
+    portabilityFit,
+    missingCapabilityInformation: readStringListField(
+      value,
+      "missing_capability_information",
+      "missingCapabilityInformation"
+    ),
+    capabilityRisks: readStringListField(
+      value,
+      "capability_risks",
+      "capabilityRisks"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+function readArtifactCapabilityConfidenceSummaryList(
+  value: unknown
+): ArtifactCapabilityConfidenceSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+    const target = readStringUnion(
+      item,
+      "target",
+      "target",
+      runtimeCapabilityIds
+    );
+    const label = readStringField(item, "label");
+    const confidence = readFiniteNumberField(item, "confidence");
+    if (!target || !label || confidence === null) {
+      return [];
+    }
+    return [{ target, label, confidence }];
+  });
+}
+
+function readArtifactCapabilityProfileSummaryList(
+  value: unknown
+): ArtifactCapabilityProfileSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    const profile = readArtifactCapabilityProfileSummary(item);
+    return profile ? [profile] : [];
+  });
+}
+
+function readArtifactCapabilityProfileSummary(
+  value: unknown
+): ArtifactCapabilityProfileSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const target = readStringUnion(
+    value,
+    "target",
+    "target",
+    runtimeCapabilityIds
+  );
+  const label = readStringField(value, "label");
+  const capabilityConfidence = readFiniteNumberField(
+    value,
+    "capability_confidence",
+    "capabilityConfidence"
+  );
+  const artifactFit = readArtifactCapabilityFit(value, "artifact_fit", "artifactFit");
+  const creativeFit = readArtifactCapabilityFit(value, "creative_fit", "creativeFit");
+  const generativeFit = readArtifactCapabilityFit(
+    value,
+    "generative_fit",
+    "generativeFit"
+  );
+  const interactionFit = readArtifactCapabilityFit(
+    value,
+    "interaction_fit",
+    "interactionFit"
+  );
+  const audiovisualFit = readArtifactCapabilityFit(
+    value,
+    "audiovisual_fit",
+    "audiovisualFit"
+  );
+  const exportFit = readArtifactCapabilityFit(value, "export_fit", "exportFit");
+  const interoperabilityFit = readArtifactCapabilityFit(
+    value,
+    "interoperability_fit",
+    "interoperabilityFit"
+  );
+  const portabilityFit = readArtifactCapabilityFit(
+    value,
+    "portability_fit",
+    "portabilityFit"
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+
+  if (
+    !target ||
+    !label ||
+    capabilityConfidence === null ||
+    !artifactFit ||
+    !creativeFit ||
+    !generativeFit ||
+    !interactionFit ||
+    !audiovisualFit ||
+    !exportFit ||
+    !interoperabilityFit ||
+    !portabilityFit ||
+    promptGuidance.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    target,
+    label,
+    capabilityConfidence,
+    capabilityReasons: readStringListField(
+      value,
+      "capability_reasons",
+      "capabilityReasons"
+    ),
+    strengths: readStringListField(value, "strengths", "strengths"),
+    weaknesses: readStringListField(value, "weaknesses", "weaknesses"),
+    unsupportedCapabilities: readStringListField(
+      value,
+      "unsupported_capabilities",
+      "unsupportedCapabilities"
+    ),
+    riskyCapabilities: readStringListField(
+      value,
+      "risky_capabilities",
+      "riskyCapabilities"
+    ),
+    artifactFit,
+    creativeFit,
+    generativeFit,
+    interactionFit,
+    audiovisualFit,
+    exportFit,
+    interoperabilityFit,
+    portabilityFit,
+    capabilityRisks: readStringListField(
+      value,
+      "capability_risks",
+      "capabilityRisks"
+    ),
+    promptGuidance,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+function readArtifactCapabilityFit(
+  value: Record<string, unknown>,
+  snakeKey: string,
+  camelKey: string
+): ArtifactCapabilityFit | null {
+  return readStringUnion(value, snakeKey, camelKey, artifactCapabilityFits);
+}
+
 const runtimeCapabilityIds = [
   "p5_js",
   "three_js",
@@ -1892,6 +2185,13 @@ const runtimeCapabilityFits = [
   "moderate",
   "weak"
 ] as const satisfies readonly RuntimeCapabilityFit[];
+
+const artifactCapabilityFits = [
+  "strong",
+  "moderate",
+  "weak",
+  "unsupported"
+] as const satisfies readonly ArtifactCapabilityFit[];
 
 const runtimeCapabilityComplexities = [
   "low",
@@ -5738,6 +6038,7 @@ const creativeReasoningEvidenceSources = [
   "artifact_plan",
   "artifact_dependency_graph",
   "runtime_compatibility",
+  "artifact_capability_matrix",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from creative_coding_assistant.contracts import AssistantRequest, CreativeCodingDomain
+from creative_coding_assistant.orchestration.artifact_capability_matrix import (
+    ArtifactCapabilityMatrix,
+)
 from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
@@ -105,6 +108,7 @@ def build_director_brief_payload(
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
     runtime_compatibility: RuntimeCompatibilityProfile | None,
+    artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -129,6 +133,7 @@ def build_director_brief_payload(
         artifact_plan=artifact_plan,
         artifact_dependency_graph=artifact_dependency_graph,
         runtime_compatibility=runtime_compatibility,
+        artifact_capability_matrix=artifact_capability_matrix,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -168,6 +173,7 @@ def build_director_brief_payload(
             artifact_plan,
             artifact_dependency_graph,
             runtime_compatibility,
+            artifact_capability_matrix,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -191,6 +197,7 @@ def build_director_brief_payload(
             artifact_plan=artifact_plan,
             artifact_dependency_graph=artifact_dependency_graph,
             runtime_compatibility=runtime_compatibility,
+            artifact_capability_matrix=artifact_capability_matrix,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -215,6 +222,7 @@ def build_director_brief_payload(
             artifact_plan=artifact_plan,
             artifact_dependency_graph=artifact_dependency_graph,
             runtime_compatibility=runtime_compatibility,
+            artifact_capability_matrix=artifact_capability_matrix,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -245,6 +253,7 @@ def build_director_brief_payload(
             artifact_plan=artifact_plan,
             artifact_dependency_graph=artifact_dependency_graph,
             runtime_compatibility=runtime_compatibility,
+            artifact_capability_matrix=artifact_capability_matrix,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -295,6 +304,7 @@ def _ambiguity_signals(
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
     runtime_compatibility: RuntimeCompatibilityProfile | None,
+    artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -346,6 +356,9 @@ def _ambiguity_signals(
     if runtime_compatibility is not None:
         signals.extend(runtime_compatibility.missing_runtime_information[:2])
         signals.extend(runtime_compatibility.implementation_risks[:1])
+    if artifact_capability_matrix is not None:
+        signals.extend(artifact_capability_matrix.missing_capability_information[:2])
+        signals.extend(artifact_capability_matrix.capability_risks[:1])
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -399,6 +412,7 @@ def _planning_focus(
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
     runtime_compatibility: RuntimeCompatibilityProfile | None,
+    artifact_capability_matrix: ArtifactCapabilityMatrix | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_intent is not None:
@@ -417,12 +431,27 @@ def _planning_focus(
         )
         focus.extend(artifact_dependency_graph.prompt_guidance[:1])
     if runtime_compatibility is not None:
-        focus.append(
+        runtime_focus = (
             "Runtime compatibility: "
             + ", ".join(runtime_compatibility.preferred_runtimes)
             + " preferred; metadata only."
         )
-        focus.extend(runtime_compatibility.prompt_guidance[:1])
+        if artifact_capability_matrix is not None:
+            runtime_focus += (
+                " Artifact capability matrix: "
+                + ", ".join(artifact_capability_matrix.strongest_targets)
+                + " strongest targets; metadata only."
+            )
+        focus.append(runtime_focus)
+        if artifact_capability_matrix is None:
+            focus.extend(runtime_compatibility.prompt_guidance[:1])
+    elif artifact_capability_matrix is not None:
+        focus.append(
+            "Artifact capability matrix: "
+            + ", ".join(artifact_capability_matrix.strongest_targets)
+            + " strongest targets; metadata only."
+        )
+        focus.extend(artifact_capability_matrix.prompt_guidance[:1])
     if procedural_structure is not None:
         focus.append(
             "Procedural structure: "
@@ -558,6 +587,7 @@ def _critique_focus(
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
     runtime_compatibility: RuntimeCompatibilityProfile | None,
+    artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -698,6 +728,14 @@ def _critique_focus(
             "metadata without changing runtime execution."
         )
         focus.extend(runtime_compatibility.implementation_risks[:2])
+    if artifact_capability_matrix is not None:
+        focus.append(
+            "Artifact Capability Matrix is pre-generation only; compare "
+            "output against target strengths, weaknesses, fit dimensions, "
+            "unsupported capabilities, and capability risks without changing "
+            "runtime execution."
+        )
+        focus.extend(artifact_capability_matrix.capability_risks[:2])
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -754,6 +792,7 @@ def _next_actions(
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
     runtime_compatibility: RuntimeCompatibilityProfile | None,
+    artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
@@ -794,6 +833,11 @@ def _next_actions(
         return (artifact_dependency_graph.hitl_questions[0],)
     if runtime_compatibility is not None and runtime_compatibility.hitl_questions:
         return (runtime_compatibility.hitl_questions[0],)
+    if (
+        artifact_capability_matrix is not None
+        and artifact_capability_matrix.hitl_questions
+    ):
+        return (artifact_capability_matrix.hitl_questions[0],)
     if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
@@ -836,6 +880,7 @@ def _evidence(
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
     runtime_compatibility: RuntimeCompatibilityProfile | None,
+    artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -959,6 +1004,13 @@ def _evidence(
             "Runtime compatibility: "
             f"{len(runtime_compatibility.compatible_runtimes)} compatible; "
             f"{len(runtime_compatibility.unsupported_runtimes)} unsupported."
+        )
+    if artifact_capability_matrix is not None:
+        evidence.append(
+            "Artifact capability matrix: "
+            f"{len(artifact_capability_matrix.capability_profiles)} profiles; "
+            f"{len(artifact_capability_matrix.unsupported_or_risky_capabilities)} "
+            "unsupported/risky capabilities."
         )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")
