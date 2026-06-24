@@ -87,6 +87,9 @@ from creative_coding_assistant.orchestration.events import StreamEventBuilder
 from creative_coding_assistant.orchestration.generative_structure import (
     derive_generative_structure_blueprint,
 )
+from creative_coding_assistant.orchestration.multi_artifact_strategy import (
+    derive_multi_artifact_strategy,
+)
 from creative_coding_assistant.orchestration.procedural_structure import (
     derive_procedural_structure_plan,
 )
@@ -923,6 +926,18 @@ def _planning_node(
             creative_techniques=techniques,
             creative_tradeoffs=tradeoffs,
         )
+        multi_artifact_strategy = derive_multi_artifact_strategy(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            artifact_plan=artifact_plan,
+            artifact_dependency_graph=artifact_dependency_graph,
+            runtime_capabilities=runtime_capabilities,
+            runtime_compatibility=runtime_compatibility,
+            artifact_capability_matrix=artifact_capability_matrix,
+            creative_plan=plan,
+            creative_constraints=constraints,
+            creative_tradeoffs=tradeoffs,
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -947,6 +962,7 @@ def _planning_node(
                 "artifact_dependency_graph": artifact_dependency_graph,
                 "runtime_compatibility": runtime_compatibility,
                 "artifact_capability_matrix": artifact_capability_matrix,
+                "multi_artifact_strategy": multi_artifact_strategy,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -973,6 +989,7 @@ def _planning_node(
                 "artifact_dependency_graph": artifact_dependency_graph,
                 "runtime_compatibility": runtime_compatibility,
                 "artifact_capability_matrix": artifact_capability_matrix,
+                "multi_artifact_strategy": multi_artifact_strategy,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -1008,6 +1025,9 @@ def _planning_node(
                 ),
                 runtime_compatibility=runtime_compatibility.model_dump(mode="json"),
                 artifact_capability_matrix=artifact_capability_matrix.model_dump(
+                    mode="json"
+                ),
+                multi_artifact_strategy=multi_artifact_strategy.model_dump(
                     mode="json"
                 ),
             ),
@@ -1875,6 +1895,14 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "multi_artifact_strategy",
+                    (
+                        final_state.multi_artifact_strategy.model_dump(mode="json")
+                        if final_state.multi_artifact_strategy is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_director",
                     (
                         final_state.creative_director.model_dump(mode="json")
@@ -2473,6 +2501,7 @@ def _derive_director_brief(
         artifact_dependency_graph=workflow_state.artifact_dependency_graph,
         runtime_compatibility=workflow_state.runtime_compatibility,
         artifact_capability_matrix=workflow_state.artifact_capability_matrix,
+        multi_artifact_strategy=workflow_state.multi_artifact_strategy,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2518,6 +2547,7 @@ def _derive_reasoning_result(
         artifact_dependency_graph=workflow_state.artifact_dependency_graph,
         runtime_compatibility=workflow_state.runtime_compatibility,
         artifact_capability_matrix=workflow_state.artifact_capability_matrix,
+        multi_artifact_strategy=workflow_state.multi_artifact_strategy,
     )
 
 
@@ -2753,6 +2783,7 @@ def _serialize_workflow_runtime(
     artifact_dependency_graph = workflow_state.artifact_dependency_graph
     runtime_compatibility = workflow_state.runtime_compatibility
     artifact_capability_matrix = workflow_state.artifact_capability_matrix
+    multi_artifact_strategy = workflow_state.multi_artifact_strategy
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -2932,6 +2963,12 @@ def _serialize_workflow_runtime(
         "artifact_capability_matrix_available": (
             artifact_capability_matrix is not None
         ),
+        "multi_artifact_strategy": (
+            multi_artifact_strategy.model_dump(mode="json")
+            if multi_artifact_strategy is not None
+            else None
+        ),
+        "multi_artifact_strategy_available": multi_artifact_strategy is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None

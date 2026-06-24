@@ -79,6 +79,9 @@ from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
 from creative_coding_assistant.orchestration.memory import MemoryContextResponse
+from creative_coding_assistant.orchestration.multi_artifact_strategy import (
+    MultiArtifactStrategy,
+)
 from creative_coding_assistant.orchestration.procedural_structure import (
     ProceduralStructurePlan,
 )
@@ -353,6 +356,7 @@ class PromptInputResponse(BaseModel):
     artifact_dependency_graph: ArtifactDependencyGraph | None = None
     runtime_compatibility: RuntimeCompatibilityProfile | None = None
     artifact_capability_matrix: ArtifactCapabilityMatrix | None = None
+    multi_artifact_strategy: MultiArtifactStrategy | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None

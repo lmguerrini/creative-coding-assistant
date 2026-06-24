@@ -63,6 +63,9 @@ from creative_coding_assistant.orchestration.emotional_consistency import (
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
+from creative_coding_assistant.orchestration.multi_artifact_strategy import (
+    MultiArtifactStrategy,
+)
 from creative_coding_assistant.orchestration.procedural_structure import (
     ProceduralStructurePlan,
 )
@@ -102,6 +105,7 @@ def build_strongest_signals(
     artifact_dependency_graph: ArtifactDependencyGraph | None,
     runtime_compatibility: RuntimeCompatibilityProfile | None,
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
+    multi_artifact_strategy: MultiArtifactStrategy | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -225,6 +229,13 @@ def build_strongest_signals(
             f"{len(artifact_capability_matrix.unsupported_or_risky_capabilities)} "
             "unsupported/risky."
         )
+    if multi_artifact_strategy is not None:
+        signals.append(
+            "Multi-artifact strategy: "
+            f"{multi_artifact_strategy.primary_artifact.artifact_id} primary; "
+            f"{len(multi_artifact_strategy.supporting_artifacts)} supporting; "
+            f"{multi_artifact_strategy.combination_mode}."
+        )
     if creative_constraints is not None:
         signals.append(
             f"Constraints: complexity {creative_constraints.complexity_pressure}, "
@@ -321,6 +332,7 @@ def build_unresolved_decisions(
     artifact_dependency_graph: ArtifactDependencyGraph | None,
     runtime_compatibility: RuntimeCompatibilityProfile | None,
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
+    multi_artifact_strategy: MultiArtifactStrategy | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -379,6 +391,10 @@ def build_unresolved_decisions(
         unresolved.extend(artifact_capability_matrix.hitl_questions[:3])
         unresolved.extend(artifact_capability_matrix.missing_capability_information[:2])
         unresolved.extend(artifact_capability_matrix.capability_risks[:2])
+    if multi_artifact_strategy is not None:
+        unresolved.extend(multi_artifact_strategy.hitl_questions[:3])
+        unresolved.extend(multi_artifact_strategy.missing_information[:2])
+        unresolved.extend(multi_artifact_strategy.risk_areas[:2])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -411,6 +427,7 @@ def build_implementation_guidance(
     artifact_dependency_graph: ArtifactDependencyGraph | None,
     runtime_compatibility: RuntimeCompatibilityProfile | None,
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
+    multi_artifact_strategy: MultiArtifactStrategy | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -518,6 +535,16 @@ def build_implementation_guidance(
             "Preserve artifact capability matrix metadata as target capability "
             "guidance, not runtime auto-selection, export intelligence, "
             "provider routing, preview behavior, or execution."
+        )
+    if multi_artifact_strategy is not None:
+        guidance.extend(multi_artifact_strategy.prompt_guidance[:2])
+        guidance.extend(multi_artifact_strategy.artifact_separation_strategy[:1])
+        guidance.extend(multi_artifact_strategy.artifact_combination_strategy[:1])
+        guidance.append(
+            "Preserve multi-artifact strategy metadata as ordering, grouping, "
+            "separation, combination, dependency, and handoff guidance, not "
+            "artifact generation, merge planning, export intelligence, runtime "
+            "auto-selection, provider routing, preview behavior, or execution."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

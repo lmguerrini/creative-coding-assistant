@@ -258,6 +258,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         artifact_capability_matrix = planning_event.payload[
             "artifact_capability_matrix"
         ]
+        multi_artifact_strategy = planning_event.payload["multi_artifact_strategy"]
         director = director_event.payload["creative_director"]
         reasoning = reasoning_event.payload["creative_reasoning"]
 
@@ -439,6 +440,18 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             ]
         )
         self.assertEqual(
+            multi_artifact_strategy["role"],
+            "multi_artifact_strategy",
+        )
+        self.assertEqual(
+            multi_artifact_strategy["primary_artifact"]["artifact_id"],
+            "primary_artifact",
+        )
+        self.assertTrue(multi_artifact_strategy["artifact_sequence"])
+        self.assertTrue(
+            planning_event.payload["workflow"]["multi_artifact_strategy_available"]
+        )
+        self.assertEqual(
             final_event.payload["artifact_plan"],
             planning_event.payload["artifact_plan"],
         )
@@ -453,6 +466,10 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(
             final_event.payload["artifact_capability_matrix"],
             planning_event.payload["artifact_capability_matrix"],
+        )
+        self.assertEqual(
+            final_event.payload["multi_artifact_strategy"],
+            planning_event.payload["multi_artifact_strategy"],
         )
         self.assertEqual(
             final_event.payload["creative_director"]["runtime_direction"],

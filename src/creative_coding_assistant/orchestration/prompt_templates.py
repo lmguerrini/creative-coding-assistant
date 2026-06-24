@@ -95,6 +95,10 @@ from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
     generative_structure_prompt_lines,
 )
+from creative_coding_assistant.orchestration.multi_artifact_strategy import (
+    MultiArtifactStrategy,
+    multi_artifact_strategy_prompt_lines,
+)
 from creative_coding_assistant.orchestration.procedural_structure import (
     ProceduralStructurePlan,
     procedural_structure_prompt_lines,
@@ -333,6 +337,13 @@ Runtime Compatibility Engine:
 {% if artifact_capability_matrix is not none -%}
 Artifact Capability Matrix:
 {% for instruction in artifact_capability_matrix_lines(artifact_capability_matrix) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set multi_artifact_strategy = prompt_input.multi_artifact_strategy -%}
+{% if multi_artifact_strategy is not none -%}
+Multi-Artifact Strategy:
+{% for instruction in multi_artifact_strategy_lines(multi_artifact_strategy) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -593,6 +604,7 @@ class JinjaPromptRenderer:
             artifact_dependency_graph_lines=_artifact_dependency_graph_lines,
             runtime_compatibility_lines=_runtime_compatibility_lines,
             artifact_capability_matrix_lines=_artifact_capability_matrix_lines,
+            multi_artifact_strategy_lines=_multi_artifact_strategy_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -889,6 +901,12 @@ def _artifact_capability_matrix_lines(
     matrix: ArtifactCapabilityMatrix,
 ) -> tuple[str, ...]:
     return artifact_capability_matrix_prompt_lines(matrix)
+
+
+def _multi_artifact_strategy_lines(
+    strategy: MultiArtifactStrategy,
+) -> tuple[str, ...]:
+    return multi_artifact_strategy_prompt_lines(strategy)
 
 
 def _creative_assistant_director_lines(

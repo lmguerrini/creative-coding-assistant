@@ -64,6 +64,9 @@ from creative_coding_assistant.orchestration.emotional_consistency import (
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
+from creative_coding_assistant.orchestration.multi_artifact_strategy import (
+    MultiArtifactStrategy,
+)
 from creative_coding_assistant.orchestration.procedural_structure import (
     ProceduralStructurePlan,
 )
@@ -108,6 +111,7 @@ def build_evidence_chain(
     artifact_dependency_graph: ArtifactDependencyGraph | None,
     runtime_compatibility: RuntimeCompatibilityProfile | None,
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
+    multi_artifact_strategy: MultiArtifactStrategy | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -464,6 +468,29 @@ def build_evidence_chain(
                 ),
             )
         )
+    if multi_artifact_strategy is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="multi_artifact_strategy",
+                signal=_clip(
+                    (
+                        f"Primary "
+                        f"{multi_artifact_strategy.primary_artifact.artifact_id}; "
+                        f"supporting "
+                        f"{len(multi_artifact_strategy.supporting_artifacts)}; "
+                        f"mode {multi_artifact_strategy.combination_mode}"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Multi-artifact strategy evidence orders, separates, "
+                    "groups, combines, and hands off artifact roles as "
+                    "planning guidance only, without artifact generation, "
+                    "merge, refinement, export intelligence, runtime "
+                    "selection, provider routing, or preview changes."
+                ),
+            )
+        )
     if creative_director is not None:
         evidence.append(
             CreativeReasoningEvidence(
@@ -472,7 +499,7 @@ def build_evidence_chain(
                 interpretation="Director guidance frames brief and HITL posture.",
             )
         )
-    return tuple(evidence[:27])
+    return tuple(evidence[:28])
 
 
 def _append_strategy_evidence(

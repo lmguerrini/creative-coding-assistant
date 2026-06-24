@@ -66,6 +66,9 @@ from creative_coding_assistant.orchestration.emotional_consistency import (
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
+from creative_coding_assistant.orchestration.multi_artifact_strategy import (
+    MultiArtifactStrategy,
+)
 from creative_coding_assistant.orchestration.procedural_structure import (
     ProceduralStructurePlan,
 )
@@ -141,6 +144,7 @@ def derive_creative_assistant_director_brief(
     artifact_dependency_graph: ArtifactDependencyGraph | None = None,
     runtime_compatibility: RuntimeCompatibilityProfile | None = None,
     artifact_capability_matrix: ArtifactCapabilityMatrix | None = None,
+    multi_artifact_strategy: MultiArtifactStrategy | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -176,6 +180,7 @@ def derive_creative_assistant_director_brief(
             artifact_dependency_graph=artifact_dependency_graph,
             runtime_compatibility=runtime_compatibility,
             artifact_capability_matrix=artifact_capability_matrix,
+            multi_artifact_strategy=multi_artifact_strategy,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

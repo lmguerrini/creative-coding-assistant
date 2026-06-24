@@ -31,6 +31,9 @@ _RUNTIME_COMPATIBILITY = (
 _ARTIFACT_CAPABILITY_MATRIX = (
     "creative_coding_assistant.orchestration.artifact_capability_matrix"
 )
+_MULTI_ARTIFACT_STRATEGY = (
+    "creative_coding_assistant.orchestration.multi_artifact_strategy"
+)
 _CREATIVE_QUALITY_PREDICTION = (
     "creative_coding_assistant.orchestration.creative_quality_prediction"
 )
@@ -97,6 +100,15 @@ _EXPORT_MAP = {
     "ArtifactCapabilityFit": _ARTIFACT_CAPABILITY_MATRIX,
     "ArtifactCapabilityMatrix": _ARTIFACT_CAPABILITY_MATRIX,
     "ArtifactCapabilityProfile": _ARTIFACT_CAPABILITY_MATRIX,
+    "ArtifactStrategyAction": _MULTI_ARTIFACT_STRATEGY,
+    "ArtifactStrategyArtifact": _MULTI_ARTIFACT_STRATEGY,
+    "ArtifactStrategyCombinationMode": _MULTI_ARTIFACT_STRATEGY,
+    "ArtifactStrategyGroup": _MULTI_ARTIFACT_STRATEGY,
+    "ArtifactStrategyPriority": _MULTI_ARTIFACT_STRATEGY,
+    "ArtifactStrategyPriorityEntry": _MULTI_ARTIFACT_STRATEGY,
+    "ArtifactStrategyRole": _MULTI_ARTIFACT_STRATEGY,
+    "ArtifactStrategySequenceStep": _MULTI_ARTIFACT_STRATEGY,
+    "MultiArtifactStrategy": _MULTI_ARTIFACT_STRATEGY,
     "DependencyNodeStatus": _ARTIFACT_DEPENDENCY_GRAPH,
     "DependencyNodeType": _ARTIFACT_DEPENDENCY_GRAPH,
     "DependencyRelationship": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -342,6 +354,8 @@ _EXPORT_MAP = {
     "derive_artifact_dependency_graph": _ARTIFACT_DEPENDENCY_GRAPH,
     "artifact_capability_matrix_prompt_lines": _ARTIFACT_CAPABILITY_MATRIX,
     "derive_artifact_capability_matrix": _ARTIFACT_CAPABILITY_MATRIX,
+    "derive_multi_artifact_strategy": _MULTI_ARTIFACT_STRATEGY,
+    "multi_artifact_strategy_prompt_lines": _MULTI_ARTIFACT_STRATEGY,
     "artifact_plan_prompt_lines": _ARTIFACT_PLANNER,
     "derive_artifact_plan": _ARTIFACT_PLANNER,
     "derive_symbolic_narrative_plan": _SYMBOLIC_NARRATIVE,
