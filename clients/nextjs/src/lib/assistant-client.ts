@@ -610,6 +610,35 @@ export type ArtifactIntelligenceSynthesisSummary = {
   evidence: string[];
 };
 
+export type ArtifactMergeStrategy =
+  | "single_artifact_no_merge"
+  | "primary_with_supporting_sections"
+  | "separated_advisory_sections"
+  | "defer_merge_preserve_separation";
+
+export type ArtifactMergePlannerSummary = {
+  role: "artifact_merge_planner";
+  mergeConfidence: number;
+  mergeSummary: string;
+  mergeStrategy: ArtifactMergeStrategy;
+  compositionStrategy: string;
+  artifactBoundaries: string[];
+  artifactJoinPoints: string[];
+  artifactSeparationPoints: string[];
+  integrationOrder: string[];
+  compositionRisks: string[];
+  dependencyMergeRisks: string[];
+  runtimeMergeRisks: string[];
+  capabilityMergeRisks: string[];
+  recommendedMergePath: string;
+  alternativeMergePaths: string[];
+  rejectedMergePaths: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeTradeoffAxis =
   | "creative_expressiveness"
   | "concept_fidelity"
@@ -1715,6 +1744,7 @@ export type CreativeReasoningEvidenceSource =
   | "artifact_critic"
   | "artifact_refiner"
   | "artifact_intelligence_synthesis"
+  | "artifact_merge_planner"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {

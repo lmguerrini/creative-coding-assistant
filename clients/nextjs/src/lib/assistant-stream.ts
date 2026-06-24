@@ -12,6 +12,8 @@ import {
   type ArtifactImplementationReadiness,
   type ArtifactImplementationRisk,
   type ArtifactIntelligenceSynthesisSummary,
+  type ArtifactMergePlannerSummary,
+  type ArtifactMergeStrategy,
   type ArtifactRefinerSummary,
   type ArtifactDependencyEdgeSummary,
   type ArtifactDependencyGraphSummary,
@@ -252,6 +254,8 @@ export type AssistantStreamWorkflowMetadata = {
   artifact_refiner_available?: boolean;
   artifact_intelligence_synthesis?: ArtifactIntelligenceSynthesisSummary | null;
   artifact_intelligence_synthesis_available?: boolean;
+  artifact_merge_planner?: ArtifactMergePlannerSummary | null;
+  artifact_merge_planner_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -755,6 +759,12 @@ export function readWorkflowMetadata(
   const artifactIntelligenceSynthesisAvailable =
     rawWorkflow.artifact_intelligence_synthesis_available === true ||
     artifactIntelligenceSynthesis !== null;
+  const artifactMergePlanner = readArtifactMergePlannerSummary(
+    rawWorkflow.artifact_merge_planner ?? rawWorkflow.artifactMergePlanner
+  );
+  const artifactMergePlannerAvailable =
+    rawWorkflow.artifact_merge_planner_available === true ||
+    artifactMergePlanner !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -950,6 +960,12 @@ export function readWorkflowMetadata(
       ? {
           artifact_intelligence_synthesis: artifactIntelligenceSynthesis,
           artifact_intelligence_synthesis_available: true
+        }
+      : {}),
+    ...(artifactMergePlannerAvailable
+      ? {
+          artifact_merge_planner: artifactMergePlanner,
+          artifact_merge_planner_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -2757,6 +2773,124 @@ export function readArtifactIntelligenceSynthesisSummary(
   };
 }
 
+export function readArtifactMergePlannerSummary(
+  value: unknown
+): ArtifactMergePlannerSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const mergeConfidence =
+    readFiniteNumberField(value, "merge_confidence") ??
+    readFiniteNumberField(value, "mergeConfidence");
+  const mergeSummary =
+    readStringField(value, "merge_summary") ??
+    readStringField(value, "mergeSummary");
+  const mergeStrategy = readStringUnion(
+    value,
+    "merge_strategy",
+    "mergeStrategy",
+    artifactMergeStrategies
+  );
+  const compositionStrategy =
+    readStringField(value, "composition_strategy") ??
+    readStringField(value, "compositionStrategy");
+  const artifactBoundaries = readStringListField(
+    value,
+    "artifact_boundaries",
+    "artifactBoundaries"
+  );
+  const integrationOrder = readStringListField(
+    value,
+    "integration_order",
+    "integrationOrder"
+  );
+  const recommendedMergePath =
+    readStringField(value, "recommended_merge_path") ??
+    readStringField(value, "recommendedMergePath");
+  const rejectedMergePaths = readStringListField(
+    value,
+    "rejected_merge_paths",
+    "rejectedMergePaths"
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "artifact_merge_planner" ||
+    mergeConfidence === null ||
+    !mergeSummary ||
+    !mergeStrategy ||
+    !compositionStrategy ||
+    artifactBoundaries.length === 0 ||
+    integrationOrder.length === 0 ||
+    !recommendedMergePath ||
+    rejectedMergePaths.length === 0 ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    mergeConfidence,
+    mergeSummary,
+    mergeStrategy,
+    compositionStrategy,
+    artifactBoundaries,
+    artifactJoinPoints: readStringListField(
+      value,
+      "artifact_join_points",
+      "artifactJoinPoints"
+    ),
+    artifactSeparationPoints: readStringListField(
+      value,
+      "artifact_separation_points",
+      "artifactSeparationPoints"
+    ),
+    integrationOrder,
+    compositionRisks: readStringListField(
+      value,
+      "composition_risks",
+      "compositionRisks"
+    ),
+    dependencyMergeRisks: readStringListField(
+      value,
+      "dependency_merge_risks",
+      "dependencyMergeRisks"
+    ),
+    runtimeMergeRisks: readStringListField(
+      value,
+      "runtime_merge_risks",
+      "runtimeMergeRisks"
+    ),
+    capabilityMergeRisks: readStringListField(
+      value,
+      "capability_merge_risks",
+      "capabilityMergeRisks"
+    ),
+    recommendedMergePath,
+    alternativeMergePaths: readStringListField(
+      value,
+      "alternative_merge_paths",
+      "alternativeMergePaths"
+    ),
+    rejectedMergePaths,
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
 function readArtifactCapabilityConfidenceSummaryList(
   value: unknown
 ): ArtifactCapabilityConfidenceSummary[] {
@@ -2995,6 +3129,13 @@ const artifactImplementationPriorities = [
   "medium",
   "low"
 ] as const satisfies readonly ArtifactImplementationPriority[];
+
+const artifactMergeStrategies = [
+  "single_artifact_no_merge",
+  "primary_with_supporting_sections",
+  "separated_advisory_sections",
+  "defer_merge_preserve_separation"
+] as const satisfies readonly ArtifactMergeStrategy[];
 
 const runtimeCapabilityComplexities = [
   "low",
@@ -6846,6 +6987,7 @@ const creativeReasoningEvidenceSources = [
   "artifact_critic",
   "artifact_refiner",
   "artifact_intelligence_synthesis",
+  "artifact_merge_planner",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

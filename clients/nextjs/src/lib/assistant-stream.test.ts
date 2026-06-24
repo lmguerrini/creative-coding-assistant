@@ -6,6 +6,7 @@ import {
   readArtifactCapabilityMatrixSummary,
   readArtifactCriticSummary,
   readArtifactIntelligenceSynthesisSummary,
+  readArtifactMergePlannerSummary,
   readArtifactRefinerSummary,
   readArtifactDependencyGraphSummary,
   readArtifactPlanSummary,
@@ -1524,6 +1525,60 @@ function artifactIntelligenceSynthesisFixture() {
     authority_boundary:
       "The Artifact Intelligence Synthesis capability summarizes metadata only; it does not modify artifacts.",
     evidence: ["Artifact critic: medium risk; 0.82 confidence."]
+  };
+}
+
+function artifactMergePlannerFixture() {
+  return {
+    role: "artifact_merge_planner",
+    merge_confidence: 0.81,
+    merge_summary:
+      "Artifact merge planning recommends primary_with_supporting_sections with visible boundaries.",
+    merge_strategy: "primary_with_supporting_sections",
+    composition_strategy:
+      "Compose primary artifact first, then attach supporting sections with explicit labels.",
+    artifact_boundaries: [
+      "Primary boundary: primary_artifact remains the lead runnable_code artifact."
+    ],
+    artifact_join_points: [
+      "primary_artifact -> runtime_notes: Runtime notes support the primary artifact."
+    ],
+    artifact_separation_points: [
+      "Lead with Primary p5.js artifact as the only primary artifact."
+    ],
+    integration_order: [
+      "1. primary_artifact: produce",
+      "2. runtime_notes: document"
+    ],
+    composition_risks: [
+      "Do not let supporting artifacts expand implementation scope."
+    ],
+    dependency_merge_risks: [
+      "Runtime notes conflict with primary output structure."
+    ],
+    runtime_merge_risks: [
+      "Unsupported runtime must not be merged into path: glsl."
+    ],
+    capability_merge_risks: [
+      "Native shader pipelines require additional scaffolding."
+    ],
+    recommended_merge_path:
+      "Follow synthesis path as advisory merge guidance: Lead with primary_artifact.",
+    alternative_merge_paths: [
+      "Alternative: preserve all artifacts as separate sections."
+    ],
+    rejected_merge_paths: [
+      "Reject automatic artifact merging because this planner is metadata-only."
+    ],
+    hitl_questions: [
+      "Should merge planning preserve separation until risks resolve?"
+    ],
+    prompt_guidance: [
+      "Use Artifact Merge Planner output as metadata-only merge guidance."
+    ],
+    authority_boundary:
+      "The Artifact Merge Planner recommends merge strategy only; it does not merge artifacts.",
+    evidence: ["Multi-artifact strategy: 1 supporting."]
   };
 }
 
@@ -3190,6 +3245,21 @@ describe("assistant stream client", () => {
     expect(synthesis?.promptGuidance[0]).toContain("metadata-only");
   });
 
+  it("reads artifact merge planner metadata", () => {
+    const mergePlanner = readArtifactMergePlannerSummary(
+      artifactMergePlannerFixture()
+    );
+
+    expect(mergePlanner?.role).toBe("artifact_merge_planner");
+    expect(mergePlanner?.mergeConfidence).toBe(0.81);
+    expect(mergePlanner?.mergeStrategy).toBe("primary_with_supporting_sections");
+    expect(mergePlanner?.artifactBoundaries[0]).toContain("primary_artifact");
+    expect(mergePlanner?.artifactJoinPoints[0]).toContain("runtime_notes");
+    expect(mergePlanner?.runtimeMergeRisks[0]).toContain("glsl");
+    expect(mergePlanner?.rejectedMergePaths[0]).toContain("metadata-only");
+    expect(mergePlanner?.promptGuidance[0]).toContain("metadata-only");
+  });
+
   it("reads creative trade-off explorer metadata", () => {
     const profile = readCreativeTradeoffExplorerSummary({
       role: "creative_tradeoff_explorer",
@@ -4814,6 +4884,50 @@ describe("assistant stream client", () => {
         ]
       },
       artifact_intelligence_synthesis_available: true
+    });
+  });
+
+  it("hydrates artifact merge planner workflow metadata", () => {
+    const artifactMergePlanner = artifactMergePlannerFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 24,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          artifact_merge_planner: artifactMergePlanner,
+          artifact_merge_planner_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      artifact_merge_planner: {
+        role: "artifact_merge_planner",
+        mergeConfidence: 0.81,
+        mergeStrategy: "primary_with_supporting_sections",
+        recommendedMergePath:
+          "Follow synthesis path as advisory merge guidance: Lead with primary_artifact.",
+        runtimeMergeRisks: [
+          "Unsupported runtime must not be merged into path: glsl."
+        ]
+      },
+      artifact_merge_planner_available: true
     });
   });
 
