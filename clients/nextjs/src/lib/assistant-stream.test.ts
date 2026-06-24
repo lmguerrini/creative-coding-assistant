@@ -5,6 +5,7 @@ import {
   parseAssistantStreamLine,
   readArtifactCapabilityMatrixSummary,
   readArtifactCriticSummary,
+  readArtifactIntelligenceSynthesisSummary,
   readArtifactRefinerSummary,
   readArtifactDependencyGraphSummary,
   readArtifactPlanSummary,
@@ -1477,6 +1478,52 @@ function artifactRefinerFixture() {
     authority_boundary:
       "The Artifact Refiner derives refinement intelligence from planning metadata only; it does not modify artifacts.",
     evidence: ["Artifact critic: medium risk; 1 weakness signals."]
+  };
+}
+
+function artifactIntelligenceSynthesisFixture() {
+  return {
+    role: "artifact_intelligence_synthesis",
+    synthesis_confidence: 0.83,
+    synthesis_summary:
+      "Artifact intelligence synthesis reports needs_caveats readiness with medium implementation risk.",
+    recommended_artifact_path:
+      "Lead with primary_artifact with supporting artifacts runtime_notes; keep sections separated and advisory.",
+    recommended_strategy_summary:
+      "Use primary_with_supporting_sections with 2 ordered steps; treat critic risk as medium.",
+    recommended_runtime_direction:
+      "Document preferred runtime metadata as advisory only: p5_js; use capability matrix caveats for p5_js.",
+    major_strengths: [
+      "Artifact shape is declared as runnable_code / p5_sketch.",
+      "Synthesis remains metadata-only and does not execute."
+    ],
+    major_weaknesses: [
+      "Priority improvement remains unresolved: Resolve dependency risks."
+    ],
+    major_risks: [
+      "Unsupported runtime remains advisory only: glsl."
+    ],
+    dependency_overview:
+      "8 nodes, 7 edges, 0 blocking dependencies, 1 conflicts, and downstream consumers prompt_renderer.",
+    capability_overview:
+      "Strongest targets: p5_js; weakest targets: glsl; 1 unsupported/risky capabilities; artifact fit strong.",
+    refinement_overview:
+      "Refiner confidence 0.79; 1 priority improvements; 1 candidates; top priority: Resolve dependency risks.",
+    critique_overview:
+      "Critic risk medium; confidence 0.82; 1 weaknesses; 1 open questions.",
+    implementation_readiness: "needs_caveats",
+    implementation_complexity: "medium",
+    implementation_risk: "medium",
+    implementation_priority: "medium",
+    hitl_questions: [
+      "Should synthesis risks be resolved before generation?"
+    ],
+    prompt_guidance: [
+      "Use Artifact Intelligence Synthesis as metadata-only prompt guidance."
+    ],
+    authority_boundary:
+      "The Artifact Intelligence Synthesis capability summarizes metadata only; it does not modify artifacts.",
+    evidence: ["Artifact critic: medium risk; 0.82 confidence."]
   };
 }
 
@@ -3128,6 +3175,21 @@ describe("assistant stream client", () => {
     expect(refiner?.promptGuidance[0]).toContain("metadata-only refinement");
   });
 
+  it("reads artifact intelligence synthesis metadata", () => {
+    const synthesis = readArtifactIntelligenceSynthesisSummary(
+      artifactIntelligenceSynthesisFixture()
+    );
+
+    expect(synthesis?.role).toBe("artifact_intelligence_synthesis");
+    expect(synthesis?.synthesisConfidence).toBe(0.83);
+    expect(synthesis?.implementationReadiness).toBe("needs_caveats");
+    expect(synthesis?.implementationRisk).toBe("medium");
+    expect(synthesis?.recommendedArtifactPath).toContain("primary_artifact");
+    expect(synthesis?.recommendedRuntimeDirection).toContain("advisory only");
+    expect(synthesis?.majorStrengths[0]).toContain("runnable_code");
+    expect(synthesis?.promptGuidance[0]).toContain("metadata-only");
+  });
+
   it("reads creative trade-off explorer metadata", () => {
     const profile = readCreativeTradeoffExplorerSummary({
       role: "creative_tradeoff_explorer",
@@ -4708,6 +4770,50 @@ describe("assistant stream client", () => {
         ]
       },
       artifact_refiner_available: true
+    });
+  });
+
+  it("hydrates artifact intelligence synthesis workflow metadata", () => {
+    const artifactIntelligenceSynthesis = artifactIntelligenceSynthesisFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 23,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          artifact_intelligence_synthesis: artifactIntelligenceSynthesis,
+          artifact_intelligence_synthesis_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      artifact_intelligence_synthesis: {
+        role: "artifact_intelligence_synthesis",
+        synthesisConfidence: 0.83,
+        implementationReadiness: "needs_caveats",
+        recommendedRuntimeDirection:
+          "Document preferred runtime metadata as advisory only: p5_js; use capability matrix caveats for p5_js.",
+        majorRisks: [
+          "Unsupported runtime remains advisory only: glsl."
+        ]
+      },
+      artifact_intelligence_synthesis_available: true
     });
   });
 

@@ -570,6 +570,46 @@ export type ArtifactRefinerSummary = {
   evidence: string[];
 };
 
+export type ArtifactImplementationReadiness =
+  | "ready"
+  | "needs_caveats"
+  | "needs_hitl"
+  | "blocked";
+
+export type ArtifactImplementationComplexity = "low" | "medium" | "high";
+
+export type ArtifactImplementationRisk = "low" | "medium" | "high" | "blocked";
+
+export type ArtifactImplementationPriority =
+  | "critical"
+  | "high"
+  | "medium"
+  | "low";
+
+export type ArtifactIntelligenceSynthesisSummary = {
+  role: "artifact_intelligence_synthesis";
+  synthesisConfidence: number;
+  synthesisSummary: string;
+  recommendedArtifactPath: string;
+  recommendedStrategySummary: string;
+  recommendedRuntimeDirection: string;
+  majorStrengths: string[];
+  majorWeaknesses: string[];
+  majorRisks: string[];
+  dependencyOverview: string;
+  capabilityOverview: string;
+  refinementOverview: string;
+  critiqueOverview: string;
+  implementationReadiness: ArtifactImplementationReadiness;
+  implementationComplexity: ArtifactImplementationComplexity;
+  implementationRisk: ArtifactImplementationRisk;
+  implementationPriority: ArtifactImplementationPriority;
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeTradeoffAxis =
   | "creative_expressiveness"
   | "concept_fidelity"
@@ -1674,6 +1714,7 @@ export type CreativeReasoningEvidenceSource =
   | "multi_artifact_strategy"
   | "artifact_critic"
   | "artifact_refiner"
+  | "artifact_intelligence_synthesis"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {

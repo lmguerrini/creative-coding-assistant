@@ -7,6 +7,11 @@ import {
   type ArtifactCapabilityProfileSummary,
   type ArtifactCriticRiskAssessment,
   type ArtifactCriticSummary,
+  type ArtifactImplementationComplexity,
+  type ArtifactImplementationPriority,
+  type ArtifactImplementationReadiness,
+  type ArtifactImplementationRisk,
+  type ArtifactIntelligenceSynthesisSummary,
   type ArtifactRefinerSummary,
   type ArtifactDependencyEdgeSummary,
   type ArtifactDependencyGraphSummary,
@@ -245,6 +250,8 @@ export type AssistantStreamWorkflowMetadata = {
   artifact_critic_available?: boolean;
   artifact_refiner?: ArtifactRefinerSummary | null;
   artifact_refiner_available?: boolean;
+  artifact_intelligence_synthesis?: ArtifactIntelligenceSynthesisSummary | null;
+  artifact_intelligence_synthesis_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -740,6 +747,14 @@ export function readWorkflowMetadata(
   );
   const artifactRefinerAvailable =
     rawWorkflow.artifact_refiner_available === true || artifactRefiner !== null;
+  const artifactIntelligenceSynthesis =
+    readArtifactIntelligenceSynthesisSummary(
+      rawWorkflow.artifact_intelligence_synthesis ??
+        rawWorkflow.artifactIntelligenceSynthesis
+    );
+  const artifactIntelligenceSynthesisAvailable =
+    rawWorkflow.artifact_intelligence_synthesis_available === true ||
+    artifactIntelligenceSynthesis !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -929,6 +944,12 @@ export function readWorkflowMetadata(
       ? {
           artifact_refiner: artifactRefiner,
           artifact_refiner_available: true
+        }
+      : {}),
+    ...(artifactIntelligenceSynthesisAvailable
+      ? {
+          artifact_intelligence_synthesis: artifactIntelligenceSynthesis,
+          artifact_intelligence_synthesis_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -2612,6 +2633,130 @@ export function readArtifactRefinerSummary(
   };
 }
 
+export function readArtifactIntelligenceSynthesisSummary(
+  value: unknown
+): ArtifactIntelligenceSynthesisSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const synthesisConfidence =
+    readFiniteNumberField(value, "synthesis_confidence") ??
+    readFiniteNumberField(value, "synthesisConfidence");
+  const synthesisSummary =
+    readStringField(value, "synthesis_summary") ??
+    readStringField(value, "synthesisSummary");
+  const recommendedArtifactPath =
+    readStringField(value, "recommended_artifact_path") ??
+    readStringField(value, "recommendedArtifactPath");
+  const recommendedStrategySummary =
+    readStringField(value, "recommended_strategy_summary") ??
+    readStringField(value, "recommendedStrategySummary");
+  const recommendedRuntimeDirection =
+    readStringField(value, "recommended_runtime_direction") ??
+    readStringField(value, "recommendedRuntimeDirection");
+  const majorStrengths = readStringListField(
+    value,
+    "major_strengths",
+    "majorStrengths"
+  );
+  const dependencyOverview =
+    readStringField(value, "dependency_overview") ??
+    readStringField(value, "dependencyOverview");
+  const capabilityOverview =
+    readStringField(value, "capability_overview") ??
+    readStringField(value, "capabilityOverview");
+  const refinementOverview =
+    readStringField(value, "refinement_overview") ??
+    readStringField(value, "refinementOverview");
+  const critiqueOverview =
+    readStringField(value, "critique_overview") ??
+    readStringField(value, "critiqueOverview");
+  const implementationReadiness = readStringUnion(
+    value,
+    "implementation_readiness",
+    "implementationReadiness",
+    artifactImplementationReadinesses
+  );
+  const implementationComplexity = readStringUnion(
+    value,
+    "implementation_complexity",
+    "implementationComplexity",
+    artifactImplementationComplexities
+  );
+  const implementationRisk = readStringUnion(
+    value,
+    "implementation_risk",
+    "implementationRisk",
+    artifactImplementationRisks
+  );
+  const implementationPriority = readStringUnion(
+    value,
+    "implementation_priority",
+    "implementationPriority",
+    artifactImplementationPriorities
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "artifact_intelligence_synthesis" ||
+    synthesisConfidence === null ||
+    !synthesisSummary ||
+    !recommendedArtifactPath ||
+    !recommendedStrategySummary ||
+    !recommendedRuntimeDirection ||
+    majorStrengths.length === 0 ||
+    !dependencyOverview ||
+    !capabilityOverview ||
+    !refinementOverview ||
+    !critiqueOverview ||
+    !implementationReadiness ||
+    !implementationComplexity ||
+    !implementationRisk ||
+    !implementationPriority ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    synthesisConfidence,
+    synthesisSummary,
+    recommendedArtifactPath,
+    recommendedStrategySummary,
+    recommendedRuntimeDirection,
+    majorStrengths,
+    majorWeaknesses: readStringListField(
+      value,
+      "major_weaknesses",
+      "majorWeaknesses"
+    ),
+    majorRisks: readStringListField(value, "major_risks", "majorRisks"),
+    dependencyOverview,
+    capabilityOverview,
+    refinementOverview,
+    critiqueOverview,
+    implementationReadiness,
+    implementationComplexity,
+    implementationRisk,
+    implementationPriority,
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
 function readArtifactCapabilityConfidenceSummaryList(
   value: unknown
 ): ArtifactCapabilityConfidenceSummary[] {
@@ -2823,6 +2968,33 @@ const artifactCriticRiskAssessments = [
   "high",
   "blocked"
 ] as const satisfies readonly ArtifactCriticRiskAssessment[];
+
+const artifactImplementationReadinesses = [
+  "ready",
+  "needs_caveats",
+  "needs_hitl",
+  "blocked"
+] as const satisfies readonly ArtifactImplementationReadiness[];
+
+const artifactImplementationComplexities = [
+  "low",
+  "medium",
+  "high"
+] as const satisfies readonly ArtifactImplementationComplexity[];
+
+const artifactImplementationRisks = [
+  "low",
+  "medium",
+  "high",
+  "blocked"
+] as const satisfies readonly ArtifactImplementationRisk[];
+
+const artifactImplementationPriorities = [
+  "critical",
+  "high",
+  "medium",
+  "low"
+] as const satisfies readonly ArtifactImplementationPriority[];
 
 const runtimeCapabilityComplexities = [
   "low",
@@ -6673,6 +6845,7 @@ const creativeReasoningEvidenceSources = [
   "multi_artifact_strategy",
   "artifact_critic",
   "artifact_refiner",
+  "artifact_intelligence_synthesis",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 
