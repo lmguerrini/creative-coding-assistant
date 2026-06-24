@@ -4,6 +4,7 @@ import {
   decodeAssistantStream,
   parseAssistantStreamLine,
   readArtifactCapabilityMatrixSummary,
+  readArtifactCriticSummary,
   readArtifactDependencyGraphSummary,
   readArtifactPlanSummary,
   readMultiArtifactStrategySummary,
@@ -1363,6 +1364,62 @@ function multiArtifactStrategyFixture() {
     authority_boundary:
       "The Multi-Artifact Strategy plans ordering as inspectable metadata only; it does not generate artifacts.",
     evidence: ["Supporting artifact count: 1."]
+  };
+}
+
+function artifactCriticFixture() {
+  return {
+    role: "artifact_critic",
+    critique_confidence: 0.82,
+    critique_summary:
+      "Artifact planning critique risk is medium with visible capability and runtime concerns.",
+    strengths: [
+      "Artifact plan declares runnable_code / p5_sketch with required components.",
+      "Critique remains metadata-only and non-executing."
+    ],
+    weaknesses: [
+      "Unsupported runtimes should not be treated as viable targets: glsl."
+    ],
+    capability_gaps: [
+      "p5.js: Native shader pipelines require additional scaffolding."
+    ],
+    dependency_concerns: [
+      "Runtime-facing dependency conflicts with output structure."
+    ],
+    runtime_concerns: [
+      "Unsupported runtimes should not be treated as viable targets: glsl."
+    ],
+    scalability_concerns: [
+      "Dense particle counts can pressure frame rate."
+    ],
+    maintainability_concerns: [
+      "Multiple supporting artifacts may require strict section labels."
+    ],
+    complexity_concerns: [
+      "Blocking dependencies raise planning complexity."
+    ],
+    risk_assessment: "medium",
+    unsupported_assumptions: [
+      "Artifact Critic findings are advisory and must not reject or refine strategy."
+    ],
+    missing_information: [
+      "Artifact downstream consumers are unavailable."
+    ],
+    open_questions: [
+      "Should this missing planning metadata be resolved?"
+    ],
+    hitl_questions: [
+      "Should generation wait because Artifact Critic risk is medium?"
+    ],
+    improvement_opportunities: [
+      "Use critic findings as visible caveats in prompt guidance, not as edits."
+    ],
+    prompt_guidance: [
+      "Use Artifact Critic output as metadata-only critique of planning signals."
+    ],
+    authority_boundary:
+      "The Artifact Critic evaluates planning metadata only; it does not modify artifacts.",
+    evidence: ["Runtime compatibility: 1 compatible; 1 unsupported."]
   };
 }
 
@@ -2985,6 +3042,21 @@ describe("assistant stream client", () => {
     ]);
   });
 
+  it("reads artifact critic metadata", () => {
+    const critic = readArtifactCriticSummary(artifactCriticFixture());
+
+    expect(critic?.role).toBe("artifact_critic");
+    expect(critic?.critiqueConfidence).toBe(0.82);
+    expect(critic?.riskAssessment).toBe("medium");
+    expect(critic?.strengths).toContain(
+      "Critique remains metadata-only and non-executing."
+    );
+    expect(critic?.capabilityGaps[0]).toContain("Native shader pipelines");
+    expect(critic?.dependencyConcerns[0]).toContain("conflicts");
+    expect(critic?.runtimeConcerns[0]).toContain("Unsupported runtimes");
+    expect(critic?.promptGuidance[0]).toContain("metadata-only critique");
+  });
+
   it("reads creative trade-off explorer metadata", () => {
     const profile = readCreativeTradeoffExplorerSummary({
       role: "creative_tradeoff_explorer",
@@ -4475,6 +4547,51 @@ describe("assistant stream client", () => {
         combinationMode: "primary_with_supporting_sections"
       },
       multi_artifact_strategy_available: true
+    });
+  });
+
+  it("hydrates artifact critic workflow metadata", () => {
+    const artifactCritic = artifactCriticFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 21,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          artifact_critic: artifactCritic,
+          artifact_critic_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      artifact_critic: {
+        role: "artifact_critic",
+        critiqueConfidence: 0.82,
+        riskAssessment: "medium",
+        dependencyConcerns: [
+          "Runtime-facing dependency conflicts with output structure."
+        ],
+        runtimeConcerns: [
+          "Unsupported runtimes should not be treated as viable targets: glsl."
+        ]
+      },
+      artifact_critic_available: true
     });
   });
 

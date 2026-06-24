@@ -5,6 +5,8 @@ import {
   type ArtifactCapabilityFit,
   type ArtifactCapabilityMatrixSummary,
   type ArtifactCapabilityProfileSummary,
+  type ArtifactCriticRiskAssessment,
+  type ArtifactCriticSummary,
   type ArtifactDependencyEdgeSummary,
   type ArtifactDependencyGraphSummary,
   type ArtifactDependencyNodeSummary,
@@ -238,6 +240,8 @@ export type AssistantStreamWorkflowMetadata = {
   artifact_capability_matrix_available?: boolean;
   multi_artifact_strategy?: MultiArtifactStrategySummary | null;
   multi_artifact_strategy_available?: boolean;
+  artifact_critic?: ArtifactCriticSummary | null;
+  artifact_critic_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -723,6 +727,11 @@ export function readWorkflowMetadata(
   const multiArtifactStrategyAvailable =
     rawWorkflow.multi_artifact_strategy_available === true ||
     multiArtifactStrategy !== null;
+  const artifactCritic = readArtifactCriticSummary(
+    rawWorkflow.artifact_critic ?? rawWorkflow.artifactCritic
+  );
+  const artifactCriticAvailable =
+    rawWorkflow.artifact_critic_available === true || artifactCritic !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -900,6 +909,12 @@ export function readWorkflowMetadata(
       ? {
           multi_artifact_strategy: multiArtifactStrategy,
           multi_artifact_strategy_available: true
+        }
+      : {}),
+    ...(artifactCriticAvailable
+      ? {
+          artifact_critic: artifactCritic,
+          artifact_critic_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -2365,6 +2380,112 @@ function readMultiArtifactStrategyGroupSummaryList(
   });
 }
 
+export function readArtifactCriticSummary(
+  value: unknown
+): ArtifactCriticSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const critiqueConfidence =
+    readFiniteNumberField(value, "critique_confidence") ??
+    readFiniteNumberField(value, "critiqueConfidence");
+  const critiqueSummary =
+    readStringField(value, "critique_summary") ??
+    readStringField(value, "critiqueSummary");
+  const riskAssessment = readStringUnion(
+    value,
+    "risk_assessment",
+    "riskAssessment",
+    artifactCriticRiskAssessments
+  );
+  const strengths = readStringListField(value, "strengths", "strengths");
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "artifact_critic" ||
+    critiqueConfidence === null ||
+    !critiqueSummary ||
+    !riskAssessment ||
+    strengths.length === 0 ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    critiqueConfidence,
+    critiqueSummary,
+    strengths,
+    weaknesses: readStringListField(value, "weaknesses", "weaknesses"),
+    capabilityGaps: readStringListField(
+      value,
+      "capability_gaps",
+      "capabilityGaps"
+    ),
+    dependencyConcerns: readStringListField(
+      value,
+      "dependency_concerns",
+      "dependencyConcerns"
+    ),
+    runtimeConcerns: readStringListField(
+      value,
+      "runtime_concerns",
+      "runtimeConcerns"
+    ),
+    scalabilityConcerns: readStringListField(
+      value,
+      "scalability_concerns",
+      "scalabilityConcerns"
+    ),
+    maintainabilityConcerns: readStringListField(
+      value,
+      "maintainability_concerns",
+      "maintainabilityConcerns"
+    ),
+    complexityConcerns: readStringListField(
+      value,
+      "complexity_concerns",
+      "complexityConcerns"
+    ),
+    riskAssessment,
+    unsupportedAssumptions: readStringListField(
+      value,
+      "unsupported_assumptions",
+      "unsupportedAssumptions"
+    ),
+    missingInformation: readStringListField(
+      value,
+      "missing_information",
+      "missingInformation"
+    ),
+    openQuestions: readStringListField(
+      value,
+      "open_questions",
+      "openQuestions"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    improvementOpportunities: readStringListField(
+      value,
+      "improvement_opportunities",
+      "improvementOpportunities"
+    ),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
 function readArtifactCapabilityConfidenceSummaryList(
   value: unknown
 ): ArtifactCapabilityConfidenceSummary[] {
@@ -2569,6 +2690,13 @@ const multiArtifactStrategyCombinationModes = [
   "separated_parallel_sections",
   "defer_combination"
 ] as const satisfies readonly MultiArtifactStrategyCombinationMode[];
+
+const artifactCriticRiskAssessments = [
+  "low",
+  "medium",
+  "high",
+  "blocked"
+] as const satisfies readonly ArtifactCriticRiskAssessment[];
 
 const runtimeCapabilityComplexities = [
   "low",
@@ -6417,6 +6545,7 @@ const creativeReasoningEvidenceSources = [
   "runtime_compatibility",
   "artifact_capability_matrix",
   "multi_artifact_strategy",
+  "artifact_critic",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

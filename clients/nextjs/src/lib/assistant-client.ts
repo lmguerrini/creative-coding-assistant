@@ -523,6 +523,31 @@ export type MultiArtifactStrategySummary = {
   evidence: string[];
 };
 
+export type ArtifactCriticRiskAssessment = "low" | "medium" | "high" | "blocked";
+
+export type ArtifactCriticSummary = {
+  role: "artifact_critic";
+  critiqueConfidence: number;
+  critiqueSummary: string;
+  strengths: string[];
+  weaknesses: string[];
+  capabilityGaps: string[];
+  dependencyConcerns: string[];
+  runtimeConcerns: string[];
+  scalabilityConcerns: string[];
+  maintainabilityConcerns: string[];
+  complexityConcerns: string[];
+  riskAssessment: ArtifactCriticRiskAssessment;
+  unsupportedAssumptions: string[];
+  missingInformation: string[];
+  openQuestions: string[];
+  hitlQuestions: string[];
+  improvementOpportunities: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeTradeoffAxis =
   | "creative_expressiveness"
   | "concept_fidelity"
@@ -1625,6 +1650,7 @@ export type CreativeReasoningEvidenceSource =
   | "runtime_compatibility"
   | "artifact_capability_matrix"
   | "multi_artifact_strategy"
+  | "artifact_critic"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {
