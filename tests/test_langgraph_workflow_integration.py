@@ -261,6 +261,9 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         multi_artifact_strategy = planning_event.payload["multi_artifact_strategy"]
         artifact_critic = planning_event.payload["artifact_critic"]
         artifact_refiner = planning_event.payload["artifact_refiner"]
+        artifact_intelligence_synthesis = planning_event.payload[
+            "artifact_intelligence_synthesis"
+        ]
         director = director_event.payload["creative_director"]
         reasoning = reasoning_event.payload["creative_reasoning"]
 
@@ -469,6 +472,21 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             planning_event.payload["workflow"]["artifact_refiner_available"]
         )
         self.assertEqual(
+            artifact_intelligence_synthesis["role"],
+            "artifact_intelligence_synthesis",
+        )
+        self.assertGreaterEqual(
+            artifact_intelligence_synthesis["synthesis_confidence"], 0
+        )
+        self.assertTrue(
+            artifact_intelligence_synthesis["recommended_artifact_path"]
+        )
+        self.assertTrue(
+            planning_event.payload["workflow"][
+                "artifact_intelligence_synthesis_available"
+            ]
+        )
+        self.assertEqual(
             final_event.payload["artifact_plan"],
             planning_event.payload["artifact_plan"],
         )
@@ -495,6 +513,10 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(
             final_event.payload["artifact_refiner"],
             planning_event.payload["artifact_refiner"],
+        )
+        self.assertEqual(
+            final_event.payload["artifact_intelligence_synthesis"],
+            planning_event.payload["artifact_intelligence_synthesis"],
         )
         self.assertEqual(
             final_event.payload["creative_director"]["runtime_direction"],

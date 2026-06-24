@@ -12,6 +12,9 @@ from creative_coding_assistant.orchestration.artifact_critic import (
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
+from creative_coding_assistant.orchestration.artifact_intelligence_synthesis import (
+    ArtifactIntelligenceSynthesisProfile,
+)
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.artifact_refiner import (
     ArtifactRefinerProfile,
@@ -120,6 +123,7 @@ def build_evidence_chain(
     multi_artifact_strategy: MultiArtifactStrategy | None,
     artifact_critic: ArtifactCriticProfile | None,
     artifact_refiner: ArtifactRefinerProfile | None,
+    artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -542,6 +546,33 @@ def build_evidence_chain(
                 ),
             )
         )
+    if artifact_intelligence_synthesis is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="artifact_intelligence_synthesis",
+                signal=_clip(
+                    (
+                        f"{artifact_intelligence_synthesis.implementation_readiness} "
+                        "readiness; "
+                        f"{artifact_intelligence_synthesis.implementation_risk} "
+                        "risk; "
+                        f"{artifact_intelligence_synthesis.implementation_priority} "
+                        "priority; "
+                        f"{artifact_intelligence_synthesis.synthesis_confidence:.2f} "
+                        "confidence"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Artifact intelligence synthesis evidence summarizes, "
+                    "ranks, and recommends across existing planning metadata "
+                    "as advisory guidance only, without executing decisions, "
+                    "selecting runtimes, modifying artifacts, routing "
+                    "providers, changing previews, triggering escalation, "
+                    "triggering workflows, retrying, merging, or exporting."
+                ),
+            )
+        )
     if creative_director is not None:
         evidence.append(
             CreativeReasoningEvidence(
@@ -550,7 +581,7 @@ def build_evidence_chain(
                 interpretation="Director guidance frames brief and HITL posture.",
             )
         )
-    return tuple(evidence[:30])
+    return tuple(evidence[:31])
 
 
 def _append_strategy_evidence(

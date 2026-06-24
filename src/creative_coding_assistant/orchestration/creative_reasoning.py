@@ -14,6 +14,9 @@ from creative_coding_assistant.orchestration.artifact_critic import (
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
+from creative_coding_assistant.orchestration.artifact_intelligence_synthesis import (
+    ArtifactIntelligenceSynthesisProfile,
+)
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.artifact_refiner import (
     ArtifactRefinerProfile,
@@ -139,6 +142,9 @@ def derive_creative_reasoning_result(
     multi_artifact_strategy: MultiArtifactStrategy | None = None,
     artifact_critic: ArtifactCriticProfile | None = None,
     artifact_refiner: ArtifactRefinerProfile | None = None,
+    artifact_intelligence_synthesis: (
+        ArtifactIntelligenceSynthesisProfile | None
+    ) = None,
     future_knowledge_context: Mapping[str, object] | None = None,
 ) -> CreativeReasoningResult:
     """Synthesize prior Creative Intelligence outputs into one decision brief."""
@@ -170,6 +176,7 @@ def derive_creative_reasoning_result(
         multi_artifact_strategy=multi_artifact_strategy,
         artifact_critic=artifact_critic,
         artifact_refiner=artifact_refiner,
+        artifact_intelligence_synthesis=artifact_intelligence_synthesis,
     )
     unresolved = build_unresolved_decisions(
         creative_director=creative_director,
@@ -197,6 +204,7 @@ def derive_creative_reasoning_result(
         multi_artifact_strategy=multi_artifact_strategy,
         artifact_critic=artifact_critic,
         artifact_refiner=artifact_refiner,
+        artifact_intelligence_synthesis=artifact_intelligence_synthesis,
     )
     return CreativeReasoningResult(
         recommended_creative_direction=direction,
@@ -226,6 +234,7 @@ def derive_creative_reasoning_result(
             multi_artifact_strategy=multi_artifact_strategy,
             artifact_critic=artifact_critic,
             artifact_refiner=artifact_refiner,
+            artifact_intelligence_synthesis=artifact_intelligence_synthesis,
         ),
         evidence_chain=build_evidence_chain(
             request=request,
@@ -257,6 +266,7 @@ def derive_creative_reasoning_result(
             multi_artifact_strategy=multi_artifact_strategy,
             artifact_critic=artifact_critic,
             artifact_refiner=artifact_refiner,
+            artifact_intelligence_synthesis=artifact_intelligence_synthesis,
         ),
         strongest_supporting_signals=build_strongest_signals(
             creative_director=creative_director,
@@ -284,6 +294,7 @@ def derive_creative_reasoning_result(
             multi_artifact_strategy=multi_artifact_strategy,
             artifact_critic=artifact_critic,
             artifact_refiner=artifact_refiner,
+            artifact_intelligence_synthesis=artifact_intelligence_synthesis,
         ),
         rejected_alternatives=build_rejected_alternatives(
             creative_strategy=creative_strategy,
@@ -317,6 +328,7 @@ def derive_creative_reasoning_result(
             multi_artifact_strategy=multi_artifact_strategy,
             artifact_critic=artifact_critic,
             artifact_refiner=artifact_refiner,
+            artifact_intelligence_synthesis=artifact_intelligence_synthesis,
         ),
         prompt_guidance=build_prompt_guidance(unresolved),
         hitl_questions=build_hitl_questions(unresolved),

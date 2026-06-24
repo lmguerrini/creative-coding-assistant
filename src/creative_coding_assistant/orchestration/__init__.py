@@ -36,6 +36,9 @@ _MULTI_ARTIFACT_STRATEGY = (
 )
 _ARTIFACT_CRITIC = "creative_coding_assistant.orchestration.artifact_critic"
 _ARTIFACT_REFINER = "creative_coding_assistant.orchestration.artifact_refiner"
+_ARTIFACT_INTELLIGENCE_SYNTHESIS = (
+    "creative_coding_assistant.orchestration.artifact_intelligence_synthesis"
+)
 _CREATIVE_QUALITY_PREDICTION = (
     "creative_coding_assistant.orchestration.creative_quality_prediction"
 )
@@ -366,6 +369,12 @@ _EXPORT_MAP = {
     "derive_artifact_critic_profile": _ARTIFACT_CRITIC,
     "artifact_refiner_prompt_lines": _ARTIFACT_REFINER,
     "derive_artifact_refiner_profile": _ARTIFACT_REFINER,
+    "artifact_intelligence_synthesis_prompt_lines": (
+        _ARTIFACT_INTELLIGENCE_SYNTHESIS
+    ),
+    "derive_artifact_intelligence_synthesis_profile": (
+        _ARTIFACT_INTELLIGENCE_SYNTHESIS
+    ),
     "artifact_plan_prompt_lines": _ARTIFACT_PLANNER,
     "derive_artifact_plan": _ARTIFACT_PLANNER,
     "derive_symbolic_narrative_plan": _SYMBOLIC_NARRATIVE,

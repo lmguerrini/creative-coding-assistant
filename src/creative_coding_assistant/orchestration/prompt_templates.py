@@ -24,6 +24,10 @@ from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
     artifact_dependency_graph_prompt_lines,
 )
+from creative_coding_assistant.orchestration.artifact_intelligence_synthesis import (
+    ArtifactIntelligenceSynthesisProfile,
+    artifact_intelligence_synthesis_prompt_lines,
+)
 from creative_coding_assistant.orchestration.artifact_planner import (
     ArtifactPlan,
     artifact_plan_prompt_lines,
@@ -369,6 +373,13 @@ Artifact Refiner:
 - {{ instruction }}
 {% endfor %}
 {% endif %}
+{% set synthesis = prompt_input.artifact_intelligence_synthesis -%}
+{% if synthesis is not none -%}
+Artifact Intelligence Synthesis:
+{% for instruction in artifact_intelligence_synthesis_lines(synthesis) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
 {% set director = prompt_input.creative_director -%}
 {% if director is not none -%}
 Creative Assistant Director:
@@ -629,6 +640,9 @@ class JinjaPromptRenderer:
             multi_artifact_strategy_lines=_multi_artifact_strategy_lines,
             artifact_critic_lines=_artifact_critic_lines,
             artifact_refiner_lines=_artifact_refiner_lines,
+            artifact_intelligence_synthesis_lines=(
+                _artifact_intelligence_synthesis_lines
+            ),
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -943,6 +957,12 @@ def _artifact_refiner_lines(
     profile: ArtifactRefinerProfile,
 ) -> tuple[str, ...]:
     return artifact_refiner_prompt_lines(profile)
+
+
+def _artifact_intelligence_synthesis_lines(
+    profile: ArtifactIntelligenceSynthesisProfile,
+) -> tuple[str, ...]:
+    return artifact_intelligence_synthesis_prompt_lines(profile)
 
 
 def _creative_assistant_director_lines(

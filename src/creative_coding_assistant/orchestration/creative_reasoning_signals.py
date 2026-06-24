@@ -12,6 +12,9 @@ from creative_coding_assistant.orchestration.artifact_critic import (
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
+from creative_coding_assistant.orchestration.artifact_intelligence_synthesis import (
+    ArtifactIntelligenceSynthesisProfile,
+)
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.artifact_refiner import (
     ArtifactRefinerProfile,
@@ -108,6 +111,7 @@ def build_recommended_direction(
     multi_artifact_strategy: MultiArtifactStrategy | None,
     artifact_critic: ArtifactCriticProfile | None,
     artifact_refiner: ArtifactRefinerProfile | None,
+    artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -180,6 +184,14 @@ def build_recommended_direction(
         if artifact_refiner is not None
         else ""
     )
+    synthesis_label = _artifact_intelligence_synthesis_label(
+        artifact_intelligence_synthesis
+    )
+    artifact_intelligence_synthesis_clause = (
+        f"Artifact intelligence synthesis as {_clip(synthesis_label, 90)}. "
+        if artifact_intelligence_synthesis is not None
+        else ""
+    )
     direction = (
         f"Recommend {_strategy_label(creative_strategy)} via "
         f"{_technique_label(creative_techniques)} because it protects "
@@ -195,6 +207,7 @@ def build_recommended_direction(
         f"{multi_artifact_clause}"
         f"{artifact_critic_clause}"
         f"{artifact_refiner_clause}"
+        f"{artifact_intelligence_synthesis_clause}"
         f"{motif_clause}"
         f"{emotion_clause}"
         f"{modality_clause}"
@@ -240,9 +253,13 @@ def build_reasoning_path(
     multi_artifact_strategy: MultiArtifactStrategy | None,
     artifact_critic: ArtifactCriticProfile | None,
     artifact_refiner: ArtifactRefinerProfile | None,
+    artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
+    synthesis_label = _artifact_intelligence_synthesis_label(
+        artifact_intelligence_synthesis
+    )
     return (
         CreativeReasoningStep(
             stage="strategy",
@@ -322,6 +339,8 @@ def build_reasoning_path(
                     f"{_artifact_critic_label(artifact_critic)}, "
                     "artifact refiner "
                     f"{_artifact_refiner_label(artifact_refiner)}, "
+                    "artifact intelligence synthesis "
+                    f"{synthesis_label}, "
                     "plus "
                     f"{_quality_label(creative_quality_prediction)}."
                 ),
@@ -341,13 +360,14 @@ def build_reasoning_path(
                     "Treat cross-modality, scene timing, and artifact planning "
                     "plus dependency graph, runtime compatibility, and "
                     "capability matrix and multi-artifact strategy metadata "
-                    "plus artifact critic and artifact refiner metadata as "
+                    "plus artifact critic, artifact refiner, and artifact "
+                    "intelligence synthesis metadata as "
                     "guidance, not runtime behavior, runtime auto-selection, "
                     "provider routing, artifact generation, artifact "
                     "modification, final implementation choice, automatic "
                     "refinement, strategy rejection, artifact merging, export "
-                    "intelligence, workflow triggering, retries, or runtime "
-                    "repair."
+                    "intelligence, workflow triggering, retries, escalation "
+                    "behavior, or runtime repair."
                 ),
             ),
         ),
@@ -574,6 +594,19 @@ def _artifact_refiner_label(
         f"{profile.refinement_confidence:.2f} confidence, "
         f"{len(profile.priority_improvements)} priority improvements, "
         f"{len(profile.refinement_candidates)} candidates"
+    )
+
+
+def _artifact_intelligence_synthesis_label(
+    profile: ArtifactIntelligenceSynthesisProfile | None,
+) -> str:
+    if profile is None:
+        return "no artifact intelligence synthesis profile"
+    return (
+        f"{profile.implementation_readiness} readiness, "
+        f"{profile.implementation_risk} risk, "
+        f"{profile.implementation_priority} priority, "
+        f"{profile.synthesis_confidence:.2f} confidence"
     )
 
 

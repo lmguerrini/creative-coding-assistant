@@ -29,6 +29,9 @@ from creative_coding_assistant.orchestration.artifact_critique import (
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     derive_artifact_dependency_graph,
 )
+from creative_coding_assistant.orchestration.artifact_intelligence_synthesis import (
+    derive_artifact_intelligence_synthesis_profile,
+)
 from creative_coding_assistant.orchestration.artifact_planner import (
     derive_artifact_plan,
 )
@@ -963,6 +966,19 @@ def _planning_node(
             multi_artifact_strategy=multi_artifact_strategy,
             artifact_critic=artifact_critic,
         )
+        artifact_intelligence_synthesis = (
+            derive_artifact_intelligence_synthesis_profile(
+                request=workflow_state.request,
+                route_decision=workflow_state.route_decision,
+                artifact_plan=artifact_plan,
+                artifact_dependency_graph=artifact_dependency_graph,
+                runtime_compatibility=runtime_compatibility,
+                artifact_capability_matrix=artifact_capability_matrix,
+                multi_artifact_strategy=multi_artifact_strategy,
+                artifact_critic=artifact_critic,
+                artifact_refiner=artifact_refiner,
+            )
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -990,6 +1006,9 @@ def _planning_node(
                 "multi_artifact_strategy": multi_artifact_strategy,
                 "artifact_critic": artifact_critic,
                 "artifact_refiner": artifact_refiner,
+                "artifact_intelligence_synthesis": (
+                    artifact_intelligence_synthesis
+                ),
             }
         )
         planned_state = workflow_state.model_copy(
@@ -1019,6 +1038,9 @@ def _planning_node(
                 "multi_artifact_strategy": multi_artifact_strategy,
                 "artifact_critic": artifact_critic,
                 "artifact_refiner": artifact_refiner,
+                "artifact_intelligence_synthesis": (
+                    artifact_intelligence_synthesis
+                ),
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -1061,6 +1083,9 @@ def _planning_node(
                 ),
                 artifact_critic=artifact_critic.model_dump(mode="json"),
                 artifact_refiner=artifact_refiner.model_dump(mode="json"),
+                artifact_intelligence_synthesis=(
+                    artifact_intelligence_synthesis.model_dump(mode="json")
+                ),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -1950,6 +1975,16 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "artifact_intelligence_synthesis",
+                    (
+                        final_state.artifact_intelligence_synthesis.model_dump(
+                            mode="json"
+                        )
+                        if final_state.artifact_intelligence_synthesis is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_director",
                     (
                         final_state.creative_director.model_dump(mode="json")
@@ -2551,6 +2586,9 @@ def _derive_director_brief(
         multi_artifact_strategy=workflow_state.multi_artifact_strategy,
         artifact_critic=workflow_state.artifact_critic,
         artifact_refiner=workflow_state.artifact_refiner,
+        artifact_intelligence_synthesis=(
+            workflow_state.artifact_intelligence_synthesis
+        ),
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2599,6 +2637,9 @@ def _derive_reasoning_result(
         multi_artifact_strategy=workflow_state.multi_artifact_strategy,
         artifact_critic=workflow_state.artifact_critic,
         artifact_refiner=workflow_state.artifact_refiner,
+        artifact_intelligence_synthesis=(
+            workflow_state.artifact_intelligence_synthesis
+        ),
     )
 
 
@@ -2837,6 +2878,9 @@ def _serialize_workflow_runtime(
     multi_artifact_strategy = workflow_state.multi_artifact_strategy
     artifact_critic = workflow_state.artifact_critic
     artifact_refiner = workflow_state.artifact_refiner
+    artifact_intelligence_synthesis = (
+        workflow_state.artifact_intelligence_synthesis
+    )
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -3034,6 +3078,14 @@ def _serialize_workflow_runtime(
             else None
         ),
         "artifact_refiner_available": artifact_refiner is not None,
+        "artifact_intelligence_synthesis": (
+            artifact_intelligence_synthesis.model_dump(mode="json")
+            if artifact_intelligence_synthesis is not None
+            else None
+        ),
+        "artifact_intelligence_synthesis_available": (
+            artifact_intelligence_synthesis is not None
+        ),
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None
