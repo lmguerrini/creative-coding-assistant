@@ -446,6 +446,83 @@ export type ArtifactCapabilityMatrixSummary = {
   evidence: string[];
 };
 
+export type MultiArtifactStrategyRole = "primary" | "supporting" | "optional";
+
+export type MultiArtifactStrategyPriority = "critical" | "high" | "medium" | "low";
+
+export type MultiArtifactStrategyAction =
+  | "produce"
+  | "separate"
+  | "document"
+  | "handoff";
+
+export type MultiArtifactStrategyCombinationMode =
+  | "primary_with_supporting_sections"
+  | "separated_parallel_sections"
+  | "defer_combination";
+
+export type MultiArtifactStrategyArtifactSummary = {
+  artifactId: string;
+  title: string;
+  role: MultiArtifactStrategyRole;
+  artifactType: ArtifactType;
+  artifactFamily: ArtifactFamily;
+  priority: MultiArtifactStrategyPriority;
+  purpose: string;
+  runtimeTargets: RuntimeCapabilityId[];
+  capabilityTargets: RuntimeCapabilityId[];
+  dependsOn: string[];
+  handoffPoints: string[];
+  evidence: string[];
+};
+
+export type MultiArtifactStrategySequenceStepSummary = {
+  stepId: string;
+  order: number;
+  artifactId: string;
+  action: MultiArtifactStrategyAction;
+  rationale: string;
+  dependsOn: string[];
+  promptGuidance: string[];
+};
+
+export type MultiArtifactStrategyPriorityEntrySummary = {
+  artifactId: string;
+  priority: MultiArtifactStrategyPriority;
+  rationale: string;
+};
+
+export type MultiArtifactStrategyGroupSummary = {
+  groupId: string;
+  label: string;
+  artifactIds: string[];
+  groupingRationale: string;
+  separationRationale: string;
+};
+
+export type MultiArtifactStrategySummary = {
+  role: "multi_artifact_strategy";
+  artifactStrategySummary: string;
+  primaryArtifact: MultiArtifactStrategyArtifactSummary;
+  supportingArtifacts: MultiArtifactStrategyArtifactSummary[];
+  artifactSequence: MultiArtifactStrategySequenceStepSummary[];
+  artifactPriority: MultiArtifactStrategyPriorityEntrySummary[];
+  artifactGrouping: MultiArtifactStrategyGroupSummary[];
+  artifactSeparationStrategy: string[];
+  artifactCombinationStrategy: string[];
+  artifactDependencyOrder: string[];
+  artifactHandoffPoints: string[];
+  runtimeAwareArtifactStrategy: string[];
+  capabilityAwareArtifactStrategy: string[];
+  combinationMode: MultiArtifactStrategyCombinationMode;
+  riskAreas: string[];
+  missingInformation: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeTradeoffAxis =
   | "creative_expressiveness"
   | "concept_fidelity"
@@ -1547,6 +1624,7 @@ export type CreativeReasoningEvidenceSource =
   | "artifact_dependency_graph"
   | "runtime_compatibility"
   | "artifact_capability_matrix"
+  | "multi_artifact_strategy"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {

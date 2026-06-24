@@ -11,6 +11,15 @@ import {
   type ArtifactFamily,
   type ArtifactPlanSummary,
   type ArtifactType,
+  type MultiArtifactStrategyAction,
+  type MultiArtifactStrategyArtifactSummary,
+  type MultiArtifactStrategyCombinationMode,
+  type MultiArtifactStrategyGroupSummary,
+  type MultiArtifactStrategyPriority,
+  type MultiArtifactStrategyPriorityEntrySummary,
+  type MultiArtifactStrategyRole,
+  type MultiArtifactStrategySequenceStepSummary,
+  type MultiArtifactStrategySummary,
   type AudioVisualCueType,
   type AudioVisualFallbackSceneStrategySummary,
   type AudioVisualSceneCueSummary,
@@ -227,6 +236,8 @@ export type AssistantStreamWorkflowMetadata = {
   runtime_compatibility_available?: boolean;
   artifact_capability_matrix?: ArtifactCapabilityMatrixSummary | null;
   artifact_capability_matrix_available?: boolean;
+  multi_artifact_strategy?: MultiArtifactStrategySummary | null;
+  multi_artifact_strategy_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -706,6 +717,12 @@ export function readWorkflowMetadata(
   const artifactCapabilityMatrixAvailable =
     rawWorkflow.artifact_capability_matrix_available === true ||
     artifactCapabilityMatrix !== null;
+  const multiArtifactStrategy = readMultiArtifactStrategySummary(
+    rawWorkflow.multi_artifact_strategy ?? rawWorkflow.multiArtifactStrategy
+  );
+  const multiArtifactStrategyAvailable =
+    rawWorkflow.multi_artifact_strategy_available === true ||
+    multiArtifactStrategy !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -877,6 +894,12 @@ export function readWorkflowMetadata(
       ? {
           artifact_capability_matrix: artifactCapabilityMatrix,
           artifact_capability_matrix_available: true
+        }
+      : {}),
+    ...(multiArtifactStrategyAvailable
+      ? {
+          multi_artifact_strategy: multiArtifactStrategy,
+          multi_artifact_strategy_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -2012,6 +2035,336 @@ export function readArtifactCapabilityMatrixSummary(
   };
 }
 
+export function readMultiArtifactStrategySummary(
+  value: unknown
+): MultiArtifactStrategySummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const artifactStrategySummary =
+    readStringField(value, "artifact_strategy_summary") ??
+    readStringField(value, "artifactStrategySummary");
+  const primaryArtifact = readMultiArtifactStrategyArtifactSummary(
+    value.primary_artifact ?? value.primaryArtifact
+  );
+  const supportingArtifacts = readMultiArtifactStrategyArtifactSummaryList(
+    value.supporting_artifacts ?? value.supportingArtifacts
+  );
+  const artifactSequence = readMultiArtifactStrategySequenceStepSummaryList(
+    value.artifact_sequence ?? value.artifactSequence
+  );
+  const artifactPriority = readMultiArtifactStrategyPriorityEntrySummaryList(
+    value.artifact_priority ?? value.artifactPriority
+  );
+  const artifactGrouping = readMultiArtifactStrategyGroupSummaryList(
+    value.artifact_grouping ?? value.artifactGrouping
+  );
+  const combinationMode = readStringUnion(
+    value,
+    "combination_mode",
+    "combinationMode",
+    multiArtifactStrategyCombinationModes
+  );
+  const artifactSeparationStrategy = readStringListField(
+    value,
+    "artifact_separation_strategy",
+    "artifactSeparationStrategy"
+  );
+  const artifactCombinationStrategy = readStringListField(
+    value,
+    "artifact_combination_strategy",
+    "artifactCombinationStrategy"
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "multi_artifact_strategy" ||
+    !artifactStrategySummary ||
+    primaryArtifact === null ||
+    artifactSequence.length === 0 ||
+    artifactPriority.length === 0 ||
+    artifactGrouping.length === 0 ||
+    artifactSeparationStrategy.length === 0 ||
+    artifactCombinationStrategy.length === 0 ||
+    !combinationMode ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    artifactStrategySummary,
+    primaryArtifact,
+    supportingArtifacts,
+    artifactSequence,
+    artifactPriority,
+    artifactGrouping,
+    artifactSeparationStrategy,
+    artifactCombinationStrategy,
+    artifactDependencyOrder: readStringListField(
+      value,
+      "artifact_dependency_order",
+      "artifactDependencyOrder"
+    ),
+    artifactHandoffPoints: readStringListField(
+      value,
+      "artifact_handoff_points",
+      "artifactHandoffPoints"
+    ),
+    runtimeAwareArtifactStrategy: readStringListField(
+      value,
+      "runtime_aware_artifact_strategy",
+      "runtimeAwareArtifactStrategy"
+    ),
+    capabilityAwareArtifactStrategy: readStringListField(
+      value,
+      "capability_aware_artifact_strategy",
+      "capabilityAwareArtifactStrategy"
+    ),
+    combinationMode,
+    riskAreas: readStringListField(value, "risk_areas", "riskAreas"),
+    missingInformation: readStringListField(
+      value,
+      "missing_information",
+      "missingInformation"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+function readMultiArtifactStrategyArtifactSummaryList(
+  value: unknown
+): MultiArtifactStrategyArtifactSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    const artifact = readMultiArtifactStrategyArtifactSummary(item);
+    return artifact ? [artifact] : [];
+  });
+}
+
+function readMultiArtifactStrategyArtifactSummary(
+  value: unknown
+): MultiArtifactStrategyArtifactSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const artifactId =
+    readStringField(value, "artifact_id") ?? readStringField(value, "artifactId");
+  const title = readStringField(value, "title");
+  const role = readStringUnion(
+    value,
+    "role",
+    "role",
+    multiArtifactStrategyRoles
+  );
+  const artifactType = readStringUnion(
+    value,
+    "artifact_type",
+    "artifactType",
+    artifactTypes
+  );
+  const artifactFamily = readStringUnion(
+    value,
+    "artifact_family",
+    "artifactFamily",
+    artifactFamilies
+  );
+  const priority = readStringUnion(
+    value,
+    "priority",
+    "priority",
+    multiArtifactStrategyPriorities
+  );
+  const purpose = readStringField(value, "purpose");
+
+  if (
+    !artifactId ||
+    !title ||
+    !role ||
+    !artifactType ||
+    !artifactFamily ||
+    !priority ||
+    !purpose
+  ) {
+    return null;
+  }
+
+  return {
+    artifactId,
+    title,
+    role,
+    artifactType,
+    artifactFamily,
+    priority,
+    purpose,
+    runtimeTargets: readRuntimeCapabilityIdList(
+      value.runtime_targets ?? value.runtimeTargets
+    ),
+    capabilityTargets: readRuntimeCapabilityIdList(
+      value.capability_targets ?? value.capabilityTargets
+    ),
+    dependsOn: readStringListField(value, "depends_on", "dependsOn"),
+    handoffPoints: readStringListField(
+      value,
+      "handoff_points",
+      "handoffPoints"
+    ),
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+function readMultiArtifactStrategySequenceStepSummaryList(
+  value: unknown
+): MultiArtifactStrategySequenceStepSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    const step = readMultiArtifactStrategySequenceStepSummary(item);
+    return step ? [step] : [];
+  });
+}
+
+function readMultiArtifactStrategySequenceStepSummary(
+  value: unknown
+): MultiArtifactStrategySequenceStepSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const stepId =
+    readStringField(value, "step_id") ?? readStringField(value, "stepId");
+  const order = readFiniteNumberField(value, "order");
+  const artifactId =
+    readStringField(value, "artifact_id") ?? readStringField(value, "artifactId");
+  const action = readStringUnion(
+    value,
+    "action",
+    "action",
+    multiArtifactStrategyActions
+  );
+  const rationale = readStringField(value, "rationale");
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+
+  if (
+    !stepId ||
+    order === null ||
+    !artifactId ||
+    !action ||
+    !rationale ||
+    promptGuidance.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    stepId,
+    order,
+    artifactId,
+    action,
+    rationale,
+    dependsOn: readStringListField(value, "depends_on", "dependsOn"),
+    promptGuidance
+  };
+}
+
+function readMultiArtifactStrategyPriorityEntrySummaryList(
+  value: unknown
+): MultiArtifactStrategyPriorityEntrySummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+    const artifactId =
+      readStringField(item, "artifact_id") ??
+      readStringField(item, "artifactId");
+    const priority = readStringUnion(
+      item,
+      "priority",
+      "priority",
+      multiArtifactStrategyPriorities
+    );
+    const rationale = readStringField(item, "rationale");
+    if (!artifactId || !priority || !rationale) {
+      return [];
+    }
+    return [{ artifactId, priority, rationale }];
+  });
+}
+
+function readMultiArtifactStrategyGroupSummaryList(
+  value: unknown
+): MultiArtifactStrategyGroupSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+    const groupId =
+      readStringField(item, "group_id") ?? readStringField(item, "groupId");
+    const label = readStringField(item, "label");
+    const artifactIds = readStringListField(
+      item,
+      "artifact_ids",
+      "artifactIds"
+    );
+    const groupingRationale =
+      readStringField(item, "grouping_rationale") ??
+      readStringField(item, "groupingRationale");
+    const separationRationale =
+      readStringField(item, "separation_rationale") ??
+      readStringField(item, "separationRationale");
+    if (
+      !groupId ||
+      !label ||
+      artifactIds.length === 0 ||
+      !groupingRationale ||
+      !separationRationale
+    ) {
+      return [];
+    }
+    return [
+      {
+        groupId,
+        label,
+        artifactIds,
+        groupingRationale,
+        separationRationale
+      }
+    ];
+  });
+}
+
 function readArtifactCapabilityConfidenceSummaryList(
   value: unknown
 ): ArtifactCapabilityConfidenceSummary[] {
@@ -2065,11 +2418,9 @@ function readArtifactCapabilityProfileSummary(
     runtimeCapabilityIds
   );
   const label = readStringField(value, "label");
-  const capabilityConfidence = readFiniteNumberField(
-    value,
-    "capability_confidence",
-    "capabilityConfidence"
-  );
+  const capabilityConfidence =
+    readFiniteNumberField(value, "capability_confidence") ??
+    readFiniteNumberField(value, "capabilityConfidence");
   const artifactFit = readArtifactCapabilityFit(value, "artifact_fit", "artifactFit");
   const creativeFit = readArtifactCapabilityFit(value, "creative_fit", "creativeFit");
   const generativeFit = readArtifactCapabilityFit(
@@ -2192,6 +2543,32 @@ const artifactCapabilityFits = [
   "weak",
   "unsupported"
 ] as const satisfies readonly ArtifactCapabilityFit[];
+
+const multiArtifactStrategyRoles = [
+  "primary",
+  "supporting",
+  "optional"
+] as const satisfies readonly MultiArtifactStrategyRole[];
+
+const multiArtifactStrategyPriorities = [
+  "critical",
+  "high",
+  "medium",
+  "low"
+] as const satisfies readonly MultiArtifactStrategyPriority[];
+
+const multiArtifactStrategyActions = [
+  "produce",
+  "separate",
+  "document",
+  "handoff"
+] as const satisfies readonly MultiArtifactStrategyAction[];
+
+const multiArtifactStrategyCombinationModes = [
+  "primary_with_supporting_sections",
+  "separated_parallel_sections",
+  "defer_combination"
+] as const satisfies readonly MultiArtifactStrategyCombinationMode[];
 
 const runtimeCapabilityComplexities = [
   "low",
@@ -6039,6 +6416,7 @@ const creativeReasoningEvidenceSources = [
   "artifact_dependency_graph",
   "runtime_compatibility",
   "artifact_capability_matrix",
+  "multi_artifact_strategy",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

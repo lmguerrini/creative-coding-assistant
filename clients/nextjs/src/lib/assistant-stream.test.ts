@@ -6,6 +6,7 @@ import {
   readArtifactCapabilityMatrixSummary,
   readArtifactDependencyGraphSummary,
   readArtifactPlanSummary,
+  readMultiArtifactStrategySummary,
   readAudioVisualSceneProfileSummary,
   readClarificationSummary,
   readCrossModalityCompositionProfileSummary,
@@ -1244,6 +1245,124 @@ function artifactCapabilityMatrixFixture() {
     authority_boundary:
       "The Artifact Capability Matrix describes runtime and artifact target capabilities as inspectable planning metadata only.",
     evidence: ["Capability order: p5_js:strong:0.91."]
+  };
+}
+
+function multiArtifactStrategyFixture() {
+  return {
+    role: "multi_artifact_strategy",
+    artifact_strategy_summary:
+      "Lead with primary p5.js code, then separate dependency, runtime, and capability notes.",
+    primary_artifact: {
+      artifact_id: "primary_artifact",
+      title: "Primary p5.js artifact",
+      role: "primary",
+      artifact_type: "runnable_code",
+      artifact_family: "p5_sketch",
+      priority: "critical",
+      purpose: "Deliver the requested creative-coding output first.",
+      runtime_targets: ["p5_js"],
+      capability_targets: ["p5_js", "canvas"],
+      depends_on: [],
+      handoff_points: [
+        "Primary output hands off to supporting notes after code shape is clear."
+      ],
+      evidence: ["Artifact family: p5_sketch."]
+    },
+    supporting_artifacts: [
+      {
+        artifact_id: "runtime_notes",
+        title: "Runtime compatibility notes",
+        role: "supporting",
+        artifact_type: "explanation",
+        artifact_family: "p5_sketch",
+        priority: "medium",
+        purpose: "Surface runtime metadata without changing execution.",
+        runtime_targets: ["p5_js"],
+        capability_targets: ["p5_js"],
+        depends_on: ["primary_artifact"],
+        handoff_points: [
+          "Hand off to runtime notes after the primary artifact."
+        ],
+        evidence: ["Use Runtime Compatibility Engine output as metadata only."]
+      }
+    ],
+    artifact_sequence: [
+      {
+        step_id: "step_1_primary_artifact",
+        order: 1,
+        artifact_id: "primary_artifact",
+        action: "produce",
+        rationale: "Primary artifact leads the response.",
+        depends_on: [],
+        prompt_guidance: ["Produce the primary artifact before support notes."]
+      },
+      {
+        step_id: "step_2_runtime_notes",
+        order: 2,
+        artifact_id: "runtime_notes",
+        action: "document",
+        rationale: "Runtime notes support the primary artifact.",
+        depends_on: ["primary_artifact"],
+        prompt_guidance: ["Document runtime notes as metadata only."]
+      }
+    ],
+    artifact_priority: [
+      {
+        artifact_id: "primary_artifact",
+        priority: "critical",
+        rationale: "Primary artifact leads the response."
+      },
+      {
+        artifact_id: "runtime_notes",
+        priority: "medium",
+        rationale: "Runtime notes support the primary artifact."
+      }
+    ],
+    artifact_grouping: [
+      {
+        group_id: "primary_output_group",
+        label: "Primary output",
+        artifact_ids: ["primary_artifact"],
+        grouping_rationale: "Keep the main artifact isolated and first.",
+        separation_rationale: "Do not bury the primary artifact in metadata."
+      }
+    ],
+    artifact_separation_strategy: [
+      "Lead with Primary p5.js artifact as the only primary artifact."
+    ],
+    artifact_combination_strategy: [
+      "Combine artifacts in one response only as separated sections."
+    ],
+    artifact_dependency_order: [
+      "1. primary_artifact",
+      "2. runtime_notes after primary_artifact"
+    ],
+    artifact_handoff_points: [
+      "primary_artifact -> runtime_notes: Runtime notes support the primary artifact."
+    ],
+    runtime_aware_artifact_strategy: [
+      "Preferred compatible runtimes are metadata only: p5_js."
+    ],
+    capability_aware_artifact_strategy: [
+      "Strongest target capabilities are metadata only: p5_js, canvas."
+    ],
+    combination_mode: "primary_with_supporting_sections",
+    risk_areas: [
+      "Do not let supporting artifacts expand implementation scope."
+    ],
+    missing_information: [
+      "Artifact downstream consumers are unavailable."
+    ],
+    hitl_questions: [
+      "Should this multi-artifact risk constrain response structure?"
+    ],
+    prompt_guidance: [
+      "Use Multi-Artifact Strategy output as response-structure metadata only."
+    ],
+    authority_boundary:
+      "The Multi-Artifact Strategy plans ordering as inspectable metadata only; it does not generate artifacts.",
+    evidence: ["Supporting artifact count: 1."]
   };
 }
 
@@ -2833,6 +2952,39 @@ describe("assistant stream client", () => {
     });
   });
 
+  it("reads multi-artifact strategy metadata", () => {
+    const strategy = readMultiArtifactStrategySummary(
+      multiArtifactStrategyFixture()
+    );
+
+    expect(strategy?.role).toBe("multi_artifact_strategy");
+    expect(strategy?.primaryArtifact).toMatchObject({
+      artifactId: "primary_artifact",
+      role: "primary",
+      artifactType: "runnable_code",
+      artifactFamily: "p5_sketch",
+      priority: "critical"
+    });
+    expect(strategy?.supportingArtifacts[0]).toMatchObject({
+      artifactId: "runtime_notes",
+      role: "supporting",
+      runtimeTargets: ["p5_js"]
+    });
+    expect(strategy?.artifactSequence[0]).toMatchObject({
+      stepId: "step_1_primary_artifact",
+      action: "produce",
+      promptGuidance: ["Produce the primary artifact before support notes."]
+    });
+    expect(strategy?.artifactPriority[1]).toMatchObject({
+      artifactId: "runtime_notes",
+      priority: "medium"
+    });
+    expect(strategy?.combinationMode).toBe("primary_with_supporting_sections");
+    expect(strategy?.artifactHandoffPoints).toEqual([
+      "primary_artifact -> runtime_notes: Runtime notes support the primary artifact."
+    ]);
+  });
+
   it("reads creative trade-off explorer metadata", () => {
     const profile = readCreativeTradeoffExplorerSummary({
       role: "creative_tradeoff_explorer",
@@ -4265,6 +4417,64 @@ describe("assistant stream client", () => {
         ]
       },
       artifact_capability_matrix_available: true
+    });
+  });
+
+  it("hydrates multi-artifact strategy workflow metadata", () => {
+    const multiArtifactStrategy = multiArtifactStrategyFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 20,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          multi_artifact_strategy: multiArtifactStrategy,
+          multi_artifact_strategy_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      multi_artifact_strategy: {
+        role: "multi_artifact_strategy",
+        primaryArtifact: {
+          artifactId: "primary_artifact",
+          artifactType: "runnable_code"
+        },
+        supportingArtifacts: [
+          {
+            artifactId: "runtime_notes",
+            priority: "medium"
+          }
+        ],
+        artifactSequence: [
+          {
+            stepId: "step_1_primary_artifact",
+            action: "produce"
+          },
+          {
+            stepId: "step_2_runtime_notes",
+            action: "document"
+          }
+        ],
+        combinationMode: "primary_with_supporting_sections"
+      },
+      multi_artifact_strategy_available: true
     });
   });
 
