@@ -10,6 +10,9 @@ from creative_coding_assistant.contracts import AssistantRequest
 from creative_coding_assistant.orchestration.artifact_capability_matrix import (
     ArtifactCapabilityMatrix,
 )
+from creative_coding_assistant.orchestration.artifact_critic import (
+    ArtifactCriticProfile,
+)
 from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
@@ -145,6 +148,7 @@ def derive_creative_assistant_director_brief(
     runtime_compatibility: RuntimeCompatibilityProfile | None = None,
     artifact_capability_matrix: ArtifactCapabilityMatrix | None = None,
     multi_artifact_strategy: MultiArtifactStrategy | None = None,
+    artifact_critic: ArtifactCriticProfile | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -181,6 +185,7 @@ def derive_creative_assistant_director_brief(
             runtime_compatibility=runtime_compatibility,
             artifact_capability_matrix=artifact_capability_matrix,
             multi_artifact_strategy=multi_artifact_strategy,
+            artifact_critic=artifact_critic,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

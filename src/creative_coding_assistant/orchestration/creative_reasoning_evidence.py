@@ -6,6 +6,9 @@ from creative_coding_assistant.contracts import AssistantRequest
 from creative_coding_assistant.orchestration.artifact_capability_matrix import (
     ArtifactCapabilityMatrix,
 )
+from creative_coding_assistant.orchestration.artifact_critic import (
+    ArtifactCriticProfile,
+)
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
@@ -112,6 +115,7 @@ def build_evidence_chain(
     runtime_compatibility: RuntimeCompatibilityProfile | None,
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     multi_artifact_strategy: MultiArtifactStrategy | None,
+    artifact_critic: ArtifactCriticProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -491,6 +495,28 @@ def build_evidence_chain(
                 ),
             )
         )
+    if artifact_critic is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="artifact_critic",
+                signal=_clip(
+                    (
+                        f"{artifact_critic.risk_assessment} risk; "
+                        f"{artifact_critic.critique_confidence:.2f} confidence; "
+                        f"{len(artifact_critic.weaknesses)} weaknesses"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Artifact critic evidence identifies metadata strengths, "
+                    "weaknesses, gaps, concerns, unsupported assumptions, and "
+                    "open questions as advisory guidance only, without "
+                    "modifying artifacts, rejecting strategy, refining "
+                    "strategy, selecting runtime, routing providers, changing "
+                    "preview behavior, or triggering retries."
+                ),
+            )
+        )
     if creative_director is not None:
         evidence.append(
             CreativeReasoningEvidence(
@@ -499,7 +525,7 @@ def build_evidence_chain(
                 interpretation="Director guidance frames brief and HITL posture.",
             )
         )
-    return tuple(evidence[:28])
+    return tuple(evidence[:29])
 
 
 def _append_strategy_evidence(

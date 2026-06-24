@@ -6,6 +6,9 @@ from creative_coding_assistant.contracts import AssistantRequest, CreativeCoding
 from creative_coding_assistant.orchestration.artifact_capability_matrix import (
     ArtifactCapabilityMatrix,
 )
+from creative_coding_assistant.orchestration.artifact_critic import (
+    ArtifactCriticProfile,
+)
 from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
@@ -113,6 +116,7 @@ def build_director_brief_payload(
     runtime_compatibility: RuntimeCompatibilityProfile | None,
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     multi_artifact_strategy: MultiArtifactStrategy | None,
+    artifact_critic: ArtifactCriticProfile | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -139,6 +143,7 @@ def build_director_brief_payload(
         runtime_compatibility=runtime_compatibility,
         artifact_capability_matrix=artifact_capability_matrix,
         multi_artifact_strategy=multi_artifact_strategy,
+        artifact_critic=artifact_critic,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -180,6 +185,7 @@ def build_director_brief_payload(
             runtime_compatibility,
             artifact_capability_matrix,
             multi_artifact_strategy,
+            artifact_critic,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -205,6 +211,7 @@ def build_director_brief_payload(
             runtime_compatibility=runtime_compatibility,
             artifact_capability_matrix=artifact_capability_matrix,
             multi_artifact_strategy=multi_artifact_strategy,
+            artifact_critic=artifact_critic,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -231,6 +238,7 @@ def build_director_brief_payload(
             runtime_compatibility=runtime_compatibility,
             artifact_capability_matrix=artifact_capability_matrix,
             multi_artifact_strategy=multi_artifact_strategy,
+            artifact_critic=artifact_critic,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -263,6 +271,7 @@ def build_director_brief_payload(
             runtime_compatibility=runtime_compatibility,
             artifact_capability_matrix=artifact_capability_matrix,
             multi_artifact_strategy=multi_artifact_strategy,
+            artifact_critic=artifact_critic,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -315,6 +324,7 @@ def _ambiguity_signals(
     runtime_compatibility: RuntimeCompatibilityProfile | None,
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     multi_artifact_strategy: MultiArtifactStrategy | None,
+    artifact_critic: ArtifactCriticProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -372,6 +382,9 @@ def _ambiguity_signals(
     if multi_artifact_strategy is not None:
         signals.extend(multi_artifact_strategy.missing_information[:2])
         signals.extend(multi_artifact_strategy.risk_areas[:1])
+    if artifact_critic is not None:
+        signals.extend(artifact_critic.missing_information[:2])
+        signals.extend(artifact_critic.weaknesses[:1])
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -427,6 +440,7 @@ def _planning_focus(
     runtime_compatibility: RuntimeCompatibilityProfile | None,
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     multi_artifact_strategy: MultiArtifactStrategy | None,
+    artifact_critic: ArtifactCriticProfile | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_intent is not None:
@@ -462,8 +476,17 @@ def _planning_focus(
                 f"{len(multi_artifact_strategy.supporting_artifacts)} "
                 "supporting artifacts; metadata only."
             )
+        if artifact_critic is not None:
+            runtime_focus += (
+                " Artifact critic: "
+                f"{artifact_critic.risk_assessment} risk; metadata only."
+            )
         focus.append(runtime_focus)
-        if artifact_capability_matrix is None and multi_artifact_strategy is None:
+        if (
+            artifact_capability_matrix is None
+            and multi_artifact_strategy is None
+            and artifact_critic is None
+        ):
             focus.extend(runtime_compatibility.prompt_guidance[:1])
     elif artifact_capability_matrix is not None:
         capability_focus = (
@@ -477,16 +500,35 @@ def _planning_focus(
                 f"{len(multi_artifact_strategy.supporting_artifacts)} "
                 "supporting artifacts; metadata only."
             )
+        if artifact_critic is not None:
+            capability_focus += (
+                " Artifact critic: "
+                f"{artifact_critic.risk_assessment} risk; metadata only."
+            )
         focus.append(capability_focus)
-        if multi_artifact_strategy is None:
+        if multi_artifact_strategy is None and artifact_critic is None:
             focus.extend(artifact_capability_matrix.prompt_guidance[:1])
     elif multi_artifact_strategy is not None:
-        focus.append(
+        strategy_focus = (
             "Multi-artifact strategy: "
             f"{len(multi_artifact_strategy.supporting_artifacts)} supporting "
             f"artifacts; {multi_artifact_strategy.combination_mode}; metadata only."
         )
-        focus.extend(multi_artifact_strategy.prompt_guidance[:1])
+        if artifact_critic is not None:
+            strategy_focus += (
+                " Artifact critic: "
+                f"{artifact_critic.risk_assessment} risk; metadata only."
+            )
+        focus.append(strategy_focus)
+        if artifact_critic is None:
+            focus.extend(multi_artifact_strategy.prompt_guidance[:1])
+    elif artifact_critic is not None:
+        focus.append(
+            "Artifact critic: "
+            f"{artifact_critic.risk_assessment} risk; "
+            f"{len(artifact_critic.weaknesses)} weakness signals; metadata only."
+        )
+        focus.extend(artifact_critic.prompt_guidance[:1])
     if procedural_structure is not None:
         focus.append(
             "Procedural structure: "
@@ -624,6 +666,7 @@ def _critique_focus(
     runtime_compatibility: RuntimeCompatibilityProfile | None,
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     multi_artifact_strategy: MultiArtifactStrategy | None,
+    artifact_critic: ArtifactCriticProfile | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -780,6 +823,15 @@ def _critique_focus(
             "extra artifacts."
         )
         focus.extend(multi_artifact_strategy.risk_areas[:2])
+    if artifact_critic is not None:
+        focus.append(
+            "Artifact Critic is pre-generation metadata critique only; compare "
+            "the output against critic strengths, weaknesses, gaps, concerns, "
+            "risk assessment, unsupported assumptions, and open questions "
+            "without modifying, rejecting, refining, merging, or executing "
+            "artifacts."
+        )
+        focus.extend(artifact_critic.weaknesses[:2])
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -838,6 +890,7 @@ def _next_actions(
     runtime_compatibility: RuntimeCompatibilityProfile | None,
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     multi_artifact_strategy: MultiArtifactStrategy | None,
+    artifact_critic: ArtifactCriticProfile | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
@@ -885,6 +938,8 @@ def _next_actions(
         return (artifact_capability_matrix.hitl_questions[0],)
     if multi_artifact_strategy is not None and multi_artifact_strategy.hitl_questions:
         return (multi_artifact_strategy.hitl_questions[0],)
+    if artifact_critic is not None and artifact_critic.hitl_questions:
+        return (artifact_critic.hitl_questions[0],)
     if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
@@ -929,6 +984,7 @@ def _evidence(
     runtime_compatibility: RuntimeCompatibilityProfile | None,
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     multi_artifact_strategy: MultiArtifactStrategy | None,
+    artifact_critic: ArtifactCriticProfile | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -1065,6 +1121,12 @@ def _evidence(
             "Multi-artifact strategy: "
             f"{len(multi_artifact_strategy.supporting_artifacts)} supporting; "
             f"{len(multi_artifact_strategy.artifact_sequence)} sequence steps."
+        )
+    if artifact_critic is not None:
+        evidence.append(
+            "Artifact critic: "
+            f"{artifact_critic.risk_assessment} risk; "
+            f"{artifact_critic.critique_confidence:.2f} confidence."
         )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")

@@ -10,6 +10,9 @@ from creative_coding_assistant.contracts import AssistantRequest
 from creative_coding_assistant.orchestration.artifact_capability_matrix import (
     ArtifactCapabilityMatrix,
 )
+from creative_coding_assistant.orchestration.artifact_critic import (
+    ArtifactCriticProfile,
+)
 from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
@@ -212,6 +215,7 @@ class AssistantWorkflowState(BaseModel):
     runtime_compatibility: RuntimeCompatibilityProfile | None = None
     artifact_capability_matrix: ArtifactCapabilityMatrix | None = None
     multi_artifact_strategy: MultiArtifactStrategy | None = None
+    artifact_critic: ArtifactCriticProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     rendered_prompt: RenderedPromptResponse | None = None

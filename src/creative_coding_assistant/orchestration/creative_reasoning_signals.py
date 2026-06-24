@@ -6,6 +6,9 @@ from creative_coding_assistant.contracts import AssistantRequest
 from creative_coding_assistant.orchestration.artifact_capability_matrix import (
     ArtifactCapabilityMatrix,
 )
+from creative_coding_assistant.orchestration.artifact_critic import (
+    ArtifactCriticProfile,
+)
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
@@ -100,6 +103,7 @@ def build_recommended_direction(
     runtime_compatibility: RuntimeCompatibilityProfile | None,
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     multi_artifact_strategy: MultiArtifactStrategy | None,
+    artifact_critic: ArtifactCriticProfile | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -160,6 +164,12 @@ def build_recommended_direction(
         if multi_artifact_strategy is not None
         else ""
     )
+    artifact_critic_clause = (
+        "Artifact critic as "
+        f"{_clip(_artifact_critic_label(artifact_critic), 90)}. "
+        if artifact_critic is not None
+        else ""
+    )
     direction = (
         f"Recommend {_strategy_label(creative_strategy)} via "
         f"{_technique_label(creative_techniques)} because it protects "
@@ -173,6 +183,7 @@ def build_recommended_direction(
         f"{compatibility_clause}"
         f"{capability_clause}"
         f"{multi_artifact_clause}"
+        f"{artifact_critic_clause}"
         f"{motif_clause}"
         f"{emotion_clause}"
         f"{modality_clause}"
@@ -216,6 +227,7 @@ def build_reasoning_path(
     runtime_compatibility: RuntimeCompatibilityProfile | None,
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     multi_artifact_strategy: MultiArtifactStrategy | None,
+    artifact_critic: ArtifactCriticProfile | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -294,6 +306,8 @@ def build_reasoning_path(
                     f"{_artifact_capability_matrix_label(artifact_capability_matrix)}, "
                     "multi-artifact strategy "
                     f"{_multi_artifact_strategy_label(multi_artifact_strategy)}, "
+                    "artifact critic "
+                    f"{_artifact_critic_label(artifact_critic)}, "
                     "plus "
                     f"{_quality_label(creative_quality_prediction)}."
                 ),
@@ -313,9 +327,11 @@ def build_reasoning_path(
                     "Treat cross-modality, scene timing, and artifact planning "
                     "plus dependency graph, runtime compatibility, and "
                     "capability matrix and multi-artifact strategy metadata "
-                    "as guidance, not runtime behavior, runtime "
-                    "auto-selection, provider routing, artifact generation, "
-                    "artifact merging, export intelligence, or critique."
+                    "plus artifact critic metadata as guidance, not runtime "
+                    "behavior, runtime auto-selection, provider routing, "
+                    "artifact generation, artifact modification, strategy "
+                    "rejection, artifact merging, export intelligence, or "
+                    "runtime repair."
                 ),
             ),
         ),
@@ -518,6 +534,18 @@ def _multi_artifact_strategy_label(
         f"{strategy.primary_artifact.artifact_id} primary, "
         f"{len(strategy.supporting_artifacts)} supporting, "
         f"{strategy.combination_mode}"
+    )
+
+
+def _artifact_critic_label(
+    profile: ArtifactCriticProfile | None,
+) -> str:
+    if profile is None:
+        return "no artifact critic profile"
+    return (
+        f"{profile.risk_assessment} risk, "
+        f"{profile.critique_confidence:.2f} confidence, "
+        f"{len(profile.weaknesses)} weakness signals"
     )
 
 

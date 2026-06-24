@@ -34,6 +34,7 @@ _ARTIFACT_CAPABILITY_MATRIX = (
 _MULTI_ARTIFACT_STRATEGY = (
     "creative_coding_assistant.orchestration.multi_artifact_strategy"
 )
+_ARTIFACT_CRITIC = "creative_coding_assistant.orchestration.artifact_critic"
 _CREATIVE_QUALITY_PREDICTION = (
     "creative_coding_assistant.orchestration.creative_quality_prediction"
 )
@@ -109,6 +110,8 @@ _EXPORT_MAP = {
     "ArtifactStrategyRole": _MULTI_ARTIFACT_STRATEGY,
     "ArtifactStrategySequenceStep": _MULTI_ARTIFACT_STRATEGY,
     "MultiArtifactStrategy": _MULTI_ARTIFACT_STRATEGY,
+    "ArtifactCriticProfile": _ARTIFACT_CRITIC,
+    "ArtifactCriticRiskAssessment": _ARTIFACT_CRITIC,
     "DependencyNodeStatus": _ARTIFACT_DEPENDENCY_GRAPH,
     "DependencyNodeType": _ARTIFACT_DEPENDENCY_GRAPH,
     "DependencyRelationship": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -356,6 +359,8 @@ _EXPORT_MAP = {
     "derive_artifact_capability_matrix": _ARTIFACT_CAPABILITY_MATRIX,
     "derive_multi_artifact_strategy": _MULTI_ARTIFACT_STRATEGY,
     "multi_artifact_strategy_prompt_lines": _MULTI_ARTIFACT_STRATEGY,
+    "artifact_critic_prompt_lines": _ARTIFACT_CRITIC,
+    "derive_artifact_critic_profile": _ARTIFACT_CRITIC,
     "artifact_plan_prompt_lines": _ARTIFACT_PLANNER,
     "derive_artifact_plan": _ARTIFACT_PLANNER,
     "derive_symbolic_narrative_plan": _SYMBOLIC_NARRATIVE,

@@ -8,6 +8,9 @@ from creative_coding_assistant.contracts import AssistantRequest
 from creative_coding_assistant.orchestration.artifact_capability_matrix import (
     ArtifactCapabilityMatrix,
 )
+from creative_coding_assistant.orchestration.artifact_critic import (
+    ArtifactCriticProfile,
+)
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
@@ -131,6 +134,7 @@ def derive_creative_reasoning_result(
     runtime_compatibility: RuntimeCompatibilityProfile | None = None,
     artifact_capability_matrix: ArtifactCapabilityMatrix | None = None,
     multi_artifact_strategy: MultiArtifactStrategy | None = None,
+    artifact_critic: ArtifactCriticProfile | None = None,
     future_knowledge_context: Mapping[str, object] | None = None,
 ) -> CreativeReasoningResult:
     """Synthesize prior Creative Intelligence outputs into one decision brief."""
@@ -160,6 +164,7 @@ def derive_creative_reasoning_result(
         runtime_compatibility=runtime_compatibility,
         artifact_capability_matrix=artifact_capability_matrix,
         multi_artifact_strategy=multi_artifact_strategy,
+        artifact_critic=artifact_critic,
     )
     unresolved = build_unresolved_decisions(
         creative_director=creative_director,
@@ -185,6 +190,7 @@ def derive_creative_reasoning_result(
         runtime_compatibility=runtime_compatibility,
         artifact_capability_matrix=artifact_capability_matrix,
         multi_artifact_strategy=multi_artifact_strategy,
+        artifact_critic=artifact_critic,
     )
     return CreativeReasoningResult(
         recommended_creative_direction=direction,
@@ -212,6 +218,7 @@ def derive_creative_reasoning_result(
             runtime_compatibility=runtime_compatibility,
             artifact_capability_matrix=artifact_capability_matrix,
             multi_artifact_strategy=multi_artifact_strategy,
+            artifact_critic=artifact_critic,
         ),
         evidence_chain=build_evidence_chain(
             request=request,
@@ -241,6 +248,7 @@ def derive_creative_reasoning_result(
             runtime_compatibility=runtime_compatibility,
             artifact_capability_matrix=artifact_capability_matrix,
             multi_artifact_strategy=multi_artifact_strategy,
+            artifact_critic=artifact_critic,
         ),
         strongest_supporting_signals=build_strongest_signals(
             creative_director=creative_director,
@@ -266,6 +274,7 @@ def derive_creative_reasoning_result(
             runtime_compatibility=runtime_compatibility,
             artifact_capability_matrix=artifact_capability_matrix,
             multi_artifact_strategy=multi_artifact_strategy,
+            artifact_critic=artifact_critic,
         ),
         rejected_alternatives=build_rejected_alternatives(
             creative_strategy=creative_strategy,
@@ -297,6 +306,7 @@ def derive_creative_reasoning_result(
             runtime_compatibility=runtime_compatibility,
             artifact_capability_matrix=artifact_capability_matrix,
             multi_artifact_strategy=multi_artifact_strategy,
+            artifact_critic=artifact_critic,
         ),
         prompt_guidance=build_prompt_guidance(unresolved),
         hitl_questions=build_hitl_questions(unresolved),

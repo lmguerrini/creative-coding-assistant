@@ -16,6 +16,10 @@ from creative_coding_assistant.orchestration.artifact_capability_matrix import (
     ArtifactCapabilityMatrix,
     artifact_capability_matrix_prompt_lines,
 )
+from creative_coding_assistant.orchestration.artifact_critic import (
+    ArtifactCriticProfile,
+    artifact_critic_prompt_lines,
+)
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
     artifact_dependency_graph_prompt_lines,
@@ -347,6 +351,13 @@ Multi-Artifact Strategy:
 - {{ instruction }}
 {% endfor %}
 {% endif %}
+{% set artifact_critic = prompt_input.artifact_critic -%}
+{% if artifact_critic is not none -%}
+Artifact Critic:
+{% for instruction in artifact_critic_lines(artifact_critic) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
 {% set director = prompt_input.creative_director -%}
 {% if director is not none -%}
 Creative Assistant Director:
@@ -605,6 +616,7 @@ class JinjaPromptRenderer:
             runtime_compatibility_lines=_runtime_compatibility_lines,
             artifact_capability_matrix_lines=_artifact_capability_matrix_lines,
             multi_artifact_strategy_lines=_multi_artifact_strategy_lines,
+            artifact_critic_lines=_artifact_critic_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -907,6 +919,12 @@ def _multi_artifact_strategy_lines(
     strategy: MultiArtifactStrategy,
 ) -> tuple[str, ...]:
     return multi_artifact_strategy_prompt_lines(strategy)
+
+
+def _artifact_critic_lines(
+    profile: ArtifactCriticProfile,
+) -> tuple[str, ...]:
+    return artifact_critic_prompt_lines(profile)
 
 
 def _creative_assistant_director_lines(
