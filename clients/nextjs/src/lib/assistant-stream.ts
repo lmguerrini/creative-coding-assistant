@@ -12,6 +12,8 @@ import {
   type ArtifactImplementationReadiness,
   type ArtifactImplementationRisk,
   type ArtifactIntelligenceSynthesisSummary,
+  type ArtifactExportIntelligenceSummary,
+  type ArtifactExportReadiness,
   type ArtifactMergePlannerSummary,
   type ArtifactMergeStrategy,
   type ArtifactRefinerSummary,
@@ -256,6 +258,8 @@ export type AssistantStreamWorkflowMetadata = {
   artifact_intelligence_synthesis_available?: boolean;
   artifact_merge_planner?: ArtifactMergePlannerSummary | null;
   artifact_merge_planner_available?: boolean;
+  artifact_export_intelligence?: ArtifactExportIntelligenceSummary | null;
+  artifact_export_intelligence_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -765,6 +769,13 @@ export function readWorkflowMetadata(
   const artifactMergePlannerAvailable =
     rawWorkflow.artifact_merge_planner_available === true ||
     artifactMergePlanner !== null;
+  const artifactExportIntelligence = readArtifactExportIntelligenceSummary(
+    rawWorkflow.artifact_export_intelligence ??
+      rawWorkflow.artifactExportIntelligence
+  );
+  const artifactExportIntelligenceAvailable =
+    rawWorkflow.artifact_export_intelligence_available === true ||
+    artifactExportIntelligence !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -966,6 +977,12 @@ export function readWorkflowMetadata(
       ? {
           artifact_merge_planner: artifactMergePlanner,
           artifact_merge_planner_available: true
+        }
+      : {}),
+    ...(artifactExportIntelligenceAvailable
+      ? {
+          artifact_export_intelligence: artifactExportIntelligence,
+          artifact_export_intelligence_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -2891,6 +2908,129 @@ export function readArtifactMergePlannerSummary(
   };
 }
 
+export function readArtifactExportIntelligenceSummary(
+  value: unknown
+): ArtifactExportIntelligenceSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const exportConfidence =
+    readFiniteNumberField(value, "export_confidence") ??
+    readFiniteNumberField(value, "exportConfidence");
+  const exportSummary =
+    readStringField(value, "export_summary") ??
+    readStringField(value, "exportSummary");
+  const exportTargets = readStringListField(
+    value,
+    "export_targets",
+    "exportTargets"
+  );
+  const preferredExportTarget =
+    readStringField(value, "preferred_export_target") ??
+    readStringField(value, "preferredExportTarget");
+  const exportReadiness = readStringUnion(
+    value,
+    "export_readiness",
+    "exportReadiness",
+    artifactExportReadinessValues
+  );
+  const exportFormatRecommendations = readStringListField(
+    value,
+    "export_format_recommendations",
+    "exportFormatRecommendations"
+  );
+  const exportRequirements = readStringListField(
+    value,
+    "export_requirements",
+    "exportRequirements"
+  );
+  const exportConstraints = readStringListField(
+    value,
+    "export_constraints",
+    "exportConstraints"
+  );
+  const rejectedExportPaths = readStringListField(
+    value,
+    "rejected_export_paths",
+    "rejectedExportPaths"
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "artifact_export_intelligence" ||
+    exportConfidence === null ||
+    !exportSummary ||
+    exportTargets.length === 0 ||
+    !preferredExportTarget ||
+    !exportReadiness ||
+    exportFormatRecommendations.length === 0 ||
+    exportRequirements.length === 0 ||
+    exportConstraints.length === 0 ||
+    rejectedExportPaths.length === 0 ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    exportConfidence,
+    exportSummary,
+    exportTargets,
+    preferredExportTarget,
+    exportFormatRecommendations,
+    exportReadiness,
+    exportRequirements,
+    exportConstraints,
+    exportRisks: readStringListField(value, "export_risks", "exportRisks"),
+    runtimeExportNotes: readStringListField(
+      value,
+      "runtime_export_notes",
+      "runtimeExportNotes"
+    ),
+    artifactPackageNotes: readStringListField(
+      value,
+      "artifact_package_notes",
+      "artifactPackageNotes"
+    ),
+    portabilityNotes: readStringListField(
+      value,
+      "portability_notes",
+      "portabilityNotes"
+    ),
+    interoperabilityNotes: readStringListField(
+      value,
+      "interoperability_notes",
+      "interoperabilityNotes"
+    ),
+    documentationRequirements: readStringListField(
+      value,
+      "documentation_requirements",
+      "documentationRequirements"
+    ),
+    downstreamToolHandoffs: readStringListField(
+      value,
+      "downstream_tool_handoffs",
+      "downstreamToolHandoffs"
+    ),
+    rejectedExportPaths,
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
 function readArtifactCapabilityConfidenceSummaryList(
   value: unknown
 ): ArtifactCapabilityConfidenceSummary[] {
@@ -3136,6 +3276,13 @@ const artifactMergeStrategies = [
   "separated_advisory_sections",
   "defer_merge_preserve_separation"
 ] as const satisfies readonly ArtifactMergeStrategy[];
+
+const artifactExportReadinessValues = [
+  "ready_with_caveats",
+  "needs_handoff_metadata",
+  "blocked_by_missing_metadata",
+  "defer_export"
+] as const satisfies readonly ArtifactExportReadiness[];
 
 const runtimeCapabilityComplexities = [
   "low",
@@ -6988,6 +7135,7 @@ const creativeReasoningEvidenceSources = [
   "artifact_refiner",
   "artifact_intelligence_synthesis",
   "artifact_merge_planner",
+  "artifact_export_intelligence",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

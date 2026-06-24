@@ -5,6 +5,7 @@ import {
   parseAssistantStreamLine,
   readArtifactCapabilityMatrixSummary,
   readArtifactCriticSummary,
+  readArtifactExportIntelligenceSummary,
   readArtifactIntelligenceSynthesisSummary,
   readArtifactMergePlannerSummary,
   readArtifactRefinerSummary,
@@ -1579,6 +1580,61 @@ function artifactMergePlannerFixture() {
     authority_boundary:
       "The Artifact Merge Planner recommends merge strategy only; it does not merge artifacts.",
     evidence: ["Multi-artifact strategy: 1 supporting."]
+  };
+}
+
+function artifactExportIntelligenceFixture() {
+  return {
+    role: "artifact_export_intelligence",
+    export_confidence: 0.78,
+    export_summary:
+      "Artifact export intelligence reports ready_with_caveats readiness.",
+    export_targets: [
+      "inline_response",
+      "single_source_artifact",
+      "multi_artifact_package"
+    ],
+    preferred_export_target: "multi_artifact_package",
+    export_format_recommendations: [
+      "Represent p5_sketch as advisory runnable_code export metadata."
+    ],
+    export_readiness: "ready_with_caveats",
+    export_requirements: [
+      "1. primary_artifact: produce",
+      "Runtime requires p5.js lifecycle."
+    ],
+    export_constraints: [
+      "Export Intelligence is metadata-only and cannot write files or packages."
+    ],
+    export_risks: [
+      "Unsupported runtime cannot be exported directly: glsl."
+    ],
+    runtime_export_notes: [
+      "Preferred runtimes are advisory export metadata: p5_js."
+    ],
+    artifact_package_notes: [
+      "Package primary artifact first: primary_artifact."
+    ],
+    portability_notes: ["Runtime portability is medium."],
+    interoperability_notes: ["Runtime interoperability is medium."],
+    documentation_requirements: [
+      "Document that export intelligence is advisory metadata only."
+    ],
+    downstream_tool_handoffs: [
+      "Future export workflows must consume this metadata explicitly; this workflow does not trigger export."
+    ],
+    rejected_export_paths: [
+      "Reject direct file export because this engine is metadata-only."
+    ],
+    hitl_questions: [
+      "Should export remain deferred until risks are resolved?"
+    ],
+    prompt_guidance: [
+      "Use Artifact Export Intelligence as metadata-only export guidance."
+    ],
+    authority_boundary:
+      "The Artifact Export Intelligence engine recommends export paths only; it does not export files.",
+    evidence: ["Capability export fit: moderate."]
   };
 }
 
@@ -3260,6 +3316,23 @@ describe("assistant stream client", () => {
     expect(mergePlanner?.promptGuidance[0]).toContain("metadata-only");
   });
 
+  it("reads artifact export intelligence metadata", () => {
+    const exportIntelligence = readArtifactExportIntelligenceSummary(
+      artifactExportIntelligenceFixture()
+    );
+
+    expect(exportIntelligence?.role).toBe("artifact_export_intelligence");
+    expect(exportIntelligence?.exportConfidence).toBe(0.78);
+    expect(exportIntelligence?.exportReadiness).toBe("ready_with_caveats");
+    expect(exportIntelligence?.preferredExportTarget).toBe(
+      "multi_artifact_package"
+    );
+    expect(exportIntelligence?.exportTargets).toContain("single_source_artifact");
+    expect(exportIntelligence?.runtimeExportNotes[0]).toContain("p5_js");
+    expect(exportIntelligence?.rejectedExportPaths[0]).toContain("metadata-only");
+    expect(exportIntelligence?.promptGuidance[0]).toContain("metadata-only");
+  });
+
   it("reads creative trade-off explorer metadata", () => {
     const profile = readCreativeTradeoffExplorerSummary({
       role: "creative_tradeoff_explorer",
@@ -4928,6 +5001,52 @@ describe("assistant stream client", () => {
         ]
       },
       artifact_merge_planner_available: true
+    });
+  });
+
+  it("hydrates artifact export intelligence workflow metadata", () => {
+    const artifactExportIntelligence = artifactExportIntelligenceFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 25,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          artifact_export_intelligence: artifactExportIntelligence,
+          artifact_export_intelligence_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      artifact_export_intelligence: {
+        role: "artifact_export_intelligence",
+        exportConfidence: 0.78,
+        exportReadiness: "ready_with_caveats",
+        preferredExportTarget: "multi_artifact_package",
+        runtimeExportNotes: [
+          "Preferred runtimes are advisory export metadata: p5_js."
+        ],
+        rejectedExportPaths: [
+          "Reject direct file export because this engine is metadata-only."
+        ]
+      },
+      artifact_export_intelligence_available: true
     });
   });
 
