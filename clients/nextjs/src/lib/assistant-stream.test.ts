@@ -5,6 +5,7 @@ import {
   parseAssistantStreamLine,
   readArtifactCapabilityMatrixSummary,
   readArtifactCriticSummary,
+  readArtifactRefinerSummary,
   readArtifactDependencyGraphSummary,
   readArtifactPlanSummary,
   readMultiArtifactStrategySummary,
@@ -1420,6 +1421,62 @@ function artifactCriticFixture() {
     authority_boundary:
       "The Artifact Critic evaluates planning metadata only; it does not modify artifacts.",
     evidence: ["Runtime compatibility: 1 compatible; 1 unsupported."]
+  };
+}
+
+function artifactRefinerFixture() {
+  return {
+    role: "artifact_refiner",
+    refinement_confidence: 0.79,
+    refinement_summary:
+      "Artifact refinement intelligence is advisory only with priority improvements.",
+    recommended_improvements: [
+      "Address critic capability gap: Native shader pipelines require scaffolding.",
+      "Preserve refinement advice as metadata-only guidance, not an edit."
+    ],
+    priority_improvements: [
+      "Resolve dependency risks before expanding artifact scope."
+    ],
+    capability_improvements: [
+      "Clarify capability limitation: Native shader pipelines require scaffolding."
+    ],
+    dependency_improvements: [
+      "Separate conflicting dependency assumption: Runtime-facing dependency conflict."
+    ],
+    runtime_improvements: [
+      "Caveat unsupported runtimes without selecting alternatives: glsl."
+    ],
+    scalability_improvements: [
+      "Add bounded-scope caveat for scalability signal: Dense particle counts."
+    ],
+    maintainability_improvements: [
+      "Keep supporting artifacts separated with strict labels."
+    ],
+    complexity_reductions: [
+      "Reduce implementation scope before adding optional details."
+    ],
+    risk_reductions: [
+      "Preserve refinement advice as metadata-only guidance, not an edit."
+    ],
+    refinement_candidates: [
+      "Primary candidate: tighten p5_sketch response structure without modifying the artifact."
+    ],
+    implementation_suggestions: [
+      "Label every refinement as advisory metadata, not an artifact edit."
+    ],
+    alternative_refinement_paths: [
+      "Capability-first path: clarify target limits first.",
+      "Dependency-first path: resolve handoffs and conflicts first."
+    ],
+    hitl_questions: [
+      "Which advisory refinement should be prioritized first?"
+    ],
+    prompt_guidance: [
+      "Use Artifact Refiner output as metadata-only refinement intelligence."
+    ],
+    authority_boundary:
+      "The Artifact Refiner derives refinement intelligence from planning metadata only; it does not modify artifacts.",
+    evidence: ["Artifact critic: medium risk; 1 weakness signals."]
   };
 }
 
@@ -3057,6 +3114,20 @@ describe("assistant stream client", () => {
     expect(critic?.promptGuidance[0]).toContain("metadata-only critique");
   });
 
+  it("reads artifact refiner metadata", () => {
+    const refiner = readArtifactRefinerSummary(artifactRefinerFixture());
+
+    expect(refiner?.role).toBe("artifact_refiner");
+    expect(refiner?.refinementConfidence).toBe(0.79);
+    expect(refiner?.recommendedImprovements[0]).toContain("critic capability");
+    expect(refiner?.priorityImprovements[0]).toContain("dependency risks");
+    expect(refiner?.capabilityImprovements[0]).toContain("capability limitation");
+    expect(refiner?.dependencyImprovements[0]).toContain("conflicting");
+    expect(refiner?.runtimeImprovements[0]).toContain("unsupported runtimes");
+    expect(refiner?.refinementCandidates[0]).toContain("Primary candidate");
+    expect(refiner?.promptGuidance[0]).toContain("metadata-only refinement");
+  });
+
   it("reads creative trade-off explorer metadata", () => {
     const profile = readCreativeTradeoffExplorerSummary({
       role: "creative_tradeoff_explorer",
@@ -4592,6 +4663,51 @@ describe("assistant stream client", () => {
         ]
       },
       artifact_critic_available: true
+    });
+  });
+
+  it("hydrates artifact refiner workflow metadata", () => {
+    const artifactRefiner = artifactRefinerFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 22,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          artifact_refiner: artifactRefiner,
+          artifact_refiner_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      artifact_refiner: {
+        role: "artifact_refiner",
+        refinementConfidence: 0.79,
+        priorityImprovements: [
+          "Resolve dependency risks before expanding artifact scope."
+        ],
+        alternativeRefinementPaths: [
+          "Capability-first path: clarify target limits first.",
+          "Dependency-first path: resolve handoffs and conflicts first."
+        ]
+      },
+      artifact_refiner_available: true
     });
   });
 

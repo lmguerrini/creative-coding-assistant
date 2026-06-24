@@ -7,6 +7,7 @@ import {
   type ArtifactCapabilityProfileSummary,
   type ArtifactCriticRiskAssessment,
   type ArtifactCriticSummary,
+  type ArtifactRefinerSummary,
   type ArtifactDependencyEdgeSummary,
   type ArtifactDependencyGraphSummary,
   type ArtifactDependencyNodeSummary,
@@ -242,6 +243,8 @@ export type AssistantStreamWorkflowMetadata = {
   multi_artifact_strategy_available?: boolean;
   artifact_critic?: ArtifactCriticSummary | null;
   artifact_critic_available?: boolean;
+  artifact_refiner?: ArtifactRefinerSummary | null;
+  artifact_refiner_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -732,6 +735,11 @@ export function readWorkflowMetadata(
   );
   const artifactCriticAvailable =
     rawWorkflow.artifact_critic_available === true || artifactCritic !== null;
+  const artifactRefiner = readArtifactRefinerSummary(
+    rawWorkflow.artifact_refiner ?? rawWorkflow.artifactRefiner
+  );
+  const artifactRefinerAvailable =
+    rawWorkflow.artifact_refiner_available === true || artifactRefiner !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -915,6 +923,12 @@ export function readWorkflowMetadata(
       ? {
           artifact_critic: artifactCritic,
           artifact_critic_available: true
+        }
+      : {}),
+    ...(artifactRefinerAvailable
+      ? {
+          artifact_refiner: artifactRefiner,
+          artifact_refiner_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -2480,6 +2494,118 @@ export function readArtifactCriticSummary(
       "improvement_opportunities",
       "improvementOpportunities"
     ),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+export function readArtifactRefinerSummary(
+  value: unknown
+): ArtifactRefinerSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const refinementConfidence =
+    readFiniteNumberField(value, "refinement_confidence") ??
+    readFiniteNumberField(value, "refinementConfidence");
+  const refinementSummary =
+    readStringField(value, "refinement_summary") ??
+    readStringField(value, "refinementSummary");
+  const recommendedImprovements = readStringListField(
+    value,
+    "recommended_improvements",
+    "recommendedImprovements"
+  );
+  const priorityImprovements = readStringListField(
+    value,
+    "priority_improvements",
+    "priorityImprovements"
+  );
+  const refinementCandidates = readStringListField(
+    value,
+    "refinement_candidates",
+    "refinementCandidates"
+  );
+  const implementationSuggestions = readStringListField(
+    value,
+    "implementation_suggestions",
+    "implementationSuggestions"
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "artifact_refiner" ||
+    refinementConfidence === null ||
+    !refinementSummary ||
+    recommendedImprovements.length === 0 ||
+    priorityImprovements.length === 0 ||
+    refinementCandidates.length === 0 ||
+    implementationSuggestions.length === 0 ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    refinementConfidence,
+    refinementSummary,
+    recommendedImprovements,
+    priorityImprovements,
+    capabilityImprovements: readStringListField(
+      value,
+      "capability_improvements",
+      "capabilityImprovements"
+    ),
+    dependencyImprovements: readStringListField(
+      value,
+      "dependency_improvements",
+      "dependencyImprovements"
+    ),
+    runtimeImprovements: readStringListField(
+      value,
+      "runtime_improvements",
+      "runtimeImprovements"
+    ),
+    scalabilityImprovements: readStringListField(
+      value,
+      "scalability_improvements",
+      "scalabilityImprovements"
+    ),
+    maintainabilityImprovements: readStringListField(
+      value,
+      "maintainability_improvements",
+      "maintainabilityImprovements"
+    ),
+    complexityReductions: readStringListField(
+      value,
+      "complexity_reductions",
+      "complexityReductions"
+    ),
+    riskReductions: readStringListField(
+      value,
+      "risk_reductions",
+      "riskReductions"
+    ),
+    refinementCandidates,
+    implementationSuggestions,
+    alternativeRefinementPaths: readStringListField(
+      value,
+      "alternative_refinement_paths",
+      "alternativeRefinementPaths"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
     promptGuidance,
     authorityBoundary,
     evidence: readStringListField(value, "evidence", "evidence")
@@ -6546,6 +6672,7 @@ const creativeReasoningEvidenceSources = [
   "artifact_capability_matrix",
   "multi_artifact_strategy",
   "artifact_critic",
+  "artifact_refiner",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

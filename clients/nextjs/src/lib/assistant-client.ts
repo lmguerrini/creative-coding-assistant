@@ -548,6 +548,28 @@ export type ArtifactCriticSummary = {
   evidence: string[];
 };
 
+export type ArtifactRefinerSummary = {
+  role: "artifact_refiner";
+  refinementConfidence: number;
+  refinementSummary: string;
+  recommendedImprovements: string[];
+  priorityImprovements: string[];
+  capabilityImprovements: string[];
+  dependencyImprovements: string[];
+  runtimeImprovements: string[];
+  scalabilityImprovements: string[];
+  maintainabilityImprovements: string[];
+  complexityReductions: string[];
+  riskReductions: string[];
+  refinementCandidates: string[];
+  implementationSuggestions: string[];
+  alternativeRefinementPaths: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeTradeoffAxis =
   | "creative_expressiveness"
   | "concept_fidelity"
@@ -1651,6 +1673,7 @@ export type CreativeReasoningEvidenceSource =
   | "artifact_capability_matrix"
   | "multi_artifact_strategy"
   | "artifact_critic"
+  | "artifact_refiner"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {
