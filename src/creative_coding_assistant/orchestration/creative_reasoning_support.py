@@ -14,6 +14,9 @@ from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
+from creative_coding_assistant.orchestration.artifact_refiner import (
+    ArtifactRefinerProfile,
+)
 from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
 )
@@ -110,6 +113,7 @@ def build_strongest_signals(
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     multi_artifact_strategy: MultiArtifactStrategy | None,
     artifact_critic: ArtifactCriticProfile | None,
+    artifact_refiner: ArtifactRefinerProfile | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -247,6 +251,13 @@ def build_strongest_signals(
             f"{artifact_critic.critique_confidence:.2f} confidence; "
             f"{len(artifact_critic.weaknesses)} weaknesses."
         )
+    if artifact_refiner is not None:
+        signals.append(
+            "Artifact refiner: "
+            f"{artifact_refiner.refinement_confidence:.2f} confidence; "
+            f"{len(artifact_refiner.priority_improvements)} priority; "
+            f"{len(artifact_refiner.refinement_candidates)} candidates."
+        )
     if creative_constraints is not None:
         signals.append(
             f"Constraints: complexity {creative_constraints.complexity_pressure}, "
@@ -345,6 +356,7 @@ def build_unresolved_decisions(
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     multi_artifact_strategy: MultiArtifactStrategy | None,
     artifact_critic: ArtifactCriticProfile | None,
+    artifact_refiner: ArtifactRefinerProfile | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -411,6 +423,10 @@ def build_unresolved_decisions(
         unresolved.extend(artifact_critic.hitl_questions[:3])
         unresolved.extend(artifact_critic.missing_information[:2])
         unresolved.extend(artifact_critic.open_questions[:2])
+    if artifact_refiner is not None:
+        unresolved.extend(artifact_refiner.hitl_questions[:3])
+        unresolved.extend(artifact_refiner.priority_improvements[:2])
+        unresolved.extend(artifact_refiner.alternative_refinement_paths[:1])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -445,6 +461,7 @@ def build_implementation_guidance(
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     multi_artifact_strategy: MultiArtifactStrategy | None,
     artifact_critic: ArtifactCriticProfile | None,
+    artifact_refiner: ArtifactRefinerProfile | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -570,6 +587,17 @@ def build_implementation_guidance(
             "Preserve Artifact Critic metadata as advisory critique only, not "
             "artifact modification, strategy rejection, refinement, runtime "
             "selection, provider routing, preview behavior, or retry behavior."
+        )
+    if artifact_refiner is not None:
+        guidance.extend(artifact_refiner.prompt_guidance[:2])
+        guidance.extend(artifact_refiner.priority_improvements[:2])
+        guidance.extend(artifact_refiner.implementation_suggestions[:1])
+        guidance.append(
+            "Preserve Artifact Refiner metadata as advisory refinement "
+            "intelligence only, not artifact modification, automatic "
+            "refinement, final implementation choice, execution, merge, "
+            "export, runtime selection, provider routing, preview behavior, "
+            "workflow triggering, or retry behavior."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

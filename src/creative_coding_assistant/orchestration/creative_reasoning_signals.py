@@ -13,6 +13,9 @@ from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
+from creative_coding_assistant.orchestration.artifact_refiner import (
+    ArtifactRefinerProfile,
+)
 from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
 )
@@ -104,6 +107,7 @@ def build_recommended_direction(
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     multi_artifact_strategy: MultiArtifactStrategy | None,
     artifact_critic: ArtifactCriticProfile | None,
+    artifact_refiner: ArtifactRefinerProfile | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -170,6 +174,12 @@ def build_recommended_direction(
         if artifact_critic is not None
         else ""
     )
+    artifact_refiner_clause = (
+        "Artifact refiner as "
+        f"{_clip(_artifact_refiner_label(artifact_refiner), 90)}. "
+        if artifact_refiner is not None
+        else ""
+    )
     direction = (
         f"Recommend {_strategy_label(creative_strategy)} via "
         f"{_technique_label(creative_techniques)} because it protects "
@@ -184,6 +194,7 @@ def build_recommended_direction(
         f"{capability_clause}"
         f"{multi_artifact_clause}"
         f"{artifact_critic_clause}"
+        f"{artifact_refiner_clause}"
         f"{motif_clause}"
         f"{emotion_clause}"
         f"{modality_clause}"
@@ -228,6 +239,7 @@ def build_reasoning_path(
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     multi_artifact_strategy: MultiArtifactStrategy | None,
     artifact_critic: ArtifactCriticProfile | None,
+    artifact_refiner: ArtifactRefinerProfile | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -308,6 +320,8 @@ def build_reasoning_path(
                     f"{_multi_artifact_strategy_label(multi_artifact_strategy)}, "
                     "artifact critic "
                     f"{_artifact_critic_label(artifact_critic)}, "
+                    "artifact refiner "
+                    f"{_artifact_refiner_label(artifact_refiner)}, "
                     "plus "
                     f"{_quality_label(creative_quality_prediction)}."
                 ),
@@ -327,11 +341,13 @@ def build_reasoning_path(
                     "Treat cross-modality, scene timing, and artifact planning "
                     "plus dependency graph, runtime compatibility, and "
                     "capability matrix and multi-artifact strategy metadata "
-                    "plus artifact critic metadata as guidance, not runtime "
-                    "behavior, runtime auto-selection, provider routing, "
-                    "artifact generation, artifact modification, strategy "
-                    "rejection, artifact merging, export intelligence, or "
-                    "runtime repair."
+                    "plus artifact critic and artifact refiner metadata as "
+                    "guidance, not runtime behavior, runtime auto-selection, "
+                    "provider routing, artifact generation, artifact "
+                    "modification, final implementation choice, automatic "
+                    "refinement, strategy rejection, artifact merging, export "
+                    "intelligence, workflow triggering, retries, or runtime "
+                    "repair."
                 ),
             ),
         ),
@@ -546,6 +562,18 @@ def _artifact_critic_label(
         f"{profile.risk_assessment} risk, "
         f"{profile.critique_confidence:.2f} confidence, "
         f"{len(profile.weaknesses)} weakness signals"
+    )
+
+
+def _artifact_refiner_label(
+    profile: ArtifactRefinerProfile | None,
+) -> str:
+    if profile is None:
+        return "no artifact refiner profile"
+    return (
+        f"{profile.refinement_confidence:.2f} confidence, "
+        f"{len(profile.priority_improvements)} priority improvements, "
+        f"{len(profile.refinement_candidates)} candidates"
     )
 
 

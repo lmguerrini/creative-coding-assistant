@@ -20,6 +20,9 @@ from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
+from creative_coding_assistant.orchestration.artifact_refiner import (
+    ArtifactRefinerProfile,
+)
 from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
 )
@@ -149,6 +152,7 @@ def derive_creative_assistant_director_brief(
     artifact_capability_matrix: ArtifactCapabilityMatrix | None = None,
     multi_artifact_strategy: MultiArtifactStrategy | None = None,
     artifact_critic: ArtifactCriticProfile | None = None,
+    artifact_refiner: ArtifactRefinerProfile | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -186,6 +190,7 @@ def derive_creative_assistant_director_brief(
             artifact_capability_matrix=artifact_capability_matrix,
             multi_artifact_strategy=multi_artifact_strategy,
             artifact_critic=artifact_critic,
+            artifact_refiner=artifact_refiner,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

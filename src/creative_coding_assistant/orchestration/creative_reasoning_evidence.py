@@ -13,6 +13,9 @@ from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
+from creative_coding_assistant.orchestration.artifact_refiner import (
+    ArtifactRefinerProfile,
+)
 from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
 )
@@ -116,6 +119,7 @@ def build_evidence_chain(
     artifact_capability_matrix: ArtifactCapabilityMatrix | None,
     multi_artifact_strategy: MultiArtifactStrategy | None,
     artifact_critic: ArtifactCriticProfile | None,
+    artifact_refiner: ArtifactRefinerProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -517,6 +521,27 @@ def build_evidence_chain(
                 ),
             )
         )
+    if artifact_refiner is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="artifact_refiner",
+                signal=_clip(
+                    (
+                        f"{artifact_refiner.refinement_confidence:.2f} confidence; "
+                        f"{len(artifact_refiner.priority_improvements)} priority; "
+                        f"{len(artifact_refiner.refinement_candidates)} candidates"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Artifact refiner evidence recommends and prioritizes "
+                    "metadata-only improvement paths without modifying "
+                    "artifacts, choosing final implementation, executing, "
+                    "merging, exporting, selecting runtimes, routing providers, "
+                    "changing previews, triggering workflows, or retrying."
+                ),
+            )
+        )
     if creative_director is not None:
         evidence.append(
             CreativeReasoningEvidence(
@@ -525,7 +550,7 @@ def build_evidence_chain(
                 interpretation="Director guidance frames brief and HITL posture.",
             )
         )
-    return tuple(evidence[:29])
+    return tuple(evidence[:30])
 
 
 def _append_strategy_evidence(
