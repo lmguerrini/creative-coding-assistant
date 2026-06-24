@@ -70,6 +70,9 @@ from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
 )
+from creative_coding_assistant.orchestration.runtime_compatibility import (
+    RuntimeCompatibilityProfile,
+)
 from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
@@ -133,6 +136,7 @@ def derive_creative_assistant_director_brief(
     audio_visual_scene: AudioVisualSceneProfile | None = None,
     artifact_plan: ArtifactPlan | None = None,
     artifact_dependency_graph: ArtifactDependencyGraph | None = None,
+    runtime_compatibility: RuntimeCompatibilityProfile | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -166,6 +170,7 @@ def derive_creative_assistant_director_brief(
             audio_visual_scene=audio_visual_scene,
             artifact_plan=artifact_plan,
             artifact_dependency_graph=artifact_dependency_graph,
+            runtime_compatibility=runtime_compatibility,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

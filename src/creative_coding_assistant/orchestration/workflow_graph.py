@@ -104,6 +104,9 @@ from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     derive_runtime_capability_profile,
 )
+from creative_coding_assistant.orchestration.runtime_compatibility import (
+    derive_runtime_compatibility_profile,
+)
 from creative_coding_assistant.orchestration.semantic_motif import (
     derive_semantic_motif_system,
 )
@@ -894,6 +897,16 @@ def _planning_node(
             cross_modality=cross_modality,
             audio_visual_scene=audio_visual_scene,
         )
+        runtime_compatibility = derive_runtime_compatibility_profile(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            artifact_plan=artifact_plan,
+            artifact_dependency_graph=artifact_dependency_graph,
+            runtime_capabilities=runtime_capabilities,
+            creative_plan=plan,
+            creative_constraints=constraints,
+            creative_tradeoffs=tradeoffs,
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -916,6 +929,7 @@ def _planning_node(
                 "audio_visual_scene": audio_visual_scene,
                 "artifact_plan": artifact_plan,
                 "artifact_dependency_graph": artifact_dependency_graph,
+                "runtime_compatibility": runtime_compatibility,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -940,6 +954,7 @@ def _planning_node(
                 "audio_visual_scene": audio_visual_scene,
                 "artifact_plan": artifact_plan,
                 "artifact_dependency_graph": artifact_dependency_graph,
+                "runtime_compatibility": runtime_compatibility,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -973,6 +988,7 @@ def _planning_node(
                 artifact_dependency_graph=artifact_dependency_graph.model_dump(
                     mode="json"
                 ),
+                runtime_compatibility=runtime_compatibility.model_dump(mode="json"),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -1822,6 +1838,14 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "runtime_compatibility",
+                    (
+                        final_state.runtime_compatibility.model_dump(mode="json")
+                        if final_state.runtime_compatibility is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_director",
                     (
                         final_state.creative_director.model_dump(mode="json")
@@ -2418,6 +2442,7 @@ def _derive_director_brief(
         audio_visual_scene=workflow_state.audio_visual_scene,
         artifact_plan=workflow_state.artifact_plan,
         artifact_dependency_graph=workflow_state.artifact_dependency_graph,
+        runtime_compatibility=workflow_state.runtime_compatibility,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2461,6 +2486,7 @@ def _derive_reasoning_result(
         audio_visual_scene=workflow_state.audio_visual_scene,
         artifact_plan=workflow_state.artifact_plan,
         artifact_dependency_graph=workflow_state.artifact_dependency_graph,
+        runtime_compatibility=workflow_state.runtime_compatibility,
     )
 
 
@@ -2694,6 +2720,7 @@ def _serialize_workflow_runtime(
     audio_visual_scene = workflow_state.audio_visual_scene
     artifact_plan = workflow_state.artifact_plan
     artifact_dependency_graph = workflow_state.artifact_dependency_graph
+    runtime_compatibility = workflow_state.runtime_compatibility
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -2859,6 +2886,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "artifact_dependency_graph_available": artifact_dependency_graph is not None,
+        "runtime_compatibility": (
+            runtime_compatibility.model_dump(mode="json")
+            if runtime_compatibility is not None
+            else None
+        ),
+        "runtime_compatibility_available": runtime_compatibility is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None

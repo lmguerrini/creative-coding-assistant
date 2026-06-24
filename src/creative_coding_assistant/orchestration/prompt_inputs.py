@@ -95,6 +95,9 @@ from creative_coding_assistant.orchestration.routing import (
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
 )
+from creative_coding_assistant.orchestration.runtime_compatibility import (
+    RuntimeCompatibilityProfile,
+)
 from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
@@ -345,6 +348,7 @@ class PromptInputResponse(BaseModel):
     audio_visual_scene: AudioVisualSceneProfile | None = None
     artifact_plan: ArtifactPlan | None = None
     artifact_dependency_graph: ArtifactDependencyGraph | None = None
+    runtime_compatibility: RuntimeCompatibilityProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None

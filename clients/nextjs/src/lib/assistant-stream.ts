@@ -111,6 +111,12 @@ import {
   type RuntimeCapabilityId,
   type RuntimeCapabilityReasonerSummary,
   type RuntimePreviewSupport,
+  type RuntimeCompatibilityAssessmentSummary,
+  type RuntimeCompatibilityConfidenceSummary,
+  type RuntimeCompatibilityLevel,
+  type RuntimeCompatibilityProfileSummary,
+  type RuntimeInteroperability,
+  type RuntimePortability,
   type SemanticMotifCompositionMappingSummary,
   type SemanticMotifFallbackPlanSummary,
   type SemanticMotifHierarchyLevel,
@@ -213,6 +219,8 @@ export type AssistantStreamWorkflowMetadata = {
   constraint_prioritizer_available?: boolean;
   runtime_capabilities?: RuntimeCapabilityReasonerSummary | null;
   runtime_capability_reasoner_available?: boolean;
+  runtime_compatibility?: RuntimeCompatibilityProfileSummary | null;
+  runtime_compatibility_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -679,6 +687,12 @@ export function readWorkflowMetadata(
   const runtimeCapabilityReasonerAvailable =
     rawWorkflow.runtime_capability_reasoner_available === true ||
     runtimeCapabilities !== null;
+  const runtimeCompatibility = readRuntimeCompatibilityProfileSummary(
+    rawWorkflow.runtime_compatibility ?? rawWorkflow.runtimeCompatibility
+  );
+  const runtimeCompatibilityAvailable =
+    rawWorkflow.runtime_compatibility_available === true ||
+    runtimeCompatibility !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -838,6 +852,12 @@ export function readWorkflowMetadata(
       ? {
           runtime_capabilities: runtimeCapabilities,
           runtime_capability_reasoner_available: true
+        }
+      : {}),
+    ...(runtimeCompatibilityAvailable
+      ? {
+          runtime_compatibility: runtimeCompatibility,
+          runtime_compatibility_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -1615,6 +1635,246 @@ export function readRuntimeCapabilityReasonerSummary(
   };
 }
 
+export function readRuntimeCompatibilityProfileSummary(
+  value: unknown
+): RuntimeCompatibilityProfileSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const compatibleRuntimes = readRuntimeCapabilityIdList(
+    value.compatible_runtimes ?? value.compatibleRuntimes
+  );
+  const unsupportedRuntimes = readRuntimeCapabilityIdList(
+    value.unsupported_runtimes ?? value.unsupportedRuntimes
+  );
+  const preferredRuntimes = readRuntimeCapabilityIdList(
+    value.preferred_runtimes ?? value.preferredRuntimes
+  );
+  const runtimeConfidence = readRuntimeCompatibilityConfidenceSummaryList(
+    value.runtime_confidence ?? value.runtimeConfidence
+  );
+  const compatibilityAssessments =
+    readRuntimeCompatibilityAssessmentSummaryList(
+      value.compatibility_assessments ?? value.compatibilityAssessments
+    );
+  const expectedImplementationComplexity = readStringUnion(
+    value,
+    "expected_implementation_complexity",
+    "expectedImplementationComplexity",
+    runtimeCapabilityComplexities
+  );
+  const portability = readStringUnion(
+    value,
+    "portability",
+    "portability",
+    runtimePortabilities
+  );
+  const interoperability = readStringUnion(
+    value,
+    "interoperability",
+    "interoperability",
+    runtimeInteroperabilities
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "runtime_compatibility_engine" ||
+    compatibilityAssessments.length === 0 ||
+    !expectedImplementationComplexity ||
+    !portability ||
+    !interoperability ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    compatibleRuntimes,
+    unsupportedRuntimes,
+    preferredRuntimes,
+    runtimeConfidence,
+    compatibilityAssessments,
+    runtimeRequirements: readStringListField(
+      value,
+      "runtime_requirements",
+      "runtimeRequirements"
+    ),
+    runtimeLimitations: readStringListField(
+      value,
+      "runtime_limitations",
+      "runtimeLimitations"
+    ),
+    dependencyCompatibility: readStringListField(
+      value,
+      "dependency_compatibility",
+      "dependencyCompatibility"
+    ),
+    expectedImplementationComplexity,
+    portability,
+    interoperability,
+    missingRuntimeInformation: readStringListField(
+      value,
+      "missing_runtime_information",
+      "missingRuntimeInformation"
+    ),
+    implementationRisks: readStringListField(
+      value,
+      "implementation_risks",
+      "implementationRisks"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+function readRuntimeCompatibilityConfidenceSummaryList(
+  value: unknown
+): RuntimeCompatibilityConfidenceSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+    const runtime = readStringUnion(
+      item,
+      "runtime",
+      "runtime",
+      runtimeCapabilityIds
+    );
+    const label = readStringField(item, "label");
+    const confidence = readFiniteNumberField(item, "confidence");
+    if (!runtime || !label || confidence === null) {
+      return [];
+    }
+    return [{ runtime, label, confidence }];
+  });
+}
+
+function readRuntimeCompatibilityAssessmentSummaryList(
+  value: unknown
+): RuntimeCompatibilityAssessmentSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    const assessment = readRuntimeCompatibilityAssessmentSummary(item);
+    return assessment ? [assessment] : [];
+  });
+}
+
+function readRuntimeCompatibilityAssessmentSummary(
+  value: unknown
+): RuntimeCompatibilityAssessmentSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const runtime = readStringUnion(
+    value,
+    "runtime",
+    "runtime",
+    runtimeCapabilityIds
+  );
+  const label = readStringField(value, "label");
+  const compatibility = readStringUnion(
+    value,
+    "compatibility",
+    "compatibility",
+    runtimeCompatibilityLevels
+  );
+  const confidence = readFiniteNumberField(value, "confidence");
+  const expectedImplementationComplexity = readStringUnion(
+    value,
+    "expected_implementation_complexity",
+    "expectedImplementationComplexity",
+    runtimeCapabilityComplexities
+  );
+  const portability = readStringUnion(
+    value,
+    "portability",
+    "portability",
+    runtimePortabilities
+  );
+  const interoperability = readStringUnion(
+    value,
+    "interoperability",
+    "interoperability",
+    runtimeInteroperabilities
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+
+  if (
+    !runtime ||
+    !label ||
+    !compatibility ||
+    confidence === null ||
+    !expectedImplementationComplexity ||
+    !portability ||
+    !interoperability ||
+    promptGuidance.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    runtime,
+    label,
+    compatibility,
+    confidence,
+    compatibilityReasons: readStringListField(
+      value,
+      "compatibility_reasons",
+      "compatibilityReasons"
+    ),
+    runtimeRequirements: readStringListField(
+      value,
+      "runtime_requirements",
+      "runtimeRequirements"
+    ),
+    runtimeLimitations: readStringListField(
+      value,
+      "runtime_limitations",
+      "runtimeLimitations"
+    ),
+    dependencyCompatibility: readStringListField(
+      value,
+      "dependency_compatibility",
+      "dependencyCompatibility"
+    ),
+    expectedImplementationComplexity,
+    portability,
+    interoperability,
+    implementationRisks: readStringListField(
+      value,
+      "implementation_risks",
+      "implementationRisks"
+    ),
+    promptGuidance,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
 const runtimeCapabilityIds = [
   "p5_js",
   "three_js",
@@ -1638,6 +1898,24 @@ const runtimeCapabilityComplexities = [
   "medium",
   "high"
 ] as const satisfies readonly RuntimeCapabilityComplexity[];
+
+const runtimeCompatibilityLevels = [
+  "compatible",
+  "partially_compatible",
+  "unsupported"
+] as const satisfies readonly RuntimeCompatibilityLevel[];
+
+const runtimePortabilities = [
+  "high",
+  "medium",
+  "low"
+] as const satisfies readonly RuntimePortability[];
+
+const runtimeInteroperabilities = [
+  "high",
+  "medium",
+  "low"
+] as const satisfies readonly RuntimeInteroperability[];
 
 const runtimePreviewSupports = [
   "backend_preview_supported",
@@ -5459,6 +5737,7 @@ const creativeReasoningEvidenceSources = [
   "audio_visual_scene",
   "artifact_plan",
   "artifact_dependency_graph",
+  "runtime_compatibility",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

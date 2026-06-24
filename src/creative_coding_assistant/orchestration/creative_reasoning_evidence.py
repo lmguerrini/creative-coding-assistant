@@ -68,6 +68,9 @@ from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
 )
+from creative_coding_assistant.orchestration.runtime_compatibility import (
+    RuntimeCompatibilityProfile,
+)
 from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
@@ -100,6 +103,7 @@ def build_evidence_chain(
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
+    runtime_compatibility: RuntimeCompatibilityProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -405,6 +409,29 @@ def build_evidence_chain(
                 ),
             )
         )
+    if runtime_compatibility is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="runtime_compatibility",
+                signal=_clip(
+                    (
+                        "Preferred "
+                        + ", ".join(runtime_compatibility.preferred_runtimes)
+                        + "; compatible "
+                        + ", ".join(runtime_compatibility.compatible_runtimes)
+                        + "; unsupported "
+                        + ", ".join(runtime_compatibility.unsupported_runtimes)
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Runtime compatibility evidence evaluates supported "
+                    "runtimes against artifact and dependency metadata as "
+                    "planning guidance only, without runtime execution, "
+                    "auto-selection, routing, or preview changes."
+                ),
+            )
+        )
     if creative_director is not None:
         evidence.append(
             CreativeReasoningEvidence(
@@ -413,7 +440,7 @@ def build_evidence_chain(
                 interpretation="Director guidance frames brief and HITL posture.",
             )
         )
-    return tuple(evidence[:24])
+    return tuple(evidence[:26])
 
 
 def _append_strategy_evidence(

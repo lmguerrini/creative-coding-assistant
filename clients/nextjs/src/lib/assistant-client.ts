@@ -334,6 +334,59 @@ export type RuntimeCapabilityReasonerSummary = {
   evidence: string[];
 };
 
+export type RuntimeCompatibilityLevel =
+  | "compatible"
+  | "partially_compatible"
+  | "unsupported";
+
+export type RuntimePortability = "high" | "medium" | "low";
+
+export type RuntimeInteroperability = "high" | "medium" | "low";
+
+export type RuntimeCompatibilityConfidenceSummary = {
+  runtime: RuntimeCapabilityId;
+  label: string;
+  confidence: number;
+};
+
+export type RuntimeCompatibilityAssessmentSummary = {
+  runtime: RuntimeCapabilityId;
+  label: string;
+  compatibility: RuntimeCompatibilityLevel;
+  confidence: number;
+  compatibilityReasons: string[];
+  runtimeRequirements: string[];
+  runtimeLimitations: string[];
+  dependencyCompatibility: string[];
+  expectedImplementationComplexity: RuntimeCapabilityComplexity;
+  portability: RuntimePortability;
+  interoperability: RuntimeInteroperability;
+  implementationRisks: string[];
+  promptGuidance: string[];
+  evidence: string[];
+};
+
+export type RuntimeCompatibilityProfileSummary = {
+  role: "runtime_compatibility_engine";
+  compatibleRuntimes: RuntimeCapabilityId[];
+  unsupportedRuntimes: RuntimeCapabilityId[];
+  preferredRuntimes: RuntimeCapabilityId[];
+  runtimeConfidence: RuntimeCompatibilityConfidenceSummary[];
+  compatibilityAssessments: RuntimeCompatibilityAssessmentSummary[];
+  runtimeRequirements: string[];
+  runtimeLimitations: string[];
+  dependencyCompatibility: string[];
+  expectedImplementationComplexity: RuntimeCapabilityComplexity;
+  portability: RuntimePortability;
+  interoperability: RuntimeInteroperability;
+  missingRuntimeInformation: string[];
+  implementationRisks: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type CreativeTradeoffAxis =
   | "creative_expressiveness"
   | "concept_fidelity"
@@ -1433,6 +1486,7 @@ export type CreativeReasoningEvidenceSource =
   | "audio_visual_scene"
   | "artifact_plan"
   | "artifact_dependency_graph"
+  | "runtime_compatibility"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {

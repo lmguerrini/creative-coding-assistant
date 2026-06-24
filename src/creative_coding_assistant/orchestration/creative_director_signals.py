@@ -66,6 +66,9 @@ from creative_coding_assistant.orchestration.routing import (
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
 )
+from creative_coding_assistant.orchestration.runtime_compatibility import (
+    RuntimeCompatibilityProfile,
+)
 from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
@@ -101,6 +104,7 @@ def build_director_brief_payload(
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
+    runtime_compatibility: RuntimeCompatibilityProfile | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -124,6 +128,7 @@ def build_director_brief_payload(
         audio_visual_scene=audio_visual_scene,
         artifact_plan=artifact_plan,
         artifact_dependency_graph=artifact_dependency_graph,
+        runtime_compatibility=runtime_compatibility,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -162,6 +167,7 @@ def build_director_brief_payload(
             audio_visual_scene,
             artifact_plan,
             artifact_dependency_graph,
+            runtime_compatibility,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -184,6 +190,7 @@ def build_director_brief_payload(
             audio_visual_scene=audio_visual_scene,
             artifact_plan=artifact_plan,
             artifact_dependency_graph=artifact_dependency_graph,
+            runtime_compatibility=runtime_compatibility,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -207,6 +214,7 @@ def build_director_brief_payload(
             audio_visual_scene=audio_visual_scene,
             artifact_plan=artifact_plan,
             artifact_dependency_graph=artifact_dependency_graph,
+            runtime_compatibility=runtime_compatibility,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -236,6 +244,7 @@ def build_director_brief_payload(
             audio_visual_scene=audio_visual_scene,
             artifact_plan=artifact_plan,
             artifact_dependency_graph=artifact_dependency_graph,
+            runtime_compatibility=runtime_compatibility,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -285,6 +294,7 @@ def _ambiguity_signals(
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
+    runtime_compatibility: RuntimeCompatibilityProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -333,6 +343,9 @@ def _ambiguity_signals(
     if artifact_dependency_graph is not None:
         signals.extend(artifact_dependency_graph.missing_dependency_risks[:2])
         signals.extend(artifact_dependency_graph.blocking_dependencies[:1])
+    if runtime_compatibility is not None:
+        signals.extend(runtime_compatibility.missing_runtime_information[:2])
+        signals.extend(runtime_compatibility.implementation_risks[:1])
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -385,6 +398,7 @@ def _planning_focus(
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
+    runtime_compatibility: RuntimeCompatibilityProfile | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_intent is not None:
@@ -402,6 +416,13 @@ def _planning_focus(
             f"{len(artifact_dependency_graph.dependency_edges)} edges."
         )
         focus.extend(artifact_dependency_graph.prompt_guidance[:1])
+    if runtime_compatibility is not None:
+        focus.append(
+            "Runtime compatibility: "
+            + ", ".join(runtime_compatibility.preferred_runtimes)
+            + " preferred; metadata only."
+        )
+        focus.extend(runtime_compatibility.prompt_guidance[:1])
     if procedural_structure is not None:
         focus.append(
             "Procedural structure: "
@@ -536,6 +557,7 @@ def _critique_focus(
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
+    runtime_compatibility: RuntimeCompatibilityProfile | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -669,6 +691,13 @@ def _critique_focus(
             "dependencies, blocking risks, and downstream consumer assumptions."
         )
         focus.extend(artifact_dependency_graph.dependency_conflicts[:2])
+    if runtime_compatibility is not None:
+        focus.append(
+            "Runtime Compatibility Engine is pre-generation only; compare "
+            "output against compatible, partial, and unsupported runtime "
+            "metadata without changing runtime execution."
+        )
+        focus.extend(runtime_compatibility.implementation_risks[:2])
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -724,6 +753,7 @@ def _next_actions(
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
+    runtime_compatibility: RuntimeCompatibilityProfile | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
@@ -762,6 +792,8 @@ def _next_actions(
         and artifact_dependency_graph.hitl_questions
     ):
         return (artifact_dependency_graph.hitl_questions[0],)
+    if runtime_compatibility is not None and runtime_compatibility.hitl_questions:
+        return (runtime_compatibility.hitl_questions[0],)
     if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
@@ -803,6 +835,7 @@ def _evidence(
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
+    runtime_compatibility: RuntimeCompatibilityProfile | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -920,6 +953,12 @@ def _evidence(
             "Artifact dependency graph: "
             f"{len(artifact_dependency_graph.artifact_nodes)} nodes; "
             f"{len(artifact_dependency_graph.dependency_edges)} edges."
+        )
+    if runtime_compatibility is not None:
+        evidence.append(
+            "Runtime compatibility: "
+            f"{len(runtime_compatibility.compatible_runtimes)} compatible; "
+            f"{len(runtime_compatibility.unsupported_runtimes)} unsupported."
         )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")

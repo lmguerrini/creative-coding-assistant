@@ -59,6 +59,9 @@ from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityCandidate,
     RuntimeCapabilityProfile,
 )
+from creative_coding_assistant.orchestration.runtime_compatibility import (
+    RuntimeCompatibilityProfile,
+)
 from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
@@ -88,6 +91,7 @@ def build_recommended_direction(
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
+    runtime_compatibility: RuntimeCompatibilityProfile | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -130,6 +134,12 @@ def build_recommended_direction(
         if artifact_dependency_graph is not None
         else ""
     )
+    compatibility_clause = (
+        "Compatibility as "
+        f"{_clip(_runtime_compatibility_label(runtime_compatibility), 90)}. "
+        if runtime_compatibility is not None
+        else ""
+    )
     direction = (
         f"Recommend {_strategy_label(creative_strategy)} via "
         f"{_technique_label(creative_techniques)} because it protects "
@@ -140,6 +150,7 @@ def build_recommended_direction(
         f"{scene_clause}"
         f"{artifact_clause}"
         f"{dependency_clause}"
+        f"{compatibility_clause}"
         f"{motif_clause}"
         f"{emotion_clause}"
         f"{modality_clause}"
@@ -180,6 +191,7 @@ def build_reasoning_path(
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
+    runtime_compatibility: RuntimeCompatibilityProfile | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -251,7 +263,9 @@ def build_reasoning_path(
                     f"scene-timed as {_scene_label(audio_visual_scene)}, with "
                     f"artifact shape {_artifact_label(artifact_plan)}, "
                     "artifact dependencies "
-                    f"{_artifact_dependency_label(artifact_dependency_graph)}, and "
+                    f"{_artifact_dependency_label(artifact_dependency_graph)}, "
+                    "runtime compatibility "
+                    f"{_runtime_compatibility_label(runtime_compatibility)}, and "
                     f"{_quality_label(creative_quality_prediction)}."
                 ),
                 360,
@@ -268,9 +282,9 @@ def build_reasoning_path(
                 ),
                 (
                     "Treat cross-modality, scene timing, and artifact planning "
-                    "plus dependency graph metadata as guidance, not runtime "
-                    "behavior, compatibility selection, artifact selection, "
-                    "or critique."
+                    "plus dependency graph and runtime compatibility metadata "
+                    "as guidance, not runtime behavior, runtime auto-selection, "
+                    "provider routing, artifact selection, or critique."
                 ),
             ),
         ),
@@ -435,6 +449,19 @@ def _artifact_dependency_label(profile: ArtifactDependencyGraph | None) -> str:
         f"{len(profile.artifact_nodes)} nodes, "
         f"{len(profile.dependency_edges)} edges, "
         f"{len(profile.blocking_dependencies)} blocking"
+    )
+
+
+def _runtime_compatibility_label(
+    profile: RuntimeCompatibilityProfile | None,
+) -> str:
+    if profile is None:
+        return "no runtime compatibility profile"
+    preferred = ", ".join(profile.preferred_runtimes) or "none"
+    return (
+        f"{preferred} preferred, "
+        f"{len(profile.compatible_runtimes)} compatible, "
+        f"{len(profile.unsupported_runtimes)} unsupported"
     )
 
 

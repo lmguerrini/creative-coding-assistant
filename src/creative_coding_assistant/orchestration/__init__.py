@@ -25,6 +25,9 @@ _ARTIFACT_PLANNER = "creative_coding_assistant.orchestration.artifact_planner"
 _ARTIFACT_DEPENDENCY_GRAPH = (
     "creative_coding_assistant.orchestration.artifact_dependency_graph"
 )
+_RUNTIME_COMPATIBILITY = (
+    "creative_coding_assistant.orchestration.runtime_compatibility"
+)
 _CREATIVE_QUALITY_PREDICTION = (
     "creative_coding_assistant.orchestration.creative_quality_prediction"
 )
@@ -197,6 +200,12 @@ _EXPORT_MAP = {
     "CreativeReasoningStep": _CREATIVE_REASONING,
     "CreativeRejectedAlternative": _CREATIVE_REASONING,
     "RuntimeCapabilityCandidate": _RUNTIME_CAPABILITIES,
+    "RuntimeCompatibilityAssessment": _RUNTIME_COMPATIBILITY,
+    "RuntimeCompatibilityConfidence": _RUNTIME_COMPATIBILITY,
+    "RuntimeCompatibilityLevel": _RUNTIME_COMPATIBILITY,
+    "RuntimeCompatibilityProfile": _RUNTIME_COMPATIBILITY,
+    "RuntimeInteroperability": _RUNTIME_COMPATIBILITY,
+    "RuntimePortability": _RUNTIME_COMPATIBILITY,
     "RuntimeCapabilityProfile": _RUNTIME_CAPABILITIES,
     "CreativeAssistantDirectorBrief": _CREATIVE_DIRECTOR,
     "CreativeQualityEvaluation": _ARTIFACTS,
@@ -332,6 +341,8 @@ _EXPORT_MAP = {
     "creative_reasoning_prompt_lines": _CREATIVE_REASONING,
     "derive_runtime_capability_profile": _RUNTIME_CAPABILITIES,
     "runtime_capability_prompt_lines": _RUNTIME_CAPABILITIES,
+    "derive_runtime_compatibility_profile": _RUNTIME_COMPATIBILITY,
+    "runtime_compatibility_prompt_lines": _RUNTIME_COMPATIBILITY,
     "derive_creative_assistant_director_brief": _CREATIVE_DIRECTOR,
     "creative_assistant_director_prompt_lines": _CREATIVE_DIRECTOR,
     "derive_hitl_clarification": _CLARIFICATION,

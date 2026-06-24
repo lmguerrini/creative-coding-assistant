@@ -109,6 +109,10 @@ from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
     runtime_capability_prompt_lines,
 )
+from creative_coding_assistant.orchestration.runtime_compatibility import (
+    RuntimeCompatibilityProfile,
+    runtime_compatibility_prompt_lines,
+)
 from creative_coding_assistant.orchestration.semantic_motif import (
     SemanticMotifSystem,
     semantic_motif_prompt_lines,
@@ -311,6 +315,13 @@ Artifact Planner:
 {% if artifact_dependency_graph is not none -%}
 Artifact Dependency Graph:
 {% for instruction in artifact_dependency_graph_lines(artifact_dependency_graph) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set runtime_compatibility = prompt_input.runtime_compatibility -%}
+{% if runtime_compatibility is not none -%}
+Runtime Compatibility Engine:
+{% for instruction in runtime_compatibility_lines(runtime_compatibility) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -569,6 +580,7 @@ class JinjaPromptRenderer:
             audio_visual_scene_lines=_audio_visual_scene_lines,
             artifact_plan_lines=_artifact_plan_lines,
             artifact_dependency_graph_lines=_artifact_dependency_graph_lines,
+            runtime_compatibility_lines=_runtime_compatibility_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -853,6 +865,12 @@ def _artifact_dependency_graph_lines(
     graph: ArtifactDependencyGraph,
 ) -> tuple[str, ...]:
     return artifact_dependency_graph_prompt_lines(graph)
+
+
+def _runtime_compatibility_lines(
+    profile: RuntimeCompatibilityProfile,
+) -> tuple[str, ...]:
+    return runtime_compatibility_prompt_lines(profile)
 
 
 def _creative_assistant_director_lines(

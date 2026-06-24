@@ -66,6 +66,9 @@ from creative_coding_assistant.orchestration.procedural_structure import (
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
 )
+from creative_coding_assistant.orchestration.runtime_compatibility import (
+    RuntimeCompatibilityProfile,
+)
 from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
@@ -94,6 +97,7 @@ def build_strongest_signals(
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
+    runtime_compatibility: RuntimeCompatibilityProfile | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -200,6 +204,14 @@ def build_strongest_signals(
             f"{len(artifact_dependency_graph.dependency_edges)} edges; "
             f"{len(artifact_dependency_graph.blocking_dependencies)} blocking."
         )
+    if runtime_compatibility is not None:
+        signals.append(
+            "Runtime compatibility: "
+            + ", ".join(runtime_compatibility.preferred_runtimes)
+            + " preferred; "
+            f"{len(runtime_compatibility.compatible_runtimes)} compatible; "
+            f"{len(runtime_compatibility.unsupported_runtimes)} unsupported."
+        )
     if creative_constraints is not None:
         signals.append(
             f"Constraints: complexity {creative_constraints.complexity_pressure}, "
@@ -294,6 +306,7 @@ def build_unresolved_decisions(
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
+    runtime_compatibility: RuntimeCompatibilityProfile | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -344,6 +357,10 @@ def build_unresolved_decisions(
         unresolved.extend(artifact_dependency_graph.hitl_questions[:3])
         unresolved.extend(artifact_dependency_graph.missing_dependency_risks[:2])
         unresolved.extend(artifact_dependency_graph.dependency_conflicts[:2])
+    if runtime_compatibility is not None:
+        unresolved.extend(runtime_compatibility.hitl_questions[:3])
+        unresolved.extend(runtime_compatibility.missing_runtime_information[:2])
+        unresolved.extend(runtime_compatibility.implementation_risks[:2])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -374,6 +391,7 @@ def build_implementation_guidance(
     audio_visual_scene: AudioVisualSceneProfile | None,
     artifact_plan: ArtifactPlan | None,
     artifact_dependency_graph: ArtifactDependencyGraph | None,
+    runtime_compatibility: RuntimeCompatibilityProfile | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -464,6 +482,14 @@ def build_implementation_guidance(
         guidance.append(
             "Preserve artifact dependency graph metadata as dependency "
             "guidance, not runtime compatibility selection or execution."
+        )
+    if runtime_compatibility is not None:
+        guidance.extend(runtime_compatibility.prompt_guidance[:2])
+        guidance.extend(runtime_compatibility.runtime_requirements[:2])
+        guidance.extend(runtime_compatibility.runtime_limitations[:1])
+        guidance.append(
+            "Preserve runtime compatibility as metadata only, not runtime "
+            "auto-selection, provider routing, preview behavior, or execution."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

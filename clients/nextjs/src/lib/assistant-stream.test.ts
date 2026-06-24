@@ -24,6 +24,7 @@ import {
   readEventTimestamp,
   readPreviewArtifactUpdate,
   readRuntimeCapabilityReasonerSummary,
+  readRuntimeCompatibilityProfileSummary,
   readStreamEventError,
   readWorkflowMetadata,
   streamAssistantEvents,
@@ -1080,6 +1081,84 @@ function artifactDependencyGraphFixture() {
     authority_boundary:
       "The Artifact Dependency Graph structures inspectable metadata only.",
     evidence: ["Artifact dependency graph: 2 nodes; 1 edges."]
+  };
+}
+
+function runtimeCompatibilityFixture() {
+  return {
+    role: "runtime_compatibility_engine",
+    compatible_runtimes: ["p5_js", "canvas"],
+    unsupported_runtimes: ["glsl"],
+    preferred_runtimes: ["p5_js"],
+    runtime_confidence: [
+      {
+        runtime: "p5_js",
+        label: "p5.js",
+        confidence: 0.93
+      },
+      {
+        runtime: "glsl",
+        label: "GLSL",
+        confidence: 0.42
+      }
+    ],
+    compatibility_assessments: [
+      {
+        runtime: "p5_js",
+        label: "p5.js",
+        compatibility: "compatible",
+        confidence: 0.93,
+        compatibility_reasons: [
+          "p5.js directly supports p5_sketch."
+        ],
+        runtime_requirements: [
+          "Respect existing runtime hint: p5."
+        ],
+        runtime_limitations: [
+          "Compatibility metadata must not change runtime execution."
+        ],
+        dependency_compatibility: [
+          "p5.js satisfies: Respect existing runtime hint: p5."
+        ],
+        expected_implementation_complexity: "medium",
+        portability: "high",
+        interoperability: "high",
+        implementation_risks: [
+          "Large particle counts can pressure frame rate."
+        ],
+        prompt_guidance: [
+          "Treat p5.js compatibility as metadata only."
+        ],
+        evidence: ["Runtime evaluated: p5_js."]
+      }
+    ],
+    runtime_requirements: [
+      "Respect existing runtime hint: p5."
+    ],
+    runtime_limitations: [
+      "GLSL: Unsupported runtime should not be used as an output target."
+    ],
+    dependency_compatibility: [
+      "Top runtime dependency fit: p5.js compatible."
+    ],
+    expected_implementation_complexity: "medium",
+    portability: "high",
+    interoperability: "high",
+    missing_runtime_information: [
+      "Route/domain metadata is inferred or unavailable."
+    ],
+    implementation_risks: [
+      "Do not use compatibility metadata to auto-select runtimes."
+    ],
+    hitl_questions: [
+      "Should unsupported runtimes be explicitly excluded from the response: GLSL?"
+    ],
+    prompt_guidance: [
+      "Use Runtime Compatibility Engine output as compatibility metadata only."
+    ],
+    authority_boundary:
+      "The Runtime Compatibility Engine evaluates runtime compatibility as inspectable metadata only.",
+    evidence: ["Compatibility order: p5_js:compatible:0.93."]
   };
 }
 
@@ -2626,6 +2705,27 @@ describe("assistant stream client", () => {
     );
   });
 
+  it("reads runtime compatibility metadata", () => {
+    const profile = readRuntimeCompatibilityProfileSummary(
+      runtimeCompatibilityFixture()
+    );
+
+    expect(profile?.role).toBe("runtime_compatibility_engine");
+    expect(profile?.compatibleRuntimes).toEqual(["p5_js", "canvas"]);
+    expect(profile?.preferredRuntimes).toEqual(["p5_js"]);
+    expect(profile?.runtimeConfidence[0]).toMatchObject({
+      runtime: "p5_js",
+      confidence: 0.93
+    });
+    expect(profile?.compatibilityAssessments[0]).toMatchObject({
+      runtime: "p5_js",
+      compatibility: "compatible",
+      expectedImplementationComplexity: "medium",
+      portability: "high",
+      interoperability: "high"
+    });
+  });
+
   it("reads creative trade-off explorer metadata", () => {
     const profile = readCreativeTradeoffExplorerSummary({
       role: "creative_tradeoff_explorer",
@@ -3963,6 +4063,54 @@ describe("assistant stream client", () => {
         ]
       },
       artifact_dependency_graph_available: true
+    });
+  });
+
+  it("hydrates runtime compatibility workflow metadata", () => {
+    const runtimeCompatibility = runtimeCompatibilityFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 18,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          runtime_compatibility: runtimeCompatibility,
+          runtime_compatibility_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      runtime_compatibility: {
+        role: "runtime_compatibility_engine",
+        compatibleRuntimes: ["p5_js", "canvas"],
+        unsupportedRuntimes: ["glsl"],
+        preferredRuntimes: ["p5_js"],
+        compatibilityAssessments: [
+          {
+            runtime: "p5_js",
+            compatibility: "compatible",
+            portability: "high",
+            interoperability: "high"
+          }
+        ]
+      },
+      runtime_compatibility_available: true
     });
   });
 
