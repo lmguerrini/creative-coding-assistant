@@ -13,6 +13,9 @@ from creative_coding_assistant.orchestration.artifact_critic import (
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
+from creative_coding_assistant.orchestration.artifact_export_intelligence import (
+    ArtifactExportIntelligenceProfile,
+)
 from creative_coding_assistant.orchestration.artifact_intelligence_synthesis import (
     ArtifactIntelligenceSynthesisProfile,
 )
@@ -122,6 +125,7 @@ def build_strongest_signals(
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
+    artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -282,6 +286,13 @@ def build_strongest_signals(
             f"{artifact_merge_planner.merge_confidence:.2f} confidence; "
             f"{len(artifact_merge_planner.artifact_join_points)} join points."
         )
+    if artifact_export_intelligence is not None:
+        signals.append(
+            "Artifact export intelligence: "
+            f"{artifact_export_intelligence.export_readiness}; "
+            f"{artifact_export_intelligence.export_confidence:.2f} confidence; "
+            f"{artifact_export_intelligence.preferred_export_target} preferred."
+        )
     if creative_constraints is not None:
         signals.append(
             f"Constraints: complexity {creative_constraints.complexity_pressure}, "
@@ -383,6 +394,7 @@ def build_unresolved_decisions(
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
+    artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -461,6 +473,10 @@ def build_unresolved_decisions(
         unresolved.extend(artifact_merge_planner.hitl_questions[:3])
         unresolved.extend(artifact_merge_planner.composition_risks[:2])
         unresolved.extend(artifact_merge_planner.dependency_merge_risks[:1])
+    if artifact_export_intelligence is not None:
+        unresolved.extend(artifact_export_intelligence.hitl_questions[:3])
+        unresolved.extend(artifact_export_intelligence.export_risks[:2])
+        unresolved.extend(artifact_export_intelligence.export_constraints[:1])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -498,6 +514,7 @@ def build_implementation_guidance(
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
+    artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -656,6 +673,17 @@ def build_implementation_guidance(
             "modification, final implementation choice, execution, export, "
             "runtime selection, provider routing, preview behavior, workflow "
             "triggering, retry behavior, or escalation."
+        )
+    if artifact_export_intelligence is not None:
+        guidance.extend(artifact_export_intelligence.prompt_guidance[:2])
+        guidance.append(artifact_export_intelligence.export_summary)
+        guidance.extend(artifact_export_intelligence.documentation_requirements[:1])
+        guidance.append(
+            "Preserve Artifact Export Intelligence metadata as advisory "
+            "export guidance only, not file export, file writing, package "
+            "generation, artifact modification, artifact merging, final "
+            "runtime choice, execution, deployment, provider routing, preview "
+            "behavior, workflow triggering, retry behavior, or escalation."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

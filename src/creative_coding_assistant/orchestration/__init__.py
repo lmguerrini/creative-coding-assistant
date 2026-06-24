@@ -42,6 +42,9 @@ _ARTIFACT_INTELLIGENCE_SYNTHESIS = (
 _ARTIFACT_MERGE_PLANNER = (
     "creative_coding_assistant.orchestration.artifact_merge_planner"
 )
+_ARTIFACT_EXPORT_INTELLIGENCE = (
+    "creative_coding_assistant.orchestration.artifact_export_intelligence"
+)
 _CREATIVE_QUALITY_PREDICTION = (
     "creative_coding_assistant.orchestration.creative_quality_prediction"
 )
@@ -380,6 +383,12 @@ _EXPORT_MAP = {
     ),
     "artifact_merge_planner_prompt_lines": _ARTIFACT_MERGE_PLANNER,
     "derive_artifact_merge_planner_profile": _ARTIFACT_MERGE_PLANNER,
+    "artifact_export_intelligence_prompt_lines": (
+        _ARTIFACT_EXPORT_INTELLIGENCE
+    ),
+    "derive_artifact_export_intelligence_profile": (
+        _ARTIFACT_EXPORT_INTELLIGENCE
+    ),
     "artifact_plan_prompt_lines": _ARTIFACT_PLANNER,
     "derive_artifact_plan": _ARTIFACT_PLANNER,
     "derive_symbolic_narrative_plan": _SYMBOLIC_NARRATIVE,

@@ -12,6 +12,9 @@ from creative_coding_assistant.orchestration.artifact_critic import (
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
+from creative_coding_assistant.orchestration.artifact_export_intelligence import (
+    ArtifactExportIntelligenceProfile,
+)
 from creative_coding_assistant.orchestration.artifact_intelligence_synthesis import (
     ArtifactIntelligenceSynthesisProfile,
 )
@@ -128,6 +131,7 @@ def build_evidence_chain(
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
+    artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -604,6 +608,34 @@ def build_evidence_chain(
                 ),
             )
         )
+    if artifact_export_intelligence is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="artifact_export_intelligence",
+                signal=_clip(
+                    (
+                        f"{artifact_export_intelligence.export_readiness} "
+                        "readiness; "
+                        f"{artifact_export_intelligence.export_confidence:.2f} "
+                        "confidence; "
+                        f"{artifact_export_intelligence.preferred_export_target} "
+                        "preferred; "
+                        f"{len(artifact_export_intelligence.export_risks)} "
+                        "export risks"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Artifact export intelligence evidence recommends export "
+                    "targets, requirements, constraints, risks, package notes, "
+                    "documentation needs, and downstream handoffs as advisory "
+                    "metadata only, without exporting, writing files, "
+                    "packaging, modifying, merging, executing, selecting "
+                    "runtimes, deploying, routing, previewing, triggering "
+                    "workflows, retrying, or escalating."
+                ),
+            )
+        )
     if creative_director is not None:
         evidence.append(
             CreativeReasoningEvidence(
@@ -612,6 +644,10 @@ def build_evidence_chain(
                 interpretation="Director guidance frames brief and HITL posture.",
             )
         )
+    if artifact_export_intelligence is not None and len(evidence) > 30:
+        evidence = [
+            item for item in evidence if item.source != "quality_predictor"
+        ]
     return tuple(evidence[:30])
 
 

@@ -12,6 +12,9 @@ from creative_coding_assistant.orchestration.artifact_critic import (
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
+from creative_coding_assistant.orchestration.artifact_export_intelligence import (
+    ArtifactExportIntelligenceProfile,
+)
 from creative_coding_assistant.orchestration.artifact_intelligence_synthesis import (
     ArtifactIntelligenceSynthesisProfile,
 )
@@ -116,6 +119,7 @@ def build_recommended_direction(
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
+    artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -202,6 +206,14 @@ def build_recommended_direction(
         if artifact_merge_planner is not None
         else ""
     )
+    export_intelligence_label = _artifact_export_intelligence_label(
+        artifact_export_intelligence
+    )
+    artifact_export_intelligence_clause = (
+        f"Artifact export intelligence as {_clip(export_intelligence_label, 90)}. "
+        if artifact_export_intelligence is not None
+        else ""
+    )
     direction = (
         f"Recommend {_strategy_label(creative_strategy)} via "
         f"{_technique_label(creative_techniques)} because it protects "
@@ -219,6 +231,7 @@ def build_recommended_direction(
         f"{artifact_refiner_clause}"
         f"{artifact_intelligence_synthesis_clause}"
         f"{artifact_merge_planner_clause}"
+        f"{artifact_export_intelligence_clause}"
         f"{motif_clause}"
         f"{emotion_clause}"
         f"{modality_clause}"
@@ -266,6 +279,7 @@ def build_reasoning_path(
     artifact_refiner: ArtifactRefinerProfile | None,
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
+    artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -273,6 +287,9 @@ def build_reasoning_path(
         artifact_intelligence_synthesis
     )
     merge_planner_label = _artifact_merge_planner_label(artifact_merge_planner)
+    export_intelligence_label = _artifact_export_intelligence_label(
+        artifact_export_intelligence
+    )
     return (
         CreativeReasoningStep(
             stage="strategy",
@@ -356,6 +373,8 @@ def build_reasoning_path(
                     f"{synthesis_label}, "
                     "artifact merge planner "
                     f"{merge_planner_label}, "
+                    "artifact export intelligence "
+                    f"{export_intelligence_label}, "
                     "plus "
                     f"{_quality_label(creative_quality_prediction)}."
                 ),
@@ -376,13 +395,15 @@ def build_reasoning_path(
                     "plus dependency graph, runtime compatibility, and "
                     "capability matrix and multi-artifact strategy metadata "
                     "plus artifact critic, artifact refiner, and artifact "
-                    "intelligence synthesis and merge planner metadata as "
+                    "intelligence synthesis, merge planner, and export "
+                    "intelligence metadata as "
                     "guidance, not runtime behavior, runtime auto-selection, "
                     "provider routing, artifact generation, artifact "
                     "modification, final implementation choice, automatic "
-                    "refinement, strategy rejection, artifact merging, export "
-                    "intelligence, workflow triggering, retries, escalation "
-                    "behavior, or runtime repair."
+                    "refinement, strategy rejection, artifact merging, file "
+                    "export, file writing, package generation, deployment, "
+                    "workflow triggering, retries, escalation behavior, or "
+                    "runtime repair."
                 ),
             ),
         ),
@@ -635,6 +656,19 @@ def _artifact_merge_planner_label(
         f"{profile.merge_confidence:.2f} confidence, "
         f"{len(profile.artifact_join_points)} join points, "
         f"{len(profile.composition_risks)} composition risks"
+    )
+
+
+def _artifact_export_intelligence_label(
+    profile: ArtifactExportIntelligenceProfile | None,
+) -> str:
+    if profile is None:
+        return "no artifact export intelligence profile"
+    return (
+        f"{profile.export_readiness} readiness, "
+        f"{profile.export_confidence:.2f} confidence, "
+        f"{profile.preferred_export_target} preferred, "
+        f"{len(profile.export_risks)} export risks"
     )
 
 

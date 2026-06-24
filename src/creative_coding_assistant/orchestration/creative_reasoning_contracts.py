@@ -44,6 +44,7 @@ ReasoningEvidenceSource = Literal[
     "artifact_refiner",
     "artifact_intelligence_synthesis",
     "artifact_merge_planner",
+    "artifact_export_intelligence",
     "future_knowledge",
 ]
 
