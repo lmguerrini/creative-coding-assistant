@@ -2,6 +2,7 @@ flowchart TB
     classDef runtime fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
     classDef cognition fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
     classDef design fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px;
+    classDef artifact fill:#EEF2FF,stroke:#4338CA,color:#312E81,stroke-width:1.5px;
     classDef store fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px;
     classDef consumer fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px;
     classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
@@ -44,19 +45,40 @@ flowchart TB
 
     subgraph row_5[" "]
         direction LR
-        metadata_store["21. Metadata Store<br/>AssistantWorkflowState +<br/>PromptInputResponse"]:::store
-        director["22. Director<br/>Creative Assistant Director runtime node"]:::consumer
-        reasoning["23. Reasoning<br/>Creative Reasoning Engine runtime node"]:::consumer
-        prompt_rendering["24. Prompt Rendering<br/>provider prompt sections"]:::consumer
+        artifact_plan["21. Artifact Plan<br/>Artifact Planner"]:::artifact
+        dependency["22. Dependencies<br/>Artifact Dependency Graph"]:::artifact
+        compatibility["23. Runtime Compatibility<br/>Runtime Compatibility Engine"]:::artifact
+        capability["24. Capability Matrix<br/>Artifact Capability Matrix"]:::artifact
+        artifact_strategy["25. Multi-Artifact<br/>Multi-Artifact Strategy"]:::artifact
     end
 
-    note["Serpentine readability view only<br/>Not separate LangGraph runtime nodes<br/>Use generative_design_graph.* + dependency matrix<br/>for dense relationships"]:::note
+    subgraph row_6[" "]
+        direction RL
+        artifact_critic["26. Artifact Critic<br/>Artifact Critic"]:::artifact
+        artifact_refiner["27. Artifact Refiner<br/>Artifact Refiner"]:::artifact
+        artifact_synthesis["28. Artifact Synthesis<br/>Artifact Intelligence Synthesis"]:::artifact
+        merge_planner["29. Merge Planner<br/>Artifact Merge Planner"]:::artifact
+        export_intelligence["30. Export Intelligence<br/>Artifact Export Intelligence"]:::artifact
+    end
+
+    subgraph row_7[" "]
+        direction LR
+        contracts["31. Engine Contracts<br/>Artifact Engine Contracts"]:::artifact
+        metadata_store["32. Metadata Store<br/>AssistantWorkflowState +<br/>PromptInputResponse"]:::store
+        director["33. Director<br/>Creative Assistant Director runtime node"]:::consumer
+        reasoning["34. Reasoning<br/>Creative Reasoning Engine runtime node"]:::consumer
+        prompt_rendering["35. Prompt Rendering<br/>provider prompt sections"]:::consumer
+    end
+
+    note["Serpentine readability view only<br/>Not separate LangGraph runtime nodes<br/>Use generative_design_graph.* and artifact_intelligence_graph.*<br/>for dense relationships"]:::note
 
     prompt_input --> planning --> intent --> hierarchy --> strategy
     strategy --> techniques --> plan --> constraints --> runtime_reasoner --> tradeoffs
     tradeoffs --> priorities --> quality --> narrative --> composition --> procedural
     procedural --> generative --> motif --> emotion --> cross --> scene
-    scene --> metadata_store
+    scene --> artifact_plan --> dependency --> compatibility --> capability --> artifact_strategy
+    artifact_strategy --> artifact_critic --> artifact_refiner --> artifact_synthesis --> merge_planner --> export_intelligence
+    export_intelligence --> contracts --> metadata_store
     metadata_store --> director
     metadata_store --> reasoning
     metadata_store --> prompt_rendering
@@ -68,3 +90,5 @@ flowchart TB
     style row_3 fill:none,stroke:none
     style row_4 fill:none,stroke:none
     style row_5 fill:none,stroke:none
+    style row_6 fill:none,stroke:none
+    style row_7 fill:none,stroke:none

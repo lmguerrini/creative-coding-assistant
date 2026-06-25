@@ -1,0 +1,52 @@
+flowchart LR
+    classDef upstream fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
+    classDef artifact fill:#EEF2FF,stroke:#4338CA,color:#312E81,stroke-width:1.5px;
+    classDef contract fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px;
+    classDef store fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px;
+    classDef consumer fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px;
+    classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
+
+    upstream["Upstream stored metadata<br/>V3.1 Creative Cognition<br/>V3.2 Generative Design"]:::upstream
+
+    subgraph artifact_stack["V3.3 Artifact Intelligence pipeline inside planning"]
+        direction TB
+        planner["1. Artifact Planner"]:::artifact
+        dependency["2. Artifact Dependency Graph"]:::artifact
+        runtime["3. Runtime Compatibility Engine"]:::artifact
+        capability["4. Artifact Capability Matrix"]:::artifact
+        strategy["5. Multi-Artifact Strategy"]:::artifact
+        critic["6. Artifact Critic"]:::artifact
+        refiner["7. Artifact Refiner"]:::artifact
+        synthesis["8. Artifact Intelligence Synthesis"]:::artifact
+        merge["9. Artifact Merge Planner"]:::artifact
+        export["10. Artifact Export Intelligence"]:::artifact
+    end
+
+    contracts["Artifact Engine Contracts<br/>shared static registry<br/>10 metadata contracts"]:::contract
+    store["Metadata Store<br/>AssistantWorkflowState<br/>PromptInputResponse<br/>workflow serialization"]:::store
+    director["Creative Assistant Director<br/>runtime node"]:::consumer
+    reasoning["Creative Reasoning Engine<br/>runtime node"]:::consumer
+    prompt["Prompt Rendering<br/>artifact profile sections"]:::consumer
+    stream["Next.js stream hydration<br/>workflow metadata readers"]:::consumer
+    note["Metadata-only architecture<br/>No export execution, runtime selection,<br/>provider routing, retries, or preview changes"]:::note
+
+    upstream --> planner --> dependency --> runtime --> capability --> strategy --> critic --> refiner --> synthesis --> merge --> export
+    contracts -. standardizes .-> planner
+    contracts -. standardizes .-> dependency
+    contracts -. standardizes .-> runtime
+    contracts -. standardizes .-> capability
+    contracts -. standardizes .-> strategy
+    contracts -. standardizes .-> critic
+    contracts -. standardizes .-> refiner
+    contracts -. standardizes .-> synthesis
+    contracts -. standardizes .-> merge
+    contracts -. standardizes .-> export
+
+    export --> store
+    contracts --> store
+    store --> director
+    store --> reasoning
+    store --> prompt
+    store --> stream
+    director --> reasoning
+    note -.-> artifact_stack

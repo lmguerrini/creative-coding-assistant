@@ -15,9 +15,10 @@ This file documents the real LangGraph runtime graph compiled by
 current backend execution order rather than expanding every internal helper into
 its own graph node.
 
-The V3.2 planning pass still runs inside the single `planning` runtime node.
+The V3.3 planning pass still runs inside the single `planning` runtime node.
 `_planning_node()` deterministically derives and stores the V3.1 Creative
-Cognition metadata plus the V3.2 Generative Design metadata:
+Cognition metadata, the V3.2 Generative Design metadata, and the V3.3 Artifact
+Intelligence metadata:
 
 - `creative_intent`
 - `creative_hierarchy`
@@ -37,6 +38,17 @@ Cognition metadata plus the V3.2 Generative Design metadata:
 - `emotional_consistency`
 - `cross_modality`
 - `audio_visual_scene`
+- `artifact_plan`
+- `artifact_dependency_graph`
+- `runtime_compatibility`
+- `artifact_capability_matrix`
+- `multi_artifact_strategy`
+- `artifact_critic`
+- `artifact_refiner`
+- `artifact_intelligence_synthesis`
+- `artifact_merge_planner`
+- `artifact_export_intelligence`
+- `artifact_engine_contracts`
 
 Those typed results are persisted on `AssistantWorkflowState` and mirrored into
 `PromptInputResponse`. The downstream `director` and `reasoning` runtime nodes
@@ -49,14 +61,20 @@ sections. The internal architecture is documented separately as:
 - [generative_design_graph.md](generative_design_graph.md) and
   [generative_design_graph.mmd](generative_design_graph.mmd) for the denser
   V3.2 dependency graph and dependency matrix
+- [artifact_intelligence_graph.md](artifact_intelligence_graph.md) and
+  [artifact_intelligence_graph.mmd](artifact_intelligence_graph.mmd) for the
+  V3.3 Artifact Intelligence dependency graph and engine contract registry
 
-Those internal helpers produce metadata and design guidance, not code generation execution, runtime mutation, or preview behavior changes.
+Those internal helpers produce metadata, design guidance, artifact
+intelligence, and contract summaries, not code generation execution, export
+execution, runtime mutation, provider routing, retries, or preview behavior
+changes.
 
 This separation is intentional:
 
 - LangGraph owns execution order, retries, lifecycle events, and failure routing
-- The internal Creative Intelligence and Generative Design layers own bounded,
-  inspectable metadata derivation
+- The internal Creative Intelligence, Generative Design, and Artifact
+  Intelligence layers own bounded, inspectable metadata derivation
 - The internal capability pipeline and dependency graph are V4 decomposition
   candidates, but they are not yet a true multi-agent or multi-node runtime graph
 
@@ -65,9 +83,10 @@ This separation is intentional:
 The graph is compiled once in `AssistantService.__init__()` and executed through `graph.stream(..., stream_mode="custom")`. Control flow is linear through prompt input, deterministic planning, Director guidance, Creative Reasoning synthesis, prompt rendering, generation, workflow-owned artifact extraction, preview preparation, and artifact critique before `review`, where the graph applies a bounded quality gate. Passing outputs continue to `finalization`; failing outputs enter one `refinement` attempt and loop back to `generation`. Explicit provider failures and caught node errors route into a terminal `failure` node.
 
 The `planning` node remains one LangGraph node even though it derives the full
-Creative Cognition and Generative Design stacks internally. `director` and
-`reasoning` remain separate runtime nodes because they synthesize and package
-that stored metadata after the planning pass completes.
+Creative Cognition, Generative Design, and Artifact Intelligence stacks
+internally. `director` and `reasoning` remain separate runtime nodes because
+they synthesize and package that stored metadata after the planning pass
+completes.
 
 In the diagrams below:
 
@@ -103,7 +122,7 @@ flowchart TB
     subgraph phase_3["Phase 3: Prompt preparation"]
         direction TB
         prompt_input["Prompt input<br/>build prompt inputs<br/>complete or skip"]
-        planning["Planning<br/>derive cognition + generative design metadata<br/>complete or skip"]
+        planning["Planning<br/>derive cognition + generative design + artifact intelligence metadata<br/>complete or skip"]
         director["Director<br/>derive bounded assistant-director guidance<br/>complete or skip"]
         reasoning["Reasoning<br/>synthesize stored cognition + design signals<br/>complete or skip"]
         prompt_rendering["Prompt rendering<br/>render provider prompt<br/>complete or skip"]
@@ -165,7 +184,10 @@ pipeline is documented in
 [creative_intelligence_graph.mmd](creative_intelligence_graph.mmd). The denser
 V3.2 dependency view and dependency matrix are documented in
 [generative_design_graph.md](generative_design_graph.md) and
-[generative_design_graph.mmd](generative_design_graph.mmd).
+[generative_design_graph.mmd](generative_design_graph.mmd). The V3.3 Artifact
+Intelligence dependency view and engine contract registry are documented in
+[artifact_intelligence_graph.md](artifact_intelligence_graph.md) and
+[artifact_intelligence_graph.mmd](artifact_intelligence_graph.mmd).
 
 ## Nodes And Transitions
 
@@ -212,10 +234,10 @@ Node responsibilities:
 - `retrieval`: calls the retrieval step generator and either stores `retrieval_context` or skips the step
 - `context_assembly`: combines memory and retrieval context when a context assembler is configured
 - `prompt_input`: builds prompt inputs when a prompt input builder is configured
-- `planning`: derives `CreativeExecutionPlan` plus the bounded V3.1 Creative Cognition metadata (`creative_intent`, `creative_hierarchy`, `creative_strategy`, `creative_techniques`, `creative_constraints`, `runtime_capabilities`, `creative_tradeoffs`, `creative_constraint_priorities`, `creative_quality_prediction`, `symbolic_narrative`, and `creative_composition`) and the bounded V3.2 Generative Design metadata (`procedural_structure`, `generative_structure`, `semantic_motif`, `emotional_consistency`, `cross_modality`, and `audio_visual_scene`), stores them in workflow state and prompt input metadata, and emits `planning/creative_plan_prepared`
-- `director`: derives bounded `CreativeAssistantDirectorBrief` metadata from route, retrieval, clarification, critique/review/refinement signals, and the stored Creative Cognition plus Generative Design metadata; stores it in workflow state and prompt input metadata; and emits `planning/creative_director_prepared`
-- `reasoning`: derives `CreativeReasoningResult` from the stored Creative Cognition plus Generative Design metadata and the Director brief, stores it in workflow state and prompt input metadata, and emits `planning/creative_reasoning_prepared`
-- `prompt_rendering`: renders the final provider prompt from prompt inputs plus the stored Creative Cognition, Generative Design, Director, and Reasoning metadata when prompt inputs exist
+- `planning`: derives `CreativeExecutionPlan` plus the bounded V3.1 Creative Cognition metadata (`creative_intent`, `creative_hierarchy`, `creative_strategy`, `creative_techniques`, `creative_constraints`, `runtime_capabilities`, `creative_tradeoffs`, `creative_constraint_priorities`, `creative_quality_prediction`, `symbolic_narrative`, and `creative_composition`), the bounded V3.2 Generative Design metadata (`procedural_structure`, `generative_structure`, `semantic_motif`, `emotional_consistency`, `cross_modality`, and `audio_visual_scene`), and the bounded V3.3 Artifact Intelligence metadata (`artifact_plan`, `artifact_dependency_graph`, `runtime_compatibility`, `artifact_capability_matrix`, `multi_artifact_strategy`, `artifact_critic`, `artifact_refiner`, `artifact_intelligence_synthesis`, `artifact_merge_planner`, `artifact_export_intelligence`, and `artifact_engine_contracts`), stores them in workflow state and prompt input metadata, and emits `planning/creative_plan_prepared`
+- `director`: derives bounded `CreativeAssistantDirectorBrief` metadata from route, retrieval, clarification, critique/review/refinement signals, and the stored Creative Cognition, Generative Design, and Artifact Intelligence metadata; stores it in workflow state and prompt input metadata; and emits `planning/creative_director_prepared`
+- `reasoning`: derives `CreativeReasoningResult` from the stored Creative Cognition, Generative Design, Artifact Intelligence metadata, and the Director brief, stores it in workflow state and prompt input metadata, and emits `planning/creative_reasoning_prepared`
+- `prompt_rendering`: renders the final provider prompt from prompt inputs plus the stored Creative Cognition, Generative Design, Artifact Intelligence profile sections, Director, and Reasoning metadata when prompt inputs exist; the Artifact Engine Contract registry remains workflow metadata and is not rendered into provider prompt text
 - `generation`: prepares provider input, forwards generation stream events, and stores the transient `generation_result`
 - `artifact_extraction`: detects generated code artifacts, normalizes workflow artifact metadata, stores `artifacts`, and emits `artifact_extracted`
 - `preview_preparation`: prepares preview-ready runtime metadata for previewable artifacts, stores `preview_results`, and emits `preview_artifact`
@@ -236,7 +258,7 @@ There are two layers of runtime state.
 - Starts as `status=running`, `current_step=None`
 - Moves one step at a time through `start_workflow_step()`
 - Resolves each step through `complete_workflow_step()` or `skip_workflow_step()`
-- Stores durable outputs such as `route_decision`, `memory_context`, `retrieval_context`, `assembled_context`, `prompt_input`, `creative_intent`, `creative_hierarchy`, `creative_strategy`, `creative_techniques`, `creative_plan`, `creative_constraints`, `creative_constraint_priorities`, `runtime_capabilities`, `creative_tradeoffs`, `creative_quality_prediction`, `symbolic_narrative`, `creative_composition`, `procedural_structure`, `generative_structure`, `semantic_motif`, `emotional_consistency`, `cross_modality`, `audio_visual_scene`, `creative_director`, `creative_reasoning`, `rendered_prompt`, extracted `artifacts`, prepared `preview_results`, `artifact_critique_summary`, and `final_answer`
+- Stores durable outputs such as `route_decision`, `memory_context`, `retrieval_context`, `assembled_context`, `prompt_input`, `creative_intent`, `creative_hierarchy`, `creative_strategy`, `creative_techniques`, `creative_plan`, `creative_constraints`, `creative_constraint_priorities`, `runtime_capabilities`, `creative_tradeoffs`, `creative_quality_prediction`, `symbolic_narrative`, `creative_composition`, `procedural_structure`, `generative_structure`, `semantic_motif`, `emotional_consistency`, `cross_modality`, `audio_visual_scene`, `artifact_plan`, `artifact_dependency_graph`, `runtime_compatibility`, `artifact_capability_matrix`, `multi_artifact_strategy`, `artifact_critic`, `artifact_refiner`, `artifact_intelligence_synthesis`, `artifact_merge_planner`, `artifact_export_intelligence`, `artifact_engine_contracts`, `creative_director`, `creative_reasoning`, `rendered_prompt`, extracted `artifacts`, prepared `preview_results`, `artifact_critique_summary`, and `final_answer`
 - Stores review metadata through `review_result` and `refinement_count`
 - Stores typed failure metadata through `failure_info`
 - Reaches terminal completion only through `finish_workflow()` while `FINALIZATION` is active
@@ -332,6 +354,8 @@ Current implemented flow:
 - Conditional review edge
 - Bounded one-attempt refinement loop
 - Workflow-owned artifact extraction, preview metadata preparation, and artifact critique metadata
+- V3.3 Artifact Intelligence metadata, export-planning intelligence, and
+  artifact engine contract registry serialization
 - Node lifecycle, review outcome, retry, refinement, and edge decision events
 - Explicit failure node and failure transitions
 - No tool nodes
@@ -413,12 +437,18 @@ Conservative insertion points:
 - Review loops: the current `review` gate is the natural anchor for richer future retry loops back to `prompt_input` or `generation`
 - Preview execution: renderer execution and capture can branch from `preview_preparation` and rejoin before artifact critique or `review` without changing the request/response contract
 - HITL checkpoints: the safest first checkpoint is between `review` and `finalization`, where a human can approve, edit, or reject a nearly complete result
-- Creative Intelligence and Generative Design decomposition: the internal views documented in `creative_intelligence_graph.*` and `generative_design_graph.*` are the current blueprint for any future V4 split into smaller nodes or agents
+- Creative Intelligence, Generative Design, and Artifact Intelligence
+  decomposition: the internal views documented in
+  `creative_intelligence_graph.*`, `generative_design_graph.*`, and
+  `artifact_intelligence_graph.*` are the current blueprint for any future V4
+  split into smaller nodes or agents
 
 ## Known Limits In The Current Runtime
 
 - Route selection does not currently alter graph control flow
-- Creative Cognition and Generative Design helpers do not yet own separate LangGraph nodes, retries, or failure transitions; they execute synchronously inside `planning`
+- Creative Cognition, Generative Design, and Artifact Intelligence helpers do
+  not yet own separate LangGraph nodes, retries, or failure transitions; they
+  execute synchronously inside `planning`
 - `artifact_critique` and `review` are deterministic and intentionally lightweight; they are not LLM evaluators
 - Preview preparation creates runtime metadata but does not execute renderers or capture frames
 - Unexpected failures are normalized into the workflow only when a node catches them and records `pending_failure`

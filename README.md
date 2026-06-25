@@ -1,15 +1,15 @@
 # Creative Coding Assistant
 
-Creative Coding Assistant is a V3.2 AI-native creative translation
+Creative Coding Assistant is a V3.3 AI-native creative translation
 workstation designed to transform symbolic, conceptual, geometric, stylistic,
 and multimodal intent into professional audio, visual, and audiovisual
 creative systems.
 
 It combines a LangGraph-orchestrated Python backend with a Next.js workstation
 for the full V2.5 Creative Core, the V3.1 Creative Cognition Core, the V3.2
-Generative Design Core, multi-artifact generation, multi-preview comparison,
-controlled runtime preview, critique and scoring, parameter control,
-observability, validation, and export preparation.
+Generative Design Core, the V3.3 Artifact Intelligence stack, multi-artifact
+generation, multi-preview comparison, controlled runtime preview, critique and
+scoring, parameter control, observability, validation, and export preparation.
 
 The current product scope is a creative coding platform rather than a generic
 chat assistant. Requests can be translated from intent, symbols, geometry,
@@ -27,10 +27,12 @@ same interface.
   focused inspector tabs for overview, preview, runtime, code, workflow,
   telemetry, artifacts, and retrieval
 - Complete V2.5 Creative Core plus the implemented V3.1 Creative Cognition
-  Core and V3.2 Generative Design Core for intent decomposition, hierarchy,
-  strategy, technique, constraints, runtime reasoning, trade-offs, quality
-  prediction, narrative, composition, procedural structure, generative
-  structure, motifs, emotional consistency, cross-modality, and scene design
+  Core, V3.2 Generative Design Core, and V3.3 Artifact Intelligence stack for
+  intent decomposition, hierarchy, strategy, technique, constraints, runtime
+  reasoning, trade-offs, quality prediction, narrative, composition,
+  procedural structure, generative structure, motifs, emotional consistency,
+  cross-modality, scene design, artifact planning, compatibility, critique,
+  refinement, merge planning, export intelligence, and engine contracts
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -42,24 +44,31 @@ same interface.
 
 ## Current Branch Status
 
-The current branch, `feature/generative-design-core`, closes the V3.2
-Generative Design Core on top of the tagged V3.1 foundation.
+The current branch, `feature/artifact-intelligence`, implements the V3.3
+Artifact Intelligence capability on top of the V3.2 Generative Design Core.
 
-V3.2 extends the bounded planning pass with inspectable generative-design
-metadata and design guidance that feed Director guidance, Creative Reasoning
-synthesis, and prompt rendering. These capabilities remain internal helpers
-inside the existing runtime graph rather than separate LangGraph runtime nodes.
+V3.3 extends the bounded planning pass with inspectable artifact intelligence,
+compatibility, critique/refinement, merge, export, and engine-contract metadata
+that feed Director guidance, Creative Reasoning synthesis, prompt rendering,
+workflow serialization, and Next.js stream hydration. These capabilities remain
+internal helpers inside the existing runtime graph rather than separate
+LangGraph runtime nodes.
 
-Implemented V3.2 capabilities:
+Implemented V3.3 Artifact Intelligence capabilities:
 
-- Procedural Structure Planner
-- Generative Structure Engine
-- Semantic Motif Engine
-- Emotional Consistency Engine
-- Cross-Modality Composer
-- Audio-Visual Scene System
+- Artifact Planner
+- Artifact Dependency Graph
+- Runtime Compatibility Engine
+- Artifact Capability Matrix
+- Multi-Artifact Strategy
+- Artifact Critic
+- Artifact Refiner
+- Artifact Intelligence Synthesis
+- Artifact Merge Planner
+- Artifact Export Intelligence
+- Artifact Engine Contracts
 
-The architecture now documents four complementary views:
+The architecture now documents five complementary views:
 
 - the real runtime graph in
   [`architecture/workflow_graph.md`](architecture/workflow_graph.md)
@@ -67,6 +76,8 @@ The architecture now documents four complementary views:
   [`architecture/creative_intelligence_graph.md`](architecture/creative_intelligence_graph.md)
 - the V3.2 Generative Design dependency graph in
   [`architecture/generative_design_graph.md`](architecture/generative_design_graph.md)
+- the V3.3 Artifact Intelligence dependency graph in
+  [`architecture/artifact_intelligence_graph.md`](architecture/artifact_intelligence_graph.md)
 - the cross-cutting engine matrix in
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
@@ -77,7 +88,8 @@ rather than claims that a V4 multi-agent runtime already exists.
 ## Creative Workflow
 
 The workstation still centers on the V2.5 creative loop, now enriched by the
-V3.1 Creative Cognition Core and V3.2 Generative Design Core before generation:
+V3.1 Creative Cognition Core, V3.2 Generative Design Core, and V3.3 Artifact
+Intelligence before generation:
 
 `Intent -> HITL Clarification -> Creative Translation -> Reference Fusion -> Creative Planning -> Generation -> Preview -> Critique -> Sacred Consistency -> Calibrated Quality -> Multi-Pass Refinement -> Export Preparation`
 
@@ -98,6 +110,12 @@ V3.1 Creative Cognition Core and V3.2 Generative Design Core before generation:
 - Generative Design Core: procedural structure, generative systems, semantic
   motifs, emotional continuity, cross-modality alignment, and scene scaffolds
   extend the stored creative brief as metadata and design guidance.
+- Artifact Intelligence: artifact planning, dependency mapping, runtime
+  compatibility, capability fit, multi-artifact strategy, artifact critique,
+  refinement guidance, synthesis, merge planning, export intelligence, and
+  engine contracts extend the stored brief as metadata. Artifact profiles can
+  inform Director, Reasoning, and prompt rendering; engine contracts remain
+  workflow/stream metadata and are not rendered into provider prompts.
 - Generation: the backend resolves effective domains, assembles the prompt,
   and streams one or more creative artifacts.
 - Preview: supported artifacts mount in controlled preview runtimes with
@@ -160,6 +178,39 @@ These V3.2 capabilities are internal metadata/design-guidance layers. They
 enrich the stored workflow state, Director, Reasoning, and rendered prompt, but
 they do not become separate LangGraph runtime nodes or runtime auto-selection
 logic.
+
+### V3.3 Artifact Intelligence
+
+- Artifact Planner for artifact intent, type, family, requirements, risks, and
+  prompt guidance before generation
+- Artifact Dependency Graph for metadata nodes, dependency edges, upstream
+  requirements, downstream consumers, and dependency risks
+- Runtime Compatibility Engine for advisory runtime compatibility,
+  portability, interoperability, limitations, and implementation risks
+- Artifact Capability Matrix for target strengths, weaknesses, export fit,
+  portability fit, interoperability fit, and capability risks
+- Multi-Artifact Strategy for primary/supporting artifacts, sequencing,
+  priorities, groups, and handoff points
+- Artifact Critic for pre-generation metadata strengths, weaknesses, runtime
+  concerns, risk assessment, and HITL questions
+- Artifact Refiner for metadata-level refinement focus, recommended
+  improvements, risk reductions, and trade-off notes
+- Artifact Intelligence Synthesis for implementation readiness, risk,
+  recommended artifact path, coordination notes, and prompt guidance
+- Artifact Merge Planner for merge strategy, artifact boundaries, join points,
+  integration order, rejected merge paths, and merge risks
+- Artifact Export Intelligence for advisory export targets, formats,
+  readiness, constraints, documentation requirements, downstream handoffs, and
+  rejected export paths
+- Artifact Engine Contracts for the shared metadata contract registry across
+  all ten Artifact Intelligence engines
+
+These V3.3 capabilities are internal metadata/artifact-guidance layers. They
+enrich workflow state, prompt input metadata, Director, Reasoning, rendered
+artifact profile sections, final payload serialization, and Next.js stream
+hydration. They do not export files, generate packages, execute artifacts,
+select final runtimes, route providers or models, trigger retries, alter
+previews, or implement future V4/V5/V6 systems.
 
 ### Creative Core
 
@@ -309,9 +360,11 @@ Key backend capabilities include:
 Architecture documentation for the current workflow graph is available in
 [`architecture/workflow_graph.md`](architecture/workflow_graph.md). The
 corresponding internal Creative Intelligence pipeline, V3.2 Generative Design
-dependency graph, and engine matrix are documented in
+dependency graph, V3.3 Artifact Intelligence dependency graph, and engine
+matrix are documented in
 [`architecture/creative_intelligence_graph.md`](architecture/creative_intelligence_graph.md),
 [`architecture/generative_design_graph.md`](architecture/generative_design_graph.md),
+[`architecture/artifact_intelligence_graph.md`](architecture/artifact_intelligence_graph.md),
 and [`architecture/engine_matrix.md`](architecture/engine_matrix.md).
 
 ### Preview, Runtime, And Safety Model
@@ -427,6 +480,10 @@ The workstation also exposes:
   [`architecture/generative_design_graph.md`](architecture/generative_design_graph.md)
 - Generative Design Mermaid source:
   [`architecture/generative_design_graph.mmd`](architecture/generative_design_graph.mmd)
+- Artifact Intelligence graph docs:
+  [`architecture/artifact_intelligence_graph.md`](architecture/artifact_intelligence_graph.md)
+- Artifact Intelligence Mermaid source:
+  [`architecture/artifact_intelligence_graph.mmd`](architecture/artifact_intelligence_graph.mmd)
 - Engine matrix:
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 - Next.js workstation shell:
@@ -491,20 +548,22 @@ undifferentiated milestone.
 
 - `v3.1.0`: Creative Cognition Core
 - `v3.2.0`: Generative Design Core
-- `v3.3.0`: subsequent macro-capability family after V3.2 closeout
+- `v3.3.0`: Artifact Intelligence
 
-### V3.2.0 Status
+### V3.3.0 Status
 
 - `v3.1.0` is tagged on `main` as the Creative Cognition milestone.
 - V2.5 remains the base workstation/runtime milestone.
-- The current branch implements the V3.2 Generative Design Core and its
-  architecture/documentation closeout.
+- The current branch implements the V3.3 Artifact Intelligence stack and its
+  architecture closeout.
 - The runtime graph remains the compact LangGraph workflow documented in
   `architecture/workflow_graph.md`.
-- The internal Creative Intelligence pipeline and V3.2 Generative Design
-  dependency graph document the bounded internal capabilities in
+- The internal Creative Intelligence pipeline, V3.2 Generative Design
+  dependency graph, and V3.3 Artifact Intelligence dependency graph document
+  the bounded internal capabilities in
   `architecture/creative_intelligence_graph.md` and
-  `architecture/generative_design_graph.md`.
+  `architecture/generative_design_graph.md` and
+  `architecture/artifact_intelligence_graph.md`.
 - The engine matrix in `architecture/engine_matrix.md` explains how versions
   remain chronological while the Core Engine, Knowledge Engine, Execution
   Engine, and Experience Layer cut across multiple increments.
@@ -533,14 +592,15 @@ lifecycle:
 
 ### Roadmap Through V6
 
-- V3: Creative Intelligence and Generative Design continuation
+- V3: Creative Intelligence, Generative Design, and Artifact Intelligence
+  continuation
 - V4: Agentic Studio
 - V5: Execution Optimization & Production Intelligence
 - V6: Learning & Evolution
 
 ### Continuing Direction
 
-- close `v3.2.0` cleanly before opening a larger new increment
+- close `v3.3.0` cleanly before opening a larger new increment
 - keep the runtime graph truthful instead of mapping every internal helper to a
   public runtime node
 - keep using bounded internal creative-intelligence and generative-design

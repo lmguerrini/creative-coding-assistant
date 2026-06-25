@@ -12,6 +12,9 @@ It is the dense companion to:
 - [creative_intelligence_graph.md](creative_intelligence_graph.md) and
   [creative_intelligence_graph.mmd](creative_intelligence_graph.mmd), which
   provide the readable capability pipeline
+- [artifact_intelligence_graph.md](artifact_intelligence_graph.md) and
+  [artifact_intelligence_graph.mmd](artifact_intelligence_graph.mmd), which
+  document the downstream V3.3 Artifact Intelligence pipeline
 
 ## Scope And Boundary
 
@@ -21,8 +24,9 @@ It is the dense companion to:
   nodes with their own retries or failure routing
 - V3.2 remains metadata and design guidance, not code generation execution,
   runtime mutation, provider routing, or preview behavior changes
-- The current structure is still a future V4 multi-agent blueprint rather than
-  an implemented multi-agent runtime
+- The current structure feeds the V3.3 Artifact Intelligence stack, but it is
+  still a future V4 multi-agent blueprint rather than an implemented
+  multi-agent runtime
 
 ```mermaid
 flowchart LR
@@ -125,7 +129,7 @@ The dependency matrix is the preferred way to show dense dependencies.
 | `Semantic Motif Engine` | `request`, `route_decision`, `creative_translation`<br/>`creative_intent`, `creative_hierarchy`, `creative_plan`<br/>`creative_constraints`, `creative_constraint_priorities`<br/>`creative_strategy`, `creative_techniques`, `creative_tradeoffs`, `creative_quality_prediction`<br/>`symbolic_narrative`, `creative_composition`, `procedural_structure`, `generative_structure` | `semantic_motif` | `Emotional Consistency Engine`, `Cross-Modality Composer`, `Audio-Visual Scene System`, metadata store |
 | `Emotional Consistency Engine` | `request`, `route_decision`, `creative_translation`<br/>`creative_intent`, `creative_hierarchy`, `creative_plan`<br/>`creative_constraints`, `creative_constraint_priorities`<br/>`creative_strategy`, `creative_techniques`<br/>`runtime_capabilities`, `creative_tradeoffs`, `creative_quality_prediction`<br/>`symbolic_narrative`, `creative_composition`, `procedural_structure`, `generative_structure`, `semantic_motif` | `emotional_consistency` | `Cross-Modality Composer`, `Audio-Visual Scene System`, metadata store |
 | `Cross-Modality Composer` | `request`, `route_decision`, `creative_translation`<br/>`creative_intent`, `creative_hierarchy`, `creative_plan`<br/>`creative_constraints`, `creative_constraint_priorities`<br/>`creative_strategy`, `creative_techniques`<br/>`runtime_capabilities`, `creative_tradeoffs`, `creative_quality_prediction`<br/>`symbolic_narrative`, `creative_composition`, `procedural_structure`, `generative_structure`, `semantic_motif`, `emotional_consistency` | `cross_modality` | `Audio-Visual Scene System`, metadata store |
-| `Audio-Visual Scene System` | `request`, `route_decision`, `creative_translation`<br/>`creative_intent`, `creative_hierarchy`, `creative_plan`<br/>`creative_constraints`, `creative_constraint_priorities`<br/>`creative_strategy`, `creative_techniques`<br/>`runtime_capabilities`, `creative_tradeoffs`, `creative_quality_prediction`<br/>`symbolic_narrative`, `creative_composition`, `procedural_structure`, `generative_structure`, `semantic_motif`, `emotional_consistency`, `cross_modality` | `audio_visual_scene` | metadata store, `Creative Assistant Director runtime node`, `Creative Reasoning Engine runtime node`, `prompt rendering runtime node` |
+| `Audio-Visual Scene System` | `request`, `route_decision`, `creative_translation`<br/>`creative_intent`, `creative_hierarchy`, `creative_plan`<br/>`creative_constraints`, `creative_constraint_priorities`<br/>`creative_strategy`, `creative_techniques`<br/>`runtime_capabilities`, `creative_tradeoffs`, `creative_quality_prediction`<br/>`symbolic_narrative`, `creative_composition`, `procedural_structure`, `generative_structure`, `semantic_motif`, `emotional_consistency`, `cross_modality` | `audio_visual_scene` | V3.3 Artifact Intelligence stack, metadata store, `Creative Assistant Director runtime node`, `Creative Reasoning Engine runtime node`, `prompt rendering runtime node` |
 
 ## Downstream Consumption
 
@@ -137,3 +141,7 @@ The dependency matrix is the preferred way to show dense dependencies.
   the Director brief is available
 - `prompt rendering runtime node` serializes the stored V3.2 metadata into
   dedicated prompt sections alongside the V3.1 cognition metadata
+- The V3.3 Artifact Intelligence stack reads the stored V3.1 and V3.2
+  metadata inside the same `planning` runtime node, then contributes artifact
+  planning, compatibility, critique/refinement, merge, export, and engine
+  contract metadata to workflow serialization and stream hydration
