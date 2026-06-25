@@ -7,6 +7,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration._metadata_utils import _dedupe
 from creative_coding_assistant.orchestration.artifact_capability_matrix import (
     ArtifactCapabilityMatrix,
 )
@@ -387,7 +388,7 @@ def _export_targets(
         "medium",
     }:
         targets.append("interoperability_handoff")
-    return _dedupe(targets)[:8]
+    return _dedupe(targets, clip_limit=None)[:8]
 
 
 def _preferred_export_target(
@@ -450,7 +451,7 @@ def _export_format_recommendations(
         recommendations.append(
             "Use inline response metadata until export shape exists."
         )
-    return _dedupe(recommendations)[:10]
+    return _dedupe(recommendations, clip_limit=None)[:10]
 
 
 def _export_requirements(
@@ -472,7 +473,7 @@ def _export_requirements(
         requirements.extend(artifact_merge_planner.integration_order[:2])
     if not requirements:
         requirements.append("Export requirements are unresolved without metadata.")
-    return _dedupe(requirements)[:10]
+    return _dedupe(requirements, clip_limit=None)[:10]
 
 
 def _export_constraints(
@@ -495,7 +496,7 @@ def _export_constraints(
             + ", ".join(missing[:4])
             + "."
         )
-    return _dedupe(constraints)[:10]
+    return _dedupe(constraints, clip_limit=None)[:10]
 
 
 def _export_risks(
@@ -543,7 +544,7 @@ def _export_risks(
             + ", ".join(missing[:4])
             + "."
         )
-    return _dedupe(risks)[:10]
+    return _dedupe(risks, clip_limit=None)[:10]
 
 
 def _export_readiness(
@@ -604,7 +605,7 @@ def _runtime_export_notes(
             + ", ".join(artifact_capability_matrix.strongest_targets or ("none",))
             + "."
         )
-    return _dedupe(notes)[:10]
+    return _dedupe(notes, clip_limit=None)[:10]
 
 
 def _artifact_package_notes(
@@ -633,7 +634,7 @@ def _artifact_package_notes(
         notes.extend(artifact_merge_planner.artifact_join_points[:2])
     if not notes:
         notes.append("Package shape is unresolved until artifact metadata exists.")
-    return _dedupe(notes)[:10]
+    return _dedupe(notes, clip_limit=None)[:10]
 
 
 def _portability_notes(
@@ -654,7 +655,7 @@ def _portability_notes(
         notes.append(
             "Portability is unresolved without runtime and capability metadata."
         )
-    return _dedupe(notes)[:8]
+    return _dedupe(notes, clip_limit=None)[:8]
 
 
 def _interoperability_notes(
@@ -678,7 +679,7 @@ def _interoperability_notes(
         notes.extend(artifact_dependency_graph.downstream_consumers[:3])
     if not notes:
         notes.append("Interoperability is unresolved without dependency metadata.")
-    return _dedupe(notes)[:8]
+    return _dedupe(notes, clip_limit=None)[:8]
 
 
 def _documentation_requirements(
@@ -706,7 +707,7 @@ def _documentation_requirements(
             f"Document artifact boundary: {item}"
             for item in artifact_merge_planner.artifact_boundaries[:2]
         )
-    return _dedupe(requirements)[:8]
+    return _dedupe(requirements, clip_limit=None)[:8]
 
 
 def _downstream_tool_handoffs(
@@ -729,7 +730,7 @@ def _downstream_tool_handoffs(
         "Future export workflows must consume this metadata explicitly; this "
         "workflow does not trigger export."
     )
-    return _dedupe(handoffs)[:8]
+    return _dedupe(handoffs, clip_limit=None)[:8]
 
 
 def _rejected_export_paths(
@@ -754,7 +755,7 @@ def _rejected_export_paths(
         rejected.append(
             "Reject hidden export assumptions because risks must be visible."
         )
-    return _dedupe(rejected)[:8]
+    return _dedupe(rejected, clip_limit=None)[:8]
 
 
 def _hitl_questions(
@@ -789,7 +790,7 @@ def _hitl_questions(
         questions.append("Should missing export metadata block export guidance?")
     if readiness in {"blocked_by_missing_metadata", "defer_export"}:
         questions.append("Should export remain deferred until risks are resolved?")
-    return _dedupe(questions)[:8]
+    return _dedupe(questions, clip_limit=None)[:8]
 
 
 def _prompt_guidance(
@@ -933,13 +934,4 @@ def _evidence(
         evidence.append(
             f"Artifact merge strategy: {artifact_merge_planner.merge_strategy}."
         )
-    return _dedupe(evidence)[:12]
-
-
-def _dedupe(values: list[str]) -> tuple[str, ...]:
-    deduped: list[str] = []
-    for value in values:
-        normalized = " ".join(value.split())
-        if normalized and normalized not in deduped:
-            deduped.append(normalized)
-    return tuple(deduped)
+    return _dedupe(evidence, clip_limit=None)[:12]

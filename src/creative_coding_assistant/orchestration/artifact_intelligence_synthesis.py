@@ -7,6 +7,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration._metadata_utils import _dedupe
 from creative_coding_assistant.orchestration.artifact_capability_matrix import (
     ArtifactCapabilityMatrix,
 )
@@ -342,7 +343,7 @@ def _major_strengths(
         "Synthesis remains metadata-only and does not execute, route, preview, "
         "merge, export, retry, or select runtimes."
     )
-    return _dedupe(strengths)[:10]
+    return _dedupe(strengths, clip_limit=None)[:10]
 
 
 def _major_weaknesses(
@@ -373,7 +374,7 @@ def _major_weaknesses(
             for item in artifact_refiner.priority_improvements[:2]
         )
     weaknesses.extend(f"Missing synthesis input: {item}." for item in missing[:3])
-    return _dedupe(weaknesses)[:10]
+    return _dedupe(weaknesses, clip_limit=None)[:10]
 
 
 def _major_risks(
@@ -414,7 +415,7 @@ def _major_risks(
             + ", ".join(missing[:4])
             + "."
         )
-    return _dedupe(risks)[:10]
+    return _dedupe(risks, clip_limit=None)[:10]
 
 
 def _dependency_overview(
@@ -689,7 +690,7 @@ def _hitl_questions(
         questions.append("Should synthesis risks be resolved before generation?")
     if missing:
         questions.append("Should missing artifact intelligence inputs block synthesis?")
-    return _dedupe(questions)[:8]
+    return _dedupe(questions, clip_limit=None)[:8]
 
 
 def _prompt_guidance(
@@ -829,13 +830,4 @@ def _evidence(
             f"{artifact_refiner.refinement_confidence:.2f} confidence; "
             f"{len(artifact_refiner.priority_improvements)} priority."
         )
-    return _dedupe(evidence)[:12]
-
-
-def _dedupe(values: list[str]) -> tuple[str, ...]:
-    deduped: list[str] = []
-    for value in values:
-        normalized = " ".join(value.split())
-        if normalized and normalized not in deduped:
-            deduped.append(normalized)
-    return tuple(deduped)
+    return _dedupe(evidence, clip_limit=None)[:12]

@@ -7,6 +7,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration._metadata_utils import _dedupe
 from creative_coding_assistant.orchestration.artifact_capability_matrix import (
     ArtifactCapabilityMatrix,
 )
@@ -344,7 +345,7 @@ def _artifact_boundaries(
         )
     else:
         boundaries.append("Fallback boundary: no artifact metadata is available.")
-    return _dedupe(boundaries)[:10]
+    return _dedupe(boundaries, clip_limit=None)[:10]
 
 
 def _artifact_join_points(
@@ -371,7 +372,7 @@ def _artifact_join_points(
         joins.append(artifact_intelligence_synthesis.recommended_artifact_path)
     if not joins:
         joins.append("No merge join point is recommended for a single artifact path.")
-    return _dedupe(joins)[:10]
+    return _dedupe(joins, clip_limit=None)[:10]
 
 
 def _artifact_separation_points(
@@ -407,7 +408,7 @@ def _artifact_separation_points(
         points.append(
             "Keep artifact metadata separate from generated artifact content."
         )
-    return _dedupe(points)[:10]
+    return _dedupe(points, clip_limit=None)[:10]
 
 
 def _integration_order(
@@ -442,7 +443,7 @@ def _dependency_merge_risks(
         risks.extend(artifact_dependency_graph.missing_dependency_risks[:2])
     if artifact_critic is not None:
         risks.extend(artifact_critic.dependency_concerns[:2])
-    return _dedupe(risks)[:10]
+    return _dedupe(risks, clip_limit=None)[:10]
 
 
 def _runtime_merge_risks(
@@ -464,7 +465,7 @@ def _runtime_merge_risks(
         risks.extend(runtime_compatibility.runtime_limitations[:2])
     if artifact_critic is not None:
         risks.extend(artifact_critic.runtime_concerns[:2])
-    return _dedupe(risks)[:10]
+    return _dedupe(risks, clip_limit=None)[:10]
 
 
 def _capability_merge_risks(
@@ -481,7 +482,7 @@ def _capability_merge_risks(
         risks.extend(artifact_capability_matrix.target_weaknesses[:2])
     if artifact_critic is not None:
         risks.extend(artifact_critic.capability_gaps[:2])
-    return _dedupe(risks)[:10]
+    return _dedupe(risks, clip_limit=None)[:10]
 
 
 def _composition_risks(
@@ -524,7 +525,7 @@ def _composition_risks(
             + ", ".join(missing[:4])
             + "."
         )
-    return _dedupe(risks)[:10]
+    return _dedupe(risks, clip_limit=None)[:10]
 
 
 def _merge_strategy(
@@ -633,7 +634,7 @@ def _alternative_merge_paths(
         alternatives.extend(multi_artifact_strategy.artifact_combination_strategy[:2])
     if separation_points:
         alternatives.append("Alternative: defer joins at identified separation points.")
-    return _dedupe(alternatives)[:8]
+    return _dedupe(alternatives, clip_limit=None)[:8]
 
 
 def _rejected_merge_paths(
@@ -652,7 +653,7 @@ def _rejected_merge_paths(
         rejected.append("Reject merging unsupported runtime paths into the artifact.")
     if composition_risks:
         rejected.append("Reject hidden composition because risks must remain visible.")
-    return _dedupe(rejected)[:8]
+    return _dedupe(rejected, clip_limit=None)[:8]
 
 
 def _hitl_questions(
@@ -687,7 +688,7 @@ def _hitl_questions(
         )
     if missing:
         questions.append("Should missing merge metadata block composition guidance?")
-    return _dedupe(questions)[:8]
+    return _dedupe(questions, clip_limit=None)[:8]
 
 
 def _prompt_guidance(
@@ -830,13 +831,4 @@ def _evidence(
             "readiness; "
             f"{artifact_intelligence_synthesis.implementation_risk} risk."
         )
-    return _dedupe(evidence)[:12]
-
-
-def _dedupe(values: list[str]) -> tuple[str, ...]:
-    deduped: list[str] = []
-    for value in values:
-        normalized = " ".join(value.split())
-        if normalized and normalized not in deduped:
-            deduped.append(normalized)
-    return tuple(deduped)
+    return _dedupe(evidence, clip_limit=None)[:12]

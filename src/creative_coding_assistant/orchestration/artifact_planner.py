@@ -12,6 +12,7 @@ from creative_coding_assistant.contracts import (
     AssistantRequest,
     CreativeCodingDomain,
 )
+from creative_coding_assistant.orchestration._metadata_utils import _clip, _dedupe
 from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
 )
@@ -865,19 +866,3 @@ def _effective_domains(
 
 def _tokens(text: str) -> frozenset[str]:
     return frozenset(_TOKEN_PATTERN.findall(text.lower()))
-
-
-def _clip(value: str, limit: int) -> str:
-    normalized = " ".join(value.strip().split())
-    if len(normalized) <= limit:
-        return normalized
-    return normalized[: limit - 1].rstrip() + "."
-
-
-def _dedupe(values: list[str] | tuple[str, ...]) -> tuple[str, ...]:
-    deduped: list[str] = []
-    for value in values:
-        cleaned = _clip(value, 360)
-        if cleaned and cleaned not in deduped:
-            deduped.append(cleaned)
-    return tuple(deduped)

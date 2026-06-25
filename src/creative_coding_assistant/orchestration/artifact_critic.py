@@ -7,6 +7,10 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration._metadata_utils import (
+    _contains_any,
+    _dedupe,
+)
 from creative_coding_assistant.orchestration.artifact_capability_matrix import (
     ArtifactCapabilityMatrix,
 )
@@ -724,24 +728,3 @@ def _evidence(
             f"{len(multi_artifact_strategy.supporting_artifacts)} supporting."
         )
     return _dedupe(evidence)[:12]
-
-
-def _contains_any(value: str, needles: tuple[str, ...]) -> bool:
-    lowered = value.lower()
-    return any(needle in lowered for needle in needles)
-
-
-def _dedupe(values: list[str] | tuple[str, ...]) -> tuple[str, ...]:
-    deduped: list[str] = []
-    for value in values:
-        cleaned = _clip(value)
-        if cleaned and cleaned not in deduped:
-            deduped.append(cleaned)
-    return tuple(deduped)
-
-
-def _clip(value: str, limit: int = 360) -> str:
-    normalized = " ".join(value.strip().split())
-    if len(normalized) <= limit:
-        return normalized
-    return normalized[: limit - 1].rstrip() + "."

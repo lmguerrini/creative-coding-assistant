@@ -8,6 +8,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration._metadata_utils import _dedupe
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
@@ -1172,19 +1173,3 @@ def _dedupe_targets(
         if value not in deduped:
             deduped.append(value)
     return tuple(deduped[:9])
-
-
-def _clip(value: str, limit: int = 360) -> str:
-    normalized = " ".join(value.strip().split())
-    if len(normalized) <= limit:
-        return normalized
-    return normalized[: limit - 1].rstrip() + "."
-
-
-def _dedupe(values: list[str] | tuple[str, ...]) -> tuple[str, ...]:
-    deduped: list[str] = []
-    for value in values:
-        cleaned = _clip(value)
-        if cleaned and cleaned not in deduped:
-            deduped.append(cleaned)
-    return tuple(deduped)

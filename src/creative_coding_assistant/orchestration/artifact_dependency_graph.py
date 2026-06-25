@@ -7,6 +7,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
+from creative_coding_assistant.orchestration._metadata_utils import _clip, _dedupe
 from creative_coding_assistant.orchestration.artifact_planner import ArtifactPlan
 from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
@@ -804,7 +805,10 @@ def _primary_artifact_summary(
             f"{artifact_plan.primary_artifact_intent}"
         )
     route = route_decision.route.value if route_decision is not None else "inferred"
-    return f"Request-level artifact inferred for route {route}: {_clip(request.query)}"
+    return (
+        f"Request-level artifact inferred for route {route}: "
+        f"{_clip(request.query, 300)}"
+    )
 
 
 def _primary_artifact_evidence(
@@ -817,19 +821,3 @@ def _primary_artifact_evidence(
     if artifact_plan is not None:
         evidence.extend(artifact_plan.evidence[:4])
     return tuple(evidence)
-
-
-def _clip(value: str, limit: int = 300) -> str:
-    normalized = " ".join(value.strip().split())
-    if len(normalized) <= limit:
-        return normalized
-    return normalized[: limit - 1].rstrip() + "."
-
-
-def _dedupe(values: list[str] | tuple[str, ...]) -> tuple[str, ...]:
-    deduped: list[str] = []
-    for value in values:
-        cleaned = _clip(value, 360)
-        if cleaned and cleaned not in deduped:
-            deduped.append(cleaned)
-    return tuple(deduped)
