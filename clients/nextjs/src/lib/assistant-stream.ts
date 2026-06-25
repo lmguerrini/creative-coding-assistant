@@ -97,6 +97,10 @@ import {
   type CreativeReasoningStepSummary,
   type CreativeReasoningSummary,
   type CreativeRejectedAlternativeSummary,
+  type SelfEvaluationAmbiguity,
+  type SelfEvaluationCompleteness,
+  type SelfEvaluationRisk,
+  type SelfEvaluationSummary,
   type CreativeStrategyAlternativeSummary,
   type CreativeStrategyId,
   type CreativeStrategySummary,
@@ -271,6 +275,8 @@ export type AssistantStreamWorkflowMetadata = {
   artifact_engine_contracts_available?: boolean;
   creative_critic?: CreativeCriticSummary | null;
   creative_critic_available?: boolean;
+  self_evaluation?: SelfEvaluationSummary | null;
+  self_evaluation_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -798,6 +804,11 @@ export function readWorkflowMetadata(
   );
   const creativeCriticAvailable =
     rawWorkflow.creative_critic_available === true || creativeCritic !== null;
+  const selfEvaluation = readSelfEvaluationSummary(
+    rawWorkflow.self_evaluation ?? rawWorkflow.selfEvaluation
+  );
+  const selfEvaluationAvailable =
+    rawWorkflow.self_evaluation_available === true || selfEvaluation !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -1017,6 +1028,12 @@ export function readWorkflowMetadata(
       ? {
           creative_critic: creativeCritic,
           creative_critic_available: true
+        }
+      : {}),
+    ...(selfEvaluationAvailable
+      ? {
+          self_evaluation: selfEvaluation,
+          self_evaluation_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -2695,6 +2712,165 @@ export function readCreativeCriticSummary(
       "unsupported_assumptions",
       "unsupportedAssumptions"
     ),
+    improvementOpportunities: readStringListField(
+      value,
+      "improvement_opportunities",
+      "improvementOpportunities"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
+const selfEvaluationCompletenessValues = [
+  "complete",
+  "mostly_complete",
+  "partial",
+  "blocked"
+] as const satisfies readonly SelfEvaluationCompleteness[];
+
+const selfEvaluationRiskValues = [
+  "low",
+  "medium",
+  "high"
+] as const satisfies readonly SelfEvaluationRisk[];
+
+const selfEvaluationAmbiguityValues = [
+  "low",
+  "medium",
+  "high"
+] as const satisfies readonly SelfEvaluationAmbiguity[];
+
+export function readSelfEvaluationSummary(
+  value: unknown
+): SelfEvaluationSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const selfEvaluationConfidence =
+    readFiniteNumberField(value, "self_evaluation_confidence") ??
+    readFiniteNumberField(value, "selfEvaluationConfidence");
+  const evaluationSummary =
+    readStringField(value, "evaluation_summary") ??
+    readStringField(value, "evaluationSummary");
+  const requestAlignment =
+    readFiniteNumberField(value, "request_alignment") ??
+    readFiniteNumberField(value, "requestAlignment");
+  const intentAlignment =
+    readFiniteNumberField(value, "intent_alignment") ??
+    readFiniteNumberField(value, "intentAlignment");
+  const constraintAlignment =
+    readFiniteNumberField(value, "constraint_alignment") ??
+    readFiniteNumberField(value, "constraintAlignment");
+  const artifactAlignment =
+    readFiniteNumberField(value, "artifact_alignment") ??
+    readFiniteNumberField(value, "artifactAlignment");
+  const runtimeAlignment =
+    readFiniteNumberField(value, "runtime_alignment") ??
+    readFiniteNumberField(value, "runtimeAlignment");
+  const creativeCoherence =
+    readFiniteNumberField(value, "creative_coherence") ??
+    readFiniteNumberField(value, "creativeCoherence");
+  const technicalCoherence =
+    readFiniteNumberField(value, "technical_coherence") ??
+    readFiniteNumberField(value, "technicalCoherence");
+  const completenessAssessment =
+    readStringUnion(
+      value,
+      "completeness_assessment",
+      "completenessAssessment",
+      selfEvaluationCompletenessValues
+    );
+  const ambiguityAssessment =
+    readStringUnion(
+      value,
+      "ambiguity_assessment",
+      "ambiguityAssessment",
+      selfEvaluationAmbiguityValues
+    );
+  const hallucinationRisk =
+    readStringUnion(
+      value,
+      "hallucination_risk",
+      "hallucinationRisk",
+      selfEvaluationRiskValues
+    );
+  const overreachRisk =
+    readStringUnion(
+      value,
+      "overreach_risk",
+      "overreachRisk",
+      selfEvaluationRiskValues
+    );
+  const underdeliveryRisk =
+    readStringUnion(
+      value,
+      "underdelivery_risk",
+      "underdeliveryRisk",
+      selfEvaluationRiskValues
+    );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "self_evaluation_engine" ||
+    selfEvaluationConfidence === null ||
+    !evaluationSummary ||
+    requestAlignment === null ||
+    intentAlignment === null ||
+    constraintAlignment === null ||
+    artifactAlignment === null ||
+    runtimeAlignment === null ||
+    creativeCoherence === null ||
+    technicalCoherence === null ||
+    !completenessAssessment ||
+    !ambiguityAssessment ||
+    !hallucinationRisk ||
+    !overreachRisk ||
+    !underdeliveryRisk ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    selfEvaluationConfidence,
+    evaluationSummary,
+    requestAlignment,
+    intentAlignment,
+    constraintAlignment,
+    artifactAlignment,
+    runtimeAlignment,
+    creativeCoherence,
+    technicalCoherence,
+    completenessAssessment,
+    ambiguityAssessment,
+    hallucinationRisk,
+    overreachRisk,
+    underdeliveryRisk,
+    missingInformation: readStringListField(
+      value,
+      "missing_information",
+      "missingInformation"
+    ),
+    unsupportedAssumptions: readStringListField(
+      value,
+      "unsupported_assumptions",
+      "unsupportedAssumptions"
+    ),
+    qualityGaps: readStringListField(value, "quality_gaps", "qualityGaps"),
     improvementOpportunities: readStringListField(
       value,
       "improvement_opportunities",
@@ -7587,6 +7763,7 @@ const creativeReasoningEvidenceSources = [
   "artifact_merge_planner",
   "artifact_export_intelligence",
   "creative_critic",
+  "self_evaluation",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

@@ -1472,6 +1472,48 @@ function creativeCriticFixture() {
   };
 }
 
+function selfEvaluationFixture() {
+  return {
+    role: "self_evaluation_engine",
+    self_evaluation_confidence: 0.82,
+    evaluation_summary:
+      "Self evaluation is mostly complete with visible request alignment and runtime caveats.",
+    request_alignment: 0.84,
+    intent_alignment: 0.8,
+    constraint_alignment: 0.72,
+    artifact_alignment: 0.68,
+    runtime_alignment: 0.66,
+    creative_coherence: 0.78,
+    technical_coherence: 0.7,
+    completeness_assessment: "mostly_complete",
+    ambiguity_assessment: "medium",
+    hallucination_risk: "low",
+    overreach_risk: "low",
+    underdelivery_risk: "medium",
+    missing_information: [
+      "Generated response text is not available for response alignment."
+    ],
+    unsupported_assumptions: [
+      "Self Evaluation findings are advisory metadata only."
+    ],
+    quality_gaps: [
+      "Runtime alignment needs stronger caveats."
+    ],
+    improvement_opportunities: [
+      "Improve runtime evidence before expanding scope."
+    ],
+    hitl_questions: [
+      "Should the deliverable be clarified to avoid underdelivery?"
+    ],
+    prompt_guidance: [
+      "Use Self Evaluation output as metadata-only assessment, not as output modification."
+    ],
+    authority_boundary:
+      "The Self Evaluation Engine assesses request alignment as metadata only; it does not modify outputs.",
+    evidence: ["Authority boundary verified: metadata-only self evaluation."]
+  };
+}
+
 function artifactRefinerFixture() {
   return {
     role: "artifact_refiner",
@@ -5068,6 +5110,49 @@ describe("assistant stream client", () => {
         ]
       },
       creative_critic_available: true
+    });
+  });
+
+  it("hydrates self evaluation workflow metadata", () => {
+    const selfEvaluation = selfEvaluationFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 23,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          self_evaluation: selfEvaluation,
+          self_evaluation_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      self_evaluation: {
+        role: "self_evaluation_engine",
+        selfEvaluationConfidence: 0.82,
+        completenessAssessment: "mostly_complete",
+        ambiguityAssessment: "medium",
+        hallucinationRisk: "low",
+        requestAlignment: 0.84,
+        qualityGaps: ["Runtime alignment needs stronger caveats."]
+      },
+      self_evaluation_available: true
     });
   });
 

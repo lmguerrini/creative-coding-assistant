@@ -578,6 +578,42 @@ export type CreativeCriticSummary = {
   evidence: string[];
 };
 
+export type SelfEvaluationCompleteness =
+  | "complete"
+  | "mostly_complete"
+  | "partial"
+  | "blocked";
+
+export type SelfEvaluationRisk = "low" | "medium" | "high";
+
+export type SelfEvaluationAmbiguity = "low" | "medium" | "high";
+
+export type SelfEvaluationSummary = {
+  role: "self_evaluation_engine";
+  selfEvaluationConfidence: number;
+  evaluationSummary: string;
+  requestAlignment: number;
+  intentAlignment: number;
+  constraintAlignment: number;
+  artifactAlignment: number;
+  runtimeAlignment: number;
+  creativeCoherence: number;
+  technicalCoherence: number;
+  completenessAssessment: SelfEvaluationCompleteness;
+  ambiguityAssessment: SelfEvaluationAmbiguity;
+  hallucinationRisk: SelfEvaluationRisk;
+  overreachRisk: SelfEvaluationRisk;
+  underdeliveryRisk: SelfEvaluationRisk;
+  missingInformation: string[];
+  unsupportedAssumptions: string[];
+  qualityGaps: string[];
+  improvementOpportunities: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type ArtifactRefinerSummary = {
   role: "artifact_refiner";
   refinementConfidence: number;
@@ -1866,6 +1902,7 @@ export type CreativeReasoningEvidenceSource =
   | "artifact_merge_planner"
   | "artifact_export_intelligence"
   | "creative_critic"
+  | "self_evaluation"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {
