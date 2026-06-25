@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
+import type { PreviewRuntimeStatus } from "./preview-runtime-adapters";
 import {
   buildPreviewSandboxDocument,
+  getPreviewRuntimeSourceMismatch,
   mountPreviewSandboxRuntime,
   preparePreviewExecutableSource,
   readPreviewSandboxRuntimeMessage
@@ -30,6 +32,39 @@ describe("preview sandbox runtime", () => {
     expect(prepared).toContain("function drawParticle(x, y)");
     expect(prepared).toContain("function draw()");
     expect(prepared).toContain("const palette = { accent: '#4cd7c8' };");
+  });
+
+  it("detects HTML documents as incompatible with the p5 JavaScript runtime", () => {
+    const htmlSource = [
+      "<!doctype html>",
+      "<html>",
+      "<body><script>function draw() { circle(20, 20, 10); }</script></body>",
+      "</html>"
+    ].join("\n");
+
+    expect(
+      getPreviewRuntimeSourceMismatch({
+        kind: "p5",
+        source: {
+          fingerprint: "html123",
+          lineCount: 4,
+          source: htmlSource,
+          title: "generated-sketch-1.p5.ts"
+        }
+      })
+    ).toContain("HTML documents cannot run");
+
+    expect(
+      getPreviewRuntimeSourceMismatch({
+        kind: "p5",
+        source: {
+          fingerprint: "p5js123",
+          lineCount: 3,
+          source: "function setup() { createCanvas(200, 200); }\nfunction draw() { circle(20, 20, 10); }",
+          title: "generated-sketch-1.p5.ts"
+        }
+      })
+    ).toBeNull();
   });
 
   it("prepares Hydra source as a bounded execution plan", () => {
@@ -222,6 +257,46 @@ describe("preview sandbox runtime", () => {
     runtime.dispose();
     expect(iframe.dataset.runtimeId).toBeUndefined();
     expect(iframe.getAttribute("src")).toBe("about:blank");
+    iframe.remove();
+  });
+
+  it("rejects HTML p5 payloads before mounting the sandbox host", () => {
+    const iframe = document.createElement("iframe");
+    const statuses: PreviewRuntimeStatus[] = [];
+    document.body.appendChild(iframe);
+
+    const runtime = mountPreviewSandboxRuntime({
+      iframe,
+      kind: "p5",
+      onStatus: (status) => statuses.push(status),
+      runtimeId: "runtime-html",
+      source: {
+        fingerprint: "html123",
+        lineCount: 4,
+        source: [
+          "<!doctype html>",
+          "<html>",
+          "<body><script>function draw() { circle(20, 20, 10); }</script></body>",
+          "</html>"
+        ].join("\n"),
+        title: "generated-sketch-1.p5.ts"
+      }
+    });
+
+    expect(iframe.getAttribute("src")).toBeNull();
+    expect(iframe.dataset.runtimeId).toBeUndefined();
+    expect(statuses).toHaveLength(1);
+    expect(statuses[0]).toMatchObject({
+      diagnostics: [expect.stringContaining("HTML documents cannot run")],
+      error: {
+        type: "preview_runtime_source_mismatch"
+      },
+      label: "p5 runtime rejected source",
+      state: "error"
+    });
+
+    runtime.control("start");
+    runtime.dispose();
     iframe.remove();
   });
 

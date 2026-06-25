@@ -18,6 +18,7 @@ import {
   hasCanvasPreviewSignal,
   hasSvgPreviewSignal
 } from "./svg-canvas-runtime";
+import { getP5RuntimeSourceSupportIssue } from "./preview-source-classification";
 
 export type PreviewRendererTone =
   | "active"
@@ -338,6 +339,10 @@ export function buildPreviewRendererRoute({
     const rendererArtifact =
       selectedArtifact?.type === "code" ? selectedArtifact : sourceArtifact ?? selectedArtifact;
     const matchedRenderer = matchCreativePreviewRenderer(rendererArtifact);
+    const p5SupportIssue =
+      rendererArtifact && hasP5PreviewSignal(rendererArtifact)
+        ? getP5RuntimeSourceSupportIssue(rendererArtifact.content)
+        : null;
     const gsapSupportIssue =
       rendererArtifact && hasGsapPreviewSignal(rendererArtifact)
         ? getGsapRuntimeSupportIssue(rendererArtifact.content)
@@ -351,15 +356,23 @@ export function buildPreviewRendererRoute({
         ? getCanvasRuntimeSupportIssue(rendererArtifact.content)
         : null;
     const runtimeSupportIssue =
-      gsapSupportIssue ?? svgSupportIssue ?? canvasSupportIssue;
-    const unsupportedSurfaceSummary = gsapSupportIssue
-      ? `${sourceArtifactName} was identified as a GSAP motion artifact, but the current source exceeds the bounded sandbox rules for live execution.`
-      : svgSupportIssue
+      p5SupportIssue ?? gsapSupportIssue ?? svgSupportIssue ?? canvasSupportIssue;
+    const unsupportedSurfaceSummary = p5SupportIssue
+      ? `${sourceArtifactName} was identified as a p5 artifact, but the current source is not executable JavaScript for the p5 runtime.`
+      : gsapSupportIssue
+        ? `${sourceArtifactName} was identified as a GSAP motion artifact, but the current source exceeds the bounded sandbox rules for live execution.`
+        : svgSupportIssue
         ? `${sourceArtifactName} was identified as an SVG artifact, but the current source exceeds the bounded sandbox rules for live execution.`
         : canvasSupportIssue
           ? `${sourceArtifactName} was identified as a Canvas artifact, but the current source exceeds the bounded sandbox rules for live execution.`
           : `${sourceArtifactName} still resolves to the browser preview, but no safe live renderer foundation matches its current signals yet.`;
-    const unsupportedNotes = gsapSupportIssue
+    const unsupportedNotes = p5SupportIssue
+      ? [
+          "The artifact remains inspectable as code",
+          "Use JavaScript p5 source with setup() or draw() to restore live preview support",
+          "HTML documents are not executed inside the p5 JavaScript runtime"
+        ]
+      : gsapSupportIssue
       ? [
           "The artifact remains inspectable as code",
           "Remove plugin, network, or unrestricted DOM patterns to restore live preview support",
@@ -547,6 +560,10 @@ function validateCreativePreviewRenderer(
   }
 
   if (renderer.kind !== "gsap") {
+    if (renderer.kind === "p5") {
+      return getP5RuntimeSourceSupportIssue(artifact.content) ? null : renderer;
+    }
+
     if (renderer.kind === "svg") {
       return getSvgRuntimeSupportIssue(artifact.content) ? null : renderer;
     }
@@ -559,6 +576,36 @@ function validateCreativePreviewRenderer(
   }
 
   return getGsapRuntimeSupportIssue(artifact.content) ? null : renderer;
+}
+
+function hasP5PreviewSignal({
+  content,
+  domain,
+  language,
+  rendererId,
+  runtime,
+  summary,
+  title
+}: ArtifactSummary) {
+  const normalizedRenderer = rendererId?.trim().toLowerCase();
+  const normalizedRuntime = runtime?.trim().toLowerCase();
+  const normalizedDomain = domain?.trim().toLowerCase();
+  const normalizedLanguage = language?.trim().toLowerCase();
+  const normalizedTitle = title.trim().toLowerCase();
+  const haystack = [title, language, summary, content].join(" ").toLowerCase();
+
+  return (
+    normalizedRenderer === "surface.p5" ||
+    normalizedRuntime === "p5" ||
+    normalizedDomain === "p5_js" ||
+    normalizedLanguage === "p5.js" ||
+    normalizedLanguage === "p5" ||
+    normalizedTitle.endsWith(".p5.js") ||
+    normalizedTitle.endsWith(".p5.ts") ||
+    haystack.includes("createcanvas") ||
+    haystack.includes("setup()") ||
+    haystack.includes("draw()")
+  );
 }
 
 function buildNonBrowserPreviewRendererRoute({

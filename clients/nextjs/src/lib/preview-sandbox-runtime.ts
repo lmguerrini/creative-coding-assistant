@@ -10,6 +10,7 @@ import {
   createWorkstationError,
   type WorkstationError
 } from "./workstation-errors";
+import { getP5RuntimeSourceSupportIssue } from "./preview-source-classification";
 
 export type PreviewSandboxRuntimeMessage =
   | {
@@ -71,6 +72,22 @@ export function mountPreviewSandboxRuntime({
   runtimeId,
   source
 }: MountPreviewSandboxRuntimeInput): PreviewSandboxRuntimeMount {
+  const sourceMismatch = getPreviewRuntimeSourceMismatch({ kind, source });
+
+  if (sourceMismatch) {
+    onStatus(
+      getSandboxSourceRejectedStatus({
+        issue: sourceMismatch,
+        kind,
+        source
+      })
+    );
+    return {
+      control: () => undefined,
+      dispose: () => undefined
+    };
+  }
+
   let disposed = false;
   let retryTimer = 0;
   const mountMessage = {
@@ -297,6 +314,20 @@ export function preparePreviewExecutableSource(
     .trim();
 }
 
+export function getPreviewRuntimeSourceMismatch({
+  kind,
+  source
+}: {
+  kind: PreviewExecutableRuntimeKind;
+  source: PreviewRuntimeSource;
+}) {
+  if (kind === "p5") {
+    return getP5RuntimeSourceSupportIssue(source.source);
+  }
+
+  return null;
+}
+
 function getSandboxStartingStatus(
   kind: PreviewExecutableRuntimeKind
 ): PreviewRuntimeStatus {
@@ -305,6 +336,30 @@ function getSandboxStartingStatus(
     label: "Preview runtime starting",
     state: "starting",
     error: null
+  };
+}
+
+function getSandboxSourceRejectedStatus({
+  issue,
+  kind,
+  source
+}: {
+  issue: string;
+  kind: PreviewExecutableRuntimeKind;
+  source: PreviewRuntimeSource;
+}): PreviewRuntimeStatus {
+  const label = `${formatSandboxRuntimeLabel(kind)} runtime rejected source`;
+
+  return {
+    detail: issue,
+    diagnostics: [issue],
+    label,
+    state: "error",
+    error: createSandboxRuntimeSourceMismatchError({
+      debugMessage: `${source.title}: ${issue}`,
+      kind,
+      message: issue
+    })
   };
 }
 
@@ -353,6 +408,29 @@ function createSandboxRuntimeError({
   });
 }
 
+function createSandboxRuntimeSourceMismatchError({
+  debugMessage,
+  kind,
+  message
+}: {
+  debugMessage: string | null;
+  kind: PreviewExecutableRuntimeKind;
+  message: string;
+}): WorkstationError {
+  return createWorkstationError({
+    type: "preview_runtime_source_mismatch",
+    category: "renderer",
+    subsystem: `${kind}_sandbox_runtime`,
+    userMessage: message,
+    debugMessage,
+    recoverable: true,
+    suggestedAction:
+      "Use a source artifact compatible with the selected preview runtime, or select a supported preview surface.",
+    retryLabel: "Reload preview state",
+    resetLabel: "Reset preview session"
+  });
+}
+
 function describeSandboxRuntimeStart(kind: PreviewExecutableRuntimeKind) {
   switch (kind) {
     case "glsl":
@@ -372,6 +450,28 @@ function describeSandboxRuntimeStart(kind: PreviewExecutableRuntimeKind) {
     case "p5":
     default:
       return "Mounting a controlled p5.js-compatible browser document.";
+  }
+}
+
+function formatSandboxRuntimeLabel(kind: PreviewExecutableRuntimeKind) {
+  switch (kind) {
+    case "three":
+      return "Three.js";
+    case "glsl":
+      return "GLSL";
+    case "hydra":
+      return "Hydra";
+    case "tone":
+      return "Tone.js";
+    case "gsap":
+      return "GSAP";
+    case "svg":
+      return "SVG";
+    case "canvas":
+      return "Canvas";
+    case "p5":
+    default:
+      return "p5";
   }
 }
 
@@ -440,6 +540,33 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
     });
   }
 
+  function rejectSource(message, label) {
+    status("error", label || "Runtime rejected source", message, {
+      diagnostics: [message],
+      error: {
+        debugMessage: message,
+        message,
+        type: "preview_runtime_source_mismatch"
+      }
+    });
+  }
+
+  function looksLikeHtmlSource(source) {
+    const text = String(source || "").trim();
+    return (
+      /^<!doctype\s+html\b/i.test(text) ||
+      /^<html(?:\s|>)/i.test(text) ||
+      /^<head(?:\s|>)/i.test(text) ||
+      /^<body(?:\s|>)/i.test(text) ||
+      /^<(?:script|style|canvas|main|section|div|meta|link)(?:\s|>)/i.test(text)
+    );
+  }
+
+  function getP5RuntimeSourceSupportIssue(source) {
+    if (!looksLikeHtmlSource(source)) return null;
+    return "HTML documents cannot run in the p5 JavaScript preview runtime. Use JavaScript p5 source with setup() or draw(), or route the artifact to a compatible preview surface.";
+  }
+
   function frame(time) {
     frameCount += 1;
     post({ type: "frame", renderedAtMs: Number.isFinite(time) ? time : performance.now() });
@@ -474,6 +601,12 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
   }
 
   function startP5() {
+    const sourceIssue = getP5RuntimeSourceSupportIssue(runtime.source.source);
+    if (sourceIssue) {
+      rejectSource(sourceIssue, "p5 runtime rejected source");
+      return;
+    }
+
     const context = canvas.getContext("2d");
     if (!context) throw new Error("Canvas 2D is unavailable in the preview frame.");
     const paint = { fill: "#4cd7c8", stroke: "#edf3f2", useFill: true, useStroke: false, weight: 1 };
