@@ -26,6 +26,19 @@ V32_GENERATIVE_DESIGN_CAPABILITIES = (
     "Cross-Modality Composer",
     "Audio-Visual Scene System",
 )
+V33_ARTIFACT_INTELLIGENCE_CAPABILITIES = (
+    "Artifact Planner",
+    "Artifact Dependency Graph",
+    "Runtime Compatibility Engine",
+    "Artifact Capability Matrix",
+    "Multi-Artifact Strategy",
+    "Artifact Critic",
+    "Artifact Refiner",
+    "Artifact Intelligence Synthesis",
+    "Artifact Merge Planner",
+    "Artifact Export Intelligence",
+    "Artifact Engine Contracts",
+)
 CAPABILITY_CLOSEOUT_STEPS = (
     "Architecture Update",
     "Documentation Update",
@@ -45,15 +58,20 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
 
         self.assertIn(f"`{expected_order}`", readme)
 
-    def test_readme_covers_v32_docs_closeout_and_roadmap(self) -> None:
+    def test_readme_covers_v33_docs_closeout_and_roadmap(self) -> None:
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
 
-        self.assertIn("V3.2 AI-native creative translation", readme)
-        self.assertIn("feature/generative-design-core", readme)
+        self.assertIn("V3.3 AI-native creative translation", readme)
+        self.assertIn("feature/artifact-intelligence", readme)
         self.assertIn("V3.2 Generative Design Core", readme)
+        self.assertIn("V3.3 Artifact Intelligence", readme)
+        self.assertIn("architecture/artifact_intelligence_graph.md", readme)
         self.assertIn("architecture/engine_matrix.md", readme)
 
         for capability in V32_GENERATIVE_DESIGN_CAPABILITIES:
+            self.assertIn(capability, readme)
+
+        for capability in V33_ARTIFACT_INTELLIGENCE_CAPABILITIES:
             self.assertIn(capability, readme)
 
         for step in CAPABILITY_CLOSEOUT_STEPS:
@@ -116,6 +134,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         architecture_doc = (
             REPO_ROOT / "architecture" / "workflow_graph.md"
         ).read_text(encoding="utf-8")
+        normalized_architecture_doc = re.sub(r"\s+", " ", architecture_doc)
 
         self.assertIn(
             "## Runtime Graph Vs Internal Capability Graph",
@@ -125,7 +144,12 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("creative_intelligence_graph.mmd", architecture_doc)
         self.assertIn("generative_design_graph.md", architecture_doc)
         self.assertIn("generative_design_graph.mmd", architecture_doc)
-        self.assertIn("metadata and design guidance", architecture_doc)
+        self.assertIn("artifact_intelligence_graph.md", architecture_doc)
+        self.assertIn("artifact_intelligence_graph.mmd", architecture_doc)
+        self.assertIn(
+            "metadata, design guidance, artifact intelligence, and contract summaries",
+            normalized_architecture_doc,
+        )
         self.assertIn("not code generation execution", architecture_doc)
         self.assertIn("true multi-agent", architecture_doc)
         self.assertIn("multi-node runtime graph", architecture_doc)
