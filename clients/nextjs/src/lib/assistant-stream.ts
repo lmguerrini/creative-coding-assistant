@@ -57,6 +57,8 @@ import {
   type CreativeConstraintTradeoffSummary,
   type CreativeCompositionPattern,
   type CreativeCompositionPlanSummary,
+  type CreativeCriticRiskAssessment,
+  type CreativeCriticSummary,
   type ClarificationSummary,
   type CrossModalityChannel,
   type CrossModalityCompositionProfileSummary,
@@ -267,6 +269,8 @@ export type AssistantStreamWorkflowMetadata = {
   artifact_export_intelligence_available?: boolean;
   artifact_engine_contracts?: ArtifactIntelligenceEngineContractRegistrySummary | null;
   artifact_engine_contracts_available?: boolean;
+  creative_critic?: CreativeCriticSummary | null;
+  creative_critic_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -789,6 +793,11 @@ export function readWorkflowMetadata(
   const artifactEngineContractsAvailable =
     rawWorkflow.artifact_engine_contracts_available === true ||
     artifactEngineContracts !== null;
+  const creativeCritic = readCreativeCriticSummary(
+    rawWorkflow.creative_critic ?? rawWorkflow.creativeCritic
+  );
+  const creativeCriticAvailable =
+    rawWorkflow.creative_critic_available === true || creativeCritic !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -1002,6 +1011,12 @@ export function readWorkflowMetadata(
       ? {
           artifact_engine_contracts: artifactEngineContracts,
           artifact_engine_contracts_available: true
+        }
+      : {}),
+    ...(creativeCriticAvailable
+      ? {
+          creative_critic: creativeCritic,
+          creative_critic_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -2573,6 +2588,125 @@ export function readArtifactCriticSummary(
   };
 }
 
+export function readCreativeCriticSummary(
+  value: unknown
+): CreativeCriticSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const criticConfidence =
+    readFiniteNumberField(value, "critic_confidence") ??
+    readFiniteNumberField(value, "criticConfidence");
+  const critiqueSummary =
+    readStringField(value, "critique_summary") ??
+    readStringField(value, "critiqueSummary");
+  const riskAssessment = readStringUnion(
+    value,
+    "risk_assessment",
+    "riskAssessment",
+    creativeCriticRiskAssessments
+  );
+  const creativeStrengths = readStringListField(
+    value,
+    "creative_strengths",
+    "creativeStrengths"
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+  const conceptQuality =
+    readFiniteNumberField(value, "concept_quality") ??
+    readFiniteNumberField(value, "conceptQuality");
+  const executionQuality =
+    readFiniteNumberField(value, "execution_quality") ??
+    readFiniteNumberField(value, "executionQuality");
+  const artifactQuality =
+    readFiniteNumberField(value, "artifact_quality") ??
+    readFiniteNumberField(value, "artifactQuality");
+  const coherenceQuality =
+    readFiniteNumberField(value, "coherence_quality") ??
+    readFiniteNumberField(value, "coherenceQuality");
+  const runtimeFitQuality =
+    readFiniteNumberField(value, "runtime_fit_quality") ??
+    readFiniteNumberField(value, "runtimeFitQuality");
+  const originalityQuality =
+    readFiniteNumberField(value, "originality_quality") ??
+    readFiniteNumberField(value, "originalityQuality");
+  const clarityQuality =
+    readFiniteNumberField(value, "clarity_quality") ??
+    readFiniteNumberField(value, "clarityQuality");
+  const feasibilityQuality =
+    readFiniteNumberField(value, "feasibility_quality") ??
+    readFiniteNumberField(value, "feasibilityQuality");
+
+  if (
+    role !== "creative_critic_engine" ||
+    criticConfidence === null ||
+    !critiqueSummary ||
+    creativeStrengths.length === 0 ||
+    conceptQuality === null ||
+    executionQuality === null ||
+    artifactQuality === null ||
+    coherenceQuality === null ||
+    runtimeFitQuality === null ||
+    originalityQuality === null ||
+    clarityQuality === null ||
+    feasibilityQuality === null ||
+    !riskAssessment ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    criticConfidence,
+    critiqueSummary,
+    creativeStrengths,
+    creativeWeaknesses: readStringListField(
+      value,
+      "creative_weaknesses",
+      "creativeWeaknesses"
+    ),
+    conceptQuality,
+    executionQuality,
+    artifactQuality,
+    coherenceQuality,
+    runtimeFitQuality,
+    originalityQuality,
+    clarityQuality,
+    feasibilityQuality,
+    riskAssessment,
+    missingInformation: readStringListField(
+      value,
+      "missing_information",
+      "missingInformation"
+    ),
+    unsupportedAssumptions: readStringListField(
+      value,
+      "unsupported_assumptions",
+      "unsupportedAssumptions"
+    ),
+    improvementOpportunities: readStringListField(
+      value,
+      "improvement_opportunities",
+      "improvementOpportunities"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary,
+    evidence: readStringListField(value, "evidence", "evidence")
+  };
+}
+
 export function readArtifactRefinerSummary(
   value: unknown
 ): ArtifactRefinerSummary | null {
@@ -3533,6 +3667,13 @@ const artifactCriticRiskAssessments = [
   "high",
   "blocked"
 ] as const satisfies readonly ArtifactCriticRiskAssessment[];
+
+const creativeCriticRiskAssessments = [
+  "low",
+  "medium",
+  "high",
+  "blocked"
+] as const satisfies readonly CreativeCriticRiskAssessment[];
 
 const artifactImplementationReadinesses = [
   "ready",
@@ -7445,6 +7586,7 @@ const creativeReasoningEvidenceSources = [
   "artifact_intelligence_synthesis",
   "artifact_merge_planner",
   "artifact_export_intelligence",
+  "creative_critic",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

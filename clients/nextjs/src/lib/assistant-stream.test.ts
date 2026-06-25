@@ -5,6 +5,7 @@ import {
   parseAssistantStreamLine,
   readArtifactCapabilityMatrixSummary,
   readArtifactCriticSummary,
+  readCreativeCriticSummary,
   readArtifactEngineContractRegistrySummary,
   readArtifactExportIntelligenceSummary,
   readArtifactIntelligenceSynthesisSummary,
@@ -1425,6 +1426,49 @@ function artifactCriticFixture() {
     authority_boundary:
       "The Artifact Critic evaluates planning metadata only; it does not modify artifacts.",
     evidence: ["Runtime compatibility: 1 compatible; 1 unsupported."]
+  };
+}
+
+function creativeCriticFixture() {
+  return {
+    role: "creative_critic_engine",
+    critic_confidence: 0.86,
+    critique_summary:
+      "Creative critique risk is medium with strong concept quality and visible runtime caveats.",
+    creative_strengths: [
+      "Strategy and technique are coherent.",
+      "Artifact-aware critique can inspect planning metadata."
+    ],
+    creative_weaknesses: [
+      "Runtime fit quality needs an explicit caveat."
+    ],
+    concept_quality: 0.82,
+    execution_quality: 0.74,
+    artifact_quality: 0.71,
+    coherence_quality: 0.78,
+    runtime_fit_quality: 0.63,
+    originality_quality: 0.79,
+    clarity_quality: 0.76,
+    feasibility_quality: 0.68,
+    risk_assessment: "medium",
+    missing_information: [
+      "Generated response and artifacts are not available; critique is pre-generation."
+    ],
+    unsupported_assumptions: [
+      "Creative Critic findings are advisory metadata only."
+    ],
+    improvement_opportunities: [
+      "Improve runtime fit clarity before expanding scope."
+    ],
+    hitl_questions: [
+      "Should generation proceed with Creative Critic risk medium?"
+    ],
+    prompt_guidance: [
+      "Use Creative Critic output as metadata-only critique, not as artifact modification or rejection."
+    ],
+    authority_boundary:
+      "The Creative Critic Engine evaluates creative and artifact metadata only; it does not modify artifacts.",
+    evidence: ["Authority boundary verified: metadata-only critique."]
   };
 }
 
@@ -3339,6 +3383,19 @@ describe("assistant stream client", () => {
     expect(critic?.promptGuidance[0]).toContain("metadata-only critique");
   });
 
+  it("reads creative critic metadata", () => {
+    const critic = readCreativeCriticSummary(creativeCriticFixture());
+
+    expect(critic?.role).toBe("creative_critic_engine");
+    expect(critic?.criticConfidence).toBe(0.86);
+    expect(critic?.riskAssessment).toBe("medium");
+    expect(critic?.conceptQuality).toBe(0.82);
+    expect(critic?.runtimeFitQuality).toBe(0.63);
+    expect(critic?.creativeStrengths[0]).toContain("Strategy");
+    expect(critic?.creativeWeaknesses[0]).toContain("Runtime fit");
+    expect(critic?.promptGuidance[0]).toContain("metadata-only critique");
+  });
+
   it("reads artifact refiner metadata", () => {
     const refiner = readArtifactRefinerSummary(artifactRefinerFixture());
 
@@ -4967,6 +5024,50 @@ describe("assistant stream client", () => {
         ]
       },
       artifact_critic_available: true
+    });
+  });
+
+  it("hydrates creative critic workflow metadata", () => {
+    const creativeCritic = creativeCriticFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 22,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          creative_critic: creativeCritic,
+          creative_critic_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      creative_critic: {
+        role: "creative_critic_engine",
+        criticConfidence: 0.86,
+        riskAssessment: "medium",
+        conceptQuality: 0.82,
+        runtimeFitQuality: 0.63,
+        creativeWeaknesses: [
+          "Runtime fit quality needs an explicit caveat."
+        ]
+      },
+      creative_critic_available: true
     });
   });
 

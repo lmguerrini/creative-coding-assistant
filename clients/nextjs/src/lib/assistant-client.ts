@@ -548,6 +548,36 @@ export type ArtifactCriticSummary = {
   evidence: string[];
 };
 
+export type CreativeCriticRiskAssessment =
+  | "low"
+  | "medium"
+  | "high"
+  | "blocked";
+
+export type CreativeCriticSummary = {
+  role: "creative_critic_engine";
+  criticConfidence: number;
+  critiqueSummary: string;
+  creativeStrengths: string[];
+  creativeWeaknesses: string[];
+  conceptQuality: number;
+  executionQuality: number;
+  artifactQuality: number;
+  coherenceQuality: number;
+  runtimeFitQuality: number;
+  originalityQuality: number;
+  clarityQuality: number;
+  feasibilityQuality: number;
+  riskAssessment: CreativeCriticRiskAssessment;
+  missingInformation: string[];
+  unsupportedAssumptions: string[];
+  improvementOpportunities: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+  evidence: string[];
+};
+
 export type ArtifactRefinerSummary = {
   role: "artifact_refiner";
   refinementConfidence: number;
@@ -1835,6 +1865,7 @@ export type CreativeReasoningEvidenceSource =
   | "artifact_intelligence_synthesis"
   | "artifact_merge_planner"
   | "artifact_export_intelligence"
+  | "creative_critic"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {
