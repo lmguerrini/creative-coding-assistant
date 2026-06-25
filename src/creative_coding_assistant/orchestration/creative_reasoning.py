@@ -115,6 +115,9 @@ from creative_coding_assistant.orchestration.runtime_compatibility import (
     RuntimeCompatibilityProfile,
 )
 from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
+from creative_coding_assistant.orchestration.self_evaluation_engine import (
+    SelfEvaluationProfile,
+)
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -157,6 +160,7 @@ def derive_creative_reasoning_result(
     artifact_merge_planner: ArtifactMergePlannerProfile | None = None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None = None,
     creative_critic: CreativeCriticProfile | None = None,
+    self_evaluation: SelfEvaluationProfile | None = None,
     future_knowledge_context: Mapping[str, object] | None = None,
 ) -> CreativeReasoningResult:
     """Synthesize prior Creative Intelligence outputs into one decision brief."""
@@ -223,6 +227,7 @@ def derive_creative_reasoning_result(
         artifact_merge_planner=artifact_merge_planner,
         artifact_export_intelligence=artifact_export_intelligence,
         creative_critic=creative_critic,
+        self_evaluation=self_evaluation,
     )
     return CreativeReasoningResult(
         recommended_creative_direction=direction,
@@ -291,6 +296,7 @@ def derive_creative_reasoning_result(
             artifact_merge_planner=artifact_merge_planner,
             artifact_export_intelligence=artifact_export_intelligence,
             creative_critic=creative_critic,
+            self_evaluation=self_evaluation,
         ),
         strongest_supporting_signals=build_strongest_signals(
             creative_director=creative_director,
@@ -322,6 +328,7 @@ def derive_creative_reasoning_result(
             artifact_merge_planner=artifact_merge_planner,
             artifact_export_intelligence=artifact_export_intelligence,
             creative_critic=creative_critic,
+            self_evaluation=self_evaluation,
         ),
         rejected_alternatives=build_rejected_alternatives(
             creative_strategy=creative_strategy,
@@ -359,6 +366,7 @@ def derive_creative_reasoning_result(
             artifact_merge_planner=artifact_merge_planner,
             artifact_export_intelligence=artifact_export_intelligence,
             creative_critic=creative_critic,
+            self_evaluation=self_evaluation,
         ),
         prompt_guidance=build_prompt_guidance(unresolved),
         hitl_questions=build_hitl_questions(unresolved),

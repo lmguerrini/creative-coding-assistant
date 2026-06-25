@@ -112,6 +112,9 @@ from creative_coding_assistant.orchestration.runtime_compatibility import (
     RuntimeCompatibilityProfile,
 )
 from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
+from creative_coding_assistant.orchestration.self_evaluation_engine import (
+    SelfEvaluationProfile,
+)
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -242,6 +245,7 @@ class AssistantWorkflowState(BaseModel):
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None = None
     artifact_engine_contracts: ArtifactIntelligenceEngineContractRegistry | None = None
     creative_critic: CreativeCriticProfile | None = None
+    self_evaluation: SelfEvaluationProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     rendered_prompt: RenderedPromptResponse | None = None

@@ -94,6 +94,9 @@ from creative_coding_assistant.orchestration.runtime_compatibility import (
     RuntimeCompatibilityProfile,
 )
 from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
+from creative_coding_assistant.orchestration.self_evaluation_engine import (
+    SelfEvaluationProfile,
+)
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -130,6 +133,7 @@ def build_strongest_signals(
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
     creative_critic: CreativeCriticProfile | None,
+    self_evaluation: SelfEvaluationProfile | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -304,6 +308,13 @@ def build_strongest_signals(
             f"{creative_critic.critic_confidence:.2f} confidence; "
             f"{len(creative_critic.creative_weaknesses)} weakness signals."
         )
+    if self_evaluation is not None:
+        signals.append(
+            "Self evaluation: "
+            f"{self_evaluation.completeness_assessment}; "
+            f"{self_evaluation.self_evaluation_confidence:.2f} confidence; "
+            f"{len(self_evaluation.quality_gaps)} quality gaps."
+        )
     if creative_constraints is not None:
         signals.append(
             f"Constraints: complexity {creative_constraints.complexity_pressure}, "
@@ -407,6 +418,7 @@ def build_unresolved_decisions(
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
     creative_critic: CreativeCriticProfile | None,
+    self_evaluation: SelfEvaluationProfile | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -493,6 +505,10 @@ def build_unresolved_decisions(
         unresolved.extend(creative_critic.hitl_questions[:3])
         unresolved.extend(creative_critic.missing_information[:2])
         unresolved.extend(creative_critic.unsupported_assumptions[:1])
+    if self_evaluation is not None:
+        unresolved.extend(self_evaluation.hitl_questions[:3])
+        unresolved.extend(self_evaluation.missing_information[:2])
+        unresolved.extend(self_evaluation.unsupported_assumptions[:1])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -532,6 +548,7 @@ def build_implementation_guidance(
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
     creative_critic: CreativeCriticProfile | None,
+    self_evaluation: SelfEvaluationProfile | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -710,6 +727,15 @@ def build_implementation_guidance(
             "not artifact modification, output rejection, runtime selection, "
             "provider routing, preview behavior, retry behavior, refinement, "
             "runtime repair, Studio Mode, or HoloMind."
+        )
+    if self_evaluation is not None:
+        guidance.extend(self_evaluation.prompt_guidance[:2])
+        guidance.extend(self_evaluation.improvement_opportunities[:2])
+        guidance.append(
+            "Preserve Self Evaluation metadata as advisory assessment only, "
+            "not output modification, answer rejection, runtime selection, "
+            "provider routing, preview behavior, retry behavior, refinement, "
+            "reflection loops, runtime repair, Studio Mode, or HoloMind."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

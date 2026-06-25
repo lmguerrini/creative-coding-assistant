@@ -149,6 +149,10 @@ from creative_coding_assistant.orchestration.semantic_motif import (
     SemanticMotifSystem,
     semantic_motif_prompt_lines,
 )
+from creative_coding_assistant.orchestration.self_evaluation_engine import (
+    SelfEvaluationProfile,
+    self_evaluation_prompt_lines,
+)
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
     symbolic_narrative_prompt_lines,
@@ -410,6 +414,13 @@ Artifact Export Intelligence:
 {% if creative_critic is not none -%}
 Creative Critic Engine:
 {% for instruction in creative_critic_lines(creative_critic) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
+{% set self_evaluation = prompt_input.self_evaluation -%}
+{% if self_evaluation is not none -%}
+Self Evaluation Engine:
+{% for instruction in self_evaluation_lines(self_evaluation) -%}
 - {{ instruction }}
 {% endfor %}
 {% endif %}
@@ -681,6 +692,7 @@ class JinjaPromptRenderer:
                 _artifact_export_intelligence_lines
             ),
             creative_critic_lines=_creative_critic_lines,
+            self_evaluation_lines=_self_evaluation_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -1019,6 +1031,12 @@ def _creative_critic_lines(
     profile: CreativeCriticProfile,
 ) -> tuple[str, ...]:
     return creative_critic_prompt_lines(profile)
+
+
+def _self_evaluation_lines(
+    profile: SelfEvaluationProfile,
+) -> tuple[str, ...]:
+    return self_evaluation_prompt_lines(profile)
 
 
 def _creative_assistant_director_lines(

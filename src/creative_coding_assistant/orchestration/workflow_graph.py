@@ -137,6 +137,9 @@ from creative_coding_assistant.orchestration.runtime_compatibility import (
 from creative_coding_assistant.orchestration.semantic_motif import (
     derive_semantic_motif_system,
 )
+from creative_coding_assistant.orchestration.self_evaluation_engine import (
+    derive_self_evaluation_profile,
+)
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     derive_symbolic_narrative_plan,
 )
@@ -1050,6 +1053,40 @@ def _planning_node(
             artifact_merge_planner=artifact_merge_planner,
             artifact_export_intelligence=artifact_export_intelligence,
         )
+        self_evaluation = derive_self_evaluation_profile(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_translation=prompt_input.creative_translation,
+            creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
+            creative_plan=plan,
+            creative_constraints=constraints,
+            creative_constraint_priorities=constraint_priorities,
+            creative_strategy=strategy,
+            creative_techniques=techniques,
+            runtime_capabilities=runtime_capabilities,
+            creative_tradeoffs=tradeoffs,
+            creative_quality_prediction=quality_prediction,
+            symbolic_narrative=symbolic_narrative,
+            creative_composition=creative_composition,
+            procedural_structure=procedural_structure,
+            generative_structure=generative_structure,
+            semantic_motif=semantic_motif,
+            emotional_consistency=emotional_consistency,
+            cross_modality=cross_modality,
+            audio_visual_scene=audio_visual_scene,
+            artifact_plan=artifact_plan,
+            artifact_dependency_graph=artifact_dependency_graph,
+            runtime_compatibility=runtime_compatibility,
+            artifact_capability_matrix=artifact_capability_matrix,
+            multi_artifact_strategy=multi_artifact_strategy,
+            artifact_critic=artifact_critic,
+            artifact_refiner=artifact_refiner,
+            artifact_intelligence_synthesis=artifact_intelligence_synthesis,
+            artifact_merge_planner=artifact_merge_planner,
+            artifact_export_intelligence=artifact_export_intelligence,
+            creative_critic=creative_critic,
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -1084,6 +1121,7 @@ def _planning_node(
                 "artifact_export_intelligence": artifact_export_intelligence,
                 "artifact_engine_contracts": artifact_engine_contracts,
                 "creative_critic": creative_critic,
+                "self_evaluation": self_evaluation,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -1120,6 +1158,7 @@ def _planning_node(
                 "artifact_export_intelligence": artifact_export_intelligence,
                 "artifact_engine_contracts": artifact_engine_contracts,
                 "creative_critic": creative_critic,
+                "self_evaluation": self_evaluation,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -1175,6 +1214,7 @@ def _planning_node(
                     mode="json"
                 ),
                 creative_critic=creative_critic.model_dump(mode="json"),
+                self_evaluation=self_evaluation.model_dump(mode="json"),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -1809,13 +1849,51 @@ def _finalization_node(
             else None
         )
 
-        updated_director = _derive_director_brief(workflow_state)
-        directed_state = workflow_state.model_copy(
-            update={"creative_director": updated_director}
+        self_evaluation = _derive_self_evaluation_result(
+            workflow_state,
+            generated_response=answer,
+        )
+        evaluated_prompt_input = (
+            workflow_state.prompt_input.model_copy(
+                update={"self_evaluation": self_evaluation}
+            )
+            if workflow_state.prompt_input is not None
+            else None
+        )
+        evaluated_state = workflow_state.model_copy(
+            update={
+                "self_evaluation": self_evaluation,
+                "prompt_input": evaluated_prompt_input,
+            }
+        )
+        updated_director = _derive_director_brief(evaluated_state)
+        directed_prompt_input = (
+            evaluated_prompt_input.model_copy(
+                update={"creative_director": updated_director}
+            )
+            if evaluated_prompt_input is not None
+            else None
+        )
+        directed_state = evaluated_state.model_copy(
+            update={
+                "creative_director": updated_director,
+                "prompt_input": directed_prompt_input,
+            }
         )
         if workflow_state.creative_reasoning is not None:
+            updated_reasoning = _derive_reasoning_result(directed_state)
+            reasoned_prompt_input = (
+                directed_prompt_input.model_copy(
+                    update={"creative_reasoning": updated_reasoning}
+                )
+                if directed_prompt_input is not None
+                else None
+            )
             directed_state = directed_state.model_copy(
-                update={"creative_reasoning": _derive_reasoning_result(directed_state)}
+                update={
+                    "creative_reasoning": updated_reasoning,
+                    "prompt_input": reasoned_prompt_input,
+                }
             )
         final_state = finish_workflow(directed_state, final_answer=answer)
         _emit_node_completed(
@@ -2106,6 +2184,14 @@ def _finalization_node(
                     (
                         final_state.creative_critic.model_dump(mode="json")
                         if final_state.creative_critic is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
+                    "self_evaluation",
+                    (
+                        final_state.self_evaluation.model_dump(mode="json")
+                        if final_state.self_evaluation is not None
                         else None
                     ),
                 ),
@@ -2717,6 +2803,7 @@ def _derive_director_brief(
         artifact_merge_planner=workflow_state.artifact_merge_planner,
         artifact_export_intelligence=workflow_state.artifact_export_intelligence,
         creative_critic=workflow_state.creative_critic,
+        self_evaluation=workflow_state.self_evaluation,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2771,6 +2858,55 @@ def _derive_reasoning_result(
         artifact_merge_planner=workflow_state.artifact_merge_planner,
         artifact_export_intelligence=workflow_state.artifact_export_intelligence,
         creative_critic=workflow_state.creative_critic,
+        self_evaluation=workflow_state.self_evaluation,
+    )
+
+
+def _derive_self_evaluation_result(
+    workflow_state: AssistantWorkflowState,
+    *,
+    generated_response: str | None = None,
+):
+    prompt_input = workflow_state.prompt_input
+    return derive_self_evaluation_profile(
+        request=workflow_state.request,
+        route_decision=workflow_state.route_decision,
+        creative_translation=(
+            prompt_input.creative_translation if prompt_input is not None else None
+        ),
+        creative_intent=workflow_state.creative_intent,
+        creative_hierarchy=workflow_state.creative_hierarchy,
+        creative_plan=workflow_state.creative_plan,
+        creative_constraints=workflow_state.creative_constraints,
+        creative_constraint_priorities=workflow_state.creative_constraint_priorities,
+        creative_strategy=workflow_state.creative_strategy,
+        creative_techniques=workflow_state.creative_techniques,
+        runtime_capabilities=workflow_state.runtime_capabilities,
+        creative_tradeoffs=workflow_state.creative_tradeoffs,
+        creative_quality_prediction=workflow_state.creative_quality_prediction,
+        symbolic_narrative=workflow_state.symbolic_narrative,
+        creative_composition=workflow_state.creative_composition,
+        procedural_structure=workflow_state.procedural_structure,
+        generative_structure=workflow_state.generative_structure,
+        semantic_motif=workflow_state.semantic_motif,
+        emotional_consistency=workflow_state.emotional_consistency,
+        cross_modality=workflow_state.cross_modality,
+        audio_visual_scene=workflow_state.audio_visual_scene,
+        artifact_plan=workflow_state.artifact_plan,
+        artifact_dependency_graph=workflow_state.artifact_dependency_graph,
+        runtime_compatibility=workflow_state.runtime_compatibility,
+        artifact_capability_matrix=workflow_state.artifact_capability_matrix,
+        multi_artifact_strategy=workflow_state.multi_artifact_strategy,
+        artifact_critic=workflow_state.artifact_critic,
+        artifact_refiner=workflow_state.artifact_refiner,
+        artifact_intelligence_synthesis=(
+            workflow_state.artifact_intelligence_synthesis
+        ),
+        artifact_merge_planner=workflow_state.artifact_merge_planner,
+        artifact_export_intelligence=workflow_state.artifact_export_intelligence,
+        creative_critic=workflow_state.creative_critic,
+        generated_response=generated_response,
+        artifacts=workflow_state.artifacts,
     )
 
 
@@ -3016,6 +3152,7 @@ def _serialize_workflow_runtime(
     artifact_export_intelligence = workflow_state.artifact_export_intelligence
     artifact_engine_contracts = workflow_state.artifact_engine_contracts
     creative_critic = workflow_state.creative_critic
+    self_evaluation = workflow_state.self_evaluation
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -3247,6 +3384,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "creative_critic_available": creative_critic is not None,
+        "self_evaluation": (
+            self_evaluation.model_dump(mode="json")
+            if self_evaluation is not None
+            else None
+        ),
+        "self_evaluation_available": self_evaluation is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None

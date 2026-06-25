@@ -24,6 +24,9 @@ _CREATIVE_REASONING = "creative_coding_assistant.orchestration.creative_reasonin
 _CREATIVE_CRITIC_ENGINE = (
     "creative_coding_assistant.orchestration.creative_critic_engine"
 )
+_SELF_EVALUATION_ENGINE = (
+    "creative_coding_assistant.orchestration.self_evaluation_engine"
+)
 _ARTIFACT_PLANNER = "creative_coding_assistant.orchestration.artifact_planner"
 _ARTIFACT_DEPENDENCY_GRAPH = (
     "creative_coding_assistant.orchestration.artifact_dependency_graph"
@@ -411,6 +414,8 @@ _EXPORT_MAP = {
     "creative_reasoning_prompt_lines": _CREATIVE_REASONING,
     "derive_creative_critic_profile": _CREATIVE_CRITIC_ENGINE,
     "creative_critic_prompt_lines": _CREATIVE_CRITIC_ENGINE,
+    "derive_self_evaluation_profile": _SELF_EVALUATION_ENGINE,
+    "self_evaluation_prompt_lines": _SELF_EVALUATION_ENGINE,
     "derive_runtime_capability_profile": _RUNTIME_CAPABILITIES,
     "runtime_capability_prompt_lines": _RUNTIME_CAPABILITIES,
     "derive_runtime_compatibility_profile": _RUNTIME_COMPATIBILITY,

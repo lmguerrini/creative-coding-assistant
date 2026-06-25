@@ -94,6 +94,9 @@ from creative_coding_assistant.orchestration.runtime_compatibility import (
     RuntimeCompatibilityProfile,
 )
 from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
+from creative_coding_assistant.orchestration.self_evaluation_engine import (
+    SelfEvaluationProfile,
+)
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -137,6 +140,7 @@ def build_director_brief_payload(
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
     creative_critic: CreativeCriticProfile | None,
+    self_evaluation: SelfEvaluationProfile | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -169,6 +173,7 @@ def build_director_brief_payload(
         artifact_merge_planner=artifact_merge_planner,
         artifact_export_intelligence=artifact_export_intelligence,
         creative_critic=creative_critic,
+        self_evaluation=self_evaluation,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -216,6 +221,7 @@ def build_director_brief_payload(
             artifact_merge_planner,
             artifact_export_intelligence,
             creative_critic,
+            self_evaluation,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -247,6 +253,7 @@ def build_director_brief_payload(
             artifact_merge_planner=artifact_merge_planner,
             artifact_export_intelligence=artifact_export_intelligence,
             creative_critic=creative_critic,
+            self_evaluation=self_evaluation,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -279,6 +286,7 @@ def build_director_brief_payload(
             artifact_merge_planner=artifact_merge_planner,
             artifact_export_intelligence=artifact_export_intelligence,
             creative_critic=creative_critic,
+            self_evaluation=self_evaluation,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -317,6 +325,7 @@ def build_director_brief_payload(
             artifact_merge_planner=artifact_merge_planner,
             artifact_export_intelligence=artifact_export_intelligence,
             creative_critic=creative_critic,
+            self_evaluation=self_evaluation,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -375,6 +384,7 @@ def _ambiguity_signals(
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
     creative_critic: CreativeCriticProfile | None,
+    self_evaluation: SelfEvaluationProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -451,6 +461,10 @@ def _ambiguity_signals(
         signals.extend(creative_critic.missing_information[:1])
         signals.extend(creative_critic.creative_weaknesses[:1])
         signals.extend(creative_critic.hitl_questions[:1])
+    if self_evaluation is not None:
+        signals.extend(self_evaluation.missing_information[:1])
+        signals.extend(self_evaluation.quality_gaps[:1])
+        signals.extend(self_evaluation.hitl_questions[:1])
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -520,6 +534,14 @@ def _creative_critic_focus(profile: CreativeCriticProfile) -> str:
     )
 
 
+def _self_evaluation_focus(profile: SelfEvaluationProfile) -> str:
+    return (
+        "Self evaluation: "
+        f"{profile.completeness_assessment}; "
+        f"{profile.self_evaluation_confidence:.2f} confidence; metadata only."
+    )
+
+
 def _planning_focus(
     plan: CreativeExecutionPlan | None,
     creative_intent: CreativeIntentDecomposition | None,
@@ -550,6 +572,7 @@ def _planning_focus(
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
     creative_critic: CreativeCriticProfile | None,
+    self_evaluation: SelfEvaluationProfile | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_intent is not None:
@@ -608,6 +631,8 @@ def _planning_focus(
             )
         if creative_critic is not None:
             runtime_focus += " " + _creative_critic_focus(creative_critic)
+        if self_evaluation is not None:
+            runtime_focus += " " + _self_evaluation_focus(self_evaluation)
         focus.append(runtime_focus)
         if (
             artifact_capability_matrix is None
@@ -654,6 +679,8 @@ def _planning_focus(
             )
         if creative_critic is not None:
             capability_focus += " " + _creative_critic_focus(creative_critic)
+        if self_evaluation is not None:
+            capability_focus += " " + _self_evaluation_focus(self_evaluation)
         focus.append(capability_focus)
         if (
             multi_artifact_strategy is None
@@ -799,6 +826,9 @@ def _planning_focus(
     if creative_critic is not None:
         focus.append(_creative_critic_focus(creative_critic))
         focus.extend(creative_critic.prompt_guidance[:1])
+    if self_evaluation is not None:
+        focus.append(_self_evaluation_focus(self_evaluation))
+        focus.extend(self_evaluation.prompt_guidance[:1])
     if procedural_structure is not None:
         focus.append(
             "Procedural structure: "
@@ -942,6 +972,7 @@ def _critique_focus(
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
     creative_critic: CreativeCriticProfile | None,
+    self_evaluation: SelfEvaluationProfile | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -1164,6 +1195,16 @@ def _critique_focus(
             "behavior."
         )
         focus.extend(creative_critic.creative_weaknesses[:2])
+    if self_evaluation is not None:
+        focus.append(
+            "Self Evaluation Engine is metadata-only assessment; compare output "
+            "against request alignment, intent, constraints, artifacts, runtime "
+            "fit, coherence, completeness, risks, gaps, and HITL questions "
+            "without modifying outputs, rejecting answers, triggering retries "
+            "or refinement, selecting runtimes, routing providers, changing "
+            "previews, executing, or running reflection loops."
+        )
+        focus.extend(self_evaluation.quality_gaps[:2])
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -1228,6 +1269,7 @@ def _next_actions(
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
     creative_critic: CreativeCriticProfile | None,
+    self_evaluation: SelfEvaluationProfile | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
@@ -1293,6 +1335,8 @@ def _next_actions(
         return (artifact_export_intelligence.hitl_questions[0],)
     if creative_critic is not None and creative_critic.hitl_questions:
         return (creative_critic.hitl_questions[0],)
+    if self_evaluation is not None and self_evaluation.hitl_questions:
+        return (self_evaluation.hitl_questions[0],)
     if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
@@ -1343,6 +1387,7 @@ def _evidence(
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
     creative_critic: CreativeCriticProfile | None,
+    self_evaluation: SelfEvaluationProfile | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -1520,6 +1565,12 @@ def _evidence(
             "Creative critic: "
             f"{creative_critic.risk_assessment} risk; "
             f"{creative_critic.critic_confidence:.2f} confidence."
+        )
+    if self_evaluation is not None:
+        evidence.append(
+            "Self evaluation: "
+            f"{self_evaluation.completeness_assessment}; "
+            f"{self_evaluation.self_evaluation_confidence:.2f} confidence."
         )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")

@@ -96,6 +96,9 @@ from creative_coding_assistant.orchestration.runtime_compatibility import (
     RuntimeCompatibilityProfile,
 )
 from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
+from creative_coding_assistant.orchestration.self_evaluation_engine import (
+    SelfEvaluationProfile,
+)
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -136,6 +139,7 @@ def build_evidence_chain(
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
     creative_critic: CreativeCriticProfile | None,
+    self_evaluation: SelfEvaluationProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -660,6 +664,28 @@ def build_evidence_chain(
                     "selecting runtimes, routing providers, changing previews, "
                     "triggering retries or refinement, runtime repair, "
                     "Studio Mode, or HoloMind."
+                ),
+            )
+        )
+    if self_evaluation is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="self_evaluation",
+                signal=_clip(
+                    (
+                        f"{self_evaluation.completeness_assessment}; "
+                        f"{self_evaluation.self_evaluation_confidence:.2f} confidence; "
+                        f"{len(self_evaluation.quality_gaps)} quality gaps"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Self evaluation evidence assesses alignment, coherence, "
+                    "completeness, risks, gaps, and HITL questions as advisory "
+                    "metadata only, without modifying outputs, rejecting "
+                    "answers, selecting runtimes, routing providers, changing "
+                    "previews, triggering retries, refinement, reflection "
+                    "loops, runtime repair, Studio Mode, or HoloMind."
                 ),
             )
         )

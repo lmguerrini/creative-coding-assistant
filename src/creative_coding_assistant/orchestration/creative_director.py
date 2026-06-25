@@ -98,6 +98,9 @@ from creative_coding_assistant.orchestration.runtime_compatibility import (
     RuntimeCompatibilityProfile,
 )
 from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
+from creative_coding_assistant.orchestration.self_evaluation_engine import (
+    SelfEvaluationProfile,
+)
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -171,6 +174,7 @@ def derive_creative_assistant_director_brief(
     artifact_merge_planner: ArtifactMergePlannerProfile | None = None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None = None,
     creative_critic: CreativeCriticProfile | None = None,
+    self_evaluation: SelfEvaluationProfile | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -213,6 +217,7 @@ def derive_creative_assistant_director_brief(
             artifact_merge_planner=artifact_merge_planner,
             artifact_export_intelligence=artifact_export_intelligence,
             creative_critic=creative_critic,
+            self_evaluation=self_evaluation,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
