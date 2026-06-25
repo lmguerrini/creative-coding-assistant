@@ -12,6 +12,11 @@ import {
   type ArtifactImplementationReadiness,
   type ArtifactImplementationRisk,
   type ArtifactIntelligenceSynthesisSummary,
+  type ArtifactIntelligenceEngineContractRegistrySummary,
+  type ArtifactIntelligenceEngineContractSummary,
+  type ArtifactEngineCacheability,
+  type ArtifactEngineCategory,
+  type ArtifactEngineParallelizationSupport,
   type ArtifactExportIntelligenceSummary,
   type ArtifactExportReadiness,
   type ArtifactMergePlannerSummary,
@@ -260,6 +265,8 @@ export type AssistantStreamWorkflowMetadata = {
   artifact_merge_planner_available?: boolean;
   artifact_export_intelligence?: ArtifactExportIntelligenceSummary | null;
   artifact_export_intelligence_available?: boolean;
+  artifact_engine_contracts?: ArtifactIntelligenceEngineContractRegistrySummary | null;
+  artifact_engine_contracts_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -776,6 +783,12 @@ export function readWorkflowMetadata(
   const artifactExportIntelligenceAvailable =
     rawWorkflow.artifact_export_intelligence_available === true ||
     artifactExportIntelligence !== null;
+  const artifactEngineContracts = readArtifactEngineContractRegistrySummary(
+    rawWorkflow.artifact_engine_contracts ?? rawWorkflow.artifactEngineContracts
+  );
+  const artifactEngineContractsAvailable =
+    rawWorkflow.artifact_engine_contracts_available === true ||
+    artifactEngineContracts !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -983,6 +996,12 @@ export function readWorkflowMetadata(
       ? {
           artifact_export_intelligence: artifactExportIntelligence,
           artifact_export_intelligence_available: true
+        }
+      : {}),
+    ...(artifactEngineContractsAvailable
+      ? {
+          artifact_engine_contracts: artifactEngineContracts,
+          artifact_engine_contracts_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -3031,6 +3050,278 @@ export function readArtifactExportIntelligenceSummary(
   };
 }
 
+export function readArtifactEngineContractRegistrySummary(
+  value: unknown
+): ArtifactIntelligenceEngineContractRegistrySummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const engineCategory = readStringUnion(
+    value,
+    "engine_category",
+    "engineCategory",
+    artifactEngineCategories
+  );
+  const serializationVersion =
+    readStringField(value, "serialization_version") ??
+    readStringField(value, "serializationVersion");
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+  const engineContracts = readArtifactEngineContractSummaryList(
+    value.engine_contracts ?? value.engineContracts
+  );
+  const engineIds = readStringListField(value, "engine_ids", "engineIds");
+  const contractCount =
+    readFiniteNumberField(value, "contract_count") ??
+    readFiniteNumberField(value, "contractCount");
+  const futureAgentConsumers = readStringListField(
+    value,
+    "future_agent_consumers",
+    "futureAgentConsumers"
+  );
+
+  if (
+    role !== "artifact_intelligence_engine_contract_registry" ||
+    engineCategory !== "artifact_intelligence" ||
+    serializationVersion !== "artifact_engine_contract_registry.v1" ||
+    !authorityBoundary ||
+    engineContracts.length === 0 ||
+    engineIds.length === 0 ||
+    contractCount === null ||
+    futureAgentConsumers.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    engineCategory,
+    serializationVersion,
+    authorityBoundary,
+    engineContracts,
+    engineIds,
+    contractCount,
+    futureAgentConsumers
+  };
+}
+
+function readArtifactEngineContractSummaryList(
+  value: unknown
+): ArtifactIntelligenceEngineContractSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    const contract = readArtifactEngineContractSummary(item);
+    return contract === null ? [] : [contract];
+  });
+}
+
+function readArtifactEngineContractSummary(
+  value: unknown
+): ArtifactIntelligenceEngineContractSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const engineId =
+    readStringField(value, "engine_id") ?? readStringField(value, "engineId");
+  const engineName =
+    readStringField(value, "engine_name") ?? readStringField(value, "engineName");
+  const engineVersion =
+    readStringField(value, "engine_version") ??
+    readStringField(value, "engineVersion");
+  const engineCategory = readStringUnion(
+    value,
+    "engine_category",
+    "engineCategory",
+    artifactEngineCategories
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+  const cacheability = readStringUnion(
+    value,
+    "cacheability",
+    "cacheability",
+    artifactEngineCacheabilityValues
+  );
+  const parallelizationSupport = readStringUnion(
+    value,
+    "parallelization_support",
+    "parallelizationSupport",
+    artifactEngineParallelizationSupportValues
+  );
+  const estimatedCostMetadata = readArtifactEngineCostMetadataSummary(
+    value.estimated_cost_metadata ?? value.estimatedCostMetadata
+  );
+  const estimatedLatencyMetadata = readArtifactEngineLatencyMetadataSummary(
+    value.estimated_latency_metadata ?? value.estimatedLatencyMetadata
+  );
+  const serializationVersion =
+    readStringField(value, "serialization_version") ??
+    readStringField(value, "serializationVersion");
+
+  if (
+    !engineId ||
+    !engineName ||
+    !engineVersion ||
+    engineCategory !== "artifact_intelligence" ||
+    !authorityBoundary ||
+    !cacheability ||
+    !parallelizationSupport ||
+    estimatedCostMetadata === null ||
+    estimatedLatencyMetadata === null ||
+    serializationVersion !== "artifact_engine_contract.v1"
+  ) {
+    return null;
+  }
+
+  return {
+    engineId,
+    engineName,
+    engineVersion,
+    engineCategory,
+    authorityBoundary,
+    requiredInputs: readStringListField(
+      value,
+      "required_inputs",
+      "requiredInputs"
+    ),
+    optionalInputs: readStringListField(
+      value,
+      "optional_inputs",
+      "optionalInputs"
+    ),
+    producedMetadata: readStringListField(
+      value,
+      "produced_metadata",
+      "producedMetadata"
+    ),
+    producedSignals: readStringListField(
+      value,
+      "produced_signals",
+      "producedSignals"
+    ),
+    confidenceSignals: readStringListField(
+      value,
+      "confidence_signals",
+      "confidenceSignals"
+    ),
+    ambiguitySignals: readStringListField(
+      value,
+      "ambiguity_signals",
+      "ambiguitySignals"
+    ),
+    riskSignals: readStringListField(value, "risk_signals", "riskSignals"),
+    escalationCandidates: readStringListField(
+      value,
+      "escalation_candidates",
+      "escalationCandidates"
+    ),
+    downstreamDependencies: readStringListField(
+      value,
+      "downstream_dependencies",
+      "downstreamDependencies"
+    ),
+    upstreamDependencies: readStringListField(
+      value,
+      "upstream_dependencies",
+      "upstreamDependencies"
+    ),
+    cacheability,
+    parallelizationSupport,
+    estimatedCostMetadata,
+    estimatedLatencyMetadata,
+    serializationVersion,
+    futureAgentHooks: readStringListField(
+      value,
+      "future_agent_hooks",
+      "futureAgentHooks"
+    ),
+    futureExecutionHooks: readStringListField(
+      value,
+      "future_execution_hooks",
+      "futureExecutionHooks"
+    )
+  };
+}
+
+function readArtifactEngineCostMetadataSummary(
+  value: unknown
+): ArtifactIntelligenceEngineContractSummary["estimatedCostMetadata"] | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const relativeCost = readStringUnion(
+    value,
+    "relative_cost",
+    "relativeCost",
+    artifactEngineCostValues
+  );
+  const externalProviderCalls =
+    readBooleanField(value, "external_provider_calls") ??
+    readBooleanField(value, "externalProviderCalls");
+  const costBasis =
+    readStringField(value, "cost_basis") ?? readStringField(value, "costBasis");
+  const cacheSensitivity =
+    readStringField(value, "cache_sensitivity") ??
+    readStringField(value, "cacheSensitivity");
+
+  if (
+    !relativeCost ||
+    externalProviderCalls === null ||
+    !costBasis ||
+    !cacheSensitivity
+  ) {
+    return null;
+  }
+
+  return {
+    relativeCost,
+    externalProviderCalls,
+    costBasis,
+    cacheSensitivity
+  };
+}
+
+function readArtifactEngineLatencyMetadataSummary(
+  value: unknown
+): ArtifactIntelligenceEngineContractSummary["estimatedLatencyMetadata"] | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const relativeLatency = readStringUnion(
+    value,
+    "relative_latency",
+    "relativeLatency",
+    artifactEngineLatencyValues
+  );
+  const latencyBasis =
+    readStringField(value, "latency_basis") ??
+    readStringField(value, "latencyBasis");
+
+  if (!relativeLatency || !latencyBasis) {
+    return null;
+  }
+
+  return {
+    relativeLatency,
+    latencyBasis,
+    blockingInputs: readStringListField(
+      value,
+      "blocking_inputs",
+      "blockingInputs"
+    )
+  };
+}
+
 function readArtifactCapabilityConfidenceSummaryList(
   value: unknown
 ): ArtifactCapabilityConfidenceSummary[] {
@@ -3283,6 +3574,24 @@ const artifactExportReadinessValues = [
   "blocked_by_missing_metadata",
   "defer_export"
 ] as const satisfies readonly ArtifactExportReadiness[];
+
+const artifactEngineCategories = [
+  "artifact_intelligence"
+] as const satisfies readonly ArtifactEngineCategory[];
+
+const artifactEngineCacheabilityValues = [
+  "deterministic_per_request",
+  "deterministic_with_upstream_metadata"
+] as const satisfies readonly ArtifactEngineCacheability[];
+
+const artifactEngineParallelizationSupportValues = [
+  "requires_ordered_upstream_metadata",
+  "parallel_after_required_inputs"
+] as const satisfies readonly ArtifactEngineParallelizationSupport[];
+
+const artifactEngineCostValues = ["low", "medium"] as const;
+
+const artifactEngineLatencyValues = ["low", "medium"] as const;
 
 const runtimeCapabilityComplexities = [
   "low",

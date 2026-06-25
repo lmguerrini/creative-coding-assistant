@@ -669,6 +669,65 @@ export type ArtifactExportIntelligenceSummary = {
   evidence: string[];
 };
 
+export type ArtifactEngineCategory = "artifact_intelligence";
+
+export type ArtifactEngineCacheability =
+  | "deterministic_per_request"
+  | "deterministic_with_upstream_metadata";
+
+export type ArtifactEngineParallelizationSupport =
+  | "requires_ordered_upstream_metadata"
+  | "parallel_after_required_inputs";
+
+export type ArtifactEngineCostMetadataSummary = {
+  relativeCost: "low" | "medium";
+  externalProviderCalls: boolean;
+  costBasis: string;
+  cacheSensitivity: string;
+};
+
+export type ArtifactEngineLatencyMetadataSummary = {
+  relativeLatency: "low" | "medium";
+  latencyBasis: string;
+  blockingInputs: string[];
+};
+
+export type ArtifactIntelligenceEngineContractSummary = {
+  engineId: string;
+  engineName: string;
+  engineVersion: string;
+  engineCategory: ArtifactEngineCategory;
+  authorityBoundary: string;
+  requiredInputs: string[];
+  optionalInputs: string[];
+  producedMetadata: string[];
+  producedSignals: string[];
+  confidenceSignals: string[];
+  ambiguitySignals: string[];
+  riskSignals: string[];
+  escalationCandidates: string[];
+  downstreamDependencies: string[];
+  upstreamDependencies: string[];
+  cacheability: ArtifactEngineCacheability;
+  parallelizationSupport: ArtifactEngineParallelizationSupport;
+  estimatedCostMetadata: ArtifactEngineCostMetadataSummary;
+  estimatedLatencyMetadata: ArtifactEngineLatencyMetadataSummary;
+  serializationVersion: "artifact_engine_contract.v1";
+  futureAgentHooks: string[];
+  futureExecutionHooks: string[];
+};
+
+export type ArtifactIntelligenceEngineContractRegistrySummary = {
+  role: "artifact_intelligence_engine_contract_registry";
+  engineCategory: ArtifactEngineCategory;
+  serializationVersion: "artifact_engine_contract_registry.v1";
+  authorityBoundary: string;
+  engineContracts: ArtifactIntelligenceEngineContractSummary[];
+  engineIds: string[];
+  contractCount: number;
+  futureAgentConsumers: string[];
+};
+
 export type CreativeTradeoffAxis =
   | "creative_expressiveness"
   | "concept_fidelity"

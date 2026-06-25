@@ -5,6 +5,7 @@ import {
   parseAssistantStreamLine,
   readArtifactCapabilityMatrixSummary,
   readArtifactCriticSummary,
+  readArtifactEngineContractRegistrySummary,
   readArtifactExportIntelligenceSummary,
   readArtifactIntelligenceSynthesisSummary,
   readArtifactMergePlannerSummary,
@@ -1635,6 +1636,72 @@ function artifactExportIntelligenceFixture() {
     authority_boundary:
       "The Artifact Export Intelligence engine recommends export paths only; it does not export files.",
     evidence: ["Capability export fit: moderate."]
+  };
+}
+
+function artifactEngineContractRegistryFixture() {
+  const engineContracts = [
+    "artifact_planner",
+    "artifact_dependency_graph",
+    "runtime_compatibility_engine",
+    "artifact_capability_matrix",
+    "multi_artifact_strategy",
+    "artifact_critic",
+    "artifact_refiner",
+    "artifact_intelligence_synthesis",
+    "artifact_merge_planner",
+    "artifact_export_intelligence"
+  ].map((engineId) => ({
+    engine_id: engineId,
+    engine_name: engineId.replaceAll("_", " "),
+    engine_version: "v3.3",
+    engine_category: "artifact_intelligence",
+    authority_boundary: "Metadata-only contract; no behavior changes.",
+    required_inputs: ["assistant_request"],
+    optional_inputs: ["route_decision"],
+    produced_metadata: [`${engineId}_metadata`],
+    produced_signals: ["prompt_guidance"],
+    confidence_signals: ["evidence"],
+    ambiguity_signals: ["hitl_questions"],
+    risk_signals: ["risks"],
+    escalation_candidates: ["hitl_questions"],
+    downstream_dependencies: [],
+    upstream_dependencies:
+      engineId === "artifact_export_intelligence"
+        ? ["artifact_merge_planner"]
+        : [],
+    cacheability: "deterministic_with_upstream_metadata",
+    parallelization_support: "requires_ordered_upstream_metadata",
+    estimated_cost_metadata: {
+      relative_cost: "low",
+      external_provider_calls: false,
+      cost_basis: "Local metadata derivation.",
+      cache_sensitivity: "Request and upstream metadata sensitive."
+    },
+    estimated_latency_metadata: {
+      relative_latency: "low",
+      latency_basis: "Bounded local metadata construction.",
+      blocking_inputs: ["assistant_request"]
+    },
+    serialization_version: "artifact_engine_contract.v1",
+    future_agent_hooks: ["v4_planner_agent_contract"],
+    future_execution_hooks: ["v5_execution_optimization_readiness"]
+  }));
+
+  return {
+    role: "artifact_intelligence_engine_contract_registry",
+    engine_category: "artifact_intelligence",
+    serialization_version: "artifact_engine_contract_registry.v1",
+    authority_boundary:
+      "Contracts describe metadata surfaces only; they do not change behavior.",
+    engine_contracts: engineContracts,
+    engine_ids: engineContracts.map((contract) => contract.engine_id),
+    contract_count: engineContracts.length,
+    future_agent_consumers: [
+      "v4_planner_agent",
+      "v4_artifact_agent",
+      "v4_runtime_agent"
+    ]
   };
 }
 
@@ -3331,6 +3398,38 @@ describe("assistant stream client", () => {
     expect(exportIntelligence?.runtimeExportNotes[0]).toContain("p5_js");
     expect(exportIntelligence?.rejectedExportPaths[0]).toContain("metadata-only");
     expect(exportIntelligence?.promptGuidance[0]).toContain("metadata-only");
+  });
+
+  it("reads artifact engine contract registry metadata", () => {
+    const registry = readArtifactEngineContractRegistrySummary(
+      artifactEngineContractRegistryFixture()
+    );
+
+    expect(registry?.role).toBe(
+      "artifact_intelligence_engine_contract_registry"
+    );
+    expect(registry?.serializationVersion).toBe(
+      "artifact_engine_contract_registry.v1"
+    );
+    expect(registry?.contractCount).toBe(10);
+    expect(registry?.engineIds).toContain("artifact_export_intelligence");
+    expect(registry?.engineContracts).toHaveLength(10);
+    expect(registry?.engineContracts[0]).toMatchObject({
+      engineId: "artifact_planner",
+      engineVersion: "v3.3",
+      engineCategory: "artifact_intelligence",
+      cacheability: "deterministic_with_upstream_metadata",
+      parallelizationSupport: "requires_ordered_upstream_metadata",
+      serializationVersion: "artifact_engine_contract.v1",
+      estimatedCostMetadata: {
+        relativeCost: "low",
+        externalProviderCalls: false
+      },
+      estimatedLatencyMetadata: {
+        relativeLatency: "low",
+        blockingInputs: ["assistant_request"]
+      }
+    });
   });
 
   it("reads creative trade-off explorer metadata", () => {
@@ -5047,6 +5146,54 @@ describe("assistant stream client", () => {
         ]
       },
       artifact_export_intelligence_available: true
+    });
+  });
+
+  it("hydrates artifact engine contract registry workflow metadata", () => {
+    const artifactEngineContracts = artifactEngineContractRegistryFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 26,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          artifact_engine_contracts: artifactEngineContracts,
+          artifact_engine_contracts_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      artifact_engine_contracts: {
+        role: "artifact_intelligence_engine_contract_registry",
+        contractCount: 10,
+        engineIds: expect.arrayContaining([
+          "artifact_planner",
+          "artifact_export_intelligence"
+        ]),
+        engineContracts: expect.arrayContaining([
+          expect.objectContaining({
+            engineId: "artifact_export_intelligence",
+            upstreamDependencies: ["artifact_merge_planner"]
+          })
+        ])
+      },
+      artifact_engine_contracts_available: true
     });
   });
 
