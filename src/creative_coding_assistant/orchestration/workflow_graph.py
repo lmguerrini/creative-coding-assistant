@@ -66,6 +66,9 @@ from creative_coding_assistant.orchestration.creative_constraint_priorities impo
 from creative_coding_assistant.orchestration.creative_constraints import (
     derive_creative_constraint_solution,
 )
+from creative_coding_assistant.orchestration.creative_critic_engine import (
+    derive_creative_critic_profile,
+)
 from creative_coding_assistant.orchestration.creative_director import (
     CreativeAssistantDirectorBrief,
     derive_creative_assistant_director_brief,
@@ -1014,6 +1017,39 @@ def _planning_node(
             artifact_merge_planner=artifact_merge_planner,
         )
         artifact_engine_contracts = artifact_intelligence_engine_contracts()
+        creative_critic = derive_creative_critic_profile(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_translation=prompt_input.creative_translation,
+            creative_intent=creative_intent,
+            creative_hierarchy=creative_hierarchy,
+            creative_plan=plan,
+            creative_constraints=constraints,
+            creative_constraint_priorities=constraint_priorities,
+            creative_strategy=strategy,
+            creative_techniques=techniques,
+            runtime_capabilities=runtime_capabilities,
+            creative_tradeoffs=tradeoffs,
+            creative_quality_prediction=quality_prediction,
+            symbolic_narrative=symbolic_narrative,
+            creative_composition=creative_composition,
+            procedural_structure=procedural_structure,
+            generative_structure=generative_structure,
+            semantic_motif=semantic_motif,
+            emotional_consistency=emotional_consistency,
+            cross_modality=cross_modality,
+            audio_visual_scene=audio_visual_scene,
+            artifact_plan=artifact_plan,
+            artifact_dependency_graph=artifact_dependency_graph,
+            runtime_compatibility=runtime_compatibility,
+            artifact_capability_matrix=artifact_capability_matrix,
+            multi_artifact_strategy=multi_artifact_strategy,
+            artifact_critic=artifact_critic,
+            artifact_refiner=artifact_refiner,
+            artifact_intelligence_synthesis=artifact_intelligence_synthesis,
+            artifact_merge_planner=artifact_merge_planner,
+            artifact_export_intelligence=artifact_export_intelligence,
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -1047,6 +1083,7 @@ def _planning_node(
                 "artifact_merge_planner": artifact_merge_planner,
                 "artifact_export_intelligence": artifact_export_intelligence,
                 "artifact_engine_contracts": artifact_engine_contracts,
+                "creative_critic": creative_critic,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -1082,6 +1119,7 @@ def _planning_node(
                 "artifact_merge_planner": artifact_merge_planner,
                 "artifact_export_intelligence": artifact_export_intelligence,
                 "artifact_engine_contracts": artifact_engine_contracts,
+                "creative_critic": creative_critic,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -1136,6 +1174,7 @@ def _planning_node(
                 artifact_engine_contracts=artifact_engine_contracts.model_dump(
                     mode="json"
                 ),
+                creative_critic=creative_critic.model_dump(mode="json"),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -2063,6 +2102,14 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "creative_critic",
+                    (
+                        final_state.creative_critic.model_dump(mode="json")
+                        if final_state.creative_critic is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_director",
                     (
                         final_state.creative_director.model_dump(mode="json")
@@ -2669,6 +2716,7 @@ def _derive_director_brief(
         ),
         artifact_merge_planner=workflow_state.artifact_merge_planner,
         artifact_export_intelligence=workflow_state.artifact_export_intelligence,
+        creative_critic=workflow_state.creative_critic,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2722,6 +2770,7 @@ def _derive_reasoning_result(
         ),
         artifact_merge_planner=workflow_state.artifact_merge_planner,
         artifact_export_intelligence=workflow_state.artifact_export_intelligence,
+        creative_critic=workflow_state.creative_critic,
     )
 
 
@@ -2966,6 +3015,7 @@ def _serialize_workflow_runtime(
     artifact_merge_planner = workflow_state.artifact_merge_planner
     artifact_export_intelligence = workflow_state.artifact_export_intelligence
     artifact_engine_contracts = workflow_state.artifact_engine_contracts
+    creative_critic = workflow_state.creative_critic
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -3191,6 +3241,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "artifact_engine_contracts_available": artifact_engine_contracts is not None,
+        "creative_critic": (
+            creative_critic.model_dump(mode="json")
+            if creative_critic is not None
+            else None
+        ),
+        "creative_critic_available": creative_critic is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None

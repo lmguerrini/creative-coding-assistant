@@ -41,6 +41,9 @@ from creative_coding_assistant.orchestration.creative_constraint_priorities impo
 from creative_coding_assistant.orchestration.creative_constraints import (
     CreativeConstraintSolution,
 )
+from creative_coding_assistant.orchestration.creative_critic_engine import (
+    CreativeCriticProfile,
+)
 from creative_coding_assistant.orchestration.creative_hierarchy import (
     CreativeHierarchyPlan,
 )
@@ -133,6 +136,7 @@ def build_director_brief_payload(
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
+    creative_critic: CreativeCriticProfile | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -164,6 +168,7 @@ def build_director_brief_payload(
         artifact_intelligence_synthesis=artifact_intelligence_synthesis,
         artifact_merge_planner=artifact_merge_planner,
         artifact_export_intelligence=artifact_export_intelligence,
+        creative_critic=creative_critic,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -210,6 +215,7 @@ def build_director_brief_payload(
             artifact_intelligence_synthesis,
             artifact_merge_planner,
             artifact_export_intelligence,
+            creative_critic,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -240,6 +246,7 @@ def build_director_brief_payload(
             artifact_intelligence_synthesis=artifact_intelligence_synthesis,
             artifact_merge_planner=artifact_merge_planner,
             artifact_export_intelligence=artifact_export_intelligence,
+            creative_critic=creative_critic,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -271,6 +278,7 @@ def build_director_brief_payload(
             artifact_intelligence_synthesis=artifact_intelligence_synthesis,
             artifact_merge_planner=artifact_merge_planner,
             artifact_export_intelligence=artifact_export_intelligence,
+            creative_critic=creative_critic,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -308,6 +316,7 @@ def build_director_brief_payload(
             artifact_intelligence_synthesis=artifact_intelligence_synthesis,
             artifact_merge_planner=artifact_merge_planner,
             artifact_export_intelligence=artifact_export_intelligence,
+            creative_critic=creative_critic,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -365,6 +374,7 @@ def _ambiguity_signals(
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
+    creative_critic: CreativeCriticProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -437,6 +447,10 @@ def _ambiguity_signals(
     if artifact_export_intelligence is not None:
         signals.extend(artifact_export_intelligence.hitl_questions[:1])
         signals.extend(artifact_export_intelligence.export_risks[:1])
+    if creative_critic is not None:
+        signals.extend(creative_critic.missing_information[:1])
+        signals.extend(creative_critic.creative_weaknesses[:1])
+        signals.extend(creative_critic.hitl_questions[:1])
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -498,6 +512,14 @@ def _artifact_export_intelligence_focus(
     )
 
 
+def _creative_critic_focus(profile: CreativeCriticProfile) -> str:
+    return (
+        "Creative critic: "
+        f"{profile.risk_assessment} risk; "
+        f"{profile.critic_confidence:.2f} confidence; metadata only."
+    )
+
+
 def _planning_focus(
     plan: CreativeExecutionPlan | None,
     creative_intent: CreativeIntentDecomposition | None,
@@ -527,6 +549,7 @@ def _planning_focus(
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
+    creative_critic: CreativeCriticProfile | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_intent is not None:
@@ -583,6 +606,8 @@ def _planning_focus(
             runtime_focus += _artifact_export_intelligence_focus(
                 artifact_export_intelligence
             )
+        if creative_critic is not None:
+            runtime_focus += " " + _creative_critic_focus(creative_critic)
         focus.append(runtime_focus)
         if (
             artifact_capability_matrix is None
@@ -627,6 +652,8 @@ def _planning_focus(
             capability_focus += _artifact_export_intelligence_focus(
                 artifact_export_intelligence
             )
+        if creative_critic is not None:
+            capability_focus += " " + _creative_critic_focus(creative_critic)
         focus.append(capability_focus)
         if (
             multi_artifact_strategy is None
@@ -664,6 +691,8 @@ def _planning_focus(
             strategy_focus += _artifact_export_intelligence_focus(
                 artifact_export_intelligence
             )
+        if creative_critic is not None:
+            strategy_focus += " " + _creative_critic_focus(creative_critic)
         focus.append(strategy_focus)
         if (
             artifact_critic is None
@@ -695,6 +724,8 @@ def _planning_focus(
             critic_focus += _artifact_export_intelligence_focus(
                 artifact_export_intelligence
             )
+        if creative_critic is not None:
+            critic_focus += " " + _creative_critic_focus(creative_critic)
         focus.append(critic_focus)
         if (
             artifact_refiner is None
@@ -765,6 +796,9 @@ def _planning_focus(
             "metadata only."
         )
         focus.extend(artifact_export_intelligence.prompt_guidance[:1])
+    if creative_critic is not None:
+        focus.append(_creative_critic_focus(creative_critic))
+        focus.extend(creative_critic.prompt_guidance[:1])
     if procedural_structure is not None:
         focus.append(
             "Procedural structure: "
@@ -907,6 +941,7 @@ def _critique_focus(
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
+    creative_critic: CreativeCriticProfile | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -1118,6 +1153,17 @@ def _critique_focus(
         )
         focus.extend(artifact_export_intelligence.export_risks[:1])
         focus.extend(artifact_export_intelligence.rejected_export_paths[:1])
+    if creative_critic is not None:
+        focus.append(
+            "Creative Critic Engine is metadata-only evaluation; compare output "
+            "against critic strengths, weaknesses, quality scores, risk "
+            "assessment, missing information, unsupported assumptions, and "
+            "HITL questions without modifying artifacts, rejecting outputs, "
+            "triggering retries or refinement, selecting runtimes, routing "
+            "providers, changing previews, executing, or repairing runtime "
+            "behavior."
+        )
+        focus.extend(creative_critic.creative_weaknesses[:2])
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -1181,6 +1227,7 @@ def _next_actions(
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
+    creative_critic: CreativeCriticProfile | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
@@ -1244,6 +1291,8 @@ def _next_actions(
         and artifact_export_intelligence.hitl_questions
     ):
         return (artifact_export_intelligence.hitl_questions[0],)
+    if creative_critic is not None and creative_critic.hitl_questions:
+        return (creative_critic.hitl_questions[0],)
     if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
@@ -1293,6 +1342,7 @@ def _evidence(
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
+    creative_critic: CreativeCriticProfile | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -1464,6 +1514,12 @@ def _evidence(
             f"{artifact_export_intelligence.export_readiness}; "
             f"{artifact_export_intelligence.export_confidence:.2f} confidence; "
             f"{artifact_export_intelligence.preferred_export_target} preferred."
+        )
+    if creative_critic is not None:
+        evidence.append(
+            "Creative critic: "
+            f"{creative_critic.risk_assessment} risk; "
+            f"{creative_critic.critic_confidence:.2f} confidence."
         )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")

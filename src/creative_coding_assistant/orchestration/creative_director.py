@@ -45,6 +45,9 @@ from creative_coding_assistant.orchestration.creative_constraint_priorities impo
 from creative_coding_assistant.orchestration.creative_constraints import (
     CreativeConstraintSolution,
 )
+from creative_coding_assistant.orchestration.creative_critic_engine import (
+    CreativeCriticProfile,
+)
 from creative_coding_assistant.orchestration.creative_director_signals import (
     build_director_brief_payload,
 )
@@ -167,6 +170,7 @@ def derive_creative_assistant_director_brief(
     ) = None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None = None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None = None,
+    creative_critic: CreativeCriticProfile | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -208,6 +212,7 @@ def derive_creative_assistant_director_brief(
             artifact_intelligence_synthesis=artifact_intelligence_synthesis,
             artifact_merge_planner=artifact_merge_planner,
             artifact_export_intelligence=artifact_export_intelligence,
+            creative_critic=creative_critic,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

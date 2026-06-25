@@ -60,6 +60,10 @@ from creative_coding_assistant.orchestration.creative_constraints import (
     CreativeConstraintSolution,
     creative_constraint_solution_prompt_lines,
 )
+from creative_coding_assistant.orchestration.creative_critic_engine import (
+    CreativeCriticProfile,
+    creative_critic_prompt_lines,
+)
 from creative_coding_assistant.orchestration.creative_director import (
     CreativeAssistantDirectorBrief,
     creative_assistant_director_prompt_lines,
@@ -402,6 +406,13 @@ Artifact Export Intelligence:
 - {{ instruction }}
 {% endfor %}
 {% endif %}
+{% set creative_critic = prompt_input.creative_critic -%}
+{% if creative_critic is not none -%}
+Creative Critic Engine:
+{% for instruction in creative_critic_lines(creative_critic) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
 {% set director = prompt_input.creative_director -%}
 {% if director is not none -%}
 Creative Assistant Director:
@@ -669,6 +680,7 @@ class JinjaPromptRenderer:
             artifact_export_intelligence_lines=(
                 _artifact_export_intelligence_lines
             ),
+            creative_critic_lines=_creative_critic_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -1001,6 +1013,12 @@ def _artifact_export_intelligence_lines(
     profile: ArtifactExportIntelligenceProfile,
 ) -> tuple[str, ...]:
     return artifact_export_intelligence_prompt_lines(profile)
+
+
+def _creative_critic_lines(
+    profile: CreativeCriticProfile,
+) -> tuple[str, ...]:
+    return creative_critic_prompt_lines(profile)
 
 
 def _creative_assistant_director_lines(

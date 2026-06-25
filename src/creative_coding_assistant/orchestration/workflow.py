@@ -53,6 +53,9 @@ from creative_coding_assistant.orchestration.creative_constraint_priorities impo
 from creative_coding_assistant.orchestration.creative_constraints import (
     CreativeConstraintSolution,
 )
+from creative_coding_assistant.orchestration.creative_critic_engine import (
+    CreativeCriticProfile,
+)
 from creative_coding_assistant.orchestration.creative_director import (
     CreativeAssistantDirectorBrief,
 )
@@ -238,6 +241,7 @@ class AssistantWorkflowState(BaseModel):
     artifact_merge_planner: ArtifactMergePlannerProfile | None = None
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None = None
     artifact_engine_contracts: ArtifactIntelligenceEngineContractRegistry | None = None
+    creative_critic: CreativeCriticProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     rendered_prompt: RenderedPromptResponse | None = None

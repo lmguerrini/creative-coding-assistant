@@ -37,6 +37,9 @@ from creative_coding_assistant.orchestration.creative_constraint_priorities impo
 from creative_coding_assistant.orchestration.creative_constraints import (
     CreativeConstraintSolution,
 )
+from creative_coding_assistant.orchestration.creative_critic_engine import (
+    CreativeCriticProfile,
+)
 from creative_coding_assistant.orchestration.creative_director import (
     CreativeAssistantDirectorBrief,
 )
@@ -132,6 +135,7 @@ def build_evidence_chain(
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
+    creative_critic: CreativeCriticProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -633,6 +637,29 @@ def build_evidence_chain(
                     "packaging, modifying, merging, executing, selecting "
                     "runtimes, deploying, routing, previewing, triggering "
                     "workflows, retrying, or escalating."
+                ),
+            )
+        )
+    if creative_critic is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="creative_critic",
+                signal=_clip(
+                    (
+                        f"{creative_critic.risk_assessment} risk; "
+                        f"{creative_critic.critic_confidence:.2f} confidence; "
+                        f"{len(creative_critic.creative_weaknesses)} weaknesses"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Creative critic evidence evaluates strengths, "
+                    "weaknesses, quality scores, risks, missing information, "
+                    "assumptions, and HITL questions as advisory metadata "
+                    "only, without modifying artifacts, rejecting outputs, "
+                    "selecting runtimes, routing providers, changing previews, "
+                    "triggering retries or refinement, runtime repair, "
+                    "Studio Mode, or HoloMind."
                 ),
             )
         )

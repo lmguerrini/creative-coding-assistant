@@ -21,6 +21,9 @@ _CREATIVE_STRATEGY = "creative_coding_assistant.orchestration.creative_strategy"
 _CREATIVE_TECHNIQUE = "creative_coding_assistant.orchestration.creative_technique"
 _CREATIVE_TRADEOFFS = "creative_coding_assistant.orchestration.creative_tradeoffs"
 _CREATIVE_REASONING = "creative_coding_assistant.orchestration.creative_reasoning"
+_CREATIVE_CRITIC_ENGINE = (
+    "creative_coding_assistant.orchestration.creative_critic_engine"
+)
 _ARTIFACT_PLANNER = "creative_coding_assistant.orchestration.artifact_planner"
 _ARTIFACT_DEPENDENCY_GRAPH = (
     "creative_coding_assistant.orchestration.artifact_dependency_graph"
@@ -240,6 +243,8 @@ _EXPORT_MAP = {
     "CreativeReasoningResult": _CREATIVE_REASONING,
     "CreativeReasoningStep": _CREATIVE_REASONING,
     "CreativeRejectedAlternative": _CREATIVE_REASONING,
+    "CreativeCriticProfile": _CREATIVE_CRITIC_ENGINE,
+    "CreativeCriticRiskAssessment": _CREATIVE_CRITIC_ENGINE,
     "RuntimeCapabilityCandidate": _RUNTIME_CAPABILITIES,
     "RuntimeCompatibilityAssessment": _RUNTIME_COMPATIBILITY,
     "RuntimeCompatibilityConfidence": _RUNTIME_COMPATIBILITY,
@@ -404,6 +409,8 @@ _EXPORT_MAP = {
     "symbolic_narrative_prompt_lines": _SYMBOLIC_NARRATIVE,
     "derive_creative_reasoning_result": _CREATIVE_REASONING,
     "creative_reasoning_prompt_lines": _CREATIVE_REASONING,
+    "derive_creative_critic_profile": _CREATIVE_CRITIC_ENGINE,
+    "creative_critic_prompt_lines": _CREATIVE_CRITIC_ENGINE,
     "derive_runtime_capability_profile": _RUNTIME_CAPABILITIES,
     "runtime_capability_prompt_lines": _RUNTIME_CAPABILITIES,
     "derive_runtime_compatibility_profile": _RUNTIME_COMPATIBILITY,

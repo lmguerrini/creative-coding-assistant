@@ -34,6 +34,9 @@ from creative_coding_assistant.orchestration.creative_composition import (
 from creative_coding_assistant.orchestration.creative_constraint_priorities import (
     CreativeConstraintPrioritization,
 )
+from creative_coding_assistant.orchestration.creative_critic_engine import (
+    CreativeCriticProfile,
+)
 from creative_coding_assistant.orchestration.creative_hierarchy import (
     CreativeHierarchyPlan,
 )
@@ -120,6 +123,7 @@ def build_recommended_direction(
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
+    creative_critic: CreativeCriticProfile | None,
 ) -> str:
     intent = (
         creative_intent.primary_expression
@@ -214,6 +218,11 @@ def build_recommended_direction(
         if artifact_export_intelligence is not None
         else ""
     )
+    creative_critic_clause = (
+        f"Creative critic as {_clip(_creative_critic_label(creative_critic), 90)}. "
+        if creative_critic is not None
+        else ""
+    )
     direction = (
         f"Recommend {_strategy_label(creative_strategy)} via "
         f"{_technique_label(creative_techniques)} because it protects "
@@ -232,6 +241,7 @@ def build_recommended_direction(
         f"{artifact_intelligence_synthesis_clause}"
         f"{artifact_merge_planner_clause}"
         f"{artifact_export_intelligence_clause}"
+        f"{creative_critic_clause}"
         f"{motif_clause}"
         f"{emotion_clause}"
         f"{modality_clause}"
@@ -280,6 +290,7 @@ def build_reasoning_path(
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
+    creative_critic: CreativeCriticProfile | None,
 ) -> tuple[CreativeReasoningStep, ...]:
     strategy = _strategy_label(creative_strategy)
     technique = _technique_label(creative_techniques)
@@ -290,6 +301,7 @@ def build_reasoning_path(
     export_intelligence_label = _artifact_export_intelligence_label(
         artifact_export_intelligence
     )
+    creative_critic_label = _creative_critic_label(creative_critic)
     return (
         CreativeReasoningStep(
             stage="strategy",
@@ -375,6 +387,8 @@ def build_reasoning_path(
                     f"{merge_planner_label}, "
                     "artifact export intelligence "
                     f"{export_intelligence_label}, "
+                    "creative critic "
+                    f"{creative_critic_label}, "
                     "plus "
                     f"{_quality_label(creative_quality_prediction)}."
                 ),
@@ -396,7 +410,7 @@ def build_reasoning_path(
                     "capability matrix and multi-artifact strategy metadata "
                     "plus artifact critic, artifact refiner, and artifact "
                     "intelligence synthesis, merge planner, and export "
-                    "intelligence metadata as "
+                    "intelligence metadata plus Creative Critic metadata as "
                     "guidance, not runtime behavior, runtime auto-selection, "
                     "provider routing, artifact generation, artifact "
                     "modification, final implementation choice, automatic "
@@ -669,6 +683,16 @@ def _artifact_export_intelligence_label(
         f"{profile.export_confidence:.2f} confidence, "
         f"{profile.preferred_export_target} preferred, "
         f"{len(profile.export_risks)} export risks"
+    )
+
+
+def _creative_critic_label(profile: CreativeCriticProfile | None) -> str:
+    if profile is None:
+        return "no creative critic profile"
+    return (
+        f"{profile.risk_assessment} risk, "
+        f"{profile.critic_confidence:.2f} confidence, "
+        f"{len(profile.creative_weaknesses)} weakness signals"
     )
 
 

@@ -38,6 +38,9 @@ from creative_coding_assistant.orchestration.creative_constraint_priorities impo
 from creative_coding_assistant.orchestration.creative_constraints import (
     CreativeConstraintSolution,
 )
+from creative_coding_assistant.orchestration.creative_critic_engine import (
+    CreativeCriticProfile,
+)
 from creative_coding_assistant.orchestration.creative_director import (
     CreativeAssistantDirectorBrief,
 )
@@ -126,6 +129,7 @@ def build_strongest_signals(
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
+    creative_critic: CreativeCriticProfile | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -293,6 +297,13 @@ def build_strongest_signals(
             f"{artifact_export_intelligence.export_confidence:.2f} confidence; "
             f"{artifact_export_intelligence.preferred_export_target} preferred."
         )
+    if creative_critic is not None:
+        signals.append(
+            "Creative critic: "
+            f"{creative_critic.risk_assessment} risk; "
+            f"{creative_critic.critic_confidence:.2f} confidence; "
+            f"{len(creative_critic.creative_weaknesses)} weakness signals."
+        )
     if creative_constraints is not None:
         signals.append(
             f"Constraints: complexity {creative_constraints.complexity_pressure}, "
@@ -395,6 +406,7 @@ def build_unresolved_decisions(
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
+    creative_critic: CreativeCriticProfile | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -477,6 +489,10 @@ def build_unresolved_decisions(
         unresolved.extend(artifact_export_intelligence.hitl_questions[:3])
         unresolved.extend(artifact_export_intelligence.export_risks[:2])
         unresolved.extend(artifact_export_intelligence.export_constraints[:1])
+    if creative_critic is not None:
+        unresolved.extend(creative_critic.hitl_questions[:3])
+        unresolved.extend(creative_critic.missing_information[:2])
+        unresolved.extend(creative_critic.unsupported_assumptions[:1])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -515,6 +531,7 @@ def build_implementation_guidance(
     artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None,
     artifact_merge_planner: ArtifactMergePlannerProfile | None,
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
+    creative_critic: CreativeCriticProfile | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -684,6 +701,15 @@ def build_implementation_guidance(
             "generation, artifact modification, artifact merging, final "
             "runtime choice, execution, deployment, provider routing, preview "
             "behavior, workflow triggering, retry behavior, or escalation."
+        )
+    if creative_critic is not None:
+        guidance.extend(creative_critic.prompt_guidance[:2])
+        guidance.extend(creative_critic.improvement_opportunities[:2])
+        guidance.append(
+            "Preserve Creative Critic metadata as advisory evaluation only, "
+            "not artifact modification, output rejection, runtime selection, "
+            "provider routing, preview behavior, retry behavior, refinement, "
+            "runtime repair, Studio Mode, or HoloMind."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",
