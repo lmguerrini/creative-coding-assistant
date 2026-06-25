@@ -29,6 +29,9 @@ from creative_coding_assistant.orchestration.artifact_critique import (
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     derive_artifact_dependency_graph,
 )
+from creative_coding_assistant.orchestration.artifact_engine_contracts import (
+    artifact_intelligence_engine_contracts,
+)
 from creative_coding_assistant.orchestration.artifact_export_intelligence import (
     derive_artifact_export_intelligence_profile,
 )
@@ -1010,6 +1013,7 @@ def _planning_node(
             artifact_intelligence_synthesis=artifact_intelligence_synthesis,
             artifact_merge_planner=artifact_merge_planner,
         )
+        artifact_engine_contracts = artifact_intelligence_engine_contracts()
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -1042,6 +1046,7 @@ def _planning_node(
                 ),
                 "artifact_merge_planner": artifact_merge_planner,
                 "artifact_export_intelligence": artifact_export_intelligence,
+                "artifact_engine_contracts": artifact_engine_contracts,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -1076,6 +1081,7 @@ def _planning_node(
                 ),
                 "artifact_merge_planner": artifact_merge_planner,
                 "artifact_export_intelligence": artifact_export_intelligence,
+                "artifact_engine_contracts": artifact_engine_contracts,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -1126,6 +1132,9 @@ def _planning_node(
                 ),
                 artifact_export_intelligence=(
                     artifact_export_intelligence.model_dump(mode="json")
+                ),
+                artifact_engine_contracts=artifact_engine_contracts.model_dump(
+                    mode="json"
                 ),
             ),
             workflow_state=planned_state,
@@ -2044,6 +2053,16 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "artifact_engine_contracts",
+                    (
+                        final_state.artifact_engine_contracts.model_dump(
+                            mode="json"
+                        )
+                        if final_state.artifact_engine_contracts is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_director",
                     (
                         final_state.creative_director.model_dump(mode="json")
@@ -2946,6 +2965,7 @@ def _serialize_workflow_runtime(
     )
     artifact_merge_planner = workflow_state.artifact_merge_planner
     artifact_export_intelligence = workflow_state.artifact_export_intelligence
+    artifact_engine_contracts = workflow_state.artifact_engine_contracts
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -3165,6 +3185,12 @@ def _serialize_workflow_runtime(
         "artifact_export_intelligence_available": (
             artifact_export_intelligence is not None
         ),
+        "artifact_engine_contracts": (
+            artifact_engine_contracts.model_dump(mode="json")
+            if artifact_engine_contracts is not None
+            else None
+        ),
+        "artifact_engine_contracts_available": artifact_engine_contracts is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None

@@ -23,6 +23,9 @@ from creative_coding_assistant.orchestration.artifact_critic import (
 from creative_coding_assistant.orchestration.artifact_dependency_graph import (
     ArtifactDependencyGraph,
 )
+from creative_coding_assistant.orchestration.artifact_engine_contracts import (
+    ArtifactIntelligenceEngineContractRegistry,
+)
 from creative_coding_assistant.orchestration.artifact_export_intelligence import (
     ArtifactExportIntelligenceProfile,
 )
@@ -379,6 +382,7 @@ class PromptInputResponse(BaseModel):
     ) = None
     artifact_merge_planner: ArtifactMergePlannerProfile | None = None
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None = None
+    artifact_engine_contracts: ArtifactIntelligenceEngineContractRegistry | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None

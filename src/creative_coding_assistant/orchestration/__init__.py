@@ -25,6 +25,9 @@ _ARTIFACT_PLANNER = "creative_coding_assistant.orchestration.artifact_planner"
 _ARTIFACT_DEPENDENCY_GRAPH = (
     "creative_coding_assistant.orchestration.artifact_dependency_graph"
 )
+_ARTIFACT_ENGINE_CONTRACTS = (
+    "creative_coding_assistant.orchestration.artifact_engine_contracts"
+)
 _RUNTIME_COMPATIBILITY = (
     "creative_coding_assistant.orchestration.runtime_compatibility"
 )
@@ -107,6 +110,10 @@ _EXPORT_MAP = {
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
+    "ArtifactEngineCostMetadata": _ARTIFACT_ENGINE_CONTRACTS,
+    "ArtifactEngineLatencyMetadata": _ARTIFACT_ENGINE_CONTRACTS,
+    "ArtifactIntelligenceEngineContract": _ARTIFACT_ENGINE_CONTRACTS,
+    "ArtifactIntelligenceEngineContractRegistry": _ARTIFACT_ENGINE_CONTRACTS,
     "ArtifactCapabilityConfidence": _ARTIFACT_CAPABILITY_MATRIX,
     "ArtifactCapabilityFit": _ARTIFACT_CAPABILITY_MATRIX,
     "ArtifactCapabilityMatrix": _ARTIFACT_CAPABILITY_MATRIX,
@@ -367,6 +374,8 @@ _EXPORT_MAP = {
     "audio_visual_scene_prompt_lines": _AUDIO_VISUAL_SCENE,
     "artifact_dependency_graph_prompt_lines": _ARTIFACT_DEPENDENCY_GRAPH,
     "derive_artifact_dependency_graph": _ARTIFACT_DEPENDENCY_GRAPH,
+    "artifact_intelligence_engine_contract_by_id": _ARTIFACT_ENGINE_CONTRACTS,
+    "artifact_intelligence_engine_contracts": _ARTIFACT_ENGINE_CONTRACTS,
     "artifact_capability_matrix_prompt_lines": _ARTIFACT_CAPABILITY_MATRIX,
     "derive_artifact_capability_matrix": _ARTIFACT_CAPABILITY_MATRIX,
     "derive_multi_artifact_strategy": _MULTI_ARTIFACT_STRATEGY,
