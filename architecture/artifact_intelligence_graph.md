@@ -28,10 +28,11 @@ It is the dense companion to:
 - Artifact Engine Contracts are intentionally not rendered into provider prompt
   text; the artifact profile sections are rendered, while the registry remains
   metadata-only.
-- V3.3 remains metadata guidance, not artifact execution, export execution,
-  runtime auto-selection, provider/model routing, preview changes, runtime
-  repair, or autonomous retries.
-- V4, V5, and V6 consumers are future extension points only.
+- V3.3 remains metadata-only guidance. It does not execute artifacts, modify
+  artifacts, export artifacts, select runtimes, change provider routing, change
+  previews, trigger retries, or implement future V4/V5/V6 systems.
+- V4 Agentic Studio, V5 Execution Optimization & Production Intelligence, and
+  V6 HoloGenesis Core OS consumers are future extension points only.
 
 ```mermaid
 flowchart LR
@@ -105,7 +106,7 @@ The raw Mermaid source for this detailed dependency view is available in
 | `Artifact Intelligence Synthesis` | `request`, `route_decision`, `artifact_plan`, `artifact_dependency_graph`, `runtime_compatibility`, `artifact_capability_matrix`, `multi_artifact_strategy`, `artifact_critic`, `artifact_refiner` | `artifact_intelligence_synthesis` | `Artifact Merge Planner`, `Artifact Export Intelligence`, metadata store |
 | `Artifact Merge Planner` | `request`, `route_decision`, `artifact_plan`, `artifact_dependency_graph`, `runtime_compatibility`, `artifact_capability_matrix`, `multi_artifact_strategy`, `artifact_critic`, `artifact_refiner`, `artifact_intelligence_synthesis` | `artifact_merge_planner` | `Artifact Export Intelligence`, metadata store |
 | `Artifact Export Intelligence` | `request`, `route_decision`, `artifact_plan`, `artifact_dependency_graph`, `runtime_compatibility`, `artifact_capability_matrix`, `multi_artifact_strategy`, `artifact_critic`, `artifact_refiner`, `artifact_intelligence_synthesis`, `artifact_merge_planner` | `artifact_export_intelligence` | metadata store, Director, Reasoning, prompt rendering, workflow serialization, stream hydration |
-| `Artifact Engine Contracts` | static contract registry for the ten Artifact Intelligence engines | `artifact_engine_contracts` | metadata store, workflow serialization, stream hydration, future V4/V5/V6 consumers |
+| `Artifact Engine Contracts` | static contract registry for the ten Artifact Intelligence engines | `artifact_engine_contracts` | metadata store, workflow serialization, stream hydration, future V4 Agentic Studio / V5 Execution Optimization & Production Intelligence / V6 HoloGenesis Core OS consumers |
 
 ## Downstream Consumption
 

@@ -443,6 +443,12 @@ Conservative insertion points:
   `artifact_intelligence_graph.*` are the current blueprint for any future V4
   split into smaller nodes or agents
 
+Roadmap sequencing after V3.3 remains V3.4 Creative Evaluation, V3.5 Creative
+Workstation, V3.6 Stabilization & Refactor Pass, V4 Agentic Studio, V5
+Execution Optimization & Production Intelligence, and V6 HoloGenesis Core OS.
+Those increments are future work and are not implemented by the current runtime
+graph.
+
 ## Known Limits In The Current Runtime
 
 - Route selection does not currently alter graph control flow

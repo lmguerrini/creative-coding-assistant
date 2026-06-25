@@ -35,9 +35,9 @@ It documents the deterministic capability flow implemented inside:
   single `planning` runtime node; they are not separate LangGraph nodes
 - The serpentine layout does not imply separate LangGraph runtime nodes,
   branching semantics, changed provider routing, or changed preview behavior
-- V3.3 remains metadata and artifact guidance, not code generation execution,
-  export execution, runtime mutation, provider routing, retries, or preview
-  behavior changes
+- V3.3 remains metadata-only artifact guidance. It does not execute artifacts,
+  modify artifacts, export artifacts, select runtimes, change provider routing,
+  change previews, trigger retries, or implement future V4/V5/V6 systems
 
 ```mermaid
 flowchart TB
@@ -182,11 +182,15 @@ The raw Mermaid source for this readable pipeline is available in
 - This separation keeps the runtime graph truthful, the pipeline readable, and
   the dense dependency reference inspectable
 
-## Future V4 Fit
+## Future Roadmap Fit
 
 - The cognition spine remains a strong candidate for future interpretation,
   planning, and feasibility sub-agents
 - The V3.2 Generative Design Core and V3.3 Artifact Intelligence stack are
   staged as coherent downstream layers and natural decomposition seams for
-  future V4 work
+  future V4 Agentic Studio work
+- V3.4 Creative Evaluation, V3.5 Creative Workstation, and V3.6 Stabilization
+  & Refactor Pass remain future increments after V3.3
+- V5 Execution Optimization & Production Intelligence and V6 HoloGenesis Core
+  OS remain future architecture directions, not implemented runtime systems
 - The current pipeline is still synchronous and bounded; it is a future V4 multi-agent blueprint, not an implemented multi-agent runtime

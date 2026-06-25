@@ -49,6 +49,14 @@ CAPABILITY_CLOSEOUT_STEPS = (
     "Create Version Tag",
     "Merge & Push",
 )
+ROADMAP_MARKERS = (
+    "V3.4: Creative Evaluation",
+    "V3.5: Creative Workstation",
+    "V3.6: Stabilization & Refactor Pass",
+    "V4: Agentic Studio",
+    "V5: Execution Optimization & Production Intelligence",
+    "V6: HoloGenesis Core OS",
+)
 
 
 class WorkflowDocumentationAlignmentTests(unittest.TestCase):
@@ -60,6 +68,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
 
     def test_readme_covers_v33_docs_closeout_and_roadmap(self) -> None:
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+        normalized_readme = re.sub(r"\s+", " ", readme)
 
         self.assertIn("V3.3 AI-native creative translation", readme)
         self.assertIn("feature/artifact-intelligence", readme)
@@ -77,6 +86,9 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         for step in CAPABILITY_CLOSEOUT_STEPS:
             self.assertIn(step, readme)
 
+        for roadmap_marker in ROADMAP_MARKERS:
+            self.assertIn(roadmap_marker, readme)
+
         self.assertIn(
             "ChatGPT is architect, planner, and reviewer of Junie reports.",
             readme,
@@ -84,12 +96,9 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("Codex is the implementation tool.", readme)
         self.assertIn("Junie is the independent engineering reviewer.", readme)
         self.assertIn("Git and GitHub are the delivery source of truth.", readme)
-        self.assertIn("V4: Agentic Studio", readme)
-        self.assertIn(
-            "V5: Execution Optimization & Production Intelligence",
-            readme,
-        )
-        self.assertIn("V6: Learning & Evolution", readme)
+        self.assertIn("metadata-only", readme)
+        self.assertIn("modify artifacts", normalized_readme)
+        self.assertIn("select runtimes", normalized_readme)
 
     def test_architecture_doc_node_order_matches_backend_node_order(self) -> None:
         architecture_doc = (
@@ -229,12 +238,19 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         for version_marker in (
             "V3.1",
             "V3.2",
+            "V3.3",
+            "V3.4",
+            "Creative Evaluation",
+            "V3.5",
+            "Creative Workstation",
+            "V3.6",
+            "Stabilization & Refactor Pass",
             "V4",
             "Agentic Studio",
             "V5",
             "Execution Optimization & Production Intelligence",
             "V6",
-            "Learning & Evolution",
+            "HoloGenesis Core OS",
         ):
             self.assertIn(version_marker, engine_matrix)
 

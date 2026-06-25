@@ -208,9 +208,9 @@ logic.
 These V3.3 capabilities are internal metadata/artifact-guidance layers. They
 enrich workflow state, prompt input metadata, Director, Reasoning, rendered
 artifact profile sections, final payload serialization, and Next.js stream
-hydration. They do not export files, generate packages, execute artifacts,
-select final runtimes, route providers or models, trigger retries, alter
-previews, or implement future V4/V5/V6 systems.
+hydration. They are metadata-only: they do not execute artifacts, modify
+artifacts, export artifacts, select runtimes, change provider routing, change
+previews, trigger retries, or implement future V4/V5/V6 systems.
 
 ### Creative Core
 
@@ -549,6 +549,12 @@ undifferentiated milestone.
 - `v3.1.0`: Creative Cognition Core
 - `v3.2.0`: Generative Design Core
 - `v3.3.0`: Artifact Intelligence
+- `v3.4.0`: Creative Evaluation
+- `v3.5.0`: Creative Workstation
+- `v3.6.0`: Stabilization & Refactor Pass
+- `V4`: Agentic Studio
+- `V5`: Execution Optimization & Production Intelligence
+- `V6`: HoloGenesis Core OS
 
 ### V3.3.0 Status
 
@@ -593,14 +599,16 @@ lifecycle:
 ### Roadmap Through V6
 
 - V3: Creative Intelligence, Generative Design, and Artifact Intelligence
-  continuation
+- V3.4: Creative Evaluation
+- V3.5: Creative Workstation
+- V3.6: Stabilization & Refactor Pass
 - V4: Agentic Studio
 - V5: Execution Optimization & Production Intelligence
-- V6: Learning & Evolution
+- V6: HoloGenesis Core OS
 
 ### Continuing Direction
 
-- close `v3.3.0` cleanly before opening a larger new increment
+- close `v3.3.0` cleanly before opening V3.4 Creative Evaluation
 - keep the runtime graph truthful instead of mapping every internal helper to a
   public runtime node
 - keep using bounded internal creative-intelligence and generative-design
