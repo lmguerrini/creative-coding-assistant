@@ -778,18 +778,18 @@ def build_evidence_chain(
                     (
                         f"{creative_score.score_band} band; "
                         f"{creative_score.overall_creative_score:.1f}/100; "
+                        f"{len(creative_score.score_components)} components; "
                         f"{creative_score.risk_penalty:.1f} risk penalty; "
                         f"{creative_score.uncertainty_penalty:.1f} uncertainty penalty"
                     ),
                     240,
                 ),
                 interpretation=(
-                    "Creative Score evidence synthesizes evaluation metadata "
-                    "into advisory scores, penalties, strengths, weaknesses, "
-                    "rationale, and HITL recommendation only, without "
-                    "changing outputs, modifying artifacts, triggering "
-                    "refinement or retries, routing, runtime selection, "
-                    "preview changes, V4 agents, or V5 optimization."
+                    "Creative Score evidence explains calibrated components, "
+                    "penalties, rationale, formula, and HITL posture as "
+                    "advisory metadata only, without changing outputs, "
+                    "editing artifacts, retrying, routing, selecting runtime, "
+                    "previewing, or invoking V4/V5 agents."
                 ),
             )
         )

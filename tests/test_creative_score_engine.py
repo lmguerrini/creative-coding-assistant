@@ -43,8 +43,44 @@ class CreativeScoreEngineTests(unittest.TestCase):
         self.assertIn(score.score_band, {"strong", "excellent"})
         self.assertEqual(score.hitl_recommendation, "not_needed")
         self.assertEqual(len(score.score_breakdown), 6)
+        self.assertTrue(score.score_components)
+        self.assertTrue(score.positive_contributions)
+        self.assertTrue(score.score_calibration_notes)
+        self.assertIn("Final score = bounded", score.score_explainability)
         self.assertIn("does not modify outputs", score.authority_boundary)
         self.assertTrue(creative_score_prompt_lines(score))
+
+    def test_exposes_score_composition_and_calibration_metadata(self) -> None:
+        stack = _stack("Generate a calibrated p5.js mandala score.")
+        critic = _high_quality_critic(stack)
+        evaluation = _high_quality_evaluation(stack, critic=critic)
+        planner = _planner(stack, critic, evaluation)
+        reflection = _reflection(stack, critic, evaluation, planner)
+        confidence = _confidence(stack, critic, evaluation, planner, reflection)
+        score = _score(stack, critic, evaluation, planner, reflection, confidence)
+
+        sources = {item.source for item in score.score_components}
+        self.assertIn("creative_critic", sources)
+        self.assertIn("self_evaluation", sources)
+        self.assertIn("creative_confidence", sources)
+        self.assertAlmostEqual(
+            sum(item.weight for item in score.score_components),
+            1.0,
+            places=2,
+        )
+        self.assertTrue(
+            all(item.weighted_contribution >= 0 for item in score.score_components)
+        )
+        self.assertGreater(score.consistency_weight, 0)
+        self.assertGreater(score.artifact_weight, 0)
+        self.assertGreater(score.runtime_weight, 0)
+        self.assertGreater(score.reflection_weight, 0)
+        self.assertTrue(score.positive_contributions)
+        self.assertTrue(score.score_calibration_notes)
+        self.assertTrue(
+            any("confidence weight" in item.lower() for item in score.score_calibration_notes)
+        )
+        self.assertIn("uncertainty penalty", score.score_explainability)
 
     def test_derives_low_score_from_high_risk_metadata(self) -> None:
         stack = _stack("Generate a fragile artifact with unsupported claims.")
@@ -152,6 +188,11 @@ class CreativeScoreEngineTests(unittest.TestCase):
         score = _score(stack, critic, evaluation, planner, reflection, confidence)
 
         self.assertGreaterEqual(score.uncertainty_penalty, 8)
+        self.assertTrue(score.negative_contributions)
+        self.assertTrue(
+            any("uncertainty penalty" in item.lower() for item in score.negative_contributions),
+            score.negative_contributions,
+        )
         self.assertIn(
             score.hitl_recommendation,
             {"optional", "recommended", "required"},
@@ -257,6 +298,8 @@ class CreativeScoreEngineTests(unittest.TestCase):
 
         self.assertIn("Creative Score Engine:", system)
         self.assertIn("Overall creative score:", system)
+        self.assertIn("Score explainability:", system)
+        self.assertIn("Score component:", system)
         self.assertTrue(
             any("Creative score:" in item for item in director.planning_focus),
             director.planning_focus,
@@ -294,6 +337,10 @@ class CreativeScoreEngineTests(unittest.TestCase):
         final_score = final_event.payload["creative_score"]
 
         self.assertEqual(planning_score["role"], "creative_score_engine")
+        self.assertTrue(planning_score["score_components"])
+        self.assertTrue(planning_score["positive_contributions"])
+        self.assertTrue(planning_score["score_calibration_notes"])
+        self.assertIn("Final score = bounded", planning_score["score_explainability"])
         self.assertTrue(planning_event.payload["workflow"]["creative_score_available"])
         self.assertEqual(
             planning_event.payload["workflow"]["creative_score"],

@@ -66,6 +66,19 @@ class CreativeScoreBreakdownItem(BaseModel):
     evidence: tuple[str, ...] = Field(default_factory=tuple, max_length=4)
 
 
+class CreativeScoreComponent(BaseModel):
+    """One source-level contribution to score calibration."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    source: ScoreSignalSource
+    score: float = Field(ge=0, le=100)
+    weight: float = Field(gt=0, le=1)
+    weighted_contribution: float = Field(ge=0, le=100)
+    rationale: str = Field(min_length=1, max_length=420)
+    evidence: tuple[str, ...] = Field(default_factory=tuple, max_length=4)
+
+
 class CreativeScoreProfile(BaseModel):
     """Inspectable aggregate score derived from evaluation metadata."""
 
@@ -80,6 +93,10 @@ class CreativeScoreProfile(BaseModel):
         min_length=6,
         max_length=6,
     )
+    score_components: tuple[CreativeScoreComponent, ...] = Field(
+        min_length=1,
+        max_length=8,
+    )
     creativity_score: float = Field(ge=0, le=100)
     technical_score: float = Field(ge=0, le=100)
     coherence_score: float = Field(ge=0, le=100)
@@ -87,11 +104,25 @@ class CreativeScoreProfile(BaseModel):
     artifact_score: float = Field(ge=0, le=100)
     runtime_score: float = Field(ge=0, le=100)
     confidence_weight: float = Field(ge=0, le=1)
+    reflection_weight: float = Field(ge=0, le=1)
+    consistency_weight: float = Field(ge=0, le=1)
+    artifact_weight: float = Field(ge=0, le=1)
+    runtime_weight: float = Field(ge=0, le=1)
     uncertainty_penalty: float = Field(ge=0, le=30)
     risk_penalty: float = Field(ge=0, le=30)
+    positive_contributions: tuple[str, ...] = Field(
+        default_factory=tuple,
+        max_length=8,
+    )
+    negative_contributions: tuple[str, ...] = Field(
+        default_factory=tuple,
+        max_length=8,
+    )
     strengths: tuple[str, ...] = Field(default_factory=tuple, max_length=8)
     weaknesses: tuple[str, ...] = Field(default_factory=tuple, max_length=8)
     score_rationale: tuple[str, ...] = Field(min_length=1, max_length=8)
+    score_calibration_notes: tuple[str, ...] = Field(min_length=1, max_length=8)
+    score_explainability: str = Field(min_length=1, max_length=720)
     score_evidence: tuple[str, ...] = Field(min_length=1, max_length=16)
     hitl_recommendation: ExpectedHumanReviewNeed
     prompt_guidance: tuple[str, ...] = Field(min_length=1, max_length=8)
@@ -150,6 +181,15 @@ def derive_creative_score_profile(
     weighted_dimension_score = sum(
         item.score * item.weight for item in breakdown
     ) / sum(item.weight for item in breakdown)
+    score_components = _score_components(
+        weighted_dimension_score=weighted_dimension_score,
+        planning_metadata=planning_metadata,
+        creative_critic=creative_critic,
+        self_evaluation=self_evaluation,
+        creative_improvement_planner=creative_improvement_planner,
+        reflection_loop=reflection_loop,
+        creative_confidence=creative_confidence,
+    )
     overall = _bounded_percent(
         weighted_dimension_score * confidence_weight
         - uncertainty_penalty
@@ -176,6 +216,7 @@ def derive_creative_score_profile(
             hitl=hitl,
         ),
         score_breakdown=breakdown,
+        score_components=score_components,
         creativity_score=raw_scores["creativity"],
         technical_score=raw_scores["technical"],
         coherence_score=raw_scores["coherence"],
@@ -183,8 +224,25 @@ def derive_creative_score_profile(
         artifact_score=raw_scores["artifact"],
         runtime_score=raw_scores["runtime"],
         confidence_weight=confidence_weight,
+        reflection_weight=_reflection_weight(reflection_loop),
+        consistency_weight=_dimension_weight(breakdown, "coherence"),
+        artifact_weight=_dimension_weight(breakdown, "artifact"),
+        runtime_weight=_dimension_weight(breakdown, "runtime"),
         uncertainty_penalty=uncertainty_penalty,
         risk_penalty=risk_penalty,
+        positive_contributions=_positive_contributions(
+            breakdown=breakdown,
+            score_components=score_components,
+            confidence_weight=confidence_weight,
+            uncertainty_penalty=uncertainty_penalty,
+            risk_penalty=risk_penalty,
+        ),
+        negative_contributions=_negative_contributions(
+            breakdown=breakdown,
+            uncertainty_penalty=uncertainty_penalty,
+            risk_penalty=risk_penalty,
+            creative_confidence=creative_confidence,
+        ),
         strengths=_score_strengths(
             breakdown=breakdown,
             creative_critic=creative_critic,
@@ -204,6 +262,20 @@ def derive_creative_score_profile(
             confidence_weight=confidence_weight,
             uncertainty_penalty=uncertainty_penalty,
             risk_penalty=risk_penalty,
+        ),
+        score_calibration_notes=_score_calibration_notes(
+            weighted_dimension_score=weighted_dimension_score,
+            confidence_weight=confidence_weight,
+            uncertainty_penalty=uncertainty_penalty,
+            risk_penalty=risk_penalty,
+            overall_score=overall,
+        ),
+        score_explainability=_score_explainability(
+            weighted_dimension_score=weighted_dimension_score,
+            confidence_weight=confidence_weight,
+            uncertainty_penalty=uncertainty_penalty,
+            risk_penalty=risk_penalty,
+            overall_score=overall,
         ),
         score_evidence=_score_evidence(
             request=request,
@@ -235,8 +307,13 @@ def creative_score_prompt_lines(profile: CreativeScoreProfile) -> tuple[str, ...
         f"Score band: {profile.score_band}.",
         f"Score summary: {profile.score_summary}",
         f"Confidence weight: {profile.confidence_weight:.2f}.",
+        f"Reflection weight: {profile.reflection_weight:.2f}.",
+        f"Consistency weight: {profile.consistency_weight:.2f}.",
+        f"Artifact weight: {profile.artifact_weight:.2f}.",
+        f"Runtime weight: {profile.runtime_weight:.2f}.",
         f"Uncertainty penalty: {profile.uncertainty_penalty:.1f}.",
         f"Risk penalty: {profile.risk_penalty:.1f}.",
+        f"Score explainability: {profile.score_explainability}",
         f"HITL recommendation: {profile.hitl_recommendation}.",
     ]
     lines.extend(
@@ -246,6 +323,27 @@ def creative_score_prompt_lines(profile: CreativeScoreProfile) -> tuple[str, ...
             f"{item.weight:.2f} weight; {item.rationale}"
         )
         for item in profile.score_breakdown
+    )
+    lines.extend(
+        (
+            "Score component: "
+            f"{item.source}; {item.score:.1f}/100; "
+            f"{item.weight:.2f} weight; "
+            f"{item.weighted_contribution:.1f} contribution; {item.rationale}"
+        )
+        for item in profile.score_components
+    )
+    lines.extend(
+        f"Positive score contribution: {item}"
+        for item in profile.positive_contributions
+    )
+    lines.extend(
+        f"Negative score contribution: {item}"
+        for item in profile.negative_contributions
+    )
+    lines.extend(
+        f"Score calibration note: {item}"
+        for item in profile.score_calibration_notes
     )
     lines.extend(f"Score strength: {item}" for item in profile.strengths)
     lines.extend(f"Score weakness: {item}" for item in profile.weaknesses)
@@ -481,6 +579,248 @@ def _score_breakdown(
     )
 
 
+def _score_components(
+    *,
+    weighted_dimension_score: float,
+    planning_metadata: Sequence[object],
+    creative_critic: CreativeCriticProfile | None,
+    self_evaluation: SelfEvaluationProfile | None,
+    creative_improvement_planner: CreativeImprovementPlannerProfile | None,
+    reflection_loop: ReflectionLoopProfile | None,
+    creative_confidence: CreativeConfidenceProfile | None,
+) -> tuple[CreativeScoreComponent, ...]:
+    raw_components: list[
+        tuple[ScoreSignalSource, float, float, str, tuple[str, ...]]
+    ] = []
+    if creative_critic is not None:
+        raw_components.append(
+            (
+                "creative_critic",
+                _critic_average(
+                    creative_critic,
+                    "concept_quality",
+                    "execution_quality",
+                    "artifact_quality",
+                    "coherence_quality",
+                    "runtime_fit_quality",
+                    "originality_quality",
+                    "clarity_quality",
+                    "feasibility_quality",
+                )
+                or weighted_dimension_score,
+                0.28,
+                "Creative Critic contributes quality, risk, and feasibility signals.",
+                (creative_critic.critique_summary,),
+            )
+        )
+    if self_evaluation is not None:
+        raw_components.append(
+            (
+                "self_evaluation",
+                _self_average(
+                    self_evaluation,
+                    "request_alignment",
+                    "intent_alignment",
+                    "constraint_alignment",
+                    "artifact_alignment",
+                    "runtime_alignment",
+                    "creative_coherence",
+                    "technical_coherence",
+                )
+                or weighted_dimension_score,
+                0.26,
+                "Self Evaluation contributes alignment, coherence, and completeness signals.",
+                (self_evaluation.evaluation_summary,),
+            )
+        )
+    if creative_confidence is not None:
+        raw_components.append(
+            (
+                "creative_confidence",
+                creative_confidence.confidence_score * 100,
+                0.16,
+                "Creative Confidence calibrates score reliability and uncertainty.",
+                (creative_confidence.confidence_summary,),
+            )
+        )
+    if reflection_loop is not None:
+        raw_components.append(
+            (
+                "reflection_loop",
+                _reflection_readiness_score(reflection_loop)
+                or weighted_dimension_score,
+                0.10,
+                "Reflection Loop contributes advisory reflection pressure.",
+                (reflection_loop.reflection_summary,),
+            )
+        )
+    if creative_improvement_planner is not None:
+        raw_components.append(
+            (
+                "creative_improvement_planner",
+                _improvement_readiness_score(creative_improvement_planner)
+                or weighted_dimension_score,
+                0.10,
+                "Creative Improvement Planner contributes improvement pressure.",
+                (creative_improvement_planner.improvement_summary,),
+            )
+        )
+    if planning_metadata:
+        raw_components.append(
+            (
+                "planning_metadata",
+                _planning_metadata_score(planning_metadata),
+                0.10,
+                "Planning metadata contributes upstream readiness and confidence signals.",
+                (f"{len(planning_metadata)} planning metadata object(s) included.",),
+            )
+        )
+    if not raw_components:
+        raw_components.append(
+            (
+                "planning_metadata",
+                weighted_dimension_score,
+                1.0,
+                "Fallback composition uses weighted dimension score.",
+                ("No source-specific evaluation metadata was available.",),
+            )
+        )
+
+    total_weight = sum(item[2] for item in raw_components)
+    return tuple(
+        CreativeScoreComponent(
+            source=source,
+            score=_bounded_percent(score),
+            weight=round(weight / total_weight, 3),
+            weighted_contribution=round(
+                _bounded_percent(score) * (weight / total_weight),
+                1,
+            ),
+            rationale=rationale,
+            evidence=evidence,
+        )
+        for source, score, weight, rationale, evidence in raw_components
+    )
+
+
+def _reflection_weight(profile: ReflectionLoopProfile | None) -> float:
+    return 0.10 if profile is not None else 0.0
+
+
+def _dimension_weight(
+    breakdown: tuple[CreativeScoreBreakdownItem, ...],
+    dimension: ScoreDimension,
+) -> float:
+    for item in breakdown:
+        if item.dimension == dimension:
+            return item.weight
+    return 0.0
+
+
+def _positive_contributions(
+    *,
+    breakdown: tuple[CreativeScoreBreakdownItem, ...],
+    score_components: tuple[CreativeScoreComponent, ...],
+    confidence_weight: float,
+    uncertainty_penalty: float,
+    risk_penalty: float,
+) -> tuple[str, ...]:
+    contributions: list[str] = [
+        (
+            f"{item.source} contributes {item.weighted_contribution:.1f} "
+            f"weighted points from a {item.score:.1f}/100 source score."
+        )
+        for item in sorted(
+            score_components,
+            key=lambda value: value.weighted_contribution,
+            reverse=True,
+        )[:3]
+    ]
+    contributions.extend(
+        (
+            f"{item.dimension} dimension supports the score at "
+            f"{item.score:.1f}/100 with {item.weight:.2f} weight."
+        )
+        for item in sorted(breakdown, key=lambda value: value.score, reverse=True)[:2]
+        if item.score >= 75
+    )
+    if confidence_weight >= 0.95:
+        contributions.append(
+            f"Confidence weight preserves most of the base score at {confidence_weight:.2f}."
+        )
+    if uncertainty_penalty == 0:
+        contributions.append("No uncertainty penalty was applied.")
+    if risk_penalty == 0:
+        contributions.append("No risk penalty was applied.")
+    return tuple(_dedupe(contributions)[:8])
+
+
+def _negative_contributions(
+    *,
+    breakdown: tuple[CreativeScoreBreakdownItem, ...],
+    uncertainty_penalty: float,
+    risk_penalty: float,
+    creative_confidence: CreativeConfidenceProfile | None,
+) -> tuple[str, ...]:
+    contributions: list[str] = []
+    contributions.extend(
+        (
+            f"{item.dimension} dimension constrains the score at "
+            f"{item.score:.1f}/100."
+        )
+        for item in sorted(breakdown, key=lambda value: value.score)[:2]
+        if item.score < 75
+    )
+    if uncertainty_penalty > 0:
+        contributions.append(
+            f"Uncertainty penalty subtracts {uncertainty_penalty:.1f} points."
+        )
+    if risk_penalty > 0:
+        contributions.append(f"Risk penalty subtracts {risk_penalty:.1f} points.")
+    if creative_confidence is not None and creative_confidence.confidence_uncertainties:
+        contributions.extend(creative_confidence.confidence_uncertainties[:2])
+    return tuple(_dedupe(contributions)[:8])
+
+
+def _score_calibration_notes(
+    *,
+    weighted_dimension_score: float,
+    confidence_weight: float,
+    uncertainty_penalty: float,
+    risk_penalty: float,
+    overall_score: float,
+) -> tuple[str, ...]:
+    return (
+        f"Weighted dimension base score: {weighted_dimension_score:.1f}/100.",
+        f"Confidence weight multiplies base score by {confidence_weight:.2f}.",
+        f"Uncertainty penalty subtracts {uncertainty_penalty:.1f} points.",
+        f"Risk penalty subtracts {risk_penalty:.1f} points.",
+        f"Final bounded score after calibration: {overall_score:.1f}/100.",
+        "Calibration is metadata-only and cannot trigger execution changes.",
+    )
+
+
+def _score_explainability(
+    *,
+    weighted_dimension_score: float,
+    confidence_weight: float,
+    uncertainty_penalty: float,
+    risk_penalty: float,
+    overall_score: float,
+) -> str:
+    return _clip(
+        (
+            "Final score = bounded("
+            f"{weighted_dimension_score:.1f} weighted dimension base * "
+            f"{confidence_weight:.2f} confidence weight - "
+            f"{uncertainty_penalty:.1f} uncertainty penalty - "
+            f"{risk_penalty:.1f} risk penalty) = "
+            f"{overall_score:.1f}/100."
+        ),
+        720,
+    )
+
+
 def _confidence_weight(profile: CreativeConfidenceProfile | None) -> float:
     if profile is None:
         return 0.9
@@ -645,7 +985,8 @@ def _score_summary(
             f"metadata into a {score_band} score ({overall_score:.1f}/100) "
             f"with confidence weight {confidence_weight:.2f}, uncertainty "
             f"penalty {uncertainty_penalty:.1f}, risk penalty {risk_penalty:.1f}, "
-            f"and HITL recommendation {hitl}. This score is advisory metadata "
+            "and explicit source composition. "
+            f"HITL recommendation is {hitl}. This score is advisory metadata "
             "only and does not change outputs, retries, refinement, routing, "
             "runtime selection, previews, or future agent behavior."
         ),

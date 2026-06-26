@@ -640,6 +640,7 @@ def _creative_score_focus(profile: CreativeScoreProfile) -> str:
         "Creative score: "
         f"{profile.score_band} band; "
         f"{profile.overall_creative_score:.1f}/100; "
+        f"{profile.confidence_weight:.2f} confidence weight; "
         f"{profile.hitl_recommendation} HITL; metadata only."
     )
 
@@ -1385,13 +1386,14 @@ def _critique_focus(
     if creative_score is not None:
         focus.append(
             "Creative Score Engine is metadata-only advisory guidance; compare "
-            "overall score, score breakdown, penalties, strengths, weaknesses, "
+            "overall score, score components, score breakdown, calibration "
+            "notes, explainability formula, penalties, strengths, weaknesses, "
             "rationale, evidence, and HITL recommendation without changing "
             "outputs, modifying artifacts, triggering refinement or retries, "
             "changing routing, selecting runtimes, altering previews, or "
             "invoking V4 agents."
         )
-        focus.extend(creative_score.weaknesses[:2])
+        focus.extend(creative_score.negative_contributions[:2])
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -1813,6 +1815,7 @@ def _evidence(
             "Creative score: "
             f"{creative_score.score_band} band; "
             f"{creative_score.overall_creative_score:.1f}/100; "
+            f"{len(creative_score.score_components)} components; "
             f"{creative_score.hitl_recommendation} HITL."
         )
     if retrieval_chunk_count:

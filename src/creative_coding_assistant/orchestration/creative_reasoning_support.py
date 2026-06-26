@@ -356,6 +356,7 @@ def build_strongest_signals(
             "Creative score: "
             f"{creative_score.score_band} band; "
             f"{creative_score.overall_creative_score:.1f}/100; "
+            f"{len(creative_score.score_components)} components; "
             f"{creative_score.hitl_recommendation} HITL."
         )
     if creative_constraints is not None:
@@ -576,7 +577,7 @@ def build_unresolved_decisions(
             unresolved.append(
                 "Creative Score recommends human review before treating score as settled."
             )
-        unresolved.extend(creative_score.weaknesses[:2])
+        unresolved.extend(creative_score.negative_contributions[:2])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -841,7 +842,8 @@ def build_implementation_guidance(
         )
     if creative_score is not None:
         guidance.extend(creative_score.prompt_guidance[:2])
-        guidance.extend(creative_score.weaknesses[:1])
+        guidance.extend(creative_score.score_calibration_notes[:2])
+        guidance.extend(creative_score.negative_contributions[:1])
         guidance.append(
             "Preserve Creative Score metadata as advisory score context only, "
             "not output changes, artifact edits, refinement, retries, routing, "
