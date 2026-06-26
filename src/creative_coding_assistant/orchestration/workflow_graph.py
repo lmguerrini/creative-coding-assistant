@@ -76,6 +76,9 @@ from creative_coding_assistant.orchestration.creative_director import (
 from creative_coding_assistant.orchestration.creative_hierarchy import (
     derive_creative_hierarchy_plan,
 )
+from creative_coding_assistant.orchestration.creative_improvement_planner import (
+    derive_creative_improvement_planner_profile,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     derive_creative_intent_decomposition,
 )
@@ -1087,6 +1090,14 @@ def _planning_node(
             artifact_export_intelligence=artifact_export_intelligence,
             creative_critic=creative_critic,
         )
+        creative_improvement_planner = (
+            derive_creative_improvement_planner_profile(
+                request=workflow_state.request,
+                route_decision=workflow_state.route_decision,
+                creative_critic=creative_critic,
+                self_evaluation=self_evaluation,
+            )
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -1122,6 +1133,7 @@ def _planning_node(
                 "artifact_engine_contracts": artifact_engine_contracts,
                 "creative_critic": creative_critic,
                 "self_evaluation": self_evaluation,
+                "creative_improvement_planner": creative_improvement_planner,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -1159,6 +1171,9 @@ def _planning_node(
                 "artifact_engine_contracts": artifact_engine_contracts,
                 "creative_critic": creative_critic,
                 "self_evaluation": self_evaluation,
+                "creative_improvement_planner": (
+                    creative_improvement_planner
+                ),
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -1215,6 +1230,9 @@ def _planning_node(
                 ),
                 creative_critic=creative_critic.model_dump(mode="json"),
                 self_evaluation=self_evaluation.model_dump(mode="json"),
+                creative_improvement_planner=(
+                    creative_improvement_planner.model_dump(mode="json")
+                ),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -1853,9 +1871,23 @@ def _finalization_node(
             workflow_state,
             generated_response=answer,
         )
+        evaluation_state = workflow_state.model_copy(
+            update={"self_evaluation": self_evaluation}
+        )
+        creative_improvement_planner = (
+            _derive_creative_improvement_planner_result(
+                evaluation_state,
+                generated_response=answer,
+            )
+        )
         evaluated_prompt_input = (
             workflow_state.prompt_input.model_copy(
-                update={"self_evaluation": self_evaluation}
+                update={
+                    "self_evaluation": self_evaluation,
+                    "creative_improvement_planner": (
+                        creative_improvement_planner
+                    ),
+                }
             )
             if workflow_state.prompt_input is not None
             else None
@@ -1863,6 +1895,9 @@ def _finalization_node(
         evaluated_state = workflow_state.model_copy(
             update={
                 "self_evaluation": self_evaluation,
+                "creative_improvement_planner": (
+                    creative_improvement_planner
+                ),
                 "prompt_input": evaluated_prompt_input,
             }
         )
@@ -2192,6 +2227,16 @@ def _finalization_node(
                     (
                         final_state.self_evaluation.model_dump(mode="json")
                         if final_state.self_evaluation is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
+                    "creative_improvement_planner",
+                    (
+                        final_state.creative_improvement_planner.model_dump(
+                            mode="json"
+                        )
+                        if final_state.creative_improvement_planner is not None
                         else None
                     ),
                 ),
@@ -2804,6 +2849,9 @@ def _derive_director_brief(
         artifact_export_intelligence=workflow_state.artifact_export_intelligence,
         creative_critic=workflow_state.creative_critic,
         self_evaluation=workflow_state.self_evaluation,
+        creative_improvement_planner=(
+            workflow_state.creative_improvement_planner
+        ),
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2859,6 +2907,9 @@ def _derive_reasoning_result(
         artifact_export_intelligence=workflow_state.artifact_export_intelligence,
         creative_critic=workflow_state.creative_critic,
         self_evaluation=workflow_state.self_evaluation,
+        creative_improvement_planner=(
+            workflow_state.creative_improvement_planner
+        ),
     )
 
 
@@ -2905,6 +2956,21 @@ def _derive_self_evaluation_result(
         artifact_merge_planner=workflow_state.artifact_merge_planner,
         artifact_export_intelligence=workflow_state.artifact_export_intelligence,
         creative_critic=workflow_state.creative_critic,
+        generated_response=generated_response,
+        artifacts=workflow_state.artifacts,
+    )
+
+
+def _derive_creative_improvement_planner_result(
+    workflow_state: AssistantWorkflowState,
+    *,
+    generated_response: str | None = None,
+):
+    return derive_creative_improvement_planner_profile(
+        request=workflow_state.request,
+        route_decision=workflow_state.route_decision,
+        creative_critic=workflow_state.creative_critic,
+        self_evaluation=workflow_state.self_evaluation,
         generated_response=generated_response,
         artifacts=workflow_state.artifacts,
     )
@@ -3153,6 +3219,7 @@ def _serialize_workflow_runtime(
     artifact_engine_contracts = workflow_state.artifact_engine_contracts
     creative_critic = workflow_state.creative_critic
     self_evaluation = workflow_state.self_evaluation
+    creative_improvement_planner = workflow_state.creative_improvement_planner
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -3390,6 +3457,14 @@ def _serialize_workflow_runtime(
             else None
         ),
         "self_evaluation_available": self_evaluation is not None,
+        "creative_improvement_planner": (
+            creative_improvement_planner.model_dump(mode="json")
+            if creative_improvement_planner is not None
+            else None
+        ),
+        "creative_improvement_planner_available": (
+            creative_improvement_planner is not None
+        ),
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None

@@ -27,6 +27,9 @@ _CREATIVE_CRITIC_ENGINE = (
 _SELF_EVALUATION_ENGINE = (
     "creative_coding_assistant.orchestration.self_evaluation_engine"
 )
+_CREATIVE_IMPROVEMENT_PLANNER = (
+    "creative_coding_assistant.orchestration.creative_improvement_planner"
+)
 _ARTIFACT_PLANNER = "creative_coding_assistant.orchestration.artifact_planner"
 _ARTIFACT_DEPENDENCY_GRAPH = (
     "creative_coding_assistant.orchestration.artifact_dependency_graph"
@@ -416,6 +419,12 @@ _EXPORT_MAP = {
     "creative_critic_prompt_lines": _CREATIVE_CRITIC_ENGINE,
     "derive_self_evaluation_profile": _SELF_EVALUATION_ENGINE,
     "self_evaluation_prompt_lines": _SELF_EVALUATION_ENGINE,
+    "derive_creative_improvement_planner_profile": (
+        _CREATIVE_IMPROVEMENT_PLANNER
+    ),
+    "creative_improvement_planner_prompt_lines": (
+        _CREATIVE_IMPROVEMENT_PLANNER
+    ),
     "derive_runtime_capability_profile": _RUNTIME_CAPABILITIES,
     "runtime_capability_prompt_lines": _RUNTIME_CAPABILITIES,
     "derive_runtime_compatibility_profile": _RUNTIME_COMPATIBILITY,

@@ -47,6 +47,9 @@ from creative_coding_assistant.orchestration.creative_director import (
 from creative_coding_assistant.orchestration.creative_hierarchy import (
     CreativeHierarchyPlan,
 )
+from creative_coding_assistant.orchestration.creative_improvement_planner import (
+    CreativeImprovementPlannerProfile,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     CreativeIntentDecomposition,
 )
@@ -134,6 +137,7 @@ def build_strongest_signals(
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
+    creative_improvement_planner: CreativeImprovementPlannerProfile | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -315,6 +319,12 @@ def build_strongest_signals(
             f"{self_evaluation.self_evaluation_confidence:.2f} confidence; "
             f"{len(self_evaluation.quality_gaps)} quality gaps."
         )
+    if creative_improvement_planner is not None:
+        signals.append(
+            "Creative improvement planner: "
+            f"{len(creative_improvement_planner.improvement_priorities)} priorities; "
+            f"{creative_improvement_planner.confidence:.2f} confidence."
+        )
     if creative_constraints is not None:
         signals.append(
             f"Constraints: complexity {creative_constraints.complexity_pressure}, "
@@ -419,6 +429,7 @@ def build_unresolved_decisions(
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
+    creative_improvement_planner: CreativeImprovementPlannerProfile | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -509,6 +520,11 @@ def build_unresolved_decisions(
         unresolved.extend(self_evaluation.hitl_questions[:3])
         unresolved.extend(self_evaluation.missing_information[:2])
         unresolved.extend(self_evaluation.unsupported_assumptions[:1])
+    if creative_improvement_planner is not None:
+        unresolved.extend(creative_improvement_planner.hitl_questions[:3])
+        unresolved.extend(
+            creative_improvement_planner.future_refinement_candidates[:2]
+        )
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -549,6 +565,7 @@ def build_implementation_guidance(
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
+    creative_improvement_planner: CreativeImprovementPlannerProfile | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -736,6 +753,17 @@ def build_implementation_guidance(
             "not output modification, answer rejection, runtime selection, "
             "provider routing, preview behavior, retry behavior, refinement, "
             "reflection loops, runtime repair, Studio Mode, or HoloMind."
+        )
+    if creative_improvement_planner is not None:
+        guidance.extend(creative_improvement_planner.prompt_guidance[:2])
+        guidance.extend(
+            creative_improvement_planner.highest_impact_opportunities[:2]
+        )
+        guidance.append(
+            "Preserve Creative Improvement Planner metadata as advisory "
+            "improvement guidance only, not artifact edits, retries, provider "
+            "routing, runtime selection, preview changes, workflow loops, or "
+            "V4 agent behavior."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

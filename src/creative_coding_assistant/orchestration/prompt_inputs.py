@@ -65,6 +65,9 @@ from creative_coding_assistant.orchestration.creative_director import (
 from creative_coding_assistant.orchestration.creative_hierarchy import (
     CreativeHierarchyPlan,
 )
+from creative_coding_assistant.orchestration.creative_improvement_planner import (
+    CreativeImprovementPlannerProfile,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     CreativeIntentDecomposition,
 )
@@ -391,6 +394,7 @@ class PromptInputResponse(BaseModel):
     artifact_engine_contracts: ArtifactIntelligenceEngineContractRegistry | None = None
     creative_critic: CreativeCriticProfile | None = None
     self_evaluation: SelfEvaluationProfile | None = None
+    creative_improvement_planner: CreativeImprovementPlannerProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None

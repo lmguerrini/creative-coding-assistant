@@ -46,6 +46,9 @@ from creative_coding_assistant.orchestration.creative_director import (
 from creative_coding_assistant.orchestration.creative_hierarchy import (
     CreativeHierarchyPlan,
 )
+from creative_coding_assistant.orchestration.creative_improvement_planner import (
+    CreativeImprovementPlannerProfile,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     CreativeIntentDecomposition,
 )
@@ -140,6 +143,7 @@ def build_evidence_chain(
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None,
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
+    creative_improvement_planner: CreativeImprovementPlannerProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -686,6 +690,27 @@ def build_evidence_chain(
                     "answers, selecting runtimes, routing providers, changing "
                     "previews, triggering retries, refinement, reflection "
                     "loops, runtime repair, Studio Mode, or HoloMind."
+                ),
+            )
+        )
+    if creative_improvement_planner is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="creative_improvement_planner",
+                signal=_clip(
+                    (
+                        f"{len(creative_improvement_planner.improvement_priorities)} "
+                        "priorities; "
+                        f"{creative_improvement_planner.confidence:.2f} confidence"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Creative improvement planner evidence converts critic "
+                    "and self-evaluation results into advisory priorities, "
+                    "opportunities, trade-offs, future candidates, and HITL "
+                    "questions without editing artifacts, retrying, routing, "
+                    "selecting runtimes, changing previews, or triggering loops."
                 ),
             )
         )

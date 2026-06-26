@@ -72,6 +72,10 @@ from creative_coding_assistant.orchestration.creative_hierarchy import (
     CreativeHierarchyPlan,
     creative_hierarchy_plan_prompt_lines,
 )
+from creative_coding_assistant.orchestration.creative_improvement_planner import (
+    CreativeImprovementPlannerProfile,
+    creative_improvement_planner_prompt_lines,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     CreativeIntentDecomposition,
     creative_intent_decomposition_prompt_lines,
@@ -424,6 +428,13 @@ Self Evaluation Engine:
 - {{ instruction }}
 {% endfor %}
 {% endif %}
+{% set improvement_planner = prompt_input.creative_improvement_planner -%}
+{% if improvement_planner is not none -%}
+Creative Improvement Planner:
+{% for instruction in creative_improvement_planner_lines(improvement_planner) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
 {% set director = prompt_input.creative_director -%}
 {% if director is not none -%}
 Creative Assistant Director:
@@ -693,6 +704,9 @@ class JinjaPromptRenderer:
             ),
             creative_critic_lines=_creative_critic_lines,
             self_evaluation_lines=_self_evaluation_lines,
+            creative_improvement_planner_lines=(
+                _creative_improvement_planner_lines
+            ),
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -1037,6 +1051,12 @@ def _self_evaluation_lines(
     profile: SelfEvaluationProfile,
 ) -> tuple[str, ...]:
     return self_evaluation_prompt_lines(profile)
+
+
+def _creative_improvement_planner_lines(
+    profile: CreativeImprovementPlannerProfile,
+) -> tuple[str, ...]:
+    return creative_improvement_planner_prompt_lines(profile)
 
 
 def _creative_assistant_director_lines(

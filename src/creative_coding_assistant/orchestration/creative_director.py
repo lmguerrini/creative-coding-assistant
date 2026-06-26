@@ -54,6 +54,9 @@ from creative_coding_assistant.orchestration.creative_director_signals import (
 from creative_coding_assistant.orchestration.creative_hierarchy import (
     CreativeHierarchyPlan,
 )
+from creative_coding_assistant.orchestration.creative_improvement_planner import (
+    CreativeImprovementPlannerProfile,
+)
 from creative_coding_assistant.orchestration.creative_intent import (
     CreativeIntentDecomposition,
 )
@@ -175,6 +178,9 @@ def derive_creative_assistant_director_brief(
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None = None,
     creative_critic: CreativeCriticProfile | None = None,
     self_evaluation: SelfEvaluationProfile | None = None,
+    creative_improvement_planner: (
+        CreativeImprovementPlannerProfile | None
+    ) = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -218,6 +224,7 @@ def derive_creative_assistant_director_brief(
             artifact_export_intelligence=artifact_export_intelligence,
             creative_critic=creative_critic,
             self_evaluation=self_evaluation,
+            creative_improvement_planner=creative_improvement_planner,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
