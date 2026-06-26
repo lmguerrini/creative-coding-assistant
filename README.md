@@ -1,6 +1,6 @@
 # Creative Coding Assistant
 
-Creative Coding Assistant is a V3.4 AI-native creative translation
+Creative Coding Assistant is a V3.5 AI-native creative translation
 workstation designed to transform symbolic, conceptual, geometric, stylistic,
 and multimodal intent into professional audio, visual, and audiovisual
 creative systems.
@@ -8,9 +8,12 @@ creative systems.
 It combines a LangGraph-orchestrated Python backend with a Next.js workstation
 for the full V2.5 Creative Core, the V3.1 Creative Cognition Core, the V3.2
 Generative Design Core, the V3.3 Artifact Intelligence stack, and the V3.4
-Creative Evaluation layer, plus multi-artifact generation, multi-preview
-comparison, controlled runtime preview, critique and scoring, parameter
-control, observability, validation, and export preparation.
+Creative Evaluation layer. V3.5 adds the Creative Workstation surface layer:
+workstation state, session intelligence, workflow exploration, provenance,
+creative timeline, V3 inspector panels, dashboard summaries, and surface
+contracts over existing metadata. The product also includes multi-artifact
+generation, multi-preview comparison, controlled runtime preview, critique and
+scoring, parameter control, observability, validation, and export preparation.
 
 The current product scope is a creative coding platform rather than a generic
 chat assistant. Requests can be translated from intent, symbols, geometry,
@@ -35,6 +38,9 @@ same interface.
   cross-modality, scene design, artifact planning, compatibility, critique,
   refinement, merge planning, export intelligence, confidence, scoring,
   consistency validation, reports, and engine contracts
+- V3.5 Creative Workstation surfaces for shared workstation state, session
+  intelligence, workflow exploration, provenance, creative timeline, V3
+  inspector panels, dashboard cards, and metadata-only surface contracts
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -58,6 +64,13 @@ self-evaluation, improvement, reflection, confidence, score, consistency,
 report, and evaluation engine-contract metadata. These summaries are serialized
 for inspection without changing evaluation logic, workflow ordering, routing,
 runtime selection, previews, retries, or generated output.
+
+Creative Workstation turns existing workflow, artifact, evaluation,
+provenance, and session metadata into inspectable product surfaces. Workstation
+state, session intelligence, workflow explorer, provenance engine, creative
+timeline, V3 inspector panels, dashboard layer, and workstation contracts make
+the metadata easier to review without changing generation behavior or adding
+future V4/V5/V6 systems.
 
 Artifact Intelligence capabilities:
 
@@ -85,7 +98,18 @@ Creative Evaluation capabilities:
 - Evaluation Reports
 - Evaluation Engine Contracts
 
-The architecture documents five complementary views:
+Creative Workstation surfaces:
+
+- Workstation State
+- Session Intelligence
+- Workflow Explorer
+- Provenance Engine
+- Creative Timeline
+- V3 Inspector Panels
+- Workstation Dashboard
+- Workstation Engine Contracts
+
+The architecture documents six complementary views:
 
 - the real runtime graph in
   [`architecture/workflow_graph.md`](architecture/workflow_graph.md)
@@ -95,6 +119,8 @@ The architecture documents five complementary views:
   [`architecture/generative_design_graph.md`](architecture/generative_design_graph.md)
 - the V3.3 Artifact Intelligence dependency graph in
   [`architecture/artifact_intelligence_graph.md`](architecture/artifact_intelligence_graph.md)
+- the V3.5 Creative Workstation surface graph in
+  [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
 - the cross-cutting engine matrix in
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
@@ -106,7 +132,8 @@ rather than claims that a V4 multi-agent runtime already exists.
 
 The workstation still centers on the V2.5 creative loop, now enriched by the
 V3.1 Creative Cognition Core, V3.2 Generative Design Core, V3.3 Artifact
-Intelligence, and V3.4 Creative Evaluation metadata:
+Intelligence, V3.4 Creative Evaluation metadata, and V3.5 Creative
+Workstation inspection surfaces:
 
 `Intent -> HITL Clarification -> Creative Translation -> Reference Fusion -> Creative Planning -> Generation -> Preview -> Critique -> Creative Evaluation -> Calibrated Quality -> Multi-Pass Refinement -> Export Preparation`
 
@@ -137,6 +164,10 @@ Intelligence, and V3.4 Creative Evaluation metadata:
   confidence, score, consistency, report, and evaluation contract metadata
   summarize quality signals without changing routing, runtime selection,
   previews, retries, or generated output.
+- Creative Workstation: state, session intelligence, workflow explorer,
+  provenance, timeline, inspector panels, dashboard cards, and surface
+  contracts make existing metadata reviewable without changing backend
+  generation behavior.
 - Generation: the backend resolves effective domains, assembles the prompt,
   and streams one or more creative artifacts.
 - Preview: supported artifacts mount in controlled preview runtimes with
@@ -262,6 +293,31 @@ they do not change evaluation logic, scoring, confidence, reflection, reports,
 prompts, routing, runtime selection, previews, retries, or future V4/V5/V6
 systems.
 
+### V3.5 Creative Workstation
+
+- Workstation State for shared session, current run, selection, panel,
+  readiness, and metadata status
+- Session Intelligence for session readiness, completion status, warnings, and
+  recommended operator actions
+- Workflow Explorer for workflow nodes, edges, active step, progress, and
+  runtime status
+- Provenance Engine for evidence, dependency, artifact, evaluation, final
+  payload, and missing-source visibility
+- Creative Timeline for ordered request, planning, retrieval, creative,
+  artifact, evaluation, and final metadata stages
+- V3 Inspector Panels for creative intelligence, generative design, artifact
+  intelligence, creative evaluation, and provenance records
+- Workstation Dashboard for quality, confidence, consistency, artifact
+  readiness, runtime fit, evaluation, workflow health, and HITL summary cards
+- Workstation Engine Contracts for the metadata-only V3.5 surface registry and
+  future V4/V5/V6 hook names
+
+These V3.5 surfaces are product inspection layers over existing workflow,
+stream, artifact, evaluation, and session metadata. They are metadata-only:
+they do not change provider routing, runtime selection, workflow ordering,
+preview execution, artifact execution, artifact modification, retries,
+autonomous decisions, or generated output.
+
 ### Creative Core
 
 - Creative Translation Engine with deterministic prompt guidance
@@ -369,6 +425,9 @@ provides:
   frame telemetry
 - telemetry panels for provider usage, workflow runtime, preview health,
   retrieval quality, LangSmith metadata, and RAGAs evaluation lineage
+- workstation state, session intelligence, workflow explorer, provenance,
+  creative timeline, V3 inspector panels, and dashboard summaries over the
+  existing stream and workspace metadata
 - local operator approvals for runtime resets, destructive actions, and file
   transfer flows
 
@@ -410,11 +469,12 @@ Key backend capabilities include:
 Architecture documentation for the current workflow graph is available in
 [`architecture/workflow_graph.md`](architecture/workflow_graph.md). The
 corresponding internal Creative Intelligence pipeline, V3.2 Generative Design
-dependency graph, V3.3 Artifact Intelligence dependency graph, and engine
-matrix are documented in
+dependency graph, V3.3 Artifact Intelligence dependency graph, V3.5
+workstation surface graph, and engine matrix are documented in
 [`architecture/creative_intelligence_graph.md`](architecture/creative_intelligence_graph.md),
 [`architecture/generative_design_graph.md`](architecture/generative_design_graph.md),
 [`architecture/artifact_intelligence_graph.md`](architecture/artifact_intelligence_graph.md),
+[`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md),
 and [`architecture/engine_matrix.md`](architecture/engine_matrix.md).
 
 ### Preview, Runtime, And Safety Model
@@ -445,6 +505,8 @@ The workstation also exposes:
   latest runtime messages
 - provider/model/tokens/latency/cost telemetry summaries
 - retrieval inspectors with source quality, freshness, and chunk context
+- provenance, timeline, V3 metadata inspector panels, and workstation dashboard
+  cards for reviewing generated artifacts and evaluation metadata
 - artifact comparison rows with quality rank, recommendation state, runtime
   support, and preview actions
 - local operator approval flows for export/runtime/reset actions
@@ -456,6 +518,9 @@ The workstation also exposes:
 - Streaming conversation workflow designed for iterative creative sessions
 - Inspector surfaces for overview, preview metadata, runtime console, code,
   workflow state, telemetry, artifacts, and retrieval
+- Workstation state, session intelligence, workflow explorer, provenance,
+  timeline, V3 inspector panels, and dashboard summaries for reviewing existing
+  metadata without changing generation behavior
 - Live artifact selection, comparison, refinement, and code-focused inspection
 - Compact bottom preview shelf that stays out of the chat flow until previewable
   output exists
@@ -534,6 +599,10 @@ The workstation also exposes:
   [`architecture/artifact_intelligence_graph.md`](architecture/artifact_intelligence_graph.md)
 - Artifact Intelligence Mermaid source:
   [`architecture/artifact_intelligence_graph.mmd`](architecture/artifact_intelligence_graph.mmd)
+- Workstation surface graph docs:
+  [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
+- Workstation surface Mermaid source:
+  [`architecture/workstation_surface_graph.mmd`](architecture/workstation_surface_graph.mmd)
 - Engine matrix:
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 - Next.js workstation shell:
@@ -597,7 +666,7 @@ long-horizon creative memory. Those directions are product roadmap context, not
 a claim that every listed system is already implemented or exposed in the
 current runtime.
 
-- Creative Workstation: clearer operator flow, inspection surfaces, and
+- Creative Workstation: continued operator-flow polish, inspection clarity, and
   production-ready creative review.
 - Agentic Studio: more collaborative decomposition of creative strategy,
   critique, and refinement when future runtime boundaries support it.
