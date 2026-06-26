@@ -34,7 +34,10 @@ from creative_coding_assistant.orchestration.context import (
     ContextAssembler,
     build_assembled_context_request,
 )
-from creative_coding_assistant.orchestration.events import StreamEventBuilder
+from creative_coding_assistant.orchestration.events import (
+    StreamEventBuilder,
+    optional_event_payload,
+)
 from creative_coding_assistant.orchestration.generation import (
     ProviderGenerationGateway,
     build_provider_generation_request,
@@ -264,7 +267,7 @@ class AssistantService:
             code="retrieval_completed",
             message="Retrieval context prepared.",
             context=retrieval_context.model_dump(mode="json"),
-            **_optional_event_payload(
+            **optional_event_payload(
                 "observability",
                 self._observability.event_payload(
                     observability_run,
@@ -414,7 +417,7 @@ def _stream_request_received(
     yield builder.status(
         code="request_received",
         message="Request accepted.",
-        **_optional_event_payload(
+        **optional_event_payload(
             "observability",
             observability.event_payload(
                 observability_run,
@@ -819,13 +822,6 @@ def _retrieval_lineage_payload(
         ],
         "error": error["type"] if error is not None else None,
     }
-
-
-def _optional_event_payload(
-    key: str,
-    value: dict[str, object] | None,
-) -> dict[str, dict[str, object]]:
-    return {key: value} if value is not None else {}
 
 
 def _resolve_generation_provider(

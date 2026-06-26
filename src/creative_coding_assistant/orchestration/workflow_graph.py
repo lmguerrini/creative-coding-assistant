@@ -126,7 +126,10 @@ from creative_coding_assistant.orchestration.evaluation_reports import (
 from creative_coding_assistant.orchestration.evaluation_engine_contracts import (
     evaluation_engine_contracts,
 )
-from creative_coding_assistant.orchestration.events import StreamEventBuilder
+from creative_coding_assistant.orchestration.events import (
+    StreamEventBuilder,
+    optional_event_payload,
+)
 from creative_coding_assistant.orchestration.generative_structure import (
     derive_generative_structure_blueprint,
 )
@@ -2475,7 +2478,7 @@ def _finalization_node(
                     for result in final_state.preview_results
                 ],
                 **_final_event_model_payloads(final_state),
-                **_optional_event_payload(
+                **optional_event_payload(
                     "observability",
                     runtime_context.observability.event_payload(
                         runtime_context.observability_run,
@@ -2539,7 +2542,7 @@ def _failure_node(
         runtime_context.event_builder.final(
             answer=answer,
             route=state.get("route_payload"),
-            **_optional_event_payload(
+            **optional_event_payload(
                 "observability",
                 runtime_context.observability.event_payload(
                     runtime_context.observability_run,
@@ -3604,13 +3607,6 @@ def _model_json_payload(value: Any | None) -> dict[str, object] | None:
     if value is None:
         return None
     return value.model_dump(mode="json")
-
-
-def _optional_event_payload(
-    key: str,
-    value: dict[str, object] | None,
-) -> dict[str, dict[str, object]]:
-    return {key: value} if value is not None else {}
 
 
 def _format_clarification_answer(clarification: ClarificationRequest) -> str:

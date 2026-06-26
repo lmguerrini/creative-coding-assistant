@@ -270,7 +270,7 @@ class StreamEventBuilder:
             {
                 "code": code,
                 "message": message,
-                "artifacts": [_dump_event_payload(artifact) for artifact in artifacts],
+                "artifacts": [dump_event_payload(artifact) for artifact in artifacts],
                 "artifact_count": len(artifacts),
                 **details,
             },
@@ -363,7 +363,14 @@ class StreamEventBuilder:
         )
 
 
-def _dump_event_payload(value: object) -> object:
+def dump_event_payload(value: object) -> object:
     if isinstance(value, BaseModel):
         return value.model_dump(mode="json")
     return value
+
+
+def optional_event_payload(
+    key: str,
+    value: dict[str, object] | None,
+) -> dict[str, dict[str, object]]:
+    return {key: value} if value is not None else {}
