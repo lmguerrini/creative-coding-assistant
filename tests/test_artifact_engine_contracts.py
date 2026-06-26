@@ -91,6 +91,10 @@ class ArtifactEngineContractTests(unittest.TestCase):
             self.assertTrue(contract.produced_metadata)
             self.assertTrue(contract.produced_signals)
             self.assertTrue(contract.confidence_signals)
+            self.assertLessEqual(
+                set(contract.confidence_signals),
+                set(contract.produced_signals),
+            )
             self.assertTrue(contract.ambiguity_signals)
             self.assertTrue(contract.risk_signals)
             self.assertTrue(contract.escalation_candidates)

@@ -89,6 +89,15 @@ class EvaluationEngineContractTests(unittest.TestCase):
             self.assertTrue(contract.produced_metadata)
             self.assertTrue(contract.produced_signals)
             self.assertTrue(contract.confidence_signals)
+            declared_confidence_signal_sources = (
+                set(contract.produced_signals)
+                | set(contract.evidence_contract.evidence_payload_fields)
+                | set(contract.evidence_contract.evidence_quality_signals)
+            )
+            self.assertLessEqual(
+                set(contract.confidence_signals),
+                declared_confidence_signal_sources,
+            )
             self.assertTrue(contract.ambiguity_signals)
             self.assertTrue(contract.risk_signals)
             self.assertTrue(contract.evidence_contract.evidence_sources)
