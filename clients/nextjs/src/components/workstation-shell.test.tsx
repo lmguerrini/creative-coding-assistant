@@ -4509,9 +4509,24 @@ describe("WorkstationShell", () => {
     const provenance = within(workflowPanel).getByRole("group", {
       name: "Provenance summary"
     });
+    const creativeTimeline = within(workflowPanel).getByRole("group", {
+      name: "Creative timeline"
+    });
     expect(timeline).toBeVisible();
     expect(explorer).toBeVisible();
     expect(provenance).toBeVisible();
+    expect(creativeTimeline).toBeVisible();
+    expect(
+      within(creativeTimeline).getByRole("list", {
+        name: "Creative timeline events"
+      })
+    ).toBeVisible();
+    expect(
+      within(creativeTimeline).getByRole("listitem", {
+        name: "Request intake creative timeline event"
+      })
+    ).toHaveAttribute("data-status", "complete");
+    expect(within(creativeTimeline).getByText("Artifact intelligence")).toBeVisible();
     expect(
       within(provenance).getByRole("group", { name: "Provenance source counts" })
     ).toHaveTextContent("2 evidence");

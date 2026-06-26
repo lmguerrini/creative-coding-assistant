@@ -180,6 +180,10 @@ import {
   type HitlApprovalRequest
 } from "@/lib/hitl-runtime";
 import {
+  buildCreativeTimelineModel,
+  type CreativeTimelineModel
+} from "@/lib/creative-timeline";
+import {
   buildSessionIntelligenceModel,
   readSessionIntelligenceMetadata,
   type SessionIntelligenceMetadataInput,
@@ -195,6 +199,7 @@ import { PreviewRendererSurface } from "./preview-renderer-surface";
 import { AudioReactiveMappingSummaryCard } from "./audio-reactive-mapping-summary";
 import { ArtifactRefinementPanel } from "./artifact-refinement-panel";
 import { CalibratedQualitySummary } from "./calibrated-quality-summary";
+import { CreativeTimelineSurface } from "./creative-timeline-surface";
 import { CreativeCostIntelligenceDashboard } from "./creative-cost-intelligence-dashboard";
 import { CreativeQualityCriticSummary } from "./creative-quality-critic-summary";
 import { CreativeTranslationSummaryCard } from "./creative-translation-summary";
@@ -997,6 +1002,16 @@ export function WorkstationShell({
         workstationState
       }),
     [interactiveSnapshot, workflowTraceEvents, workstationState]
+  );
+  const creativeTimeline = useMemo(
+    () =>
+      buildCreativeTimelineModel({
+        explorer: workflowExplorer,
+        provenance,
+        runtime: workflowRuntime,
+        workstationState
+      }),
+    [provenance, workflowExplorer, workflowRuntime, workstationState]
   );
   const runtimeConsole = useMemo(
     () =>
@@ -2987,6 +3002,7 @@ export function WorkstationShell({
                     telemetryDashboard={telemetryDashboard}
                     transferFeedback={transferFeedback}
                     workflowExplorer={workflowExplorer}
+                    creativeTimeline={creativeTimeline}
                     workflowRuntime={workflowRuntime}
                     workflowIssues={workflowIssues}
                   />
@@ -3403,6 +3419,7 @@ type InspectorPanelProps = {
   telemetryDashboard: TelemetryDashboardModel;
   transferFeedback: ArtifactActionFeedback | null;
   workflowExplorer: WorkflowExplorerModel;
+  creativeTimeline: CreativeTimelineModel;
   workflowRuntime: WorkflowRuntimeModel;
   workflowIssues: WorkstationError[];
 };
@@ -3435,6 +3452,7 @@ function InspectorPanel({
   telemetryDashboard,
   transferFeedback,
   workflowExplorer,
+  creativeTimeline,
   workflowRuntime,
   workflowIssues
 }: InspectorPanelProps) {
@@ -3471,6 +3489,7 @@ function InspectorPanel({
   if (activeTab === "Workflow") {
     return (
       <WorkflowInspector
+        creativeTimeline={creativeTimeline}
         explorer={workflowExplorer}
         runtime={workflowRuntime}
         provenance={provenance}
@@ -4180,6 +4199,7 @@ function ProvenanceSourceList({
 }
 
 function WorkflowInspector({
+  creativeTimeline,
   explorer,
   issues,
   provenance,
@@ -4187,6 +4207,7 @@ function WorkflowInspector({
   telemetry,
   showDebugPanels
 }: {
+  creativeTimeline: CreativeTimelineModel;
   explorer: WorkflowExplorerModel;
   issues: WorkstationError[];
   provenance: ProvenanceEngineModel;
@@ -4270,6 +4291,7 @@ function WorkflowInspector({
       </div>
       <WorkflowExplorerSurface model={explorer} />
       <ProvenanceSummaryCard provenance={provenance} />
+      <CreativeTimelineSurface timeline={creativeTimeline} />
       <TelemetryLifecycleCard telemetry={telemetry} />
       <WorkflowTimelineExplorer timeline={runtime.timeline} />
       <div
