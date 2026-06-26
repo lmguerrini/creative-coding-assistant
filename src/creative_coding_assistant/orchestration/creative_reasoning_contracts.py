@@ -6,6 +6,10 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from creative_coding_assistant.orchestration.evaluation_engine_contracts import (
+    EvaluationEngineContractRegistry,
+)
+
 ReasoningStage = Literal[
     "strategy",
     "technique",
@@ -120,6 +124,7 @@ class CreativeReasoningResult(BaseModel):
     prompt_guidance: tuple[str, ...] = Field(min_length=1, max_length=8)
     hitl_questions: tuple[str, ...] = Field(default_factory=tuple, max_length=6)
     future_knowledge_context: dict[str, object] = Field(default_factory=dict)
+    evaluation_engine_contracts: EvaluationEngineContractRegistry | None = None
     authority_boundary: str = Field(
         default=CREATIVE_REASONING_AUTHORITY_BOUNDARY,
         max_length=520,

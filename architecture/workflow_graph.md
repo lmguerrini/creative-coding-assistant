@@ -15,10 +15,10 @@ This file documents the real LangGraph runtime graph compiled by
 current backend execution order rather than expanding every internal helper into
 its own graph node.
 
-The V3.3 planning pass still runs inside the single `planning` runtime node.
+The V3.4 planning pass still runs inside the single `planning` runtime node.
 `_planning_node()` deterministically derives and stores the V3.1 Creative
-Cognition metadata, the V3.2 Generative Design metadata, and the V3.3 Artifact
-Intelligence metadata:
+Cognition metadata, the V3.2 Generative Design metadata, the V3.3 Artifact
+Intelligence metadata, and the V3.4 Creative Evaluation metadata:
 
 - `creative_intent`
 - `creative_hierarchy`
@@ -49,6 +49,15 @@ Intelligence metadata:
 - `artifact_merge_planner`
 - `artifact_export_intelligence`
 - `artifact_engine_contracts`
+- `creative_critic`
+- `self_evaluation`
+- `creative_improvement_planner`
+- `reflection_loop`
+- `creative_confidence`
+- `creative_score`
+- `consistency_validation`
+- `evaluation_report`
+- `evaluation_engine_contracts`
 
 Those typed results are persisted on `AssistantWorkflowState` and mirrored into
 `PromptInputResponse`. The downstream `director` and `reasoning` runtime nodes
@@ -66,15 +75,15 @@ sections. The internal architecture is documented separately as:
   V3.3 Artifact Intelligence dependency graph and engine contract registry
 
 Those internal helpers produce metadata, design guidance, artifact
-intelligence, and contract summaries, not code generation execution, export
-execution, runtime mutation, provider routing, retries, or preview behavior
-changes.
+intelligence, evaluation summaries, and contract summaries, not code generation
+execution, export execution, runtime mutation, provider routing, retries,
+evaluation behavior changes, or preview behavior changes.
 
 This separation is intentional:
 
 - LangGraph owns execution order, retries, lifecycle events, and failure routing
-- The internal Creative Intelligence, Generative Design, and Artifact
-  Intelligence layers own bounded, inspectable metadata derivation
+- The internal Creative Intelligence, Generative Design, Artifact Intelligence,
+  and Creative Evaluation layers own bounded, inspectable metadata derivation
 - The internal capability pipeline and dependency graph are V4 decomposition
   candidates, but they are not yet a true multi-agent or multi-node runtime graph
 
@@ -83,10 +92,10 @@ This separation is intentional:
 The graph is compiled once in `AssistantService.__init__()` and executed through `graph.stream(..., stream_mode="custom")`. Control flow is linear through prompt input, deterministic planning, Director guidance, Creative Reasoning synthesis, prompt rendering, generation, workflow-owned artifact extraction, preview preparation, and artifact critique before `review`, where the graph applies a bounded quality gate. Passing outputs continue to `finalization`; failing outputs enter one `refinement` attempt and loop back to `generation`. Explicit provider failures and caught node errors route into a terminal `failure` node.
 
 The `planning` node remains one LangGraph node even though it derives the full
-Creative Cognition, Generative Design, and Artifact Intelligence stacks
-internally. `director` and `reasoning` remain separate runtime nodes because
-they synthesize and package that stored metadata after the planning pass
-completes.
+Creative Cognition, Generative Design, Artifact Intelligence, and Creative
+Evaluation stacks internally. `director` and `reasoning` remain separate
+runtime nodes because they synthesize and package that stored metadata after
+the planning pass completes.
 
 In the diagrams below:
 

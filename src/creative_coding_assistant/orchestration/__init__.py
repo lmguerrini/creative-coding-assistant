@@ -43,6 +43,9 @@ _CONSISTENCY_VALIDATION_ENGINE = (
     "creative_coding_assistant.orchestration.consistency_validation_engine"
 )
 _EVALUATION_REPORTS = "creative_coding_assistant.orchestration.evaluation_reports"
+_EVALUATION_ENGINE_CONTRACTS = (
+    "creative_coding_assistant.orchestration.evaluation_engine_contracts"
+)
 _ARTIFACT_PLANNER = "creative_coding_assistant.orchestration.artifact_planner"
 _ARTIFACT_DEPENDENCY_GRAPH = (
     "creative_coding_assistant.orchestration.artifact_dependency_graph"
@@ -136,6 +139,11 @@ _EXPORT_MAP = {
     "ArtifactEngineLatencyMetadata": _ARTIFACT_ENGINE_CONTRACTS,
     "ArtifactIntelligenceEngineContract": _ARTIFACT_ENGINE_CONTRACTS,
     "ArtifactIntelligenceEngineContractRegistry": _ARTIFACT_ENGINE_CONTRACTS,
+    "EvaluationEngineContract": _EVALUATION_ENGINE_CONTRACTS,
+    "EvaluationEngineContractRegistry": _EVALUATION_ENGINE_CONTRACTS,
+    "EvaluationEngineCostMetadata": _EVALUATION_ENGINE_CONTRACTS,
+    "EvaluationEngineEvidenceContract": _EVALUATION_ENGINE_CONTRACTS,
+    "EvaluationEngineLatencyMetadata": _EVALUATION_ENGINE_CONTRACTS,
     "ArtifactCapabilityConfidence": _ARTIFACT_CAPABILITY_MATRIX,
     "ArtifactCapabilityFit": _ARTIFACT_CAPABILITY_MATRIX,
     "ArtifactCapabilityMatrix": _ARTIFACT_CAPABILITY_MATRIX,
@@ -451,6 +459,8 @@ _EXPORT_MAP = {
     "consistency_validation_prompt_lines": _CONSISTENCY_VALIDATION_ENGINE,
     "derive_evaluation_report_profile": _EVALUATION_REPORTS,
     "evaluation_report_prompt_lines": _EVALUATION_REPORTS,
+    "creative_evaluation_engine_contracts": _EVALUATION_ENGINE_CONTRACTS,
+    "evaluation_engine_contract_by_id": _EVALUATION_ENGINE_CONTRACTS,
     "derive_runtime_capability_profile": _RUNTIME_CAPABILITIES,
     "runtime_capability_prompt_lines": _RUNTIME_CAPABILITIES,
     "derive_runtime_compatibility_profile": _RUNTIME_COMPATIBILITY,

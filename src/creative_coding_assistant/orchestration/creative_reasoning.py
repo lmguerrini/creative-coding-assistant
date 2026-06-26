@@ -113,6 +113,9 @@ from creative_coding_assistant.orchestration.emotional_consistency import (
 from creative_coding_assistant.orchestration.evaluation_reports import (
     EvaluationReportProfile,
 )
+from creative_coding_assistant.orchestration.evaluation_engine_contracts import (
+    EvaluationEngineContractRegistry,
+)
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
@@ -187,6 +190,7 @@ def derive_creative_reasoning_result(
     creative_score: CreativeScoreProfile | None = None,
     consistency_validation: ConsistencyValidationProfile | None = None,
     evaluation_report: EvaluationReportProfile | None = None,
+    evaluation_engine_contracts: EvaluationEngineContractRegistry | None = None,
     future_knowledge_context: Mapping[str, object] | None = None,
 ) -> CreativeReasoningResult:
     """Synthesize prior Creative Intelligence outputs into one decision brief."""
@@ -423,6 +427,7 @@ def derive_creative_reasoning_result(
         future_knowledge_context=normalize_future_knowledge_context(
             future_knowledge_context
         ),
+        evaluation_engine_contracts=evaluation_engine_contracts,
     )
 
 

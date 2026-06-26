@@ -111,6 +111,9 @@ from creative_coding_assistant.orchestration.emotional_consistency import (
 from creative_coding_assistant.orchestration.evaluation_reports import (
     EvaluationReportProfile,
 )
+from creative_coding_assistant.orchestration.evaluation_engine_contracts import (
+    EvaluationEngineContractRegistry,
+)
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
@@ -415,6 +418,7 @@ class PromptInputResponse(BaseModel):
     creative_score: CreativeScoreProfile | None = None
     consistency_validation: ConsistencyValidationProfile | None = None
     evaluation_report: EvaluationReportProfile | None = None
+    evaluation_engine_contracts: EvaluationEngineContractRegistry | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None

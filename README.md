@@ -54,6 +54,12 @@ workflow serialization, and Next.js stream hydration. These capabilities remain
 internal helpers inside the existing runtime graph rather than separate
 LangGraph runtime nodes.
 
+V3.4 extends the same bounded metadata pattern into Creative Evaluation:
+critic, self-evaluation, improvement, reflection, confidence, score,
+consistency, report, and evaluation engine-contract metadata are serialized for
+inspection without changing evaluation logic, workflow ordering, routing,
+runtime selection, previews, retries, or generated output.
+
 Implemented V3.3 Artifact Intelligence capabilities:
 
 - Artifact Planner
@@ -211,6 +217,35 @@ artifact profile sections, final payload serialization, and Next.js stream
 hydration. They are metadata-only: they do not execute artifacts, modify
 artifacts, export artifacts, select runtimes, change provider routing, change
 previews, trigger retries, or implement future V4/V5/V6 systems.
+
+### V3.4 Creative Evaluation
+
+- Creative Critic Engine for metadata-only strengths, weaknesses, quality
+  scores, risk assessment, missing information, and HITL questions
+- Self Evaluation Engine for generated-response alignment, completeness,
+  ambiguity, risks, gaps, and advisory prompt guidance
+- Creative Improvement Planner for metadata-level improvement priorities,
+  opportunities, low-risk improvements, trade-offs, and future candidates
+- Reflection Loop Engine for theoretical reflection value, unresolved
+  questions, refinement candidates, stop conditions, and HITL posture
+- Creative Confidence Engine for component confidence, uncertainties,
+  reliability, execution readiness, and review need
+- Creative Score Engine for advisory scoring, score breakdown, calibration,
+  explainability, penalties, strengths, weaknesses, and evidence
+- Consistency Validation Engine for consistency status, conflicts,
+  contradiction level, unsupported conclusions, integrity, and HITL posture
+- Evaluation Reports for executive, quality, confidence, consistency,
+  improvement, score, trace, provenance, dependency, evidence, and
+  recommendation metadata
+- Evaluation Engine Contracts for the shared metadata contract registry across
+  all eight Creative Evaluation engines
+
+These V3.4 capabilities are internal metadata/evaluation layers. They enrich
+workflow state, prompt input metadata, Director and Reasoning metadata, final
+payload serialization, and Next.js stream hydration. They are metadata-only:
+they do not change evaluation logic, scoring, confidence, reflection, reports,
+prompts, routing, runtime selection, previews, retries, or future V4/V5/V6
+systems.
 
 ### Creative Core
 

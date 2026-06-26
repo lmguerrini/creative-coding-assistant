@@ -96,6 +96,9 @@ from creative_coding_assistant.orchestration.emotional_consistency import (
 from creative_coding_assistant.orchestration.evaluation_reports import (
     EvaluationReportProfile,
 )
+from creative_coding_assistant.orchestration.evaluation_engine_contracts import (
+    EvaluationEngineContractRegistry,
+)
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
@@ -154,6 +157,7 @@ class CreativeAssistantDirectorBrief(BaseModel):
     hitl_reason: str | None = Field(default=None, max_length=280)
     authority_boundary: str = Field(default=AUTHORITY_BOUNDARY, max_length=360)
     evidence: tuple[str, ...] = Field(default_factory=tuple, max_length=10)
+    evaluation_engine_contracts: EvaluationEngineContractRegistry | None = None
 
 
 def derive_creative_assistant_director_brief(
@@ -201,6 +205,7 @@ def derive_creative_assistant_director_brief(
     creative_score: CreativeScoreProfile | None = None,
     consistency_validation: ConsistencyValidationProfile | None = None,
     evaluation_report: EvaluationReportProfile | None = None,
+    evaluation_engine_contracts: EvaluationEngineContractRegistry | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -210,6 +215,7 @@ def derive_creative_assistant_director_brief(
     """Compose bounded Director guidance from deterministic workflow outputs."""
 
     return CreativeAssistantDirectorBrief(
+        evaluation_engine_contracts=evaluation_engine_contracts,
         **build_director_brief_payload(
             request=request,
             route_decision=route_decision,
@@ -255,7 +261,7 @@ def derive_creative_assistant_director_brief(
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
             refinement_count=refinement_count,
-        )
+        ),
     )
 
 

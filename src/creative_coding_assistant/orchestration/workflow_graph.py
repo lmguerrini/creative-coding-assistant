@@ -119,6 +119,9 @@ from creative_coding_assistant.orchestration.emotional_consistency import (
 from creative_coding_assistant.orchestration.evaluation_reports import (
     derive_evaluation_report_profile,
 )
+from creative_coding_assistant.orchestration.evaluation_engine_contracts import (
+    evaluation_engine_contracts,
+)
 from creative_coding_assistant.orchestration.events import StreamEventBuilder
 from creative_coding_assistant.orchestration.generative_structure import (
     derive_generative_structure_blueprint,
@@ -1038,6 +1041,7 @@ def _planning_node(
             artifact_merge_planner=artifact_merge_planner,
         )
         artifact_engine_contracts = artifact_intelligence_engine_contracts()
+        evaluation_engine_contracts_registry = evaluation_engine_contracts()
         creative_critic = derive_creative_critic_profile(
             request=workflow_state.request,
             route_decision=workflow_state.route_decision,
@@ -1341,6 +1345,9 @@ def _planning_node(
                 "artifact_merge_planner": artifact_merge_planner,
                 "artifact_export_intelligence": artifact_export_intelligence,
                 "artifact_engine_contracts": artifact_engine_contracts,
+                "evaluation_engine_contracts": (
+                    evaluation_engine_contracts_registry
+                ),
                 "creative_critic": creative_critic,
                 "self_evaluation": self_evaluation,
                 "creative_improvement_planner": creative_improvement_planner,
@@ -1384,6 +1391,9 @@ def _planning_node(
                 "artifact_merge_planner": artifact_merge_planner,
                 "artifact_export_intelligence": artifact_export_intelligence,
                 "artifact_engine_contracts": artifact_engine_contracts,
+                "evaluation_engine_contracts": (
+                    evaluation_engine_contracts_registry
+                ),
                 "creative_critic": creative_critic,
                 "self_evaluation": self_evaluation,
                 "creative_improvement_planner": (
@@ -1447,6 +1457,9 @@ def _planning_node(
                 ),
                 artifact_engine_contracts=artifact_engine_contracts.model_dump(
                     mode="json"
+                ),
+                evaluation_engine_contracts=(
+                    evaluation_engine_contracts_registry.model_dump(mode="json")
                 ),
                 creative_critic=creative_critic.model_dump(mode="json"),
                 self_evaluation=self_evaluation.model_dump(mode="json"),
@@ -2507,6 +2520,16 @@ def _finalization_node(
                     ),
                 ),
                 **_optional_event_payload(
+                    "evaluation_engine_contracts",
+                    (
+                        final_state.evaluation_engine_contracts.model_dump(
+                            mode="json"
+                        )
+                        if final_state.evaluation_engine_contracts is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
                     "creative_critic",
                     (
                         final_state.creative_critic.model_dump(mode="json")
@@ -3191,6 +3214,7 @@ def _derive_director_brief(
         creative_score=workflow_state.creative_score,
         consistency_validation=workflow_state.consistency_validation,
         evaluation_report=workflow_state.evaluation_report,
+        evaluation_engine_contracts=workflow_state.evaluation_engine_contracts,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -3254,6 +3278,7 @@ def _derive_reasoning_result(
         creative_score=workflow_state.creative_score,
         consistency_validation=workflow_state.consistency_validation,
         evaluation_report=workflow_state.evaluation_report,
+        evaluation_engine_contracts=workflow_state.evaluation_engine_contracts,
     )
 
 
@@ -3665,6 +3690,7 @@ def _serialize_workflow_runtime(
     artifact_merge_planner = workflow_state.artifact_merge_planner
     artifact_export_intelligence = workflow_state.artifact_export_intelligence
     artifact_engine_contracts = workflow_state.artifact_engine_contracts
+    evaluation_engine_contracts_registry = workflow_state.evaluation_engine_contracts
     creative_critic = workflow_state.creative_critic
     self_evaluation = workflow_state.self_evaluation
     creative_improvement_planner = workflow_state.creative_improvement_planner
@@ -3898,6 +3924,14 @@ def _serialize_workflow_runtime(
             else None
         ),
         "artifact_engine_contracts_available": artifact_engine_contracts is not None,
+        "evaluation_engine_contracts": (
+            evaluation_engine_contracts_registry.model_dump(mode="json")
+            if evaluation_engine_contracts_registry is not None
+            else None
+        ),
+        "evaluation_engine_contracts_available": (
+            evaluation_engine_contracts_registry is not None
+        ),
         "creative_critic": (
             creative_critic.model_dump(mode="json")
             if creative_critic is not None

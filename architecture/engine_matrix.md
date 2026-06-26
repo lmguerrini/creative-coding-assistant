@@ -32,7 +32,7 @@ Use this matrix together with:
 | V3.1 | Creative Cognition Core | Retrieval and memory remain the grounding substrate for cognition metadata | Compact runtime graph with richer stored planning metadata | Workflow inspector visibility for cognition-derived state |
 | V3.2 | Generative Design Core extends the stored creative brief with design metadata | Retrieval and memory continue to ground higher-level design guidance | Same compact runtime graph; no runtime auto-selection or provider routing added | Existing workstation surfaces now expose richer creative metadata |
 | V3.3 | Artifact Intelligence extends the stored creative/design brief with artifact planning, compatibility, critique, refinement, synthesis, merge, export intelligence, and engine contract metadata | Retrieval and memory continue to ground upstream planning; no new knowledge runtime is introduced | Same compact runtime graph; artifact metadata is serialized through workflow payloads without export execution, runtime auto-selection, provider routing, retries, or preview changes | Next.js stream hydration reads artifact summaries and the engine contract registry for inspector/workflow surfaces |
-| V3.4 | Creative Evaluation is the next planned evaluation-focused increment after V3.3 | Retrieval and memory can ground future evaluation context without introducing a new knowledge runtime | Planned evaluation stays separate from provider routing, runtime selection, artifact execution, and autonomous retries | Evaluation surfaces can become more inspectable without changing preview behavior |
+| V3.4 | Creative Evaluation adds metadata-only critic, self-evaluation, improvement, reflection, confidence, score, consistency, report, and evaluation engine-contract metadata | Retrieval and memory continue to ground evaluation context without introducing a new knowledge runtime | Evaluation metadata is serialized through workflow payloads without changing provider routing, runtime selection, artifact execution, autonomous retries, or preview behavior | Next.js stream hydration reads evaluation summaries and the engine contract registry for future inspector/workflow surfaces |
 | V3.5 | Creative Workstation is the planned workstation-focused increment after V3.4 | Knowledge surfaces can become more operator-legible without changing retrieval ownership | Execution metadata can be exposed more clearly without adding hidden runtime behavior | Workstation surfaces become the primary focus for usability, inspection, and operator flow |
 | V3.6 | Stabilization & Refactor Pass is the planned hardening increment after V3.5 | Knowledge boundaries can be simplified without changing source-of-truth ownership | Runtime contracts, validation seams, and serialization paths can be stabilized without feature expansion | Experience surfaces can be consolidated without changing capability scope |
 | V4 | Agentic Studio decomposes more internal creative work into bounded collaborative systems | Deeper agent-facing knowledge packets may emerge here | More inspectable orchestration paths may appear here | Agentic Studio becomes the main collaboration surface |
@@ -49,12 +49,13 @@ Use this matrix together with:
 
 ## Current Boundary
 
-- V3.3 is still metadata, artifact guidance, workflow serialization, and stream
-  hydration, not artifact execution, artifact modification, artifact export,
-  runtime selection, runtime repair, provider/model routing, retries, preview
-  changes, or future V4/V5/V6 system implementation.
-- The roadmap after V3.3 remains V3.4 Creative Evaluation, V3.5 Creative
-  Workstation, V3.6 Stabilization & Refactor Pass, V4 Agentic Studio, V5
+- V3.4 is still metadata, evaluation guidance, workflow serialization, and
+  stream hydration, not evaluation behavior changes, scoring changes, artifact
+  execution, artifact modification, artifact export, runtime selection, runtime
+  repair, provider/model routing, retries, preview changes, or future V4/V5/V6
+  system implementation.
+- The roadmap after V3.4 remains V3.5 Creative Workstation, V3.6 Stabilization
+  & Refactor Pass, V4 Agentic Studio, V5
   Execution Optimization & Production Intelligence, and V6 HoloGenesis Core OS.
 - The current runtime graph remains the source of truth for execution order.
 - The matrix is a planning and architecture aid, not a claim that every engine
