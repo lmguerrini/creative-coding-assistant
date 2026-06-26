@@ -225,6 +225,13 @@ class _WorkflowGraphConditionalEdgeSpec:
 
 
 @dataclass(frozen=True)
+class _WorkflowModelPayloadSpec:
+    payload_key: str
+    state_attribute: str
+    availability_key: str | None = None
+
+
+@dataclass(frozen=True)
 class AssistantWorkflowRuntime:
     """Runtime services needed by graph nodes for one assistant turn."""
 
@@ -264,6 +271,247 @@ ASSISTANT_WORKFLOW_NODE_ORDER: tuple[str, ...] = (
     "failure",
 )
 ASSISTANT_WORKFLOW_RECURSION_LIMIT = 40
+_FINAL_EVENT_MODEL_PAYLOAD_KEYS: tuple[str, ...] = (
+    "clarification",
+    "creative_intent",
+    "creative_hierarchy",
+    "creative_strategy",
+    "creative_techniques",
+    "creative_plan",
+    "creative_constraints",
+    "creative_constraint_priorities",
+    "runtime_capabilities",
+    "creative_tradeoffs",
+    "creative_quality_prediction",
+    "symbolic_narrative",
+    "creative_composition",
+    "procedural_structure",
+    "generative_structure",
+    "semantic_motif",
+    "emotional_consistency",
+    "cross_modality",
+    "audio_visual_scene",
+    "artifact_plan",
+    "artifact_dependency_graph",
+    "runtime_compatibility",
+    "artifact_capability_matrix",
+    "multi_artifact_strategy",
+    "artifact_critic",
+    "artifact_refiner",
+    "artifact_intelligence_synthesis",
+    "artifact_merge_planner",
+    "artifact_export_intelligence",
+    "artifact_engine_contracts",
+    "evaluation_engine_contracts",
+    "creative_critic",
+    "self_evaluation",
+    "creative_improvement_planner",
+    "reflection_loop",
+    "creative_confidence",
+    "creative_score",
+    "consistency_validation",
+    "evaluation_report",
+    "creative_director",
+    "creative_reasoning",
+)
+_WORKFLOW_RUNTIME_MODEL_PAYLOAD_SPECS: tuple[_WorkflowModelPayloadSpec, ...] = (
+    _WorkflowModelPayloadSpec("creative_plan", "creative_plan", "planning_available"),
+    _WorkflowModelPayloadSpec(
+        "creative_intent",
+        "creative_intent",
+        "intent_decomposer_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "creative_hierarchy",
+        "creative_hierarchy",
+        "hierarchy_planner_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "creative_strategy",
+        "creative_strategy",
+        "strategy_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "creative_techniques",
+        "creative_techniques",
+        "technique_selector_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "creative_constraints",
+        "creative_constraints",
+        "constraint_solver_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "creative_constraint_priorities",
+        "creative_constraint_priorities",
+        "constraint_prioritizer_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "runtime_capabilities",
+        "runtime_capabilities",
+        "runtime_capability_reasoner_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "creative_tradeoffs",
+        "creative_tradeoffs",
+        "tradeoff_explorer_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "creative_quality_prediction",
+        "creative_quality_prediction",
+        "quality_predictor_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "symbolic_narrative",
+        "symbolic_narrative",
+        "symbolic_narrative_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "creative_composition",
+        "creative_composition",
+        "creative_composition_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "procedural_structure",
+        "procedural_structure",
+        "procedural_structure_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "generative_structure",
+        "generative_structure",
+        "generative_structure_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "semantic_motif",
+        "semantic_motif",
+        "semantic_motif_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "emotional_consistency",
+        "emotional_consistency",
+        "emotional_consistency_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "cross_modality",
+        "cross_modality",
+        "cross_modality_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "audio_visual_scene",
+        "audio_visual_scene",
+        "audio_visual_scene_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "artifact_plan",
+        "artifact_plan",
+        "artifact_planner_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "artifact_dependency_graph",
+        "artifact_dependency_graph",
+        "artifact_dependency_graph_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "runtime_compatibility",
+        "runtime_compatibility",
+        "runtime_compatibility_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "artifact_capability_matrix",
+        "artifact_capability_matrix",
+        "artifact_capability_matrix_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "multi_artifact_strategy",
+        "multi_artifact_strategy",
+        "multi_artifact_strategy_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "artifact_critic",
+        "artifact_critic",
+        "artifact_critic_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "artifact_refiner",
+        "artifact_refiner",
+        "artifact_refiner_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "artifact_intelligence_synthesis",
+        "artifact_intelligence_synthesis",
+        "artifact_intelligence_synthesis_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "artifact_merge_planner",
+        "artifact_merge_planner",
+        "artifact_merge_planner_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "artifact_export_intelligence",
+        "artifact_export_intelligence",
+        "artifact_export_intelligence_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "artifact_engine_contracts",
+        "artifact_engine_contracts",
+        "artifact_engine_contracts_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "evaluation_engine_contracts",
+        "evaluation_engine_contracts",
+        "evaluation_engine_contracts_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "creative_critic",
+        "creative_critic",
+        "creative_critic_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "self_evaluation",
+        "self_evaluation",
+        "self_evaluation_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "creative_improvement_planner",
+        "creative_improvement_planner",
+        "creative_improvement_planner_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "reflection_loop",
+        "reflection_loop",
+        "reflection_loop_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "creative_confidence",
+        "creative_confidence",
+        "creative_confidence_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "creative_score",
+        "creative_score",
+        "creative_score_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "consistency_validation",
+        "consistency_validation",
+        "consistency_validation_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "evaluation_report",
+        "evaluation_report",
+        "evaluation_report_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "creative_director",
+        "creative_director",
+        "director_available",
+    ),
+    _WorkflowModelPayloadSpec(
+        "creative_reasoning",
+        "creative_reasoning",
+        "creative_reasoning_available",
+    ),
+)
 
 
 def build_initial_workflow_graph_state(
@@ -2219,359 +2467,14 @@ def _finalization_node(
                         else ()
                     )
                 ],
-                artifact_critique_summary=(
-                    final_state.artifact_critique_summary.model_dump(mode="json")
-                    if final_state.artifact_critique_summary is not None
-                    else None
+                artifact_critique_summary=_model_json_payload(
+                    final_state.artifact_critique_summary
                 ),
                 preview_results=[
                     result.model_dump(mode="json")
                     for result in final_state.preview_results
                 ],
-                **_optional_event_payload(
-                    "clarification",
-                    (
-                        final_state.clarification.model_dump(mode="json")
-                        if final_state.clarification is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "creative_intent",
-                    (
-                        final_state.creative_intent.model_dump(mode="json")
-                        if final_state.creative_intent is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "creative_hierarchy",
-                    (
-                        final_state.creative_hierarchy.model_dump(mode="json")
-                        if final_state.creative_hierarchy is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "creative_strategy",
-                    (
-                        final_state.creative_strategy.model_dump(mode="json")
-                        if final_state.creative_strategy is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "creative_techniques",
-                    (
-                        final_state.creative_techniques.model_dump(mode="json")
-                        if final_state.creative_techniques is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "creative_plan",
-                    (
-                        final_state.creative_plan.model_dump(mode="json")
-                        if final_state.creative_plan is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "creative_constraints",
-                    (
-                        final_state.creative_constraints.model_dump(mode="json")
-                        if final_state.creative_constraints is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "creative_constraint_priorities",
-                    (
-                        final_state.creative_constraint_priorities.model_dump(
-                            mode="json"
-                        )
-                        if final_state.creative_constraint_priorities is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "runtime_capabilities",
-                    (
-                        final_state.runtime_capabilities.model_dump(mode="json")
-                        if final_state.runtime_capabilities is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "creative_tradeoffs",
-                    (
-                        final_state.creative_tradeoffs.model_dump(mode="json")
-                        if final_state.creative_tradeoffs is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "creative_quality_prediction",
-                    (
-                        final_state.creative_quality_prediction.model_dump(
-                            mode="json"
-                        )
-                        if final_state.creative_quality_prediction is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "symbolic_narrative",
-                    (
-                        final_state.symbolic_narrative.model_dump(mode="json")
-                        if final_state.symbolic_narrative is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "creative_composition",
-                    (
-                        final_state.creative_composition.model_dump(mode="json")
-                        if final_state.creative_composition is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "procedural_structure",
-                    (
-                        final_state.procedural_structure.model_dump(mode="json")
-                        if final_state.procedural_structure is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "generative_structure",
-                    (
-                        final_state.generative_structure.model_dump(mode="json")
-                        if final_state.generative_structure is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "semantic_motif",
-                    (
-                        final_state.semantic_motif.model_dump(mode="json")
-                        if final_state.semantic_motif is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "emotional_consistency",
-                    (
-                        final_state.emotional_consistency.model_dump(mode="json")
-                        if final_state.emotional_consistency is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "cross_modality",
-                    (
-                        final_state.cross_modality.model_dump(mode="json")
-                        if final_state.cross_modality is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "audio_visual_scene",
-                    (
-                        final_state.audio_visual_scene.model_dump(mode="json")
-                        if final_state.audio_visual_scene is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "artifact_plan",
-                    (
-                        final_state.artifact_plan.model_dump(mode="json")
-                        if final_state.artifact_plan is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "artifact_dependency_graph",
-                    (
-                        final_state.artifact_dependency_graph.model_dump(mode="json")
-                        if final_state.artifact_dependency_graph is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "runtime_compatibility",
-                    (
-                        final_state.runtime_compatibility.model_dump(mode="json")
-                        if final_state.runtime_compatibility is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "artifact_capability_matrix",
-                    (
-                        final_state.artifact_capability_matrix.model_dump(mode="json")
-                        if final_state.artifact_capability_matrix is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "multi_artifact_strategy",
-                    (
-                        final_state.multi_artifact_strategy.model_dump(mode="json")
-                        if final_state.multi_artifact_strategy is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "artifact_critic",
-                    (
-                        final_state.artifact_critic.model_dump(mode="json")
-                        if final_state.artifact_critic is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "artifact_refiner",
-                    (
-                        final_state.artifact_refiner.model_dump(mode="json")
-                        if final_state.artifact_refiner is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "artifact_intelligence_synthesis",
-                    (
-                        final_state.artifact_intelligence_synthesis.model_dump(
-                            mode="json"
-                        )
-                        if final_state.artifact_intelligence_synthesis is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "artifact_merge_planner",
-                    (
-                        final_state.artifact_merge_planner.model_dump(mode="json")
-                        if final_state.artifact_merge_planner is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "artifact_export_intelligence",
-                    (
-                        final_state.artifact_export_intelligence.model_dump(
-                            mode="json"
-                        )
-                        if final_state.artifact_export_intelligence is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "artifact_engine_contracts",
-                    (
-                        final_state.artifact_engine_contracts.model_dump(
-                            mode="json"
-                        )
-                        if final_state.artifact_engine_contracts is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "evaluation_engine_contracts",
-                    (
-                        final_state.evaluation_engine_contracts.model_dump(
-                            mode="json"
-                        )
-                        if final_state.evaluation_engine_contracts is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "creative_critic",
-                    (
-                        final_state.creative_critic.model_dump(mode="json")
-                        if final_state.creative_critic is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "self_evaluation",
-                    (
-                        final_state.self_evaluation.model_dump(mode="json")
-                        if final_state.self_evaluation is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "creative_improvement_planner",
-                    (
-                        final_state.creative_improvement_planner.model_dump(
-                            mode="json"
-                        )
-                        if final_state.creative_improvement_planner is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "reflection_loop",
-                    (
-                        final_state.reflection_loop.model_dump(mode="json")
-                        if final_state.reflection_loop is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "creative_confidence",
-                    (
-                        final_state.creative_confidence.model_dump(mode="json")
-                        if final_state.creative_confidence is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "creative_score",
-                    (
-                        final_state.creative_score.model_dump(mode="json")
-                        if final_state.creative_score is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "consistency_validation",
-                    (
-                        final_state.consistency_validation.model_dump(
-                            mode="json"
-                        )
-                        if final_state.consistency_validation is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "evaluation_report",
-                    (
-                        final_state.evaluation_report.model_dump(mode="json")
-                        if final_state.evaluation_report is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "creative_director",
-                    (
-                        final_state.creative_director.model_dump(mode="json")
-                        if final_state.creative_director is not None
-                        else None
-                    ),
-                ),
-                **_optional_event_payload(
-                    "creative_reasoning",
-                    (
-                        final_state.creative_reasoning.model_dump(mode="json")
-                        if final_state.creative_reasoning is not None
-                        else None
-                    ),
-                ),
+                **_final_event_model_payloads(final_state),
                 **_optional_event_payload(
                     "observability",
                     runtime_context.observability.event_payload(
@@ -3618,48 +3521,7 @@ def _serialize_workflow_runtime(
     runtime_step = step or workflow_state.current_step
     review_result = workflow_state.review_result
     clarification = workflow_state.clarification
-    creative_strategy = workflow_state.creative_strategy
-    creative_intent = workflow_state.creative_intent
-    creative_hierarchy = workflow_state.creative_hierarchy
-    creative_techniques = workflow_state.creative_techniques
-    creative_plan = workflow_state.creative_plan
-    creative_constraints = workflow_state.creative_constraints
-    creative_constraint_priorities = workflow_state.creative_constraint_priorities
-    runtime_capabilities = workflow_state.runtime_capabilities
-    creative_tradeoffs = workflow_state.creative_tradeoffs
-    creative_quality_prediction = workflow_state.creative_quality_prediction
-    symbolic_narrative = workflow_state.symbolic_narrative
-    creative_composition = workflow_state.creative_composition
-    procedural_structure = workflow_state.procedural_structure
-    generative_structure = workflow_state.generative_structure
-    semantic_motif = workflow_state.semantic_motif
-    emotional_consistency = workflow_state.emotional_consistency
-    cross_modality = workflow_state.cross_modality
-    audio_visual_scene = workflow_state.audio_visual_scene
-    artifact_plan = workflow_state.artifact_plan
-    artifact_dependency_graph = workflow_state.artifact_dependency_graph
-    runtime_compatibility = workflow_state.runtime_compatibility
-    artifact_capability_matrix = workflow_state.artifact_capability_matrix
-    multi_artifact_strategy = workflow_state.multi_artifact_strategy
-    artifact_critic = workflow_state.artifact_critic
-    artifact_refiner = workflow_state.artifact_refiner
-    artifact_intelligence_synthesis = (
-        workflow_state.artifact_intelligence_synthesis
-    )
-    artifact_merge_planner = workflow_state.artifact_merge_planner
-    artifact_export_intelligence = workflow_state.artifact_export_intelligence
-    artifact_engine_contracts = workflow_state.artifact_engine_contracts
-    evaluation_engine_contracts_registry = workflow_state.evaluation_engine_contracts
-    creative_critic = workflow_state.creative_critic
-    self_evaluation = workflow_state.self_evaluation
-    creative_improvement_planner = workflow_state.creative_improvement_planner
-    reflection_loop = workflow_state.reflection_loop
-    creative_confidence = workflow_state.creative_confidence
-    creative_score = workflow_state.creative_score
-    consistency_validation = workflow_state.consistency_validation
-    evaluation_report = workflow_state.evaluation_report
-    creative_director = workflow_state.creative_director
-    creative_reasoning = workflow_state.creative_reasoning
+    artifact_critique_summary = workflow_state.artifact_critique_summary
 
     return {
         "step": runtime_step.value if runtime_step is not None else None,
@@ -3676,16 +3538,18 @@ def _serialize_workflow_runtime(
         "review_outcome": (
             review_result.outcome.value if review_result is not None else None
         ),
-        "review_reasons": list(review_result.reasons) if review_result else [],
+        "review_reasons": (
+            list(review_result.reasons) if review_result is not None else []
+        ),
         "artifact_count": len(workflow_state.artifacts),
         "artifact_critique_count": (
-            len(workflow_state.artifact_critique_summary.critiques)
-            if workflow_state.artifact_critique_summary is not None
+            len(artifact_critique_summary.critiques)
+            if artifact_critique_summary is not None
             else 0
         ),
         "recommended_artifact_id": (
-            workflow_state.artifact_critique_summary.recommended_artifact_id
-            if workflow_state.artifact_critique_summary is not None
+            artifact_critique_summary.recommended_artifact_id
+            if artifact_critique_summary is not None
             else None
         ),
         "preview_artifact_count": len(workflow_state.preview_results),
@@ -3696,263 +3560,8 @@ def _serialize_workflow_runtime(
         "clarification_question_count": (
             len(clarification.questions) if clarification is not None else 0
         ),
-        "clarification": (
-            clarification.model_dump(mode="json")
-            if clarification is not None
-            else None
-        ),
-        "creative_plan": (
-            creative_plan.model_dump(mode="json")
-            if creative_plan is not None
-            else None
-        ),
-        "planning_available": creative_plan is not None,
-        "creative_intent": (
-            creative_intent.model_dump(mode="json")
-            if creative_intent is not None
-            else None
-        ),
-        "intent_decomposer_available": creative_intent is not None,
-        "creative_hierarchy": (
-            creative_hierarchy.model_dump(mode="json")
-            if creative_hierarchy is not None
-            else None
-        ),
-        "hierarchy_planner_available": creative_hierarchy is not None,
-        "creative_strategy": (
-            creative_strategy.model_dump(mode="json")
-            if creative_strategy is not None
-            else None
-        ),
-        "strategy_available": creative_strategy is not None,
-        "creative_techniques": (
-            creative_techniques.model_dump(mode="json")
-            if creative_techniques is not None
-            else None
-        ),
-        "technique_selector_available": creative_techniques is not None,
-        "creative_constraints": (
-            creative_constraints.model_dump(mode="json")
-            if creative_constraints is not None
-            else None
-        ),
-        "constraint_solver_available": creative_constraints is not None,
-        "creative_constraint_priorities": (
-            creative_constraint_priorities.model_dump(mode="json")
-            if creative_constraint_priorities is not None
-            else None
-        ),
-        "constraint_prioritizer_available": (
-            creative_constraint_priorities is not None
-        ),
-        "runtime_capabilities": (
-            runtime_capabilities.model_dump(mode="json")
-            if runtime_capabilities is not None
-            else None
-        ),
-        "runtime_capability_reasoner_available": runtime_capabilities is not None,
-        "creative_tradeoffs": (
-            creative_tradeoffs.model_dump(mode="json")
-            if creative_tradeoffs is not None
-            else None
-        ),
-        "tradeoff_explorer_available": creative_tradeoffs is not None,
-        "creative_quality_prediction": (
-            creative_quality_prediction.model_dump(mode="json")
-            if creative_quality_prediction is not None
-            else None
-        ),
-        "quality_predictor_available": creative_quality_prediction is not None,
-        "symbolic_narrative": (
-            symbolic_narrative.model_dump(mode="json")
-            if symbolic_narrative is not None
-            else None
-        ),
-        "symbolic_narrative_available": symbolic_narrative is not None,
-        "creative_composition": (
-            creative_composition.model_dump(mode="json")
-            if creative_composition is not None
-            else None
-        ),
-        "creative_composition_available": creative_composition is not None,
-        "procedural_structure": (
-            procedural_structure.model_dump(mode="json")
-            if procedural_structure is not None
-            else None
-        ),
-        "procedural_structure_available": procedural_structure is not None,
-        "generative_structure": (
-            generative_structure.model_dump(mode="json")
-            if generative_structure is not None
-            else None
-        ),
-        "generative_structure_available": generative_structure is not None,
-        "semantic_motif": (
-            semantic_motif.model_dump(mode="json")
-            if semantic_motif is not None
-            else None
-        ),
-        "semantic_motif_available": semantic_motif is not None,
-        "emotional_consistency": (
-            emotional_consistency.model_dump(mode="json")
-            if emotional_consistency is not None
-            else None
-        ),
-        "emotional_consistency_available": emotional_consistency is not None,
-        "cross_modality": (
-            cross_modality.model_dump(mode="json")
-            if cross_modality is not None
-            else None
-        ),
-        "cross_modality_available": cross_modality is not None,
-        "audio_visual_scene": (
-            audio_visual_scene.model_dump(mode="json")
-            if audio_visual_scene is not None
-            else None
-        ),
-        "audio_visual_scene_available": audio_visual_scene is not None,
-        "artifact_plan": (
-            artifact_plan.model_dump(mode="json")
-            if artifact_plan is not None
-            else None
-        ),
-        "artifact_planner_available": artifact_plan is not None,
-        "artifact_dependency_graph": (
-            artifact_dependency_graph.model_dump(mode="json")
-            if artifact_dependency_graph is not None
-            else None
-        ),
-        "artifact_dependency_graph_available": artifact_dependency_graph is not None,
-        "runtime_compatibility": (
-            runtime_compatibility.model_dump(mode="json")
-            if runtime_compatibility is not None
-            else None
-        ),
-        "runtime_compatibility_available": runtime_compatibility is not None,
-        "artifact_capability_matrix": (
-            artifact_capability_matrix.model_dump(mode="json")
-            if artifact_capability_matrix is not None
-            else None
-        ),
-        "artifact_capability_matrix_available": (
-            artifact_capability_matrix is not None
-        ),
-        "multi_artifact_strategy": (
-            multi_artifact_strategy.model_dump(mode="json")
-            if multi_artifact_strategy is not None
-            else None
-        ),
-        "multi_artifact_strategy_available": multi_artifact_strategy is not None,
-        "artifact_critic": (
-            artifact_critic.model_dump(mode="json")
-            if artifact_critic is not None
-            else None
-        ),
-        "artifact_critic_available": artifact_critic is not None,
-        "artifact_refiner": (
-            artifact_refiner.model_dump(mode="json")
-            if artifact_refiner is not None
-            else None
-        ),
-        "artifact_refiner_available": artifact_refiner is not None,
-        "artifact_intelligence_synthesis": (
-            artifact_intelligence_synthesis.model_dump(mode="json")
-            if artifact_intelligence_synthesis is not None
-            else None
-        ),
-        "artifact_intelligence_synthesis_available": (
-            artifact_intelligence_synthesis is not None
-        ),
-        "artifact_merge_planner": (
-            artifact_merge_planner.model_dump(mode="json")
-            if artifact_merge_planner is not None
-            else None
-        ),
-        "artifact_merge_planner_available": artifact_merge_planner is not None,
-        "artifact_export_intelligence": (
-            artifact_export_intelligence.model_dump(mode="json")
-            if artifact_export_intelligence is not None
-            else None
-        ),
-        "artifact_export_intelligence_available": (
-            artifact_export_intelligence is not None
-        ),
-        "artifact_engine_contracts": (
-            artifact_engine_contracts.model_dump(mode="json")
-            if artifact_engine_contracts is not None
-            else None
-        ),
-        "artifact_engine_contracts_available": artifact_engine_contracts is not None,
-        "evaluation_engine_contracts": (
-            evaluation_engine_contracts_registry.model_dump(mode="json")
-            if evaluation_engine_contracts_registry is not None
-            else None
-        ),
-        "evaluation_engine_contracts_available": (
-            evaluation_engine_contracts_registry is not None
-        ),
-        "creative_critic": (
-            creative_critic.model_dump(mode="json")
-            if creative_critic is not None
-            else None
-        ),
-        "creative_critic_available": creative_critic is not None,
-        "self_evaluation": (
-            self_evaluation.model_dump(mode="json")
-            if self_evaluation is not None
-            else None
-        ),
-        "self_evaluation_available": self_evaluation is not None,
-        "creative_improvement_planner": (
-            creative_improvement_planner.model_dump(mode="json")
-            if creative_improvement_planner is not None
-            else None
-        ),
-        "creative_improvement_planner_available": (
-            creative_improvement_planner is not None
-        ),
-        "reflection_loop": (
-            reflection_loop.model_dump(mode="json")
-            if reflection_loop is not None
-            else None
-        ),
-        "reflection_loop_available": reflection_loop is not None,
-        "creative_confidence": (
-            creative_confidence.model_dump(mode="json")
-            if creative_confidence is not None
-            else None
-        ),
-        "creative_confidence_available": creative_confidence is not None,
-        "creative_score": (
-            creative_score.model_dump(mode="json")
-            if creative_score is not None
-            else None
-        ),
-        "creative_score_available": creative_score is not None,
-        "consistency_validation": (
-            consistency_validation.model_dump(mode="json")
-            if consistency_validation is not None
-            else None
-        ),
-        "consistency_validation_available": consistency_validation is not None,
-        "evaluation_report": (
-            evaluation_report.model_dump(mode="json")
-            if evaluation_report is not None
-            else None
-        ),
-        "evaluation_report_available": evaluation_report is not None,
-        "creative_director": (
-            creative_director.model_dump(mode="json")
-            if creative_director is not None
-            else None
-        ),
-        "director_available": creative_director is not None,
-        "creative_reasoning": (
-            creative_reasoning.model_dump(mode="json")
-            if creative_reasoning is not None
-            else None
-        ),
-        "creative_reasoning_available": creative_reasoning is not None,
+        "clarification": _model_json_payload(clarification),
+        **_workflow_runtime_model_payloads(workflow_state),
         "image_reference_count": len(workflow_state.request.attachments),
         "image_references": [
             {
@@ -3964,6 +3573,37 @@ def _serialize_workflow_runtime(
             for image in workflow_state.request.attachments
         ],
     }
+
+
+def _workflow_runtime_model_payloads(
+    workflow_state: AssistantWorkflowState,
+) -> dict[str, object]:
+    payload: dict[str, object] = {}
+    for spec in _WORKFLOW_RUNTIME_MODEL_PAYLOAD_SPECS:
+        model_payload = _model_json_payload(
+            getattr(workflow_state, spec.state_attribute)
+        )
+        payload[spec.payload_key] = model_payload
+        if spec.availability_key is not None:
+            payload[spec.availability_key] = model_payload is not None
+    return payload
+
+
+def _final_event_model_payloads(
+    workflow_state: AssistantWorkflowState,
+) -> dict[str, dict[str, object]]:
+    payloads: dict[str, dict[str, object]] = {}
+    for payload_key in _FINAL_EVENT_MODEL_PAYLOAD_KEYS:
+        model_payload = _model_json_payload(getattr(workflow_state, payload_key))
+        if model_payload is not None:
+            payloads[payload_key] = model_payload
+    return payloads
+
+
+def _model_json_payload(value: Any | None) -> dict[str, object] | None:
+    if value is None:
+        return None
+    return value.model_dump(mode="json")
 
 
 def _optional_event_payload(
