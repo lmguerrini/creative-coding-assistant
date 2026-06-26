@@ -116,6 +116,13 @@ import {
   type ConsistencyValidationIntegrity,
   type ConsistencyValidationStatus,
   type ConsistencyValidationSummary,
+  type EvaluationDependencySummary,
+  type EvaluationEvidenceLinkSummary,
+  type EvaluationProvenanceEntrySummary,
+  type EvaluationReportDependencyStatus,
+  type EvaluationReportSource,
+  type EvaluationReportSummary,
+  type EvaluationTraceEntrySummary,
   type SelfEvaluationAmbiguity,
   type SelfEvaluationCompleteness,
   type SelfEvaluationRisk,
@@ -320,6 +327,8 @@ export type AssistantStreamWorkflowMetadata = {
   creative_score_available?: boolean;
   consistency_validation?: ConsistencyValidationSummary | null;
   consistency_validation_available?: boolean;
+  evaluation_report?: EvaluationReportSummary | null;
+  evaluation_report_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -881,6 +890,12 @@ export function readWorkflowMetadata(
   const consistencyValidationAvailable =
     rawWorkflow.consistency_validation_available === true ||
     consistencyValidation !== null;
+  const evaluationReport = readEvaluationReportSummary(
+    rawWorkflow.evaluation_report ?? rawWorkflow.evaluationReport
+  );
+  const evaluationReportAvailable =
+    rawWorkflow.evaluation_report_available === true ||
+    evaluationReport !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -1136,6 +1151,12 @@ export function readWorkflowMetadata(
       ? {
           consistency_validation: consistencyValidation,
           consistency_validation_available: true
+        }
+      : {}),
+    ...(evaluationReportAvailable
+      ? {
+          evaluation_report: evaluationReport,
+          evaluation_report_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -3598,6 +3619,21 @@ const consistencyValidationIntegrityLevels = [
   "compromised"
 ] as const satisfies readonly ConsistencyValidationIntegrity[];
 
+const evaluationReportSources = [
+  "creative_critic",
+  "self_evaluation",
+  "creative_improvement_planner",
+  "reflection_loop",
+  "creative_confidence",
+  "creative_score",
+  "consistency_validation"
+] as const satisfies readonly EvaluationReportSource[];
+
+const evaluationReportDependencyStatuses = [
+  "available",
+  "missing"
+] as const satisfies readonly EvaluationReportDependencyStatus[];
+
 function readCreativeScoreBreakdownSummaryList(
   value: unknown
 ): CreativeScoreBreakdownSummary[] {
@@ -4002,6 +4038,259 @@ export function readConsistencyValidationSummary(
     evaluationIntegrity,
     evidence: readStringListField(value, "evidence", "evidence"),
     hitlRecommendation,
+    promptGuidance,
+    authorityBoundary
+  };
+}
+
+function readEvaluationTraceEntrySummaryList(
+  value: unknown
+): EvaluationTraceEntrySummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const step = readFiniteNumberField(item, "step");
+    const source = readStringUnion(
+      item,
+      "source",
+      "source",
+      evaluationReportSources
+    );
+    const role = readStringField(item, "role");
+    const contribution = readStringField(item, "contribution");
+    if (step === null || !source || !role || !contribution) {
+      return [];
+    }
+
+    return [
+      {
+        step,
+        source,
+        role,
+        contribution,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+function readEvaluationProvenanceEntrySummaryList(
+  value: unknown
+): EvaluationProvenanceEntrySummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const source = readStringUnion(
+      item,
+      "source",
+      "source",
+      evaluationReportSources
+    );
+    const role = readStringField(item, "role");
+    const summary = readStringField(item, "summary");
+    if (!source || !role || !summary) {
+      return [];
+    }
+
+    return [
+      {
+        source,
+        role,
+        summary,
+        confidence: readFiniteNumberField(item, "confidence"),
+        hitlRecommendation: readStringUnion(
+          item,
+          "hitl_recommendation",
+          "hitlRecommendation",
+          expectedHumanReviewNeeds
+        )
+      }
+    ];
+  });
+}
+
+function readEvaluationDependencySummaryList(
+  value: unknown
+): EvaluationDependencySummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const source = readStringUnion(
+      item,
+      "source",
+      "source",
+      evaluationReportSources
+    );
+    const status = readStringUnion(
+      item,
+      "status",
+      "status",
+      evaluationReportDependencyStatuses
+    );
+    const required = readBooleanField(item, "required");
+    const note = readStringField(item, "note");
+    if (!source || !status || required === null || !note) {
+      return [];
+    }
+
+    return [{ source, status, required, note }];
+  });
+}
+
+function readEvaluationEvidenceLinkSummaryList(
+  value: unknown
+): EvaluationEvidenceLinkSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const source = readStringUnion(
+      item,
+      "source",
+      "source",
+      evaluationReportSources
+    );
+    const claim = readStringField(item, "claim");
+    if (!source || !claim) {
+      return [];
+    }
+
+    return [
+      {
+        source,
+        claim,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+export function readEvaluationReportSummary(
+  value: unknown
+): EvaluationReportSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const serializationVersion =
+    readStringField(value, "serialization_version") ??
+    readStringField(value, "serializationVersion");
+  const executiveSummary =
+    readStringField(value, "executive_summary") ??
+    readStringField(value, "executiveSummary");
+  const qualitySummary =
+    readStringField(value, "quality_summary") ??
+    readStringField(value, "qualitySummary");
+  const confidenceSummary =
+    readStringField(value, "confidence_summary") ??
+    readStringField(value, "confidenceSummary");
+  const consistencySummary =
+    readStringField(value, "consistency_summary") ??
+    readStringField(value, "consistencySummary");
+  const improvementSummary =
+    readStringField(value, "improvement_summary") ??
+    readStringField(value, "improvementSummary");
+  const scoreSummary =
+    readStringField(value, "score_summary") ??
+    readStringField(value, "scoreSummary");
+  const hitlRecommendation = readStringUnion(
+    value,
+    "hitl_recommendation",
+    "hitlRecommendation",
+    expectedHumanReviewNeeds
+  );
+  const evaluationTrace = readEvaluationTraceEntrySummaryList(
+    value.evaluation_trace ?? value.evaluationTrace
+  );
+  const evaluationProvenance = readEvaluationProvenanceEntrySummaryList(
+    value.evaluation_provenance ?? value.evaluationProvenance
+  );
+  const evaluationDependencies = readEvaluationDependencySummaryList(
+    value.evaluation_dependencies ?? value.evaluationDependencies
+  );
+  const evidenceChain = readEvaluationEvidenceLinkSummaryList(
+    value.evidence_chain ?? value.evidenceChain
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "evaluation_reports" ||
+    serializationVersion !== "v1" ||
+    !executiveSummary ||
+    !qualitySummary ||
+    !confidenceSummary ||
+    !consistencySummary ||
+    !improvementSummary ||
+    !scoreSummary ||
+    !hitlRecommendation ||
+    evaluationTrace.length === 0 ||
+    evaluationProvenance.length === 0 ||
+    evaluationDependencies.length === 0 ||
+    evidenceChain.length === 0 ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    serializationVersion,
+    executiveSummary,
+    qualitySummary,
+    confidenceSummary,
+    consistencySummary,
+    improvementSummary,
+    scoreSummary,
+    strengths: readStringListField(value, "strengths", "strengths"),
+    weaknesses: readStringListField(value, "weaknesses", "weaknesses"),
+    risks: readStringListField(value, "risks", "risks"),
+    recommendations: readStringListField(
+      value,
+      "recommendations",
+      "recommendations"
+    ),
+    hitlRecommendation,
+    evaluationTrace,
+    evaluationProvenance,
+    evaluationExplainability: readStringListField(
+      value,
+      "evaluation_explainability",
+      "evaluationExplainability"
+    ),
+    evaluationDependencies,
+    evidenceChain,
     promptGuidance,
     authorityBoundary
   };
@@ -8893,6 +9182,7 @@ const creativeReasoningEvidenceSources = [
   "creative_confidence",
   "creative_score",
   "consistency_validation",
+  "evaluation_report",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

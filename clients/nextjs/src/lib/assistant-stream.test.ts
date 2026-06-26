@@ -28,6 +28,7 @@ import {
   readCreativeTechniqueSummary,
   readCreativeTradeoffExplorerSummary,
   readConsistencyValidationSummary,
+  readEvaluationReportSummary,
   readEmotionalConsistencyProfileSummary,
   readGenerativeStructureBlueprintSummary,
   readProceduralStructurePlanSummary,
@@ -1834,6 +1835,126 @@ function consistencyValidationFixture() {
     ],
     authority_boundary:
       "The Consistency Validation Engine validates existing V3.4 evaluation metadata only."
+  };
+}
+
+function evaluationReportFixture() {
+  return {
+    role: "evaluation_reports",
+    serialization_version: "v1",
+    executive_summary:
+      "Evaluation report aggregates V3.4 metadata without changing behavior.",
+    quality_summary: "Quality combines critic and self-evaluation metadata.",
+    confidence_summary: "Confidence is medium with review-sensitive uncertainty.",
+    consistency_summary:
+      "Consistency validation reports needs_attention with medium contradiction.",
+    improvement_summary:
+      "Improvement planning and reflection identify bounded next steps.",
+    score_summary: "Creative Score reports a strong advisory score.",
+    strengths: ["Strong symbolic alignment."],
+    weaknesses: ["Runtime confidence needs review."],
+    risks: ["High score conflicts with low confidence."],
+    recommendations: [
+      "Surface human review before treating evaluation metadata as settled."
+    ],
+    hitl_recommendation: "recommended",
+    evaluation_trace: [
+      {
+        step: 1,
+        source: "creative_critic",
+        role: "Creative Critic Engine",
+        contribution: "Critic identified strengths and risks.",
+        evidence: ["Critic evidence."]
+      },
+      {
+        step: 2,
+        source: "consistency_validation",
+        role: "Consistency Validation Engine",
+        contribution: "Consistency Validation identified a conflict.",
+        evidence: ["Consistency evidence."]
+      }
+    ],
+    evaluation_provenance: [
+      {
+        source: "creative_critic",
+        role: "creative_critic_engine",
+        summary: "Critic provenance.",
+        confidence: 0.82,
+        hitl_recommendation: null
+      },
+      {
+        source: "consistency_validation",
+        role: "consistency_validation_engine",
+        summary: "Consistency provenance.",
+        confidence: null,
+        hitl_recommendation: "recommended"
+      }
+    ],
+    evaluation_explainability: [
+      "Report ordering follows the V3.4 evaluation pipeline.",
+      "Evaluation report is metadata-only."
+    ],
+    evaluation_dependencies: [
+      {
+        source: "creative_critic",
+        status: "available",
+        required: true,
+        note: "creative_critic metadata is available."
+      },
+      {
+        source: "self_evaluation",
+        status: "available",
+        required: true,
+        note: "self_evaluation metadata is available."
+      },
+      {
+        source: "creative_improvement_planner",
+        status: "available",
+        required: true,
+        note: "creative_improvement_planner metadata is available."
+      },
+      {
+        source: "reflection_loop",
+        status: "available",
+        required: true,
+        note: "reflection_loop metadata is available."
+      },
+      {
+        source: "creative_confidence",
+        status: "available",
+        required: true,
+        note: "creative_confidence metadata is available."
+      },
+      {
+        source: "creative_score",
+        status: "available",
+        required: true,
+        note: "creative_score metadata is available."
+      },
+      {
+        source: "consistency_validation",
+        status: "available",
+        required: true,
+        note: "consistency_validation metadata is available."
+      }
+    ],
+    evidence_chain: [
+      {
+        source: "creative_critic",
+        claim: "Request inspected.",
+        evidence: ["Route creative_generation."]
+      },
+      {
+        source: "consistency_validation",
+        claim: "Consistency status is needs_attention.",
+        evidence: ["Consistency evidence."]
+      }
+    ],
+    prompt_guidance: [
+      "Use Evaluation Reports metadata as advisory evaluation context only."
+    ],
+    authority_boundary:
+      "The Evaluation Reports capability summarizes existing V3.4 metadata only."
   };
 }
 
@@ -5896,6 +6017,95 @@ describe("assistant stream client", () => {
     expect(workflow?.consistency_validation?.scoreConsistency).toMatchObject({
       status: "conflict",
       conflictSignals: ["High score conflicts with low confidence."]
+    });
+  });
+
+  it("parses evaluation report summaries", () => {
+    const report = readEvaluationReportSummary(evaluationReportFixture());
+
+    expect(report).toMatchObject({
+      role: "evaluation_reports",
+      serializationVersion: "v1",
+      executiveSummary:
+        "Evaluation report aggregates V3.4 metadata without changing behavior.",
+      hitlRecommendation: "recommended"
+    });
+    expect(report?.evaluationTrace[0]).toMatchObject({
+      step: 1,
+      source: "creative_critic",
+      role: "Creative Critic Engine"
+    });
+    expect(report?.evaluationTrace[1]).toMatchObject({
+      step: 2,
+      source: "consistency_validation"
+    });
+    expect(report?.evaluationProvenance[0]).toMatchObject({
+      source: "creative_critic",
+      confidence: 0.82,
+      hitlRecommendation: null
+    });
+    expect(report?.evaluationProvenance[1]).toMatchObject({
+      source: "consistency_validation",
+      hitlRecommendation: "recommended"
+    });
+    expect(report?.evaluationDependencies[0]).toMatchObject({
+      source: "creative_critic",
+      status: "available",
+      required: true
+    });
+    expect(report?.evidenceChain[0]).toMatchObject({
+      source: "creative_critic",
+      claim: "Request inspected."
+    });
+  });
+
+  it("hydrates evaluation report workflow metadata", () => {
+    const evaluationReport = evaluationReportFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 29,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          evaluation_report: evaluationReport,
+          evaluation_report_available: true
+        }
+      }
+    };
+
+    const workflow = readWorkflowMetadata(event);
+
+    expect(workflow).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      evaluation_report: {
+        role: "evaluation_reports",
+        hitlRecommendation: "recommended"
+      },
+      evaluation_report_available: true
+    });
+    expect(workflow?.evaluation_report?.evaluationTrace[0]).toMatchObject({
+      source: "creative_critic"
+    });
+    expect(workflow?.evaluation_report?.evaluationTrace[1]).toMatchObject({
+      source: "consistency_validation"
+    });
+    expect(workflow?.evaluation_report?.evaluationDependencies[0]).toMatchObject({
+      source: "creative_critic",
+      status: "available"
     });
   });
 

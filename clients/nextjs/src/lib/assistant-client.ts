@@ -905,6 +905,69 @@ export type ConsistencyValidationSummary = {
   authorityBoundary: string;
 };
 
+export type EvaluationReportSource =
+  | "creative_critic"
+  | "self_evaluation"
+  | "creative_improvement_planner"
+  | "reflection_loop"
+  | "creative_confidence"
+  | "creative_score"
+  | "consistency_validation";
+
+export type EvaluationReportDependencyStatus = "available" | "missing";
+
+export type EvaluationTraceEntrySummary = {
+  step: number;
+  source: EvaluationReportSource;
+  role: string;
+  contribution: string;
+  evidence: string[];
+};
+
+export type EvaluationProvenanceEntrySummary = {
+  source: EvaluationReportSource;
+  role: string;
+  summary: string;
+  confidence: number | null;
+  hitlRecommendation: ExpectedHumanReviewNeed | null;
+};
+
+export type EvaluationDependencySummary = {
+  source: EvaluationReportSource;
+  status: EvaluationReportDependencyStatus;
+  required: boolean;
+  note: string;
+};
+
+export type EvaluationEvidenceLinkSummary = {
+  source: EvaluationReportSource;
+  claim: string;
+  evidence: string[];
+};
+
+export type EvaluationReportSummary = {
+  role: "evaluation_reports";
+  serializationVersion: "v1";
+  executiveSummary: string;
+  qualitySummary: string;
+  confidenceSummary: string;
+  consistencySummary: string;
+  improvementSummary: string;
+  scoreSummary: string;
+  strengths: string[];
+  weaknesses: string[];
+  risks: string[];
+  recommendations: string[];
+  hitlRecommendation: ExpectedHumanReviewNeed;
+  evaluationTrace: EvaluationTraceEntrySummary[];
+  evaluationProvenance: EvaluationProvenanceEntrySummary[];
+  evaluationExplainability: string[];
+  evaluationDependencies: EvaluationDependencySummary[];
+  evidenceChain: EvaluationEvidenceLinkSummary[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+};
+
 export type ArtifactRefinerSummary = {
   role: "artifact_refiner";
   refinementConfidence: number;
@@ -2199,6 +2262,7 @@ export type CreativeReasoningEvidenceSource =
   | "creative_confidence"
   | "creative_score"
   | "consistency_validation"
+  | "evaluation_report"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {
