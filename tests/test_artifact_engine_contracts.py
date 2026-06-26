@@ -97,6 +97,10 @@ class ArtifactEngineContractTests(unittest.TestCase):
             )
             self.assertTrue(contract.ambiguity_signals)
             self.assertTrue(contract.risk_signals)
+            self.assertLessEqual(
+                set(contract.risk_signals),
+                set(contract.produced_signals),
+            )
             self.assertTrue(contract.escalation_candidates)
             self.assertFalse(
                 contract.estimated_cost_metadata.external_provider_calls
