@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
 from creative_coding_assistant.orchestration._metadata_utils import (
+    _clamp_score,
     _clip,
     _contains_any,
     _dedupe,
@@ -589,10 +590,6 @@ def _alignment_scores(
     }
 
 
-def _clamp(value: float) -> float:
-    return round(max(0.05, min(0.98, value)), 2)
-
-
 def _sequence_penalty(values: Sequence[object]) -> float:
     return min(len(values), 4) * 0.035
 
@@ -1064,7 +1061,9 @@ def _self_evaluation_confidence(
             generated_response,
         )
     ) + min(len(artifacts), 2)
-    return _clamp(0.28 + present * 0.09 - min(len(missing_information), 8) * 0.035)
+    return _clamp_score(
+        0.28 + present * 0.09 - min(len(missing_information), 8) * 0.035
+    )
 
 
 def _evaluation_summary(

@@ -8,7 +8,11 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
-from creative_coding_assistant.orchestration._metadata_utils import _clip, _dedupe
+from creative_coding_assistant.orchestration._metadata_utils import (
+    _clamp_score,
+    _clip,
+    _dedupe,
+)
 from creative_coding_assistant.orchestration.artifacts import WorkflowArtifact
 from creative_coding_assistant.orchestration.creative_critic_engine import (
     CreativeCriticProfile,
@@ -476,7 +480,7 @@ def _confidence(
         values.append(min(0.78, 0.58 + len(artifacts) * 0.05))
     if not values:
         return 0.28
-    return round(max(0.05, min(0.98, sum(values) / len(values))), 2)
+    return _clamp_score(sum(values) / len(values))
 
 
 def _summary(
