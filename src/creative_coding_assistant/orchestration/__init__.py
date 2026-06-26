@@ -52,6 +52,9 @@ _WORKSTATION_ENGINE_CONTRACTS = (
 _AGENT_CAPABILITY_REGISTRY = (
     "creative_coding_assistant.orchestration.agent_capabilities"
 )
+_ESCALATION_POLICY = (
+    "creative_coding_assistant.orchestration.escalation_policy"
+)
 _ARTIFACT_PLANNER = "creative_coding_assistant.orchestration.artifact_planner"
 _ARTIFACT_DEPENDENCY_GRAPH = (
     "creative_coding_assistant.orchestration.artifact_dependency_graph"
@@ -158,6 +161,10 @@ _EXPORT_MAP = {
     "AgentCapabilityRegistry": _AGENT_CAPABILITY_REGISTRY,
     "agent_capability_by_id": _AGENT_CAPABILITY_REGISTRY,
     "agent_capability_registry": _AGENT_CAPABILITY_REGISTRY,
+    "EscalationPolicyRule": _ESCALATION_POLICY,
+    "EscalationPolicyRegistry": _ESCALATION_POLICY,
+    "escalation_policy_by_id": _ESCALATION_POLICY,
+    "escalation_policy_registry": _ESCALATION_POLICY,
     "ArtifactCapabilityConfidence": _ARTIFACT_CAPABILITY_MATRIX,
     "ArtifactCapabilityFit": _ARTIFACT_CAPABILITY_MATRIX,
     "ArtifactCapabilityMatrix": _ARTIFACT_CAPABILITY_MATRIX,
