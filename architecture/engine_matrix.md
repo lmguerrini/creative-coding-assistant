@@ -20,10 +20,10 @@ Use this matrix together with:
 
 | Engine | Purpose | Current scope | Key examples |
 | --- | --- | --- | --- |
-| Core Engine | Owns creative translation, planning, cognition, generative design, artifact intelligence, creative evaluation, critique, and final prompt construction. | Active and implemented through V2.5, V3.1, V3.2, V3.3, V3.4, and the V3.5 workstation metadata consumers. | Creative Translation, Creative Planning, Creative Cognition Core, Generative Design Core, Artifact Intelligence, Creative Evaluation, Director, Creative Reasoning |
+| Core Engine | Owns creative translation, planning, cognition, generative design, artifact intelligence, creative evaluation, critique, and final prompt construction. | Active and implemented through V2.5, V3.1, V3.2, V3.3, V3.4, and the V3.5 workstation metadata consumers; V3.6 stabilizes shared utilities without expanding behavior. | Creative Translation, Creative Planning, Creative Cognition Core, Generative Design Core, Artifact Intelligence, Creative Evaluation, Director, Creative Reasoning |
 | Knowledge Engine | Owns retrieval, source grounding, memory, and future knowledge reasoning interfaces. | Active and implemented for retrieval and memory; future HoloMind integration remains outside the current runtime. | Source registry, KB retrieval, prompt memory, grounded prompt input |
-| Execution Engine | Owns workflow orchestration, provider execution, validation, artifact extraction, preview preparation, metadata serialization, and future optimization. | Active and implemented for the bounded LangGraph runtime; V5 expands this layer into Execution Optimization & Production Intelligence. | Workflow graph, generation, review gate, refinement loop, artifact extraction, preview preparation, workflow metadata payloads |
-| Experience Layer | Owns workstation UX, preview surfaces, inspector views, comparison, export, stream hydration, operator controls, and workstation surface contracts. | Active and implemented in the Next.js workstation; V4 expands this layer into Agentic Studio collaboration patterns. | Workstation shell, preview shelf, inspectors, comparison workspace, provenance, timeline, dashboard, export surfaces, V3 metadata hydration |
+| Execution Engine | Owns workflow orchestration, provider execution, validation, artifact extraction, preview preparation, metadata serialization, backend dev mounting, and future optimization. | Active and implemented for the bounded LangGraph runtime; V3.6 stabilizes graph assembly and serialization seams, and V5 expands this layer into Execution Optimization & Production Intelligence. | Workflow graph, generation, review gate, refinement loop, artifact extraction, preview preparation, workflow metadata payloads, backend bridge |
+| Experience Layer | Owns workstation UX, preview surfaces, inspector views, comparison, export, stream hydration, operator controls, and workstation surface contracts. | Active and implemented in the Next.js workstation; V3.6 aligns the documented surface boundary, and V4 expands this layer into Agentic Studio collaboration patterns. | Workstation shell, preview shelf, inspectors, comparison workspace, provenance, timeline, dashboard, export surfaces, V3 metadata hydration |
 
 ## Version Vs Engine View
 
@@ -48,6 +48,25 @@ Use this matrix together with:
 - A single version can strengthen several engines at once.
 - A single engine can span many versions without requiring a rename of the
   roadmap.
+
+## Implemented Contract Registries
+
+The current V3 runtime serializes three static metadata contract registries.
+They are source-of-truth descriptions for existing metadata surfaces, not
+dynamic engine routers or future-version behavior.
+
+| Registry | Source module | Count | Serialization version | Current boundary |
+| --- | --- | ---: | --- | --- |
+| Artifact Intelligence contracts | `src/creative_coding_assistant/orchestration/artifact_engine_contracts.py` | 10 | `artifact_engine_contract_registry.v1` | Describes V3.3 artifact metadata dependencies, signals, cacheability, parallelization support, estimated cost, and estimated latency |
+| Creative Evaluation contracts | `src/creative_coding_assistant/orchestration/evaluation_engine_contracts.py` | 8 | `evaluation_engine_contract_registry.v1` | Describes V3.4 evaluation metadata dependencies, evidence expectations, signals, cacheability, parallelization support, estimated cost, and estimated latency |
+| Creative Workstation contracts | `src/creative_coding_assistant/orchestration/workstation_contracts.py` | 7 | `workstation_engine_contract_registry.v1` | Describes V3.5 workstation surface inputs, exposed metadata, stability signals, hydration mode, estimated cost, and estimated latency |
+
+Artifact and evaluation registries expose confidence, ambiguity, risk, and
+dependency signals. The workstation registry exposes stability and
+missing-metadata behavior for client-side surfaces. All three registries keep
+future hooks descriptive only: they do not invoke agents, route providers,
+select runtimes, execute artifacts, repair previews, trigger retries, or change
+generated output.
 
 ## V3.5 Workstation Contracts
 
