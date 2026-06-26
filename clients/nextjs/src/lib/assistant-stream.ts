@@ -103,6 +103,10 @@ import {
   type CreativeReasoningStepSummary,
   type CreativeReasoningSummary,
   type CreativeRejectedAlternativeSummary,
+  type CreativeScoreBand,
+  type CreativeScoreBreakdownSummary,
+  type CreativeScoreDimension,
+  type CreativeScoreSummary,
   type SelfEvaluationAmbiguity,
   type SelfEvaluationCompleteness,
   type SelfEvaluationRisk,
@@ -303,6 +307,8 @@ export type AssistantStreamWorkflowMetadata = {
   reflection_loop_available?: boolean;
   creative_confidence?: CreativeConfidenceSummary | null;
   creative_confidence_available?: boolean;
+  creative_score?: CreativeScoreSummary | null;
+  creative_score_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -853,6 +859,11 @@ export function readWorkflowMetadata(
   const creativeConfidenceAvailable =
     rawWorkflow.creative_confidence_available === true ||
     creativeConfidence !== null;
+  const creativeScore = readCreativeScoreSummary(
+    rawWorkflow.creative_score ?? rawWorkflow.creativeScore
+  );
+  const creativeScoreAvailable =
+    rawWorkflow.creative_score_available === true || creativeScore !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -1096,6 +1107,12 @@ export function readWorkflowMetadata(
       ? {
           creative_confidence: creativeConfidence,
           creative_confidence_available: true
+        }
+      : {}),
+    ...(creativeScoreAvailable
+      ? {
+          creative_score: creativeScore,
+          creative_score_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -3491,6 +3508,186 @@ export function readCreativeConfidenceSummary(
       value,
       "confidence_evidence",
       "confidenceEvidence"
+    ),
+    hitlRecommendation,
+    promptGuidance,
+    authorityBoundary
+  };
+}
+
+const creativeScoreDimensions = [
+  "creativity",
+  "technical",
+  "coherence",
+  "feasibility",
+  "artifact",
+  "runtime"
+] as const satisfies readonly CreativeScoreDimension[];
+
+const creativeScoreBands = [
+  "excellent",
+  "strong",
+  "solid",
+  "weak",
+  "critical"
+] as const satisfies readonly CreativeScoreBand[];
+
+function readCreativeScoreBreakdownSummaryList(
+  value: unknown
+): CreativeScoreBreakdownSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const dimension = readStringUnion(
+      item,
+      "dimension",
+      "dimension",
+      creativeScoreDimensions
+    );
+    const score = readFiniteNumberField(item, "score");
+    const weight = readFiniteNumberField(item, "weight");
+    const rationale = readStringField(item, "rationale");
+
+    if (!dimension || score === null || weight === null || !rationale) {
+      return [];
+    }
+
+    return [
+      {
+        dimension,
+        score,
+        weight,
+        rationale,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+export function readCreativeScoreSummary(
+  value: unknown
+): CreativeScoreSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const serializationVersion =
+    readStringField(value, "serialization_version") ??
+    readStringField(value, "serializationVersion");
+  const overallCreativeScore =
+    readFiniteNumberField(value, "overall_creative_score") ??
+    readFiniteNumberField(value, "overallCreativeScore");
+  const scoreBand = readStringUnion(
+    value,
+    "score_band",
+    "scoreBand",
+    creativeScoreBands
+  );
+  const scoreSummary =
+    readStringField(value, "score_summary") ??
+    readStringField(value, "scoreSummary");
+  const scoreBreakdown = readCreativeScoreBreakdownSummaryList(
+    value.score_breakdown ?? value.scoreBreakdown
+  );
+  const creativityScore =
+    readFiniteNumberField(value, "creativity_score") ??
+    readFiniteNumberField(value, "creativityScore");
+  const technicalScore =
+    readFiniteNumberField(value, "technical_score") ??
+    readFiniteNumberField(value, "technicalScore");
+  const coherenceScore =
+    readFiniteNumberField(value, "coherence_score") ??
+    readFiniteNumberField(value, "coherenceScore");
+  const feasibilityScore =
+    readFiniteNumberField(value, "feasibility_score") ??
+    readFiniteNumberField(value, "feasibilityScore");
+  const artifactScore =
+    readFiniteNumberField(value, "artifact_score") ??
+    readFiniteNumberField(value, "artifactScore");
+  const runtimeScore =
+    readFiniteNumberField(value, "runtime_score") ??
+    readFiniteNumberField(value, "runtimeScore");
+  const confidenceWeight =
+    readFiniteNumberField(value, "confidence_weight") ??
+    readFiniteNumberField(value, "confidenceWeight");
+  const uncertaintyPenalty =
+    readFiniteNumberField(value, "uncertainty_penalty") ??
+    readFiniteNumberField(value, "uncertaintyPenalty");
+  const riskPenalty =
+    readFiniteNumberField(value, "risk_penalty") ??
+    readFiniteNumberField(value, "riskPenalty");
+  const hitlRecommendation = readStringUnion(
+    value,
+    "hitl_recommendation",
+    "hitlRecommendation",
+    expectedHumanReviewNeeds
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "creative_score_engine" ||
+    serializationVersion !== "v1" ||
+    overallCreativeScore === null ||
+    !scoreBand ||
+    !scoreSummary ||
+    scoreBreakdown.length !== 6 ||
+    creativityScore === null ||
+    technicalScore === null ||
+    coherenceScore === null ||
+    feasibilityScore === null ||
+    artifactScore === null ||
+    runtimeScore === null ||
+    confidenceWeight === null ||
+    uncertaintyPenalty === null ||
+    riskPenalty === null ||
+    !hitlRecommendation ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    serializationVersion,
+    overallCreativeScore,
+    scoreBand,
+    scoreSummary,
+    scoreBreakdown,
+    creativityScore,
+    technicalScore,
+    coherenceScore,
+    feasibilityScore,
+    artifactScore,
+    runtimeScore,
+    confidenceWeight,
+    uncertaintyPenalty,
+    riskPenalty,
+    strengths: readStringListField(value, "strengths", "strengths"),
+    weaknesses: readStringListField(value, "weaknesses", "weaknesses"),
+    scoreRationale: readStringListField(
+      value,
+      "score_rationale",
+      "scoreRationale"
+    ),
+    scoreEvidence: readStringListField(
+      value,
+      "score_evidence",
+      "scoreEvidence"
     ),
     hitlRecommendation,
     promptGuidance,
@@ -8382,6 +8579,7 @@ const creativeReasoningEvidenceSources = [
   "creative_improvement_planner",
   "reflection_loop",
   "creative_confidence",
+  "creative_score",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

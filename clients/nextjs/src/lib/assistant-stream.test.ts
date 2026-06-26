@@ -23,6 +23,7 @@ import {
   readCreativeExecutionPlanSummary,
   readCreativeQualityPredictionSummary,
   readCreativeReasoningSummary,
+  readCreativeScoreSummary,
   readCreativeStrategySummary,
   readCreativeTechniqueSummary,
   readCreativeTradeoffExplorerSummary,
@@ -1662,6 +1663,64 @@ function creativeConfidenceFixture() {
     ],
     authority_boundary:
       "The Creative Confidence Engine estimates confidence from existing evaluation metadata only."
+  };
+}
+
+function creativeScoreFixture() {
+  return {
+    role: "creative_score_engine",
+    serialization_version: "v1",
+    overall_creative_score: 82.4,
+    score_band: "strong",
+    score_summary:
+      "Creative Score Engine synthesized evaluation metadata into a strong score.",
+    score_breakdown: [
+      creativeScoreBreakdownFixture("creativity", 86.2, 0.18),
+      creativeScoreBreakdownFixture("technical", 79.4, 0.17),
+      creativeScoreBreakdownFixture("coherence", 84.1, 0.18),
+      creativeScoreBreakdownFixture("feasibility", 80.3, 0.17),
+      creativeScoreBreakdownFixture("artifact", 83.7, 0.16),
+      creativeScoreBreakdownFixture("runtime", 77.5, 0.14)
+    ],
+    creativity_score: 86.2,
+    technical_score: 79.4,
+    coherence_score: 84.1,
+    feasibility_score: 80.3,
+    artifact_score: 83.7,
+    runtime_score: 77.5,
+    confidence_weight: 0.97,
+    uncertainty_penalty: 2.4,
+    risk_penalty: 1.5,
+    strengths: ["Creativity score is 86.2/100."],
+    weaknesses: ["Runtime score is 77.5/100."],
+    score_rationale: [
+      "creativity is the strongest dimension at 86.2/100.",
+      "runtime is the lowest dimension at 77.5/100."
+    ],
+    score_evidence: [
+      "Creative Confidence: high; 0.82 score.",
+      "Authority boundary verified: score is metadata-only."
+    ],
+    hitl_recommendation: "optional",
+    prompt_guidance: [
+      "Use Creative Score metadata as advisory scoring context only."
+    ],
+    authority_boundary:
+      "The Creative Score Engine scores existing evaluation metadata only."
+  };
+}
+
+function creativeScoreBreakdownFixture(
+  dimension: string,
+  score: number,
+  weight: number
+) {
+  return {
+    dimension,
+    score,
+    weight,
+    rationale: `Score ${dimension} from existing evaluation metadata.`,
+    evidence: [`${dimension} evidence.`]
   };
 }
 
@@ -5486,6 +5545,106 @@ describe("assistant stream client", () => {
           source: "creative_critic",
           score: 0.84,
           weight: 0.26
+        })
+      ])
+    );
+  });
+
+  it("parses creative score summaries", () => {
+    expect(readCreativeScoreSummary(creativeScoreFixture())).toMatchObject({
+      role: "creative_score_engine",
+      serializationVersion: "v1",
+      overallCreativeScore: 82.4,
+      scoreBand: "strong",
+      scoreBreakdown: [
+        {
+          dimension: "creativity",
+          score: 86.2,
+          weight: 0.18
+        },
+        {
+          dimension: "technical",
+          score: 79.4,
+          weight: 0.17
+        },
+        {
+          dimension: "coherence",
+          score: 84.1,
+          weight: 0.18
+        },
+        {
+          dimension: "feasibility",
+          score: 80.3,
+          weight: 0.17
+        },
+        {
+          dimension: "artifact",
+          score: 83.7,
+          weight: 0.16
+        },
+        {
+          dimension: "runtime",
+          score: 77.5,
+          weight: 0.14
+        }
+      ],
+      confidenceWeight: 0.97,
+      uncertaintyPenalty: 2.4,
+      riskPenalty: 1.5,
+      hitlRecommendation: "optional"
+    });
+  });
+
+  it("hydrates creative score workflow metadata", () => {
+    const creativeScore = creativeScoreFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 27,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          creative_score: creativeScore,
+          creative_score_available: true
+        }
+      }
+    };
+
+    const workflow = readWorkflowMetadata(event);
+
+    expect(workflow).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      creative_score: {
+        role: "creative_score_engine",
+        serializationVersion: "v1",
+        overallCreativeScore: 82.4,
+        scoreBand: "strong",
+        confidenceWeight: 0.97,
+        uncertaintyPenalty: 2.4,
+        riskPenalty: 1.5,
+        hitlRecommendation: "optional"
+      },
+      creative_score_available: true
+    });
+    expect(workflow?.creative_score?.scoreBreakdown).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          dimension: "runtime",
+          score: 77.5,
+          weight: 0.14
         })
       ])
     );

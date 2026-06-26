@@ -776,6 +776,62 @@ export type CreativeConfidenceSummary = {
   authorityBoundary: string;
 };
 
+export type CreativeScoreDimension =
+  | "creativity"
+  | "technical"
+  | "coherence"
+  | "feasibility"
+  | "artifact"
+  | "runtime";
+
+export type CreativeScoreBand =
+  | "excellent"
+  | "strong"
+  | "solid"
+  | "weak"
+  | "critical";
+
+export type CreativeScoreSignalSource =
+  | "creative_critic"
+  | "self_evaluation"
+  | "creative_improvement_planner"
+  | "reflection_loop"
+  | "creative_confidence"
+  | "planning_metadata";
+
+export type CreativeScoreBreakdownSummary = {
+  dimension: CreativeScoreDimension;
+  score: number;
+  weight: number;
+  rationale: string;
+  evidence: string[];
+};
+
+export type CreativeScoreSummary = {
+  role: "creative_score_engine";
+  serializationVersion: "v1";
+  overallCreativeScore: number;
+  scoreBand: CreativeScoreBand;
+  scoreSummary: string;
+  scoreBreakdown: CreativeScoreBreakdownSummary[];
+  creativityScore: number;
+  technicalScore: number;
+  coherenceScore: number;
+  feasibilityScore: number;
+  artifactScore: number;
+  runtimeScore: number;
+  confidenceWeight: number;
+  uncertaintyPenalty: number;
+  riskPenalty: number;
+  strengths: string[];
+  weaknesses: string[];
+  scoreRationale: string[];
+  scoreEvidence: string[];
+  hitlRecommendation: ExpectedHumanReviewNeed;
+  promptGuidance: string[];
+  authorityBoundary: string;
+};
+
 export type ArtifactRefinerSummary = {
   role: "artifact_refiner";
   refinementConfidence: number;
@@ -2068,6 +2124,7 @@ export type CreativeReasoningEvidenceSource =
   | "creative_improvement_planner"
   | "reflection_loop"
   | "creative_confidence"
+  | "creative_score"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {
