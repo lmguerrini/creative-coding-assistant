@@ -169,6 +169,22 @@ class EvaluationEngineContractTests(unittest.TestCase):
             report_contract.future_execution_hooks,
         )
 
+    def test_parallelization_metadata_tracks_ordered_dependencies(self) -> None:
+        registry = evaluation_engine_contracts()
+        engine_order = {
+            engine_id: index for index, engine_id in enumerate(registry.engine_ids)
+        }
+
+        for contract in registry.engine_contracts:
+            self.assertEqual(
+                contract.parallelization_support,
+                "requires_ordered_upstream_metadata",
+            )
+            for upstream_dependency in contract.upstream_dependencies:
+                upstream_index = engine_order.get(upstream_dependency)
+                if upstream_index is not None:
+                    self.assertLess(upstream_index, engine_order[contract.engine_id])
+
     def test_registry_serializes_for_workflow_metadata(self) -> None:
         dumped = evaluation_engine_contracts().model_dump(mode="json")
 
