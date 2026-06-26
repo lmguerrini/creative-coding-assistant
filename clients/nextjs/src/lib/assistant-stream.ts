@@ -599,7 +599,18 @@ export async function* decodeAssistantStream(
     );
   }
 
-  const reader = response.body.getReader();
+  for await (const line of decodeAssistantStreamLines(response.body)) {
+    const event = parseAssistantStreamLine(line);
+    if (event) {
+      yield event;
+    }
+  }
+}
+
+async function* decodeAssistantStreamLines(
+  body: ReadableStream<Uint8Array>
+): AsyncGenerator<string> {
+  const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
 
@@ -615,17 +626,13 @@ export async function* decodeAssistantStream(
       buffer = lines.pop() ?? "";
 
       for (const line of lines) {
-        const event = parseAssistantStreamLine(line);
-        if (event) {
-          yield event;
-        }
+        yield line;
       }
     }
 
     buffer += decoder.decode();
-    const event = parseAssistantStreamLine(buffer);
-    if (event) {
-      yield event;
+    if (buffer) {
+      yield buffer;
     }
   } finally {
     reader.releaseLock();

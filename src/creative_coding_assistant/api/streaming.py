@@ -30,6 +30,7 @@ DEFAULT_STREAM_PATH = "/api/assistant/stream"
 DEFAULT_CONVERSATION_ID = "local-nextjs-session"
 DEFAULT_PROJECT_ID = "local-nextjs-workspace"
 MAX_REQUEST_BYTES = 8 * 1024 * 1024
+_JSON_SEPARATORS = (",", ":")
 
 
 class AssistantStreamRequest(BaseModel):
@@ -91,7 +92,7 @@ class AssistantStreamRequest(BaseModel):
 def serialize_stream_event(event: StreamEvent) -> str:
     """Serialize one backend event as one NDJSON line."""
 
-    return json.dumps(event.model_dump(mode="json"), separators=(",", ":")) + "\n"
+    return _serialize_ndjson_payload(event.model_dump(mode="json"))
 
 
 def iter_assistant_stream_ndjson(
@@ -107,20 +108,9 @@ def iter_assistant_stream_ndjson(
             next_sequence = event.sequence + 1
             yield serialize_stream_event(event)
     except Exception:
-        error_event = StreamEvent(
-            event_type=StreamEventType.ERROR,
-            sequence=next_sequence,
-            payload={
-                "code": "assistant_stream_failed",
-                "message": "Assistant stream failed before completion.",
-                "category": "stream",
-                "subsystem": "assistant_stream",
-                "recoverable": True,
-                "suggested_action": "Retry the request from the client.",
-                "retry_label": "Send prompt again",
-            },
+        yield serialize_stream_event(
+            _assistant_stream_failed_event(sequence=next_sequence)
         )
-        yield serialize_stream_event(error_event)
 
 
 class AssistantStreamingApplication:
@@ -239,7 +229,7 @@ def _json_response(
     *,
     extra_headers: list[tuple[str, str]] | None = None,
 ) -> Iterable[bytes]:
-    body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
+    body = json.dumps(payload, separators=_JSON_SEPARATORS).encode("utf-8")
     start_response(
         status,
         [
@@ -274,3 +264,23 @@ def _cors_headers() -> list[tuple[str, str]]:
         ("Access-Control-Allow-Headers", "Content-Type"),
         ("Access-Control-Allow-Methods", "POST, OPTIONS"),
     ]
+
+
+def _serialize_ndjson_payload(payload: dict[str, Any]) -> str:
+    return json.dumps(payload, separators=_JSON_SEPARATORS) + "\n"
+
+
+def _assistant_stream_failed_event(*, sequence: int) -> StreamEvent:
+    return StreamEvent(
+        event_type=StreamEventType.ERROR,
+        sequence=sequence,
+        payload={
+            "code": "assistant_stream_failed",
+            "message": "Assistant stream failed before completion.",
+            "category": "stream",
+            "subsystem": "assistant_stream",
+            "recoverable": True,
+            "suggested_action": "Retry the request from the client.",
+            "retry_label": "Send prompt again",
+        },
+    )

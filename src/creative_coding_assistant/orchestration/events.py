@@ -19,15 +19,19 @@ class StreamEventBuilder:
         self._sequence = 0
 
     def status(self, *, code: str, message: str, **details: Any) -> StreamEvent:
-        return self._event(
+        return self._coded_event(
             StreamEventType.STATUS,
-            {"code": code, "message": message, **details},
+            code=code,
+            message=message,
+            **details,
         )
 
     def memory(self, *, code: str, message: str, **details: Any) -> StreamEvent:
-        return self._event(
+        return self._coded_event(
             StreamEventType.MEMORY,
-            {"code": code, "message": message, **details},
+            code=code,
+            message=message,
+            **details,
         )
 
     def token_delta(self, text: str, **details: Any) -> StreamEvent:
@@ -37,15 +41,19 @@ class StreamEventBuilder:
         )
 
     def retrieval(self, *, code: str, message: str, **details: Any) -> StreamEvent:
-        return self._event(
+        return self._coded_event(
             StreamEventType.RETRIEVAL,
-            {"code": code, "message": message, **details},
+            code=code,
+            message=message,
+            **details,
         )
 
     def context(self, *, code: str, message: str, **details: Any) -> StreamEvent:
-        return self._event(
+        return self._coded_event(
             StreamEventType.CONTEXT,
-            {"code": code, "message": message, **details},
+            code=code,
+            message=message,
+            **details,
         )
 
     def prompt_input(
@@ -55,9 +63,11 @@ class StreamEventBuilder:
         message: str,
         **details: Any,
     ) -> StreamEvent:
-        return self._event(
+        return self._coded_event(
             StreamEventType.PROMPT_INPUT,
-            {"code": code, "message": message, **details},
+            code=code,
+            message=message,
+            **details,
         )
 
     def planning(
@@ -67,9 +77,11 @@ class StreamEventBuilder:
         message: str,
         **details: Any,
     ) -> StreamEvent:
-        return self._event(
+        return self._coded_event(
             StreamEventType.PLANNING,
-            {"code": code, "message": message, **details},
+            code=code,
+            message=message,
+            **details,
         )
 
     def prompt_rendered(
@@ -79,9 +91,11 @@ class StreamEventBuilder:
         message: str,
         **details: Any,
     ) -> StreamEvent:
-        return self._event(
+        return self._coded_event(
             StreamEventType.PROMPT_RENDERED,
-            {"code": code, "message": message, **details},
+            code=code,
+            message=message,
+            **details,
         )
 
     def generation_input(
@@ -91,9 +105,11 @@ class StreamEventBuilder:
         message: str,
         **details: Any,
     ) -> StreamEvent:
-        return self._event(
+        return self._coded_event(
             StreamEventType.GENERATION_INPUT,
-            {"code": code, "message": message, **details},
+            code=code,
+            message=message,
+            **details,
         )
 
     def tool_start(self, request: ToolRequest, **details: Any) -> StreamEvent:
@@ -267,9 +283,11 @@ class StreamEventBuilder:
         message: str,
         **details: Any,
     ) -> StreamEvent:
-        return self._event(
+        return self._coded_event(
             StreamEventType.ARTIFACT_CRITIQUE,
-            {"code": code, "message": message, **details},
+            code=code,
+            message=message,
+            **details,
         )
 
     def preview_artifact(self, result: PreviewResult, **details: Any) -> StreamEvent:
@@ -291,8 +309,23 @@ class StreamEventBuilder:
         )
 
     def error(self, *, code: str, message: str, **details: Any) -> StreamEvent:
-        return self._event(
+        return self._coded_event(
             StreamEventType.ERROR,
+            code=code,
+            message=message,
+            **details,
+        )
+
+    def _coded_event(
+        self,
+        event_type: StreamEventType,
+        *,
+        code: str,
+        message: str,
+        **details: Any,
+    ) -> StreamEvent:
+        return self._event(
+            event_type,
             {"code": code, "message": message, **details},
         )
 
@@ -322,13 +355,11 @@ class StreamEventBuilder:
         message: str,
         **details: Any,
     ) -> StreamEvent:
-        return self._event(
+        return self._coded_event(
             event_type,
-            {
-                "code": code,
-                "message": message,
-                **details,
-            },
+            code=code,
+            message=message,
+            **details,
         )
 
 
