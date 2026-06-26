@@ -5,6 +5,7 @@ import unittest
 from creative_coding_assistant.api import (
     AssistantStreamingApplication,
     AssistantStreamRequest,
+    create_backend_dev_app,
     iter_assistant_stream_ndjson,
     serialize_stream_event,
 )
@@ -290,6 +291,57 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
         self.assertEqual(status_headers["status"], "400 Bad Request")
         self.assertEqual(json.loads(body)["error"], "invalid_request")
 
+    def test_backend_dev_app_dispatches_mounted_bridge_apps(self) -> None:
+        stream_app = _StaticWsgiApp(b"stream")
+        workspace_app = _StaticWsgiApp(b"workspace")
+        app = create_backend_dev_app(
+            stream_app=stream_app,
+            workspace_app=workspace_app,
+        )
+        stream_status: dict[str, object] = {}
+        workspace_status: dict[str, object] = {}
+        missing_status: dict[str, object] = {}
+
+        stream_body = b"".join(
+            app(
+                {
+                    "PATH_INFO": "/api/assistant/stream",
+                    "REQUEST_METHOD": "POST",
+                },
+                _capture_start_response(stream_status),
+            )
+        )
+        workspace_body = b"".join(
+            app(
+                {
+                    "PATH_INFO": "/api/workspace/session",
+                    "REQUEST_METHOD": "GET",
+                },
+                _capture_start_response(workspace_status),
+            )
+        )
+        missing_body = b"".join(
+            app(
+                {
+                    "PATH_INFO": "/api/unknown",
+                    "REQUEST_METHOD": "GET",
+                },
+                _capture_start_response(missing_status),
+            )
+        )
+
+        self.assertEqual(stream_status["status"], "200 OK")
+        self.assertEqual(stream_body, b"stream")
+        self.assertEqual(stream_app.paths, ["/api/assistant/stream"])
+        self.assertEqual(workspace_status["status"], "200 OK")
+        self.assertEqual(workspace_body, b"workspace")
+        self.assertEqual(workspace_app.paths, ["/api/workspace/session"])
+        self.assertEqual(missing_status["status"], "404 Not Found")
+        self.assertEqual(
+            json.loads(missing_body)["available_paths"],
+            ["/api/assistant/stream", "/api/workspace/session"],
+        )
+
 
 def _capture_start_response(target: dict[str, object]):
     def start_response(
@@ -318,6 +370,21 @@ class _FailingService:
     def stream(self, request: AssistantRequest):
         del request
         raise RuntimeError("boom")
+
+
+class _StaticWsgiApp:
+    def __init__(self, body: bytes) -> None:
+        self._body = body
+        self.paths: list[str] = []
+
+    def __call__(self, environ, start_response):
+        self.paths.append(str(environ.get("PATH_INFO", "")))
+        start_response(
+            "200 OK",
+            [("Content-Type", "text/plain; charset=utf-8")],
+            None,
+        )
+        return (self._body,)
 
 
 if __name__ == "__main__":

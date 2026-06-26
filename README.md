@@ -729,6 +729,12 @@ NEXT_PUBLIC_WORKSPACE_SESSION_URL=http://localhost:8000/api/workspace/session
 
 ## Running The System
 
+Start the local backend bridge:
+
+```bash
+.venv/bin/python -m creative_coding_assistant.api.dev_server
+```
+
 Start the Next.js workstation:
 
 ```bash
