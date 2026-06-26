@@ -175,6 +175,7 @@ import {
   createWorkstationError,
   type WorkstationError
 } from "@/lib/workstation-errors";
+import { buildWorkstationState } from "@/lib/workstation-state";
 import { buildZipArchive, downloadZipArchive } from "@/lib/zip-archive";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
 import { AudioReactiveMappingSummaryCard } from "./audio-reactive-mapping-summary";
@@ -920,6 +921,37 @@ export function WorkstationShell({
       workflowTraceEvents
     ]
   );
+  const workstationState = useMemo(
+    () =>
+      buildWorkstationState({
+        activeArtifactId,
+        activeInspectorTab: activeTab,
+        activeWorkflowNodeId: workflowRuntime.summary.currentNode,
+        inspectorCollapsed: layoutState.inspectorCollapsed,
+        isStreaming,
+        previewArtifactId,
+        previewFullscreen: isPreviewFullscreen,
+        previewOpen: isPreviewOpen,
+        selectedEvaluation: telemetryDashboard.evaluation,
+        snapshot: interactiveSnapshot,
+        streamError,
+        traceEvents: workflowTraceEvents
+      }),
+    [
+      activeArtifactId,
+      activeTab,
+      interactiveSnapshot,
+      isPreviewFullscreen,
+      isPreviewOpen,
+      isStreaming,
+      layoutState.inspectorCollapsed,
+      previewArtifactId,
+      streamError,
+      telemetryDashboard.evaluation,
+      workflowRuntime.summary.currentNode,
+      workflowTraceEvents
+    ]
+  );
   const runtimeConsole = useMemo(
     () =>
       buildRuntimeConsoleModel({
@@ -952,8 +984,7 @@ export function WorkstationShell({
   const activeTabSummary =
     activeTab === "Runtime"
       ? runtimeConsole.summary
-      : interactiveSnapshot.inspectorTabs.find((tab) => tab.label === activeTab)
-        ?.summary ?? "";
+      : workstationState.panels.activeTabSummary;
   const isComposerReady = Boolean(composerValue.trim()) && !isStreaming;
   const approvalSummary = useMemo(
     () => summarizeHitlApprovalRequests(approvalRequests),
@@ -996,14 +1027,10 @@ export function WorkstationShell({
   const isInspectorCollapsed = layoutState.inspectorCollapsed;
   const sessionStatusLabel = blockingApprovalRequest
     ? getHitlApprovalStateLabel(blockingApprovalRequest.state)
-    : isStreaming
-      ? "Streaming"
-      : streamError
-        ? "Fallback"
-        : interactiveSnapshot.workflow.status;
+    : workstationState.status.label;
   const sessionStatusDetail = blockingApprovalRequest
     ? blockingApprovalRequest.title
-    : interactiveSnapshot.workflow.currentStep;
+    : workstationState.status.detail;
   const workspaceLayoutStyle = useMemo(
     () =>
       ({
@@ -2423,6 +2450,7 @@ export function WorkstationShell({
       data-focus-mode={isFocusMode ? "true" : "false"}
       data-inspector-state={isInspectorCollapsed ? "collapsed" : "open"}
       data-preview={isPreviewOpen ? "open" : "closed"}
+      data-readiness={workstationState.readiness.state}
       data-resizing={activeResizeTarget ?? "idle"}
       data-stream-state={streamState}
       data-theme={workspacePreferences.theme}
