@@ -110,6 +110,9 @@ from creative_coding_assistant.orchestration.multi_artifact_strategy import (
 from creative_coding_assistant.orchestration.procedural_structure import (
     ProceduralStructurePlan,
 )
+from creative_coding_assistant.orchestration.reflection_loop_engine import (
+    ReflectionLoopProfile,
+)
 from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
@@ -167,6 +170,7 @@ def derive_creative_reasoning_result(
     creative_improvement_planner: (
         CreativeImprovementPlannerProfile | None
     ) = None,
+    reflection_loop: ReflectionLoopProfile | None = None,
     future_knowledge_context: Mapping[str, object] | None = None,
 ) -> CreativeReasoningResult:
     """Synthesize prior Creative Intelligence outputs into one decision brief."""
@@ -235,6 +239,7 @@ def derive_creative_reasoning_result(
         creative_critic=creative_critic,
         self_evaluation=self_evaluation,
         creative_improvement_planner=creative_improvement_planner,
+        reflection_loop=reflection_loop,
     )
     return CreativeReasoningResult(
         recommended_creative_direction=direction,
@@ -305,6 +310,7 @@ def derive_creative_reasoning_result(
             creative_critic=creative_critic,
             self_evaluation=self_evaluation,
             creative_improvement_planner=creative_improvement_planner,
+            reflection_loop=reflection_loop,
         ),
         strongest_supporting_signals=build_strongest_signals(
             creative_director=creative_director,
@@ -338,6 +344,7 @@ def derive_creative_reasoning_result(
             creative_critic=creative_critic,
             self_evaluation=self_evaluation,
             creative_improvement_planner=creative_improvement_planner,
+            reflection_loop=reflection_loop,
         ),
         rejected_alternatives=build_rejected_alternatives(
             creative_strategy=creative_strategy,
@@ -377,6 +384,7 @@ def derive_creative_reasoning_result(
             creative_critic=creative_critic,
             self_evaluation=self_evaluation,
             creative_improvement_planner=creative_improvement_planner,
+            reflection_loop=reflection_loop,
         ),
         prompt_guidance=build_prompt_guidance(unresolved),
         hitl_questions=build_hitl_questions(unresolved),

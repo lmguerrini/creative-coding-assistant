@@ -107,6 +107,9 @@ from creative_coding_assistant.orchestration.prompt_templates import (
     RenderedPromptResponse,
 )
 from creative_coding_assistant.orchestration.retrieval import RetrievalContextResponse
+from creative_coding_assistant.orchestration.reflection_loop_engine import (
+    ReflectionLoopProfile,
+)
 from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
@@ -250,6 +253,7 @@ class AssistantWorkflowState(BaseModel):
     creative_critic: CreativeCriticProfile | None = None
     self_evaluation: SelfEvaluationProfile | None = None
     creative_improvement_planner: CreativeImprovementPlannerProfile | None = None
+    reflection_loop: ReflectionLoopProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     rendered_prompt: RenderedPromptResponse | None = None

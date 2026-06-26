@@ -30,6 +30,9 @@ _SELF_EVALUATION_ENGINE = (
 _CREATIVE_IMPROVEMENT_PLANNER = (
     "creative_coding_assistant.orchestration.creative_improvement_planner"
 )
+_REFLECTION_LOOP_ENGINE = (
+    "creative_coding_assistant.orchestration.reflection_loop_engine"
+)
 _ARTIFACT_PLANNER = "creative_coding_assistant.orchestration.artifact_planner"
 _ARTIFACT_DEPENDENCY_GRAPH = (
     "creative_coding_assistant.orchestration.artifact_dependency_graph"
@@ -251,6 +254,7 @@ _EXPORT_MAP = {
     "CreativeRejectedAlternative": _CREATIVE_REASONING,
     "CreativeCriticProfile": _CREATIVE_CRITIC_ENGINE,
     "CreativeCriticRiskAssessment": _CREATIVE_CRITIC_ENGINE,
+    "ReflectionLoopProfile": _REFLECTION_LOOP_ENGINE,
     "RuntimeCapabilityCandidate": _RUNTIME_CAPABILITIES,
     "RuntimeCompatibilityAssessment": _RUNTIME_COMPATIBILITY,
     "RuntimeCompatibilityConfidence": _RUNTIME_COMPATIBILITY,
@@ -425,6 +429,8 @@ _EXPORT_MAP = {
     "creative_improvement_planner_prompt_lines": (
         _CREATIVE_IMPROVEMENT_PLANNER
     ),
+    "derive_reflection_loop_profile": _REFLECTION_LOOP_ENGINE,
+    "reflection_loop_prompt_lines": _REFLECTION_LOOP_ENGINE,
     "derive_runtime_capability_profile": _RUNTIME_CAPABILITIES,
     "runtime_capability_prompt_lines": _RUNTIME_CAPABILITIES,
     "derive_runtime_compatibility_profile": _RUNTIME_COMPATIBILITY,

@@ -130,6 +130,9 @@ from creative_coding_assistant.orchestration.refinement_passes import (
     select_refinement_source,
     start_refinement_pass_record,
 )
+from creative_coding_assistant.orchestration.reflection_loop_engine import (
+    derive_reflection_loop_profile,
+)
 from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     derive_runtime_capability_profile,
@@ -1098,6 +1101,43 @@ def _planning_node(
                 self_evaluation=self_evaluation,
             )
         )
+        reflection_loop = derive_reflection_loop_profile(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_critic=creative_critic,
+            self_evaluation=self_evaluation,
+            creative_improvement_planner=creative_improvement_planner,
+            planning_metadata=(
+                creative_intent,
+                creative_hierarchy,
+                strategy,
+                techniques,
+                plan,
+                constraints,
+                constraint_priorities,
+                runtime_capabilities,
+                tradeoffs,
+                quality_prediction,
+                symbolic_narrative,
+                creative_composition,
+                procedural_structure,
+                generative_structure,
+                semantic_motif,
+                emotional_consistency,
+                cross_modality,
+                audio_visual_scene,
+                artifact_plan,
+                artifact_dependency_graph,
+                runtime_compatibility,
+                artifact_capability_matrix,
+                multi_artifact_strategy,
+                artifact_critic,
+                artifact_refiner,
+                artifact_intelligence_synthesis,
+                artifact_merge_planner,
+                artifact_export_intelligence,
+            ),
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -1134,6 +1174,7 @@ def _planning_node(
                 "creative_critic": creative_critic,
                 "self_evaluation": self_evaluation,
                 "creative_improvement_planner": creative_improvement_planner,
+                "reflection_loop": reflection_loop,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -1174,6 +1215,7 @@ def _planning_node(
                 "creative_improvement_planner": (
                     creative_improvement_planner
                 ),
+                "reflection_loop": reflection_loop,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -1233,6 +1275,7 @@ def _planning_node(
                 creative_improvement_planner=(
                     creative_improvement_planner.model_dump(mode="json")
                 ),
+                reflection_loop=reflection_loop.model_dump(mode="json"),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -1880,6 +1923,15 @@ def _finalization_node(
                 generated_response=answer,
             )
         )
+        reflection_loop = _derive_reflection_loop_result(
+            evaluation_state.model_copy(
+                update={
+                    "creative_improvement_planner": (
+                        creative_improvement_planner
+                    )
+                }
+            )
+        )
         evaluated_prompt_input = (
             workflow_state.prompt_input.model_copy(
                 update={
@@ -1887,6 +1939,7 @@ def _finalization_node(
                     "creative_improvement_planner": (
                         creative_improvement_planner
                     ),
+                    "reflection_loop": reflection_loop,
                 }
             )
             if workflow_state.prompt_input is not None
@@ -1898,6 +1951,7 @@ def _finalization_node(
                 "creative_improvement_planner": (
                     creative_improvement_planner
                 ),
+                "reflection_loop": reflection_loop,
                 "prompt_input": evaluated_prompt_input,
             }
         )
@@ -2237,6 +2291,14 @@ def _finalization_node(
                             mode="json"
                         )
                         if final_state.creative_improvement_planner is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
+                    "reflection_loop",
+                    (
+                        final_state.reflection_loop.model_dump(mode="json")
+                        if final_state.reflection_loop is not None
                         else None
                     ),
                 ),
@@ -2852,6 +2914,7 @@ def _derive_director_brief(
         creative_improvement_planner=(
             workflow_state.creative_improvement_planner
         ),
+        reflection_loop=workflow_state.reflection_loop,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2910,6 +2973,7 @@ def _derive_reasoning_result(
         creative_improvement_planner=(
             workflow_state.creative_improvement_planner
         ),
+        reflection_loop=workflow_state.reflection_loop,
     )
 
 
@@ -2973,6 +3037,56 @@ def _derive_creative_improvement_planner_result(
         self_evaluation=workflow_state.self_evaluation,
         generated_response=generated_response,
         artifacts=workflow_state.artifacts,
+    )
+
+
+def _derive_reflection_loop_result(workflow_state: AssistantWorkflowState):
+    return derive_reflection_loop_profile(
+        request=workflow_state.request,
+        route_decision=workflow_state.route_decision,
+        creative_critic=workflow_state.creative_critic,
+        self_evaluation=workflow_state.self_evaluation,
+        creative_improvement_planner=workflow_state.creative_improvement_planner,
+        planning_metadata=_reflection_planning_metadata(workflow_state),
+    )
+
+
+def _reflection_planning_metadata(
+    workflow_state: AssistantWorkflowState,
+) -> tuple[object, ...]:
+    return tuple(
+        item
+        for item in (
+            workflow_state.creative_intent,
+            workflow_state.creative_hierarchy,
+            workflow_state.creative_strategy,
+            workflow_state.creative_techniques,
+            workflow_state.creative_plan,
+            workflow_state.creative_constraints,
+            workflow_state.creative_constraint_priorities,
+            workflow_state.runtime_capabilities,
+            workflow_state.creative_tradeoffs,
+            workflow_state.creative_quality_prediction,
+            workflow_state.symbolic_narrative,
+            workflow_state.creative_composition,
+            workflow_state.procedural_structure,
+            workflow_state.generative_structure,
+            workflow_state.semantic_motif,
+            workflow_state.emotional_consistency,
+            workflow_state.cross_modality,
+            workflow_state.audio_visual_scene,
+            workflow_state.artifact_plan,
+            workflow_state.artifact_dependency_graph,
+            workflow_state.runtime_compatibility,
+            workflow_state.artifact_capability_matrix,
+            workflow_state.multi_artifact_strategy,
+            workflow_state.artifact_critic,
+            workflow_state.artifact_refiner,
+            workflow_state.artifact_intelligence_synthesis,
+            workflow_state.artifact_merge_planner,
+            workflow_state.artifact_export_intelligence,
+        )
+        if item is not None
     )
 
 
@@ -3220,6 +3334,7 @@ def _serialize_workflow_runtime(
     creative_critic = workflow_state.creative_critic
     self_evaluation = workflow_state.self_evaluation
     creative_improvement_planner = workflow_state.creative_improvement_planner
+    reflection_loop = workflow_state.reflection_loop
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -3465,6 +3580,12 @@ def _serialize_workflow_runtime(
         "creative_improvement_planner_available": (
             creative_improvement_planner is not None
         ),
+        "reflection_loop": (
+            reflection_loop.model_dump(mode="json")
+            if reflection_loop is not None
+            else None
+        ),
+        "reflection_loop_available": reflection_loop is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None

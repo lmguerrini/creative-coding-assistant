@@ -91,6 +91,9 @@ from creative_coding_assistant.orchestration.multi_artifact_strategy import (
 from creative_coding_assistant.orchestration.procedural_structure import (
     ProceduralStructurePlan,
 )
+from creative_coding_assistant.orchestration.reflection_loop_engine import (
+    ReflectionLoopProfile,
+)
 from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
@@ -144,6 +147,7 @@ def build_evidence_chain(
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
+    reflection_loop: ReflectionLoopProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -711,6 +715,29 @@ def build_evidence_chain(
                     "opportunities, trade-offs, future candidates, and HITL "
                     "questions without editing artifacts, retrying, routing, "
                     "selecting runtimes, changing previews, or triggering loops."
+                ),
+            )
+        )
+    if reflection_loop is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="reflection_loop",
+                signal=_clip(
+                    (
+                        f"{reflection_loop.reflection_priority} priority; "
+                        f"{reflection_loop.reflection_depth} depth; "
+                        f"{reflection_loop.expected_quality_gain} quality gain; "
+                        f"{reflection_loop.expected_risk_reduction} risk reduction"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Reflection Loop evidence estimates theoretical "
+                    "reflection value, risk reduction, cost, latency, stop "
+                    "conditions, and HITL needs as advisory metadata only, "
+                    "without triggering refinement, retries, provider calls, "
+                    "runtime selection, routing, preview changes, workflow "
+                    "loops, artifact edits, or V4 agents."
                 ),
             )
         )

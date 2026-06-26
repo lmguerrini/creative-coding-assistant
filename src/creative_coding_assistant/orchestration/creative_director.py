@@ -93,6 +93,9 @@ from creative_coding_assistant.orchestration.multi_artifact_strategy import (
 from creative_coding_assistant.orchestration.procedural_structure import (
     ProceduralStructurePlan,
 )
+from creative_coding_assistant.orchestration.reflection_loop_engine import (
+    ReflectionLoopProfile,
+)
 from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
@@ -181,6 +184,7 @@ def derive_creative_assistant_director_brief(
     creative_improvement_planner: (
         CreativeImprovementPlannerProfile | None
     ) = None,
+    reflection_loop: ReflectionLoopProfile | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -225,6 +229,7 @@ def derive_creative_assistant_director_brief(
             creative_critic=creative_critic,
             self_evaluation=self_evaluation,
             creative_improvement_planner=creative_improvement_planner,
+            reflection_loop=reflection_loop,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

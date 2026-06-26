@@ -117,6 +117,9 @@ from creative_coding_assistant.orchestration.prompt_memory import (
     looks_like_follow_up_query,
 )
 from creative_coding_assistant.orchestration.retrieval import RetrievalContextResponse
+from creative_coding_assistant.orchestration.reflection_loop_engine import (
+    ReflectionLoopProfile,
+)
 from creative_coding_assistant.orchestration.routing import (
     DomainSelectionShape,
     RouteDecision,
@@ -395,6 +398,7 @@ class PromptInputResponse(BaseModel):
     creative_critic: CreativeCriticProfile | None = None
     self_evaluation: SelfEvaluationProfile | None = None
     creative_improvement_planner: CreativeImprovementPlannerProfile | None = None
+    reflection_loop: ReflectionLoopProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None

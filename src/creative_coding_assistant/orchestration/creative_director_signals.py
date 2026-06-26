@@ -86,6 +86,9 @@ from creative_coding_assistant.orchestration.multi_artifact_strategy import (
 from creative_coding_assistant.orchestration.procedural_structure import (
     ProceduralStructurePlan,
 )
+from creative_coding_assistant.orchestration.reflection_loop_engine import (
+    ReflectionLoopProfile,
+)
 from creative_coding_assistant.orchestration.routing import (
     RouteCapability,
     RouteDecision,
@@ -145,6 +148,7 @@ def build_director_brief_payload(
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
+    reflection_loop: ReflectionLoopProfile | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -179,6 +183,7 @@ def build_director_brief_payload(
         creative_critic=creative_critic,
         self_evaluation=self_evaluation,
         creative_improvement_planner=creative_improvement_planner,
+        reflection_loop=reflection_loop,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -228,6 +233,7 @@ def build_director_brief_payload(
             creative_critic,
             self_evaluation,
             creative_improvement_planner,
+            reflection_loop,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -261,6 +267,7 @@ def build_director_brief_payload(
             creative_critic=creative_critic,
             self_evaluation=self_evaluation,
             creative_improvement_planner=creative_improvement_planner,
+            reflection_loop=reflection_loop,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -295,6 +302,7 @@ def build_director_brief_payload(
             creative_critic=creative_critic,
             self_evaluation=self_evaluation,
             creative_improvement_planner=creative_improvement_planner,
+            reflection_loop=reflection_loop,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -335,6 +343,7 @@ def build_director_brief_payload(
             creative_critic=creative_critic,
             self_evaluation=self_evaluation,
             creative_improvement_planner=creative_improvement_planner,
+            reflection_loop=reflection_loop,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -395,6 +404,7 @@ def _ambiguity_signals(
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
+    reflection_loop: ReflectionLoopProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -478,6 +488,13 @@ def _ambiguity_signals(
     if creative_improvement_planner is not None:
         signals.extend(creative_improvement_planner.hitl_questions[:1])
         signals.extend(creative_improvement_planner.highest_impact_opportunities[:1])
+    if reflection_loop is not None:
+        signals.extend(reflection_loop.unresolved_questions[:1])
+        if reflection_loop.reflection_required:
+            signals.append(
+                "Reflection Loop estimates "
+                f"{reflection_loop.reflection_priority} advisory reflection value."
+            )
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -565,6 +582,15 @@ def _creative_improvement_planner_focus(
     )
 
 
+def _reflection_loop_focus(profile: ReflectionLoopProfile) -> str:
+    return (
+        "Reflection loop: "
+        f"{profile.reflection_priority} priority; "
+        f"{profile.reflection_depth} depth; "
+        f"required {profile.reflection_required}; metadata only."
+    )
+
+
 def _planning_focus(
     plan: CreativeExecutionPlan | None,
     creative_intent: CreativeIntentDecomposition | None,
@@ -597,6 +623,7 @@ def _planning_focus(
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
+    reflection_loop: ReflectionLoopProfile | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_intent is not None:
@@ -664,6 +691,8 @@ def _planning_focus(
                     creative_improvement_planner
                 )
             )
+        if reflection_loop is not None:
+            runtime_focus += " " + _reflection_loop_focus(reflection_loop)
         focus.append(runtime_focus)
         if (
             artifact_capability_matrix is None
@@ -719,6 +748,8 @@ def _planning_focus(
                     creative_improvement_planner
                 )
             )
+        if reflection_loop is not None:
+            capability_focus += " " + _reflection_loop_focus(reflection_loop)
         focus.append(capability_focus)
         if (
             multi_artifact_strategy is None
@@ -870,6 +901,9 @@ def _planning_focus(
     if creative_improvement_planner is not None:
         focus.append(_creative_improvement_planner_focus(creative_improvement_planner))
         focus.extend(creative_improvement_planner.prompt_guidance[:1])
+    if reflection_loop is not None:
+        focus.append(_reflection_loop_focus(reflection_loop))
+        focus.extend(reflection_loop.prompt_guidance[:1])
     if procedural_structure is not None:
         focus.append(
             "Procedural structure: "
@@ -1015,6 +1049,7 @@ def _critique_focus(
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
+    reflection_loop: ReflectionLoopProfile | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -1257,6 +1292,15 @@ def _critique_focus(
             "runtimes, or triggering workflow loops."
         )
         focus.extend(creative_improvement_planner.highest_impact_opportunities[:2])
+    if reflection_loop is not None:
+        focus.append(
+            "Reflection Loop Engine is metadata-only advisory guidance; "
+            "compare theoretical reflection value, unresolved questions, "
+            "refinement candidates, stop conditions, and HITL recommendation "
+            "without triggering refinement, provider calls, retries, routing, "
+            "runtime changes, previews, workflow loops, or V4 agents."
+        )
+        focus.extend(reflection_loop.refinement_candidates[:2])
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -1323,6 +1367,7 @@ def _next_actions(
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
+    reflection_loop: ReflectionLoopProfile | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
@@ -1395,6 +1440,8 @@ def _next_actions(
         and creative_improvement_planner.hitl_questions
     ):
         return (creative_improvement_planner.hitl_questions[0],)
+    if reflection_loop is not None and reflection_loop.unresolved_questions:
+        return (reflection_loop.unresolved_questions[0],)
     if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
@@ -1447,6 +1494,7 @@ def _evidence(
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
+    reflection_loop: ReflectionLoopProfile | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -1636,6 +1684,13 @@ def _evidence(
             "Creative improvement planner: "
             f"{len(creative_improvement_planner.improvement_priorities)} priorities; "
             f"{creative_improvement_planner.confidence:.2f} confidence."
+        )
+    if reflection_loop is not None:
+        evidence.append(
+            "Reflection loop: "
+            f"{reflection_loop.reflection_priority} priority; "
+            f"{reflection_loop.reflection_depth} depth; "
+            f"{reflection_loop.reflection_confidence:.2f} confidence."
         )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")

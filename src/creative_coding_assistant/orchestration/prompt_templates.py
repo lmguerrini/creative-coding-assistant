@@ -131,6 +131,10 @@ from creative_coding_assistant.orchestration.procedural_structure import (
     ProceduralStructurePlan,
     procedural_structure_prompt_lines,
 )
+from creative_coding_assistant.orchestration.reflection_loop_engine import (
+    ReflectionLoopProfile,
+    reflection_loop_prompt_lines,
+)
 from creative_coding_assistant.orchestration.prompt_inputs import (
     PromptImageReferenceInput,
     PromptInputResponse,
@@ -435,6 +439,13 @@ Creative Improvement Planner:
 - {{ instruction }}
 {% endfor %}
 {% endif %}
+{% set reflection_loop = prompt_input.reflection_loop -%}
+{% if reflection_loop is not none -%}
+Reflection Loop Engine:
+{% for instruction in reflection_loop_lines(reflection_loop) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
 {% set director = prompt_input.creative_director -%}
 {% if director is not none -%}
 Creative Assistant Director:
@@ -707,6 +718,7 @@ class JinjaPromptRenderer:
             creative_improvement_planner_lines=(
                 _creative_improvement_planner_lines
             ),
+            reflection_loop_lines=_reflection_loop_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -1057,6 +1069,12 @@ def _creative_improvement_planner_lines(
     profile: CreativeImprovementPlannerProfile,
 ) -> tuple[str, ...]:
     return creative_improvement_planner_prompt_lines(profile)
+
+
+def _reflection_loop_lines(
+    profile: ReflectionLoopProfile,
+) -> tuple[str, ...]:
+    return reflection_loop_prompt_lines(profile)
 
 
 def _creative_assistant_director_lines(
