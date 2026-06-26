@@ -87,6 +87,8 @@ import {
   type CreativeHierarchyPrioritySummary,
   type CreativeHierarchySource,
   type CreativeHierarchyTier,
+  type CreativeImprovementPlannerSummary,
+  type CreativeImprovementPrioritySummary,
   type CreativeQualityDimension,
   type CreativeQualityPredictionSummary,
   type CreativeQualityPredictionLevel,
@@ -101,6 +103,10 @@ import {
   type SelfEvaluationCompleteness,
   type SelfEvaluationRisk,
   type SelfEvaluationSummary,
+  type ImprovementImpact,
+  type ImprovementPriorityLevel,
+  type ImprovementRisk,
+  type ImprovementSource,
   type CreativeStrategyAlternativeSummary,
   type CreativeStrategyId,
   type CreativeStrategySummary,
@@ -277,6 +283,8 @@ export type AssistantStreamWorkflowMetadata = {
   creative_critic_available?: boolean;
   self_evaluation?: SelfEvaluationSummary | null;
   self_evaluation_available?: boolean;
+  creative_improvement_planner?: CreativeImprovementPlannerSummary | null;
+  creative_improvement_planner_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -809,6 +817,13 @@ export function readWorkflowMetadata(
   );
   const selfEvaluationAvailable =
     rawWorkflow.self_evaluation_available === true || selfEvaluation !== null;
+  const creativeImprovementPlanner = readCreativeImprovementPlannerSummary(
+    rawWorkflow.creative_improvement_planner ??
+      rawWorkflow.creativeImprovementPlanner
+  );
+  const creativeImprovementPlannerAvailable =
+    rawWorkflow.creative_improvement_planner_available === true ||
+    creativeImprovementPlanner !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -1034,6 +1049,12 @@ export function readWorkflowMetadata(
       ? {
           self_evaluation: selfEvaluation,
           self_evaluation_available: true
+        }
+      : {}),
+    ...(creativeImprovementPlannerAvailable
+      ? {
+          creative_improvement_planner: creativeImprovementPlanner,
+          creative_improvement_planner_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -2881,6 +2902,167 @@ export function readSelfEvaluationSummary(
     authorityBoundary,
     evidence: readStringListField(value, "evidence", "evidence")
   };
+}
+
+const improvementPriorityLevels = [
+  "critical",
+  "high",
+  "medium",
+  "low"
+] as const satisfies readonly ImprovementPriorityLevel[];
+
+const improvementImpacts = [
+  "high",
+  "medium",
+  "low"
+] as const satisfies readonly ImprovementImpact[];
+
+const improvementRisks = [
+  "low",
+  "medium",
+  "high"
+] as const satisfies readonly ImprovementRisk[];
+
+const improvementSources = [
+  "creative_critic",
+  "self_evaluation",
+  "artifact_context",
+  "workflow_context"
+] as const satisfies readonly ImprovementSource[];
+
+export function readCreativeImprovementPlannerSummary(
+  value: unknown
+): CreativeImprovementPlannerSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const serializationVersion =
+    readStringField(value, "serialization_version") ??
+    readStringField(value, "serializationVersion");
+  const confidence = readFiniteNumberField(value, "confidence");
+  const improvementSummary =
+    readStringField(value, "improvement_summary") ??
+    readStringField(value, "improvementSummary");
+  const improvementPriorities = readCreativeImprovementPrioritySummaryList(
+    value.improvement_priorities ?? value.improvementPriorities
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "creative_improvement_planner" ||
+    serializationVersion !== "v1" ||
+    confidence === null ||
+    !improvementSummary ||
+    improvementPriorities.length === 0 ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    serializationVersion,
+    confidence,
+    improvementSummary,
+    improvementPriorities,
+    highestImpactOpportunities: readStringListField(
+      value,
+      "highest_impact_opportunities",
+      "highestImpactOpportunities"
+    ),
+    lowRiskImprovements: readStringListField(
+      value,
+      "low_risk_improvements",
+      "lowRiskImprovements"
+    ),
+    experimentalImprovements: readStringListField(
+      value,
+      "experimental_improvements",
+      "experimentalImprovements"
+    ),
+    tradeOffRecommendations: readStringListField(
+      value,
+      "trade_off_recommendations",
+      "tradeOffRecommendations"
+    ),
+    improvementRationale: readStringListField(
+      value,
+      "improvement_rationale",
+      "improvementRationale"
+    ),
+    evidence: readStringListField(value, "evidence", "evidence"),
+    futureRefinementCandidates: readStringListField(
+      value,
+      "future_refinement_candidates",
+      "futureRefinementCandidates"
+    ),
+    hitlQuestions: readStringListField(value, "hitl_questions", "hitlQuestions"),
+    promptGuidance,
+    authorityBoundary
+  };
+}
+
+function readCreativeImprovementPrioritySummaryList(
+  value: unknown
+): CreativeImprovementPrioritySummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const priorityId =
+      readStringField(item, "priority_id") ?? readStringField(item, "priorityId");
+    const title = readStringField(item, "title");
+    const priority = readStringUnion(
+      item,
+      "priority",
+      "priority",
+      improvementPriorityLevels
+    );
+    const impact = readStringUnion(item, "impact", "impact", improvementImpacts);
+    const risk = readStringUnion(item, "risk", "risk", improvementRisks);
+    const source = readStringUnion(item, "source", "source", improvementSources);
+    const rationale = readStringField(item, "rationale");
+
+    if (
+      !priorityId ||
+      !title ||
+      !priority ||
+      !impact ||
+      !risk ||
+      !source ||
+      !rationale
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        priorityId,
+        title,
+        priority,
+        impact,
+        risk,
+        source,
+        rationale,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
 }
 
 export function readArtifactRefinerSummary(
@@ -7764,6 +7946,7 @@ const creativeReasoningEvidenceSources = [
   "artifact_export_intelligence",
   "creative_critic",
   "self_evaluation",
+  "creative_improvement_planner",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

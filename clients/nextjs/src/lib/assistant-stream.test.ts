@@ -1514,6 +1514,58 @@ function selfEvaluationFixture() {
   };
 }
 
+function creativeImprovementPlannerFixture() {
+  return {
+    role: "creative_improvement_planner",
+    serialization_version: "v1",
+    confidence: 0.81,
+    improvement_summary:
+      "Creative Improvement Planner identified advisory priorities from critic and self-evaluation metadata.",
+    improvement_priorities: [
+      {
+        priority_id: "self_eval_gap_1",
+        title: "Runtime alignment needs stronger caveats.",
+        priority: "high",
+        impact: "high",
+        risk: "low",
+        source: "self_evaluation",
+        rationale:
+          "Self Evaluation identified this as a quality gap without changing workflow control.",
+        evidence: ["Self evaluation is mostly complete."]
+      }
+    ],
+    highest_impact_opportunities: [
+      "Runtime alignment needs stronger caveats."
+    ],
+    low_risk_improvements: [
+      "Use improvement guidance as metadata-only caveats."
+    ],
+    experimental_improvements: [
+      "Consider one optional creative variation only after core alignment is preserved."
+    ],
+    trade_off_recommendations: [
+      "Prioritize request and intent alignment before adding new creative scope."
+    ],
+    improvement_rationale: [
+      "1 improvement priority signal was derived without changing execution behavior."
+    ],
+    evidence: [
+      "Authority boundary verified: metadata-only improvement planning."
+    ],
+    future_refinement_candidates: [
+      "Future candidate from self_eval_gap_1: Runtime alignment needs stronger caveats."
+    ],
+    hitl_questions: [
+      "Should critical improvement priorities be resolved before scope expansion?"
+    ],
+    prompt_guidance: [
+      "Use Creative Improvement Planner metadata as advisory guidance only, not as automatic refinement or output modification."
+    ],
+    authority_boundary:
+      "The Creative Improvement Planner converts metadata into advisory improvement guidance only; it does not modify prompts."
+  };
+}
+
 function artifactRefinerFixture() {
   return {
     role: "artifact_refiner",
@@ -5153,6 +5205,57 @@ describe("assistant stream client", () => {
         qualityGaps: ["Runtime alignment needs stronger caveats."]
       },
       self_evaluation_available: true
+    });
+  });
+
+  it("hydrates creative improvement planner workflow metadata", () => {
+    const improvementPlanner = creativeImprovementPlannerFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 24,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          creative_improvement_planner: improvementPlanner,
+          creative_improvement_planner_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      creative_improvement_planner: {
+        role: "creative_improvement_planner",
+        serializationVersion: "v1",
+        confidence: 0.81,
+        improvementPriorities: [
+          {
+            priorityId: "self_eval_gap_1",
+            priority: "high",
+            impact: "high",
+            risk: "low",
+            source: "self_evaluation"
+          }
+        ],
+        highestImpactOpportunities: [
+          "Runtime alignment needs stronger caveats."
+        ]
+      },
+      creative_improvement_planner_available: true
     });
   });
 

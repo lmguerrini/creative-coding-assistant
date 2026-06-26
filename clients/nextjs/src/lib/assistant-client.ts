@@ -614,6 +614,51 @@ export type SelfEvaluationSummary = {
   evidence: string[];
 };
 
+export type ImprovementPriorityLevel =
+  | "critical"
+  | "high"
+  | "medium"
+  | "low";
+
+export type ImprovementImpact = "high" | "medium" | "low";
+
+export type ImprovementRisk = "low" | "medium" | "high";
+
+export type ImprovementSource =
+  | "creative_critic"
+  | "self_evaluation"
+  | "artifact_context"
+  | "workflow_context";
+
+export type CreativeImprovementPrioritySummary = {
+  priorityId: string;
+  title: string;
+  priority: ImprovementPriorityLevel;
+  impact: ImprovementImpact;
+  risk: ImprovementRisk;
+  source: ImprovementSource;
+  rationale: string;
+  evidence: string[];
+};
+
+export type CreativeImprovementPlannerSummary = {
+  role: "creative_improvement_planner";
+  serializationVersion: "v1";
+  confidence: number;
+  improvementSummary: string;
+  improvementPriorities: CreativeImprovementPrioritySummary[];
+  highestImpactOpportunities: string[];
+  lowRiskImprovements: string[];
+  experimentalImprovements: string[];
+  tradeOffRecommendations: string[];
+  improvementRationale: string[];
+  evidence: string[];
+  futureRefinementCandidates: string[];
+  hitlQuestions: string[];
+  promptGuidance: string[];
+  authorityBoundary: string;
+};
+
 export type ArtifactRefinerSummary = {
   role: "artifact_refiner";
   refinementConfidence: number;
@@ -1903,6 +1948,7 @@ export type CreativeReasoningEvidenceSource =
   | "artifact_export_intelligence"
   | "creative_critic"
   | "self_evaluation"
+  | "creative_improvement_planner"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {
