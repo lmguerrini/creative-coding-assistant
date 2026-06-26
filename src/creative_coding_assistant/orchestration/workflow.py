@@ -92,6 +92,9 @@ from creative_coding_assistant.orchestration.creative_technique import (
 from creative_coding_assistant.orchestration.creative_tradeoffs import (
     CreativeTradeoffProfile,
 )
+from creative_coding_assistant.orchestration.consistency_validation_engine import (
+    ConsistencyValidationProfile,
+)
 from creative_coding_assistant.orchestration.cross_modality import (
     CrossModalityCompositionProfile,
 )
@@ -262,6 +265,7 @@ class AssistantWorkflowState(BaseModel):
     reflection_loop: ReflectionLoopProfile | None = None
     creative_confidence: CreativeConfidenceProfile | None = None
     creative_score: CreativeScoreProfile | None = None
+    consistency_validation: ConsistencyValidationProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     rendered_prompt: RenderedPromptResponse | None = None

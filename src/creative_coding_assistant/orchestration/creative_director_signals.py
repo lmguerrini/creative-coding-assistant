@@ -77,6 +77,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.consistency_validation_engine import (
+    ConsistencyValidationProfile,
+)
 from creative_coding_assistant.orchestration.cross_modality import (
     CrossModalityCompositionProfile,
 )
@@ -157,6 +160,7 @@ def build_director_brief_payload(
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
+    consistency_validation: ConsistencyValidationProfile | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -194,6 +198,7 @@ def build_director_brief_payload(
         reflection_loop=reflection_loop,
         creative_confidence=creative_confidence,
         creative_score=creative_score,
+        consistency_validation=consistency_validation,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -246,6 +251,7 @@ def build_director_brief_payload(
             reflection_loop,
             creative_confidence,
             creative_score,
+            consistency_validation,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -282,6 +288,7 @@ def build_director_brief_payload(
             reflection_loop=reflection_loop,
             creative_confidence=creative_confidence,
             creative_score=creative_score,
+            consistency_validation=consistency_validation,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -319,6 +326,7 @@ def build_director_brief_payload(
             reflection_loop=reflection_loop,
             creative_confidence=creative_confidence,
             creative_score=creative_score,
+            consistency_validation=consistency_validation,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -362,6 +370,7 @@ def build_director_brief_payload(
             reflection_loop=reflection_loop,
             creative_confidence=creative_confidence,
             creative_score=creative_score,
+            consistency_validation=consistency_validation,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -425,6 +434,7 @@ def _ambiguity_signals(
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
+    consistency_validation: ConsistencyValidationProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -530,6 +540,17 @@ def _ambiguity_signals(
             "Creative Score recommends "
             f"{creative_score.hitl_recommendation} human review."
         )
+    if consistency_validation is not None:
+        signals.extend(consistency_validation.detected_conflicts[:2])
+        signals.extend(consistency_validation.unsupported_conclusions[:1])
+        if consistency_validation.hitl_recommendation in {
+            "recommended",
+            "required",
+        }:
+            signals.append(
+                "Consistency Validation recommends "
+                f"{consistency_validation.hitl_recommendation} human review."
+            )
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -645,6 +666,16 @@ def _creative_score_focus(profile: CreativeScoreProfile) -> str:
     )
 
 
+def _consistency_validation_focus(profile: ConsistencyValidationProfile) -> str:
+    return (
+        "Consistency validation: "
+        f"{profile.consistency_status}; "
+        f"{profile.contradiction_level} contradiction; "
+        f"{profile.evaluation_integrity} integrity; "
+        f"{profile.hitl_recommendation} HITL; metadata only."
+    )
+
+
 def _planning_focus(
     plan: CreativeExecutionPlan | None,
     creative_intent: CreativeIntentDecomposition | None,
@@ -680,6 +711,7 @@ def _planning_focus(
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
+    consistency_validation: ConsistencyValidationProfile | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_intent is not None:
@@ -753,6 +785,10 @@ def _planning_focus(
             runtime_focus += " " + _creative_confidence_focus(creative_confidence)
         if creative_score is not None:
             runtime_focus += " " + _creative_score_focus(creative_score)
+        if consistency_validation is not None:
+            runtime_focus += " " + _consistency_validation_focus(
+                consistency_validation
+            )
         focus.append(runtime_focus)
         if (
             artifact_capability_matrix is None
@@ -814,6 +850,10 @@ def _planning_focus(
             capability_focus += " " + _creative_confidence_focus(creative_confidence)
         if creative_score is not None:
             capability_focus += " " + _creative_score_focus(creative_score)
+        if consistency_validation is not None:
+            capability_focus += " " + _consistency_validation_focus(
+                consistency_validation
+            )
         focus.append(capability_focus)
         if (
             multi_artifact_strategy is None
@@ -974,6 +1014,9 @@ def _planning_focus(
     if creative_score is not None:
         focus.append(_creative_score_focus(creative_score))
         focus.extend(creative_score.prompt_guidance[:1])
+    if consistency_validation is not None:
+        focus.append(_consistency_validation_focus(consistency_validation))
+        focus.extend(consistency_validation.prompt_guidance[:1])
     if procedural_structure is not None:
         focus.append(
             "Procedural structure: "
@@ -1122,6 +1165,7 @@ def _critique_focus(
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
+    consistency_validation: ConsistencyValidationProfile | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -1394,6 +1438,17 @@ def _critique_focus(
             "invoking V4 agents."
         )
         focus.extend(creative_score.negative_contributions[:2])
+    if consistency_validation is not None:
+        focus.append(
+            "Consistency Validation Engine is metadata-only advisory guidance; "
+            "compare consistency status, detected conflicts, contradiction "
+            "level, ambiguity level, unsupported conclusions, integrity, "
+            "evidence, and HITL recommendation without changing outputs, "
+            "modifying artifacts, triggering refinement or retries, changing "
+            "routing, selecting runtimes, altering previews, or invoking V4 "
+            "agents."
+        )
+        focus.extend(consistency_validation.detected_conflicts[:2])
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -1463,6 +1518,7 @@ def _next_actions(
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
+    consistency_validation: ConsistencyValidationProfile | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
@@ -1552,6 +1608,13 @@ def _next_actions(
             "Surface Creative Score human review guidance before treating score as settled.",
         )
     if (
+        consistency_validation is not None
+        and consistency_validation.hitl_recommendation in {"recommended", "required"}
+    ):
+        return (
+            "Surface Consistency Validation human review guidance before treating evaluation metadata as settled.",
+        )
+    if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
     ):
@@ -1606,6 +1669,7 @@ def _evidence(
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
+    consistency_validation: ConsistencyValidationProfile | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -1817,6 +1881,14 @@ def _evidence(
             f"{creative_score.overall_creative_score:.1f}/100; "
             f"{len(creative_score.score_components)} components; "
             f"{creative_score.hitl_recommendation} HITL."
+        )
+    if consistency_validation is not None:
+        evidence.append(
+            "Consistency validation: "
+            f"{consistency_validation.consistency_status}; "
+            f"{consistency_validation.contradiction_level} contradiction; "
+            f"{len(consistency_validation.detected_conflicts)} conflicts; "
+            f"{consistency_validation.hitl_recommendation} HITL."
         )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")

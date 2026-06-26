@@ -99,6 +99,9 @@ from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
     derive_creative_translation,
 )
+from creative_coding_assistant.orchestration.consistency_validation_engine import (
+    ConsistencyValidationProfile,
+)
 from creative_coding_assistant.orchestration.cross_modality import (
     CrossModalityCompositionProfile,
 )
@@ -407,6 +410,7 @@ class PromptInputResponse(BaseModel):
     reflection_loop: ReflectionLoopProfile | None = None
     creative_confidence: CreativeConfidenceProfile | None = None
     creative_score: CreativeScoreProfile | None = None
+    consistency_validation: ConsistencyValidationProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None

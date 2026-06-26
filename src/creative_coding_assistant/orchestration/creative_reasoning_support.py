@@ -81,6 +81,9 @@ from creative_coding_assistant.orchestration.creative_technique import (
 from creative_coding_assistant.orchestration.creative_tradeoffs import (
     CreativeTradeoffProfile,
 )
+from creative_coding_assistant.orchestration.consistency_validation_engine import (
+    ConsistencyValidationProfile,
+)
 from creative_coding_assistant.orchestration.cross_modality import (
     CrossModalityCompositionProfile,
 )
@@ -150,6 +153,7 @@ def build_strongest_signals(
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
+    consistency_validation: ConsistencyValidationProfile | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -359,6 +363,14 @@ def build_strongest_signals(
             f"{len(creative_score.score_components)} components; "
             f"{creative_score.hitl_recommendation} HITL."
         )
+    if consistency_validation is not None:
+        signals.append(
+            "Consistency validation: "
+            f"{consistency_validation.consistency_status}; "
+            f"{consistency_validation.contradiction_level} contradiction; "
+            f"{consistency_validation.evaluation_integrity} integrity; "
+            f"{consistency_validation.hitl_recommendation} HITL."
+        )
     if creative_constraints is not None:
         signals.append(
             f"Constraints: complexity {creative_constraints.complexity_pressure}, "
@@ -467,6 +479,7 @@ def build_unresolved_decisions(
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
+    consistency_validation: ConsistencyValidationProfile | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -578,6 +591,13 @@ def build_unresolved_decisions(
                 "Creative Score recommends human review before treating score as settled."
             )
         unresolved.extend(creative_score.negative_contributions[:2])
+    if consistency_validation is not None:
+        if consistency_validation.hitl_recommendation in {"recommended", "required"}:
+            unresolved.append(
+                "Consistency Validation recommends human review before treating evaluation metadata as settled."
+            )
+        unresolved.extend(consistency_validation.detected_conflicts[:2])
+        unresolved.extend(consistency_validation.unsupported_conclusions[:1])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -622,6 +642,7 @@ def build_implementation_guidance(
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
+    consistency_validation: ConsistencyValidationProfile | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -849,6 +870,17 @@ def build_implementation_guidance(
             "not output changes, artifact edits, refinement, retries, routing, "
             "runtime selection, provider calls, preview changes, V4 agents, or "
             "V5 optimization."
+        )
+    if consistency_validation is not None:
+        guidance.extend(consistency_validation.prompt_guidance[:2])
+        guidance.extend(consistency_validation.detected_conflicts[:1])
+        guidance.extend(consistency_validation.unsupported_conclusions[:1])
+        guidance.append(
+            "Preserve Consistency Validation metadata as advisory integrity "
+            "context only, not output changes, artifact edits, refinement, "
+            "retries, routing, runtime selection, provider calls, preview "
+            "changes, V4 agents, reporting, escalation, optimization, or "
+            "learning behavior."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

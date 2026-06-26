@@ -84,6 +84,9 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
+from creative_coding_assistant.orchestration.consistency_validation_engine import (
+    ConsistencyValidationProfile,
+)
 from creative_coding_assistant.orchestration.cross_modality import (
     CrossModalityCompositionProfile,
 )
@@ -193,6 +196,7 @@ def derive_creative_assistant_director_brief(
     reflection_loop: ReflectionLoopProfile | None = None,
     creative_confidence: CreativeConfidenceProfile | None = None,
     creative_score: CreativeScoreProfile | None = None,
+    consistency_validation: ConsistencyValidationProfile | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -240,6 +244,7 @@ def derive_creative_assistant_director_brief(
             reflection_loop=reflection_loop,
             creative_confidence=creative_confidence,
             creative_score=creative_score,
+            consistency_validation=consistency_validation,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

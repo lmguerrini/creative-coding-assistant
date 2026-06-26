@@ -51,6 +51,7 @@ ReasoningEvidenceSource = Literal[
     "reflection_loop",
     "creative_confidence",
     "creative_score",
+    "consistency_validation",
     "future_knowledge",
 ]
 

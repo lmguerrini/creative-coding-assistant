@@ -79,6 +79,9 @@ from creative_coding_assistant.orchestration.creative_technique import (
 from creative_coding_assistant.orchestration.creative_tradeoffs import (
     CreativeTradeoffProfile,
 )
+from creative_coding_assistant.orchestration.consistency_validation_engine import (
+    ConsistencyValidationProfile,
+)
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
@@ -156,6 +159,7 @@ def build_evidence_chain(
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
+    consistency_validation: ConsistencyValidationProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -790,6 +794,28 @@ def build_evidence_chain(
                     "advisory metadata only, without changing outputs, "
                     "editing artifacts, retrying, routing, selecting runtime, "
                     "previewing, or invoking V4/V5 agents."
+                ),
+            )
+        )
+    if consistency_validation is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="consistency_validation",
+                signal=_clip(
+                    (
+                        f"{consistency_validation.consistency_status}; "
+                        f"{consistency_validation.contradiction_level} contradiction; "
+                        f"{consistency_validation.evaluation_integrity} integrity; "
+                        f"{len(consistency_validation.detected_conflicts)} conflicts"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Consistency Validation evidence reports advisory "
+                    "agreement, contradictions, ambiguity, unsupported "
+                    "conclusions, integrity, and HITL posture only, without "
+                    "changing outputs, routing, runtime, previews, retries, "
+                    "refinement, or agent behavior."
                 ),
             )
         )

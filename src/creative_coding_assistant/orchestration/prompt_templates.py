@@ -116,6 +116,10 @@ from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
     creative_translation_prompt_lines,
 )
+from creative_coding_assistant.orchestration.consistency_validation_engine import (
+    ConsistencyValidationProfile,
+    consistency_validation_prompt_lines,
+)
 from creative_coding_assistant.orchestration.cross_modality import (
     CrossModalityCompositionProfile,
     cross_modality_prompt_lines,
@@ -468,6 +472,13 @@ Creative Score Engine:
 - {{ instruction }}
 {% endfor %}
 {% endif %}
+{% set consistency_validation = prompt_input.consistency_validation -%}
+{% if consistency_validation is not none -%}
+Consistency Validation Engine:
+{% for instruction in consistency_validation_lines(consistency_validation) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
 {% set director = prompt_input.creative_director -%}
 {% if director is not none -%}
 Creative Assistant Director:
@@ -743,6 +754,7 @@ class JinjaPromptRenderer:
             reflection_loop_lines=_reflection_loop_lines,
             creative_confidence_lines=_creative_confidence_lines,
             creative_score_lines=_creative_score_lines,
+            consistency_validation_lines=_consistency_validation_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -1111,6 +1123,12 @@ def _creative_score_lines(
     profile: CreativeScoreProfile,
 ) -> tuple[str, ...]:
     return creative_score_prompt_lines(profile)
+
+
+def _consistency_validation_lines(
+    profile: ConsistencyValidationProfile,
+) -> tuple[str, ...]:
+    return consistency_validation_prompt_lines(profile)
 
 
 def _creative_assistant_director_lines(
