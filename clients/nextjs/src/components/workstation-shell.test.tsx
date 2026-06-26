@@ -1274,6 +1274,25 @@ describe("WorkstationShell", () => {
       "data-state",
       "available"
     );
+    const dashboard = screen.getByRole("group", {
+      name: "Workstation dashboard"
+    });
+    expect(dashboard).toBeVisible();
+    expect(
+      within(dashboard).getByRole("list", {
+        name: "Workstation dashboard cards"
+      })
+    ).toBeVisible();
+    expect(
+      within(dashboard).getByRole("listitem", {
+        name: "Workflow Health dashboard card"
+      })
+    ).toHaveTextContent("Running");
+    expect(
+      within(dashboard).getByRole("listitem", {
+        name: "Artifact Readiness dashboard card"
+      })
+    ).toHaveTextContent("Ready");
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
     ).toHaveAttribute("aria-valuetext", "11 of 17 workflow nodes reached");

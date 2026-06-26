@@ -188,6 +188,10 @@ import {
   type V3InspectorPanelsModel
 } from "@/lib/v3-inspector-panels";
 import {
+  buildWorkstationDashboardModel,
+  type WorkstationDashboardModel
+} from "@/lib/workstation-dashboard";
+import {
   buildSessionIntelligenceModel,
   readSessionIntelligenceMetadata,
   type SessionIntelligenceMetadataInput,
@@ -216,6 +220,7 @@ import { RuntimeConsoleInspector } from "./runtime-console-inspector";
 import { SacredConsistencySummary } from "./sacred-consistency-summary";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
 import { V3InspectorPanelsSurface } from "./v3-inspector-panels-surface";
+import { WorkstationDashboardSurface } from "./workstation-dashboard-surface";
 import { WorkflowExplorerSurface } from "./workflow-explorer-surface";
 import { WorkflowTimelineExplorer } from "./workflow-timeline-explorer";
 
@@ -1026,6 +1031,16 @@ export function WorkstationShell({
         workstationState
       }),
     [provenance, workflowTraceEvents, workstationState]
+  );
+  const workstationDashboard = useMemo(
+    () =>
+      buildWorkstationDashboardModel({
+        runtime: workflowRuntime,
+        snapshot: interactiveSnapshot,
+        v3InspectorPanels,
+        workstationState
+      }),
+    [interactiveSnapshot, v3InspectorPanels, workflowRuntime, workstationState]
   );
   const runtimeConsole = useMemo(
     () =>
@@ -3004,6 +3019,7 @@ export function WorkstationShell({
                     onArtifactTransfer={handleArtifactTransfer}
                     onClarificationOptionSelect={handleClarificationOptionSelect}
                     providerTelemetry={providerTelemetry}
+                    workstationDashboard={workstationDashboard}
                     previewController={previewController}
                     runtimeConsole={runtimeConsole}
                     provenance={provenance}
@@ -3422,6 +3438,7 @@ type InspectorPanelProps = {
   onArtifactTransfer: (artifact: ArtifactSummary) => void;
   onClarificationOptionSelect: (option: string) => Promise<void>;
   providerTelemetry: ProviderTelemetryModel;
+  workstationDashboard: WorkstationDashboardModel;
   previewController: PreviewControllerModel;
   provenance: ProvenanceEngineModel;
   runtimeConsole: RuntimeConsoleModel;
@@ -3456,6 +3473,7 @@ function InspectorPanel({
   onArtifactTransfer,
   onClarificationOptionSelect,
   providerTelemetry,
+  workstationDashboard,
   previewController,
   provenance,
   runtimeConsole,
@@ -3557,6 +3575,7 @@ function InspectorPanel({
       retrieval={retrievalRuntime}
       runtime={workflowRuntime}
       sessionIntelligence={sessionIntelligence}
+      workstationDashboard={workstationDashboard}
       telemetry={providerTelemetry}
       isStreaming={isStreaming}
       onClarificationOptionSelect={onClarificationOptionSelect}
@@ -3573,6 +3592,7 @@ function OverviewInspector({
   retrieval,
   runtime,
   sessionIntelligence,
+  workstationDashboard,
   telemetry,
   showDebugPanels,
   snapshot
@@ -3583,6 +3603,7 @@ function OverviewInspector({
   retrieval: RetrievalRuntimeModel;
   runtime: WorkflowRuntimeModel;
   sessionIntelligence: SessionIntelligenceModel;
+  workstationDashboard: WorkstationDashboardModel;
   telemetry: ProviderTelemetryModel;
   showDebugPanels: boolean;
   snapshot: AssistantWorkspaceSnapshot;
@@ -3729,6 +3750,7 @@ function OverviewInspector({
           <small>{retrieval.summary.freshnessLabel}</small>
         </div>
       </div>
+      <WorkstationDashboardSurface dashboard={workstationDashboard} />
     </section>
   );
 }
