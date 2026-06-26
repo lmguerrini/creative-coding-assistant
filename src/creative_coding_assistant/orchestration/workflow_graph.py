@@ -204,6 +204,26 @@ class AssistantWorkflowGraphContext(TypedDict):
     runtime: AssistantWorkflowRuntime
 
 
+_GraphNodeHandler = Callable[
+    [AssistantWorkflowGraphState, Runtime[AssistantWorkflowGraphContext]],
+    AssistantWorkflowGraphState,
+]
+_GraphTransitionSelector = Callable[[AssistantWorkflowGraphState], str]
+
+
+@dataclass(frozen=True)
+class _WorkflowGraphNodeSpec:
+    name: str
+    handler: _GraphNodeHandler
+
+
+@dataclass(frozen=True)
+class _WorkflowGraphConditionalEdgeSpec:
+    source: str
+    selector: _GraphTransitionSelector
+    targets: dict[str, Any]
+
+
 @dataclass(frozen=True)
 class AssistantWorkflowRuntime:
     """Runtime services needed by graph nodes for one assistant turn."""
@@ -253,80 +273,124 @@ def build_initial_workflow_graph_state(
 
 
 def build_assistant_workflow_graph() -> Any:
-    graph = StateGraph(
+    graph = _new_assistant_workflow_state_graph()
+    _add_assistant_workflow_nodes(graph)
+    _add_assistant_workflow_edges(graph)
+    return graph.compile()
+
+
+def _new_assistant_workflow_state_graph() -> Any:
+    return StateGraph(
         AssistantWorkflowGraphState,
         context_schema=AssistantWorkflowGraphContext,
     )
-    graph.add_node("intake", _intake_node)
-    graph.add_node("routing", _routing_node)
-    graph.add_node("memory", _memory_node)
-    graph.add_node("retrieval", _retrieval_node)
-    graph.add_node("context_assembly", _context_assembly_node)
-    graph.add_node("prompt_input", _prompt_input_node)
-    graph.add_node("planning", _planning_node)
-    graph.add_node("director", _director_node)
-    graph.add_node("reasoning", _reasoning_node)
-    graph.add_node("prompt_rendering", _prompt_rendering_node)
-    graph.add_node("generation", _generation_node)
-    graph.add_node("artifact_extraction", _artifact_extraction_node)
-    graph.add_node("preview_preparation", _preview_preparation_node)
-    graph.add_node("artifact_critique", _artifact_critique_node)
-    graph.add_node("review", _review_node)
-    graph.add_node("refinement", _refinement_node)
-    graph.add_node("finalization", _finalization_node)
-    graph.add_node("failure", _failure_node)
 
-    graph.add_edge(START, "intake")
-    review_index = ASSISTANT_WORKFLOW_NODE_ORDER.index("review")
-    for index in range(review_index):
-        current_node = ASSISTANT_WORKFLOW_NODE_ORDER[index]
-        next_node = ASSISTANT_WORKFLOW_NODE_ORDER[index + 1]
-        if current_node == "prompt_input":
-            graph.add_conditional_edges(
-                current_node,
-                _next_node_after_prompt_input,
-                {
-                    "planning": "planning",
-                    "finalization": "finalization",
-                    "failure": "failure",
-                },
-            )
-            continue
-        graph.add_conditional_edges(
-            current_node,
-            lambda state, next_node=next_node: _next_node_or_failure(state, next_node),
-            {
-                next_node: next_node,
-                "failure": "failure",
+
+def _add_assistant_workflow_nodes(graph: Any) -> None:
+    for spec in _assistant_workflow_node_specs():
+        graph.add_node(spec.name, spec.handler)
+
+
+def _add_assistant_workflow_edges(graph: Any) -> None:
+    graph.add_edge(START, ASSISTANT_WORKFLOW_NODE_ORDER[0])
+    for spec in _assistant_workflow_conditional_edge_specs():
+        graph.add_conditional_edges(spec.source, spec.selector, spec.targets)
+    graph.add_edge(WorkflowStep.FAILURE.value, END)
+
+
+def _assistant_workflow_node_specs() -> tuple[_WorkflowGraphNodeSpec, ...]:
+    return (
+        _WorkflowGraphNodeSpec("intake", _intake_node),
+        _WorkflowGraphNodeSpec("routing", _routing_node),
+        _WorkflowGraphNodeSpec("memory", _memory_node),
+        _WorkflowGraphNodeSpec("retrieval", _retrieval_node),
+        _WorkflowGraphNodeSpec("context_assembly", _context_assembly_node),
+        _WorkflowGraphNodeSpec("prompt_input", _prompt_input_node),
+        _WorkflowGraphNodeSpec("planning", _planning_node),
+        _WorkflowGraphNodeSpec("director", _director_node),
+        _WorkflowGraphNodeSpec("reasoning", _reasoning_node),
+        _WorkflowGraphNodeSpec("prompt_rendering", _prompt_rendering_node),
+        _WorkflowGraphNodeSpec("generation", _generation_node),
+        _WorkflowGraphNodeSpec("artifact_extraction", _artifact_extraction_node),
+        _WorkflowGraphNodeSpec("preview_preparation", _preview_preparation_node),
+        _WorkflowGraphNodeSpec("artifact_critique", _artifact_critique_node),
+        _WorkflowGraphNodeSpec("review", _review_node),
+        _WorkflowGraphNodeSpec("refinement", _refinement_node),
+        _WorkflowGraphNodeSpec("finalization", _finalization_node),
+        _WorkflowGraphNodeSpec("failure", _failure_node),
+    )
+
+
+def _assistant_workflow_conditional_edge_specs() -> tuple[
+    _WorkflowGraphConditionalEdgeSpec, ...
+]:
+    return (
+        *_linear_workflow_edge_specs_before_review(),
+        _WorkflowGraphConditionalEdgeSpec(
+            source=WorkflowStep.REVIEW.value,
+            selector=_next_node_after_review,
+            targets={
+                WorkflowStep.FINALIZATION.value: WorkflowStep.FINALIZATION.value,
+                WorkflowStep.REFINEMENT.value: WorkflowStep.REFINEMENT.value,
+                WorkflowStep.FAILURE.value: WorkflowStep.FAILURE.value,
+            },
+        ),
+        _WorkflowGraphConditionalEdgeSpec(
+            source=WorkflowStep.REFINEMENT.value,
+            selector=_next_node_selector(WorkflowStep.GENERATION.value),
+            targets={
+                WorkflowStep.GENERATION.value: WorkflowStep.GENERATION.value,
+                WorkflowStep.FAILURE.value: WorkflowStep.FAILURE.value,
+            },
+        ),
+        _WorkflowGraphConditionalEdgeSpec(
+            source=WorkflowStep.FINALIZATION.value,
+            selector=_next_node_after_finalization,
+            targets={
+                "end": END,
+                WorkflowStep.FAILURE.value: WorkflowStep.FAILURE.value,
+            },
+        ),
+    )
+
+
+def _linear_workflow_edge_specs_before_review() -> tuple[
+    _WorkflowGraphConditionalEdgeSpec, ...
+]:
+    review_index = ASSISTANT_WORKFLOW_NODE_ORDER.index(WorkflowStep.REVIEW.value)
+    linear_nodes = ASSISTANT_WORKFLOW_NODE_ORDER[: review_index + 1]
+    return tuple(
+        _linear_workflow_edge_spec(current_node, next_node)
+        for current_node, next_node in zip(linear_nodes, linear_nodes[1:])
+    )
+
+
+def _linear_workflow_edge_spec(
+    current_node: str,
+    next_node: str,
+) -> _WorkflowGraphConditionalEdgeSpec:
+    if current_node == WorkflowStep.PROMPT_INPUT.value:
+        return _WorkflowGraphConditionalEdgeSpec(
+            source=current_node,
+            selector=_next_node_after_prompt_input,
+            targets={
+                WorkflowStep.PLANNING.value: WorkflowStep.PLANNING.value,
+                WorkflowStep.FINALIZATION.value: WorkflowStep.FINALIZATION.value,
+                WorkflowStep.FAILURE.value: WorkflowStep.FAILURE.value,
             },
         )
-    graph.add_conditional_edges(
-        "review",
-        _next_node_after_review,
-        {
-            "finalization": "finalization",
-            "refinement": "refinement",
-            "failure": "failure",
+    return _WorkflowGraphConditionalEdgeSpec(
+        source=current_node,
+        selector=_next_node_selector(next_node),
+        targets={
+            next_node: next_node,
+            WorkflowStep.FAILURE.value: WorkflowStep.FAILURE.value,
         },
     )
-    graph.add_conditional_edges(
-        "refinement",
-        lambda state: _next_node_or_failure(state, "generation"),
-        {
-            "generation": "generation",
-            "failure": "failure",
-        },
-    )
-    graph.add_conditional_edges(
-        "finalization",
-        _next_node_after_finalization,
-        {
-            "end": END,
-            "failure": "failure",
-        },
-    )
-    graph.add_edge("failure", END)
-    return graph.compile()
+
+
+def _next_node_selector(next_node: str) -> _GraphTransitionSelector:
+    return lambda state: _next_node_or_failure(state, next_node)
 
 
 def stream_assistant_workflow_events(
