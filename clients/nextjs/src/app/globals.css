@@ -10264,8 +10264,10 @@ html[data-cca-theme="blueprint"] .codeViewer {
   }
 
   .workflowSummaryGrid,
+  .workstationDashboardGrid,
   .workflowTraceLayout,
   .workflowTimelineSummary,
+  .v3InspectorGrid,
   .runtimeConsoleGrid,
   .runtimeConsoleMetricGrid,
   .runtimeConsoleHealthSignals,
@@ -10342,9 +10344,21 @@ html[data-cca-theme="blueprint"] .codeViewer {
   }
 
   .workflowTimelineHeader,
-  .workflowTimelineEvent > article > header {
+  .workflowTimelineEvent > article > header,
+  .workstationDashboardHeader,
+  .creativeTimelineHeader,
+  .creativeTimelineEvent header,
+  .v3InspectorHeader,
+  .v3InspectorCard header,
+  .v3InspectorRecord header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .creativeTimelineBadge,
+  .v3InspectorBadge,
+  .v3InspectorRunState {
+    align-self: flex-start;
   }
 
   .workflowNodeMeta {

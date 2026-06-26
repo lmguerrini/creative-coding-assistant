@@ -79,9 +79,9 @@ function V3InspectorPanelCard({ panel }: { panel: V3InspectorPanel }) {
         ))}
       </div>
       {hiddenCount > 0 ? (
-        <small>{`${hiddenCount} additional metadata record${
+        <small>{`${hiddenCount} more metadata record${
           hiddenCount === 1 ? "" : "s"
-        } bounded from view.`}</small>
+        } in this group.`}</small>
       ) : null}
     </section>
   );

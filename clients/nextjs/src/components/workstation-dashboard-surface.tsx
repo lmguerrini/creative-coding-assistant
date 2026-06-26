@@ -22,7 +22,9 @@ export function WorkstationDashboardSurface({
           <span>Dashboard</span>
           <strong>Workstation signals</strong>
           <p>
-            {`${dashboard.summary.goodCount} good / ${dashboard.summary.watchCount} watch / ${dashboard.summary.missingCount} missing`}
+            {dashboard.summary.errorCount > 0
+              ? `${dashboard.summary.goodCount} good / ${dashboard.summary.watchCount} watch / ${dashboard.summary.missingCount} missing / ${dashboard.summary.errorCount} error`
+              : `${dashboard.summary.goodCount} good / ${dashboard.summary.watchCount} watch / ${dashboard.summary.missingCount} missing`}
           </p>
         </div>
       </header>
