@@ -4512,10 +4512,14 @@ describe("WorkstationShell", () => {
     const creativeTimeline = within(workflowPanel).getByRole("group", {
       name: "Creative timeline"
     });
+    const v3InspectorPanels = within(workflowPanel).getByRole("group", {
+      name: "V3 inspector panels"
+    });
     expect(timeline).toBeVisible();
     expect(explorer).toBeVisible();
     expect(provenance).toBeVisible();
     expect(creativeTimeline).toBeVisible();
+    expect(v3InspectorPanels).toBeVisible();
     expect(
       within(creativeTimeline).getByRole("list", {
         name: "Creative timeline events"
@@ -4527,6 +4531,16 @@ describe("WorkstationShell", () => {
       })
     ).toHaveAttribute("data-status", "complete");
     expect(within(creativeTimeline).getByText("Artifact intelligence")).toBeVisible();
+    expect(
+      within(v3InspectorPanels).getByRole("group", {
+        name: "Creative Intelligence inspector panel"
+      })
+    ).toBeVisible();
+    expect(
+      within(v3InspectorPanels).getByRole("group", {
+        name: "Provenance inspector panel"
+      })
+    ).toHaveTextContent("2 evidence sources");
     expect(
       within(provenance).getByRole("group", { name: "Provenance source counts" })
     ).toHaveTextContent("2 evidence");

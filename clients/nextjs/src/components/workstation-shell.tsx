@@ -184,6 +184,10 @@ import {
   type CreativeTimelineModel
 } from "@/lib/creative-timeline";
 import {
+  buildV3InspectorPanelsModel,
+  type V3InspectorPanelsModel
+} from "@/lib/v3-inspector-panels";
+import {
   buildSessionIntelligenceModel,
   readSessionIntelligenceMetadata,
   type SessionIntelligenceMetadataInput,
@@ -211,6 +215,7 @@ import { RetrievalInspector } from "./retrieval-inspector";
 import { RuntimeConsoleInspector } from "./runtime-console-inspector";
 import { SacredConsistencySummary } from "./sacred-consistency-summary";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
+import { V3InspectorPanelsSurface } from "./v3-inspector-panels-surface";
 import { WorkflowExplorerSurface } from "./workflow-explorer-surface";
 import { WorkflowTimelineExplorer } from "./workflow-timeline-explorer";
 
@@ -1012,6 +1017,15 @@ export function WorkstationShell({
         workstationState
       }),
     [provenance, workflowExplorer, workflowRuntime, workstationState]
+  );
+  const v3InspectorPanels = useMemo(
+    () =>
+      buildV3InspectorPanelsModel({
+        provenance,
+        traceEvents: workflowTraceEvents,
+        workstationState
+      }),
+    [provenance, workflowTraceEvents, workstationState]
   );
   const runtimeConsole = useMemo(
     () =>
@@ -3003,6 +3017,7 @@ export function WorkstationShell({
                     transferFeedback={transferFeedback}
                     workflowExplorer={workflowExplorer}
                     creativeTimeline={creativeTimeline}
+                    v3InspectorPanels={v3InspectorPanels}
                     workflowRuntime={workflowRuntime}
                     workflowIssues={workflowIssues}
                   />
@@ -3420,6 +3435,7 @@ type InspectorPanelProps = {
   transferFeedback: ArtifactActionFeedback | null;
   workflowExplorer: WorkflowExplorerModel;
   creativeTimeline: CreativeTimelineModel;
+  v3InspectorPanels: V3InspectorPanelsModel;
   workflowRuntime: WorkflowRuntimeModel;
   workflowIssues: WorkstationError[];
 };
@@ -3453,6 +3469,7 @@ function InspectorPanel({
   transferFeedback,
   workflowExplorer,
   creativeTimeline,
+  v3InspectorPanels,
   workflowRuntime,
   workflowIssues
 }: InspectorPanelProps) {
@@ -3493,6 +3510,7 @@ function InspectorPanel({
         explorer={workflowExplorer}
         runtime={workflowRuntime}
         provenance={provenance}
+        v3InspectorPanels={v3InspectorPanels}
         telemetry={providerTelemetry}
         showDebugPanels={showDebugPanels}
         issues={workflowIssues}
@@ -4204,6 +4222,7 @@ function WorkflowInspector({
   issues,
   provenance,
   runtime,
+  v3InspectorPanels,
   telemetry,
   showDebugPanels
 }: {
@@ -4212,6 +4231,7 @@ function WorkflowInspector({
   issues: WorkstationError[];
   provenance: ProvenanceEngineModel;
   runtime: WorkflowRuntimeModel;
+  v3InspectorPanels: V3InspectorPanelsModel;
   telemetry: ProviderTelemetryModel;
   showDebugPanels: boolean;
 }) {
@@ -4292,6 +4312,7 @@ function WorkflowInspector({
       <WorkflowExplorerSurface model={explorer} />
       <ProvenanceSummaryCard provenance={provenance} />
       <CreativeTimelineSurface timeline={creativeTimeline} />
+      <V3InspectorPanelsSurface model={v3InspectorPanels} />
       <TelemetryLifecycleCard telemetry={telemetry} />
       <WorkflowTimelineExplorer timeline={runtime.timeline} />
       <div

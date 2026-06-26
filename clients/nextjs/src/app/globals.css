@@ -4215,6 +4215,173 @@ a {
   color: #f3c277;
 }
 
+.v3InspectorSurface {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.045), transparent 76%),
+    var(--panel-soft);
+  box-shadow: var(--panel-highlight);
+}
+
+.v3InspectorHeader,
+.v3InspectorCard header,
+.v3InspectorRecord header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.v3InspectorHeader > div,
+.v3InspectorCard header > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.v3InspectorHeader span,
+.v3InspectorCard span,
+.v3InspectorMetrics span,
+.v3InspectorRecord span,
+.v3InspectorRecord small,
+.v3InspectorCard small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.v3InspectorHeader strong,
+.v3InspectorCard strong,
+.v3InspectorRecord strong {
+  color: var(--foreground);
+  line-height: 1.25;
+}
+
+.v3InspectorHeader strong {
+  font-size: 14px;
+}
+
+.v3InspectorCard strong {
+  font-size: 13px;
+}
+
+.v3InspectorRecord strong {
+  font-size: 12px;
+}
+
+.v3InspectorHeader p,
+.v3InspectorCard p,
+.v3InspectorRecord p,
+.v3InspectorRecord li {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.v3InspectorRunState,
+.v3InspectorBadge {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.v3InspectorGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.v3InspectorCard {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.v3InspectorCard[data-state="available"],
+.v3InspectorRecord[data-state="available"] {
+  border-color: rgba(121, 211, 139, 0.2);
+}
+
+.v3InspectorCard[data-state="partial"],
+.v3InspectorRecord[data-state="partial"] {
+  border-color: rgba(var(--accent-rgb), 0.24);
+}
+
+.v3InspectorCard[data-state="missing"],
+.v3InspectorRecord[data-state="missing"] {
+  border-color: rgba(243, 184, 82, 0.16);
+}
+
+.v3InspectorBadge[data-state="available"],
+.v3InspectorRecord[data-state="available"] span {
+  color: #93e5a6;
+}
+
+.v3InspectorBadge[data-state="partial"],
+.v3InspectorRecord[data-state="partial"] span {
+  color: var(--accent);
+}
+
+.v3InspectorBadge[data-state="missing"],
+.v3InspectorRecord[data-state="missing"] span {
+  color: #f3c277;
+}
+
+.v3InspectorMetrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.v3InspectorMetrics span {
+  padding: 4px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  line-height: 1.2;
+}
+
+.v3InspectorRecords {
+  display: grid;
+  gap: 6px;
+}
+
+.v3InspectorRecord {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.v3InspectorRecord ul {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  padding-left: 16px;
+}
+
+.v3InspectorRecord strong,
+.v3InspectorRecord p,
+.v3InspectorRecord li {
+  overflow-wrap: anywhere;
+}
+
 .telemetryLifecycleCard {
   display: grid;
   gap: 12px;
