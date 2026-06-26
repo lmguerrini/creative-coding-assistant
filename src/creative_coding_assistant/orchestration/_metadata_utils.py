@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable, Sequence
 from typing import Protocol
 
@@ -13,6 +14,8 @@ class PlanningMetadataItem(Protocol):
 
 
 PlanningMetadata = Sequence[PlanningMetadataItem]
+
+_TOKEN_PATTERN = re.compile(r"[a-z0-9_.+#-]+")
 
 
 def _clip(value: str, limit: int = 360) -> str:
@@ -41,6 +44,10 @@ def _dedupe(
 def _contains_any(value: str, needles: Iterable[str]) -> bool:
     lowered = value.lower()
     return any(needle in lowered for needle in needles)
+
+
+def _token_set(value: str) -> set[str]:
+    return set(_TOKEN_PATTERN.findall(value.lower()))
 
 
 def _metadata_values(

@@ -11,11 +11,11 @@ from creative_coding_assistant.orchestration.artifacts import (
     CreativeQualityObservation,
     WorkflowArtifact,
 )
+from creative_coding_assistant.orchestration._metadata_utils import _token_set
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
 
-_TOKEN_PATTERN = re.compile(r"[a-z0-9_.+#-]+")
 _NUMBER_PATTERN = re.compile(r"(?<![a-z])[-+]?(?:\d+\.\d+|\d+)(?![a-z])")
 
 _COMPOSITION_MARKERS = frozenset(
@@ -482,4 +482,4 @@ def _evidence(
 
 
 def _tokens(value: str) -> set[str]:
-    return set(_TOKEN_PATTERN.findall(value.lower()))
+    return _token_set(value)

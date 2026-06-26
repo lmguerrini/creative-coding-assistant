@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from statistics import mean
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -15,6 +14,7 @@ from creative_coding_assistant.orchestration.artifacts import (
     WorkflowArtifact,
     WorkflowArtifactCritique,
 )
+from creative_coding_assistant.orchestration._metadata_utils import _token_set
 from creative_coding_assistant.orchestration.creative_quality import (
     evaluate_artifact_creative_quality,
 )
@@ -34,7 +34,6 @@ from creative_coding_assistant.preview import PreviewResult
 ARTIFACT_CRITIQUE_PASS_THRESHOLD = 0.68
 CALIBRATED_RANK_STABILITY_BUCKET = 0.03
 
-_TOKEN_PATTERN = re.compile(r"[a-z0-9_.+#-]+")
 _CODE_MARKERS = frozenset(
     {
         "const",
@@ -547,4 +546,4 @@ def _artifact_by_id(
 
 
 def _tokens(value: str) -> set[str]:
-    return set(_TOKEN_PATTERN.findall(value.lower()))
+    return _token_set(value)

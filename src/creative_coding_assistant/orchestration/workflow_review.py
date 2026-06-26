@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -11,6 +10,7 @@ from creative_coding_assistant.contracts import AssistantMode, AssistantRequest
 from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
+from creative_coding_assistant.orchestration._metadata_utils import _token_set
 from creative_coding_assistant.orchestration.refinement_passes import (
     DEFAULT_REFINEMENT_PASS_LIMIT,
 )
@@ -18,7 +18,6 @@ from creative_coding_assistant.orchestration.refinement_passes import (
 MAX_WORKFLOW_REFINEMENT_COUNT = DEFAULT_REFINEMENT_PASS_LIMIT
 
 _MIN_ANSWER_CHARS = 8
-_TOKEN_PATTERN = re.compile(r"[a-z0-9_.+#-]+")
 
 _CODE_REQUEST_MARKERS = {
     "code",
@@ -169,7 +168,7 @@ def _request_explicitly_asks_for_code(request: AssistantRequest) -> bool:
 
 
 def _tokens(value: str) -> set[str]:
-    return set(_TOKEN_PATTERN.findall(value.lower()))
+    return _token_set(value)
 
 
 def _score_review(
