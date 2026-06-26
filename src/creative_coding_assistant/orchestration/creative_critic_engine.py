@@ -12,6 +12,7 @@ from creative_coding_assistant.orchestration._metadata_utils import (
     _clip,
     _contains_any,
     _dedupe,
+    _score,
 )
 from creative_coding_assistant.orchestration.artifact_capability_matrix import (
     ArtifactCapabilityMatrix,
@@ -576,17 +577,6 @@ def _quality_scores(
         "clarity": clarity,
         "feasibility": feasibility,
     }
-
-
-def _score(
-    base: float,
-    *,
-    positives: Sequence[object | None],
-    bonus: float = 0,
-    penalties: float = 0,
-) -> float:
-    present = sum(item is not None for item in positives)
-    return _clamp(base + present * 0.055 + bonus - penalties)
 
 
 def _risk_penalty(prediction: CreativeQualityPrediction | None) -> float:

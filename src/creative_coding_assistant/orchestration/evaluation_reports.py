@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
-from creative_coding_assistant.orchestration._metadata_utils import _clip, _dedupe
+from creative_coding_assistant.orchestration._metadata_utils import (
+    PlanningMetadata,
+    _clip,
+    _dedupe,
+)
 from creative_coding_assistant.orchestration.consistency_validation_engine import (
     ConsistencyValidationProfile,
 )
@@ -152,7 +155,7 @@ def derive_evaluation_report_profile(
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
     consistency_validation: ConsistencyValidationProfile | None,
-    planning_metadata: Sequence[object] = (),
+    planning_metadata: PlanningMetadata = (),
 ) -> EvaluationReportProfile:
     """Aggregate V3.4 evaluation metadata into one advisory report."""
 
@@ -791,7 +794,7 @@ def _evidence_chain(
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
     consistency_validation: ConsistencyValidationProfile | None,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
 ) -> tuple[EvaluationEvidenceLink, ...]:
     links: list[EvaluationEvidenceLink] = [
         EvaluationEvidenceLink(

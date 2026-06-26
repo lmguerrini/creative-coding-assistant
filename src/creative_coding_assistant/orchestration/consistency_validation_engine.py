@@ -8,7 +8,11 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
-from creative_coding_assistant.orchestration._metadata_utils import _clip, _dedupe
+from creative_coding_assistant.orchestration._metadata_utils import (
+    PlanningMetadata,
+    _clip,
+    _dedupe,
+)
 from creative_coding_assistant.orchestration.creative_confidence_engine import (
     CreativeConfidenceProfile,
     ExpectedHumanReviewNeed,
@@ -105,7 +109,7 @@ def derive_consistency_validation_profile(
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
-    planning_metadata: Sequence[object] = (),
+    planning_metadata: PlanningMetadata = (),
 ) -> ConsistencyValidationProfile:
     """Validate internal consistency across existing V3.4 evaluation metadata."""
 
@@ -759,7 +763,7 @@ def _evidence(
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
     checks: tuple[ConsistencyValidationCheck, ...],
 ) -> tuple[str, ...]:
     evidence = [f"Request inspected for consistency: {_clip(request.query, 120)}"]

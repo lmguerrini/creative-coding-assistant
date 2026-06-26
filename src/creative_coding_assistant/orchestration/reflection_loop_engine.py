@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
-from creative_coding_assistant.orchestration._metadata_utils import _clip, _dedupe
+from creative_coding_assistant.orchestration._metadata_utils import (
+    PlanningMetadata,
+    _clip,
+    _dedupe,
+    _metadata_label,
+    _metadata_values,
+)
 from creative_coding_assistant.orchestration.creative_critic_engine import (
     CreativeCriticProfile,
 )
@@ -72,7 +77,7 @@ def derive_reflection_loop_profile(
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
-    planning_metadata: Sequence[object] = (),
+    planning_metadata: PlanningMetadata = (),
 ) -> ReflectionLoopProfile:
     """Estimate theoretical reflection value without changing workflow control."""
 
@@ -246,7 +251,7 @@ def _risk_score(
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
 ) -> int:
     score = 0
     if creative_critic is not None:
@@ -405,7 +410,7 @@ def _reflection_confidence(
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
 ) -> float:
     values: list[float] = []
     if creative_critic is not None:
@@ -478,7 +483,7 @@ def _unresolved_questions(
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
 ) -> tuple[str, ...]:
     questions: list[str] = []
     if creative_improvement_planner is not None:
@@ -500,7 +505,7 @@ def _refinement_candidates(
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
     required: bool,
 ) -> tuple[str, ...]:
     candidates: list[str] = []
@@ -584,7 +589,7 @@ def _evidence(
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
     quality_score: float,
     risk_score: int,
 ) -> tuple[str, ...]:
@@ -615,21 +620,3 @@ def _evidence(
         )
     evidence.append("Authority boundary verified: metadata-only reflection planning.")
     return _dedupe(evidence)[:16]
-
-
-def _metadata_values(item: object, attribute: str) -> tuple[str, ...]:
-    value = getattr(item, attribute, ())
-    if value is None:
-        return ()
-    if isinstance(value, str):
-        return (value,)
-    if isinstance(value, Sequence):
-        return tuple(str(entry) for entry in value if entry)
-    return ()
-
-
-def _metadata_label(item: object) -> str:
-    role = getattr(item, "role", None)
-    if isinstance(role, str) and role:
-        return role
-    return item.__class__.__name__

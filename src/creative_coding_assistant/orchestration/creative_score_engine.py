@@ -8,7 +8,12 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
-from creative_coding_assistant.orchestration._metadata_utils import _clip, _dedupe
+from creative_coding_assistant.orchestration._metadata_utils import (
+    PlanningMetadata,
+    _clip,
+    _dedupe,
+    _metadata_values,
+)
 from creative_coding_assistant.orchestration.creative_confidence_engine import (
     CreativeConfidenceProfile,
     ExpectedHumanReviewNeed,
@@ -141,7 +146,7 @@ def derive_creative_score_profile(
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
-    planning_metadata: Sequence[object] = (),
+    planning_metadata: PlanningMetadata = (),
 ) -> CreativeScoreProfile:
     """Aggregate evaluation metadata into deterministic score metadata."""
 
@@ -359,7 +364,7 @@ def _dimension_scores(
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
 ) -> dict[ScoreDimension, float]:
     planning_score = _planning_metadata_score(planning_metadata)
     confidence_score = (
@@ -493,7 +498,7 @@ def _score_breakdown(
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
 ) -> tuple[CreativeScoreBreakdownItem, ...]:
     return (
         CreativeScoreBreakdownItem(
@@ -582,7 +587,7 @@ def _score_breakdown(
 def _score_components(
     *,
     weighted_dimension_score: float,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
@@ -834,7 +839,7 @@ def _uncertainty_penalty(
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
 ) -> float:
     count = 0
     if creative_critic is not None:
@@ -856,8 +861,20 @@ def _uncertainty_penalty(
         if creative_confidence.confidence_trend in {"conflicting", "unknown"}:
             count += 2
     for item in planning_metadata:
-        count += len(_metadata_values(item, "hitl_questions")[:2])
-        count += len(_metadata_values(item, "missing_information")[:2])
+        count += len(
+            _metadata_values(
+                item,
+                "hitl_questions",
+                stringify_before_filter=True,
+            )[:2]
+        )
+        count += len(
+            _metadata_values(
+                item,
+                "missing_information",
+                stringify_before_filter=True,
+            )[:2]
+        )
     return round(min(30.0, count * 1.2), 1)
 
 
@@ -1085,7 +1102,7 @@ def _score_evidence(
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
 ) -> tuple[str, ...]:
     evidence = [
         f"Request scored: {request.query[:160]}",
@@ -1166,7 +1183,7 @@ def _dimension_evidence(
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None = None,
     reflection_loop: ReflectionLoopProfile | None = None,
 ) -> tuple[str, ...]:
@@ -1212,7 +1229,7 @@ def _self_average(profile: SelfEvaluationProfile | None, *fields: str) -> float 
     return sum(values) / len(values)
 
 
-def _metadata_average(metadata: Sequence[object], *fields: str) -> float | None:
+def _metadata_average(metadata: PlanningMetadata, *fields: str) -> float | None:
     values: list[float] = []
     for item in metadata:
         for field in fields:
@@ -1224,7 +1241,7 @@ def _metadata_average(metadata: Sequence[object], *fields: str) -> float | None:
     return sum(values) / len(values)
 
 
-def _planning_metadata_score(planning_metadata: Sequence[object]) -> float:
+def _planning_metadata_score(planning_metadata: PlanningMetadata) -> float:
     return _metadata_average(
         planning_metadata,
         "confidence",
@@ -1292,12 +1309,3 @@ def _normalize_percent(value: object) -> float | None:
 
 def _bounded_percent(value: float) -> float:
     return round(max(0.0, min(100.0, value)), 1)
-
-
-def _metadata_values(item: object, field: str) -> tuple[str, ...]:
-    value = getattr(item, field, ())
-    if isinstance(value, str):
-        return (value,)
-    if isinstance(value, Sequence):
-        return tuple(str(entry) for entry in value if str(entry))
-    return ()

@@ -2,7 +2,17 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
+from typing import Protocol
+
+
+class PlanningMetadataItem(Protocol):
+    """Minimal profile shape accepted by evaluation planning metadata helpers."""
+
+    role: str
+
+
+PlanningMetadata = Sequence[PlanningMetadataItem]
 
 
 def _clip(value: str, limit: int = 360) -> str:
@@ -31,3 +41,43 @@ def _dedupe(
 def _contains_any(value: str, needles: Iterable[str]) -> bool:
     lowered = value.lower()
     return any(needle in lowered for needle in needles)
+
+
+def _metadata_values(
+    item: object,
+    attribute: str,
+    *,
+    stringify_before_filter: bool = False,
+) -> tuple[str, ...]:
+    value = getattr(item, attribute, ())
+    if value is None:
+        return ()
+    if isinstance(value, str):
+        return (value,)
+    if isinstance(value, Sequence):
+        if stringify_before_filter:
+            return tuple(str(entry) for entry in value if str(entry))
+        return tuple(str(entry) for entry in value if entry)
+    return ()
+
+
+def _metadata_label(item: object) -> str:
+    role = getattr(item, "role", None)
+    if isinstance(role, str) and role:
+        return role
+    return item.__class__.__name__
+
+
+def _score(
+    base: float,
+    *,
+    positives: Sequence[object | None],
+    bonus: float = 0,
+    penalties: float = 0,
+) -> float:
+    present = sum(item is not None for item in positives)
+    return _clamp_score(base + present * 0.055 + bonus - penalties)
+
+
+def _clamp_score(value: float) -> float:
+    return round(max(0.05, min(0.98, value)), 2)

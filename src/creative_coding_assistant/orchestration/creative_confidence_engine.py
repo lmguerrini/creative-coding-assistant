@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest
-from creative_coding_assistant.orchestration._metadata_utils import _clip, _dedupe
+from creative_coding_assistant.orchestration._metadata_utils import (
+    PlanningMetadata,
+    _clip,
+    _dedupe,
+    _metadata_label,
+    _metadata_values,
+)
 from creative_coding_assistant.orchestration.creative_critic_engine import (
     CreativeCriticProfile,
 )
@@ -127,7 +132,7 @@ def derive_creative_confidence_profile(
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
-    planning_metadata: Sequence[object] = (),
+    planning_metadata: PlanningMetadata = (),
 ) -> CreativeConfidenceProfile:
     """Aggregate evaluation metadata into an advisory confidence profile."""
 
@@ -271,7 +276,7 @@ def _confidence_components(
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
 ) -> tuple[CreativeConfidenceComponent, ...]:
     components: list[CreativeConfidenceComponent] = []
     if creative_critic is not None:
@@ -428,7 +433,7 @@ def _reflection_score(profile: ReflectionLoopProfile) -> float:
     return _bounded_score(score)
 
 
-def _planning_metadata_score(planning_metadata: Sequence[object]) -> float:
+def _planning_metadata_score(planning_metadata: PlanningMetadata) -> float:
     values: list[float] = []
     unresolved_count = 0
     for item in planning_metadata:
@@ -554,7 +559,7 @@ def _confidence_limitations(
     creative_critic: CreativeCriticProfile | None,
     self_evaluation: SelfEvaluationProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
 ) -> tuple[str, ...]:
     limitations: list[str] = []
     if creative_critic is None:
@@ -577,7 +582,7 @@ def _confidence_uncertainties(
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
 ) -> tuple[str, ...]:
     uncertainties: list[str] = []
     if creative_critic is not None:
@@ -763,7 +768,7 @@ def _confidence_evidence(
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
-    planning_metadata: Sequence[object],
+    planning_metadata: PlanningMetadata,
 ) -> tuple[str, ...]:
     evidence = [f"Request: {_clip(request.query, 220)}"]
     if route_decision is not None:
@@ -820,27 +825,10 @@ def _prompt_guidance(
     return _dedupe(guidance)[:8]
 
 
-def _planning_metadata_evidence(planning_metadata: Sequence[object]) -> str:
+def _planning_metadata_evidence(planning_metadata: PlanningMetadata) -> str:
     labels = ", ".join(_metadata_label(item) for item in planning_metadata[:8])
     return f"{len(planning_metadata)} planning profile(s): {labels}."
 
-
-def _metadata_values(item: object, attribute: str) -> tuple[str, ...]:
-    value = getattr(item, attribute, ())
-    if value is None:
-        return ()
-    if isinstance(value, str):
-        return (value,)
-    if isinstance(value, Sequence):
-        return tuple(str(entry) for entry in value if entry)
-    return ()
-
-
-def _metadata_label(item: object) -> str:
-    role = getattr(item, "role", None)
-    if isinstance(role, str) and role:
-        return role
-    return item.__class__.__name__
 
 
 def _bounded_score(value: float) -> float:
