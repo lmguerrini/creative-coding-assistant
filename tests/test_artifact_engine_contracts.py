@@ -109,6 +109,10 @@ class ArtifactEngineContractTests(unittest.TestCase):
                 set(contract.produced_signals),
             )
             self.assertTrue(contract.escalation_candidates)
+            self.assertLessEqual(
+                set(contract.escalation_candidates),
+                set(contract.produced_signals),
+            )
             self.assertFalse(
                 contract.estimated_cost_metadata.external_provider_calls
             )

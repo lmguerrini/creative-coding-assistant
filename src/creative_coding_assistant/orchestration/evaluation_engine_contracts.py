@@ -432,6 +432,7 @@ CREATIVE_CONFIDENCE_ENGINE_CONTRACT = _contract(
         "confidence_uncertainties",
         "confidence_limitations",
         "expected_output_reliability",
+        "escalation_recommendation",
         "hitl_recommendation",
         "prompt_guidance",
     ),

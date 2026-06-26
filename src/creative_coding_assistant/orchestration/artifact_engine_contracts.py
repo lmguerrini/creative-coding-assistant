@@ -451,7 +451,7 @@ MULTI_ARTIFACT_STRATEGY_ENGINE_CONTRACT = _contract(
     confidence_signals=("artifact_sequence", "evidence"),
     ambiguity_signals=("hitl_questions", "missing_information"),
     risk_signals=("risk_areas", "artifact_handoff_points"),
-    escalation_candidates=("hitl_questions", "coordination_risks"),
+    escalation_candidates=("hitl_questions", "risk_areas"),
     downstream_dependencies=(
         "artifact_critic",
         "artifact_refiner",

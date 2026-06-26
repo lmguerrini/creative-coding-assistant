@@ -49,6 +49,10 @@ EXPECTED_HITL_SIGNALS = {
     "evaluation_reports": "hitl_recommendation",
 }
 
+EXPECTED_ESCALATION_SIGNALS = {
+    "creative_confidence": "escalation_recommendation",
+}
+
 REQUIRED_CONTRACT_FIELDS = {
     "engine_id",
     "engine_name",
@@ -117,6 +121,9 @@ class EvaluationEngineContractTests(unittest.TestCase):
             hitl_signal = EXPECTED_HITL_SIGNALS[contract.engine_id]
             self.assertIn(hitl_signal, declared_signal_sources)
             self.assertIn(hitl_signal, contract.ambiguity_signals)
+            escalation_signal = EXPECTED_ESCALATION_SIGNALS.get(contract.engine_id)
+            if escalation_signal is not None:
+                self.assertIn(escalation_signal, declared_signal_sources)
             self.assertTrue(contract.risk_signals)
             self.assertLessEqual(
                 set(contract.risk_signals),
