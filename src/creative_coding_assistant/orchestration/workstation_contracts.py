@@ -185,7 +185,8 @@ def _contract(
         estimated_cost_metadata=WorkstationSurfaceCostMetadata(
             cost_basis=(
                 "Deterministic workstation metadata projection from existing "
-                "client snapshot, stream, and workflow trace state."
+                "client snapshot, stream, and workflow trace state; no "
+                "provider calls."
             ),
             cache_sensitivity=(
                 "Cache key must include the active workspace snapshot, stream "

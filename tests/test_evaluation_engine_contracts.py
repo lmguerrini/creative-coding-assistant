@@ -141,9 +141,10 @@ class EvaluationEngineContractTests(unittest.TestCase):
             else:
                 self.assertEqual(contract.cacheability, "deterministic_per_request")
             self.assertTrue(contract.evidence_contract.evidence_sources)
-            self.assertFalse(
-                contract.estimated_cost_metadata.external_provider_calls
-            )
+            cost_metadata = contract.estimated_cost_metadata
+            self.assertEqual(cost_metadata.relative_cost, "low")
+            self.assertFalse(cost_metadata.external_provider_calls)
+            self.assertIn("no provider", cost_metadata.cost_basis.lower())
 
     def test_contract_lookup_and_dependencies_are_stable(self) -> None:
         report_contract = evaluation_engine_contract_by_id("evaluation_reports")

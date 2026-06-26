@@ -88,9 +88,10 @@ class WorkstationEngineContractTests(unittest.TestCase):
                     "client_snapshot_and_stream_derived",
                 )
                 self.assertIn("stream", cache_sensitivity)
-            self.assertFalse(
-                contract.estimated_cost_metadata.external_provider_calls
-            )
+            cost_metadata = contract.estimated_cost_metadata
+            self.assertEqual(cost_metadata.relative_cost, "low")
+            self.assertFalse(cost_metadata.external_provider_calls)
+            self.assertIn("no provider", cost_metadata.cost_basis.lower())
 
     def test_contract_lookup_and_future_hooks_are_stable(self) -> None:
         timeline_contract = workstation_engine_contract_by_id("creative_timeline")
