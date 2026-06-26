@@ -96,6 +96,10 @@ class ArtifactEngineContractTests(unittest.TestCase):
                 set(contract.produced_signals),
             )
             self.assertTrue(contract.ambiguity_signals)
+            self.assertLessEqual(
+                set(contract.ambiguity_signals),
+                set(contract.produced_signals),
+            )
             self.assertTrue(contract.risk_signals)
             self.assertLessEqual(
                 set(contract.risk_signals),

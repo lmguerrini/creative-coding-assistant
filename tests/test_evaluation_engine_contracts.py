@@ -99,6 +99,10 @@ class EvaluationEngineContractTests(unittest.TestCase):
                 declared_signal_sources,
             )
             self.assertTrue(contract.ambiguity_signals)
+            self.assertLessEqual(
+                set(contract.ambiguity_signals),
+                declared_signal_sources,
+            )
             self.assertTrue(contract.risk_signals)
             self.assertLessEqual(
                 set(contract.risk_signals),
