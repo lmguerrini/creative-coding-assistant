@@ -1,4 +1,5 @@
 import { readEventTimestamp } from "./assistant-stream";
+import { uniqueStrings } from "./text-utils";
 import type { WorkflowRuntimeTraceEvent } from "./workflow-runtime";
 
 export type LangSmithTraceState =
@@ -291,7 +292,7 @@ function mergeTraceIdentities(identities: TraceIdentity[]): TraceIdentity {
       createdAt: current.createdAt ?? identity.createdAt,
       endedAt: identity.endedAt ?? current.endedAt,
       durationMs: identity.durationMs ?? current.durationMs,
-      tags: uniqueStrings([...current.tags, ...identity.tags]),
+      tags: uniqueStrings([...current.tags, ...identity.tags], { dropEmpty: true }),
       metadata: {
         ...(current.metadata ?? {}),
         ...(identity.metadata ?? {})
@@ -812,10 +813,6 @@ function formatLabel(value: string) {
   return value
     .replace(/[._-]+/g, " ")
     .replace(/\b\w/g, (character) => character.toUpperCase());
-}
-
-function uniqueStrings(values: string[]) {
-  return [...new Set(values.filter(Boolean))];
 }
 
 function readRecord(value: unknown): Record<string, unknown> | null {

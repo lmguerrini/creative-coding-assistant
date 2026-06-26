@@ -1,4 +1,5 @@
 import { readEventTimestamp, type AssistantStreamEvent } from "./assistant-stream";
+import { uniqueStrings } from "./text-utils";
 import type { WorkflowRuntimeTraceEvent } from "./workflow-runtime";
 
 export type EvaluationOutcome = "pass" | "warn" | "fail" | "unscored";
@@ -498,10 +499,6 @@ function averageScores(scores: number[]): number | null {
     return null;
   }
   return scores.reduce((total, score) => total + score, 0) / scores.length;
-}
-
-function uniqueStrings(values: string[]) {
-  return [...new Set(values)];
 }
 
 function readScore(value: unknown): number | null {

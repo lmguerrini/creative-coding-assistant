@@ -1,4 +1,5 @@
 import type { AssistantWorkspaceSnapshot } from "./assistant-client";
+import { trimToSentence, uniqueStrings } from "./text-utils";
 import type {
   WorkstationMetadataSummary,
   WorkstationReadinessState,
@@ -259,7 +260,7 @@ function deriveSessionWarnings(workstationState: WorkstationState): string[] {
     warnings.unshift(workstationState.readiness.detail);
   }
 
-  return uniqueStrings(warnings);
+  return uniqueStrings(warnings, { dropEmpty: true, trim: true });
 }
 
 function deriveRecommendedNextUserActions({
@@ -296,7 +297,7 @@ function deriveRecommendedNextUserActions({
     actions.push("Run a session evaluation when quality evidence is needed.");
   }
 
-  return uniqueStrings(actions);
+  return uniqueStrings(actions, { dropEmpty: true, trim: true });
 }
 
 function readCompletionStatus(
@@ -329,16 +330,8 @@ function normalizeStringList(value: unknown): string[] | null {
   }
 
   const values = uniqueStrings(
-    value.filter((item): item is string => typeof item === "string")
+    value.filter((item): item is string => typeof item === "string"),
+    { dropEmpty: true, trim: true }
   );
   return values.length > 0 ? values : null;
-}
-
-function uniqueStrings(values: string[]): string[] {
-  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
-}
-
-function trimToSentence(value: string) {
-  const normalized = value.trim().replace(/\s+/g, " ");
-  return normalized.length > 140 ? `${normalized.slice(0, 137)}...` : normalized;
 }

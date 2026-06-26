@@ -3,6 +3,7 @@ import type {
   WorkflowRuntimeModel,
   WorkflowRuntimeTraceEvent
 } from "./workflow-runtime";
+import { formatCode, truncate } from "./text-utils";
 import type { WorkstationState } from "./workstation-state";
 
 export type WorkflowExplorerStageId =
@@ -550,12 +551,4 @@ function readString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0
     ? value.trim()
     : null;
-}
-
-function truncate(value: string) {
-  return value.length > 140 ? `${value.slice(0, 137)}...` : value;
-}
-
-function formatCode(value: string) {
-  return value.replace(/[_-]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }

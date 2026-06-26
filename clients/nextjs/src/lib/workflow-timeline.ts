@@ -6,6 +6,7 @@ import {
   workflowNodeFromAssistantStreamEvent,
   type AssistantStreamEvent
 } from "./assistant-stream";
+import { formatCode } from "./text-utils";
 
 export type WorkflowTimelineStatus =
   | "info"
@@ -463,12 +464,6 @@ function readMessageList(value: unknown) {
 function parseTimestamp(value: string) {
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? parsed : null;
-}
-
-function formatCode(value: string) {
-  return value
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

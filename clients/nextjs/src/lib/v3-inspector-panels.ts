@@ -3,6 +3,7 @@ import {
   type AssistantStreamWorkflowMetadata
 } from "./assistant-stream";
 import type { ProvenanceEngineModel, ProvenanceSource } from "./provenance-engine";
+import { formatCode, truncate } from "./text-utils";
 import type { WorkflowRuntimeTraceEvent } from "./workflow-runtime";
 import type { WorkstationState } from "./workstation-state";
 
@@ -667,13 +668,13 @@ function summarizeMetadataValue(value: unknown, preferredKeys: string[]) {
     for (const key of preferredKeys) {
       const summary = summarizeValue(record[key] ?? record[toSnakeCase(key)]);
       if (summary) {
-        return truncate(summary);
+        return truncate(summary, 150);
       }
     }
 
     const role = readString(record.role);
     if (role) {
-      return `${formatCode(role)} metadata captured.`;
+      return `${formatCode(role, { splitCamelCase: true })} metadata captured.`;
     }
 
     const keyCount = Object.keys(record).length;
@@ -707,7 +708,7 @@ function summarizeMetadataDetails(value: unknown, keys: string[]) {
 
 function summarizeDetail(key: string, value: unknown): string | null {
   const summary = summarizeValue(value);
-  return summary ? `${formatCode(key)}: ${summary}` : null;
+  return summary ? `${formatCode(key, { splitCamelCase: true })}: ${summary}` : null;
 }
 
 function summarizeValue(value: unknown): string | null {
@@ -801,21 +802,10 @@ function readString(value: unknown): string | null {
     : null;
 }
 
-function truncate(value: string, maxLength = 150) {
-  return value.length > maxLength ? `${value.slice(0, maxLength - 3)}...` : value;
-}
-
 function toCamelCase(value: string) {
   return value.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase());
 }
 
 function toSnakeCase(value: string) {
   return value.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
-}
-
-function formatCode(value: string) {
-  return value
-    .replace(/[_-]+/g, " ")
-    .replace(/([a-z])([A-Z])/g, "$1 $2")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
