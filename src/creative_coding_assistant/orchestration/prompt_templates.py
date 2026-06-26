@@ -96,6 +96,10 @@ from creative_coding_assistant.orchestration.creative_reasoning import (
     CreativeReasoningResult,
     creative_reasoning_prompt_lines,
 )
+from creative_coding_assistant.orchestration.creative_score_engine import (
+    CreativeScoreProfile,
+    creative_score_prompt_lines,
+)
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
     creative_strategy_prompt_lines,
@@ -457,6 +461,13 @@ Creative Confidence Engine:
 - {{ instruction }}
 {% endfor %}
 {% endif %}
+{% set creative_score = prompt_input.creative_score -%}
+{% if creative_score is not none -%}
+Creative Score Engine:
+{% for instruction in creative_score_lines(creative_score) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
 {% set director = prompt_input.creative_director -%}
 {% if director is not none -%}
 Creative Assistant Director:
@@ -731,6 +742,7 @@ class JinjaPromptRenderer:
             ),
             reflection_loop_lines=_reflection_loop_lines,
             creative_confidence_lines=_creative_confidence_lines,
+            creative_score_lines=_creative_score_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -1093,6 +1105,12 @@ def _creative_confidence_lines(
     profile: CreativeConfidenceProfile,
 ) -> tuple[str, ...]:
     return creative_confidence_prompt_lines(profile)
+
+
+def _creative_score_lines(
+    profile: CreativeScoreProfile,
+) -> tuple[str, ...]:
+    return creative_score_prompt_lines(profile)
 
 
 def _creative_assistant_director_lines(

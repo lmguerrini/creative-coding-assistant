@@ -83,6 +83,9 @@ from creative_coding_assistant.orchestration.creative_quality_prediction import 
 from creative_coding_assistant.orchestration.creative_reasoning import (
     CreativeReasoningResult,
 )
+from creative_coding_assistant.orchestration.creative_score_engine import (
+    CreativeScoreProfile,
+)
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
 )
@@ -403,6 +406,7 @@ class PromptInputResponse(BaseModel):
     creative_improvement_planner: CreativeImprovementPlannerProfile | None = None
     reflection_loop: ReflectionLoopProfile | None = None
     creative_confidence: CreativeConfidenceProfile | None = None
+    creative_score: CreativeScoreProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None

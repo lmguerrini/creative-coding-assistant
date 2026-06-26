@@ -69,6 +69,9 @@ from creative_coding_assistant.orchestration.creative_planning import (
 from creative_coding_assistant.orchestration.creative_quality_prediction import (
     CreativeQualityPrediction,
 )
+from creative_coding_assistant.orchestration.creative_score_engine import (
+    CreativeScoreProfile,
+)
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
 )
@@ -189,6 +192,7 @@ def derive_creative_assistant_director_brief(
     ) = None,
     reflection_loop: ReflectionLoopProfile | None = None,
     creative_confidence: CreativeConfidenceProfile | None = None,
+    creative_score: CreativeScoreProfile | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -235,6 +239,7 @@ def derive_creative_assistant_director_brief(
             creative_improvement_planner=creative_improvement_planner,
             reflection_loop=reflection_loop,
             creative_confidence=creative_confidence,
+            creative_score=creative_score,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

@@ -62,6 +62,9 @@ from creative_coding_assistant.orchestration.creative_planning import (
 from creative_coding_assistant.orchestration.creative_quality_prediction import (
     CreativeQualityPrediction,
 )
+from creative_coding_assistant.orchestration.creative_score_engine import (
+    CreativeScoreProfile,
+)
 from creative_coding_assistant.orchestration.creative_reasoning_contracts import (
     CreativeRejectedAlternative,
 )
@@ -146,6 +149,7 @@ def build_strongest_signals(
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
+    creative_score: CreativeScoreProfile | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -347,6 +351,13 @@ def build_strongest_signals(
             f"{creative_confidence.confidence_score:.2f} score; "
             f"{creative_confidence.hitl_recommendation} HITL."
         )
+    if creative_score is not None:
+        signals.append(
+            "Creative score: "
+            f"{creative_score.score_band} band; "
+            f"{creative_score.overall_creative_score:.1f}/100; "
+            f"{creative_score.hitl_recommendation} HITL."
+        )
     if creative_constraints is not None:
         signals.append(
             f"Constraints: complexity {creative_constraints.complexity_pressure}, "
@@ -454,6 +465,7 @@ def build_unresolved_decisions(
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
+    creative_score: CreativeScoreProfile | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -559,6 +571,12 @@ def build_unresolved_decisions(
             unresolved.append(
                 "Creative Confidence recommends human review before treating confidence as settled."
             )
+    if creative_score is not None:
+        if creative_score.hitl_recommendation in {"recommended", "required"}:
+            unresolved.append(
+                "Creative Score recommends human review before treating score as settled."
+            )
+        unresolved.extend(creative_score.weaknesses[:2])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -602,6 +620,7 @@ def build_implementation_guidance(
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
+    creative_score: CreativeScoreProfile | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -819,6 +838,15 @@ def build_implementation_guidance(
             "uncertainty context only, not output changes, artifact edits, "
             "refinement, retries, routing, runtime selection, provider calls, "
             "preview changes, or V4 agent behavior."
+        )
+    if creative_score is not None:
+        guidance.extend(creative_score.prompt_guidance[:2])
+        guidance.extend(creative_score.weaknesses[:1])
+        guidance.append(
+            "Preserve Creative Score metadata as advisory score context only, "
+            "not output changes, artifact edits, refinement, retries, routing, "
+            "runtime selection, provider calls, preview changes, V4 agents, or "
+            "V5 optimization."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

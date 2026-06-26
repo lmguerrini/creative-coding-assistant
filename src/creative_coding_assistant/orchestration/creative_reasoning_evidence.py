@@ -61,6 +61,9 @@ from creative_coding_assistant.orchestration.creative_planning import (
 from creative_coding_assistant.orchestration.creative_quality_prediction import (
     CreativeQualityPrediction,
 )
+from creative_coding_assistant.orchestration.creative_score_engine import (
+    CreativeScoreProfile,
+)
 from creative_coding_assistant.orchestration.creative_reasoning_contracts import (
     CreativeReasoningEvidence,
 )
@@ -152,6 +155,7 @@ def build_evidence_chain(
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
+    creative_score: CreativeScoreProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -763,6 +767,29 @@ def build_evidence_chain(
                     "need, and escalation as advisory metadata only, without "
                     "changing outputs, modifying artifacts, triggering "
                     "refinement or retries, routing, or invoking V4 agents."
+                ),
+            )
+        )
+    if creative_score is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="creative_score",
+                signal=_clip(
+                    (
+                        f"{creative_score.score_band} band; "
+                        f"{creative_score.overall_creative_score:.1f}/100; "
+                        f"{creative_score.risk_penalty:.1f} risk penalty; "
+                        f"{creative_score.uncertainty_penalty:.1f} uncertainty penalty"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Creative Score evidence synthesizes evaluation metadata "
+                    "into advisory scores, penalties, strengths, weaknesses, "
+                    "rationale, and HITL recommendation only, without "
+                    "changing outputs, modifying artifacts, triggering "
+                    "refinement or retries, routing, runtime selection, "
+                    "preview changes, V4 agents, or V5 optimization."
                 ),
             )
         )

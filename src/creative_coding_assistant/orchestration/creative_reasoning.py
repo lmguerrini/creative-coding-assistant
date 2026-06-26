@@ -63,6 +63,9 @@ from creative_coding_assistant.orchestration.creative_planning import (
 from creative_coding_assistant.orchestration.creative_quality_prediction import (
     CreativeQualityPrediction,
 )
+from creative_coding_assistant.orchestration.creative_score_engine import (
+    CreativeScoreProfile,
+)
 from creative_coding_assistant.orchestration.creative_reasoning_contracts import (
     CREATIVE_REASONING_AUTHORITY_BOUNDARY,
     CreativeReasoningEvidence,
@@ -175,6 +178,7 @@ def derive_creative_reasoning_result(
     ) = None,
     reflection_loop: ReflectionLoopProfile | None = None,
     creative_confidence: CreativeConfidenceProfile | None = None,
+    creative_score: CreativeScoreProfile | None = None,
     future_knowledge_context: Mapping[str, object] | None = None,
 ) -> CreativeReasoningResult:
     """Synthesize prior Creative Intelligence outputs into one decision brief."""
@@ -245,6 +249,7 @@ def derive_creative_reasoning_result(
         creative_improvement_planner=creative_improvement_planner,
         reflection_loop=reflection_loop,
         creative_confidence=creative_confidence,
+        creative_score=creative_score,
     )
     return CreativeReasoningResult(
         recommended_creative_direction=direction,
@@ -317,6 +322,7 @@ def derive_creative_reasoning_result(
             creative_improvement_planner=creative_improvement_planner,
             reflection_loop=reflection_loop,
             creative_confidence=creative_confidence,
+            creative_score=creative_score,
         ),
         strongest_supporting_signals=build_strongest_signals(
             creative_director=creative_director,
@@ -352,6 +358,7 @@ def derive_creative_reasoning_result(
             creative_improvement_planner=creative_improvement_planner,
             reflection_loop=reflection_loop,
             creative_confidence=creative_confidence,
+            creative_score=creative_score,
         ),
         rejected_alternatives=build_rejected_alternatives(
             creative_strategy=creative_strategy,
@@ -393,6 +400,7 @@ def derive_creative_reasoning_result(
             creative_improvement_planner=creative_improvement_planner,
             reflection_loop=reflection_loop,
             creative_confidence=creative_confidence,
+            creative_score=creative_score,
         ),
         prompt_guidance=build_prompt_guidance(unresolved),
         hitl_questions=build_hitl_questions(unresolved),

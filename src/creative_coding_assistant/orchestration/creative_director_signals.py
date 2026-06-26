@@ -62,6 +62,9 @@ from creative_coding_assistant.orchestration.creative_planning import (
 from creative_coding_assistant.orchestration.creative_quality_prediction import (
     CreativeQualityPrediction,
 )
+from creative_coding_assistant.orchestration.creative_score_engine import (
+    CreativeScoreProfile,
+)
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
 )
@@ -153,6 +156,7 @@ def build_director_brief_payload(
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
+    creative_score: CreativeScoreProfile | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -189,6 +193,7 @@ def build_director_brief_payload(
         creative_improvement_planner=creative_improvement_planner,
         reflection_loop=reflection_loop,
         creative_confidence=creative_confidence,
+        creative_score=creative_score,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -240,6 +245,7 @@ def build_director_brief_payload(
             creative_improvement_planner,
             reflection_loop,
             creative_confidence,
+            creative_score,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -275,6 +281,7 @@ def build_director_brief_payload(
             creative_improvement_planner=creative_improvement_planner,
             reflection_loop=reflection_loop,
             creative_confidence=creative_confidence,
+            creative_score=creative_score,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -311,6 +318,7 @@ def build_director_brief_payload(
             creative_improvement_planner=creative_improvement_planner,
             reflection_loop=reflection_loop,
             creative_confidence=creative_confidence,
+            creative_score=creative_score,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -353,6 +361,7 @@ def build_director_brief_payload(
             creative_improvement_planner=creative_improvement_planner,
             reflection_loop=reflection_loop,
             creative_confidence=creative_confidence,
+            creative_score=creative_score,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -415,6 +424,7 @@ def _ambiguity_signals(
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
+    creative_score: CreativeScoreProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -512,6 +522,14 @@ def _ambiguity_signals(
                 "Creative Confidence recommends "
                 f"{creative_confidence.hitl_recommendation} human review."
             )
+    if creative_score is not None and creative_score.hitl_recommendation in {
+        "recommended",
+        "required",
+    }:
+        signals.append(
+            "Creative Score recommends "
+            f"{creative_score.hitl_recommendation} human review."
+        )
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
     if route_decision is not None and not route_decision.domains:
@@ -617,6 +635,15 @@ def _creative_confidence_focus(profile: CreativeConfidenceProfile) -> str:
     )
 
 
+def _creative_score_focus(profile: CreativeScoreProfile) -> str:
+    return (
+        "Creative score: "
+        f"{profile.score_band} band; "
+        f"{profile.overall_creative_score:.1f}/100; "
+        f"{profile.hitl_recommendation} HITL; metadata only."
+    )
+
+
 def _planning_focus(
     plan: CreativeExecutionPlan | None,
     creative_intent: CreativeIntentDecomposition | None,
@@ -651,6 +678,7 @@ def _planning_focus(
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
+    creative_score: CreativeScoreProfile | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_intent is not None:
@@ -722,6 +750,8 @@ def _planning_focus(
             runtime_focus += " " + _reflection_loop_focus(reflection_loop)
         if creative_confidence is not None:
             runtime_focus += " " + _creative_confidence_focus(creative_confidence)
+        if creative_score is not None:
+            runtime_focus += " " + _creative_score_focus(creative_score)
         focus.append(runtime_focus)
         if (
             artifact_capability_matrix is None
@@ -781,6 +811,8 @@ def _planning_focus(
             capability_focus += " " + _reflection_loop_focus(reflection_loop)
         if creative_confidence is not None:
             capability_focus += " " + _creative_confidence_focus(creative_confidence)
+        if creative_score is not None:
+            capability_focus += " " + _creative_score_focus(creative_score)
         focus.append(capability_focus)
         if (
             multi_artifact_strategy is None
@@ -938,6 +970,9 @@ def _planning_focus(
     if creative_confidence is not None:
         focus.append(_creative_confidence_focus(creative_confidence))
         focus.extend(creative_confidence.prompt_guidance[:1])
+    if creative_score is not None:
+        focus.append(_creative_score_focus(creative_score))
+        focus.extend(creative_score.prompt_guidance[:1])
     if procedural_structure is not None:
         focus.append(
             "Procedural structure: "
@@ -1085,6 +1120,7 @@ def _critique_focus(
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
+    creative_score: CreativeScoreProfile | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
@@ -1346,6 +1382,16 @@ def _critique_focus(
             "retries, changing routing, or invoking V4 agents."
         )
         focus.extend(creative_confidence.confidence_weaknesses[:2])
+    if creative_score is not None:
+        focus.append(
+            "Creative Score Engine is metadata-only advisory guidance; compare "
+            "overall score, score breakdown, penalties, strengths, weaknesses, "
+            "rationale, evidence, and HITL recommendation without changing "
+            "outputs, modifying artifacts, triggering refinement or retries, "
+            "changing routing, selecting runtimes, altering previews, or "
+            "invoking V4 agents."
+        )
+        focus.extend(creative_score.weaknesses[:2])
     if artifact_critique_summary is not None:
         focus.append(
             "Recommended artifact: "
@@ -1414,6 +1460,7 @@ def _next_actions(
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
+    creative_score: CreativeScoreProfile | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
@@ -1495,6 +1542,13 @@ def _next_actions(
         return (
             "Surface Creative Confidence human review guidance before treating confidence as settled.",
         )
+    if creative_score is not None and creative_score.hitl_recommendation in {
+        "recommended",
+        "required",
+    }:
+        return (
+            "Surface Creative Score human review guidance before treating score as settled.",
+        )
     if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
@@ -1549,6 +1603,7 @@ def _evidence(
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
     creative_confidence: CreativeConfidenceProfile | None,
+    creative_score: CreativeScoreProfile | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -1752,6 +1807,13 @@ def _evidence(
             f"{creative_confidence.confidence_level} level; "
             f"{creative_confidence.confidence_score:.2f} score; "
             f"{creative_confidence.hitl_recommendation} HITL."
+        )
+    if creative_score is not None:
+        evidence.append(
+            "Creative score: "
+            f"{creative_score.score_band} band; "
+            f"{creative_score.overall_creative_score:.1f}/100; "
+            f"{creative_score.hitl_recommendation} HITL."
         )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")
