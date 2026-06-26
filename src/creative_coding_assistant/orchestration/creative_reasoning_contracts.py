@@ -52,6 +52,7 @@ ReasoningEvidenceSource = Literal[
     "creative_confidence",
     "creative_score",
     "consistency_validation",
+    "evaluation_report",
     "future_knowledge",
 ]
 

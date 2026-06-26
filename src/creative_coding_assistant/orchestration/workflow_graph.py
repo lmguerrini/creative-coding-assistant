@@ -116,6 +116,9 @@ from creative_coding_assistant.orchestration.cross_modality import (
 from creative_coding_assistant.orchestration.emotional_consistency import (
     derive_emotional_consistency_profile,
 )
+from creative_coding_assistant.orchestration.evaluation_reports import (
+    derive_evaluation_report_profile,
+)
 from creative_coding_assistant.orchestration.events import StreamEventBuilder
 from creative_coding_assistant.orchestration.generative_structure import (
     derive_generative_structure_blueprint,
@@ -1264,6 +1267,47 @@ def _planning_node(
                 artifact_export_intelligence,
             ),
         )
+        evaluation_report = derive_evaluation_report_profile(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_critic=creative_critic,
+            self_evaluation=self_evaluation,
+            creative_improvement_planner=creative_improvement_planner,
+            reflection_loop=reflection_loop,
+            creative_confidence=creative_confidence,
+            creative_score=creative_score,
+            consistency_validation=consistency_validation,
+            planning_metadata=(
+                creative_intent,
+                creative_hierarchy,
+                strategy,
+                techniques,
+                plan,
+                constraints,
+                constraint_priorities,
+                runtime_capabilities,
+                tradeoffs,
+                quality_prediction,
+                symbolic_narrative,
+                creative_composition,
+                procedural_structure,
+                generative_structure,
+                semantic_motif,
+                emotional_consistency,
+                cross_modality,
+                audio_visual_scene,
+                artifact_plan,
+                artifact_dependency_graph,
+                runtime_compatibility,
+                artifact_capability_matrix,
+                multi_artifact_strategy,
+                artifact_critic,
+                artifact_refiner,
+                artifact_intelligence_synthesis,
+                artifact_merge_planner,
+                artifact_export_intelligence,
+            ),
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -1304,6 +1348,7 @@ def _planning_node(
                 "creative_confidence": creative_confidence,
                 "creative_score": creative_score,
                 "consistency_validation": consistency_validation,
+                "evaluation_report": evaluation_report,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -1348,6 +1393,7 @@ def _planning_node(
                 "creative_confidence": creative_confidence,
                 "creative_score": creative_score,
                 "consistency_validation": consistency_validation,
+                "evaluation_report": evaluation_report,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -1413,6 +1459,7 @@ def _planning_node(
                 consistency_validation=consistency_validation.model_dump(
                     mode="json"
                 ),
+                evaluation_report=evaluation_report.model_dump(mode="json"),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -2102,6 +2149,19 @@ def _finalization_node(
                 }
             )
         )
+        evaluation_report = _derive_evaluation_report_result(
+            evaluation_state.model_copy(
+                update={
+                    "creative_improvement_planner": (
+                        creative_improvement_planner
+                    ),
+                    "reflection_loop": reflection_loop,
+                    "creative_confidence": creative_confidence,
+                    "creative_score": creative_score,
+                    "consistency_validation": consistency_validation,
+                }
+            )
+        )
         evaluated_prompt_input = (
             workflow_state.prompt_input.model_copy(
                 update={
@@ -2113,6 +2173,7 @@ def _finalization_node(
                     "creative_confidence": creative_confidence,
                     "creative_score": creative_score,
                     "consistency_validation": consistency_validation,
+                    "evaluation_report": evaluation_report,
                 }
             )
             if workflow_state.prompt_input is not None
@@ -2128,6 +2189,7 @@ def _finalization_node(
                 "creative_confidence": creative_confidence,
                 "creative_score": creative_score,
                 "consistency_validation": consistency_validation,
+                "evaluation_report": evaluation_report,
                 "prompt_input": evaluated_prompt_input,
             }
         )
@@ -2501,6 +2563,14 @@ def _finalization_node(
                             mode="json"
                         )
                         if final_state.consistency_validation is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
+                    "evaluation_report",
+                    (
+                        final_state.evaluation_report.model_dump(mode="json")
+                        if final_state.evaluation_report is not None
                         else None
                     ),
                 ),
@@ -3120,6 +3190,7 @@ def _derive_director_brief(
         creative_confidence=workflow_state.creative_confidence,
         creative_score=workflow_state.creative_score,
         consistency_validation=workflow_state.consistency_validation,
+        evaluation_report=workflow_state.evaluation_report,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -3182,6 +3253,7 @@ def _derive_reasoning_result(
         creative_confidence=workflow_state.creative_confidence,
         creative_score=workflow_state.creative_score,
         consistency_validation=workflow_state.consistency_validation,
+        evaluation_report=workflow_state.evaluation_report,
     )
 
 
@@ -3294,6 +3366,21 @@ def _derive_consistency_validation_result(workflow_state: AssistantWorkflowState
         reflection_loop=workflow_state.reflection_loop,
         creative_confidence=workflow_state.creative_confidence,
         creative_score=workflow_state.creative_score,
+        planning_metadata=_reflection_planning_metadata(workflow_state),
+    )
+
+
+def _derive_evaluation_report_result(workflow_state: AssistantWorkflowState):
+    return derive_evaluation_report_profile(
+        request=workflow_state.request,
+        route_decision=workflow_state.route_decision,
+        creative_critic=workflow_state.creative_critic,
+        self_evaluation=workflow_state.self_evaluation,
+        creative_improvement_planner=workflow_state.creative_improvement_planner,
+        reflection_loop=workflow_state.reflection_loop,
+        creative_confidence=workflow_state.creative_confidence,
+        creative_score=workflow_state.creative_score,
+        consistency_validation=workflow_state.consistency_validation,
         planning_metadata=_reflection_planning_metadata(workflow_state),
     )
 
@@ -3585,6 +3672,7 @@ def _serialize_workflow_runtime(
     creative_confidence = workflow_state.creative_confidence
     creative_score = workflow_state.creative_score
     consistency_validation = workflow_state.consistency_validation
+    evaluation_report = workflow_state.evaluation_report
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -3854,6 +3942,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "consistency_validation_available": consistency_validation is not None,
+        "evaluation_report": (
+            evaluation_report.model_dump(mode="json")
+            if evaluation_report is not None
+            else None
+        ),
+        "evaluation_report_available": evaluation_report is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None

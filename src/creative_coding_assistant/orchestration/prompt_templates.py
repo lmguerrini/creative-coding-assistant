@@ -131,6 +131,10 @@ from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
     emotional_consistency_prompt_lines,
 )
+from creative_coding_assistant.orchestration.evaluation_reports import (
+    EvaluationReportProfile,
+    evaluation_report_prompt_lines,
+)
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
     generative_structure_prompt_lines,
@@ -479,6 +483,13 @@ Consistency Validation Engine:
 - {{ instruction }}
 {% endfor %}
 {% endif %}
+{% set evaluation_report = prompt_input.evaluation_report -%}
+{% if evaluation_report is not none -%}
+Evaluation Reports:
+{% for instruction in evaluation_report_lines(evaluation_report) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
 {% set director = prompt_input.creative_director -%}
 {% if director is not none -%}
 Creative Assistant Director:
@@ -755,6 +766,7 @@ class JinjaPromptRenderer:
             creative_confidence_lines=_creative_confidence_lines,
             creative_score_lines=_creative_score_lines,
             consistency_validation_lines=_consistency_validation_lines,
+            evaluation_report_lines=_evaluation_report_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -1129,6 +1141,12 @@ def _consistency_validation_lines(
     profile: ConsistencyValidationProfile,
 ) -> tuple[str, ...]:
     return consistency_validation_prompt_lines(profile)
+
+
+def _evaluation_report_lines(
+    profile: EvaluationReportProfile,
+) -> tuple[str, ...]:
+    return evaluation_report_prompt_lines(profile)
 
 
 def _creative_assistant_director_lines(

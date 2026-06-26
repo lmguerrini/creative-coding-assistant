@@ -90,6 +90,9 @@ from creative_coding_assistant.orchestration.cross_modality import (
 from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
 )
+from creative_coding_assistant.orchestration.evaluation_reports import (
+    EvaluationReportProfile,
+)
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
@@ -154,6 +157,7 @@ def build_strongest_signals(
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
     consistency_validation: ConsistencyValidationProfile | None,
+    evaluation_report: EvaluationReportProfile | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -371,6 +375,13 @@ def build_strongest_signals(
             f"{consistency_validation.evaluation_integrity} integrity; "
             f"{consistency_validation.hitl_recommendation} HITL."
         )
+    if evaluation_report is not None:
+        signals.append(
+            "Evaluation report: "
+            f"{evaluation_report.hitl_recommendation} HITL; "
+            f"{len(evaluation_report.evaluation_trace)} trace steps; "
+            f"{len(evaluation_report.evaluation_provenance)} provenance entries."
+        )
     if creative_constraints is not None:
         signals.append(
             f"Constraints: complexity {creative_constraints.complexity_pressure}, "
@@ -480,6 +491,7 @@ def build_unresolved_decisions(
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
     consistency_validation: ConsistencyValidationProfile | None,
+    evaluation_report: EvaluationReportProfile | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -598,6 +610,13 @@ def build_unresolved_decisions(
             )
         unresolved.extend(consistency_validation.detected_conflicts[:2])
         unresolved.extend(consistency_validation.unsupported_conclusions[:1])
+    if evaluation_report is not None:
+        if evaluation_report.hitl_recommendation in {"recommended", "required"}:
+            unresolved.append(
+                "Evaluation Report recommends human review before treating evaluation metadata as settled."
+            )
+        unresolved.extend(evaluation_report.risks[:2])
+        unresolved.extend(evaluation_report.recommendations[:1])
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -643,8 +662,19 @@ def build_implementation_guidance(
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
     consistency_validation: ConsistencyValidationProfile | None,
+    evaluation_report: EvaluationReportProfile | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
+    if evaluation_report is not None:
+        guidance.extend(evaluation_report.prompt_guidance[:1])
+        guidance.append(
+            "Preserve Evaluation Reports metadata as advisory reporting, "
+            "trace, provenance, explainability, dependency, evidence, risk, "
+            "recommendation, and HITL context only, not output changes, "
+            "artifact edits, refinement, retries, routing, runtime selection, "
+            "provider calls, preview changes, V4 agents, reporting triggers, "
+            "optimization, or learning behavior."
+        )
     if creative_intent is not None:
         guidance.extend(creative_intent.prompt_guidance[:2])
     if creative_hierarchy is not None:

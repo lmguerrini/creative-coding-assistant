@@ -93,6 +93,9 @@ from creative_coding_assistant.orchestration.cross_modality import (
 from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
 )
+from creative_coding_assistant.orchestration.evaluation_reports import (
+    EvaluationReportProfile,
+)
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
@@ -197,6 +200,7 @@ def derive_creative_assistant_director_brief(
     creative_confidence: CreativeConfidenceProfile | None = None,
     creative_score: CreativeScoreProfile | None = None,
     consistency_validation: ConsistencyValidationProfile | None = None,
+    evaluation_report: EvaluationReportProfile | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -245,6 +249,7 @@ def derive_creative_assistant_director_brief(
             creative_confidence=creative_confidence,
             creative_score=creative_score,
             consistency_validation=consistency_validation,
+            evaluation_report=evaluation_report,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

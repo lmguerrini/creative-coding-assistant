@@ -86,6 +86,9 @@ from creative_coding_assistant.orchestration.cross_modality import (
 from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
 )
+from creative_coding_assistant.orchestration.evaluation_reports import (
+    EvaluationReportProfile,
+)
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
@@ -161,6 +164,7 @@ def build_director_brief_payload(
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
     consistency_validation: ConsistencyValidationProfile | None,
+    evaluation_report: EvaluationReportProfile | None,
     clarification: ClarificationRequest | None,
     retrieval_chunk_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -199,6 +203,7 @@ def build_director_brief_payload(
         creative_confidence=creative_confidence,
         creative_score=creative_score,
         consistency_validation=consistency_validation,
+        evaluation_report=evaluation_report,
         creative_plan=creative_plan,
         clarification=clarification,
     )
@@ -252,6 +257,7 @@ def build_director_brief_payload(
             creative_confidence,
             creative_score,
             consistency_validation,
+            evaluation_report,
         ),
         "critique_focus": _critique_focus(
             creative_plan=creative_plan,
@@ -289,6 +295,7 @@ def build_director_brief_payload(
             creative_confidence=creative_confidence,
             creative_score=creative_score,
             consistency_validation=consistency_validation,
+            evaluation_report=evaluation_report,
             artifact_critique_summary=artifact_critique_summary,
             review_result=review_result,
         ),
@@ -327,6 +334,7 @@ def build_director_brief_payload(
             creative_confidence=creative_confidence,
             creative_score=creative_score,
             consistency_validation=consistency_validation,
+            evaluation_report=evaluation_report,
             review_result=review_result,
             retrieval_posture=retrieval_posture,
         ),
@@ -371,6 +379,7 @@ def build_director_brief_payload(
             creative_confidence=creative_confidence,
             creative_score=creative_score,
             consistency_validation=consistency_validation,
+            evaluation_report=evaluation_report,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,
@@ -435,6 +444,7 @@ def _ambiguity_signals(
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
     consistency_validation: ConsistencyValidationProfile | None,
+    evaluation_report: EvaluationReportProfile | None,
     creative_plan: CreativeExecutionPlan | None,
     clarification: ClarificationRequest | None,
 ) -> tuple[str, ...]:
@@ -550,6 +560,13 @@ def _ambiguity_signals(
             signals.append(
                 "Consistency Validation recommends "
                 f"{consistency_validation.hitl_recommendation} human review."
+            )
+    if evaluation_report is not None:
+        signals.extend(evaluation_report.risks[:1])
+        if evaluation_report.hitl_recommendation in {"recommended", "required"}:
+            signals.append(
+                "Evaluation Report recommends "
+                f"{evaluation_report.hitl_recommendation} human review."
             )
     if route_decision is not None and len(route_decision.domains) > 1:
         signals.append("Multiple effective domains require explicit bridging.")
@@ -676,6 +693,16 @@ def _consistency_validation_focus(profile: ConsistencyValidationProfile) -> str:
     )
 
 
+def _evaluation_report_focus(profile: EvaluationReportProfile) -> str:
+    return (
+        "Evaluation report: "
+        f"{profile.hitl_recommendation} HITL; "
+        f"{len(profile.evaluation_trace)} trace steps; "
+        f"{len(profile.evaluation_provenance)} provenance entries; "
+        "metadata only."
+    )
+
+
 def _planning_focus(
     plan: CreativeExecutionPlan | None,
     creative_intent: CreativeIntentDecomposition | None,
@@ -712,10 +739,13 @@ def _planning_focus(
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
     consistency_validation: ConsistencyValidationProfile | None,
+    evaluation_report: EvaluationReportProfile | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
     if creative_intent is not None:
         focus.append(f"Intent substrate: {creative_intent.primary_expression}.")
+    if evaluation_report is not None:
+        focus.append(_evaluation_report_focus(evaluation_report))
     if artifact_plan is not None:
         focus.append(
             "Artifact plan: "
@@ -1166,10 +1196,23 @@ def _critique_focus(
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
     consistency_validation: ConsistencyValidationProfile | None,
+    evaluation_report: EvaluationReportProfile | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
     review_result: WorkflowReviewResult | None,
 ) -> tuple[str, ...]:
     focus: list[str] = []
+    if evaluation_report is not None:
+        focus.append(
+            "Evaluation Reports are metadata-only advisory guidance; compare "
+            "executive, quality, confidence, consistency, improvement, score, "
+            "trace, provenance, explainability, dependency, evidence, HITL, "
+            "risk, and recommendation summaries without changing outputs, "
+            "modifying artifacts, triggering refinement or retries, changing "
+            "routing, selecting runtimes, altering previews, or invoking V4 "
+            "agents."
+        )
+        focus.extend(evaluation_report.risks[:1])
+        focus.extend(evaluation_report.recommendations[:1])
     if creative_intent is not None:
         focus.append(
             "Check output against decomposed symbolic, emotional, formal, "
@@ -1519,6 +1562,7 @@ def _next_actions(
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
     consistency_validation: ConsistencyValidationProfile | None,
+    evaluation_report: EvaluationReportProfile | None,
     review_result: WorkflowReviewResult | None,
     retrieval_posture: str,
 ) -> tuple[str, ...]:
@@ -1615,6 +1659,13 @@ def _next_actions(
             "Surface Consistency Validation human review guidance before treating evaluation metadata as settled.",
         )
     if (
+        evaluation_report is not None
+        and evaluation_report.hitl_recommendation in {"recommended", "required"}
+    ):
+        return (
+            "Surface Evaluation Report human review guidance before treating evaluation metadata as settled.",
+        )
+    if (
         review_result is not None
         and review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
     ):
@@ -1670,6 +1721,7 @@ def _evidence(
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
     consistency_validation: ConsistencyValidationProfile | None,
+    evaluation_report: EvaluationReportProfile | None,
     retrieval_chunk_count: int,
     clarification: ClarificationRequest | None,
     artifact_critique_summary: ArtifactCritiqueSummary | None,
@@ -1889,6 +1941,13 @@ def _evidence(
             f"{consistency_validation.contradiction_level} contradiction; "
             f"{len(consistency_validation.detected_conflicts)} conflicts; "
             f"{consistency_validation.hitl_recommendation} HITL."
+        )
+    if evaluation_report is not None:
+        evidence.append(
+            "Evaluation report: "
+            f"{evaluation_report.hitl_recommendation} HITL; "
+            f"{len(evaluation_report.evaluation_trace)} trace steps; "
+            f"{len(evaluation_report.evaluation_provenance)} provenance entries."
         )
     if retrieval_chunk_count:
         evidence.append(f"Retrieval chunks: {retrieval_chunk_count}.")

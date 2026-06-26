@@ -91,6 +91,9 @@ from creative_coding_assistant.orchestration.cross_modality import (
 from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
 )
+from creative_coding_assistant.orchestration.evaluation_reports import (
+    EvaluationReportProfile,
+)
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
@@ -160,6 +163,7 @@ def build_evidence_chain(
     creative_confidence: CreativeConfidenceProfile | None,
     creative_score: CreativeScoreProfile | None,
     consistency_validation: ConsistencyValidationProfile | None,
+    evaluation_report: EvaluationReportProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -816,6 +820,26 @@ def build_evidence_chain(
                     "conclusions, integrity, and HITL posture only, without "
                     "changing outputs, routing, runtime, previews, retries, "
                     "refinement, or agent behavior."
+                ),
+            )
+        )
+    if evaluation_report is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="evaluation_report",
+                signal=_clip(
+                    (
+                        f"{evaluation_report.hitl_recommendation} HITL; "
+                        f"{len(evaluation_report.evaluation_trace)} trace steps; "
+                        f"{len(evaluation_report.evaluation_provenance)} provenance; "
+                        f"{len(evaluation_report.recommendations)} recommendations"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Evaluation report evidence summarizes prior evaluation "
+                    "metadata, trace, provenance, dependencies, risks, and "
+                    "recommendations as inspectable advisory context only."
                 ),
             )
         )

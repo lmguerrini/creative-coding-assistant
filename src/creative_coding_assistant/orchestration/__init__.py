@@ -42,6 +42,7 @@ _CREATIVE_SCORE_ENGINE = (
 _CONSISTENCY_VALIDATION_ENGINE = (
     "creative_coding_assistant.orchestration.consistency_validation_engine"
 )
+_EVALUATION_REPORTS = "creative_coding_assistant.orchestration.evaluation_reports"
 _ARTIFACT_PLANNER = "creative_coding_assistant.orchestration.artifact_planner"
 _ARTIFACT_DEPENDENCY_GRAPH = (
     "creative_coding_assistant.orchestration.artifact_dependency_graph"
@@ -448,6 +449,8 @@ _EXPORT_MAP = {
     "creative_score_prompt_lines": _CREATIVE_SCORE_ENGINE,
     "derive_consistency_validation_profile": _CONSISTENCY_VALIDATION_ENGINE,
     "consistency_validation_prompt_lines": _CONSISTENCY_VALIDATION_ENGINE,
+    "derive_evaluation_report_profile": _EVALUATION_REPORTS,
+    "evaluation_report_prompt_lines": _EVALUATION_REPORTS,
     "derive_runtime_capability_profile": _RUNTIME_CAPABILITIES,
     "runtime_capability_prompt_lines": _RUNTIME_CAPABILITIES,
     "derive_runtime_compatibility_profile": _RUNTIME_COMPATIBILITY,

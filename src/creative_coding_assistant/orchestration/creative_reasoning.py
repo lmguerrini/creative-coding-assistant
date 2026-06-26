@@ -110,6 +110,9 @@ from creative_coding_assistant.orchestration.cross_modality import (
 from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
 )
+from creative_coding_assistant.orchestration.evaluation_reports import (
+    EvaluationReportProfile,
+)
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
@@ -183,6 +186,7 @@ def derive_creative_reasoning_result(
     creative_confidence: CreativeConfidenceProfile | None = None,
     creative_score: CreativeScoreProfile | None = None,
     consistency_validation: ConsistencyValidationProfile | None = None,
+    evaluation_report: EvaluationReportProfile | None = None,
     future_knowledge_context: Mapping[str, object] | None = None,
 ) -> CreativeReasoningResult:
     """Synthesize prior Creative Intelligence outputs into one decision brief."""
@@ -255,6 +259,7 @@ def derive_creative_reasoning_result(
         creative_confidence=creative_confidence,
         creative_score=creative_score,
         consistency_validation=consistency_validation,
+        evaluation_report=evaluation_report,
     )
     return CreativeReasoningResult(
         recommended_creative_direction=direction,
@@ -329,6 +334,7 @@ def derive_creative_reasoning_result(
             creative_confidence=creative_confidence,
             creative_score=creative_score,
             consistency_validation=consistency_validation,
+            evaluation_report=evaluation_report,
         ),
         strongest_supporting_signals=build_strongest_signals(
             creative_director=creative_director,
@@ -366,6 +372,7 @@ def derive_creative_reasoning_result(
             creative_confidence=creative_confidence,
             creative_score=creative_score,
             consistency_validation=consistency_validation,
+            evaluation_report=evaluation_report,
         ),
         rejected_alternatives=build_rejected_alternatives(
             creative_strategy=creative_strategy,
@@ -409,6 +416,7 @@ def derive_creative_reasoning_result(
             creative_confidence=creative_confidence,
             creative_score=creative_score,
             consistency_validation=consistency_validation,
+            evaluation_report=evaluation_report,
         ),
         prompt_guidance=build_prompt_guidance(unresolved),
         hitl_questions=build_hitl_questions(unresolved),
