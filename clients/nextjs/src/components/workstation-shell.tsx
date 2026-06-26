@@ -126,6 +126,10 @@ import {
   type ProviderTelemetryModel
 } from "@/lib/provider-telemetry";
 import {
+  buildProvenanceEngineModel,
+  type ProvenanceEngineModel
+} from "@/lib/provenance-engine";
+import {
   buildCreativeCostRunRecord,
   type CreativeCostRunRecord
 } from "@/lib/creative-cost-intelligence";
@@ -984,6 +988,15 @@ export function WorkstationShell({
         workstationState
       }),
     [interactiveSnapshot, workflowRuntime, workflowTraceEvents, workstationState]
+  );
+  const provenance = useMemo(
+    () =>
+      buildProvenanceEngineModel({
+        snapshot: interactiveSnapshot,
+        traceEvents: workflowTraceEvents,
+        workstationState
+      }),
+    [interactiveSnapshot, workflowTraceEvents, workstationState]
   );
   const runtimeConsole = useMemo(
     () =>
@@ -2964,6 +2977,7 @@ export function WorkstationShell({
                     providerTelemetry={providerTelemetry}
                     previewController={previewController}
                     runtimeConsole={runtimeConsole}
+                    provenance={provenance}
                     previewRoute={previewRendererRoute}
                     previewRuntimeSource={previewRuntimeSource}
                     retrievalRuntime={retrievalRuntime}
@@ -3378,6 +3392,7 @@ type InspectorPanelProps = {
   onClarificationOptionSelect: (option: string) => Promise<void>;
   providerTelemetry: ProviderTelemetryModel;
   previewController: PreviewControllerModel;
+  provenance: ProvenanceEngineModel;
   runtimeConsole: RuntimeConsoleModel;
   previewRoute: PreviewRendererRoute;
   previewRuntimeSource: PreviewRuntimeSource;
@@ -3409,6 +3424,7 @@ function InspectorPanel({
   onClarificationOptionSelect,
   providerTelemetry,
   previewController,
+  provenance,
   runtimeConsole,
   previewRoute,
   previewRuntimeSource,
@@ -3457,6 +3473,7 @@ function InspectorPanel({
       <WorkflowInspector
         explorer={workflowExplorer}
         runtime={workflowRuntime}
+        provenance={provenance}
         telemetry={providerTelemetry}
         showDebugPanels={showDebugPanels}
         issues={workflowIssues}
@@ -4089,15 +4106,90 @@ function CodeInspector({
   );
 }
 
+function ProvenanceSummaryCard({
+  provenance
+}: {
+  provenance: ProvenanceEngineModel;
+}) {
+  return (
+    <article
+      aria-label="Provenance summary"
+      className="workflowProvenanceCard"
+      role="group"
+    >
+      <header>
+        <div>
+          <span>Provenance</span>
+          <strong>Source trace</strong>
+          <p>{provenance.provenance_summary}</p>
+        </div>
+      </header>
+      <div
+        aria-label="Provenance source counts"
+        className="workflowProvenanceMetrics"
+        role="group"
+      >
+        <span>{`${provenance.evidence_sources.length} evidence`}</span>
+        <span>{`${provenance.dependency_sources.length} dependencies`}</span>
+        <span>{`${provenance.artifact_sources.length} artifacts`}</span>
+        <span>{`${provenance.evaluation_sources.length} evaluation/final`}</span>
+        <span>{`${provenance.unsupported_or_missing_sources.length} missing`}</span>
+      </div>
+      <div className="workflowProvenanceLists">
+        <ProvenanceSourceList
+          label="Evidence sources"
+          sources={provenance.evidence_sources}
+        />
+        <ProvenanceSourceList
+          label="Artifact sources"
+          sources={provenance.artifact_sources}
+        />
+        <ProvenanceSourceList
+          label="Unsupported or missing sources"
+          sources={provenance.unsupported_or_missing_sources}
+        />
+      </div>
+    </article>
+  );
+}
+
+function ProvenanceSourceList({
+  label,
+  sources
+}: {
+  label: string;
+  sources: ProvenanceEngineModel["evidence_sources"];
+}) {
+  const visibleSources = sources.slice(0, 3);
+
+  return (
+    <section aria-label={label} className="workflowProvenanceList">
+      <span>{label}</span>
+      {visibleSources.length > 0 ? (
+        visibleSources.map((source) => (
+          <p key={source.id}>
+            <strong>{source.label}</strong>
+            {` / ${source.summary}`}
+          </p>
+        ))
+      ) : (
+        <p>No sources captured.</p>
+      )}
+    </section>
+  );
+}
+
 function WorkflowInspector({
   explorer,
   issues,
+  provenance,
   runtime,
   telemetry,
   showDebugPanels
 }: {
   explorer: WorkflowExplorerModel;
   issues: WorkstationError[];
+  provenance: ProvenanceEngineModel;
   runtime: WorkflowRuntimeModel;
   telemetry: ProviderTelemetryModel;
   showDebugPanels: boolean;
@@ -4177,6 +4269,7 @@ function WorkflowInspector({
         </article>
       </div>
       <WorkflowExplorerSurface model={explorer} />
+      <ProvenanceSummaryCard provenance={provenance} />
       <TelemetryLifecycleCard telemetry={telemetry} />
       <WorkflowTimelineExplorer timeline={runtime.timeline} />
       <div

@@ -3963,6 +3963,74 @@ a {
   color: var(--teal);
 }
 
+.workflowProvenanceCard {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(121, 211, 139, 0.18);
+  border-radius: 15px;
+  background:
+    linear-gradient(135deg, rgba(121, 211, 139, 0.055), transparent 76%),
+    var(--panel-soft);
+  box-shadow: var(--panel-highlight);
+}
+
+.workflowProvenanceCard header span,
+.workflowProvenanceList > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.workflowProvenanceCard header strong {
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.workflowProvenanceCard p,
+.workflowProvenanceList p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.workflowProvenanceMetrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.workflowProvenanceMetrics span {
+  padding: 4px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.workflowProvenanceLists {
+  display: grid;
+  gap: 8px;
+}
+
+.workflowProvenanceList {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.workflowProvenanceList strong {
+  color: var(--foreground);
+}
+
 .telemetryLifecycleCard {
   display: grid;
   gap: 12px;

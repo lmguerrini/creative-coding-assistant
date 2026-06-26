@@ -4506,8 +4506,18 @@ describe("WorkstationShell", () => {
     const explorer = within(workflowPanel).getByRole("group", {
       name: "Workflow explorer"
     });
+    const provenance = within(workflowPanel).getByRole("group", {
+      name: "Provenance summary"
+    });
     expect(timeline).toBeVisible();
     expect(explorer).toBeVisible();
+    expect(provenance).toBeVisible();
+    expect(
+      within(provenance).getByRole("group", { name: "Provenance source counts" })
+    ).toHaveTextContent("2 evidence");
+    expect(
+      within(provenance).getByRole("region", { name: "Unsupported or missing sources" })
+    ).toHaveTextContent("Dependency sources");
     expect(
       within(explorer).getByRole("group", {
         name: "Retrieval workflow explorer stage"
