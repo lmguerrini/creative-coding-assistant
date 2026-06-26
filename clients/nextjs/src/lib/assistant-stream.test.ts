@@ -1682,6 +1682,19 @@ function creativeScoreFixture() {
       creativeScoreBreakdownFixture("artifact", 83.7, 0.16),
       creativeScoreBreakdownFixture("runtime", 77.5, 0.14)
     ],
+    score_components: [
+      creativeScoreComponentFixture("creative_critic", 84.5, 0.28, 23.7),
+      creativeScoreComponentFixture("self_evaluation", 82.2, 0.26, 21.4),
+      creativeScoreComponentFixture("creative_confidence", 82.0, 0.16, 13.1),
+      creativeScoreComponentFixture("reflection_loop", 78.6, 0.1, 7.9),
+      creativeScoreComponentFixture(
+        "creative_improvement_planner",
+        79.1,
+        0.1,
+        7.9
+      ),
+      creativeScoreComponentFixture("planning_metadata", 80.3, 0.1, 8.0)
+    ],
     creativity_score: 86.2,
     technical_score: 79.4,
     coherence_score: 84.1,
@@ -1689,14 +1702,31 @@ function creativeScoreFixture() {
     artifact_score: 83.7,
     runtime_score: 77.5,
     confidence_weight: 0.97,
+    reflection_weight: 0.1,
+    consistency_weight: 0.18,
+    artifact_weight: 0.16,
+    runtime_weight: 0.14,
     uncertainty_penalty: 2.4,
     risk_penalty: 1.5,
+    positive_contributions: [
+      "creative_critic contributes 23.7 weighted points from an 84.5/100 source score."
+    ],
+    negative_contributions: [
+      "Uncertainty penalty subtracts 2.4 points.",
+      "Risk penalty subtracts 1.5 points."
+    ],
     strengths: ["Creativity score is 86.2/100."],
     weaknesses: ["Runtime score is 77.5/100."],
     score_rationale: [
       "creativity is the strongest dimension at 86.2/100.",
       "runtime is the lowest dimension at 77.5/100."
     ],
+    score_calibration_notes: [
+      "Weighted dimension base score: 82.4/100.",
+      "Confidence weight multiplies base score by 0.97."
+    ],
+    score_explainability:
+      "Final score = bounded(82.4 weighted dimension base * 0.97 confidence weight - 2.4 uncertainty penalty - 1.5 risk penalty) = 82.4/100.",
     score_evidence: [
       "Creative Confidence: high; 0.82 score.",
       "Authority boundary verified: score is metadata-only."
@@ -1707,6 +1737,22 @@ function creativeScoreFixture() {
     ],
     authority_boundary:
       "The Creative Score Engine scores existing evaluation metadata only."
+  };
+}
+
+function creativeScoreComponentFixture(
+  source: string,
+  score: number,
+  weight: number,
+  weightedContribution: number
+) {
+  return {
+    source,
+    score,
+    weight,
+    weighted_contribution: weightedContribution,
+    rationale: `Score ${source} from existing evaluation metadata.`,
+    evidence: [`${source} evidence.`]
   };
 }
 
@@ -5551,7 +5597,8 @@ describe("assistant stream client", () => {
   });
 
   it("parses creative score summaries", () => {
-    expect(readCreativeScoreSummary(creativeScoreFixture())).toMatchObject({
+    const summary = readCreativeScoreSummary(creativeScoreFixture());
+    expect(summary).toMatchObject({
       role: "creative_score_engine",
       serializationVersion: "v1",
       overallCreativeScore: 82.4,
@@ -5589,10 +5636,43 @@ describe("assistant stream client", () => {
         }
       ],
       confidenceWeight: 0.97,
+      reflectionWeight: 0.1,
+      consistencyWeight: 0.18,
+      artifactWeight: 0.16,
+      runtimeWeight: 0.14,
       uncertaintyPenalty: 2.4,
       riskPenalty: 1.5,
+      positiveContributions: [
+        "creative_critic contributes 23.7 weighted points from an 84.5/100 source score."
+      ],
+      negativeContributions: [
+        "Uncertainty penalty subtracts 2.4 points.",
+        "Risk penalty subtracts 1.5 points."
+      ],
+      scoreCalibrationNotes: [
+        "Weighted dimension base score: 82.4/100.",
+        "Confidence weight multiplies base score by 0.97."
+      ],
+      scoreExplainability:
+        "Final score = bounded(82.4 weighted dimension base * 0.97 confidence weight - 2.4 uncertainty penalty - 1.5 risk penalty) = 82.4/100.",
       hitlRecommendation: "optional"
     });
+    expect(summary?.scoreComponents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          source: "creative_critic",
+          score: 84.5,
+          weight: 0.28,
+          weightedContribution: 23.7
+        }),
+        expect.objectContaining({
+          source: "self_evaluation",
+          score: 82.2,
+          weight: 0.26,
+          weightedContribution: 21.4
+        })
+      ])
+    );
   });
 
   it("hydrates creative score workflow metadata", () => {
@@ -5633,8 +5713,12 @@ describe("assistant stream client", () => {
         overallCreativeScore: 82.4,
         scoreBand: "strong",
         confidenceWeight: 0.97,
+        reflectionWeight: 0.1,
+        consistencyWeight: 0.18,
         uncertaintyPenalty: 2.4,
         riskPenalty: 1.5,
+        scoreExplainability:
+          "Final score = bounded(82.4 weighted dimension base * 0.97 confidence weight - 2.4 uncertainty penalty - 1.5 risk penalty) = 82.4/100.",
         hitlRecommendation: "optional"
       },
       creative_score_available: true
@@ -5645,6 +5729,14 @@ describe("assistant stream client", () => {
           dimension: "runtime",
           score: 77.5,
           weight: 0.14
+        })
+      ])
+    );
+    expect(workflow?.creative_score?.scoreComponents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          source: "creative_critic",
+          weightedContribution: 23.7
         })
       ])
     );

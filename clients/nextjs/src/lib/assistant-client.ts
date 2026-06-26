@@ -807,6 +807,15 @@ export type CreativeScoreBreakdownSummary = {
   evidence: string[];
 };
 
+export type CreativeScoreComponentSummary = {
+  source: CreativeScoreSignalSource;
+  score: number;
+  weight: number;
+  weightedContribution: number;
+  rationale: string;
+  evidence: string[];
+};
+
 export type CreativeScoreSummary = {
   role: "creative_score_engine";
   serializationVersion: "v1";
@@ -814,6 +823,7 @@ export type CreativeScoreSummary = {
   scoreBand: CreativeScoreBand;
   scoreSummary: string;
   scoreBreakdown: CreativeScoreBreakdownSummary[];
+  scoreComponents: CreativeScoreComponentSummary[];
   creativityScore: number;
   technicalScore: number;
   coherenceScore: number;
@@ -821,11 +831,19 @@ export type CreativeScoreSummary = {
   artifactScore: number;
   runtimeScore: number;
   confidenceWeight: number;
+  reflectionWeight: number;
+  consistencyWeight: number;
+  artifactWeight: number;
+  runtimeWeight: number;
   uncertaintyPenalty: number;
   riskPenalty: number;
+  positiveContributions: string[];
+  negativeContributions: string[];
   strengths: string[];
   weaknesses: string[];
   scoreRationale: string[];
+  scoreCalibrationNotes: string[];
+  scoreExplainability: string;
   scoreEvidence: string[];
   hitlRecommendation: ExpectedHumanReviewNeed;
   promptGuidance: string[];

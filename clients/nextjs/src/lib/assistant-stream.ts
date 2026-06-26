@@ -105,7 +105,9 @@ import {
   type CreativeRejectedAlternativeSummary,
   type CreativeScoreBand,
   type CreativeScoreBreakdownSummary,
+  type CreativeScoreComponentSummary,
   type CreativeScoreDimension,
+  type CreativeScoreSignalSource,
   type CreativeScoreSummary,
   type SelfEvaluationAmbiguity,
   type SelfEvaluationCompleteness,
@@ -3532,6 +3534,15 @@ const creativeScoreBands = [
   "critical"
 ] as const satisfies readonly CreativeScoreBand[];
 
+const creativeScoreSignalSources = [
+  "creative_critic",
+  "self_evaluation",
+  "creative_improvement_planner",
+  "reflection_loop",
+  "creative_confidence",
+  "planning_metadata"
+] as const satisfies readonly CreativeScoreSignalSource[];
+
 function readCreativeScoreBreakdownSummaryList(
   value: unknown
 ): CreativeScoreBreakdownSummary[] {
@@ -3570,6 +3581,54 @@ function readCreativeScoreBreakdownSummaryList(
   });
 }
 
+function readCreativeScoreComponentSummaryList(
+  value: unknown
+): CreativeScoreComponentSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const source = readStringUnion(
+      item,
+      "source",
+      "source",
+      creativeScoreSignalSources
+    );
+    const score = readFiniteNumberField(item, "score");
+    const weight = readFiniteNumberField(item, "weight");
+    const weightedContribution =
+      readFiniteNumberField(item, "weighted_contribution") ??
+      readFiniteNumberField(item, "weightedContribution");
+    const rationale = readStringField(item, "rationale");
+
+    if (
+      !source ||
+      score === null ||
+      weight === null ||
+      weightedContribution === null ||
+      !rationale
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        source,
+        score,
+        weight,
+        weightedContribution,
+        rationale,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
 export function readCreativeScoreSummary(
   value: unknown
 ): CreativeScoreSummary | null {
@@ -3596,6 +3655,9 @@ export function readCreativeScoreSummary(
   const scoreBreakdown = readCreativeScoreBreakdownSummaryList(
     value.score_breakdown ?? value.scoreBreakdown
   );
+  const scoreComponents = readCreativeScoreComponentSummaryList(
+    value.score_components ?? value.scoreComponents
+  );
   const creativityScore =
     readFiniteNumberField(value, "creativity_score") ??
     readFiniteNumberField(value, "creativityScore");
@@ -3617,12 +3679,27 @@ export function readCreativeScoreSummary(
   const confidenceWeight =
     readFiniteNumberField(value, "confidence_weight") ??
     readFiniteNumberField(value, "confidenceWeight");
+  const reflectionWeight =
+    readFiniteNumberField(value, "reflection_weight") ??
+    readFiniteNumberField(value, "reflectionWeight");
+  const consistencyWeight =
+    readFiniteNumberField(value, "consistency_weight") ??
+    readFiniteNumberField(value, "consistencyWeight");
+  const artifactWeight =
+    readFiniteNumberField(value, "artifact_weight") ??
+    readFiniteNumberField(value, "artifactWeight");
+  const runtimeWeight =
+    readFiniteNumberField(value, "runtime_weight") ??
+    readFiniteNumberField(value, "runtimeWeight");
   const uncertaintyPenalty =
     readFiniteNumberField(value, "uncertainty_penalty") ??
     readFiniteNumberField(value, "uncertaintyPenalty");
   const riskPenalty =
     readFiniteNumberField(value, "risk_penalty") ??
     readFiniteNumberField(value, "riskPenalty");
+  const scoreExplainability =
+    readStringField(value, "score_explainability") ??
+    readStringField(value, "scoreExplainability");
   const hitlRecommendation = readStringUnion(
     value,
     "hitl_recommendation",
@@ -3645,6 +3722,7 @@ export function readCreativeScoreSummary(
     !scoreBand ||
     !scoreSummary ||
     scoreBreakdown.length !== 6 ||
+    scoreComponents.length === 0 ||
     creativityScore === null ||
     technicalScore === null ||
     coherenceScore === null ||
@@ -3652,8 +3730,13 @@ export function readCreativeScoreSummary(
     artifactScore === null ||
     runtimeScore === null ||
     confidenceWeight === null ||
+    reflectionWeight === null ||
+    consistencyWeight === null ||
+    artifactWeight === null ||
+    runtimeWeight === null ||
     uncertaintyPenalty === null ||
     riskPenalty === null ||
+    !scoreExplainability ||
     !hitlRecommendation ||
     promptGuidance.length === 0 ||
     !authorityBoundary
@@ -3668,6 +3751,7 @@ export function readCreativeScoreSummary(
     scoreBand,
     scoreSummary,
     scoreBreakdown,
+    scoreComponents,
     creativityScore,
     technicalScore,
     coherenceScore,
@@ -3675,8 +3759,22 @@ export function readCreativeScoreSummary(
     artifactScore,
     runtimeScore,
     confidenceWeight,
+    reflectionWeight,
+    consistencyWeight,
+    artifactWeight,
+    runtimeWeight,
     uncertaintyPenalty,
     riskPenalty,
+    positiveContributions: readStringListField(
+      value,
+      "positive_contributions",
+      "positiveContributions"
+    ),
+    negativeContributions: readStringListField(
+      value,
+      "negative_contributions",
+      "negativeContributions"
+    ),
     strengths: readStringListField(value, "strengths", "strengths"),
     weaknesses: readStringListField(value, "weaknesses", "weaknesses"),
     scoreRationale: readStringListField(
@@ -3684,6 +3782,12 @@ export function readCreativeScoreSummary(
       "score_rationale",
       "scoreRationale"
     ),
+    scoreCalibrationNotes: readStringListField(
+      value,
+      "score_calibration_notes",
+      "scoreCalibrationNotes"
+    ),
+    scoreExplainability,
     scoreEvidence: readStringListField(
       value,
       "score_evidence",
