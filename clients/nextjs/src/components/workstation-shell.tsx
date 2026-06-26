@@ -89,6 +89,10 @@ import {
   type WorkflowRuntimeVisualState
 } from "@/lib/workflow-runtime";
 import {
+  buildWorkflowExplorerModel,
+  type WorkflowExplorerModel
+} from "@/lib/workflow-explorer";
+import {
   buildRetrievalRuntimeModel,
   type RetrievalRuntimeModel
 } from "@/lib/retrieval-runtime";
@@ -198,6 +202,7 @@ import { RetrievalInspector } from "./retrieval-inspector";
 import { RuntimeConsoleInspector } from "./runtime-console-inspector";
 import { SacredConsistencySummary } from "./sacred-consistency-summary";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
+import { WorkflowExplorerSurface } from "./workflow-explorer-surface";
 import { WorkflowTimelineExplorer } from "./workflow-timeline-explorer";
 
 type WorkstationShellProps = {
@@ -969,6 +974,16 @@ export function WorkstationShell({
         workstationState
       }),
     [interactiveSnapshot, sessionIntelligenceMetadata, workstationState]
+  );
+  const workflowExplorer = useMemo(
+    () =>
+      buildWorkflowExplorerModel({
+        runtime: workflowRuntime,
+        snapshot: interactiveSnapshot,
+        traceEvents: workflowTraceEvents,
+        workstationState
+      }),
+    [interactiveSnapshot, workflowRuntime, workflowTraceEvents, workstationState]
   );
   const runtimeConsole = useMemo(
     () =>
@@ -2957,6 +2972,7 @@ export function WorkstationShell({
                     snapshot={interactiveSnapshot}
                     telemetryDashboard={telemetryDashboard}
                     transferFeedback={transferFeedback}
+                    workflowExplorer={workflowExplorer}
                     workflowRuntime={workflowRuntime}
                     workflowIssues={workflowIssues}
                   />
@@ -3371,6 +3387,7 @@ type InspectorPanelProps = {
   snapshot: AssistantWorkspaceSnapshot;
   telemetryDashboard: TelemetryDashboardModel;
   transferFeedback: ArtifactActionFeedback | null;
+  workflowExplorer: WorkflowExplorerModel;
   workflowRuntime: WorkflowRuntimeModel;
   workflowIssues: WorkstationError[];
 };
@@ -3401,6 +3418,7 @@ function InspectorPanel({
   snapshot,
   telemetryDashboard,
   transferFeedback,
+  workflowExplorer,
   workflowRuntime,
   workflowIssues
 }: InspectorPanelProps) {
@@ -3437,6 +3455,7 @@ function InspectorPanel({
   if (activeTab === "Workflow") {
     return (
       <WorkflowInspector
+        explorer={workflowExplorer}
         runtime={workflowRuntime}
         telemetry={providerTelemetry}
         showDebugPanels={showDebugPanels}
@@ -4071,11 +4090,13 @@ function CodeInspector({
 }
 
 function WorkflowInspector({
+  explorer,
   issues,
   runtime,
   telemetry,
   showDebugPanels
 }: {
+  explorer: WorkflowExplorerModel;
   issues: WorkstationError[];
   runtime: WorkflowRuntimeModel;
   telemetry: ProviderTelemetryModel;
@@ -4155,6 +4176,7 @@ function WorkflowInspector({
           <p>{formatTelemetryCostSource(telemetry)}</p>
         </article>
       </div>
+      <WorkflowExplorerSurface model={explorer} />
       <TelemetryLifecycleCard telemetry={telemetry} />
       <WorkflowTimelineExplorer timeline={runtime.timeline} />
       <div

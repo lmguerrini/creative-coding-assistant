@@ -4503,7 +4503,24 @@ describe("WorkstationShell", () => {
     const timeline = within(workflowPanel).getByRole("group", {
       name: "Workflow timeline explorer"
     });
+    const explorer = within(workflowPanel).getByRole("group", {
+      name: "Workflow explorer"
+    });
     expect(timeline).toBeVisible();
+    expect(explorer).toBeVisible();
+    expect(
+      within(explorer).getByRole("group", {
+        name: "Retrieval workflow explorer stage"
+      })
+    ).toHaveAttribute("data-state", "partial");
+    expect(
+      within(explorer).getByRole("group", {
+        name: "Artifact intelligence workflow explorer stage"
+      })
+    ).toHaveTextContent("workspace artifacts");
+    expect(
+      within(explorer).getByRole("group", { name: "Final response workflow explorer stage" })
+    ).toHaveTextContent("Drafting a p5.js sketch");
     expect(within(timeline).getByText("No workflow timeline yet")).toBeVisible();
     expect(screen.getByLabelText("Workflow execution summary")).toBeVisible();
     expect(

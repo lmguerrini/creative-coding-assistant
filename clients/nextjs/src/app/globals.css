@@ -3858,6 +3858,111 @@ a {
   line-height: 1.45;
 }
 
+.workflowExplorerSurface {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
+  border-radius: 15px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.055), transparent 76%),
+    var(--panel-soft);
+  box-shadow: var(--panel-highlight);
+}
+
+.workflowExplorerHeader,
+.workflowExplorerStage header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.workflowExplorerHeader span,
+.workflowExplorerStage span,
+.workflowExplorerMetadataGroup span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.workflowExplorerHeader strong,
+.workflowExplorerStage strong,
+.workflowExplorerMetadataGroup strong {
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.workflowExplorerHeader p,
+.workflowExplorerStage p,
+.workflowExplorerMetadataGroup p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.workflowExplorerStats,
+.workflowExplorerNodeList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.workflowExplorerStats span,
+.workflowExplorerNodeList code {
+  padding: 4px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.workflowExplorerStages,
+.workflowExplorerMetadataGroups {
+  display: grid;
+  gap: 8px;
+}
+
+.workflowExplorerStage,
+.workflowExplorerMetadataGroup {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.workflowExplorerStage[data-state="available"],
+.workflowExplorerMetadataGroup[data-state="available"] {
+  border-color: rgba(121, 211, 139, 0.2);
+}
+
+.workflowExplorerStage[data-state="running"],
+.workflowExplorerMetadataGroup[data-state="running"] {
+  border-color: rgba(var(--accent-rgb), 0.24);
+}
+
+.workflowExplorerStage[data-state="partial"],
+.workflowExplorerStage[data-state="missing"],
+.workflowExplorerMetadataGroup[data-state="missing"] {
+  border-color: rgba(243, 184, 82, 0.18);
+}
+
+.workflowExplorerStage[data-state="error"],
+.workflowExplorerMetadataGroup[data-state="error"] {
+  border-color: rgba(255, 122, 102, 0.24);
+}
+
+.workflowExplorerLatest {
+  color: var(--teal);
+}
+
 .telemetryLifecycleCard {
   display: grid;
   gap: 12px;
