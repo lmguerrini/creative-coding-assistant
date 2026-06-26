@@ -39,23 +39,19 @@ V33_ARTIFACT_INTELLIGENCE_CAPABILITIES = (
     "Artifact Export Intelligence",
     "Artifact Engine Contracts",
 )
-CAPABILITY_CLOSEOUT_STEPS = (
-    "Architecture Update",
-    "Documentation Update",
-    "Junie Engineering Review",
-    "ChatGPT review of Junie report",
-    "Codex Review Fixes if approved",
-    "Engineering Validation",
+PUBLIC_README_INTERNAL_MARKERS = (
+    "Current Branch Status",
+    "feature/",
+    "current branch",
+    "Macro-Capability Lifecycle",
+    "Role Split",
+    "Junie",
+    "Codex",
+    "ChatGPT",
     "Create Version Tag",
     "Merge & Push",
-)
-ROADMAP_MARKERS = (
-    "V3.4: Creative Evaluation",
-    "V3.5: Creative Workstation",
-    "V3.6: Stabilization & Refactor Pass",
-    "V4: Agentic Studio",
-    "V5: Execution Optimization & Production Intelligence",
-    "V6: HoloGenesis Core OS",
+    "Engineering Validation",
+    "close `v3.3.0`",
 )
 
 
@@ -66,39 +62,24 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
 
         self.assertIn(f"`{expected_order}`", readme)
 
-    def test_readme_covers_v33_docs_closeout_and_roadmap(self) -> None:
+    def test_readme_remains_product_oriented_public_documentation(self) -> None:
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         normalized_readme = re.sub(r"\s+", " ", readme)
 
-        self.assertIn("V3.3 AI-native creative translation", readme)
-        self.assertIn("feature/artifact-intelligence", readme)
-        self.assertIn("V3.2 Generative Design Core", readme)
-        self.assertIn("V3.3 Artifact Intelligence", readme)
+        self.assertIn("AI-native creative translation", readme)
+        self.assertIn("creative coding platform", readme)
+        self.assertIn("Next.js workstation", readme)
+        self.assertIn("Capability Scope", readme)
         self.assertIn("architecture/artifact_intelligence_graph.md", readme)
         self.assertIn("architecture/engine_matrix.md", readme)
-
-        for capability in V32_GENERATIVE_DESIGN_CAPABILITIES:
-            self.assertIn(capability, readme)
-
-        for capability in V33_ARTIFACT_INTELLIGENCE_CAPABILITIES:
-            self.assertIn(capability, readme)
-
-        for step in CAPABILITY_CLOSEOUT_STEPS:
-            self.assertIn(step, readme)
-
-        for roadmap_marker in ROADMAP_MARKERS:
-            self.assertIn(roadmap_marker, readme)
-
-        self.assertIn(
-            "ChatGPT is architect, planner, and reviewer of Junie reports.",
-            readme,
-        )
-        self.assertIn("Codex is the implementation tool.", readme)
-        self.assertIn("Junie is the independent engineering reviewer.", readme)
-        self.assertIn("Git and GitHub are the delivery source of truth.", readme)
+        self.assertIn("Creative Evaluation", readme)
         self.assertIn("metadata-only", readme)
         self.assertIn("modify artifacts", normalized_readme)
         self.assertIn("select runtimes", normalized_readme)
+        self.assertIn("product roadmap context", normalized_readme)
+
+        for internal_marker in PUBLIC_README_INTERNAL_MARKERS:
+            self.assertNotIn(internal_marker, readme)
 
     def test_architecture_doc_node_order_matches_backend_node_order(self) -> None:
         architecture_doc = (
