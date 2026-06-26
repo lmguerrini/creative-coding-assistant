@@ -172,6 +172,12 @@ import {
   type HitlApprovalRequest
 } from "@/lib/hitl-runtime";
 import {
+  buildSessionIntelligenceModel,
+  readSessionIntelligenceMetadata,
+  type SessionIntelligenceMetadataInput,
+  type SessionIntelligenceModel
+} from "@/lib/session-intelligence";
+import {
   createWorkstationError,
   type WorkstationError
 } from "@/lib/workstation-errors";
@@ -397,6 +403,8 @@ export function WorkstationShell({
   const [clarification, setClarification] = useState<ClarificationSummary | null>(
     initialSnapshot.clarification ?? null
   );
+  const [sessionIntelligenceMetadata, setSessionIntelligenceMetadata] =
+    useState<SessionIntelligenceMetadataInput | null>(null);
   const [workflowTraceEvents, setWorkflowTraceEvents] = useState<
     WorkflowRuntimeTraceEvent[]
   >([]);
@@ -641,6 +649,7 @@ export function WorkstationShell({
           setImageAttachments(restoredImageAttachments);
           setImageUploadError(restoredSnapshot.multimodal.error ?? null);
           setClarification(restoredSnapshot.clarification ?? null);
+          setSessionIntelligenceMetadata(null);
           imageAttachmentCounterRef.current = restoredImageAttachments.length;
           streamingAssistantIdRef.current = null;
           setActiveTab(restoredSession.record.activeInspectorTab);
@@ -951,6 +960,15 @@ export function WorkstationShell({
       workflowRuntime.summary.currentNode,
       workflowTraceEvents
     ]
+  );
+  const sessionIntelligence = useMemo(
+    () =>
+      buildSessionIntelligenceModel({
+        snapshot: interactiveSnapshot,
+        streamedMetadata: sessionIntelligenceMetadata,
+        workstationState
+      }),
+    [interactiveSnapshot, sessionIntelligenceMetadata, workstationState]
   );
   const runtimeConsole = useMemo(
     () =>
@@ -1492,6 +1510,7 @@ export function WorkstationShell({
     setIsStreaming(false);
     setStreamError(null);
     setStreamEvents(initialSnapshot.debug.events);
+    setSessionIntelligenceMetadata(null);
     setWorkflowTraceEvents([]);
     setPreviewRuntimeLive(null);
     setOpenUtilityPanel(null);
@@ -1983,6 +2002,7 @@ export function WorkstationShell({
     setStreamError(null);
     setStreamEvents([]);
     setClarification(null);
+    setSessionIntelligenceMetadata(null);
     setWorkflowTraceEvents([]);
     hasPreviewRuntimeEventRef.current = false;
     previewRuntimeTelemetryKeysRef.current.clear();
@@ -2158,6 +2178,13 @@ export function WorkstationShell({
           "Live response event received."
       }
     ]);
+
+    const sessionIntelligenceUpdate = readSessionIntelligenceMetadata(
+      streamEvent.payload
+    );
+    if (sessionIntelligenceUpdate) {
+      setSessionIntelligenceMetadata(sessionIntelligenceUpdate);
+    }
 
     const clarificationUpdate = readClarificationSummary(
       streamEvent.payload.clarification
@@ -2925,6 +2952,7 @@ export function WorkstationShell({
                     previewRoute={previewRendererRoute}
                     previewRuntimeSource={previewRuntimeSource}
                     retrievalRuntime={retrievalRuntime}
+                    sessionIntelligence={sessionIntelligence}
                     showDebugPanels={workspacePreferences.showDebugPanels}
                     snapshot={interactiveSnapshot}
                     telemetryDashboard={telemetryDashboard}
@@ -3338,6 +3366,7 @@ type InspectorPanelProps = {
   previewRoute: PreviewRendererRoute;
   previewRuntimeSource: PreviewRuntimeSource;
   retrievalRuntime: RetrievalRuntimeModel;
+  sessionIntelligence: SessionIntelligenceModel;
   showDebugPanels: boolean;
   snapshot: AssistantWorkspaceSnapshot;
   telemetryDashboard: TelemetryDashboardModel;
@@ -3367,6 +3396,7 @@ function InspectorPanel({
   previewRoute,
   previewRuntimeSource,
   retrievalRuntime,
+  sessionIntelligence,
   showDebugPanels,
   snapshot,
   telemetryDashboard,
@@ -3453,6 +3483,7 @@ function InspectorPanel({
       activeArtifact={activeArtifact}
       retrieval={retrievalRuntime}
       runtime={workflowRuntime}
+      sessionIntelligence={sessionIntelligence}
       telemetry={providerTelemetry}
       isStreaming={isStreaming}
       onClarificationOptionSelect={onClarificationOptionSelect}
@@ -3468,6 +3499,7 @@ function OverviewInspector({
   onClarificationOptionSelect,
   retrieval,
   runtime,
+  sessionIntelligence,
   telemetry,
   showDebugPanels,
   snapshot
@@ -3477,6 +3509,7 @@ function OverviewInspector({
   onClarificationOptionSelect: (option: string) => Promise<void>;
   retrieval: RetrievalRuntimeModel;
   runtime: WorkflowRuntimeModel;
+  sessionIntelligence: SessionIntelligenceModel;
   telemetry: ProviderTelemetryModel;
   showDebugPanels: boolean;
   snapshot: AssistantWorkspaceSnapshot;
@@ -3492,6 +3525,7 @@ function OverviewInspector({
       role="tabpanel"
     >
       <div className="overviewGrid" aria-label="Compact session summaries">
+        <SessionIntelligenceOverviewTile intelligence={sessionIntelligence} />
         <div
           aria-label="Workflow summary"
           className="overviewTile overviewWorkflowTile"
@@ -3623,6 +3657,75 @@ function OverviewInspector({
         </div>
       </div>
     </section>
+  );
+}
+
+function SessionIntelligenceOverviewTile({
+  intelligence
+}: {
+  intelligence: SessionIntelligenceModel;
+}) {
+  const metadata = intelligence.metadata;
+  const dataState =
+    metadata.completion_status === "needs_attention"
+      ? "error"
+      : metadata.completion_status;
+
+  return (
+    <div
+      aria-label="Session intelligence summary"
+      className="overviewTile overviewSessionIntelligenceTile"
+      data-state={dataState}
+      role="group"
+    >
+      <span>Session</span>
+      <strong>{intelligence.statusLabel}</strong>
+      <p>{metadata.session_summary}</p>
+      <small>{metadata.active_request_summary}</small>
+      <div
+        aria-label="Available metadata groups"
+        className="sessionIntelligencePills"
+      >
+        {metadata.available_metadata_groups.length > 0 ? (
+          metadata.available_metadata_groups.map((group) => (
+            <span key={group}>{group}</span>
+          ))
+        ) : (
+          <span>No metadata groups</span>
+        )}
+      </div>
+      <div className="sessionIntelligenceMeta">
+        <span>{`${intelligence.availableMetadataCount} metadata group${
+          intelligence.availableMetadataCount === 1 ? "" : "s"
+        }`}</span>
+        <span>{`${intelligence.warningCount} warning${
+          intelligence.warningCount === 1 ? "" : "s"
+        }`}</span>
+        <span>{intelligence.source === "stream" ? "Stream" : "Derived"}</span>
+      </div>
+      <div
+        aria-label="Session warnings"
+        className="sessionIntelligenceList"
+      >
+        {metadata.session_warnings.length > 0 ? (
+          metadata.session_warnings.map((warning) => <p key={warning}>{warning}</p>)
+        ) : (
+          <p>No session warnings.</p>
+        )}
+      </div>
+      <div
+        aria-label="Recommended next user actions"
+        className="sessionIntelligenceList"
+      >
+        {metadata.recommended_next_user_actions.length > 0 ? (
+          metadata.recommended_next_user_actions.map((action) => (
+            <p key={action}>{action}</p>
+          ))
+        ) : (
+          <p>No recommended next action.</p>
+        )}
+      </div>
+    </div>
   );
 }
 

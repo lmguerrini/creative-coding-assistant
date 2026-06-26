@@ -1024,6 +1024,22 @@ describe("WorkstationShell", () => {
       "data-state",
       "empty"
     );
+    const sessionIntelligence = screen.getByRole("group", {
+      name: "Session intelligence summary"
+    });
+    expect(sessionIntelligence).toHaveAttribute("data-state", "idle");
+    expect(sessionIntelligence).toHaveTextContent(
+      "Creative workspace is ready for the first creative request."
+    );
+    expect(
+      within(sessionIntelligence).getByLabelText("Available metadata groups")
+    ).toHaveTextContent("Selected workflow");
+    expect(
+      within(sessionIntelligence).getByLabelText("Session warnings")
+    ).toHaveTextContent("No session warnings.");
+    expect(
+      within(sessionIntelligence).getByLabelText("Recommended next user actions")
+    ).toHaveTextContent("Send a creative prompt to start the session.");
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
     ).toHaveAttribute("aria-valuetext", "0 of 17 workflow nodes reached");
@@ -1568,7 +1584,15 @@ describe("WorkstationShell", () => {
           sequence: 6,
           payload: {
             answer: "Final backend answer.",
-            creative_plan: testCreativePlan
+            creative_plan: testCreativePlan,
+            session_intelligence: {
+              active_request_summary: "Backend active request summary.",
+              available_metadata_groups: ["Session", "Workflow", "Preview"],
+              completion_status: "completed",
+              recommended_next_user_actions: ["Review the hydrated preview."],
+              session_summary: "Backend session summary.",
+              session_warnings: ["Backend warning."]
+            }
           }
         }
       ])
@@ -1618,6 +1642,18 @@ describe("WorkstationShell", () => {
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
     ).toHaveAttribute("aria-valuenow", "17");
+    const sessionIntelligence = screen.getByRole("group", {
+      name: "Session intelligence summary"
+    });
+    expect(sessionIntelligence).toHaveAttribute("data-state", "completed");
+    expect(sessionIntelligence).toHaveTextContent("Backend session summary.");
+    expect(sessionIntelligence).toHaveTextContent("Backend active request summary.");
+    expect(
+      within(sessionIntelligence).getByLabelText("Session warnings")
+    ).toHaveTextContent("Backend warning.");
+    expect(
+      within(sessionIntelligence).getByLabelText("Recommended next user actions")
+    ).toHaveTextContent("Review the hydrated preview.");
     const planningSummary = screen.getByRole("group", {
       name: "Planning summary"
     });

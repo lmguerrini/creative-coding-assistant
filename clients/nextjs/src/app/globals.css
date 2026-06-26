@@ -2933,6 +2933,10 @@ a {
   gap: 12px;
 }
 
+.overviewSessionIntelligenceTile {
+  gap: 9px;
+}
+
 .overviewWorkflowTile header {
   display: flex;
   align-items: flex-start;
@@ -2944,6 +2948,34 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.sessionIntelligenceMeta,
+.sessionIntelligencePills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sessionIntelligenceMeta span,
+.sessionIntelligencePills span {
+  padding: 4px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 10px;
+  line-height: 1.2;
+  text-transform: none;
+}
+
+.sessionIntelligenceList {
+  display: grid;
+  gap: 4px;
+}
+
+.sessionIntelligenceList p {
+  margin: 0;
 }
 
 .workflowSummaryMeta span,
@@ -2983,6 +3015,7 @@ a {
 }
 
 .overviewTile[data-state="complete"],
+.overviewTile[data-state="completed"],
 .overviewTile[data-state="available"] {
   border-color: rgba(121, 211, 139, 0.22);
   background:
