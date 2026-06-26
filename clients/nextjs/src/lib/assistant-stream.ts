@@ -76,6 +76,10 @@ import {
   type ProceduralStructureChoiceSummary,
   type ProceduralStructurePlanSummary,
   type CreativeAssistantDirectorSummary,
+  type CreativeConfidenceComponentSource,
+  type CreativeConfidenceComponentSummary,
+  type CreativeConfidenceLevel,
+  type CreativeConfidenceSummary,
   type CreativeExecutionPlanSummary,
   type CreativeAbstractionLevel,
   type CreativeIntentDecompositionSummary,
@@ -131,6 +135,10 @@ import {
   type EmotionalPhaseMappingSummary,
   type EmotionalStructureMappingSummary,
   type EmotionalTone,
+  type EscalationRecommendation,
+  type ExpectedExecutionReadiness,
+  type ExpectedHumanReviewNeed,
+  type ExpectedOutputReliability,
   type GenerativeArchitecture,
   type GenerativeEvolutionPhase,
   type GenerativeEvolutionRuleSummary,
@@ -158,6 +166,7 @@ import {
   type ReflectionLoopHitlRecommendation,
   type ReflectionLoopPriority,
   type ReflectionLoopSummary,
+  type ConfidenceTrend,
   type RuntimeCompatibilityAssessmentSummary,
   type RuntimeCompatibilityConfidenceSummary,
   type RuntimeCompatibilityLevel,
@@ -292,6 +301,8 @@ export type AssistantStreamWorkflowMetadata = {
   creative_improvement_planner_available?: boolean;
   reflection_loop?: ReflectionLoopSummary | null;
   reflection_loop_available?: boolean;
+  creative_confidence?: CreativeConfidenceSummary | null;
+  creative_confidence_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -836,6 +847,12 @@ export function readWorkflowMetadata(
   );
   const reflectionLoopAvailable =
     rawWorkflow.reflection_loop_available === true || reflectionLoop !== null;
+  const creativeConfidence = readCreativeConfidenceSummary(
+    rawWorkflow.creative_confidence ?? rawWorkflow.creativeConfidence
+  );
+  const creativeConfidenceAvailable =
+    rawWorkflow.creative_confidence_available === true ||
+    creativeConfidence !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -1073,6 +1090,12 @@ export function readWorkflowMetadata(
       ? {
           reflection_loop: reflectionLoop,
           reflection_loop_available: true
+        }
+      : {}),
+    ...(creativeConfidenceAvailable
+      ? {
+          creative_confidence: creativeConfidence,
+          creative_confidence_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -3242,6 +3265,235 @@ export function readReflectionLoopSummary(
     hitlRecommendation,
     promptGuidance,
     evidence: readStringListField(value, "evidence", "evidence"),
+    authorityBoundary
+  };
+}
+
+const creativeConfidenceLevels = [
+  "very_high",
+  "high",
+  "medium",
+  "low",
+  "critical"
+] as const satisfies readonly CreativeConfidenceLevel[];
+
+const creativeConfidenceComponentSources = [
+  "creative_critic",
+  "self_evaluation",
+  "creative_improvement_planner",
+  "reflection_loop",
+  "planning_metadata"
+] as const satisfies readonly CreativeConfidenceComponentSource[];
+
+const expectedOutputReliabilities = [
+  "very_high",
+  "high",
+  "medium",
+  "low",
+  "blocked"
+] as const satisfies readonly ExpectedOutputReliability[];
+
+const expectedExecutionReadinesses = [
+  "ready",
+  "needs_caveats",
+  "needs_hitl",
+  "blocked"
+] as const satisfies readonly ExpectedExecutionReadiness[];
+
+const expectedHumanReviewNeeds = [
+  "not_needed",
+  "optional",
+  "recommended",
+  "required"
+] as const satisfies readonly ExpectedHumanReviewNeed[];
+
+const escalationRecommendations = [
+  "none",
+  "monitor",
+  "hitl_review",
+  "future_escalation"
+] as const satisfies readonly EscalationRecommendation[];
+
+const confidenceTrends = [
+  "improving",
+  "stable",
+  "declining",
+  "conflicting",
+  "unknown"
+] as const satisfies readonly ConfidenceTrend[];
+
+function readCreativeConfidenceComponentSummaryList(
+  value: unknown
+): CreativeConfidenceComponentSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+
+    const source = readStringUnion(
+      item,
+      "source",
+      "source",
+      creativeConfidenceComponentSources
+    );
+    const score = readFiniteNumberField(item, "score");
+    const weight = readFiniteNumberField(item, "weight");
+    const rationale = readStringField(item, "rationale");
+
+    if (!source || score === null || weight === null || !rationale) {
+      return [];
+    }
+
+    return [
+      {
+        source,
+        score,
+        weight,
+        rationale,
+        evidence: readStringListField(item, "evidence", "evidence")
+      }
+    ];
+  });
+}
+
+export function readCreativeConfidenceSummary(
+  value: unknown
+): CreativeConfidenceSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const serializationVersion =
+    readStringField(value, "serialization_version") ??
+    readStringField(value, "serializationVersion");
+  const confidenceScore =
+    readFiniteNumberField(value, "confidence_score") ??
+    readFiniteNumberField(value, "confidenceScore");
+  const confidenceLevel = readStringUnion(
+    value,
+    "confidence_level",
+    "confidenceLevel",
+    creativeConfidenceLevels
+  );
+  const confidenceSummary =
+    readStringField(value, "confidence_summary") ??
+    readStringField(value, "confidenceSummary");
+  const confidenceComponents = readCreativeConfidenceComponentSummaryList(
+    value.confidence_components ?? value.confidenceComponents
+  );
+  const expectedOutputReliability = readStringUnion(
+    value,
+    "expected_output_reliability",
+    "expectedOutputReliability",
+    expectedOutputReliabilities
+  );
+  const expectedExecutionReadiness = readStringUnion(
+    value,
+    "expected_execution_readiness",
+    "expectedExecutionReadiness",
+    expectedExecutionReadinesses
+  );
+  const expectedHumanReviewNeed = readStringUnion(
+    value,
+    "expected_human_review_need",
+    "expectedHumanReviewNeed",
+    expectedHumanReviewNeeds
+  );
+  const escalationRecommendation = readStringUnion(
+    value,
+    "escalation_recommendation",
+    "escalationRecommendation",
+    escalationRecommendations
+  );
+  const confidenceTrend = readStringUnion(
+    value,
+    "confidence_trend",
+    "confidenceTrend",
+    confidenceTrends
+  );
+  const hitlRecommendation = readStringUnion(
+    value,
+    "hitl_recommendation",
+    "hitlRecommendation",
+    expectedHumanReviewNeeds
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "creative_confidence_engine" ||
+    serializationVersion !== "v1" ||
+    confidenceScore === null ||
+    !confidenceLevel ||
+    !confidenceSummary ||
+    confidenceComponents.length === 0 ||
+    !expectedOutputReliability ||
+    !expectedExecutionReadiness ||
+    !expectedHumanReviewNeed ||
+    !escalationRecommendation ||
+    !confidenceTrend ||
+    !hitlRecommendation ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    serializationVersion,
+    confidenceScore,
+    confidenceLevel,
+    confidenceSummary,
+    confidenceRationale: readStringListField(
+      value,
+      "confidence_rationale",
+      "confidenceRationale"
+    ),
+    confidenceComponents,
+    confidenceLimitations: readStringListField(
+      value,
+      "confidence_limitations",
+      "confidenceLimitations"
+    ),
+    confidenceUncertainties: readStringListField(
+      value,
+      "confidence_uncertainties",
+      "confidenceUncertainties"
+    ),
+    confidenceStrengths: readStringListField(
+      value,
+      "confidence_strengths",
+      "confidenceStrengths"
+    ),
+    confidenceWeaknesses: readStringListField(
+      value,
+      "confidence_weaknesses",
+      "confidenceWeaknesses"
+    ),
+    expectedOutputReliability,
+    expectedExecutionReadiness,
+    expectedHumanReviewNeed,
+    escalationRecommendation,
+    confidenceTrend,
+    confidenceEvidence: readStringListField(
+      value,
+      "confidence_evidence",
+      "confidenceEvidence"
+    ),
+    hitlRecommendation,
+    promptGuidance,
     authorityBoundary
   };
 }
@@ -8129,6 +8381,7 @@ const creativeReasoningEvidenceSources = [
   "self_evaluation",
   "creative_improvement_planner",
   "reflection_loop",
+  "creative_confidence",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

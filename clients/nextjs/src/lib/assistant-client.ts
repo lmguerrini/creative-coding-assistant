@@ -699,6 +699,83 @@ export type ReflectionLoopSummary = {
   authorityBoundary: string;
 };
 
+export type CreativeConfidenceLevel =
+  | "very_high"
+  | "high"
+  | "medium"
+  | "low"
+  | "critical";
+
+export type CreativeConfidenceComponentSource =
+  | "creative_critic"
+  | "self_evaluation"
+  | "creative_improvement_planner"
+  | "reflection_loop"
+  | "planning_metadata";
+
+export type ExpectedOutputReliability =
+  | "very_high"
+  | "high"
+  | "medium"
+  | "low"
+  | "blocked";
+
+export type ExpectedExecutionReadiness =
+  | "ready"
+  | "needs_caveats"
+  | "needs_hitl"
+  | "blocked";
+
+export type ExpectedHumanReviewNeed =
+  | "not_needed"
+  | "optional"
+  | "recommended"
+  | "required";
+
+export type EscalationRecommendation =
+  | "none"
+  | "monitor"
+  | "hitl_review"
+  | "future_escalation";
+
+export type ConfidenceTrend =
+  | "improving"
+  | "stable"
+  | "declining"
+  | "conflicting"
+  | "unknown";
+
+export type CreativeConfidenceComponentSummary = {
+  source: CreativeConfidenceComponentSource;
+  score: number;
+  weight: number;
+  rationale: string;
+  evidence: string[];
+};
+
+export type CreativeConfidenceSummary = {
+  role: "creative_confidence_engine";
+  serializationVersion: "v1";
+  confidenceScore: number;
+  confidenceLevel: CreativeConfidenceLevel;
+  confidenceSummary: string;
+  confidenceRationale: string[];
+  confidenceComponents: CreativeConfidenceComponentSummary[];
+  confidenceLimitations: string[];
+  confidenceUncertainties: string[];
+  confidenceStrengths: string[];
+  confidenceWeaknesses: string[];
+  expectedOutputReliability: ExpectedOutputReliability;
+  expectedExecutionReadiness: ExpectedExecutionReadiness;
+  expectedHumanReviewNeed: ExpectedHumanReviewNeed;
+  escalationRecommendation: EscalationRecommendation;
+  confidenceTrend: ConfidenceTrend;
+  confidenceEvidence: string[];
+  hitlRecommendation: ExpectedHumanReviewNeed;
+  promptGuidance: string[];
+  authorityBoundary: string;
+};
+
 export type ArtifactRefinerSummary = {
   role: "artifact_refiner";
   refinementConfidence: number;
@@ -1990,6 +2067,7 @@ export type CreativeReasoningEvidenceSource =
   | "self_evaluation"
   | "creative_improvement_planner"
   | "reflection_loop"
+  | "creative_confidence"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {

@@ -16,6 +16,7 @@ import {
   readMultiArtifactStrategySummary,
   readAudioVisualSceneProfileSummary,
   readClarificationSummary,
+  readCreativeConfidenceSummary,
   readCrossModalityCompositionProfileSummary,
   readCreativeCompositionPlanSummary,
   readCreativeConstraintSolverSummary,
@@ -1603,6 +1604,64 @@ function reflectionLoopFixture() {
     ],
     authority_boundary:
       "The Reflection Loop Engine evaluates theoretical refinement value only; it does not trigger refinement."
+  };
+}
+
+function creativeConfidenceFixture() {
+  return {
+    role: "creative_confidence_engine",
+    serialization_version: "v1",
+    confidence_score: 0.82,
+    confidence_level: "high",
+    confidence_summary:
+      "Creative Confidence Engine aggregated evaluation metadata into high confidence.",
+    confidence_rationale: [
+      "creative_critic contributes 0.84 with 0.26 weight.",
+      "self_evaluation contributes 0.81 with 0.30 weight."
+    ],
+    confidence_components: [
+      {
+        source: "creative_critic",
+        score: 0.84,
+        weight: 0.26,
+        rationale: "Creative Critic contributes quality and risk assessment.",
+        evidence: ["Critique summary indicates low risk."]
+      },
+      {
+        source: "reflection_loop",
+        score: 0.78,
+        weight: 0.18,
+        rationale:
+          "Reflection Loop contributes theoretical improvement need metadata.",
+        evidence: ["Reflection Loop remains advisory."]
+      }
+    ],
+    confidence_limitations: [
+      "Confidence remains bounded by metadata quality."
+    ],
+    confidence_uncertainties: [
+      "Human success criteria are partially implicit."
+    ],
+    confidence_strengths: [
+      "Evaluation metadata is directionally aligned."
+    ],
+    confidence_weaknesses: [
+      "Runtime caveat evidence is limited."
+    ],
+    expected_output_reliability: "high",
+    expected_execution_readiness: "needs_caveats",
+    expected_human_review_need: "optional",
+    escalation_recommendation: "monitor",
+    confidence_trend: "stable",
+    confidence_evidence: [
+      "Authority boundary verified: confidence is metadata-only."
+    ],
+    hitl_recommendation: "optional",
+    prompt_guidance: [
+      "Use Creative Confidence metadata as advisory confidence guidance only."
+    ],
+    authority_boundary:
+      "The Creative Confidence Engine estimates confidence from existing evaluation metadata only."
   };
 }
 
@@ -5346,6 +5405,90 @@ describe("assistant stream client", () => {
       },
       reflection_loop_available: true
     });
+  });
+
+  it("parses creative confidence summaries", () => {
+    expect(readCreativeConfidenceSummary(creativeConfidenceFixture())).toMatchObject({
+      role: "creative_confidence_engine",
+      serializationVersion: "v1",
+      confidenceScore: 0.82,
+      confidenceLevel: "high",
+      confidenceComponents: [
+        {
+          source: "creative_critic",
+          score: 0.84,
+          weight: 0.26
+        },
+        {
+          source: "reflection_loop",
+          score: 0.78,
+          weight: 0.18
+        }
+      ],
+      expectedOutputReliability: "high",
+      expectedExecutionReadiness: "needs_caveats",
+      expectedHumanReviewNeed: "optional",
+      escalationRecommendation: "monitor",
+      confidenceTrend: "stable",
+      hitlRecommendation: "optional"
+    });
+  });
+
+  it("hydrates creative confidence workflow metadata", () => {
+    const creativeConfidence = creativeConfidenceFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 26,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          creative_confidence: creativeConfidence,
+          creative_confidence_available: true
+        }
+      }
+    };
+
+    const workflow = readWorkflowMetadata(event);
+
+    expect(workflow).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      creative_confidence: {
+        role: "creative_confidence_engine",
+        serializationVersion: "v1",
+        confidenceScore: 0.82,
+        confidenceLevel: "high",
+        expectedOutputReliability: "high",
+        expectedExecutionReadiness: "needs_caveats",
+        expectedHumanReviewNeed: "optional",
+        escalationRecommendation: "monitor",
+        confidenceTrend: "stable",
+        hitlRecommendation: "optional"
+      },
+      creative_confidence_available: true
+    });
+    expect(workflow?.creative_confidence?.confidenceComponents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          source: "creative_critic",
+          score: 0.84,
+          weight: 0.26
+        })
+      ])
+    );
   });
 
   it("hydrates artifact refiner workflow metadata", () => {
