@@ -117,6 +117,14 @@ import {
   type ConsistencyValidationStatus,
   type ConsistencyValidationSummary,
   type EvaluationDependencySummary,
+  type EvaluationEngineCacheability,
+  type EvaluationEngineCategory,
+  type EvaluationEngineContractRegistrySummary,
+  type EvaluationEngineContractSummary,
+  type EvaluationEngineCostMetadataSummary,
+  type EvaluationEngineEvidenceContractSummary,
+  type EvaluationEngineLatencyMetadataSummary,
+  type EvaluationEngineParallelizationSupport,
   type EvaluationEvidenceLinkSummary,
   type EvaluationProvenanceEntrySummary,
   type EvaluationReportDependencyStatus,
@@ -329,6 +337,8 @@ export type AssistantStreamWorkflowMetadata = {
   consistency_validation_available?: boolean;
   evaluation_report?: EvaluationReportSummary | null;
   evaluation_report_available?: boolean;
+  evaluation_engine_contracts?: EvaluationEngineContractRegistrySummary | null;
+  evaluation_engine_contracts_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -896,6 +906,13 @@ export function readWorkflowMetadata(
   const evaluationReportAvailable =
     rawWorkflow.evaluation_report_available === true ||
     evaluationReport !== null;
+  const evaluationEngineContracts = readEvaluationEngineContractRegistrySummary(
+    rawWorkflow.evaluation_engine_contracts ??
+      rawWorkflow.evaluationEngineContracts
+  );
+  const evaluationEngineContractsAvailable =
+    rawWorkflow.evaluation_engine_contracts_available === true ||
+    evaluationEngineContracts !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -1157,6 +1174,12 @@ export function readWorkflowMetadata(
       ? {
           evaluation_report: evaluationReport,
           evaluation_report_available: true
+        }
+      : {}),
+    ...(evaluationEngineContractsAvailable
+      ? {
+          evaluation_engine_contracts: evaluationEngineContracts,
+          evaluation_engine_contracts_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -5045,6 +5068,321 @@ function readArtifactEngineLatencyMetadataSummary(
   };
 }
 
+export function readEvaluationEngineContractRegistrySummary(
+  value: unknown
+): EvaluationEngineContractRegistrySummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const engineCategory = readStringUnion(
+    value,
+    "engine_category",
+    "engineCategory",
+    evaluationEngineCategories
+  );
+  const serializationVersion =
+    readStringField(value, "serialization_version") ??
+    readStringField(value, "serializationVersion");
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+  const engineContracts = readEvaluationEngineContractSummaryList(
+    value.engine_contracts ?? value.engineContracts
+  );
+  const engineIds = readStringListField(value, "engine_ids", "engineIds");
+  const contractCount =
+    readFiniteNumberField(value, "contract_count") ??
+    readFiniteNumberField(value, "contractCount");
+  const futureAgentConsumers = readStringListField(
+    value,
+    "future_agent_consumers",
+    "futureAgentConsumers"
+  );
+
+  if (
+    role !== "evaluation_engine_contract_registry" ||
+    engineCategory !== "creative_evaluation" ||
+    serializationVersion !== "evaluation_engine_contract_registry.v1" ||
+    !authorityBoundary ||
+    engineContracts.length === 0 ||
+    engineIds.length === 0 ||
+    contractCount === null ||
+    futureAgentConsumers.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    engineCategory,
+    serializationVersion,
+    authorityBoundary,
+    engineContracts,
+    engineIds,
+    contractCount,
+    futureAgentConsumers
+  };
+}
+
+function readEvaluationEngineContractSummaryList(
+  value: unknown
+): EvaluationEngineContractSummary[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    const contract = readEvaluationEngineContractSummary(item);
+    return contract === null ? [] : [contract];
+  });
+}
+
+function readEvaluationEngineContractSummary(
+  value: unknown
+): EvaluationEngineContractSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const engineId =
+    readStringField(value, "engine_id") ?? readStringField(value, "engineId");
+  const engineName =
+    readStringField(value, "engine_name") ?? readStringField(value, "engineName");
+  const engineVersion =
+    readStringField(value, "engine_version") ??
+    readStringField(value, "engineVersion");
+  const engineCategory = readStringUnion(
+    value,
+    "engine_category",
+    "engineCategory",
+    evaluationEngineCategories
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+  const evidenceContract = readEvaluationEngineEvidenceContractSummary(
+    value.evidence_contract ?? value.evidenceContract
+  );
+  const cacheability = readStringUnion(
+    value,
+    "cacheability",
+    "cacheability",
+    evaluationEngineCacheabilityValues
+  );
+  const parallelizationSupport = readStringUnion(
+    value,
+    "parallelization_support",
+    "parallelizationSupport",
+    evaluationEngineParallelizationSupportValues
+  );
+  const estimatedCostMetadata = readEvaluationEngineCostMetadataSummary(
+    value.estimated_cost_metadata ?? value.estimatedCostMetadata
+  );
+  const estimatedLatencyMetadata = readEvaluationEngineLatencyMetadataSummary(
+    value.estimated_latency_metadata ?? value.estimatedLatencyMetadata
+  );
+  const serializationVersion =
+    readStringField(value, "serialization_version") ??
+    readStringField(value, "serializationVersion");
+
+  if (
+    !engineId ||
+    !engineName ||
+    !engineVersion ||
+    engineCategory !== "creative_evaluation" ||
+    !authorityBoundary ||
+    evidenceContract === null ||
+    !cacheability ||
+    !parallelizationSupport ||
+    estimatedCostMetadata === null ||
+    estimatedLatencyMetadata === null ||
+    serializationVersion !== "evaluation_engine_contract.v1"
+  ) {
+    return null;
+  }
+
+  return {
+    engineId,
+    engineName,
+    engineVersion,
+    engineCategory,
+    authorityBoundary,
+    requiredInputs: readStringListField(
+      value,
+      "required_inputs",
+      "requiredInputs"
+    ),
+    optionalInputs: readStringListField(
+      value,
+      "optional_inputs",
+      "optionalInputs"
+    ),
+    producedMetadata: readStringListField(
+      value,
+      "produced_metadata",
+      "producedMetadata"
+    ),
+    producedSignals: readStringListField(
+      value,
+      "produced_signals",
+      "producedSignals"
+    ),
+    confidenceSignals: readStringListField(
+      value,
+      "confidence_signals",
+      "confidenceSignals"
+    ),
+    ambiguitySignals: readStringListField(
+      value,
+      "ambiguity_signals",
+      "ambiguitySignals"
+    ),
+    riskSignals: readStringListField(value, "risk_signals", "riskSignals"),
+    downstreamDependencies: readStringListField(
+      value,
+      "downstream_dependencies",
+      "downstreamDependencies"
+    ),
+    upstreamDependencies: readStringListField(
+      value,
+      "upstream_dependencies",
+      "upstreamDependencies"
+    ),
+    evidenceContract,
+    cacheability,
+    parallelizationSupport,
+    estimatedCostMetadata,
+    estimatedLatencyMetadata,
+    serializationVersion,
+    futureAgentHooks: readStringListField(
+      value,
+      "future_agent_hooks",
+      "futureAgentHooks"
+    ),
+    futureExecutionHooks: readStringListField(
+      value,
+      "future_execution_hooks",
+      "futureExecutionHooks"
+    )
+  };
+}
+
+function readEvaluationEngineEvidenceContractSummary(
+  value: unknown
+): EvaluationEngineEvidenceContractSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const evidenceSources = readStringListField(
+    value,
+    "evidence_sources",
+    "evidenceSources"
+  );
+  const evidencePayloadFields = readStringListField(
+    value,
+    "evidence_payload_fields",
+    "evidencePayloadFields"
+  );
+  const evidenceQualitySignals = readStringListField(
+    value,
+    "evidence_quality_signals",
+    "evidenceQualitySignals"
+  );
+  const missingEvidenceBehavior =
+    readStringField(value, "missing_evidence_behavior") ??
+    readStringField(value, "missingEvidenceBehavior");
+
+  if (
+    evidenceSources.length === 0 ||
+    evidencePayloadFields.length === 0 ||
+    evidenceQualitySignals.length === 0 ||
+    !missingEvidenceBehavior
+  ) {
+    return null;
+  }
+
+  return {
+    evidenceSources,
+    evidencePayloadFields,
+    evidenceQualitySignals,
+    missingEvidenceBehavior
+  };
+}
+
+function readEvaluationEngineCostMetadataSummary(
+  value: unknown
+): EvaluationEngineCostMetadataSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const relativeCost = readStringUnion(
+    value,
+    "relative_cost",
+    "relativeCost",
+    evaluationEngineCostValues
+  );
+  const externalProviderCalls =
+    readBooleanField(value, "external_provider_calls") ??
+    readBooleanField(value, "externalProviderCalls");
+  const costBasis =
+    readStringField(value, "cost_basis") ?? readStringField(value, "costBasis");
+  const cacheSensitivity =
+    readStringField(value, "cache_sensitivity") ??
+    readStringField(value, "cacheSensitivity");
+
+  if (
+    !relativeCost ||
+    externalProviderCalls === null ||
+    !costBasis ||
+    !cacheSensitivity
+  ) {
+    return null;
+  }
+
+  return {
+    relativeCost,
+    externalProviderCalls,
+    costBasis,
+    cacheSensitivity
+  };
+}
+
+function readEvaluationEngineLatencyMetadataSummary(
+  value: unknown
+): EvaluationEngineLatencyMetadataSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const relativeLatency = readStringUnion(
+    value,
+    "relative_latency",
+    "relativeLatency",
+    evaluationEngineLatencyValues
+  );
+  const latencyBasis =
+    readStringField(value, "latency_basis") ??
+    readStringField(value, "latencyBasis");
+
+  if (!relativeLatency || !latencyBasis) {
+    return null;
+  }
+
+  return {
+    relativeLatency,
+    latencyBasis,
+    blockingInputs: readStringListField(
+      value,
+      "blocking_inputs",
+      "blockingInputs"
+    )
+  };
+}
+
 function readArtifactCapabilityConfidenceSummaryList(
   value: unknown
 ): ArtifactCapabilityConfidenceSummary[] {
@@ -5322,6 +5660,24 @@ const artifactEngineParallelizationSupportValues = [
 const artifactEngineCostValues = ["low", "medium"] as const;
 
 const artifactEngineLatencyValues = ["low", "medium"] as const;
+
+const evaluationEngineCategories = [
+  "creative_evaluation"
+] as const satisfies readonly EvaluationEngineCategory[];
+
+const evaluationEngineCacheabilityValues = [
+  "deterministic_per_request",
+  "deterministic_with_upstream_metadata"
+] as const satisfies readonly EvaluationEngineCacheability[];
+
+const evaluationEngineParallelizationSupportValues = [
+  "requires_ordered_upstream_metadata",
+  "parallel_after_required_inputs"
+] as const satisfies readonly EvaluationEngineParallelizationSupport[];
+
+const evaluationEngineCostValues = ["low", "medium"] as const;
+
+const evaluationEngineLatencyValues = ["low", "medium"] as const;
 
 const runtimeCapabilityComplexities = [
   "low",

@@ -968,6 +968,72 @@ export type EvaluationReportSummary = {
   authorityBoundary: string;
 };
 
+export type EvaluationEngineCategory = "creative_evaluation";
+
+export type EvaluationEngineCacheability =
+  | "deterministic_per_request"
+  | "deterministic_with_upstream_metadata";
+
+export type EvaluationEngineParallelizationSupport =
+  | "requires_ordered_upstream_metadata"
+  | "parallel_after_required_inputs";
+
+export type EvaluationEngineCostMetadataSummary = {
+  relativeCost: "low" | "medium";
+  externalProviderCalls: boolean;
+  costBasis: string;
+  cacheSensitivity: string;
+};
+
+export type EvaluationEngineLatencyMetadataSummary = {
+  relativeLatency: "low" | "medium";
+  latencyBasis: string;
+  blockingInputs: string[];
+};
+
+export type EvaluationEngineEvidenceContractSummary = {
+  evidenceSources: string[];
+  evidencePayloadFields: string[];
+  evidenceQualitySignals: string[];
+  missingEvidenceBehavior: string;
+};
+
+export type EvaluationEngineContractSummary = {
+  engineId: string;
+  engineName: string;
+  engineVersion: string;
+  engineCategory: EvaluationEngineCategory;
+  authorityBoundary: string;
+  requiredInputs: string[];
+  optionalInputs: string[];
+  producedMetadata: string[];
+  producedSignals: string[];
+  confidenceSignals: string[];
+  ambiguitySignals: string[];
+  riskSignals: string[];
+  downstreamDependencies: string[];
+  upstreamDependencies: string[];
+  evidenceContract: EvaluationEngineEvidenceContractSummary;
+  cacheability: EvaluationEngineCacheability;
+  parallelizationSupport: EvaluationEngineParallelizationSupport;
+  estimatedCostMetadata: EvaluationEngineCostMetadataSummary;
+  estimatedLatencyMetadata: EvaluationEngineLatencyMetadataSummary;
+  serializationVersion: "evaluation_engine_contract.v1";
+  futureAgentHooks: string[];
+  futureExecutionHooks: string[];
+};
+
+export type EvaluationEngineContractRegistrySummary = {
+  role: "evaluation_engine_contract_registry";
+  engineCategory: EvaluationEngineCategory;
+  serializationVersion: "evaluation_engine_contract_registry.v1";
+  authorityBoundary: string;
+  engineContracts: EvaluationEngineContractSummary[];
+  engineIds: string[];
+  contractCount: number;
+  futureAgentConsumers: string[];
+};
+
 export type ArtifactRefinerSummary = {
   role: "artifact_refiner";
   refinementConfidence: number;

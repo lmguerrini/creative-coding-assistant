@@ -28,6 +28,7 @@ import {
   readCreativeTechniqueSummary,
   readCreativeTradeoffExplorerSummary,
   readConsistencyValidationSummary,
+  readEvaluationEngineContractRegistrySummary,
   readEvaluationReportSummary,
   readEmotionalConsistencyProfileSummary,
   readGenerativeStructureBlueprintSummary,
@@ -2249,6 +2250,75 @@ function artifactEngineContractRegistryFixture() {
   };
 }
 
+function evaluationEngineContractRegistryFixture() {
+  const engineContracts = [
+    "creative_critic",
+    "self_evaluation",
+    "creative_improvement_planner",
+    "reflection_loop",
+    "creative_confidence",
+    "creative_score",
+    "consistency_validation",
+    "evaluation_reports"
+  ].map((engineId) => ({
+    engine_id: engineId,
+    engine_name: engineId.replaceAll("_", " "),
+    engine_version: "v3.4",
+    engine_category: "creative_evaluation",
+    authority_boundary: "Evaluation contract metadata only; no behavior changes.",
+    required_inputs: ["assistant_request"],
+    optional_inputs: ["route_decision"],
+    produced_metadata: [`${engineId}_metadata`],
+    produced_signals: ["prompt_guidance"],
+    confidence_signals: ["evidence"],
+    ambiguity_signals: ["hitl_questions"],
+    risk_signals: ["risks"],
+    downstream_dependencies:
+      engineId === "evaluation_reports" ? [] : ["evaluation_reports"],
+    upstream_dependencies:
+      engineId === "evaluation_reports" ? ["consistency_validation"] : [],
+    evidence_contract: {
+      evidence_sources: ["assistant_request"],
+      evidence_payload_fields: ["evidence"],
+      evidence_quality_signals: ["confidence"],
+      missing_evidence_behavior:
+        "Expose missing evidence as advisory metadata only."
+    },
+    cacheability: "deterministic_with_upstream_metadata",
+    parallelization_support: "requires_ordered_upstream_metadata",
+    estimated_cost_metadata: {
+      relative_cost: "low",
+      external_provider_calls: false,
+      cost_basis: "Local metadata derivation.",
+      cache_sensitivity: "Request and upstream evaluation metadata sensitive."
+    },
+    estimated_latency_metadata: {
+      relative_latency: "low",
+      latency_basis: "Bounded local metadata construction.",
+      blocking_inputs: ["assistant_request"]
+    },
+    serialization_version: "evaluation_engine_contract.v1",
+    future_agent_hooks: ["v3_5_inspector_contract"],
+    future_execution_hooks: ["v5_execution_optimization_readiness"]
+  }));
+
+  return {
+    role: "evaluation_engine_contract_registry",
+    engine_category: "creative_evaluation",
+    serialization_version: "evaluation_engine_contract_registry.v1",
+    authority_boundary:
+      "Evaluation contracts describe metadata surfaces only; they do not change behavior.",
+    engine_contracts: engineContracts,
+    engine_ids: engineContracts.map((contract) => contract.engine_id),
+    contract_count: engineContracts.length,
+    future_agent_consumers: [
+      "v3_5_inspector",
+      "v3_5_dashboard",
+      "v4_agentic_studio"
+    ]
+  };
+}
+
 function audioVisualScenePhaseFixture(phase: string, title: string) {
   return {
     phase,
@@ -3978,6 +4048,40 @@ describe("assistant stream client", () => {
       cacheability: "deterministic_with_upstream_metadata",
       parallelizationSupport: "requires_ordered_upstream_metadata",
       serializationVersion: "artifact_engine_contract.v1",
+      estimatedCostMetadata: {
+        relativeCost: "low",
+        externalProviderCalls: false
+      },
+      estimatedLatencyMetadata: {
+        relativeLatency: "low",
+        blockingInputs: ["assistant_request"]
+      }
+    });
+  });
+
+  it("reads evaluation engine contract registry metadata", () => {
+    const registry = readEvaluationEngineContractRegistrySummary(
+      evaluationEngineContractRegistryFixture()
+    );
+
+    expect(registry?.role).toBe("evaluation_engine_contract_registry");
+    expect(registry?.serializationVersion).toBe(
+      "evaluation_engine_contract_registry.v1"
+    );
+    expect(registry?.contractCount).toBe(8);
+    expect(registry?.engineIds).toContain("evaluation_reports");
+    expect(registry?.engineContracts).toHaveLength(8);
+    expect(registry?.engineContracts[0]).toMatchObject({
+      engineId: "creative_critic",
+      engineVersion: "v3.4",
+      engineCategory: "creative_evaluation",
+      cacheability: "deterministic_with_upstream_metadata",
+      parallelizationSupport: "requires_ordered_upstream_metadata",
+      serializationVersion: "evaluation_engine_contract.v1",
+      evidenceContract: {
+        evidenceSources: ["assistant_request"],
+        evidencePayloadFields: ["evidence"]
+      },
       estimatedCostMetadata: {
         relativeCost: "low",
         externalProviderCalls: false
@@ -6333,6 +6437,57 @@ describe("assistant stream client", () => {
         ])
       },
       artifact_engine_contracts_available: true
+    });
+  });
+
+  it("hydrates evaluation engine contract registry workflow metadata", () => {
+    const evaluationEngineContracts = evaluationEngineContractRegistryFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 27,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          evaluation_engine_contracts: evaluationEngineContracts,
+          evaluation_engine_contracts_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      evaluation_engine_contracts: {
+        role: "evaluation_engine_contract_registry",
+        contractCount: 8,
+        engineIds: expect.arrayContaining([
+          "creative_critic",
+          "evaluation_reports"
+        ]),
+        engineContracts: expect.arrayContaining([
+          expect.objectContaining({
+            engineId: "evaluation_reports",
+            upstreamDependencies: ["consistency_validation"],
+            evidenceContract: expect.objectContaining({
+              evidenceSources: ["assistant_request"]
+            })
+          })
+        ])
+      },
+      evaluation_engine_contracts_available: true
     });
   });
 
