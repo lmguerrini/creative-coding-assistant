@@ -113,6 +113,17 @@ class ArtifactEngineContractTests(unittest.TestCase):
                 set(contract.escalation_candidates),
                 set(contract.produced_signals),
             )
+            if contract.upstream_dependencies:
+                self.assertEqual(
+                    contract.cacheability,
+                    "deterministic_with_upstream_metadata",
+                )
+                self.assertIn(
+                    "upstream",
+                    contract.estimated_cost_metadata.cache_sensitivity.lower(),
+                )
+            else:
+                self.assertEqual(contract.cacheability, "deterministic_per_request")
             self.assertFalse(
                 contract.estimated_cost_metadata.external_provider_calls
             )

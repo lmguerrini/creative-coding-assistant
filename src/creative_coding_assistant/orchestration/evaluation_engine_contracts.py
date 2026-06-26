@@ -260,7 +260,6 @@ CREATIVE_CRITIC_ENGINE_CONTRACT = _contract(
         "Surface missing information and unsupported assumptions as advisory "
         "metadata without changing workflow control."
     ),
-    cacheability="deterministic_per_request",
 )
 
 SELF_EVALUATION_ENGINE_CONTRACT = _contract(

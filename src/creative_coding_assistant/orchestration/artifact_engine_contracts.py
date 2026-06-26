@@ -261,7 +261,6 @@ ARTIFACT_PLANNER_ENGINE_CONTRACT = _contract(
         "artifact_export_intelligence",
     ),
     upstream_dependencies=("creative_intelligence_metadata", "runtime_capabilities"),
-    cacheability="deterministic_per_request",
 )
 
 ARTIFACT_DEPENDENCY_GRAPH_ENGINE_CONTRACT = _contract(

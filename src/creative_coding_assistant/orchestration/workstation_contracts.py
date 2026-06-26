@@ -255,7 +255,7 @@ WORKSTATION_STATE_CONTRACT = _contract(
         "workstation_dashboard",
     ),
     upstream_dependencies=("assistant_workspace_snapshot", "assistant_stream_events"),
-    cacheability="client_snapshot_derived",
+    cacheability="client_snapshot_and_stream_derived",
     hydration_mode="local_client_projection",
 )
 

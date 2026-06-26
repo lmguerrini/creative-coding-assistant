@@ -129,6 +129,17 @@ class EvaluationEngineContractTests(unittest.TestCase):
                 set(contract.risk_signals),
                 declared_signal_sources,
             )
+            if contract.upstream_dependencies:
+                self.assertEqual(
+                    contract.cacheability,
+                    "deterministic_with_upstream_metadata",
+                )
+                self.assertIn(
+                    "upstream",
+                    contract.estimated_cost_metadata.cache_sensitivity.lower(),
+                )
+            else:
+                self.assertEqual(contract.cacheability, "deterministic_per_request")
             self.assertTrue(contract.evidence_contract.evidence_sources)
             self.assertFalse(
                 contract.estimated_cost_metadata.external_provider_calls

@@ -78,6 +78,16 @@ class WorkstationEngineContractTests(unittest.TestCase):
             self.assertTrue(contract.future_agent_hooks)
             self.assertTrue(contract.future_execution_hooks)
             self.assertTrue(contract.future_evolution_hooks)
+            cache_sensitivity = (
+                contract.estimated_cost_metadata.cache_sensitivity.lower()
+            )
+            self.assertIn("cache key", cache_sensitivity)
+            if "assistant_stream_events" in contract.upstream_dependencies:
+                self.assertEqual(
+                    contract.cacheability,
+                    "client_snapshot_and_stream_derived",
+                )
+                self.assertIn("stream", cache_sensitivity)
             self.assertFalse(
                 contract.estimated_cost_metadata.external_provider_calls
             )
