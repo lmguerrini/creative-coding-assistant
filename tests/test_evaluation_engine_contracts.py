@@ -12,9 +12,11 @@ from creative_coding_assistant.orchestration import (
     build_assistant_workflow_graph,
     build_prompt_input_request,
     build_rendered_prompt_request,
-    creative_evaluation_engine_contracts,
     evaluation_engine_contract_by_id,
     stream_assistant_workflow_events,
+)
+from creative_coding_assistant.orchestration.evaluation_engine_contracts import (
+    evaluation_engine_contracts,
 )
 from test_langgraph_workflow_integration import (
     _first_event,
@@ -64,7 +66,7 @@ REQUIRED_CONTRACT_FIELDS = {
 
 class EvaluationEngineContractTests(unittest.TestCase):
     def test_registry_exposes_consistent_contract_surface(self) -> None:
-        registry = creative_evaluation_engine_contracts()
+        registry = evaluation_engine_contracts()
 
         self.assertEqual(registry.role, "evaluation_engine_contract_registry")
         self.assertEqual(registry.engine_ids, EXPECTED_ENGINE_IDS)
@@ -119,7 +121,7 @@ class EvaluationEngineContractTests(unittest.TestCase):
         )
 
     def test_registry_serializes_for_workflow_metadata(self) -> None:
-        dumped = creative_evaluation_engine_contracts().model_dump(mode="json")
+        dumped = evaluation_engine_contracts().model_dump(mode="json")
 
         self.assertEqual(
             dumped["serialization_version"],
@@ -149,7 +151,7 @@ class EvaluationEngineContractTests(unittest.TestCase):
                 assembled_context=None,
             )
         )
-        registry = creative_evaluation_engine_contracts()
+        registry = evaluation_engine_contracts()
         prompt_input = prompt_input.model_copy(
             update={"evaluation_engine_contracts": registry}
         )

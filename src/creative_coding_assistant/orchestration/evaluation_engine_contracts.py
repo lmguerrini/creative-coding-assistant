@@ -123,12 +123,6 @@ def evaluation_engine_contracts() -> EvaluationEngineContractRegistry:
     return EVALUATION_ENGINE_CONTRACT_REGISTRY
 
 
-def creative_evaluation_engine_contracts() -> EvaluationEngineContractRegistry:
-    """Return the static Creative Evaluation contract registry."""
-
-    return EVALUATION_ENGINE_CONTRACT_REGISTRY
-
-
 def evaluation_engine_contract_by_id(
     engine_id: str,
 ) -> EvaluationEngineContract | None:

@@ -156,10 +156,11 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("artifact_intelligence_graph.md", architecture_doc)
         self.assertIn("artifact_intelligence_graph.mmd", architecture_doc)
         self.assertIn(
-            "metadata, design guidance, artifact intelligence, and contract summaries",
+            "metadata, design guidance, artifact intelligence, evaluation "
+            "summaries, and contract summaries",
             normalized_architecture_doc,
         )
-        self.assertIn("not code generation execution", architecture_doc)
+        self.assertIn("not code generation execution", normalized_architecture_doc)
         self.assertIn("true multi-agent", architecture_doc)
         self.assertIn("multi-node runtime graph", architecture_doc)
 

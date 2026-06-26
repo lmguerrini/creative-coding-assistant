@@ -459,7 +459,6 @@ _EXPORT_MAP = {
     "consistency_validation_prompt_lines": _CONSISTENCY_VALIDATION_ENGINE,
     "derive_evaluation_report_profile": _EVALUATION_REPORTS,
     "evaluation_report_prompt_lines": _EVALUATION_REPORTS,
-    "creative_evaluation_engine_contracts": _EVALUATION_ENGINE_CONTRACTS,
     "evaluation_engine_contract_by_id": _EVALUATION_ENGINE_CONTRACTS,
     "derive_runtime_capability_profile": _RUNTIME_CAPABILITIES,
     "runtime_capability_prompt_lines": _RUNTIME_CAPABILITIES,
