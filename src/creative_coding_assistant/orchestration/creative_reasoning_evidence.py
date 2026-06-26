@@ -31,6 +31,9 @@ from creative_coding_assistant.orchestration.audio_visual_scene import (
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
 )
+from creative_coding_assistant.orchestration.creative_confidence_engine import (
+    CreativeConfidenceProfile,
+)
 from creative_coding_assistant.orchestration.creative_constraint_priorities import (
     CreativeConstraintPrioritization,
 )
@@ -148,6 +151,7 @@ def build_evidence_chain(
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
+    creative_confidence: CreativeConfidenceProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
         CreativeReasoningEvidence(
@@ -738,6 +742,27 @@ def build_evidence_chain(
                     "without triggering refinement, retries, provider calls, "
                     "runtime selection, routing, preview changes, workflow "
                     "loops, artifact edits, or V4 agents."
+                ),
+            )
+        )
+    if creative_confidence is not None:
+        evidence.append(
+            CreativeReasoningEvidence(
+                source="creative_confidence",
+                signal=_clip(
+                    (
+                        f"{creative_confidence.confidence_level} level; "
+                        f"{creative_confidence.confidence_score:.2f} score; "
+                        f"{creative_confidence.expected_human_review_need} human review"
+                    ),
+                    240,
+                ),
+                interpretation=(
+                    "Creative Confidence evidence estimates confidence, "
+                    "uncertainty, reliability, execution readiness, HITL "
+                    "need, and escalation as advisory metadata only, without "
+                    "changing outputs, modifying artifacts, triggering "
+                    "refinement or retries, routing, or invoking V4 agents."
                 ),
             )
         )

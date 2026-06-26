@@ -52,6 +52,10 @@ from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
     creative_composition_prompt_lines,
 )
+from creative_coding_assistant.orchestration.creative_confidence_engine import (
+    CreativeConfidenceProfile,
+    creative_confidence_prompt_lines,
+)
 from creative_coding_assistant.orchestration.creative_constraint_priorities import (
     CreativeConstraintPrioritization,
     creative_constraint_priorities_prompt_lines,
@@ -446,6 +450,13 @@ Reflection Loop Engine:
 - {{ instruction }}
 {% endfor %}
 {% endif %}
+{% set creative_confidence = prompt_input.creative_confidence -%}
+{% if creative_confidence is not none -%}
+Creative Confidence Engine:
+{% for instruction in creative_confidence_lines(creative_confidence) -%}
+- {{ instruction }}
+{% endfor %}
+{% endif %}
 {% set director = prompt_input.creative_director -%}
 {% if director is not none -%}
 Creative Assistant Director:
@@ -719,6 +730,7 @@ class JinjaPromptRenderer:
                 _creative_improvement_planner_lines
             ),
             reflection_loop_lines=_reflection_loop_lines,
+            creative_confidence_lines=_creative_confidence_lines,
             creative_assistant_director_lines=_creative_assistant_director_lines,
             creative_reasoning_lines=_creative_reasoning_lines,
             show_ui_selected_domains=_show_ui_selected_domains,
@@ -1075,6 +1087,12 @@ def _reflection_loop_lines(
     profile: ReflectionLoopProfile,
 ) -> tuple[str, ...]:
     return reflection_loop_prompt_lines(profile)
+
+
+def _creative_confidence_lines(
+    profile: CreativeConfidenceProfile,
+) -> tuple[str, ...]:
+    return creative_confidence_prompt_lines(profile)
 
 
 def _creative_assistant_director_lines(

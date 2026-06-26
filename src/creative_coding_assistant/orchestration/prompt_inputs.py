@@ -50,6 +50,9 @@ from creative_coding_assistant.orchestration.context import AssembledContextResp
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
 )
+from creative_coding_assistant.orchestration.creative_confidence_engine import (
+    CreativeConfidenceProfile,
+)
 from creative_coding_assistant.orchestration.creative_constraint_priorities import (
     CreativeConstraintPrioritization,
 )
@@ -399,6 +402,7 @@ class PromptInputResponse(BaseModel):
     self_evaluation: SelfEvaluationProfile | None = None
     creative_improvement_planner: CreativeImprovementPlannerProfile | None = None
     reflection_loop: ReflectionLoopProfile | None = None
+    creative_confidence: CreativeConfidenceProfile | None = None
     creative_director: CreativeAssistantDirectorBrief | None = None
     creative_reasoning: CreativeReasoningResult | None = None
     clarification: ClarificationRequest | None = None

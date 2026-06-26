@@ -39,6 +39,9 @@ from creative_coding_assistant.orchestration.clarification import ClarificationR
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
 )
+from creative_coding_assistant.orchestration.creative_confidence_engine import (
+    CreativeConfidenceProfile,
+)
 from creative_coding_assistant.orchestration.creative_constraint_priorities import (
     CreativeConstraintPrioritization,
 )
@@ -185,6 +188,7 @@ def derive_creative_assistant_director_brief(
         CreativeImprovementPlannerProfile | None
     ) = None,
     reflection_loop: ReflectionLoopProfile | None = None,
+    creative_confidence: CreativeConfidenceProfile | None = None,
     clarification: ClarificationRequest | None = None,
     retrieval_chunk_count: int = 0,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
@@ -230,6 +234,7 @@ def derive_creative_assistant_director_brief(
             self_evaluation=self_evaluation,
             creative_improvement_planner=creative_improvement_planner,
             reflection_loop=reflection_loop,
+            creative_confidence=creative_confidence,
             retrieval_chunk_count=retrieval_chunk_count,
             clarification=clarification,
             artifact_critique_summary=artifact_critique_summary,

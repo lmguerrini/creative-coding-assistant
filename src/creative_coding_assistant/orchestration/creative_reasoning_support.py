@@ -32,6 +32,9 @@ from creative_coding_assistant.orchestration.audio_visual_scene import (
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
 )
+from creative_coding_assistant.orchestration.creative_confidence_engine import (
+    CreativeConfidenceProfile,
+)
 from creative_coding_assistant.orchestration.creative_constraint_priorities import (
     CreativeConstraintPrioritization,
 )
@@ -142,6 +145,7 @@ def build_strongest_signals(
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
+    creative_confidence: CreativeConfidenceProfile | None,
 ) -> tuple[str, ...]:
     signals: list[str] = []
     if creative_intent is not None:
@@ -336,6 +340,13 @@ def build_strongest_signals(
             f"{reflection_loop.reflection_depth} depth; "
             f"{reflection_loop.reflection_confidence:.2f} confidence."
         )
+    if creative_confidence is not None:
+        signals.append(
+            "Creative confidence: "
+            f"{creative_confidence.confidence_level} level; "
+            f"{creative_confidence.confidence_score:.2f} score; "
+            f"{creative_confidence.hitl_recommendation} HITL."
+        )
     if creative_constraints is not None:
         signals.append(
             f"Constraints: complexity {creative_constraints.complexity_pressure}, "
@@ -442,6 +453,7 @@ def build_unresolved_decisions(
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
+    creative_confidence: CreativeConfidenceProfile | None,
 ) -> tuple[str, ...]:
     unresolved: list[str] = []
     if creative_intent is not None:
@@ -541,6 +553,12 @@ def build_unresolved_decisions(
         unresolved.extend(reflection_loop.unresolved_questions[:3])
         if reflection_loop.reflection_required:
             unresolved.extend(reflection_loop.refinement_candidates[:2])
+    if creative_confidence is not None:
+        unresolved.extend(creative_confidence.confidence_uncertainties[:3])
+        if creative_confidence.hitl_recommendation in {"recommended", "required"}:
+            unresolved.append(
+                "Creative Confidence recommends human review before treating confidence as settled."
+            )
     if creative_strategy is not None and creative_strategy.confidence < 0.55:
         unresolved.append("Creative strategy confidence is low; confirm direction.")
     if creative_techniques is not None and creative_techniques.compatibility == "weak":
@@ -583,6 +601,7 @@ def build_implementation_guidance(
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
     reflection_loop: ReflectionLoopProfile | None,
+    creative_confidence: CreativeConfidenceProfile | None,
 ) -> tuple[str, ...]:
     guidance: list[str] = []
     if creative_intent is not None:
@@ -790,6 +809,16 @@ def build_implementation_guidance(
             "only, not automatic refinement, retries, provider calls, runtime "
             "selection, routing, preview changes, workflow loops, artifact "
             "edits, or V4 agent behavior."
+        )
+    if creative_confidence is not None:
+        guidance.extend(creative_confidence.prompt_guidance[:2])
+        guidance.extend(creative_confidence.confidence_limitations[:1])
+        guidance.extend(creative_confidence.confidence_uncertainties[:1])
+        guidance.append(
+            "Preserve Creative Confidence metadata as advisory confidence and "
+            "uncertainty context only, not output changes, artifact edits, "
+            "refinement, retries, routing, runtime selection, provider calls, "
+            "preview changes, or V4 agent behavior."
         )
     return _dedupe(guidance)[:8] or (
         "Implement the smallest coherent version that preserves direction.",

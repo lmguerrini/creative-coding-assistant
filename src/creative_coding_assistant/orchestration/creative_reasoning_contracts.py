@@ -49,6 +49,7 @@ ReasoningEvidenceSource = Literal[
     "self_evaluation",
     "creative_improvement_planner",
     "reflection_loop",
+    "creative_confidence",
     "future_knowledge",
 ]
 

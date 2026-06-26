@@ -60,6 +60,9 @@ from creative_coding_assistant.orchestration.clarification import ClarificationR
 from creative_coding_assistant.orchestration.creative_composition import (
     derive_creative_composition_plan,
 )
+from creative_coding_assistant.orchestration.creative_confidence_engine import (
+    derive_creative_confidence_profile,
+)
 from creative_coding_assistant.orchestration.creative_constraint_priorities import (
     derive_creative_constraint_priorities,
 )
@@ -1138,6 +1141,44 @@ def _planning_node(
                 artifact_export_intelligence,
             ),
         )
+        creative_confidence = derive_creative_confidence_profile(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_critic=creative_critic,
+            self_evaluation=self_evaluation,
+            creative_improvement_planner=creative_improvement_planner,
+            reflection_loop=reflection_loop,
+            planning_metadata=(
+                creative_intent,
+                creative_hierarchy,
+                strategy,
+                techniques,
+                plan,
+                constraints,
+                constraint_priorities,
+                runtime_capabilities,
+                tradeoffs,
+                quality_prediction,
+                symbolic_narrative,
+                creative_composition,
+                procedural_structure,
+                generative_structure,
+                semantic_motif,
+                emotional_consistency,
+                cross_modality,
+                audio_visual_scene,
+                artifact_plan,
+                artifact_dependency_graph,
+                runtime_compatibility,
+                artifact_capability_matrix,
+                multi_artifact_strategy,
+                artifact_critic,
+                artifact_refiner,
+                artifact_intelligence_synthesis,
+                artifact_merge_planner,
+                artifact_export_intelligence,
+            ),
+        )
         planned_prompt_input = prompt_input.model_copy(
             update={
                 "creative_strategy": strategy,
@@ -1175,6 +1216,7 @@ def _planning_node(
                 "self_evaluation": self_evaluation,
                 "creative_improvement_planner": creative_improvement_planner,
                 "reflection_loop": reflection_loop,
+                "creative_confidence": creative_confidence,
             }
         )
         planned_state = workflow_state.model_copy(
@@ -1216,6 +1258,7 @@ def _planning_node(
                     creative_improvement_planner
                 ),
                 "reflection_loop": reflection_loop,
+                "creative_confidence": creative_confidence,
                 "prompt_input": planned_prompt_input,
             }
         )
@@ -1276,6 +1319,7 @@ def _planning_node(
                     creative_improvement_planner.model_dump(mode="json")
                 ),
                 reflection_loop=reflection_loop.model_dump(mode="json"),
+                creative_confidence=creative_confidence.model_dump(mode="json"),
             ),
             workflow_state=planned_state,
             step=WorkflowStep.PLANNING,
@@ -1932,6 +1976,16 @@ def _finalization_node(
                 }
             )
         )
+        creative_confidence = _derive_creative_confidence_result(
+            evaluation_state.model_copy(
+                update={
+                    "creative_improvement_planner": (
+                        creative_improvement_planner
+                    ),
+                    "reflection_loop": reflection_loop,
+                }
+            )
+        )
         evaluated_prompt_input = (
             workflow_state.prompt_input.model_copy(
                 update={
@@ -1940,6 +1994,7 @@ def _finalization_node(
                         creative_improvement_planner
                     ),
                     "reflection_loop": reflection_loop,
+                    "creative_confidence": creative_confidence,
                 }
             )
             if workflow_state.prompt_input is not None
@@ -1952,6 +2007,7 @@ def _finalization_node(
                     creative_improvement_planner
                 ),
                 "reflection_loop": reflection_loop,
+                "creative_confidence": creative_confidence,
                 "prompt_input": evaluated_prompt_input,
             }
         )
@@ -2299,6 +2355,14 @@ def _finalization_node(
                     (
                         final_state.reflection_loop.model_dump(mode="json")
                         if final_state.reflection_loop is not None
+                        else None
+                    ),
+                ),
+                **_optional_event_payload(
+                    "creative_confidence",
+                    (
+                        final_state.creative_confidence.model_dump(mode="json")
+                        if final_state.creative_confidence is not None
                         else None
                     ),
                 ),
@@ -2915,6 +2979,7 @@ def _derive_director_brief(
             workflow_state.creative_improvement_planner
         ),
         reflection_loop=workflow_state.reflection_loop,
+        creative_confidence=workflow_state.creative_confidence,
         clarification=workflow_state.clarification,
         retrieval_chunk_count=(
             len(prompt_input.retrieval_input.chunks)
@@ -2974,6 +3039,7 @@ def _derive_reasoning_result(
             workflow_state.creative_improvement_planner
         ),
         reflection_loop=workflow_state.reflection_loop,
+        creative_confidence=workflow_state.creative_confidence,
     )
 
 
@@ -3047,6 +3113,18 @@ def _derive_reflection_loop_result(workflow_state: AssistantWorkflowState):
         creative_critic=workflow_state.creative_critic,
         self_evaluation=workflow_state.self_evaluation,
         creative_improvement_planner=workflow_state.creative_improvement_planner,
+        planning_metadata=_reflection_planning_metadata(workflow_state),
+    )
+
+
+def _derive_creative_confidence_result(workflow_state: AssistantWorkflowState):
+    return derive_creative_confidence_profile(
+        request=workflow_state.request,
+        route_decision=workflow_state.route_decision,
+        creative_critic=workflow_state.creative_critic,
+        self_evaluation=workflow_state.self_evaluation,
+        creative_improvement_planner=workflow_state.creative_improvement_planner,
+        reflection_loop=workflow_state.reflection_loop,
         planning_metadata=_reflection_planning_metadata(workflow_state),
     )
 
@@ -3335,6 +3413,7 @@ def _serialize_workflow_runtime(
     self_evaluation = workflow_state.self_evaluation
     creative_improvement_planner = workflow_state.creative_improvement_planner
     reflection_loop = workflow_state.reflection_loop
+    creative_confidence = workflow_state.creative_confidence
     creative_director = workflow_state.creative_director
     creative_reasoning = workflow_state.creative_reasoning
 
@@ -3586,6 +3665,12 @@ def _serialize_workflow_runtime(
             else None
         ),
         "reflection_loop_available": reflection_loop is not None,
+        "creative_confidence": (
+            creative_confidence.model_dump(mode="json")
+            if creative_confidence is not None
+            else None
+        ),
+        "creative_confidence_available": creative_confidence is not None,
         "creative_director": (
             creative_director.model_dump(mode="json")
             if creative_director is not None
