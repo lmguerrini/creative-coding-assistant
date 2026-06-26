@@ -49,6 +49,9 @@ _EVALUATION_ENGINE_CONTRACTS = (
 _WORKSTATION_ENGINE_CONTRACTS = (
     "creative_coding_assistant.orchestration.workstation_contracts"
 )
+_AGENT_CAPABILITY_REGISTRY = (
+    "creative_coding_assistant.orchestration.agent_capabilities"
+)
 _ARTIFACT_PLANNER = "creative_coding_assistant.orchestration.artifact_planner"
 _ARTIFACT_DEPENDENCY_GRAPH = (
     "creative_coding_assistant.orchestration.artifact_dependency_graph"
@@ -151,6 +154,10 @@ _EXPORT_MAP = {
     "WorkstationEngineContractRegistry": _WORKSTATION_ENGINE_CONTRACTS,
     "WorkstationSurfaceCostMetadata": _WORKSTATION_ENGINE_CONTRACTS,
     "WorkstationSurfaceLatencyMetadata": _WORKSTATION_ENGINE_CONTRACTS,
+    "AgentCapabilityProfile": _AGENT_CAPABILITY_REGISTRY,
+    "AgentCapabilityRegistry": _AGENT_CAPABILITY_REGISTRY,
+    "agent_capability_by_id": _AGENT_CAPABILITY_REGISTRY,
+    "agent_capability_registry": _AGENT_CAPABILITY_REGISTRY,
     "ArtifactCapabilityConfidence": _ARTIFACT_CAPABILITY_MATRIX,
     "ArtifactCapabilityFit": _ARTIFACT_CAPABILITY_MATRIX,
     "ArtifactCapabilityMatrix": _ARTIFACT_CAPABILITY_MATRIX,
