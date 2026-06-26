@@ -92,6 +92,10 @@ class WorkstationEngineContractTests(unittest.TestCase):
             self.assertEqual(cost_metadata.relative_cost, "low")
             self.assertFalse(cost_metadata.external_provider_calls)
             self.assertIn("no provider", cost_metadata.cost_basis.lower())
+            latency_metadata = contract.estimated_latency_metadata
+            self.assertEqual(latency_metadata.relative_latency, "low")
+            self.assertEqual(latency_metadata.blocking_inputs, contract.required_inputs)
+            self.assertIn("no network", latency_metadata.latency_basis.lower())
 
     def test_contract_lookup_and_future_hooks_are_stable(self) -> None:
         timeline_contract = workstation_engine_contract_by_id("creative_timeline")
