@@ -110,6 +110,15 @@ class WorkstationEngineContractTests(unittest.TestCase):
             "v3_inspector_panels",
             dashboard_contract.upstream_dependencies,
         )
+        self.assertIn("HITL", dashboard_contract.authority_boundary)
+        self.assertIn(
+            "hitl_recommendation_card",
+            dashboard_contract.exposed_metadata,
+        )
+        self.assertIn(
+            "hitl_recommendation",
+            dashboard_contract.exposed_signals,
+        )
 
     def test_registry_serializes_for_architecture_metadata(self) -> None:
         dumped = workstation_engine_contracts().model_dump(mode="json")

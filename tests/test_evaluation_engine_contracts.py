@@ -38,6 +38,17 @@ EXPECTED_ENGINE_IDS = (
     "evaluation_reports",
 )
 
+EXPECTED_HITL_SIGNALS = {
+    "creative_critic": "hitl_questions",
+    "self_evaluation": "hitl_questions",
+    "creative_improvement_planner": "hitl_questions",
+    "reflection_loop": "hitl_recommendation",
+    "creative_confidence": "hitl_recommendation",
+    "creative_score": "hitl_recommendation",
+    "consistency_validation": "hitl_recommendation",
+    "evaluation_reports": "hitl_recommendation",
+}
+
 REQUIRED_CONTRACT_FIELDS = {
     "engine_id",
     "engine_name",
@@ -103,6 +114,9 @@ class EvaluationEngineContractTests(unittest.TestCase):
                 set(contract.ambiguity_signals),
                 declared_signal_sources,
             )
+            hitl_signal = EXPECTED_HITL_SIGNALS[contract.engine_id]
+            self.assertIn(hitl_signal, declared_signal_sources)
+            self.assertIn(hitl_signal, contract.ambiguity_signals)
             self.assertTrue(contract.risk_signals)
             self.assertLessEqual(
                 set(contract.risk_signals),
