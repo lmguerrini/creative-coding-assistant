@@ -153,6 +153,11 @@ import {
   type RuntimeCapabilityId,
   type RuntimeCapabilityReasonerSummary,
   type RuntimePreviewSupport,
+  type ReflectionLoopDepth,
+  type ReflectionLoopEstimate,
+  type ReflectionLoopHitlRecommendation,
+  type ReflectionLoopPriority,
+  type ReflectionLoopSummary,
   type RuntimeCompatibilityAssessmentSummary,
   type RuntimeCompatibilityConfidenceSummary,
   type RuntimeCompatibilityLevel,
@@ -285,6 +290,8 @@ export type AssistantStreamWorkflowMetadata = {
   self_evaluation_available?: boolean;
   creative_improvement_planner?: CreativeImprovementPlannerSummary | null;
   creative_improvement_planner_available?: boolean;
+  reflection_loop?: ReflectionLoopSummary | null;
+  reflection_loop_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -824,6 +831,11 @@ export function readWorkflowMetadata(
   const creativeImprovementPlannerAvailable =
     rawWorkflow.creative_improvement_planner_available === true ||
     creativeImprovementPlanner !== null;
+  const reflectionLoop = readReflectionLoopSummary(
+    rawWorkflow.reflection_loop ?? rawWorkflow.reflectionLoop
+  );
+  const reflectionLoopAvailable =
+    rawWorkflow.reflection_loop_available === true || reflectionLoop !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -1055,6 +1067,12 @@ export function readWorkflowMetadata(
       ? {
           creative_improvement_planner: creativeImprovementPlanner,
           creative_improvement_planner_available: true
+        }
+      : {}),
+    ...(reflectionLoopAvailable
+      ? {
+          reflection_loop: reflectionLoop,
+          reflection_loop_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -3063,6 +3081,169 @@ function readCreativeImprovementPrioritySummaryList(
       }
     ];
   });
+}
+
+const reflectionLoopPriorities = [
+  "critical",
+  "high",
+  "medium",
+  "low",
+  "none"
+] as const satisfies readonly ReflectionLoopPriority[];
+
+const reflectionLoopDepths = [
+  "none",
+  "light",
+  "moderate",
+  "deep"
+] as const satisfies readonly ReflectionLoopDepth[];
+
+const reflectionLoopEstimates = [
+  "none",
+  "low",
+  "medium",
+  "high"
+] as const satisfies readonly ReflectionLoopEstimate[];
+
+const reflectionLoopHitlRecommendations = [
+  "not_needed",
+  "optional",
+  "recommended",
+  "required"
+] as const satisfies readonly ReflectionLoopHitlRecommendation[];
+
+export function readReflectionLoopSummary(
+  value: unknown
+): ReflectionLoopSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const serializationVersion =
+    readStringField(value, "serialization_version") ??
+    readStringField(value, "serializationVersion");
+  const reflectionConfidence =
+    readFiniteNumberField(value, "reflection_confidence") ??
+    readFiniteNumberField(value, "reflectionConfidence");
+  const reflectionSummary =
+    readStringField(value, "reflection_summary") ??
+    readStringField(value, "reflectionSummary");
+  const reflectionRequired =
+    readBooleanField(value, "reflection_required") ??
+    readBooleanField(value, "reflectionRequired");
+  const reflectionPriority = readStringUnion(
+    value,
+    "reflection_priority",
+    "reflectionPriority",
+    reflectionLoopPriorities
+  );
+  const reflectionDepth = readStringUnion(
+    value,
+    "reflection_depth",
+    "reflectionDepth",
+    reflectionLoopDepths
+  );
+  const expectedQualityGain = readStringUnion(
+    value,
+    "expected_quality_gain",
+    "expectedQualityGain",
+    reflectionLoopEstimates
+  );
+  const expectedRiskReduction = readStringUnion(
+    value,
+    "expected_risk_reduction",
+    "expectedRiskReduction",
+    reflectionLoopEstimates
+  );
+  const expectedCost = readStringUnion(
+    value,
+    "expected_cost",
+    "expectedCost",
+    reflectionLoopEstimates
+  );
+  const expectedLatency = readStringUnion(
+    value,
+    "expected_latency",
+    "expectedLatency",
+    reflectionLoopEstimates
+  );
+  const confidenceAfterReflection =
+    readFiniteNumberField(value, "confidence_after_reflection") ??
+    readFiniteNumberField(value, "confidenceAfterReflection");
+  const hitlRecommendation = readStringUnion(
+    value,
+    "hitl_recommendation",
+    "hitlRecommendation",
+    reflectionLoopHitlRecommendations
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "reflection_loop_engine" ||
+    serializationVersion !== "v1" ||
+    reflectionConfidence === null ||
+    !reflectionSummary ||
+    reflectionRequired === null ||
+    !reflectionPriority ||
+    !reflectionDepth ||
+    !expectedQualityGain ||
+    !expectedRiskReduction ||
+    !expectedCost ||
+    !expectedLatency ||
+    confidenceAfterReflection === null ||
+    !hitlRecommendation ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    serializationVersion,
+    reflectionConfidence,
+    reflectionSummary,
+    reflectionRequired,
+    reflectionPriority,
+    reflectionRationale: readStringListField(
+      value,
+      "reflection_rationale",
+      "reflectionRationale"
+    ),
+    reflectionDepth,
+    expectedQualityGain,
+    expectedRiskReduction,
+    expectedCost,
+    expectedLatency,
+    confidenceAfterReflection,
+    unresolvedQuestions: readStringListField(
+      value,
+      "unresolved_questions",
+      "unresolvedQuestions"
+    ),
+    refinementCandidates: readStringListField(
+      value,
+      "refinement_candidates",
+      "refinementCandidates"
+    ),
+    stopConditions: readStringListField(
+      value,
+      "stop_conditions",
+      "stopConditions"
+    ),
+    hitlRecommendation,
+    promptGuidance,
+    evidence: readStringListField(value, "evidence", "evidence"),
+    authorityBoundary
+  };
 }
 
 export function readArtifactRefinerSummary(
@@ -7947,6 +8128,7 @@ const creativeReasoningEvidenceSources = [
   "creative_critic",
   "self_evaluation",
   "creative_improvement_planner",
+  "reflection_loop",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

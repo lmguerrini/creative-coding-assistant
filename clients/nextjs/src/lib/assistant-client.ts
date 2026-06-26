@@ -659,6 +659,46 @@ export type CreativeImprovementPlannerSummary = {
   authorityBoundary: string;
 };
 
+export type ReflectionLoopPriority =
+  | "critical"
+  | "high"
+  | "medium"
+  | "low"
+  | "none";
+
+export type ReflectionLoopDepth = "none" | "light" | "moderate" | "deep";
+
+export type ReflectionLoopEstimate = "none" | "low" | "medium" | "high";
+
+export type ReflectionLoopHitlRecommendation =
+  | "not_needed"
+  | "optional"
+  | "recommended"
+  | "required";
+
+export type ReflectionLoopSummary = {
+  role: "reflection_loop_engine";
+  serializationVersion: "v1";
+  reflectionConfidence: number;
+  reflectionSummary: string;
+  reflectionRequired: boolean;
+  reflectionPriority: ReflectionLoopPriority;
+  reflectionRationale: string[];
+  reflectionDepth: ReflectionLoopDepth;
+  expectedQualityGain: ReflectionLoopEstimate;
+  expectedRiskReduction: ReflectionLoopEstimate;
+  expectedCost: ReflectionLoopEstimate;
+  expectedLatency: ReflectionLoopEstimate;
+  confidenceAfterReflection: number;
+  unresolvedQuestions: string[];
+  refinementCandidates: string[];
+  stopConditions: string[];
+  hitlRecommendation: ReflectionLoopHitlRecommendation;
+  promptGuidance: string[];
+  evidence: string[];
+  authorityBoundary: string;
+};
+
 export type ArtifactRefinerSummary = {
   role: "artifact_refiner";
   refinementConfidence: number;
@@ -1949,6 +1989,7 @@ export type CreativeReasoningEvidenceSource =
   | "creative_critic"
   | "self_evaluation"
   | "creative_improvement_planner"
+  | "reflection_loop"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {

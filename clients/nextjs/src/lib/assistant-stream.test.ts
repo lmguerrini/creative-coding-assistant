@@ -1566,6 +1566,46 @@ function creativeImprovementPlannerFixture() {
   };
 }
 
+function reflectionLoopFixture() {
+  return {
+    role: "reflection_loop_engine",
+    serialization_version: "v1",
+    reflection_confidence: 0.79,
+    reflection_summary:
+      "Reflection Loop estimates moderate advisory reflection value without triggering loops.",
+    reflection_required: true,
+    reflection_priority: "medium",
+    reflection_rationale: [
+      "Aggregate reflection risk score is 4.",
+      "Reflection remains advisory and cannot execute refinement."
+    ],
+    reflection_depth: "light",
+    expected_quality_gain: "medium",
+    expected_risk_reduction: "low",
+    expected_cost: "low",
+    expected_latency: "low",
+    confidence_after_reflection: 0.86,
+    unresolved_questions: [
+      "Should the runtime caveat be resolved before expanding scope?"
+    ],
+    refinement_candidates: [
+      "Future candidate from self_eval_gap_1: Runtime alignment needs stronger caveats."
+    ],
+    stop_conditions: [
+      "Do not trigger an automatic reflection loop from this metadata."
+    ],
+    hitl_recommendation: "recommended",
+    prompt_guidance: [
+      "Use Reflection Loop metadata only to explain theoretical improvement value."
+    ],
+    evidence: [
+      "Authority boundary verified: metadata-only reflection planning."
+    ],
+    authority_boundary:
+      "The Reflection Loop Engine evaluates theoretical refinement value only; it does not trigger refinement."
+  };
+}
+
 function artifactRefinerFixture() {
   return {
     role: "artifact_refiner",
@@ -5256,6 +5296,55 @@ describe("assistant stream client", () => {
         ]
       },
       creative_improvement_planner_available: true
+    });
+  });
+
+  it("hydrates reflection loop workflow metadata", () => {
+    const reflectionLoop = reflectionLoopFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 25,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          reflection_loop: reflectionLoop,
+          reflection_loop_available: true
+        }
+      }
+    };
+
+    expect(readWorkflowMetadata(event)).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      reflection_loop: {
+        role: "reflection_loop_engine",
+        serializationVersion: "v1",
+        reflectionConfidence: 0.79,
+        reflectionRequired: true,
+        reflectionPriority: "medium",
+        reflectionDepth: "light",
+        expectedQualityGain: "medium",
+        expectedRiskReduction: "low",
+        confidenceAfterReflection: 0.86,
+        hitlRecommendation: "recommended",
+        refinementCandidates: [
+          "Future candidate from self_eval_gap_1: Runtime alignment needs stronger caveats."
+        ]
+      },
+      reflection_loop_available: true
     });
   });
 
