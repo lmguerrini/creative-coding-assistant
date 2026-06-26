@@ -33,7 +33,7 @@ Use this matrix together with:
 | V3.2 | Generative Design Core extends the stored creative brief with design metadata | Retrieval and memory continue to ground higher-level design guidance | Same compact runtime graph; no runtime auto-selection or provider routing added | Existing workstation surfaces now expose richer creative metadata |
 | V3.3 | Artifact Intelligence extends the stored creative/design brief with artifact planning, compatibility, critique, refinement, synthesis, merge, export intelligence, and engine contract metadata | Retrieval and memory continue to ground upstream planning; no new knowledge runtime is introduced | Same compact runtime graph; artifact metadata is serialized through workflow payloads without export execution, runtime auto-selection, provider routing, retries, or preview changes | Next.js stream hydration reads artifact summaries and the engine contract registry for inspector/workflow surfaces |
 | V3.4 | Creative Evaluation adds metadata-only critic, self-evaluation, improvement, reflection, confidence, score, consistency, report, and evaluation engine-contract metadata | Retrieval and memory continue to ground evaluation context without introducing a new knowledge runtime | Evaluation metadata is serialized through workflow payloads without changing provider routing, runtime selection, artifact execution, autonomous retries, or preview behavior | Next.js stream hydration reads evaluation summaries and the engine contract registry for future inspector/workflow surfaces |
-| V3.5 | Creative Workstation is the planned workstation-focused increment after V3.4 | Knowledge surfaces can become more operator-legible without changing retrieval ownership | Execution metadata can be exposed more clearly without adding hidden runtime behavior | Workstation surfaces become the primary focus for usability, inspection, and operator flow |
+| V3.5 | Creative Workstation exposes state, session, workflow, provenance, timeline, inspector, dashboard, and workstation contract metadata without changing generation behavior | Knowledge surfaces become more operator-legible without changing retrieval ownership | Execution metadata is exposed more clearly without adding hidden runtime behavior | Workstation surfaces become the primary focus for usability, inspection, and operator flow |
 | V3.6 | Stabilization & Refactor Pass is the planned hardening increment after V3.5 | Knowledge boundaries can be simplified without changing source-of-truth ownership | Runtime contracts, validation seams, and serialization paths can be stabilized without feature expansion | Experience surfaces can be consolidated without changing capability scope |
 | V4 | Agentic Studio decomposes more internal creative work into bounded collaborative systems | Deeper agent-facing knowledge packets may emerge here | More inspectable orchestration paths may appear here | Agentic Studio becomes the main collaboration surface |
 | V5 | Core Engine remains creative-first but hands more optimization work outward | Knowledge signals can guide execution optimization and production policy | Execution Optimization & Production Intelligence becomes the primary expansion | Experience surfaces emphasize production telemetry and operational controls |
@@ -47,16 +47,40 @@ Use this matrix together with:
 - A single engine can span many versions without requiring a rename of the
   roadmap.
 
+## V3.5 Workstation Contracts
+
+The Creative Workstation exposes a metadata-only contract registry for seven
+stable V3.5 surfaces. The registry describes existing workstation surface
+inputs, exposed metadata, exposed signals, missing-metadata behavior, and named
+future hooks for V4, V5, and V6 consumers.
+
+| Contract | Primary surface | Downstream boundary |
+| --- | --- | --- |
+| `workstation_state` | Session, run, selection, panel, readiness, and metadata status | Shared context packet for workstation-aware review surfaces |
+| `session_intelligence` | Session readiness, completion, warnings, and operator next actions | Advisory context for future agentic studio handoff |
+| `workflow_explorer` | Workflow nodes, edges, active step, runtime status, and progress | Workflow context for future agentic review without changing graph control |
+| `provenance_engine` | Evidence, dependency, artifact, evaluation, final payload, and missing-source provenance | Lineage context for future creative evolution without external fetching |
+| `creative_timeline` | Ordered request, planning, retrieval, creative, artifact, evaluation, and final stages | Timeline context for future lineage and learning signals |
+| `v3_inspector_panels` | Creative intelligence, generative design, artifact intelligence, evaluation, and provenance records | Review context for future agentic and adaptive execution consumers |
+| `workstation_dashboard` | Quality, confidence, consistency, readiness, runtime fit, evaluation, workflow health, and HITL cards | Operator policy signal for future adaptive execution without autonomous action |
+
+These contracts do not implement V4 agents, V5 execution optimization, V6
+learning, provider routing, runtime selection, autonomous retries, preview
+execution, artifact modification, or generated output changes. They define the
+metadata boundary that future systems can consume without making the current
+workstation responsible for future behavior.
+
 ## Current Boundary
 
-- V3.4 is still metadata, evaluation guidance, workflow serialization, and
-  stream hydration, not evaluation behavior changes, scoring changes, artifact
-  execution, artifact modification, artifact export, runtime selection, runtime
-  repair, provider/model routing, retries, preview changes, or future V4/V5/V6
-  system implementation.
-- The roadmap after V3.4 remains V3.5 Creative Workstation, V3.6 Stabilization
-  & Refactor Pass, V4 Agentic Studio, V5
-  Execution Optimization & Production Intelligence, and V6 HoloGenesis Core OS.
+- V3.5 is still metadata projection, workstation inspection, workflow
+  visibility, provenance visibility, timeline organization, dashboard
+  summarization, and surface contract exposure, not agent behavior, execution
+  optimization, learning behavior, artifact execution, artifact modification,
+  artifact export, runtime selection, runtime repair, provider/model routing,
+  autonomous retries, or preview behavior changes.
+- The roadmap after V3.5 remains V3.6 Stabilization & Refactor Pass, V4
+  Agentic Studio, V5 Execution Optimization & Production Intelligence, and V6
+  HoloGenesis Core OS.
 - The current runtime graph remains the source of truth for execution order.
 - The matrix is a planning and architecture aid, not a claim that every engine
   is already a separate runtime subsystem.

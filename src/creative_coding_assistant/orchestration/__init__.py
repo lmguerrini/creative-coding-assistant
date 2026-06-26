@@ -46,6 +46,9 @@ _EVALUATION_REPORTS = "creative_coding_assistant.orchestration.evaluation_report
 _EVALUATION_ENGINE_CONTRACTS = (
     "creative_coding_assistant.orchestration.evaluation_engine_contracts"
 )
+_WORKSTATION_ENGINE_CONTRACTS = (
+    "creative_coding_assistant.orchestration.workstation_contracts"
+)
 _ARTIFACT_PLANNER = "creative_coding_assistant.orchestration.artifact_planner"
 _ARTIFACT_DEPENDENCY_GRAPH = (
     "creative_coding_assistant.orchestration.artifact_dependency_graph"
@@ -144,6 +147,10 @@ _EXPORT_MAP = {
     "EvaluationEngineCostMetadata": _EVALUATION_ENGINE_CONTRACTS,
     "EvaluationEngineEvidenceContract": _EVALUATION_ENGINE_CONTRACTS,
     "EvaluationEngineLatencyMetadata": _EVALUATION_ENGINE_CONTRACTS,
+    "WorkstationEngineContract": _WORKSTATION_ENGINE_CONTRACTS,
+    "WorkstationEngineContractRegistry": _WORKSTATION_ENGINE_CONTRACTS,
+    "WorkstationSurfaceCostMetadata": _WORKSTATION_ENGINE_CONTRACTS,
+    "WorkstationSurfaceLatencyMetadata": _WORKSTATION_ENGINE_CONTRACTS,
     "ArtifactCapabilityConfidence": _ARTIFACT_CAPABILITY_MATRIX,
     "ArtifactCapabilityFit": _ARTIFACT_CAPABILITY_MATRIX,
     "ArtifactCapabilityMatrix": _ARTIFACT_CAPABILITY_MATRIX,
@@ -460,6 +467,8 @@ _EXPORT_MAP = {
     "derive_evaluation_report_profile": _EVALUATION_REPORTS,
     "evaluation_report_prompt_lines": _EVALUATION_REPORTS,
     "evaluation_engine_contract_by_id": _EVALUATION_ENGINE_CONTRACTS,
+    "workstation_engine_contract_by_id": _WORKSTATION_ENGINE_CONTRACTS,
+    "workstation_engine_contracts": _WORKSTATION_ENGINE_CONTRACTS,
     "derive_runtime_capability_profile": _RUNTIME_CAPABILITIES,
     "runtime_capability_prompt_lines": _RUNTIME_CAPABILITIES,
     "derive_runtime_compatibility_profile": _RUNTIME_COMPATIBILITY,
