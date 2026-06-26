@@ -19,6 +19,9 @@ The V3.4 metadata planning pass still runs inside the single `planning`
 runtime node. V3.5 Creative Workstation does not add LangGraph runtime nodes;
 it hydrates workstation surfaces from the existing workspace snapshot, stream
 events, workflow trace, V3 metadata, and static workstation surface contracts.
+V3.6 keeps the same runtime node set while stabilizing graph registration,
+stream/event payload helpers, workflow serialization, and local backend
+mounting around the existing implementation.
 `_planning_node()` deterministically derives and stores the V3.1 Creative
 Cognition metadata, the V3.2 Generative Design metadata, the V3.3 Artifact
 Intelligence metadata, and the V3.4 Creative Evaluation metadata:

@@ -1,6 +1,6 @@
 # Creative Coding Assistant
 
-Creative Coding Assistant is a V3.5 AI-native creative translation
+Creative Coding Assistant is a V3.6-stabilized AI-native creative translation
 workstation designed to transform symbolic, conceptual, geometric, stylistic,
 and multimodal intent into professional audio, visual, and audiovisual
 creative systems.
@@ -14,6 +14,10 @@ creative timeline, V3 inspector panels, dashboard summaries, and surface
 contracts over existing metadata. The product also includes multi-artifact
 generation, multi-preview comparison, controlled runtime preview, critique and
 scoring, parameter control, observability, validation, and export preparation.
+V3.6 is a stabilization and refactor pass over the completed V3 surface: it
+hardens workflow graph assembly, stream and payload boundaries, local backend
+mounting, shared orchestration utilities, and documentation alignment without
+expanding generation behavior or future-version runtime scope.
 
 The current product scope is a creative coding platform rather than a generic
 chat assistant. Requests can be translated from intent, symbols, geometry,
@@ -756,8 +760,10 @@ The frontend expects two backend bridge endpoints by default:
 These bridges are exposed as importable WSGI applications in
 `creative_coding_assistant.api`:
 
+- `create_backend_dev_app`
 - `create_assistant_streaming_app`
 - `create_workspace_session_app`
+- `run_backend_dev_server`
 
 Frontend defaults:
 
