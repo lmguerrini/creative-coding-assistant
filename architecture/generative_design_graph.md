@@ -31,6 +31,7 @@ It is the dense companion to:
   Creative Evaluation metadata, and V3.5 workstation inspection surfaces, but
   it is still a future V4 multi-agent blueprint rather than an implemented
   multi-agent runtime
+- V3.6 stabilization keeps these V3.2 dependency relationships unchanged
 
 ```mermaid
 flowchart LR

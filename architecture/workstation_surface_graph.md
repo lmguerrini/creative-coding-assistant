@@ -3,7 +3,8 @@
 This document describes the V3.5 Creative Workstation surface layer. The
 workstation turns existing workflow, artifact, evaluation, provenance, and
 session metadata into inspectable product surfaces without changing backend
-generation behavior.
+generation behavior. V3.6 keeps the same surface list and stabilizes the
+documentation, stream hydration, and backend bridge boundaries around it.
 
 It is the Experience Layer companion to:
 
@@ -34,6 +35,8 @@ It is the Experience Layer companion to:
 - The workstation does not add provider routing, runtime selection, execution
   optimization, artifact execution, artifact modification, autonomous retries,
   preview execution, or generated output changes.
+- V3.6 stabilization keeps the workstation as an inspection layer over existing
+  stream and workspace metadata.
 
 ```mermaid
 flowchart LR

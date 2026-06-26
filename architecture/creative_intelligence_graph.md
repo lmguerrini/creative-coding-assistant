@@ -1,11 +1,13 @@
 # Creative Intelligence Pipeline
 
 This document keeps the historical `creative_intelligence_graph.*` filename, but
-through V3.5 it serves as the readable internal pipeline view. It shows how the
+through V3.6 it serves as the readable internal pipeline view. It shows how the
 system moves from V3.1 Creative Cognition metadata into the V3.2 Generative
 Design Core, V3.3 Artifact Intelligence, V3.4 Creative Evaluation, and V3.5
 Creative Workstation metadata surfaces before handing stored metadata to
-downstream runtime and product consumers.
+downstream runtime and product consumers. V3.6 does not add another pipeline
+stage; it stabilizes how the completed V3 surface is registered, serialized,
+documented, and hydrated.
 
 It documents the deterministic capability flow implemented inside:
 
@@ -43,6 +45,7 @@ It documents the deterministic capability flow implemented inside:
   execute artifacts, modify artifacts, export artifacts, select runtimes,
   change provider routing, change previews, trigger retries, or implement
   future V4/V5/V6 systems
+- V3.6 stabilization keeps the same runtime node set and metadata boundaries
 
 ```mermaid
 flowchart TB
@@ -214,7 +217,9 @@ The raw Mermaid source for this readable pipeline is available in
   Creative Evaluation layer, and V3.5 Creative Workstation surfaces are staged
   as coherent downstream layers and natural decomposition seams for future V4
   Agentic Studio work
-- V3.6 Stabilization & Refactor Pass remains the next hardening direction
+- V3.6 Stabilization & Refactor Pass hardens registration, serialization,
+  shared utilities, backend bridge mounting, and documentation around the same
+  V3 pipeline without adding new runtime behavior
 - V5 Execution Optimization & Production Intelligence and V6 HoloGenesis Core
   OS remain future architecture directions, not implemented runtime systems
 - The current pipeline is still synchronous and bounded; it is a future V4 multi-agent blueprint, not an implemented multi-agent runtime

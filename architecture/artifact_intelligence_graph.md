@@ -40,6 +40,8 @@ It is the dense companion to:
   previews, trigger retries, or implement future V4/V5/V6 systems.
 - V4 Agentic Studio, V5 Execution Optimization & Production Intelligence, and
   V6 HoloGenesis Core OS consumers are future extension points only.
+- V3.6 stabilization keeps these V3.3 dependency and contract boundaries
+  unchanged.
 
 ```mermaid
 flowchart LR
