@@ -1,10 +1,11 @@
 # Creative Intelligence Pipeline
 
 This document keeps the historical `creative_intelligence_graph.*` filename, but
-for V3.3 it now serves as the readable internal pipeline view. It shows how the
+through V3.5 it serves as the readable internal pipeline view. It shows how the
 system moves from V3.1 Creative Cognition metadata into the V3.2 Generative
-Design Core and V3.3 Artifact Intelligence before handing stored metadata to
-downstream runtime consumers.
+Design Core, V3.3 Artifact Intelligence, V3.4 Creative Evaluation, and V3.5
+Creative Workstation metadata surfaces before handing stored metadata to
+downstream runtime and product consumers.
 
 It documents the deterministic capability flow implemented inside:
 
@@ -26,6 +27,9 @@ It documents the deterministic capability flow implemented inside:
 - The V3.3 Artifact Intelligence dependency graph and engine contract matrix
   live in [artifact_intelligence_graph.md](artifact_intelligence_graph.md) and
   [artifact_intelligence_graph.mmd](artifact_intelligence_graph.mmd)
+- The V3.5 Creative Workstation surface graph and contract boundary live in
+  [workstation_surface_graph.md](workstation_surface_graph.md) and
+  [workstation_surface_graph.mmd](workstation_surface_graph.mmd)
 - This file is intentionally the human-readable pipeline, not the exhaustive
   dependency reference
 - The Mermaid below is a compact serpentine readability view that folds one
@@ -35,9 +39,10 @@ It documents the deterministic capability flow implemented inside:
   single `planning` runtime node; they are not separate LangGraph nodes
 - The serpentine layout does not imply separate LangGraph runtime nodes,
   branching semantics, changed provider routing, or changed preview behavior
-- V3.3 remains metadata-only artifact guidance. It does not execute artifacts,
-  modify artifacts, export artifacts, select runtimes, change provider routing,
-  change previews, trigger retries, or implement future V4/V5/V6 systems
+- The pipeline remains metadata-only guidance and inspection. It does not
+  execute artifacts, modify artifacts, export artifacts, select runtimes,
+  change provider routing, change previews, trigger retries, or implement
+  future V4/V5/V6 systems
 
 ```mermaid
 flowchart TB
@@ -45,8 +50,10 @@ flowchart TB
     classDef cognition fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
     classDef design fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px;
     classDef artifact fill:#EEF2FF,stroke:#4338CA,color:#312E81,stroke-width:1.5px;
+    classDef evaluation fill:#ECFDF5,stroke:#047857,color:#064E3B,stroke-width:1.5px;
     classDef store fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px;
     classDef consumer fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px;
+    classDef workstation fill:#FDF2F8,stroke:#BE185D,color:#831843,stroke-width:1.5px;
     classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
 
     subgraph row_1[" "]
@@ -105,14 +112,20 @@ flowchart TB
 
     subgraph row_7[" "]
         direction LR
-        contracts["31. Engine Contracts<br/>Artifact Engine Contracts"]:::artifact
-        metadata_store["32. Metadata Store<br/>AssistantWorkflowState +<br/>PromptInputResponse"]:::store
-        director["33. Director<br/>Creative Assistant Director runtime node"]:::consumer
-        reasoning["34. Reasoning<br/>Creative Reasoning Engine runtime node"]:::consumer
-        prompt_rendering["35. Prompt Rendering<br/>provider prompt sections"]:::consumer
+        contracts["31. Artifact Contracts<br/>Artifact Engine Contracts"]:::artifact
+        evaluation["32. Creative Evaluation<br/>critic + confidence + score + report + contracts"]:::evaluation
+        metadata_store["33. Metadata Store<br/>AssistantWorkflowState +<br/>PromptInputResponse"]:::store
+        director["34. Director<br/>Creative Assistant Director runtime node"]:::consumer
+        reasoning["35. Reasoning<br/>Creative Reasoning Engine runtime node"]:::consumer
     end
 
-    note["Serpentine readability view only<br/>Not separate LangGraph runtime nodes<br/>Use generative_design_graph.* and artifact_intelligence_graph.*<br/>for dense relationships"]:::note
+    subgraph row_8[" "]
+        direction RL
+        workstation["37. Workstation Hydration<br/>state + explorer + provenance + timeline + panels + dashboard"]:::workstation
+        prompt_rendering["36. Prompt Rendering<br/>provider prompt sections"]:::consumer
+    end
+
+    note["Serpentine readability view only<br/>Not separate LangGraph runtime nodes<br/>Use generative_design_graph.*, artifact_intelligence_graph.*,<br/>and workstation_surface_graph.* for dense relationships"]:::note
 
     prompt_input --> planning --> intent --> hierarchy --> strategy
     strategy --> techniques --> plan --> constraints --> runtime_reasoner --> tradeoffs
@@ -120,10 +133,11 @@ flowchart TB
     procedural --> generative --> motif --> emotion --> cross --> scene
     scene --> artifact_plan --> dependency --> compatibility --> capability --> artifact_strategy
     artifact_strategy --> artifact_critic --> artifact_refiner --> artifact_synthesis --> merge_planner --> export_intelligence
-    export_intelligence --> contracts --> metadata_store
+    export_intelligence --> contracts --> evaluation --> metadata_store
     metadata_store --> director
     metadata_store --> reasoning
     metadata_store --> prompt_rendering
+    metadata_store --> workstation
     director --> reasoning --> prompt_rendering
     note -.-> planning
 
@@ -134,6 +148,7 @@ flowchart TB
     style row_5 fill:none,stroke:none
     style row_6 fill:none,stroke:none
     style row_7 fill:none,stroke:none
+    style row_8 fill:none,stroke:none
 ```
 
 The raw Mermaid source for this readable pipeline is available in
@@ -162,11 +177,20 @@ The raw Mermaid source for this readable pipeline is available in
   `Artifact Export Intelligence`, and `Artifact Engine Contracts`
 - The `Metadata Store` is the combination of `AssistantWorkflowState` and
   `PromptInputResponse`, where all typed results are persisted after planning
+- The V3.4 Creative Evaluation layer derives critic, self-evaluation,
+  improvement, reflection, confidence, score, consistency, report, and
+  evaluation contract metadata from the stored creative, design, and artifact
+  metadata
 - The `Creative Assistant Director runtime node`, `Creative Reasoning Engine
   runtime node`, and `prompt rendering runtime node` consume the stored
   metadata after the single `planning` runtime node completes
 - Artifact profile sections feed prompt rendering; Artifact Engine Contracts
-  remain metadata-only for workflow serialization and stream hydration
+  and Evaluation Engine Contracts remain metadata-only for workflow
+  serialization and stream hydration
+- V3.5 Workstation Hydration reads the workspace snapshot, stream events,
+  workflow trace, and V3 metadata to drive workstation state, session
+  intelligence, workflow explorer, provenance, timeline, inspector panels, and
+  dashboard surfaces
 - The serpentine layout is a readability view only and does not imply separate
   LangGraph runtime nodes, changed runtime execution, or new branching logic
 
@@ -186,11 +210,11 @@ The raw Mermaid source for this readable pipeline is available in
 
 - The cognition spine remains a strong candidate for future interpretation,
   planning, and feasibility sub-agents
-- The V3.2 Generative Design Core, V3.3 Artifact Intelligence stack, and V3.4
-  Creative Evaluation layer are staged as coherent downstream layers and
-  natural decomposition seams for future V4 Agentic Studio work
-- V3.5 Creative Workstation and V3.6 Stabilization & Refactor Pass remain
-  future increments after V3.4
+- The V3.2 Generative Design Core, V3.3 Artifact Intelligence stack, V3.4
+  Creative Evaluation layer, and V3.5 Creative Workstation surfaces are staged
+  as coherent downstream layers and natural decomposition seams for future V4
+  Agentic Studio work
+- V3.6 Stabilization & Refactor Pass remains the next hardening direction
 - V5 Execution Optimization & Production Intelligence and V6 HoloGenesis Core
   OS remain future architecture directions, not implemented runtime systems
 - The current pipeline is still synchronous and bounded; it is a future V4 multi-agent blueprint, not an implemented multi-agent runtime

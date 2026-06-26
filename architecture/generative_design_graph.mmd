@@ -27,6 +27,7 @@ flowchart LR
     director["Creative Assistant Director runtime node"]:::consumer
     reasoning["Creative Reasoning Engine runtime node"]:::consumer
     prompt_rendering["Prompt rendering runtime node"]:::consumer
+    workstation["V3.5 Workstation surfaces<br/>timeline + inspector + dashboard"]:::consumer
     note["Selective graph only<br/>Use the matrix below for exhaustive reads"]:::note
 
     brief --> procedural
@@ -72,5 +73,6 @@ flowchart LR
     metadata_store --> director
     metadata_store --> reasoning
     metadata_store --> prompt_rendering
+    metadata_store --> workstation
     director --> reasoning --> prompt_rendering
     note -.-> design_core

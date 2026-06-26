@@ -13,15 +13,17 @@ Use this matrix together with:
   Generative Design dependency graph and matrix
 - [artifact_intelligence_graph.md](artifact_intelligence_graph.md) for the
   V3.3 Artifact Intelligence dependency graph and engine contract registry
+- [workstation_surface_graph.md](workstation_surface_graph.md) for the V3.5
+  Creative Workstation surface graph and contract boundary
 
 ## Engine Layers
 
 | Engine | Purpose | Current scope | Key examples |
 | --- | --- | --- | --- |
-| Core Engine | Owns creative translation, planning, cognition, generative design, artifact intelligence, creative evaluation, critique, and final prompt construction. | Active and implemented through V2.5, V3.1, V3.2, V3.3, and V3.4. | Creative Translation, Creative Planning, Creative Cognition Core, Generative Design Core, Artifact Intelligence, Creative Evaluation, Director, Creative Reasoning |
+| Core Engine | Owns creative translation, planning, cognition, generative design, artifact intelligence, creative evaluation, critique, and final prompt construction. | Active and implemented through V2.5, V3.1, V3.2, V3.3, V3.4, and the V3.5 workstation metadata consumers. | Creative Translation, Creative Planning, Creative Cognition Core, Generative Design Core, Artifact Intelligence, Creative Evaluation, Director, Creative Reasoning |
 | Knowledge Engine | Owns retrieval, source grounding, memory, and future knowledge reasoning interfaces. | Active and implemented for retrieval and memory; future HoloMind integration remains outside the current runtime. | Source registry, KB retrieval, prompt memory, grounded prompt input |
 | Execution Engine | Owns workflow orchestration, provider execution, validation, artifact extraction, preview preparation, metadata serialization, and future optimization. | Active and implemented for the bounded LangGraph runtime; V5 expands this layer into Execution Optimization & Production Intelligence. | Workflow graph, generation, review gate, refinement loop, artifact extraction, preview preparation, workflow metadata payloads |
-| Experience Layer | Owns workstation UX, preview surfaces, inspector views, comparison, export, stream hydration, and operator controls. | Active and implemented in the Next.js workstation; V4 expands this layer into Agentic Studio collaboration patterns. | Workstation shell, preview shelf, inspectors, comparison workspace, export surfaces, artifact metadata hydration |
+| Experience Layer | Owns workstation UX, preview surfaces, inspector views, comparison, export, stream hydration, operator controls, and workstation surface contracts. | Active and implemented in the Next.js workstation; V4 expands this layer into Agentic Studio collaboration patterns. | Workstation shell, preview shelf, inspectors, comparison workspace, provenance, timeline, dashboard, export surfaces, V3 metadata hydration |
 
 ## Version Vs Engine View
 
@@ -49,10 +51,11 @@ Use this matrix together with:
 
 ## V3.5 Workstation Contracts
 
-The Creative Workstation exposes a metadata-only contract registry for seven
-stable V3.5 surfaces. The registry describes existing workstation surface
-inputs, exposed metadata, exposed signals, missing-metadata behavior, and named
-future hooks for V4, V5, and V6 consumers.
+The Creative Workstation exposes a metadata-only
+`workstation_engine_contract_registry.v1` registry for seven stable V3.5
+surfaces. The registry describes existing workstation surface inputs, exposed
+metadata, exposed signals, missing-metadata behavior, and named future hooks
+for V4, V5, and V6 consumers.
 
 | Contract | Primary surface | Downstream boundary |
 | --- | --- | --- |

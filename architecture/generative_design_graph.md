@@ -15,6 +15,9 @@ It is the dense companion to:
 - [artifact_intelligence_graph.md](artifact_intelligence_graph.md) and
   [artifact_intelligence_graph.mmd](artifact_intelligence_graph.mmd), which
   document the downstream V3.3 Artifact Intelligence pipeline
+- [workstation_surface_graph.md](workstation_surface_graph.md) and
+  [workstation_surface_graph.mmd](workstation_surface_graph.mmd), which
+  document the V3.5 workstation surfaces that inspect hydrated design metadata
 
 ## Scope And Boundary
 
@@ -24,8 +27,9 @@ It is the dense companion to:
   nodes with their own retries or failure routing
 - V3.2 remains metadata and design guidance, not code generation execution,
   runtime mutation, provider routing, or preview behavior changes
-- The current structure feeds the V3.3 Artifact Intelligence stack, but it is
-  still a future V4 multi-agent blueprint rather than an implemented
+- The current structure feeds the V3.3 Artifact Intelligence stack, V3.4
+  Creative Evaluation metadata, and V3.5 workstation inspection surfaces, but
+  it is still a future V4 multi-agent blueprint rather than an implemented
   multi-agent runtime
 
 ```mermaid
@@ -58,6 +62,7 @@ flowchart LR
     director["Creative Assistant Director runtime node"]:::consumer
     reasoning["Creative Reasoning Engine runtime node"]:::consumer
     prompt_rendering["Prompt rendering runtime node"]:::consumer
+    workstation["V3.5 Workstation surfaces<br/>timeline + inspector + dashboard"]:::consumer
     note["Selective graph only<br/>Use the matrix below for exhaustive reads"]:::note
 
     brief --> procedural
@@ -103,6 +108,7 @@ flowchart LR
     metadata_store --> director
     metadata_store --> reasoning
     metadata_store --> prompt_rendering
+    metadata_store --> workstation
     director --> reasoning --> prompt_rendering
     note -.-> design_core
 ```
@@ -145,3 +151,6 @@ The dependency matrix is the preferred way to show dense dependencies.
   metadata inside the same `planning` runtime node, then contributes artifact
   planning, compatibility, critique/refinement, merge, export, and engine
   contract metadata to workflow serialization and stream hydration
+- V3.5 workstation surfaces read hydrated V3.2 summaries through the creative
+  timeline, V3 inspector panels, and workstation dashboard so operators can
+  inspect design metadata without adding new backend graph nodes

@@ -16,6 +16,10 @@ It is the dense companion to:
 - [generative_design_graph.md](generative_design_graph.md) and
   [generative_design_graph.mmd](generative_design_graph.mmd), which document
   the V3.2 design dependency graph
+- [workstation_surface_graph.md](workstation_surface_graph.md) and
+  [workstation_surface_graph.mmd](workstation_surface_graph.mmd), which
+  document the V3.5 workstation surfaces that inspect artifact metadata,
+  provenance, and readiness signals
 
 ## Scope And Boundary
 
@@ -28,6 +32,9 @@ It is the dense companion to:
 - Artifact Engine Contracts are intentionally not rendered into provider prompt
   text; the artifact profile sections are rendered, while the registry remains
   metadata-only.
+- V3.5 workstation surfaces read artifact metadata, artifact contract
+  summaries, provenance sources, readiness signals, and dashboard card inputs
+  from already-hydrated workflow and stream metadata.
 - V3.3 remains metadata-only guidance. It does not execute artifacts, modify
   artifacts, export artifacts, select runtimes, change provider routing, change
   previews, trigger retries, or implement future V4/V5/V6 systems.
@@ -65,6 +72,7 @@ flowchart LR
     reasoning["Creative Reasoning Engine<br/>runtime node"]:::consumer
     prompt["Prompt Rendering<br/>artifact profile sections"]:::consumer
     stream["Next.js stream hydration<br/>workflow metadata readers"]:::consumer
+    workstation["V3.5 Workstation surfaces<br/>provenance + timeline + inspector + dashboard"]:::consumer
     note["Metadata-only architecture<br/>No export execution, runtime selection,<br/>provider routing, retries, or preview changes"]:::note
 
     upstream --> planner --> dependency --> runtime --> capability --> strategy --> critic --> refiner --> synthesis --> merge --> export
@@ -85,6 +93,7 @@ flowchart LR
     store --> reasoning
     store --> prompt
     store --> stream
+    stream --> workstation
     director --> reasoning
     note -.-> artifact_stack
 ```
@@ -105,8 +114,8 @@ The raw Mermaid source for this detailed dependency view is available in
 | `Artifact Refiner` | `request`, `route_decision`, `artifact_plan`, `artifact_dependency_graph`, `runtime_compatibility`, `artifact_capability_matrix`, `multi_artifact_strategy`, `artifact_critic` | `artifact_refiner` | `Artifact Intelligence Synthesis`, `Artifact Merge Planner`, `Artifact Export Intelligence`, metadata store |
 | `Artifact Intelligence Synthesis` | `request`, `route_decision`, `artifact_plan`, `artifact_dependency_graph`, `runtime_compatibility`, `artifact_capability_matrix`, `multi_artifact_strategy`, `artifact_critic`, `artifact_refiner` | `artifact_intelligence_synthesis` | `Artifact Merge Planner`, `Artifact Export Intelligence`, metadata store |
 | `Artifact Merge Planner` | `request`, `route_decision`, `artifact_plan`, `artifact_dependency_graph`, `runtime_compatibility`, `artifact_capability_matrix`, `multi_artifact_strategy`, `artifact_critic`, `artifact_refiner`, `artifact_intelligence_synthesis` | `artifact_merge_planner` | `Artifact Export Intelligence`, metadata store |
-| `Artifact Export Intelligence` | `request`, `route_decision`, `artifact_plan`, `artifact_dependency_graph`, `runtime_compatibility`, `artifact_capability_matrix`, `multi_artifact_strategy`, `artifact_critic`, `artifact_refiner`, `artifact_intelligence_synthesis`, `artifact_merge_planner` | `artifact_export_intelligence` | metadata store, Director, Reasoning, prompt rendering, workflow serialization, stream hydration |
-| `Artifact Engine Contracts` | static contract registry for the ten Artifact Intelligence engines | `artifact_engine_contracts` | metadata store, workflow serialization, stream hydration, future V4 Agentic Studio / V5 Execution Optimization & Production Intelligence / V6 HoloGenesis Core OS consumers |
+| `Artifact Export Intelligence` | `request`, `route_decision`, `artifact_plan`, `artifact_dependency_graph`, `runtime_compatibility`, `artifact_capability_matrix`, `multi_artifact_strategy`, `artifact_critic`, `artifact_refiner`, `artifact_intelligence_synthesis`, `artifact_merge_planner` | `artifact_export_intelligence` | metadata store, Director, Reasoning, prompt rendering, workflow serialization, stream hydration, workstation surfaces |
+| `Artifact Engine Contracts` | static contract registry for the ten Artifact Intelligence engines | `artifact_engine_contracts` | metadata store, workflow serialization, stream hydration, workstation surfaces, future V4 Agentic Studio / V5 Execution Optimization & Production Intelligence / V6 HoloGenesis Core OS consumers |
 
 ## Downstream Consumption
 
@@ -126,3 +135,7 @@ The raw Mermaid source for this detailed dependency view is available in
   contract registry when available.
 - Next.js stream hydration reads artifact profile summaries and the Artifact
   Engine Contract registry from workflow metadata.
+- V3.5 workstation provenance, timeline, inspector panels, and dashboard
+  surfaces make the hydrated artifact metadata inspectable without changing
+  artifact generation, preview execution, export execution, or provider prompt
+  rendering.

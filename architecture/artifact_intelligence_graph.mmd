@@ -28,6 +28,7 @@ flowchart LR
     reasoning["Creative Reasoning Engine<br/>runtime node"]:::consumer
     prompt["Prompt Rendering<br/>artifact profile sections"]:::consumer
     stream["Next.js stream hydration<br/>workflow metadata readers"]:::consumer
+    workstation["V3.5 Workstation surfaces<br/>provenance + timeline + inspector + dashboard"]:::consumer
     note["Metadata-only architecture<br/>No artifact execution, modification, or export<br/>No runtime selection, provider routing,<br/>retries, preview changes, or future systems"]:::note
 
     upstream --> planner --> dependency --> runtime --> capability --> strategy --> critic --> refiner --> synthesis --> merge --> export
@@ -48,5 +49,6 @@ flowchart LR
     store --> reasoning
     store --> prompt
     store --> stream
+    stream --> workstation
     director --> reasoning
     note -.-> artifact_stack
