@@ -186,11 +186,11 @@ The raw Mermaid source for this readable pipeline is available in
 
 - The cognition spine remains a strong candidate for future interpretation,
   planning, and feasibility sub-agents
-- The V3.2 Generative Design Core and V3.3 Artifact Intelligence stack are
-  staged as coherent downstream layers and natural decomposition seams for
-  future V4 Agentic Studio work
-- V3.4 Creative Evaluation, V3.5 Creative Workstation, and V3.6 Stabilization
-  & Refactor Pass remain future increments after V3.3
+- The V3.2 Generative Design Core, V3.3 Artifact Intelligence stack, and V3.4
+  Creative Evaluation layer are staged as coherent downstream layers and
+  natural decomposition seams for future V4 Agentic Studio work
+- V3.5 Creative Workstation and V3.6 Stabilization & Refactor Pass remain
+  future increments after V3.4
 - V5 Execution Optimization & Production Intelligence and V6 HoloGenesis Core
   OS remain future architecture directions, not implemented runtime systems
 - The current pipeline is still synchronous and bounded; it is a future V4 multi-agent blueprint, not an implemented multi-agent runtime

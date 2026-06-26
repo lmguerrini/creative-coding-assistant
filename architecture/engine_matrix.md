@@ -16,9 +16,9 @@ Use this matrix together with:
 
 ## Engine Layers
 
-| Engine | Purpose | Current V3.3 scope | Key examples |
+| Engine | Purpose | Current scope | Key examples |
 | --- | --- | --- | --- |
-| Core Engine | Owns creative translation, planning, cognition, generative design, artifact intelligence, critique, and final prompt construction. | Active and implemented through V2.5, V3.1, V3.2, and V3.3. | Creative Translation, Creative Planning, Creative Cognition Core, Generative Design Core, Artifact Intelligence, Director, Creative Reasoning |
+| Core Engine | Owns creative translation, planning, cognition, generative design, artifact intelligence, creative evaluation, critique, and final prompt construction. | Active and implemented through V2.5, V3.1, V3.2, V3.3, and V3.4. | Creative Translation, Creative Planning, Creative Cognition Core, Generative Design Core, Artifact Intelligence, Creative Evaluation, Director, Creative Reasoning |
 | Knowledge Engine | Owns retrieval, source grounding, memory, and future knowledge reasoning interfaces. | Active and implemented for retrieval and memory; future HoloMind integration remains outside the current runtime. | Source registry, KB retrieval, prompt memory, grounded prompt input |
 | Execution Engine | Owns workflow orchestration, provider execution, validation, artifact extraction, preview preparation, metadata serialization, and future optimization. | Active and implemented for the bounded LangGraph runtime; V5 expands this layer into Execution Optimization & Production Intelligence. | Workflow graph, generation, review gate, refinement loop, artifact extraction, preview preparation, workflow metadata payloads |
 | Experience Layer | Owns workstation UX, preview surfaces, inspector views, comparison, export, stream hydration, and operator controls. | Active and implemented in the Next.js workstation; V4 expands this layer into Agentic Studio collaboration patterns. | Workstation shell, preview shelf, inspectors, comparison workspace, export surfaces, artifact metadata hydration |

@@ -131,7 +131,7 @@ flowchart TB
     subgraph phase_3["Phase 3: Prompt preparation"]
         direction TB
         prompt_input["Prompt input<br/>build prompt inputs<br/>complete or skip"]
-        planning["Planning<br/>derive cognition + generative design + artifact intelligence metadata<br/>complete or skip"]
+        planning["Planning<br/>derive cognition + generative design + artifact intelligence + evaluation metadata<br/>complete or skip"]
         director["Director<br/>derive bounded assistant-director guidance<br/>complete or skip"]
         reasoning["Reasoning<br/>synthesize stored cognition + design signals<br/>complete or skip"]
         prompt_rendering["Prompt rendering<br/>render provider prompt<br/>complete or skip"]
@@ -363,8 +363,8 @@ Current implemented flow:
 - Conditional review edge
 - Bounded one-attempt refinement loop
 - Workflow-owned artifact extraction, preview metadata preparation, and artifact critique metadata
-- V3.3 Artifact Intelligence metadata, export-planning intelligence, and
-  artifact engine contract registry serialization
+- V3.3 Artifact Intelligence metadata, V3.4 Creative Evaluation metadata,
+  export-planning intelligence, and engine contract registry serialization
 - Node lifecycle, review outcome, retry, refinement, and edge decision events
 - Explicit failure node and failure transitions
 - No tool nodes
@@ -446,24 +446,23 @@ Conservative insertion points:
 - Review loops: the current `review` gate is the natural anchor for richer future retry loops back to `prompt_input` or `generation`
 - Preview execution: renderer execution and capture can branch from `preview_preparation` and rejoin before artifact critique or `review` without changing the request/response contract
 - HITL checkpoints: the safest first checkpoint is between `review` and `finalization`, where a human can approve, edit, or reject a nearly complete result
-- Creative Intelligence, Generative Design, and Artifact Intelligence
+- Creative Intelligence, Generative Design, Artifact Intelligence, and Creative
+  Evaluation
   decomposition: the internal views documented in
   `creative_intelligence_graph.*`, `generative_design_graph.*`, and
   `artifact_intelligence_graph.*` are the current blueprint for any future V4
   split into smaller nodes or agents
 
-Roadmap sequencing after V3.3 remains V3.4 Creative Evaluation, V3.5 Creative
-Workstation, V3.6 Stabilization & Refactor Pass, V4 Agentic Studio, V5
-Execution Optimization & Production Intelligence, and V6 HoloGenesis Core OS.
-Those increments are future work and are not implemented by the current runtime
-graph.
+Later extension points remain future work until they are represented in the
+runtime graph. The current graph does not implement multi-agent execution,
+runtime optimization systems, preview capture, or long-horizon learning loops.
 
 ## Known Limits In The Current Runtime
 
 - Route selection does not currently alter graph control flow
-- Creative Cognition, Generative Design, and Artifact Intelligence helpers do
-  not yet own separate LangGraph nodes, retries, or failure transitions; they
-  execute synchronously inside `planning`
+- Creative Cognition, Generative Design, Artifact Intelligence, and Creative
+  Evaluation helpers do not yet own separate LangGraph nodes, retries, or
+  failure transitions; they execute synchronously inside `planning`
 - `artifact_critique` and `review` are deterministic and intentionally lightweight; they are not LLM evaluators
 - Preview preparation creates runtime metadata but does not execute renderers or capture frames
 - Unexpected failures are normalized into the workflow only when a node catches them and records `pending_failure`

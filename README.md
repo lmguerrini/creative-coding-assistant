@@ -1,15 +1,16 @@
 # Creative Coding Assistant
 
-Creative Coding Assistant is a V3.3 AI-native creative translation
+Creative Coding Assistant is a V3.4 AI-native creative translation
 workstation designed to transform symbolic, conceptual, geometric, stylistic,
 and multimodal intent into professional audio, visual, and audiovisual
 creative systems.
 
 It combines a LangGraph-orchestrated Python backend with a Next.js workstation
 for the full V2.5 Creative Core, the V3.1 Creative Cognition Core, the V3.2
-Generative Design Core, the V3.3 Artifact Intelligence stack, multi-artifact
-generation, multi-preview comparison, controlled runtime preview, critique and
-scoring, parameter control, observability, validation, and export preparation.
+Generative Design Core, the V3.3 Artifact Intelligence stack, and the V3.4
+Creative Evaluation layer, plus multi-artifact generation, multi-preview
+comparison, controlled runtime preview, critique and scoring, parameter
+control, observability, validation, and export preparation.
 
 The current product scope is a creative coding platform rather than a generic
 chat assistant. Requests can be translated from intent, symbols, geometry,
@@ -26,13 +27,14 @@ same interface.
 - AI-native workstation UX with chat, a compact bottom preview shelf, and
   focused inspector tabs for overview, preview, runtime, code, workflow,
   telemetry, artifacts, and retrieval
-- Complete V2.5 Creative Core plus the implemented V3.1 Creative Cognition
-  Core, V3.2 Generative Design Core, and V3.3 Artifact Intelligence stack for
+- Complete V2.5 Creative Core plus V3.1 Creative Cognition, V3.2 Generative
+  Design, V3.3 Artifact Intelligence, and V3.4 Creative Evaluation metadata for
   intent decomposition, hierarchy, strategy, technique, constraints, runtime
   reasoning, trade-offs, quality prediction, narrative, composition,
   procedural structure, generative structure, motifs, emotional consistency,
   cross-modality, scene design, artifact planning, compatibility, critique,
-  refinement, merge planning, export intelligence, and engine contracts
+  refinement, merge planning, export intelligence, confidence, scoring,
+  consistency validation, reports, and engine contracts
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -42,25 +44,22 @@ same interface.
 - Multimodal image references, local session persistence, and project bundle
   export
 
-## Current Branch Status
+## Capability Scope
 
-The current branch, `feature/artifact-intelligence`, implements the V3.3
-Artifact Intelligence capability on top of the V3.2 Generative Design Core.
-
-V3.3 extends the bounded planning pass with inspectable artifact intelligence,
+Artifact Intelligence extends the bounded planning pass with inspectable
 compatibility, critique/refinement, merge, export, and engine-contract metadata
 that feed Director guidance, Creative Reasoning synthesis, prompt rendering,
 workflow serialization, and Next.js stream hydration. These capabilities remain
 internal helpers inside the existing runtime graph rather than separate
 LangGraph runtime nodes.
 
-V3.4 extends the same bounded metadata pattern into Creative Evaluation:
-critic, self-evaluation, improvement, reflection, confidence, score,
-consistency, report, and evaluation engine-contract metadata are serialized for
-inspection without changing evaluation logic, workflow ordering, routing,
+Creative Evaluation extends the same bounded metadata pattern into critic,
+self-evaluation, improvement, reflection, confidence, score, consistency,
+report, and evaluation engine-contract metadata. These summaries are serialized
+for inspection without changing evaluation logic, workflow ordering, routing,
 runtime selection, previews, retries, or generated output.
 
-Implemented V3.3 Artifact Intelligence capabilities:
+Artifact Intelligence capabilities:
 
 - Artifact Planner
 - Artifact Dependency Graph
@@ -74,7 +73,19 @@ Implemented V3.3 Artifact Intelligence capabilities:
 - Artifact Export Intelligence
 - Artifact Engine Contracts
 
-The architecture now documents five complementary views:
+Creative Evaluation capabilities:
+
+- Creative Critic Engine
+- Self Evaluation Engine
+- Creative Improvement Planner
+- Reflection Loop Engine
+- Creative Confidence Engine
+- Creative Score Engine
+- Consistency Validation Engine
+- Evaluation Reports
+- Evaluation Engine Contracts
+
+The architecture documents five complementary views:
 
 - the real runtime graph in
   [`architecture/workflow_graph.md`](architecture/workflow_graph.md)
@@ -94,10 +105,10 @@ rather than claims that a V4 multi-agent runtime already exists.
 ## Creative Workflow
 
 The workstation still centers on the V2.5 creative loop, now enriched by the
-V3.1 Creative Cognition Core, V3.2 Generative Design Core, and V3.3 Artifact
-Intelligence before generation:
+V3.1 Creative Cognition Core, V3.2 Generative Design Core, V3.3 Artifact
+Intelligence, and V3.4 Creative Evaluation metadata:
 
-`Intent -> HITL Clarification -> Creative Translation -> Reference Fusion -> Creative Planning -> Generation -> Preview -> Critique -> Sacred Consistency -> Calibrated Quality -> Multi-Pass Refinement -> Export Preparation`
+`Intent -> HITL Clarification -> Creative Translation -> Reference Fusion -> Creative Planning -> Generation -> Preview -> Critique -> Creative Evaluation -> Calibrated Quality -> Multi-Pass Refinement -> Export Preparation`
 
 - HITL Clarification: the assistant can ask targeted questions to lock
   modality, intent, symbolism, geometry, runtime, or refinement direction
@@ -122,6 +133,10 @@ Intelligence before generation:
   engine contracts extend the stored brief as metadata. Artifact profiles can
   inform Director, Reasoning, and prompt rendering; engine contracts remain
   workflow/stream metadata and are not rendered into provider prompts.
+- Creative Evaluation: critic, self-evaluation, improvement, reflection,
+  confidence, score, consistency, report, and evaluation contract metadata
+  summarize quality signals without changing routing, runtime selection,
+  previews, retries, or generated output.
 - Generation: the backend resolves effective domains, assembles the prompt,
   and streams one or more creative artifacts.
 - Preview: supported artifacts mount in controlled preview runtimes with
@@ -574,84 +589,22 @@ code inspection depending on available source coverage. They should not be read
 as live browser preview runtimes unless they are listed in the current live
 runtime support list above.
 
-## Roadmap
+## Product Direction
 
-### Program Increment Versioning
+Future product direction remains focused on deeper creative workstation
+ergonomics, agentic collaboration patterns, production intelligence, and
+long-horizon creative memory. Those directions are product roadmap context, not
+a claim that every listed system is already implemented or exposed in the
+current runtime.
 
-V3 now follows Program Increment style versioning rather than one long,
-undifferentiated milestone.
-
-- `v3.1.0`: Creative Cognition Core
-- `v3.2.0`: Generative Design Core
-- `v3.3.0`: Artifact Intelligence
-- `v3.4.0`: Creative Evaluation
-- `v3.5.0`: Creative Workstation
-- `v3.6.0`: Stabilization & Refactor Pass
-- `V4`: Agentic Studio
-- `V5`: Execution Optimization & Production Intelligence
-- `V6`: HoloGenesis Core OS
-
-### V3.3.0 Status
-
-- `v3.1.0` is tagged on `main` as the Creative Cognition milestone.
-- V2.5 remains the base workstation/runtime milestone.
-- The current branch implements the V3.3 Artifact Intelligence stack and its
-  architecture closeout.
-- The runtime graph remains the compact LangGraph workflow documented in
-  `architecture/workflow_graph.md`.
-- The internal Creative Intelligence pipeline, V3.2 Generative Design
-  dependency graph, and V3.3 Artifact Intelligence dependency graph document
-  the bounded internal capabilities in
-  `architecture/creative_intelligence_graph.md` and
-  `architecture/generative_design_graph.md` and
-  `architecture/artifact_intelligence_graph.md`.
-- The engine matrix in `architecture/engine_matrix.md` explains how versions
-  remain chronological while the Core Engine, Knowledge Engine, Execution
-  Engine, and Experience Layer cut across multiple increments.
-
-### Macro-Capability Lifecycle
-
-Each V3 macro-capability is expected to close through the same bounded
-lifecycle:
-
-1. Implementation
-2. Architecture Update
-3. Documentation Update
-4. Junie Engineering Review
-5. ChatGPT review of Junie report
-6. Codex Review Fixes if approved
-7. Engineering Validation
-8. Create Version Tag
-9. Merge & Push
-
-### Role Split
-
-- ChatGPT is architect, planner, and reviewer of Junie reports.
-- Codex is the implementation tool.
-- Junie is the independent engineering reviewer.
-- Git and GitHub are the delivery source of truth.
-
-### Roadmap Through V6
-
-- V3: Creative Intelligence, Generative Design, and Artifact Intelligence
-- V3.4: Creative Evaluation
-- V3.5: Creative Workstation
-- V3.6: Stabilization & Refactor Pass
-- V4: Agentic Studio
-- V5: Execution Optimization & Production Intelligence
-- V6: HoloGenesis Core OS
-
-### Continuing Direction
-
-- close `v3.3.0` cleanly before opening V3.4 Creative Evaluation
-- keep the runtime graph truthful instead of mapping every internal helper to a
-  public runtime node
-- keep using bounded internal creative-intelligence and generative-design
-  metadata as the bridge toward future V4 Agentic Studio decomposition
-- preserve the engine-matrix view so roadmap versions and architecture layers
-  do not collapse into one axis
-- continue later V3 increments around deeper creative intelligence,
-  export/performance workflows, and supporting platform improvements
+- Creative Workstation: clearer operator flow, inspection surfaces, and
+  production-ready creative review.
+- Agentic Studio: more collaborative decomposition of creative strategy,
+  critique, and refinement when future runtime boundaries support it.
+- Execution Optimization: stronger production telemetry, runtime policy, and
+  cost/performance intelligence.
+- HoloGenesis Core OS: long-horizon creative lineage, feedback, memory, and
+  system-level continuity.
 
 ## Setup
 
