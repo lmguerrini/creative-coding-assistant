@@ -109,6 +109,13 @@ import {
   type CreativeScoreDimension,
   type CreativeScoreSignalSource,
   type CreativeScoreSummary,
+  type ConsistencyValidationAmbiguityLevel,
+  type ConsistencyValidationCheckStatus,
+  type ConsistencyValidationCheckSummary,
+  type ConsistencyValidationContradictionLevel,
+  type ConsistencyValidationIntegrity,
+  type ConsistencyValidationStatus,
+  type ConsistencyValidationSummary,
   type SelfEvaluationAmbiguity,
   type SelfEvaluationCompleteness,
   type SelfEvaluationRisk,
@@ -311,6 +318,8 @@ export type AssistantStreamWorkflowMetadata = {
   creative_confidence_available?: boolean;
   creative_score?: CreativeScoreSummary | null;
   creative_score_available?: boolean;
+  consistency_validation?: ConsistencyValidationSummary | null;
+  consistency_validation_available?: boolean;
   creative_tradeoffs?: CreativeTradeoffExplorerSummary | null;
   tradeoff_explorer_available?: boolean;
   creative_quality_prediction?: CreativeQualityPredictionSummary | null;
@@ -866,6 +875,12 @@ export function readWorkflowMetadata(
   );
   const creativeScoreAvailable =
     rawWorkflow.creative_score_available === true || creativeScore !== null;
+  const consistencyValidation = readConsistencyValidationSummary(
+    rawWorkflow.consistency_validation ?? rawWorkflow.consistencyValidation
+  );
+  const consistencyValidationAvailable =
+    rawWorkflow.consistency_validation_available === true ||
+    consistencyValidation !== null;
   const creativeTradeoffs = readCreativeTradeoffExplorerSummary(
     rawWorkflow.creative_tradeoffs ?? rawWorkflow.creativeTradeoffs
   );
@@ -1115,6 +1130,12 @@ export function readWorkflowMetadata(
       ? {
           creative_score: creativeScore,
           creative_score_available: true
+        }
+      : {}),
+    ...(consistencyValidationAvailable
+      ? {
+          consistency_validation: consistencyValidation,
+          consistency_validation_available: true
         }
       : {}),
     ...(tradeoffExplorerAvailable
@@ -3543,6 +3564,40 @@ const creativeScoreSignalSources = [
   "planning_metadata"
 ] as const satisfies readonly CreativeScoreSignalSource[];
 
+const consistencyValidationStatuses = [
+  "consistent",
+  "needs_attention",
+  "inconsistent",
+  "insufficient_evidence"
+] as const satisfies readonly ConsistencyValidationStatus[];
+
+const consistencyValidationCheckStatuses = [
+  "aligned",
+  "watch",
+  "conflict",
+  "missing"
+] as const satisfies readonly ConsistencyValidationCheckStatus[];
+
+const consistencyValidationContradictionLevels = [
+  "none",
+  "low",
+  "medium",
+  "high"
+] as const satisfies readonly ConsistencyValidationContradictionLevel[];
+
+const consistencyValidationAmbiguityLevels = [
+  "low",
+  "medium",
+  "high"
+] as const satisfies readonly ConsistencyValidationAmbiguityLevel[];
+
+const consistencyValidationIntegrityLevels = [
+  "strong",
+  "adequate",
+  "fragile",
+  "compromised"
+] as const satisfies readonly ConsistencyValidationIntegrity[];
+
 function readCreativeScoreBreakdownSummaryList(
   value: unknown
 ): CreativeScoreBreakdownSummary[] {
@@ -3793,6 +3848,159 @@ export function readCreativeScoreSummary(
       "score_evidence",
       "scoreEvidence"
     ),
+    hitlRecommendation,
+    promptGuidance,
+    authorityBoundary
+  };
+}
+
+function readConsistencyValidationCheckSummary(
+  value: unknown
+): ConsistencyValidationCheckSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const status = readStringUnion(
+    value,
+    "status",
+    "status",
+    consistencyValidationCheckStatuses
+  );
+  const summary = readStringField(value, "summary");
+  if (!status || !summary) {
+    return null;
+  }
+
+  return {
+    status,
+    summary,
+    evidence: readStringListField(value, "evidence", "evidence"),
+    conflictSignals: readStringListField(
+      value,
+      "conflict_signals",
+      "conflictSignals"
+    )
+  };
+}
+
+export function readConsistencyValidationSummary(
+  value: unknown
+): ConsistencyValidationSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const role = readStringField(value, "role");
+  const serializationVersion =
+    readStringField(value, "serialization_version") ??
+    readStringField(value, "serializationVersion");
+  const consistencyStatus = readStringUnion(
+    value,
+    "consistency_status",
+    "consistencyStatus",
+    consistencyValidationStatuses
+  );
+  const consistencySummary =
+    readStringField(value, "consistency_summary") ??
+    readStringField(value, "consistencySummary");
+  const scoreConsistency = readConsistencyValidationCheckSummary(
+    value.score_consistency ?? value.scoreConsistency
+  );
+  const confidenceConsistency = readConsistencyValidationCheckSummary(
+    value.confidence_consistency ?? value.confidenceConsistency
+  );
+  const reflectionConsistency = readConsistencyValidationCheckSummary(
+    value.reflection_consistency ?? value.reflectionConsistency
+  );
+  const criticConsistency = readConsistencyValidationCheckSummary(
+    value.critic_consistency ?? value.criticConsistency
+  );
+  const plannerConsistency = readConsistencyValidationCheckSummary(
+    value.planner_consistency ?? value.plannerConsistency
+  );
+  const reasoningConsistency = readConsistencyValidationCheckSummary(
+    value.reasoning_consistency ?? value.reasoningConsistency
+  );
+  const contradictionLevel = readStringUnion(
+    value,
+    "contradiction_level",
+    "contradictionLevel",
+    consistencyValidationContradictionLevels
+  );
+  const ambiguityLevel = readStringUnion(
+    value,
+    "ambiguity_level",
+    "ambiguityLevel",
+    consistencyValidationAmbiguityLevels
+  );
+  const evaluationIntegrity = readStringUnion(
+    value,
+    "evaluation_integrity",
+    "evaluationIntegrity",
+    consistencyValidationIntegrityLevels
+  );
+  const hitlRecommendation = readStringUnion(
+    value,
+    "hitl_recommendation",
+    "hitlRecommendation",
+    expectedHumanReviewNeeds
+  );
+  const promptGuidance = readStringListField(
+    value,
+    "prompt_guidance",
+    "promptGuidance"
+  );
+  const authorityBoundary =
+    readStringField(value, "authority_boundary") ??
+    readStringField(value, "authorityBoundary");
+
+  if (
+    role !== "consistency_validation_engine" ||
+    serializationVersion !== "v1" ||
+    !consistencyStatus ||
+    !consistencySummary ||
+    !scoreConsistency ||
+    !confidenceConsistency ||
+    !reflectionConsistency ||
+    !criticConsistency ||
+    !plannerConsistency ||
+    !reasoningConsistency ||
+    !contradictionLevel ||
+    !ambiguityLevel ||
+    !evaluationIntegrity ||
+    !hitlRecommendation ||
+    promptGuidance.length === 0 ||
+    !authorityBoundary
+  ) {
+    return null;
+  }
+
+  return {
+    role,
+    serializationVersion,
+    consistencyStatus,
+    consistencySummary,
+    detectedConflicts: readStringListField(
+      value,
+      "detected_conflicts",
+      "detectedConflicts"
+    ),
+    scoreConsistency,
+    confidenceConsistency,
+    reflectionConsistency,
+    criticConsistency,
+    plannerConsistency,
+    reasoningConsistency,
+    contradictionLevel,
+    ambiguityLevel,
+    unsupportedConclusions: readStringListField(
+      value,
+      "unsupported_conclusions",
+      "unsupportedConclusions"
+    ),
+    evaluationIntegrity,
+    evidence: readStringListField(value, "evidence", "evidence"),
     hitlRecommendation,
     promptGuidance,
     authorityBoundary
@@ -8684,6 +8892,7 @@ const creativeReasoningEvidenceSources = [
   "reflection_loop",
   "creative_confidence",
   "creative_score",
+  "consistency_validation",
   "future_knowledge"
 ] as const satisfies readonly CreativeReasoningEvidenceSource[];
 

@@ -27,6 +27,7 @@ import {
   readCreativeStrategySummary,
   readCreativeTechniqueSummary,
   readCreativeTradeoffExplorerSummary,
+  readConsistencyValidationSummary,
   readEmotionalConsistencyProfileSummary,
   readGenerativeStructureBlueprintSummary,
   readProceduralStructurePlanSummary,
@@ -1767,6 +1768,86 @@ function creativeScoreBreakdownFixture(
     weight,
     rationale: `Score ${dimension} from existing evaluation metadata.`,
     evidence: [`${dimension} evidence.`]
+  };
+}
+
+function consistencyValidationFixture() {
+  return {
+    role: "consistency_validation_engine",
+    serialization_version: "v1",
+    consistency_status: "needs_attention",
+    consistency_summary:
+      "Consistency Validation Engine found review-sensitive metadata.",
+    detected_conflicts: [
+      "High score conflicts with low confidence.",
+      "Creative Confidence reports conflicting trend."
+    ],
+    score_consistency: consistencyValidationCheckFixture(
+      "conflict",
+      "Creative Score conflicts with one or more evaluation signals.",
+      ["Score 82.4/100.", "Confidence 44.0/100."],
+      ["High score conflicts with low confidence."]
+    ),
+    confidence_consistency: consistencyValidationCheckFixture(
+      "conflict",
+      "Creative Confidence conflicts with score or reflection metadata.",
+      ["Confidence 0.44.", "Score band strong."],
+      ["Creative Confidence reports conflicting trend."]
+    ),
+    reflection_consistency: consistencyValidationCheckFixture(
+      "watch",
+      "Reflection Loop is plausible but includes unresolved questions.",
+      ["Reflection medium; required true."],
+      []
+    ),
+    critic_consistency: consistencyValidationCheckFixture(
+      "aligned",
+      "Creative Critic agrees with self-evaluation and its own risk posture.",
+      ["Critic average 0.82; risk low."],
+      []
+    ),
+    planner_consistency: consistencyValidationCheckFixture(
+      "watch",
+      "Improvement Planner is plausible but includes HITL-sensitive opportunities.",
+      ["Planner has 3 priorities."],
+      []
+    ),
+    reasoning_consistency: consistencyValidationCheckFixture(
+      "watch",
+      "Evaluation conclusions are usable but have unsupported or missing evidence.",
+      ["Unsupported conclusions: 1."],
+      []
+    ),
+    contradiction_level: "medium",
+    ambiguity_level: "high",
+    unsupported_conclusions: [
+      "Unsupported runtime behavior is treated as available."
+    ],
+    evaluation_integrity: "fragile",
+    evidence: [
+      "Creative Score strong; 82.4/100.",
+      "Authority boundary verified: consistency validation is metadata-only."
+    ],
+    hitl_recommendation: "recommended",
+    prompt_guidance: [
+      "Use Consistency Validation metadata as advisory evaluation integrity context only."
+    ],
+    authority_boundary:
+      "The Consistency Validation Engine validates existing V3.4 evaluation metadata only."
+  };
+}
+
+function consistencyValidationCheckFixture(
+  status: string,
+  summary: string,
+  evidence: string[],
+  conflictSignals: string[]
+) {
+  return {
+    status,
+    summary,
+    evidence,
+    conflict_signals: conflictSignals
   };
 }
 
@@ -5740,6 +5821,82 @@ describe("assistant stream client", () => {
         })
       ])
     );
+  });
+
+  it("parses consistency validation summaries", () => {
+    expect(
+      readConsistencyValidationSummary(consistencyValidationFixture())
+    ).toMatchObject({
+      role: "consistency_validation_engine",
+      serializationVersion: "v1",
+      consistencyStatus: "needs_attention",
+      contradictionLevel: "medium",
+      ambiguityLevel: "high",
+      evaluationIntegrity: "fragile",
+      hitlRecommendation: "recommended",
+      detectedConflicts: [
+        "High score conflicts with low confidence.",
+        "Creative Confidence reports conflicting trend."
+      ],
+      scoreConsistency: {
+        status: "conflict",
+        conflictSignals: ["High score conflicts with low confidence."]
+      },
+      reasoningConsistency: {
+        status: "watch"
+      },
+      unsupportedConclusions: [
+        "Unsupported runtime behavior is treated as available."
+      ]
+    });
+  });
+
+  it("hydrates consistency validation workflow metadata", () => {
+    const consistencyValidation = consistencyValidationFixture();
+    const event: AssistantStreamEvent = {
+      event_type: "planning",
+      sequence: 28,
+      payload: {
+        workflow: {
+          step: "planning",
+          phase: "running",
+          status: "running",
+          current_step: "planning",
+          completed_steps: ["intake", "routing"],
+          skipped_steps: [],
+          refinement_count: 0,
+          review_reasons: [],
+          artifact_count: 0,
+          artifact_critique_count: 0,
+          preview_artifact_count: 0,
+          image_reference_count: 0,
+          image_references: [],
+          consistency_validation: consistencyValidation,
+          consistency_validation_available: true
+        }
+      }
+    };
+
+    const workflow = readWorkflowMetadata(event);
+
+    expect(workflow).toMatchObject({
+      step: "planning",
+      phase: "running",
+      status: "running",
+      consistency_validation: {
+        role: "consistency_validation_engine",
+        consistencyStatus: "needs_attention",
+        contradictionLevel: "medium",
+        ambiguityLevel: "high",
+        evaluationIntegrity: "fragile",
+        hitlRecommendation: "recommended"
+      },
+      consistency_validation_available: true
+    });
+    expect(workflow?.consistency_validation?.scoreConsistency).toMatchObject({
+      status: "conflict",
+      conflictSignals: ["High score conflicts with low confidence."]
+    });
   });
 
   it("hydrates artifact refiner workflow metadata", () => {

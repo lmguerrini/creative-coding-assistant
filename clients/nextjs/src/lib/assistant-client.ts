@@ -850,6 +850,61 @@ export type CreativeScoreSummary = {
   authorityBoundary: string;
 };
 
+export type ConsistencyValidationStatus =
+  | "consistent"
+  | "needs_attention"
+  | "inconsistent"
+  | "insufficient_evidence";
+
+export type ConsistencyValidationCheckStatus =
+  | "aligned"
+  | "watch"
+  | "conflict"
+  | "missing";
+
+export type ConsistencyValidationContradictionLevel =
+  | "none"
+  | "low"
+  | "medium"
+  | "high";
+
+export type ConsistencyValidationAmbiguityLevel = "low" | "medium" | "high";
+
+export type ConsistencyValidationIntegrity =
+  | "strong"
+  | "adequate"
+  | "fragile"
+  | "compromised";
+
+export type ConsistencyValidationCheckSummary = {
+  status: ConsistencyValidationCheckStatus;
+  summary: string;
+  evidence: string[];
+  conflictSignals: string[];
+};
+
+export type ConsistencyValidationSummary = {
+  role: "consistency_validation_engine";
+  serializationVersion: "v1";
+  consistencyStatus: ConsistencyValidationStatus;
+  consistencySummary: string;
+  detectedConflicts: string[];
+  scoreConsistency: ConsistencyValidationCheckSummary;
+  confidenceConsistency: ConsistencyValidationCheckSummary;
+  reflectionConsistency: ConsistencyValidationCheckSummary;
+  criticConsistency: ConsistencyValidationCheckSummary;
+  plannerConsistency: ConsistencyValidationCheckSummary;
+  reasoningConsistency: ConsistencyValidationCheckSummary;
+  contradictionLevel: ConsistencyValidationContradictionLevel;
+  ambiguityLevel: ConsistencyValidationAmbiguityLevel;
+  unsupportedConclusions: string[];
+  evaluationIntegrity: ConsistencyValidationIntegrity;
+  evidence: string[];
+  hitlRecommendation: ExpectedHumanReviewNeed;
+  promptGuidance: string[];
+  authorityBoundary: string;
+};
+
 export type ArtifactRefinerSummary = {
   role: "artifact_refiner";
   refinementConfidence: number;
@@ -2143,6 +2198,7 @@ export type CreativeReasoningEvidenceSource =
   | "reflection_loop"
   | "creative_confidence"
   | "creative_score"
+  | "consistency_validation"
   | "future_knowledge";
 
 export type CreativeReasoningStepSummary = {
