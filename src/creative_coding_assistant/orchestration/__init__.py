@@ -55,6 +55,9 @@ _AGENT_CAPABILITY_REGISTRY = (
 _ESCALATION_POLICY = (
     "creative_coding_assistant.orchestration.escalation_policy"
 )
+_HYBRID_AGENTIC_WORKFLOW = (
+    "creative_coding_assistant.orchestration.hybrid_agentic_workflow"
+)
 _ARTIFACT_PLANNER = "creative_coding_assistant.orchestration.artifact_planner"
 _ARTIFACT_DEPENDENCY_GRAPH = (
     "creative_coding_assistant.orchestration.artifact_dependency_graph"
@@ -165,6 +168,10 @@ _EXPORT_MAP = {
     "EscalationPolicyRegistry": _ESCALATION_POLICY,
     "escalation_policy_by_id": _ESCALATION_POLICY,
     "escalation_policy_registry": _ESCALATION_POLICY,
+    "HybridAgenticWorkflowRegistry": _HYBRID_AGENTIC_WORKFLOW,
+    "HybridAgenticWorkflowStage": _HYBRID_AGENTIC_WORKFLOW,
+    "hybrid_agentic_workflow_registry": _HYBRID_AGENTIC_WORKFLOW,
+    "hybrid_agentic_workflow_stage_by_id": _HYBRID_AGENTIC_WORKFLOW,
     "ArtifactCapabilityConfidence": _ARTIFACT_CAPABILITY_MATRIX,
     "ArtifactCapabilityFit": _ARTIFACT_CAPABILITY_MATRIX,
     "ArtifactCapabilityMatrix": _ARTIFACT_CAPABILITY_MATRIX,
