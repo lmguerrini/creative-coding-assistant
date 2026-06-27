@@ -41,6 +41,7 @@ flowchart LR
     classDef store fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px;
     classDef consumer fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px;
     classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
+    classDef relationship fill:#FEFCE8,stroke:#A16207,color:#713F12,stroke-width:1.5px,stroke-dasharray: 6 4;
 
     subgraph upstream_core["Upstream V3.1 Creative Cognition outputs"]
         direction TB
@@ -65,6 +66,11 @@ flowchart LR
     prompt_rendering["Prompt rendering runtime node"]:::consumer
     workstation["V3.5 Workstation surfaces<br/>timeline + inspector + dashboard"]:::consumer
     note["Selective graph only<br/>Use the matrix below for exhaustive reads"]:::note
+    structure_boundary["Structure relationship<br/>procedural structure grounds<br/>generative structure"]:::relationship
+    motif_boundary["Motif relationship<br/>story + structure produce<br/>semantic motif guidance"]:::relationship
+    emotion_boundary["Emotional relationship<br/>motif + structure align<br/>emotional consistency"]:::relationship
+    modality_boundary["Cross-modality relationship<br/>emotion + motif coordinate<br/>modality mapping"]:::relationship
+    scene_boundary["Scene relationship<br/>cross-modality resolves<br/>audio-visual scene guidance"]:::relationship
 
     brief --> procedural
     execution --> procedural
@@ -112,10 +118,34 @@ flowchart LR
     metadata_store --> workstation
     director --> reasoning --> prompt_rendering
     note -.-> design_core
+    procedural -. grounds .-> structure_boundary
+    structure_boundary -. feeds .-> generative
+    generative -. shapes .-> motif_boundary
+    story -. supplies narrative .-> motif_boundary
+    motif_boundary -. guides .-> motif
+    motif -. anchors .-> emotion_boundary
+    generative -. structures .-> emotion_boundary
+    emotion_boundary -. aligns .-> emotion
+    emotion -. balances .-> modality_boundary
+    motif -. maps .-> modality_boundary
+    modality_boundary -. composes .-> cross
+    cross -. resolves .-> scene_boundary
+    scene_boundary -. guides .-> scene
+    scene_boundary -. publishes .-> metadata_store
 ```
 
 The raw Mermaid source for this detailed dependency view is available in
 [generative_design_graph.mmd](generative_design_graph.mmd).
+
+## Generative Design Relationship Map
+
+| Relationship | Implemented metadata path | Downstream use |
+| --- | --- | --- |
+| Structure grounding | `Procedural Structure Planner` turns upstream cognition, constraints, and composition into `procedural_structure`, then `Generative Structure Engine` turns it into `generative_structure` | Gives later V3.2 engines a concrete structural frame before motifs, emotion, modality, or scene guidance are derived |
+| Motif guidance | `Semantic Motif Engine` reads story, composition, procedural structure, and generative structure | Produces `semantic_motif` so emotional consistency, cross-modality, and scene guidance share a coherent symbolic motif |
+| Emotional alignment | `Emotional Consistency Engine` reads motif, structure, story, quality, and constraint metadata | Produces `emotional_consistency` that keeps cross-modality and scene guidance aligned with the intended affect |
+| Cross-modality composition | `Cross-Modality Composer` reads structure, motif, emotion, and upstream execution metadata | Produces `cross_modality` so visual, audio, interaction, and timing guidance stay coordinated |
+| Audio-visual scene handoff | `Audio-Visual Scene System` reads all V3.2 outputs plus upstream cognition metadata | Produces `audio_visual_scene`, then stores V3.2 outputs for V3.3 Artifact Intelligence, Director, Reasoning, prompt rendering, and workstation inspection |
 
 ## Why The Graph Is Selective
 

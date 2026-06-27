@@ -6,6 +6,7 @@ flowchart LR
     classDef store fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px;
     classDef consumer fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px;
     classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
+    classDef relationship fill:#FEFCE8,stroke:#A16207,color:#713F12,stroke-width:1.5px,stroke-dasharray: 6 4;
 
     %% Upstream cognition groups
     subgraph upstream_core["Upstream V3.1 Creative Cognition outputs"]
@@ -33,6 +34,11 @@ flowchart LR
     prompt_rendering["Prompt rendering runtime node"]:::consumer
     workstation["V3.5 Workstation surfaces<br/>timeline + inspector + dashboard"]:::consumer
     note["Selective graph only<br/>Use the matrix below for exhaustive reads"]:::note
+    structure_boundary["Structure relationship<br/>procedural structure grounds<br/>generative structure"]:::relationship
+    motif_boundary["Motif relationship<br/>story + structure produce<br/>semantic motif guidance"]:::relationship
+    emotion_boundary["Emotional relationship<br/>motif + structure align<br/>emotional consistency"]:::relationship
+    modality_boundary["Cross-modality relationship<br/>emotion + motif coordinate<br/>modality mapping"]:::relationship
+    scene_boundary["Scene relationship<br/>cross-modality resolves<br/>audio-visual scene guidance"]:::relationship
 
     %% Upstream dependencies
     brief --> procedural
@@ -83,3 +89,19 @@ flowchart LR
     metadata_store --> workstation
     director --> reasoning --> prompt_rendering
     note -.-> design_core
+
+    %% Relationship annotations
+    procedural -. grounds .-> structure_boundary
+    structure_boundary -. feeds .-> generative
+    generative -. shapes .-> motif_boundary
+    story -. supplies narrative .-> motif_boundary
+    motif_boundary -. guides .-> motif
+    motif -. anchors .-> emotion_boundary
+    generative -. structures .-> emotion_boundary
+    emotion_boundary -. aligns .-> emotion
+    emotion -. balances .-> modality_boundary
+    motif -. maps .-> modality_boundary
+    modality_boundary -. composes .-> cross
+    cross -. resolves .-> scene_boundary
+    scene_boundary -. guides .-> scene
+    scene_boundary -. publishes .-> metadata_store
