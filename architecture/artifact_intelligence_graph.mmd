@@ -1,4 +1,5 @@
 flowchart LR
+    %% Class palette
     classDef upstream fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
     classDef artifact fill:#EEF2FF,stroke:#4338CA,color:#312E81,stroke-width:1.5px;
     classDef contract fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px;
@@ -8,6 +9,7 @@ flowchart LR
 
     upstream["Upstream stored metadata<br/>V3.1 Creative Cognition<br/>V3.2 Generative Design"]:::upstream
 
+    %% Artifact intelligence pipeline
     subgraph artifact_stack["V3.3 Artifact Intelligence pipeline inside planning"]
         direction TB
         planner["1. Artifact Planner"]:::artifact
@@ -22,6 +24,7 @@ flowchart LR
         export["10. Artifact Export Intelligence"]:::artifact
     end
 
+    %% Shared contracts and consumers
     contracts["Artifact Engine Contracts<br/>shared static registry<br/>10 metadata contracts"]:::contract
     store["Metadata Store<br/>AssistantWorkflowState<br/>PromptInputResponse<br/>workflow serialization"]:::store
     director["Creative Assistant Director<br/>runtime node"]:::consumer
@@ -31,7 +34,10 @@ flowchart LR
     workstation["V3.5 Workstation surfaces<br/>provenance + timeline + inspector + dashboard"]:::consumer
     note["Metadata-only architecture<br/>No artifact execution, modification, or export<br/>No runtime selection, provider routing,<br/>retries, preview changes, or future systems"]:::note
 
+    %% Pipeline order
     upstream --> planner --> dependency --> runtime --> capability --> strategy --> critic --> refiner --> synthesis --> merge --> export
+
+    %% Contract coverage
     contracts -. standardizes .-> planner
     contracts -. standardizes .-> dependency
     contracts -. standardizes .-> runtime
@@ -43,6 +49,7 @@ flowchart LR
     contracts -. standardizes .-> merge
     contracts -. standardizes .-> export
 
+    %% Metadata consumers
     export --> store
     contracts --> store
     store --> director

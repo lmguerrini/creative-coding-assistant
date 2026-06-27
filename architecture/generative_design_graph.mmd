@@ -1,4 +1,5 @@
 flowchart LR
+    %% Class palette
     classDef upstream fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
     classDef bundle fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
     classDef design fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px;
@@ -6,6 +7,7 @@ flowchart LR
     classDef consumer fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px;
     classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
 
+    %% Upstream cognition groups
     subgraph upstream_core["Upstream V3.1 Creative Cognition outputs"]
         direction TB
         brief["Brief layer<br/>Creative Intent Decomposer<br/>Creative Hierarchy Planner<br/>Creative Strategy Engine<br/>Creative Technique Selector"]:::upstream
@@ -13,6 +15,7 @@ flowchart LR
         story["Structure layer<br/>Symbolic Narrative Planner<br/>Creative Composition Planner"]:::upstream
     end
 
+    %% Generative design capabilities
     subgraph design_core["V3.2 Generative Design Core"]
         direction TB
         procedural["Procedural Structure Planner"]:::design
@@ -23,6 +26,7 @@ flowchart LR
         scene["Audio-Visual Scene System"]:::design
     end
 
+    %% Runtime metadata consumers
     metadata_store["Metadata Store<br/>AssistantWorkflowState + PromptInputResponse"]:::store
     director["Creative Assistant Director runtime node"]:::consumer
     reasoning["Creative Reasoning Engine runtime node"]:::consumer
@@ -30,6 +34,7 @@ flowchart LR
     workstation["V3.5 Workstation surfaces<br/>timeline + inspector + dashboard"]:::consumer
     note["Selective graph only<br/>Use the matrix below for exhaustive reads"]:::note
 
+    %% Upstream dependencies
     brief --> procedural
     execution --> procedural
     story --> procedural
@@ -63,6 +68,7 @@ flowchart LR
     emotion --> scene
     cross --> scene
 
+    %% Metadata publication
     procedural -.-> metadata_store
     generative -.-> metadata_store
     motif -.-> metadata_store
@@ -70,6 +76,7 @@ flowchart LR
     cross -.-> metadata_store
     scene -.-> metadata_store
 
+    %% Runtime consumers
     metadata_store --> director
     metadata_store --> reasoning
     metadata_store --> prompt_rendering

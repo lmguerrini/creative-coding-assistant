@@ -1,15 +1,18 @@
 flowchart LR
+    %% Class palette
     classDef source fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
     classDef state fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
     classDef surface fill:#EEF2FF,stroke:#4338CA,color:#312E81,stroke-width:1.5px;
     classDef dashboard fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px;
     classDef boundary fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
 
+    %% Metadata sources
     snapshot["Assistant workspace snapshot<br/>session + artifacts + workflow + preview"]:::source
     stream["Assistant stream events<br/>workflow payloads + final payload"]:::source
     trace["Workflow runtime trace<br/>node lifecycle + transitions"]:::source
     v3_metadata["V3 metadata<br/>cognition + design + artifact + evaluation"]:::source
 
+    %% Workstation surfaces
     state["Workstation State<br/>session + run + selection + readiness"]:::state
     session["Session Intelligence<br/>readiness + completion + next action"]:::surface
     explorer["Workflow Explorer<br/>nodes + edges + active step"]:::surface
@@ -21,11 +24,13 @@ flowchart LR
     future["Future V4/V5/V6 consumers<br/>named hooks only"]:::boundary
     note["Metadata-only surface layer<br/>No provider routing, runtime selection,<br/>artifact execution, retries, or generated output changes"]:::boundary
 
+    %% State hydration
     snapshot --> state
     stream --> state
     trace --> state
     v3_metadata --> inspector
 
+    %% Surface projections
     state --> session
     state --> explorer
     state --> provenance
@@ -39,6 +44,7 @@ flowchart LR
     timeline --> dashboard
     inspector --> dashboard
 
+    %% Contract boundaries
     contracts -. describes .-> state
     contracts -. describes .-> session
     contracts -. describes .-> explorer
