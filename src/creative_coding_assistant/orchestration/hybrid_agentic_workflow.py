@@ -73,6 +73,8 @@ LatencyThresholdRoutingTopic = CostThresholdRoutingTopic
 LatencyThresholdBand = Literal["guarded", "high", "low", "medium"]
 AmbiguityEscalationTopic = LatencyThresholdRoutingTopic
 AmbiguityEscalationLevel = Literal["critical", "high", "low", "medium"]
+RiskEscalationTopic = AmbiguityEscalationTopic
+RiskEscalationLevel = Literal["critical", "high", "low", "medium"]
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -179,6 +181,8 @@ AMBIGUITY_ESCALATION_PROFILE_SERIALIZATION_VERSION = (
 AMBIGUITY_ESCALATION_REGISTRY_SERIALIZATION_VERSION = (
     "ambiguity_escalation_registry.v1"
 )
+RISK_ESCALATION_PROFILE_SERIALIZATION_VERSION = "risk_escalation_profile.v1"
+RISK_ESCALATION_REGISTRY_SERIALIZATION_VERSION = "risk_escalation_registry.v1"
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
 V3_BACKBONE_MODE_AUTHORITY_BOUNDARY = (
@@ -313,6 +317,13 @@ AMBIGUITY_ESCALATION_AUTHORITY_BOUNDARY = (
     "evaluate ambiguity, trigger clarification, execute escalation, invoke "
     "agents, route providers or models, control workflow transitions, trigger "
     "retries, or modify generated output."
+)
+RISK_ESCALATION_AUTHORITY_BOUNDARY = (
+    "Risk escalation metadata describes passive advisory risk posture for "
+    "future hybrid escalation visibility only; it does not evaluate risk, "
+    "execute escalation, apply mitigation, invoke agents, route providers or "
+    "models, control workflow transitions, trigger retries, or modify "
+    "generated output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Hybrid agentic workflow metadata maps current V3 workflow nodes to future "
@@ -684,6 +695,25 @@ _AMBIGUITY_ESCALATION_SOURCE_REGISTRIES = (
     "creative_confidence_engine",
     "hybrid_agentic_workflow_registry",
 )
+_RISK_ESCALATION_BLOCKED_RUNTIME_BEHAVIORS = (
+    "risk_evaluation",
+    "escalation_execution",
+    "mitigation_execution",
+    "agent_invocation",
+    "provider_or_model_routing",
+    "workflow_control",
+    "retry_triggering",
+    "generated_output_modification",
+)
+_RISK_ESCALATION_SOURCE_REGISTRIES = (
+    "ambiguity_escalation_registry",
+    "conditional_multi_agent_escalation_registry",
+    "escalation_policy_registry",
+    "creative_escalation_policy_registry",
+    "agent_escalation_signal_registry",
+    "artifact_engine_contract_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -864,6 +894,25 @@ _AMBIGUITY_EVIDENCE_SURFACES = (
     "planning_gap_summary",
     "disagreement_points",
     "hitl_questions",
+)
+_RISK_ESCALATION_TOPICS: tuple[RiskEscalationTopic, ...] = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
+)
+_RISK_ESCALATION_LEVELS: tuple[RiskEscalationLevel, ...] = (
+    "medium",
+    "high",
+    "critical",
+    "low",
+)
+_RISK_EVIDENCE_SURFACES = (
+    "implementation_risks",
+    "risk_assessment",
+    "unsupported_assumptions",
+    "capability_risks",
+    "escalation_candidates",
 )
 _KNOWN_SPECIALIST_AGENT_IDS = (
     "planner_agent",
@@ -3621,6 +3670,165 @@ def ambiguity_escalation_profile_by_id(
     return None
 
 
+class RiskEscalationProfile(BaseModel):
+    """Passive V4.3 risk escalation profile metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    risk_profile_id: str = Field(min_length=1, max_length=170)
+    topic_id: RiskEscalationTopic
+    source_ambiguity_profile_id: str = Field(min_length=1, max_length=180)
+    source_condition_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_policy_rule_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_creative_policy_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_escalation_signal_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    risk_level: RiskEscalationLevel
+    risk_evidence_surfaces: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    escalation_dimensions: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_RISK_ESCALATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    risk_evaluation_implemented: Literal[False] = False
+    escalation_execution_implemented: Literal[False] = False
+    mitigation_execution_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["risk_escalation_profile.v1"] = (
+        RISK_ESCALATION_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class RiskEscalationRegistry(BaseModel):
+    """Stable passive registry for V4.3 risk escalation metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["risk_escalation_registry"] = "risk_escalation_registry"
+    serialization_version: Literal["risk_escalation_registry.v1"] = (
+        RISK_ESCALATION_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=RISK_ESCALATION_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    risk_profiles: tuple[RiskEscalationProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    risk_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    topic_ids: tuple[RiskEscalationTopic, ...] = Field(min_length=4, max_length=4)
+    risk_levels: tuple[RiskEscalationLevel, ...] = Field(min_length=4, max_length=4)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    ambiguity_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    condition_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    policy_rule_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    creative_policy_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    escalation_signal_ids: tuple[str, ...] = Field(min_length=7, max_length=7)
+    risk_evidence_surfaces: tuple[str, ...] = Field(min_length=5, max_length=5)
+    profile_count: int = Field(ge=4, le=4)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_RISK_ESCALATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    risk_evaluation_implemented: Literal[False] = False
+    escalation_execution_implemented: Literal[False] = False
+    mitigation_execution_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_risk_escalation_metadata(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.risk_profile_id for profile in self.risk_profiles
+        )
+        derived_topic_ids = tuple(profile.topic_id for profile in self.risk_profiles)
+        derived_levels = tuple(profile.risk_level for profile in self.risk_profiles)
+        if self.risk_profile_ids != derived_profile_ids:
+            raise ValueError("risk_profile_ids must match profiles")
+        if self.topic_ids != derived_topic_ids:
+            raise ValueError("topic_ids must match risk profiles")
+        if self.topic_ids != _RISK_ESCALATION_TOPICS:
+            raise ValueError("topic_ids must preserve risk topic order")
+        if self.risk_levels != derived_levels:
+            raise ValueError("risk_levels must match profiles")
+        if self.risk_levels != _RISK_ESCALATION_LEVELS:
+            raise ValueError("risk_levels must preserve risk order")
+        if self.profile_count != len(self.risk_profiles):
+            raise ValueError("profile_count must match risk profiles")
+
+        profile_sources = {
+            source_registry
+            for profile in self.risk_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match risk sources")
+
+        known_ambiguity = set(self.ambiguity_profile_ids)
+        known_conditions = set(self.condition_ids)
+        known_policies = set(self.policy_rule_ids)
+        known_creative = set(self.creative_policy_ids)
+        known_signals = set(self.escalation_signal_ids)
+        known_evidence = set(self.risk_evidence_surfaces)
+        for profile in self.risk_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("risk sources must match registry")
+            if profile.source_ambiguity_profile_id not in known_ambiguity:
+                raise ValueError("risk ambiguity profiles must be known")
+            if not set(profile.source_condition_ids).issubset(known_conditions):
+                raise ValueError("risk conditions must be known")
+            if not set(profile.source_policy_rule_ids).issubset(known_policies):
+                raise ValueError("risk policies must be known")
+            if not set(profile.source_creative_policy_ids).issubset(known_creative):
+                raise ValueError("risk creative policies must be known")
+            if not set(profile.source_escalation_signal_ids).issubset(known_signals):
+                raise ValueError("risk signals must be known")
+            if "risk_escalation_signal" not in profile.source_escalation_signal_ids:
+                raise ValueError("risk profiles must reference risk signal")
+            if not set(profile.risk_evidence_surfaces).issubset(known_evidence):
+                raise ValueError("risk evidence surfaces must be known")
+            if profile.risk_evaluation_implemented:
+                raise ValueError("risk escalation must not evaluate risk")
+            if profile.escalation_execution_implemented:
+                raise ValueError("risk escalation must not execute escalation")
+            if profile.mitigation_execution_implemented:
+                raise ValueError("risk escalation must not apply mitigation")
+        return self
+
+
+def risk_escalation_registry() -> RiskEscalationRegistry:
+    """Return passive V4.3 risk escalation metadata."""
+
+    return RISK_ESCALATION_REGISTRY
+
+
+def risk_escalation_profile_by_id(
+    risk_profile_id: str,
+    registry: RiskEscalationRegistry | None = None,
+) -> RiskEscalationProfile | None:
+    """Return one risk profile without triggering escalation."""
+
+    source_registry = registry or RISK_ESCALATION_REGISTRY
+    for profile in source_registry.risk_profiles:
+        if profile.risk_profile_id == risk_profile_id:
+            return profile
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -4314,6 +4522,46 @@ def _ambiguity_escalation_profile(
             "does not evaluate ambiguity, trigger clarification, execute "
             "escalation, invoke agents, route providers or models, control "
             "workflow transitions, trigger retries, or modify generated output."
+        ),
+    )
+
+
+def _risk_escalation_profile(
+    *,
+    risk_profile_id: str,
+    topic_id: RiskEscalationTopic,
+    source_ambiguity_profile_id: str,
+    source_condition_ids: tuple[str, ...],
+    source_policy_rule_ids: tuple[str, ...],
+    source_creative_policy_ids: tuple[str, ...],
+    source_escalation_signal_ids: tuple[str, ...],
+    risk_level: RiskEscalationLevel,
+    risk_evidence_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> RiskEscalationProfile:
+    return RiskEscalationProfile(
+        risk_profile_id=risk_profile_id,
+        topic_id=topic_id,
+        source_ambiguity_profile_id=source_ambiguity_profile_id,
+        source_condition_ids=source_condition_ids,
+        source_policy_rule_ids=source_policy_rule_ids,
+        source_creative_policy_ids=source_creative_policy_ids,
+        source_escalation_signal_ids=source_escalation_signal_ids,
+        risk_level=risk_level,
+        risk_evidence_surfaces=risk_evidence_surfaces,
+        source_registries=_RISK_ESCALATION_SOURCE_REGISTRIES,
+        escalation_dimensions=(
+            "risk_level",
+            "artifact_risk_visibility",
+            "creative_policy_context",
+            "risk_signal_context",
+        ),
+        advisory_outputs=advisory_outputs,
+        authority_boundary=(
+            "This risk escalation profile is advisory metadata only; it does "
+            "not evaluate risk, execute escalation, apply mitigation, invoke "
+            "agents, route providers or models, control workflow transitions, "
+            "trigger retries, or modify generated output."
         ),
     )
 
@@ -6208,6 +6456,134 @@ AMBIGUITY_ESCALATION_REGISTRY = AmbiguityEscalationRegistry(
     escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
     ambiguity_evidence_surfaces=_AMBIGUITY_EVIDENCE_SURFACES,
     profile_count=len(AMBIGUITY_ESCALATION_PROFILES),
+)
+RISK_ESCALATION_PROFILES = (
+    _risk_escalation_profile(
+        risk_profile_id="risk_escalation::planning_execution_fit",
+        topic_id="planning_execution_fit",
+        source_ambiguity_profile_id="ambiguity_escalation::planning_execution_fit",
+        source_condition_ids=(
+            "planning_ambiguity_multi_agent_candidate",
+            "artifact_risk_multi_agent_candidate",
+        ),
+        source_policy_rule_ids=(
+            "missing_information_review",
+            "artifact_risk_review",
+        ),
+        source_creative_policy_ids=(
+            "concept_ambiguity_creative_escalation_policy",
+            "aesthetic_risk_creative_escalation_policy",
+        ),
+        source_escalation_signal_ids=(
+            "risk_escalation_signal",
+            "ambiguity_escalation_signal",
+        ),
+        risk_level="medium",
+        risk_evidence_surfaces=(
+            "implementation_risks",
+            "risk_assessment",
+        ),
+        advisory_outputs=(
+            "planning_risk_escalation_placeholder",
+            "planning_risk_context",
+        ),
+    ),
+    _risk_escalation_profile(
+        risk_profile_id="risk_escalation::style_aesthetic_alignment",
+        topic_id="style_aesthetic_alignment",
+        source_ambiguity_profile_id=(
+            "ambiguity_escalation::style_aesthetic_alignment"
+        ),
+        source_condition_ids=("artifact_risk_multi_agent_candidate",),
+        source_policy_rule_ids=("artifact_risk_review",),
+        source_creative_policy_ids=("aesthetic_risk_creative_escalation_policy",),
+        source_escalation_signal_ids=(
+            "risk_escalation_signal",
+            "quality_escalation_signal",
+        ),
+        risk_level="high",
+        risk_evidence_surfaces=(
+            "risk_assessment",
+            "unsupported_assumptions",
+            "capability_risks",
+        ),
+        advisory_outputs=(
+            "style_risk_escalation_placeholder",
+            "aesthetic_risk_context",
+        ),
+    ),
+    _risk_escalation_profile(
+        risk_profile_id="risk_escalation::curation_refinement_need",
+        topic_id="curation_refinement_need",
+        source_ambiguity_profile_id="ambiguity_escalation::curation_refinement_need",
+        source_condition_ids=(
+            "artifact_risk_multi_agent_candidate",
+            "evaluation_confidence_multi_agent_candidate",
+        ),
+        source_policy_rule_ids=(
+            "artifact_risk_review",
+            "evaluation_confidence_review",
+        ),
+        source_creative_policy_ids=(
+            "aesthetic_risk_creative_escalation_policy",
+            "quality_uncertainty_creative_escalation_policy",
+        ),
+        source_escalation_signal_ids=(
+            "risk_escalation_signal",
+            "confidence_escalation_signal",
+            "quality_escalation_signal",
+        ),
+        risk_level="critical",
+        risk_evidence_surfaces=(
+            "risk_assessment",
+            "unsupported_assumptions",
+            "escalation_candidates",
+        ),
+        advisory_outputs=(
+            "curation_risk_escalation_placeholder",
+            "refinement_risk_context",
+        ),
+    ),
+    _risk_escalation_profile(
+        risk_profile_id="risk_escalation::final_synthesis_readiness",
+        topic_id="final_synthesis_readiness",
+        source_ambiguity_profile_id="ambiguity_escalation::final_synthesis_readiness",
+        source_condition_ids=("terminal_guardrail_multi_agent_candidate",),
+        source_policy_rule_ids=(
+            "artifact_risk_review",
+            "future_agent_escalation_readiness",
+        ),
+        source_creative_policy_ids=("terminal_synthesis_creative_escalation_policy",),
+        source_escalation_signal_ids=(
+            "risk_escalation_signal",
+            "hitl_escalation_signal",
+        ),
+        risk_level="low",
+        risk_evidence_surfaces=(
+            "risk_assessment",
+            "escalation_candidates",
+        ),
+        advisory_outputs=(
+            "synthesis_risk_escalation_placeholder",
+            "final_risk_context",
+        ),
+    ),
+)
+RISK_ESCALATION_REGISTRY = RiskEscalationRegistry(
+    risk_profiles=RISK_ESCALATION_PROFILES,
+    risk_profile_ids=tuple(
+        profile.risk_profile_id for profile in RISK_ESCALATION_PROFILES
+    ),
+    topic_ids=tuple(profile.topic_id for profile in RISK_ESCALATION_PROFILES),
+    risk_levels=tuple(profile.risk_level for profile in RISK_ESCALATION_PROFILES),
+    source_registries=_RISK_ESCALATION_SOURCE_REGISTRIES,
+    ambiguity_profile_ids=AMBIGUITY_ESCALATION_REGISTRY.ambiguity_profile_ids,
+    condition_ids=CONDITIONAL_MULTI_AGENT_ESCALATION_REGISTRY.condition_ids,
+    policy_rule_ids=_KNOWN_CONDITIONAL_ESCALATION_POLICY_RULE_IDS,
+    creative_policy_ids=CREATIVE_ESCALATION_POLICY_REGISTRY.policy_ids,
+    escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
+    risk_evidence_surfaces=_RISK_EVIDENCE_SURFACES,
+    profile_count=len(RISK_ESCALATION_PROFILES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (

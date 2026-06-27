@@ -18,6 +18,7 @@ from creative_coding_assistant.orchestration import (
     LatencyThresholdRoutingRegistry,
     ReflectionEscalationRegistry,
     ResultNormalizationRegistry,
+    RiskEscalationRegistry,
     ReturnToWorkflowHandoffRegistry,
     SpecialistAgentLoopRegistry,
     V3BackboneModeRegistry,
@@ -59,6 +60,8 @@ from creative_coding_assistant.orchestration import (
     reflection_escalation_registry,
     result_normalization_profile_by_id,
     result_normalization_registry,
+    risk_escalation_profile_by_id,
+    risk_escalation_registry,
     return_to_workflow_handoff_profile_by_id,
     return_to_workflow_handoff_registry,
     specialist_agent_loop_by_id,
@@ -874,6 +877,60 @@ REQUIRED_AMBIGUITY_ESCALATION_FIELDS = {
     "ambiguity_evaluation_implemented",
     "escalation_execution_implemented",
     "clarification_request_implemented",
+    "agent_invocation_implemented",
+    "provider_model_routing_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_RISK_ESCALATION_PROFILE_IDS = (
+    "risk_escalation::planning_execution_fit",
+    "risk_escalation::style_aesthetic_alignment",
+    "risk_escalation::curation_refinement_need",
+    "risk_escalation::final_synthesis_readiness",
+)
+EXPECTED_RISK_ESCALATION_LEVELS = (
+    "medium",
+    "high",
+    "critical",
+    "low",
+)
+EXPECTED_RISK_ESCALATION_SOURCE_REGISTRIES = (
+    "ambiguity_escalation_registry",
+    "conditional_multi_agent_escalation_registry",
+    "escalation_policy_registry",
+    "creative_escalation_policy_registry",
+    "agent_escalation_signal_registry",
+    "artifact_engine_contract_registry",
+    "hybrid_agentic_workflow_registry",
+)
+EXPECTED_RISK_EVIDENCE_SURFACES = (
+    "implementation_risks",
+    "risk_assessment",
+    "unsupported_assumptions",
+    "capability_risks",
+    "escalation_candidates",
+)
+REQUIRED_RISK_ESCALATION_FIELDS = {
+    "risk_profile_id",
+    "topic_id",
+    "source_ambiguity_profile_id",
+    "source_condition_ids",
+    "source_policy_rule_ids",
+    "source_creative_policy_ids",
+    "source_escalation_signal_ids",
+    "risk_level",
+    "risk_evidence_surfaces",
+    "source_registries",
+    "escalation_dimensions",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "risk_evaluation_implemented",
+    "escalation_execution_implemented",
+    "mitigation_execution_implemented",
     "agent_invocation_implemented",
     "provider_model_routing_implemented",
     "workflow_control_implemented",
@@ -4229,6 +4286,218 @@ class AmbiguityEscalationRegistryTests(unittest.TestCase):
             "evaluate_ambiguity",
             "trigger_clarification",
             "execute_escalation",
+            "execute_agent",
+            "route_provider",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class RiskEscalationRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_risk_profiles(self) -> None:
+        registry = risk_escalation_registry()
+
+        self.assertEqual(registry.role, "risk_escalation_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "risk_escalation_registry.v1",
+        )
+        self.assertEqual(registry.risk_profile_ids, EXPECTED_RISK_ESCALATION_PROFILE_IDS)
+        self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
+        self.assertEqual(registry.risk_levels, EXPECTED_RISK_ESCALATION_LEVELS)
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_RISK_ESCALATION_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(
+            registry.ambiguity_profile_ids,
+            ambiguity_escalation_registry().ambiguity_profile_ids,
+        )
+        self.assertEqual(
+            registry.condition_ids,
+            conditional_multi_agent_escalation_registry().condition_ids,
+        )
+        self.assertEqual(registry.policy_rule_ids, escalation_policy_registry().rule_ids)
+        self.assertEqual(
+            registry.creative_policy_ids,
+            creative_escalation_policy_registry().policy_ids,
+        )
+        self.assertEqual(
+            registry.escalation_signal_ids,
+            agent_escalation_signal_registry().signal_ids,
+        )
+        self.assertEqual(registry.risk_evidence_surfaces, EXPECTED_RISK_EVIDENCE_SURFACES)
+        self.assertEqual(registry.profile_count, 4)
+        self.assertIn("does not evaluate risk", registry.authority_boundary)
+        self.assertFalse(registry.risk_evaluation_implemented)
+        self.assertFalse(registry.escalation_execution_implemented)
+        self.assertFalse(registry.mitigation_execution_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.provider_model_routing_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_risk_profiles_reference_known_sources(self) -> None:
+        registry = risk_escalation_registry()
+        known_ambiguity = set(ambiguity_escalation_registry().ambiguity_profile_ids)
+        known_conditions = set(conditional_multi_agent_escalation_registry().condition_ids)
+        known_policies = set(escalation_policy_registry().rule_ids)
+        known_creative = set(creative_escalation_policy_registry().policy_ids)
+        known_signals = set(agent_escalation_signal_registry().signal_ids)
+        known_evidence = set(EXPECTED_RISK_EVIDENCE_SURFACES)
+
+        for profile in registry.risk_profiles:
+            dumped = profile.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_RISK_ESCALATION_FIELDS)
+            self.assertEqual(
+                profile.source_registries,
+                EXPECTED_RISK_ESCALATION_SOURCE_REGISTRIES,
+            )
+            self.assertIn(profile.source_ambiguity_profile_id, known_ambiguity)
+            self.assertTrue(set(profile.source_condition_ids).issubset(known_conditions))
+            self.assertTrue(set(profile.source_policy_rule_ids).issubset(known_policies))
+            self.assertTrue(
+                set(profile.source_creative_policy_ids).issubset(known_creative)
+            )
+            self.assertTrue(
+                set(profile.source_escalation_signal_ids).issubset(known_signals)
+            )
+            self.assertIn("risk_escalation_signal", profile.source_escalation_signal_ids)
+            self.assertTrue(set(profile.risk_evidence_surfaces).issubset(known_evidence))
+            self.assertIn(profile.risk_level, registry.risk_levels)
+            self.assertTrue(profile.escalation_dimensions)
+            self.assertTrue(profile.advisory_outputs)
+            self.assertIn("risk_evaluation", profile.blocked_runtime_behaviors)
+            self.assertIn("escalation_execution", profile.blocked_runtime_behaviors)
+            self.assertIn("mitigation_execution", profile.blocked_runtime_behaviors)
+            self.assertFalse(profile.risk_evaluation_implemented)
+            self.assertFalse(profile.escalation_execution_implemented)
+            self.assertFalse(profile.mitigation_execution_implemented)
+            self.assertFalse(profile.agent_invocation_implemented)
+            self.assertFalse(profile.provider_model_routing_implemented)
+            self.assertFalse(profile.workflow_control_implemented)
+            self.assertFalse(profile.retry_triggering_implemented)
+            self.assertFalse(profile.generated_output_mutation_implemented)
+            self.assertEqual(
+                profile.serialization_version,
+                "risk_escalation_profile.v1",
+            )
+            self.assertTrue(profile.metadata_only)
+
+    def test_risk_source_registries_are_complete(self) -> None:
+        registry = risk_escalation_registry()
+        profile_sources = tuple(
+            dict.fromkeys(
+                source
+                for profile in registry.risk_profiles
+                for source in profile.source_registries
+            )
+        )
+
+        self.assertEqual(profile_sources, registry.source_registries)
+        for source_registry in EXPECTED_RISK_ESCALATION_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, profile_sources)
+        for profile in registry.risk_profiles:
+            self.assertEqual(set(profile.source_registries), set(profile_sources))
+
+    def test_risk_lookup_is_stable(self) -> None:
+        profile = risk_escalation_profile_by_id(
+            "risk_escalation::style_aesthetic_alignment"
+        )
+        missing = risk_escalation_profile_by_id("missing_risk")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.topic_id, "style_aesthetic_alignment")
+        self.assertEqual(profile.risk_level, "high")
+        self.assertIn("aesthetic_risk_context", profile.advisory_outputs)
+        self.assertFalse(profile.escalation_execution_implemented)
+
+    def test_risk_registry_rejects_mismatched_metadata(self) -> None:
+        registry = risk_escalation_registry()
+        mismatched_profile = registry.risk_profiles[0].model_copy(
+            update={"risk_profile_id": "other_risk"}
+        )
+        missing_signal_profile = registry.risk_profiles[0].model_copy(
+            update={"source_escalation_signal_ids": ("hitl_escalation_signal",)}
+        )
+        unknown_evidence_profile = registry.risk_profiles[0].model_copy(
+            update={"risk_evidence_surfaces": ("unknown_risk_surface",)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "risk_profile_ids"):
+            RiskEscalationRegistry(
+                risk_profiles=(mismatched_profile,) + registry.risk_profiles[1:],
+                risk_profile_ids=registry.risk_profile_ids,
+                topic_ids=registry.topic_ids,
+                risk_levels=registry.risk_levels,
+                source_registries=registry.source_registries,
+                ambiguity_profile_ids=registry.ambiguity_profile_ids,
+                condition_ids=registry.condition_ids,
+                policy_rule_ids=registry.policy_rule_ids,
+                creative_policy_ids=registry.creative_policy_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                risk_evidence_surfaces=registry.risk_evidence_surfaces,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "risk signal"):
+            RiskEscalationRegistry(
+                risk_profiles=(missing_signal_profile,) + registry.risk_profiles[1:],
+                risk_profile_ids=registry.risk_profile_ids,
+                topic_ids=registry.topic_ids,
+                risk_levels=registry.risk_levels,
+                source_registries=registry.source_registries,
+                ambiguity_profile_ids=registry.ambiguity_profile_ids,
+                condition_ids=registry.condition_ids,
+                policy_rule_ids=registry.policy_rule_ids,
+                creative_policy_ids=registry.creative_policy_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                risk_evidence_surfaces=registry.risk_evidence_surfaces,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "risk evidence"):
+            RiskEscalationRegistry(
+                risk_profiles=(unknown_evidence_profile,) + registry.risk_profiles[1:],
+                risk_profile_ids=registry.risk_profile_ids,
+                topic_ids=registry.topic_ids,
+                risk_levels=registry.risk_levels,
+                source_registries=registry.source_registries,
+                ambiguity_profile_ids=registry.ambiguity_profile_ids,
+                condition_ids=registry.condition_ids,
+                policy_rule_ids=registry.policy_rule_ids,
+                creative_policy_ids=registry.creative_policy_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                risk_evidence_surfaces=registry.risk_evidence_surfaces,
+                profile_count=registry.profile_count,
+            )
+
+    def test_risk_does_not_declare_active_execution(self) -> None:
+        registry = risk_escalation_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for profile in registry.risk_profiles
+                    for field in (
+                        profile.risk_profile_id,
+                        profile.authority_boundary,
+                        *profile.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "evaluate_risk",
+            "execute_escalation",
+            "apply_mitigation",
             "execute_agent",
             "route_provider",
             "modify_output",
