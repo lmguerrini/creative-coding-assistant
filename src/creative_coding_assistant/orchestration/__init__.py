@@ -58,6 +58,7 @@ _AGENT_ROLES = "creative_coding_assistant.orchestration.agent_roles"
 _AGENT_BOUNDARIES = "creative_coding_assistant.orchestration.agent_boundaries"
 _AGENT_METADATA = "creative_coding_assistant.orchestration.agent_metadata"
 _AGENT_ROUTING = "creative_coding_assistant.orchestration.agent_routing"
+_BLACKBOARD_MEMORY = "creative_coding_assistant.orchestration.blackboard_memory"
 _AGENT_CAPABILITY_REGISTRY = (
     "creative_coding_assistant.orchestration.agent_capabilities"
 )
@@ -209,6 +210,13 @@ _EXPORT_MAP = {
     "agent_routing_profile_by_agent_id": _AGENT_ROUTING,
     "agent_routing_profiles_for_route": _AGENT_ROUTING,
     "agent_routing_registry": _AGENT_ROUTING,
+    "BlackboardAgentPermissionContract": _BLACKBOARD_MEMORY,
+    "BlackboardMemoryChannelContract": _BLACKBOARD_MEMORY,
+    "BlackboardMemoryRegistry": _BLACKBOARD_MEMORY,
+    "blackboard_channel_by_id": _BLACKBOARD_MEMORY,
+    "blackboard_channels_for_agent": _BLACKBOARD_MEMORY,
+    "blackboard_memory_registry": _BLACKBOARD_MEMORY,
+    "blackboard_permissions_by_agent_id": _BLACKBOARD_MEMORY,
     "AgentCapabilityProfile": _AGENT_CAPABILITY_REGISTRY,
     "AgentCapabilityRegistry": _AGENT_CAPABILITY_REGISTRY,
     "agent_capability_by_id": _AGENT_CAPABILITY_REGISTRY,
