@@ -1,9 +1,9 @@
 # Creative Coding Assistant
 
-Creative Coding Assistant is a V3.6-stabilized AI-native creative translation
-workstation designed to transform symbolic, conceptual, geometric, stylistic,
-and multimodal intent into professional audio, visual, and audiovisual
-creative systems.
+Creative Coding Assistant is an AI-native creative translation workstation for
+the completed V3 platform, designed to transform symbolic, conceptual,
+geometric, stylistic, and multimodal intent into professional audio, visual,
+and audiovisual creative systems.
 
 It combines a LangGraph-orchestrated Python backend with a Next.js workstation
 for the full V2.5 Creative Core, the V3.1 Creative Cognition Core, the V3.2
@@ -14,18 +14,17 @@ creative timeline, V3 inspector panels, dashboard summaries, and surface
 contracts over existing metadata. The product also includes multi-artifact
 generation, multi-preview comparison, controlled runtime preview, critique and
 scoring, parameter control, observability, validation, and export preparation.
-V3.6 is a stabilization and refactor pass over the completed V3 surface: it
-hardens workflow graph assembly, stream and payload boundaries, local backend
-mounting, shared orchestration utilities, and documentation alignment without
-expanding generation behavior or future-version runtime scope.
+The stabilized V3 surface hardens workflow graph assembly, stream and payload
+boundaries, local backend mounting, shared orchestration utilities, and
+documentation alignment without expanding generation behavior or
+future-version runtime scope.
 
-The current product scope is a creative coding platform rather than a generic
-chat assistant. Requests can be translated from intent, symbols, geometry,
-style, shader language, motion systems, audio-reactive mappings, and visual
-references into structured creative guidance, grounded with retrieval when
-useful, expanded into multiple candidate artifacts, compared, critiqued,
-refined, and observed through live preview and runtime inspection from the
-same interface.
+The product scope is a creative coding platform rather than a generic chat
+assistant. Requests can be translated from intent, symbols, geometry, style,
+shader language, motion systems, audio-reactive mappings, and visual references
+into structured creative guidance, grounded with retrieval when useful,
+expanded into multiple candidate artifacts, compared, critiqued, refined, and
+observed through live preview and runtime inspection from the same interface.
 
 ![Creative Coding Assistant](assets/preview_current.png)
 
@@ -446,7 +445,7 @@ The Python backend lives under `src/creative_coding_assistant/` and centers on
 an implemented LangGraph workflow in
 `src/creative_coding_assistant/orchestration/workflow_graph.py`.
 
-The current workflow order is:
+Workflow node order:
 
 `intake -> routing -> memory -> retrieval -> context_assembly -> prompt_input -> planning -> director -> reasoning -> prompt_rendering -> generation -> artifact_extraction -> preview_preparation -> artifact_critique -> review -> refinement -> finalization -> failure`
 
@@ -489,7 +488,7 @@ preparation. The Next.js workstation then routes previewable outputs into
 controlled runtime adapters rather than executing arbitrary generated
 application code directly.
 
-Current live preview/runtime support includes:
+Live preview/runtime support includes:
 
 - p5.js sketches through a controlled p5-compatible 2D canvas runtime
 - Three.js scenes through a controlled Three-compatible WebGL runtime
