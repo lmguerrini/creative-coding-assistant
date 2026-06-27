@@ -8,6 +8,7 @@ from creative_coding_assistant.orchestration import (
     agent_boundary_registry,
     agent_contract_registry,
     agent_metadata_registry,
+    agent_routing_registry,
     agent_role_registry,
     build_assistant_workflow_graph,
     build_prompt_input_request,
@@ -27,6 +28,7 @@ AGENT_REGISTRY_MARKERS = (
     "agent_role_registry",
     "agent_boundary_registry",
     "agent_metadata_registry",
+    "agent_routing_registry",
 )
 
 
@@ -36,18 +38,22 @@ class AgentContractIntegrationTests(unittest.TestCase):
         role_registry = agent_role_registry()
         boundary_registry = agent_boundary_registry()
         metadata_registry = agent_metadata_registry()
+        routing_registry = agent_routing_registry()
 
         self.assertEqual(contract_registry.contract_count, 12)
         self.assertEqual(role_registry.role_count, 12)
         self.assertEqual(boundary_registry.boundary_count, 12)
         self.assertEqual(metadata_registry.metadata_count, 12)
+        self.assertEqual(routing_registry.profile_count, 12)
         self.assertEqual(role_registry.agent_ids, contract_registry.agent_ids)
         self.assertEqual(boundary_registry.agent_ids, contract_registry.agent_ids)
         self.assertEqual(metadata_registry.agent_ids, contract_registry.agent_ids)
+        self.assertEqual(routing_registry.agent_ids, contract_registry.agent_ids)
         self.assertTrue(contract_registry.metadata_only)
         self.assertTrue(role_registry.metadata_only)
         self.assertTrue(boundary_registry.metadata_only)
         self.assertTrue(metadata_registry.metadata_only)
+        self.assertTrue(routing_registry.metadata_only)
 
     def test_agent_registries_do_not_change_workflow_nodes_or_payloads(self) -> None:
         graph = build_assistant_workflow_graph()

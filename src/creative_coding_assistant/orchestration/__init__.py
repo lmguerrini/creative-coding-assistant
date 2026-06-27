@@ -57,6 +57,7 @@ _AGENT_MEMORY_CONTRACTS = (
 _AGENT_ROLES = "creative_coding_assistant.orchestration.agent_roles"
 _AGENT_BOUNDARIES = "creative_coding_assistant.orchestration.agent_boundaries"
 _AGENT_METADATA = "creative_coding_assistant.orchestration.agent_metadata"
+_AGENT_ROUTING = "creative_coding_assistant.orchestration.agent_routing"
 _AGENT_CAPABILITY_REGISTRY = (
     "creative_coding_assistant.orchestration.agent_capabilities"
 )
@@ -203,6 +204,11 @@ _EXPORT_MAP = {
     "AgentOperationalMetadata": _AGENT_METADATA,
     "agent_metadata_by_agent_id": _AGENT_METADATA,
     "agent_metadata_registry": _AGENT_METADATA,
+    "AgentRoutingProfile": _AGENT_ROUTING,
+    "AgentRoutingRegistry": _AGENT_ROUTING,
+    "agent_routing_profile_by_agent_id": _AGENT_ROUTING,
+    "agent_routing_profiles_for_route": _AGENT_ROUTING,
+    "agent_routing_registry": _AGENT_ROUTING,
     "AgentCapabilityProfile": _AGENT_CAPABILITY_REGISTRY,
     "AgentCapabilityRegistry": _AGENT_CAPABILITY_REGISTRY,
     "agent_capability_by_id": _AGENT_CAPABILITY_REGISTRY,
