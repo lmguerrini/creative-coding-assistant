@@ -554,9 +554,121 @@ STYLE_AGENT_CONTRACT = AgentContract(
     ),
 )
 
+RUNTIME_AGENT_CONTRACT = AgentContract(
+    agent_id="runtime_agent",
+    agent_name="Runtime Agent",
+    agent_version="v4.1",
+    role_id="runtime",
+    role_name="Runtime Agent",
+    role_purpose=(
+        "Represent runtime compatibility, environment constraints, and "
+        "runtime-fit handoff metadata for future V4 orchestration."
+    ),
+    authority_boundary=(
+        "Runtime Agent contract metadata maps existing runtime capability, "
+        "compatibility, and artifact fit metadata boundaries only; it does not "
+        "change runtime selection, route providers or models, execute runtime "
+        "decisions, trigger retries, alter workflow control, or modify "
+        "generated output."
+    ),
+    allowed_actions=(
+        "describe_runtime_context_requirements",
+        "map_runtime_compatibility_metadata",
+        "declare_future_runtime_handoff",
+    ),
+    prohibited_actions=(
+        "runtime_selection_change",
+        "runtime_decision_execution",
+        "provider_or_model_routing",
+        "workflow_control",
+        "retry_or_refinement_triggering",
+        "generated_output_modification",
+    ),
+    capabilities=(
+        "runtime_context_mapping",
+        "compatibility_signal_metadata",
+        "environment_handoff_metadata_preparation",
+    ),
+    required_inputs=(
+        "assistant_request",
+        "runtime_capabilities",
+        "runtime_compatibility_profile",
+    ),
+    optional_inputs=(
+        "artifact_capability_matrix",
+        "creative_execution_plan",
+        "route_decision",
+        "workstation_engine_contract_registry",
+        "agent_memory_contract",
+    ),
+    produced_outputs=(
+        "runtime_context_packet_contract",
+        "runtime_fit_summary_contract",
+        "environment_handoff_metadata_contract",
+    ),
+    produced_metadata=(
+        "runtime_capability_metadata",
+        "runtime_compatibility_metadata",
+        "environment_constraint_metadata",
+        "runtime_fit_metadata",
+        "unsupported_runtime_metadata",
+    ),
+    produced_signals=(
+        "runtime_confidence",
+        "runtime_fit_status",
+        "supported_runtime",
+        "unsupported_runtime",
+        "environment_risk",
+    ),
+    memory_access=AgentMemoryAccessContract(
+        allowed_memory_sources=(
+            "session_metadata",
+            "artifact_metadata",
+            "provenance_metadata",
+            "future_blackboard_contract",
+        ),
+    ),
+    cacheability="deterministic_with_upstream_metadata",
+    estimated_cost_metadata=AgentContractCostMetadata(
+        relative_cost="low",
+        cost_basis=(
+            "Static metadata mapping from existing runtime compatibility "
+            "signals; no runtime decision execution or provider calls."
+        ),
+        cache_sensitivity=(
+            "Cache key must include request, runtime capability, and "
+            "compatibility metadata identifiers."
+        ),
+    ),
+    estimated_latency_metadata=AgentContractLatencyMetadata(
+        relative_latency="low",
+        latency_basis=(
+            "Bounded local metadata inspection with no network, provider, "
+            "runtime execution, workflow, or artifact execution."
+        ),
+        blocking_inputs=(
+            "assistant_request",
+            "runtime_capabilities",
+            "runtime_compatibility_profile",
+        ),
+    ),
+    future_orchestration_hooks=(
+        "v4_2_runtime_context_handoff",
+        "v4_2_runtime_fit_review",
+    ),
+    source_contract_registries=(
+        "agent_identity_registry",
+        "agent_memory_contract_registry",
+        "artifact_engine_contract_registry",
+        "workstation_engine_contract_registry",
+        "runtime_capability_metadata",
+    ),
+)
+
 AGENT_CONTRACTS: tuple[AgentContract, ...] = (
     PLANNER_AGENT_CONTRACT,
     RESEARCH_AGENT_CONTRACT,
     STYLE_AGENT_CONTRACT,
+    RUNTIME_AGENT_CONTRACT,
 )
 AGENT_CONTRACT_REGISTRY = build_agent_contract_registry(AGENT_CONTRACTS)
