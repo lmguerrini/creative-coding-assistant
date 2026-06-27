@@ -440,8 +440,123 @@ RESEARCH_AGENT_CONTRACT = AgentContract(
     ),
 )
 
+STYLE_AGENT_CONTRACT = AgentContract(
+    agent_id="style_agent",
+    agent_name="Style Agent",
+    agent_version="v4.1",
+    role_id="style",
+    role_name="Style Agent",
+    role_purpose=(
+        "Represent style interpretation, visual coherence, and stylistic "
+        "handoff metadata for future V4 orchestration."
+    ),
+    authority_boundary=(
+        "Style Agent contract metadata maps existing creative style, motif, "
+        "composition, and reference-fusion metadata boundaries only; it does "
+        "not change style output generation, add style engine behavior, "
+        "execute agents, route providers or models, select runtimes, trigger "
+        "retries, or modify generated output."
+    ),
+    allowed_actions=(
+        "describe_style_context_requirements",
+        "map_visual_style_metadata",
+        "declare_future_style_handoff",
+    ),
+    prohibited_actions=(
+        "style_output_generation_change",
+        "style_engine_behavior_change",
+        "agent_invocation",
+        "provider_or_model_routing",
+        "runtime_selection",
+        "generated_output_modification",
+    ),
+    capabilities=(
+        "style_context_mapping",
+        "stylistic_coherence_metadata",
+        "visual_handoff_metadata_preparation",
+    ),
+    required_inputs=(
+        "assistant_request",
+        "creative_translation",
+        "visual_style_guidance",
+    ),
+    optional_inputs=(
+        "creative_intent",
+        "creative_hierarchy",
+        "creative_composition",
+        "semantic_motif",
+        "emotional_consistency",
+        "reference_fusion",
+        "shader_preset_guidance",
+        "agent_memory_contract",
+    ),
+    produced_outputs=(
+        "style_context_packet_contract",
+        "stylistic_coherence_summary_contract",
+        "style_handoff_metadata_contract",
+    ),
+    produced_metadata=(
+        "visual_style_metadata",
+        "style_constraint_metadata",
+        "composition_style_metadata",
+        "reference_style_metadata",
+        "style_coherence_metadata",
+    ),
+    produced_signals=(
+        "style_alignment",
+        "style_confidence",
+        "style_ambiguity",
+        "reference_style_coverage",
+        "visual_coherence",
+    ),
+    memory_access=AgentMemoryAccessContract(
+        allowed_memory_sources=(
+            "session_metadata",
+            "artifact_metadata",
+            "provenance_metadata",
+            "future_blackboard_contract",
+        ),
+    ),
+    cacheability="deterministic_with_upstream_metadata",
+    estimated_cost_metadata=AgentContractCostMetadata(
+        relative_cost="low",
+        cost_basis=(
+            "Static metadata mapping from existing creative style signals; no "
+            "style generation, provider calls, or runtime execution."
+        ),
+        cache_sensitivity=(
+            "Cache key must include request, creative translation, and visual "
+            "style metadata identifiers."
+        ),
+    ),
+    estimated_latency_metadata=AgentContractLatencyMetadata(
+        relative_latency="low",
+        latency_basis=(
+            "Bounded local metadata inspection with no network, provider, "
+            "style engine, workflow, or artifact execution."
+        ),
+        blocking_inputs=(
+            "assistant_request",
+            "creative_translation",
+            "visual_style_guidance",
+        ),
+    ),
+    future_orchestration_hooks=(
+        "v4_2_style_context_handoff",
+        "v4_2_stylistic_coherence_review",
+    ),
+    source_contract_registries=(
+        "agent_identity_registry",
+        "agent_memory_contract_registry",
+        "visual_style_metadata",
+        "creative_composition_metadata",
+        "reference_fusion_metadata",
+    ),
+)
+
 AGENT_CONTRACTS: tuple[AgentContract, ...] = (
     PLANNER_AGENT_CONTRACT,
     RESEARCH_AGENT_CONTRACT,
+    STYLE_AGENT_CONTRACT,
 )
 AGENT_CONTRACT_REGISTRY = build_agent_contract_registry(AGENT_CONTRACTS)
