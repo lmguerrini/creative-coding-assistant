@@ -5,6 +5,7 @@ from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
     JinjaPromptRenderer,
     StructuredPromptInputBuilder,
+    agent_capability_alignment_registry,
     agent_coordination_registry,
     agent_debate_registry,
     agent_dependency_graph_registry,
@@ -43,6 +44,7 @@ AGENT_REGISTRY_MARKERS = (
     "agent_coordination_registry",
     "agent_debate_registry",
     "consensus_builder_registry",
+    "agent_capability_alignment_registry",
 )
 
 
@@ -60,6 +62,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         coordination_registry = agent_coordination_registry()
         debate_registry = agent_debate_registry()
         consensus_registry = consensus_builder_registry()
+        capability_alignment_registry = agent_capability_alignment_registry()
 
         self.assertEqual(contract_registry.contract_count, 12)
         self.assertEqual(role_registry.role_count, 12)
@@ -73,6 +76,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         self.assertEqual(len(coordination_registry.handoff_channels), 5)
         self.assertEqual(debate_registry.max_rounds, 4)
         self.assertEqual(len(consensus_registry.voting_inputs), 4)
+        self.assertEqual(capability_alignment_registry.alignment_count, 12)
         self.assertEqual(role_registry.agent_ids, contract_registry.agent_ids)
         self.assertEqual(boundary_registry.agent_ids, contract_registry.agent_ids)
         self.assertEqual(metadata_registry.agent_ids, contract_registry.agent_ids)
@@ -91,6 +95,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         self.assertTrue(coordination_registry.metadata_only)
         self.assertTrue(debate_registry.metadata_only)
         self.assertTrue(consensus_registry.metadata_only)
+        self.assertTrue(capability_alignment_registry.metadata_only)
 
     def test_agent_registries_do_not_change_workflow_nodes_or_payloads(self) -> None:
         graph = build_assistant_workflow_graph()
