@@ -173,9 +173,16 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("true multi-agent", architecture_doc)
         self.assertIn("multi-node runtime graph", architecture_doc)
         self.assertIn("## V4.1 Multi-Agent Core Contract Boundary", architecture_doc)
+        self.assertIn("## V4.2 Agent Orchestration Metadata Boundary", architecture_doc)
         self.assertIn("Agent Contract Registry", architecture_doc)
         self.assertIn("Agent Memory Contract Registry", architecture_doc)
         self.assertIn("Agent Metadata Registry", architecture_doc)
+        self.assertIn("Agent Routing Registry", architecture_doc)
+        self.assertIn("Blackboard Memory Registry", architecture_doc)
+        self.assertIn("Workflow Agent Handoff Registry", architecture_doc)
+        self.assertIn("Orchestration Contract Integration Registry", architecture_doc)
+        self.assertIn("passive orchestration metadata", normalized_architecture_doc)
+        self.assertIn("do not execute orchestration", normalized_architecture_doc)
         self.assertIn("do not enter provider prompts", normalized_architecture_doc)
         self.assertIn("LangGraph node ordering", architecture_doc)
 
@@ -271,6 +278,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "Stabilization & Refactor Pass",
             "V4.1",
             "Multi-Agent Core",
+            "V4.2",
+            "Agent Orchestration",
             "V4",
             "Agentic Studio",
             "V5",
@@ -284,6 +293,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("workstation_engine_contract_registry.v1", engine_matrix)
         self.assertIn("V3.6 Audit And Future-Readiness Metadata", engine_matrix)
         self.assertIn("## V4.1 Multi-Agent Core Registries", engine_matrix)
+        self.assertIn("## V4.2 Agent Orchestration Registries", engine_matrix)
 
         for registry_marker in (
             "agent_capability_registry.v1",
@@ -296,6 +306,20 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "agent_role_registry.v1",
             "agent_boundary_registry.v1",
             "agent_metadata_registry.v1",
+            "agent_routing_registry.v1",
+            "blackboard_memory_registry.v1",
+            "shared_context_view_registry.v1",
+            "agent_dependency_graph.v1",
+            "parallel_scheduling_registry.v1",
+            "coordination_registry.v1",
+            "agent_debate_registry.v1",
+            "consensus_builder_registry.v1",
+            "agent_capability_alignment_registry.v1",
+            "agent_escalation_signal_registry.v1",
+            "agent_lifecycle_registry.v1",
+            "agent_state_sync_registry.v1",
+            "workflow_agent_handoff_registry.v1",
+            "orchestration_contract_integration.v1",
         ):
             self.assertIn(registry_marker, engine_matrix)
 
@@ -310,10 +334,27 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "agent_roles.py",
             "agent_boundaries.py",
             "agent_metadata.py",
+            "agent_routing.py",
+            "blackboard_memory.py",
+            "shared_context_views.py",
+            "agent_dependency_graph.py",
+            "agent_parallel_scheduling.py",
+            "agent_coordination.py",
+            "agent_debate.py",
+            "agent_consensus.py",
+            "agent_capability_alignment.py",
+            "agent_escalation_signals.py",
+            "agent_lifecycle.py",
+            "agent_state_synchronization.py",
+            "workflow_agent_handoff.py",
+            "orchestration_contract_integration.py",
         ):
             self.assertIn(module_path, engine_matrix)
 
         self.assertIn("export-only metadata surfaces", engine_matrix)
+        self.assertIn("not active multi-agent orchestration", normalized_engine_matrix)
+        self.assertIn("storage behavior", normalized_engine_matrix)
+        self.assertIn("active runtime orchestration", normalized_engine_matrix)
         self.assertIn("change LangGraph node order", normalized_engine_matrix)
         self.assertIn(
             "not additional LangGraph runtime nodes",

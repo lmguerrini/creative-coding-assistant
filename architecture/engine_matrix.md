@@ -38,6 +38,7 @@ Use this matrix together with:
 | V3.5 | Creative Workstation exposes state, session, workflow, provenance, timeline, inspector, dashboard, and workstation contract metadata without changing generation behavior | Knowledge surfaces become more operator-legible without changing retrieval ownership | Execution metadata is exposed more clearly without adding hidden runtime behavior | Workstation surfaces become the primary focus for usability, inspection, and operator flow |
 | V3.6 | Stabilization & Refactor Pass hardens the completed V3 surface without adding new generation behavior | Knowledge boundaries are simplified without changing source-of-truth ownership | Runtime contracts, validation seams, backend dev mounting, and serialization paths are stabilized without feature expansion | Experience surfaces and documentation are aligned without changing capability scope |
 | V4.1 | Multi-Agent Core defines passive agent identities, contracts, roles, boundaries, and metadata over completed V3 capabilities without changing generation behavior | Agent-facing knowledge and memory access are described as metadata contracts only; no blackboard, shared context view, or retrieval side effect is implemented | Agent contracts remain export-only metadata and do not enter workflow control, provider routing, runtime selection, retries, or execution | Agentic Studio can inspect role and boundary contracts later, but no collaborative studio behavior is implemented here |
+| V4.2 | Agent Orchestration defines passive orchestration contracts over V4.1 agents without activating multi-agent execution | Blackboard, shared context view, state synchronization, and handoff surfaces are metadata contracts only; no memory storage, runtime synchronization, or retrieval side effect is implemented | Orchestration registries remain export-only metadata and do not enter workflow control, provider routing, runtime selection, retries, storage behavior, or execution | Agentic Studio can inspect orchestration readiness later, but no active coordination, debate, consensus, or lifecycle UI behavior is implemented here |
 | V4 | Agentic Studio decomposes more internal creative work into bounded collaborative systems | Deeper agent-facing knowledge packets may emerge here | More inspectable orchestration paths may appear here | Agentic Studio becomes the main collaboration surface |
 | V5 | Core Engine remains creative-first but hands more optimization work outward | Knowledge signals can guide execution optimization and production policy | Execution Optimization & Production Intelligence becomes the primary expansion | Experience surfaces emphasize production telemetry and operational controls |
 | V6 | HoloGenesis Core OS can unify long-horizon creative strategy, lineage, and system identity | Long-horizon knowledge and memory adaptation move into the future OS direction | Execution can learn from prior runs without replacing bounded workflow control | Experience surfaces expose lineage, feedback, and evolving operator guidance |
@@ -115,6 +116,38 @@ shared context views, render agent contract text into provider prompts, enter
 workflow event payloads, change LangGraph node order, alter provider/model
 routing, select runtimes, trigger retries, execute artifacts, change final
 response generation, or modify generated output.
+
+## V4.2 Agent Orchestration Registries
+
+V4.2 adds passive orchestration metadata on top of the V4.1 Multi-Agent Core.
+The registries describe orchestration readiness, boundaries, and consistency
+relationships for future Agentic Studio consumers. They are not active
+multi-agent orchestration and do not create agents, coordinate live agents,
+run debates, build consensus, synchronize runtime state, mutate blackboard
+storage, change workflow payloads, alter prompts, route providers/models,
+trigger retries, select runtimes, or modify generated output.
+
+| Registry | Source module | Count | Serialization version | Current boundary |
+| --- | --- | ---: | --- | --- |
+| Agent routing | `src/creative_coding_assistant/orchestration/agent_routing.py` | 12 profiles | `agent_routing_registry.v1` | Describes advisory route candidates per agent without changing provider/model routing, workflow routing, retries, or output |
+| Blackboard memory | `src/creative_coding_assistant/orchestration/blackboard_memory.py` | 12 channels / 12 permissions | `blackboard_memory_registry.v1` | Describes planned blackboard channels and permissions without persistence, runtime reads, runtime writes, or storage backends |
+| Shared context views | `src/creative_coding_assistant/orchestration/shared_context_views.py` | 12 views | `shared_context_view_registry.v1` | Describes scoped context visibility without materializing context, exposing global state, or mutating context |
+| Agent dependency graph | `src/creative_coding_assistant/orchestration/agent_dependency_graph.py` | 30 nodes | `agent_dependency_graph.v1` | Describes static dependency relationships without scheduling traversal or executing agents |
+| Parallel scheduling | `src/creative_coding_assistant/orchestration/agent_parallel_scheduling.py` | 6 groups | `parallel_scheduling_registry.v1` | Describes future concurrency groups without parallel execution, agent invocation, or workflow control |
+| Agent coordination | `src/creative_coding_assistant/orchestration/agent_coordination.py` | 5 handoff channels | `coordination_registry.v1` | Describes responsibilities, handoff channels, and events without coordinating live agents |
+| Agent debate | `src/creative_coding_assistant/orchestration/agent_debate.py` | 4 rounds | `agent_debate_registry.v1` | Describes bounded advisory debate metadata without running debate or triggering retries |
+| Consensus builder | `src/creative_coding_assistant/orchestration/agent_consensus.py` | 4 voting inputs | `consensus_builder_registry.v1` | Describes voting inputs and agreement surfaces without voting, selecting outputs, or changing workflow control |
+| Capability alignment | `src/creative_coding_assistant/orchestration/agent_capability_alignment.py` | 12 profiles | `agent_capability_alignment_registry.v1` | Maps V4.1 roles to V4.2 capabilities without activating capabilities or routing work |
+| Escalation signals | `src/creative_coding_assistant/orchestration/agent_escalation_signals.py` | 7 signals | `agent_escalation_signal_registry.v1` | Describes advisory escalation thresholds without performing escalation, routing providers, or triggering HITL |
+| Agent lifecycle | `src/creative_coding_assistant/orchestration/agent_lifecycle.py` | 12 profiles / 10 transitions | `agent_lifecycle_registry.v1` | Describes planned lifecycle states and transitions without a lifecycle engine or workflow state mutation |
+| Agent state synchronization | `src/creative_coding_assistant/orchestration/agent_state_synchronization.py` | 12 profiles / 5 checkpoints | `agent_state_sync_registry.v1` | Describes sync checkpoints, stale warnings, and conflict surfaces without runtime synchronization or conflict resolution |
+| Workflow-agent handoff | `src/creative_coding_assistant/orchestration/workflow_agent_handoff.py` | 5 surfaces / 12 profiles | `workflow_agent_handoff_registry.v1` | Maps V3 workflow surfaces to V4 agents without changing workflow graph, prompts, payloads, or agent execution |
+| Orchestration integration | `src/creative_coding_assistant/orchestration/orchestration_contract_integration.py` | 13 registry entries | `orchestration_contract_integration.v1` | Makes V4.2 registries discoverable against V4.1 contracts without creating an active orchestration path |
+
+All V4.2 orchestration registries remain export-only metadata surfaces. Boundary
+tests assert that they do not enter provider/model routing, prompt rendering,
+workflow node order, generated outputs, retry behavior, storage behavior, or
+active runtime orchestration.
 
 ## V3.5 Workstation Contracts
 

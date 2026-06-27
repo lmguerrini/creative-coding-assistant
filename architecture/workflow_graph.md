@@ -27,6 +27,15 @@ agent identity, contract, memory, role, boundary, and advisory metadata
 registries that describe future agent responsibilities without invoking
 agents, routing tasks, rendering agent text into prompts, or adding workflow
 payload behavior.
+V4.2 Agent Orchestration builds on V4.1 as passive orchestration metadata. It
+adds dynamic routing profiles, blackboard channel contracts, shared context
+views, dependency graphs, scheduling groups, coordination, debate, consensus,
+capability alignment, escalation signals, lifecycle metadata, state
+synchronization metadata, workflow-to-agent handoff contracts, and an
+integration manifest. These registries are discoverable Python metadata APIs;
+they do not execute orchestration, invoke agents, synchronize runtime state,
+mutate blackboard storage, change provider/model routing, alter prompts, add
+workflow nodes, trigger retries, or modify generated output.
 `_planning_node()` deterministically derives and stores the V3.1 Creative
 Cognition metadata, the V3.2 Generative Design metadata, the V3.3 Artifact
 Intelligence metadata, and the V3.4 Creative Evaluation metadata:
@@ -103,6 +112,8 @@ This separation is intentional:
   dashboard, and contract surfaces over existing metadata
 - The V4.1 Multi-Agent Core layer owns passive agent role and contract
   definitions over the completed V3 platform
+- The V4.2 Agent Orchestration layer owns passive orchestration contracts over
+  those V4.1 agent roles, but still does not own runtime execution
 - The internal capability pipeline and dependency graph remain decomposition
   candidates for later orchestration, but they are not a true multi-agent or
   multi-node runtime graph here
@@ -130,6 +141,32 @@ response generation, or generated output modification.
 | Agent Role Registry | Static role order, role-family grouping, and capability-family grouping |
 | Agent Boundary Registry | Role-specific allowed inputs, allowed outputs, forbidden behaviors, and rationale |
 | Agent Metadata Registry | Advisory cacheability, parallelization, observability, auditability, cost, latency, and future-readiness metadata |
+
+## V4.2 Agent Orchestration Metadata Boundary
+
+V4.2 introduces orchestration contracts over the V4.1 agent society without
+turning the current backend into an active multi-agent runtime. The registries
+describe future orchestration surfaces, safety boundaries, and consistency
+relationships. They remain metadata-only and are covered by hardening tests
+that prove they do not leak into provider/model routing, prompt rendering,
+workflow node order, generated outputs, retries, or storage behavior.
+
+| Registry | Current boundary |
+| --- | --- |
+| Agent Routing Registry | Advisory agent-route profiles only; does not route providers, models, workflows, or tasks |
+| Blackboard Memory Registry | Planned blackboard channels and permissions only; does not persist, read, write, or mutate runtime blackboard state |
+| Shared Context View Registry | Scoped per-agent context visibility only; does not materialize shared context or expose unrestricted global state |
+| Agent Dependency Graph Registry | Static dependency metadata only; does not schedule or execute dependency traversal |
+| Parallel Scheduling Registry | Future concurrency groups only; does not run agents in parallel or alter workflow execution |
+| Agent Coordination Registry | Responsibility and handoff event contracts only; does not coordinate live agents |
+| Agent Debate Registry | Advisory debate rounds, claims, and participants only; does not run debates or trigger retries |
+| Consensus Builder Registry | Voting input and agreement-surface metadata only; does not vote or select outputs |
+| Agent Capability Alignment Registry | V4.1 role-to-V4.2 capability alignment only; does not activate capabilities |
+| Agent Escalation Signal Registry | Advisory escalation signals only; does not escalate, route providers, or trigger HITL |
+| Agent Lifecycle Registry | Planned state and transition metadata only; does not run lifecycle transitions |
+| Agent State Synchronization Registry | Checkpoint, consistency, stale-warning, and conflict-surface metadata only; does not synchronize runtime state |
+| Workflow Agent Handoff Registry | V3 workflow-surface to V4 agent handoff metadata only; does not alter workflow payloads or prompts |
+| Orchestration Contract Integration Registry | Discoverability manifest only; does not create an active orchestration path |
 
 ## Current Implemented Flow
 
@@ -222,6 +259,7 @@ flowchart TB
 
     metadata_boundary["Metadata boundary<br/>V3.1-V3.4 planning outputs<br/>stored on workflow + prompt input state"]:::relationship
     workstation_boundary["Workstation inspection boundary<br/>stream events + snapshots hydrate UI<br/>no extra runtime nodes"]:::relationship
+    orchestration_boundary["V4.2 orchestration metadata boundary<br/>passive registries over V4.1 agents<br/>no runtime orchestration"]:::relationship
 
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
     review -->|"pass or max retry"| finalization --> finish
@@ -235,6 +273,8 @@ flowchart TB
     artifact_critique -. critique metadata .-> workstation_boundary
     review -. decision metadata .-> workstation_boundary
     finalization -. final payload .-> workstation_boundary
+    metadata_boundary -. future contract references .-> orchestration_boundary
+    workstation_boundary -. inspection context references .-> orchestration_boundary
     intake -. intake_error .-> failure
     routing -. routing_error .-> failure
     memory -. memory_error .-> failure
@@ -259,7 +299,7 @@ flowchart TB
     class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,reasoning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
-    class metadata_boundary,workstation_boundary relationship
+    class metadata_boundary,workstation_boundary,orchestration_boundary relationship
     style phase_1 rx:6px,ry:6px
     style phase_2 rx:6px,ry:6px
     style phase_3 rx:6px,ry:6px
@@ -526,6 +566,10 @@ Current implemented flow:
 - V3.5 Creative Workstation stream hydration, workstation state, session
   intelligence, workflow explorer, provenance, timeline, inspector panels,
   dashboard, and static workstation contract registry exposure
+- V4.2 Agent Orchestration metadata registries for future routing,
+  blackboard, shared context, dependency, scheduling, coordination, debate,
+  consensus, lifecycle, state synchronization, workflow handoff, and
+  integration-manifest surfaces without active orchestration
 - Node lifecycle, review outcome, retry, refinement, and edge decision events
 - Explicit failure node and failure transitions
 - No tool nodes
