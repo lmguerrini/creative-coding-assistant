@@ -12,7 +12,7 @@ flowchart TB
     classDef relationship fill:#FEFCE8,stroke:#A16207,color:#713F12,stroke-width:1.5px,stroke-dasharray: 6 4;
 
     %% Serpentine readability rows
-    subgraph row_1[" "]
+    subgraph row_1["1. Runtime Entry And Strategy"]
         direction LR
         prompt_input["1. Prompt Input<br/>request + route + translation<br/>retrieval + clarification"]:::runtime
         planning["2. Planning<br/>single runtime node"]:::runtime
@@ -21,7 +21,7 @@ flowchart TB
         strategy["5. Strategy<br/>Creative Strategy Engine"]:::cognition
     end
 
-    subgraph row_2[" "]
+    subgraph row_2["2. Execution Feasibility"]
         direction RL
         techniques["6. Technique<br/>Creative Technique Selector"]:::cognition
         plan["7. Plan<br/>Creative Execution Plan"]:::cognition
@@ -30,7 +30,7 @@ flowchart TB
         tradeoffs["10. Trade-offs<br/>Creative Trade-off Explorer"]:::cognition
     end
 
-    subgraph row_3[" "]
+    subgraph row_3["3. Quality And Structure"]
         direction LR
         priorities["11. Priorities<br/>Creative Constraint Prioritizer"]:::cognition
         quality["12. Quality<br/>Creative Quality Predictor"]:::cognition
@@ -39,7 +39,7 @@ flowchart TB
         procedural["15. Procedural<br/>Procedural Structure Planner"]:::design
     end
 
-    subgraph row_4[" "]
+    subgraph row_4["4. Generative Design"]
         direction RL
         generative["16. Generative<br/>Generative Structure Engine"]:::design
         motif["17. Motif<br/>Semantic Motif Engine"]:::design
@@ -48,7 +48,7 @@ flowchart TB
         scene["20. Scene<br/>Audio-Visual Scene System"]:::design
     end
 
-    subgraph row_5[" "]
+    subgraph row_5["5. Artifact Planning"]
         direction LR
         artifact_plan["21. Artifact Plan<br/>Artifact Planner"]:::artifact
         dependency["22. Dependencies<br/>Artifact Dependency Graph"]:::artifact
@@ -57,7 +57,7 @@ flowchart TB
         artifact_strategy["25. Multi-Artifact<br/>Multi-Artifact Strategy"]:::artifact
     end
 
-    subgraph row_6[" "]
+    subgraph row_6["6. Artifact Critique And Export"]
         direction RL
         artifact_critic["26. Artifact Critic<br/>Artifact Critic"]:::artifact
         artifact_refiner["27. Artifact Refiner<br/>Artifact Refiner"]:::artifact
@@ -66,7 +66,7 @@ flowchart TB
         export_intelligence["30. Export Intelligence<br/>Artifact Export Intelligence"]:::artifact
     end
 
-    subgraph row_7[" "]
+    subgraph row_7["7. Evaluation And Metadata Store"]
         direction LR
         contracts["31. Artifact Contracts<br/>Artifact Engine Contracts"]:::artifact
         evaluation["32. Creative Evaluation<br/>critic + confidence + score + report + contracts"]:::evaluation
@@ -75,7 +75,7 @@ flowchart TB
         reasoning["35. Reasoning<br/>Creative Reasoning Engine runtime node"]:::consumer
     end
 
-    subgraph row_8[" "]
+    subgraph row_8["8. Runtime Consumers"]
         direction RL
         workstation["37. Workstation Hydration<br/>state + explorer + provenance + timeline + panels + dashboard"]:::workstation
         prompt_rendering["36. Prompt Rendering<br/>provider prompt sections"]:::consumer

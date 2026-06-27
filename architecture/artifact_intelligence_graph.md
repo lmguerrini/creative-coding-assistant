@@ -55,7 +55,7 @@ flowchart LR
 
     upstream["Upstream stored metadata<br/>V3.1 Creative Cognition<br/>V3.2 Generative Design"]:::upstream
 
-    subgraph artifact_stack["V3.3 Artifact Intelligence pipeline inside planning"]
+    subgraph artifact_stack["1. V3.3 Artifact Intelligence Pipeline"]
         direction TB
         planner["1. Artifact Planner"]:::artifact
         dependency["2. Artifact Dependency Graph"]:::artifact

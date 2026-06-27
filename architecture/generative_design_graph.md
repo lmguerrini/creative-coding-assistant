@@ -43,14 +43,14 @@ flowchart LR
     classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
     classDef relationship fill:#FEFCE8,stroke:#A16207,color:#713F12,stroke-width:1.5px,stroke-dasharray: 6 4;
 
-    subgraph upstream_core["Upstream V3.1 Creative Cognition outputs"]
+    subgraph upstream_core["1. Upstream V3.1 Creative Cognition"]
         direction TB
         brief["Brief layer<br/>Creative Intent Decomposer<br/>Creative Hierarchy Planner<br/>Creative Strategy Engine<br/>Creative Technique Selector"]:::upstream
         execution["Execution layer<br/>Creative Execution Plan<br/>Creative Constraint Solver<br/>Runtime Capability Reasoner<br/>Creative Trade-off Explorer<br/>Creative Constraint Prioritizer<br/>Creative Quality Predictor"]:::bundle
         story["Structure layer<br/>Symbolic Narrative Planner<br/>Creative Composition Planner"]:::upstream
     end
 
-    subgraph design_core["V3.2 Generative Design Core"]
+    subgraph design_core["2. V3.2 Generative Design Core"]
         direction TB
         procedural["Procedural Structure Planner"]:::design
         generative["Generative Structure Engine"]:::design

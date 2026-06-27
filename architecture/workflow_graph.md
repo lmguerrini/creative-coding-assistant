@@ -145,20 +145,20 @@ flowchart TB
     start([START])
     finish([END])
 
-    subgraph phase_1["Phase 1: Intake and routing"]
+    subgraph phase_1["Phase 1: Intake and Routing"]
         direction TB
         intake["Intake<br/>emit status: request_received"]
         routing["Routing<br/>select route<br/>store route_decision + route_payload<br/>emit status: route_selected"]
     end
 
-    subgraph phase_2["Phase 2: Context preparation"]
+    subgraph phase_2["Phase 2: Context Preparation"]
         direction TB
         memory["Memory<br/>retrieve memory context<br/>complete or skip"]
         retrieval["Retrieval<br/>retrieve KB context<br/>complete or skip"]
         context_assembly["Context assembly<br/>combine memory + retrieval<br/>complete or skip"]
     end
 
-    subgraph phase_3["Phase 3: Prompt preparation"]
+    subgraph phase_3["Phase 3: Prompt Preparation"]
         direction TB
         prompt_input["Prompt input<br/>build prompt inputs<br/>complete or skip"]
         planning["Planning<br/>derive V3.1-V3.4 metadata<br/>complete or skip"]
@@ -167,7 +167,7 @@ flowchart TB
         prompt_rendering["Prompt rendering<br/>serialize provider prompt sections<br/>complete or skip"]
     end
 
-    subgraph phase_4["Phase 4: Answer production"]
+    subgraph phase_4["Phase 4: Answer Production"]
         direction TB
         generation["Generation<br/>prepare provider input<br/>stream tokens<br/>store generation_result"]
         artifact_extraction["Artifact extraction<br/>normalize code artifacts<br/>emit artifact_extracted"]
@@ -431,7 +431,7 @@ flowchart TB
     classDef failure fill:#FEE2E2,stroke:#B91C1C,color:#7F1D1D,stroke-width:1.5px;
     classDef future fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px,stroke-dasharray: 6 4;
 
-    subgraph current_path["Current implemented path"]
+    subgraph current_path["Current Implemented Path"]
         direction TB
         routing["Routing"]
         memory["Memory"]
@@ -457,18 +457,18 @@ flowchart TB
         routing -. node error .-> failure
     end
 
-    subgraph future_tools["Future tool insertion points"]
+    subgraph future_tools["Future Tool Insertion Points"]
         direction TB
         tool_gate{{Tool gate<br/>after routing}}
         tool_loop{{Tool planning / execution loop<br/>before generation}}
     end
 
-    subgraph future_preview["Future preview execution"]
+    subgraph future_preview["Future Preview Execution"]
         direction TB
         preview["Renderer execution<br/>render / capture / export"]
     end
 
-    subgraph future_refinement["Future refinement and approval"]
+    subgraph future_refinement["Future Refinement And Approval"]
         direction TB
         retry{{Review / refinement loop}}
         hitl{{HITL checkpoint}}

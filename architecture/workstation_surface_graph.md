@@ -46,21 +46,31 @@ flowchart LR
     classDef dashboard fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px;
     classDef boundary fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
 
-    snapshot["Assistant workspace snapshot<br/>session + artifacts + workflow + preview"]:::source
-    stream["Assistant stream events<br/>workflow payloads + final payload"]:::source
-    trace["Workflow runtime trace<br/>node lifecycle + transitions"]:::source
-    v3_metadata["V3 metadata<br/>cognition + design + artifact + evaluation"]:::source
+    subgraph source_group["1. Metadata Sources"]
+        direction TB
+        snapshot["Assistant workspace snapshot<br/>session + artifacts + workflow + preview"]:::source
+        stream["Assistant stream events<br/>workflow payloads + final payload"]:::source
+        trace["Workflow runtime trace<br/>node lifecycle + transitions"]:::source
+        v3_metadata["V3 metadata<br/>cognition + design + artifact + evaluation"]:::source
+    end
 
-    state["Workstation State<br/>session + run + selection + readiness"]:::state
-    session["Session Intelligence<br/>readiness + completion + next action"]:::surface
-    explorer["Workflow Explorer<br/>nodes + edges + active step"]:::surface
-    provenance["Provenance Engine<br/>evidence + artifact + evaluation sources"]:::surface
-    timeline["Creative Timeline<br/>ordered metadata stages"]:::surface
-    inspector["V3 Inspector Panels<br/>creative + artifact + evaluation records"]:::surface
-    dashboard["Workstation Dashboard<br/>quality + confidence + readiness + HITL"]:::dashboard
-    contracts["Workstation Contracts<br/>static V3.5 surface registry"]:::boundary
-    future["Future V4/V5/V6 consumers<br/>named hooks only"]:::boundary
-    note["Metadata-only surface layer<br/>No provider routing, runtime selection,<br/>artifact execution, retries, or generated output changes"]:::boundary
+    subgraph surface_group["2. Workstation Surfaces"]
+        direction TB
+        state["Workstation State<br/>session + run + selection + readiness"]:::state
+        session["Session Intelligence<br/>readiness + completion + next action"]:::surface
+        explorer["Workflow Explorer<br/>nodes + edges + active step"]:::surface
+        provenance["Provenance Engine<br/>evidence + artifact + evaluation sources"]:::surface
+        timeline["Creative Timeline<br/>ordered metadata stages"]:::surface
+        inspector["V3 Inspector Panels<br/>creative + artifact + evaluation records"]:::surface
+        dashboard["Workstation Dashboard<br/>quality + confidence + readiness + HITL"]:::dashboard
+    end
+
+    subgraph boundary_group["3. Contracts And Future Hooks"]
+        direction TB
+        contracts["Workstation Contracts<br/>static V3.5 surface registry"]:::boundary
+        future["Future V4/V5/V6 consumers<br/>named hooks only"]:::boundary
+        note["Metadata-only surface layer<br/>No provider routing, runtime selection,<br/>artifact execution, retries, or generated output changes"]:::boundary
+    end
 
     snapshot --> state
     stream --> state
@@ -89,6 +99,10 @@ flowchart LR
     contracts -. describes .-> dashboard
     contracts -. hooks .-> future
     note -.-> dashboard
+
+    style source_group rx:6px,ry:6px
+    style surface_group rx:6px,ry:6px
+    style boundary_group rx:6px,ry:6px
 ```
 
 The raw Mermaid source for this surface graph is available in
