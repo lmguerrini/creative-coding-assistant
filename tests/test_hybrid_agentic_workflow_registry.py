@@ -13,6 +13,7 @@ from creative_coding_assistant.orchestration import (
     HybridAgentVotingRegistry,
     ReflectionEscalationRegistry,
     ResultNormalizationRegistry,
+    ReturnToWorkflowHandoffRegistry,
     SpecialistAgentLoopRegistry,
     V3BackboneModeRegistry,
     agent_contract_registry,
@@ -43,11 +44,14 @@ from creative_coding_assistant.orchestration import (
     reflection_escalation_registry,
     result_normalization_profile_by_id,
     result_normalization_registry,
+    return_to_workflow_handoff_profile_by_id,
+    return_to_workflow_handoff_registry,
     specialist_agent_loop_by_id,
     specialist_agent_loop_registry,
     v3_backbone_mode_profile_by_node_id,
     v3_backbone_mode_registry,
     workstation_engine_contracts,
+    workflow_agent_handoff_registry,
 )
 
 EXPECTED_STAGE_IDS = (
@@ -575,6 +579,51 @@ REQUIRED_RESULT_NORMALIZATION_FIELDS = {
     "schema_enforcement_implemented",
     "artifact_mutation_implemented",
     "agent_invocation_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_RETURN_TO_WORKFLOW_HANDOFF_PROFILE_IDS = (
+    "return_to_workflow_handoff::planning_execution_fit",
+    "return_to_workflow_handoff::style_aesthetic_alignment",
+    "return_to_workflow_handoff::curation_refinement_need",
+    "return_to_workflow_handoff::final_synthesis_readiness",
+)
+EXPECTED_RETURN_TO_WORKFLOW_HANDOFF_SURFACES = (
+    "planning",
+    "artifact",
+    "evaluation",
+    "finalization",
+)
+EXPECTED_RETURN_TO_WORKFLOW_HANDOFF_SOURCE_REGISTRIES = (
+    "result_normalization_registry",
+    "escalation_gate_registry",
+    "workflow_agent_handoff_registry",
+    "v3_backbone_mode_registry",
+    "workstation_engine_contract_registry",
+    "hybrid_agentic_workflow_registry",
+)
+REQUIRED_RETURN_TO_WORKFLOW_HANDOFF_FIELDS = {
+    "return_handoff_profile_id",
+    "topic_id",
+    "source_normalization_profile_id",
+    "source_gate_ids",
+    "source_workflow_handoff_ids",
+    "target_backbone_node_ids",
+    "target_workflow_surface",
+    "handoff_payload_surfaces",
+    "source_registries",
+    "handoff_dimensions",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "return_handoff_implemented",
+    "runtime_handoff_implemented",
+    "workflow_graph_change_implemented",
+    "prompt_alteration_implemented",
+    "agent_execution_implemented",
     "workflow_control_implemented",
     "retry_triggering_implemented",
     "generated_output_mutation_implemented",
@@ -2705,6 +2754,192 @@ class ResultNormalizationRegistryTests(unittest.TestCase):
             "transform_runtime_result",
             "rewrite_output",
             "enforce_runtime_schema",
+            "execute_agent",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class ReturnToWorkflowHandoffRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_return_handoff_profiles(self) -> None:
+        registry = return_to_workflow_handoff_registry()
+
+        self.assertEqual(registry.role, "return_to_workflow_handoff_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "return_to_workflow_handoff_registry.v1",
+        )
+        self.assertEqual(
+            registry.return_handoff_profile_ids,
+            EXPECTED_RETURN_TO_WORKFLOW_HANDOFF_PROFILE_IDS,
+        )
+        self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
+        self.assertEqual(
+            registry.target_workflow_surfaces,
+            EXPECTED_RETURN_TO_WORKFLOW_HANDOFF_SURFACES,
+        )
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_RETURN_TO_WORKFLOW_HANDOFF_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(
+            registry.normalization_profile_ids,
+            result_normalization_registry().normalization_profile_ids,
+        )
+        self.assertEqual(registry.gate_ids, escalation_gate_registry().gate_ids)
+        self.assertEqual(
+            registry.workflow_handoff_ids,
+            workflow_agent_handoff_registry().handoff_ids,
+        )
+        self.assertEqual(registry.backbone_node_ids, v3_backbone_mode_registry().node_ids)
+        self.assertEqual(registry.profile_count, 4)
+        self.assertIn("does not perform runtime handoffs", registry.authority_boundary)
+        self.assertFalse(registry.return_handoff_implemented)
+        self.assertFalse(registry.runtime_handoff_implemented)
+        self.assertFalse(registry.workflow_graph_change_implemented)
+        self.assertFalse(registry.prompt_alteration_implemented)
+        self.assertFalse(registry.agent_execution_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_return_handoff_profiles_reference_known_sources(self) -> None:
+        registry = return_to_workflow_handoff_registry()
+        known_normalization = set(result_normalization_registry().normalization_profile_ids)
+        known_gates = set(escalation_gate_registry().gate_ids)
+        known_handoffs = set(workflow_agent_handoff_registry().handoff_ids)
+        known_nodes = set(v3_backbone_mode_registry().node_ids)
+
+        for profile in registry.handoff_profiles:
+            dumped = profile.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_RETURN_TO_WORKFLOW_HANDOFF_FIELDS)
+            self.assertEqual(
+                profile.source_registries,
+                EXPECTED_RETURN_TO_WORKFLOW_HANDOFF_SOURCE_REGISTRIES,
+            )
+            self.assertIn(profile.source_normalization_profile_id, known_normalization)
+            self.assertTrue(set(profile.source_gate_ids).issubset(known_gates))
+            self.assertIn("return_handoff_escalation_gate", profile.source_gate_ids)
+            self.assertTrue(
+                set(profile.source_workflow_handoff_ids).issubset(known_handoffs)
+            )
+            self.assertTrue(set(profile.target_backbone_node_ids).issubset(known_nodes))
+            self.assertIn(
+                profile.target_workflow_surface,
+                EXPECTED_RETURN_TO_WORKFLOW_HANDOFF_SURFACES,
+            )
+            self.assertTrue(profile.handoff_payload_surfaces)
+            self.assertTrue(profile.handoff_dimensions)
+            self.assertTrue(profile.advisory_outputs)
+            self.assertIn("runtime_handoff_execution", profile.blocked_runtime_behaviors)
+            self.assertIn("workflow_graph_change", profile.blocked_runtime_behaviors)
+            self.assertFalse(profile.return_handoff_implemented)
+            self.assertFalse(profile.runtime_handoff_implemented)
+            self.assertFalse(profile.workflow_graph_change_implemented)
+            self.assertFalse(profile.prompt_alteration_implemented)
+            self.assertFalse(profile.agent_execution_implemented)
+            self.assertFalse(profile.workflow_control_implemented)
+            self.assertFalse(profile.retry_triggering_implemented)
+            self.assertFalse(profile.generated_output_mutation_implemented)
+            self.assertEqual(
+                profile.serialization_version,
+                "return_to_workflow_handoff_profile.v1",
+            )
+            self.assertTrue(profile.metadata_only)
+
+    def test_return_handoff_source_registries_are_complete(self) -> None:
+        registry = return_to_workflow_handoff_registry()
+        profile_sources = tuple(
+            dict.fromkeys(
+                source
+                for profile in registry.handoff_profiles
+                for source in profile.source_registries
+            )
+        )
+
+        self.assertEqual(profile_sources, registry.source_registries)
+        for source_registry in EXPECTED_RETURN_TO_WORKFLOW_HANDOFF_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, profile_sources)
+        for profile in registry.handoff_profiles:
+            self.assertEqual(set(profile.source_registries), set(profile_sources))
+
+    def test_return_handoff_lookup_is_stable(self) -> None:
+        profile = return_to_workflow_handoff_profile_by_id(
+            "return_to_workflow_handoff::curation_refinement_need"
+        )
+        missing = return_to_workflow_handoff_profile_by_id("missing_return_handoff")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.topic_id, "curation_refinement_need")
+        self.assertEqual(profile.target_workflow_surface, "evaluation")
+        self.assertIn("review", profile.target_backbone_node_ids)
+        self.assertFalse(profile.runtime_handoff_implemented)
+
+    def test_return_handoff_registry_rejects_mismatched_metadata(self) -> None:
+        registry = return_to_workflow_handoff_registry()
+        mismatched_profile = registry.handoff_profiles[0].model_copy(
+            update={"return_handoff_profile_id": "other_return_handoff"}
+        )
+        unknown_handoff_profile = registry.handoff_profiles[0].model_copy(
+            update={"source_workflow_handoff_ids": ("missing_handoff",)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "return_handoff_profile_ids"):
+            ReturnToWorkflowHandoffRegistry(
+                handoff_profiles=(mismatched_profile,) + registry.handoff_profiles[1:],
+                return_handoff_profile_ids=registry.return_handoff_profile_ids,
+                topic_ids=registry.topic_ids,
+                target_workflow_surfaces=registry.target_workflow_surfaces,
+                source_registries=registry.source_registries,
+                normalization_profile_ids=registry.normalization_profile_ids,
+                gate_ids=registry.gate_ids,
+                workflow_handoff_ids=registry.workflow_handoff_ids,
+                backbone_node_ids=registry.backbone_node_ids,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "return workflow handoffs"):
+            ReturnToWorkflowHandoffRegistry(
+                handoff_profiles=(
+                    unknown_handoff_profile,
+                )
+                + registry.handoff_profiles[1:],
+                return_handoff_profile_ids=registry.return_handoff_profile_ids,
+                topic_ids=registry.topic_ids,
+                target_workflow_surfaces=registry.target_workflow_surfaces,
+                source_registries=registry.source_registries,
+                normalization_profile_ids=registry.normalization_profile_ids,
+                gate_ids=registry.gate_ids,
+                workflow_handoff_ids=registry.workflow_handoff_ids,
+                backbone_node_ids=registry.backbone_node_ids,
+                profile_count=registry.profile_count,
+            )
+
+    def test_return_handoff_does_not_declare_active_execution(self) -> None:
+        registry = return_to_workflow_handoff_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for profile in registry.handoff_profiles
+                    for field in (
+                        profile.return_handoff_profile_id,
+                        profile.authority_boundary,
+                        *profile.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "perform_runtime_handoff",
+            "change_runtime_workflow_graph",
+            "alter_runtime_prompt",
             "execute_agent",
             "modify_output",
         ):

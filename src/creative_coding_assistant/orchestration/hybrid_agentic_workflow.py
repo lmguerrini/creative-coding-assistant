@@ -61,6 +61,8 @@ EscalationTraceTopic = DecisionProvenanceTopic
 CreativeExplorationBudgetTopic = EscalationTraceTopic
 CreativeExplorationBudgetPosture = Literal["narrow", "moderate", "broad", "guarded"]
 ResultNormalizationTopic = CreativeExplorationBudgetTopic
+ReturnToWorkflowHandoffTopic = ResultNormalizationTopic
+ReturnToWorkflowSurface = Literal["planning", "artifact", "evaluation", "finalization"]
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -130,6 +132,12 @@ RESULT_NORMALIZATION_PROFILE_SERIALIZATION_VERSION = (
 )
 RESULT_NORMALIZATION_REGISTRY_SERIALIZATION_VERSION = (
     "result_normalization_registry.v1"
+)
+RETURN_TO_WORKFLOW_HANDOFF_PROFILE_SERIALIZATION_VERSION = (
+    "return_to_workflow_handoff_profile.v1"
+)
+RETURN_TO_WORKFLOW_HANDOFF_REGISTRY_SERIALIZATION_VERSION = (
+    "return_to_workflow_handoff_registry.v1"
 )
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
@@ -223,6 +231,13 @@ RESULT_NORMALIZATION_AUTHORITY_BOUNDARY = (
     "rewrite outputs, enforce schemas, mutate artifacts, invoke agents, route "
     "providers or models, control workflow transitions, trigger retries, or "
     "modify generated output."
+)
+RETURN_TO_WORKFLOW_HANDOFF_AUTHORITY_BOUNDARY = (
+    "Return-to-workflow handoff metadata describes passive future handoff "
+    "context from normalized advisory results back to existing V3 workflow "
+    "surfaces only; it does not perform runtime handoffs, change workflow "
+    "graph order, alter prompts, execute agents, control workflow transitions, "
+    "trigger retries, or modify generated output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Hybrid agentic workflow metadata maps current V3 workflow nodes to future "
@@ -483,6 +498,24 @@ _RESULT_NORMALIZATION_SOURCE_REGISTRIES = (
     "artifact_engine_contract_registry",
     "evaluation_engine_contract_registry",
 )
+_RETURN_TO_WORKFLOW_HANDOFF_BLOCKED_RUNTIME_BEHAVIORS = (
+    "runtime_handoff_execution",
+    "workflow_graph_change",
+    "prompt_alteration",
+    "agent_execution",
+    "provider_or_model_routing",
+    "workflow_control",
+    "retry_triggering",
+    "generated_output_modification",
+)
+_RETURN_TO_WORKFLOW_HANDOFF_SOURCE_REGISTRIES = (
+    "result_normalization_registry",
+    "escalation_gate_registry",
+    "workflow_agent_handoff_registry",
+    "v3_backbone_mode_registry",
+    "workstation_engine_contract_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -576,6 +609,19 @@ _RESULT_NORMALIZATION_TOPICS: tuple[ResultNormalizationTopic, ...] = (
     "style_aesthetic_alignment",
     "curation_refinement_need",
     "final_synthesis_readiness",
+)
+_RETURN_TO_WORKFLOW_HANDOFF_TOPICS: tuple[ReturnToWorkflowHandoffTopic, ...] = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
+)
+_WORKFLOW_AGENT_HANDOFF_IDS = (
+    "planning_surface_agent_handoff",
+    "artifact_surface_agent_handoff",
+    "evaluation_surface_agent_handoff",
+    "provenance_surface_agent_handoff",
+    "finalization_surface_agent_handoff",
 )
 _KNOWN_SPECIALIST_AGENT_IDS = (
     "planner_agent",
@@ -2379,6 +2425,158 @@ def result_normalization_profile_by_id(
     return None
 
 
+class ReturnToWorkflowHandoffProfile(BaseModel):
+    """Passive V4.3 return-to-workflow handoff profile metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    return_handoff_profile_id: str = Field(min_length=1, max_length=160)
+    topic_id: ReturnToWorkflowHandoffTopic
+    source_normalization_profile_id: str = Field(min_length=1, max_length=170)
+    source_gate_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_workflow_handoff_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    target_backbone_node_ids: tuple[str, ...] = Field(min_length=1, max_length=6)
+    target_workflow_surface: ReturnToWorkflowSurface
+    handoff_payload_surfaces: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    handoff_dimensions: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_RETURN_TO_WORKFLOW_HANDOFF_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    return_handoff_implemented: Literal[False] = False
+    runtime_handoff_implemented: Literal[False] = False
+    workflow_graph_change_implemented: Literal[False] = False
+    prompt_alteration_implemented: Literal[False] = False
+    agent_execution_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["return_to_workflow_handoff_profile.v1"] = (
+        RETURN_TO_WORKFLOW_HANDOFF_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class ReturnToWorkflowHandoffRegistry(BaseModel):
+    """Stable passive registry for V4.3 return-to-workflow handoff metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["return_to_workflow_handoff_registry"] = (
+        "return_to_workflow_handoff_registry"
+    )
+    serialization_version: Literal["return_to_workflow_handoff_registry.v1"] = (
+        RETURN_TO_WORKFLOW_HANDOFF_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=RETURN_TO_WORKFLOW_HANDOFF_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    handoff_profiles: tuple[ReturnToWorkflowHandoffProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    return_handoff_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    topic_ids: tuple[ReturnToWorkflowHandoffTopic, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    target_workflow_surfaces: tuple[ReturnToWorkflowSurface, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    normalization_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    gate_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    workflow_handoff_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    backbone_node_ids: tuple[str, ...] = Field(min_length=18, max_length=18)
+    profile_count: int = Field(ge=4, le=4)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_RETURN_TO_WORKFLOW_HANDOFF_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    return_handoff_implemented: Literal[False] = False
+    runtime_handoff_implemented: Literal[False] = False
+    workflow_graph_change_implemented: Literal[False] = False
+    prompt_alteration_implemented: Literal[False] = False
+    agent_execution_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_return_handoff_metadata(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.return_handoff_profile_id for profile in self.handoff_profiles
+        )
+        derived_topic_ids = tuple(profile.topic_id for profile in self.handoff_profiles)
+        derived_surfaces = tuple(
+            profile.target_workflow_surface for profile in self.handoff_profiles
+        )
+        if self.return_handoff_profile_ids != derived_profile_ids:
+            raise ValueError("return_handoff_profile_ids must match profiles")
+        if self.topic_ids != derived_topic_ids:
+            raise ValueError("topic_ids must match return handoff profiles")
+        if self.topic_ids != _RETURN_TO_WORKFLOW_HANDOFF_TOPICS:
+            raise ValueError("topic_ids must preserve return handoff topic order")
+        if self.target_workflow_surfaces != derived_surfaces:
+            raise ValueError("target_workflow_surfaces must match profiles")
+        if self.profile_count != len(self.handoff_profiles):
+            raise ValueError("profile_count must match return handoff profiles")
+
+        profile_sources = {
+            source_registry
+            for profile in self.handoff_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match return handoff sources")
+
+        known_normalization = set(self.normalization_profile_ids)
+        known_gates = set(self.gate_ids)
+        known_handoffs = set(self.workflow_handoff_ids)
+        known_nodes = set(self.backbone_node_ids)
+        for profile in self.handoff_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("return handoff sources must match registry sources")
+            if profile.source_normalization_profile_id not in known_normalization:
+                raise ValueError("return handoff normalization must be known metadata")
+            if not set(profile.source_gate_ids).issubset(known_gates):
+                raise ValueError("return handoff gates must be known metadata")
+            if not set(profile.source_workflow_handoff_ids).issubset(known_handoffs):
+                raise ValueError("return workflow handoffs must be known metadata")
+            if not set(profile.target_backbone_node_ids).issubset(known_nodes):
+                raise ValueError("return handoff backbone nodes must be known metadata")
+            if profile.return_handoff_implemented:
+                raise ValueError("return-to-workflow handoff must not execute")
+        return self
+
+
+def return_to_workflow_handoff_registry() -> ReturnToWorkflowHandoffRegistry:
+    """Return passive V4.3 return-to-workflow handoff metadata."""
+
+    return RETURN_TO_WORKFLOW_HANDOFF_REGISTRY
+
+
+def return_to_workflow_handoff_profile_by_id(
+    return_handoff_profile_id: str,
+    registry: ReturnToWorkflowHandoffRegistry | None = None,
+) -> ReturnToWorkflowHandoffProfile | None:
+    """Return one return handoff profile without executing a runtime handoff."""
+
+    source_registry = registry or RETURN_TO_WORKFLOW_HANDOFF_REGISTRY
+    for profile in source_registry.handoff_profiles:
+        if profile.return_handoff_profile_id == return_handoff_profile_id:
+            return profile
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -2846,6 +3044,43 @@ def _result_normalization_profile(
             "This result normalization profile is advisory metadata only; it "
             "does not transform results, rewrite outputs, enforce schemas, "
             "mutate artifacts, invoke agents, control workflow transitions, "
+            "trigger retries, or modify generated output."
+        ),
+    )
+
+
+def _return_to_workflow_handoff_profile(
+    *,
+    return_handoff_profile_id: str,
+    topic_id: ReturnToWorkflowHandoffTopic,
+    source_normalization_profile_id: str,
+    source_workflow_handoff_ids: tuple[str, ...],
+    target_backbone_node_ids: tuple[str, ...],
+    target_workflow_surface: ReturnToWorkflowSurface,
+    handoff_payload_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> ReturnToWorkflowHandoffProfile:
+    return ReturnToWorkflowHandoffProfile(
+        return_handoff_profile_id=return_handoff_profile_id,
+        topic_id=topic_id,
+        source_normalization_profile_id=source_normalization_profile_id,
+        source_gate_ids=("return_handoff_escalation_gate",),
+        source_workflow_handoff_ids=source_workflow_handoff_ids,
+        target_backbone_node_ids=target_backbone_node_ids,
+        target_workflow_surface=target_workflow_surface,
+        handoff_payload_surfaces=handoff_payload_surfaces,
+        source_registries=_RETURN_TO_WORKFLOW_HANDOFF_SOURCE_REGISTRIES,
+        handoff_dimensions=(
+            "normalized_packet_reference",
+            "return_gate_visibility",
+            "workflow_surface_alignment",
+            "v3_backbone_node_alignment",
+        ),
+        advisory_outputs=advisory_outputs,
+        authority_boundary=(
+            "This return-to-workflow handoff profile is advisory metadata "
+            "only; it does not perform runtime handoffs, change workflow graph "
+            "order, alter prompts, execute agents, control workflow transitions, "
             "trigger retries, or modify generated output."
         ),
     )
@@ -4120,6 +4355,112 @@ RESULT_NORMALIZATION_REGISTRY = ResultNormalizationRegistry(
     provenance_profile_ids=DECISION_PROVENANCE_REGISTRY.provenance_profile_ids,
     trace_profile_ids=ESCALATION_TRACE_REGISTRY.trace_profile_ids,
     profile_count=len(RESULT_NORMALIZATION_PROFILES),
+)
+RETURN_TO_WORKFLOW_HANDOFF_PROFILES = (
+    _return_to_workflow_handoff_profile(
+        return_handoff_profile_id="return_to_workflow_handoff::planning_execution_fit",
+        topic_id="planning_execution_fit",
+        source_normalization_profile_id="result_normalization::planning_execution_fit",
+        source_workflow_handoff_ids=("planning_surface_agent_handoff",),
+        target_backbone_node_ids=("planning", "director", "reasoning"),
+        target_workflow_surface="planning",
+        handoff_payload_surfaces=(
+            "planning_advisory_packet",
+            "decision_context_summary",
+        ),
+        advisory_outputs=(
+            "planning_return_handoff_placeholder",
+            "planning_workflow_handoff_context",
+        ),
+    ),
+    _return_to_workflow_handoff_profile(
+        return_handoff_profile_id=(
+            "return_to_workflow_handoff::style_aesthetic_alignment"
+        ),
+        topic_id="style_aesthetic_alignment",
+        source_normalization_profile_id=(
+            "result_normalization::style_aesthetic_alignment"
+        ),
+        source_workflow_handoff_ids=("artifact_surface_agent_handoff",),
+        target_backbone_node_ids=(
+            "generation",
+            "artifact_extraction",
+            "preview_preparation",
+        ),
+        target_workflow_surface="artifact",
+        handoff_payload_surfaces=(
+            "aesthetic_advisory_packet",
+            "style_consensus_summary",
+        ),
+        advisory_outputs=(
+            "style_return_handoff_placeholder",
+            "artifact_workflow_handoff_context",
+        ),
+    ),
+    _return_to_workflow_handoff_profile(
+        return_handoff_profile_id=(
+            "return_to_workflow_handoff::curation_refinement_need"
+        ),
+        topic_id="curation_refinement_need",
+        source_normalization_profile_id=(
+            "result_normalization::curation_refinement_need"
+        ),
+        source_workflow_handoff_ids=(
+            "artifact_surface_agent_handoff",
+            "evaluation_surface_agent_handoff",
+        ),
+        target_backbone_node_ids=("artifact_critique", "review", "refinement"),
+        target_workflow_surface="evaluation",
+        handoff_payload_surfaces=(
+            "refinement_advisory_packet",
+            "quality_context_summary",
+        ),
+        advisory_outputs=(
+            "curation_return_handoff_placeholder",
+            "evaluation_workflow_handoff_context",
+        ),
+    ),
+    _return_to_workflow_handoff_profile(
+        return_handoff_profile_id=(
+            "return_to_workflow_handoff::final_synthesis_readiness"
+        ),
+        topic_id="final_synthesis_readiness",
+        source_normalization_profile_id=(
+            "result_normalization::final_synthesis_readiness"
+        ),
+        source_workflow_handoff_ids=(
+            "provenance_surface_agent_handoff",
+            "finalization_surface_agent_handoff",
+        ),
+        target_backbone_node_ids=("review", "finalization"),
+        target_workflow_surface="finalization",
+        handoff_payload_surfaces=(
+            "final_synthesis_packet",
+            "handoff_context_summary",
+        ),
+        advisory_outputs=(
+            "synthesis_return_handoff_placeholder",
+            "finalization_workflow_handoff_context",
+        ),
+    ),
+)
+RETURN_TO_WORKFLOW_HANDOFF_REGISTRY = ReturnToWorkflowHandoffRegistry(
+    handoff_profiles=RETURN_TO_WORKFLOW_HANDOFF_PROFILES,
+    return_handoff_profile_ids=tuple(
+        profile.return_handoff_profile_id
+        for profile in RETURN_TO_WORKFLOW_HANDOFF_PROFILES
+    ),
+    topic_ids=tuple(profile.topic_id for profile in RETURN_TO_WORKFLOW_HANDOFF_PROFILES),
+    target_workflow_surfaces=tuple(
+        profile.target_workflow_surface
+        for profile in RETURN_TO_WORKFLOW_HANDOFF_PROFILES
+    ),
+    source_registries=_RETURN_TO_WORKFLOW_HANDOFF_SOURCE_REGISTRIES,
+    normalization_profile_ids=RESULT_NORMALIZATION_REGISTRY.normalization_profile_ids,
+    gate_ids=ESCALATION_GATE_REGISTRY.gate_ids,
+    workflow_handoff_ids=_WORKFLOW_AGENT_HANDOFF_IDS,
+    backbone_node_ids=V3_BACKBONE_MODE_REGISTRY.node_ids,
+    profile_count=len(RETURN_TO_WORKFLOW_HANDOFF_PROFILES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (
