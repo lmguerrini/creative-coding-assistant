@@ -16,6 +16,7 @@ from creative_coding_assistant.orchestration import (
     HitlEscalationGateRegistry,
     HybridAgentDebateLoopRegistry,
     HybridAgentVotingRegistry,
+    HybridAgenticWorkflowRegistry,
     LatencyThresholdRoutingRegistry,
     QualityEscalationRegistry,
     ReflectionEscalationRegistry,
@@ -84,6 +85,51 @@ EXPECTED_STAGE_IDS = (
     "generation_artifact_readiness",
     "review_refinement_readiness",
     "completion_guardrail_readiness",
+)
+EXPECTED_HYBRID_WORKFLOW_INTEGRATION_SOURCE_REGISTRIES = (
+    "assistant_workflow_node_order",
+    "workflow_step_order",
+    "artifact_engine_contract_registry",
+    "evaluation_engine_contract_registry",
+    "workstation_engine_contract_registry",
+    "hybrid_agentic_workflow_registry",
+    "v3_backbone_mode_registry",
+    "agent_capability_registry",
+    "escalation_policy_registry",
+    "agent_escalation_signal_registry",
+    "agent_contract_registry",
+    "conditional_multi_agent_escalation_registry",
+    "specialist_agent_loop_registry",
+    "escalation_gate_registry",
+    "reflection_loop_engine",
+    "creative_escalation_policy_registry",
+    "agent_debate_registry",
+    "reflection_escalation_registry",
+    "consensus_builder_registry",
+    "hybrid_agent_debate_loop_registry",
+    "creative_confidence_engine",
+    "hybrid_agent_voting_registry",
+    "agent_confidence_fusion_registry",
+    "decision_provenance_registry",
+    "escalation_trace_registry",
+    "creative_planning_engine",
+    "creative_constraints_engine",
+    "creative_tradeoff_engine",
+    "creative_exploration_budget_registry",
+    "result_normalization_registry",
+    "workflow_agent_handoff_registry",
+    "return_to_workflow_handoff_registry",
+    "hitl_escalation_gate_registry",
+    "confidence_threshold_routing_registry",
+    "cost_threshold_routing_registry",
+    "agent_metadata_registry",
+    "latency_threshold_routing_registry",
+    "clarification_engine",
+    "ambiguity_escalation_registry",
+    "risk_escalation_registry",
+    "creative_quality_prediction_engine",
+    "quality_escalation_registry",
+    "adaptive_multi_agent_escalation_registry",
 )
 
 REQUIRED_STAGE_FIELDS = {
@@ -5143,13 +5189,7 @@ class HybridAgenticWorkflowRegistryTests(unittest.TestCase):
         self.assertTrue(registry.metadata_only)
         self.assertEqual(
             registry.source_metadata_registries,
-            (
-                "agent_capability_registry",
-                "escalation_policy_registry",
-                "artifact_engine_contract_registry",
-                "evaluation_engine_contract_registry",
-                "workstation_engine_contract_registry",
-            ),
+            EXPECTED_HYBRID_WORKFLOW_INTEGRATION_SOURCE_REGISTRIES,
         )
         self.assertIn("does not change workflow graph", registry.authority_boundary)
         self.assertEqual(
@@ -5167,6 +5207,14 @@ class HybridAgenticWorkflowRegistryTests(unittest.TestCase):
             self.assertTrue(stage.v3_workflow_nodes)
             self.assertTrue(stage.future_capability_ids)
             self.assertTrue(stage.escalation_rule_ids)
+            self.assertEqual(
+                stage.source_metadata_registries,
+                EXPECTED_HYBRID_WORKFLOW_INTEGRATION_SOURCE_REGISTRIES,
+            )
+            self.assertIn(
+                "adaptive_multi_agent_escalation_registry",
+                stage.source_metadata_registries,
+            )
             self.assertTrue(stage.advisory_outputs)
             self.assertIn("agent_invocation", stage.blocked_runtime_behaviors)
             self.assertIn(
@@ -5182,6 +5230,55 @@ class HybridAgenticWorkflowRegistryTests(unittest.TestCase):
         )
 
         self.assertEqual(declared_nodes, ASSISTANT_WORKFLOW_NODE_ORDER)
+
+    def test_registry_sources_cover_v4_3_passive_metadata(self) -> None:
+        registry = hybrid_agentic_workflow_registry()
+        source_registries = (
+            v3_backbone_mode_registry(),
+            conditional_multi_agent_escalation_registry(),
+            specialist_agent_loop_registry(),
+            escalation_gate_registry(),
+            creative_escalation_policy_registry(),
+            reflection_escalation_registry(),
+            hybrid_agent_debate_loop_registry(),
+            hybrid_agent_voting_registry(),
+            agent_confidence_fusion_registry(),
+            decision_provenance_registry(),
+            escalation_trace_registry(),
+            creative_exploration_budget_registry(),
+            result_normalization_registry(),
+            return_to_workflow_handoff_registry(),
+            hitl_escalation_gate_registry(),
+            confidence_threshold_routing_registry(),
+            cost_threshold_routing_registry(),
+            latency_threshold_routing_registry(),
+            ambiguity_escalation_registry(),
+            risk_escalation_registry(),
+            quality_escalation_registry(),
+            adaptive_multi_agent_escalation_registry(),
+        )
+        referenced_sources = tuple(
+            dict.fromkeys(
+                source
+                for source_registry in source_registries
+                for source in getattr(
+                    source_registry,
+                    "source_registries",
+                    getattr(source_registry, "source_metadata_registries", ()),
+                )
+            )
+        )
+
+        self.assertEqual(
+            registry.source_metadata_registries,
+            EXPECTED_HYBRID_WORKFLOW_INTEGRATION_SOURCE_REGISTRIES,
+        )
+        for source in referenced_sources:
+            self.assertIn(source, registry.source_metadata_registries)
+        self.assertIn(
+            "adaptive_multi_agent_escalation_registry",
+            registry.source_metadata_registries,
+        )
 
     def test_stage_lookup_is_stable(self) -> None:
         stage = hybrid_agentic_workflow_stage_by_id("review_refinement_readiness")
@@ -5208,9 +5305,25 @@ class HybridAgenticWorkflowRegistryTests(unittest.TestCase):
         self.assertEqual(len(dumped["stages"]), 5)
         self.assertTrue(dumped["metadata_only"])
         self.assertEqual(
+            dumped["source_metadata_registries"],
+            list(EXPECTED_HYBRID_WORKFLOW_INTEGRATION_SOURCE_REGISTRIES),
+        )
+        self.assertEqual(
             dumped["stages"][0]["stage_id"],
             "intake_routing_context_readiness",
         )
+
+    def test_registry_rejects_incomplete_integration_sources(self) -> None:
+        registry = hybrid_agentic_workflow_registry()
+
+        with self.assertRaisesRegex(ValueError, "integration set"):
+            HybridAgenticWorkflowRegistry(
+                stages=registry.stages,
+                stage_ids=registry.stage_ids,
+                stage_count=registry.stage_count,
+                source_metadata_registries=registry.source_metadata_registries[:-1]
+                + ("missing_source_registry",),
+            )
 
     def test_registry_does_not_declare_runtime_workflow_behavior(self) -> None:
         registry = hybrid_agentic_workflow_registry()

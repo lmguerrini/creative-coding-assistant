@@ -1033,6 +1033,51 @@ _ADAPTIVE_MULTI_AGENT_ESCALATION_EVIDENCE_SURFACES = (
 _ADAPTIVE_MULTI_AGENT_ESCALATION_CAPABILITY_IDS = (
     "adaptive_multi_agent_escalation",
 )
+_HYBRID_WORKFLOW_INTEGRATION_SOURCE_REGISTRIES = (
+    "assistant_workflow_node_order",
+    "workflow_step_order",
+    "artifact_engine_contract_registry",
+    "evaluation_engine_contract_registry",
+    "workstation_engine_contract_registry",
+    "hybrid_agentic_workflow_registry",
+    "v3_backbone_mode_registry",
+    "agent_capability_registry",
+    "escalation_policy_registry",
+    "agent_escalation_signal_registry",
+    "agent_contract_registry",
+    "conditional_multi_agent_escalation_registry",
+    "specialist_agent_loop_registry",
+    "escalation_gate_registry",
+    "reflection_loop_engine",
+    "creative_escalation_policy_registry",
+    "agent_debate_registry",
+    "reflection_escalation_registry",
+    "consensus_builder_registry",
+    "hybrid_agent_debate_loop_registry",
+    "creative_confidence_engine",
+    "hybrid_agent_voting_registry",
+    "agent_confidence_fusion_registry",
+    "decision_provenance_registry",
+    "escalation_trace_registry",
+    "creative_planning_engine",
+    "creative_constraints_engine",
+    "creative_tradeoff_engine",
+    "creative_exploration_budget_registry",
+    "result_normalization_registry",
+    "workflow_agent_handoff_registry",
+    "return_to_workflow_handoff_registry",
+    "hitl_escalation_gate_registry",
+    "confidence_threshold_routing_registry",
+    "cost_threshold_routing_registry",
+    "agent_metadata_registry",
+    "latency_threshold_routing_registry",
+    "clarification_engine",
+    "ambiguity_escalation_registry",
+    "risk_escalation_registry",
+    "creative_quality_prediction_engine",
+    "quality_escalation_registry",
+    "adaptive_multi_agent_escalation_registry",
+)
 _KNOWN_SPECIALIST_AGENT_IDS = (
     "planner_agent",
     "research_agent",
@@ -4311,7 +4356,10 @@ class HybridAgenticWorkflowStage(BaseModel):
     v3_workflow_nodes: tuple[str, ...] = Field(min_length=1, max_length=8)
     future_capability_ids: tuple[str, ...] = Field(min_length=1, max_length=8)
     escalation_rule_ids: tuple[str, ...] = Field(min_length=1, max_length=8)
-    source_metadata_registries: tuple[str, ...] = Field(min_length=1, max_length=6)
+    source_metadata_registries: tuple[str, ...] = Field(
+        min_length=43,
+        max_length=43,
+    )
     advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=12)
     blocked_runtime_behaviors: tuple[str, ...] = Field(min_length=1, max_length=12)
     serialization_version: Literal["hybrid_workflow_stage.v1"] = (
@@ -4340,8 +4388,32 @@ class HybridAgenticWorkflowRegistry(BaseModel):
     )
     stage_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
     stage_count: int = Field(ge=5, le=5)
-    source_metadata_registries: tuple[str, ...] = Field(min_length=5, max_length=5)
+    source_metadata_registries: tuple[str, ...] = Field(
+        min_length=43,
+        max_length=43,
+    )
     metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_hybrid_workflow_integration_metadata(self) -> Self:
+        derived_stage_ids = tuple(stage.stage_id for stage in self.stages)
+        if self.stage_ids != derived_stage_ids:
+            raise ValueError("stage_ids must match stages")
+        if self.stage_count != len(self.stages):
+            raise ValueError("stage_count must match stages")
+        if (
+            self.source_metadata_registries
+            != _HYBRID_WORKFLOW_INTEGRATION_SOURCE_REGISTRIES
+        ):
+            raise ValueError("source_metadata_registries must match integration set")
+
+        known_sources = set(self.source_metadata_registries)
+        for stage in self.stages:
+            if stage.source_metadata_registries != self.source_metadata_registries:
+                raise ValueError("stage sources must match integration sources")
+            if not set(stage.source_metadata_registries).issubset(known_sources):
+                raise ValueError("stage sources must be known integration sources")
+        return self
 
 
 def hybrid_agentic_workflow_registry() -> HybridAgenticWorkflowRegistry:
@@ -5142,13 +5214,7 @@ def _stage(
         v3_workflow_nodes=v3_workflow_nodes,
         future_capability_ids=future_capability_ids,
         escalation_rule_ids=escalation_rule_ids,
-        source_metadata_registries=(
-            "agent_capability_registry",
-            "escalation_policy_registry",
-            "artifact_engine_contract_registry",
-            "evaluation_engine_contract_registry",
-            "workstation_engine_contract_registry",
-        ),
+        source_metadata_registries=_HYBRID_WORKFLOW_INTEGRATION_SOURCE_REGISTRIES,
         advisory_outputs=advisory_outputs,
         blocked_runtime_behaviors=_BLOCKED_RUNTIME_BEHAVIORS,
     )
@@ -7506,11 +7572,5 @@ HYBRID_AGENTIC_WORKFLOW_REGISTRY = HybridAgenticWorkflowRegistry(
     stages=HYBRID_AGENTIC_WORKFLOW_STAGES,
     stage_ids=tuple(stage.stage_id for stage in HYBRID_AGENTIC_WORKFLOW_STAGES),
     stage_count=len(HYBRID_AGENTIC_WORKFLOW_STAGES),
-    source_metadata_registries=(
-        "agent_capability_registry",
-        "escalation_policy_registry",
-        "artifact_engine_contract_registry",
-        "evaluation_engine_contract_registry",
-        "workstation_engine_contract_registry",
-    ),
+    source_metadata_registries=_HYBRID_WORKFLOW_INTEGRATION_SOURCE_REGISTRIES,
 )
