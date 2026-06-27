@@ -57,6 +57,7 @@ HybridDebateLoopTopic = Literal[
 HybridVotingTopic = HybridDebateLoopTopic
 AgentConfidenceFusionTopic = HybridVotingTopic
 DecisionProvenanceTopic = AgentConfidenceFusionTopic
+EscalationTraceTopic = DecisionProvenanceTopic
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -108,6 +109,12 @@ DECISION_PROVENANCE_PROFILE_SERIALIZATION_VERSION = (
 )
 DECISION_PROVENANCE_REGISTRY_SERIALIZATION_VERSION = (
     "decision_provenance_registry.v1"
+)
+ESCALATION_TRACE_PROFILE_SERIALIZATION_VERSION = (
+    "escalation_trace_profile.v1"
+)
+ESCALATION_TRACE_REGISTRY_SERIALIZATION_VERSION = (
+    "escalation_trace_registry.v1"
 )
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
@@ -180,6 +187,13 @@ DECISION_PROVENANCE_AUTHORITY_BOUNDARY = (
     "does not record provenance, emit traces, write memory, select decisions, "
     "invoke agents, route providers or models, control workflow transitions, "
     "trigger retries, or modify generated output."
+)
+ESCALATION_TRACE_AUTHORITY_BOUNDARY = (
+    "Escalation trace metadata describes passive trace context for future "
+    "hybrid escalation visibility across known conditions, gates, signals, "
+    "and provenance metadata only; it does not capture traces, emit traces, "
+    "execute escalation, evaluate gates, write memory, invoke agents, control "
+    "workflow transitions, trigger retries, or modify generated output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Hybrid agentic workflow metadata maps current V3 workflow nodes to future "
@@ -382,6 +396,26 @@ _DECISION_PROVENANCE_SOURCE_REGISTRIES = (
     "workstation_engine_contract_registry",
     "hybrid_agentic_workflow_registry",
 )
+_ESCALATION_TRACE_BLOCKED_RUNTIME_BEHAVIORS = (
+    "trace_capture",
+    "trace_emission",
+    "escalation_execution",
+    "gate_evaluation",
+    "memory_write",
+    "agent_invocation",
+    "provider_or_model_routing",
+    "workflow_control",
+    "retry_triggering",
+    "generated_output_modification",
+)
+_ESCALATION_TRACE_SOURCE_REGISTRIES = (
+    "decision_provenance_registry",
+    "conditional_multi_agent_escalation_registry",
+    "escalation_gate_registry",
+    "agent_escalation_signal_registry",
+    "reflection_escalation_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -445,6 +479,12 @@ _AGENT_CONFIDENCE_FUSION_TOPICS: tuple[AgentConfidenceFusionTopic, ...] = (
     "final_synthesis_readiness",
 )
 _DECISION_PROVENANCE_TOPICS: tuple[DecisionProvenanceTopic, ...] = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
+)
+_ESCALATION_TRACE_TOPICS: tuple[EscalationTraceTopic, ...] = (
     "planning_execution_fit",
     "style_aesthetic_alignment",
     "curation_refinement_need",
@@ -1813,6 +1853,151 @@ def decision_provenance_profile_by_id(
     return None
 
 
+class EscalationTraceProfile(BaseModel):
+    """Passive V4.3 escalation trace profile metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    trace_profile_id: str = Field(min_length=1, max_length=140)
+    topic_id: EscalationTraceTopic
+    source_provenance_profile_id: str = Field(min_length=1, max_length=160)
+    source_condition_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_gate_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_escalation_signal_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_reflection_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    trace_dimensions: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_ESCALATION_TRACE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    trace_capture_implemented: Literal[False] = False
+    trace_emission_implemented: Literal[False] = False
+    escalation_execution_implemented: Literal[False] = False
+    gate_evaluation_implemented: Literal[False] = False
+    memory_write_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["escalation_trace_profile.v1"] = (
+        ESCALATION_TRACE_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class EscalationTraceRegistry(BaseModel):
+    """Stable passive registry for V4.3 escalation trace metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["escalation_trace_registry"] = "escalation_trace_registry"
+    serialization_version: Literal["escalation_trace_registry.v1"] = (
+        ESCALATION_TRACE_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=ESCALATION_TRACE_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    trace_profiles: tuple[EscalationTraceProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    trace_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    topic_ids: tuple[EscalationTraceTopic, ...] = Field(min_length=4, max_length=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    provenance_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    condition_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    gate_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    escalation_signal_ids: tuple[str, ...] = Field(min_length=7, max_length=7)
+    reflection_profile_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    profile_count: int = Field(ge=4, le=4)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_ESCALATION_TRACE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    trace_capture_implemented: Literal[False] = False
+    trace_emission_implemented: Literal[False] = False
+    escalation_execution_implemented: Literal[False] = False
+    gate_evaluation_implemented: Literal[False] = False
+    memory_write_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_escalation_trace_metadata(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.trace_profile_id for profile in self.trace_profiles
+        )
+        derived_topic_ids = tuple(profile.topic_id for profile in self.trace_profiles)
+        if self.trace_profile_ids != derived_profile_ids:
+            raise ValueError("trace_profile_ids must match trace_profiles")
+        if self.topic_ids != derived_topic_ids:
+            raise ValueError("topic_ids must match trace profiles")
+        if self.topic_ids != _ESCALATION_TRACE_TOPICS:
+            raise ValueError("topic_ids must preserve escalation trace topic order")
+        if self.profile_count != len(self.trace_profiles):
+            raise ValueError("profile_count must match trace profiles")
+
+        profile_sources = {
+            source_registry
+            for profile in self.trace_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match trace profile sources")
+
+        known_provenance = set(self.provenance_profile_ids)
+        known_conditions = set(self.condition_ids)
+        known_gates = set(self.gate_ids)
+        known_signals = set(self.escalation_signal_ids)
+        known_reflections = set(self.reflection_profile_ids)
+        for profile in self.trace_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("trace sources must match registry sources")
+            if profile.source_provenance_profile_id not in known_provenance:
+                raise ValueError("trace provenance profiles must be known metadata")
+            if not set(profile.source_condition_ids).issubset(known_conditions):
+                raise ValueError("trace conditions must be known metadata")
+            if not set(profile.source_gate_ids).issubset(known_gates):
+                raise ValueError("trace gates must be known metadata")
+            if not set(profile.source_escalation_signal_ids).issubset(known_signals):
+                raise ValueError("trace signals must be known metadata")
+            if not set(profile.source_reflection_profile_ids).issubset(
+                known_reflections
+            ):
+                raise ValueError("trace reflections must be known metadata")
+            if profile.trace_capture_implemented:
+                raise ValueError("escalation trace must not capture traces")
+        return self
+
+
+def escalation_trace_registry() -> EscalationTraceRegistry:
+    """Return passive V4.3 escalation trace metadata."""
+
+    return ESCALATION_TRACE_REGISTRY
+
+
+def escalation_trace_profile_by_id(
+    trace_profile_id: str,
+    registry: EscalationTraceRegistry | None = None,
+) -> EscalationTraceProfile | None:
+    """Return one escalation trace profile without capturing traces."""
+
+    source_registry = registry or ESCALATION_TRACE_REGISTRY
+    for profile in source_registry.trace_profiles:
+        if profile.trace_profile_id == trace_profile_id:
+            return profile
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -2169,6 +2354,42 @@ def _decision_provenance_profile(
             "does not record provenance, emit traces, write memory, select "
             "decisions, invoke agents, control workflow transitions, trigger "
             "retries, or modify generated output."
+        ),
+    )
+
+
+def _escalation_trace_profile(
+    *,
+    trace_profile_id: str,
+    topic_id: EscalationTraceTopic,
+    source_provenance_profile_id: str,
+    source_condition_ids: tuple[str, ...],
+    source_gate_ids: tuple[str, ...],
+    source_escalation_signal_ids: tuple[str, ...],
+    source_reflection_profile_ids: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> EscalationTraceProfile:
+    return EscalationTraceProfile(
+        trace_profile_id=trace_profile_id,
+        topic_id=topic_id,
+        source_provenance_profile_id=source_provenance_profile_id,
+        source_condition_ids=source_condition_ids,
+        source_gate_ids=source_gate_ids,
+        source_escalation_signal_ids=source_escalation_signal_ids,
+        source_reflection_profile_ids=source_reflection_profile_ids,
+        source_registries=_ESCALATION_TRACE_SOURCE_REGISTRIES,
+        trace_dimensions=(
+            "escalation_candidate_lineage",
+            "gate_visibility",
+            "signal_lineage",
+            "reflection_posture_lineage",
+        ),
+        advisory_outputs=advisory_outputs,
+        authority_boundary=(
+            "This escalation trace profile is advisory metadata only; it does "
+            "not capture traces, emit traces, execute escalation, evaluate "
+            "gates, write memory, invoke agents, control workflow transitions, "
+            "trigger retries, or modify generated output."
         ),
     )
 
@@ -3155,6 +3376,103 @@ DECISION_PROVENANCE_REGISTRY = DecisionProvenanceRegistry(
         "workstation_dashboard",
     ),
     profile_count=len(DECISION_PROVENANCE_PROFILES),
+)
+ESCALATION_TRACE_PROFILES = (
+    _escalation_trace_profile(
+        trace_profile_id="escalation_trace::planning_execution_fit",
+        topic_id="planning_execution_fit",
+        source_provenance_profile_id="decision_provenance::planning_execution_fit",
+        source_condition_ids=("planning_ambiguity_multi_agent_candidate",),
+        source_gate_ids=(
+            "backbone_entry_escalation_gate",
+            "evidence_completeness_escalation_gate",
+        ),
+        source_escalation_signal_ids=(
+            "ambiguity_escalation_signal",
+            "hitl_escalation_signal",
+        ),
+        source_reflection_profile_ids=(
+            "reflection_medium_escalation_profile",
+            "reflection_high_escalation_profile",
+        ),
+        advisory_outputs=(
+            "planning_escalation_trace_placeholder",
+            "planning_trace_context",
+        ),
+    ),
+    _escalation_trace_profile(
+        trace_profile_id="escalation_trace::style_aesthetic_alignment",
+        topic_id="style_aesthetic_alignment",
+        source_provenance_profile_id=(
+            "decision_provenance::style_aesthetic_alignment"
+        ),
+        source_condition_ids=("artifact_risk_multi_agent_candidate",),
+        source_gate_ids=("specialist_loop_boundary_gate",),
+        source_escalation_signal_ids=(
+            "risk_escalation_signal",
+            "quality_escalation_signal",
+        ),
+        source_reflection_profile_ids=("reflection_high_escalation_profile",),
+        advisory_outputs=(
+            "style_escalation_trace_placeholder",
+            "aesthetic_trace_context",
+        ),
+    ),
+    _escalation_trace_profile(
+        trace_profile_id="escalation_trace::curation_refinement_need",
+        topic_id="curation_refinement_need",
+        source_provenance_profile_id="decision_provenance::curation_refinement_need",
+        source_condition_ids=("evaluation_confidence_multi_agent_candidate",),
+        source_gate_ids=(
+            "evidence_completeness_escalation_gate",
+            "return_handoff_escalation_gate",
+        ),
+        source_escalation_signal_ids=(
+            "confidence_escalation_signal",
+            "quality_escalation_signal",
+        ),
+        source_reflection_profile_ids=(
+            "reflection_high_escalation_profile",
+            "reflection_critical_escalation_profile",
+        ),
+        advisory_outputs=(
+            "curation_escalation_trace_placeholder",
+            "refinement_trace_context",
+        ),
+    ),
+    _escalation_trace_profile(
+        trace_profile_id="escalation_trace::final_synthesis_readiness",
+        topic_id="final_synthesis_readiness",
+        source_provenance_profile_id="decision_provenance::final_synthesis_readiness",
+        source_condition_ids=("terminal_guardrail_multi_agent_candidate",),
+        source_gate_ids=(
+            "human_review_visibility_gate",
+            "return_handoff_escalation_gate",
+        ),
+        source_escalation_signal_ids=(
+            "hitl_escalation_signal",
+            "quality_escalation_signal",
+        ),
+        source_reflection_profile_ids=("reflection_critical_escalation_profile",),
+        advisory_outputs=(
+            "synthesis_escalation_trace_placeholder",
+            "final_trace_context",
+        ),
+    ),
+)
+ESCALATION_TRACE_REGISTRY = EscalationTraceRegistry(
+    trace_profiles=ESCALATION_TRACE_PROFILES,
+    trace_profile_ids=tuple(
+        profile.trace_profile_id for profile in ESCALATION_TRACE_PROFILES
+    ),
+    topic_ids=tuple(profile.topic_id for profile in ESCALATION_TRACE_PROFILES),
+    source_registries=_ESCALATION_TRACE_SOURCE_REGISTRIES,
+    provenance_profile_ids=DECISION_PROVENANCE_REGISTRY.provenance_profile_ids,
+    condition_ids=CONDITIONAL_MULTI_AGENT_ESCALATION_REGISTRY.condition_ids,
+    gate_ids=ESCALATION_GATE_REGISTRY.gate_ids,
+    escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
+    reflection_profile_ids=REFLECTION_ESCALATION_REGISTRY.profile_ids,
+    profile_count=len(ESCALATION_TRACE_PROFILES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (

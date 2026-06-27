@@ -7,6 +7,7 @@ from creative_coding_assistant.orchestration import (
     CreativeEscalationPolicyRegistry,
     DecisionProvenanceRegistry,
     EscalationGateRegistry,
+    EscalationTraceRegistry,
     HybridAgentDebateLoopRegistry,
     HybridAgentVotingRegistry,
     ReflectionEscalationRegistry,
@@ -25,6 +26,8 @@ from creative_coding_assistant.orchestration import (
     decision_provenance_registry,
     escalation_gate_by_id,
     escalation_gate_registry,
+    escalation_trace_profile_by_id,
+    escalation_trace_registry,
     escalation_policy_registry,
     hybrid_agent_debate_loop_by_id,
     hybrid_agent_debate_loop_registry,
@@ -442,6 +445,45 @@ REQUIRED_DECISION_PROVENANCE_FIELDS = {
     "trace_emission_implemented",
     "memory_write_implemented",
     "decision_selection_implemented",
+    "agent_invocation_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_ESCALATION_TRACE_PROFILE_IDS = (
+    "escalation_trace::planning_execution_fit",
+    "escalation_trace::style_aesthetic_alignment",
+    "escalation_trace::curation_refinement_need",
+    "escalation_trace::final_synthesis_readiness",
+)
+EXPECTED_ESCALATION_TRACE_SOURCE_REGISTRIES = (
+    "decision_provenance_registry",
+    "conditional_multi_agent_escalation_registry",
+    "escalation_gate_registry",
+    "agent_escalation_signal_registry",
+    "reflection_escalation_registry",
+    "hybrid_agentic_workflow_registry",
+)
+REQUIRED_ESCALATION_TRACE_FIELDS = {
+    "trace_profile_id",
+    "topic_id",
+    "source_provenance_profile_id",
+    "source_condition_ids",
+    "source_gate_ids",
+    "source_escalation_signal_ids",
+    "source_reflection_profile_ids",
+    "source_registries",
+    "trace_dimensions",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "trace_capture_implemented",
+    "trace_emission_implemented",
+    "escalation_execution_implemented",
+    "gate_evaluation_implemented",
+    "memory_write_implemented",
     "agent_invocation_implemented",
     "workflow_control_implemented",
     "retry_triggering_implemented",
@@ -2027,6 +2069,189 @@ class DecisionProvenanceRegistryTests(unittest.TestCase):
             "record_runtime",
             "emit_runtime_trace",
             "write_runtime_memory",
+            "execute_agent",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class EscalationTraceRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_escalation_trace_profiles(self) -> None:
+        registry = escalation_trace_registry()
+
+        self.assertEqual(registry.role, "escalation_trace_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "escalation_trace_registry.v1",
+        )
+        self.assertEqual(registry.trace_profile_ids, EXPECTED_ESCALATION_TRACE_PROFILE_IDS)
+        self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_ESCALATION_TRACE_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(
+            registry.provenance_profile_ids,
+            decision_provenance_registry().provenance_profile_ids,
+        )
+        self.assertEqual(
+            registry.condition_ids,
+            conditional_multi_agent_escalation_registry().condition_ids,
+        )
+        self.assertEqual(registry.gate_ids, escalation_gate_registry().gate_ids)
+        self.assertEqual(
+            registry.escalation_signal_ids,
+            agent_escalation_signal_registry().signal_ids,
+        )
+        self.assertEqual(
+            registry.reflection_profile_ids,
+            reflection_escalation_registry().profile_ids,
+        )
+        self.assertEqual(registry.profile_count, 4)
+        self.assertIn("does not capture traces", registry.authority_boundary)
+        self.assertFalse(registry.trace_capture_implemented)
+        self.assertFalse(registry.trace_emission_implemented)
+        self.assertFalse(registry.escalation_execution_implemented)
+        self.assertFalse(registry.gate_evaluation_implemented)
+        self.assertFalse(registry.memory_write_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_escalation_trace_profiles_reference_known_sources(self) -> None:
+        registry = escalation_trace_registry()
+        known_provenance = set(decision_provenance_registry().provenance_profile_ids)
+        known_conditions = set(conditional_multi_agent_escalation_registry().condition_ids)
+        known_gates = set(escalation_gate_registry().gate_ids)
+        known_signals = set(agent_escalation_signal_registry().signal_ids)
+        known_reflections = set(reflection_escalation_registry().profile_ids)
+
+        for profile in registry.trace_profiles:
+            dumped = profile.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_ESCALATION_TRACE_FIELDS)
+            self.assertEqual(
+                profile.source_registries,
+                EXPECTED_ESCALATION_TRACE_SOURCE_REGISTRIES,
+            )
+            self.assertIn(profile.source_provenance_profile_id, known_provenance)
+            self.assertTrue(set(profile.source_condition_ids).issubset(known_conditions))
+            self.assertTrue(set(profile.source_gate_ids).issubset(known_gates))
+            self.assertTrue(
+                set(profile.source_escalation_signal_ids).issubset(known_signals)
+            )
+            self.assertTrue(
+                set(profile.source_reflection_profile_ids).issubset(known_reflections)
+            )
+            self.assertTrue(profile.trace_dimensions)
+            self.assertTrue(profile.advisory_outputs)
+            self.assertIn("trace_capture", profile.blocked_runtime_behaviors)
+            self.assertIn("trace_emission", profile.blocked_runtime_behaviors)
+            self.assertFalse(profile.trace_capture_implemented)
+            self.assertFalse(profile.trace_emission_implemented)
+            self.assertFalse(profile.escalation_execution_implemented)
+            self.assertFalse(profile.gate_evaluation_implemented)
+            self.assertFalse(profile.memory_write_implemented)
+            self.assertFalse(profile.agent_invocation_implemented)
+            self.assertFalse(profile.workflow_control_implemented)
+            self.assertFalse(profile.retry_triggering_implemented)
+            self.assertFalse(profile.generated_output_mutation_implemented)
+            self.assertEqual(
+                profile.serialization_version,
+                "escalation_trace_profile.v1",
+            )
+            self.assertTrue(profile.metadata_only)
+
+    def test_escalation_trace_source_registries_are_complete(self) -> None:
+        registry = escalation_trace_registry()
+        profile_sources = tuple(
+            dict.fromkeys(
+                source
+                for profile in registry.trace_profiles
+                for source in profile.source_registries
+            )
+        )
+
+        self.assertEqual(profile_sources, registry.source_registries)
+        for source_registry in EXPECTED_ESCALATION_TRACE_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, profile_sources)
+        for profile in registry.trace_profiles:
+            self.assertEqual(set(profile.source_registries), set(profile_sources))
+
+    def test_escalation_trace_lookup_is_stable(self) -> None:
+        profile = escalation_trace_profile_by_id(
+            "escalation_trace::final_synthesis_readiness"
+        )
+        missing = escalation_trace_profile_by_id("missing_trace")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.topic_id, "final_synthesis_readiness")
+        self.assertIn("hitl_escalation_signal", profile.source_escalation_signal_ids)
+        self.assertIn("final_trace_context", profile.advisory_outputs)
+        self.assertFalse(profile.trace_capture_implemented)
+
+    def test_escalation_trace_registry_rejects_mismatched_metadata(self) -> None:
+        registry = escalation_trace_registry()
+        mismatched_profile = registry.trace_profiles[0].model_copy(
+            update={"trace_profile_id": "other_trace"}
+        )
+        unknown_signal_profile = registry.trace_profiles[0].model_copy(
+            update={"source_escalation_signal_ids": ("missing_signal",)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "trace_profile_ids must match"):
+            EscalationTraceRegistry(
+                trace_profiles=(mismatched_profile,) + registry.trace_profiles[1:],
+                trace_profile_ids=registry.trace_profile_ids,
+                topic_ids=registry.topic_ids,
+                source_registries=registry.source_registries,
+                provenance_profile_ids=registry.provenance_profile_ids,
+                condition_ids=registry.condition_ids,
+                gate_ids=registry.gate_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                reflection_profile_ids=registry.reflection_profile_ids,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "trace signals must be known"):
+            EscalationTraceRegistry(
+                trace_profiles=(unknown_signal_profile,) + registry.trace_profiles[1:],
+                trace_profile_ids=registry.trace_profile_ids,
+                topic_ids=registry.topic_ids,
+                source_registries=registry.source_registries,
+                provenance_profile_ids=registry.provenance_profile_ids,
+                condition_ids=registry.condition_ids,
+                gate_ids=registry.gate_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                reflection_profile_ids=registry.reflection_profile_ids,
+                profile_count=registry.profile_count,
+            )
+
+    def test_escalation_trace_does_not_declare_active_execution(self) -> None:
+        registry = escalation_trace_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for profile in registry.trace_profiles
+                    for field in (
+                        profile.trace_profile_id,
+                        profile.authority_boundary,
+                        *profile.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "capture_runtime_trace",
+            "emit_runtime_trace",
+            "execute_escalation",
             "execute_agent",
             "modify_output",
         ):
