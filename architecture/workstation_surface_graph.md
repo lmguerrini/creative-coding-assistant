@@ -106,7 +106,7 @@ flowchart LR
     style boundary_group rx:6px,ry:6px
 ```
 
-The raw Mermaid source for this surface graph is available in
+The raw Mermaid source for this diagram is available in
 [workstation_surface_graph.mmd](workstation_surface_graph.mmd).
 
 ## Surface Responsibilities

@@ -134,7 +134,7 @@ flowchart LR
     scene_boundary -. publishes .-> metadata_store
 ```
 
-The raw Mermaid source for this detailed dependency view is available in
+The raw Mermaid source for this diagram is available in
 [generative_design_graph.mmd](generative_design_graph.mmd).
 
 ## Generative Design Relationship Map

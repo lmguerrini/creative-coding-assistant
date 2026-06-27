@@ -244,7 +244,7 @@ renderer runtime errors render in the Preview shelf, artifact/export UI errors
 render in the Artifacts tab, persistence/session errors render near session
 controls, and HITL local approval errors render in the Workflow inspector.
 
-The raw Mermaid source for the implemented runtime graph is also available in
+The raw Mermaid source for this diagram is available in
 [workflow_graph.mmd](workflow_graph.mmd). The readable internal capability
 pipeline is documented in
 [creative_intelligence_graph.md](creative_intelligence_graph.md) and

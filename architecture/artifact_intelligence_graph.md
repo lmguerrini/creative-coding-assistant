@@ -122,7 +122,7 @@ flowchart LR
     export_boundary -. stores .-> store
 ```
 
-The raw Mermaid source for this detailed dependency view is available in
+The raw Mermaid source for this diagram is available in
 [artifact_intelligence_graph.mmd](artifact_intelligence_graph.mmd).
 
 ## Artifact Intelligence Relationship Map

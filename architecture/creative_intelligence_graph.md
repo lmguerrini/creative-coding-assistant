@@ -18,7 +18,7 @@ It documents the deterministic capability flow implemented inside:
 - `src/creative_coding_assistant/orchestration/prompt_templates.py`
 - `clients/nextjs/src/lib/assistant-stream.ts`
 
-## Scope And File Choice
+## Scope And Boundary
 
 - The real LangGraph runtime graph remains documented in
   [workflow_graph.md](workflow_graph.md) and
@@ -177,7 +177,7 @@ flowchart TB
     style row_8 fill:none,stroke:none
 ```
 
-The raw Mermaid source for this readable pipeline is available in
+The raw Mermaid source for this diagram is available in
 [creative_intelligence_graph.mmd](creative_intelligence_graph.mmd).
 
 ## Creative Cognition Relationship Map
