@@ -230,6 +230,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         engine_matrix = (
             REPO_ROOT / "architecture" / "engine_matrix.md"
         ).read_text(encoding="utf-8")
+        normalized_engine_matrix = re.sub(r"\s+", " ", engine_matrix)
 
         self.assertIn("Versions are chronological delivery increments.", engine_matrix)
         self.assertIn("cross-cutting architecture layers", engine_matrix)
@@ -263,6 +264,41 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
 
         self.assertIn("workstation_surface_graph.md", engine_matrix)
         self.assertIn("workstation_engine_contract_registry.v1", engine_matrix)
+        self.assertIn("V3.6 Audit And Future-Readiness Metadata", engine_matrix)
+
+        for registry_marker in (
+            "agent_capability_registry.v1",
+            "escalation_policy_registry.v1",
+            "hybrid_workflow_registry.v1",
+            "engine_contract_consistency_registry.v1",
+        ):
+            self.assertIn(registry_marker, engine_matrix)
+
+        for module_path in (
+            "agent_capabilities.py",
+            "escalation_policy.py",
+            "hybrid_agentic_workflow.py",
+            "engine_contract_consistency.py",
+        ):
+            self.assertIn(module_path, engine_matrix)
+
+        self.assertIn("export-only metadata surfaces", engine_matrix)
+        self.assertIn(
+            "not additional LangGraph runtime nodes",
+            normalized_engine_matrix,
+        )
+        self.assertIn(
+            "do not enter workflow payloads",
+            normalized_engine_matrix,
+        )
+        self.assertIn(
+            "do not alter provider/model routing",
+            normalized_engine_matrix,
+        )
+        self.assertIn(
+            "generated output, or the V3 node order",
+            normalized_engine_matrix,
+        )
 
     def test_workstation_surface_docs_cover_v35_surface_layer(self) -> None:
         architecture_doc = (

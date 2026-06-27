@@ -51,9 +51,11 @@ Use this matrix together with:
 
 ## Implemented Contract Registries
 
-The current V3 runtime serializes three static metadata contract registries.
-They are source-of-truth descriptions for existing metadata surfaces, not
-dynamic engine routers or future-version behavior.
+The current V3 product exposes three source-of-truth contract registries for
+implemented artifact, evaluation, and workstation metadata surfaces. Artifact
+and evaluation contracts are serialized through workflow metadata payloads;
+workstation contracts describe client-side surface hydration. They are static
+metadata descriptions, not dynamic engine routers or future-version behavior.
 
 | Registry | Source module | Count | Serialization version | Current boundary |
 | --- | --- | ---: | --- | --- |
@@ -67,6 +69,26 @@ missing-metadata behavior for client-side surfaces. All three registries keep
 future hooks descriptive only: they do not invoke agents, route providers,
 select runtimes, execute artifacts, repair previews, trigger retries, or change
 generated output.
+
+## V3.6 Audit And Future-Readiness Metadata
+
+V3.6 also exposes passive metadata registries for architecture audit,
+consistency checks, and future-readiness handoff. These registries are explicit
+Python metadata APIs only. They are not serialized into provider prompts, they
+are not additional LangGraph runtime nodes, and they do not enter workflow
+payloads as runtime behavior.
+
+| Registry | Source module | Count | Serialization version | Current boundary |
+| --- | --- | ---: | --- | --- |
+| Agent capability readiness | `src/creative_coding_assistant/orchestration/agent_capabilities.py` | 6 | `agent_capability_registry.v1` | Describes future agent capability readiness metadata without creating agents or changing workflow control |
+| Escalation policy metadata | `src/creative_coding_assistant/orchestration/escalation_policy.py` | 5 | `escalation_policy_registry.v1` | Describes advisory escalation policy metadata without evaluating policy, triggering escalation, or routing providers |
+| Hybrid agentic workflow readiness | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 5 | `hybrid_workflow_registry.v1` | Maps existing V3 workflow nodes to future readiness stages without mutating the graph |
+| Engine contract consistency audit | `src/creative_coding_assistant/orchestration/engine_contract_consistency.py` | 3 families | `engine_contract_consistency_registry.v1` | Normalizes artifact, evaluation, and workstation contract surfaces for audit without changing runtime behavior |
+
+These V3.6 registries remain export-only metadata surfaces. Tests assert that
+they do not alter provider/model routing, runtime selection, prompt rendering,
+workflow payloads, retry behavior, artifact execution, preview execution,
+generated output, or the V3 node order.
 
 ## V3.5 Workstation Contracts
 
