@@ -1006,6 +1006,118 @@ AESTHETIC_CRITIC_AGENT_CONTRACT = AgentContract(
     ),
 )
 
+NARRATIVE_SYMBOLIC_AGENT_CONTRACT = AgentContract(
+    agent_id="narrative_symbolic_agent",
+    agent_name="Narrative & Symbolic Agent",
+    agent_version="v4.1",
+    role_id="narrative_symbolic",
+    role_name="Narrative & Symbolic Agent",
+    role_purpose=(
+        "Represent narrative, symbolic, conceptual, and meaning-layer metadata "
+        "handoffs for future V4 orchestration."
+    ),
+    authority_boundary=(
+        "Narrative & Symbolic Agent contract metadata maps existing narrative, "
+        "symbolic, motif, and conceptual context boundaries only; it does not "
+        "add symbolic generation behavior, modify prompt semantics, execute "
+        "agents, route providers or models, select runtimes, trigger retries, "
+        "or modify generated output."
+    ),
+    allowed_actions=(
+        "describe_narrative_context_requirements",
+        "map_symbolic_meaning_metadata",
+        "declare_future_narrative_handoff",
+    ),
+    prohibited_actions=(
+        "symbolic_generation_behavior",
+        "prompt_semantics_modification",
+        "agent_invocation",
+        "provider_or_model_routing",
+        "runtime_selection",
+        "generated_output_modification",
+    ),
+    capabilities=(
+        "narrative_context_mapping",
+        "symbolic_meaning_metadata",
+        "conceptual_handoff_metadata_preparation",
+    ),
+    required_inputs=(
+        "assistant_request",
+        "symbolic_narrative_plan",
+        "semantic_motif",
+    ),
+    optional_inputs=(
+        "creative_intent",
+        "creative_hierarchy",
+        "emotional_consistency",
+        "creative_composition",
+        "art_direction_context",
+        "agent_memory_contract",
+    ),
+    produced_outputs=(
+        "narrative_context_packet_contract",
+        "symbolic_meaning_summary_contract",
+        "conceptual_handoff_metadata_contract",
+    ),
+    produced_metadata=(
+        "narrative_arc_metadata",
+        "symbolic_mapping_metadata",
+        "meaning_layer_metadata",
+        "motif_alignment_metadata",
+        "conceptual_context_metadata",
+    ),
+    produced_signals=(
+        "narrative_coherence",
+        "symbolic_alignment",
+        "meaning_clarity",
+        "motif_confidence",
+        "conceptual_ambiguity",
+    ),
+    memory_access=AgentMemoryAccessContract(
+        allowed_memory_sources=(
+            "session_metadata",
+            "artifact_metadata",
+            "provenance_metadata",
+            "future_blackboard_contract",
+        ),
+    ),
+    cacheability="deterministic_with_upstream_metadata",
+    estimated_cost_metadata=AgentContractCostMetadata(
+        relative_cost="low",
+        cost_basis=(
+            "Static metadata mapping from existing narrative and symbolic "
+            "outputs; no symbolic generation or provider calls."
+        ),
+        cache_sensitivity=(
+            "Cache key must include narrative plan, motif, and conceptual "
+            "metadata identifiers."
+        ),
+    ),
+    estimated_latency_metadata=AgentContractLatencyMetadata(
+        relative_latency="low",
+        latency_basis=(
+            "Bounded local metadata inspection with no network, provider, "
+            "symbolic generation, prompt rendering, or artifact execution."
+        ),
+        blocking_inputs=(
+            "assistant_request",
+            "symbolic_narrative_plan",
+            "semantic_motif",
+        ),
+    ),
+    future_orchestration_hooks=(
+        "v4_2_narrative_context_handoff",
+        "v4_2_symbolic_alignment_review",
+    ),
+    source_contract_registries=(
+        "agent_identity_registry",
+        "agent_memory_contract_registry",
+        "symbolic_narrative_metadata",
+        "semantic_motif_metadata",
+        "creative_intent_metadata",
+    ),
+)
+
 AGENT_CONTRACTS: tuple[AgentContract, ...] = (
     PLANNER_AGENT_CONTRACT,
     RESEARCH_AGENT_CONTRACT,
@@ -1014,5 +1126,6 @@ AGENT_CONTRACTS: tuple[AgentContract, ...] = (
     ARTIFACT_AGENT_CONTRACT,
     ART_DIRECTION_AGENT_CONTRACT,
     AESTHETIC_CRITIC_AGENT_CONTRACT,
+    NARRATIVE_SYMBOLIC_AGENT_CONTRACT,
 )
 AGENT_CONTRACT_REGISTRY = build_agent_contract_registry(AGENT_CONTRACTS)
