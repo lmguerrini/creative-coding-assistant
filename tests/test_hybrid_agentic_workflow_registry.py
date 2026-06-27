@@ -12,6 +12,7 @@ from creative_coding_assistant.orchestration import (
     HybridAgentDebateLoopRegistry,
     HybridAgentVotingRegistry,
     ReflectionEscalationRegistry,
+    ResultNormalizationRegistry,
     SpecialistAgentLoopRegistry,
     V3BackboneModeRegistry,
     agent_contract_registry,
@@ -40,6 +41,8 @@ from creative_coding_assistant.orchestration import (
     hybrid_agentic_workflow_stage_by_id,
     reflection_escalation_profile_by_id,
     reflection_escalation_registry,
+    result_normalization_profile_by_id,
+    result_normalization_registry,
     specialist_agent_loop_by_id,
     specialist_agent_loop_registry,
     v3_backbone_mode_profile_by_node_id,
@@ -533,6 +536,44 @@ REQUIRED_CREATIVE_EXPLORATION_BUDGET_FIELDS = {
     "variant_generation_implemented",
     "refinement_triggering_implemented",
     "cost_routing_implemented",
+    "agent_invocation_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_RESULT_NORMALIZATION_PROFILE_IDS = (
+    "result_normalization::planning_execution_fit",
+    "result_normalization::style_aesthetic_alignment",
+    "result_normalization::curation_refinement_need",
+    "result_normalization::final_synthesis_readiness",
+)
+EXPECTED_RESULT_NORMALIZATION_SOURCE_REGISTRIES = (
+    "creative_exploration_budget_registry",
+    "agent_confidence_fusion_registry",
+    "decision_provenance_registry",
+    "escalation_trace_registry",
+    "artifact_engine_contract_registry",
+    "evaluation_engine_contract_registry",
+)
+REQUIRED_RESULT_NORMALIZATION_FIELDS = {
+    "normalization_profile_id",
+    "topic_id",
+    "source_budget_profile_id",
+    "source_confidence_fusion_profile_id",
+    "source_provenance_profile_id",
+    "source_trace_profile_id",
+    "normalized_result_surfaces",
+    "source_registries",
+    "normalization_dimensions",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "result_normalization_implemented",
+    "output_rewriting_implemented",
+    "schema_enforcement_implemented",
+    "artifact_mutation_implemented",
     "agent_invocation_implemented",
     "workflow_control_implemented",
     "retry_triggering_implemented",
@@ -2482,6 +2523,188 @@ class CreativeExplorationBudgetRegistryTests(unittest.TestCase):
             "enforce_runtime_budget",
             "generate_variant",
             "trigger_runtime_refinement",
+            "execute_agent",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class ResultNormalizationRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_result_normalization_profiles(self) -> None:
+        registry = result_normalization_registry()
+
+        self.assertEqual(registry.role, "result_normalization_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "result_normalization_registry.v1",
+        )
+        self.assertEqual(
+            registry.normalization_profile_ids,
+            EXPECTED_RESULT_NORMALIZATION_PROFILE_IDS,
+        )
+        self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_RESULT_NORMALIZATION_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(
+            registry.budget_profile_ids,
+            creative_exploration_budget_registry().budget_profile_ids,
+        )
+        self.assertEqual(
+            registry.confidence_fusion_profile_ids,
+            agent_confidence_fusion_registry().fusion_profile_ids,
+        )
+        self.assertEqual(
+            registry.provenance_profile_ids,
+            decision_provenance_registry().provenance_profile_ids,
+        )
+        self.assertEqual(
+            registry.trace_profile_ids,
+            escalation_trace_registry().trace_profile_ids,
+        )
+        self.assertEqual(registry.profile_count, 4)
+        self.assertIn("does not transform results", registry.authority_boundary)
+        self.assertFalse(registry.result_normalization_implemented)
+        self.assertFalse(registry.output_rewriting_implemented)
+        self.assertFalse(registry.schema_enforcement_implemented)
+        self.assertFalse(registry.artifact_mutation_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_result_normalization_profiles_reference_known_sources(self) -> None:
+        registry = result_normalization_registry()
+        known_budgets = set(creative_exploration_budget_registry().budget_profile_ids)
+        known_fusion = set(agent_confidence_fusion_registry().fusion_profile_ids)
+        known_provenance = set(decision_provenance_registry().provenance_profile_ids)
+        known_traces = set(escalation_trace_registry().trace_profile_ids)
+
+        for profile in registry.normalization_profiles:
+            dumped = profile.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_RESULT_NORMALIZATION_FIELDS)
+            self.assertEqual(
+                profile.source_registries,
+                EXPECTED_RESULT_NORMALIZATION_SOURCE_REGISTRIES,
+            )
+            self.assertIn(profile.source_budget_profile_id, known_budgets)
+            self.assertIn(profile.source_confidence_fusion_profile_id, known_fusion)
+            self.assertIn(profile.source_provenance_profile_id, known_provenance)
+            self.assertIn(profile.source_trace_profile_id, known_traces)
+            self.assertTrue(profile.normalized_result_surfaces)
+            self.assertTrue(profile.normalization_dimensions)
+            self.assertTrue(profile.advisory_outputs)
+            self.assertIn("result_transformation", profile.blocked_runtime_behaviors)
+            self.assertIn("output_rewriting", profile.blocked_runtime_behaviors)
+            self.assertFalse(profile.result_normalization_implemented)
+            self.assertFalse(profile.output_rewriting_implemented)
+            self.assertFalse(profile.schema_enforcement_implemented)
+            self.assertFalse(profile.artifact_mutation_implemented)
+            self.assertFalse(profile.agent_invocation_implemented)
+            self.assertFalse(profile.workflow_control_implemented)
+            self.assertFalse(profile.retry_triggering_implemented)
+            self.assertFalse(profile.generated_output_mutation_implemented)
+            self.assertEqual(
+                profile.serialization_version,
+                "result_normalization_profile.v1",
+            )
+            self.assertTrue(profile.metadata_only)
+
+    def test_result_normalization_source_registries_are_complete(self) -> None:
+        registry = result_normalization_registry()
+        profile_sources = tuple(
+            dict.fromkeys(
+                source
+                for profile in registry.normalization_profiles
+                for source in profile.source_registries
+            )
+        )
+
+        self.assertEqual(profile_sources, registry.source_registries)
+        for source_registry in EXPECTED_RESULT_NORMALIZATION_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, profile_sources)
+        for profile in registry.normalization_profiles:
+            self.assertEqual(set(profile.source_registries), set(profile_sources))
+
+    def test_result_normalization_lookup_is_stable(self) -> None:
+        profile = result_normalization_profile_by_id(
+            "result_normalization::final_synthesis_readiness"
+        )
+        missing = result_normalization_profile_by_id("missing_normalization")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.topic_id, "final_synthesis_readiness")
+        self.assertIn("final_synthesis_packet", profile.normalized_result_surfaces)
+        self.assertIn("final_normalized_context", profile.advisory_outputs)
+        self.assertFalse(profile.result_normalization_implemented)
+
+    def test_result_normalization_registry_rejects_mismatched_metadata(self) -> None:
+        registry = result_normalization_registry()
+        mismatched_profile = registry.normalization_profiles[0].model_copy(
+            update={"normalization_profile_id": "other_normalization"}
+        )
+        unknown_budget_profile = registry.normalization_profiles[0].model_copy(
+            update={"source_budget_profile_id": "missing_budget"}
+        )
+
+        with self.assertRaisesRegex(ValueError, "normalization_profile_ids"):
+            ResultNormalizationRegistry(
+                normalization_profiles=(
+                    mismatched_profile,
+                )
+                + registry.normalization_profiles[1:],
+                normalization_profile_ids=registry.normalization_profile_ids,
+                topic_ids=registry.topic_ids,
+                source_registries=registry.source_registries,
+                budget_profile_ids=registry.budget_profile_ids,
+                confidence_fusion_profile_ids=registry.confidence_fusion_profile_ids,
+                provenance_profile_ids=registry.provenance_profile_ids,
+                trace_profile_ids=registry.trace_profile_ids,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "normalization budgets"):
+            ResultNormalizationRegistry(
+                normalization_profiles=(
+                    unknown_budget_profile,
+                )
+                + registry.normalization_profiles[1:],
+                normalization_profile_ids=registry.normalization_profile_ids,
+                topic_ids=registry.topic_ids,
+                source_registries=registry.source_registries,
+                budget_profile_ids=registry.budget_profile_ids,
+                confidence_fusion_profile_ids=registry.confidence_fusion_profile_ids,
+                provenance_profile_ids=registry.provenance_profile_ids,
+                trace_profile_ids=registry.trace_profile_ids,
+                profile_count=registry.profile_count,
+            )
+
+    def test_result_normalization_does_not_declare_active_execution(self) -> None:
+        registry = result_normalization_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for profile in registry.normalization_profiles
+                    for field in (
+                        profile.normalization_profile_id,
+                        profile.authority_boundary,
+                        *profile.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "transform_runtime_result",
+            "rewrite_output",
+            "enforce_runtime_schema",
             "execute_agent",
             "modify_output",
         ):

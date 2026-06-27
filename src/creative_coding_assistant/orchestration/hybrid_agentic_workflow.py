@@ -60,6 +60,7 @@ DecisionProvenanceTopic = AgentConfidenceFusionTopic
 EscalationTraceTopic = DecisionProvenanceTopic
 CreativeExplorationBudgetTopic = EscalationTraceTopic
 CreativeExplorationBudgetPosture = Literal["narrow", "moderate", "broad", "guarded"]
+ResultNormalizationTopic = CreativeExplorationBudgetTopic
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -123,6 +124,12 @@ CREATIVE_EXPLORATION_BUDGET_PROFILE_SERIALIZATION_VERSION = (
 )
 CREATIVE_EXPLORATION_BUDGET_REGISTRY_SERIALIZATION_VERSION = (
     "creative_exploration_budget_registry.v1"
+)
+RESULT_NORMALIZATION_PROFILE_SERIALIZATION_VERSION = (
+    "result_normalization_profile.v1"
+)
+RESULT_NORMALIZATION_REGISTRY_SERIALIZATION_VERSION = (
+    "result_normalization_registry.v1"
 )
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
@@ -209,6 +216,13 @@ CREATIVE_EXPLORATION_BUDGET_AUTHORITY_BOUNDARY = (
     "generate variants, trigger refinement, route by cost, invoke agents, "
     "control workflow transitions, trigger retries, or modify generated "
     "output."
+)
+RESULT_NORMALIZATION_AUTHORITY_BOUNDARY = (
+    "Result normalization metadata describes passive advisory result packet "
+    "surfaces for future hybrid synthesis only; it does not transform results, "
+    "rewrite outputs, enforce schemas, mutate artifacts, invoke agents, route "
+    "providers or models, control workflow transitions, trigger retries, or "
+    "modify generated output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Hybrid agentic workflow metadata maps current V3 workflow nodes to future "
@@ -450,6 +464,25 @@ _CREATIVE_EXPLORATION_BUDGET_SOURCE_REGISTRIES = (
     "creative_tradeoff_engine",
     "hybrid_agentic_workflow_registry",
 )
+_RESULT_NORMALIZATION_BLOCKED_RUNTIME_BEHAVIORS = (
+    "result_transformation",
+    "output_rewriting",
+    "schema_enforcement",
+    "artifact_mutation",
+    "agent_invocation",
+    "provider_or_model_routing",
+    "workflow_control",
+    "retry_triggering",
+    "generated_output_modification",
+)
+_RESULT_NORMALIZATION_SOURCE_REGISTRIES = (
+    "creative_exploration_budget_registry",
+    "agent_confidence_fusion_registry",
+    "decision_provenance_registry",
+    "escalation_trace_registry",
+    "artifact_engine_contract_registry",
+    "evaluation_engine_contract_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -537,6 +570,12 @@ _CREATIVE_EXPLORATION_BUDGET_POSTURES: tuple[
     "broad",
     "guarded",
     "narrow",
+)
+_RESULT_NORMALIZATION_TOPICS: tuple[ResultNormalizationTopic, ...] = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
 )
 _KNOWN_SPECIALIST_AGENT_IDS = (
     "planner_agent",
@@ -2197,6 +2236,149 @@ def creative_exploration_budget_profile_by_id(
     return None
 
 
+class ResultNormalizationProfile(BaseModel):
+    """Passive V4.3 result normalization profile metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    normalization_profile_id: str = Field(min_length=1, max_length=150)
+    topic_id: ResultNormalizationTopic
+    source_budget_profile_id: str = Field(min_length=1, max_length=170)
+    source_confidence_fusion_profile_id: str = Field(min_length=1, max_length=170)
+    source_provenance_profile_id: str = Field(min_length=1, max_length=170)
+    source_trace_profile_id: str = Field(min_length=1, max_length=170)
+    normalized_result_surfaces: tuple[str, ...] = Field(min_length=1, max_length=6)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    normalization_dimensions: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_RESULT_NORMALIZATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    result_normalization_implemented: Literal[False] = False
+    output_rewriting_implemented: Literal[False] = False
+    schema_enforcement_implemented: Literal[False] = False
+    artifact_mutation_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["result_normalization_profile.v1"] = (
+        RESULT_NORMALIZATION_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class ResultNormalizationRegistry(BaseModel):
+    """Stable passive registry for V4.3 result normalization metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["result_normalization_registry"] = "result_normalization_registry"
+    serialization_version: Literal["result_normalization_registry.v1"] = (
+        RESULT_NORMALIZATION_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=RESULT_NORMALIZATION_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    normalization_profiles: tuple[ResultNormalizationProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    normalization_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    topic_ids: tuple[ResultNormalizationTopic, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    budget_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    confidence_fusion_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    provenance_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    trace_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    profile_count: int = Field(ge=4, le=4)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_RESULT_NORMALIZATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    result_normalization_implemented: Literal[False] = False
+    output_rewriting_implemented: Literal[False] = False
+    schema_enforcement_implemented: Literal[False] = False
+    artifact_mutation_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_result_normalization_metadata(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.normalization_profile_id
+            for profile in self.normalization_profiles
+        )
+        derived_topic_ids = tuple(
+            profile.topic_id for profile in self.normalization_profiles
+        )
+        if self.normalization_profile_ids != derived_profile_ids:
+            raise ValueError("normalization_profile_ids must match profiles")
+        if self.topic_ids != derived_topic_ids:
+            raise ValueError("topic_ids must match normalization profiles")
+        if self.topic_ids != _RESULT_NORMALIZATION_TOPICS:
+            raise ValueError("topic_ids must preserve result normalization order")
+        if self.profile_count != len(self.normalization_profiles):
+            raise ValueError("profile_count must match normalization profiles")
+
+        profile_sources = {
+            source_registry
+            for profile in self.normalization_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match normalization sources")
+
+        known_budgets = set(self.budget_profile_ids)
+        known_fusion = set(self.confidence_fusion_profile_ids)
+        known_provenance = set(self.provenance_profile_ids)
+        known_traces = set(self.trace_profile_ids)
+        for profile in self.normalization_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("normalization sources must match registry sources")
+            if profile.source_budget_profile_id not in known_budgets:
+                raise ValueError("normalization budgets must be known metadata")
+            if profile.source_confidence_fusion_profile_id not in known_fusion:
+                raise ValueError("normalization fusion profiles must be known metadata")
+            if profile.source_provenance_profile_id not in known_provenance:
+                raise ValueError("normalization provenance must be known metadata")
+            if profile.source_trace_profile_id not in known_traces:
+                raise ValueError("normalization traces must be known metadata")
+            if profile.result_normalization_implemented:
+                raise ValueError("result normalization must not transform results")
+        return self
+
+
+def result_normalization_registry() -> ResultNormalizationRegistry:
+    """Return passive V4.3 result normalization metadata."""
+
+    return RESULT_NORMALIZATION_REGISTRY
+
+
+def result_normalization_profile_by_id(
+    normalization_profile_id: str,
+    registry: ResultNormalizationRegistry | None = None,
+) -> ResultNormalizationProfile | None:
+    """Return one normalization profile without transforming results."""
+
+    source_registry = registry or RESULT_NORMALIZATION_REGISTRY
+    for profile in source_registry.normalization_profiles:
+        if profile.normalization_profile_id == normalization_profile_id:
+            return profile
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -2628,6 +2810,42 @@ def _creative_exploration_budget_profile(
             "This exploration budget profile is advisory metadata only; it "
             "does not enforce budgets, generate variants, trigger refinement, "
             "route by cost, invoke agents, control workflow transitions, "
+            "trigger retries, or modify generated output."
+        ),
+    )
+
+
+def _result_normalization_profile(
+    *,
+    normalization_profile_id: str,
+    topic_id: ResultNormalizationTopic,
+    source_budget_profile_id: str,
+    source_confidence_fusion_profile_id: str,
+    source_provenance_profile_id: str,
+    source_trace_profile_id: str,
+    normalized_result_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> ResultNormalizationProfile:
+    return ResultNormalizationProfile(
+        normalization_profile_id=normalization_profile_id,
+        topic_id=topic_id,
+        source_budget_profile_id=source_budget_profile_id,
+        source_confidence_fusion_profile_id=source_confidence_fusion_profile_id,
+        source_provenance_profile_id=source_provenance_profile_id,
+        source_trace_profile_id=source_trace_profile_id,
+        normalized_result_surfaces=normalized_result_surfaces,
+        source_registries=_RESULT_NORMALIZATION_SOURCE_REGISTRIES,
+        normalization_dimensions=(
+            "advisory_packet_shape",
+            "confidence_context",
+            "provenance_context",
+            "trace_context",
+        ),
+        advisory_outputs=advisory_outputs,
+        authority_boundary=(
+            "This result normalization profile is advisory metadata only; it "
+            "does not transform results, rewrite outputs, enforce schemas, "
+            "mutate artifacts, invoke agents, control workflow transitions, "
             "trigger retries, or modify generated output."
         ),
     )
@@ -3805,6 +4023,103 @@ CREATIVE_EXPLORATION_BUDGET_REGISTRY = CreativeExplorationBudgetRegistry(
     provenance_profile_ids=DECISION_PROVENANCE_REGISTRY.provenance_profile_ids,
     escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
     profile_count=len(CREATIVE_EXPLORATION_BUDGET_PROFILES),
+)
+RESULT_NORMALIZATION_PROFILES = (
+    _result_normalization_profile(
+        normalization_profile_id="result_normalization::planning_execution_fit",
+        topic_id="planning_execution_fit",
+        source_budget_profile_id=(
+            "creative_exploration_budget::planning_execution_fit"
+        ),
+        source_confidence_fusion_profile_id=(
+            "agent_confidence_fusion::planning_execution_fit"
+        ),
+        source_provenance_profile_id="decision_provenance::planning_execution_fit",
+        source_trace_profile_id="escalation_trace::planning_execution_fit",
+        normalized_result_surfaces=(
+            "planning_advisory_packet",
+            "decision_context_summary",
+        ),
+        advisory_outputs=(
+            "planning_result_normalization_placeholder",
+            "planning_normalized_context",
+        ),
+    ),
+    _result_normalization_profile(
+        normalization_profile_id="result_normalization::style_aesthetic_alignment",
+        topic_id="style_aesthetic_alignment",
+        source_budget_profile_id=(
+            "creative_exploration_budget::style_aesthetic_alignment"
+        ),
+        source_confidence_fusion_profile_id=(
+            "agent_confidence_fusion::style_aesthetic_alignment"
+        ),
+        source_provenance_profile_id=(
+            "decision_provenance::style_aesthetic_alignment"
+        ),
+        source_trace_profile_id="escalation_trace::style_aesthetic_alignment",
+        normalized_result_surfaces=(
+            "aesthetic_advisory_packet",
+            "style_consensus_summary",
+        ),
+        advisory_outputs=(
+            "style_result_normalization_placeholder",
+            "aesthetic_normalized_context",
+        ),
+    ),
+    _result_normalization_profile(
+        normalization_profile_id="result_normalization::curation_refinement_need",
+        topic_id="curation_refinement_need",
+        source_budget_profile_id=(
+            "creative_exploration_budget::curation_refinement_need"
+        ),
+        source_confidence_fusion_profile_id=(
+            "agent_confidence_fusion::curation_refinement_need"
+        ),
+        source_provenance_profile_id="decision_provenance::curation_refinement_need",
+        source_trace_profile_id="escalation_trace::curation_refinement_need",
+        normalized_result_surfaces=(
+            "refinement_advisory_packet",
+            "quality_context_summary",
+        ),
+        advisory_outputs=(
+            "curation_result_normalization_placeholder",
+            "refinement_normalized_context",
+        ),
+    ),
+    _result_normalization_profile(
+        normalization_profile_id="result_normalization::final_synthesis_readiness",
+        topic_id="final_synthesis_readiness",
+        source_budget_profile_id=(
+            "creative_exploration_budget::final_synthesis_readiness"
+        ),
+        source_confidence_fusion_profile_id=(
+            "agent_confidence_fusion::final_synthesis_readiness"
+        ),
+        source_provenance_profile_id="decision_provenance::final_synthesis_readiness",
+        source_trace_profile_id="escalation_trace::final_synthesis_readiness",
+        normalized_result_surfaces=(
+            "final_synthesis_packet",
+            "handoff_context_summary",
+        ),
+        advisory_outputs=(
+            "synthesis_result_normalization_placeholder",
+            "final_normalized_context",
+        ),
+    ),
+)
+RESULT_NORMALIZATION_REGISTRY = ResultNormalizationRegistry(
+    normalization_profiles=RESULT_NORMALIZATION_PROFILES,
+    normalization_profile_ids=tuple(
+        profile.normalization_profile_id for profile in RESULT_NORMALIZATION_PROFILES
+    ),
+    topic_ids=tuple(profile.topic_id for profile in RESULT_NORMALIZATION_PROFILES),
+    source_registries=_RESULT_NORMALIZATION_SOURCE_REGISTRIES,
+    budget_profile_ids=CREATIVE_EXPLORATION_BUDGET_REGISTRY.budget_profile_ids,
+    confidence_fusion_profile_ids=AGENT_CONFIDENCE_FUSION_REGISTRY.fusion_profile_ids,
+    provenance_profile_ids=DECISION_PROVENANCE_REGISTRY.provenance_profile_ids,
+    trace_profile_ids=ESCALATION_TRACE_REGISTRY.trace_profile_ids,
+    profile_count=len(RESULT_NORMALIZATION_PROFILES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (
