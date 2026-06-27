@@ -1118,6 +1118,121 @@ NARRATIVE_SYMBOLIC_AGENT_CONTRACT = AgentContract(
     ),
 )
 
+CREATIVE_CURATOR_AGENT_CONTRACT = AgentContract(
+    agent_id="creative_curator_agent",
+    agent_name="Creative Curator Agent",
+    agent_version="v4.1",
+    role_id="creative_curator",
+    role_name="Creative Curator Agent",
+    role_purpose=(
+        "Represent selection, synthesis preference, and creative curation "
+        "metadata handoffs for future V4 orchestration."
+    ),
+    authority_boundary=(
+        "Creative Curator Agent contract metadata maps existing selection, "
+        "quality, artifact intelligence, and synthesis preference boundaries "
+        "only; it does not select final outputs autonomously, alter final "
+        "synthesis, execute agents, route providers or models, select "
+        "runtimes, trigger retries, or modify generated output."
+    ),
+    allowed_actions=(
+        "describe_curation_context_requirements",
+        "map_selection_preference_metadata",
+        "declare_future_curation_handoff",
+    ),
+    prohibited_actions=(
+        "autonomous_final_output_selection",
+        "final_synthesis_alteration",
+        "agent_invocation",
+        "provider_or_model_routing",
+        "runtime_selection",
+        "generated_output_modification",
+    ),
+    capabilities=(
+        "curation_context_mapping",
+        "selection_preference_metadata",
+        "synthesis_preference_handoff_metadata",
+    ),
+    required_inputs=(
+        "assistant_request",
+        "multi_artifact_strategy",
+        "artifact_intelligence_synthesis",
+    ),
+    optional_inputs=(
+        "creative_score_profile",
+        "creative_quality_evaluation",
+        "evaluation_report_profile",
+        "artifact_merge_planner",
+        "aesthetic_review_context",
+        "narrative_context",
+        "agent_memory_contract",
+    ),
+    produced_outputs=(
+        "curation_context_packet_contract",
+        "selection_preference_summary_contract",
+        "curation_handoff_metadata_contract",
+    ),
+    produced_metadata=(
+        "creative_selection_metadata",
+        "curation_preference_metadata",
+        "artifact_candidate_metadata",
+        "synthesis_preference_metadata",
+        "selection_rationale_metadata",
+    ),
+    produced_signals=(
+        "curation_confidence",
+        "candidate_strength",
+        "selection_ambiguity",
+        "synthesis_fit",
+        "creative_priority_alignment",
+    ),
+    memory_access=AgentMemoryAccessContract(
+        allowed_memory_sources=(
+            "session_metadata",
+            "artifact_metadata",
+            "evaluation_metadata",
+            "provenance_metadata",
+            "future_blackboard_contract",
+        ),
+    ),
+    cacheability="deterministic_with_upstream_metadata",
+    estimated_cost_metadata=AgentContractCostMetadata(
+        relative_cost="low",
+        cost_basis=(
+            "Static metadata mapping from existing strategy, quality, and "
+            "artifact synthesis outputs; no autonomous selection or provider "
+            "calls."
+        ),
+        cache_sensitivity=(
+            "Cache key must include artifact strategy, synthesis, and quality "
+            "metadata identifiers."
+        ),
+    ),
+    estimated_latency_metadata=AgentContractLatencyMetadata(
+        relative_latency="low",
+        latency_basis=(
+            "Bounded local metadata inspection with no network, provider, "
+            "selection loop, workflow, or artifact execution."
+        ),
+        blocking_inputs=(
+            "assistant_request",
+            "multi_artifact_strategy",
+            "artifact_intelligence_synthesis",
+        ),
+    ),
+    future_orchestration_hooks=(
+        "v4_2_curation_context_handoff",
+        "v4_2_selection_preference_review",
+    ),
+    source_contract_registries=(
+        "agent_identity_registry",
+        "agent_memory_contract_registry",
+        "artifact_engine_contract_registry",
+        "evaluation_engine_contract_registry",
+        "artifact_intelligence_metadata",
+    ),
+)
+
 AGENT_CONTRACTS: tuple[AgentContract, ...] = (
     PLANNER_AGENT_CONTRACT,
     RESEARCH_AGENT_CONTRACT,
@@ -1127,5 +1242,6 @@ AGENT_CONTRACTS: tuple[AgentContract, ...] = (
     ART_DIRECTION_AGENT_CONTRACT,
     AESTHETIC_CRITIC_AGENT_CONTRACT,
     NARRATIVE_SYMBOLIC_AGENT_CONTRACT,
+    CREATIVE_CURATOR_AGENT_CONTRACT,
 )
 AGENT_CONTRACT_REGISTRY = build_agent_contract_registry(AGENT_CONTRACTS)
