@@ -84,6 +84,9 @@ _AGENT_STATE_SYNCHRONIZATION = (
 _WORKFLOW_AGENT_HANDOFF = (
     "creative_coding_assistant.orchestration.workflow_agent_handoff"
 )
+_ORCHESTRATION_CONTRACT_INTEGRATION = (
+    "creative_coding_assistant.orchestration.orchestration_contract_integration"
+)
 _AGENT_CAPABILITY_REGISTRY = (
     "creative_coding_assistant.orchestration.agent_capabilities"
 )
@@ -312,6 +315,18 @@ _EXPORT_MAP = {
     "workflow_agent_handoff_profile_by_agent_id": _WORKFLOW_AGENT_HANDOFF,
     "workflow_agent_handoff_registry": _WORKFLOW_AGENT_HANDOFF,
     "workflow_agent_handoffs_for_surface": _WORKFLOW_AGENT_HANDOFF,
+    "IntegratedOrchestrationRegistryContract": (
+        _ORCHESTRATION_CONTRACT_INTEGRATION
+    ),
+    "OrchestrationContractIntegrationRegistry": (
+        _ORCHESTRATION_CONTRACT_INTEGRATION
+    ),
+    "integrated_orchestration_registry_by_id": (
+        _ORCHESTRATION_CONTRACT_INTEGRATION
+    ),
+    "orchestration_contract_integration_registry": (
+        _ORCHESTRATION_CONTRACT_INTEGRATION
+    ),
     "AgentCapabilityProfile": _AGENT_CAPABILITY_REGISTRY,
     "AgentCapabilityRegistry": _AGENT_CAPABILITY_REGISTRY,
     "agent_capability_by_id": _AGENT_CAPABILITY_REGISTRY,

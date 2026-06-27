@@ -23,6 +23,7 @@ from creative_coding_assistant.orchestration import (
     build_prompt_input_request,
     build_rendered_prompt_request,
     consensus_builder_registry,
+    orchestration_contract_integration_registry,
     shared_context_view_registry,
     stream_assistant_workflow_events,
     workflow_agent_handoff_registry,
@@ -53,6 +54,7 @@ AGENT_REGISTRY_MARKERS = (
     "agent_lifecycle_registry",
     "agent_state_synchronization_registry",
     "workflow_agent_handoff_registry",
+    "orchestration_contract_integration_registry",
 )
 
 
@@ -75,6 +77,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         lifecycle_registry = agent_lifecycle_registry()
         state_sync_registry = agent_state_synchronization_registry()
         workflow_handoff_registry = workflow_agent_handoff_registry()
+        integration_registry = orchestration_contract_integration_registry()
 
         self.assertEqual(contract_registry.contract_count, 12)
         self.assertEqual(role_registry.role_count, 12)
@@ -93,6 +96,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         self.assertEqual(lifecycle_registry.profile_count, 12)
         self.assertEqual(state_sync_registry.profile_count, 12)
         self.assertEqual(workflow_handoff_registry.handoff_count, 5)
+        self.assertEqual(integration_registry.registry_count, 13)
         self.assertEqual(role_registry.agent_ids, contract_registry.agent_ids)
         self.assertEqual(boundary_registry.agent_ids, contract_registry.agent_ids)
         self.assertEqual(metadata_registry.agent_ids, contract_registry.agent_ids)
@@ -116,6 +120,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         self.assertTrue(lifecycle_registry.metadata_only)
         self.assertTrue(state_sync_registry.metadata_only)
         self.assertTrue(workflow_handoff_registry.metadata_only)
+        self.assertTrue(integration_registry.metadata_only)
 
     def test_agent_registries_do_not_change_workflow_nodes_or_payloads(self) -> None:
         graph = build_assistant_workflow_graph()
