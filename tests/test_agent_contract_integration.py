@@ -6,6 +6,7 @@ from creative_coding_assistant.orchestration import (
     JinjaPromptRenderer,
     StructuredPromptInputBuilder,
     agent_coordination_registry,
+    agent_debate_registry,
     agent_dependency_graph_registry,
     agent_boundary_registry,
     agent_contract_registry,
@@ -39,6 +40,7 @@ AGENT_REGISTRY_MARKERS = (
     "agent_dependency_graph_registry",
     "parallel_scheduling_registry",
     "agent_coordination_registry",
+    "agent_debate_registry",
 )
 
 
@@ -54,6 +56,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         dependency_graph_registry = agent_dependency_graph_registry()
         scheduling_registry = parallel_scheduling_registry()
         coordination_registry = agent_coordination_registry()
+        debate_registry = agent_debate_registry()
 
         self.assertEqual(contract_registry.contract_count, 12)
         self.assertEqual(role_registry.role_count, 12)
@@ -65,6 +68,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         self.assertEqual(dependency_graph_registry.node_count, 30)
         self.assertEqual(scheduling_registry.group_count, 6)
         self.assertEqual(len(coordination_registry.handoff_channels), 5)
+        self.assertEqual(debate_registry.max_rounds, 4)
         self.assertEqual(role_registry.agent_ids, contract_registry.agent_ids)
         self.assertEqual(boundary_registry.agent_ids, contract_registry.agent_ids)
         self.assertEqual(metadata_registry.agent_ids, contract_registry.agent_ids)
@@ -81,6 +85,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         self.assertTrue(dependency_graph_registry.metadata_only)
         self.assertTrue(scheduling_registry.metadata_only)
         self.assertTrue(coordination_registry.metadata_only)
+        self.assertTrue(debate_registry.metadata_only)
 
     def test_agent_registries_do_not_change_workflow_nodes_or_payloads(self) -> None:
         graph = build_assistant_workflow_graph()

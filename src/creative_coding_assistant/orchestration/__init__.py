@@ -69,6 +69,7 @@ _AGENT_PARALLEL_SCHEDULING = (
     "creative_coding_assistant.orchestration.agent_parallel_scheduling"
 )
 _AGENT_COORDINATION = "creative_coding_assistant.orchestration.agent_coordination"
+_AGENT_DEBATE = "creative_coding_assistant.orchestration.agent_debate"
 _AGENT_CAPABILITY_REGISTRY = (
     "creative_coding_assistant.orchestration.agent_capabilities"
 )
@@ -252,6 +253,14 @@ _EXPORT_MAP = {
     "coordination_event_contract_by_type": _AGENT_COORDINATION,
     "coordination_handoff_channel_by_id": _AGENT_COORDINATION,
     "coordination_responsibility_by_id": _AGENT_COORDINATION,
+    "AgentDebateClaimContract": _AGENT_DEBATE,
+    "AgentDebateParticipant": _AGENT_DEBATE,
+    "AgentDebateRegistry": _AGENT_DEBATE,
+    "AgentDebateRoundContract": _AGENT_DEBATE,
+    "agent_debate_registry": _AGENT_DEBATE,
+    "debate_claim_by_id": _AGENT_DEBATE,
+    "debate_participant_by_agent_id": _AGENT_DEBATE,
+    "debate_round_by_topic": _AGENT_DEBATE,
     "AgentCapabilityProfile": _AGENT_CAPABILITY_REGISTRY,
     "AgentCapabilityRegistry": _AGENT_CAPABILITY_REGISTRY,
     "agent_capability_by_id": _AGENT_CAPABILITY_REGISTRY,
