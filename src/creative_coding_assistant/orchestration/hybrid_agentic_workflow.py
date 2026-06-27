@@ -63,6 +63,8 @@ CreativeExplorationBudgetPosture = Literal["narrow", "moderate", "broad", "guard
 ResultNormalizationTopic = CreativeExplorationBudgetTopic
 ReturnToWorkflowHandoffTopic = ResultNormalizationTopic
 ReturnToWorkflowSurface = Literal["planning", "artifact", "evaluation", "finalization"]
+HitlEscalationPosture = Literal["optional", "recommended", "required"]
+HitlEscalationGateTopic = ReturnToWorkflowHandoffTopic
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -138,6 +140,12 @@ RETURN_TO_WORKFLOW_HANDOFF_PROFILE_SERIALIZATION_VERSION = (
 )
 RETURN_TO_WORKFLOW_HANDOFF_REGISTRY_SERIALIZATION_VERSION = (
     "return_to_workflow_handoff_registry.v1"
+)
+HITL_ESCALATION_GATE_PROFILE_SERIALIZATION_VERSION = (
+    "hitl_escalation_gate_profile.v1"
+)
+HITL_ESCALATION_GATE_REGISTRY_SERIALIZATION_VERSION = (
+    "hitl_escalation_gate_registry.v1"
 )
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
@@ -238,6 +246,13 @@ RETURN_TO_WORKFLOW_HANDOFF_AUTHORITY_BOUNDARY = (
     "surfaces only; it does not perform runtime handoffs, change workflow "
     "graph order, alter prompts, execute agents, control workflow transitions, "
     "trigger retries, or modify generated output."
+)
+HITL_ESCALATION_GATE_AUTHORITY_BOUNDARY = (
+    "HITL escalation gate metadata describes passive human-review visibility "
+    "posture for future hybrid escalation only; it does not trigger human "
+    "review, request human input, evaluate gates, approve escalation, invoke "
+    "agents, control workflow transitions, trigger retries, or modify "
+    "generated output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Hybrid agentic workflow metadata maps current V3 workflow nodes to future "
@@ -516,6 +531,25 @@ _RETURN_TO_WORKFLOW_HANDOFF_SOURCE_REGISTRIES = (
     "workstation_engine_contract_registry",
     "hybrid_agentic_workflow_registry",
 )
+_HITL_ESCALATION_GATE_BLOCKED_RUNTIME_BEHAVIORS = (
+    "hitl_triggering",
+    "human_review_request",
+    "gate_evaluation",
+    "escalation_approval",
+    "agent_invocation",
+    "provider_or_model_routing",
+    "workflow_control",
+    "retry_triggering",
+    "generated_output_modification",
+)
+_HITL_ESCALATION_GATE_SOURCE_REGISTRIES = (
+    "return_to_workflow_handoff_registry",
+    "escalation_gate_registry",
+    "agent_escalation_signal_registry",
+    "creative_confidence_engine",
+    "reflection_escalation_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -622,6 +656,18 @@ _WORKFLOW_AGENT_HANDOFF_IDS = (
     "evaluation_surface_agent_handoff",
     "provenance_surface_agent_handoff",
     "finalization_surface_agent_handoff",
+)
+_HITL_ESCALATION_GATE_TOPICS: tuple[HitlEscalationGateTopic, ...] = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
+)
+_HITL_ESCALATION_POSTURES: tuple[HitlEscalationPosture, ...] = (
+    "recommended",
+    "optional",
+    "recommended",
+    "required",
 )
 _KNOWN_SPECIALIST_AGENT_IDS = (
     "planner_agent",
@@ -2577,6 +2623,164 @@ def return_to_workflow_handoff_profile_by_id(
     return None
 
 
+class HitlEscalationGateProfile(BaseModel):
+    """Passive V4.3 HITL escalation gate profile metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    hitl_gate_profile_id: str = Field(min_length=1, max_length=160)
+    topic_id: HitlEscalationGateTopic
+    source_return_handoff_profile_id: str = Field(min_length=1, max_length=180)
+    source_gate_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_escalation_signal_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_reflection_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    hitl_posture: HitlEscalationPosture
+    human_review_inputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    gate_dimensions: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_HITL_ESCALATION_GATE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    hitl_triggering_implemented: Literal[False] = False
+    human_review_request_implemented: Literal[False] = False
+    gate_evaluation_implemented: Literal[False] = False
+    escalation_approval_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["hitl_escalation_gate_profile.v1"] = (
+        HITL_ESCALATION_GATE_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class HitlEscalationGateRegistry(BaseModel):
+    """Stable passive registry for V4.3 HITL escalation gate metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["hitl_escalation_gate_registry"] = "hitl_escalation_gate_registry"
+    serialization_version: Literal["hitl_escalation_gate_registry.v1"] = (
+        HITL_ESCALATION_GATE_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=HITL_ESCALATION_GATE_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    hitl_gate_profiles: tuple[HitlEscalationGateProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    hitl_gate_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    topic_ids: tuple[HitlEscalationGateTopic, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    hitl_postures: tuple[HitlEscalationPosture, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    return_handoff_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    gate_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    escalation_signal_ids: tuple[str, ...] = Field(min_length=7, max_length=7)
+    reflection_profile_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    profile_count: int = Field(ge=4, le=4)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_HITL_ESCALATION_GATE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    hitl_triggering_implemented: Literal[False] = False
+    human_review_request_implemented: Literal[False] = False
+    gate_evaluation_implemented: Literal[False] = False
+    escalation_approval_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_hitl_gate_metadata(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.hitl_gate_profile_id for profile in self.hitl_gate_profiles
+        )
+        derived_topic_ids = tuple(
+            profile.topic_id for profile in self.hitl_gate_profiles
+        )
+        derived_postures = tuple(
+            profile.hitl_posture for profile in self.hitl_gate_profiles
+        )
+        if self.hitl_gate_profile_ids != derived_profile_ids:
+            raise ValueError("hitl_gate_profile_ids must match profiles")
+        if self.topic_ids != derived_topic_ids:
+            raise ValueError("topic_ids must match HITL gate profiles")
+        if self.topic_ids != _HITL_ESCALATION_GATE_TOPICS:
+            raise ValueError("topic_ids must preserve HITL gate topic order")
+        if self.hitl_postures != derived_postures:
+            raise ValueError("hitl_postures must match profiles")
+        if self.hitl_postures != _HITL_ESCALATION_POSTURES:
+            raise ValueError("hitl_postures must preserve HITL posture order")
+        if self.profile_count != len(self.hitl_gate_profiles):
+            raise ValueError("profile_count must match HITL gate profiles")
+
+        profile_sources = {
+            source_registry
+            for profile in self.hitl_gate_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match HITL gate sources")
+
+        known_returns = set(self.return_handoff_profile_ids)
+        known_gates = set(self.gate_ids)
+        known_signals = set(self.escalation_signal_ids)
+        known_reflections = set(self.reflection_profile_ids)
+        for profile in self.hitl_gate_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("HITL gate sources must match registry sources")
+            if profile.source_return_handoff_profile_id not in known_returns:
+                raise ValueError("HITL return handoffs must be known metadata")
+            if not set(profile.source_gate_ids).issubset(known_gates):
+                raise ValueError("HITL gates must be known metadata")
+            if not set(profile.source_escalation_signal_ids).issubset(known_signals):
+                raise ValueError("HITL signals must be known metadata")
+            if "hitl_escalation_signal" not in profile.source_escalation_signal_ids:
+                raise ValueError("HITL profiles must reference hitl_escalation_signal")
+            if not set(profile.source_reflection_profile_ids).issubset(
+                known_reflections
+            ):
+                raise ValueError("HITL reflections must be known metadata")
+            if profile.hitl_triggering_implemented:
+                raise ValueError("HITL escalation gate must not trigger review")
+        return self
+
+
+def hitl_escalation_gate_registry() -> HitlEscalationGateRegistry:
+    """Return passive V4.3 HITL escalation gate metadata."""
+
+    return HITL_ESCALATION_GATE_REGISTRY
+
+
+def hitl_escalation_gate_profile_by_id(
+    hitl_gate_profile_id: str,
+    registry: HitlEscalationGateRegistry | None = None,
+) -> HitlEscalationGateProfile | None:
+    """Return one HITL gate profile without triggering human review."""
+
+    source_registry = registry or HITL_ESCALATION_GATE_REGISTRY
+    for profile in source_registry.hitl_gate_profiles:
+        if profile.hitl_gate_profile_id == hitl_gate_profile_id:
+            return profile
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -3082,6 +3286,47 @@ def _return_to_workflow_handoff_profile(
             "only; it does not perform runtime handoffs, change workflow graph "
             "order, alter prompts, execute agents, control workflow transitions, "
             "trigger retries, or modify generated output."
+        ),
+    )
+
+
+def _hitl_escalation_gate_profile(
+    *,
+    hitl_gate_profile_id: str,
+    topic_id: HitlEscalationGateTopic,
+    source_return_handoff_profile_id: str,
+    source_escalation_signal_ids: tuple[str, ...],
+    source_reflection_profile_ids: tuple[str, ...],
+    hitl_posture: HitlEscalationPosture,
+    advisory_outputs: tuple[str, ...],
+) -> HitlEscalationGateProfile:
+    return HitlEscalationGateProfile(
+        hitl_gate_profile_id=hitl_gate_profile_id,
+        topic_id=topic_id,
+        source_return_handoff_profile_id=source_return_handoff_profile_id,
+        source_gate_ids=("human_review_visibility_gate",),
+        source_escalation_signal_ids=source_escalation_signal_ids,
+        source_reflection_profile_ids=source_reflection_profile_ids,
+        hitl_posture=hitl_posture,
+        human_review_inputs=(
+            "normalized_result_context",
+            "return_handoff_context",
+            "hitl_escalation_signal",
+            "reflection_posture_context",
+        ),
+        source_registries=_HITL_ESCALATION_GATE_SOURCE_REGISTRIES,
+        gate_dimensions=(
+            "human_review_visibility",
+            "hitl_signal_presence",
+            "confidence_uncertainty",
+            "return_handoff_context",
+        ),
+        advisory_outputs=advisory_outputs,
+        authority_boundary=(
+            "This HITL escalation gate profile is advisory metadata only; it "
+            "does not trigger human review, request human input, evaluate "
+            "gates, approve escalation, invoke agents, control workflow "
+            "transitions, trigger retries, or modify generated output."
         ),
     )
 
@@ -4461,6 +4706,101 @@ RETURN_TO_WORKFLOW_HANDOFF_REGISTRY = ReturnToWorkflowHandoffRegistry(
     workflow_handoff_ids=_WORKFLOW_AGENT_HANDOFF_IDS,
     backbone_node_ids=V3_BACKBONE_MODE_REGISTRY.node_ids,
     profile_count=len(RETURN_TO_WORKFLOW_HANDOFF_PROFILES),
+)
+HITL_ESCALATION_GATE_PROFILES = (
+    _hitl_escalation_gate_profile(
+        hitl_gate_profile_id="hitl_escalation_gate::planning_execution_fit",
+        topic_id="planning_execution_fit",
+        source_return_handoff_profile_id=(
+            "return_to_workflow_handoff::planning_execution_fit"
+        ),
+        source_escalation_signal_ids=(
+            "ambiguity_escalation_signal",
+            "hitl_escalation_signal",
+        ),
+        source_reflection_profile_ids=(
+            "reflection_medium_escalation_profile",
+            "reflection_high_escalation_profile",
+        ),
+        hitl_posture="recommended",
+        advisory_outputs=(
+            "planning_hitl_gate_placeholder",
+            "planning_human_review_context",
+        ),
+    ),
+    _hitl_escalation_gate_profile(
+        hitl_gate_profile_id="hitl_escalation_gate::style_aesthetic_alignment",
+        topic_id="style_aesthetic_alignment",
+        source_return_handoff_profile_id=(
+            "return_to_workflow_handoff::style_aesthetic_alignment"
+        ),
+        source_escalation_signal_ids=(
+            "risk_escalation_signal",
+            "hitl_escalation_signal",
+        ),
+        source_reflection_profile_ids=("reflection_high_escalation_profile",),
+        hitl_posture="optional",
+        advisory_outputs=(
+            "style_hitl_gate_placeholder",
+            "aesthetic_human_review_context",
+        ),
+    ),
+    _hitl_escalation_gate_profile(
+        hitl_gate_profile_id="hitl_escalation_gate::curation_refinement_need",
+        topic_id="curation_refinement_need",
+        source_return_handoff_profile_id=(
+            "return_to_workflow_handoff::curation_refinement_need"
+        ),
+        source_escalation_signal_ids=(
+            "confidence_escalation_signal",
+            "quality_escalation_signal",
+            "hitl_escalation_signal",
+        ),
+        source_reflection_profile_ids=(
+            "reflection_high_escalation_profile",
+            "reflection_critical_escalation_profile",
+        ),
+        hitl_posture="recommended",
+        advisory_outputs=(
+            "curation_hitl_gate_placeholder",
+            "refinement_human_review_context",
+        ),
+    ),
+    _hitl_escalation_gate_profile(
+        hitl_gate_profile_id="hitl_escalation_gate::final_synthesis_readiness",
+        topic_id="final_synthesis_readiness",
+        source_return_handoff_profile_id=(
+            "return_to_workflow_handoff::final_synthesis_readiness"
+        ),
+        source_escalation_signal_ids=(
+            "quality_escalation_signal",
+            "hitl_escalation_signal",
+        ),
+        source_reflection_profile_ids=("reflection_critical_escalation_profile",),
+        hitl_posture="required",
+        advisory_outputs=(
+            "synthesis_hitl_gate_placeholder",
+            "final_human_review_context",
+        ),
+    ),
+)
+HITL_ESCALATION_GATE_REGISTRY = HitlEscalationGateRegistry(
+    hitl_gate_profiles=HITL_ESCALATION_GATE_PROFILES,
+    hitl_gate_profile_ids=tuple(
+        profile.hitl_gate_profile_id for profile in HITL_ESCALATION_GATE_PROFILES
+    ),
+    topic_ids=tuple(profile.topic_id for profile in HITL_ESCALATION_GATE_PROFILES),
+    hitl_postures=tuple(
+        profile.hitl_posture for profile in HITL_ESCALATION_GATE_PROFILES
+    ),
+    source_registries=_HITL_ESCALATION_GATE_SOURCE_REGISTRIES,
+    return_handoff_profile_ids=(
+        RETURN_TO_WORKFLOW_HANDOFF_REGISTRY.return_handoff_profile_ids
+    ),
+    gate_ids=ESCALATION_GATE_REGISTRY.gate_ids,
+    escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
+    reflection_profile_ids=REFLECTION_ESCALATION_REGISTRY.profile_ids,
+    profile_count=len(HITL_ESCALATION_GATE_PROFILES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (

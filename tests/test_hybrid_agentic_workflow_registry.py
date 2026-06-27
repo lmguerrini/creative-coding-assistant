@@ -9,6 +9,7 @@ from creative_coding_assistant.orchestration import (
     DecisionProvenanceRegistry,
     EscalationGateRegistry,
     EscalationTraceRegistry,
+    HitlEscalationGateRegistry,
     HybridAgentDebateLoopRegistry,
     HybridAgentVotingRegistry,
     ReflectionEscalationRegistry,
@@ -33,6 +34,8 @@ from creative_coding_assistant.orchestration import (
     escalation_gate_registry,
     escalation_trace_profile_by_id,
     escalation_trace_registry,
+    hitl_escalation_gate_profile_by_id,
+    hitl_escalation_gate_registry,
     escalation_policy_registry,
     hybrid_agent_debate_loop_by_id,
     hybrid_agent_debate_loop_registry,
@@ -624,6 +627,51 @@ REQUIRED_RETURN_TO_WORKFLOW_HANDOFF_FIELDS = {
     "workflow_graph_change_implemented",
     "prompt_alteration_implemented",
     "agent_execution_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_HITL_ESCALATION_GATE_PROFILE_IDS = (
+    "hitl_escalation_gate::planning_execution_fit",
+    "hitl_escalation_gate::style_aesthetic_alignment",
+    "hitl_escalation_gate::curation_refinement_need",
+    "hitl_escalation_gate::final_synthesis_readiness",
+)
+EXPECTED_HITL_ESCALATION_POSTURES = (
+    "recommended",
+    "optional",
+    "recommended",
+    "required",
+)
+EXPECTED_HITL_ESCALATION_GATE_SOURCE_REGISTRIES = (
+    "return_to_workflow_handoff_registry",
+    "escalation_gate_registry",
+    "agent_escalation_signal_registry",
+    "creative_confidence_engine",
+    "reflection_escalation_registry",
+    "hybrid_agentic_workflow_registry",
+)
+REQUIRED_HITL_ESCALATION_GATE_FIELDS = {
+    "hitl_gate_profile_id",
+    "topic_id",
+    "source_return_handoff_profile_id",
+    "source_gate_ids",
+    "source_escalation_signal_ids",
+    "source_reflection_profile_ids",
+    "hitl_posture",
+    "human_review_inputs",
+    "source_registries",
+    "gate_dimensions",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "hitl_triggering_implemented",
+    "human_review_request_implemented",
+    "gate_evaluation_implemented",
+    "escalation_approval_implemented",
+    "agent_invocation_implemented",
     "workflow_control_implemented",
     "retry_triggering_implemented",
     "generated_output_mutation_implemented",
@@ -2940,6 +2988,197 @@ class ReturnToWorkflowHandoffRegistryTests(unittest.TestCase):
             "perform_runtime_handoff",
             "change_runtime_workflow_graph",
             "alter_runtime_prompt",
+            "execute_agent",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class HitlEscalationGateRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_hitl_gate_profiles(self) -> None:
+        registry = hitl_escalation_gate_registry()
+
+        self.assertEqual(registry.role, "hitl_escalation_gate_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "hitl_escalation_gate_registry.v1",
+        )
+        self.assertEqual(
+            registry.hitl_gate_profile_ids,
+            EXPECTED_HITL_ESCALATION_GATE_PROFILE_IDS,
+        )
+        self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
+        self.assertEqual(registry.hitl_postures, EXPECTED_HITL_ESCALATION_POSTURES)
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_HITL_ESCALATION_GATE_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(
+            registry.return_handoff_profile_ids,
+            return_to_workflow_handoff_registry().return_handoff_profile_ids,
+        )
+        self.assertEqual(registry.gate_ids, escalation_gate_registry().gate_ids)
+        self.assertEqual(
+            registry.escalation_signal_ids,
+            agent_escalation_signal_registry().signal_ids,
+        )
+        self.assertEqual(
+            registry.reflection_profile_ids,
+            reflection_escalation_registry().profile_ids,
+        )
+        self.assertEqual(registry.profile_count, 4)
+        self.assertIn("does not trigger human review", registry.authority_boundary)
+        self.assertFalse(registry.hitl_triggering_implemented)
+        self.assertFalse(registry.human_review_request_implemented)
+        self.assertFalse(registry.gate_evaluation_implemented)
+        self.assertFalse(registry.escalation_approval_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_hitl_gate_profiles_reference_known_sources(self) -> None:
+        registry = hitl_escalation_gate_registry()
+        known_returns = set(
+            return_to_workflow_handoff_registry().return_handoff_profile_ids
+        )
+        known_gates = set(escalation_gate_registry().gate_ids)
+        known_signals = set(agent_escalation_signal_registry().signal_ids)
+        known_reflections = set(reflection_escalation_registry().profile_ids)
+
+        for profile in registry.hitl_gate_profiles:
+            dumped = profile.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_HITL_ESCALATION_GATE_FIELDS)
+            self.assertEqual(
+                profile.source_registries,
+                EXPECTED_HITL_ESCALATION_GATE_SOURCE_REGISTRIES,
+            )
+            self.assertIn(profile.source_return_handoff_profile_id, known_returns)
+            self.assertTrue(set(profile.source_gate_ids).issubset(known_gates))
+            self.assertIn("human_review_visibility_gate", profile.source_gate_ids)
+            self.assertTrue(
+                set(profile.source_escalation_signal_ids).issubset(known_signals)
+            )
+            self.assertIn("hitl_escalation_signal", profile.source_escalation_signal_ids)
+            self.assertTrue(
+                set(profile.source_reflection_profile_ids).issubset(known_reflections)
+            )
+            self.assertIn(profile.hitl_posture, registry.hitl_postures)
+            self.assertTrue(profile.human_review_inputs)
+            self.assertTrue(profile.gate_dimensions)
+            self.assertTrue(profile.advisory_outputs)
+            self.assertIn("hitl_triggering", profile.blocked_runtime_behaviors)
+            self.assertIn("human_review_request", profile.blocked_runtime_behaviors)
+            self.assertFalse(profile.hitl_triggering_implemented)
+            self.assertFalse(profile.human_review_request_implemented)
+            self.assertFalse(profile.gate_evaluation_implemented)
+            self.assertFalse(profile.escalation_approval_implemented)
+            self.assertFalse(profile.agent_invocation_implemented)
+            self.assertFalse(profile.workflow_control_implemented)
+            self.assertFalse(profile.retry_triggering_implemented)
+            self.assertFalse(profile.generated_output_mutation_implemented)
+            self.assertEqual(
+                profile.serialization_version,
+                "hitl_escalation_gate_profile.v1",
+            )
+            self.assertTrue(profile.metadata_only)
+
+    def test_hitl_gate_source_registries_are_complete(self) -> None:
+        registry = hitl_escalation_gate_registry()
+        profile_sources = tuple(
+            dict.fromkeys(
+                source
+                for profile in registry.hitl_gate_profiles
+                for source in profile.source_registries
+            )
+        )
+
+        self.assertEqual(profile_sources, registry.source_registries)
+        for source_registry in EXPECTED_HITL_ESCALATION_GATE_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, profile_sources)
+        for profile in registry.hitl_gate_profiles:
+            self.assertEqual(set(profile.source_registries), set(profile_sources))
+
+    def test_hitl_gate_lookup_is_stable(self) -> None:
+        profile = hitl_escalation_gate_profile_by_id(
+            "hitl_escalation_gate::final_synthesis_readiness"
+        )
+        missing = hitl_escalation_gate_profile_by_id("missing_hitl_gate")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.topic_id, "final_synthesis_readiness")
+        self.assertEqual(profile.hitl_posture, "required")
+        self.assertIn("final_human_review_context", profile.advisory_outputs)
+        self.assertFalse(profile.hitl_triggering_implemented)
+
+    def test_hitl_gate_registry_rejects_mismatched_metadata(self) -> None:
+        registry = hitl_escalation_gate_registry()
+        mismatched_profile = registry.hitl_gate_profiles[0].model_copy(
+            update={"hitl_gate_profile_id": "other_hitl_gate"}
+        )
+        missing_signal_profile = registry.hitl_gate_profiles[0].model_copy(
+            update={"source_escalation_signal_ids": ("ambiguity_escalation_signal",)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "hitl_gate_profile_ids"):
+            HitlEscalationGateRegistry(
+                hitl_gate_profiles=(
+                    mismatched_profile,
+                )
+                + registry.hitl_gate_profiles[1:],
+                hitl_gate_profile_ids=registry.hitl_gate_profile_ids,
+                topic_ids=registry.topic_ids,
+                hitl_postures=registry.hitl_postures,
+                source_registries=registry.source_registries,
+                return_handoff_profile_ids=registry.return_handoff_profile_ids,
+                gate_ids=registry.gate_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                reflection_profile_ids=registry.reflection_profile_ids,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "hitl_escalation_signal"):
+            HitlEscalationGateRegistry(
+                hitl_gate_profiles=(
+                    missing_signal_profile,
+                )
+                + registry.hitl_gate_profiles[1:],
+                hitl_gate_profile_ids=registry.hitl_gate_profile_ids,
+                topic_ids=registry.topic_ids,
+                hitl_postures=registry.hitl_postures,
+                source_registries=registry.source_registries,
+                return_handoff_profile_ids=registry.return_handoff_profile_ids,
+                gate_ids=registry.gate_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                reflection_profile_ids=registry.reflection_profile_ids,
+                profile_count=registry.profile_count,
+            )
+
+    def test_hitl_gate_does_not_declare_active_execution(self) -> None:
+        registry = hitl_escalation_gate_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for profile in registry.hitl_gate_profiles
+                    for field in (
+                        profile.hitl_gate_profile_id,
+                        profile.authority_boundary,
+                        *profile.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "trigger_human_review",
+            "request_human_input",
+            "approve_escalation",
             "execute_agent",
             "modify_output",
         ):
