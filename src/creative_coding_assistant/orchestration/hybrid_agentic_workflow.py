@@ -48,6 +48,12 @@ ReflectionEscalationPosture = Literal[
     "high",
     "critical",
 ]
+HybridDebateLoopTopic = Literal[
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
+]
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -75,6 +81,12 @@ REFLECTION_ESCALATION_PROFILE_SERIALIZATION_VERSION = (
 )
 REFLECTION_ESCALATION_REGISTRY_SERIALIZATION_VERSION = (
     "reflection_escalation_registry.v1"
+)
+HYBRID_DEBATE_LOOP_PROFILE_SERIALIZATION_VERSION = (
+    "hybrid_agent_debate_loop_profile.v1"
+)
+HYBRID_DEBATE_LOOP_REGISTRY_SERIALIZATION_VERSION = (
+    "hybrid_agent_debate_loop_registry.v1"
 )
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
@@ -118,6 +130,13 @@ REFLECTION_ESCALATION_AUTHORITY_BOUNDARY = (
     "Reflection escalation metadata describes passive escalation posture for "
     "existing Reflection Loop Engine signals only; it does not run reflection, "
     "trigger refinement, approve escalation, invoke agents, route providers or "
+    "models, control workflow transitions, write memory, or modify generated "
+    "output."
+)
+HYBRID_DEBATE_LOOP_AUTHORITY_BOUNDARY = (
+    "Hybrid agent debate loop metadata maps existing passive debate topics to "
+    "V4.3 escalation policy and specialist loop context only; it does not "
+    "execute debate loops, invoke agents, trigger retries, route providers or "
     "models, control workflow transitions, write memory, or modify generated "
     "output."
 )
@@ -251,6 +270,22 @@ _REFLECTION_ESCALATION_SOURCE_REGISTRIES = (
     "evaluation_engine_contract_registry",
     "hybrid_agentic_workflow_registry",
 )
+_HYBRID_DEBATE_LOOP_BLOCKED_RUNTIME_BEHAVIORS = (
+    "debate_loop_execution",
+    "agent_invocation",
+    "retry_triggering",
+    "provider_or_model_routing",
+    "workflow_control",
+    "memory_write",
+    "generated_output_modification",
+)
+_HYBRID_DEBATE_LOOP_SOURCE_REGISTRIES = (
+    "agent_debate_registry",
+    "reflection_escalation_registry",
+    "creative_escalation_policy_registry",
+    "specialist_agent_loop_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -294,6 +329,12 @@ _REFLECTION_ESCALATION_POSTURES: tuple[ReflectionEscalationPosture, ...] = (
     "medium",
     "high",
     "critical",
+)
+_HYBRID_DEBATE_LOOP_TOPICS: tuple[HybridDebateLoopTopic, ...] = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
 )
 _KNOWN_SPECIALIST_AGENT_IDS = (
     "planner_agent",
@@ -1111,6 +1152,133 @@ def reflection_escalation_profile_by_id(
     return None
 
 
+class HybridAgentDebateLoopProfile(BaseModel):
+    """Passive V4.3 debate loop readiness profile."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    loop_id: str = Field(min_length=1, max_length=140)
+    topic_id: HybridDebateLoopTopic
+    source_debate_topic_id: HybridDebateLoopTopic
+    source_reflection_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_policy_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_specialist_loop_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_registries: tuple[str, ...] = Field(min_length=5, max_length=5)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    max_advisory_rounds: int = Field(ge=1, le=2)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_HYBRID_DEBATE_LOOP_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    debate_loop_execution_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["hybrid_agent_debate_loop_profile.v1"] = (
+        HYBRID_DEBATE_LOOP_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class HybridAgentDebateLoopRegistry(BaseModel):
+    """Stable passive registry for V4.3 hybrid debate loop metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["hybrid_agent_debate_loop_registry"] = (
+        "hybrid_agent_debate_loop_registry"
+    )
+    serialization_version: Literal["hybrid_agent_debate_loop_registry.v1"] = (
+        HYBRID_DEBATE_LOOP_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=HYBRID_DEBATE_LOOP_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    debate_loops: tuple[HybridAgentDebateLoopProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    loop_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    topic_ids: tuple[HybridDebateLoopTopic, ...] = Field(min_length=4, max_length=4)
+    source_registries: tuple[str, ...] = Field(min_length=5, max_length=5)
+    reflection_profile_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    policy_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    specialist_loop_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    loop_count: int = Field(ge=4, le=4)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_HYBRID_DEBATE_LOOP_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    debate_loop_execution_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_hybrid_debate_loop_metadata(self) -> Self:
+        derived_loop_ids = tuple(loop.loop_id for loop in self.debate_loops)
+        derived_topic_ids = tuple(loop.topic_id for loop in self.debate_loops)
+        if self.loop_ids != derived_loop_ids:
+            raise ValueError("loop_ids must match debate_loops")
+        if self.topic_ids != derived_topic_ids:
+            raise ValueError("topic_ids must match debate_loops")
+        if self.topic_ids != _HYBRID_DEBATE_LOOP_TOPICS:
+            raise ValueError("topic_ids must preserve debate topic order")
+        if self.loop_count != len(self.debate_loops):
+            raise ValueError("loop_count must match debate_loops")
+
+        source_registries = set(self.source_registries)
+        loop_sources = {
+            source_registry
+            for loop in self.debate_loops
+            for source_registry in loop.source_registries
+        }
+        if source_registries != loop_sources:
+            raise ValueError("source_registries must match debate loop sources")
+
+        known_reflections = set(self.reflection_profile_ids)
+        known_policies = set(self.policy_ids)
+        known_loops = set(self.specialist_loop_ids)
+        for loop in self.debate_loops:
+            if loop.source_registries != self.source_registries:
+                raise ValueError("debate loop sources must match registry sources")
+            if not set(loop.source_reflection_profile_ids).issubset(known_reflections):
+                raise ValueError("debate reflections must be known metadata")
+            if not set(loop.source_policy_ids).issubset(known_policies):
+                raise ValueError("debate policies must be known metadata")
+            if not set(loop.source_specialist_loop_ids).issubset(known_loops):
+                raise ValueError("debate specialist loops must be known metadata")
+            if loop.debate_loop_execution_implemented:
+                raise ValueError("hybrid debate loops must not execute")
+        return self
+
+
+def hybrid_agent_debate_loop_registry() -> HybridAgentDebateLoopRegistry:
+    """Return passive V4.3 hybrid debate loop metadata."""
+
+    return HYBRID_AGENT_DEBATE_LOOP_REGISTRY
+
+
+def hybrid_agent_debate_loop_by_id(
+    loop_id: str,
+    registry: HybridAgentDebateLoopRegistry | None = None,
+) -> HybridAgentDebateLoopProfile | None:
+    """Return one hybrid debate loop profile without executing debate."""
+
+    source_registry = registry or HYBRID_AGENT_DEBATE_LOOP_REGISTRY
+    for loop in source_registry.debate_loops:
+        if loop.loop_id == loop_id:
+            return loop
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -1338,6 +1506,34 @@ def _reflection_escalation_profile(
             "does not run reflection, trigger refinement, approve escalation, "
             "invoke agents, control workflow transitions, write memory, or "
             "modify generated output."
+        ),
+    )
+
+
+def _hybrid_debate_loop(
+    *,
+    loop_id: str,
+    topic_id: HybridDebateLoopTopic,
+    source_reflection_profile_ids: tuple[str, ...],
+    source_policy_ids: tuple[str, ...],
+    source_specialist_loop_ids: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> HybridAgentDebateLoopProfile:
+    return HybridAgentDebateLoopProfile(
+        loop_id=loop_id,
+        topic_id=topic_id,
+        source_debate_topic_id=topic_id,
+        source_reflection_profile_ids=source_reflection_profile_ids,
+        source_policy_ids=source_policy_ids,
+        source_specialist_loop_ids=source_specialist_loop_ids,
+        source_registries=_HYBRID_DEBATE_LOOP_SOURCE_REGISTRIES,
+        advisory_outputs=advisory_outputs,
+        max_advisory_rounds=2,
+        authority_boundary=(
+            "This hybrid debate loop profile is advisory metadata only; it "
+            "does not execute debate loops, invoke agents, trigger retries, "
+            "route providers or models, control workflow transitions, write "
+            "memory, or modify generated output."
         ),
     )
 
@@ -2049,6 +2245,68 @@ REFLECTION_ESCALATION_REGISTRY = ReflectionEscalationRegistry(
     policy_ids=CREATIVE_ESCALATION_POLICY_REGISTRY.policy_ids,
     gate_ids=ESCALATION_GATE_REGISTRY.gate_ids,
     profile_count=len(REFLECTION_ESCALATION_PROFILES),
+)
+HYBRID_AGENT_DEBATE_LOOPS = (
+    _hybrid_debate_loop(
+        loop_id="hybrid_debate_loop::planning_execution_fit",
+        topic_id="planning_execution_fit",
+        source_reflection_profile_ids=(
+            "reflection_medium_escalation_profile",
+            "reflection_high_escalation_profile",
+        ),
+        source_policy_ids=("concept_ambiguity_creative_escalation_policy",),
+        source_specialist_loop_ids=("planning_specialist_agent_loop",),
+        advisory_outputs=(
+            "planning_debate_readiness_notes",
+            "planner_counterclaim_context",
+        ),
+    ),
+    _hybrid_debate_loop(
+        loop_id="hybrid_debate_loop::style_aesthetic_alignment",
+        topic_id="style_aesthetic_alignment",
+        source_reflection_profile_ids=("reflection_high_escalation_profile",),
+        source_policy_ids=("aesthetic_risk_creative_escalation_policy",),
+        source_specialist_loop_ids=("artifact_specialist_agent_loop",),
+        advisory_outputs=(
+            "style_debate_readiness_notes",
+            "aesthetic_counterclaim_context",
+        ),
+    ),
+    _hybrid_debate_loop(
+        loop_id="hybrid_debate_loop::curation_refinement_need",
+        topic_id="curation_refinement_need",
+        source_reflection_profile_ids=(
+            "reflection_high_escalation_profile",
+            "reflection_critical_escalation_profile",
+        ),
+        source_policy_ids=("quality_uncertainty_creative_escalation_policy",),
+        source_specialist_loop_ids=("evaluation_specialist_agent_loop",),
+        advisory_outputs=(
+            "curation_debate_readiness_notes",
+            "refinement_counterclaim_context",
+        ),
+    ),
+    _hybrid_debate_loop(
+        loop_id="hybrid_debate_loop::final_synthesis_readiness",
+        topic_id="final_synthesis_readiness",
+        source_reflection_profile_ids=("reflection_critical_escalation_profile",),
+        source_policy_ids=("terminal_synthesis_creative_escalation_policy",),
+        source_specialist_loop_ids=("synthesis_specialist_agent_loop",),
+        advisory_outputs=(
+            "synthesis_debate_readiness_notes",
+            "final_counterclaim_context",
+        ),
+    ),
+)
+HYBRID_AGENT_DEBATE_LOOP_REGISTRY = HybridAgentDebateLoopRegistry(
+    debate_loops=HYBRID_AGENT_DEBATE_LOOPS,
+    loop_ids=tuple(loop.loop_id for loop in HYBRID_AGENT_DEBATE_LOOPS),
+    topic_ids=tuple(loop.topic_id for loop in HYBRID_AGENT_DEBATE_LOOPS),
+    source_registries=_HYBRID_DEBATE_LOOP_SOURCE_REGISTRIES,
+    reflection_profile_ids=REFLECTION_ESCALATION_REGISTRY.profile_ids,
+    policy_ids=CREATIVE_ESCALATION_POLICY_REGISTRY.policy_ids,
+    specialist_loop_ids=SPECIALIST_AGENT_LOOP_REGISTRY.loop_ids,
+    loop_count=len(HYBRID_AGENT_DEBATE_LOOPS),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (

@@ -5,6 +5,7 @@ from creative_coding_assistant.orchestration import (
     ConditionalMultiAgentEscalationRegistry,
     CreativeEscalationPolicyRegistry,
     EscalationGateRegistry,
+    HybridAgentDebateLoopRegistry,
     ReflectionEscalationRegistry,
     SpecialistAgentLoopRegistry,
     V3BackboneModeRegistry,
@@ -18,6 +19,8 @@ from creative_coding_assistant.orchestration import (
     escalation_gate_by_id,
     escalation_gate_registry,
     escalation_policy_registry,
+    hybrid_agent_debate_loop_by_id,
+    hybrid_agent_debate_loop_registry,
     hybrid_agentic_workflow_registry,
     hybrid_agentic_workflow_stage_by_id,
     reflection_escalation_profile_by_id,
@@ -281,6 +284,45 @@ REQUIRED_REFLECTION_PROFILE_FIELDS = {
     "refinement_triggering_implemented",
     "escalation_approval_implemented",
     "agent_invocation_implemented",
+    "workflow_control_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_HYBRID_DEBATE_LOOP_IDS = (
+    "hybrid_debate_loop::planning_execution_fit",
+    "hybrid_debate_loop::style_aesthetic_alignment",
+    "hybrid_debate_loop::curation_refinement_need",
+    "hybrid_debate_loop::final_synthesis_readiness",
+)
+EXPECTED_HYBRID_DEBATE_TOPICS = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
+)
+EXPECTED_HYBRID_DEBATE_SOURCE_REGISTRIES = (
+    "agent_debate_registry",
+    "reflection_escalation_registry",
+    "creative_escalation_policy_registry",
+    "specialist_agent_loop_registry",
+    "hybrid_agentic_workflow_registry",
+)
+REQUIRED_HYBRID_DEBATE_LOOP_FIELDS = {
+    "loop_id",
+    "topic_id",
+    "source_debate_topic_id",
+    "source_reflection_profile_ids",
+    "source_policy_ids",
+    "source_specialist_loop_ids",
+    "source_registries",
+    "advisory_outputs",
+    "max_advisory_rounds",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "debate_loop_execution_implemented",
+    "agent_invocation_implemented",
+    "retry_triggering_implemented",
     "workflow_control_implemented",
     "generated_output_mutation_implemented",
     "serialization_version",
@@ -1176,6 +1218,162 @@ class ReflectionEscalationRegistryTests(unittest.TestCase):
             "execute_agent",
             "run_reflection",
             "trigger_refinement",
+            "route_provider",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class HybridAgentDebateLoopRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_hybrid_debate_loops(self) -> None:
+        registry = hybrid_agent_debate_loop_registry()
+
+        self.assertEqual(registry.role, "hybrid_agent_debate_loop_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "hybrid_agent_debate_loop_registry.v1",
+        )
+        self.assertEqual(registry.loop_ids, EXPECTED_HYBRID_DEBATE_LOOP_IDS)
+        self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_HYBRID_DEBATE_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(
+            registry.reflection_profile_ids,
+            reflection_escalation_registry().profile_ids,
+        )
+        self.assertEqual(
+            registry.policy_ids,
+            creative_escalation_policy_registry().policy_ids,
+        )
+        self.assertEqual(
+            registry.specialist_loop_ids,
+            specialist_agent_loop_registry().loop_ids,
+        )
+        self.assertEqual(registry.loop_count, 4)
+        self.assertIn("does not execute debate loops", registry.authority_boundary)
+        self.assertFalse(registry.debate_loop_execution_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_hybrid_debate_loops_reference_known_sources(self) -> None:
+        registry = hybrid_agent_debate_loop_registry()
+        known_reflections = set(reflection_escalation_registry().profile_ids)
+        known_policies = set(creative_escalation_policy_registry().policy_ids)
+        known_loops = set(specialist_agent_loop_registry().loop_ids)
+
+        for loop in registry.debate_loops:
+            dumped = loop.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_HYBRID_DEBATE_LOOP_FIELDS)
+            self.assertEqual(loop.topic_id, loop.source_debate_topic_id)
+            self.assertEqual(loop.source_registries, EXPECTED_HYBRID_DEBATE_SOURCE_REGISTRIES)
+            self.assertTrue(
+                set(loop.source_reflection_profile_ids).issubset(known_reflections)
+            )
+            self.assertTrue(set(loop.source_policy_ids).issubset(known_policies))
+            self.assertTrue(set(loop.source_specialist_loop_ids).issubset(known_loops))
+            self.assertLessEqual(loop.max_advisory_rounds, 2)
+            self.assertTrue(loop.advisory_outputs)
+            self.assertIn("debate_loop_execution", loop.blocked_runtime_behaviors)
+            self.assertFalse(loop.debate_loop_execution_implemented)
+            self.assertFalse(loop.agent_invocation_implemented)
+            self.assertFalse(loop.retry_triggering_implemented)
+            self.assertFalse(loop.workflow_control_implemented)
+            self.assertFalse(loop.generated_output_mutation_implemented)
+            self.assertEqual(
+                loop.serialization_version,
+                "hybrid_agent_debate_loop_profile.v1",
+            )
+            self.assertTrue(loop.metadata_only)
+
+    def test_hybrid_debate_source_registries_are_complete(self) -> None:
+        registry = hybrid_agent_debate_loop_registry()
+        loop_sources = tuple(
+            dict.fromkeys(
+                source
+                for loop in registry.debate_loops
+                for source in loop.source_registries
+            )
+        )
+
+        self.assertEqual(loop_sources, registry.source_registries)
+        for source_registry in EXPECTED_HYBRID_DEBATE_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, loop_sources)
+        for loop in registry.debate_loops:
+            self.assertEqual(set(loop.source_registries), set(loop_sources))
+
+    def test_hybrid_debate_loop_lookup_is_stable(self) -> None:
+        loop = hybrid_agent_debate_loop_by_id(
+            "hybrid_debate_loop::curation_refinement_need"
+        )
+        missing = hybrid_agent_debate_loop_by_id("missing_loop")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(loop)
+        assert loop is not None
+        self.assertEqual(loop.topic_id, "curation_refinement_need")
+        self.assertIn("evaluation_specialist_agent_loop", loop.source_specialist_loop_ids)
+        self.assertFalse(loop.debate_loop_execution_implemented)
+
+    def test_hybrid_debate_registry_rejects_mismatched_metadata(self) -> None:
+        registry = hybrid_agent_debate_loop_registry()
+        mismatched_loop = registry.debate_loops[0].model_copy(
+            update={"loop_id": "other_loop"}
+        )
+        unknown_reflection_loop = registry.debate_loops[0].model_copy(
+            update={"source_reflection_profile_ids": ("missing_profile",)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "loop_ids must match"):
+            HybridAgentDebateLoopRegistry(
+                debate_loops=(mismatched_loop,) + registry.debate_loops[1:],
+                loop_ids=registry.loop_ids,
+                topic_ids=registry.topic_ids,
+                source_registries=registry.source_registries,
+                reflection_profile_ids=registry.reflection_profile_ids,
+                policy_ids=registry.policy_ids,
+                specialist_loop_ids=registry.specialist_loop_ids,
+                loop_count=registry.loop_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "debate reflections must be known"):
+            HybridAgentDebateLoopRegistry(
+                debate_loops=(unknown_reflection_loop,) + registry.debate_loops[1:],
+                loop_ids=registry.loop_ids,
+                topic_ids=registry.topic_ids,
+                source_registries=registry.source_registries,
+                reflection_profile_ids=registry.reflection_profile_ids,
+                policy_ids=registry.policy_ids,
+                specialist_loop_ids=registry.specialist_loop_ids,
+                loop_count=registry.loop_count,
+            )
+
+    def test_hybrid_debate_loops_do_not_declare_active_execution(self) -> None:
+        registry = hybrid_agent_debate_loop_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for loop in registry.debate_loops
+                    for field in (
+                        loop.loop_id,
+                        loop.authority_boundary,
+                        *loop.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "execute_agent",
+            "execute_debate_loop",
+            "trigger_retry",
             "route_provider",
             "modify_output",
         ):
