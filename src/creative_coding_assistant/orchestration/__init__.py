@@ -68,6 +68,7 @@ _AGENT_DEPENDENCY_GRAPH = (
 _AGENT_PARALLEL_SCHEDULING = (
     "creative_coding_assistant.orchestration.agent_parallel_scheduling"
 )
+_AGENT_COORDINATION = "creative_coding_assistant.orchestration.agent_coordination"
 _AGENT_CAPABILITY_REGISTRY = (
     "creative_coding_assistant.orchestration.agent_capabilities"
 )
@@ -243,6 +244,14 @@ _EXPORT_MAP = {
     "parallel_scheduling_group_by_id": _AGENT_PARALLEL_SCHEDULING,
     "parallel_scheduling_group_for_agent": _AGENT_PARALLEL_SCHEDULING,
     "parallel_scheduling_registry": _AGENT_PARALLEL_SCHEDULING,
+    "AgentCoordinationRegistry": _AGENT_COORDINATION,
+    "CoordinationEventContract": _AGENT_COORDINATION,
+    "CoordinationHandoffChannelContract": _AGENT_COORDINATION,
+    "CoordinationResponsibilityContract": _AGENT_COORDINATION,
+    "agent_coordination_registry": _AGENT_COORDINATION,
+    "coordination_event_contract_by_type": _AGENT_COORDINATION,
+    "coordination_handoff_channel_by_id": _AGENT_COORDINATION,
+    "coordination_responsibility_by_id": _AGENT_COORDINATION,
     "AgentCapabilityProfile": _AGENT_CAPABILITY_REGISTRY,
     "AgentCapabilityRegistry": _AGENT_CAPABILITY_REGISTRY,
     "agent_capability_by_id": _AGENT_CAPABILITY_REGISTRY,
