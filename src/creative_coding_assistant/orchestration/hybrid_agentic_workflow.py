@@ -71,6 +71,8 @@ CostThresholdRoutingTopic = ConfidenceThresholdRoutingTopic
 CostThresholdBand = Literal["guarded", "high", "low", "medium"]
 LatencyThresholdRoutingTopic = CostThresholdRoutingTopic
 LatencyThresholdBand = Literal["guarded", "high", "low", "medium"]
+AmbiguityEscalationTopic = LatencyThresholdRoutingTopic
+AmbiguityEscalationLevel = Literal["critical", "high", "low", "medium"]
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -170,6 +172,12 @@ LATENCY_THRESHOLD_ROUTING_PROFILE_SERIALIZATION_VERSION = (
 )
 LATENCY_THRESHOLD_ROUTING_REGISTRY_SERIALIZATION_VERSION = (
     "latency_threshold_routing_registry.v1"
+)
+AMBIGUITY_ESCALATION_PROFILE_SERIALIZATION_VERSION = (
+    "ambiguity_escalation_profile.v1"
+)
+AMBIGUITY_ESCALATION_REGISTRY_SERIALIZATION_VERSION = (
+    "ambiguity_escalation_registry.v1"
 )
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
@@ -298,6 +306,13 @@ LATENCY_THRESHOLD_ROUTING_AUTHORITY_BOUNDARY = (
     "latency, select runtimes, change providers or models, invoke agents, "
     "evaluate thresholds, control workflow transitions, trigger retries, or "
     "modify generated output."
+)
+AMBIGUITY_ESCALATION_AUTHORITY_BOUNDARY = (
+    "Ambiguity escalation metadata describes passive advisory ambiguity "
+    "posture for future hybrid escalation visibility only; it does not "
+    "evaluate ambiguity, trigger clarification, execute escalation, invoke "
+    "agents, route providers or models, control workflow transitions, trigger "
+    "retries, or modify generated output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Hybrid agentic workflow metadata maps current V3 workflow nodes to future "
@@ -650,6 +665,25 @@ _LATENCY_THRESHOLD_ROUTING_SOURCE_REGISTRIES = (
     "agent_escalation_signal_registry",
     "hybrid_agentic_workflow_registry",
 )
+_AMBIGUITY_ESCALATION_BLOCKED_RUNTIME_BEHAVIORS = (
+    "ambiguity_evaluation",
+    "escalation_execution",
+    "clarification_request_triggering",
+    "agent_invocation",
+    "provider_or_model_routing",
+    "workflow_control",
+    "retry_triggering",
+    "generated_output_modification",
+)
+_AMBIGUITY_ESCALATION_SOURCE_REGISTRIES = (
+    "latency_threshold_routing_registry",
+    "conditional_multi_agent_escalation_registry",
+    "escalation_policy_registry",
+    "agent_escalation_signal_registry",
+    "clarification_engine",
+    "creative_confidence_engine",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -812,6 +846,24 @@ _LATENCY_METADATA_SOURCE_SURFACES = (
     "artifact_engine_estimated_latency_metadata",
     "evaluation_engine_estimated_latency_metadata",
     "workstation_surface_estimated_latency_metadata",
+)
+_AMBIGUITY_ESCALATION_TOPICS: tuple[AmbiguityEscalationTopic, ...] = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
+)
+_AMBIGUITY_ESCALATION_LEVELS: tuple[AmbiguityEscalationLevel, ...] = (
+    "high",
+    "medium",
+    "critical",
+    "low",
+)
+_AMBIGUITY_EVIDENCE_SURFACES = (
+    "missing_information",
+    "planning_gap_summary",
+    "disagreement_points",
+    "hitl_questions",
 )
 _KNOWN_SPECIALIST_AGENT_IDS = (
     "planner_agent",
@@ -3402,6 +3454,173 @@ def latency_threshold_routing_profile_by_id(
     return None
 
 
+class AmbiguityEscalationProfile(BaseModel):
+    """Passive V4.3 ambiguity escalation profile metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    ambiguity_profile_id: str = Field(min_length=1, max_length=170)
+    topic_id: AmbiguityEscalationTopic
+    source_latency_threshold_profile_id: str = Field(min_length=1, max_length=180)
+    source_condition_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_policy_rule_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_escalation_signal_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    ambiguity_level: AmbiguityEscalationLevel
+    ambiguity_evidence_surfaces: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    escalation_dimensions: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_AMBIGUITY_ESCALATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    ambiguity_evaluation_implemented: Literal[False] = False
+    escalation_execution_implemented: Literal[False] = False
+    clarification_request_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["ambiguity_escalation_profile.v1"] = (
+        AMBIGUITY_ESCALATION_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class AmbiguityEscalationRegistry(BaseModel):
+    """Stable passive registry for V4.3 ambiguity escalation metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["ambiguity_escalation_registry"] = "ambiguity_escalation_registry"
+    serialization_version: Literal["ambiguity_escalation_registry.v1"] = (
+        AMBIGUITY_ESCALATION_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=AMBIGUITY_ESCALATION_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    ambiguity_profiles: tuple[AmbiguityEscalationProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    ambiguity_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    topic_ids: tuple[AmbiguityEscalationTopic, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    ambiguity_levels: tuple[AmbiguityEscalationLevel, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    latency_threshold_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    condition_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    policy_rule_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    escalation_signal_ids: tuple[str, ...] = Field(min_length=7, max_length=7)
+    ambiguity_evidence_surfaces: tuple[str, ...] = Field(min_length=4, max_length=4)
+    profile_count: int = Field(ge=4, le=4)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_AMBIGUITY_ESCALATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    ambiguity_evaluation_implemented: Literal[False] = False
+    escalation_execution_implemented: Literal[False] = False
+    clarification_request_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_ambiguity_escalation_metadata(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.ambiguity_profile_id for profile in self.ambiguity_profiles
+        )
+        derived_topic_ids = tuple(
+            profile.topic_id for profile in self.ambiguity_profiles
+        )
+        derived_levels = tuple(
+            profile.ambiguity_level for profile in self.ambiguity_profiles
+        )
+        if self.ambiguity_profile_ids != derived_profile_ids:
+            raise ValueError("ambiguity_profile_ids must match profiles")
+        if self.topic_ids != derived_topic_ids:
+            raise ValueError("topic_ids must match ambiguity profiles")
+        if self.topic_ids != _AMBIGUITY_ESCALATION_TOPICS:
+            raise ValueError("topic_ids must preserve ambiguity topic order")
+        if self.ambiguity_levels != derived_levels:
+            raise ValueError("ambiguity_levels must match profiles")
+        if self.ambiguity_levels != _AMBIGUITY_ESCALATION_LEVELS:
+            raise ValueError("ambiguity_levels must preserve ambiguity order")
+        if self.profile_count != len(self.ambiguity_profiles):
+            raise ValueError("profile_count must match ambiguity profiles")
+
+        profile_sources = {
+            source_registry
+            for profile in self.ambiguity_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match ambiguity sources")
+
+        known_latency = set(self.latency_threshold_profile_ids)
+        known_conditions = set(self.condition_ids)
+        known_policies = set(self.policy_rule_ids)
+        known_signals = set(self.escalation_signal_ids)
+        known_evidence = set(self.ambiguity_evidence_surfaces)
+        for profile in self.ambiguity_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("ambiguity sources must match registry")
+            if profile.source_latency_threshold_profile_id not in known_latency:
+                raise ValueError("ambiguity latency profiles must be known")
+            if not set(profile.source_condition_ids).issubset(known_conditions):
+                raise ValueError("ambiguity conditions must be known")
+            if not set(profile.source_policy_rule_ids).issubset(known_policies):
+                raise ValueError("ambiguity policies must be known")
+            if not set(profile.source_escalation_signal_ids).issubset(known_signals):
+                raise ValueError("ambiguity signals must be known")
+            if "ambiguity_escalation_signal" not in profile.source_escalation_signal_ids:
+                raise ValueError("ambiguity profiles must reference ambiguity signal")
+            if not set(profile.ambiguity_evidence_surfaces).issubset(known_evidence):
+                raise ValueError("ambiguity evidence surfaces must be known")
+            if profile.ambiguity_evaluation_implemented:
+                raise ValueError("ambiguity escalation must not evaluate ambiguity")
+            if profile.escalation_execution_implemented:
+                raise ValueError("ambiguity escalation must not execute escalation")
+            if profile.clarification_request_implemented:
+                raise ValueError("ambiguity escalation must not request clarification")
+        return self
+
+
+def ambiguity_escalation_registry() -> AmbiguityEscalationRegistry:
+    """Return passive V4.3 ambiguity escalation metadata."""
+
+    return AMBIGUITY_ESCALATION_REGISTRY
+
+
+def ambiguity_escalation_profile_by_id(
+    ambiguity_profile_id: str,
+    registry: AmbiguityEscalationRegistry | None = None,
+) -> AmbiguityEscalationProfile | None:
+    """Return one ambiguity profile without triggering escalation."""
+
+    source_registry = registry or AMBIGUITY_ESCALATION_REGISTRY
+    for profile in source_registry.ambiguity_profiles:
+        if profile.ambiguity_profile_id == ambiguity_profile_id:
+            return profile
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -4057,6 +4276,44 @@ def _latency_threshold_routing_profile(
             "it does not route by latency, select runtimes, change providers "
             "or models, invoke agents, evaluate thresholds, control workflow "
             "transitions, trigger retries, or modify generated output."
+        ),
+    )
+
+
+def _ambiguity_escalation_profile(
+    *,
+    ambiguity_profile_id: str,
+    topic_id: AmbiguityEscalationTopic,
+    source_latency_threshold_profile_id: str,
+    source_condition_ids: tuple[str, ...],
+    source_policy_rule_ids: tuple[str, ...],
+    source_escalation_signal_ids: tuple[str, ...],
+    ambiguity_level: AmbiguityEscalationLevel,
+    ambiguity_evidence_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> AmbiguityEscalationProfile:
+    return AmbiguityEscalationProfile(
+        ambiguity_profile_id=ambiguity_profile_id,
+        topic_id=topic_id,
+        source_latency_threshold_profile_id=source_latency_threshold_profile_id,
+        source_condition_ids=source_condition_ids,
+        source_policy_rule_ids=source_policy_rule_ids,
+        source_escalation_signal_ids=source_escalation_signal_ids,
+        ambiguity_level=ambiguity_level,
+        ambiguity_evidence_surfaces=ambiguity_evidence_surfaces,
+        source_registries=_AMBIGUITY_ESCALATION_SOURCE_REGISTRIES,
+        escalation_dimensions=(
+            "ambiguity_level",
+            "missing_information_visibility",
+            "conditional_escalation_context",
+            "clarification_visibility",
+        ),
+        advisory_outputs=advisory_outputs,
+        authority_boundary=(
+            "This ambiguity escalation profile is advisory metadata only; it "
+            "does not evaluate ambiguity, trigger clarification, execute "
+            "escalation, invoke agents, route providers or models, control "
+            "workflow transitions, trigger retries, or modify generated output."
         ),
     )
 
@@ -5823,6 +6080,134 @@ LATENCY_THRESHOLD_ROUTING_REGISTRY = LatencyThresholdRoutingRegistry(
     escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
     latency_metadata_sources=_LATENCY_METADATA_SOURCE_SURFACES,
     profile_count=len(LATENCY_THRESHOLD_ROUTING_PROFILES),
+)
+AMBIGUITY_ESCALATION_PROFILES = (
+    _ambiguity_escalation_profile(
+        ambiguity_profile_id="ambiguity_escalation::planning_execution_fit",
+        topic_id="planning_execution_fit",
+        source_latency_threshold_profile_id=(
+            "latency_threshold_routing::planning_execution_fit"
+        ),
+        source_condition_ids=("planning_ambiguity_multi_agent_candidate",),
+        source_policy_rule_ids=("missing_information_review",),
+        source_escalation_signal_ids=(
+            "ambiguity_escalation_signal",
+            "hitl_escalation_signal",
+        ),
+        ambiguity_level="high",
+        ambiguity_evidence_surfaces=(
+            "missing_information",
+            "planning_gap_summary",
+        ),
+        advisory_outputs=(
+            "planning_ambiguity_escalation_placeholder",
+            "planning_ambiguity_context",
+        ),
+    ),
+    _ambiguity_escalation_profile(
+        ambiguity_profile_id="ambiguity_escalation::style_aesthetic_alignment",
+        topic_id="style_aesthetic_alignment",
+        source_latency_threshold_profile_id=(
+            "latency_threshold_routing::style_aesthetic_alignment"
+        ),
+        source_condition_ids=(
+            "planning_ambiguity_multi_agent_candidate",
+            "artifact_risk_multi_agent_candidate",
+        ),
+        source_policy_rule_ids=(
+            "missing_information_review",
+            "artifact_risk_review",
+        ),
+        source_escalation_signal_ids=(
+            "ambiguity_escalation_signal",
+            "quality_escalation_signal",
+        ),
+        ambiguity_level="medium",
+        ambiguity_evidence_surfaces=(
+            "missing_information",
+            "disagreement_points",
+        ),
+        advisory_outputs=(
+            "style_ambiguity_escalation_placeholder",
+            "aesthetic_ambiguity_context",
+        ),
+    ),
+    _ambiguity_escalation_profile(
+        ambiguity_profile_id="ambiguity_escalation::curation_refinement_need",
+        topic_id="curation_refinement_need",
+        source_latency_threshold_profile_id=(
+            "latency_threshold_routing::curation_refinement_need"
+        ),
+        source_condition_ids=(
+            "planning_ambiguity_multi_agent_candidate",
+            "evaluation_confidence_multi_agent_candidate",
+        ),
+        source_policy_rule_ids=(
+            "missing_information_review",
+            "evaluation_confidence_review",
+        ),
+        source_escalation_signal_ids=(
+            "ambiguity_escalation_signal",
+            "confidence_escalation_signal",
+            "quality_escalation_signal",
+        ),
+        ambiguity_level="critical",
+        ambiguity_evidence_surfaces=(
+            "missing_information",
+            "disagreement_points",
+            "hitl_questions",
+        ),
+        advisory_outputs=(
+            "curation_ambiguity_escalation_placeholder",
+            "refinement_ambiguity_context",
+        ),
+    ),
+    _ambiguity_escalation_profile(
+        ambiguity_profile_id="ambiguity_escalation::final_synthesis_readiness",
+        topic_id="final_synthesis_readiness",
+        source_latency_threshold_profile_id=(
+            "latency_threshold_routing::final_synthesis_readiness"
+        ),
+        source_condition_ids=(
+            "terminal_guardrail_multi_agent_candidate",
+        ),
+        source_policy_rule_ids=(
+            "missing_information_review",
+            "future_agent_escalation_readiness",
+        ),
+        source_escalation_signal_ids=(
+            "ambiguity_escalation_signal",
+            "hitl_escalation_signal",
+        ),
+        ambiguity_level="low",
+        ambiguity_evidence_surfaces=(
+            "missing_information",
+            "hitl_questions",
+        ),
+        advisory_outputs=(
+            "synthesis_ambiguity_escalation_placeholder",
+            "final_ambiguity_context",
+        ),
+    ),
+)
+AMBIGUITY_ESCALATION_REGISTRY = AmbiguityEscalationRegistry(
+    ambiguity_profiles=AMBIGUITY_ESCALATION_PROFILES,
+    ambiguity_profile_ids=tuple(
+        profile.ambiguity_profile_id for profile in AMBIGUITY_ESCALATION_PROFILES
+    ),
+    topic_ids=tuple(profile.topic_id for profile in AMBIGUITY_ESCALATION_PROFILES),
+    ambiguity_levels=tuple(
+        profile.ambiguity_level for profile in AMBIGUITY_ESCALATION_PROFILES
+    ),
+    source_registries=_AMBIGUITY_ESCALATION_SOURCE_REGISTRIES,
+    latency_threshold_profile_ids=(
+        LATENCY_THRESHOLD_ROUTING_REGISTRY.latency_threshold_profile_ids
+    ),
+    condition_ids=CONDITIONAL_MULTI_AGENT_ESCALATION_REGISTRY.condition_ids,
+    policy_rule_ids=_KNOWN_CONDITIONAL_ESCALATION_POLICY_RULE_IDS,
+    escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
+    ambiguity_evidence_surfaces=_AMBIGUITY_EVIDENCE_SURFACES,
+    profile_count=len(AMBIGUITY_ESCALATION_PROFILES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (

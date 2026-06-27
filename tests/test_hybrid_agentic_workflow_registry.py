@@ -3,6 +3,7 @@ import unittest
 from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
     AgentConfidenceFusionRegistry,
+    AmbiguityEscalationRegistry,
     ConfidenceThresholdRoutingRegistry,
     ConditionalMultiAgentEscalationRegistry,
     CostThresholdRoutingRegistry,
@@ -24,6 +25,8 @@ from creative_coding_assistant.orchestration import (
     agent_capability_registry,
     agent_confidence_fusion_profile_by_id,
     agent_confidence_fusion_registry,
+    ambiguity_escalation_profile_by_id,
+    ambiguity_escalation_registry,
     confidence_threshold_routing_profile_by_id,
     confidence_threshold_routing_registry,
     cost_threshold_routing_profile_by_id,
@@ -821,6 +824,58 @@ REQUIRED_LATENCY_THRESHOLD_FIELDS = {
     "runtime_selection_implemented",
     "provider_model_routing_implemented",
     "agent_invocation_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_AMBIGUITY_ESCALATION_PROFILE_IDS = (
+    "ambiguity_escalation::planning_execution_fit",
+    "ambiguity_escalation::style_aesthetic_alignment",
+    "ambiguity_escalation::curation_refinement_need",
+    "ambiguity_escalation::final_synthesis_readiness",
+)
+EXPECTED_AMBIGUITY_ESCALATION_LEVELS = (
+    "high",
+    "medium",
+    "critical",
+    "low",
+)
+EXPECTED_AMBIGUITY_ESCALATION_SOURCE_REGISTRIES = (
+    "latency_threshold_routing_registry",
+    "conditional_multi_agent_escalation_registry",
+    "escalation_policy_registry",
+    "agent_escalation_signal_registry",
+    "clarification_engine",
+    "creative_confidence_engine",
+    "hybrid_agentic_workflow_registry",
+)
+EXPECTED_AMBIGUITY_EVIDENCE_SURFACES = (
+    "missing_information",
+    "planning_gap_summary",
+    "disagreement_points",
+    "hitl_questions",
+)
+REQUIRED_AMBIGUITY_ESCALATION_FIELDS = {
+    "ambiguity_profile_id",
+    "topic_id",
+    "source_latency_threshold_profile_id",
+    "source_condition_ids",
+    "source_policy_rule_ids",
+    "source_escalation_signal_ids",
+    "ambiguity_level",
+    "ambiguity_evidence_surfaces",
+    "source_registries",
+    "escalation_dimensions",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "ambiguity_evaluation_implemented",
+    "escalation_execution_implemented",
+    "clarification_request_implemented",
+    "agent_invocation_implemented",
+    "provider_model_routing_implemented",
     "workflow_control_implemented",
     "retry_triggering_implemented",
     "generated_output_mutation_implemented",
@@ -3947,6 +4002,235 @@ class LatencyThresholdRoutingRegistryTests(unittest.TestCase):
             "evaluate_runtime_threshold",
             "route_provider",
             "execute_agent",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class AmbiguityEscalationRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_ambiguity_profiles(self) -> None:
+        registry = ambiguity_escalation_registry()
+
+        self.assertEqual(registry.role, "ambiguity_escalation_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "ambiguity_escalation_registry.v1",
+        )
+        self.assertEqual(
+            registry.ambiguity_profile_ids,
+            EXPECTED_AMBIGUITY_ESCALATION_PROFILE_IDS,
+        )
+        self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
+        self.assertEqual(
+            registry.ambiguity_levels,
+            EXPECTED_AMBIGUITY_ESCALATION_LEVELS,
+        )
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_AMBIGUITY_ESCALATION_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(
+            registry.latency_threshold_profile_ids,
+            latency_threshold_routing_registry().latency_threshold_profile_ids,
+        )
+        self.assertEqual(
+            registry.condition_ids,
+            conditional_multi_agent_escalation_registry().condition_ids,
+        )
+        self.assertEqual(registry.policy_rule_ids, escalation_policy_registry().rule_ids)
+        self.assertEqual(
+            registry.escalation_signal_ids,
+            agent_escalation_signal_registry().signal_ids,
+        )
+        self.assertEqual(
+            registry.ambiguity_evidence_surfaces,
+            EXPECTED_AMBIGUITY_EVIDENCE_SURFACES,
+        )
+        self.assertEqual(registry.profile_count, 4)
+        self.assertIn("does not evaluate ambiguity", registry.authority_boundary)
+        self.assertFalse(registry.ambiguity_evaluation_implemented)
+        self.assertFalse(registry.escalation_execution_implemented)
+        self.assertFalse(registry.clarification_request_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.provider_model_routing_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_ambiguity_profiles_reference_known_sources(self) -> None:
+        registry = ambiguity_escalation_registry()
+        known_latency = set(
+            latency_threshold_routing_registry().latency_threshold_profile_ids
+        )
+        known_conditions = set(conditional_multi_agent_escalation_registry().condition_ids)
+        known_policies = set(escalation_policy_registry().rule_ids)
+        known_signals = set(agent_escalation_signal_registry().signal_ids)
+        known_evidence = set(EXPECTED_AMBIGUITY_EVIDENCE_SURFACES)
+
+        for profile in registry.ambiguity_profiles:
+            dumped = profile.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_AMBIGUITY_ESCALATION_FIELDS)
+            self.assertEqual(
+                profile.source_registries,
+                EXPECTED_AMBIGUITY_ESCALATION_SOURCE_REGISTRIES,
+            )
+            self.assertIn(profile.source_latency_threshold_profile_id, known_latency)
+            self.assertTrue(set(profile.source_condition_ids).issubset(known_conditions))
+            self.assertTrue(set(profile.source_policy_rule_ids).issubset(known_policies))
+            self.assertTrue(
+                set(profile.source_escalation_signal_ids).issubset(known_signals)
+            )
+            self.assertIn(
+                "ambiguity_escalation_signal",
+                profile.source_escalation_signal_ids,
+            )
+            self.assertTrue(
+                set(profile.ambiguity_evidence_surfaces).issubset(known_evidence)
+            )
+            self.assertIn(profile.ambiguity_level, registry.ambiguity_levels)
+            self.assertTrue(profile.escalation_dimensions)
+            self.assertTrue(profile.advisory_outputs)
+            self.assertIn("ambiguity_evaluation", profile.blocked_runtime_behaviors)
+            self.assertIn("escalation_execution", profile.blocked_runtime_behaviors)
+            self.assertIn(
+                "clarification_request_triggering",
+                profile.blocked_runtime_behaviors,
+            )
+            self.assertFalse(profile.ambiguity_evaluation_implemented)
+            self.assertFalse(profile.escalation_execution_implemented)
+            self.assertFalse(profile.clarification_request_implemented)
+            self.assertFalse(profile.agent_invocation_implemented)
+            self.assertFalse(profile.provider_model_routing_implemented)
+            self.assertFalse(profile.workflow_control_implemented)
+            self.assertFalse(profile.retry_triggering_implemented)
+            self.assertFalse(profile.generated_output_mutation_implemented)
+            self.assertEqual(
+                profile.serialization_version,
+                "ambiguity_escalation_profile.v1",
+            )
+            self.assertTrue(profile.metadata_only)
+
+    def test_ambiguity_source_registries_are_complete(self) -> None:
+        registry = ambiguity_escalation_registry()
+        profile_sources = tuple(
+            dict.fromkeys(
+                source
+                for profile in registry.ambiguity_profiles
+                for source in profile.source_registries
+            )
+        )
+
+        self.assertEqual(profile_sources, registry.source_registries)
+        for source_registry in EXPECTED_AMBIGUITY_ESCALATION_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, profile_sources)
+        for profile in registry.ambiguity_profiles:
+            self.assertEqual(set(profile.source_registries), set(profile_sources))
+
+    def test_ambiguity_lookup_is_stable(self) -> None:
+        profile = ambiguity_escalation_profile_by_id(
+            "ambiguity_escalation::curation_refinement_need"
+        )
+        missing = ambiguity_escalation_profile_by_id("missing_ambiguity")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.topic_id, "curation_refinement_need")
+        self.assertEqual(profile.ambiguity_level, "critical")
+        self.assertIn("refinement_ambiguity_context", profile.advisory_outputs)
+        self.assertFalse(profile.escalation_execution_implemented)
+
+    def test_ambiguity_registry_rejects_mismatched_metadata(self) -> None:
+        registry = ambiguity_escalation_registry()
+        mismatched_profile = registry.ambiguity_profiles[0].model_copy(
+            update={"ambiguity_profile_id": "other_ambiguity"}
+        )
+        missing_signal_profile = registry.ambiguity_profiles[0].model_copy(
+            update={"source_escalation_signal_ids": ("hitl_escalation_signal",)}
+        )
+        unknown_evidence_profile = registry.ambiguity_profiles[0].model_copy(
+            update={"ambiguity_evidence_surfaces": ("unknown_surface",)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "ambiguity_profile_ids"):
+            AmbiguityEscalationRegistry(
+                ambiguity_profiles=(
+                    mismatched_profile,
+                )
+                + registry.ambiguity_profiles[1:],
+                ambiguity_profile_ids=registry.ambiguity_profile_ids,
+                topic_ids=registry.topic_ids,
+                ambiguity_levels=registry.ambiguity_levels,
+                source_registries=registry.source_registries,
+                latency_threshold_profile_ids=registry.latency_threshold_profile_ids,
+                condition_ids=registry.condition_ids,
+                policy_rule_ids=registry.policy_rule_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                ambiguity_evidence_surfaces=registry.ambiguity_evidence_surfaces,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "ambiguity signal"):
+            AmbiguityEscalationRegistry(
+                ambiguity_profiles=(
+                    missing_signal_profile,
+                )
+                + registry.ambiguity_profiles[1:],
+                ambiguity_profile_ids=registry.ambiguity_profile_ids,
+                topic_ids=registry.topic_ids,
+                ambiguity_levels=registry.ambiguity_levels,
+                source_registries=registry.source_registries,
+                latency_threshold_profile_ids=registry.latency_threshold_profile_ids,
+                condition_ids=registry.condition_ids,
+                policy_rule_ids=registry.policy_rule_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                ambiguity_evidence_surfaces=registry.ambiguity_evidence_surfaces,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "ambiguity evidence"):
+            AmbiguityEscalationRegistry(
+                ambiguity_profiles=(
+                    unknown_evidence_profile,
+                )
+                + registry.ambiguity_profiles[1:],
+                ambiguity_profile_ids=registry.ambiguity_profile_ids,
+                topic_ids=registry.topic_ids,
+                ambiguity_levels=registry.ambiguity_levels,
+                source_registries=registry.source_registries,
+                latency_threshold_profile_ids=registry.latency_threshold_profile_ids,
+                condition_ids=registry.condition_ids,
+                policy_rule_ids=registry.policy_rule_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                ambiguity_evidence_surfaces=registry.ambiguity_evidence_surfaces,
+                profile_count=registry.profile_count,
+            )
+
+    def test_ambiguity_does_not_declare_active_execution(self) -> None:
+        registry = ambiguity_escalation_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for profile in registry.ambiguity_profiles
+                    for field in (
+                        profile.ambiguity_profile_id,
+                        profile.authority_boundary,
+                        *profile.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "evaluate_ambiguity",
+            "trigger_clarification",
+            "execute_escalation",
+            "execute_agent",
+            "route_provider",
             "modify_output",
         ):
             self.assertNotIn(forbidden_term, combined_text)
