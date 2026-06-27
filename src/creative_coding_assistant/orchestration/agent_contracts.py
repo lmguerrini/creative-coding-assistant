@@ -1347,6 +1347,120 @@ CRITIC_AGENT_CONTRACT = AgentContract(
     ),
 )
 
+REFINER_AGENT_CONTRACT = AgentContract(
+    agent_id="refiner_agent",
+    agent_name="Refiner Agent",
+    agent_version="v4.1",
+    role_id="refiner",
+    role_name="Refiner Agent",
+    role_purpose=(
+        "Represent improvement planning, refinement intent, and revision "
+        "candidate metadata handoffs for future V4 orchestration."
+    ),
+    authority_boundary=(
+        "Refiner Agent contract metadata maps existing improvement planning, "
+        "artifact refiner, and refinement pass boundaries only; it does not "
+        "change artifact refinement behavior, execute refinement loops, alter "
+        "generation, route providers or models, select runtimes, trigger "
+        "retries, or modify generated output."
+    ),
+    allowed_actions=(
+        "describe_refinement_context_requirements",
+        "map_improvement_planning_metadata",
+        "declare_future_refinement_handoff",
+    ),
+    prohibited_actions=(
+        "artifact_refinement_behavior_change",
+        "refinement_loop_execution",
+        "generation_alteration",
+        "provider_or_model_routing",
+        "runtime_selection",
+        "generated_output_modification",
+    ),
+    capabilities=(
+        "refinement_context_mapping",
+        "improvement_plan_metadata",
+        "revision_candidate_handoff_metadata",
+    ),
+    required_inputs=(
+        "assistant_request",
+        "artifact_refiner_profile",
+        "creative_improvement_planner",
+    ),
+    optional_inputs=(
+        "refinement_pass_records",
+        "creative_quality_evaluation",
+        "critic_context",
+        "artifact_critic_profile",
+        "artifact_intelligence_synthesis",
+        "evaluation_report_profile",
+        "agent_memory_contract",
+    ),
+    produced_outputs=(
+        "refinement_context_packet_contract",
+        "revision_candidate_summary_contract",
+        "refinement_handoff_metadata_contract",
+    ),
+    produced_metadata=(
+        "refinement_scope_metadata",
+        "improvement_opportunity_metadata",
+        "revision_candidate_metadata",
+        "refinement_priority_metadata",
+        "refinement_guardrail_metadata",
+    ),
+    produced_signals=(
+        "refinement_confidence",
+        "revision_priority",
+        "improvement_potential",
+        "refinement_risk",
+        "loop_boundary_status",
+    ),
+    memory_access=AgentMemoryAccessContract(
+        allowed_memory_sources=(
+            "session_metadata",
+            "artifact_metadata",
+            "evaluation_metadata",
+            "provenance_metadata",
+            "future_blackboard_contract",
+        ),
+    ),
+    cacheability="deterministic_with_upstream_metadata",
+    estimated_cost_metadata=AgentContractCostMetadata(
+        relative_cost="low",
+        cost_basis=(
+            "Static metadata mapping from existing improvement and refiner "
+            "outputs; no refinement loops, generation, or provider calls."
+        ),
+        cache_sensitivity=(
+            "Cache key must include artifact refiner, improvement planner, "
+            "and refinement metadata identifiers."
+        ),
+    ),
+    estimated_latency_metadata=AgentContractLatencyMetadata(
+        relative_latency="low",
+        latency_basis=(
+            "Bounded local metadata inspection with no network, provider, "
+            "refinement loop, retry control, or generation execution."
+        ),
+        blocking_inputs=(
+            "assistant_request",
+            "artifact_refiner_profile",
+            "creative_improvement_planner",
+        ),
+    ),
+    future_orchestration_hooks=(
+        "v4_2_refinement_context_handoff",
+        "v4_2_revision_candidate_review",
+    ),
+    source_contract_registries=(
+        "agent_identity_registry",
+        "agent_memory_contract_registry",
+        "artifact_engine_contract_registry",
+        "evaluation_engine_contract_registry",
+        "refinement_metadata",
+    ),
+)
+
 AGENT_CONTRACTS: tuple[AgentContract, ...] = (
     PLANNER_AGENT_CONTRACT,
     RESEARCH_AGENT_CONTRACT,
@@ -1358,5 +1472,6 @@ AGENT_CONTRACTS: tuple[AgentContract, ...] = (
     NARRATIVE_SYMBOLIC_AGENT_CONTRACT,
     CREATIVE_CURATOR_AGENT_CONTRACT,
     CRITIC_AGENT_CONTRACT,
+    REFINER_AGENT_CONTRACT,
 )
 AGENT_CONTRACT_REGISTRY = build_agent_contract_registry(AGENT_CONTRACTS)
