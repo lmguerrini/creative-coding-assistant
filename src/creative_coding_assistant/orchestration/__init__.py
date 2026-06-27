@@ -78,6 +78,9 @@ _AGENT_ESCALATION_SIGNALS = (
     "creative_coding_assistant.orchestration.agent_escalation_signals"
 )
 _AGENT_LIFECYCLE = "creative_coding_assistant.orchestration.agent_lifecycle"
+_AGENT_STATE_SYNCHRONIZATION = (
+    "creative_coding_assistant.orchestration.agent_state_synchronization"
+)
 _AGENT_CAPABILITY_REGISTRY = (
     "creative_coding_assistant.orchestration.agent_capabilities"
 )
@@ -289,6 +292,16 @@ _EXPORT_MAP = {
     "agent_lifecycle_profile_by_agent_id": _AGENT_LIFECYCLE,
     "agent_lifecycle_registry": _AGENT_LIFECYCLE,
     "agent_lifecycle_transition_by_id": _AGENT_LIFECYCLE,
+    "AgentStateConflictSurface": _AGENT_STATE_SYNCHRONIZATION,
+    "AgentStateConsistencyConstraint": _AGENT_STATE_SYNCHRONIZATION,
+    "AgentStateStaleWarning": _AGENT_STATE_SYNCHRONIZATION,
+    "AgentStateSyncCheckpoint": _AGENT_STATE_SYNCHRONIZATION,
+    "AgentStateSyncProfile": _AGENT_STATE_SYNCHRONIZATION,
+    "AgentStateSynchronizationRegistry": _AGENT_STATE_SYNCHRONIZATION,
+    "agent_state_conflict_surface_by_id": _AGENT_STATE_SYNCHRONIZATION,
+    "agent_state_sync_checkpoint_by_id": _AGENT_STATE_SYNCHRONIZATION,
+    "agent_state_sync_profile_by_agent_id": _AGENT_STATE_SYNCHRONIZATION,
+    "agent_state_synchronization_registry": _AGENT_STATE_SYNCHRONIZATION,
     "AgentCapabilityProfile": _AGENT_CAPABILITY_REGISTRY,
     "AgentCapabilityRegistry": _AGENT_CAPABILITY_REGISTRY,
     "agent_capability_by_id": _AGENT_CAPABILITY_REGISTRY,

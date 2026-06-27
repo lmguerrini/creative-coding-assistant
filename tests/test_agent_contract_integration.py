@@ -11,6 +11,7 @@ from creative_coding_assistant.orchestration import (
     agent_dependency_graph_registry,
     agent_escalation_signal_registry,
     agent_lifecycle_registry,
+    agent_state_synchronization_registry,
     agent_boundary_registry,
     agent_contract_registry,
     agent_metadata_registry,
@@ -49,6 +50,7 @@ AGENT_REGISTRY_MARKERS = (
     "agent_capability_alignment_registry",
     "agent_escalation_signal_registry",
     "agent_lifecycle_registry",
+    "agent_state_synchronization_registry",
 )
 
 
@@ -69,6 +71,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         capability_alignment_registry = agent_capability_alignment_registry()
         escalation_signal_registry = agent_escalation_signal_registry()
         lifecycle_registry = agent_lifecycle_registry()
+        state_sync_registry = agent_state_synchronization_registry()
 
         self.assertEqual(contract_registry.contract_count, 12)
         self.assertEqual(role_registry.role_count, 12)
@@ -85,6 +88,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         self.assertEqual(capability_alignment_registry.alignment_count, 12)
         self.assertEqual(len(escalation_signal_registry.signals), 7)
         self.assertEqual(lifecycle_registry.profile_count, 12)
+        self.assertEqual(state_sync_registry.profile_count, 12)
         self.assertEqual(role_registry.agent_ids, contract_registry.agent_ids)
         self.assertEqual(boundary_registry.agent_ids, contract_registry.agent_ids)
         self.assertEqual(metadata_registry.agent_ids, contract_registry.agent_ids)
@@ -106,6 +110,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         self.assertTrue(capability_alignment_registry.metadata_only)
         self.assertTrue(escalation_signal_registry.metadata_only)
         self.assertTrue(lifecycle_registry.metadata_only)
+        self.assertTrue(state_sync_registry.metadata_only)
 
     def test_agent_registries_do_not_change_workflow_nodes_or_payloads(self) -> None:
         graph = build_assistant_workflow_graph()
