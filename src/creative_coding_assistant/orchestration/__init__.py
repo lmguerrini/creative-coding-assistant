@@ -65,6 +65,9 @@ _SHARED_CONTEXT_VIEWS = (
 _AGENT_DEPENDENCY_GRAPH = (
     "creative_coding_assistant.orchestration.agent_dependency_graph"
 )
+_AGENT_PARALLEL_SCHEDULING = (
+    "creative_coding_assistant.orchestration.agent_parallel_scheduling"
+)
 _AGENT_CAPABILITY_REGISTRY = (
     "creative_coding_assistant.orchestration.agent_capabilities"
 )
@@ -235,6 +238,11 @@ _EXPORT_MAP = {
     "agent_dependency_graph_registry": _AGENT_DEPENDENCY_GRAPH,
     "agent_dependency_node_by_id": _AGENT_DEPENDENCY_GRAPH,
     "agent_dependency_upstream_nodes": _AGENT_DEPENDENCY_GRAPH,
+    "ParallelSchedulingGroup": _AGENT_PARALLEL_SCHEDULING,
+    "ParallelSchedulingRegistry": _AGENT_PARALLEL_SCHEDULING,
+    "parallel_scheduling_group_by_id": _AGENT_PARALLEL_SCHEDULING,
+    "parallel_scheduling_group_for_agent": _AGENT_PARALLEL_SCHEDULING,
+    "parallel_scheduling_registry": _AGENT_PARALLEL_SCHEDULING,
     "AgentCapabilityProfile": _AGENT_CAPABILITY_REGISTRY,
     "AgentCapabilityRegistry": _AGENT_CAPABILITY_REGISTRY,
     "agent_capability_by_id": _AGENT_CAPABILITY_REGISTRY,

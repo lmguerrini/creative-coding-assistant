@@ -9,6 +9,7 @@ from creative_coding_assistant.orchestration import (
     agent_boundary_registry,
     agent_contract_registry,
     agent_metadata_registry,
+    parallel_scheduling_registry,
     agent_routing_registry,
     agent_role_registry,
     blackboard_memory_registry,
@@ -35,6 +36,7 @@ AGENT_REGISTRY_MARKERS = (
     "blackboard_memory_registry",
     "shared_context_view_registry",
     "agent_dependency_graph_registry",
+    "parallel_scheduling_registry",
 )
 
 
@@ -48,6 +50,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         blackboard_registry = blackboard_memory_registry()
         context_view_registry = shared_context_view_registry()
         dependency_graph_registry = agent_dependency_graph_registry()
+        scheduling_registry = parallel_scheduling_registry()
 
         self.assertEqual(contract_registry.contract_count, 12)
         self.assertEqual(role_registry.role_count, 12)
@@ -57,6 +60,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         self.assertEqual(blackboard_registry.channel_count, 12)
         self.assertEqual(context_view_registry.view_count, 12)
         self.assertEqual(dependency_graph_registry.node_count, 30)
+        self.assertEqual(scheduling_registry.group_count, 6)
         self.assertEqual(role_registry.agent_ids, contract_registry.agent_ids)
         self.assertEqual(boundary_registry.agent_ids, contract_registry.agent_ids)
         self.assertEqual(metadata_registry.agent_ids, contract_registry.agent_ids)
@@ -71,6 +75,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         self.assertTrue(blackboard_registry.metadata_only)
         self.assertTrue(context_view_registry.metadata_only)
         self.assertTrue(dependency_graph_registry.metadata_only)
+        self.assertTrue(scheduling_registry.metadata_only)
 
     def test_agent_registries_do_not_change_workflow_nodes_or_payloads(self) -> None:
         graph = build_assistant_workflow_graph()
