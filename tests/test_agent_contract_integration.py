@@ -5,6 +5,7 @@ from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
     JinjaPromptRenderer,
     StructuredPromptInputBuilder,
+    agent_dependency_graph_registry,
     agent_boundary_registry,
     agent_contract_registry,
     agent_metadata_registry,
@@ -33,6 +34,7 @@ AGENT_REGISTRY_MARKERS = (
     "agent_routing_registry",
     "blackboard_memory_registry",
     "shared_context_view_registry",
+    "agent_dependency_graph_registry",
 )
 
 
@@ -45,6 +47,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         routing_registry = agent_routing_registry()
         blackboard_registry = blackboard_memory_registry()
         context_view_registry = shared_context_view_registry()
+        dependency_graph_registry = agent_dependency_graph_registry()
 
         self.assertEqual(contract_registry.contract_count, 12)
         self.assertEqual(role_registry.role_count, 12)
@@ -53,6 +56,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         self.assertEqual(routing_registry.profile_count, 12)
         self.assertEqual(blackboard_registry.channel_count, 12)
         self.assertEqual(context_view_registry.view_count, 12)
+        self.assertEqual(dependency_graph_registry.node_count, 30)
         self.assertEqual(role_registry.agent_ids, contract_registry.agent_ids)
         self.assertEqual(boundary_registry.agent_ids, contract_registry.agent_ids)
         self.assertEqual(metadata_registry.agent_ids, contract_registry.agent_ids)
@@ -66,6 +70,7 @@ class AgentContractIntegrationTests(unittest.TestCase):
         self.assertTrue(routing_registry.metadata_only)
         self.assertTrue(blackboard_registry.metadata_only)
         self.assertTrue(context_view_registry.metadata_only)
+        self.assertTrue(dependency_graph_registry.metadata_only)
 
     def test_agent_registries_do_not_change_workflow_nodes_or_payloads(self) -> None:
         graph = build_assistant_workflow_graph()

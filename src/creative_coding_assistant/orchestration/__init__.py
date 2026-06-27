@@ -62,6 +62,9 @@ _BLACKBOARD_MEMORY = "creative_coding_assistant.orchestration.blackboard_memory"
 _SHARED_CONTEXT_VIEWS = (
     "creative_coding_assistant.orchestration.shared_context_views"
 )
+_AGENT_DEPENDENCY_GRAPH = (
+    "creative_coding_assistant.orchestration.agent_dependency_graph"
+)
 _AGENT_CAPABILITY_REGISTRY = (
     "creative_coding_assistant.orchestration.agent_capabilities"
 )
@@ -225,6 +228,13 @@ _EXPORT_MAP = {
     "shared_context_view_by_agent_id": _SHARED_CONTEXT_VIEWS,
     "shared_context_view_by_id": _SHARED_CONTEXT_VIEWS,
     "shared_context_view_registry": _SHARED_CONTEXT_VIEWS,
+    "AgentDependencyEdge": _AGENT_DEPENDENCY_GRAPH,
+    "AgentDependencyGraphRegistry": _AGENT_DEPENDENCY_GRAPH,
+    "AgentDependencyNode": _AGENT_DEPENDENCY_GRAPH,
+    "agent_dependency_downstream_nodes": _AGENT_DEPENDENCY_GRAPH,
+    "agent_dependency_graph_registry": _AGENT_DEPENDENCY_GRAPH,
+    "agent_dependency_node_by_id": _AGENT_DEPENDENCY_GRAPH,
+    "agent_dependency_upstream_nodes": _AGENT_DEPENDENCY_GRAPH,
     "AgentCapabilityProfile": _AGENT_CAPABILITY_REGISTRY,
     "AgentCapabilityRegistry": _AGENT_CAPABILITY_REGISTRY,
     "agent_capability_by_id": _AGENT_CAPABILITY_REGISTRY,
