@@ -2,7 +2,13 @@ import unittest
 
 from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
+    ConditionalMultiAgentEscalationRegistry,
     V3BackboneModeRegistry,
+    agent_capability_registry,
+    agent_escalation_signal_registry,
+    conditional_multi_agent_escalation_condition_by_id,
+    conditional_multi_agent_escalation_registry,
+    escalation_policy_registry,
     hybrid_agentic_workflow_registry,
     hybrid_agentic_workflow_stage_by_id,
     v3_backbone_mode_profile_by_node_id,
@@ -62,6 +68,49 @@ EXPECTED_BACKBONE_SOURCE_REGISTRIES = (
     "workstation_engine_contract_registry",
     "hybrid_agentic_workflow_registry",
 )
+EXPECTED_CONDITIONAL_ESCALATION_IDS = (
+    "planning_ambiguity_multi_agent_candidate",
+    "artifact_risk_multi_agent_candidate",
+    "runtime_fit_multi_agent_candidate",
+    "evaluation_confidence_multi_agent_candidate",
+    "terminal_guardrail_multi_agent_candidate",
+)
+EXPECTED_CONDITIONAL_ESCALATION_CATEGORIES = (
+    "ambiguity",
+    "risk",
+    "runtime",
+    "quality",
+    "hitl",
+)
+EXPECTED_CONDITIONAL_ESCALATION_SOURCE_REGISTRIES = (
+    "v3_backbone_mode_registry",
+    "agent_capability_registry",
+    "escalation_policy_registry",
+    "agent_escalation_signal_registry",
+    "hybrid_agentic_workflow_registry",
+)
+REQUIRED_CONDITIONAL_ESCALATION_FIELDS = {
+    "condition_id",
+    "condition_name",
+    "category",
+    "backbone_phase",
+    "source_node_ids",
+    "source_registries",
+    "capability_ids",
+    "policy_rule_ids",
+    "escalation_signal_ids",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "condition_evaluation_implemented",
+    "multi_agent_execution_implemented",
+    "provider_model_routing_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
 
 
 class V3BackboneModeRegistryTests(unittest.TestCase):
@@ -204,6 +253,162 @@ class V3BackboneModeRegistryTests(unittest.TestCase):
             "route_provider",
             "run_multi_agent",
             "mutate_prompt",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class ConditionalMultiAgentEscalationRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_conditional_escalation_candidates(self) -> None:
+        registry = conditional_multi_agent_escalation_registry()
+
+        self.assertEqual(
+            registry.role,
+            "conditional_multi_agent_escalation_registry",
+        )
+        self.assertEqual(
+            registry.serialization_version,
+            "conditional_multi_agent_escalation_registry.v1",
+        )
+        self.assertEqual(
+            registry.condition_ids,
+            EXPECTED_CONDITIONAL_ESCALATION_IDS,
+        )
+        self.assertEqual(
+            registry.categories,
+            EXPECTED_CONDITIONAL_ESCALATION_CATEGORIES,
+        )
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_CONDITIONAL_ESCALATION_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(registry.backbone_node_ids, ASSISTANT_WORKFLOW_NODE_ORDER)
+        self.assertEqual(registry.condition_count, 5)
+        self.assertIn("does not evaluate conditions", registry.authority_boundary)
+        self.assertFalse(registry.condition_evaluation_implemented)
+        self.assertFalse(registry.multi_agent_execution_implemented)
+        self.assertFalse(registry.provider_model_routing_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_conditions_reference_existing_passive_sources(self) -> None:
+        registry = conditional_multi_agent_escalation_registry()
+        known_nodes = set(v3_backbone_mode_registry().node_ids)
+        known_capabilities = set(agent_capability_registry().capability_ids)
+        known_policy_rules = set(escalation_policy_registry().rule_ids)
+        known_signals = set(agent_escalation_signal_registry().signal_ids)
+
+        for condition in registry.conditions:
+            dumped = condition.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_CONDITIONAL_ESCALATION_FIELDS)
+            self.assertEqual(
+                condition.source_registries,
+                EXPECTED_CONDITIONAL_ESCALATION_SOURCE_REGISTRIES,
+            )
+            self.assertTrue(set(condition.source_node_ids).issubset(known_nodes))
+            self.assertTrue(set(condition.capability_ids).issubset(known_capabilities))
+            self.assertTrue(set(condition.policy_rule_ids).issubset(known_policy_rules))
+            self.assertTrue(set(condition.escalation_signal_ids).issubset(known_signals))
+            self.assertTrue(condition.advisory_outputs)
+            self.assertIn("condition_evaluation", condition.blocked_runtime_behaviors)
+            self.assertIn("multi_agent_execution", condition.blocked_runtime_behaviors)
+            self.assertIn("agent_invocation", condition.blocked_runtime_behaviors)
+            self.assertFalse(condition.condition_evaluation_implemented)
+            self.assertFalse(condition.multi_agent_execution_implemented)
+            self.assertFalse(condition.provider_model_routing_implemented)
+            self.assertFalse(condition.workflow_control_implemented)
+            self.assertFalse(condition.retry_triggering_implemented)
+            self.assertFalse(condition.generated_output_mutation_implemented)
+            self.assertEqual(
+                condition.serialization_version,
+                "conditional_multi_agent_escalation_condition.v1",
+            )
+            self.assertTrue(condition.metadata_only)
+
+    def test_condition_source_registries_are_complete(self) -> None:
+        registry = conditional_multi_agent_escalation_registry()
+        condition_sources = tuple(
+            dict.fromkeys(
+                source
+                for condition in registry.conditions
+                for source in condition.source_registries
+            )
+        )
+
+        self.assertEqual(condition_sources, registry.source_registries)
+        for source_registry in EXPECTED_CONDITIONAL_ESCALATION_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, condition_sources)
+        for condition in registry.conditions:
+            self.assertEqual(set(condition.source_registries), set(condition_sources))
+
+    def test_condition_lookup_is_stable(self) -> None:
+        condition = conditional_multi_agent_escalation_condition_by_id(
+            "runtime_fit_multi_agent_candidate"
+        )
+        missing = conditional_multi_agent_escalation_condition_by_id("missing")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(condition)
+        assert condition is not None
+        self.assertEqual(condition.category, "runtime")
+        self.assertEqual(condition.backbone_phase, "generation_artifact")
+        self.assertIn("v4_runtime_agent", condition.capability_ids)
+        self.assertFalse(condition.multi_agent_execution_implemented)
+
+    def test_conditional_registry_rejects_mismatched_metadata(self) -> None:
+        registry = conditional_multi_agent_escalation_registry()
+        mismatched_condition = registry.conditions[0].model_copy(
+            update={"condition_id": "other_condition"}
+        )
+        unknown_node_condition = registry.conditions[0].model_copy(
+            update={"source_node_ids": ("missing_node",)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "condition_ids must match"):
+            ConditionalMultiAgentEscalationRegistry(
+                conditions=(mismatched_condition,) + registry.conditions[1:],
+                condition_ids=registry.condition_ids,
+                categories=registry.categories,
+                source_registries=registry.source_registries,
+                backbone_node_ids=registry.backbone_node_ids,
+                condition_count=registry.condition_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "source nodes must be V3 backbone"):
+            ConditionalMultiAgentEscalationRegistry(
+                conditions=(unknown_node_condition,) + registry.conditions[1:],
+                condition_ids=registry.condition_ids,
+                categories=registry.categories,
+                source_registries=registry.source_registries,
+                backbone_node_ids=registry.backbone_node_ids,
+                condition_count=registry.condition_count,
+            )
+
+    def test_conditional_escalation_does_not_declare_active_execution(self) -> None:
+        registry = conditional_multi_agent_escalation_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for condition in registry.conditions
+                    for field in (
+                        condition.condition_id,
+                        condition.authority_boundary,
+                        *condition.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "execute_agent",
+            "run_agents",
+            "route_provider",
+            "trigger_retry",
             "modify_output",
         ):
             self.assertNotIn(forbidden_term, combined_text)

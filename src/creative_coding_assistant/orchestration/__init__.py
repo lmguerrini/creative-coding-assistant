@@ -335,10 +335,16 @@ _EXPORT_MAP = {
     "EscalationPolicyRegistry": _ESCALATION_POLICY,
     "escalation_policy_by_id": _ESCALATION_POLICY,
     "escalation_policy_registry": _ESCALATION_POLICY,
+    "ConditionalMultiAgentEscalationCondition": _HYBRID_AGENTIC_WORKFLOW,
+    "ConditionalMultiAgentEscalationRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "HybridAgenticWorkflowRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "HybridAgenticWorkflowStage": _HYBRID_AGENTIC_WORKFLOW,
     "V3BackboneModeNodeProfile": _HYBRID_AGENTIC_WORKFLOW,
     "V3BackboneModeRegistry": _HYBRID_AGENTIC_WORKFLOW,
+    "conditional_multi_agent_escalation_condition_by_id": (
+        _HYBRID_AGENTIC_WORKFLOW
+    ),
+    "conditional_multi_agent_escalation_registry": _HYBRID_AGENTIC_WORKFLOW,
     "hybrid_agentic_workflow_registry": _HYBRID_AGENTIC_WORKFLOW,
     "hybrid_agentic_workflow_stage_by_id": _HYBRID_AGENTIC_WORKFLOW,
     "v3_backbone_mode_profile_by_node_id": _HYBRID_AGENTIC_WORKFLOW,
