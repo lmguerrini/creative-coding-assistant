@@ -9,6 +9,7 @@ flowchart TB
     classDef consumer fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px;
     classDef workstation fill:#FDF2F8,stroke:#BE185D,color:#831843,stroke-width:1.5px;
     classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
+    classDef relationship fill:#FEFCE8,stroke:#A16207,color:#713F12,stroke-width:1.5px,stroke-dasharray: 6 4;
 
     %% Serpentine readability rows
     subgraph row_1[" "]
@@ -82,6 +83,10 @@ flowchart TB
 
     %% Context note
     note["Serpentine readability view only<br/>Not separate LangGraph runtime nodes<br/>Use generative_design_graph.*, artifact_intelligence_graph.*,<br/>and workstation_surface_graph.* for dense relationships"]:::note
+    strategy_boundary["Strategy relationship<br/>intent + hierarchy shape strategy<br/>strategy selects technique and execution plan"]:::relationship
+    constraint_boundary["Constraint relationship<br/>plan + constraints + runtime fit<br/>become trade-offs and priorities"]:::relationship
+    quality_boundary["Quality relationship<br/>priorities feed quality prediction<br/>quality informs narrative and composition"]:::relationship
+    reasoning_boundary["Reasoning relationship<br/>stored metadata feeds Director, Reasoning,<br/>prompt rendering, and workstation hydration"]:::relationship
 
     %% Serpentine capability flow
     prompt_input --> planning --> intent --> hierarchy --> strategy
@@ -99,6 +104,26 @@ flowchart TB
     metadata_store --> workstation
     director --> reasoning --> prompt_rendering
     note -.-> planning
+
+    %% Relationship annotations
+    intent -. frames .-> strategy_boundary
+    hierarchy -. structures .-> strategy_boundary
+    strategy -. guides .-> strategy_boundary
+    strategy_boundary -. selects .-> techniques
+    plan -. scopes .-> constraint_boundary
+    constraints -. bounds .-> constraint_boundary
+    runtime_reasoner -. checks .-> constraint_boundary
+    tradeoffs -. balances .-> constraint_boundary
+    constraint_boundary -. orders .-> priorities
+    priorities -. informs .-> quality_boundary
+    quality -. forecasts .-> quality_boundary
+    quality_boundary -. shapes .-> narrative
+    quality_boundary -. shapes .-> composition
+    metadata_store -. handoff .-> reasoning_boundary
+    reasoning_boundary -. consumed by .-> director
+    reasoning_boundary -. consumed by .-> reasoning
+    reasoning_boundary -. serialized by .-> prompt_rendering
+    reasoning_boundary -. hydrates .-> workstation
 
     %% Row styling
     style row_1 fill:none,stroke:none

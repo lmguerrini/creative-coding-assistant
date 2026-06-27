@@ -58,6 +58,7 @@ flowchart TB
     classDef consumer fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px;
     classDef workstation fill:#FDF2F8,stroke:#BE185D,color:#831843,stroke-width:1.5px;
     classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
+    classDef relationship fill:#FEFCE8,stroke:#A16207,color:#713F12,stroke-width:1.5px,stroke-dasharray: 6 4;
 
     subgraph row_1[" "]
         direction LR
@@ -129,6 +130,10 @@ flowchart TB
     end
 
     note["Serpentine readability view only<br/>Not separate LangGraph runtime nodes<br/>Use generative_design_graph.*, artifact_intelligence_graph.*,<br/>and workstation_surface_graph.* for dense relationships"]:::note
+    strategy_boundary["Strategy relationship<br/>intent + hierarchy shape strategy<br/>strategy selects technique and execution plan"]:::relationship
+    constraint_boundary["Constraint relationship<br/>plan + constraints + runtime fit<br/>become trade-offs and priorities"]:::relationship
+    quality_boundary["Quality relationship<br/>priorities feed quality prediction<br/>quality informs narrative and composition"]:::relationship
+    reasoning_boundary["Reasoning relationship<br/>stored metadata feeds Director, Reasoning,<br/>prompt rendering, and workstation hydration"]:::relationship
 
     prompt_input --> planning --> intent --> hierarchy --> strategy
     strategy --> techniques --> plan --> constraints --> runtime_reasoner --> tradeoffs
@@ -143,6 +148,24 @@ flowchart TB
     metadata_store --> workstation
     director --> reasoning --> prompt_rendering
     note -.-> planning
+    intent -. frames .-> strategy_boundary
+    hierarchy -. structures .-> strategy_boundary
+    strategy -. guides .-> strategy_boundary
+    strategy_boundary -. selects .-> techniques
+    plan -. scopes .-> constraint_boundary
+    constraints -. bounds .-> constraint_boundary
+    runtime_reasoner -. checks .-> constraint_boundary
+    tradeoffs -. balances .-> constraint_boundary
+    constraint_boundary -. orders .-> priorities
+    priorities -. informs .-> quality_boundary
+    quality -. forecasts .-> quality_boundary
+    quality_boundary -. shapes .-> narrative
+    quality_boundary -. shapes .-> composition
+    metadata_store -. handoff .-> reasoning_boundary
+    reasoning_boundary -. consumed by .-> director
+    reasoning_boundary -. consumed by .-> reasoning
+    reasoning_boundary -. serialized by .-> prompt_rendering
+    reasoning_boundary -. hydrates .-> workstation
 
     style row_1 fill:none,stroke:none
     style row_2 fill:none,stroke:none
@@ -156,6 +179,15 @@ flowchart TB
 
 The raw Mermaid source for this readable pipeline is available in
 [creative_intelligence_graph.mmd](creative_intelligence_graph.mmd).
+
+## Creative Cognition Relationship Map
+
+| Relationship | Implemented metadata path | Downstream use |
+| --- | --- | --- |
+| Strategy framing | `Creative Intent Decomposer` and `Creative Hierarchy Planner` shape `Creative Strategy Engine`, then `Creative Technique Selector` and `Creative Execution Plan` turn strategy into an executable creative direction | Gives the rest of planning a coherent intent, hierarchy, technique set, and plan before constraints are evaluated |
+| Constraint handling | `Creative Execution Plan`, `Creative Constraint Solver`, and `Runtime Capability Reasoner` feed `Creative Trade-off Explorer` and `Creative Constraint Prioritizer` | Converts feasibility limits into ordered trade-offs before quality, narrative, and composition metadata are derived |
+| Quality shaping | `Creative Constraint Prioritizer` informs `Creative Quality Predictor`, which then sits before `Symbolic Narrative Planner` and `Creative Composition Planner` | Keeps narrative and composition guidance aligned with expected quality and prioritized constraints |
+| Reasoning handoff | `Metadata Store` persists planning outputs on `AssistantWorkflowState` and `PromptInputResponse` before Director, Reasoning, prompt rendering, and workstation hydration consume them | Keeps runtime consumers downstream of the single `planning` node without turning helper engines into LangGraph nodes |
 
 ## Pipeline Stages
 
