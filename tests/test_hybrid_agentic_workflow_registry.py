@@ -4,6 +4,7 @@ from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
     AgentConfidenceFusionRegistry,
     ConditionalMultiAgentEscalationRegistry,
+    CreativeExplorationBudgetRegistry,
     CreativeEscalationPolicyRegistry,
     DecisionProvenanceRegistry,
     EscalationGateRegistry,
@@ -20,6 +21,8 @@ from creative_coding_assistant.orchestration import (
     agent_escalation_signal_registry,
     conditional_multi_agent_escalation_condition_by_id,
     conditional_multi_agent_escalation_registry,
+    creative_exploration_budget_profile_by_id,
+    creative_exploration_budget_registry,
     creative_escalation_policy_by_id,
     creative_escalation_policy_registry,
     decision_provenance_profile_by_id,
@@ -484,6 +487,52 @@ REQUIRED_ESCALATION_TRACE_FIELDS = {
     "escalation_execution_implemented",
     "gate_evaluation_implemented",
     "memory_write_implemented",
+    "agent_invocation_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_CREATIVE_EXPLORATION_BUDGET_PROFILE_IDS = (
+    "creative_exploration_budget::planning_execution_fit",
+    "creative_exploration_budget::style_aesthetic_alignment",
+    "creative_exploration_budget::curation_refinement_need",
+    "creative_exploration_budget::final_synthesis_readiness",
+)
+EXPECTED_CREATIVE_EXPLORATION_BUDGET_POSTURES = (
+    "moderate",
+    "broad",
+    "guarded",
+    "narrow",
+)
+EXPECTED_CREATIVE_EXPLORATION_BUDGET_SOURCE_REGISTRIES = (
+    "escalation_trace_registry",
+    "decision_provenance_registry",
+    "creative_planning_engine",
+    "creative_constraints_engine",
+    "creative_tradeoff_engine",
+    "hybrid_agentic_workflow_registry",
+)
+REQUIRED_CREATIVE_EXPLORATION_BUDGET_FIELDS = {
+    "budget_profile_id",
+    "topic_id",
+    "source_trace_profile_id",
+    "source_provenance_profile_id",
+    "source_escalation_signal_ids",
+    "budget_posture",
+    "max_advisory_variants",
+    "max_advisory_refinement_passes",
+    "cost_pressure_signal",
+    "source_registries",
+    "budget_dimensions",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "budget_enforcement_implemented",
+    "variant_generation_implemented",
+    "refinement_triggering_implemented",
+    "cost_routing_implemented",
     "agent_invocation_implemented",
     "workflow_control_implemented",
     "retry_triggering_implemented",
@@ -2252,6 +2301,187 @@ class EscalationTraceRegistryTests(unittest.TestCase):
             "capture_runtime_trace",
             "emit_runtime_trace",
             "execute_escalation",
+            "execute_agent",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class CreativeExplorationBudgetRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_exploration_budget_profiles(self) -> None:
+        registry = creative_exploration_budget_registry()
+
+        self.assertEqual(registry.role, "creative_exploration_budget_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "creative_exploration_budget_registry.v1",
+        )
+        self.assertEqual(
+            registry.budget_profile_ids,
+            EXPECTED_CREATIVE_EXPLORATION_BUDGET_PROFILE_IDS,
+        )
+        self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
+        self.assertEqual(
+            registry.budget_postures,
+            EXPECTED_CREATIVE_EXPLORATION_BUDGET_POSTURES,
+        )
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_CREATIVE_EXPLORATION_BUDGET_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(
+            registry.trace_profile_ids,
+            escalation_trace_registry().trace_profile_ids,
+        )
+        self.assertEqual(
+            registry.provenance_profile_ids,
+            decision_provenance_registry().provenance_profile_ids,
+        )
+        self.assertEqual(
+            registry.escalation_signal_ids,
+            agent_escalation_signal_registry().signal_ids,
+        )
+        self.assertEqual(registry.profile_count, 4)
+        self.assertIn("does not enforce budgets", registry.authority_boundary)
+        self.assertFalse(registry.budget_enforcement_implemented)
+        self.assertFalse(registry.variant_generation_implemented)
+        self.assertFalse(registry.refinement_triggering_implemented)
+        self.assertFalse(registry.cost_routing_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_exploration_budget_profiles_reference_known_sources(self) -> None:
+        registry = creative_exploration_budget_registry()
+        known_traces = set(escalation_trace_registry().trace_profile_ids)
+        known_provenance = set(decision_provenance_registry().provenance_profile_ids)
+        known_signals = set(agent_escalation_signal_registry().signal_ids)
+
+        for profile in registry.budget_profiles:
+            dumped = profile.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_CREATIVE_EXPLORATION_BUDGET_FIELDS)
+            self.assertEqual(
+                profile.source_registries,
+                EXPECTED_CREATIVE_EXPLORATION_BUDGET_SOURCE_REGISTRIES,
+            )
+            self.assertIn(profile.source_trace_profile_id, known_traces)
+            self.assertIn(profile.source_provenance_profile_id, known_provenance)
+            self.assertTrue(
+                set(profile.source_escalation_signal_ids).issubset(known_signals)
+            )
+            self.assertIn(profile.budget_posture, registry.budget_postures)
+            self.assertGreaterEqual(profile.max_advisory_variants, 0)
+            self.assertLessEqual(profile.max_advisory_variants, 3)
+            self.assertGreaterEqual(profile.max_advisory_refinement_passes, 0)
+            self.assertLessEqual(profile.max_advisory_refinement_passes, 3)
+            self.assertTrue(profile.cost_pressure_signal)
+            self.assertTrue(profile.budget_dimensions)
+            self.assertTrue(profile.advisory_outputs)
+            self.assertIn("budget_enforcement", profile.blocked_runtime_behaviors)
+            self.assertIn("variant_generation", profile.blocked_runtime_behaviors)
+            self.assertFalse(profile.budget_enforcement_implemented)
+            self.assertFalse(profile.variant_generation_implemented)
+            self.assertFalse(profile.refinement_triggering_implemented)
+            self.assertFalse(profile.cost_routing_implemented)
+            self.assertFalse(profile.agent_invocation_implemented)
+            self.assertFalse(profile.workflow_control_implemented)
+            self.assertFalse(profile.retry_triggering_implemented)
+            self.assertFalse(profile.generated_output_mutation_implemented)
+            self.assertEqual(
+                profile.serialization_version,
+                "creative_exploration_budget_profile.v1",
+            )
+            self.assertTrue(profile.metadata_only)
+
+    def test_exploration_budget_source_registries_are_complete(self) -> None:
+        registry = creative_exploration_budget_registry()
+        profile_sources = tuple(
+            dict.fromkeys(
+                source
+                for profile in registry.budget_profiles
+                for source in profile.source_registries
+            )
+        )
+
+        self.assertEqual(profile_sources, registry.source_registries)
+        for source_registry in EXPECTED_CREATIVE_EXPLORATION_BUDGET_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, profile_sources)
+        for profile in registry.budget_profiles:
+            self.assertEqual(set(profile.source_registries), set(profile_sources))
+
+    def test_exploration_budget_lookup_is_stable(self) -> None:
+        profile = creative_exploration_budget_profile_by_id(
+            "creative_exploration_budget::style_aesthetic_alignment"
+        )
+        missing = creative_exploration_budget_profile_by_id("missing_budget")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.topic_id, "style_aesthetic_alignment")
+        self.assertEqual(profile.budget_posture, "broad")
+        self.assertEqual(profile.max_advisory_variants, 3)
+        self.assertFalse(profile.variant_generation_implemented)
+
+    def test_exploration_budget_registry_rejects_mismatched_metadata(self) -> None:
+        registry = creative_exploration_budget_registry()
+        mismatched_profile = registry.budget_profiles[0].model_copy(
+            update={"budget_profile_id": "other_budget"}
+        )
+        unknown_trace_profile = registry.budget_profiles[0].model_copy(
+            update={"source_trace_profile_id": "missing_trace"}
+        )
+
+        with self.assertRaisesRegex(ValueError, "budget_profile_ids must match"):
+            CreativeExplorationBudgetRegistry(
+                budget_profiles=(mismatched_profile,) + registry.budget_profiles[1:],
+                budget_profile_ids=registry.budget_profile_ids,
+                topic_ids=registry.topic_ids,
+                budget_postures=registry.budget_postures,
+                source_registries=registry.source_registries,
+                trace_profile_ids=registry.trace_profile_ids,
+                provenance_profile_ids=registry.provenance_profile_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "budget trace profiles must be known"):
+            CreativeExplorationBudgetRegistry(
+                budget_profiles=(unknown_trace_profile,) + registry.budget_profiles[1:],
+                budget_profile_ids=registry.budget_profile_ids,
+                topic_ids=registry.topic_ids,
+                budget_postures=registry.budget_postures,
+                source_registries=registry.source_registries,
+                trace_profile_ids=registry.trace_profile_ids,
+                provenance_profile_ids=registry.provenance_profile_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                profile_count=registry.profile_count,
+            )
+
+    def test_exploration_budget_does_not_declare_active_execution(self) -> None:
+        registry = creative_exploration_budget_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for profile in registry.budget_profiles
+                    for field in (
+                        profile.budget_profile_id,
+                        profile.authority_boundary,
+                        *profile.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "enforce_runtime_budget",
+            "generate_variant",
+            "trigger_runtime_refinement",
             "execute_agent",
             "modify_output",
         ):

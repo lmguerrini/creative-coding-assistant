@@ -339,6 +339,8 @@ _EXPORT_MAP = {
     "escalation_policy_registry": _ESCALATION_POLICY,
     "ConditionalMultiAgentEscalationCondition": _HYBRID_AGENTIC_WORKFLOW,
     "ConditionalMultiAgentEscalationRegistry": _HYBRID_AGENTIC_WORKFLOW,
+    "CreativeExplorationBudgetProfile": _HYBRID_AGENTIC_WORKFLOW,
+    "CreativeExplorationBudgetRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "CreativeEscalationPolicyRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "CreativeEscalationPolicyRule": _HYBRID_AGENTIC_WORKFLOW,
     "DecisionProvenanceProfile": _HYBRID_AGENTIC_WORKFLOW,
@@ -365,6 +367,8 @@ _EXPORT_MAP = {
         _HYBRID_AGENTIC_WORKFLOW
     ),
     "conditional_multi_agent_escalation_registry": _HYBRID_AGENTIC_WORKFLOW,
+    "creative_exploration_budget_profile_by_id": _HYBRID_AGENTIC_WORKFLOW,
+    "creative_exploration_budget_registry": _HYBRID_AGENTIC_WORKFLOW,
     "creative_escalation_policy_by_id": _HYBRID_AGENTIC_WORKFLOW,
     "creative_escalation_policy_registry": _HYBRID_AGENTIC_WORKFLOW,
     "decision_provenance_profile_by_id": _HYBRID_AGENTIC_WORKFLOW,

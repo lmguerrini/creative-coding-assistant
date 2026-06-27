@@ -58,6 +58,8 @@ HybridVotingTopic = HybridDebateLoopTopic
 AgentConfidenceFusionTopic = HybridVotingTopic
 DecisionProvenanceTopic = AgentConfidenceFusionTopic
 EscalationTraceTopic = DecisionProvenanceTopic
+CreativeExplorationBudgetTopic = EscalationTraceTopic
+CreativeExplorationBudgetPosture = Literal["narrow", "moderate", "broad", "guarded"]
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -115,6 +117,12 @@ ESCALATION_TRACE_PROFILE_SERIALIZATION_VERSION = (
 )
 ESCALATION_TRACE_REGISTRY_SERIALIZATION_VERSION = (
     "escalation_trace_registry.v1"
+)
+CREATIVE_EXPLORATION_BUDGET_PROFILE_SERIALIZATION_VERSION = (
+    "creative_exploration_budget_profile.v1"
+)
+CREATIVE_EXPLORATION_BUDGET_REGISTRY_SERIALIZATION_VERSION = (
+    "creative_exploration_budget_registry.v1"
 )
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
@@ -194,6 +202,13 @@ ESCALATION_TRACE_AUTHORITY_BOUNDARY = (
     "and provenance metadata only; it does not capture traces, emit traces, "
     "execute escalation, evaluate gates, write memory, invoke agents, control "
     "workflow transitions, trigger retries, or modify generated output."
+)
+CREATIVE_EXPLORATION_BUDGET_AUTHORITY_BOUNDARY = (
+    "Creative exploration budget metadata describes passive future budget "
+    "posture for advisory exploration only; it does not enforce budgets, "
+    "generate variants, trigger refinement, route by cost, invoke agents, "
+    "control workflow transitions, trigger retries, or modify generated "
+    "output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Hybrid agentic workflow metadata maps current V3 workflow nodes to future "
@@ -416,6 +431,25 @@ _ESCALATION_TRACE_SOURCE_REGISTRIES = (
     "reflection_escalation_registry",
     "hybrid_agentic_workflow_registry",
 )
+_CREATIVE_EXPLORATION_BUDGET_BLOCKED_RUNTIME_BEHAVIORS = (
+    "budget_enforcement",
+    "variant_generation",
+    "refinement_triggering",
+    "cost_routing",
+    "agent_invocation",
+    "provider_or_model_routing",
+    "workflow_control",
+    "retry_triggering",
+    "generated_output_modification",
+)
+_CREATIVE_EXPLORATION_BUDGET_SOURCE_REGISTRIES = (
+    "escalation_trace_registry",
+    "decision_provenance_registry",
+    "creative_planning_engine",
+    "creative_constraints_engine",
+    "creative_tradeoff_engine",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -489,6 +523,20 @@ _ESCALATION_TRACE_TOPICS: tuple[EscalationTraceTopic, ...] = (
     "style_aesthetic_alignment",
     "curation_refinement_need",
     "final_synthesis_readiness",
+)
+_CREATIVE_EXPLORATION_BUDGET_TOPICS: tuple[CreativeExplorationBudgetTopic, ...] = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
+)
+_CREATIVE_EXPLORATION_BUDGET_POSTURES: tuple[
+    CreativeExplorationBudgetPosture, ...
+] = (
+    "moderate",
+    "broad",
+    "guarded",
+    "narrow",
 )
 _KNOWN_SPECIALIST_AGENT_IDS = (
     "planner_agent",
@@ -1998,6 +2046,157 @@ def escalation_trace_profile_by_id(
     return None
 
 
+class CreativeExplorationBudgetProfile(BaseModel):
+    """Passive V4.3 creative exploration budget profile metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    budget_profile_id: str = Field(min_length=1, max_length=150)
+    topic_id: CreativeExplorationBudgetTopic
+    source_trace_profile_id: str = Field(min_length=1, max_length=160)
+    source_provenance_profile_id: str = Field(min_length=1, max_length=160)
+    source_escalation_signal_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    budget_posture: CreativeExplorationBudgetPosture
+    max_advisory_variants: int = Field(ge=0, le=3)
+    max_advisory_refinement_passes: int = Field(ge=0, le=3)
+    cost_pressure_signal: str = Field(min_length=1, max_length=120)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    budget_dimensions: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_CREATIVE_EXPLORATION_BUDGET_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    budget_enforcement_implemented: Literal[False] = False
+    variant_generation_implemented: Literal[False] = False
+    refinement_triggering_implemented: Literal[False] = False
+    cost_routing_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["creative_exploration_budget_profile.v1"] = (
+        CREATIVE_EXPLORATION_BUDGET_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class CreativeExplorationBudgetRegistry(BaseModel):
+    """Stable passive registry for V4.3 creative exploration budget metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["creative_exploration_budget_registry"] = (
+        "creative_exploration_budget_registry"
+    )
+    serialization_version: Literal["creative_exploration_budget_registry.v1"] = (
+        CREATIVE_EXPLORATION_BUDGET_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=CREATIVE_EXPLORATION_BUDGET_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    budget_profiles: tuple[CreativeExplorationBudgetProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    budget_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    topic_ids: tuple[CreativeExplorationBudgetTopic, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    budget_postures: tuple[CreativeExplorationBudgetPosture, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    trace_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    provenance_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    escalation_signal_ids: tuple[str, ...] = Field(min_length=7, max_length=7)
+    profile_count: int = Field(ge=4, le=4)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_CREATIVE_EXPLORATION_BUDGET_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    budget_enforcement_implemented: Literal[False] = False
+    variant_generation_implemented: Literal[False] = False
+    refinement_triggering_implemented: Literal[False] = False
+    cost_routing_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_creative_budget_metadata(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.budget_profile_id for profile in self.budget_profiles
+        )
+        derived_topic_ids = tuple(profile.topic_id for profile in self.budget_profiles)
+        derived_postures = tuple(
+            profile.budget_posture for profile in self.budget_profiles
+        )
+        if self.budget_profile_ids != derived_profile_ids:
+            raise ValueError("budget_profile_ids must match budget_profiles")
+        if self.topic_ids != derived_topic_ids:
+            raise ValueError("topic_ids must match budget profiles")
+        if self.topic_ids != _CREATIVE_EXPLORATION_BUDGET_TOPICS:
+            raise ValueError("topic_ids must preserve exploration budget topic order")
+        if self.budget_postures != derived_postures:
+            raise ValueError("budget_postures must match budget profiles")
+        if self.budget_postures != _CREATIVE_EXPLORATION_BUDGET_POSTURES:
+            raise ValueError("budget_postures must preserve budget posture order")
+        if self.profile_count != len(self.budget_profiles):
+            raise ValueError("profile_count must match budget profiles")
+
+        profile_sources = {
+            source_registry
+            for profile in self.budget_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match budget profile sources")
+
+        known_traces = set(self.trace_profile_ids)
+        known_provenance = set(self.provenance_profile_ids)
+        known_signals = set(self.escalation_signal_ids)
+        for profile in self.budget_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("budget sources must match registry sources")
+            if profile.source_trace_profile_id not in known_traces:
+                raise ValueError("budget trace profiles must be known metadata")
+            if profile.source_provenance_profile_id not in known_provenance:
+                raise ValueError("budget provenance profiles must be known metadata")
+            if not set(profile.source_escalation_signal_ids).issubset(known_signals):
+                raise ValueError("budget escalation signals must be known metadata")
+            if profile.budget_enforcement_implemented:
+                raise ValueError("creative exploration budget must not enforce budgets")
+        return self
+
+
+def creative_exploration_budget_registry() -> CreativeExplorationBudgetRegistry:
+    """Return passive V4.3 creative exploration budget metadata."""
+
+    return CREATIVE_EXPLORATION_BUDGET_REGISTRY
+
+
+def creative_exploration_budget_profile_by_id(
+    budget_profile_id: str,
+    registry: CreativeExplorationBudgetRegistry | None = None,
+) -> CreativeExplorationBudgetProfile | None:
+    """Return one budget profile without enforcing exploration limits."""
+
+    source_registry = registry or CREATIVE_EXPLORATION_BUDGET_REGISTRY
+    for profile in source_registry.budget_profiles:
+        if profile.budget_profile_id == budget_profile_id:
+            return profile
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -2389,6 +2588,46 @@ def _escalation_trace_profile(
             "This escalation trace profile is advisory metadata only; it does "
             "not capture traces, emit traces, execute escalation, evaluate "
             "gates, write memory, invoke agents, control workflow transitions, "
+            "trigger retries, or modify generated output."
+        ),
+    )
+
+
+def _creative_exploration_budget_profile(
+    *,
+    budget_profile_id: str,
+    topic_id: CreativeExplorationBudgetTopic,
+    source_trace_profile_id: str,
+    source_provenance_profile_id: str,
+    source_escalation_signal_ids: tuple[str, ...],
+    budget_posture: CreativeExplorationBudgetPosture,
+    max_advisory_variants: int,
+    max_advisory_refinement_passes: int,
+    cost_pressure_signal: str,
+    advisory_outputs: tuple[str, ...],
+) -> CreativeExplorationBudgetProfile:
+    return CreativeExplorationBudgetProfile(
+        budget_profile_id=budget_profile_id,
+        topic_id=topic_id,
+        source_trace_profile_id=source_trace_profile_id,
+        source_provenance_profile_id=source_provenance_profile_id,
+        source_escalation_signal_ids=source_escalation_signal_ids,
+        budget_posture=budget_posture,
+        max_advisory_variants=max_advisory_variants,
+        max_advisory_refinement_passes=max_advisory_refinement_passes,
+        cost_pressure_signal=cost_pressure_signal,
+        source_registries=_CREATIVE_EXPLORATION_BUDGET_SOURCE_REGISTRIES,
+        budget_dimensions=(
+            "variant_breadth",
+            "refinement_depth",
+            "cost_pressure",
+            "escalation_visibility",
+        ),
+        advisory_outputs=advisory_outputs,
+        authority_boundary=(
+            "This exploration budget profile is advisory metadata only; it "
+            "does not enforce budgets, generate variants, trigger refinement, "
+            "route by cost, invoke agents, control workflow transitions, "
             "trigger retries, or modify generated output."
         ),
     )
@@ -3473,6 +3712,99 @@ ESCALATION_TRACE_REGISTRY = EscalationTraceRegistry(
     escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
     reflection_profile_ids=REFLECTION_ESCALATION_REGISTRY.profile_ids,
     profile_count=len(ESCALATION_TRACE_PROFILES),
+)
+CREATIVE_EXPLORATION_BUDGET_PROFILES = (
+    _creative_exploration_budget_profile(
+        budget_profile_id="creative_exploration_budget::planning_execution_fit",
+        topic_id="planning_execution_fit",
+        source_trace_profile_id="escalation_trace::planning_execution_fit",
+        source_provenance_profile_id="decision_provenance::planning_execution_fit",
+        source_escalation_signal_ids=(
+            "ambiguity_escalation_signal",
+            "hitl_escalation_signal",
+        ),
+        budget_posture="moderate",
+        max_advisory_variants=2,
+        max_advisory_refinement_passes=1,
+        cost_pressure_signal="planning_token_budget_context",
+        advisory_outputs=(
+            "planning_budget_posture_placeholder",
+            "planning_exploration_context",
+        ),
+    ),
+    _creative_exploration_budget_profile(
+        budget_profile_id="creative_exploration_budget::style_aesthetic_alignment",
+        topic_id="style_aesthetic_alignment",
+        source_trace_profile_id="escalation_trace::style_aesthetic_alignment",
+        source_provenance_profile_id=(
+            "decision_provenance::style_aesthetic_alignment"
+        ),
+        source_escalation_signal_ids=(
+            "risk_escalation_signal",
+            "quality_escalation_signal",
+        ),
+        budget_posture="broad",
+        max_advisory_variants=3,
+        max_advisory_refinement_passes=1,
+        cost_pressure_signal="style_variant_budget_context",
+        advisory_outputs=(
+            "style_budget_posture_placeholder",
+            "aesthetic_exploration_context",
+        ),
+    ),
+    _creative_exploration_budget_profile(
+        budget_profile_id="creative_exploration_budget::curation_refinement_need",
+        topic_id="curation_refinement_need",
+        source_trace_profile_id="escalation_trace::curation_refinement_need",
+        source_provenance_profile_id="decision_provenance::curation_refinement_need",
+        source_escalation_signal_ids=(
+            "confidence_escalation_signal",
+            "quality_escalation_signal",
+        ),
+        budget_posture="guarded",
+        max_advisory_variants=1,
+        max_advisory_refinement_passes=2,
+        cost_pressure_signal="refinement_budget_context",
+        advisory_outputs=(
+            "curation_budget_posture_placeholder",
+            "refinement_exploration_context",
+        ),
+    ),
+    _creative_exploration_budget_profile(
+        budget_profile_id="creative_exploration_budget::final_synthesis_readiness",
+        topic_id="final_synthesis_readiness",
+        source_trace_profile_id="escalation_trace::final_synthesis_readiness",
+        source_provenance_profile_id="decision_provenance::final_synthesis_readiness",
+        source_escalation_signal_ids=(
+            "hitl_escalation_signal",
+            "quality_escalation_signal",
+        ),
+        budget_posture="narrow",
+        max_advisory_variants=0,
+        max_advisory_refinement_passes=1,
+        cost_pressure_signal="final_synthesis_budget_context",
+        advisory_outputs=(
+            "synthesis_budget_posture_placeholder",
+            "final_exploration_context",
+        ),
+    ),
+)
+CREATIVE_EXPLORATION_BUDGET_REGISTRY = CreativeExplorationBudgetRegistry(
+    budget_profiles=CREATIVE_EXPLORATION_BUDGET_PROFILES,
+    budget_profile_ids=tuple(
+        profile.budget_profile_id for profile in CREATIVE_EXPLORATION_BUDGET_PROFILES
+    ),
+    topic_ids=tuple(
+        profile.topic_id for profile in CREATIVE_EXPLORATION_BUDGET_PROFILES
+    ),
+    budget_postures=tuple(
+        profile.budget_posture for profile in CREATIVE_EXPLORATION_BUDGET_PROFILES
+    ),
+    source_registries=_CREATIVE_EXPLORATION_BUDGET_SOURCE_REGISTRIES,
+    trace_profile_ids=ESCALATION_TRACE_REGISTRY.trace_profile_ids,
+    provenance_profile_ids=DECISION_PROVENANCE_REGISTRY.provenance_profile_ids,
+    escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
+    profile_count=len(CREATIVE_EXPLORATION_BUDGET_PROFILES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (
