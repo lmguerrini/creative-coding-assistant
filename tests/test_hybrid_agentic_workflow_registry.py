@@ -6,6 +6,7 @@ from creative_coding_assistant.orchestration import (
     CreativeEscalationPolicyRegistry,
     EscalationGateRegistry,
     HybridAgentDebateLoopRegistry,
+    HybridAgentVotingRegistry,
     ReflectionEscalationRegistry,
     SpecialistAgentLoopRegistry,
     V3BackboneModeRegistry,
@@ -21,6 +22,8 @@ from creative_coding_assistant.orchestration import (
     escalation_policy_registry,
     hybrid_agent_debate_loop_by_id,
     hybrid_agent_debate_loop_registry,
+    hybrid_agent_voting_profile_by_id,
+    hybrid_agent_voting_registry,
     hybrid_agentic_workflow_registry,
     hybrid_agentic_workflow_stage_by_id,
     reflection_escalation_profile_by_id,
@@ -324,6 +327,40 @@ REQUIRED_HYBRID_DEBATE_LOOP_FIELDS = {
     "agent_invocation_implemented",
     "retry_triggering_implemented",
     "workflow_control_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_HYBRID_VOTING_PROFILE_IDS = (
+    "hybrid_agent_voting::planning_execution_fit",
+    "hybrid_agent_voting::style_aesthetic_alignment",
+    "hybrid_agent_voting::curation_refinement_need",
+    "hybrid_agent_voting::final_synthesis_readiness",
+)
+EXPECTED_HYBRID_VOTING_SOURCE_REGISTRIES = (
+    "consensus_builder_registry",
+    "hybrid_agent_debate_loop_registry",
+    "reflection_escalation_registry",
+    "creative_escalation_policy_registry",
+    "hybrid_agentic_workflow_registry",
+)
+REQUIRED_HYBRID_VOTING_FIELDS = {
+    "voting_profile_id",
+    "topic_id",
+    "source_debate_loop_id",
+    "consensus_voting_input_id",
+    "source_reflection_profile_ids",
+    "source_policy_ids",
+    "source_registries",
+    "voting_dimensions",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "voting_execution_implemented",
+    "final_answer_selection_implemented",
+    "agent_invocation_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
     "generated_output_mutation_implemented",
     "serialization_version",
     "metadata_only",
@@ -1375,6 +1412,164 @@ class HybridAgentDebateLoopRegistryTests(unittest.TestCase):
             "execute_debate_loop",
             "trigger_retry",
             "route_provider",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class HybridAgentVotingRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_hybrid_voting_profiles(self) -> None:
+        registry = hybrid_agent_voting_registry()
+
+        self.assertEqual(registry.role, "hybrid_agent_voting_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "hybrid_agent_voting_registry.v1",
+        )
+        self.assertEqual(registry.voting_profile_ids, EXPECTED_HYBRID_VOTING_PROFILE_IDS)
+        self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_HYBRID_VOTING_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(registry.debate_loop_ids, hybrid_agent_debate_loop_registry().loop_ids)
+        self.assertEqual(
+            registry.reflection_profile_ids,
+            reflection_escalation_registry().profile_ids,
+        )
+        self.assertEqual(
+            registry.policy_ids,
+            creative_escalation_policy_registry().policy_ids,
+        )
+        self.assertEqual(registry.profile_count, 4)
+        self.assertIn("does not execute voting", registry.authority_boundary)
+        self.assertFalse(registry.voting_execution_implemented)
+        self.assertFalse(registry.final_answer_selection_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_hybrid_voting_profiles_reference_known_sources(self) -> None:
+        registry = hybrid_agent_voting_registry()
+        known_debates = set(hybrid_agent_debate_loop_registry().loop_ids)
+        known_reflections = set(reflection_escalation_registry().profile_ids)
+        known_policies = set(creative_escalation_policy_registry().policy_ids)
+
+        for profile in registry.voting_profiles:
+            dumped = profile.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_HYBRID_VOTING_FIELDS)
+            self.assertEqual(
+                profile.source_registries,
+                EXPECTED_HYBRID_VOTING_SOURCE_REGISTRIES,
+            )
+            self.assertIn(profile.source_debate_loop_id, known_debates)
+            self.assertTrue(
+                set(profile.source_reflection_profile_ids).issubset(known_reflections)
+            )
+            self.assertTrue(set(profile.source_policy_ids).issubset(known_policies))
+            self.assertTrue(profile.voting_dimensions)
+            self.assertTrue(profile.advisory_outputs)
+            self.assertIn("voting_execution", profile.blocked_runtime_behaviors)
+            self.assertFalse(profile.voting_execution_implemented)
+            self.assertFalse(profile.final_answer_selection_implemented)
+            self.assertFalse(profile.agent_invocation_implemented)
+            self.assertFalse(profile.workflow_control_implemented)
+            self.assertFalse(profile.retry_triggering_implemented)
+            self.assertFalse(profile.generated_output_mutation_implemented)
+            self.assertEqual(
+                profile.serialization_version,
+                "hybrid_agent_voting_profile.v1",
+            )
+            self.assertTrue(profile.metadata_only)
+
+    def test_hybrid_voting_source_registries_are_complete(self) -> None:
+        registry = hybrid_agent_voting_registry()
+        profile_sources = tuple(
+            dict.fromkeys(
+                source
+                for profile in registry.voting_profiles
+                for source in profile.source_registries
+            )
+        )
+
+        self.assertEqual(profile_sources, registry.source_registries)
+        for source_registry in EXPECTED_HYBRID_VOTING_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, profile_sources)
+        for profile in registry.voting_profiles:
+            self.assertEqual(set(profile.source_registries), set(profile_sources))
+
+    def test_hybrid_voting_lookup_is_stable(self) -> None:
+        profile = hybrid_agent_voting_profile_by_id(
+            "hybrid_agent_voting::final_synthesis_readiness"
+        )
+        missing = hybrid_agent_voting_profile_by_id("missing_vote")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.topic_id, "final_synthesis_readiness")
+        self.assertIn("synthesis_vote_placeholder", profile.advisory_outputs)
+        self.assertFalse(profile.voting_execution_implemented)
+
+    def test_hybrid_voting_registry_rejects_mismatched_metadata(self) -> None:
+        registry = hybrid_agent_voting_registry()
+        mismatched_profile = registry.voting_profiles[0].model_copy(
+            update={"voting_profile_id": "other_vote"}
+        )
+        unknown_debate_profile = registry.voting_profiles[0].model_copy(
+            update={"source_debate_loop_id": "missing_debate"}
+        )
+
+        with self.assertRaisesRegex(ValueError, "voting_profile_ids must match"):
+            HybridAgentVotingRegistry(
+                voting_profiles=(mismatched_profile,) + registry.voting_profiles[1:],
+                voting_profile_ids=registry.voting_profile_ids,
+                topic_ids=registry.topic_ids,
+                source_registries=registry.source_registries,
+                debate_loop_ids=registry.debate_loop_ids,
+                reflection_profile_ids=registry.reflection_profile_ids,
+                policy_ids=registry.policy_ids,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "voting debate loops must be known"):
+            HybridAgentVotingRegistry(
+                voting_profiles=(unknown_debate_profile,)
+                + registry.voting_profiles[1:],
+                voting_profile_ids=registry.voting_profile_ids,
+                topic_ids=registry.topic_ids,
+                source_registries=registry.source_registries,
+                debate_loop_ids=registry.debate_loop_ids,
+                reflection_profile_ids=registry.reflection_profile_ids,
+                policy_ids=registry.policy_ids,
+                profile_count=registry.profile_count,
+            )
+
+    def test_hybrid_voting_does_not_declare_active_execution(self) -> None:
+        registry = hybrid_agent_voting_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for profile in registry.voting_profiles
+                    for field in (
+                        profile.voting_profile_id,
+                        profile.authority_boundary,
+                        *profile.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "execute_vote",
+            "select_final_answer",
+            "execute_agent",
+            "trigger_retry",
             "modify_output",
         ):
             self.assertNotIn(forbidden_term, combined_text)

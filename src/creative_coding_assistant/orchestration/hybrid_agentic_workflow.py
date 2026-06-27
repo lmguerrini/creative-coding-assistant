@@ -54,6 +54,7 @@ HybridDebateLoopTopic = Literal[
     "curation_refinement_need",
     "final_synthesis_readiness",
 ]
+HybridVotingTopic = HybridDebateLoopTopic
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -87,6 +88,12 @@ HYBRID_DEBATE_LOOP_PROFILE_SERIALIZATION_VERSION = (
 )
 HYBRID_DEBATE_LOOP_REGISTRY_SERIALIZATION_VERSION = (
     "hybrid_agent_debate_loop_registry.v1"
+)
+HYBRID_AGENT_VOTING_PROFILE_SERIALIZATION_VERSION = (
+    "hybrid_agent_voting_profile.v1"
+)
+HYBRID_AGENT_VOTING_REGISTRY_SERIALIZATION_VERSION = (
+    "hybrid_agent_voting_registry.v1"
 )
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
@@ -139,6 +146,12 @@ HYBRID_DEBATE_LOOP_AUTHORITY_BOUNDARY = (
     "execute debate loops, invoke agents, trigger retries, route providers or "
     "models, control workflow transitions, write memory, or modify generated "
     "output."
+)
+HYBRID_AGENT_VOTING_AUTHORITY_BOUNDARY = (
+    "Hybrid agent voting metadata maps passive consensus voting placeholders "
+    "to V4.3 debate loops and escalation context only; it does not execute "
+    "voting, select final answers, invoke agents, route providers or models, "
+    "control workflow transitions, trigger retries, or modify generated output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Hybrid agentic workflow metadata maps current V3 workflow nodes to future "
@@ -286,6 +299,22 @@ _HYBRID_DEBATE_LOOP_SOURCE_REGISTRIES = (
     "specialist_agent_loop_registry",
     "hybrid_agentic_workflow_registry",
 )
+_HYBRID_AGENT_VOTING_BLOCKED_RUNTIME_BEHAVIORS = (
+    "voting_execution",
+    "final_answer_selection",
+    "agent_invocation",
+    "provider_or_model_routing",
+    "workflow_control",
+    "retry_triggering",
+    "generated_output_modification",
+)
+_HYBRID_AGENT_VOTING_SOURCE_REGISTRIES = (
+    "consensus_builder_registry",
+    "hybrid_agent_debate_loop_registry",
+    "reflection_escalation_registry",
+    "creative_escalation_policy_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -331,6 +360,12 @@ _REFLECTION_ESCALATION_POSTURES: tuple[ReflectionEscalationPosture, ...] = (
     "critical",
 )
 _HYBRID_DEBATE_LOOP_TOPICS: tuple[HybridDebateLoopTopic, ...] = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
+)
+_HYBRID_AGENT_VOTING_TOPICS: tuple[HybridVotingTopic, ...] = (
     "planning_execution_fit",
     "style_aesthetic_alignment",
     "curation_refinement_need",
@@ -1279,6 +1314,134 @@ def hybrid_agent_debate_loop_by_id(
     return None
 
 
+class HybridAgentVotingProfile(BaseModel):
+    """Passive V4.3 voting profile metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    voting_profile_id: str = Field(min_length=1, max_length=140)
+    topic_id: HybridVotingTopic
+    source_debate_loop_id: str = Field(min_length=1, max_length=160)
+    consensus_voting_input_id: str = Field(min_length=1, max_length=160)
+    source_reflection_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_policy_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_registries: tuple[str, ...] = Field(min_length=5, max_length=5)
+    voting_dimensions: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_HYBRID_AGENT_VOTING_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    voting_execution_implemented: Literal[False] = False
+    final_answer_selection_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["hybrid_agent_voting_profile.v1"] = (
+        HYBRID_AGENT_VOTING_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class HybridAgentVotingRegistry(BaseModel):
+    """Stable passive registry for V4.3 hybrid agent voting metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["hybrid_agent_voting_registry"] = "hybrid_agent_voting_registry"
+    serialization_version: Literal["hybrid_agent_voting_registry.v1"] = (
+        HYBRID_AGENT_VOTING_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=HYBRID_AGENT_VOTING_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    voting_profiles: tuple[HybridAgentVotingProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    voting_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    topic_ids: tuple[HybridVotingTopic, ...] = Field(min_length=4, max_length=4)
+    source_registries: tuple[str, ...] = Field(min_length=5, max_length=5)
+    debate_loop_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    reflection_profile_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    policy_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    profile_count: int = Field(ge=4, le=4)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_HYBRID_AGENT_VOTING_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    voting_execution_implemented: Literal[False] = False
+    final_answer_selection_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_hybrid_voting_metadata(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.voting_profile_id for profile in self.voting_profiles
+        )
+        derived_topic_ids = tuple(profile.topic_id for profile in self.voting_profiles)
+        if self.voting_profile_ids != derived_profile_ids:
+            raise ValueError("voting_profile_ids must match voting_profiles")
+        if self.topic_ids != derived_topic_ids:
+            raise ValueError("topic_ids must match voting_profiles")
+        if self.topic_ids != _HYBRID_AGENT_VOTING_TOPICS:
+            raise ValueError("topic_ids must preserve voting topic order")
+        if self.profile_count != len(self.voting_profiles):
+            raise ValueError("profile_count must match voting_profiles")
+
+        profile_sources = {
+            source_registry
+            for profile in self.voting_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match voting profile sources")
+
+        known_debates = set(self.debate_loop_ids)
+        known_reflections = set(self.reflection_profile_ids)
+        known_policies = set(self.policy_ids)
+        for profile in self.voting_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("voting sources must match registry sources")
+            if profile.source_debate_loop_id not in known_debates:
+                raise ValueError("voting debate loops must be known metadata")
+            if not set(profile.source_reflection_profile_ids).issubset(known_reflections):
+                raise ValueError("voting reflections must be known metadata")
+            if not set(profile.source_policy_ids).issubset(known_policies):
+                raise ValueError("voting policies must be known metadata")
+            if profile.voting_execution_implemented:
+                raise ValueError("hybrid voting must not execute voting")
+        return self
+
+
+def hybrid_agent_voting_registry() -> HybridAgentVotingRegistry:
+    """Return passive V4.3 hybrid agent voting metadata."""
+
+    return HYBRID_AGENT_VOTING_REGISTRY
+
+
+def hybrid_agent_voting_profile_by_id(
+    voting_profile_id: str,
+    registry: HybridAgentVotingRegistry | None = None,
+) -> HybridAgentVotingProfile | None:
+    """Return one voting profile without executing voting."""
+
+    source_registry = registry or HYBRID_AGENT_VOTING_REGISTRY
+    for profile in source_registry.voting_profiles:
+        if profile.voting_profile_id == voting_profile_id:
+            return profile
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -1534,6 +1697,33 @@ def _hybrid_debate_loop(
             "does not execute debate loops, invoke agents, trigger retries, "
             "route providers or models, control workflow transitions, write "
             "memory, or modify generated output."
+        ),
+    )
+
+
+def _hybrid_agent_voting_profile(
+    *,
+    voting_profile_id: str,
+    topic_id: HybridVotingTopic,
+    source_debate_loop_id: str,
+    source_reflection_profile_ids: tuple[str, ...],
+    source_policy_ids: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> HybridAgentVotingProfile:
+    return HybridAgentVotingProfile(
+        voting_profile_id=voting_profile_id,
+        topic_id=topic_id,
+        source_debate_loop_id=source_debate_loop_id,
+        consensus_voting_input_id=f"consensus_voting_input::{topic_id}",
+        source_reflection_profile_ids=source_reflection_profile_ids,
+        source_policy_ids=source_policy_ids,
+        source_registries=_HYBRID_AGENT_VOTING_SOURCE_REGISTRIES,
+        voting_dimensions=("agreement", "confidence", "risk", "evidence_coverage"),
+        advisory_outputs=advisory_outputs,
+        authority_boundary=(
+            "This hybrid voting profile is advisory metadata only; it does "
+            "not execute voting, select final answers, invoke agents, control "
+            "workflow transitions, trigger retries, or modify generated output."
         ),
     )
 
@@ -2307,6 +2497,70 @@ HYBRID_AGENT_DEBATE_LOOP_REGISTRY = HybridAgentDebateLoopRegistry(
     policy_ids=CREATIVE_ESCALATION_POLICY_REGISTRY.policy_ids,
     specialist_loop_ids=SPECIALIST_AGENT_LOOP_REGISTRY.loop_ids,
     loop_count=len(HYBRID_AGENT_DEBATE_LOOPS),
+)
+HYBRID_AGENT_VOTING_PROFILES = (
+    _hybrid_agent_voting_profile(
+        voting_profile_id="hybrid_agent_voting::planning_execution_fit",
+        topic_id="planning_execution_fit",
+        source_debate_loop_id="hybrid_debate_loop::planning_execution_fit",
+        source_reflection_profile_ids=(
+            "reflection_medium_escalation_profile",
+            "reflection_high_escalation_profile",
+        ),
+        source_policy_ids=("concept_ambiguity_creative_escalation_policy",),
+        advisory_outputs=(
+            "planning_vote_placeholder",
+            "planning_consensus_context",
+        ),
+    ),
+    _hybrid_agent_voting_profile(
+        voting_profile_id="hybrid_agent_voting::style_aesthetic_alignment",
+        topic_id="style_aesthetic_alignment",
+        source_debate_loop_id="hybrid_debate_loop::style_aesthetic_alignment",
+        source_reflection_profile_ids=("reflection_high_escalation_profile",),
+        source_policy_ids=("aesthetic_risk_creative_escalation_policy",),
+        advisory_outputs=(
+            "style_vote_placeholder",
+            "aesthetic_consensus_context",
+        ),
+    ),
+    _hybrid_agent_voting_profile(
+        voting_profile_id="hybrid_agent_voting::curation_refinement_need",
+        topic_id="curation_refinement_need",
+        source_debate_loop_id="hybrid_debate_loop::curation_refinement_need",
+        source_reflection_profile_ids=(
+            "reflection_high_escalation_profile",
+            "reflection_critical_escalation_profile",
+        ),
+        source_policy_ids=("quality_uncertainty_creative_escalation_policy",),
+        advisory_outputs=(
+            "curation_vote_placeholder",
+            "refinement_consensus_context",
+        ),
+    ),
+    _hybrid_agent_voting_profile(
+        voting_profile_id="hybrid_agent_voting::final_synthesis_readiness",
+        topic_id="final_synthesis_readiness",
+        source_debate_loop_id="hybrid_debate_loop::final_synthesis_readiness",
+        source_reflection_profile_ids=("reflection_critical_escalation_profile",),
+        source_policy_ids=("terminal_synthesis_creative_escalation_policy",),
+        advisory_outputs=(
+            "synthesis_vote_placeholder",
+            "final_consensus_context",
+        ),
+    ),
+)
+HYBRID_AGENT_VOTING_REGISTRY = HybridAgentVotingRegistry(
+    voting_profiles=HYBRID_AGENT_VOTING_PROFILES,
+    voting_profile_ids=tuple(
+        profile.voting_profile_id for profile in HYBRID_AGENT_VOTING_PROFILES
+    ),
+    topic_ids=tuple(profile.topic_id for profile in HYBRID_AGENT_VOTING_PROFILES),
+    source_registries=_HYBRID_AGENT_VOTING_SOURCE_REGISTRIES,
+    debate_loop_ids=HYBRID_AGENT_DEBATE_LOOP_REGISTRY.loop_ids,
+    reflection_profile_ids=REFLECTION_ESCALATION_REGISTRY.profile_ids,
+    policy_ids=CREATIVE_ESCALATION_POLICY_REGISTRY.policy_ids,
+    profile_count=len(HYBRID_AGENT_VOTING_PROFILES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (
