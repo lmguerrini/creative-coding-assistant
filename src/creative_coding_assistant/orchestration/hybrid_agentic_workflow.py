@@ -20,6 +20,13 @@ ConditionalEscalationCategory = Literal[
     "quality",
     "hitl",
 ]
+SpecialistLoopCategory = Literal[
+    "planning",
+    "artifact",
+    "runtime",
+    "evaluation",
+    "synthesis",
+]
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -29,6 +36,10 @@ CONDITIONAL_ESCALATION_CONDITION_SERIALIZATION_VERSION = (
 )
 CONDITIONAL_ESCALATION_REGISTRY_SERIALIZATION_VERSION = (
     "conditional_multi_agent_escalation_registry.v1"
+)
+SPECIALIST_AGENT_LOOP_SERIALIZATION_VERSION = "specialist_agent_loop.v1"
+SPECIALIST_AGENT_LOOP_REGISTRY_SERIALIZATION_VERSION = (
+    "specialist_agent_loop_registry.v1"
 )
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
@@ -46,6 +57,13 @@ CONDITIONAL_ESCALATION_AUTHORITY_BOUNDARY = (
     "backbone; it does not evaluate conditions, invoke agents, route providers "
     "or models, select runtimes, control workflow transitions, trigger retries, "
     "execute voting, write memory, or modify generated output."
+)
+SPECIALIST_AGENT_LOOP_AUTHORITY_BOUNDARY = (
+    "Specialist agent loop metadata describes bounded future loop candidates "
+    "for known passive agent contracts only; it does not execute loops, invoke "
+    "agents, coordinate multi-agent work, route providers or models, select "
+    "runtimes, control workflow transitions, trigger retries, write memory, or "
+    "modify generated output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Hybrid agentic workflow metadata maps current V3 workflow nodes to future "
@@ -101,6 +119,23 @@ _CONDITIONAL_ESCALATION_SOURCE_REGISTRIES = (
     "agent_escalation_signal_registry",
     "hybrid_agentic_workflow_registry",
 )
+_SPECIALIST_AGENT_LOOP_BLOCKED_RUNTIME_BEHAVIORS = (
+    "loop_execution",
+    "agent_invocation",
+    "multi_agent_orchestration",
+    "provider_or_model_routing",
+    "runtime_selection",
+    "workflow_control",
+    "retry_or_refinement_triggering",
+    "memory_write",
+    "generated_output_modification",
+)
+_SPECIALIST_AGENT_LOOP_SOURCE_REGISTRIES = (
+    "agent_contract_registry",
+    "conditional_multi_agent_escalation_registry",
+    "v3_backbone_mode_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -114,6 +149,27 @@ _CONDITIONAL_ESCALATION_CATEGORIES: tuple[ConditionalEscalationCategory, ...] = 
     "runtime",
     "quality",
     "hitl",
+)
+_SPECIALIST_AGENT_LOOP_CATEGORIES: tuple[SpecialistLoopCategory, ...] = (
+    "planning",
+    "artifact",
+    "runtime",
+    "evaluation",
+    "synthesis",
+)
+_KNOWN_SPECIALIST_AGENT_IDS = (
+    "planner_agent",
+    "research_agent",
+    "style_agent",
+    "runtime_agent",
+    "artifact_agent",
+    "art_direction_agent",
+    "aesthetic_critic_agent",
+    "narrative_symbolic_agent",
+    "creative_curator_agent",
+    "critic_agent",
+    "refiner_agent",
+    "final_synthesizer_agent",
 )
 _KNOWN_CONDITIONAL_ESCALATION_CAPABILITY_IDS = (
     "v4_planner_agent",
@@ -400,6 +456,143 @@ def conditional_multi_agent_escalation_condition_by_id(
     return None
 
 
+class SpecialistAgentLoopProfile(BaseModel):
+    """Passive profile for one future specialist-agent loop candidate."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    loop_id: str = Field(min_length=1, max_length=120)
+    loop_name: str = Field(min_length=1, max_length=160)
+    category: SpecialistLoopCategory
+    specialist_agent_ids: tuple[str, ...] = Field(min_length=1, max_length=6)
+    source_condition_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_node_ids: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_registries: tuple[str, ...] = Field(min_length=4, max_length=4)
+    loop_inputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    max_advisory_passes: int = Field(ge=1, le=3)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_SPECIALIST_AGENT_LOOP_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    loop_execution_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    multi_agent_orchestration_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["specialist_agent_loop.v1"] = (
+        SPECIALIST_AGENT_LOOP_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class SpecialistAgentLoopRegistry(BaseModel):
+    """Stable passive registry for specialist-agent loop metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["specialist_agent_loop_registry"] = (
+        "specialist_agent_loop_registry"
+    )
+    serialization_version: Literal["specialist_agent_loop_registry.v1"] = (
+        SPECIALIST_AGENT_LOOP_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=SPECIALIST_AGENT_LOOP_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    loops: tuple[SpecialistAgentLoopProfile, ...] = Field(
+        min_length=5,
+        max_length=5,
+    )
+    loop_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    categories: tuple[SpecialistLoopCategory, ...] = Field(
+        min_length=5,
+        max_length=5,
+    )
+    source_registries: tuple[str, ...] = Field(min_length=4, max_length=4)
+    agent_ids: tuple[str, ...] = Field(min_length=12, max_length=12)
+    condition_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    backbone_node_ids: tuple[str, ...] = Field(min_length=18, max_length=18)
+    loop_count: int = Field(ge=5, le=5)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_SPECIALIST_AGENT_LOOP_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    loop_execution_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    multi_agent_orchestration_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_specialist_loop_metadata(self) -> Self:
+        derived_loop_ids = tuple(loop.loop_id for loop in self.loops)
+        derived_categories = tuple(loop.category for loop in self.loops)
+        if self.loop_ids != derived_loop_ids:
+            raise ValueError("loop_ids must match loops")
+        if len(set(self.loop_ids)) != len(self.loop_ids):
+            raise ValueError("loop_ids must be unique")
+        if self.categories != derived_categories:
+            raise ValueError("categories must match loops")
+        if self.loop_count != len(self.loops):
+            raise ValueError("loop_count must match loops")
+
+        source_registries = set(self.source_registries)
+        loop_source_registries = {
+            source_registry
+            for loop in self.loops
+            for source_registry in loop.source_registries
+        }
+        if source_registries != loop_source_registries:
+            raise ValueError("source_registries must match loop sources")
+
+        known_agents = set(self.agent_ids)
+        known_conditions = set(self.condition_ids)
+        known_nodes = set(self.backbone_node_ids)
+        for loop in self.loops:
+            if loop.source_registries != self.source_registries:
+                raise ValueError("loop sources must match registry sources")
+            if not set(loop.specialist_agent_ids).issubset(known_agents):
+                raise ValueError("loop agents must be known passive agents")
+            if not set(loop.source_condition_ids).issubset(known_conditions):
+                raise ValueError("loop conditions must be known metadata")
+            if not set(loop.source_node_ids).issubset(known_nodes):
+                raise ValueError("loop source nodes must be V3 backbone nodes")
+            if loop.loop_execution_implemented:
+                raise ValueError("specialist loops must not execute")
+            if loop.agent_invocation_implemented:
+                raise ValueError("specialist loops must not invoke agents")
+        return self
+
+
+def specialist_agent_loop_registry() -> SpecialistAgentLoopRegistry:
+    """Return passive specialist loop metadata without executing loops."""
+
+    return SPECIALIST_AGENT_LOOP_REGISTRY
+
+
+def specialist_agent_loop_by_id(
+    loop_id: str,
+    registry: SpecialistAgentLoopRegistry | None = None,
+) -> SpecialistAgentLoopProfile | None:
+    """Return one specialist loop profile without invoking agents."""
+
+    source_registry = registry or SPECIALIST_AGENT_LOOP_REGISTRY
+    for loop in source_registry.loops:
+        if loop.loop_id == loop_id:
+            return loop
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -509,6 +702,38 @@ def _conditional_escalation_condition(
             "evaluate conditions, invoke agents, route providers or models, "
             "control workflow transitions, trigger retries, execute voting, "
             "write memory, or modify generated output."
+        ),
+    )
+
+
+def _specialist_agent_loop(
+    *,
+    loop_id: str,
+    loop_name: str,
+    category: SpecialistLoopCategory,
+    specialist_agent_ids: tuple[str, ...],
+    source_condition_ids: tuple[str, ...],
+    source_node_ids: tuple[str, ...],
+    loop_inputs: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+    max_advisory_passes: int,
+) -> SpecialistAgentLoopProfile:
+    return SpecialistAgentLoopProfile(
+        loop_id=loop_id,
+        loop_name=loop_name,
+        category=category,
+        specialist_agent_ids=specialist_agent_ids,
+        source_condition_ids=source_condition_ids,
+        source_node_ids=source_node_ids,
+        source_registries=_SPECIALIST_AGENT_LOOP_SOURCE_REGISTRIES,
+        loop_inputs=loop_inputs,
+        advisory_outputs=advisory_outputs,
+        max_advisory_passes=max_advisory_passes,
+        authority_boundary=(
+            "This specialist loop is advisory metadata only; it does not "
+            "execute loops, invoke agents, coordinate multi-agent work, route "
+            "providers or models, control workflow transitions, trigger "
+            "retries, write memory, or modify generated output."
         ),
     )
 
@@ -792,6 +1017,129 @@ CONDITIONAL_MULTI_AGENT_ESCALATION_REGISTRY = (
         backbone_node_ids=V3_BACKBONE_MODE_REGISTRY.node_ids,
         condition_count=len(CONDITIONAL_MULTI_AGENT_ESCALATION_CONDITIONS),
     )
+)
+SPECIALIST_AGENT_LOOPS = (
+    _specialist_agent_loop(
+        loop_id="planning_specialist_agent_loop",
+        loop_name="Planning Specialist Agent Loop",
+        category="planning",
+        specialist_agent_ids=("planner_agent", "research_agent"),
+        source_condition_ids=("planning_ambiguity_multi_agent_candidate",),
+        source_node_ids=("prompt_input", "planning", "reasoning"),
+        loop_inputs=(
+            "planning_escalation_context_packet",
+            "unresolved_question_summary",
+        ),
+        advisory_outputs=(
+            "planning_loop_notes",
+            "research_gap_summary",
+            "planner_handoff_recommendation",
+        ),
+        max_advisory_passes=2,
+    ),
+    _specialist_agent_loop(
+        loop_id="artifact_specialist_agent_loop",
+        loop_name="Artifact Specialist Agent Loop",
+        category="artifact",
+        specialist_agent_ids=(
+            "artifact_agent",
+            "art_direction_agent",
+            "style_agent",
+        ),
+        source_condition_ids=("artifact_risk_multi_agent_candidate",),
+        source_node_ids=(
+            "generation",
+            "artifact_extraction",
+            "artifact_critique",
+        ),
+        loop_inputs=(
+            "artifact_risk_context_packet",
+            "implementation_risk_summary",
+        ),
+        advisory_outputs=(
+            "artifact_loop_notes",
+            "art_direction_review_summary",
+            "style_consistency_handoff",
+        ),
+        max_advisory_passes=2,
+    ),
+    _specialist_agent_loop(
+        loop_id="runtime_specialist_agent_loop",
+        loop_name="Runtime Specialist Agent Loop",
+        category="runtime",
+        specialist_agent_ids=("runtime_agent", "artifact_agent"),
+        source_condition_ids=("runtime_fit_multi_agent_candidate",),
+        source_node_ids=(
+            "generation",
+            "artifact_extraction",
+            "preview_preparation",
+        ),
+        loop_inputs=(
+            "runtime_fit_context_packet",
+            "compatibility_gap_summary",
+        ),
+        advisory_outputs=(
+            "runtime_loop_notes",
+            "compatibility_review_summary",
+            "runtime_handoff_recommendation",
+        ),
+        max_advisory_passes=2,
+    ),
+    _specialist_agent_loop(
+        loop_id="evaluation_specialist_agent_loop",
+        loop_name="Evaluation Specialist Agent Loop",
+        category="evaluation",
+        specialist_agent_ids=(
+            "critic_agent",
+            "aesthetic_critic_agent",
+            "creative_curator_agent",
+            "refiner_agent",
+        ),
+        source_condition_ids=("evaluation_confidence_multi_agent_candidate",),
+        source_node_ids=("review", "refinement"),
+        loop_inputs=(
+            "evaluation_escalation_context_packet",
+            "quality_uncertainty_summary",
+        ),
+        advisory_outputs=(
+            "evaluation_loop_notes",
+            "critic_disagreement_summary",
+            "refinement_handoff_recommendation",
+        ),
+        max_advisory_passes=3,
+    ),
+    _specialist_agent_loop(
+        loop_id="synthesis_specialist_agent_loop",
+        loop_name="Synthesis Specialist Agent Loop",
+        category="synthesis",
+        specialist_agent_ids=(
+            "final_synthesizer_agent",
+            "narrative_symbolic_agent",
+            "creative_curator_agent",
+        ),
+        source_condition_ids=("terminal_guardrail_multi_agent_candidate",),
+        source_node_ids=("finalization", "failure"),
+        loop_inputs=(
+            "completion_guardrail_context_packet",
+            "failure_review_posture",
+        ),
+        advisory_outputs=(
+            "synthesis_loop_notes",
+            "terminal_handoff_summary",
+            "final_synthesis_recommendation",
+        ),
+        max_advisory_passes=1,
+    ),
+)
+SPECIALIST_AGENT_LOOP_REGISTRY = SpecialistAgentLoopRegistry(
+    loops=SPECIALIST_AGENT_LOOPS,
+    loop_ids=tuple(loop.loop_id for loop in SPECIALIST_AGENT_LOOPS),
+    categories=tuple(loop.category for loop in SPECIALIST_AGENT_LOOPS),
+    source_registries=_SPECIALIST_AGENT_LOOP_SOURCE_REGISTRIES,
+    agent_ids=_KNOWN_SPECIALIST_AGENT_IDS,
+    condition_ids=CONDITIONAL_MULTI_AGENT_ESCALATION_REGISTRY.condition_ids,
+    backbone_node_ids=V3_BACKBONE_MODE_REGISTRY.node_ids,
+    loop_count=len(SPECIALIST_AGENT_LOOPS),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (

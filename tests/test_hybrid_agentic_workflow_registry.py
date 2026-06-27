@@ -3,7 +3,9 @@ import unittest
 from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
     ConditionalMultiAgentEscalationRegistry,
+    SpecialistAgentLoopRegistry,
     V3BackboneModeRegistry,
+    agent_contract_registry,
     agent_capability_registry,
     agent_escalation_signal_registry,
     conditional_multi_agent_escalation_condition_by_id,
@@ -11,6 +13,8 @@ from creative_coding_assistant.orchestration import (
     escalation_policy_registry,
     hybrid_agentic_workflow_registry,
     hybrid_agentic_workflow_stage_by_id,
+    specialist_agent_loop_by_id,
+    specialist_agent_loop_registry,
     v3_backbone_mode_profile_by_node_id,
     v3_backbone_mode_registry,
 )
@@ -104,6 +108,49 @@ REQUIRED_CONDITIONAL_ESCALATION_FIELDS = {
     "blocked_runtime_behaviors",
     "condition_evaluation_implemented",
     "multi_agent_execution_implemented",
+    "provider_model_routing_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_SPECIALIST_LOOP_IDS = (
+    "planning_specialist_agent_loop",
+    "artifact_specialist_agent_loop",
+    "runtime_specialist_agent_loop",
+    "evaluation_specialist_agent_loop",
+    "synthesis_specialist_agent_loop",
+)
+EXPECTED_SPECIALIST_LOOP_CATEGORIES = (
+    "planning",
+    "artifact",
+    "runtime",
+    "evaluation",
+    "synthesis",
+)
+EXPECTED_SPECIALIST_LOOP_SOURCE_REGISTRIES = (
+    "agent_contract_registry",
+    "conditional_multi_agent_escalation_registry",
+    "v3_backbone_mode_registry",
+    "hybrid_agentic_workflow_registry",
+)
+REQUIRED_SPECIALIST_LOOP_FIELDS = {
+    "loop_id",
+    "loop_name",
+    "category",
+    "specialist_agent_ids",
+    "source_condition_ids",
+    "source_node_ids",
+    "source_registries",
+    "loop_inputs",
+    "advisory_outputs",
+    "max_advisory_passes",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "loop_execution_implemented",
+    "agent_invocation_implemented",
+    "multi_agent_orchestration_implemented",
     "provider_model_routing_implemented",
     "workflow_control_implemented",
     "retry_triggering_implemented",
@@ -407,6 +454,163 @@ class ConditionalMultiAgentEscalationRegistryTests(unittest.TestCase):
         for forbidden_term in (
             "execute_agent",
             "run_agents",
+            "route_provider",
+            "trigger_retry",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class SpecialistAgentLoopRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_specialist_loops(self) -> None:
+        registry = specialist_agent_loop_registry()
+
+        self.assertEqual(registry.role, "specialist_agent_loop_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "specialist_agent_loop_registry.v1",
+        )
+        self.assertEqual(registry.loop_ids, EXPECTED_SPECIALIST_LOOP_IDS)
+        self.assertEqual(registry.categories, EXPECTED_SPECIALIST_LOOP_CATEGORIES)
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_SPECIALIST_LOOP_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(
+            registry.condition_ids,
+            conditional_multi_agent_escalation_registry().condition_ids,
+        )
+        self.assertEqual(registry.backbone_node_ids, ASSISTANT_WORKFLOW_NODE_ORDER)
+        self.assertEqual(registry.loop_count, 5)
+        self.assertIn("does not execute loops", registry.authority_boundary)
+        self.assertFalse(registry.loop_execution_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.multi_agent_orchestration_implemented)
+        self.assertFalse(registry.provider_model_routing_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_specialist_loops_reference_known_passive_agent_contracts(self) -> None:
+        registry = specialist_agent_loop_registry()
+        known_agents = set(agent_contract_registry().agent_ids)
+        known_conditions = set(conditional_multi_agent_escalation_registry().condition_ids)
+        known_nodes = set(v3_backbone_mode_registry().node_ids)
+
+        for loop in registry.loops:
+            dumped = loop.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_SPECIALIST_LOOP_FIELDS)
+            self.assertEqual(
+                loop.source_registries,
+                EXPECTED_SPECIALIST_LOOP_SOURCE_REGISTRIES,
+            )
+            self.assertTrue(set(loop.specialist_agent_ids).issubset(known_agents))
+            self.assertTrue(set(loop.source_condition_ids).issubset(known_conditions))
+            self.assertTrue(set(loop.source_node_ids).issubset(known_nodes))
+            self.assertGreaterEqual(loop.max_advisory_passes, 1)
+            self.assertLessEqual(loop.max_advisory_passes, 3)
+            self.assertTrue(loop.loop_inputs)
+            self.assertTrue(loop.advisory_outputs)
+            self.assertIn("loop_execution", loop.blocked_runtime_behaviors)
+            self.assertIn("agent_invocation", loop.blocked_runtime_behaviors)
+            self.assertIn(
+                "multi_agent_orchestration",
+                loop.blocked_runtime_behaviors,
+            )
+            self.assertFalse(loop.loop_execution_implemented)
+            self.assertFalse(loop.agent_invocation_implemented)
+            self.assertFalse(loop.multi_agent_orchestration_implemented)
+            self.assertFalse(loop.provider_model_routing_implemented)
+            self.assertFalse(loop.workflow_control_implemented)
+            self.assertFalse(loop.retry_triggering_implemented)
+            self.assertFalse(loop.generated_output_mutation_implemented)
+            self.assertEqual(loop.serialization_version, "specialist_agent_loop.v1")
+            self.assertTrue(loop.metadata_only)
+
+    def test_specialist_loop_source_registries_are_complete(self) -> None:
+        registry = specialist_agent_loop_registry()
+        loop_sources = tuple(
+            dict.fromkeys(
+                source
+                for loop in registry.loops
+                for source in loop.source_registries
+            )
+        )
+
+        self.assertEqual(loop_sources, registry.source_registries)
+        for source_registry in EXPECTED_SPECIALIST_LOOP_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, loop_sources)
+        for loop in registry.loops:
+            self.assertEqual(set(loop.source_registries), set(loop_sources))
+
+    def test_specialist_loop_lookup_is_stable(self) -> None:
+        loop = specialist_agent_loop_by_id("evaluation_specialist_agent_loop")
+        missing = specialist_agent_loop_by_id("missing_loop")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(loop)
+        assert loop is not None
+        self.assertEqual(loop.category, "evaluation")
+        self.assertIn("critic_agent", loop.specialist_agent_ids)
+        self.assertIn("refiner_agent", loop.specialist_agent_ids)
+        self.assertEqual(loop.max_advisory_passes, 3)
+        self.assertFalse(loop.loop_execution_implemented)
+
+    def test_specialist_loop_registry_rejects_mismatched_metadata(self) -> None:
+        registry = specialist_agent_loop_registry()
+        mismatched_loop = registry.loops[0].model_copy(
+            update={"loop_id": "other_loop"}
+        )
+        unknown_agent_loop = registry.loops[0].model_copy(
+            update={"specialist_agent_ids": ("missing_agent",)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "loop_ids must match"):
+            SpecialistAgentLoopRegistry(
+                loops=(mismatched_loop,) + registry.loops[1:],
+                loop_ids=registry.loop_ids,
+                categories=registry.categories,
+                source_registries=registry.source_registries,
+                agent_ids=registry.agent_ids,
+                condition_ids=registry.condition_ids,
+                backbone_node_ids=registry.backbone_node_ids,
+                loop_count=registry.loop_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "loop agents must be known"):
+            SpecialistAgentLoopRegistry(
+                loops=(unknown_agent_loop,) + registry.loops[1:],
+                loop_ids=registry.loop_ids,
+                categories=registry.categories,
+                source_registries=registry.source_registries,
+                agent_ids=registry.agent_ids,
+                condition_ids=registry.condition_ids,
+                backbone_node_ids=registry.backbone_node_ids,
+                loop_count=registry.loop_count,
+            )
+
+    def test_specialist_loops_do_not_declare_active_execution(self) -> None:
+        registry = specialist_agent_loop_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for loop in registry.loops
+                    for field in (
+                        loop.loop_id,
+                        loop.authority_boundary,
+                        *loop.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "execute_agent",
+            "run_loop",
             "route_provider",
             "trigger_retry",
             "modify_output",

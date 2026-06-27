@@ -339,6 +339,8 @@ _EXPORT_MAP = {
     "ConditionalMultiAgentEscalationRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "HybridAgenticWorkflowRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "HybridAgenticWorkflowStage": _HYBRID_AGENTIC_WORKFLOW,
+    "SpecialistAgentLoopProfile": _HYBRID_AGENTIC_WORKFLOW,
+    "SpecialistAgentLoopRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "V3BackboneModeNodeProfile": _HYBRID_AGENTIC_WORKFLOW,
     "V3BackboneModeRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "conditional_multi_agent_escalation_condition_by_id": (
@@ -347,6 +349,8 @@ _EXPORT_MAP = {
     "conditional_multi_agent_escalation_registry": _HYBRID_AGENTIC_WORKFLOW,
     "hybrid_agentic_workflow_registry": _HYBRID_AGENTIC_WORKFLOW,
     "hybrid_agentic_workflow_stage_by_id": _HYBRID_AGENTIC_WORKFLOW,
+    "specialist_agent_loop_by_id": _HYBRID_AGENTIC_WORKFLOW,
+    "specialist_agent_loop_registry": _HYBRID_AGENTIC_WORKFLOW,
     "v3_backbone_mode_profile_by_node_id": _HYBRID_AGENTIC_WORKFLOW,
     "v3_backbone_mode_registry": _HYBRID_AGENTIC_WORKFLOW,
     "EngineContractConsistencyRegistry": _ENGINE_CONTRACT_CONSISTENCY,
