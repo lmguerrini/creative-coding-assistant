@@ -51,6 +51,7 @@ flowchart LR
     classDef store fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px;
     classDef consumer fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px;
     classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
+    classDef relationship fill:#FEFCE8,stroke:#A16207,color:#713F12,stroke-width:1.5px,stroke-dasharray: 6 4;
 
     upstream["Upstream stored metadata<br/>V3.1 Creative Cognition<br/>V3.2 Generative Design"]:::upstream
 
@@ -75,7 +76,12 @@ flowchart LR
     prompt["Prompt Rendering<br/>artifact profile sections"]:::consumer
     stream["Next.js stream hydration<br/>workflow metadata readers"]:::consumer
     workstation["V3.5 Workstation surfaces<br/>provenance + timeline + inspector + dashboard"]:::consumer
-    note["Metadata-only architecture<br/>No export execution, runtime selection,<br/>provider routing, retries, or preview changes"]:::note
+    note["Metadata-only architecture<br/>No artifact execution, modification, or export<br/>No runtime selection, provider routing,<br/>retries, preview changes, or future systems"]:::note
+    planning_boundary["Planning relationship<br/>artifact plan + dependency graph<br/>define artifact shape and ordering"]:::relationship
+    compatibility_boundary["Compatibility relationship<br/>runtime compatibility + capability matrix<br/>bound multi-artifact strategy"]:::relationship
+    critique_boundary["Critique relationship<br/>strategy, critic, and refiner<br/>set artifact improvement focus"]:::relationship
+    synthesis_boundary["Synthesis relationship<br/>critic + refiner evidence<br/>feeds synthesis and merge planning"]:::relationship
+    export_boundary["Merge/export relationship<br/>synthesis + merge plan<br/>produce export intelligence metadata"]:::relationship
 
     upstream --> planner --> dependency --> runtime --> capability --> strategy --> critic --> refiner --> synthesis --> merge --> export
     contracts -. standardizes .-> planner
@@ -98,10 +104,37 @@ flowchart LR
     stream --> workstation
     director --> reasoning
     note -.-> artifact_stack
+    planner -. scopes .-> planning_boundary
+    dependency -. orders .-> planning_boundary
+    planning_boundary -. informs .-> runtime
+    runtime -. checks .-> compatibility_boundary
+    capability -. maps .-> compatibility_boundary
+    compatibility_boundary -. bounds .-> strategy
+    strategy -. focuses .-> critique_boundary
+    critic -. evaluates .-> critique_boundary
+    critique_boundary -. guides .-> refiner
+    critic -. evidence .-> synthesis_boundary
+    refiner -. guidance .-> synthesis_boundary
+    synthesis_boundary -. consolidates .-> synthesis
+    synthesis -. informs .-> export_boundary
+    merge -. assembles .-> export_boundary
+    export_boundary -. publishes .-> export
+    export_boundary -. stores .-> store
 ```
 
 The raw Mermaid source for this detailed dependency view is available in
 [artifact_intelligence_graph.mmd](artifact_intelligence_graph.mmd).
+
+## Artifact Intelligence Relationship Map
+
+| Relationship | Implemented metadata path | Downstream use |
+| --- | --- | --- |
+| Planning and dependency shape | `Artifact Planner` produces `artifact_plan`; `Artifact Dependency Graph` turns it into ordered artifact metadata | Gives compatibility, capability, strategy, critique, merge, and export engines a stable artifact shape and dependency order |
+| Compatibility and capability bounds | `Runtime Compatibility Engine` and `Artifact Capability Matrix` read the plan, dependency graph, runtime capabilities, strategy, constraints, and trade-offs | Bounds `Multi-Artifact Strategy` with supported runtimes, artifact roles, and capability expectations |
+| Critique and refinement focus | `Multi-Artifact Strategy` feeds `Artifact Critic`; `Artifact Refiner` reads the critic output | Converts artifact-level risks, strengths, weaknesses, and improvement focus into inspectable refinement guidance |
+| Synthesis and merge planning | `Artifact Intelligence Synthesis` consolidates plan, dependency, compatibility, strategy, critic, and refiner metadata; `Artifact Merge Planner` reads that synthesis | Prepares multi-artifact composition guidance without executing or modifying generated artifacts |
+| Export intelligence handoff | `Artifact Export Intelligence` reads synthesis and merge metadata, then stores `artifact_export_intelligence` | Supplies Director, Reasoning, prompt rendering, workflow serialization, stream hydration, and workstation surfaces with export-planning metadata only |
+| Contract standardization | `Artifact Engine Contracts` is a static registry for the ten artifact engines | Standardizes serialized metadata shape for workflow/stream readers while remaining outside provider prompt text |
 
 ## Dependency Matrix
 

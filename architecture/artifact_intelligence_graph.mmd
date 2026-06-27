@@ -6,6 +6,7 @@ flowchart LR
     classDef store fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px;
     classDef consumer fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px;
     classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
+    classDef relationship fill:#FEFCE8,stroke:#A16207,color:#713F12,stroke-width:1.5px,stroke-dasharray: 6 4;
 
     upstream["Upstream stored metadata<br/>V3.1 Creative Cognition<br/>V3.2 Generative Design"]:::upstream
 
@@ -33,6 +34,11 @@ flowchart LR
     stream["Next.js stream hydration<br/>workflow metadata readers"]:::consumer
     workstation["V3.5 Workstation surfaces<br/>provenance + timeline + inspector + dashboard"]:::consumer
     note["Metadata-only architecture<br/>No artifact execution, modification, or export<br/>No runtime selection, provider routing,<br/>retries, preview changes, or future systems"]:::note
+    planning_boundary["Planning relationship<br/>artifact plan + dependency graph<br/>define artifact shape and ordering"]:::relationship
+    compatibility_boundary["Compatibility relationship<br/>runtime compatibility + capability matrix<br/>bound multi-artifact strategy"]:::relationship
+    critique_boundary["Critique relationship<br/>strategy, critic, and refiner<br/>set artifact improvement focus"]:::relationship
+    synthesis_boundary["Synthesis relationship<br/>critic + refiner evidence<br/>feeds synthesis and merge planning"]:::relationship
+    export_boundary["Merge/export relationship<br/>synthesis + merge plan<br/>produce export intelligence metadata"]:::relationship
 
     %% Pipeline order
     upstream --> planner --> dependency --> runtime --> capability --> strategy --> critic --> refiner --> synthesis --> merge --> export
@@ -59,3 +65,21 @@ flowchart LR
     stream --> workstation
     director --> reasoning
     note -.-> artifact_stack
+
+    %% Relationship annotations
+    planner -. scopes .-> planning_boundary
+    dependency -. orders .-> planning_boundary
+    planning_boundary -. informs .-> runtime
+    runtime -. checks .-> compatibility_boundary
+    capability -. maps .-> compatibility_boundary
+    compatibility_boundary -. bounds .-> strategy
+    strategy -. focuses .-> critique_boundary
+    critic -. evaluates .-> critique_boundary
+    critique_boundary -. guides .-> refiner
+    critic -. evidence .-> synthesis_boundary
+    refiner -. guidance .-> synthesis_boundary
+    synthesis_boundary -. consolidates .-> synthesis
+    synthesis -. informs .-> export_boundary
+    merge -. assembles .-> export_boundary
+    export_boundary -. publishes .-> export
+    export_boundary -. stores .-> store
