@@ -23,6 +23,13 @@ definitions, contracts, memory-access boundaries, authority boundaries, and
 advisory metadata for inspection and future orchestration consumers. These
 registries do not run agents, route tasks, change prompts, select providers,
 select runtimes, trigger retries, or modify generated output.
+V4.2 adds passive Agent Orchestration contracts over that Multi-Agent Core:
+dynamic routing profiles, blackboard channel contracts, shared context views,
+dependency and scheduling metadata, coordination/debate/consensus contracts,
+lifecycle and synchronization metadata, workflow-to-agent handoff metadata, and
+an integration manifest. These registries make orchestration readiness
+inspectable while preserving the existing generation, runtime, routing, prompt,
+retry, storage, and output behavior.
 
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
@@ -52,6 +59,10 @@ observed through live preview and runtime inspection from the same interface.
 - V4.1 Multi-Agent Core registries for passive agent identities, roles,
   contracts, memory boundaries, authority boundaries, and advisory metadata
   without active multi-agent orchestration
+- V4.2 Agent Orchestration registries for passive routing, blackboard, context
+  view, dependency, scheduling, coordination, debate, consensus, lifecycle,
+  synchronization, handoff, and integration metadata without active
+  orchestration
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -88,6 +99,14 @@ agent identities, role ordering, role contracts, memory access boundaries,
 authority boundaries, and advisory operational metadata. It is a passive
 contract layer for inspection and future orchestration design, not active
 multi-agent orchestration.
+
+V4.2 Agent Orchestration defines the orchestration layer as product metadata:
+agent routing profiles, blackboard channel boundaries, scoped shared context
+views, dependency and scheduling contracts, coordination/debate/consensus
+contracts, escalation signals, lifecycle state metadata, synchronization
+warnings, workflow handoff contracts, and an integration manifest. It preserves
+the existing runtime graph and remains passive orchestration metadata, not
+active agent execution.
 
 Artifact Intelligence capabilities:
 
@@ -135,6 +154,23 @@ Multi-Agent Core registries:
 - Agent Boundary Registry
 - Agent Metadata Registry
 
+Agent Orchestration registries:
+
+- Agent Routing Registry
+- Blackboard Memory Registry
+- Shared Context View Registry
+- Agent Dependency Graph Registry
+- Parallel Scheduling Registry
+- Agent Coordination Registry
+- Agent Debate Registry
+- Consensus Builder Registry
+- Agent Capability Alignment Registry
+- Agent Escalation Signal Registry
+- Agent Lifecycle Registry
+- Agent State Synchronization Registry
+- Workflow Agent Handoff Registry
+- Orchestration Contract Integration Registry
+
 The architecture documents six complementary views:
 
 - the real runtime graph in
@@ -147,20 +183,21 @@ The architecture documents six complementary views:
   [`architecture/artifact_intelligence_graph.md`](architecture/artifact_intelligence_graph.md)
 - the V3.5 Creative Workstation surface graph in
   [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
-- the cross-cutting engine matrix, including V4.1 agent registries, in
+- the cross-cutting engine matrix, including V4.1 and V4.2 registries, in
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
 The runtime graph remains compact and truthful. The internal pipeline and
 dependency views remain blueprints for future V4 Agentic Studio decomposition,
-while V4.1 documents passive roles and contracts rather than claiming that a
-multi-agent runtime already exists.
+while V4.1 and V4.2 document passive roles, contracts, and orchestration
+metadata rather than claiming that a multi-agent runtime already exists.
 
 ## Creative Workflow
 
 The workstation still centers on the V2.5 creative loop, now enriched by the
 V3.1 Creative Cognition Core, V3.2 Generative Design Core, V3.3 Artifact
 Intelligence, V3.4 Creative Evaluation metadata, and V3.5 Creative
-Workstation inspection surfaces, plus V4.1 passive Multi-Agent Core contracts:
+Workstation inspection surfaces, plus V4.1 passive Multi-Agent Core contracts
+and V4.2 passive Agent Orchestration contracts:
 
 `Intent -> HITL Clarification -> Creative Translation -> Reference Fusion -> Creative Planning -> Generation -> Preview -> Critique -> Creative Evaluation -> Calibrated Quality -> Multi-Pass Refinement -> Export Preparation`
 
@@ -199,6 +236,11 @@ Workstation inspection surfaces, plus V4.1 passive Multi-Agent Core contracts:
   authority-boundary, and advisory metadata registries describe future agent
   responsibilities without adding active agents, task routing, prompt
   injection, retries, or runtime changes.
+- Agent Orchestration: passive routing, blackboard, shared context, dependency,
+  scheduling, coordination, debate, consensus, escalation, lifecycle,
+  synchronization, handoff, and integration metadata describe future
+  orchestration readiness without adding active orchestration, workflow graph
+  changes, prompt injection, storage mutation, retries, or runtime changes.
 - Generation: the backend resolves effective domains, assembles the prompt,
   and streams one or more creative artifacts.
 - Preview: supported artifacts mount in controlled preview runtimes with
@@ -369,6 +411,44 @@ blackboard memory, materialize shared context views, render agent text into
 provider prompts, enter workflow event payloads, change LangGraph node order,
 change provider routing, select runtimes, trigger retries, execute artifacts,
 modify artifacts, or change generated output.
+
+### V4.2 Agent Orchestration
+
+- Agent Routing Registry for advisory per-agent route candidates without
+  provider/model routing or workflow routing changes
+- Blackboard Memory Registry for planned blackboard channels and permissions
+  without persistence, runtime reads, runtime writes, or storage backends
+- Shared Context View Registry for scoped per-agent context visibility without
+  materializing shared context or exposing global state
+- Agent Dependency Graph Registry for static dependency relationships without
+  scheduling traversal or executing agents
+- Parallel Scheduling Registry for future concurrency groups without parallel
+  runtime execution
+- Agent Coordination Registry for responsibility, handoff-channel, and event
+  contracts without live coordination
+- Agent Debate Registry for bounded advisory debate metadata without running
+  debates or triggering retries
+- Consensus Builder Registry for voting inputs and agreement surfaces without
+  voting or selecting outputs
+- Agent Capability Alignment Registry for V4.1 role-to-V4.2 capability mapping
+  without activating capabilities
+- Agent Escalation Signal Registry for advisory escalation thresholds without
+  automatic escalation, provider routing, or HITL triggering
+- Agent Lifecycle Registry for planned lifecycle states and transitions without
+  a lifecycle engine or workflow state mutation
+- Agent State Synchronization Registry for checkpoints, stale warnings, and
+  conflict surfaces without runtime synchronization or conflict resolution
+- Workflow Agent Handoff Registry for V3 workflow-surface to V4 agent handoff
+  metadata without changing workflow graph, prompts, or payloads
+- Orchestration Contract Integration Registry for registry discoverability
+  against V4.1 contracts without creating an active orchestration path
+
+These V4.2 registries are passive product and architecture metadata over the
+V4.1 agent society. They do not execute orchestration, invoke agents,
+synchronize runtime state, mutate blackboard or storage state, alter prompts,
+enter workflow payloads, change LangGraph node order, route providers or
+models, select runtimes, trigger retries, execute artifacts, modify artifacts,
+or change generated output.
 
 ### Creative Core
 
@@ -722,8 +802,9 @@ current runtime.
   production-ready creative review.
 - Agentic Studio: more collaborative decomposition of creative strategy,
   critique, and refinement when future runtime boundaries support it. V4.1
-  supplies passive role and contract metadata for that direction, not active
-  collaboration behavior.
+  supplies passive role and contract metadata, and V4.2 supplies passive
+  orchestration readiness metadata, for that direction. Neither layer is active
+  collaboration behavior in the current runtime.
 - Execution Optimization: stronger production telemetry, runtime policy, and
   cost/performance intelligence.
 - HoloGenesis Core OS: long-horizon creative lineage, feedback, memory, and
