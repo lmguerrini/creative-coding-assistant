@@ -214,5 +214,120 @@ def agent_contract_by_id(
     return None
 
 
-AGENT_CONTRACTS: tuple[AgentContract, ...] = ()
+PLANNER_AGENT_CONTRACT = AgentContract(
+    agent_id="planner_agent",
+    agent_name="Planner Agent",
+    agent_version="v4.1",
+    role_id="planner",
+    role_name="Planner Agent",
+    role_purpose=(
+        "Represent planning context, gaps, constraints, and handoff metadata "
+        "for future V4 orchestration."
+    ),
+    authority_boundary=(
+        "Planner Agent contract metadata maps existing V3 planning and "
+        "intelligence outputs into a future planning handoff surface only; it "
+        "does not execute a planner agent, change existing planner behavior, "
+        "alter workflow node order, route providers or models, select "
+        "runtimes, trigger retries, or modify generated output."
+    ),
+    allowed_actions=(
+        "describe_planning_context_requirements",
+        "map_upstream_planning_metadata",
+        "declare_future_planning_handoff",
+    ),
+    prohibited_actions=(
+        "planner_agent_execution",
+        "workflow_node_order_change",
+        "provider_or_model_routing",
+        "runtime_selection",
+        "retry_or_refinement_triggering",
+        "generated_output_modification",
+    ),
+    capabilities=(
+        "planning_context_mapping",
+        "requirement_gap_detection",
+        "handoff_metadata_preparation",
+    ),
+    required_inputs=(
+        "assistant_request",
+        "route_decision",
+        "creative_execution_plan",
+    ),
+    optional_inputs=(
+        "creative_translation",
+        "creative_intent",
+        "creative_hierarchy",
+        "creative_constraints",
+        "creative_strategy",
+        "creative_technique",
+        "artifact_engine_contract_registry",
+        "evaluation_engine_contract_registry",
+        "agent_memory_contract",
+    ),
+    produced_outputs=(
+        "planner_context_packet_contract",
+        "planning_gap_summary_contract",
+        "planning_handoff_metadata_contract",
+    ),
+    produced_metadata=(
+        "planning_scope_metadata",
+        "planning_gap_metadata",
+        "plan_step_metadata",
+        "constraint_metadata",
+        "planning_evidence_metadata",
+    ),
+    produced_signals=(
+        "planning_confidence",
+        "missing_information",
+        "execution_complexity",
+        "export_readiness",
+        "runtime_availability",
+    ),
+    memory_access=AgentMemoryAccessContract(
+        allowed_memory_sources=(
+            "session_metadata",
+            "artifact_metadata",
+            "evaluation_metadata",
+            "provenance_metadata",
+            "future_blackboard_contract",
+        ),
+    ),
+    cacheability="deterministic_with_upstream_metadata",
+    estimated_cost_metadata=AgentContractCostMetadata(
+        relative_cost="low",
+        cost_basis=(
+            "Static metadata mapping from existing planning and intelligence "
+            "outputs; no provider calls or runtime execution."
+        ),
+        cache_sensitivity=(
+            "Cache key must include request, route, and upstream planning "
+            "metadata identifiers."
+        ),
+    ),
+    estimated_latency_metadata=AgentContractLatencyMetadata(
+        relative_latency="low",
+        latency_basis=(
+            "Bounded local metadata inspection with no network, storage, "
+            "provider, workflow, or artifact execution."
+        ),
+        blocking_inputs=(
+            "assistant_request",
+            "route_decision",
+            "creative_execution_plan",
+        ),
+    ),
+    future_orchestration_hooks=(
+        "v4_2_planner_context_handoff",
+        "v4_2_planning_gap_review",
+    ),
+    source_contract_registries=(
+        "agent_identity_registry",
+        "agent_memory_contract_registry",
+        "artifact_engine_contract_registry",
+        "evaluation_engine_contract_registry",
+    ),
+)
+
+AGENT_CONTRACTS: tuple[AgentContract, ...] = (PLANNER_AGENT_CONTRACT,)
 AGENT_CONTRACT_REGISTRY = build_agent_contract_registry(AGENT_CONTRACTS)

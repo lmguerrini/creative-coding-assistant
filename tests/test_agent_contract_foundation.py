@@ -147,20 +147,21 @@ class AgentContractFoundationTests(unittest.TestCase):
             contract.required_inputs,
         )
 
-    def test_static_registry_starts_empty_for_later_role_tasks(self) -> None:
+    def test_static_registry_exposes_accumulated_role_contracts(self) -> None:
         registry = agent_contract_registry()
+        planner_contract = agent_contract_by_id("planner_agent")
 
         self.assertEqual(registry.role, "agent_contract_registry")
         self.assertEqual(
             registry.serialization_version,
             "agent_contract_registry.v1",
         )
-        self.assertEqual(registry.agent_ids, ())
-        self.assertEqual(registry.contracts, ())
-        self.assertEqual(registry.contract_count, 0)
+        self.assertEqual(registry.agent_ids, ("planner_agent",))
+        self.assertEqual(registry.contract_count, 1)
         self.assertTrue(registry.metadata_only)
         self.assertIn("do not create agents", registry.authority_boundary)
-        self.assertIsNone(agent_contract_by_id("planner_agent"))
+        self.assertEqual(registry.contracts, (planner_contract,))
+        self.assertIsNone(agent_contract_by_id("missing_agent"))
 
     def test_registry_builder_and_lookup_are_stable(self) -> None:
         contract = _sample_agent_contract()
