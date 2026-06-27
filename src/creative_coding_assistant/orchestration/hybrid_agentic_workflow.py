@@ -56,6 +56,7 @@ HybridDebateLoopTopic = Literal[
 ]
 HybridVotingTopic = HybridDebateLoopTopic
 AgentConfidenceFusionTopic = HybridVotingTopic
+DecisionProvenanceTopic = AgentConfidenceFusionTopic
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -101,6 +102,12 @@ AGENT_CONFIDENCE_FUSION_PROFILE_SERIALIZATION_VERSION = (
 )
 AGENT_CONFIDENCE_FUSION_REGISTRY_SERIALIZATION_VERSION = (
     "agent_confidence_fusion_registry.v1"
+)
+DECISION_PROVENANCE_PROFILE_SERIALIZATION_VERSION = (
+    "decision_provenance_profile.v1"
+)
+DECISION_PROVENANCE_REGISTRY_SERIALIZATION_VERSION = (
+    "decision_provenance_registry.v1"
 )
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
@@ -166,6 +173,13 @@ AGENT_CONFIDENCE_FUSION_AUTHORITY_BOUNDARY = (
     "only; it does not calculate confidence scores, fuse confidence, weight "
     "votes, select final answers, invoke agents, route providers or models, "
     "control workflow transitions, trigger retries, or modify generated output."
+)
+DECISION_PROVENANCE_AUTHORITY_BOUNDARY = (
+    "Decision provenance metadata describes passive lineage for future hybrid "
+    "agentic decisions across V3 workflow nodes and advisory metadata only; it "
+    "does not record provenance, emit traces, write memory, select decisions, "
+    "invoke agents, route providers or models, control workflow transitions, "
+    "trigger retries, or modify generated output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Hybrid agentic workflow metadata maps current V3 workflow nodes to future "
@@ -348,6 +362,26 @@ _AGENT_CONFIDENCE_FUSION_SOURCE_REGISTRIES = (
     "evaluation_engine_contract_registry",
     "hybrid_agentic_workflow_registry",
 )
+_DECISION_PROVENANCE_BLOCKED_RUNTIME_BEHAVIORS = (
+    "provenance_recording",
+    "decision_logging",
+    "trace_emission",
+    "memory_write",
+    "decision_selection",
+    "agent_invocation",
+    "provider_or_model_routing",
+    "workflow_control",
+    "retry_triggering",
+    "generated_output_modification",
+)
+_DECISION_PROVENANCE_SOURCE_REGISTRIES = (
+    "agent_confidence_fusion_registry",
+    "hybrid_agent_voting_registry",
+    "hybrid_agent_debate_loop_registry",
+    "v3_backbone_mode_registry",
+    "workstation_engine_contract_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -405,6 +439,12 @@ _HYBRID_AGENT_VOTING_TOPICS: tuple[HybridVotingTopic, ...] = (
     "final_synthesis_readiness",
 )
 _AGENT_CONFIDENCE_FUSION_TOPICS: tuple[AgentConfidenceFusionTopic, ...] = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
+)
+_DECISION_PROVENANCE_TOPICS: tuple[DecisionProvenanceTopic, ...] = (
     "planning_execution_fit",
     "style_aesthetic_alignment",
     "curation_refinement_need",
@@ -1625,6 +1665,154 @@ def agent_confidence_fusion_profile_by_id(
     return None
 
 
+class DecisionProvenanceProfile(BaseModel):
+    """Passive V4.3 decision provenance profile metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    provenance_profile_id: str = Field(min_length=1, max_length=140)
+    topic_id: DecisionProvenanceTopic
+    source_confidence_fusion_profile_id: str = Field(min_length=1, max_length=160)
+    source_voting_profile_id: str = Field(min_length=1, max_length=160)
+    source_debate_loop_id: str = Field(min_length=1, max_length=160)
+    source_backbone_node_ids: tuple[str, ...] = Field(min_length=1, max_length=6)
+    source_workstation_surface_id: str = Field(min_length=1, max_length=120)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    provenance_dimensions: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_DECISION_PROVENANCE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    provenance_recording_implemented: Literal[False] = False
+    decision_logging_implemented: Literal[False] = False
+    trace_emission_implemented: Literal[False] = False
+    memory_write_implemented: Literal[False] = False
+    decision_selection_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["decision_provenance_profile.v1"] = (
+        DECISION_PROVENANCE_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class DecisionProvenanceRegistry(BaseModel):
+    """Stable passive registry for V4.3 decision provenance metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["decision_provenance_registry"] = "decision_provenance_registry"
+    serialization_version: Literal["decision_provenance_registry.v1"] = (
+        DECISION_PROVENANCE_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=DECISION_PROVENANCE_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    provenance_profiles: tuple[DecisionProvenanceProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    provenance_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    topic_ids: tuple[DecisionProvenanceTopic, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    confidence_fusion_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    voting_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    debate_loop_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    backbone_node_ids: tuple[str, ...] = Field(min_length=18, max_length=18)
+    workstation_surface_ids: tuple[str, ...] = Field(min_length=7, max_length=7)
+    profile_count: int = Field(ge=4, le=4)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_DECISION_PROVENANCE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    provenance_recording_implemented: Literal[False] = False
+    decision_logging_implemented: Literal[False] = False
+    trace_emission_implemented: Literal[False] = False
+    memory_write_implemented: Literal[False] = False
+    decision_selection_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_decision_provenance_metadata(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.provenance_profile_id for profile in self.provenance_profiles
+        )
+        derived_topic_ids = tuple(
+            profile.topic_id for profile in self.provenance_profiles
+        )
+        if self.provenance_profile_ids != derived_profile_ids:
+            raise ValueError("provenance_profile_ids must match profiles")
+        if self.topic_ids != derived_topic_ids:
+            raise ValueError("topic_ids must match provenance profiles")
+        if self.topic_ids != _DECISION_PROVENANCE_TOPICS:
+            raise ValueError("topic_ids must preserve provenance topic order")
+        if self.profile_count != len(self.provenance_profiles):
+            raise ValueError("profile_count must match provenance profiles")
+
+        profile_sources = {
+            source_registry
+            for profile in self.provenance_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match provenance profile sources")
+
+        known_fusion = set(self.confidence_fusion_profile_ids)
+        known_votes = set(self.voting_profile_ids)
+        known_debates = set(self.debate_loop_ids)
+        known_nodes = set(self.backbone_node_ids)
+        known_surfaces = set(self.workstation_surface_ids)
+        for profile in self.provenance_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("provenance sources must match registry sources")
+            if profile.source_confidence_fusion_profile_id not in known_fusion:
+                raise ValueError("provenance fusion profiles must be known metadata")
+            if profile.source_voting_profile_id not in known_votes:
+                raise ValueError("provenance voting profiles must be known metadata")
+            if profile.source_debate_loop_id not in known_debates:
+                raise ValueError("provenance debate loops must be known metadata")
+            if not set(profile.source_backbone_node_ids).issubset(known_nodes):
+                raise ValueError("provenance backbone nodes must be known metadata")
+            if profile.source_workstation_surface_id not in known_surfaces:
+                raise ValueError("provenance workstation surfaces must be known metadata")
+            if profile.provenance_recording_implemented:
+                raise ValueError("decision provenance must not record provenance")
+        return self
+
+
+def decision_provenance_registry() -> DecisionProvenanceRegistry:
+    """Return passive V4.3 decision provenance metadata."""
+
+    return DECISION_PROVENANCE_REGISTRY
+
+
+def decision_provenance_profile_by_id(
+    provenance_profile_id: str,
+    registry: DecisionProvenanceRegistry | None = None,
+) -> DecisionProvenanceProfile | None:
+    """Return one decision provenance profile without recording provenance."""
+
+    source_registry = registry or DECISION_PROVENANCE_REGISTRY
+    for profile in source_registry.provenance_profiles:
+        if profile.provenance_profile_id == provenance_profile_id:
+            return profile
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -1946,6 +2134,41 @@ def _agent_confidence_fusion_profile(
             "does not calculate confidence scores, fuse confidence, weight "
             "votes, select final answers, invoke agents, control workflow "
             "transitions, trigger retries, or modify generated output."
+        ),
+    )
+
+
+def _decision_provenance_profile(
+    *,
+    provenance_profile_id: str,
+    topic_id: DecisionProvenanceTopic,
+    source_confidence_fusion_profile_id: str,
+    source_voting_profile_id: str,
+    source_debate_loop_id: str,
+    source_backbone_node_ids: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> DecisionProvenanceProfile:
+    return DecisionProvenanceProfile(
+        provenance_profile_id=provenance_profile_id,
+        topic_id=topic_id,
+        source_confidence_fusion_profile_id=source_confidence_fusion_profile_id,
+        source_voting_profile_id=source_voting_profile_id,
+        source_debate_loop_id=source_debate_loop_id,
+        source_backbone_node_ids=source_backbone_node_ids,
+        source_workstation_surface_id="provenance_engine",
+        source_registries=_DECISION_PROVENANCE_SOURCE_REGISTRIES,
+        provenance_dimensions=(
+            "decision_context",
+            "confidence_lineage",
+            "agent_advisory_lineage",
+            "v3_backbone_lineage",
+        ),
+        advisory_outputs=advisory_outputs,
+        authority_boundary=(
+            "This decision provenance profile is advisory metadata only; it "
+            "does not record provenance, emit traces, write memory, select "
+            "decisions, invoke agents, control workflow transitions, trigger "
+            "retries, or modify generated output."
         ),
     )
 
@@ -2848,6 +3071,90 @@ AGENT_CONFIDENCE_FUSION_REGISTRY = AgentConfidenceFusionRegistry(
     reflection_profile_ids=REFLECTION_ESCALATION_REGISTRY.profile_ids,
     confidence_surface_ids=("creative_confidence_engine",),
     profile_count=len(AGENT_CONFIDENCE_FUSION_PROFILES),
+)
+DECISION_PROVENANCE_PROFILES = (
+    _decision_provenance_profile(
+        provenance_profile_id="decision_provenance::planning_execution_fit",
+        topic_id="planning_execution_fit",
+        source_confidence_fusion_profile_id=(
+            "agent_confidence_fusion::planning_execution_fit"
+        ),
+        source_voting_profile_id="hybrid_agent_voting::planning_execution_fit",
+        source_debate_loop_id="hybrid_debate_loop::planning_execution_fit",
+        source_backbone_node_ids=("planning", "director", "reasoning"),
+        advisory_outputs=(
+            "planning_decision_lineage_placeholder",
+            "planning_provenance_context",
+        ),
+    ),
+    _decision_provenance_profile(
+        provenance_profile_id="decision_provenance::style_aesthetic_alignment",
+        topic_id="style_aesthetic_alignment",
+        source_confidence_fusion_profile_id=(
+            "agent_confidence_fusion::style_aesthetic_alignment"
+        ),
+        source_voting_profile_id="hybrid_agent_voting::style_aesthetic_alignment",
+        source_debate_loop_id="hybrid_debate_loop::style_aesthetic_alignment",
+        source_backbone_node_ids=(
+            "prompt_rendering",
+            "generation",
+            "artifact_extraction",
+        ),
+        advisory_outputs=(
+            "style_decision_lineage_placeholder",
+            "aesthetic_provenance_context",
+        ),
+    ),
+    _decision_provenance_profile(
+        provenance_profile_id="decision_provenance::curation_refinement_need",
+        topic_id="curation_refinement_need",
+        source_confidence_fusion_profile_id=(
+            "agent_confidence_fusion::curation_refinement_need"
+        ),
+        source_voting_profile_id="hybrid_agent_voting::curation_refinement_need",
+        source_debate_loop_id="hybrid_debate_loop::curation_refinement_need",
+        source_backbone_node_ids=("artifact_critique", "review", "refinement"),
+        advisory_outputs=(
+            "curation_decision_lineage_placeholder",
+            "refinement_provenance_context",
+        ),
+    ),
+    _decision_provenance_profile(
+        provenance_profile_id="decision_provenance::final_synthesis_readiness",
+        topic_id="final_synthesis_readiness",
+        source_confidence_fusion_profile_id=(
+            "agent_confidence_fusion::final_synthesis_readiness"
+        ),
+        source_voting_profile_id="hybrid_agent_voting::final_synthesis_readiness",
+        source_debate_loop_id="hybrid_debate_loop::final_synthesis_readiness",
+        source_backbone_node_ids=("review", "refinement", "finalization"),
+        advisory_outputs=(
+            "synthesis_decision_lineage_placeholder",
+            "final_provenance_context",
+        ),
+    ),
+)
+DECISION_PROVENANCE_REGISTRY = DecisionProvenanceRegistry(
+    provenance_profiles=DECISION_PROVENANCE_PROFILES,
+    provenance_profile_ids=tuple(
+        profile.provenance_profile_id for profile in DECISION_PROVENANCE_PROFILES
+    ),
+    topic_ids=tuple(profile.topic_id for profile in DECISION_PROVENANCE_PROFILES),
+    source_registries=_DECISION_PROVENANCE_SOURCE_REGISTRIES,
+    confidence_fusion_profile_ids=AGENT_CONFIDENCE_FUSION_REGISTRY.fusion_profile_ids,
+    voting_profile_ids=HYBRID_AGENT_VOTING_REGISTRY.voting_profile_ids,
+    debate_loop_ids=HYBRID_AGENT_DEBATE_LOOP_REGISTRY.loop_ids,
+    backbone_node_ids=V3_BACKBONE_MODE_REGISTRY.node_ids,
+    workstation_surface_ids=(
+        "workstation_state",
+        "session_intelligence",
+        "workflow_explorer",
+        "provenance_engine",
+        "creative_timeline",
+        "v3_inspector_panels",
+        "workstation_dashboard",
+    ),
+    profile_count=len(DECISION_PROVENANCE_PROFILES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (

@@ -5,6 +5,7 @@ from creative_coding_assistant.orchestration import (
     AgentConfidenceFusionRegistry,
     ConditionalMultiAgentEscalationRegistry,
     CreativeEscalationPolicyRegistry,
+    DecisionProvenanceRegistry,
     EscalationGateRegistry,
     HybridAgentDebateLoopRegistry,
     HybridAgentVotingRegistry,
@@ -20,6 +21,8 @@ from creative_coding_assistant.orchestration import (
     conditional_multi_agent_escalation_registry,
     creative_escalation_policy_by_id,
     creative_escalation_policy_registry,
+    decision_provenance_profile_by_id,
+    decision_provenance_registry,
     escalation_gate_by_id,
     escalation_gate_registry,
     escalation_policy_registry,
@@ -35,6 +38,7 @@ from creative_coding_assistant.orchestration import (
     specialist_agent_loop_registry,
     v3_backbone_mode_profile_by_node_id,
     v3_backbone_mode_registry,
+    workstation_engine_contracts,
 )
 
 EXPECTED_STAGE_IDS = (
@@ -399,6 +403,45 @@ REQUIRED_AGENT_CONFIDENCE_FUSION_FIELDS = {
     "confidence_score_calculation_implemented",
     "vote_weighting_implemented",
     "final_answer_selection_implemented",
+    "agent_invocation_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_DECISION_PROVENANCE_PROFILE_IDS = (
+    "decision_provenance::planning_execution_fit",
+    "decision_provenance::style_aesthetic_alignment",
+    "decision_provenance::curation_refinement_need",
+    "decision_provenance::final_synthesis_readiness",
+)
+EXPECTED_DECISION_PROVENANCE_SOURCE_REGISTRIES = (
+    "agent_confidence_fusion_registry",
+    "hybrid_agent_voting_registry",
+    "hybrid_agent_debate_loop_registry",
+    "v3_backbone_mode_registry",
+    "workstation_engine_contract_registry",
+    "hybrid_agentic_workflow_registry",
+)
+REQUIRED_DECISION_PROVENANCE_FIELDS = {
+    "provenance_profile_id",
+    "topic_id",
+    "source_confidence_fusion_profile_id",
+    "source_voting_profile_id",
+    "source_debate_loop_id",
+    "source_backbone_node_ids",
+    "source_workstation_surface_id",
+    "source_registries",
+    "provenance_dimensions",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "provenance_recording_implemented",
+    "decision_logging_implemented",
+    "trace_emission_implemented",
+    "memory_write_implemented",
+    "decision_selection_implemented",
     "agent_invocation_implemented",
     "workflow_control_implemented",
     "retry_triggering_implemented",
@@ -1793,6 +1836,198 @@ class AgentConfidenceFusionRegistryTests(unittest.TestCase):
             "execute_fusion",
             "execute_agent",
             "trigger_retry",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class DecisionProvenanceRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_decision_provenance_profiles(self) -> None:
+        registry = decision_provenance_registry()
+
+        self.assertEqual(registry.role, "decision_provenance_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "decision_provenance_registry.v1",
+        )
+        self.assertEqual(
+            registry.provenance_profile_ids,
+            EXPECTED_DECISION_PROVENANCE_PROFILE_IDS,
+        )
+        self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_DECISION_PROVENANCE_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(
+            registry.confidence_fusion_profile_ids,
+            agent_confidence_fusion_registry().fusion_profile_ids,
+        )
+        self.assertEqual(
+            registry.voting_profile_ids,
+            hybrid_agent_voting_registry().voting_profile_ids,
+        )
+        self.assertEqual(
+            registry.debate_loop_ids,
+            hybrid_agent_debate_loop_registry().loop_ids,
+        )
+        self.assertEqual(registry.backbone_node_ids, v3_backbone_mode_registry().node_ids)
+        self.assertEqual(
+            registry.workstation_surface_ids,
+            workstation_engine_contracts().surface_ids,
+        )
+        self.assertEqual(registry.profile_count, 4)
+        self.assertIn("does not record provenance", registry.authority_boundary)
+        self.assertFalse(registry.provenance_recording_implemented)
+        self.assertFalse(registry.decision_logging_implemented)
+        self.assertFalse(registry.trace_emission_implemented)
+        self.assertFalse(registry.memory_write_implemented)
+        self.assertFalse(registry.decision_selection_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_decision_provenance_profiles_reference_known_sources(self) -> None:
+        registry = decision_provenance_registry()
+        known_fusion = set(agent_confidence_fusion_registry().fusion_profile_ids)
+        known_votes = set(hybrid_agent_voting_registry().voting_profile_ids)
+        known_debates = set(hybrid_agent_debate_loop_registry().loop_ids)
+        known_nodes = set(v3_backbone_mode_registry().node_ids)
+        known_surfaces = set(workstation_engine_contracts().surface_ids)
+
+        for profile in registry.provenance_profiles:
+            dumped = profile.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_DECISION_PROVENANCE_FIELDS)
+            self.assertEqual(
+                profile.source_registries,
+                EXPECTED_DECISION_PROVENANCE_SOURCE_REGISTRIES,
+            )
+            self.assertIn(profile.source_confidence_fusion_profile_id, known_fusion)
+            self.assertIn(profile.source_voting_profile_id, known_votes)
+            self.assertIn(profile.source_debate_loop_id, known_debates)
+            self.assertTrue(set(profile.source_backbone_node_ids).issubset(known_nodes))
+            self.assertIn(profile.source_workstation_surface_id, known_surfaces)
+            self.assertEqual(profile.source_workstation_surface_id, "provenance_engine")
+            self.assertTrue(profile.provenance_dimensions)
+            self.assertTrue(profile.advisory_outputs)
+            self.assertIn("provenance_recording", profile.blocked_runtime_behaviors)
+            self.assertIn("trace_emission", profile.blocked_runtime_behaviors)
+            self.assertFalse(profile.provenance_recording_implemented)
+            self.assertFalse(profile.decision_logging_implemented)
+            self.assertFalse(profile.trace_emission_implemented)
+            self.assertFalse(profile.memory_write_implemented)
+            self.assertFalse(profile.decision_selection_implemented)
+            self.assertFalse(profile.agent_invocation_implemented)
+            self.assertFalse(profile.workflow_control_implemented)
+            self.assertFalse(profile.retry_triggering_implemented)
+            self.assertFalse(profile.generated_output_mutation_implemented)
+            self.assertEqual(
+                profile.serialization_version,
+                "decision_provenance_profile.v1",
+            )
+            self.assertTrue(profile.metadata_only)
+
+    def test_decision_provenance_source_registries_are_complete(self) -> None:
+        registry = decision_provenance_registry()
+        profile_sources = tuple(
+            dict.fromkeys(
+                source
+                for profile in registry.provenance_profiles
+                for source in profile.source_registries
+            )
+        )
+
+        self.assertEqual(profile_sources, registry.source_registries)
+        for source_registry in EXPECTED_DECISION_PROVENANCE_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, profile_sources)
+        for profile in registry.provenance_profiles:
+            self.assertEqual(set(profile.source_registries), set(profile_sources))
+
+    def test_decision_provenance_lookup_is_stable(self) -> None:
+        profile = decision_provenance_profile_by_id(
+            "decision_provenance::style_aesthetic_alignment"
+        )
+        missing = decision_provenance_profile_by_id("missing_provenance")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.topic_id, "style_aesthetic_alignment")
+        self.assertIn("generation", profile.source_backbone_node_ids)
+        self.assertIn(
+            "style_decision_lineage_placeholder",
+            profile.advisory_outputs,
+        )
+        self.assertFalse(profile.provenance_recording_implemented)
+
+    def test_decision_provenance_registry_rejects_mismatched_metadata(self) -> None:
+        registry = decision_provenance_registry()
+        mismatched_profile = registry.provenance_profiles[0].model_copy(
+            update={"provenance_profile_id": "other_provenance"}
+        )
+        unknown_node_profile = registry.provenance_profiles[0].model_copy(
+            update={"source_backbone_node_ids": ("missing_node",)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "provenance_profile_ids must match"):
+            DecisionProvenanceRegistry(
+                provenance_profiles=(
+                    mismatched_profile,
+                )
+                + registry.provenance_profiles[1:],
+                provenance_profile_ids=registry.provenance_profile_ids,
+                topic_ids=registry.topic_ids,
+                source_registries=registry.source_registries,
+                confidence_fusion_profile_ids=registry.confidence_fusion_profile_ids,
+                voting_profile_ids=registry.voting_profile_ids,
+                debate_loop_ids=registry.debate_loop_ids,
+                backbone_node_ids=registry.backbone_node_ids,
+                workstation_surface_ids=registry.workstation_surface_ids,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "provenance backbone nodes"):
+            DecisionProvenanceRegistry(
+                provenance_profiles=(
+                    unknown_node_profile,
+                )
+                + registry.provenance_profiles[1:],
+                provenance_profile_ids=registry.provenance_profile_ids,
+                topic_ids=registry.topic_ids,
+                source_registries=registry.source_registries,
+                confidence_fusion_profile_ids=registry.confidence_fusion_profile_ids,
+                voting_profile_ids=registry.voting_profile_ids,
+                debate_loop_ids=registry.debate_loop_ids,
+                backbone_node_ids=registry.backbone_node_ids,
+                workstation_surface_ids=registry.workstation_surface_ids,
+                profile_count=registry.profile_count,
+            )
+
+    def test_decision_provenance_does_not_declare_active_execution(self) -> None:
+        registry = decision_provenance_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for profile in registry.provenance_profiles
+                    for field in (
+                        profile.provenance_profile_id,
+                        profile.authority_boundary,
+                        *profile.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "record_runtime",
+            "emit_runtime_trace",
+            "write_runtime_memory",
+            "execute_agent",
             "modify_output",
         ):
             self.assertNotIn(forbidden_term, combined_text)
