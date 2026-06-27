@@ -27,6 +27,13 @@ SpecialistLoopCategory = Literal[
     "evaluation",
     "synthesis",
 ]
+EscalationGateKind = Literal[
+    "backbone_entry",
+    "evidence_completeness",
+    "specialist_loop_boundary",
+    "human_review_visibility",
+    "return_handoff",
+]
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -41,6 +48,8 @@ SPECIALIST_AGENT_LOOP_SERIALIZATION_VERSION = "specialist_agent_loop.v1"
 SPECIALIST_AGENT_LOOP_REGISTRY_SERIALIZATION_VERSION = (
     "specialist_agent_loop_registry.v1"
 )
+ESCALATION_GATE_SERIALIZATION_VERSION = "escalation_gate.v1"
+ESCALATION_GATE_REGISTRY_SERIALIZATION_VERSION = "escalation_gate_registry.v1"
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
 V3_BACKBONE_MODE_AUTHORITY_BOUNDARY = (
@@ -64,6 +73,13 @@ SPECIALIST_AGENT_LOOP_AUTHORITY_BOUNDARY = (
     "agents, coordinate multi-agent work, route providers or models, select "
     "runtimes, control workflow transitions, trigger retries, write memory, or "
     "modify generated output."
+)
+ESCALATION_GATE_AUTHORITY_BOUNDARY = (
+    "Escalation gate metadata describes passive advisory gates across the V3 "
+    "backbone, conditional escalation candidates, and specialist loop profiles "
+    "only; it does not evaluate gates, approve escalation, invoke agents, "
+    "control workflow transitions, route providers or models, trigger retries, "
+    "execute artifacts, write memory, or modify generated output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Hybrid agentic workflow metadata maps current V3 workflow nodes to future "
@@ -136,6 +152,26 @@ _SPECIALIST_AGENT_LOOP_SOURCE_REGISTRIES = (
     "v3_backbone_mode_registry",
     "hybrid_agentic_workflow_registry",
 )
+_ESCALATION_GATE_BLOCKED_RUNTIME_BEHAVIORS = (
+    "gate_evaluation",
+    "escalation_approval",
+    "agent_invocation",
+    "multi_agent_orchestration",
+    "provider_or_model_routing",
+    "runtime_selection",
+    "workflow_control",
+    "retry_or_refinement_triggering",
+    "artifact_execution",
+    "memory_write",
+    "generated_output_modification",
+)
+_ESCALATION_GATE_SOURCE_REGISTRIES = (
+    "v3_backbone_mode_registry",
+    "conditional_multi_agent_escalation_registry",
+    "specialist_agent_loop_registry",
+    "escalation_policy_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -156,6 +192,13 @@ _SPECIALIST_AGENT_LOOP_CATEGORIES: tuple[SpecialistLoopCategory, ...] = (
     "runtime",
     "evaluation",
     "synthesis",
+)
+_ESCALATION_GATE_KINDS: tuple[EscalationGateKind, ...] = (
+    "backbone_entry",
+    "evidence_completeness",
+    "specialist_loop_boundary",
+    "human_review_visibility",
+    "return_handoff",
 )
 _KNOWN_SPECIALIST_AGENT_IDS = (
     "planner_agent",
@@ -593,6 +636,127 @@ def specialist_agent_loop_by_id(
     return None
 
 
+class EscalationGateProfile(BaseModel):
+    """Passive advisory gate metadata for future escalation readiness."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    gate_id: str = Field(min_length=1, max_length=120)
+    gate_name: str = Field(min_length=1, max_length=160)
+    gate_kind: EscalationGateKind
+    source_condition_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_loop_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=5)
+    source_registries: tuple[str, ...] = Field(min_length=5, max_length=5)
+    required_passive_inputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_decision_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_ESCALATION_GATE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    gate_evaluation_implemented: Literal[False] = False
+    escalation_approval_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["escalation_gate.v1"] = (
+        ESCALATION_GATE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class EscalationGateRegistry(BaseModel):
+    """Stable passive registry for V4.3 escalation gate metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["escalation_gate_registry"] = "escalation_gate_registry"
+    serialization_version: Literal["escalation_gate_registry.v1"] = (
+        ESCALATION_GATE_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=ESCALATION_GATE_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    gates: tuple[EscalationGateProfile, ...] = Field(min_length=5, max_length=5)
+    gate_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    gate_kinds: tuple[EscalationGateKind, ...] = Field(min_length=5, max_length=5)
+    source_registries: tuple[str, ...] = Field(min_length=5, max_length=5)
+    condition_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    loop_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    gate_count: int = Field(ge=5, le=5)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_ESCALATION_GATE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    gate_evaluation_implemented: Literal[False] = False
+    escalation_approval_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_escalation_gate_metadata(self) -> Self:
+        derived_gate_ids = tuple(gate.gate_id for gate in self.gates)
+        derived_gate_kinds = tuple(gate.gate_kind for gate in self.gates)
+        if self.gate_ids != derived_gate_ids:
+            raise ValueError("gate_ids must match gates")
+        if len(set(self.gate_ids)) != len(self.gate_ids):
+            raise ValueError("gate_ids must be unique")
+        if self.gate_kinds != derived_gate_kinds:
+            raise ValueError("gate_kinds must match gates")
+        if self.gate_count != len(self.gates):
+            raise ValueError("gate_count must match gates")
+
+        source_registries = set(self.source_registries)
+        gate_source_registries = {
+            source_registry
+            for gate in self.gates
+            for source_registry in gate.source_registries
+        }
+        if source_registries != gate_source_registries:
+            raise ValueError("source_registries must match gate sources")
+
+        known_conditions = set(self.condition_ids)
+        known_loops = set(self.loop_ids)
+        for gate in self.gates:
+            if gate.source_registries != self.source_registries:
+                raise ValueError("gate sources must match registry sources")
+            if not set(gate.source_condition_ids).issubset(known_conditions):
+                raise ValueError("gate conditions must be known metadata")
+            if not set(gate.source_loop_ids).issubset(known_loops):
+                raise ValueError("gate loops must be known metadata")
+            if gate.gate_evaluation_implemented:
+                raise ValueError("escalation gates must not evaluate")
+            if gate.escalation_approval_implemented:
+                raise ValueError("escalation gates must not approve escalation")
+        return self
+
+
+def escalation_gate_registry() -> EscalationGateRegistry:
+    """Return passive escalation gate metadata without evaluating gates."""
+
+    return ESCALATION_GATE_REGISTRY
+
+
+def escalation_gate_by_id(
+    gate_id: str,
+    registry: EscalationGateRegistry | None = None,
+) -> EscalationGateProfile | None:
+    """Return one escalation gate profile without evaluating it."""
+
+    source_registry = registry or ESCALATION_GATE_REGISTRY
+    for gate in source_registry.gates:
+        if gate.gate_id == gate_id:
+            return gate
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -734,6 +898,34 @@ def _specialist_agent_loop(
             "execute loops, invoke agents, coordinate multi-agent work, route "
             "providers or models, control workflow transitions, trigger "
             "retries, write memory, or modify generated output."
+        ),
+    )
+
+
+def _escalation_gate(
+    *,
+    gate_id: str,
+    gate_name: str,
+    gate_kind: EscalationGateKind,
+    source_condition_ids: tuple[str, ...],
+    source_loop_ids: tuple[str, ...],
+    required_passive_inputs: tuple[str, ...],
+    advisory_decision_outputs: tuple[str, ...],
+) -> EscalationGateProfile:
+    return EscalationGateProfile(
+        gate_id=gate_id,
+        gate_name=gate_name,
+        gate_kind=gate_kind,
+        source_condition_ids=source_condition_ids,
+        source_loop_ids=source_loop_ids,
+        source_registries=_ESCALATION_GATE_SOURCE_REGISTRIES,
+        required_passive_inputs=required_passive_inputs,
+        advisory_decision_outputs=advisory_decision_outputs,
+        authority_boundary=(
+            "This gate is advisory metadata only; it does not evaluate gates, "
+            "approve escalation, invoke agents, route providers or models, "
+            "control workflow transitions, trigger retries, execute artifacts, "
+            "write memory, or modify generated output."
         ),
     )
 
@@ -1140,6 +1332,108 @@ SPECIALIST_AGENT_LOOP_REGISTRY = SpecialistAgentLoopRegistry(
     condition_ids=CONDITIONAL_MULTI_AGENT_ESCALATION_REGISTRY.condition_ids,
     backbone_node_ids=V3_BACKBONE_MODE_REGISTRY.node_ids,
     loop_count=len(SPECIALIST_AGENT_LOOPS),
+)
+ESCALATION_GATES = (
+    _escalation_gate(
+        gate_id="backbone_entry_escalation_gate",
+        gate_name="Backbone Entry Escalation Gate",
+        gate_kind="backbone_entry",
+        source_condition_ids=(
+            "planning_ambiguity_multi_agent_candidate",
+            "artifact_risk_multi_agent_candidate",
+            "runtime_fit_multi_agent_candidate",
+        ),
+        source_loop_ids=(),
+        required_passive_inputs=(
+            "v3_backbone_mode_registry",
+            "conditional_escalation_conditions",
+        ),
+        advisory_decision_outputs=(
+            "backbone_entry_gate_notes",
+            "candidate_condition_summary",
+        ),
+    ),
+    _escalation_gate(
+        gate_id="evidence_completeness_escalation_gate",
+        gate_name="Evidence Completeness Escalation Gate",
+        gate_kind="evidence_completeness",
+        source_condition_ids=CONDITIONAL_MULTI_AGENT_ESCALATION_REGISTRY.condition_ids,
+        source_loop_ids=(),
+        required_passive_inputs=(
+            "condition_source_registries",
+            "policy_rule_references",
+            "escalation_signal_references",
+        ),
+        advisory_decision_outputs=(
+            "evidence_completeness_notes",
+            "missing_metadata_summary",
+        ),
+    ),
+    _escalation_gate(
+        gate_id="specialist_loop_boundary_gate",
+        gate_name="Specialist Loop Boundary Gate",
+        gate_kind="specialist_loop_boundary",
+        source_condition_ids=CONDITIONAL_MULTI_AGENT_ESCALATION_REGISTRY.condition_ids,
+        source_loop_ids=SPECIALIST_AGENT_LOOP_REGISTRY.loop_ids,
+        required_passive_inputs=(
+            "specialist_agent_loop_registry",
+            "agent_contract_registry",
+            "loop_pass_limits",
+        ),
+        advisory_decision_outputs=(
+            "loop_boundary_notes",
+            "specialist_loop_candidate_summary",
+        ),
+    ),
+    _escalation_gate(
+        gate_id="human_review_visibility_gate",
+        gate_name="Human Review Visibility Gate",
+        gate_kind="human_review_visibility",
+        source_condition_ids=(
+            "planning_ambiguity_multi_agent_candidate",
+            "evaluation_confidence_multi_agent_candidate",
+            "terminal_guardrail_multi_agent_candidate",
+        ),
+        source_loop_ids=(
+            "planning_specialist_agent_loop",
+            "evaluation_specialist_agent_loop",
+            "synthesis_specialist_agent_loop",
+        ),
+        required_passive_inputs=(
+            "hitl_escalation_signal",
+            "human_review_posture",
+            "operator_review_surface",
+        ),
+        advisory_decision_outputs=(
+            "human_review_visibility_notes",
+            "hitl_surface_summary",
+        ),
+    ),
+    _escalation_gate(
+        gate_id="return_handoff_escalation_gate",
+        gate_name="Return Handoff Escalation Gate",
+        gate_kind="return_handoff",
+        source_condition_ids=CONDITIONAL_MULTI_AGENT_ESCALATION_REGISTRY.condition_ids,
+        source_loop_ids=SPECIALIST_AGENT_LOOP_REGISTRY.loop_ids,
+        required_passive_inputs=(
+            "v3_backbone_mode_registry",
+            "specialist_loop_advisory_outputs",
+            "final_handoff_summary",
+        ),
+        advisory_decision_outputs=(
+            "return_handoff_gate_notes",
+            "backbone_rejoin_summary",
+        ),
+    ),
+)
+ESCALATION_GATE_REGISTRY = EscalationGateRegistry(
+    gates=ESCALATION_GATES,
+    gate_ids=tuple(gate.gate_id for gate in ESCALATION_GATES),
+    gate_kinds=tuple(gate.gate_kind for gate in ESCALATION_GATES),
+    source_registries=_ESCALATION_GATE_SOURCE_REGISTRIES,
+    condition_ids=CONDITIONAL_MULTI_AGENT_ESCALATION_REGISTRY.condition_ids,
+    loop_ids=SPECIALIST_AGENT_LOOP_REGISTRY.loop_ids,
+    gate_count=len(ESCALATION_GATES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (

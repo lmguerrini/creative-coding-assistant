@@ -3,6 +3,7 @@ import unittest
 from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
     ConditionalMultiAgentEscalationRegistry,
+    EscalationGateRegistry,
     SpecialistAgentLoopRegistry,
     V3BackboneModeRegistry,
     agent_contract_registry,
@@ -10,6 +11,8 @@ from creative_coding_assistant.orchestration import (
     agent_escalation_signal_registry,
     conditional_multi_agent_escalation_condition_by_id,
     conditional_multi_agent_escalation_registry,
+    escalation_gate_by_id,
+    escalation_gate_registry,
     escalation_policy_registry,
     hybrid_agentic_workflow_registry,
     hybrid_agentic_workflow_stage_by_id,
@@ -152,6 +155,47 @@ REQUIRED_SPECIALIST_LOOP_FIELDS = {
     "agent_invocation_implemented",
     "multi_agent_orchestration_implemented",
     "provider_model_routing_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_ESCALATION_GATE_IDS = (
+    "backbone_entry_escalation_gate",
+    "evidence_completeness_escalation_gate",
+    "specialist_loop_boundary_gate",
+    "human_review_visibility_gate",
+    "return_handoff_escalation_gate",
+)
+EXPECTED_ESCALATION_GATE_KINDS = (
+    "backbone_entry",
+    "evidence_completeness",
+    "specialist_loop_boundary",
+    "human_review_visibility",
+    "return_handoff",
+)
+EXPECTED_ESCALATION_GATE_SOURCE_REGISTRIES = (
+    "v3_backbone_mode_registry",
+    "conditional_multi_agent_escalation_registry",
+    "specialist_agent_loop_registry",
+    "escalation_policy_registry",
+    "hybrid_agentic_workflow_registry",
+)
+REQUIRED_ESCALATION_GATE_FIELDS = {
+    "gate_id",
+    "gate_name",
+    "gate_kind",
+    "source_condition_ids",
+    "source_loop_ids",
+    "source_registries",
+    "required_passive_inputs",
+    "advisory_decision_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "gate_evaluation_implemented",
+    "escalation_approval_implemented",
+    "agent_invocation_implemented",
     "workflow_control_implemented",
     "retry_triggering_implemented",
     "generated_output_mutation_implemented",
@@ -611,6 +655,150 @@ class SpecialistAgentLoopRegistryTests(unittest.TestCase):
         for forbidden_term in (
             "execute_agent",
             "run_loop",
+            "route_provider",
+            "trigger_retry",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class EscalationGateRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_escalation_gates(self) -> None:
+        registry = escalation_gate_registry()
+
+        self.assertEqual(registry.role, "escalation_gate_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "escalation_gate_registry.v1",
+        )
+        self.assertEqual(registry.gate_ids, EXPECTED_ESCALATION_GATE_IDS)
+        self.assertEqual(registry.gate_kinds, EXPECTED_ESCALATION_GATE_KINDS)
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_ESCALATION_GATE_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(
+            registry.condition_ids,
+            conditional_multi_agent_escalation_registry().condition_ids,
+        )
+        self.assertEqual(registry.loop_ids, specialist_agent_loop_registry().loop_ids)
+        self.assertEqual(registry.gate_count, 5)
+        self.assertIn("does not evaluate gates", registry.authority_boundary)
+        self.assertFalse(registry.gate_evaluation_implemented)
+        self.assertFalse(registry.escalation_approval_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_gates_reference_known_conditions_and_loops(self) -> None:
+        registry = escalation_gate_registry()
+        known_conditions = set(conditional_multi_agent_escalation_registry().condition_ids)
+        known_loops = set(specialist_agent_loop_registry().loop_ids)
+
+        for gate in registry.gates:
+            dumped = gate.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_ESCALATION_GATE_FIELDS)
+            self.assertEqual(
+                gate.source_registries,
+                EXPECTED_ESCALATION_GATE_SOURCE_REGISTRIES,
+            )
+            self.assertTrue(set(gate.source_condition_ids).issubset(known_conditions))
+            self.assertTrue(set(gate.source_loop_ids).issubset(known_loops))
+            self.assertTrue(gate.required_passive_inputs)
+            self.assertTrue(gate.advisory_decision_outputs)
+            self.assertIn("gate_evaluation", gate.blocked_runtime_behaviors)
+            self.assertIn("escalation_approval", gate.blocked_runtime_behaviors)
+            self.assertIn("agent_invocation", gate.blocked_runtime_behaviors)
+            self.assertFalse(gate.gate_evaluation_implemented)
+            self.assertFalse(gate.escalation_approval_implemented)
+            self.assertFalse(gate.agent_invocation_implemented)
+            self.assertFalse(gate.workflow_control_implemented)
+            self.assertFalse(gate.retry_triggering_implemented)
+            self.assertFalse(gate.generated_output_mutation_implemented)
+            self.assertEqual(gate.serialization_version, "escalation_gate.v1")
+            self.assertTrue(gate.metadata_only)
+
+    def test_gate_source_registries_are_complete(self) -> None:
+        registry = escalation_gate_registry()
+        gate_sources = tuple(
+            dict.fromkeys(
+                source
+                for gate in registry.gates
+                for source in gate.source_registries
+            )
+        )
+
+        self.assertEqual(gate_sources, registry.source_registries)
+        for source_registry in EXPECTED_ESCALATION_GATE_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, gate_sources)
+        for gate in registry.gates:
+            self.assertEqual(set(gate.source_registries), set(gate_sources))
+
+    def test_gate_lookup_is_stable(self) -> None:
+        gate = escalation_gate_by_id("specialist_loop_boundary_gate")
+        missing = escalation_gate_by_id("missing_gate")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(gate)
+        assert gate is not None
+        self.assertEqual(gate.gate_kind, "specialist_loop_boundary")
+        self.assertEqual(gate.source_loop_ids, specialist_agent_loop_registry().loop_ids)
+        self.assertFalse(gate.gate_evaluation_implemented)
+
+    def test_gate_registry_rejects_mismatched_metadata(self) -> None:
+        registry = escalation_gate_registry()
+        mismatched_gate = registry.gates[0].model_copy(
+            update={"gate_id": "other_gate"}
+        )
+        unknown_loop_gate = registry.gates[0].model_copy(
+            update={"source_loop_ids": ("missing_loop",)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "gate_ids must match"):
+            EscalationGateRegistry(
+                gates=(mismatched_gate,) + registry.gates[1:],
+                gate_ids=registry.gate_ids,
+                gate_kinds=registry.gate_kinds,
+                source_registries=registry.source_registries,
+                condition_ids=registry.condition_ids,
+                loop_ids=registry.loop_ids,
+                gate_count=registry.gate_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "gate loops must be known"):
+            EscalationGateRegistry(
+                gates=(unknown_loop_gate,) + registry.gates[1:],
+                gate_ids=registry.gate_ids,
+                gate_kinds=registry.gate_kinds,
+                source_registries=registry.source_registries,
+                condition_ids=registry.condition_ids,
+                loop_ids=registry.loop_ids,
+                gate_count=registry.gate_count,
+            )
+
+    def test_escalation_gates_do_not_declare_active_execution(self) -> None:
+        registry = escalation_gate_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for gate in registry.gates
+                    for field in (
+                        gate.gate_id,
+                        gate.authority_boundary,
+                        *gate.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "execute_agent",
+            "approve_escalation",
             "route_provider",
             "trigger_retry",
             "modify_output",
