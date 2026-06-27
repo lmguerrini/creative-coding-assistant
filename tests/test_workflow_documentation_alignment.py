@@ -151,6 +151,37 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         for internal_marker in PUBLIC_README_INTERNAL_MARKERS:
             self.assertNotIn(internal_marker, readme)
 
+    def test_project_docs_cover_current_v4_3_passive_scope(self) -> None:
+        project_context = (
+            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
+        ).read_text(encoding="utf-8")
+        roadmap = (
+            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
+        ).read_text(encoding="utf-8")
+        decisions = (
+            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
+        ).read_text(encoding="utf-8")
+        combined = "\n".join((project_context, roadmap, decisions))
+        normalized_project_context = re.sub(r"\s+", " ", project_context)
+        normalized_combined = re.sub(r"\s+", " ", combined)
+
+        self.assertIn("V4.3 Hybrid Agentic Workflow", combined)
+        self.assertIn("Adaptive Multi-Agent Escalation Registry", project_context)
+        self.assertIn(
+            "Hybrid Workflow Integration source coverage",
+            normalized_project_context,
+        )
+        self.assertIn("completed passive metadata layer", roadmap)
+        self.assertIn("V4 Agentic Studio remains future", roadmap)
+        self.assertIn("V4.3 Boundary Decision", decisions)
+        self.assertIn("passive hybrid workflow metadata", normalized_combined)
+        self.assertIn("does not execute agents", normalized_combined)
+        self.assertIn("does not execute escalation", normalized_combined)
+        self.assertIn("change provider/model routing", normalized_combined)
+        self.assertIn("select runtimes", normalized_combined)
+        self.assertIn("modify generated output", normalized_combined)
+        self.assertIn("compact LangGraph workflow", normalized_combined)
+
     def test_architecture_doc_node_order_matches_backend_node_order(self) -> None:
         architecture_doc = (
             REPO_ROOT / "architecture" / "workflow_graph.md"
