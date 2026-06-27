@@ -149,7 +149,7 @@ flowchart TB
     classDef gate fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
     classDef failure fill:#FEE2E2,stroke:#B91C1C,color:#7F1D1D,stroke-width:1.5px;
     classDef terminal fill:#E3F2FD,stroke:#1565C0,color:#0D47A1,stroke-width:1.5px;
-    classDef metadata fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px,stroke-dasharray: 6 4;
+    classDef relationship fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px,stroke-dasharray: 6 4;
 
     start([START])
     finish([END])
@@ -188,8 +188,8 @@ flowchart TB
         failure["Failure<br/>emit final failure answer<br/>mark workflow FAILED"]
     end
 
-    metadata_boundary["Metadata boundary<br/>V3.1-V3.4 planning outputs<br/>stored on workflow + prompt input state"]:::metadata
-    workstation_boundary["Workstation inspection boundary<br/>stream events + snapshots hydrate UI<br/>no extra runtime nodes"]:::boundary
+    metadata_boundary["Metadata boundary<br/>V3.1-V3.4 planning outputs<br/>stored on workflow + prompt input state"]:::relationship
+    workstation_boundary["Workstation inspection boundary<br/>stream events + snapshots hydrate UI<br/>no extra runtime nodes"]:::relationship
 
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
     review -->|"pass or max retry"| finalization --> finish
@@ -227,8 +227,7 @@ flowchart TB
     class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,reasoning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
-    class metadata_boundary metadata
-    class workstation_boundary boundary
+    class metadata_boundary,workstation_boundary relationship
     style phase_1 rx:6px,ry:6px
     style phase_2 rx:6px,ry:6px
     style phase_3 rx:6px,ry:6px

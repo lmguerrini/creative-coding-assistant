@@ -45,6 +45,7 @@ flowchart LR
     classDef surface fill:#EEF2FF,stroke:#4338CA,color:#312E81,stroke-width:1.5px;
     classDef dashboard fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px;
     classDef boundary fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
+    classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
 
     subgraph source_group["1. Metadata Sources"]
         direction TB
@@ -69,7 +70,7 @@ flowchart LR
         direction TB
         contracts["Workstation Contracts<br/>static V3.5 surface registry"]:::boundary
         future["Future V4/V5/V6 consumers<br/>named hooks only"]:::boundary
-        note["Metadata-only surface layer<br/>No provider routing, runtime selection,<br/>artifact execution, retries, or generated output changes"]:::boundary
+        note["Metadata-only surface layer<br/>No provider routing, runtime selection,<br/>artifact execution, retries, or generated output changes"]:::note
     end
 
     snapshot --> state

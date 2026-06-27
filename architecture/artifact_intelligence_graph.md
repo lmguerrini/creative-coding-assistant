@@ -73,7 +73,7 @@ flowchart LR
     store["Metadata Store<br/>AssistantWorkflowState<br/>PromptInputResponse<br/>workflow serialization"]:::store
     director["Creative Assistant Director<br/>runtime node"]:::consumer
     reasoning["Creative Reasoning Engine<br/>runtime node"]:::consumer
-    prompt["Prompt Rendering<br/>artifact profile sections"]:::consumer
+    prompt_rendering["Prompt Rendering<br/>artifact profile sections"]:::consumer
     stream["Next.js stream hydration<br/>workflow metadata readers"]:::consumer
     workstation["V3.5 Workstation surfaces<br/>provenance + timeline + inspector + dashboard"]:::consumer
     note["Metadata-only architecture<br/>No artifact execution, modification, or export<br/>No runtime selection, provider routing,<br/>retries, preview changes, or future systems"]:::note
@@ -99,7 +99,7 @@ flowchart LR
     contracts --> store
     store --> director
     store --> reasoning
-    store --> prompt
+    store --> prompt_rendering
     store --> stream
     stream --> workstation
     director --> reasoning
