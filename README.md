@@ -18,6 +18,11 @@ The stabilized V3 surface hardens workflow graph assembly, stream and payload
 boundaries, local backend mounting, shared orchestration utilities, and
 documentation alignment without expanding generation behavior or
 future-version runtime scope.
+V4.1 adds the passive Multi-Agent Core: stable agent identities, role
+definitions, contracts, memory-access boundaries, authority boundaries, and
+advisory metadata for inspection and future orchestration consumers. These
+registries do not run agents, route tasks, change prompts, select providers,
+select runtimes, trigger retries, or modify generated output.
 
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
@@ -44,6 +49,9 @@ observed through live preview and runtime inspection from the same interface.
 - V3.5 Creative Workstation surfaces for shared workstation state, session
   intelligence, workflow exploration, provenance, creative timeline, V3
   inspector panels, dashboard cards, and metadata-only surface contracts
+- V4.1 Multi-Agent Core registries for passive agent identities, roles,
+  contracts, memory boundaries, authority boundaries, and advisory metadata
+  without active multi-agent orchestration
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -74,6 +82,12 @@ state, session intelligence, workflow explorer, provenance engine, creative
 timeline, V3 inspector panels, dashboard layer, and workstation contracts make
 the metadata easier to review without changing generation behavior or adding
 future V4/V5/V6 systems.
+
+V4.1 Multi-Agent Core defines the agent society as product metadata: stable
+agent identities, role ordering, role contracts, memory access boundaries,
+authority boundaries, and advisory operational metadata. It is a passive
+contract layer for inspection and future orchestration design, not active
+multi-agent orchestration.
 
 Artifact Intelligence capabilities:
 
@@ -112,6 +126,15 @@ Creative Workstation surfaces:
 - Workstation Dashboard
 - Workstation Engine Contracts
 
+Multi-Agent Core registries:
+
+- Agent Identity Registry
+- Agent Contract Registry
+- Agent Memory Contract Registry
+- Agent Role Registry
+- Agent Boundary Registry
+- Agent Metadata Registry
+
 The architecture documents six complementary views:
 
 - the real runtime graph in
@@ -124,19 +147,20 @@ The architecture documents six complementary views:
   [`architecture/artifact_intelligence_graph.md`](architecture/artifact_intelligence_graph.md)
 - the V3.5 Creative Workstation surface graph in
   [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
-- the cross-cutting engine matrix in
+- the cross-cutting engine matrix, including V4.1 agent registries, in
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
 The runtime graph remains compact and truthful. The internal pipeline and
-dependency views remain blueprints for future V4 Agentic Studio decomposition
-rather than claims that a V4 multi-agent runtime already exists.
+dependency views remain blueprints for future V4 Agentic Studio decomposition,
+while V4.1 documents passive roles and contracts rather than claiming that a
+multi-agent runtime already exists.
 
 ## Creative Workflow
 
 The workstation still centers on the V2.5 creative loop, now enriched by the
 V3.1 Creative Cognition Core, V3.2 Generative Design Core, V3.3 Artifact
 Intelligence, V3.4 Creative Evaluation metadata, and V3.5 Creative
-Workstation inspection surfaces:
+Workstation inspection surfaces, plus V4.1 passive Multi-Agent Core contracts:
 
 `Intent -> HITL Clarification -> Creative Translation -> Reference Fusion -> Creative Planning -> Generation -> Preview -> Critique -> Creative Evaluation -> Calibrated Quality -> Multi-Pass Refinement -> Export Preparation`
 
@@ -171,6 +195,10 @@ Workstation inspection surfaces:
   provenance, timeline, inspector panels, dashboard cards, and surface
   contracts make existing metadata reviewable without changing backend
   generation behavior.
+- Multi-Agent Core: passive agent identity, role, contract, memory-boundary,
+  authority-boundary, and advisory metadata registries describe future agent
+  responsibilities without adding active agents, task routing, prompt
+  injection, retries, or runtime changes.
 - Generation: the backend resolves effective domains, assembles the prompt,
   and streams one or more creative artifacts.
 - Preview: supported artifacts mount in controlled preview runtimes with
@@ -320,6 +348,27 @@ stream, artifact, evaluation, and session metadata. They are metadata-only:
 they do not change provider routing, runtime selection, workflow ordering,
 preview execution, artifact execution, artifact modification, retries,
 autonomous decisions, or generated output.
+
+### V4.1 Multi-Agent Core
+
+- Agent Identity Registry for stable names, role families, capability classes,
+  visibility, authority scope, and version metadata
+- Agent Contract Registry for passive per-agent inputs, outputs, capabilities,
+  cost posture, latency posture, and future orchestration hooks
+- Agent Memory Contract Registry for session, artifact, evaluation,
+  provenance, and future blackboard access boundaries without storage
+- Agent Role Registry for static role ordering and role/capability grouping
+- Agent Boundary Registry for allowed inputs, allowed outputs, forbidden
+  behaviors, and role-specific boundary rationale
+- Agent Metadata Registry for advisory cacheability, parallelization,
+  observability, auditability, cost, latency, and future-readiness metadata
+
+These V4.1 registries are passive product and architecture metadata over the
+completed V3 platform. They do not create agents, route tasks, implement
+blackboard memory, materialize shared context views, render agent text into
+provider prompts, enter workflow event payloads, change LangGraph node order,
+change provider routing, select runtimes, trigger retries, execute artifacts,
+modify artifacts, or change generated output.
 
 ### Creative Core
 
@@ -672,7 +721,9 @@ current runtime.
 - Creative Workstation: continued operator-flow polish, inspection clarity, and
   production-ready creative review.
 - Agentic Studio: more collaborative decomposition of creative strategy,
-  critique, and refinement when future runtime boundaries support it.
+  critique, and refinement when future runtime boundaries support it. V4.1
+  supplies passive role and contract metadata for that direction, not active
+  collaboration behavior.
 - Execution Optimization: stronger production telemetry, runtime policy, and
   cost/performance intelligence.
 - HoloGenesis Core OS: long-horizon creative lineage, feedback, memory, and
