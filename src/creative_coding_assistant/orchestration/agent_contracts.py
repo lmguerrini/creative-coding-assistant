@@ -1233,6 +1233,120 @@ CREATIVE_CURATOR_AGENT_CONTRACT = AgentContract(
     ),
 )
 
+CRITIC_AGENT_CONTRACT = AgentContract(
+    agent_id="critic_agent",
+    agent_name="Critic Agent",
+    agent_version="v4.1",
+    role_id="critic",
+    role_name="Critic Agent",
+    role_purpose=(
+        "Represent broad critique, consistency, and evaluation review "
+        "metadata handoffs for future V4 orchestration."
+    ),
+    authority_boundary=(
+        "Critic Agent contract metadata maps existing evaluation, consistency, "
+        "self-evaluation, and quality review boundaries only; it does not "
+        "change scoring, trigger retries, execute agents, route providers or "
+        "models, select runtimes, run evaluation engines, or modify generated "
+        "output."
+    ),
+    allowed_actions=(
+        "describe_critique_context_requirements",
+        "map_evaluation_consistency_metadata",
+        "declare_future_critique_handoff",
+    ),
+    prohibited_actions=(
+        "scoring_change",
+        "retry_triggering",
+        "evaluation_engine_execution",
+        "agent_invocation",
+        "provider_or_model_routing",
+        "generated_output_modification",
+    ),
+    capabilities=(
+        "critique_context_mapping",
+        "consistency_signal_metadata",
+        "quality_review_handoff_metadata",
+    ),
+    required_inputs=(
+        "assistant_request",
+        "evaluation_report_profile",
+        "consistency_validation_profile",
+    ),
+    optional_inputs=(
+        "self_evaluation_profile",
+        "creative_confidence_profile",
+        "creative_score_profile",
+        "creative_quality_evaluation",
+        "aesthetic_review_context",
+        "artifact_critic_profile",
+        "agent_memory_contract",
+    ),
+    produced_outputs=(
+        "critic_context_packet_contract",
+        "quality_review_summary_contract",
+        "critique_handoff_metadata_contract",
+    ),
+    produced_metadata=(
+        "critique_scope_metadata",
+        "consistency_review_metadata",
+        "quality_review_metadata",
+        "confidence_review_metadata",
+        "evaluation_gap_metadata",
+    ),
+    produced_signals=(
+        "critique_confidence",
+        "consistency_risk",
+        "quality_risk",
+        "evaluation_uncertainty",
+        "review_priority",
+    ),
+    memory_access=AgentMemoryAccessContract(
+        allowed_memory_sources=(
+            "session_metadata",
+            "artifact_metadata",
+            "evaluation_metadata",
+            "provenance_metadata",
+            "future_blackboard_contract",
+        ),
+    ),
+    cacheability="deterministic_with_upstream_metadata",
+    estimated_cost_metadata=AgentContractCostMetadata(
+        relative_cost="low",
+        cost_basis=(
+            "Static metadata mapping from existing evaluation and consistency "
+            "outputs; no scoring changes, retries, or provider calls."
+        ),
+        cache_sensitivity=(
+            "Cache key must include evaluation report, consistency, and "
+            "quality metadata identifiers."
+        ),
+    ),
+    estimated_latency_metadata=AgentContractLatencyMetadata(
+        relative_latency="low",
+        latency_basis=(
+            "Bounded local metadata inspection with no network, provider, "
+            "evaluation execution, retry control, or artifact execution."
+        ),
+        blocking_inputs=(
+            "assistant_request",
+            "evaluation_report_profile",
+            "consistency_validation_profile",
+        ),
+    ),
+    future_orchestration_hooks=(
+        "v4_2_critic_context_handoff",
+        "v4_2_quality_review_boundary",
+    ),
+    source_contract_registries=(
+        "agent_identity_registry",
+        "agent_memory_contract_registry",
+        "evaluation_engine_contract_registry",
+        "engine_contract_consistency_registry",
+        "quality_review_metadata",
+    ),
+)
+
 AGENT_CONTRACTS: tuple[AgentContract, ...] = (
     PLANNER_AGENT_CONTRACT,
     RESEARCH_AGENT_CONTRACT,
@@ -1243,5 +1357,6 @@ AGENT_CONTRACTS: tuple[AgentContract, ...] = (
     AESTHETIC_CRITIC_AGENT_CONTRACT,
     NARRATIVE_SYMBOLIC_AGENT_CONTRACT,
     CREATIVE_CURATOR_AGENT_CONTRACT,
+    CRITIC_AGENT_CONTRACT,
 )
 AGENT_CONTRACT_REGISTRY = build_agent_contract_registry(AGENT_CONTRACTS)
