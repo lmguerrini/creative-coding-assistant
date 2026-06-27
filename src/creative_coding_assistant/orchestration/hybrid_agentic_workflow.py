@@ -41,6 +41,13 @@ CreativeEscalationPolicyCategory = Literal[
     "quality",
     "synthesis",
 ]
+ReflectionEscalationPosture = Literal[
+    "none",
+    "low",
+    "medium",
+    "high",
+    "critical",
+]
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -62,6 +69,12 @@ CREATIVE_ESCALATION_POLICY_RULE_SERIALIZATION_VERSION = (
 )
 CREATIVE_ESCALATION_POLICY_REGISTRY_SERIALIZATION_VERSION = (
     "creative_escalation_policy_registry.v1"
+)
+REFLECTION_ESCALATION_PROFILE_SERIALIZATION_VERSION = (
+    "reflection_escalation_profile.v1"
+)
+REFLECTION_ESCALATION_REGISTRY_SERIALIZATION_VERSION = (
+    "reflection_escalation_registry.v1"
 )
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
@@ -100,6 +113,13 @@ CREATIVE_ESCALATION_POLICY_AUTHORITY_BOUNDARY = (
     "only; it does not evaluate creative policy, approve escalation, invoke "
     "agents, route providers or models, control workflow transitions, trigger "
     "retries, execute artifacts, write memory, or modify generated output."
+)
+REFLECTION_ESCALATION_AUTHORITY_BOUNDARY = (
+    "Reflection escalation metadata describes passive escalation posture for "
+    "existing Reflection Loop Engine signals only; it does not run reflection, "
+    "trigger refinement, approve escalation, invoke agents, route providers or "
+    "models, control workflow transitions, write memory, or modify generated "
+    "output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Hybrid agentic workflow metadata maps current V3 workflow nodes to future "
@@ -213,6 +233,24 @@ _CREATIVE_ESCALATION_POLICY_SOURCE_REGISTRIES = (
     "evaluation_engine_contract_registry",
     "hybrid_agentic_workflow_registry",
 )
+_REFLECTION_ESCALATION_BLOCKED_RUNTIME_BEHAVIORS = (
+    "reflection_execution",
+    "refinement_triggering",
+    "creative_policy_evaluation",
+    "escalation_approval",
+    "agent_invocation",
+    "provider_or_model_routing",
+    "workflow_control",
+    "memory_write",
+    "generated_output_modification",
+)
+_REFLECTION_ESCALATION_SOURCE_REGISTRIES = (
+    "reflection_loop_engine",
+    "creative_escalation_policy_registry",
+    "escalation_gate_registry",
+    "evaluation_engine_contract_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -249,6 +287,13 @@ _CREATIVE_ESCALATION_POLICY_CATEGORIES: tuple[
     "runtime",
     "quality",
     "synthesis",
+)
+_REFLECTION_ESCALATION_POSTURES: tuple[ReflectionEscalationPosture, ...] = (
+    "none",
+    "low",
+    "medium",
+    "high",
+    "critical",
 )
 _KNOWN_SPECIALIST_AGENT_IDS = (
     "planner_agent",
@@ -936,6 +981,136 @@ def creative_escalation_policy_by_id(
     return None
 
 
+class ReflectionEscalationProfile(BaseModel):
+    """Passive reflection escalation posture metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    profile_id: str = Field(min_length=1, max_length=120)
+    profile_name: str = Field(min_length=1, max_length=160)
+    posture: ReflectionEscalationPosture
+    reflection_priority: ReflectionEscalationPosture
+    source_policy_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_gate_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_registries: tuple[str, ...] = Field(min_length=5, max_length=5)
+    reflection_signal_sources: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_REFLECTION_ESCALATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    reflection_execution_implemented: Literal[False] = False
+    refinement_triggering_implemented: Literal[False] = False
+    escalation_approval_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["reflection_escalation_profile.v1"] = (
+        REFLECTION_ESCALATION_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class ReflectionEscalationRegistry(BaseModel):
+    """Stable passive registry for reflection escalation metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["reflection_escalation_registry"] = (
+        "reflection_escalation_registry"
+    )
+    serialization_version: Literal["reflection_escalation_registry.v1"] = (
+        REFLECTION_ESCALATION_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=REFLECTION_ESCALATION_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    profiles: tuple[ReflectionEscalationProfile, ...] = Field(
+        min_length=5,
+        max_length=5,
+    )
+    profile_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    postures: tuple[ReflectionEscalationPosture, ...] = Field(
+        min_length=5,
+        max_length=5,
+    )
+    source_registries: tuple[str, ...] = Field(min_length=5, max_length=5)
+    policy_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    gate_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    profile_count: int = Field(ge=5, le=5)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_REFLECTION_ESCALATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    reflection_execution_implemented: Literal[False] = False
+    refinement_triggering_implemented: Literal[False] = False
+    escalation_approval_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_reflection_escalation_metadata(self) -> Self:
+        derived_profile_ids = tuple(profile.profile_id for profile in self.profiles)
+        derived_postures = tuple(profile.posture for profile in self.profiles)
+        if self.profile_ids != derived_profile_ids:
+            raise ValueError("profile_ids must match profiles")
+        if self.postures != derived_postures:
+            raise ValueError("postures must match profiles")
+        if self.profile_count != len(self.profiles):
+            raise ValueError("profile_count must match profiles")
+        if len(set(self.profile_ids)) != len(self.profile_ids):
+            raise ValueError("profile_ids must be unique")
+
+        source_registries = set(self.source_registries)
+        profile_sources = {
+            source_registry
+            for profile in self.profiles
+            for source_registry in profile.source_registries
+        }
+        if source_registries != profile_sources:
+            raise ValueError("source_registries must match profile sources")
+
+        known_policies = set(self.policy_ids)
+        known_gates = set(self.gate_ids)
+        for profile in self.profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile sources must match registry sources")
+            if not set(profile.source_policy_ids).issubset(known_policies):
+                raise ValueError("reflection policies must be known metadata")
+            if not set(profile.source_gate_ids).issubset(known_gates):
+                raise ValueError("reflection gates must be known metadata")
+            if profile.reflection_execution_implemented:
+                raise ValueError("reflection escalation must not execute reflection")
+            if profile.refinement_triggering_implemented:
+                raise ValueError("reflection escalation must not trigger refinement")
+        return self
+
+
+def reflection_escalation_registry() -> ReflectionEscalationRegistry:
+    """Return passive reflection escalation metadata."""
+
+    return REFLECTION_ESCALATION_REGISTRY
+
+
+def reflection_escalation_profile_by_id(
+    profile_id: str,
+    registry: ReflectionEscalationRegistry | None = None,
+) -> ReflectionEscalationProfile | None:
+    """Return one reflection escalation profile without executing reflection."""
+
+    source_registry = registry or REFLECTION_ESCALATION_REGISTRY
+    for profile in source_registry.profiles:
+        if profile.profile_id == profile_id:
+            return profile
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -1134,6 +1309,35 @@ def _creative_escalation_policy(
             "gates, invoke agents, control workflow transitions, trigger "
             "retries, execute artifacts, write memory, or modify generated "
             "output."
+        ),
+    )
+
+
+def _reflection_escalation_profile(
+    *,
+    profile_id: str,
+    profile_name: str,
+    posture: ReflectionEscalationPosture,
+    source_policy_ids: tuple[str, ...],
+    source_gate_ids: tuple[str, ...],
+    reflection_signal_sources: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> ReflectionEscalationProfile:
+    return ReflectionEscalationProfile(
+        profile_id=profile_id,
+        profile_name=profile_name,
+        posture=posture,
+        reflection_priority=posture,
+        source_policy_ids=source_policy_ids,
+        source_gate_ids=source_gate_ids,
+        source_registries=_REFLECTION_ESCALATION_SOURCE_REGISTRIES,
+        reflection_signal_sources=reflection_signal_sources,
+        advisory_outputs=advisory_outputs,
+        authority_boundary=(
+            "This reflection escalation profile is advisory metadata only; it "
+            "does not run reflection, trigger refinement, approve escalation, "
+            "invoke agents, control workflow transitions, write memory, or "
+            "modify generated output."
         ),
     )
 
@@ -1748,6 +1952,103 @@ CREATIVE_ESCALATION_POLICY_REGISTRY = CreativeEscalationPolicyRegistry(
     gate_ids=ESCALATION_GATE_REGISTRY.gate_ids,
     loop_ids=SPECIALIST_AGENT_LOOP_REGISTRY.loop_ids,
     policy_count=len(CREATIVE_ESCALATION_POLICIES),
+)
+REFLECTION_ESCALATION_PROFILES = (
+    _reflection_escalation_profile(
+        profile_id="reflection_none_escalation_profile",
+        profile_name="Reflection None Escalation Profile",
+        posture="none",
+        source_policy_ids=("quality_uncertainty_creative_escalation_policy",),
+        source_gate_ids=("return_handoff_escalation_gate",),
+        reflection_signal_sources=(
+            "reflection_priority_none",
+            "expected_quality_gain_none",
+        ),
+        advisory_outputs=("reflection_no_escalation_notes",),
+    ),
+    _reflection_escalation_profile(
+        profile_id="reflection_low_escalation_profile",
+        profile_name="Reflection Low Escalation Profile",
+        posture="low",
+        source_policy_ids=(
+            "concept_ambiguity_creative_escalation_policy",
+            "quality_uncertainty_creative_escalation_policy",
+        ),
+        source_gate_ids=(
+            "evidence_completeness_escalation_gate",
+            "return_handoff_escalation_gate",
+        ),
+        reflection_signal_sources=(
+            "reflection_priority_low",
+            "expected_quality_gain_low",
+        ),
+        advisory_outputs=("reflection_low_escalation_notes",),
+    ),
+    _reflection_escalation_profile(
+        profile_id="reflection_medium_escalation_profile",
+        profile_name="Reflection Medium Escalation Profile",
+        posture="medium",
+        source_policy_ids=(
+            "concept_ambiguity_creative_escalation_policy",
+            "runtime_fit_creative_escalation_policy",
+        ),
+        source_gate_ids=(
+            "backbone_entry_escalation_gate",
+            "evidence_completeness_escalation_gate",
+        ),
+        reflection_signal_sources=(
+            "reflection_priority_medium",
+            "expected_risk_reduction_medium",
+        ),
+        advisory_outputs=("reflection_medium_escalation_notes",),
+    ),
+    _reflection_escalation_profile(
+        profile_id="reflection_high_escalation_profile",
+        profile_name="Reflection High Escalation Profile",
+        posture="high",
+        source_policy_ids=(
+            "runtime_fit_creative_escalation_policy",
+            "quality_uncertainty_creative_escalation_policy",
+        ),
+        source_gate_ids=(
+            "specialist_loop_boundary_gate",
+            "human_review_visibility_gate",
+        ),
+        reflection_signal_sources=(
+            "reflection_priority_high",
+            "expected_quality_gain_high",
+            "expected_risk_reduction_high",
+        ),
+        advisory_outputs=("reflection_high_escalation_notes",),
+    ),
+    _reflection_escalation_profile(
+        profile_id="reflection_critical_escalation_profile",
+        profile_name="Reflection Critical Escalation Profile",
+        posture="critical",
+        source_policy_ids=(
+            "quality_uncertainty_creative_escalation_policy",
+            "terminal_synthesis_creative_escalation_policy",
+        ),
+        source_gate_ids=(
+            "human_review_visibility_gate",
+            "return_handoff_escalation_gate",
+        ),
+        reflection_signal_sources=(
+            "reflection_priority_critical",
+            "hitl_recommendation_required",
+            "unresolved_questions",
+        ),
+        advisory_outputs=("reflection_critical_escalation_notes",),
+    ),
+)
+REFLECTION_ESCALATION_REGISTRY = ReflectionEscalationRegistry(
+    profiles=REFLECTION_ESCALATION_PROFILES,
+    profile_ids=tuple(profile.profile_id for profile in REFLECTION_ESCALATION_PROFILES),
+    postures=tuple(profile.posture for profile in REFLECTION_ESCALATION_PROFILES),
+    source_registries=_REFLECTION_ESCALATION_SOURCE_REGISTRIES,
+    policy_ids=CREATIVE_ESCALATION_POLICY_REGISTRY.policy_ids,
+    gate_ids=ESCALATION_GATE_REGISTRY.gate_ids,
+    profile_count=len(REFLECTION_ESCALATION_PROFILES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (

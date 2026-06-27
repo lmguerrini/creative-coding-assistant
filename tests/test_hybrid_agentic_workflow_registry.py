@@ -5,6 +5,7 @@ from creative_coding_assistant.orchestration import (
     ConditionalMultiAgentEscalationRegistry,
     CreativeEscalationPolicyRegistry,
     EscalationGateRegistry,
+    ReflectionEscalationRegistry,
     SpecialistAgentLoopRegistry,
     V3BackboneModeRegistry,
     agent_contract_registry,
@@ -19,6 +20,8 @@ from creative_coding_assistant.orchestration import (
     escalation_policy_registry,
     hybrid_agentic_workflow_registry,
     hybrid_agentic_workflow_stage_by_id,
+    reflection_escalation_profile_by_id,
+    reflection_escalation_registry,
     specialist_agent_loop_by_id,
     specialist_agent_loop_registry,
     v3_backbone_mode_profile_by_node_id,
@@ -241,6 +244,42 @@ REQUIRED_CREATIVE_POLICY_FIELDS = {
     "creative_policy_evaluation_implemented",
     "escalation_approval_implemented",
     "gate_evaluation_implemented",
+    "agent_invocation_implemented",
+    "workflow_control_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_REFLECTION_PROFILE_IDS = (
+    "reflection_none_escalation_profile",
+    "reflection_low_escalation_profile",
+    "reflection_medium_escalation_profile",
+    "reflection_high_escalation_profile",
+    "reflection_critical_escalation_profile",
+)
+EXPECTED_REFLECTION_POSTURES = ("none", "low", "medium", "high", "critical")
+EXPECTED_REFLECTION_SOURCE_REGISTRIES = (
+    "reflection_loop_engine",
+    "creative_escalation_policy_registry",
+    "escalation_gate_registry",
+    "evaluation_engine_contract_registry",
+    "hybrid_agentic_workflow_registry",
+)
+REQUIRED_REFLECTION_PROFILE_FIELDS = {
+    "profile_id",
+    "profile_name",
+    "posture",
+    "reflection_priority",
+    "source_policy_ids",
+    "source_gate_ids",
+    "source_registries",
+    "reflection_signal_sources",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "reflection_execution_implemented",
+    "refinement_triggering_implemented",
+    "escalation_approval_implemented",
     "agent_invocation_implemented",
     "workflow_control_implemented",
     "generated_output_mutation_implemented",
@@ -995,6 +1034,149 @@ class CreativeEscalationPolicyRegistryTests(unittest.TestCase):
             "approve_escalation",
             "route_provider",
             "trigger_retry",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class ReflectionEscalationRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_reflection_postures(self) -> None:
+        registry = reflection_escalation_registry()
+
+        self.assertEqual(registry.role, "reflection_escalation_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "reflection_escalation_registry.v1",
+        )
+        self.assertEqual(registry.profile_ids, EXPECTED_REFLECTION_PROFILE_IDS)
+        self.assertEqual(registry.postures, EXPECTED_REFLECTION_POSTURES)
+        self.assertEqual(registry.source_registries, EXPECTED_REFLECTION_SOURCE_REGISTRIES)
+        self.assertEqual(
+            registry.policy_ids,
+            creative_escalation_policy_registry().policy_ids,
+        )
+        self.assertEqual(registry.gate_ids, escalation_gate_registry().gate_ids)
+        self.assertEqual(registry.profile_count, 5)
+        self.assertIn("does not run reflection", registry.authority_boundary)
+        self.assertFalse(registry.reflection_execution_implemented)
+        self.assertFalse(registry.refinement_triggering_implemented)
+        self.assertFalse(registry.escalation_approval_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_reflection_profiles_reference_known_policies_and_gates(self) -> None:
+        registry = reflection_escalation_registry()
+        known_policies = set(creative_escalation_policy_registry().policy_ids)
+        known_gates = set(escalation_gate_registry().gate_ids)
+
+        for profile in registry.profiles:
+            dumped = profile.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_REFLECTION_PROFILE_FIELDS)
+            self.assertEqual(profile.source_registries, EXPECTED_REFLECTION_SOURCE_REGISTRIES)
+            self.assertEqual(profile.posture, profile.reflection_priority)
+            self.assertTrue(set(profile.source_policy_ids).issubset(known_policies))
+            self.assertTrue(set(profile.source_gate_ids).issubset(known_gates))
+            self.assertTrue(profile.reflection_signal_sources)
+            self.assertTrue(profile.advisory_outputs)
+            self.assertIn("reflection_execution", profile.blocked_runtime_behaviors)
+            self.assertIn("refinement_triggering", profile.blocked_runtime_behaviors)
+            self.assertFalse(profile.reflection_execution_implemented)
+            self.assertFalse(profile.refinement_triggering_implemented)
+            self.assertFalse(profile.escalation_approval_implemented)
+            self.assertFalse(profile.agent_invocation_implemented)
+            self.assertFalse(profile.workflow_control_implemented)
+            self.assertFalse(profile.generated_output_mutation_implemented)
+            self.assertEqual(
+                profile.serialization_version,
+                "reflection_escalation_profile.v1",
+            )
+            self.assertTrue(profile.metadata_only)
+
+    def test_reflection_source_registries_are_complete(self) -> None:
+        registry = reflection_escalation_registry()
+        profile_sources = tuple(
+            dict.fromkeys(
+                source
+                for profile in registry.profiles
+                for source in profile.source_registries
+            )
+        )
+
+        self.assertEqual(profile_sources, registry.source_registries)
+        for source_registry in EXPECTED_REFLECTION_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, profile_sources)
+        for profile in registry.profiles:
+            self.assertEqual(set(profile.source_registries), set(profile_sources))
+
+    def test_reflection_profile_lookup_is_stable(self) -> None:
+        profile = reflection_escalation_profile_by_id(
+            "reflection_critical_escalation_profile"
+        )
+        missing = reflection_escalation_profile_by_id("missing_profile")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.posture, "critical")
+        self.assertIn("hitl_recommendation_required", profile.reflection_signal_sources)
+        self.assertFalse(profile.refinement_triggering_implemented)
+
+    def test_reflection_registry_rejects_mismatched_metadata(self) -> None:
+        registry = reflection_escalation_registry()
+        mismatched_profile = registry.profiles[0].model_copy(
+            update={"profile_id": "other_profile"}
+        )
+        unknown_policy_profile = registry.profiles[0].model_copy(
+            update={"source_policy_ids": ("missing_policy",)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "profile_ids must match"):
+            ReflectionEscalationRegistry(
+                profiles=(mismatched_profile,) + registry.profiles[1:],
+                profile_ids=registry.profile_ids,
+                postures=registry.postures,
+                source_registries=registry.source_registries,
+                policy_ids=registry.policy_ids,
+                gate_ids=registry.gate_ids,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "reflection policies must be known"):
+            ReflectionEscalationRegistry(
+                profiles=(unknown_policy_profile,) + registry.profiles[1:],
+                profile_ids=registry.profile_ids,
+                postures=registry.postures,
+                source_registries=registry.source_registries,
+                policy_ids=registry.policy_ids,
+                gate_ids=registry.gate_ids,
+                profile_count=registry.profile_count,
+            )
+
+    def test_reflection_escalation_does_not_declare_active_execution(self) -> None:
+        registry = reflection_escalation_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for profile in registry.profiles
+                    for field in (
+                        profile.profile_id,
+                        profile.authority_boundary,
+                        *profile.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "execute_agent",
+            "run_reflection",
+            "trigger_refinement",
+            "route_provider",
             "modify_output",
         ):
             self.assertNotIn(forbidden_term, combined_text)
