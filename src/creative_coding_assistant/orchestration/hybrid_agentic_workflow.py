@@ -77,6 +77,13 @@ RiskEscalationTopic = AmbiguityEscalationTopic
 RiskEscalationLevel = Literal["critical", "high", "low", "medium"]
 QualityEscalationTopic = RiskEscalationTopic
 QualityEscalationLevel = Literal["critical", "high", "low", "medium"]
+AdaptiveMultiAgentEscalationTopic = QualityEscalationTopic
+AdaptiveMultiAgentEscalationPosture = Literal[
+    "context_packet",
+    "specialist_pairing_candidate",
+    "multi_loop_review_candidate",
+    "terminal_guardrail_candidate",
+]
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -187,6 +194,12 @@ RISK_ESCALATION_PROFILE_SERIALIZATION_VERSION = "risk_escalation_profile.v1"
 RISK_ESCALATION_REGISTRY_SERIALIZATION_VERSION = "risk_escalation_registry.v1"
 QUALITY_ESCALATION_PROFILE_SERIALIZATION_VERSION = "quality_escalation_profile.v1"
 QUALITY_ESCALATION_REGISTRY_SERIALIZATION_VERSION = "quality_escalation_registry.v1"
+ADAPTIVE_MULTI_AGENT_ESCALATION_PROFILE_SERIALIZATION_VERSION = (
+    "adaptive_multi_agent_escalation_profile.v1"
+)
+ADAPTIVE_MULTI_AGENT_ESCALATION_REGISTRY_SERIALIZATION_VERSION = (
+    "adaptive_multi_agent_escalation_registry.v1"
+)
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
 V3_BACKBONE_MODE_AUTHORITY_BOUNDARY = (
@@ -335,6 +348,14 @@ QUALITY_ESCALATION_AUTHORITY_BOUNDARY = (
     "quality, execute escalation, trigger refinement, invoke agents, route "
     "providers or models, control workflow transitions, trigger retries, or "
     "modify generated output."
+)
+ADAPTIVE_MULTI_AGENT_ESCALATION_AUTHORITY_BOUNDARY = (
+    "Adaptive multi-agent escalation metadata describes passive advisory "
+    "escalation posture across conditional candidates, specialist loops, "
+    "HITL gates, and quality, risk, and ambiguity metadata only; it does not "
+    "evaluate adaptation, execute escalation, orchestrate agents, invoke "
+    "agents, select runtimes, route providers or models, control workflow "
+    "transitions, trigger retries, or modify generated output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Hybrid agentic workflow metadata maps current V3 workflow nodes to future "
@@ -744,6 +765,28 @@ _QUALITY_ESCALATION_SOURCE_REGISTRIES = (
     "agent_escalation_signal_registry",
     "hybrid_agentic_workflow_registry",
 )
+_ADAPTIVE_MULTI_AGENT_ESCALATION_BLOCKED_RUNTIME_BEHAVIORS = (
+    "adaptation_evaluation",
+    "escalation_execution",
+    "multi_agent_orchestration",
+    "agent_invocation",
+    "runtime_selection",
+    "provider_or_model_routing",
+    "workflow_control",
+    "retry_triggering",
+    "generated_output_modification",
+)
+_ADAPTIVE_MULTI_AGENT_ESCALATION_SOURCE_REGISTRIES = (
+    "quality_escalation_registry",
+    "risk_escalation_registry",
+    "ambiguity_escalation_registry",
+    "conditional_multi_agent_escalation_registry",
+    "specialist_agent_loop_registry",
+    "hitl_escalation_gate_registry",
+    "agent_capability_registry",
+    "agent_escalation_signal_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -962,6 +1005,33 @@ _QUALITY_EVIDENCE_SURFACES = (
     "weakest_quality_signals",
     "quality_risks",
     "confidence_uncertainties",
+)
+_ADAPTIVE_MULTI_AGENT_ESCALATION_TOPICS: tuple[
+    AdaptiveMultiAgentEscalationTopic, ...
+] = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
+)
+_ADAPTIVE_MULTI_AGENT_ESCALATION_POSTURES: tuple[
+    AdaptiveMultiAgentEscalationPosture, ...
+] = (
+    "context_packet",
+    "specialist_pairing_candidate",
+    "multi_loop_review_candidate",
+    "terminal_guardrail_candidate",
+)
+_ADAPTIVE_MULTI_AGENT_ESCALATION_EVIDENCE_SURFACES = (
+    "escalation_candidates",
+    "agent_escalation_candidates",
+    "human_review_posture",
+    "ambiguity_context",
+    "risk_context",
+    "quality_uncertainty_summary",
+)
+_ADAPTIVE_MULTI_AGENT_ESCALATION_CAPABILITY_IDS = (
+    "adaptive_multi_agent_escalation",
 )
 _KNOWN_SPECIALIST_AGENT_IDS = (
     "planner_agent",
@@ -4035,6 +4105,201 @@ def quality_escalation_profile_by_id(
     return None
 
 
+class AdaptiveMultiAgentEscalationProfile(BaseModel):
+    """Passive V4.3 adaptive multi-agent escalation profile metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    adaptive_profile_id: str = Field(min_length=1, max_length=190)
+    topic_id: AdaptiveMultiAgentEscalationTopic
+    source_capability_id: Literal["adaptive_multi_agent_escalation"] = (
+        "adaptive_multi_agent_escalation"
+    )
+    source_condition_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_specialist_loop_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_quality_profile_id: str = Field(min_length=1, max_length=190)
+    source_risk_profile_id: str = Field(min_length=1, max_length=190)
+    source_ambiguity_profile_id: str = Field(min_length=1, max_length=190)
+    source_hitl_gate_profile_id: str = Field(min_length=1, max_length=190)
+    source_escalation_signal_ids: tuple[str, ...] = Field(min_length=1, max_length=7)
+    adaptive_posture: AdaptiveMultiAgentEscalationPosture
+    adaptive_evidence_surfaces: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_registries: tuple[str, ...] = Field(min_length=9, max_length=9)
+    escalation_dimensions: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=1000)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_ADAPTIVE_MULTI_AGENT_ESCALATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    adaptation_evaluation_implemented: Literal[False] = False
+    escalation_execution_implemented: Literal[False] = False
+    multi_agent_orchestration_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    runtime_selection_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["adaptive_multi_agent_escalation_profile.v1"] = (
+        ADAPTIVE_MULTI_AGENT_ESCALATION_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class AdaptiveMultiAgentEscalationRegistry(BaseModel):
+    """Stable passive registry for V4.3 adaptive escalation metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["adaptive_multi_agent_escalation_registry"] = (
+        "adaptive_multi_agent_escalation_registry"
+    )
+    serialization_version: Literal[
+        "adaptive_multi_agent_escalation_registry.v1"
+    ] = ADAPTIVE_MULTI_AGENT_ESCALATION_REGISTRY_SERIALIZATION_VERSION
+    authority_boundary: str = Field(
+        default=ADAPTIVE_MULTI_AGENT_ESCALATION_AUTHORITY_BOUNDARY,
+        max_length=1100,
+    )
+    adaptive_profiles: tuple[AdaptiveMultiAgentEscalationProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    adaptive_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    topic_ids: tuple[AdaptiveMultiAgentEscalationTopic, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    adaptive_postures: tuple[AdaptiveMultiAgentEscalationPosture, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    source_registries: tuple[str, ...] = Field(min_length=9, max_length=9)
+    capability_ids: tuple[str, ...] = Field(min_length=1, max_length=1)
+    condition_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    specialist_loop_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    quality_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    risk_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    ambiguity_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    hitl_gate_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    escalation_signal_ids: tuple[str, ...] = Field(min_length=7, max_length=7)
+    adaptive_evidence_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_ADAPTIVE_MULTI_AGENT_ESCALATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    adaptation_evaluation_implemented: Literal[False] = False
+    escalation_execution_implemented: Literal[False] = False
+    multi_agent_orchestration_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    runtime_selection_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_adaptive_multi_agent_escalation_metadata(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.adaptive_profile_id for profile in self.adaptive_profiles
+        )
+        derived_topic_ids = tuple(
+            profile.topic_id for profile in self.adaptive_profiles
+        )
+        derived_postures = tuple(
+            profile.adaptive_posture for profile in self.adaptive_profiles
+        )
+        if self.adaptive_profile_ids != derived_profile_ids:
+            raise ValueError("adaptive_profile_ids must match profiles")
+        if self.topic_ids != derived_topic_ids:
+            raise ValueError("topic_ids must match adaptive profiles")
+        if self.topic_ids != _ADAPTIVE_MULTI_AGENT_ESCALATION_TOPICS:
+            raise ValueError("topic_ids must preserve adaptive topic order")
+        if self.adaptive_postures != derived_postures:
+            raise ValueError("adaptive_postures must match profiles")
+        if (
+            self.adaptive_postures
+            != _ADAPTIVE_MULTI_AGENT_ESCALATION_POSTURES
+        ):
+            raise ValueError("adaptive_postures must preserve adaptive order")
+        if self.profile_count != len(self.adaptive_profiles):
+            raise ValueError("profile_count must match adaptive profiles")
+
+        profile_sources = {
+            source_registry
+            for profile in self.adaptive_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match adaptive sources")
+
+        known_capabilities = set(self.capability_ids)
+        known_conditions = set(self.condition_ids)
+        known_loops = set(self.specialist_loop_ids)
+        known_quality = set(self.quality_profile_ids)
+        known_risk = set(self.risk_profile_ids)
+        known_ambiguity = set(self.ambiguity_profile_ids)
+        known_hitl = set(self.hitl_gate_profile_ids)
+        known_signals = set(self.escalation_signal_ids)
+        known_evidence = set(self.adaptive_evidence_surfaces)
+        for profile in self.adaptive_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("adaptive sources must match registry")
+            if profile.source_capability_id not in known_capabilities:
+                raise ValueError("adaptive capability must be known")
+            if not set(profile.source_condition_ids).issubset(known_conditions):
+                raise ValueError("adaptive conditions must be known")
+            if not set(profile.source_specialist_loop_ids).issubset(known_loops):
+                raise ValueError("adaptive specialist loops must be known")
+            if profile.source_quality_profile_id not in known_quality:
+                raise ValueError("adaptive quality profiles must be known")
+            if profile.source_risk_profile_id not in known_risk:
+                raise ValueError("adaptive risk profiles must be known")
+            if profile.source_ambiguity_profile_id not in known_ambiguity:
+                raise ValueError("adaptive ambiguity profiles must be known")
+            if profile.source_hitl_gate_profile_id not in known_hitl:
+                raise ValueError("adaptive HITL profiles must be known")
+            if not set(profile.source_escalation_signal_ids).issubset(known_signals):
+                raise ValueError("adaptive signals must be known")
+            if "quality_escalation_signal" not in profile.source_escalation_signal_ids:
+                raise ValueError("adaptive profiles must reference quality signal")
+            if not set(profile.adaptive_evidence_surfaces).issubset(known_evidence):
+                raise ValueError("adaptive evidence surfaces must be known")
+            if profile.adaptation_evaluation_implemented:
+                raise ValueError("adaptive escalation must not evaluate adaptation")
+            if profile.escalation_execution_implemented:
+                raise ValueError("adaptive escalation must not execute escalation")
+            if profile.multi_agent_orchestration_implemented:
+                raise ValueError("adaptive escalation must not orchestrate agents")
+        return self
+
+
+def adaptive_multi_agent_escalation_registry() -> (
+    AdaptiveMultiAgentEscalationRegistry
+):
+    """Return passive V4.3 adaptive multi-agent escalation metadata."""
+
+    return ADAPTIVE_MULTI_AGENT_ESCALATION_REGISTRY
+
+
+def adaptive_multi_agent_escalation_profile_by_id(
+    adaptive_profile_id: str,
+    registry: AdaptiveMultiAgentEscalationRegistry | None = None,
+) -> AdaptiveMultiAgentEscalationProfile | None:
+    """Return one adaptive escalation profile without invoking agents."""
+
+    source_registry = registry or ADAPTIVE_MULTI_AGENT_ESCALATION_REGISTRY
+    for profile in source_registry.adaptive_profiles:
+        if profile.adaptive_profile_id == adaptive_profile_id:
+            return profile
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -4806,6 +5071,52 @@ def _quality_escalation_profile(
             "does not evaluate quality, execute escalation, trigger "
             "refinement, invoke agents, route providers or models, control "
             "workflow transitions, trigger retries, or modify generated output."
+        ),
+    )
+
+
+def _adaptive_multi_agent_escalation_profile(
+    *,
+    adaptive_profile_id: str,
+    topic_id: AdaptiveMultiAgentEscalationTopic,
+    source_condition_ids: tuple[str, ...],
+    source_specialist_loop_ids: tuple[str, ...],
+    source_quality_profile_id: str,
+    source_risk_profile_id: str,
+    source_ambiguity_profile_id: str,
+    source_hitl_gate_profile_id: str,
+    source_escalation_signal_ids: tuple[str, ...],
+    adaptive_posture: AdaptiveMultiAgentEscalationPosture,
+    adaptive_evidence_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> AdaptiveMultiAgentEscalationProfile:
+    return AdaptiveMultiAgentEscalationProfile(
+        adaptive_profile_id=adaptive_profile_id,
+        topic_id=topic_id,
+        source_condition_ids=source_condition_ids,
+        source_specialist_loop_ids=source_specialist_loop_ids,
+        source_quality_profile_id=source_quality_profile_id,
+        source_risk_profile_id=source_risk_profile_id,
+        source_ambiguity_profile_id=source_ambiguity_profile_id,
+        source_hitl_gate_profile_id=source_hitl_gate_profile_id,
+        source_escalation_signal_ids=source_escalation_signal_ids,
+        adaptive_posture=adaptive_posture,
+        adaptive_evidence_surfaces=adaptive_evidence_surfaces,
+        source_registries=_ADAPTIVE_MULTI_AGENT_ESCALATION_SOURCE_REGISTRIES,
+        escalation_dimensions=(
+            "adaptive_escalation_posture",
+            "conditional_candidate_context",
+            "specialist_loop_context",
+            "quality_risk_ambiguity_context",
+            "human_review_visibility",
+        ),
+        advisory_outputs=advisory_outputs,
+        authority_boundary=(
+            "This adaptive multi-agent escalation profile is advisory "
+            "metadata only; it does not evaluate adaptation, execute "
+            "escalation, orchestrate agents, invoke agents, select runtimes, "
+            "route providers or models, control workflow transitions, "
+            "trigger retries, or modify generated output."
         ),
     )
 
@@ -6948,6 +7259,152 @@ QUALITY_ESCALATION_REGISTRY = QualityEscalationRegistry(
     escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
     quality_evidence_surfaces=_QUALITY_EVIDENCE_SURFACES,
     profile_count=len(QUALITY_ESCALATION_PROFILES),
+)
+ADAPTIVE_MULTI_AGENT_ESCALATION_PROFILES = (
+    _adaptive_multi_agent_escalation_profile(
+        adaptive_profile_id="adaptive_multi_agent_escalation::planning_execution_fit",
+        topic_id="planning_execution_fit",
+        source_condition_ids=("planning_ambiguity_multi_agent_candidate",),
+        source_specialist_loop_ids=("planning_specialist_agent_loop",),
+        source_quality_profile_id="quality_escalation::planning_execution_fit",
+        source_risk_profile_id="risk_escalation::planning_execution_fit",
+        source_ambiguity_profile_id="ambiguity_escalation::planning_execution_fit",
+        source_hitl_gate_profile_id="hitl_escalation_gate::planning_execution_fit",
+        source_escalation_signal_ids=(
+            "quality_escalation_signal",
+            "ambiguity_escalation_signal",
+            "hitl_escalation_signal",
+        ),
+        adaptive_posture="context_packet",
+        adaptive_evidence_surfaces=(
+            "escalation_candidates",
+            "ambiguity_context",
+            "human_review_posture",
+        ),
+        advisory_outputs=(
+            "planning_adaptive_escalation_placeholder",
+            "planning_adaptive_context_packet",
+        ),
+    ),
+    _adaptive_multi_agent_escalation_profile(
+        adaptive_profile_id=(
+            "adaptive_multi_agent_escalation::style_aesthetic_alignment"
+        ),
+        topic_id="style_aesthetic_alignment",
+        source_condition_ids=("artifact_risk_multi_agent_candidate",),
+        source_specialist_loop_ids=("artifact_specialist_agent_loop",),
+        source_quality_profile_id="quality_escalation::style_aesthetic_alignment",
+        source_risk_profile_id="risk_escalation::style_aesthetic_alignment",
+        source_ambiguity_profile_id=(
+            "ambiguity_escalation::style_aesthetic_alignment"
+        ),
+        source_hitl_gate_profile_id=(
+            "hitl_escalation_gate::style_aesthetic_alignment"
+        ),
+        source_escalation_signal_ids=(
+            "quality_escalation_signal",
+            "risk_escalation_signal",
+        ),
+        adaptive_posture="specialist_pairing_candidate",
+        adaptive_evidence_surfaces=(
+            "agent_escalation_candidates",
+            "risk_context",
+            "quality_uncertainty_summary",
+        ),
+        advisory_outputs=(
+            "style_adaptive_escalation_placeholder",
+            "artifact_specialist_pairing_context",
+        ),
+    ),
+    _adaptive_multi_agent_escalation_profile(
+        adaptive_profile_id="adaptive_multi_agent_escalation::curation_refinement_need",
+        topic_id="curation_refinement_need",
+        source_condition_ids=(
+            "evaluation_confidence_multi_agent_candidate",
+            "artifact_risk_multi_agent_candidate",
+        ),
+        source_specialist_loop_ids=(
+            "evaluation_specialist_agent_loop",
+            "artifact_specialist_agent_loop",
+        ),
+        source_quality_profile_id="quality_escalation::curation_refinement_need",
+        source_risk_profile_id="risk_escalation::curation_refinement_need",
+        source_ambiguity_profile_id="ambiguity_escalation::curation_refinement_need",
+        source_hitl_gate_profile_id=(
+            "hitl_escalation_gate::curation_refinement_need"
+        ),
+        source_escalation_signal_ids=(
+            "quality_escalation_signal",
+            "confidence_escalation_signal",
+            "risk_escalation_signal",
+            "hitl_escalation_signal",
+        ),
+        adaptive_posture="multi_loop_review_candidate",
+        adaptive_evidence_surfaces=(
+            "escalation_candidates",
+            "agent_escalation_candidates",
+            "quality_uncertainty_summary",
+            "human_review_posture",
+        ),
+        advisory_outputs=(
+            "curation_adaptive_escalation_placeholder",
+            "multi_loop_review_context",
+        ),
+    ),
+    _adaptive_multi_agent_escalation_profile(
+        adaptive_profile_id=(
+            "adaptive_multi_agent_escalation::final_synthesis_readiness"
+        ),
+        topic_id="final_synthesis_readiness",
+        source_condition_ids=("terminal_guardrail_multi_agent_candidate",),
+        source_specialist_loop_ids=("synthesis_specialist_agent_loop",),
+        source_quality_profile_id="quality_escalation::final_synthesis_readiness",
+        source_risk_profile_id="risk_escalation::final_synthesis_readiness",
+        source_ambiguity_profile_id="ambiguity_escalation::final_synthesis_readiness",
+        source_hitl_gate_profile_id=(
+            "hitl_escalation_gate::final_synthesis_readiness"
+        ),
+        source_escalation_signal_ids=(
+            "quality_escalation_signal",
+            "hitl_escalation_signal",
+            "risk_escalation_signal",
+        ),
+        adaptive_posture="terminal_guardrail_candidate",
+        adaptive_evidence_surfaces=(
+            "human_review_posture",
+            "risk_context",
+            "agent_escalation_candidates",
+        ),
+        advisory_outputs=(
+            "synthesis_adaptive_escalation_placeholder",
+            "terminal_guardrail_context",
+        ),
+    ),
+)
+ADAPTIVE_MULTI_AGENT_ESCALATION_REGISTRY = AdaptiveMultiAgentEscalationRegistry(
+    adaptive_profiles=ADAPTIVE_MULTI_AGENT_ESCALATION_PROFILES,
+    adaptive_profile_ids=tuple(
+        profile.adaptive_profile_id
+        for profile in ADAPTIVE_MULTI_AGENT_ESCALATION_PROFILES
+    ),
+    topic_ids=tuple(
+        profile.topic_id for profile in ADAPTIVE_MULTI_AGENT_ESCALATION_PROFILES
+    ),
+    adaptive_postures=tuple(
+        profile.adaptive_posture
+        for profile in ADAPTIVE_MULTI_AGENT_ESCALATION_PROFILES
+    ),
+    source_registries=_ADAPTIVE_MULTI_AGENT_ESCALATION_SOURCE_REGISTRIES,
+    capability_ids=_ADAPTIVE_MULTI_AGENT_ESCALATION_CAPABILITY_IDS,
+    condition_ids=CONDITIONAL_MULTI_AGENT_ESCALATION_REGISTRY.condition_ids,
+    specialist_loop_ids=SPECIALIST_AGENT_LOOP_REGISTRY.loop_ids,
+    quality_profile_ids=QUALITY_ESCALATION_REGISTRY.quality_profile_ids,
+    risk_profile_ids=RISK_ESCALATION_REGISTRY.risk_profile_ids,
+    ambiguity_profile_ids=AMBIGUITY_ESCALATION_REGISTRY.ambiguity_profile_ids,
+    hitl_gate_profile_ids=HITL_ESCALATION_GATE_REGISTRY.hitl_gate_profile_ids,
+    escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
+    adaptive_evidence_surfaces=_ADAPTIVE_MULTI_AGENT_ESCALATION_EVIDENCE_SURFACES,
+    profile_count=len(ADAPTIVE_MULTI_AGENT_ESCALATION_PROFILES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (

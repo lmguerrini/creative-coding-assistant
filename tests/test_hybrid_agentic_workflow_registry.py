@@ -2,6 +2,7 @@ import unittest
 
 from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
+    AdaptiveMultiAgentEscalationRegistry,
     AgentConfidenceFusionRegistry,
     AmbiguityEscalationRegistry,
     ConfidenceThresholdRoutingRegistry,
@@ -23,6 +24,8 @@ from creative_coding_assistant.orchestration import (
     ReturnToWorkflowHandoffRegistry,
     SpecialistAgentLoopRegistry,
     V3BackboneModeRegistry,
+    adaptive_multi_agent_escalation_profile_by_id,
+    adaptive_multi_agent_escalation_registry,
     agent_contract_registry,
     agent_capability_registry,
     agent_confidence_fusion_profile_by_id,
@@ -988,6 +991,67 @@ REQUIRED_QUALITY_ESCALATION_FIELDS = {
     "escalation_execution_implemented",
     "refinement_triggering_implemented",
     "agent_invocation_implemented",
+    "provider_model_routing_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_ADAPTIVE_MULTI_AGENT_ESCALATION_PROFILE_IDS = (
+    "adaptive_multi_agent_escalation::planning_execution_fit",
+    "adaptive_multi_agent_escalation::style_aesthetic_alignment",
+    "adaptive_multi_agent_escalation::curation_refinement_need",
+    "adaptive_multi_agent_escalation::final_synthesis_readiness",
+)
+EXPECTED_ADAPTIVE_MULTI_AGENT_ESCALATION_POSTURES = (
+    "context_packet",
+    "specialist_pairing_candidate",
+    "multi_loop_review_candidate",
+    "terminal_guardrail_candidate",
+)
+EXPECTED_ADAPTIVE_MULTI_AGENT_ESCALATION_SOURCE_REGISTRIES = (
+    "quality_escalation_registry",
+    "risk_escalation_registry",
+    "ambiguity_escalation_registry",
+    "conditional_multi_agent_escalation_registry",
+    "specialist_agent_loop_registry",
+    "hitl_escalation_gate_registry",
+    "agent_capability_registry",
+    "agent_escalation_signal_registry",
+    "hybrid_agentic_workflow_registry",
+)
+EXPECTED_ADAPTIVE_MULTI_AGENT_ESCALATION_EVIDENCE_SURFACES = (
+    "escalation_candidates",
+    "agent_escalation_candidates",
+    "human_review_posture",
+    "ambiguity_context",
+    "risk_context",
+    "quality_uncertainty_summary",
+)
+REQUIRED_ADAPTIVE_MULTI_AGENT_ESCALATION_FIELDS = {
+    "adaptive_profile_id",
+    "topic_id",
+    "source_capability_id",
+    "source_condition_ids",
+    "source_specialist_loop_ids",
+    "source_quality_profile_id",
+    "source_risk_profile_id",
+    "source_ambiguity_profile_id",
+    "source_hitl_gate_profile_id",
+    "source_escalation_signal_ids",
+    "adaptive_posture",
+    "adaptive_evidence_surfaces",
+    "source_registries",
+    "escalation_dimensions",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "adaptation_evaluation_implemented",
+    "escalation_execution_implemented",
+    "multi_agent_orchestration_implemented",
+    "agent_invocation_implemented",
+    "runtime_selection_implemented",
     "provider_model_routing_implemented",
     "workflow_control_implemented",
     "retry_triggering_implemented",
@@ -4778,6 +4842,291 @@ class QualityEscalationRegistryTests(unittest.TestCase):
             "execute_escalation",
             "trigger_refinement",
             "execute_agent",
+            "route_provider",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class AdaptiveMultiAgentEscalationRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_adaptive_profiles(self) -> None:
+        registry = adaptive_multi_agent_escalation_registry()
+
+        self.assertEqual(registry.role, "adaptive_multi_agent_escalation_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "adaptive_multi_agent_escalation_registry.v1",
+        )
+        self.assertEqual(
+            registry.adaptive_profile_ids,
+            EXPECTED_ADAPTIVE_MULTI_AGENT_ESCALATION_PROFILE_IDS,
+        )
+        self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
+        self.assertEqual(
+            registry.adaptive_postures,
+            EXPECTED_ADAPTIVE_MULTI_AGENT_ESCALATION_POSTURES,
+        )
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_ADAPTIVE_MULTI_AGENT_ESCALATION_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(registry.capability_ids, ("adaptive_multi_agent_escalation",))
+        self.assertTrue(
+            set(registry.capability_ids).issubset(
+                set(agent_capability_registry().capability_ids)
+            )
+        )
+        self.assertEqual(
+            registry.condition_ids,
+            conditional_multi_agent_escalation_registry().condition_ids,
+        )
+        self.assertEqual(
+            registry.specialist_loop_ids,
+            specialist_agent_loop_registry().loop_ids,
+        )
+        self.assertEqual(
+            registry.quality_profile_ids,
+            quality_escalation_registry().quality_profile_ids,
+        )
+        self.assertEqual(registry.risk_profile_ids, risk_escalation_registry().risk_profile_ids)
+        self.assertEqual(
+            registry.ambiguity_profile_ids,
+            ambiguity_escalation_registry().ambiguity_profile_ids,
+        )
+        self.assertEqual(
+            registry.hitl_gate_profile_ids,
+            hitl_escalation_gate_registry().hitl_gate_profile_ids,
+        )
+        self.assertEqual(
+            registry.escalation_signal_ids,
+            agent_escalation_signal_registry().signal_ids,
+        )
+        self.assertEqual(
+            registry.adaptive_evidence_surfaces,
+            EXPECTED_ADAPTIVE_MULTI_AGENT_ESCALATION_EVIDENCE_SURFACES,
+        )
+        self.assertEqual(registry.profile_count, 4)
+        self.assertIn("does not evaluate adaptation", registry.authority_boundary)
+        self.assertFalse(registry.adaptation_evaluation_implemented)
+        self.assertFalse(registry.escalation_execution_implemented)
+        self.assertFalse(registry.multi_agent_orchestration_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.runtime_selection_implemented)
+        self.assertFalse(registry.provider_model_routing_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_adaptive_profiles_reference_known_sources(self) -> None:
+        registry = adaptive_multi_agent_escalation_registry()
+        known_capabilities = set(agent_capability_registry().capability_ids)
+        known_conditions = set(conditional_multi_agent_escalation_registry().condition_ids)
+        known_loops = set(specialist_agent_loop_registry().loop_ids)
+        known_quality = set(quality_escalation_registry().quality_profile_ids)
+        known_risk = set(risk_escalation_registry().risk_profile_ids)
+        known_ambiguity = set(ambiguity_escalation_registry().ambiguity_profile_ids)
+        known_hitl = set(hitl_escalation_gate_registry().hitl_gate_profile_ids)
+        known_signals = set(agent_escalation_signal_registry().signal_ids)
+        known_evidence = set(
+            EXPECTED_ADAPTIVE_MULTI_AGENT_ESCALATION_EVIDENCE_SURFACES
+        )
+
+        for profile in registry.adaptive_profiles:
+            dumped = profile.model_dump(mode="json")
+            self.assertEqual(
+                set(dumped),
+                REQUIRED_ADAPTIVE_MULTI_AGENT_ESCALATION_FIELDS,
+            )
+            self.assertEqual(
+                profile.source_registries,
+                EXPECTED_ADAPTIVE_MULTI_AGENT_ESCALATION_SOURCE_REGISTRIES,
+            )
+            self.assertIn(profile.source_capability_id, known_capabilities)
+            self.assertTrue(set(profile.source_condition_ids).issubset(known_conditions))
+            self.assertTrue(
+                set(profile.source_specialist_loop_ids).issubset(known_loops)
+            )
+            self.assertIn(profile.source_quality_profile_id, known_quality)
+            self.assertIn(profile.source_risk_profile_id, known_risk)
+            self.assertIn(profile.source_ambiguity_profile_id, known_ambiguity)
+            self.assertIn(profile.source_hitl_gate_profile_id, known_hitl)
+            self.assertTrue(
+                set(profile.source_escalation_signal_ids).issubset(known_signals)
+            )
+            self.assertIn(
+                "quality_escalation_signal",
+                profile.source_escalation_signal_ids,
+            )
+            self.assertTrue(
+                set(profile.adaptive_evidence_surfaces).issubset(known_evidence)
+            )
+            self.assertIn(profile.adaptive_posture, registry.adaptive_postures)
+            self.assertTrue(profile.escalation_dimensions)
+            self.assertTrue(profile.advisory_outputs)
+            self.assertIn(
+                "adaptation_evaluation",
+                profile.blocked_runtime_behaviors,
+            )
+            self.assertIn("escalation_execution", profile.blocked_runtime_behaviors)
+            self.assertIn(
+                "multi_agent_orchestration",
+                profile.blocked_runtime_behaviors,
+            )
+            self.assertIn("agent_invocation", profile.blocked_runtime_behaviors)
+            self.assertIn("runtime_selection", profile.blocked_runtime_behaviors)
+            self.assertIn(
+                "provider_or_model_routing",
+                profile.blocked_runtime_behaviors,
+            )
+            self.assertFalse(profile.adaptation_evaluation_implemented)
+            self.assertFalse(profile.escalation_execution_implemented)
+            self.assertFalse(profile.multi_agent_orchestration_implemented)
+            self.assertFalse(profile.agent_invocation_implemented)
+            self.assertFalse(profile.runtime_selection_implemented)
+            self.assertFalse(profile.provider_model_routing_implemented)
+            self.assertFalse(profile.workflow_control_implemented)
+            self.assertFalse(profile.retry_triggering_implemented)
+            self.assertFalse(profile.generated_output_mutation_implemented)
+            self.assertEqual(
+                profile.serialization_version,
+                "adaptive_multi_agent_escalation_profile.v1",
+            )
+            self.assertTrue(profile.metadata_only)
+
+    def test_adaptive_source_registries_are_complete(self) -> None:
+        registry = adaptive_multi_agent_escalation_registry()
+        profile_sources = tuple(
+            dict.fromkeys(
+                source
+                for profile in registry.adaptive_profiles
+                for source in profile.source_registries
+            )
+        )
+
+        self.assertEqual(profile_sources, registry.source_registries)
+        for source_registry in (
+            EXPECTED_ADAPTIVE_MULTI_AGENT_ESCALATION_SOURCE_REGISTRIES
+        ):
+            self.assertIn(source_registry, profile_sources)
+        for profile in registry.adaptive_profiles:
+            self.assertEqual(set(profile.source_registries), set(profile_sources))
+
+    def test_adaptive_lookup_is_stable(self) -> None:
+        profile = adaptive_multi_agent_escalation_profile_by_id(
+            "adaptive_multi_agent_escalation::curation_refinement_need"
+        )
+        missing = adaptive_multi_agent_escalation_profile_by_id("missing_adaptive")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.topic_id, "curation_refinement_need")
+        self.assertEqual(profile.adaptive_posture, "multi_loop_review_candidate")
+        self.assertIn("multi_loop_review_context", profile.advisory_outputs)
+        self.assertFalse(profile.multi_agent_orchestration_implemented)
+
+    def test_adaptive_registry_rejects_mismatched_metadata(self) -> None:
+        registry = adaptive_multi_agent_escalation_registry()
+        mismatched_profile = registry.adaptive_profiles[0].model_copy(
+            update={"adaptive_profile_id": "other_adaptive"}
+        )
+        unknown_loop_profile = registry.adaptive_profiles[0].model_copy(
+            update={"source_specialist_loop_ids": ("unknown_loop",)}
+        )
+        missing_signal_profile = registry.adaptive_profiles[0].model_copy(
+            update={"source_escalation_signal_ids": ("hitl_escalation_signal",)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "adaptive_profile_ids"):
+            AdaptiveMultiAgentEscalationRegistry(
+                adaptive_profiles=(
+                    mismatched_profile,
+                )
+                + registry.adaptive_profiles[1:],
+                adaptive_profile_ids=registry.adaptive_profile_ids,
+                topic_ids=registry.topic_ids,
+                adaptive_postures=registry.adaptive_postures,
+                source_registries=registry.source_registries,
+                capability_ids=registry.capability_ids,
+                condition_ids=registry.condition_ids,
+                specialist_loop_ids=registry.specialist_loop_ids,
+                quality_profile_ids=registry.quality_profile_ids,
+                risk_profile_ids=registry.risk_profile_ids,
+                ambiguity_profile_ids=registry.ambiguity_profile_ids,
+                hitl_gate_profile_ids=registry.hitl_gate_profile_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                adaptive_evidence_surfaces=registry.adaptive_evidence_surfaces,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "specialist loops"):
+            AdaptiveMultiAgentEscalationRegistry(
+                adaptive_profiles=(
+                    unknown_loop_profile,
+                )
+                + registry.adaptive_profiles[1:],
+                adaptive_profile_ids=registry.adaptive_profile_ids,
+                topic_ids=registry.topic_ids,
+                adaptive_postures=registry.adaptive_postures,
+                source_registries=registry.source_registries,
+                capability_ids=registry.capability_ids,
+                condition_ids=registry.condition_ids,
+                specialist_loop_ids=registry.specialist_loop_ids,
+                quality_profile_ids=registry.quality_profile_ids,
+                risk_profile_ids=registry.risk_profile_ids,
+                ambiguity_profile_ids=registry.ambiguity_profile_ids,
+                hitl_gate_profile_ids=registry.hitl_gate_profile_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                adaptive_evidence_surfaces=registry.adaptive_evidence_surfaces,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "quality signal"):
+            AdaptiveMultiAgentEscalationRegistry(
+                adaptive_profiles=(
+                    missing_signal_profile,
+                )
+                + registry.adaptive_profiles[1:],
+                adaptive_profile_ids=registry.adaptive_profile_ids,
+                topic_ids=registry.topic_ids,
+                adaptive_postures=registry.adaptive_postures,
+                source_registries=registry.source_registries,
+                capability_ids=registry.capability_ids,
+                condition_ids=registry.condition_ids,
+                specialist_loop_ids=registry.specialist_loop_ids,
+                quality_profile_ids=registry.quality_profile_ids,
+                risk_profile_ids=registry.risk_profile_ids,
+                ambiguity_profile_ids=registry.ambiguity_profile_ids,
+                hitl_gate_profile_ids=registry.hitl_gate_profile_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                adaptive_evidence_surfaces=registry.adaptive_evidence_surfaces,
+                profile_count=registry.profile_count,
+            )
+
+    def test_adaptive_does_not_declare_active_execution(self) -> None:
+        registry = adaptive_multi_agent_escalation_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for profile in registry.adaptive_profiles
+                    for field in (
+                        profile.adaptive_profile_id,
+                        profile.authority_boundary,
+                        *profile.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "evaluate_adaptation",
+            "execute_escalation",
+            "orchestrate_agents",
+            "select_runtime",
             "route_provider",
             "modify_output",
         ):
