@@ -3,6 +3,7 @@ import unittest
 from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
     ConditionalMultiAgentEscalationRegistry,
+    CreativeEscalationPolicyRegistry,
     EscalationGateRegistry,
     SpecialistAgentLoopRegistry,
     V3BackboneModeRegistry,
@@ -11,6 +12,8 @@ from creative_coding_assistant.orchestration import (
     agent_escalation_signal_registry,
     conditional_multi_agent_escalation_condition_by_id,
     conditional_multi_agent_escalation_registry,
+    creative_escalation_policy_by_id,
+    creative_escalation_policy_registry,
     escalation_gate_by_id,
     escalation_gate_registry,
     escalation_policy_registry,
@@ -198,6 +201,48 @@ REQUIRED_ESCALATION_GATE_FIELDS = {
     "agent_invocation_implemented",
     "workflow_control_implemented",
     "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_CREATIVE_POLICY_IDS = (
+    "concept_ambiguity_creative_escalation_policy",
+    "aesthetic_risk_creative_escalation_policy",
+    "runtime_fit_creative_escalation_policy",
+    "quality_uncertainty_creative_escalation_policy",
+    "terminal_synthesis_creative_escalation_policy",
+)
+EXPECTED_CREATIVE_POLICY_CATEGORIES = (
+    "concept",
+    "aesthetic",
+    "runtime",
+    "quality",
+    "synthesis",
+)
+EXPECTED_CREATIVE_POLICY_SOURCE_REGISTRIES = (
+    "escalation_gate_registry",
+    "specialist_agent_loop_registry",
+    "conditional_multi_agent_escalation_registry",
+    "artifact_engine_contract_registry",
+    "evaluation_engine_contract_registry",
+    "hybrid_agentic_workflow_registry",
+)
+REQUIRED_CREATIVE_POLICY_FIELDS = {
+    "policy_id",
+    "policy_name",
+    "category",
+    "source_gate_ids",
+    "source_loop_ids",
+    "source_registries",
+    "creative_signal_sources",
+    "advisory_policy_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "creative_policy_evaluation_implemented",
+    "escalation_approval_implemented",
+    "gate_evaluation_implemented",
+    "agent_invocation_implemented",
+    "workflow_control_implemented",
     "generated_output_mutation_implemented",
     "serialization_version",
     "metadata_only",
@@ -791,6 +836,155 @@ class EscalationGateRegistryTests(unittest.TestCase):
                         gate.gate_id,
                         gate.authority_boundary,
                         *gate.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "execute_agent",
+            "approve_escalation",
+            "route_provider",
+            "trigger_retry",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class CreativeEscalationPolicyRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_creative_policies(self) -> None:
+        registry = creative_escalation_policy_registry()
+
+        self.assertEqual(registry.role, "creative_escalation_policy_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "creative_escalation_policy_registry.v1",
+        )
+        self.assertEqual(registry.policy_ids, EXPECTED_CREATIVE_POLICY_IDS)
+        self.assertEqual(registry.categories, EXPECTED_CREATIVE_POLICY_CATEGORIES)
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_CREATIVE_POLICY_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(registry.gate_ids, escalation_gate_registry().gate_ids)
+        self.assertEqual(registry.loop_ids, specialist_agent_loop_registry().loop_ids)
+        self.assertEqual(registry.policy_count, 5)
+        self.assertIn("does not evaluate creative policy", registry.authority_boundary)
+        self.assertFalse(registry.creative_policy_evaluation_implemented)
+        self.assertFalse(registry.escalation_approval_implemented)
+        self.assertFalse(registry.gate_evaluation_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_creative_policies_reference_known_gates_and_loops(self) -> None:
+        registry = creative_escalation_policy_registry()
+        known_gates = set(escalation_gate_registry().gate_ids)
+        known_loops = set(specialist_agent_loop_registry().loop_ids)
+
+        for policy in registry.policies:
+            dumped = policy.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_CREATIVE_POLICY_FIELDS)
+            self.assertEqual(
+                policy.source_registries,
+                EXPECTED_CREATIVE_POLICY_SOURCE_REGISTRIES,
+            )
+            self.assertTrue(set(policy.source_gate_ids).issubset(known_gates))
+            self.assertTrue(set(policy.source_loop_ids).issubset(known_loops))
+            self.assertTrue(policy.creative_signal_sources)
+            self.assertTrue(policy.advisory_policy_outputs)
+            self.assertIn(
+                "creative_policy_evaluation",
+                policy.blocked_runtime_behaviors,
+            )
+            self.assertIn("escalation_approval", policy.blocked_runtime_behaviors)
+            self.assertIn("agent_invocation", policy.blocked_runtime_behaviors)
+            self.assertFalse(policy.creative_policy_evaluation_implemented)
+            self.assertFalse(policy.escalation_approval_implemented)
+            self.assertFalse(policy.gate_evaluation_implemented)
+            self.assertFalse(policy.agent_invocation_implemented)
+            self.assertFalse(policy.workflow_control_implemented)
+            self.assertFalse(policy.generated_output_mutation_implemented)
+            self.assertEqual(
+                policy.serialization_version,
+                "creative_escalation_policy_rule.v1",
+            )
+            self.assertTrue(policy.metadata_only)
+
+    def test_creative_policy_source_registries_are_complete(self) -> None:
+        registry = creative_escalation_policy_registry()
+        policy_sources = tuple(
+            dict.fromkeys(
+                source
+                for policy in registry.policies
+                for source in policy.source_registries
+            )
+        )
+
+        self.assertEqual(policy_sources, registry.source_registries)
+        for source_registry in EXPECTED_CREATIVE_POLICY_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, policy_sources)
+        for policy in registry.policies:
+            self.assertEqual(set(policy.source_registries), set(policy_sources))
+
+    def test_creative_policy_lookup_is_stable(self) -> None:
+        policy = creative_escalation_policy_by_id(
+            "quality_uncertainty_creative_escalation_policy"
+        )
+        missing = creative_escalation_policy_by_id("missing_policy")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(policy)
+        assert policy is not None
+        self.assertEqual(policy.category, "quality")
+        self.assertIn("evaluation_specialist_agent_loop", policy.source_loop_ids)
+        self.assertFalse(policy.creative_policy_evaluation_implemented)
+
+    def test_creative_policy_registry_rejects_mismatched_metadata(self) -> None:
+        registry = creative_escalation_policy_registry()
+        mismatched_policy = registry.policies[0].model_copy(
+            update={"policy_id": "other_policy"}
+        )
+        unknown_gate_policy = registry.policies[0].model_copy(
+            update={"source_gate_ids": ("missing_gate",)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "policy_ids must match"):
+            CreativeEscalationPolicyRegistry(
+                policies=(mismatched_policy,) + registry.policies[1:],
+                policy_ids=registry.policy_ids,
+                categories=registry.categories,
+                source_registries=registry.source_registries,
+                gate_ids=registry.gate_ids,
+                loop_ids=registry.loop_ids,
+                policy_count=registry.policy_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "policy gates must be known"):
+            CreativeEscalationPolicyRegistry(
+                policies=(unknown_gate_policy,) + registry.policies[1:],
+                policy_ids=registry.policy_ids,
+                categories=registry.categories,
+                source_registries=registry.source_registries,
+                gate_ids=registry.gate_ids,
+                loop_ids=registry.loop_ids,
+                policy_count=registry.policy_count,
+            )
+
+    def test_creative_policies_do_not_declare_active_execution(self) -> None:
+        registry = creative_escalation_policy_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for policy in registry.policies
+                    for field in (
+                        policy.policy_id,
+                        policy.authority_boundary,
+                        *policy.blocked_runtime_behaviors,
                     )
                 ),
             )

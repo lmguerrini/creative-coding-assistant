@@ -34,6 +34,13 @@ EscalationGateKind = Literal[
     "human_review_visibility",
     "return_handoff",
 ]
+CreativeEscalationPolicyCategory = Literal[
+    "concept",
+    "aesthetic",
+    "runtime",
+    "quality",
+    "synthesis",
+]
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -50,6 +57,12 @@ SPECIALIST_AGENT_LOOP_REGISTRY_SERIALIZATION_VERSION = (
 )
 ESCALATION_GATE_SERIALIZATION_VERSION = "escalation_gate.v1"
 ESCALATION_GATE_REGISTRY_SERIALIZATION_VERSION = "escalation_gate_registry.v1"
+CREATIVE_ESCALATION_POLICY_RULE_SERIALIZATION_VERSION = (
+    "creative_escalation_policy_rule.v1"
+)
+CREATIVE_ESCALATION_POLICY_REGISTRY_SERIALIZATION_VERSION = (
+    "creative_escalation_policy_registry.v1"
+)
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
 V3_BACKBONE_MODE_AUTHORITY_BOUNDARY = (
@@ -80,6 +93,13 @@ ESCALATION_GATE_AUTHORITY_BOUNDARY = (
     "only; it does not evaluate gates, approve escalation, invoke agents, "
     "control workflow transitions, route providers or models, trigger retries, "
     "execute artifacts, write memory, or modify generated output."
+)
+CREATIVE_ESCALATION_POLICY_AUTHORITY_BOUNDARY = (
+    "Creative escalation policy metadata describes passive creative-domain "
+    "escalation rules tied to advisory gates and specialist loop candidates "
+    "only; it does not evaluate creative policy, approve escalation, invoke "
+    "agents, route providers or models, control workflow transitions, trigger "
+    "retries, execute artifacts, write memory, or modify generated output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Hybrid agentic workflow metadata maps current V3 workflow nodes to future "
@@ -172,6 +192,27 @@ _ESCALATION_GATE_SOURCE_REGISTRIES = (
     "escalation_policy_registry",
     "hybrid_agentic_workflow_registry",
 )
+_CREATIVE_ESCALATION_POLICY_BLOCKED_RUNTIME_BEHAVIORS = (
+    "creative_policy_evaluation",
+    "escalation_approval",
+    "gate_evaluation",
+    "agent_invocation",
+    "provider_or_model_routing",
+    "runtime_selection",
+    "workflow_control",
+    "retry_or_refinement_triggering",
+    "artifact_execution",
+    "memory_write",
+    "generated_output_modification",
+)
+_CREATIVE_ESCALATION_POLICY_SOURCE_REGISTRIES = (
+    "escalation_gate_registry",
+    "specialist_agent_loop_registry",
+    "conditional_multi_agent_escalation_registry",
+    "artifact_engine_contract_registry",
+    "evaluation_engine_contract_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -199,6 +240,15 @@ _ESCALATION_GATE_KINDS: tuple[EscalationGateKind, ...] = (
     "specialist_loop_boundary",
     "human_review_visibility",
     "return_handoff",
+)
+_CREATIVE_ESCALATION_POLICY_CATEGORIES: tuple[
+    CreativeEscalationPolicyCategory, ...
+] = (
+    "concept",
+    "aesthetic",
+    "runtime",
+    "quality",
+    "synthesis",
 )
 _KNOWN_SPECIALIST_AGENT_IDS = (
     "planner_agent",
@@ -757,6 +807,135 @@ def escalation_gate_by_id(
     return None
 
 
+class CreativeEscalationPolicyRule(BaseModel):
+    """Passive creative-domain escalation policy rule metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    policy_id: str = Field(min_length=1, max_length=120)
+    policy_name: str = Field(min_length=1, max_length=160)
+    category: CreativeEscalationPolicyCategory
+    source_gate_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_loop_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    creative_signal_sources: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_policy_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_CREATIVE_ESCALATION_POLICY_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    creative_policy_evaluation_implemented: Literal[False] = False
+    escalation_approval_implemented: Literal[False] = False
+    gate_evaluation_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["creative_escalation_policy_rule.v1"] = (
+        CREATIVE_ESCALATION_POLICY_RULE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class CreativeEscalationPolicyRegistry(BaseModel):
+    """Stable passive registry for creative escalation policy metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["creative_escalation_policy_registry"] = (
+        "creative_escalation_policy_registry"
+    )
+    serialization_version: Literal["creative_escalation_policy_registry.v1"] = (
+        CREATIVE_ESCALATION_POLICY_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=CREATIVE_ESCALATION_POLICY_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    policies: tuple[CreativeEscalationPolicyRule, ...] = Field(
+        min_length=5,
+        max_length=5,
+    )
+    policy_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    categories: tuple[CreativeEscalationPolicyCategory, ...] = Field(
+        min_length=5,
+        max_length=5,
+    )
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    gate_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    loop_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    policy_count: int = Field(ge=5, le=5)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_CREATIVE_ESCALATION_POLICY_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    creative_policy_evaluation_implemented: Literal[False] = False
+    escalation_approval_implemented: Literal[False] = False
+    gate_evaluation_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_creative_policy_metadata(self) -> Self:
+        derived_policy_ids = tuple(policy.policy_id for policy in self.policies)
+        derived_categories = tuple(policy.category for policy in self.policies)
+        if self.policy_ids != derived_policy_ids:
+            raise ValueError("policy_ids must match policies")
+        if len(set(self.policy_ids)) != len(self.policy_ids):
+            raise ValueError("policy_ids must be unique")
+        if self.categories != derived_categories:
+            raise ValueError("categories must match policies")
+        if self.policy_count != len(self.policies):
+            raise ValueError("policy_count must match policies")
+
+        source_registries = set(self.source_registries)
+        policy_source_registries = {
+            source_registry
+            for policy in self.policies
+            for source_registry in policy.source_registries
+        }
+        if source_registries != policy_source_registries:
+            raise ValueError("source_registries must match policy sources")
+
+        known_gates = set(self.gate_ids)
+        known_loops = set(self.loop_ids)
+        for policy in self.policies:
+            if policy.source_registries != self.source_registries:
+                raise ValueError("policy sources must match registry sources")
+            if not set(policy.source_gate_ids).issubset(known_gates):
+                raise ValueError("policy gates must be known metadata")
+            if not set(policy.source_loop_ids).issubset(known_loops):
+                raise ValueError("policy loops must be known metadata")
+            if policy.creative_policy_evaluation_implemented:
+                raise ValueError("creative policies must not evaluate policy")
+            if policy.escalation_approval_implemented:
+                raise ValueError("creative policies must not approve escalation")
+        return self
+
+
+def creative_escalation_policy_registry() -> CreativeEscalationPolicyRegistry:
+    """Return passive creative escalation policy metadata."""
+
+    return CREATIVE_ESCALATION_POLICY_REGISTRY
+
+
+def creative_escalation_policy_by_id(
+    policy_id: str,
+    registry: CreativeEscalationPolicyRegistry | None = None,
+) -> CreativeEscalationPolicyRule | None:
+    """Return one creative policy rule without evaluating it."""
+
+    source_registry = registry or CREATIVE_ESCALATION_POLICY_REGISTRY
+    for policy in source_registry.policies:
+        if policy.policy_id == policy_id:
+            return policy
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -926,6 +1105,35 @@ def _escalation_gate(
             "approve escalation, invoke agents, route providers or models, "
             "control workflow transitions, trigger retries, execute artifacts, "
             "write memory, or modify generated output."
+        ),
+    )
+
+
+def _creative_escalation_policy(
+    *,
+    policy_id: str,
+    policy_name: str,
+    category: CreativeEscalationPolicyCategory,
+    source_gate_ids: tuple[str, ...],
+    source_loop_ids: tuple[str, ...],
+    creative_signal_sources: tuple[str, ...],
+    advisory_policy_outputs: tuple[str, ...],
+) -> CreativeEscalationPolicyRule:
+    return CreativeEscalationPolicyRule(
+        policy_id=policy_id,
+        policy_name=policy_name,
+        category=category,
+        source_gate_ids=source_gate_ids,
+        source_loop_ids=source_loop_ids,
+        source_registries=_CREATIVE_ESCALATION_POLICY_SOURCE_REGISTRIES,
+        creative_signal_sources=creative_signal_sources,
+        advisory_policy_outputs=advisory_policy_outputs,
+        authority_boundary=(
+            "This creative escalation policy is advisory metadata only; it "
+            "does not evaluate creative policy, approve escalation, evaluate "
+            "gates, invoke agents, control workflow transitions, trigger "
+            "retries, execute artifacts, write memory, or modify generated "
+            "output."
         ),
     )
 
@@ -1434,6 +1642,112 @@ ESCALATION_GATE_REGISTRY = EscalationGateRegistry(
     condition_ids=CONDITIONAL_MULTI_AGENT_ESCALATION_REGISTRY.condition_ids,
     loop_ids=SPECIALIST_AGENT_LOOP_REGISTRY.loop_ids,
     gate_count=len(ESCALATION_GATES),
+)
+CREATIVE_ESCALATION_POLICIES = (
+    _creative_escalation_policy(
+        policy_id="concept_ambiguity_creative_escalation_policy",
+        policy_name="Concept Ambiguity Creative Escalation Policy",
+        category="concept",
+        source_gate_ids=(
+            "backbone_entry_escalation_gate",
+            "evidence_completeness_escalation_gate",
+        ),
+        source_loop_ids=("planning_specialist_agent_loop",),
+        creative_signal_sources=(
+            "planning_gap_summary",
+            "missing_information",
+            "creative_intent",
+        ),
+        advisory_policy_outputs=(
+            "concept_escalation_policy_notes",
+            "planning_clarity_review_summary",
+        ),
+    ),
+    _creative_escalation_policy(
+        policy_id="aesthetic_risk_creative_escalation_policy",
+        policy_name="Aesthetic Risk Creative Escalation Policy",
+        category="aesthetic",
+        source_gate_ids=(
+            "specialist_loop_boundary_gate",
+            "human_review_visibility_gate",
+        ),
+        source_loop_ids=("artifact_specialist_agent_loop",),
+        creative_signal_sources=(
+            "artifact_risk_summary",
+            "style_consistency_handoff",
+            "aesthetic_critic_signals",
+        ),
+        advisory_policy_outputs=(
+            "aesthetic_escalation_policy_notes",
+            "artifact_style_review_summary",
+        ),
+    ),
+    _creative_escalation_policy(
+        policy_id="runtime_fit_creative_escalation_policy",
+        policy_name="Runtime Fit Creative Escalation Policy",
+        category="runtime",
+        source_gate_ids=(
+            "evidence_completeness_escalation_gate",
+            "specialist_loop_boundary_gate",
+        ),
+        source_loop_ids=("runtime_specialist_agent_loop",),
+        creative_signal_sources=(
+            "runtime_fit_context_packet",
+            "compatibility_gap_summary",
+            "preview_runtime_metadata",
+        ),
+        advisory_policy_outputs=(
+            "runtime_escalation_policy_notes",
+            "compatibility_policy_summary",
+        ),
+    ),
+    _creative_escalation_policy(
+        policy_id="quality_uncertainty_creative_escalation_policy",
+        policy_name="Quality Uncertainty Creative Escalation Policy",
+        category="quality",
+        source_gate_ids=(
+            "human_review_visibility_gate",
+            "return_handoff_escalation_gate",
+        ),
+        source_loop_ids=("evaluation_specialist_agent_loop",),
+        creative_signal_sources=(
+            "quality_uncertainty_summary",
+            "creative_confidence",
+            "evaluation_reports",
+        ),
+        advisory_policy_outputs=(
+            "quality_escalation_policy_notes",
+            "evaluation_confidence_review_summary",
+        ),
+    ),
+    _creative_escalation_policy(
+        policy_id="terminal_synthesis_creative_escalation_policy",
+        policy_name="Terminal Synthesis Creative Escalation Policy",
+        category="synthesis",
+        source_gate_ids=(
+            "human_review_visibility_gate",
+            "return_handoff_escalation_gate",
+        ),
+        source_loop_ids=("synthesis_specialist_agent_loop",),
+        creative_signal_sources=(
+            "completion_guardrail_context_packet",
+            "failure_review_posture",
+            "final_handoff_summary",
+        ),
+        advisory_policy_outputs=(
+            "synthesis_escalation_policy_notes",
+            "terminal_creative_review_summary",
+        ),
+    ),
+)
+CREATIVE_ESCALATION_POLICY_REGISTRY = CreativeEscalationPolicyRegistry(
+    policies=CREATIVE_ESCALATION_POLICIES,
+    policy_ids=tuple(policy.policy_id for policy in CREATIVE_ESCALATION_POLICIES),
+    categories=tuple(policy.category for policy in CREATIVE_ESCALATION_POLICIES),
+    source_registries=_CREATIVE_ESCALATION_POLICY_SOURCE_REGISTRIES,
+    gate_ids=ESCALATION_GATE_REGISTRY.gate_ids,
+    loop_ids=SPECIALIST_AGENT_LOOP_REGISTRY.loop_ids,
+    policy_count=len(CREATIVE_ESCALATION_POLICIES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (
