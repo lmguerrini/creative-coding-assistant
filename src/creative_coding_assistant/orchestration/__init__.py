@@ -77,6 +77,7 @@ _AGENT_CAPABILITY_ALIGNMENT = (
 _AGENT_ESCALATION_SIGNALS = (
     "creative_coding_assistant.orchestration.agent_escalation_signals"
 )
+_AGENT_LIFECYCLE = "creative_coding_assistant.orchestration.agent_lifecycle"
 _AGENT_CAPABILITY_REGISTRY = (
     "creative_coding_assistant.orchestration.agent_capabilities"
 )
@@ -282,6 +283,12 @@ _EXPORT_MAP = {
     "AgentEscalationSignalRegistry": _AGENT_ESCALATION_SIGNALS,
     "agent_escalation_signal_by_id": _AGENT_ESCALATION_SIGNALS,
     "agent_escalation_signal_registry": _AGENT_ESCALATION_SIGNALS,
+    "AgentLifecycleProfile": _AGENT_LIFECYCLE,
+    "AgentLifecycleRegistry": _AGENT_LIFECYCLE,
+    "AgentLifecycleTransition": _AGENT_LIFECYCLE,
+    "agent_lifecycle_profile_by_agent_id": _AGENT_LIFECYCLE,
+    "agent_lifecycle_registry": _AGENT_LIFECYCLE,
+    "agent_lifecycle_transition_by_id": _AGENT_LIFECYCLE,
     "AgentCapabilityProfile": _AGENT_CAPABILITY_REGISTRY,
     "AgentCapabilityRegistry": _AGENT_CAPABILITY_REGISTRY,
     "agent_capability_by_id": _AGENT_CAPABILITY_REGISTRY,
