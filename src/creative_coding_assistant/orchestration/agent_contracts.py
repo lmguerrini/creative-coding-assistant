@@ -1461,6 +1461,120 @@ REFINER_AGENT_CONTRACT = AgentContract(
     ),
 )
 
+FINAL_SYNTHESIZER_AGENT_CONTRACT = AgentContract(
+    agent_id="final_synthesizer_agent",
+    agent_name="Final Synthesizer Agent",
+    agent_version="v4.1",
+    role_id="final_synthesizer",
+    role_name="Final Synthesizer Agent",
+    role_purpose=(
+        "Represent finalization, synthesis handoff, and response assembly "
+        "boundary metadata for future V4 orchestration."
+    ),
+    authority_boundary=(
+        "Final Synthesizer Agent contract metadata maps existing finalization, "
+        "workflow completion, curation, critique, and artifact handoff "
+        "boundaries only; it does not change final response generation, alter "
+        "provider calls, execute agents, route providers or models, select "
+        "runtimes, trigger retries, or modify generated output."
+    ),
+    allowed_actions=(
+        "describe_finalization_context_requirements",
+        "map_synthesis_handoff_metadata",
+        "declare_future_final_synthesis_handoff",
+    ),
+    prohibited_actions=(
+        "final_response_generation_change",
+        "provider_call_alteration",
+        "agent_invocation",
+        "provider_or_model_routing",
+        "runtime_selection",
+        "generated_output_modification",
+    ),
+    capabilities=(
+        "finalization_context_mapping",
+        "synthesis_handoff_metadata",
+        "response_boundary_metadata_preparation",
+    ),
+    required_inputs=(
+        "assistant_request",
+        "workflow_finalization_metadata",
+        "artifact_handoff_metadata",
+    ),
+    optional_inputs=(
+        "curation_context",
+        "critic_context",
+        "refinement_context",
+        "narrative_context",
+        "runtime_context",
+        "evaluation_report_profile",
+        "agent_memory_contract",
+    ),
+    produced_outputs=(
+        "final_synthesis_context_packet_contract",
+        "response_boundary_summary_contract",
+        "final_handoff_metadata_contract",
+    ),
+    produced_metadata=(
+        "finalization_scope_metadata",
+        "synthesis_boundary_metadata",
+        "response_assembly_metadata",
+        "handoff_completion_metadata",
+        "final_response_guardrail_metadata",
+    ),
+    produced_signals=(
+        "finalization_readiness",
+        "synthesis_confidence",
+        "handoff_completeness",
+        "response_boundary_status",
+        "finalization_risk",
+    ),
+    memory_access=AgentMemoryAccessContract(
+        allowed_memory_sources=(
+            "session_metadata",
+            "artifact_metadata",
+            "evaluation_metadata",
+            "provenance_metadata",
+            "future_blackboard_contract",
+        ),
+    ),
+    cacheability="deterministic_with_upstream_metadata",
+    estimated_cost_metadata=AgentContractCostMetadata(
+        relative_cost="low",
+        cost_basis=(
+            "Static metadata mapping from existing finalization and handoff "
+            "outputs; no final response generation or provider calls."
+        ),
+        cache_sensitivity=(
+            "Cache key must include workflow finalization, artifact handoff, "
+            "and synthesis metadata identifiers."
+        ),
+    ),
+    estimated_latency_metadata=AgentContractLatencyMetadata(
+        relative_latency="low",
+        latency_basis=(
+            "Bounded local metadata inspection with no network, provider, "
+            "response generation, workflow, or artifact execution."
+        ),
+        blocking_inputs=(
+            "assistant_request",
+            "workflow_finalization_metadata",
+            "artifact_handoff_metadata",
+        ),
+    ),
+    future_orchestration_hooks=(
+        "v4_2_final_synthesis_context_handoff",
+        "v4_2_response_boundary_review",
+    ),
+    source_contract_registries=(
+        "agent_identity_registry",
+        "agent_memory_contract_registry",
+        "artifact_engine_contract_registry",
+        "evaluation_engine_contract_registry",
+        "workflow_finalization_metadata",
+    ),
+)
+
 AGENT_CONTRACTS: tuple[AgentContract, ...] = (
     PLANNER_AGENT_CONTRACT,
     RESEARCH_AGENT_CONTRACT,
@@ -1473,5 +1587,6 @@ AGENT_CONTRACTS: tuple[AgentContract, ...] = (
     CREATIVE_CURATOR_AGENT_CONTRACT,
     CRITIC_AGENT_CONTRACT,
     REFINER_AGENT_CONTRACT,
+    FINAL_SYNTHESIZER_AGENT_CONTRACT,
 )
 AGENT_CONTRACT_REGISTRY = build_agent_contract_registry(AGENT_CONTRACTS)
