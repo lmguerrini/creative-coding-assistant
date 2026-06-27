@@ -101,7 +101,21 @@ This separation is intentional:
 
 ## Current Implemented Flow
 
-The graph is compiled once in `AssistantService.__init__()` and executed through `graph.stream(..., stream_mode="custom")`. Control flow is linear through prompt input, deterministic planning, Director guidance, Creative Reasoning synthesis, prompt rendering, generation, workflow-owned artifact extraction, preview preparation, and artifact critique before `review`, where the graph applies a bounded quality gate. Passing outputs continue to `finalization`; failing outputs enter one `refinement` attempt and loop back to `generation`. Explicit provider failures and caught node errors route into a terminal `failure` node.
+The graph is compiled once in `AssistantService.__init__()` and executed
+through `graph.stream(..., stream_mode="custom")`. Control flow is linear
+through intake, routing, context preparation, prompt preparation, answer
+production, artifact preparation, and artifact critique before `review`, where
+the graph applies a bounded quality gate. Passing outputs continue to
+`finalization`; failing outputs enter one `refinement` attempt and loop back to
+`generation`. Explicit provider failures and caught node errors route into a
+terminal `failure` node.
+
+| Phase | Runtime nodes | What the phase owns |
+| --- | --- | --- |
+| Intake and routing | `intake`, `routing` | Request receipt, route selection, route payload storage, and initial status events |
+| Context preparation | `memory`, `retrieval`, `context_assembly` | Optional memory and knowledge context collection before prompt inputs are built |
+| Prompt preparation | `prompt_input`, `planning`, `director`, `reasoning`, `prompt_rendering` | Prompt input construction, V3.1-V3.4 metadata derivation, Director guidance, Reasoning synthesis, and provider prompt serialization |
+| Answer production | `generation`, `artifact_extraction`, `preview_preparation`, `artifact_critique`, `review`, `refinement`, `finalization`, `failure` | Provider streaming, generated artifact metadata, preview metadata, critique metadata, deterministic review, bounded refinement, final response, and terminal failure handling |
 
 The `planning` node remains one LangGraph node even though it derives the full
 Creative Cognition, Generative Design, Artifact Intelligence, and Creative
@@ -111,10 +125,13 @@ the planning pass completes.
 
 In the diagrams below:
 
-- solid green nodes are implemented runtime nodes
+- solid green nodes are implemented runtime nodes grouped by execution phase
 - the blue diamond is the implemented conditional quality gate
 - the red node is the implemented terminal failure path
-- purple dashed nodes and edges are future-only extension points
+- gray start/end and dashed annotations are graph boundaries or documentation
+  notes, not additional runtime nodes
+- gold dashed annotations mark the V3 metadata handoff from planning into
+  Director, Reasoning, and prompt rendering
 
 ```mermaid
 flowchart TB
@@ -123,6 +140,7 @@ flowchart TB
     classDef gate fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
     classDef failure fill:#FEE2E2,stroke:#B91C1C,color:#7F1D1D,stroke-width:1.5px;
     classDef terminal fill:#E3F2FD,stroke:#1565C0,color:#0D47A1,stroke-width:1.5px;
+    classDef metadata fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px,stroke-dasharray: 6 4;
 
     start([START])
     finish([END])
@@ -143,17 +161,17 @@ flowchart TB
     subgraph phase_3["Phase 3: Prompt preparation"]
         direction TB
         prompt_input["Prompt input<br/>build prompt inputs<br/>complete or skip"]
-        planning["Planning<br/>derive cognition + generative design + artifact intelligence + evaluation metadata<br/>complete or skip"]
-        director["Director<br/>derive bounded assistant-director guidance<br/>complete or skip"]
-        reasoning["Reasoning<br/>synthesize stored cognition + design signals<br/>complete or skip"]
-        prompt_rendering["Prompt rendering<br/>render provider prompt<br/>complete or skip"]
+        planning["Planning<br/>derive V3.1-V3.4 metadata<br/>complete or skip"]
+        director["Director<br/>derive bounded guidance<br/>complete or skip"]
+        reasoning["Reasoning<br/>synthesize stored metadata signals<br/>complete or skip"]
+        prompt_rendering["Prompt rendering<br/>serialize provider prompt sections<br/>complete or skip"]
     end
 
     subgraph phase_4["Phase 4: Answer production"]
         direction TB
         generation["Generation<br/>prepare provider input<br/>stream tokens<br/>store generation_result"]
         artifact_extraction["Artifact extraction<br/>normalize code artifacts<br/>emit artifact_extracted"]
-        preview_preparation["Preview preparation<br/>prepare runtime metadata<br/>emit preview_artifact"]
+        preview_preparation["Preview preparation<br/>prepare preview metadata<br/>emit preview_artifact"]
         artifact_critique["Artifact critique<br/>score artifacts<br/>emit artifact_critique"]
         review{{"Review quality gate<br/>deterministic checks<br/>emit review + retry events"}}
         refinement["Refinement<br/>append guidance<br/>emit refinement_completed<br/>max one attempt"]
@@ -161,9 +179,21 @@ flowchart TB
         failure["Failure<br/>emit final failure answer<br/>mark workflow FAILED"]
     end
 
+    metadata_boundary["Metadata boundary<br/>V3.1-V3.4 planning outputs<br/>stored on workflow + prompt input state"]:::metadata
+    workstation_boundary["Workstation inspection boundary<br/>stream events + snapshots hydrate UI<br/>no extra runtime nodes"]:::boundary
+
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
     review -->|"pass or max retry"| finalization --> finish
     review -->|"needs refinement and count < 1"| refinement --> generation
+    planning -. stores .-> metadata_boundary
+    metadata_boundary -. consumed by .-> director
+    metadata_boundary -. consumed by .-> reasoning
+    metadata_boundary -. serialized by .-> prompt_rendering
+    artifact_extraction -. stream metadata .-> workstation_boundary
+    preview_preparation -. preview metadata .-> workstation_boundary
+    artifact_critique -. critique metadata .-> workstation_boundary
+    review -. decision metadata .-> workstation_boundary
+    finalization -. final payload .-> workstation_boundary
     intake -. intake_error .-> failure
     routing -. routing_error .-> failure
     memory -. memory_error .-> failure
@@ -188,6 +218,8 @@ flowchart TB
     class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,reasoning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
+    class metadata_boundary metadata
+    class workstation_boundary boundary
     style phase_1 rx:6px,ry:6px
     style phase_2 rx:6px,ry:6px
     style phase_3 rx:6px,ry:6px
