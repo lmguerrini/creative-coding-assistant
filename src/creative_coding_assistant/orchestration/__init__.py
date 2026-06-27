@@ -365,6 +365,8 @@ _EXPORT_MAP = {
     "HybridAgentVotingRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "HybridAgenticWorkflowRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "HybridAgenticWorkflowStage": _HYBRID_AGENTIC_WORKFLOW,
+    "QualityEscalationProfile": _HYBRID_AGENTIC_WORKFLOW,
+    "QualityEscalationRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "ReflectionEscalationProfile": _HYBRID_AGENTIC_WORKFLOW,
     "ReflectionEscalationRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "ResultNormalizationProfile": _HYBRID_AGENTIC_WORKFLOW,
@@ -387,6 +389,8 @@ _EXPORT_MAP = {
     "cost_threshold_routing_registry": _HYBRID_AGENTIC_WORKFLOW,
     "latency_threshold_routing_profile_by_id": _HYBRID_AGENTIC_WORKFLOW,
     "latency_threshold_routing_registry": _HYBRID_AGENTIC_WORKFLOW,
+    "quality_escalation_profile_by_id": _HYBRID_AGENTIC_WORKFLOW,
+    "quality_escalation_registry": _HYBRID_AGENTIC_WORKFLOW,
     "conditional_multi_agent_escalation_condition_by_id": (
         _HYBRID_AGENTIC_WORKFLOW
     ),

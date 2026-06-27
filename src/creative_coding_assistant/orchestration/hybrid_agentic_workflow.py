@@ -75,6 +75,8 @@ AmbiguityEscalationTopic = LatencyThresholdRoutingTopic
 AmbiguityEscalationLevel = Literal["critical", "high", "low", "medium"]
 RiskEscalationTopic = AmbiguityEscalationTopic
 RiskEscalationLevel = Literal["critical", "high", "low", "medium"]
+QualityEscalationTopic = RiskEscalationTopic
+QualityEscalationLevel = Literal["critical", "high", "low", "medium"]
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -183,6 +185,8 @@ AMBIGUITY_ESCALATION_REGISTRY_SERIALIZATION_VERSION = (
 )
 RISK_ESCALATION_PROFILE_SERIALIZATION_VERSION = "risk_escalation_profile.v1"
 RISK_ESCALATION_REGISTRY_SERIALIZATION_VERSION = "risk_escalation_registry.v1"
+QUALITY_ESCALATION_PROFILE_SERIALIZATION_VERSION = "quality_escalation_profile.v1"
+QUALITY_ESCALATION_REGISTRY_SERIALIZATION_VERSION = "quality_escalation_registry.v1"
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
 V3_BACKBONE_MODE_AUTHORITY_BOUNDARY = (
@@ -324,6 +328,13 @@ RISK_ESCALATION_AUTHORITY_BOUNDARY = (
     "execute escalation, apply mitigation, invoke agents, route providers or "
     "models, control workflow transitions, trigger retries, or modify "
     "generated output."
+)
+QUALITY_ESCALATION_AUTHORITY_BOUNDARY = (
+    "Quality escalation metadata describes passive advisory quality posture "
+    "for future hybrid escalation visibility only; it does not evaluate "
+    "quality, execute escalation, trigger refinement, invoke agents, route "
+    "providers or models, control workflow transitions, trigger retries, or "
+    "modify generated output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Hybrid agentic workflow metadata maps current V3 workflow nodes to future "
@@ -714,6 +725,25 @@ _RISK_ESCALATION_SOURCE_REGISTRIES = (
     "artifact_engine_contract_registry",
     "hybrid_agentic_workflow_registry",
 )
+_QUALITY_ESCALATION_BLOCKED_RUNTIME_BEHAVIORS = (
+    "quality_evaluation",
+    "escalation_execution",
+    "refinement_triggering",
+    "agent_invocation",
+    "provider_or_model_routing",
+    "workflow_control",
+    "retry_triggering",
+    "generated_output_modification",
+)
+_QUALITY_ESCALATION_SOURCE_REGISTRIES = (
+    "risk_escalation_registry",
+    "creative_escalation_policy_registry",
+    "agent_confidence_fusion_registry",
+    "creative_confidence_engine",
+    "creative_quality_prediction_engine",
+    "agent_escalation_signal_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -913,6 +943,25 @@ _RISK_EVIDENCE_SURFACES = (
     "unsupported_assumptions",
     "capability_risks",
     "escalation_candidates",
+)
+_QUALITY_ESCALATION_TOPICS: tuple[QualityEscalationTopic, ...] = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
+)
+_QUALITY_ESCALATION_LEVELS: tuple[QualityEscalationLevel, ...] = (
+    "medium",
+    "high",
+    "critical",
+    "low",
+)
+_QUALITY_EVIDENCE_SURFACES = (
+    "quality_signal_metadata",
+    "quality_review_signals",
+    "weakest_quality_signals",
+    "quality_risks",
+    "confidence_uncertainties",
 )
 _KNOWN_SPECIALIST_AGENT_IDS = (
     "planner_agent",
@@ -3829,6 +3878,163 @@ def risk_escalation_profile_by_id(
     return None
 
 
+class QualityEscalationProfile(BaseModel):
+    """Passive V4.3 quality escalation profile metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    quality_profile_id: str = Field(min_length=1, max_length=170)
+    topic_id: QualityEscalationTopic
+    source_risk_profile_id: str = Field(min_length=1, max_length=180)
+    source_confidence_fusion_profile_id: str = Field(min_length=1, max_length=180)
+    source_creative_policy_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_escalation_signal_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    quality_level: QualityEscalationLevel
+    quality_evidence_surfaces: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    escalation_dimensions: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_QUALITY_ESCALATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    quality_evaluation_implemented: Literal[False] = False
+    escalation_execution_implemented: Literal[False] = False
+    refinement_triggering_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["quality_escalation_profile.v1"] = (
+        QUALITY_ESCALATION_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class QualityEscalationRegistry(BaseModel):
+    """Stable passive registry for V4.3 quality escalation metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["quality_escalation_registry"] = "quality_escalation_registry"
+    serialization_version: Literal["quality_escalation_registry.v1"] = (
+        QUALITY_ESCALATION_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=QUALITY_ESCALATION_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    quality_profiles: tuple[QualityEscalationProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    quality_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    topic_ids: tuple[QualityEscalationTopic, ...] = Field(min_length=4, max_length=4)
+    quality_levels: tuple[QualityEscalationLevel, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    risk_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    confidence_fusion_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    creative_policy_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    escalation_signal_ids: tuple[str, ...] = Field(min_length=7, max_length=7)
+    quality_evidence_surfaces: tuple[str, ...] = Field(min_length=5, max_length=5)
+    profile_count: int = Field(ge=4, le=4)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_QUALITY_ESCALATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    quality_evaluation_implemented: Literal[False] = False
+    escalation_execution_implemented: Literal[False] = False
+    refinement_triggering_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_quality_escalation_metadata(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.quality_profile_id for profile in self.quality_profiles
+        )
+        derived_topic_ids = tuple(profile.topic_id for profile in self.quality_profiles)
+        derived_levels = tuple(profile.quality_level for profile in self.quality_profiles)
+        if self.quality_profile_ids != derived_profile_ids:
+            raise ValueError("quality_profile_ids must match profiles")
+        if self.topic_ids != derived_topic_ids:
+            raise ValueError("topic_ids must match quality profiles")
+        if self.topic_ids != _QUALITY_ESCALATION_TOPICS:
+            raise ValueError("topic_ids must preserve quality topic order")
+        if self.quality_levels != derived_levels:
+            raise ValueError("quality_levels must match profiles")
+        if self.quality_levels != _QUALITY_ESCALATION_LEVELS:
+            raise ValueError("quality_levels must preserve quality order")
+        if self.profile_count != len(self.quality_profiles):
+            raise ValueError("profile_count must match quality profiles")
+
+        profile_sources = {
+            source_registry
+            for profile in self.quality_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match quality sources")
+
+        known_risk = set(self.risk_profile_ids)
+        known_fusion = set(self.confidence_fusion_profile_ids)
+        known_creative = set(self.creative_policy_ids)
+        known_signals = set(self.escalation_signal_ids)
+        known_evidence = set(self.quality_evidence_surfaces)
+        for profile in self.quality_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("quality sources must match registry")
+            if profile.source_risk_profile_id not in known_risk:
+                raise ValueError("quality risk profiles must be known")
+            if profile.source_confidence_fusion_profile_id not in known_fusion:
+                raise ValueError("quality fusion profiles must be known")
+            if not set(profile.source_creative_policy_ids).issubset(known_creative):
+                raise ValueError("quality creative policies must be known")
+            if not set(profile.source_escalation_signal_ids).issubset(known_signals):
+                raise ValueError("quality signals must be known")
+            if "quality_escalation_signal" not in profile.source_escalation_signal_ids:
+                raise ValueError("quality profiles must reference quality signal")
+            if not set(profile.quality_evidence_surfaces).issubset(known_evidence):
+                raise ValueError("quality evidence surfaces must be known")
+            if profile.quality_evaluation_implemented:
+                raise ValueError("quality escalation must not evaluate quality")
+            if profile.escalation_execution_implemented:
+                raise ValueError("quality escalation must not execute escalation")
+            if profile.refinement_triggering_implemented:
+                raise ValueError("quality escalation must not trigger refinement")
+        return self
+
+
+def quality_escalation_registry() -> QualityEscalationRegistry:
+    """Return passive V4.3 quality escalation metadata."""
+
+    return QUALITY_ESCALATION_REGISTRY
+
+
+def quality_escalation_profile_by_id(
+    quality_profile_id: str,
+    registry: QualityEscalationRegistry | None = None,
+) -> QualityEscalationProfile | None:
+    """Return one quality profile without triggering escalation."""
+
+    source_registry = registry or QUALITY_ESCALATION_REGISTRY
+    for profile in source_registry.quality_profiles:
+        if profile.quality_profile_id == quality_profile_id:
+            return profile
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -4562,6 +4768,44 @@ def _risk_escalation_profile(
             "not evaluate risk, execute escalation, apply mitigation, invoke "
             "agents, route providers or models, control workflow transitions, "
             "trigger retries, or modify generated output."
+        ),
+    )
+
+
+def _quality_escalation_profile(
+    *,
+    quality_profile_id: str,
+    topic_id: QualityEscalationTopic,
+    source_risk_profile_id: str,
+    source_confidence_fusion_profile_id: str,
+    source_creative_policy_ids: tuple[str, ...],
+    source_escalation_signal_ids: tuple[str, ...],
+    quality_level: QualityEscalationLevel,
+    quality_evidence_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> QualityEscalationProfile:
+    return QualityEscalationProfile(
+        quality_profile_id=quality_profile_id,
+        topic_id=topic_id,
+        source_risk_profile_id=source_risk_profile_id,
+        source_confidence_fusion_profile_id=source_confidence_fusion_profile_id,
+        source_creative_policy_ids=source_creative_policy_ids,
+        source_escalation_signal_ids=source_escalation_signal_ids,
+        quality_level=quality_level,
+        quality_evidence_surfaces=quality_evidence_surfaces,
+        source_registries=_QUALITY_ESCALATION_SOURCE_REGISTRIES,
+        escalation_dimensions=(
+            "quality_level",
+            "risk_context",
+            "confidence_fusion_context",
+            "quality_signal_context",
+        ),
+        advisory_outputs=advisory_outputs,
+        authority_boundary=(
+            "This quality escalation profile is advisory metadata only; it "
+            "does not evaluate quality, execute escalation, trigger "
+            "refinement, invoke agents, route providers or models, control "
+            "workflow transitions, trigger retries, or modify generated output."
         ),
     )
 
@@ -6584,6 +6828,126 @@ RISK_ESCALATION_REGISTRY = RiskEscalationRegistry(
     escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
     risk_evidence_surfaces=_RISK_EVIDENCE_SURFACES,
     profile_count=len(RISK_ESCALATION_PROFILES),
+)
+QUALITY_ESCALATION_PROFILES = (
+    _quality_escalation_profile(
+        quality_profile_id="quality_escalation::planning_execution_fit",
+        topic_id="planning_execution_fit",
+        source_risk_profile_id="risk_escalation::planning_execution_fit",
+        source_confidence_fusion_profile_id=(
+            "agent_confidence_fusion::planning_execution_fit"
+        ),
+        source_creative_policy_ids=(
+            "concept_ambiguity_creative_escalation_policy",
+            "quality_uncertainty_creative_escalation_policy",
+        ),
+        source_escalation_signal_ids=(
+            "quality_escalation_signal",
+            "ambiguity_escalation_signal",
+        ),
+        quality_level="medium",
+        quality_evidence_surfaces=(
+            "quality_signal_metadata",
+            "confidence_uncertainties",
+        ),
+        advisory_outputs=(
+            "planning_quality_escalation_placeholder",
+            "planning_quality_context",
+        ),
+    ),
+    _quality_escalation_profile(
+        quality_profile_id="quality_escalation::style_aesthetic_alignment",
+        topic_id="style_aesthetic_alignment",
+        source_risk_profile_id="risk_escalation::style_aesthetic_alignment",
+        source_confidence_fusion_profile_id=(
+            "agent_confidence_fusion::style_aesthetic_alignment"
+        ),
+        source_creative_policy_ids=(
+            "aesthetic_risk_creative_escalation_policy",
+            "quality_uncertainty_creative_escalation_policy",
+        ),
+        source_escalation_signal_ids=(
+            "quality_escalation_signal",
+            "risk_escalation_signal",
+        ),
+        quality_level="high",
+        quality_evidence_surfaces=(
+            "quality_review_signals",
+            "weakest_quality_signals",
+            "quality_risks",
+        ),
+        advisory_outputs=(
+            "style_quality_escalation_placeholder",
+            "aesthetic_quality_context",
+        ),
+    ),
+    _quality_escalation_profile(
+        quality_profile_id="quality_escalation::curation_refinement_need",
+        topic_id="curation_refinement_need",
+        source_risk_profile_id="risk_escalation::curation_refinement_need",
+        source_confidence_fusion_profile_id=(
+            "agent_confidence_fusion::curation_refinement_need"
+        ),
+        source_creative_policy_ids=(
+            "quality_uncertainty_creative_escalation_policy",
+            "terminal_synthesis_creative_escalation_policy",
+        ),
+        source_escalation_signal_ids=(
+            "quality_escalation_signal",
+            "confidence_escalation_signal",
+            "risk_escalation_signal",
+        ),
+        quality_level="critical",
+        quality_evidence_surfaces=(
+            "quality_review_signals",
+            "weakest_quality_signals",
+            "quality_risks",
+            "confidence_uncertainties",
+        ),
+        advisory_outputs=(
+            "curation_quality_escalation_placeholder",
+            "refinement_quality_context",
+        ),
+    ),
+    _quality_escalation_profile(
+        quality_profile_id="quality_escalation::final_synthesis_readiness",
+        topic_id="final_synthesis_readiness",
+        source_risk_profile_id="risk_escalation::final_synthesis_readiness",
+        source_confidence_fusion_profile_id=(
+            "agent_confidence_fusion::final_synthesis_readiness"
+        ),
+        source_creative_policy_ids=("terminal_synthesis_creative_escalation_policy",),
+        source_escalation_signal_ids=(
+            "quality_escalation_signal",
+            "hitl_escalation_signal",
+        ),
+        quality_level="low",
+        quality_evidence_surfaces=(
+            "quality_signal_metadata",
+            "quality_review_signals",
+        ),
+        advisory_outputs=(
+            "synthesis_quality_escalation_placeholder",
+            "final_quality_context",
+        ),
+    ),
+)
+QUALITY_ESCALATION_REGISTRY = QualityEscalationRegistry(
+    quality_profiles=QUALITY_ESCALATION_PROFILES,
+    quality_profile_ids=tuple(
+        profile.quality_profile_id for profile in QUALITY_ESCALATION_PROFILES
+    ),
+    topic_ids=tuple(profile.topic_id for profile in QUALITY_ESCALATION_PROFILES),
+    quality_levels=tuple(
+        profile.quality_level for profile in QUALITY_ESCALATION_PROFILES
+    ),
+    source_registries=_QUALITY_ESCALATION_SOURCE_REGISTRIES,
+    risk_profile_ids=RISK_ESCALATION_REGISTRY.risk_profile_ids,
+    confidence_fusion_profile_ids=AGENT_CONFIDENCE_FUSION_REGISTRY.fusion_profile_ids,
+    creative_policy_ids=CREATIVE_ESCALATION_POLICY_REGISTRY.policy_ids,
+    escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
+    quality_evidence_surfaces=_QUALITY_EVIDENCE_SURFACES,
+    profile_count=len(QUALITY_ESCALATION_PROFILES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (

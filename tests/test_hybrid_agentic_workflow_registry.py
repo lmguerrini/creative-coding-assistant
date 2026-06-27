@@ -16,6 +16,7 @@ from creative_coding_assistant.orchestration import (
     HybridAgentDebateLoopRegistry,
     HybridAgentVotingRegistry,
     LatencyThresholdRoutingRegistry,
+    QualityEscalationRegistry,
     ReflectionEscalationRegistry,
     ResultNormalizationRegistry,
     RiskEscalationRegistry,
@@ -34,6 +35,8 @@ from creative_coding_assistant.orchestration import (
     cost_threshold_routing_registry,
     latency_threshold_routing_profile_by_id,
     latency_threshold_routing_registry,
+    quality_escalation_profile_by_id,
+    quality_escalation_registry,
     agent_escalation_signal_registry,
     conditional_multi_agent_escalation_condition_by_id,
     conditional_multi_agent_escalation_registry,
@@ -931,6 +934,59 @@ REQUIRED_RISK_ESCALATION_FIELDS = {
     "risk_evaluation_implemented",
     "escalation_execution_implemented",
     "mitigation_execution_implemented",
+    "agent_invocation_implemented",
+    "provider_model_routing_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_QUALITY_ESCALATION_PROFILE_IDS = (
+    "quality_escalation::planning_execution_fit",
+    "quality_escalation::style_aesthetic_alignment",
+    "quality_escalation::curation_refinement_need",
+    "quality_escalation::final_synthesis_readiness",
+)
+EXPECTED_QUALITY_ESCALATION_LEVELS = (
+    "medium",
+    "high",
+    "critical",
+    "low",
+)
+EXPECTED_QUALITY_ESCALATION_SOURCE_REGISTRIES = (
+    "risk_escalation_registry",
+    "creative_escalation_policy_registry",
+    "agent_confidence_fusion_registry",
+    "creative_confidence_engine",
+    "creative_quality_prediction_engine",
+    "agent_escalation_signal_registry",
+    "hybrid_agentic_workflow_registry",
+)
+EXPECTED_QUALITY_EVIDENCE_SURFACES = (
+    "quality_signal_metadata",
+    "quality_review_signals",
+    "weakest_quality_signals",
+    "quality_risks",
+    "confidence_uncertainties",
+)
+REQUIRED_QUALITY_ESCALATION_FIELDS = {
+    "quality_profile_id",
+    "topic_id",
+    "source_risk_profile_id",
+    "source_confidence_fusion_profile_id",
+    "source_creative_policy_ids",
+    "source_escalation_signal_ids",
+    "quality_level",
+    "quality_evidence_surfaces",
+    "source_registries",
+    "escalation_dimensions",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "quality_evaluation_implemented",
+    "escalation_execution_implemented",
+    "refinement_triggering_implemented",
     "agent_invocation_implemented",
     "provider_model_routing_implemented",
     "workflow_control_implemented",
@@ -4498,6 +4554,229 @@ class RiskEscalationRegistryTests(unittest.TestCase):
             "evaluate_risk",
             "execute_escalation",
             "apply_mitigation",
+            "execute_agent",
+            "route_provider",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class QualityEscalationRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_quality_profiles(self) -> None:
+        registry = quality_escalation_registry()
+
+        self.assertEqual(registry.role, "quality_escalation_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "quality_escalation_registry.v1",
+        )
+        self.assertEqual(
+            registry.quality_profile_ids,
+            EXPECTED_QUALITY_ESCALATION_PROFILE_IDS,
+        )
+        self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
+        self.assertEqual(registry.quality_levels, EXPECTED_QUALITY_ESCALATION_LEVELS)
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_QUALITY_ESCALATION_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(registry.risk_profile_ids, risk_escalation_registry().risk_profile_ids)
+        self.assertEqual(
+            registry.confidence_fusion_profile_ids,
+            agent_confidence_fusion_registry().fusion_profile_ids,
+        )
+        self.assertEqual(
+            registry.creative_policy_ids,
+            creative_escalation_policy_registry().policy_ids,
+        )
+        self.assertEqual(
+            registry.escalation_signal_ids,
+            agent_escalation_signal_registry().signal_ids,
+        )
+        self.assertEqual(
+            registry.quality_evidence_surfaces,
+            EXPECTED_QUALITY_EVIDENCE_SURFACES,
+        )
+        self.assertEqual(registry.profile_count, 4)
+        self.assertIn("does not evaluate quality", registry.authority_boundary)
+        self.assertFalse(registry.quality_evaluation_implemented)
+        self.assertFalse(registry.escalation_execution_implemented)
+        self.assertFalse(registry.refinement_triggering_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.provider_model_routing_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_quality_profiles_reference_known_sources(self) -> None:
+        registry = quality_escalation_registry()
+        known_risk = set(risk_escalation_registry().risk_profile_ids)
+        known_fusion = set(agent_confidence_fusion_registry().fusion_profile_ids)
+        known_creative = set(creative_escalation_policy_registry().policy_ids)
+        known_signals = set(agent_escalation_signal_registry().signal_ids)
+        known_evidence = set(EXPECTED_QUALITY_EVIDENCE_SURFACES)
+
+        for profile in registry.quality_profiles:
+            dumped = profile.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_QUALITY_ESCALATION_FIELDS)
+            self.assertEqual(
+                profile.source_registries,
+                EXPECTED_QUALITY_ESCALATION_SOURCE_REGISTRIES,
+            )
+            self.assertIn(profile.source_risk_profile_id, known_risk)
+            self.assertIn(profile.source_confidence_fusion_profile_id, known_fusion)
+            self.assertTrue(
+                set(profile.source_creative_policy_ids).issubset(known_creative)
+            )
+            self.assertTrue(
+                set(profile.source_escalation_signal_ids).issubset(known_signals)
+            )
+            self.assertIn(
+                "quality_escalation_signal",
+                profile.source_escalation_signal_ids,
+            )
+            self.assertTrue(
+                set(profile.quality_evidence_surfaces).issubset(known_evidence)
+            )
+            self.assertIn(profile.quality_level, registry.quality_levels)
+            self.assertTrue(profile.escalation_dimensions)
+            self.assertTrue(profile.advisory_outputs)
+            self.assertIn("quality_evaluation", profile.blocked_runtime_behaviors)
+            self.assertIn("escalation_execution", profile.blocked_runtime_behaviors)
+            self.assertIn("refinement_triggering", profile.blocked_runtime_behaviors)
+            self.assertFalse(profile.quality_evaluation_implemented)
+            self.assertFalse(profile.escalation_execution_implemented)
+            self.assertFalse(profile.refinement_triggering_implemented)
+            self.assertFalse(profile.agent_invocation_implemented)
+            self.assertFalse(profile.provider_model_routing_implemented)
+            self.assertFalse(profile.workflow_control_implemented)
+            self.assertFalse(profile.retry_triggering_implemented)
+            self.assertFalse(profile.generated_output_mutation_implemented)
+            self.assertEqual(
+                profile.serialization_version,
+                "quality_escalation_profile.v1",
+            )
+            self.assertTrue(profile.metadata_only)
+
+    def test_quality_source_registries_are_complete(self) -> None:
+        registry = quality_escalation_registry()
+        profile_sources = tuple(
+            dict.fromkeys(
+                source
+                for profile in registry.quality_profiles
+                for source in profile.source_registries
+            )
+        )
+
+        self.assertEqual(profile_sources, registry.source_registries)
+        for source_registry in EXPECTED_QUALITY_ESCALATION_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, profile_sources)
+        for profile in registry.quality_profiles:
+            self.assertEqual(set(profile.source_registries), set(profile_sources))
+
+    def test_quality_lookup_is_stable(self) -> None:
+        profile = quality_escalation_profile_by_id(
+            "quality_escalation::curation_refinement_need"
+        )
+        missing = quality_escalation_profile_by_id("missing_quality")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.topic_id, "curation_refinement_need")
+        self.assertEqual(profile.quality_level, "critical")
+        self.assertIn("refinement_quality_context", profile.advisory_outputs)
+        self.assertFalse(profile.escalation_execution_implemented)
+
+    def test_quality_registry_rejects_mismatched_metadata(self) -> None:
+        registry = quality_escalation_registry()
+        mismatched_profile = registry.quality_profiles[0].model_copy(
+            update={"quality_profile_id": "other_quality"}
+        )
+        missing_signal_profile = registry.quality_profiles[0].model_copy(
+            update={"source_escalation_signal_ids": ("hitl_escalation_signal",)}
+        )
+        unknown_evidence_profile = registry.quality_profiles[0].model_copy(
+            update={"quality_evidence_surfaces": ("unknown_quality_surface",)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "quality_profile_ids"):
+            QualityEscalationRegistry(
+                quality_profiles=(
+                    mismatched_profile,
+                )
+                + registry.quality_profiles[1:],
+                quality_profile_ids=registry.quality_profile_ids,
+                topic_ids=registry.topic_ids,
+                quality_levels=registry.quality_levels,
+                source_registries=registry.source_registries,
+                risk_profile_ids=registry.risk_profile_ids,
+                confidence_fusion_profile_ids=registry.confidence_fusion_profile_ids,
+                creative_policy_ids=registry.creative_policy_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                quality_evidence_surfaces=registry.quality_evidence_surfaces,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "quality signal"):
+            QualityEscalationRegistry(
+                quality_profiles=(
+                    missing_signal_profile,
+                )
+                + registry.quality_profiles[1:],
+                quality_profile_ids=registry.quality_profile_ids,
+                topic_ids=registry.topic_ids,
+                quality_levels=registry.quality_levels,
+                source_registries=registry.source_registries,
+                risk_profile_ids=registry.risk_profile_ids,
+                confidence_fusion_profile_ids=registry.confidence_fusion_profile_ids,
+                creative_policy_ids=registry.creative_policy_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                quality_evidence_surfaces=registry.quality_evidence_surfaces,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "quality evidence"):
+            QualityEscalationRegistry(
+                quality_profiles=(
+                    unknown_evidence_profile,
+                )
+                + registry.quality_profiles[1:],
+                quality_profile_ids=registry.quality_profile_ids,
+                topic_ids=registry.topic_ids,
+                quality_levels=registry.quality_levels,
+                source_registries=registry.source_registries,
+                risk_profile_ids=registry.risk_profile_ids,
+                confidence_fusion_profile_ids=registry.confidence_fusion_profile_ids,
+                creative_policy_ids=registry.creative_policy_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                quality_evidence_surfaces=registry.quality_evidence_surfaces,
+                profile_count=registry.profile_count,
+            )
+
+    def test_quality_does_not_declare_active_execution(self) -> None:
+        registry = quality_escalation_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for profile in registry.quality_profiles
+                    for field in (
+                        profile.quality_profile_id,
+                        profile.authority_boundary,
+                        *profile.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "evaluate_quality",
+            "execute_escalation",
+            "trigger_refinement",
             "execute_agent",
             "route_provider",
             "modify_output",
