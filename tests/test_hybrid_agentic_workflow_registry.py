@@ -14,6 +14,7 @@ from creative_coding_assistant.orchestration import (
     HitlEscalationGateRegistry,
     HybridAgentDebateLoopRegistry,
     HybridAgentVotingRegistry,
+    LatencyThresholdRoutingRegistry,
     ReflectionEscalationRegistry,
     ResultNormalizationRegistry,
     ReturnToWorkflowHandoffRegistry,
@@ -27,6 +28,8 @@ from creative_coding_assistant.orchestration import (
     confidence_threshold_routing_registry,
     cost_threshold_routing_profile_by_id,
     cost_threshold_routing_registry,
+    latency_threshold_routing_profile_by_id,
+    latency_threshold_routing_registry,
     agent_escalation_signal_registry,
     conditional_multi_agent_escalation_condition_by_id,
     conditional_multi_agent_escalation_registry,
@@ -765,6 +768,57 @@ REQUIRED_COST_THRESHOLD_FIELDS = {
     "threshold_evaluation_implemented",
     "cost_based_routing_implemented",
     "budget_enforcement_implemented",
+    "provider_model_routing_implemented",
+    "agent_invocation_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_LATENCY_THRESHOLD_PROFILE_IDS = (
+    "latency_threshold_routing::planning_execution_fit",
+    "latency_threshold_routing::style_aesthetic_alignment",
+    "latency_threshold_routing::curation_refinement_need",
+    "latency_threshold_routing::final_synthesis_readiness",
+)
+EXPECTED_LATENCY_THRESHOLD_BANDS = (
+    "medium",
+    "high",
+    "guarded",
+    "low",
+)
+EXPECTED_LATENCY_THRESHOLD_SOURCE_REGISTRIES = (
+    "cost_threshold_routing_registry",
+    "agent_metadata_registry",
+    "artifact_engine_contract_registry",
+    "evaluation_engine_contract_registry",
+    "workstation_engine_contract_registry",
+    "agent_escalation_signal_registry",
+    "hybrid_agentic_workflow_registry",
+)
+EXPECTED_LATENCY_METADATA_SOURCE_SURFACES = (
+    "agent_estimated_latency_metadata",
+    "artifact_engine_estimated_latency_metadata",
+    "evaluation_engine_estimated_latency_metadata",
+    "workstation_surface_estimated_latency_metadata",
+)
+REQUIRED_LATENCY_THRESHOLD_FIELDS = {
+    "latency_threshold_profile_id",
+    "topic_id",
+    "source_cost_threshold_profile_id",
+    "source_escalation_signal_ids",
+    "latency_band",
+    "advisory_latency_range_ms",
+    "latency_metadata_sources",
+    "source_registries",
+    "routing_dimensions",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "threshold_evaluation_implemented",
+    "latency_based_routing_implemented",
+    "runtime_selection_implemented",
     "provider_model_routing_implemented",
     "agent_invocation_implemented",
     "workflow_control_implemented",
@@ -3674,6 +3728,223 @@ class CostThresholdRoutingRegistryTests(unittest.TestCase):
             "route_by_cost",
             "evaluate_runtime_threshold",
             "enforce_runtime_budget",
+            "route_provider",
+            "execute_agent",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class LatencyThresholdRoutingRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_latency_threshold_profiles(self) -> None:
+        registry = latency_threshold_routing_registry()
+
+        self.assertEqual(registry.role, "latency_threshold_routing_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "latency_threshold_routing_registry.v1",
+        )
+        self.assertEqual(
+            registry.latency_threshold_profile_ids,
+            EXPECTED_LATENCY_THRESHOLD_PROFILE_IDS,
+        )
+        self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
+        self.assertEqual(registry.latency_bands, EXPECTED_LATENCY_THRESHOLD_BANDS)
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_LATENCY_THRESHOLD_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(
+            registry.cost_threshold_profile_ids,
+            cost_threshold_routing_registry().cost_threshold_profile_ids,
+        )
+        self.assertEqual(
+            registry.escalation_signal_ids,
+            agent_escalation_signal_registry().signal_ids,
+        )
+        self.assertEqual(
+            registry.latency_metadata_sources,
+            EXPECTED_LATENCY_METADATA_SOURCE_SURFACES,
+        )
+        self.assertEqual(registry.profile_count, 4)
+        self.assertIn("does not route by latency", registry.authority_boundary)
+        self.assertFalse(registry.threshold_evaluation_implemented)
+        self.assertFalse(registry.latency_based_routing_implemented)
+        self.assertFalse(registry.runtime_selection_implemented)
+        self.assertFalse(registry.provider_model_routing_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_latency_threshold_profiles_reference_known_sources(self) -> None:
+        registry = latency_threshold_routing_registry()
+        known_cost_thresholds = set(
+            cost_threshold_routing_registry().cost_threshold_profile_ids
+        )
+        known_signals = set(agent_escalation_signal_registry().signal_ids)
+
+        for profile in registry.latency_threshold_profiles:
+            dumped = profile.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_LATENCY_THRESHOLD_FIELDS)
+            self.assertEqual(
+                profile.source_registries,
+                EXPECTED_LATENCY_THRESHOLD_SOURCE_REGISTRIES,
+            )
+            self.assertIn(
+                profile.source_cost_threshold_profile_id,
+                known_cost_thresholds,
+            )
+            self.assertTrue(
+                set(profile.source_escalation_signal_ids).issubset(known_signals)
+            )
+            self.assertIn(
+                "latency_escalation_signal",
+                profile.source_escalation_signal_ids,
+            )
+            self.assertEqual(
+                profile.latency_metadata_sources,
+                EXPECTED_LATENCY_METADATA_SOURCE_SURFACES,
+            )
+            self.assertIn(profile.latency_band, registry.latency_bands)
+            latency_low, latency_high = profile.advisory_latency_range_ms
+            self.assertGreaterEqual(latency_low, 0)
+            self.assertGreaterEqual(latency_high, latency_low)
+            self.assertTrue(profile.routing_dimensions)
+            self.assertTrue(profile.advisory_outputs)
+            self.assertIn(
+                "latency_threshold_evaluation",
+                profile.blocked_runtime_behaviors,
+            )
+            self.assertIn("latency_based_routing", profile.blocked_runtime_behaviors)
+            self.assertIn("runtime_selection", profile.blocked_runtime_behaviors)
+            self.assertFalse(profile.threshold_evaluation_implemented)
+            self.assertFalse(profile.latency_based_routing_implemented)
+            self.assertFalse(profile.runtime_selection_implemented)
+            self.assertFalse(profile.provider_model_routing_implemented)
+            self.assertFalse(profile.agent_invocation_implemented)
+            self.assertFalse(profile.workflow_control_implemented)
+            self.assertFalse(profile.retry_triggering_implemented)
+            self.assertFalse(profile.generated_output_mutation_implemented)
+            self.assertEqual(
+                profile.serialization_version,
+                "latency_threshold_routing_profile.v1",
+            )
+            self.assertTrue(profile.metadata_only)
+
+    def test_latency_threshold_source_registries_are_complete(self) -> None:
+        registry = latency_threshold_routing_registry()
+        profile_sources = tuple(
+            dict.fromkeys(
+                source
+                for profile in registry.latency_threshold_profiles
+                for source in profile.source_registries
+            )
+        )
+
+        self.assertEqual(profile_sources, registry.source_registries)
+        for source_registry in EXPECTED_LATENCY_THRESHOLD_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, profile_sources)
+        for profile in registry.latency_threshold_profiles:
+            self.assertEqual(set(profile.source_registries), set(profile_sources))
+
+    def test_latency_threshold_lookup_is_stable(self) -> None:
+        profile = latency_threshold_routing_profile_by_id(
+            "latency_threshold_routing::curation_refinement_need"
+        )
+        missing = latency_threshold_routing_profile_by_id("missing_latency_threshold")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.topic_id, "curation_refinement_need")
+        self.assertEqual(profile.latency_band, "guarded")
+        self.assertEqual(profile.advisory_latency_range_ms, (1000, 2500))
+        self.assertFalse(profile.latency_based_routing_implemented)
+
+    def test_latency_threshold_registry_rejects_mismatched_metadata(self) -> None:
+        registry = latency_threshold_routing_registry()
+        mismatched_profile = registry.latency_threshold_profiles[0].model_copy(
+            update={"latency_threshold_profile_id": "other_latency_threshold"}
+        )
+        invalid_range_profile = registry.latency_threshold_profiles[0].model_copy(
+            update={"advisory_latency_range_ms": (1500, 500)}
+        )
+        missing_signal_profile = registry.latency_threshold_profiles[0].model_copy(
+            update={"source_escalation_signal_ids": ("ambiguity_escalation_signal",)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "latency_threshold_profile_ids"):
+            LatencyThresholdRoutingRegistry(
+                latency_threshold_profiles=(
+                    mismatched_profile,
+                )
+                + registry.latency_threshold_profiles[1:],
+                latency_threshold_profile_ids=registry.latency_threshold_profile_ids,
+                topic_ids=registry.topic_ids,
+                latency_bands=registry.latency_bands,
+                source_registries=registry.source_registries,
+                cost_threshold_profile_ids=registry.cost_threshold_profile_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                latency_metadata_sources=registry.latency_metadata_sources,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "latency threshold range"):
+            LatencyThresholdRoutingRegistry(
+                latency_threshold_profiles=(
+                    invalid_range_profile,
+                )
+                + registry.latency_threshold_profiles[1:],
+                latency_threshold_profile_ids=registry.latency_threshold_profile_ids,
+                topic_ids=registry.topic_ids,
+                latency_bands=registry.latency_bands,
+                source_registries=registry.source_registries,
+                cost_threshold_profile_ids=registry.cost_threshold_profile_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                latency_metadata_sources=registry.latency_metadata_sources,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "latency signal"):
+            LatencyThresholdRoutingRegistry(
+                latency_threshold_profiles=(
+                    missing_signal_profile,
+                )
+                + registry.latency_threshold_profiles[1:],
+                latency_threshold_profile_ids=registry.latency_threshold_profile_ids,
+                topic_ids=registry.topic_ids,
+                latency_bands=registry.latency_bands,
+                source_registries=registry.source_registries,
+                cost_threshold_profile_ids=registry.cost_threshold_profile_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                latency_metadata_sources=registry.latency_metadata_sources,
+                profile_count=registry.profile_count,
+            )
+
+    def test_latency_threshold_does_not_declare_active_execution(self) -> None:
+        registry = latency_threshold_routing_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for profile in registry.latency_threshold_profiles
+                    for field in (
+                        profile.latency_threshold_profile_id,
+                        profile.authority_boundary,
+                        *profile.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "route_by_latency",
+            "select_runtime",
+            "evaluate_runtime_threshold",
             "route_provider",
             "execute_agent",
             "modify_output",

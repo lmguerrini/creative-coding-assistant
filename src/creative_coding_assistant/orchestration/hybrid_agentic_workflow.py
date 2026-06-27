@@ -69,6 +69,8 @@ ConfidenceThresholdRoutingTopic = HitlEscalationGateTopic
 ConfidenceThresholdBand = Literal["critical", "low", "medium", "high"]
 CostThresholdRoutingTopic = ConfidenceThresholdRoutingTopic
 CostThresholdBand = Literal["guarded", "high", "low", "medium"]
+LatencyThresholdRoutingTopic = CostThresholdRoutingTopic
+LatencyThresholdBand = Literal["guarded", "high", "low", "medium"]
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -162,6 +164,12 @@ COST_THRESHOLD_ROUTING_PROFILE_SERIALIZATION_VERSION = (
 )
 COST_THRESHOLD_ROUTING_REGISTRY_SERIALIZATION_VERSION = (
     "cost_threshold_routing_registry.v1"
+)
+LATENCY_THRESHOLD_ROUTING_PROFILE_SERIALIZATION_VERSION = (
+    "latency_threshold_routing_profile.v1"
+)
+LATENCY_THRESHOLD_ROUTING_REGISTRY_SERIALIZATION_VERSION = (
+    "latency_threshold_routing_registry.v1"
 )
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
@@ -283,6 +291,13 @@ COST_THRESHOLD_ROUTING_AUTHORITY_BOUNDARY = (
     "enforce budgets, change providers or models, invoke agents, evaluate "
     "thresholds, control workflow transitions, trigger retries, or modify "
     "generated output."
+)
+LATENCY_THRESHOLD_ROUTING_AUTHORITY_BOUNDARY = (
+    "Latency threshold routing metadata describes passive advisory latency "
+    "bands for future hybrid routing visibility only; it does not route by "
+    "latency, select runtimes, change providers or models, invoke agents, "
+    "evaluate thresholds, control workflow transitions, trigger retries, or "
+    "modify generated output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Hybrid agentic workflow metadata maps current V3 workflow nodes to future "
@@ -616,6 +631,25 @@ _COST_THRESHOLD_ROUTING_SOURCE_REGISTRIES = (
     "agent_escalation_signal_registry",
     "hybrid_agentic_workflow_registry",
 )
+_LATENCY_THRESHOLD_ROUTING_BLOCKED_RUNTIME_BEHAVIORS = (
+    "latency_threshold_evaluation",
+    "latency_based_routing",
+    "runtime_selection",
+    "provider_or_model_routing",
+    "agent_invocation",
+    "workflow_control",
+    "retry_triggering",
+    "generated_output_modification",
+)
+_LATENCY_THRESHOLD_ROUTING_SOURCE_REGISTRIES = (
+    "cost_threshold_routing_registry",
+    "agent_metadata_registry",
+    "artifact_engine_contract_registry",
+    "evaluation_engine_contract_registry",
+    "workstation_engine_contract_registry",
+    "agent_escalation_signal_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -760,6 +794,24 @@ _COST_THRESHOLD_BANDS: tuple[CostThresholdBand, ...] = (
     "high",
     "guarded",
     "low",
+)
+_LATENCY_THRESHOLD_ROUTING_TOPICS: tuple[LatencyThresholdRoutingTopic, ...] = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
+)
+_LATENCY_THRESHOLD_BANDS: tuple[LatencyThresholdBand, ...] = (
+    "medium",
+    "high",
+    "guarded",
+    "low",
+)
+_LATENCY_METADATA_SOURCE_SURFACES = (
+    "agent_estimated_latency_metadata",
+    "artifact_engine_estimated_latency_metadata",
+    "evaluation_engine_estimated_latency_metadata",
+    "workstation_surface_estimated_latency_metadata",
 )
 _KNOWN_SPECIALIST_AGENT_IDS = (
     "planner_agent",
@@ -3190,6 +3242,166 @@ def cost_threshold_routing_profile_by_id(
     return None
 
 
+class LatencyThresholdRoutingProfile(BaseModel):
+    """Passive V4.3 latency threshold routing profile metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    latency_threshold_profile_id: str = Field(min_length=1, max_length=170)
+    topic_id: LatencyThresholdRoutingTopic
+    source_cost_threshold_profile_id: str = Field(min_length=1, max_length=180)
+    source_escalation_signal_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    latency_band: LatencyThresholdBand
+    advisory_latency_range_ms: tuple[int, int]
+    latency_metadata_sources: tuple[str, ...] = Field(min_length=4, max_length=4)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    routing_dimensions: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_LATENCY_THRESHOLD_ROUTING_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    threshold_evaluation_implemented: Literal[False] = False
+    latency_based_routing_implemented: Literal[False] = False
+    runtime_selection_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["latency_threshold_routing_profile.v1"] = (
+        LATENCY_THRESHOLD_ROUTING_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class LatencyThresholdRoutingRegistry(BaseModel):
+    """Stable passive registry for V4.3 latency threshold routing metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["latency_threshold_routing_registry"] = (
+        "latency_threshold_routing_registry"
+    )
+    serialization_version: Literal["latency_threshold_routing_registry.v1"] = (
+        LATENCY_THRESHOLD_ROUTING_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=LATENCY_THRESHOLD_ROUTING_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    latency_threshold_profiles: tuple[LatencyThresholdRoutingProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    latency_threshold_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    topic_ids: tuple[LatencyThresholdRoutingTopic, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    latency_bands: tuple[LatencyThresholdBand, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    cost_threshold_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    escalation_signal_ids: tuple[str, ...] = Field(min_length=7, max_length=7)
+    latency_metadata_sources: tuple[str, ...] = Field(min_length=4, max_length=4)
+    profile_count: int = Field(ge=4, le=4)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_LATENCY_THRESHOLD_ROUTING_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    threshold_evaluation_implemented: Literal[False] = False
+    latency_based_routing_implemented: Literal[False] = False
+    runtime_selection_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_latency_threshold_metadata(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.latency_threshold_profile_id
+            for profile in self.latency_threshold_profiles
+        )
+        derived_topic_ids = tuple(
+            profile.topic_id for profile in self.latency_threshold_profiles
+        )
+        derived_bands = tuple(
+            profile.latency_band for profile in self.latency_threshold_profiles
+        )
+        if self.latency_threshold_profile_ids != derived_profile_ids:
+            raise ValueError("latency_threshold_profile_ids must match profiles")
+        if self.topic_ids != derived_topic_ids:
+            raise ValueError("topic_ids must match latency threshold profiles")
+        if self.topic_ids != _LATENCY_THRESHOLD_ROUTING_TOPICS:
+            raise ValueError("topic_ids must preserve latency routing topic order")
+        if self.latency_bands != derived_bands:
+            raise ValueError("latency_bands must match profiles")
+        if self.latency_bands != _LATENCY_THRESHOLD_BANDS:
+            raise ValueError("latency_bands must preserve latency band order")
+        if self.profile_count != len(self.latency_threshold_profiles):
+            raise ValueError("profile_count must match latency threshold profiles")
+
+        profile_sources = {
+            source_registry
+            for profile in self.latency_threshold_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match latency threshold sources")
+
+        known_cost_thresholds = set(self.cost_threshold_profile_ids)
+        known_signals = set(self.escalation_signal_ids)
+        for profile in self.latency_threshold_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("latency threshold sources must match registry")
+            if profile.source_cost_threshold_profile_id not in known_cost_thresholds:
+                raise ValueError("latency threshold cost profiles must be known")
+            if not set(profile.source_escalation_signal_ids).issubset(known_signals):
+                raise ValueError("latency threshold signals must be known")
+            if "latency_escalation_signal" not in profile.source_escalation_signal_ids:
+                raise ValueError("latency profiles must reference latency signal")
+            if profile.latency_metadata_sources != self.latency_metadata_sources:
+                raise ValueError("latency metadata sources must match registry")
+            latency_low, latency_high = profile.advisory_latency_range_ms
+            if not 0 <= latency_low <= latency_high:
+                raise ValueError("latency threshold range must be non-negative")
+            if profile.threshold_evaluation_implemented:
+                raise ValueError("latency threshold routing must not evaluate")
+            if profile.latency_based_routing_implemented:
+                raise ValueError("latency threshold routing must not route")
+            if profile.runtime_selection_implemented:
+                raise ValueError("latency threshold routing must not select runtime")
+        return self
+
+
+def latency_threshold_routing_registry() -> LatencyThresholdRoutingRegistry:
+    """Return passive V4.3 latency threshold routing metadata."""
+
+    return LATENCY_THRESHOLD_ROUTING_REGISTRY
+
+
+def latency_threshold_routing_profile_by_id(
+    latency_threshold_profile_id: str,
+    registry: LatencyThresholdRoutingRegistry | None = None,
+) -> LatencyThresholdRoutingProfile | None:
+    """Return one latency threshold profile without routing by latency."""
+
+    source_registry = registry or LATENCY_THRESHOLD_ROUTING_REGISTRY
+    for profile in source_registry.latency_threshold_profiles:
+        if profile.latency_threshold_profile_id == latency_threshold_profile_id:
+            return profile
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -3809,6 +4021,41 @@ def _cost_threshold_routing_profile(
             "This cost threshold routing profile is advisory metadata only; "
             "it does not route by cost, enforce budgets, change providers or "
             "models, invoke agents, evaluate thresholds, control workflow "
+            "transitions, trigger retries, or modify generated output."
+        ),
+    )
+
+
+def _latency_threshold_routing_profile(
+    *,
+    latency_threshold_profile_id: str,
+    topic_id: LatencyThresholdRoutingTopic,
+    source_cost_threshold_profile_id: str,
+    source_escalation_signal_ids: tuple[str, ...],
+    latency_band: LatencyThresholdBand,
+    advisory_latency_range_ms: tuple[int, int],
+    advisory_outputs: tuple[str, ...],
+) -> LatencyThresholdRoutingProfile:
+    return LatencyThresholdRoutingProfile(
+        latency_threshold_profile_id=latency_threshold_profile_id,
+        topic_id=topic_id,
+        source_cost_threshold_profile_id=source_cost_threshold_profile_id,
+        source_escalation_signal_ids=source_escalation_signal_ids,
+        latency_band=latency_band,
+        advisory_latency_range_ms=advisory_latency_range_ms,
+        latency_metadata_sources=_LATENCY_METADATA_SOURCE_SURFACES,
+        source_registries=_LATENCY_THRESHOLD_ROUTING_SOURCE_REGISTRIES,
+        routing_dimensions=(
+            "latency_band",
+            "cost_threshold_context",
+            "latency_metadata_source_context",
+            "latency_escalation_signal_context",
+        ),
+        advisory_outputs=advisory_outputs,
+        authority_boundary=(
+            "This latency threshold routing profile is advisory metadata only; "
+            "it does not route by latency, select runtimes, change providers "
+            "or models, invoke agents, evaluate thresholds, control workflow "
             "transitions, trigger retries, or modify generated output."
         ),
     )
@@ -5479,6 +5726,103 @@ COST_THRESHOLD_ROUTING_REGISTRY = CostThresholdRoutingRegistry(
     ),
     escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
     profile_count=len(COST_THRESHOLD_ROUTING_PROFILES),
+)
+LATENCY_THRESHOLD_ROUTING_PROFILES = (
+    _latency_threshold_routing_profile(
+        latency_threshold_profile_id=(
+            "latency_threshold_routing::planning_execution_fit"
+        ),
+        topic_id="planning_execution_fit",
+        source_cost_threshold_profile_id=(
+            "cost_threshold_routing::planning_execution_fit"
+        ),
+        source_escalation_signal_ids=(
+            "latency_escalation_signal",
+            "ambiguity_escalation_signal",
+        ),
+        latency_band="medium",
+        advisory_latency_range_ms=(500, 1500),
+        advisory_outputs=(
+            "planning_latency_threshold_placeholder",
+            "planning_latency_routing_context",
+        ),
+    ),
+    _latency_threshold_routing_profile(
+        latency_threshold_profile_id=(
+            "latency_threshold_routing::style_aesthetic_alignment"
+        ),
+        topic_id="style_aesthetic_alignment",
+        source_cost_threshold_profile_id=(
+            "cost_threshold_routing::style_aesthetic_alignment"
+        ),
+        source_escalation_signal_ids=(
+            "latency_escalation_signal",
+            "quality_escalation_signal",
+        ),
+        latency_band="high",
+        advisory_latency_range_ms=(1500, 3000),
+        advisory_outputs=(
+            "style_latency_threshold_placeholder",
+            "aesthetic_latency_routing_context",
+        ),
+    ),
+    _latency_threshold_routing_profile(
+        latency_threshold_profile_id=(
+            "latency_threshold_routing::curation_refinement_need"
+        ),
+        topic_id="curation_refinement_need",
+        source_cost_threshold_profile_id=(
+            "cost_threshold_routing::curation_refinement_need"
+        ),
+        source_escalation_signal_ids=(
+            "latency_escalation_signal",
+            "confidence_escalation_signal",
+            "quality_escalation_signal",
+        ),
+        latency_band="guarded",
+        advisory_latency_range_ms=(1000, 2500),
+        advisory_outputs=(
+            "curation_latency_threshold_placeholder",
+            "refinement_latency_routing_context",
+        ),
+    ),
+    _latency_threshold_routing_profile(
+        latency_threshold_profile_id=(
+            "latency_threshold_routing::final_synthesis_readiness"
+        ),
+        topic_id="final_synthesis_readiness",
+        source_cost_threshold_profile_id=(
+            "cost_threshold_routing::final_synthesis_readiness"
+        ),
+        source_escalation_signal_ids=(
+            "latency_escalation_signal",
+            "hitl_escalation_signal",
+        ),
+        latency_band="low",
+        advisory_latency_range_ms=(0, 500),
+        advisory_outputs=(
+            "synthesis_latency_threshold_placeholder",
+            "final_latency_routing_context",
+        ),
+    ),
+)
+LATENCY_THRESHOLD_ROUTING_REGISTRY = LatencyThresholdRoutingRegistry(
+    latency_threshold_profiles=LATENCY_THRESHOLD_ROUTING_PROFILES,
+    latency_threshold_profile_ids=tuple(
+        profile.latency_threshold_profile_id
+        for profile in LATENCY_THRESHOLD_ROUTING_PROFILES
+    ),
+    topic_ids=tuple(
+        profile.topic_id for profile in LATENCY_THRESHOLD_ROUTING_PROFILES
+    ),
+    latency_bands=tuple(
+        profile.latency_band for profile in LATENCY_THRESHOLD_ROUTING_PROFILES
+    ),
+    source_registries=_LATENCY_THRESHOLD_ROUTING_SOURCE_REGISTRIES,
+    cost_threshold_profile_ids=COST_THRESHOLD_ROUTING_REGISTRY.cost_threshold_profile_ids,
+    escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
+    latency_metadata_sources=_LATENCY_METADATA_SOURCE_SURFACES,
+    profile_count=len(LATENCY_THRESHOLD_ROUTING_PROFILES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (

@@ -337,6 +337,8 @@ _EXPORT_MAP = {
     "ConfidenceThresholdRoutingRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "CostThresholdRoutingProfile": _HYBRID_AGENTIC_WORKFLOW,
     "CostThresholdRoutingRegistry": _HYBRID_AGENTIC_WORKFLOW,
+    "LatencyThresholdRoutingProfile": _HYBRID_AGENTIC_WORKFLOW,
+    "LatencyThresholdRoutingRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "EscalationPolicyRule": _ESCALATION_POLICY,
     "EscalationPolicyRegistry": _ESCALATION_POLICY,
     "escalation_policy_by_id": _ESCALATION_POLICY,
@@ -377,6 +379,8 @@ _EXPORT_MAP = {
     "confidence_threshold_routing_registry": _HYBRID_AGENTIC_WORKFLOW,
     "cost_threshold_routing_profile_by_id": _HYBRID_AGENTIC_WORKFLOW,
     "cost_threshold_routing_registry": _HYBRID_AGENTIC_WORKFLOW,
+    "latency_threshold_routing_profile_by_id": _HYBRID_AGENTIC_WORKFLOW,
+    "latency_threshold_routing_registry": _HYBRID_AGENTIC_WORKFLOW,
     "conditional_multi_agent_escalation_condition_by_id": (
         _HYBRID_AGENTIC_WORKFLOW
     ),
