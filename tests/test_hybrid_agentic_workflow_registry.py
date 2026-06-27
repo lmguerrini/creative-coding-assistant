@@ -5,6 +5,7 @@ from creative_coding_assistant.orchestration import (
     AgentConfidenceFusionRegistry,
     ConfidenceThresholdRoutingRegistry,
     ConditionalMultiAgentEscalationRegistry,
+    CostThresholdRoutingRegistry,
     CreativeExplorationBudgetRegistry,
     CreativeEscalationPolicyRegistry,
     DecisionProvenanceRegistry,
@@ -24,6 +25,8 @@ from creative_coding_assistant.orchestration import (
     agent_confidence_fusion_registry,
     confidence_threshold_routing_profile_by_id,
     confidence_threshold_routing_registry,
+    cost_threshold_routing_profile_by_id,
+    cost_threshold_routing_registry,
     agent_escalation_signal_registry,
     conditional_multi_agent_escalation_condition_by_id,
     conditional_multi_agent_escalation_registry,
@@ -716,6 +719,52 @@ REQUIRED_CONFIDENCE_THRESHOLD_FIELDS = {
     "blocked_runtime_behaviors",
     "threshold_evaluation_implemented",
     "confidence_based_routing_implemented",
+    "provider_model_routing_implemented",
+    "agent_invocation_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_COST_THRESHOLD_PROFILE_IDS = (
+    "cost_threshold_routing::planning_execution_fit",
+    "cost_threshold_routing::style_aesthetic_alignment",
+    "cost_threshold_routing::curation_refinement_need",
+    "cost_threshold_routing::final_synthesis_readiness",
+)
+EXPECTED_COST_THRESHOLD_BANDS = (
+    "medium",
+    "high",
+    "guarded",
+    "low",
+)
+EXPECTED_COST_THRESHOLD_SOURCE_REGISTRIES = (
+    "creative_exploration_budget_registry",
+    "confidence_threshold_routing_registry",
+    "creative_planning_engine",
+    "creative_constraints_engine",
+    "creative_tradeoff_engine",
+    "agent_escalation_signal_registry",
+    "hybrid_agentic_workflow_registry",
+)
+REQUIRED_COST_THRESHOLD_FIELDS = {
+    "cost_threshold_profile_id",
+    "topic_id",
+    "source_budget_profile_id",
+    "source_confidence_threshold_profile_id",
+    "source_escalation_signal_ids",
+    "cost_band",
+    "advisory_cost_range",
+    "cost_pressure_signal",
+    "source_registries",
+    "routing_dimensions",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "threshold_evaluation_implemented",
+    "cost_based_routing_implemented",
+    "budget_enforcement_implemented",
     "provider_model_routing_implemented",
     "agent_invocation_implemented",
     "workflow_control_implemented",
@@ -3409,6 +3458,222 @@ class ConfidenceThresholdRoutingRegistryTests(unittest.TestCase):
         for forbidden_term in (
             "route_by_confidence",
             "evaluate_runtime_threshold",
+            "route_provider",
+            "execute_agent",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class CostThresholdRoutingRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_cost_threshold_profiles(self) -> None:
+        registry = cost_threshold_routing_registry()
+
+        self.assertEqual(registry.role, "cost_threshold_routing_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "cost_threshold_routing_registry.v1",
+        )
+        self.assertEqual(
+            registry.cost_threshold_profile_ids,
+            EXPECTED_COST_THRESHOLD_PROFILE_IDS,
+        )
+        self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
+        self.assertEqual(registry.cost_bands, EXPECTED_COST_THRESHOLD_BANDS)
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_COST_THRESHOLD_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(
+            registry.budget_profile_ids,
+            creative_exploration_budget_registry().budget_profile_ids,
+        )
+        self.assertEqual(
+            registry.confidence_threshold_profile_ids,
+            confidence_threshold_routing_registry().threshold_profile_ids,
+        )
+        self.assertEqual(
+            registry.escalation_signal_ids,
+            agent_escalation_signal_registry().signal_ids,
+        )
+        self.assertEqual(registry.profile_count, 4)
+        self.assertIn("does not route by cost", registry.authority_boundary)
+        self.assertFalse(registry.threshold_evaluation_implemented)
+        self.assertFalse(registry.cost_based_routing_implemented)
+        self.assertFalse(registry.budget_enforcement_implemented)
+        self.assertFalse(registry.provider_model_routing_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_cost_threshold_profiles_reference_known_sources(self) -> None:
+        registry = cost_threshold_routing_registry()
+        known_budgets = set(creative_exploration_budget_registry().budget_profile_ids)
+        known_thresholds = set(
+            confidence_threshold_routing_registry().threshold_profile_ids
+        )
+        known_signals = set(agent_escalation_signal_registry().signal_ids)
+
+        for profile in registry.cost_threshold_profiles:
+            dumped = profile.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_COST_THRESHOLD_FIELDS)
+            self.assertEqual(
+                profile.source_registries,
+                EXPECTED_COST_THRESHOLD_SOURCE_REGISTRIES,
+            )
+            self.assertIn(profile.source_budget_profile_id, known_budgets)
+            self.assertIn(
+                profile.source_confidence_threshold_profile_id,
+                known_thresholds,
+            )
+            self.assertTrue(
+                set(profile.source_escalation_signal_ids).issubset(known_signals)
+            )
+            self.assertIn("cost_escalation_signal", profile.source_escalation_signal_ids)
+            self.assertIn(profile.cost_band, registry.cost_bands)
+            cost_low, cost_high = profile.advisory_cost_range
+            self.assertGreaterEqual(cost_low, 0)
+            self.assertGreaterEqual(cost_high, cost_low)
+            self.assertTrue(profile.cost_pressure_signal)
+            self.assertTrue(profile.routing_dimensions)
+            self.assertTrue(profile.advisory_outputs)
+            self.assertIn("cost_threshold_evaluation", profile.blocked_runtime_behaviors)
+            self.assertIn("cost_based_routing", profile.blocked_runtime_behaviors)
+            self.assertIn("budget_enforcement", profile.blocked_runtime_behaviors)
+            self.assertFalse(profile.threshold_evaluation_implemented)
+            self.assertFalse(profile.cost_based_routing_implemented)
+            self.assertFalse(profile.budget_enforcement_implemented)
+            self.assertFalse(profile.provider_model_routing_implemented)
+            self.assertFalse(profile.agent_invocation_implemented)
+            self.assertFalse(profile.workflow_control_implemented)
+            self.assertFalse(profile.retry_triggering_implemented)
+            self.assertFalse(profile.generated_output_mutation_implemented)
+            self.assertEqual(
+                profile.serialization_version,
+                "cost_threshold_routing_profile.v1",
+            )
+            self.assertTrue(profile.metadata_only)
+
+    def test_cost_threshold_source_registries_are_complete(self) -> None:
+        registry = cost_threshold_routing_registry()
+        profile_sources = tuple(
+            dict.fromkeys(
+                source
+                for profile in registry.cost_threshold_profiles
+                for source in profile.source_registries
+            )
+        )
+
+        self.assertEqual(profile_sources, registry.source_registries)
+        for source_registry in EXPECTED_COST_THRESHOLD_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, profile_sources)
+        for profile in registry.cost_threshold_profiles:
+            self.assertEqual(set(profile.source_registries), set(profile_sources))
+
+    def test_cost_threshold_lookup_is_stable(self) -> None:
+        profile = cost_threshold_routing_profile_by_id(
+            "cost_threshold_routing::style_aesthetic_alignment"
+        )
+        missing = cost_threshold_routing_profile_by_id("missing_cost_threshold")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.topic_id, "style_aesthetic_alignment")
+        self.assertEqual(profile.cost_band, "high")
+        self.assertEqual(profile.advisory_cost_range, (4, 7))
+        self.assertFalse(profile.cost_based_routing_implemented)
+
+    def test_cost_threshold_registry_rejects_mismatched_metadata(self) -> None:
+        registry = cost_threshold_routing_registry()
+        mismatched_profile = registry.cost_threshold_profiles[0].model_copy(
+            update={"cost_threshold_profile_id": "other_cost_threshold"}
+        )
+        invalid_range_profile = registry.cost_threshold_profiles[0].model_copy(
+            update={"advisory_cost_range": (5, 2)}
+        )
+        missing_signal_profile = registry.cost_threshold_profiles[0].model_copy(
+            update={"source_escalation_signal_ids": ("ambiguity_escalation_signal",)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "cost_threshold_profile_ids"):
+            CostThresholdRoutingRegistry(
+                cost_threshold_profiles=(
+                    mismatched_profile,
+                )
+                + registry.cost_threshold_profiles[1:],
+                cost_threshold_profile_ids=registry.cost_threshold_profile_ids,
+                topic_ids=registry.topic_ids,
+                cost_bands=registry.cost_bands,
+                source_registries=registry.source_registries,
+                budget_profile_ids=registry.budget_profile_ids,
+                confidence_threshold_profile_ids=(
+                    registry.confidence_threshold_profile_ids
+                ),
+                escalation_signal_ids=registry.escalation_signal_ids,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "cost threshold range"):
+            CostThresholdRoutingRegistry(
+                cost_threshold_profiles=(
+                    invalid_range_profile,
+                )
+                + registry.cost_threshold_profiles[1:],
+                cost_threshold_profile_ids=registry.cost_threshold_profile_ids,
+                topic_ids=registry.topic_ids,
+                cost_bands=registry.cost_bands,
+                source_registries=registry.source_registries,
+                budget_profile_ids=registry.budget_profile_ids,
+                confidence_threshold_profile_ids=(
+                    registry.confidence_threshold_profile_ids
+                ),
+                escalation_signal_ids=registry.escalation_signal_ids,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "cost_escalation_signal"):
+            CostThresholdRoutingRegistry(
+                cost_threshold_profiles=(
+                    missing_signal_profile,
+                )
+                + registry.cost_threshold_profiles[1:],
+                cost_threshold_profile_ids=registry.cost_threshold_profile_ids,
+                topic_ids=registry.topic_ids,
+                cost_bands=registry.cost_bands,
+                source_registries=registry.source_registries,
+                budget_profile_ids=registry.budget_profile_ids,
+                confidence_threshold_profile_ids=(
+                    registry.confidence_threshold_profile_ids
+                ),
+                escalation_signal_ids=registry.escalation_signal_ids,
+                profile_count=registry.profile_count,
+            )
+
+    def test_cost_threshold_does_not_declare_active_execution(self) -> None:
+        registry = cost_threshold_routing_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for profile in registry.cost_threshold_profiles
+                    for field in (
+                        profile.cost_threshold_profile_id,
+                        profile.authority_boundary,
+                        *profile.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "route_by_cost",
+            "evaluate_runtime_threshold",
+            "enforce_runtime_budget",
             "route_provider",
             "execute_agent",
             "modify_output",

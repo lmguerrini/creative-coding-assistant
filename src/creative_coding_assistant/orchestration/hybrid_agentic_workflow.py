@@ -67,6 +67,8 @@ HitlEscalationPosture = Literal["optional", "recommended", "required"]
 HitlEscalationGateTopic = ReturnToWorkflowHandoffTopic
 ConfidenceThresholdRoutingTopic = HitlEscalationGateTopic
 ConfidenceThresholdBand = Literal["critical", "low", "medium", "high"]
+CostThresholdRoutingTopic = ConfidenceThresholdRoutingTopic
+CostThresholdBand = Literal["guarded", "high", "low", "medium"]
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -154,6 +156,12 @@ CONFIDENCE_THRESHOLD_ROUTING_PROFILE_SERIALIZATION_VERSION = (
 )
 CONFIDENCE_THRESHOLD_ROUTING_REGISTRY_SERIALIZATION_VERSION = (
     "confidence_threshold_routing_registry.v1"
+)
+COST_THRESHOLD_ROUTING_PROFILE_SERIALIZATION_VERSION = (
+    "cost_threshold_routing_profile.v1"
+)
+COST_THRESHOLD_ROUTING_REGISTRY_SERIALIZATION_VERSION = (
+    "cost_threshold_routing_registry.v1"
 )
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
@@ -266,6 +274,13 @@ CONFIDENCE_THRESHOLD_ROUTING_AUTHORITY_BOUNDARY = (
     "Confidence threshold routing metadata describes passive advisory "
     "confidence bands for future hybrid routing visibility only; it does not "
     "route by confidence, change providers or models, invoke agents, evaluate "
+    "thresholds, control workflow transitions, trigger retries, or modify "
+    "generated output."
+)
+COST_THRESHOLD_ROUTING_AUTHORITY_BOUNDARY = (
+    "Cost threshold routing metadata describes passive advisory cost bands "
+    "for future hybrid routing visibility only; it does not route by cost, "
+    "enforce budgets, change providers or models, invoke agents, evaluate "
     "thresholds, control workflow transitions, trigger retries, or modify "
     "generated output."
 )
@@ -582,6 +597,25 @@ _CONFIDENCE_THRESHOLD_ROUTING_SOURCE_REGISTRIES = (
     "escalation_policy_registry",
     "hybrid_agentic_workflow_registry",
 )
+_COST_THRESHOLD_ROUTING_BLOCKED_RUNTIME_BEHAVIORS = (
+    "cost_threshold_evaluation",
+    "cost_based_routing",
+    "budget_enforcement",
+    "provider_or_model_routing",
+    "agent_invocation",
+    "workflow_control",
+    "retry_triggering",
+    "generated_output_modification",
+)
+_COST_THRESHOLD_ROUTING_SOURCE_REGISTRIES = (
+    "creative_exploration_budget_registry",
+    "confidence_threshold_routing_registry",
+    "creative_planning_engine",
+    "creative_constraints_engine",
+    "creative_tradeoff_engine",
+    "agent_escalation_signal_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -714,6 +748,18 @@ _CONFIDENCE_THRESHOLD_BANDS: tuple[ConfidenceThresholdBand, ...] = (
     "high",
     "low",
     "critical",
+)
+_COST_THRESHOLD_ROUTING_TOPICS: tuple[CostThresholdRoutingTopic, ...] = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
+)
+_COST_THRESHOLD_BANDS: tuple[CostThresholdBand, ...] = (
+    "medium",
+    "high",
+    "guarded",
+    "low",
 )
 _KNOWN_SPECIALIST_AGENT_IDS = (
     "planner_agent",
@@ -2979,6 +3025,171 @@ def confidence_threshold_routing_profile_by_id(
     return None
 
 
+class CostThresholdRoutingProfile(BaseModel):
+    """Passive V4.3 cost threshold routing profile metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    cost_threshold_profile_id: str = Field(min_length=1, max_length=170)
+    topic_id: CostThresholdRoutingTopic
+    source_budget_profile_id: str = Field(min_length=1, max_length=180)
+    source_confidence_threshold_profile_id: str = Field(
+        min_length=1,
+        max_length=180,
+    )
+    source_escalation_signal_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    cost_band: CostThresholdBand
+    advisory_cost_range: tuple[int, int]
+    cost_pressure_signal: str = Field(min_length=1, max_length=120)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    routing_dimensions: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_COST_THRESHOLD_ROUTING_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    threshold_evaluation_implemented: Literal[False] = False
+    cost_based_routing_implemented: Literal[False] = False
+    budget_enforcement_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["cost_threshold_routing_profile.v1"] = (
+        COST_THRESHOLD_ROUTING_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class CostThresholdRoutingRegistry(BaseModel):
+    """Stable passive registry for V4.3 cost threshold routing metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["cost_threshold_routing_registry"] = (
+        "cost_threshold_routing_registry"
+    )
+    serialization_version: Literal["cost_threshold_routing_registry.v1"] = (
+        COST_THRESHOLD_ROUTING_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=COST_THRESHOLD_ROUTING_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    cost_threshold_profiles: tuple[CostThresholdRoutingProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    cost_threshold_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    topic_ids: tuple[CostThresholdRoutingTopic, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    cost_bands: tuple[CostThresholdBand, ...] = Field(min_length=4, max_length=4)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    budget_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    confidence_threshold_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    escalation_signal_ids: tuple[str, ...] = Field(min_length=7, max_length=7)
+    profile_count: int = Field(ge=4, le=4)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_COST_THRESHOLD_ROUTING_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    threshold_evaluation_implemented: Literal[False] = False
+    cost_based_routing_implemented: Literal[False] = False
+    budget_enforcement_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_cost_threshold_metadata(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.cost_threshold_profile_id
+            for profile in self.cost_threshold_profiles
+        )
+        derived_topic_ids = tuple(
+            profile.topic_id for profile in self.cost_threshold_profiles
+        )
+        derived_bands = tuple(
+            profile.cost_band for profile in self.cost_threshold_profiles
+        )
+        if self.cost_threshold_profile_ids != derived_profile_ids:
+            raise ValueError("cost_threshold_profile_ids must match profiles")
+        if self.topic_ids != derived_topic_ids:
+            raise ValueError("topic_ids must match cost threshold profiles")
+        if self.topic_ids != _COST_THRESHOLD_ROUTING_TOPICS:
+            raise ValueError("topic_ids must preserve cost routing topic order")
+        if self.cost_bands != derived_bands:
+            raise ValueError("cost_bands must match profiles")
+        if self.cost_bands != _COST_THRESHOLD_BANDS:
+            raise ValueError("cost_bands must preserve cost band order")
+        if self.profile_count != len(self.cost_threshold_profiles):
+            raise ValueError("profile_count must match cost threshold profiles")
+
+        profile_sources = {
+            source_registry
+            for profile in self.cost_threshold_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match cost threshold sources")
+
+        known_budgets = set(self.budget_profile_ids)
+        known_thresholds = set(self.confidence_threshold_profile_ids)
+        known_signals = set(self.escalation_signal_ids)
+        for profile in self.cost_threshold_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("cost threshold sources must match registry")
+            if profile.source_budget_profile_id not in known_budgets:
+                raise ValueError("cost threshold budgets must be known metadata")
+            if profile.source_confidence_threshold_profile_id not in known_thresholds:
+                raise ValueError("cost threshold confidence profiles must be known")
+            if not set(profile.source_escalation_signal_ids).issubset(known_signals):
+                raise ValueError("cost threshold signals must be known")
+            if "cost_escalation_signal" not in profile.source_escalation_signal_ids:
+                raise ValueError("cost profiles must reference cost_escalation_signal")
+            low, high = profile.advisory_cost_range
+            if not 0 <= low <= high:
+                raise ValueError("cost threshold range must be non-negative")
+            if profile.threshold_evaluation_implemented:
+                raise ValueError("cost threshold routing must not evaluate")
+            if profile.cost_based_routing_implemented:
+                raise ValueError("cost threshold routing must not route")
+            if profile.budget_enforcement_implemented:
+                raise ValueError("cost threshold routing must not enforce budgets")
+        return self
+
+
+def cost_threshold_routing_registry() -> CostThresholdRoutingRegistry:
+    """Return passive V4.3 cost threshold routing metadata."""
+
+    return COST_THRESHOLD_ROUTING_REGISTRY
+
+
+def cost_threshold_routing_profile_by_id(
+    cost_threshold_profile_id: str,
+    registry: CostThresholdRoutingRegistry | None = None,
+) -> CostThresholdRoutingProfile | None:
+    """Return one cost threshold profile without routing by cost."""
+
+    source_registry = registry or COST_THRESHOLD_ROUTING_REGISTRY
+    for profile in source_registry.cost_threshold_profiles:
+        if profile.cost_threshold_profile_id == cost_threshold_profile_id:
+            return profile
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -3561,6 +3772,44 @@ def _confidence_threshold_routing_profile(
             "only; it does not route by confidence, change providers or models, "
             "invoke agents, evaluate thresholds, control workflow transitions, "
             "trigger retries, or modify generated output."
+        ),
+    )
+
+
+def _cost_threshold_routing_profile(
+    *,
+    cost_threshold_profile_id: str,
+    topic_id: CostThresholdRoutingTopic,
+    source_budget_profile_id: str,
+    source_confidence_threshold_profile_id: str,
+    source_escalation_signal_ids: tuple[str, ...],
+    cost_band: CostThresholdBand,
+    advisory_cost_range: tuple[int, int],
+    cost_pressure_signal: str,
+    advisory_outputs: tuple[str, ...],
+) -> CostThresholdRoutingProfile:
+    return CostThresholdRoutingProfile(
+        cost_threshold_profile_id=cost_threshold_profile_id,
+        topic_id=topic_id,
+        source_budget_profile_id=source_budget_profile_id,
+        source_confidence_threshold_profile_id=source_confidence_threshold_profile_id,
+        source_escalation_signal_ids=source_escalation_signal_ids,
+        cost_band=cost_band,
+        advisory_cost_range=advisory_cost_range,
+        cost_pressure_signal=cost_pressure_signal,
+        source_registries=_COST_THRESHOLD_ROUTING_SOURCE_REGISTRIES,
+        routing_dimensions=(
+            "cost_band",
+            "budget_posture_context",
+            "confidence_threshold_context",
+            "cost_escalation_signal_context",
+        ),
+        advisory_outputs=advisory_outputs,
+        authority_boundary=(
+            "This cost threshold routing profile is advisory metadata only; "
+            "it does not route by cost, enforce budgets, change providers or "
+            "models, invoke agents, evaluate thresholds, control workflow "
+            "transitions, trigger retries, or modify generated output."
         ),
     )
 
@@ -5128,6 +5377,108 @@ CONFIDENCE_THRESHOLD_ROUTING_REGISTRY = ConfidenceThresholdRoutingRegistry(
     confidence_fusion_profile_ids=AGENT_CONFIDENCE_FUSION_REGISTRY.fusion_profile_ids,
     escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
     profile_count=len(CONFIDENCE_THRESHOLD_ROUTING_PROFILES),
+)
+COST_THRESHOLD_ROUTING_PROFILES = (
+    _cost_threshold_routing_profile(
+        cost_threshold_profile_id="cost_threshold_routing::planning_execution_fit",
+        topic_id="planning_execution_fit",
+        source_budget_profile_id=(
+            "creative_exploration_budget::planning_execution_fit"
+        ),
+        source_confidence_threshold_profile_id=(
+            "confidence_threshold_routing::planning_execution_fit"
+        ),
+        source_escalation_signal_ids=(
+            "cost_escalation_signal",
+            "ambiguity_escalation_signal",
+        ),
+        cost_band="medium",
+        advisory_cost_range=(2, 4),
+        cost_pressure_signal="planning_token_budget_context",
+        advisory_outputs=(
+            "planning_cost_threshold_placeholder",
+            "planning_cost_routing_context",
+        ),
+    ),
+    _cost_threshold_routing_profile(
+        cost_threshold_profile_id="cost_threshold_routing::style_aesthetic_alignment",
+        topic_id="style_aesthetic_alignment",
+        source_budget_profile_id=(
+            "creative_exploration_budget::style_aesthetic_alignment"
+        ),
+        source_confidence_threshold_profile_id=(
+            "confidence_threshold_routing::style_aesthetic_alignment"
+        ),
+        source_escalation_signal_ids=(
+            "cost_escalation_signal",
+            "quality_escalation_signal",
+        ),
+        cost_band="high",
+        advisory_cost_range=(4, 7),
+        cost_pressure_signal="style_variant_budget_context",
+        advisory_outputs=(
+            "style_cost_threshold_placeholder",
+            "aesthetic_cost_routing_context",
+        ),
+    ),
+    _cost_threshold_routing_profile(
+        cost_threshold_profile_id="cost_threshold_routing::curation_refinement_need",
+        topic_id="curation_refinement_need",
+        source_budget_profile_id=(
+            "creative_exploration_budget::curation_refinement_need"
+        ),
+        source_confidence_threshold_profile_id=(
+            "confidence_threshold_routing::curation_refinement_need"
+        ),
+        source_escalation_signal_ids=(
+            "cost_escalation_signal",
+            "confidence_escalation_signal",
+            "quality_escalation_signal",
+        ),
+        cost_band="guarded",
+        advisory_cost_range=(3, 5),
+        cost_pressure_signal="refinement_budget_context",
+        advisory_outputs=(
+            "curation_cost_threshold_placeholder",
+            "refinement_cost_routing_context",
+        ),
+    ),
+    _cost_threshold_routing_profile(
+        cost_threshold_profile_id="cost_threshold_routing::final_synthesis_readiness",
+        topic_id="final_synthesis_readiness",
+        source_budget_profile_id=(
+            "creative_exploration_budget::final_synthesis_readiness"
+        ),
+        source_confidence_threshold_profile_id=(
+            "confidence_threshold_routing::final_synthesis_readiness"
+        ),
+        source_escalation_signal_ids=(
+            "cost_escalation_signal",
+            "hitl_escalation_signal",
+        ),
+        cost_band="low",
+        advisory_cost_range=(0, 2),
+        cost_pressure_signal="final_synthesis_budget_context",
+        advisory_outputs=(
+            "synthesis_cost_threshold_placeholder",
+            "final_cost_routing_context",
+        ),
+    ),
+)
+COST_THRESHOLD_ROUTING_REGISTRY = CostThresholdRoutingRegistry(
+    cost_threshold_profiles=COST_THRESHOLD_ROUTING_PROFILES,
+    cost_threshold_profile_ids=tuple(
+        profile.cost_threshold_profile_id for profile in COST_THRESHOLD_ROUTING_PROFILES
+    ),
+    topic_ids=tuple(profile.topic_id for profile in COST_THRESHOLD_ROUTING_PROFILES),
+    cost_bands=tuple(profile.cost_band for profile in COST_THRESHOLD_ROUTING_PROFILES),
+    source_registries=_COST_THRESHOLD_ROUTING_SOURCE_REGISTRIES,
+    budget_profile_ids=CREATIVE_EXPLORATION_BUDGET_REGISTRY.budget_profile_ids,
+    confidence_threshold_profile_ids=(
+        CONFIDENCE_THRESHOLD_ROUTING_REGISTRY.threshold_profile_ids
+    ),
+    escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
+    profile_count=len(COST_THRESHOLD_ROUTING_PROFILES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (
