@@ -779,11 +779,125 @@ ARTIFACT_AGENT_CONTRACT = AgentContract(
     ),
 )
 
+ART_DIRECTION_AGENT_CONTRACT = AgentContract(
+    agent_id="art_direction_agent",
+    agent_name="Art Direction Agent",
+    agent_version="v4.1",
+    role_id="art_direction",
+    role_name="Art Direction Agent",
+    role_purpose=(
+        "Represent composition, scene intent, visual coherence, and "
+        "generative design handoff metadata for future V4 orchestration."
+    ),
+    authority_boundary=(
+        "Art Direction Agent contract metadata maps existing creative "
+        "director, composition, scene, and generative design boundaries only; "
+        "it does not alter generated art direction, add autonomous direction "
+        "behavior, execute agents, route providers or models, select runtimes, "
+        "trigger retries, or modify generated output."
+    ),
+    allowed_actions=(
+        "describe_art_direction_context_requirements",
+        "map_composition_and_scene_metadata",
+        "declare_future_art_direction_handoff",
+    ),
+    prohibited_actions=(
+        "generated_art_direction_change",
+        "autonomous_direction_behavior",
+        "agent_invocation",
+        "provider_or_model_routing",
+        "runtime_selection",
+        "generated_output_modification",
+    ),
+    capabilities=(
+        "art_direction_context_mapping",
+        "visual_coherence_metadata",
+        "scene_intent_handoff_metadata_preparation",
+    ),
+    required_inputs=(
+        "assistant_request",
+        "creative_director_brief",
+        "creative_composition",
+    ),
+    optional_inputs=(
+        "procedural_structure",
+        "generative_structure",
+        "semantic_motif",
+        "emotional_consistency",
+        "audio_visual_scene",
+        "visual_style_guidance",
+        "agent_memory_contract",
+    ),
+    produced_outputs=(
+        "art_direction_context_packet_contract",
+        "visual_coherence_summary_contract",
+        "scene_intent_handoff_metadata_contract",
+    ),
+    produced_metadata=(
+        "composition_direction_metadata",
+        "scene_intent_metadata",
+        "generative_design_metadata",
+        "visual_coherence_metadata",
+        "direction_constraint_metadata",
+    ),
+    produced_signals=(
+        "direction_alignment",
+        "scene_coherence",
+        "composition_strength",
+        "visual_hierarchy_confidence",
+        "direction_ambiguity",
+    ),
+    memory_access=AgentMemoryAccessContract(
+        allowed_memory_sources=(
+            "session_metadata",
+            "artifact_metadata",
+            "provenance_metadata",
+            "future_blackboard_contract",
+        ),
+    ),
+    cacheability="deterministic_with_upstream_metadata",
+    estimated_cost_metadata=AgentContractCostMetadata(
+        relative_cost="low",
+        cost_basis=(
+            "Static metadata mapping from existing direction and generative "
+            "design outputs; no autonomous direction or provider calls."
+        ),
+        cache_sensitivity=(
+            "Cache key must include creative director, composition, and scene "
+            "metadata identifiers."
+        ),
+    ),
+    estimated_latency_metadata=AgentContractLatencyMetadata(
+        relative_latency="low",
+        latency_basis=(
+            "Bounded local metadata inspection with no network, provider, "
+            "autonomous direction, workflow, or artifact execution."
+        ),
+        blocking_inputs=(
+            "assistant_request",
+            "creative_director_brief",
+            "creative_composition",
+        ),
+    ),
+    future_orchestration_hooks=(
+        "v4_2_art_direction_context_handoff",
+        "v4_2_visual_coherence_review",
+    ),
+    source_contract_registries=(
+        "agent_identity_registry",
+        "agent_memory_contract_registry",
+        "creative_director_metadata",
+        "creative_composition_metadata",
+        "generative_design_metadata",
+    ),
+)
+
 AGENT_CONTRACTS: tuple[AgentContract, ...] = (
     PLANNER_AGENT_CONTRACT,
     RESEARCH_AGENT_CONTRACT,
     STYLE_AGENT_CONTRACT,
     RUNTIME_AGENT_CONTRACT,
     ARTIFACT_AGENT_CONTRACT,
+    ART_DIRECTION_AGENT_CONTRACT,
 )
 AGENT_CONTRACT_REGISTRY = build_agent_contract_registry(AGENT_CONTRACTS)
