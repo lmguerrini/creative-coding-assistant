@@ -74,6 +74,9 @@ _AGENT_CONSENSUS = "creative_coding_assistant.orchestration.agent_consensus"
 _AGENT_CAPABILITY_ALIGNMENT = (
     "creative_coding_assistant.orchestration.agent_capability_alignment"
 )
+_AGENT_ESCALATION_SIGNALS = (
+    "creative_coding_assistant.orchestration.agent_escalation_signals"
+)
 _AGENT_CAPABILITY_REGISTRY = (
     "creative_coding_assistant.orchestration.agent_capabilities"
 )
@@ -275,6 +278,10 @@ _EXPORT_MAP = {
     "AgentCapabilityAlignmentRegistry": _AGENT_CAPABILITY_ALIGNMENT,
     "agent_capability_alignment_by_agent_id": _AGENT_CAPABILITY_ALIGNMENT,
     "agent_capability_alignment_registry": _AGENT_CAPABILITY_ALIGNMENT,
+    "AgentEscalationSignal": _AGENT_ESCALATION_SIGNALS,
+    "AgentEscalationSignalRegistry": _AGENT_ESCALATION_SIGNALS,
+    "agent_escalation_signal_by_id": _AGENT_ESCALATION_SIGNALS,
+    "agent_escalation_signal_registry": _AGENT_ESCALATION_SIGNALS,
     "AgentCapabilityProfile": _AGENT_CAPABILITY_REGISTRY,
     "AgentCapabilityRegistry": _AGENT_CAPABILITY_REGISTRY,
     "agent_capability_by_id": _AGENT_CAPABILITY_REGISTRY,
