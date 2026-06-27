@@ -17,6 +17,11 @@ V42CapabilityId = Literal[
     "agent_coordination",
     "agent_debate",
     "consensus_builder",
+    "agent_escalation_signals",
+    "agent_lifecycle",
+    "agent_state_synchronization",
+    "workflow_agent_handoff",
+    "orchestration_contract_integration",
 ]
 
 CAPABILITY_ALIGNMENT_PROFILE_SERIALIZATION_VERSION = (
@@ -52,6 +57,30 @@ _BASE_CAPABILITIES: tuple[V42CapabilityId, ...] = (
     "agent_coordination",
 )
 
+_LATER_BASE_CAPABILITIES: tuple[V42CapabilityId, ...] = (
+    "agent_escalation_signals",
+    "agent_lifecycle",
+    "agent_state_synchronization",
+    "workflow_agent_handoff",
+    "orchestration_contract_integration",
+)
+
+_SOURCE_ORCHESTRATION_REGISTRIES = (
+    "agent_routing_registry",
+    "blackboard_memory_registry",
+    "shared_context_view_registry",
+    "agent_dependency_graph_registry",
+    "parallel_scheduling_registry",
+    "agent_coordination_registry",
+    "agent_debate_registry",
+    "consensus_builder_registry",
+    "agent_escalation_signal_registry",
+    "agent_lifecycle_registry",
+    "agent_state_synchronization_registry",
+    "workflow_agent_handoff_registry",
+    "orchestration_contract_integration_registry",
+)
+
 _DEBATE_AGENT_IDS = {
     "planner_agent",
     "runtime_agent",
@@ -81,9 +110,12 @@ class AgentCapabilityAlignmentProfile(BaseModel):
     agent_id: str = Field(min_length=1, max_length=80)
     role_id: str = Field(min_length=1, max_length=80)
     role_name: str = Field(min_length=1, max_length=140)
-    capability_ids: tuple[V42CapabilityId, ...] = Field(min_length=1, max_length=8)
+    capability_ids: tuple[V42CapabilityId, ...] = Field(min_length=1, max_length=13)
     source_role_registry: Literal["agent_role_registry"] = "agent_role_registry"
-    source_orchestration_registries: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_orchestration_registries: tuple[str, ...] = Field(
+        min_length=13,
+        max_length=13,
+    )
     alignment_boundary: str = Field(min_length=1, max_length=700)
     blocked_runtime_behaviors: tuple[str, ...] = Field(
         default=_BLOCKED_RUNTIME_BEHAVIORS,
@@ -120,9 +152,9 @@ class AgentCapabilityAlignmentRegistry(BaseModel):
     )
     agent_ids: tuple[str, ...] = Field(min_length=12, max_length=12)
     role_ids: tuple[str, ...] = Field(min_length=12, max_length=12)
-    capability_ids: tuple[V42CapabilityId, ...] = Field(min_length=8, max_length=8)
+    capability_ids: tuple[V42CapabilityId, ...] = Field(min_length=13, max_length=13)
     alignment_count: int = Field(ge=12, le=12)
-    source_registries: tuple[str, ...] = Field(min_length=3, max_length=8)
+    source_registries: tuple[str, ...] = Field(min_length=15, max_length=15)
     blocked_runtime_behaviors: tuple[str, ...] = Field(
         default=_BLOCKED_RUNTIME_BEHAVIORS,
         min_length=1,
@@ -143,11 +175,17 @@ class AgentCapabilityAlignmentRegistry(BaseModel):
             raise ValueError("role_ids must match alignments")
         if self.alignment_count != len(self.alignments):
             raise ValueError("alignment_count must match alignments")
-        base_capabilities = set(_BASE_CAPABILITIES)
+        base_capabilities = set(_BASE_CAPABILITIES + _LATER_BASE_CAPABILITIES)
         for alignment in self.alignments:
             if not base_capabilities.issubset(set(alignment.capability_ids)):
                 raise ValueError(
                     "capability_ids must include base orchestration capabilities"
+                )
+            if alignment.source_orchestration_registries != (
+                _SOURCE_ORCHESTRATION_REGISTRIES
+            ):
+                raise ValueError(
+                    "source_orchestration_registries must match V4.2 coverage"
                 )
         covered_capabilities = tuple(
             dict.fromkeys(
@@ -158,6 +196,12 @@ class AgentCapabilityAlignmentRegistry(BaseModel):
         )
         if self.capability_ids != covered_capabilities:
             raise ValueError("capability_ids must match alignment coverage")
+        if not set(_SOURCE_ORCHESTRATION_REGISTRIES).issubset(
+            set(self.source_registries)
+        ):
+            raise ValueError(
+                "source_registries must include V4.2 orchestration sources"
+            )
         return self
 
 
@@ -186,6 +230,7 @@ def _capabilities_for_agent(agent_id: str) -> tuple[V42CapabilityId, ...]:
         capabilities.append("agent_debate")
     if agent_id in _CONSENSUS_AGENT_IDS:
         capabilities.append("consensus_builder")
+    capabilities.extend(_LATER_BASE_CAPABILITIES)
     return tuple(capabilities)
 
 
@@ -196,16 +241,7 @@ def _alignment(agent_id: str) -> AgentCapabilityAlignmentProfile:
         role_id=role.role_id,
         role_name=role.role_name,
         capability_ids=_capabilities_for_agent(agent_id),
-        source_orchestration_registries=(
-            "agent_routing_registry",
-            "blackboard_memory_registry",
-            "shared_context_view_registry",
-            "agent_dependency_graph_registry",
-            "parallel_scheduling_registry",
-            "agent_coordination_registry",
-            "agent_debate_registry",
-            "consensus_builder_registry",
-        ),
+        source_orchestration_registries=_SOURCE_ORCHESTRATION_REGISTRIES,
         alignment_boundary=(
             "Capability alignment is export-only metadata; it does not "
             "activate capabilities, route runtime work, change prompts, "
@@ -232,6 +268,6 @@ AGENT_CAPABILITY_ALIGNMENT_REGISTRY = AgentCapabilityAlignmentRegistry(
     source_registries=(
         "agent_role_registry",
         "agent_capability_registry",
-        "v4_2_orchestration_metadata_registries",
+        *_SOURCE_ORCHESTRATION_REGISTRIES,
     ),
 )

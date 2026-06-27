@@ -51,7 +51,8 @@ STATE_SYNC_REGISTRY_SERIALIZATION_VERSION = "agent_state_sync_registry.v1"
 STATE_SYNC_REGISTRY_AUTHORITY_BOUNDARY = (
     "Agent state synchronization metadata describes sync checkpoints, "
     "consistency constraints, stale-state warnings, and conflict surfaces "
-    "between passive lifecycle profiles and shared context views only; it "
+    "between passive lifecycle profiles, shared context views, blackboard "
+    "visibility, dependency order, and escalation-signal references only; it "
     "does not synchronize runtime state, mutate blackboard state, persist "
     "storage changes, resolve conflicts, invoke agents, control workflows, "
     "route providers or models, or modify generated output."
@@ -195,6 +196,14 @@ _CONFLICT_SURFACE_SPECS: tuple[
         "stale_warning",
         ("agent_state_synchronization_registry", "agent_escalation_signal_registry"),
     ),
+)
+
+_STATE_SYNC_SOURCE_REGISTRIES = tuple(
+    dict.fromkeys(
+        source_registry
+        for _surface_id, _category, source_registries in _CONFLICT_SURFACE_SPECS
+        for source_registry in source_registries
+    )
 )
 
 
@@ -368,7 +377,7 @@ class AgentStateSynchronizationRegistry(BaseModel):
     stale_warning_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
     conflict_surface_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
     profile_count: int = Field(ge=12, le=12)
-    source_registries: tuple[str, ...] = Field(min_length=3, max_length=5)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
     blocked_runtime_behaviors: tuple[str, ...] = Field(
         default=_BLOCKED_RUNTIME_BEHAVIORS,
         min_length=1,
@@ -420,6 +429,16 @@ class AgentStateSynchronizationRegistry(BaseModel):
                 constraint_ids
             ):
                 raise ValueError("checkpoint constraints must be known constraints")
+        if self.source_registries != _STATE_SYNC_SOURCE_REGISTRIES:
+            raise ValueError(
+                "source_registries must match conflict surface sources"
+            )
+        source_registries = set(self.source_registries)
+        for surface in self.conflict_surfaces:
+            if not set(surface.source_registry_ids).issubset(source_registries):
+                raise ValueError(
+                    "conflict surface sources must be represented"
+                )
         for profile in self.profiles:
             if not set(profile.sync_checkpoint_ids).issubset(checkpoint_ids):
                 raise ValueError("profile checkpoints must be known checkpoints")
@@ -615,9 +634,5 @@ AGENT_STATE_SYNCHRONIZATION_REGISTRY = AgentStateSynchronizationRegistry(
     stale_warning_ids=_STALE_WARNING_IDS,
     conflict_surface_ids=_CONFLICT_SURFACE_IDS,
     profile_count=len(AGENT_STATE_SYNC_PROFILES),
-    source_registries=(
-        "agent_lifecycle_registry",
-        "shared_context_view_registry",
-        "blackboard_memory_registry",
-    ),
+    source_registries=_STATE_SYNC_SOURCE_REGISTRIES,
 )

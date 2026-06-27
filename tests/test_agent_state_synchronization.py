@@ -72,6 +72,15 @@ REQUIRED_CONFLICT_SURFACE_FIELDS = {
     "metadata_only",
 }
 
+EXPECTED_SOURCE_REGISTRIES = (
+    "agent_lifecycle_registry",
+    "shared_context_view_registry",
+    "blackboard_memory_registry",
+    "agent_dependency_graph_registry",
+    "agent_state_synchronization_registry",
+    "agent_escalation_signal_registry",
+)
+
 
 class AgentStateSynchronizationTests(unittest.TestCase):
     def test_registry_maps_lifecycle_profiles_to_context_views(self) -> None:
@@ -90,11 +99,7 @@ class AgentStateSynchronizationTests(unittest.TestCase):
         self.assertEqual(len(registry.conflict_surfaces), 4)
         self.assertEqual(
             registry.source_registries,
-            (
-                "agent_lifecycle_registry",
-                "shared_context_view_registry",
-                "blackboard_memory_registry",
-            ),
+            EXPECTED_SOURCE_REGISTRIES,
         )
         self.assertIn("does not synchronize runtime state", registry.authority_boundary)
         self.assertFalse(registry.runtime_synchronization_implemented)
@@ -155,6 +160,9 @@ class AgentStateSynchronizationTests(unittest.TestCase):
         for surface in registry.conflict_surfaces:
             dumped = surface.model_dump(mode="json")
             self.assertEqual(set(dumped), REQUIRED_CONFLICT_SURFACE_FIELDS)
+            self.assertTrue(
+                set(surface.source_registry_ids).issubset(registry.source_registries)
+            )
             self.assertFalse(surface.conflict_detection_implemented)
             self.assertFalse(surface.conflict_resolution_implemented)
             self.assertFalse(surface.blackboard_mutation_implemented)
@@ -192,6 +200,9 @@ class AgentStateSynchronizationTests(unittest.TestCase):
         unknown_constraint_checkpoint = registry.checkpoints[0].model_copy(
             update={"consistency_constraint_ids": ("missing_constraint",)}
         )
+        missing_source_registries = (
+            registry.source_registries[:-1] + ("missing_registry",)
+        )
 
         with self.assertRaisesRegex(ValueError, "profile checkpoints must be known"):
             AgentStateSynchronizationRegistry(
@@ -225,6 +236,26 @@ class AgentStateSynchronizationTests(unittest.TestCase):
                 conflict_surface_ids=registry.conflict_surface_ids,
                 profile_count=registry.profile_count,
                 source_registries=registry.source_registries,
+            )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "source_registries must match conflict surface sources",
+        ):
+            AgentStateSynchronizationRegistry(
+                profiles=registry.profiles,
+                checkpoints=registry.checkpoints,
+                constraints=registry.constraints,
+                stale_warnings=registry.stale_warnings,
+                conflict_surfaces=registry.conflict_surfaces,
+                agent_ids=registry.agent_ids,
+                profile_ids=registry.profile_ids,
+                checkpoint_ids=registry.checkpoint_ids,
+                constraint_ids=registry.constraint_ids,
+                stale_warning_ids=registry.stale_warning_ids,
+                conflict_surface_ids=registry.conflict_surface_ids,
+                profile_count=registry.profile_count,
+                source_registries=missing_source_registries,
             )
 
     def test_state_sync_does_not_mutate_context_or_storage_metadata(self) -> None:

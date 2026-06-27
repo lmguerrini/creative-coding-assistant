@@ -32,6 +32,27 @@ EXPECTED_CAPABILITIES = (
     "agent_coordination",
     "agent_debate",
     "consensus_builder",
+    "agent_escalation_signals",
+    "agent_lifecycle",
+    "agent_state_synchronization",
+    "workflow_agent_handoff",
+    "orchestration_contract_integration",
+)
+
+EXPECTED_SOURCE_ORCHESTRATION_REGISTRIES = (
+    "agent_routing_registry",
+    "blackboard_memory_registry",
+    "shared_context_view_registry",
+    "agent_dependency_graph_registry",
+    "parallel_scheduling_registry",
+    "agent_coordination_registry",
+    "agent_debate_registry",
+    "consensus_builder_registry",
+    "agent_escalation_signal_registry",
+    "agent_lifecycle_registry",
+    "agent_state_synchronization_registry",
+    "workflow_agent_handoff_registry",
+    "orchestration_contract_integration_registry",
 )
 
 
@@ -49,6 +70,14 @@ class AgentCapabilityAlignmentTests(unittest.TestCase):
         self.assertEqual(alignment.role_ids, roles.role_ids)
         self.assertEqual(alignment.alignment_count, 12)
         self.assertEqual(alignment.capability_ids, EXPECTED_CAPABILITIES)
+        self.assertEqual(
+            alignment.source_registries,
+            (
+                "agent_role_registry",
+                "agent_capability_registry",
+                *EXPECTED_SOURCE_ORCHESTRATION_REGISTRIES,
+            ),
+        )
         self.assertIn("does not activate capabilities", alignment.authority_boundary)
         self.assertFalse(alignment.capabilities_activated)
         self.assertFalse(alignment.runtime_work_routing_implemented)
@@ -67,7 +96,15 @@ class AgentCapabilityAlignmentTests(unittest.TestCase):
             )
             self.assertIn("dynamic_agent_routing", profile.capability_ids)
             self.assertIn("blackboard_memory", profile.capability_ids)
-            self.assertIn("agent_routing_registry", profile.source_orchestration_registries)
+            self.assertIn("agent_escalation_signals", profile.capability_ids)
+            self.assertIn("agent_lifecycle", profile.capability_ids)
+            self.assertIn("agent_state_synchronization", profile.capability_ids)
+            self.assertIn("workflow_agent_handoff", profile.capability_ids)
+            self.assertIn("orchestration_contract_integration", profile.capability_ids)
+            self.assertEqual(
+                profile.source_orchestration_registries,
+                EXPECTED_SOURCE_ORCHESTRATION_REGISTRIES,
+            )
             self.assertIn("capability_activation", profile.blocked_runtime_behaviors)
             self.assertFalse(profile.capabilities_activated)
             self.assertFalse(profile.runtime_work_routing_implemented)
@@ -83,6 +120,9 @@ class AgentCapabilityAlignmentTests(unittest.TestCase):
         self.assertIsNotNone(research)
         assert planner is not None
         assert research is not None
+        self.assertIn("agent_lifecycle", research.capability_ids)
+        self.assertIn("agent_state_synchronization", research.capability_ids)
+        self.assertIn("workflow_agent_handoff", research.capability_ids)
         self.assertIn("consensus_builder", planner.capability_ids)
         self.assertIn("agent_debate", planner.capability_ids)
         self.assertNotIn("consensus_builder", research.capability_ids)
@@ -93,6 +133,17 @@ class AgentCapabilityAlignmentTests(unittest.TestCase):
         incomplete = registry.alignments[0].model_copy(
             update={"capability_ids": ("dynamic_agent_routing",)}
         )
+        missing_profile_source = registry.alignments[0].model_copy(
+            update={
+                "source_orchestration_registries": (
+                    EXPECTED_SOURCE_ORCHESTRATION_REGISTRIES[:-1]
+                    + ("missing_registry",)
+                )
+            }
+        )
+        missing_registry_source = (
+            registry.source_registries[:-1] + ("missing_registry",)
+        )
 
         with self.assertRaisesRegex(ValueError, "base orchestration capabilities"):
             AgentCapabilityAlignmentRegistry(
@@ -102,6 +153,32 @@ class AgentCapabilityAlignmentTests(unittest.TestCase):
                 capability_ids=registry.capability_ids,
                 alignment_count=registry.alignment_count,
                 source_registries=registry.source_registries,
+            )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "source_orchestration_registries must match",
+        ):
+            AgentCapabilityAlignmentRegistry(
+                alignments=(missing_profile_source,) + registry.alignments[1:],
+                agent_ids=registry.agent_ids,
+                role_ids=registry.role_ids,
+                capability_ids=registry.capability_ids,
+                alignment_count=registry.alignment_count,
+                source_registries=registry.source_registries,
+            )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "source_registries must include V4.2 orchestration sources",
+        ):
+            AgentCapabilityAlignmentRegistry(
+                alignments=registry.alignments,
+                agent_ids=registry.agent_ids,
+                role_ids=registry.role_ids,
+                capability_ids=registry.capability_ids,
+                alignment_count=registry.alignment_count,
+                source_registries=missing_registry_source,
             )
 
         with self.assertRaisesRegex(ValueError, "agent_ids must match"):
