@@ -3,6 +3,7 @@ import unittest
 from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
     AgentConfidenceFusionRegistry,
+    ConfidenceThresholdRoutingRegistry,
     ConditionalMultiAgentEscalationRegistry,
     CreativeExplorationBudgetRegistry,
     CreativeEscalationPolicyRegistry,
@@ -21,6 +22,8 @@ from creative_coding_assistant.orchestration import (
     agent_capability_registry,
     agent_confidence_fusion_profile_by_id,
     agent_confidence_fusion_registry,
+    confidence_threshold_routing_profile_by_id,
+    confidence_threshold_routing_registry,
     agent_escalation_signal_registry,
     conditional_multi_agent_escalation_condition_by_id,
     conditional_multi_agent_escalation_registry,
@@ -671,6 +674,49 @@ REQUIRED_HITL_ESCALATION_GATE_FIELDS = {
     "human_review_request_implemented",
     "gate_evaluation_implemented",
     "escalation_approval_implemented",
+    "agent_invocation_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_CONFIDENCE_THRESHOLD_PROFILE_IDS = (
+    "confidence_threshold_routing::planning_execution_fit",
+    "confidence_threshold_routing::style_aesthetic_alignment",
+    "confidence_threshold_routing::curation_refinement_need",
+    "confidence_threshold_routing::final_synthesis_readiness",
+)
+EXPECTED_CONFIDENCE_THRESHOLD_BANDS = (
+    "medium",
+    "high",
+    "low",
+    "critical",
+)
+EXPECTED_CONFIDENCE_THRESHOLD_SOURCE_REGISTRIES = (
+    "hitl_escalation_gate_registry",
+    "agent_confidence_fusion_registry",
+    "creative_confidence_engine",
+    "agent_escalation_signal_registry",
+    "escalation_policy_registry",
+    "hybrid_agentic_workflow_registry",
+)
+REQUIRED_CONFIDENCE_THRESHOLD_FIELDS = {
+    "threshold_profile_id",
+    "topic_id",
+    "source_hitl_gate_profile_id",
+    "source_confidence_fusion_profile_id",
+    "source_escalation_signal_ids",
+    "confidence_band",
+    "advisory_threshold_range",
+    "source_registries",
+    "routing_dimensions",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "threshold_evaluation_implemented",
+    "confidence_based_routing_implemented",
+    "provider_model_routing_implemented",
     "agent_invocation_implemented",
     "workflow_control_implemented",
     "retry_triggering_implemented",
@@ -3179,6 +3225,191 @@ class HitlEscalationGateRegistryTests(unittest.TestCase):
             "trigger_human_review",
             "request_human_input",
             "approve_escalation",
+            "execute_agent",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class ConfidenceThresholdRoutingRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_confidence_threshold_profiles(self) -> None:
+        registry = confidence_threshold_routing_registry()
+
+        self.assertEqual(registry.role, "confidence_threshold_routing_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "confidence_threshold_routing_registry.v1",
+        )
+        self.assertEqual(
+            registry.threshold_profile_ids,
+            EXPECTED_CONFIDENCE_THRESHOLD_PROFILE_IDS,
+        )
+        self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
+        self.assertEqual(registry.confidence_bands, EXPECTED_CONFIDENCE_THRESHOLD_BANDS)
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_CONFIDENCE_THRESHOLD_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(
+            registry.hitl_gate_profile_ids,
+            hitl_escalation_gate_registry().hitl_gate_profile_ids,
+        )
+        self.assertEqual(
+            registry.confidence_fusion_profile_ids,
+            agent_confidence_fusion_registry().fusion_profile_ids,
+        )
+        self.assertEqual(
+            registry.escalation_signal_ids,
+            agent_escalation_signal_registry().signal_ids,
+        )
+        self.assertEqual(registry.profile_count, 4)
+        self.assertIn("does not route by confidence", registry.authority_boundary)
+        self.assertFalse(registry.threshold_evaluation_implemented)
+        self.assertFalse(registry.confidence_based_routing_implemented)
+        self.assertFalse(registry.provider_model_routing_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_confidence_threshold_profiles_reference_known_sources(self) -> None:
+        registry = confidence_threshold_routing_registry()
+        known_hitl = set(hitl_escalation_gate_registry().hitl_gate_profile_ids)
+        known_fusion = set(agent_confidence_fusion_registry().fusion_profile_ids)
+        known_signals = set(agent_escalation_signal_registry().signal_ids)
+
+        for profile in registry.threshold_profiles:
+            dumped = profile.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_CONFIDENCE_THRESHOLD_FIELDS)
+            self.assertEqual(
+                profile.source_registries,
+                EXPECTED_CONFIDENCE_THRESHOLD_SOURCE_REGISTRIES,
+            )
+            self.assertIn(profile.source_hitl_gate_profile_id, known_hitl)
+            self.assertIn(profile.source_confidence_fusion_profile_id, known_fusion)
+            self.assertTrue(
+                set(profile.source_escalation_signal_ids).issubset(known_signals)
+            )
+            self.assertIn("confidence_escalation_signal", profile.source_escalation_signal_ids)
+            self.assertIn(profile.confidence_band, registry.confidence_bands)
+            threshold_low, threshold_high = profile.advisory_threshold_range
+            self.assertGreaterEqual(threshold_low, 0)
+            self.assertLessEqual(threshold_high, 1)
+            self.assertLessEqual(threshold_low, threshold_high)
+            self.assertTrue(profile.routing_dimensions)
+            self.assertTrue(profile.advisory_outputs)
+            self.assertIn(
+                "confidence_threshold_evaluation",
+                profile.blocked_runtime_behaviors,
+            )
+            self.assertIn("confidence_based_routing", profile.blocked_runtime_behaviors)
+            self.assertFalse(profile.threshold_evaluation_implemented)
+            self.assertFalse(profile.confidence_based_routing_implemented)
+            self.assertFalse(profile.provider_model_routing_implemented)
+            self.assertFalse(profile.agent_invocation_implemented)
+            self.assertFalse(profile.workflow_control_implemented)
+            self.assertFalse(profile.retry_triggering_implemented)
+            self.assertFalse(profile.generated_output_mutation_implemented)
+            self.assertEqual(
+                profile.serialization_version,
+                "confidence_threshold_routing_profile.v1",
+            )
+            self.assertTrue(profile.metadata_only)
+
+    def test_confidence_threshold_source_registries_are_complete(self) -> None:
+        registry = confidence_threshold_routing_registry()
+        profile_sources = tuple(
+            dict.fromkeys(
+                source
+                for profile in registry.threshold_profiles
+                for source in profile.source_registries
+            )
+        )
+
+        self.assertEqual(profile_sources, registry.source_registries)
+        for source_registry in EXPECTED_CONFIDENCE_THRESHOLD_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, profile_sources)
+        for profile in registry.threshold_profiles:
+            self.assertEqual(set(profile.source_registries), set(profile_sources))
+
+    def test_confidence_threshold_lookup_is_stable(self) -> None:
+        profile = confidence_threshold_routing_profile_by_id(
+            "confidence_threshold_routing::curation_refinement_need"
+        )
+        missing = confidence_threshold_routing_profile_by_id("missing_threshold")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.topic_id, "curation_refinement_need")
+        self.assertEqual(profile.confidence_band, "low")
+        self.assertEqual(profile.advisory_threshold_range, (0.35, 0.55))
+        self.assertFalse(profile.confidence_based_routing_implemented)
+
+    def test_confidence_threshold_registry_rejects_mismatched_metadata(self) -> None:
+        registry = confidence_threshold_routing_registry()
+        mismatched_profile = registry.threshold_profiles[0].model_copy(
+            update={"threshold_profile_id": "other_threshold"}
+        )
+        invalid_range_profile = registry.threshold_profiles[0].model_copy(
+            update={"advisory_threshold_range": (0.8, 0.2)}
+        )
+
+        with self.assertRaisesRegex(ValueError, "threshold_profile_ids"):
+            ConfidenceThresholdRoutingRegistry(
+                threshold_profiles=(
+                    mismatched_profile,
+                )
+                + registry.threshold_profiles[1:],
+                threshold_profile_ids=registry.threshold_profile_ids,
+                topic_ids=registry.topic_ids,
+                confidence_bands=registry.confidence_bands,
+                source_registries=registry.source_registries,
+                hitl_gate_profile_ids=registry.hitl_gate_profile_ids,
+                confidence_fusion_profile_ids=registry.confidence_fusion_profile_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "threshold range"):
+            ConfidenceThresholdRoutingRegistry(
+                threshold_profiles=(
+                    invalid_range_profile,
+                )
+                + registry.threshold_profiles[1:],
+                threshold_profile_ids=registry.threshold_profile_ids,
+                topic_ids=registry.topic_ids,
+                confidence_bands=registry.confidence_bands,
+                source_registries=registry.source_registries,
+                hitl_gate_profile_ids=registry.hitl_gate_profile_ids,
+                confidence_fusion_profile_ids=registry.confidence_fusion_profile_ids,
+                escalation_signal_ids=registry.escalation_signal_ids,
+                profile_count=registry.profile_count,
+            )
+
+    def test_confidence_threshold_does_not_declare_active_execution(self) -> None:
+        registry = confidence_threshold_routing_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for profile in registry.threshold_profiles
+                    for field in (
+                        profile.threshold_profile_id,
+                        profile.authority_boundary,
+                        *profile.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "route_by_confidence",
+            "evaluate_runtime_threshold",
+            "route_provider",
             "execute_agent",
             "modify_output",
         ):

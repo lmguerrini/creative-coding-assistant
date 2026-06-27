@@ -65,6 +65,8 @@ ReturnToWorkflowHandoffTopic = ResultNormalizationTopic
 ReturnToWorkflowSurface = Literal["planning", "artifact", "evaluation", "finalization"]
 HitlEscalationPosture = Literal["optional", "recommended", "required"]
 HitlEscalationGateTopic = ReturnToWorkflowHandoffTopic
+ConfidenceThresholdRoutingTopic = HitlEscalationGateTopic
+ConfidenceThresholdBand = Literal["critical", "low", "medium", "high"]
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -146,6 +148,12 @@ HITL_ESCALATION_GATE_PROFILE_SERIALIZATION_VERSION = (
 )
 HITL_ESCALATION_GATE_REGISTRY_SERIALIZATION_VERSION = (
     "hitl_escalation_gate_registry.v1"
+)
+CONFIDENCE_THRESHOLD_ROUTING_PROFILE_SERIALIZATION_VERSION = (
+    "confidence_threshold_routing_profile.v1"
+)
+CONFIDENCE_THRESHOLD_ROUTING_REGISTRY_SERIALIZATION_VERSION = (
+    "confidence_threshold_routing_registry.v1"
 )
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
@@ -252,6 +260,13 @@ HITL_ESCALATION_GATE_AUTHORITY_BOUNDARY = (
     "posture for future hybrid escalation only; it does not trigger human "
     "review, request human input, evaluate gates, approve escalation, invoke "
     "agents, control workflow transitions, trigger retries, or modify "
+    "generated output."
+)
+CONFIDENCE_THRESHOLD_ROUTING_AUTHORITY_BOUNDARY = (
+    "Confidence threshold routing metadata describes passive advisory "
+    "confidence bands for future hybrid routing visibility only; it does not "
+    "route by confidence, change providers or models, invoke agents, evaluate "
+    "thresholds, control workflow transitions, trigger retries, or modify "
     "generated output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
@@ -550,6 +565,23 @@ _HITL_ESCALATION_GATE_SOURCE_REGISTRIES = (
     "reflection_escalation_registry",
     "hybrid_agentic_workflow_registry",
 )
+_CONFIDENCE_THRESHOLD_ROUTING_BLOCKED_RUNTIME_BEHAVIORS = (
+    "confidence_threshold_evaluation",
+    "confidence_based_routing",
+    "provider_or_model_routing",
+    "agent_invocation",
+    "workflow_control",
+    "retry_triggering",
+    "generated_output_modification",
+)
+_CONFIDENCE_THRESHOLD_ROUTING_SOURCE_REGISTRIES = (
+    "hitl_escalation_gate_registry",
+    "agent_confidence_fusion_registry",
+    "creative_confidence_engine",
+    "agent_escalation_signal_registry",
+    "escalation_policy_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -668,6 +700,20 @@ _HITL_ESCALATION_POSTURES: tuple[HitlEscalationPosture, ...] = (
     "optional",
     "recommended",
     "required",
+)
+_CONFIDENCE_THRESHOLD_ROUTING_TOPICS: tuple[
+    ConfidenceThresholdRoutingTopic, ...
+] = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
+)
+_CONFIDENCE_THRESHOLD_BANDS: tuple[ConfidenceThresholdBand, ...] = (
+    "medium",
+    "high",
+    "low",
+    "critical",
 )
 _KNOWN_SPECIALIST_AGENT_IDS = (
     "planner_agent",
@@ -2781,6 +2827,158 @@ def hitl_escalation_gate_profile_by_id(
     return None
 
 
+class ConfidenceThresholdRoutingProfile(BaseModel):
+    """Passive V4.3 confidence threshold routing profile metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    threshold_profile_id: str = Field(min_length=1, max_length=170)
+    topic_id: ConfidenceThresholdRoutingTopic
+    source_hitl_gate_profile_id: str = Field(min_length=1, max_length=180)
+    source_confidence_fusion_profile_id: str = Field(min_length=1, max_length=180)
+    source_escalation_signal_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    confidence_band: ConfidenceThresholdBand
+    advisory_threshold_range: tuple[float, float]
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    routing_dimensions: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_CONFIDENCE_THRESHOLD_ROUTING_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    threshold_evaluation_implemented: Literal[False] = False
+    confidence_based_routing_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["confidence_threshold_routing_profile.v1"] = (
+        CONFIDENCE_THRESHOLD_ROUTING_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class ConfidenceThresholdRoutingRegistry(BaseModel):
+    """Stable passive registry for V4.3 confidence threshold routing metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["confidence_threshold_routing_registry"] = (
+        "confidence_threshold_routing_registry"
+    )
+    serialization_version: Literal["confidence_threshold_routing_registry.v1"] = (
+        CONFIDENCE_THRESHOLD_ROUTING_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=CONFIDENCE_THRESHOLD_ROUTING_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    threshold_profiles: tuple[ConfidenceThresholdRoutingProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    threshold_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    topic_ids: tuple[ConfidenceThresholdRoutingTopic, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    confidence_bands: tuple[ConfidenceThresholdBand, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    hitl_gate_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    confidence_fusion_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    escalation_signal_ids: tuple[str, ...] = Field(min_length=7, max_length=7)
+    profile_count: int = Field(ge=4, le=4)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_CONFIDENCE_THRESHOLD_ROUTING_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    threshold_evaluation_implemented: Literal[False] = False
+    confidence_based_routing_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_confidence_threshold_metadata(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.threshold_profile_id for profile in self.threshold_profiles
+        )
+        derived_topic_ids = tuple(
+            profile.topic_id for profile in self.threshold_profiles
+        )
+        derived_bands = tuple(
+            profile.confidence_band for profile in self.threshold_profiles
+        )
+        if self.threshold_profile_ids != derived_profile_ids:
+            raise ValueError("threshold_profile_ids must match profiles")
+        if self.topic_ids != derived_topic_ids:
+            raise ValueError("topic_ids must match confidence threshold profiles")
+        if self.topic_ids != _CONFIDENCE_THRESHOLD_ROUTING_TOPICS:
+            raise ValueError("topic_ids must preserve confidence routing topic order")
+        if self.confidence_bands != derived_bands:
+            raise ValueError("confidence_bands must match profiles")
+        if self.confidence_bands != _CONFIDENCE_THRESHOLD_BANDS:
+            raise ValueError("confidence_bands must preserve threshold band order")
+        if self.profile_count != len(self.threshold_profiles):
+            raise ValueError("profile_count must match confidence threshold profiles")
+
+        profile_sources = {
+            source_registry
+            for profile in self.threshold_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match confidence threshold sources")
+
+        known_hitl = set(self.hitl_gate_profile_ids)
+        known_fusion = set(self.confidence_fusion_profile_ids)
+        known_signals = set(self.escalation_signal_ids)
+        for profile in self.threshold_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("confidence threshold sources must match registry")
+            if profile.source_hitl_gate_profile_id not in known_hitl:
+                raise ValueError("confidence threshold HITL gates must be known")
+            if profile.source_confidence_fusion_profile_id not in known_fusion:
+                raise ValueError("confidence threshold fusion profiles must be known")
+            if not set(profile.source_escalation_signal_ids).issubset(known_signals):
+                raise ValueError("confidence threshold signals must be known")
+            low, high = profile.advisory_threshold_range
+            if not 0 <= low <= high <= 1:
+                raise ValueError("confidence threshold range must be within 0..1")
+            if profile.threshold_evaluation_implemented:
+                raise ValueError("confidence threshold routing must not evaluate")
+        return self
+
+
+def confidence_threshold_routing_registry() -> ConfidenceThresholdRoutingRegistry:
+    """Return passive V4.3 confidence threshold routing metadata."""
+
+    return CONFIDENCE_THRESHOLD_ROUTING_REGISTRY
+
+
+def confidence_threshold_routing_profile_by_id(
+    threshold_profile_id: str,
+    registry: ConfidenceThresholdRoutingRegistry | None = None,
+) -> ConfidenceThresholdRoutingProfile | None:
+    """Return one confidence threshold profile without routing."""
+
+    source_registry = registry or CONFIDENCE_THRESHOLD_ROUTING_REGISTRY
+    for profile in source_registry.threshold_profiles:
+        if profile.threshold_profile_id == threshold_profile_id:
+            return profile
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -3327,6 +3525,42 @@ def _hitl_escalation_gate_profile(
             "does not trigger human review, request human input, evaluate "
             "gates, approve escalation, invoke agents, control workflow "
             "transitions, trigger retries, or modify generated output."
+        ),
+    )
+
+
+def _confidence_threshold_routing_profile(
+    *,
+    threshold_profile_id: str,
+    topic_id: ConfidenceThresholdRoutingTopic,
+    source_hitl_gate_profile_id: str,
+    source_confidence_fusion_profile_id: str,
+    source_escalation_signal_ids: tuple[str, ...],
+    confidence_band: ConfidenceThresholdBand,
+    advisory_threshold_range: tuple[float, float],
+    advisory_outputs: tuple[str, ...],
+) -> ConfidenceThresholdRoutingProfile:
+    return ConfidenceThresholdRoutingProfile(
+        threshold_profile_id=threshold_profile_id,
+        topic_id=topic_id,
+        source_hitl_gate_profile_id=source_hitl_gate_profile_id,
+        source_confidence_fusion_profile_id=source_confidence_fusion_profile_id,
+        source_escalation_signal_ids=source_escalation_signal_ids,
+        confidence_band=confidence_band,
+        advisory_threshold_range=advisory_threshold_range,
+        source_registries=_CONFIDENCE_THRESHOLD_ROUTING_SOURCE_REGISTRIES,
+        routing_dimensions=(
+            "confidence_band",
+            "uncertainty_visibility",
+            "hitl_gate_posture",
+            "escalation_signal_context",
+        ),
+        advisory_outputs=advisory_outputs,
+        authority_boundary=(
+            "This confidence threshold routing profile is advisory metadata "
+            "only; it does not route by confidence, change providers or models, "
+            "invoke agents, evaluate thresholds, control workflow transitions, "
+            "trigger retries, or modify generated output."
         ),
     )
 
@@ -4801,6 +5035,99 @@ HITL_ESCALATION_GATE_REGISTRY = HitlEscalationGateRegistry(
     escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
     reflection_profile_ids=REFLECTION_ESCALATION_REGISTRY.profile_ids,
     profile_count=len(HITL_ESCALATION_GATE_PROFILES),
+)
+CONFIDENCE_THRESHOLD_ROUTING_PROFILES = (
+    _confidence_threshold_routing_profile(
+        threshold_profile_id="confidence_threshold_routing::planning_execution_fit",
+        topic_id="planning_execution_fit",
+        source_hitl_gate_profile_id="hitl_escalation_gate::planning_execution_fit",
+        source_confidence_fusion_profile_id=(
+            "agent_confidence_fusion::planning_execution_fit"
+        ),
+        source_escalation_signal_ids=(
+            "confidence_escalation_signal",
+            "ambiguity_escalation_signal",
+        ),
+        confidence_band="medium",
+        advisory_threshold_range=(0.55, 0.72),
+        advisory_outputs=(
+            "planning_confidence_threshold_placeholder",
+            "planning_confidence_routing_context",
+        ),
+    ),
+    _confidence_threshold_routing_profile(
+        threshold_profile_id="confidence_threshold_routing::style_aesthetic_alignment",
+        topic_id="style_aesthetic_alignment",
+        source_hitl_gate_profile_id="hitl_escalation_gate::style_aesthetic_alignment",
+        source_confidence_fusion_profile_id=(
+            "agent_confidence_fusion::style_aesthetic_alignment"
+        ),
+        source_escalation_signal_ids=(
+            "confidence_escalation_signal",
+            "quality_escalation_signal",
+        ),
+        confidence_band="high",
+        advisory_threshold_range=(0.72, 0.86),
+        advisory_outputs=(
+            "style_confidence_threshold_placeholder",
+            "aesthetic_confidence_routing_context",
+        ),
+    ),
+    _confidence_threshold_routing_profile(
+        threshold_profile_id="confidence_threshold_routing::curation_refinement_need",
+        topic_id="curation_refinement_need",
+        source_hitl_gate_profile_id="hitl_escalation_gate::curation_refinement_need",
+        source_confidence_fusion_profile_id=(
+            "agent_confidence_fusion::curation_refinement_need"
+        ),
+        source_escalation_signal_ids=(
+            "confidence_escalation_signal",
+            "quality_escalation_signal",
+            "hitl_escalation_signal",
+        ),
+        confidence_band="low",
+        advisory_threshold_range=(0.35, 0.55),
+        advisory_outputs=(
+            "curation_confidence_threshold_placeholder",
+            "refinement_confidence_routing_context",
+        ),
+    ),
+    _confidence_threshold_routing_profile(
+        threshold_profile_id="confidence_threshold_routing::final_synthesis_readiness",
+        topic_id="final_synthesis_readiness",
+        source_hitl_gate_profile_id="hitl_escalation_gate::final_synthesis_readiness",
+        source_confidence_fusion_profile_id=(
+            "agent_confidence_fusion::final_synthesis_readiness"
+        ),
+        source_escalation_signal_ids=(
+            "confidence_escalation_signal",
+            "hitl_escalation_signal",
+        ),
+        confidence_band="critical",
+        advisory_threshold_range=(0.0, 0.35),
+        advisory_outputs=(
+            "synthesis_confidence_threshold_placeholder",
+            "final_confidence_routing_context",
+        ),
+    ),
+)
+CONFIDENCE_THRESHOLD_ROUTING_REGISTRY = ConfidenceThresholdRoutingRegistry(
+    threshold_profiles=CONFIDENCE_THRESHOLD_ROUTING_PROFILES,
+    threshold_profile_ids=tuple(
+        profile.threshold_profile_id
+        for profile in CONFIDENCE_THRESHOLD_ROUTING_PROFILES
+    ),
+    topic_ids=tuple(
+        profile.topic_id for profile in CONFIDENCE_THRESHOLD_ROUTING_PROFILES
+    ),
+    confidence_bands=tuple(
+        profile.confidence_band for profile in CONFIDENCE_THRESHOLD_ROUTING_PROFILES
+    ),
+    source_registries=_CONFIDENCE_THRESHOLD_ROUTING_SOURCE_REGISTRIES,
+    hitl_gate_profile_ids=HITL_ESCALATION_GATE_REGISTRY.hitl_gate_profile_ids,
+    confidence_fusion_profile_ids=AGENT_CONFIDENCE_FUSION_REGISTRY.fusion_profile_ids,
+    escalation_signal_ids=_KNOWN_CONDITIONAL_ESCALATION_SIGNAL_IDS,
+    profile_count=len(CONFIDENCE_THRESHOLD_ROUTING_PROFILES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (
