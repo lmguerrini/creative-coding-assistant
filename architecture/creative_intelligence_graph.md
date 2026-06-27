@@ -182,12 +182,25 @@ The raw Mermaid source for this readable pipeline is available in
 
 ## Creative Cognition Relationship Map
 
-| Relationship | Implemented metadata path | Downstream use |
-| --- | --- | --- |
-| Strategy framing | `Creative Intent Decomposer` and `Creative Hierarchy Planner` shape `Creative Strategy Engine`, then `Creative Technique Selector` and `Creative Execution Plan` turn strategy into an executable creative direction | Gives the rest of planning a coherent intent, hierarchy, technique set, and plan before constraints are evaluated |
-| Constraint handling | `Creative Execution Plan`, `Creative Constraint Solver`, and `Runtime Capability Reasoner` feed `Creative Trade-off Explorer` and `Creative Constraint Prioritizer` | Converts feasibility limits into ordered trade-offs before quality, narrative, and composition metadata are derived |
-| Quality shaping | `Creative Constraint Prioritizer` informs `Creative Quality Predictor`, which then sits before `Symbolic Narrative Planner` and `Creative Composition Planner` | Keeps narrative and composition guidance aligned with expected quality and prioritized constraints |
-| Reasoning handoff | `Metadata Store` persists planning outputs on `AssistantWorkflowState` and `PromptInputResponse` before Director, Reasoning, prompt rendering, and workstation hydration consume them | Keeps runtime consumers downstream of the single `planning` node without turning helper engines into LangGraph nodes |
+- Strategy framing: `Creative Intent Decomposer` and `Creative Hierarchy
+  Planner` shape `Creative Strategy Engine`, then `Creative Technique Selector`
+  and `Creative Execution Plan` turn strategy into an executable creative
+  direction. This gives the rest of planning a coherent intent, hierarchy,
+  technique set, and plan before constraints are evaluated.
+- Constraint handling: `Creative Execution Plan`, `Creative Constraint Solver`,
+  and `Runtime Capability Reasoner` feed `Creative Trade-off Explorer` and
+  `Creative Constraint Prioritizer`. This converts feasibility limits into
+  ordered trade-offs before quality, narrative, and composition metadata are
+  derived.
+- Quality shaping: `Creative Constraint Prioritizer` informs `Creative Quality
+  Predictor`, which then sits before `Symbolic Narrative Planner` and
+  `Creative Composition Planner`. This keeps narrative and composition guidance
+  aligned with expected quality and prioritized constraints.
+- Reasoning handoff: `Metadata Store` persists planning outputs on
+  `AssistantWorkflowState` and `PromptInputResponse` before Director, Reasoning,
+  prompt rendering, and workstation hydration consume them. This keeps runtime
+  consumers downstream of the single `planning` node without turning helper
+  engines into LangGraph nodes.
 
 ## Pipeline Stages
 

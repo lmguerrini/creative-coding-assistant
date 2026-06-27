@@ -127,14 +127,30 @@ The raw Mermaid source for this detailed dependency view is available in
 
 ## Artifact Intelligence Relationship Map
 
-| Relationship | Implemented metadata path | Downstream use |
-| --- | --- | --- |
-| Planning and dependency shape | `Artifact Planner` produces `artifact_plan`; `Artifact Dependency Graph` turns it into ordered artifact metadata | Gives compatibility, capability, strategy, critique, merge, and export engines a stable artifact shape and dependency order |
-| Compatibility and capability bounds | `Runtime Compatibility Engine` and `Artifact Capability Matrix` read the plan, dependency graph, runtime capabilities, strategy, constraints, and trade-offs | Bounds `Multi-Artifact Strategy` with supported runtimes, artifact roles, and capability expectations |
-| Critique and refinement focus | `Multi-Artifact Strategy` feeds `Artifact Critic`; `Artifact Refiner` reads the critic output | Converts artifact-level risks, strengths, weaknesses, and improvement focus into inspectable refinement guidance |
-| Synthesis and merge planning | `Artifact Intelligence Synthesis` consolidates plan, dependency, compatibility, strategy, critic, and refiner metadata; `Artifact Merge Planner` reads that synthesis | Prepares multi-artifact composition guidance without executing or modifying generated artifacts |
-| Export intelligence handoff | `Artifact Export Intelligence` reads synthesis and merge metadata, then stores `artifact_export_intelligence` | Supplies Director, Reasoning, prompt rendering, workflow serialization, stream hydration, and workstation surfaces with export-planning metadata only |
-| Contract standardization | `Artifact Engine Contracts` is a static registry for the ten artifact engines | Standardizes serialized metadata shape for workflow/stream readers while remaining outside provider prompt text |
+- Planning and dependency shape: `Artifact Planner` produces `artifact_plan`;
+  `Artifact Dependency Graph` turns it into ordered artifact metadata. This
+  gives compatibility, capability, strategy, critique, merge, and export engines
+  a stable artifact shape and dependency order.
+- Compatibility and capability bounds: `Runtime Compatibility Engine` and
+  `Artifact Capability Matrix` read the plan, dependency graph, runtime
+  capabilities, strategy, constraints, and trade-offs. This bounds
+  `Multi-Artifact Strategy` with supported runtimes, artifact roles, and
+  capability expectations.
+- Critique and refinement focus: `Multi-Artifact Strategy` feeds
+  `Artifact Critic`; `Artifact Refiner` reads the critic output. This converts
+  artifact-level risks, strengths, weaknesses, and improvement focus into
+  inspectable refinement guidance.
+- Synthesis and merge planning: `Artifact Intelligence Synthesis` consolidates
+  plan, dependency, compatibility, strategy, critic, and refiner metadata;
+  `Artifact Merge Planner` reads that synthesis. This prepares multi-artifact
+  composition guidance without executing or modifying generated artifacts.
+- Export intelligence handoff: `Artifact Export Intelligence` reads synthesis
+  and merge metadata, then stores `artifact_export_intelligence`. This supplies
+  Director, Reasoning, prompt rendering, workflow serialization, stream
+  hydration, and workstation surfaces with export-planning metadata only.
+- Contract standardization: `Artifact Engine Contracts` is a static registry
+  for the ten artifact engines. It standardizes serialized metadata shape for
+  workflow/stream readers while remaining outside provider prompt text.
 
 ## Dependency Matrix
 

@@ -139,13 +139,25 @@ The raw Mermaid source for this detailed dependency view is available in
 
 ## Generative Design Relationship Map
 
-| Relationship | Implemented metadata path | Downstream use |
-| --- | --- | --- |
-| Structure grounding | `Procedural Structure Planner` turns upstream cognition, constraints, and composition into `procedural_structure`, then `Generative Structure Engine` turns it into `generative_structure` | Gives later V3.2 engines a concrete structural frame before motifs, emotion, modality, or scene guidance are derived |
-| Motif guidance | `Semantic Motif Engine` reads story, composition, procedural structure, and generative structure | Produces `semantic_motif` so emotional consistency, cross-modality, and scene guidance share a coherent symbolic motif |
-| Emotional alignment | `Emotional Consistency Engine` reads motif, structure, story, quality, and constraint metadata | Produces `emotional_consistency` that keeps cross-modality and scene guidance aligned with the intended affect |
-| Cross-modality composition | `Cross-Modality Composer` reads structure, motif, emotion, and upstream execution metadata | Produces `cross_modality` so visual, audio, interaction, and timing guidance stay coordinated |
-| Audio-visual scene handoff | `Audio-Visual Scene System` reads all V3.2 outputs plus upstream cognition metadata | Produces `audio_visual_scene`, then stores V3.2 outputs for V3.3 Artifact Intelligence, Director, Reasoning, prompt rendering, and workstation inspection |
+- Structure grounding: `Procedural Structure Planner` turns upstream cognition,
+  constraints, and composition into `procedural_structure`; `Generative
+  Structure Engine` turns that into `generative_structure`. Later V3.2 engines
+  use this concrete structural frame before motifs, emotion, modality, or scene
+  guidance are derived.
+- Motif guidance: `Semantic Motif Engine` reads story, composition, procedural
+  structure, and generative structure. It produces `semantic_motif` so
+  emotional consistency, cross-modality, and scene guidance share a coherent
+  symbolic motif.
+- Emotional alignment: `Emotional Consistency Engine` reads motif, structure,
+  story, quality, and constraint metadata. It produces `emotional_consistency`
+  that keeps cross-modality and scene guidance aligned with the intended affect.
+- Cross-modality composition: `Cross-Modality Composer` reads structure, motif,
+  emotion, and upstream execution metadata. It produces `cross_modality` so
+  visual, audio, interaction, and timing guidance stay coordinated.
+- Audio-visual scene handoff: `Audio-Visual Scene System` reads all V3.2 outputs
+  plus upstream cognition metadata. It produces `audio_visual_scene`, then
+  stores V3.2 outputs for V3.3 Artifact Intelligence, Director, Reasoning,
+  prompt rendering, and workstation inspection.
 
 ## Why The Graph Is Selective
 

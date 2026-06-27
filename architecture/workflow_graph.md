@@ -110,12 +110,21 @@ the graph applies a bounded quality gate. Passing outputs continue to
 `generation`. Explicit provider failures and caught node errors route into a
 terminal `failure` node.
 
-| Phase | Runtime nodes | What the phase owns |
-| --- | --- | --- |
-| Intake and routing | `intake`, `routing` | Request receipt, route selection, route payload storage, and initial status events |
-| Context preparation | `memory`, `retrieval`, `context_assembly` | Optional memory and knowledge context collection before prompt inputs are built |
-| Prompt preparation | `prompt_input`, `planning`, `director`, `reasoning`, `prompt_rendering` | Prompt input construction, V3.1-V3.4 metadata derivation, Director guidance, Reasoning synthesis, and provider prompt serialization |
-| Answer production | `generation`, `artifact_extraction`, `preview_preparation`, `artifact_critique`, `review`, `refinement`, `finalization`, `failure` | Provider streaming, generated artifact metadata, preview metadata, critique metadata, deterministic review, bounded refinement, final response, and terminal failure handling |
+Phase ownership:
+
+- Intake and routing (`intake`, `routing`): request receipt, route selection,
+  route payload storage, and initial status events.
+- Context preparation (`memory`, `retrieval`, `context_assembly`): optional
+  memory and knowledge context collection before prompt inputs are built.
+- Prompt preparation (`prompt_input`, `planning`, `director`, `reasoning`,
+  `prompt_rendering`): prompt input construction, V3.1-V3.4 metadata
+  derivation, Director guidance, Reasoning synthesis, and provider prompt
+  serialization.
+- Answer production (`generation`, `artifact_extraction`,
+  `preview_preparation`, `artifact_critique`, `review`, `refinement`,
+  `finalization`, `failure`): provider streaming, generated artifact metadata,
+  preview metadata, critique metadata, deterministic review, bounded
+  refinement, final response, and terminal failure handling.
 
 The `planning` node remains one LangGraph node even though it derives the full
 Creative Cognition, Generative Design, Artifact Intelligence, and Creative
@@ -226,9 +235,15 @@ flowchart TB
     style phase_4 rx:6px,ry:6px
 ```
 
-The failure edges above remain real LangGraph transitions into the single terminal `failure` node. The labels document structured failure categories carried into that node and then surfaced by the workstation UI; they are not separate LangGraph nodes.
+The failure edges above remain real LangGraph transitions into the single
+terminal `failure` node. The labels document structured failure categories
+carried into that node and then surfaced by the workstation UI; they are not
+separate LangGraph nodes.
 
-Frontend-only workstation errors are not LangGraph runtime nodes. Preview/renderer runtime errors render in the Preview shelf, artifact/export UI errors render in the Artifacts tab, persistence/session errors render near session controls, and HITL local approval errors render in the Workflow inspector.
+Frontend-only workstation errors are not LangGraph runtime nodes. Preview and
+renderer runtime errors render in the Preview shelf, artifact/export UI errors
+render in the Artifacts tab, persistence/session errors render near session
+controls, and HITL local approval errors render in the Workflow inspector.
 
 The raw Mermaid source for the implemented runtime graph is also available in
 [workflow_graph.mmd](workflow_graph.mmd). The readable internal capability
@@ -272,37 +287,73 @@ Current transition rules:
 
 - `START -> intake`
 - Nodes point linearly from `intake` through `artifact_critique`, then into `review`
-- `review -> finalization` when the review passes or the refinement limit is reached
+- `review -> finalization` when the review passes or the refinement limit is
+  reached
 - `review -> refinement` when the review fails and `refinement_count < 1`
-- `refinement -> generation`, then through artifact extraction, preview preparation, and artifact critique again
+- `refinement -> generation`, then through artifact extraction, preview
+  preparation, and artifact critique again
 - Any node can route to `failure` when it records `pending_failure`
 - `finalization -> END` on success
 - `failure -> END`
-- The only graph loop is the bounded `refinement -> generation -> artifact_extraction -> preview_preparation -> artifact_critique -> review` loop
-- Completed and failed node events expose `transition_source`, `transition_target`, `decision_reason`, and an `edge` object with the same decision metadata
+- The only graph loop is the bounded `refinement -> generation ->
+  artifact_extraction -> preview_preparation -> artifact_critique -> review`
+  loop
+- Completed and failed node events expose `transition_source`,
+  `transition_target`, `decision_reason`, and an `edge` object with the same
+  decision metadata
 
 Node responsibilities:
 
-- Every node emits `node_started`; completed or skipped nodes emit `node_completed`; failing nodes emit `node_failed` before routing to `failure`
-- `intake`: marks `WorkflowStep.INTAKE` active, emits `status/request_received`, then completes the step
-- `routing`: computes `RouteDecision`, emits `status/route_selected`, stores `route_decision` in workflow state and `route_payload` in graph state
-- `memory`: calls the memory step generator and either stores `memory_context` or skips the step
-- `retrieval`: calls the retrieval step generator and either stores `retrieval_context` or skips the step
-- `context_assembly`: combines memory and retrieval context when a context assembler is configured
+- Every node emits `node_started`; completed or skipped nodes emit
+  `node_completed`; failing nodes emit `node_failed` before routing to
+  `failure`
+- `intake`: marks `WorkflowStep.INTAKE` active, emits
+  `status/request_received`, then completes the step
+- `routing`: computes `RouteDecision`, emits `status/route_selected`, stores
+  `route_decision` in workflow state and `route_payload` in graph state
+- `memory`: calls the memory step generator and either stores `memory_context`
+  or skips the step
+- `retrieval`: calls the retrieval step generator and either stores
+  `retrieval_context` or skips the step
+- `context_assembly`: combines memory and retrieval context when a context
+  assembler is configured
 - `prompt_input`: builds prompt inputs when a prompt input builder is configured
-- `planning`: derives `CreativeExecutionPlan` plus the bounded V3.1 Creative Cognition metadata (`creative_intent`, `creative_hierarchy`, `creative_strategy`, `creative_techniques`, `creative_constraints`, `runtime_capabilities`, `creative_tradeoffs`, `creative_constraint_priorities`, `creative_quality_prediction`, `symbolic_narrative`, and `creative_composition`), the bounded V3.2 Generative Design metadata (`procedural_structure`, `generative_structure`, `semantic_motif`, `emotional_consistency`, `cross_modality`, and `audio_visual_scene`), the bounded V3.3 Artifact Intelligence metadata (`artifact_plan`, `artifact_dependency_graph`, `runtime_compatibility`, `artifact_capability_matrix`, `multi_artifact_strategy`, `artifact_critic`, `artifact_refiner`, `artifact_intelligence_synthesis`, `artifact_merge_planner`, `artifact_export_intelligence`, and `artifact_engine_contracts`), and the bounded V3.4 Creative Evaluation metadata (`creative_critic`, `self_evaluation`, `creative_improvement_planner`, `reflection_loop`, `creative_confidence`, `creative_score`, `consistency_validation`, `evaluation_report`, and `evaluation_engine_contracts`), stores them in workflow state and prompt input metadata, and emits `planning/creative_plan_prepared`
-- `director`: derives bounded `CreativeAssistantDirectorBrief` metadata from route, retrieval, clarification, critique/review/refinement signals, and the stored Creative Cognition, Generative Design, Artifact Intelligence, and Creative Evaluation metadata; stores it in workflow state and prompt input metadata; and emits `planning/creative_director_prepared`
-- `reasoning`: derives `CreativeReasoningResult` from the stored Creative Cognition, Generative Design, Artifact Intelligence, Creative Evaluation metadata, and the Director brief, stores it in workflow state and prompt input metadata, and emits `planning/creative_reasoning_prepared`
-- `prompt_rendering`: renders the final provider prompt from prompt inputs plus the stored Creative Cognition, Generative Design, Artifact Intelligence, Creative Evaluation profile sections, Director, and Reasoning metadata when prompt inputs exist; Artifact, Evaluation, and Workstation contract registries remain metadata-only and are not rendered into provider prompt text
-- `generation`: prepares provider input, forwards generation stream events, and stores the transient `generation_result`
+- `planning`: derives `CreativeExecutionPlan` plus bounded metadata for V3.1
+  Creative Cognition, V3.2 Generative Design, V3.3 Artifact Intelligence, and
+  V3.4 Creative Evaluation. It stores those results in workflow state and prompt
+  input metadata, then emits `planning/creative_plan_prepared`.
+- `director`: derives bounded `CreativeAssistantDirectorBrief` metadata from
+  route, retrieval, clarification, critique/review/refinement signals, and the
+  stored Creative Cognition, Generative Design, Artifact Intelligence, and
+  Creative Evaluation metadata. It stores the brief in workflow state and prompt
+  input metadata, then emits `planning/creative_director_prepared`.
+- `reasoning`: derives `CreativeReasoningResult` from the stored Creative
+  Cognition, Generative Design, Artifact Intelligence, Creative Evaluation
+  metadata, and the Director brief. It stores the result in workflow state and
+  prompt input metadata, then emits `planning/creative_reasoning_prepared`.
+- `prompt_rendering`: renders the final provider prompt from prompt inputs plus
+  stored Creative Cognition, Generative Design, Artifact Intelligence, Creative
+  Evaluation profile sections, Director metadata, and Reasoning metadata when
+  prompt inputs exist. Artifact, Evaluation, and Workstation contract registries
+  remain metadata-only and are not rendered into provider prompt text.
+- `generation`: prepares provider input, forwards generation stream events, and
+  stores the transient `generation_result`
 - `artifact_extraction`: detects generated code artifacts, normalizes workflow artifact metadata, stores `artifacts`, and emits `artifact_extracted`
 - `preview_preparation`: prepares preview-ready runtime metadata for previewable artifacts, stores `preview_results`, and emits `preview_artifact`
-- `artifact_critique`: scores generated artifacts across quality dimensions, stores per-artifact critique metadata and the recommended candidate, and emits `artifact_critique` progress events
+- `artifact_critique`: scores generated artifacts across quality dimensions,
+  stores per-artifact critique metadata and the recommended candidate, and emits
+  `artifact_critique` progress events
 - `review`: runs deterministic quality checks, stores `review_result`, emits `review_passed` or `review_failed`, and selects the next graph edge
-- `review`: emits `refinement_requested` and `retry_started` when a failed review can enter the bounded retry loop; emits `retry_completed` after a retry resolves
-- `refinement`: appends refinement guidance to the rendered prompt, emits `refinement_completed`, increments `refinement_count`, and sends control back to `generation`
+- `review`: emits `refinement_requested` and `retry_started` when a failed
+  review can enter the bounded retry loop; emits `retry_completed` after a retry
+  resolves
+- `refinement`: appends refinement guidance to the rendered prompt, emits
+  `refinement_completed`, increments `refinement_count`, and sends control back
+  to `generation`
 - `finalization`: resolves the final answer from `generation_result.answer` or the shell fallback, emits the `final` event, and marks the workflow completed
-- `failure`: emits a terminal failure answer, marks `WorkflowStatus.FAILED`, and closes the graph cleanly after explicit provider failures or caught node exceptions
+- `failure`: emits a terminal failure answer, marks `WorkflowStatus.FAILED`,
+  and closes the graph cleanly after explicit provider failures or caught node
+  exceptions
 
 ## Workflow State Lifecycle
 
@@ -314,8 +365,31 @@ There are two layers of runtime state.
 - Starts as `status=running`, `current_step=None`
 - Moves one step at a time through `start_workflow_step()`
 - Resolves each step through `complete_workflow_step()` or `skip_workflow_step()`
-- Stores durable outputs such as `route_decision`, `memory_context`, `retrieval_context`, `assembled_context`, `prompt_input`, `creative_intent`, `creative_hierarchy`, `creative_strategy`, `creative_techniques`, `creative_plan`, `creative_constraints`, `creative_constraint_priorities`, `runtime_capabilities`, `creative_tradeoffs`, `creative_quality_prediction`, `symbolic_narrative`, `creative_composition`, `procedural_structure`, `generative_structure`, `semantic_motif`, `emotional_consistency`, `cross_modality`, `audio_visual_scene`, `artifact_plan`, `artifact_dependency_graph`, `runtime_compatibility`, `artifact_capability_matrix`, `multi_artifact_strategy`, `artifact_critic`, `artifact_refiner`, `artifact_intelligence_synthesis`, `artifact_merge_planner`, `artifact_export_intelligence`, `artifact_engine_contracts`, `creative_director`, `creative_reasoning`, `rendered_prompt`, extracted `artifacts`, prepared `preview_results`, `artifact_critique_summary`, and `final_answer`
-- Stores Creative Evaluation metadata such as `creative_critic`, `self_evaluation`, `creative_improvement_planner`, `reflection_loop`, `creative_confidence`, `creative_score`, `consistency_validation`, `evaluation_report`, and `evaluation_engine_contracts`
+- Stores durable routing and context outputs: `route_decision`,
+  `memory_context`, `retrieval_context`, `assembled_context`, and
+  `prompt_input`
+- Stores V3.1 Creative Cognition metadata: `creative_intent`,
+  `creative_hierarchy`, `creative_strategy`, `creative_techniques`,
+  `creative_plan`, `creative_constraints`, `creative_constraint_priorities`,
+  `runtime_capabilities`, `creative_tradeoffs`,
+  `creative_quality_prediction`, `symbolic_narrative`, and
+  `creative_composition`
+- Stores V3.2 Generative Design metadata: `procedural_structure`,
+  `generative_structure`, `semantic_motif`, `emotional_consistency`,
+  `cross_modality`, and `audio_visual_scene`
+- Stores V3.3 Artifact Intelligence metadata: `artifact_plan`,
+  `artifact_dependency_graph`, `runtime_compatibility`,
+  `artifact_capability_matrix`, `multi_artifact_strategy`, `artifact_critic`,
+  `artifact_refiner`, `artifact_intelligence_synthesis`,
+  `artifact_merge_planner`, `artifact_export_intelligence`, and
+  `artifact_engine_contracts`
+- Stores V3.4 Creative Evaluation metadata: `creative_critic`,
+  `self_evaluation`, `creative_improvement_planner`, `reflection_loop`,
+  `creative_confidence`, `creative_score`, `consistency_validation`,
+  `evaluation_report`, and `evaluation_engine_contracts`
+- Stores downstream prompt and answer outputs: `creative_director`,
+  `creative_reasoning`, `rendered_prompt`, extracted `artifacts`, prepared
+  `preview_results`, `artifact_critique_summary`, and `final_answer`
 - Stores review metadata through `review_result` and `refinement_count`
 - Stores typed failure metadata through `failure_info`
 - Reaches terminal completion only through `finish_workflow()` while `FINALIZATION` is active
@@ -387,8 +461,11 @@ What actually flows through the stream:
 - `generation` emits `generation_input`, `token_delta`, and possibly `error`
 - `artifact_extraction` emits `artifact_extracted` when code artifacts are detected
 - `preview_preparation` emits `preview_artifact` when preview metadata is prepared
-- `artifact_critique` emits `critique_started`, `artifact_scored`, `artifact_selected_recommended`, optional `artifact_refinement_requested`, and `critique_completed`
-- `review` emits `review_passed` or `review_failed` with score, rationale, full review metadata, and edge decision metadata
+- `artifact_critique` emits `critique_started`, `artifact_scored`,
+  `artifact_selected_recommended`, optional `artifact_refinement_requested`, and
+  `critique_completed`
+- `review` emits `review_passed` or `review_failed` with score, rationale, full
+  review metadata, and edge decision metadata
 - `review` emits `refinement_requested` and `retry_started` when it sends control to `refinement`
 - `refinement` emits `refinement_completed` with retry reason/count before returning control to `generation`
 - `review` emits `retry_completed` after a retry resolves or exhausts
@@ -407,7 +484,9 @@ Important stream guarantees:
 
 Current implemented flow:
 
-- Linear path through prompt input, planning, director, reasoning, prompt rendering, generation, artifact extraction, preview preparation, artifact critique, and `review`
+- Linear path through prompt input, planning, director, reasoning, prompt
+  rendering, generation, artifact extraction, preview preparation, artifact
+  critique, and `review`
 - Conditional review edge
 - Bounded one-attempt refinement loop
 - Workflow-owned artifact extraction, preview metadata preparation, and artifact critique metadata
@@ -493,9 +572,13 @@ flowchart TB
 
 Conservative insertion points:
 
-- Tools: the least disruptive gate is immediately after `routing`, because route capabilities already exist there; a richer tool loop can also sit between `prompt_rendering` and `generation`
+- Tools: the least disruptive gate is immediately after `routing`, because
+  route capabilities already exist there; a richer tool loop can also sit
+  between `prompt_rendering` and `generation`
 - Review loops: the current `review` gate is the natural anchor for richer future retry loops back to `prompt_input` or `generation`
-- Preview execution: renderer execution and capture can branch from `preview_preparation` and rejoin before artifact critique or `review` without changing the request/response contract
+- Preview execution: renderer execution and capture can branch from
+  `preview_preparation` and rejoin before artifact critique or `review` without
+  changing the request/response contract
 - HITL checkpoints: the safest first checkpoint is between `review` and `finalization`, where a human can approve, edit, or reject a nearly complete result
 - Creative Intelligence, Generative Design, Artifact Intelligence, and Creative
   Evaluation

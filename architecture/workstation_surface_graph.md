@@ -110,15 +110,31 @@ The raw Mermaid source for this surface graph is available in
 
 ## Surface Responsibilities
 
-| Surface | Reads | Exposes | Product role |
-| --- | --- | --- | --- |
-| `Workstation State` | Workspace snapshot, stream status, runtime trace, selection state | Session, current run, selection, panel, readiness, and metadata status | Shared state model for all workstation views |
-| `Session Intelligence` | Workstation state and optional session stream metadata | Readiness, completion status, warnings, and recommended operator actions | Session-level operator context |
-| `Workflow Explorer` | Workstation state, workflow runtime trace, and workflow snapshot | Nodes, edges, active step, progress, and runtime status | Inspectable workflow map |
-| `Provenance Engine` | Workstation state, artifact metadata, evaluation metadata, and final payload metadata | Evidence, dependency, artifact, evaluation, and missing-source provenance | Source visibility for generated outputs and evaluations |
-| `Creative Timeline` | Workstation state, workflow explorer, provenance, and V3 metadata | Ordered request, planning, retrieval, creative, artifact, evaluation, and final stages | Chronological explanation of request evolution |
-| `V3 Inspector Panels` | Workstation state, provenance, and V3 metadata groups | Creative intelligence, generative design, artifact intelligence, evaluation, and provenance panels | Dense metadata inspection |
-| `Workstation Dashboard` | Workstation state, workflow runtime, inspector panels, and artifact snapshot | Quality, confidence, consistency, artifact readiness, runtime fit, evaluation, workflow health, and HITL cards | Compact operator summary |
+- `Workstation State`: reads the workspace snapshot, stream status, runtime
+  trace, and selection state. It exposes session, current run, selection, panel,
+  readiness, and metadata status as the shared state model for all workstation
+  views.
+- `Session Intelligence`: reads workstation state and optional session stream
+  metadata. It exposes readiness, completion status, warnings, and recommended
+  operator actions as session-level operator context.
+- `Workflow Explorer`: reads workstation state, workflow runtime trace, and the
+  workflow snapshot. It exposes nodes, edges, active step, progress, and runtime
+  status as an inspectable workflow map.
+- `Provenance Engine`: reads workstation state, artifact metadata, evaluation
+  metadata, and final payload metadata. It exposes evidence, dependency,
+  artifact, evaluation, and missing-source provenance for generated outputs and
+  evaluations.
+- `Creative Timeline`: reads workstation state, workflow explorer, provenance,
+  and V3 metadata. It exposes ordered request, planning, retrieval, creative,
+  artifact, evaluation, and final stages as a chronological explanation of
+  request evolution.
+- `V3 Inspector Panels`: reads workstation state, provenance, and V3 metadata
+  groups. It exposes creative intelligence, generative design, artifact
+  intelligence, evaluation, and provenance panels for dense metadata inspection.
+- `Workstation Dashboard`: reads workstation state, workflow runtime, inspector
+  panels, and artifact snapshot. It exposes quality, confidence, consistency,
+  artifact readiness, runtime fit, evaluation, workflow health, and HITL cards
+  as a compact operator summary.
 
 ## Contract Surface
 
