@@ -329,5 +329,119 @@ PLANNER_AGENT_CONTRACT = AgentContract(
     ),
 )
 
-AGENT_CONTRACTS: tuple[AgentContract, ...] = (PLANNER_AGENT_CONTRACT,)
+RESEARCH_AGENT_CONTRACT = AgentContract(
+    agent_id="research_agent",
+    agent_name="Research Agent",
+    agent_version="v4.1",
+    role_id="research",
+    role_name="Research Agent",
+    role_purpose=(
+        "Represent retrieval context, source evidence, and source gap metadata "
+        "for future research-aware orchestration."
+    ),
+    authority_boundary=(
+        "Research Agent contract metadata maps existing retrieval and source "
+        "context boundaries for future source synthesis only; it does not add "
+        "web research execution, change retrieval behavior, call external "
+        "sources, route providers or models, select runtimes, trigger retries, "
+        "or modify generated output."
+    ),
+    allowed_actions=(
+        "describe_retrieval_context_requirements",
+        "map_source_evidence_metadata",
+        "declare_future_research_handoff",
+    ),
+    prohibited_actions=(
+        "web_research_execution",
+        "external_source_calling",
+        "retrieval_behavior_change",
+        "provider_or_model_routing",
+        "runtime_selection",
+        "generated_output_modification",
+    ),
+    capabilities=(
+        "source_context_mapping",
+        "evidence_gap_detection",
+        "research_handoff_metadata_preparation",
+    ),
+    required_inputs=(
+        "assistant_request",
+        "retrieval_context",
+        "source_metadata",
+    ),
+    optional_inputs=(
+        "assembled_context",
+        "retrieval_quality_metadata",
+        "kb_source_health_metadata",
+        "route_decision",
+        "agent_memory_contract",
+    ),
+    produced_outputs=(
+        "research_context_packet_contract",
+        "source_gap_summary_contract",
+        "evidence_handoff_metadata_contract",
+    ),
+    produced_metadata=(
+        "source_context_metadata",
+        "retrieval_gap_metadata",
+        "evidence_summary_metadata",
+        "source_reliability_metadata",
+        "research_scope_metadata",
+    ),
+    produced_signals=(
+        "source_coverage",
+        "retrieval_confidence",
+        "missing_source_context",
+        "source_freshness",
+        "evidence_density",
+    ),
+    memory_access=AgentMemoryAccessContract(
+        allowed_memory_sources=(
+            "session_metadata",
+            "provenance_metadata",
+            "retrieval_context_metadata",
+            "future_blackboard_contract",
+        ),
+    ),
+    cacheability="deterministic_with_upstream_metadata",
+    estimated_cost_metadata=AgentContractCostMetadata(
+        relative_cost="low",
+        cost_basis=(
+            "Static metadata mapping from existing retrieval and source "
+            "context; no web, provider, or external source calls."
+        ),
+        cache_sensitivity=(
+            "Cache key must include request, retrieval context, and source "
+            "metadata identifiers."
+        ),
+    ),
+    estimated_latency_metadata=AgentContractLatencyMetadata(
+        relative_latency="low",
+        latency_basis=(
+            "Bounded local metadata inspection with no network, retrieval "
+            "execution, storage, provider, or external source work."
+        ),
+        blocking_inputs=(
+            "assistant_request",
+            "retrieval_context",
+            "source_metadata",
+        ),
+    ),
+    future_orchestration_hooks=(
+        "v4_2_research_context_handoff",
+        "v4_2_source_gap_review",
+    ),
+    source_contract_registries=(
+        "agent_identity_registry",
+        "agent_memory_contract_registry",
+        "retrieval_context_contract",
+        "official_kb_source_registry",
+        "source_health_metadata",
+    ),
+)
+
+AGENT_CONTRACTS: tuple[AgentContract, ...] = (
+    PLANNER_AGENT_CONTRACT,
+    RESEARCH_AGENT_CONTRACT,
+)
 AGENT_CONTRACT_REGISTRY = build_agent_contract_registry(AGENT_CONTRACTS)

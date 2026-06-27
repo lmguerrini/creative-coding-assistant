@@ -156,11 +156,11 @@ class AgentContractFoundationTests(unittest.TestCase):
             registry.serialization_version,
             "agent_contract_registry.v1",
         )
-        self.assertEqual(registry.agent_ids, ("planner_agent",))
-        self.assertEqual(registry.contract_count, 1)
+        self.assertIn("planner_agent", registry.agent_ids)
+        self.assertEqual(registry.contract_count, len(registry.contracts))
         self.assertTrue(registry.metadata_only)
         self.assertIn("do not create agents", registry.authority_boundary)
-        self.assertEqual(registry.contracts, (planner_contract,))
+        self.assertIn(planner_contract, registry.contracts)
         self.assertIsNone(agent_contract_by_id("missing_agent"))
 
     def test_registry_builder_and_lookup_are_stable(self) -> None:

@@ -22,8 +22,8 @@ class PlannerAgentContractTests(unittest.TestCase):
         assert contract is not None
         assert identity is not None
         assert memory_contract is not None
-        self.assertEqual(registry.agent_ids, ("planner_agent",))
-        self.assertEqual(registry.contract_count, 1)
+        self.assertIn("planner_agent", registry.agent_ids)
+        self.assertEqual(registry.contract_count, len(registry.contracts))
         self.assertEqual(contract.agent_id, identity.agent_id)
         self.assertEqual(contract.agent_name, identity.agent_name)
         self.assertEqual(contract.agent_version, identity.identity_version)
