@@ -665,10 +665,125 @@ RUNTIME_AGENT_CONTRACT = AgentContract(
     ),
 )
 
+ARTIFACT_AGENT_CONTRACT = AgentContract(
+    agent_id="artifact_agent",
+    agent_name="Artifact Agent",
+    agent_version="v4.1",
+    role_id="artifact",
+    role_name="Artifact Agent",
+    role_purpose=(
+        "Represent artifact planning, refinement, dependency, and export "
+        "metadata handoffs for future V4 orchestration."
+    ),
+    authority_boundary=(
+        "Artifact Agent contract metadata maps existing artifact intelligence "
+        "boundaries for planning, refinement, dependency, and export context "
+        "only; it does not change artifact generation, alter export behavior, "
+        "execute agents, route providers or models, select runtimes, trigger "
+        "retries, or modify generated output."
+    ),
+    allowed_actions=(
+        "describe_artifact_context_requirements",
+        "map_artifact_intelligence_metadata",
+        "declare_future_artifact_handoff",
+    ),
+    prohibited_actions=(
+        "artifact_generation_change",
+        "artifact_export_behavior_change",
+        "agent_invocation",
+        "provider_or_model_routing",
+        "runtime_selection",
+        "generated_output_modification",
+    ),
+    capabilities=(
+        "artifact_context_mapping",
+        "artifact_readiness_metadata",
+        "artifact_handoff_metadata_preparation",
+    ),
+    required_inputs=(
+        "assistant_request",
+        "artifact_plan",
+        "artifact_engine_contract_registry",
+    ),
+    optional_inputs=(
+        "artifact_dependency_graph",
+        "artifact_capability_matrix",
+        "multi_artifact_strategy",
+        "artifact_critic_profile",
+        "artifact_refiner_profile",
+        "artifact_export_intelligence",
+        "runtime_compatibility_profile",
+        "agent_memory_contract",
+    ),
+    produced_outputs=(
+        "artifact_context_packet_contract",
+        "artifact_readiness_summary_contract",
+        "artifact_handoff_metadata_contract",
+    ),
+    produced_metadata=(
+        "artifact_plan_metadata",
+        "artifact_dependency_metadata",
+        "artifact_readiness_metadata",
+        "artifact_refinement_metadata",
+        "artifact_export_metadata",
+    ),
+    produced_signals=(
+        "artifact_readiness",
+        "artifact_risk",
+        "dependency_completeness",
+        "refinement_need",
+        "export_readiness",
+    ),
+    memory_access=AgentMemoryAccessContract(
+        allowed_memory_sources=(
+            "session_metadata",
+            "artifact_metadata",
+            "provenance_metadata",
+            "future_blackboard_contract",
+        ),
+    ),
+    cacheability="deterministic_with_upstream_metadata",
+    estimated_cost_metadata=AgentContractCostMetadata(
+        relative_cost="low",
+        cost_basis=(
+            "Static metadata mapping from existing artifact intelligence "
+            "outputs; no artifact generation, export, or provider calls."
+        ),
+        cache_sensitivity=(
+            "Cache key must include request, artifact plan, and artifact "
+            "intelligence metadata identifiers."
+        ),
+    ),
+    estimated_latency_metadata=AgentContractLatencyMetadata(
+        relative_latency="low",
+        latency_basis=(
+            "Bounded local metadata inspection with no network, provider, "
+            "artifact generation, export, workflow, or runtime execution."
+        ),
+        blocking_inputs=(
+            "assistant_request",
+            "artifact_plan",
+            "artifact_engine_contract_registry",
+        ),
+    ),
+    future_orchestration_hooks=(
+        "v4_2_artifact_context_handoff",
+        "v4_2_artifact_readiness_review",
+    ),
+    source_contract_registries=(
+        "agent_identity_registry",
+        "agent_memory_contract_registry",
+        "artifact_engine_contract_registry",
+        "workstation_engine_contract_registry",
+        "artifact_intelligence_metadata",
+    ),
+)
+
 AGENT_CONTRACTS: tuple[AgentContract, ...] = (
     PLANNER_AGENT_CONTRACT,
     RESEARCH_AGENT_CONTRACT,
     STYLE_AGENT_CONTRACT,
     RUNTIME_AGENT_CONTRACT,
+    ARTIFACT_AGENT_CONTRACT,
 )
 AGENT_CONTRACT_REGISTRY = build_agent_contract_registry(AGENT_CONTRACTS)
