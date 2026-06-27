@@ -55,6 +55,7 @@ HybridDebateLoopTopic = Literal[
     "final_synthesis_readiness",
 ]
 HybridVotingTopic = HybridDebateLoopTopic
+AgentConfidenceFusionTopic = HybridVotingTopic
 
 V3_BACKBONE_MODE_ID = "v3_backbone_mode"
 V3_BACKBONE_MODE_NODE_SERIALIZATION_VERSION = "v3_backbone_mode_node.v1"
@@ -94,6 +95,12 @@ HYBRID_AGENT_VOTING_PROFILE_SERIALIZATION_VERSION = (
 )
 HYBRID_AGENT_VOTING_REGISTRY_SERIALIZATION_VERSION = (
     "hybrid_agent_voting_registry.v1"
+)
+AGENT_CONFIDENCE_FUSION_PROFILE_SERIALIZATION_VERSION = (
+    "agent_confidence_fusion_profile.v1"
+)
+AGENT_CONFIDENCE_FUSION_REGISTRY_SERIALIZATION_VERSION = (
+    "agent_confidence_fusion_registry.v1"
 )
 HYBRID_WORKFLOW_STAGE_SERIALIZATION_VERSION = "hybrid_workflow_stage.v1"
 HYBRID_WORKFLOW_REGISTRY_SERIALIZATION_VERSION = "hybrid_workflow_registry.v1"
@@ -151,6 +158,13 @@ HYBRID_AGENT_VOTING_AUTHORITY_BOUNDARY = (
     "Hybrid agent voting metadata maps passive consensus voting placeholders "
     "to V4.3 debate loops and escalation context only; it does not execute "
     "voting, select final answers, invoke agents, route providers or models, "
+    "control workflow transitions, trigger retries, or modify generated output."
+)
+AGENT_CONFIDENCE_FUSION_AUTHORITY_BOUNDARY = (
+    "Agent confidence fusion metadata maps passive voting profiles to the "
+    "existing Creative Confidence Engine surface for future synthesis context "
+    "only; it does not calculate confidence scores, fuse confidence, weight "
+    "votes, select final answers, invoke agents, route providers or models, "
     "control workflow transitions, trigger retries, or modify generated output."
 )
 HYBRID_WORKFLOW_REGISTRY_AUTHORITY_BOUNDARY = (
@@ -315,6 +329,25 @@ _HYBRID_AGENT_VOTING_SOURCE_REGISTRIES = (
     "creative_escalation_policy_registry",
     "hybrid_agentic_workflow_registry",
 )
+_AGENT_CONFIDENCE_FUSION_BLOCKED_RUNTIME_BEHAVIORS = (
+    "confidence_score_calculation",
+    "confidence_fusion_execution",
+    "vote_weighting_execution",
+    "final_answer_selection",
+    "agent_invocation",
+    "provider_or_model_routing",
+    "workflow_control",
+    "retry_triggering",
+    "generated_output_modification",
+)
+_AGENT_CONFIDENCE_FUSION_SOURCE_REGISTRIES = (
+    "creative_confidence_engine",
+    "hybrid_agent_voting_registry",
+    "hybrid_agent_debate_loop_registry",
+    "reflection_escalation_registry",
+    "evaluation_engine_contract_registry",
+    "hybrid_agentic_workflow_registry",
+)
 _V3_BACKBONE_MODE_PHASE_IDS: tuple[BackboneModePhase, ...] = (
     "context_intake",
     "planning_reasoning",
@@ -366,6 +399,12 @@ _HYBRID_DEBATE_LOOP_TOPICS: tuple[HybridDebateLoopTopic, ...] = (
     "final_synthesis_readiness",
 )
 _HYBRID_AGENT_VOTING_TOPICS: tuple[HybridVotingTopic, ...] = (
+    "planning_execution_fit",
+    "style_aesthetic_alignment",
+    "curation_refinement_need",
+    "final_synthesis_readiness",
+)
+_AGENT_CONFIDENCE_FUSION_TOPICS: tuple[AgentConfidenceFusionTopic, ...] = (
     "planning_execution_fit",
     "style_aesthetic_alignment",
     "curation_refinement_need",
@@ -1442,6 +1481,150 @@ def hybrid_agent_voting_profile_by_id(
     return None
 
 
+class AgentConfidenceFusionProfile(BaseModel):
+    """Passive V4.3 confidence fusion profile metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    fusion_profile_id: str = Field(min_length=1, max_length=140)
+    topic_id: AgentConfidenceFusionTopic
+    source_voting_profile_id: str = Field(min_length=1, max_length=160)
+    source_debate_loop_id: str = Field(min_length=1, max_length=160)
+    source_confidence_surface_id: str = Field(min_length=1, max_length=120)
+    source_reflection_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    confidence_signal_inputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    fusion_dimensions: tuple[str, ...] = Field(min_length=1, max_length=8)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    authority_boundary: str = Field(min_length=1, max_length=900)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_AGENT_CONFIDENCE_FUSION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    confidence_fusion_implemented: Literal[False] = False
+    confidence_score_calculation_implemented: Literal[False] = False
+    vote_weighting_implemented: Literal[False] = False
+    final_answer_selection_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["agent_confidence_fusion_profile.v1"] = (
+        AGENT_CONFIDENCE_FUSION_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class AgentConfidenceFusionRegistry(BaseModel):
+    """Stable passive registry for V4.3 agent confidence fusion metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["agent_confidence_fusion_registry"] = (
+        "agent_confidence_fusion_registry"
+    )
+    serialization_version: Literal["agent_confidence_fusion_registry.v1"] = (
+        AGENT_CONFIDENCE_FUSION_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=AGENT_CONFIDENCE_FUSION_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    fusion_profiles: tuple[AgentConfidenceFusionProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    fusion_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    topic_ids: tuple[AgentConfidenceFusionTopic, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    voting_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    debate_loop_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    reflection_profile_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    confidence_surface_ids: tuple[str, ...] = Field(min_length=1, max_length=1)
+    profile_count: int = Field(ge=4, le=4)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_AGENT_CONFIDENCE_FUSION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    confidence_fusion_implemented: Literal[False] = False
+    confidence_score_calculation_implemented: Literal[False] = False
+    vote_weighting_implemented: Literal[False] = False
+    final_answer_selection_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_confidence_fusion_metadata(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.fusion_profile_id for profile in self.fusion_profiles
+        )
+        derived_topic_ids = tuple(profile.topic_id for profile in self.fusion_profiles)
+        if self.fusion_profile_ids != derived_profile_ids:
+            raise ValueError("fusion_profile_ids must match fusion_profiles")
+        if self.topic_ids != derived_topic_ids:
+            raise ValueError("topic_ids must match fusion_profiles")
+        if self.topic_ids != _AGENT_CONFIDENCE_FUSION_TOPICS:
+            raise ValueError("topic_ids must preserve confidence fusion topic order")
+        if self.profile_count != len(self.fusion_profiles):
+            raise ValueError("profile_count must match fusion_profiles")
+
+        profile_sources = {
+            source_registry
+            for profile in self.fusion_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match fusion profile sources")
+
+        known_votes = set(self.voting_profile_ids)
+        known_debates = set(self.debate_loop_ids)
+        known_reflections = set(self.reflection_profile_ids)
+        known_confidence_surfaces = set(self.confidence_surface_ids)
+        for profile in self.fusion_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("fusion sources must match registry sources")
+            if profile.source_voting_profile_id not in known_votes:
+                raise ValueError("fusion voting profiles must be known metadata")
+            if profile.source_debate_loop_id not in known_debates:
+                raise ValueError("fusion debate loops must be known metadata")
+            if profile.source_confidence_surface_id not in known_confidence_surfaces:
+                raise ValueError("fusion confidence surfaces must be known metadata")
+            if not set(profile.source_reflection_profile_ids).issubset(
+                known_reflections
+            ):
+                raise ValueError("fusion reflections must be known metadata")
+            if profile.confidence_fusion_implemented:
+                raise ValueError("agent confidence fusion must not execute fusion")
+        return self
+
+
+def agent_confidence_fusion_registry() -> AgentConfidenceFusionRegistry:
+    """Return passive V4.3 agent confidence fusion metadata."""
+
+    return AGENT_CONFIDENCE_FUSION_REGISTRY
+
+
+def agent_confidence_fusion_profile_by_id(
+    fusion_profile_id: str,
+    registry: AgentConfidenceFusionRegistry | None = None,
+) -> AgentConfidenceFusionProfile | None:
+    """Return one confidence fusion profile without executing fusion."""
+
+    source_registry = registry or AGENT_CONFIDENCE_FUSION_REGISTRY
+    for profile in source_registry.fusion_profiles:
+        if profile.fusion_profile_id == fusion_profile_id:
+            return profile
+    return None
+
+
 class HybridAgenticWorkflowStage(BaseModel):
     """Metadata-only future hybrid workflow readiness stage."""
 
@@ -1724,6 +1907,45 @@ def _hybrid_agent_voting_profile(
             "This hybrid voting profile is advisory metadata only; it does "
             "not execute voting, select final answers, invoke agents, control "
             "workflow transitions, trigger retries, or modify generated output."
+        ),
+    )
+
+
+def _agent_confidence_fusion_profile(
+    *,
+    fusion_profile_id: str,
+    topic_id: AgentConfidenceFusionTopic,
+    source_voting_profile_id: str,
+    source_debate_loop_id: str,
+    source_reflection_profile_ids: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> AgentConfidenceFusionProfile:
+    return AgentConfidenceFusionProfile(
+        fusion_profile_id=fusion_profile_id,
+        topic_id=topic_id,
+        source_voting_profile_id=source_voting_profile_id,
+        source_debate_loop_id=source_debate_loop_id,
+        source_confidence_surface_id="creative_confidence_engine",
+        source_reflection_profile_ids=source_reflection_profile_ids,
+        source_registries=_AGENT_CONFIDENCE_FUSION_SOURCE_REGISTRIES,
+        confidence_signal_inputs=(
+            "creative_confidence_profile",
+            "consensus_vote_placeholder",
+            "reflection_escalation_posture",
+            "evidence_coverage_signal",
+        ),
+        fusion_dimensions=(
+            "confidence_level",
+            "agent_vote_alignment",
+            "risk_uncertainty",
+            "evidence_coverage",
+        ),
+        advisory_outputs=advisory_outputs,
+        authority_boundary=(
+            "This confidence fusion profile is advisory metadata only; it "
+            "does not calculate confidence scores, fuse confidence, weight "
+            "votes, select final answers, invoke agents, control workflow "
+            "transitions, trigger retries, or modify generated output."
         ),
     )
 
@@ -2561,6 +2783,71 @@ HYBRID_AGENT_VOTING_REGISTRY = HybridAgentVotingRegistry(
     reflection_profile_ids=REFLECTION_ESCALATION_REGISTRY.profile_ids,
     policy_ids=CREATIVE_ESCALATION_POLICY_REGISTRY.policy_ids,
     profile_count=len(HYBRID_AGENT_VOTING_PROFILES),
+)
+AGENT_CONFIDENCE_FUSION_PROFILES = (
+    _agent_confidence_fusion_profile(
+        fusion_profile_id="agent_confidence_fusion::planning_execution_fit",
+        topic_id="planning_execution_fit",
+        source_voting_profile_id="hybrid_agent_voting::planning_execution_fit",
+        source_debate_loop_id="hybrid_debate_loop::planning_execution_fit",
+        source_reflection_profile_ids=(
+            "reflection_medium_escalation_profile",
+            "reflection_high_escalation_profile",
+        ),
+        advisory_outputs=(
+            "planning_confidence_fusion_placeholder",
+            "planning_confidence_context",
+        ),
+    ),
+    _agent_confidence_fusion_profile(
+        fusion_profile_id="agent_confidence_fusion::style_aesthetic_alignment",
+        topic_id="style_aesthetic_alignment",
+        source_voting_profile_id="hybrid_agent_voting::style_aesthetic_alignment",
+        source_debate_loop_id="hybrid_debate_loop::style_aesthetic_alignment",
+        source_reflection_profile_ids=("reflection_high_escalation_profile",),
+        advisory_outputs=(
+            "style_confidence_fusion_placeholder",
+            "aesthetic_confidence_context",
+        ),
+    ),
+    _agent_confidence_fusion_profile(
+        fusion_profile_id="agent_confidence_fusion::curation_refinement_need",
+        topic_id="curation_refinement_need",
+        source_voting_profile_id="hybrid_agent_voting::curation_refinement_need",
+        source_debate_loop_id="hybrid_debate_loop::curation_refinement_need",
+        source_reflection_profile_ids=(
+            "reflection_high_escalation_profile",
+            "reflection_critical_escalation_profile",
+        ),
+        advisory_outputs=(
+            "curation_confidence_fusion_placeholder",
+            "refinement_confidence_context",
+        ),
+    ),
+    _agent_confidence_fusion_profile(
+        fusion_profile_id="agent_confidence_fusion::final_synthesis_readiness",
+        topic_id="final_synthesis_readiness",
+        source_voting_profile_id="hybrid_agent_voting::final_synthesis_readiness",
+        source_debate_loop_id="hybrid_debate_loop::final_synthesis_readiness",
+        source_reflection_profile_ids=("reflection_critical_escalation_profile",),
+        advisory_outputs=(
+            "synthesis_confidence_fusion_placeholder",
+            "final_confidence_context",
+        ),
+    ),
+)
+AGENT_CONFIDENCE_FUSION_REGISTRY = AgentConfidenceFusionRegistry(
+    fusion_profiles=AGENT_CONFIDENCE_FUSION_PROFILES,
+    fusion_profile_ids=tuple(
+        profile.fusion_profile_id for profile in AGENT_CONFIDENCE_FUSION_PROFILES
+    ),
+    topic_ids=tuple(profile.topic_id for profile in AGENT_CONFIDENCE_FUSION_PROFILES),
+    source_registries=_AGENT_CONFIDENCE_FUSION_SOURCE_REGISTRIES,
+    voting_profile_ids=HYBRID_AGENT_VOTING_REGISTRY.voting_profile_ids,
+    debate_loop_ids=HYBRID_AGENT_DEBATE_LOOP_REGISTRY.loop_ids,
+    reflection_profile_ids=REFLECTION_ESCALATION_REGISTRY.profile_ids,
+    confidence_surface_ids=("creative_confidence_engine",),
+    profile_count=len(AGENT_CONFIDENCE_FUSION_PROFILES),
 )
 
 HYBRID_AGENTIC_WORKFLOW_STAGES = (

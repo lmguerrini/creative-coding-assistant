@@ -331,6 +331,8 @@ _EXPORT_MAP = {
     "AgentCapabilityRegistry": _AGENT_CAPABILITY_REGISTRY,
     "agent_capability_by_id": _AGENT_CAPABILITY_REGISTRY,
     "agent_capability_registry": _AGENT_CAPABILITY_REGISTRY,
+    "AgentConfidenceFusionProfile": _HYBRID_AGENTIC_WORKFLOW,
+    "AgentConfidenceFusionRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "EscalationPolicyRule": _ESCALATION_POLICY,
     "EscalationPolicyRegistry": _ESCALATION_POLICY,
     "escalation_policy_by_id": _ESCALATION_POLICY,
@@ -353,6 +355,8 @@ _EXPORT_MAP = {
     "SpecialistAgentLoopRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "V3BackboneModeNodeProfile": _HYBRID_AGENTIC_WORKFLOW,
     "V3BackboneModeRegistry": _HYBRID_AGENTIC_WORKFLOW,
+    "agent_confidence_fusion_profile_by_id": _HYBRID_AGENTIC_WORKFLOW,
+    "agent_confidence_fusion_registry": _HYBRID_AGENTIC_WORKFLOW,
     "conditional_multi_agent_escalation_condition_by_id": (
         _HYBRID_AGENTIC_WORKFLOW
     ),

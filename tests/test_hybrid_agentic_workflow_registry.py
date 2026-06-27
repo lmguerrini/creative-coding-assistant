@@ -2,6 +2,7 @@ import unittest
 
 from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
+    AgentConfidenceFusionRegistry,
     ConditionalMultiAgentEscalationRegistry,
     CreativeEscalationPolicyRegistry,
     EscalationGateRegistry,
@@ -12,6 +13,8 @@ from creative_coding_assistant.orchestration import (
     V3BackboneModeRegistry,
     agent_contract_registry,
     agent_capability_registry,
+    agent_confidence_fusion_profile_by_id,
+    agent_confidence_fusion_registry,
     agent_escalation_signal_registry,
     conditional_multi_agent_escalation_condition_by_id,
     conditional_multi_agent_escalation_registry,
@@ -357,6 +360,44 @@ REQUIRED_HYBRID_VOTING_FIELDS = {
     "authority_boundary",
     "blocked_runtime_behaviors",
     "voting_execution_implemented",
+    "final_answer_selection_implemented",
+    "agent_invocation_implemented",
+    "workflow_control_implemented",
+    "retry_triggering_implemented",
+    "generated_output_mutation_implemented",
+    "serialization_version",
+    "metadata_only",
+}
+EXPECTED_AGENT_CONFIDENCE_FUSION_PROFILE_IDS = (
+    "agent_confidence_fusion::planning_execution_fit",
+    "agent_confidence_fusion::style_aesthetic_alignment",
+    "agent_confidence_fusion::curation_refinement_need",
+    "agent_confidence_fusion::final_synthesis_readiness",
+)
+EXPECTED_AGENT_CONFIDENCE_FUSION_SOURCE_REGISTRIES = (
+    "creative_confidence_engine",
+    "hybrid_agent_voting_registry",
+    "hybrid_agent_debate_loop_registry",
+    "reflection_escalation_registry",
+    "evaluation_engine_contract_registry",
+    "hybrid_agentic_workflow_registry",
+)
+REQUIRED_AGENT_CONFIDENCE_FUSION_FIELDS = {
+    "fusion_profile_id",
+    "topic_id",
+    "source_voting_profile_id",
+    "source_debate_loop_id",
+    "source_confidence_surface_id",
+    "source_reflection_profile_ids",
+    "source_registries",
+    "confidence_signal_inputs",
+    "fusion_dimensions",
+    "advisory_outputs",
+    "authority_boundary",
+    "blocked_runtime_behaviors",
+    "confidence_fusion_implemented",
+    "confidence_score_calculation_implemented",
+    "vote_weighting_implemented",
     "final_answer_selection_implemented",
     "agent_invocation_implemented",
     "workflow_control_implemented",
@@ -1568,6 +1609,188 @@ class HybridAgentVotingRegistryTests(unittest.TestCase):
         for forbidden_term in (
             "execute_vote",
             "select_final_answer",
+            "execute_agent",
+            "trigger_retry",
+            "modify_output",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+class AgentConfidenceFusionRegistryTests(unittest.TestCase):
+    def test_registry_declares_passive_confidence_fusion_profiles(self) -> None:
+        registry = agent_confidence_fusion_registry()
+
+        self.assertEqual(registry.role, "agent_confidence_fusion_registry")
+        self.assertEqual(
+            registry.serialization_version,
+            "agent_confidence_fusion_registry.v1",
+        )
+        self.assertEqual(
+            registry.fusion_profile_ids,
+            EXPECTED_AGENT_CONFIDENCE_FUSION_PROFILE_IDS,
+        )
+        self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
+        self.assertEqual(
+            registry.source_registries,
+            EXPECTED_AGENT_CONFIDENCE_FUSION_SOURCE_REGISTRIES,
+        )
+        self.assertEqual(
+            registry.voting_profile_ids,
+            hybrid_agent_voting_registry().voting_profile_ids,
+        )
+        self.assertEqual(
+            registry.debate_loop_ids,
+            hybrid_agent_debate_loop_registry().loop_ids,
+        )
+        self.assertEqual(
+            registry.reflection_profile_ids,
+            reflection_escalation_registry().profile_ids,
+        )
+        self.assertEqual(registry.confidence_surface_ids, ("creative_confidence_engine",))
+        self.assertEqual(registry.profile_count, 4)
+        self.assertIn("does not calculate confidence scores", registry.authority_boundary)
+        self.assertFalse(registry.confidence_fusion_implemented)
+        self.assertFalse(registry.confidence_score_calculation_implemented)
+        self.assertFalse(registry.vote_weighting_implemented)
+        self.assertFalse(registry.final_answer_selection_implemented)
+        self.assertFalse(registry.agent_invocation_implemented)
+        self.assertFalse(registry.workflow_control_implemented)
+        self.assertFalse(registry.retry_triggering_implemented)
+        self.assertFalse(registry.generated_output_mutation_implemented)
+        self.assertTrue(registry.metadata_only)
+
+    def test_confidence_fusion_profiles_reference_known_sources(self) -> None:
+        registry = agent_confidence_fusion_registry()
+        known_votes = set(hybrid_agent_voting_registry().voting_profile_ids)
+        known_debates = set(hybrid_agent_debate_loop_registry().loop_ids)
+        known_reflections = set(reflection_escalation_registry().profile_ids)
+        known_confidence_surfaces = set(registry.confidence_surface_ids)
+
+        for profile in registry.fusion_profiles:
+            dumped = profile.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_AGENT_CONFIDENCE_FUSION_FIELDS)
+            self.assertEqual(
+                profile.source_registries,
+                EXPECTED_AGENT_CONFIDENCE_FUSION_SOURCE_REGISTRIES,
+            )
+            self.assertIn(profile.source_voting_profile_id, known_votes)
+            self.assertIn(profile.source_debate_loop_id, known_debates)
+            self.assertIn(
+                profile.source_confidence_surface_id,
+                known_confidence_surfaces,
+            )
+            self.assertTrue(
+                set(profile.source_reflection_profile_ids).issubset(known_reflections)
+            )
+            self.assertTrue(profile.confidence_signal_inputs)
+            self.assertTrue(profile.fusion_dimensions)
+            self.assertTrue(profile.advisory_outputs)
+            self.assertIn(
+                "confidence_fusion_execution",
+                profile.blocked_runtime_behaviors,
+            )
+            self.assertFalse(profile.confidence_fusion_implemented)
+            self.assertFalse(profile.confidence_score_calculation_implemented)
+            self.assertFalse(profile.vote_weighting_implemented)
+            self.assertFalse(profile.final_answer_selection_implemented)
+            self.assertFalse(profile.agent_invocation_implemented)
+            self.assertFalse(profile.workflow_control_implemented)
+            self.assertFalse(profile.retry_triggering_implemented)
+            self.assertFalse(profile.generated_output_mutation_implemented)
+            self.assertEqual(
+                profile.serialization_version,
+                "agent_confidence_fusion_profile.v1",
+            )
+            self.assertTrue(profile.metadata_only)
+
+    def test_confidence_fusion_source_registries_are_complete(self) -> None:
+        registry = agent_confidence_fusion_registry()
+        profile_sources = tuple(
+            dict.fromkeys(
+                source
+                for profile in registry.fusion_profiles
+                for source in profile.source_registries
+            )
+        )
+
+        self.assertEqual(profile_sources, registry.source_registries)
+        for source_registry in EXPECTED_AGENT_CONFIDENCE_FUSION_SOURCE_REGISTRIES:
+            self.assertIn(source_registry, profile_sources)
+        for profile in registry.fusion_profiles:
+            self.assertEqual(set(profile.source_registries), set(profile_sources))
+
+    def test_confidence_fusion_lookup_is_stable(self) -> None:
+        profile = agent_confidence_fusion_profile_by_id(
+            "agent_confidence_fusion::curation_refinement_need"
+        )
+        missing = agent_confidence_fusion_profile_by_id("missing_fusion")
+
+        self.assertIsNone(missing)
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.topic_id, "curation_refinement_need")
+        self.assertIn(
+            "curation_confidence_fusion_placeholder",
+            profile.advisory_outputs,
+        )
+        self.assertFalse(profile.confidence_fusion_implemented)
+
+    def test_confidence_fusion_registry_rejects_mismatched_metadata(self) -> None:
+        registry = agent_confidence_fusion_registry()
+        mismatched_profile = registry.fusion_profiles[0].model_copy(
+            update={"fusion_profile_id": "other_fusion"}
+        )
+        unknown_vote_profile = registry.fusion_profiles[0].model_copy(
+            update={"source_voting_profile_id": "missing_vote"}
+        )
+
+        with self.assertRaisesRegex(ValueError, "fusion_profile_ids must match"):
+            AgentConfidenceFusionRegistry(
+                fusion_profiles=(mismatched_profile,) + registry.fusion_profiles[1:],
+                fusion_profile_ids=registry.fusion_profile_ids,
+                topic_ids=registry.topic_ids,
+                source_registries=registry.source_registries,
+                voting_profile_ids=registry.voting_profile_ids,
+                debate_loop_ids=registry.debate_loop_ids,
+                reflection_profile_ids=registry.reflection_profile_ids,
+                confidence_surface_ids=registry.confidence_surface_ids,
+                profile_count=registry.profile_count,
+            )
+
+        with self.assertRaisesRegex(ValueError, "fusion voting profiles must be known"):
+            AgentConfidenceFusionRegistry(
+                fusion_profiles=(unknown_vote_profile,) + registry.fusion_profiles[1:],
+                fusion_profile_ids=registry.fusion_profile_ids,
+                topic_ids=registry.topic_ids,
+                source_registries=registry.source_registries,
+                voting_profile_ids=registry.voting_profile_ids,
+                debate_loop_ids=registry.debate_loop_ids,
+                reflection_profile_ids=registry.reflection_profile_ids,
+                confidence_surface_ids=registry.confidence_surface_ids,
+                profile_count=registry.profile_count,
+            )
+
+    def test_confidence_fusion_does_not_declare_active_execution(self) -> None:
+        registry = agent_confidence_fusion_registry()
+        combined_text = " ".join(
+            (
+                registry.authority_boundary,
+                *registry.blocked_runtime_behaviors,
+                *(
+                    field
+                    for profile in registry.fusion_profiles
+                    for field in (
+                        profile.fusion_profile_id,
+                        profile.authority_boundary,
+                        *profile.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "run_fusion",
+            "execute_fusion",
             "execute_agent",
             "trigger_retry",
             "modify_output",
