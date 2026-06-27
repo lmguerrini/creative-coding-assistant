@@ -59,6 +59,9 @@ _AGENT_BOUNDARIES = "creative_coding_assistant.orchestration.agent_boundaries"
 _AGENT_METADATA = "creative_coding_assistant.orchestration.agent_metadata"
 _AGENT_ROUTING = "creative_coding_assistant.orchestration.agent_routing"
 _BLACKBOARD_MEMORY = "creative_coding_assistant.orchestration.blackboard_memory"
+_SHARED_CONTEXT_VIEWS = (
+    "creative_coding_assistant.orchestration.shared_context_views"
+)
 _AGENT_CAPABILITY_REGISTRY = (
     "creative_coding_assistant.orchestration.agent_capabilities"
 )
@@ -217,6 +220,11 @@ _EXPORT_MAP = {
     "blackboard_channels_for_agent": _BLACKBOARD_MEMORY,
     "blackboard_memory_registry": _BLACKBOARD_MEMORY,
     "blackboard_permissions_by_agent_id": _BLACKBOARD_MEMORY,
+    "SharedContextViewContract": _SHARED_CONTEXT_VIEWS,
+    "SharedContextViewRegistry": _SHARED_CONTEXT_VIEWS,
+    "shared_context_view_by_agent_id": _SHARED_CONTEXT_VIEWS,
+    "shared_context_view_by_id": _SHARED_CONTEXT_VIEWS,
+    "shared_context_view_registry": _SHARED_CONTEXT_VIEWS,
     "AgentCapabilityProfile": _AGENT_CAPABILITY_REGISTRY,
     "AgentCapabilityRegistry": _AGENT_CAPABILITY_REGISTRY,
     "agent_capability_by_id": _AGENT_CAPABILITY_REGISTRY,
