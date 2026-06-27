@@ -30,6 +30,15 @@ lifecycle and synchronization metadata, workflow-to-agent handoff metadata, and
 an integration manifest. These registries make orchestration readiness
 inspectable while preserving the existing generation, runtime, routing, prompt,
 retry, storage, and output behavior.
+V4.3 adds passive Hybrid Agentic Workflow metadata over the stable V3 backbone
+and V4 orchestration contracts: V3 backbone mode, conditional escalation,
+specialist loops, gates, creative policy, debate, voting, confidence fusion,
+provenance, traces, budgets, result normalization, return handoff, HITL gates,
+threshold routing, ambiguity/risk/quality escalation, adaptive escalation, and
+workflow integration metadata. These registries describe future escalation
+readiness without executing agents, changing workflow order, routing providers
+or models, selecting runtimes, triggering retries, mutating prompts, or
+modifying generated output.
 
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
@@ -63,6 +72,10 @@ observed through live preview and runtime inspection from the same interface.
   view, dependency, scheduling, coordination, debate, consensus, lifecycle,
   synchronization, handoff, and integration metadata without active
   orchestration
+- V4.3 Hybrid Agentic Workflow registries for passive V3 backbone,
+  escalation, specialist-loop, debate, voting, confidence, provenance, trace,
+  budget, normalization, handoff, threshold, quality, adaptive, and workflow
+  integration metadata without active hybrid orchestration
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -107,6 +120,16 @@ contracts, escalation signals, lifecycle state metadata, synchronization
 warnings, workflow handoff contracts, and an integration manifest. It preserves
 the existing runtime graph and remains passive orchestration metadata, not
 active agent execution.
+
+V4.3 Hybrid Agentic Workflow defines the hybrid workflow layer as product
+metadata: V3 backbone mode, conditional multi-agent escalation candidates,
+specialist-loop candidates, escalation gates, creative escalation policy,
+reflection escalation, debate, voting, confidence fusion, decision provenance,
+escalation trace, exploration budgets, result normalization, return handoff,
+HITL gates, confidence/cost/latency threshold routing, ambiguity/risk/quality
+escalation, adaptive escalation, and workflow integration source coverage. It
+preserves the current LangGraph runtime and remains passive hybrid workflow
+metadata, not active agent execution or autonomous escalation.
 
 Artifact Intelligence capabilities:
 
@@ -171,6 +194,32 @@ Agent Orchestration registries:
 - Workflow Agent Handoff Registry
 - Orchestration Contract Integration Registry
 
+Hybrid Agentic Workflow registries:
+
+- V3 Backbone Mode Registry
+- Conditional Multi-Agent Escalation Registry
+- Specialist Agent Loop Registry
+- Escalation Gate Registry
+- Creative Escalation Policy Registry
+- Reflection Escalation Registry
+- Hybrid Agent Debate Loop Registry
+- Hybrid Agent Voting Registry
+- Agent Confidence Fusion Registry
+- Decision Provenance Registry
+- Escalation Trace Registry
+- Creative Exploration Budget Registry
+- Result Normalization Registry
+- Return-to-Workflow Handoff Registry
+- HITL Escalation Gate Registry
+- Confidence Threshold Routing Registry
+- Cost Threshold Routing Registry
+- Latency Threshold Routing Registry
+- Ambiguity Escalation Registry
+- Risk Escalation Registry
+- Quality Escalation Registry
+- Adaptive Multi-Agent Escalation Registry
+- Hybrid Workflow Integration source coverage
+
 The architecture documents six complementary views:
 
 - the real runtime graph in
@@ -183,13 +232,14 @@ The architecture documents six complementary views:
   [`architecture/artifact_intelligence_graph.md`](architecture/artifact_intelligence_graph.md)
 - the V3.5 Creative Workstation surface graph in
   [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
-- the cross-cutting engine matrix, including V4.1 and V4.2 registries, in
+- the cross-cutting engine matrix, including V4.1, V4.2, and V4.3 registries, in
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
 The runtime graph remains compact and truthful. The internal pipeline and
 dependency views remain blueprints for future V4 Agentic Studio decomposition,
-while V4.1 and V4.2 document passive roles, contracts, and orchestration
-metadata rather than claiming that a multi-agent runtime already exists.
+while V4.1, V4.2, and V4.3 document passive roles, contracts, orchestration,
+and hybrid workflow metadata rather than claiming that a multi-agent runtime
+already exists.
 
 ## Creative Workflow
 
@@ -197,7 +247,8 @@ The workstation still centers on the V2.5 creative loop, now enriched by the
 V3.1 Creative Cognition Core, V3.2 Generative Design Core, V3.3 Artifact
 Intelligence, V3.4 Creative Evaluation metadata, and V3.5 Creative
 Workstation inspection surfaces, plus V4.1 passive Multi-Agent Core contracts
-and V4.2 passive Agent Orchestration contracts:
+and V4.2 passive Agent Orchestration contracts, with V4.3 passive Hybrid
+Agentic Workflow metadata available for future escalation inspection:
 
 `Intent -> HITL Clarification -> Creative Translation -> Reference Fusion -> Creative Planning -> Generation -> Preview -> Critique -> Creative Evaluation -> Calibrated Quality -> Multi-Pass Refinement -> Export Preparation`
 
@@ -803,7 +854,8 @@ current runtime.
 - Agentic Studio: more collaborative decomposition of creative strategy,
   critique, and refinement when future runtime boundaries support it. V4.1
   supplies passive role and contract metadata, and V4.2 supplies passive
-  orchestration readiness metadata, for that direction. Neither layer is active
+  orchestration readiness metadata, while V4.3 supplies passive hybrid
+  workflow escalation metadata, for that direction. These layers are not active
   collaboration behavior in the current runtime.
 - Execution Optimization: stronger production telemetry, runtime policy, and
   cost/performance intelligence.

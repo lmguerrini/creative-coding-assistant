@@ -39,6 +39,7 @@ Use this matrix together with:
 | V3.6 | Stabilization & Refactor Pass hardens the completed V3 surface without adding new generation behavior | Knowledge boundaries are simplified without changing source-of-truth ownership | Runtime contracts, validation seams, backend dev mounting, and serialization paths are stabilized without feature expansion | Experience surfaces and documentation are aligned without changing capability scope |
 | V4.1 | Multi-Agent Core defines passive agent identities, contracts, roles, boundaries, and metadata over completed V3 capabilities without changing generation behavior | Agent-facing knowledge and memory access are described as metadata contracts only; no blackboard, shared context view, or retrieval side effect is implemented | Agent contracts remain export-only metadata and do not enter workflow control, provider routing, runtime selection, retries, or execution | Agentic Studio can inspect role and boundary contracts later, but no collaborative studio behavior is implemented here |
 | V4.2 | Agent Orchestration defines passive orchestration contracts over V4.1 agents without activating multi-agent execution | Blackboard, shared context view, state synchronization, and handoff surfaces are metadata contracts only; no memory storage, runtime synchronization, or retrieval side effect is implemented | Orchestration registries remain export-only metadata and do not enter workflow control, provider routing, runtime selection, retries, storage behavior, or execution | Agentic Studio can inspect orchestration readiness later, but no active coordination, debate, consensus, or lifecycle UI behavior is implemented here |
+| V4.3 | Hybrid Agentic Workflow defines passive V3 backbone, escalation, specialist loop, gate, debate, voting, confidence, provenance, trace, budget, normalization, handoff, threshold, quality, adaptive, and integration metadata without changing generation behavior | Agent-facing ambiguity, risk, quality, HITL, and handoff context is described as metadata only; no knowledge runtime, blackboard storage, or retrieval side effect is implemented | Hybrid workflow registries remain export-only metadata and do not enter workflow control, provider routing, model routing, runtime selection, retries, prompt rendering, storage behavior, or execution | Agentic Studio can inspect hybrid workflow readiness later, but no active escalation, agent execution, or autonomous orchestration UI behavior is implemented here |
 | V4 | Agentic Studio decomposes more internal creative work into bounded collaborative systems | Deeper agent-facing knowledge packets may emerge here | More inspectable orchestration paths may appear here | Agentic Studio becomes the main collaboration surface |
 | V5 | Core Engine remains creative-first but hands more optimization work outward | Knowledge signals can guide execution optimization and production policy | Execution Optimization & Production Intelligence becomes the primary expansion | Experience surfaces emphasize production telemetry and operational controls |
 | V6 | HoloGenesis Core OS can unify long-horizon creative strategy, lineage, and system identity | Long-horizon knowledge and memory adaptation move into the future OS direction | Execution can learn from prior runs without replacing bounded workflow control | Experience surfaces expose lineage, feedback, and evolving operator guidance |
@@ -148,6 +149,46 @@ All V4.2 orchestration registries remain export-only metadata surfaces. Boundary
 tests assert that they do not enter provider/model routing, prompt rendering,
 workflow node order, generated outputs, retry behavior, storage behavior, or
 active runtime orchestration.
+
+## V4.3 Hybrid Agentic Workflow Registries
+
+V4.3 adds passive hybrid workflow metadata over the stable V3 runtime graph and
+the V4.1/V4.2 agent contract layers. The registries describe future escalation
+readiness, source coverage, and return-to-workflow context. They are not active
+hybrid orchestration and do not execute escalation, invoke agents, evaluate
+thresholds, route providers/models, select runtimes, trigger retries, mutate
+prompts, write storage, or modify generated output.
+
+| Registry | Source module | Count | Serialization version | Current boundary |
+| --- | --- | ---: | --- | --- |
+| V3 backbone mode | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 18 node profiles | `v3_backbone_mode_registry.v1` | Declares the preserved V3 workflow backbone without changing graph order |
+| Conditional multi-agent escalation | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 5 conditions | `conditional_multi_agent_escalation_registry.v1` | Describes advisory escalation candidates without evaluating conditions or invoking agents |
+| Specialist agent loops | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 5 loops | `specialist_agent_loop_registry.v1` | Describes bounded future loop candidates without executing loops or coordinating agents |
+| Escalation gates | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 5 gates | `escalation_gate_registry.v1` | Describes advisory gates without evaluating, approving, or executing escalation |
+| Creative escalation policy | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 5 rules | `creative_escalation_policy_registry.v1` | Describes creative-domain escalation policy without evaluating policy or triggering escalation |
+| Reflection escalation | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 5 profiles | `reflection_escalation_registry.v1` | Maps reflection posture without running reflection or refinement |
+| Hybrid agent debate loop | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 4 profiles | `hybrid_agent_debate_loop_registry.v1` | Describes debate readiness without running debate loops |
+| Hybrid agent voting | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 4 profiles | `hybrid_agent_voting_registry.v1` | Describes voting readiness without voting or selecting outputs |
+| Agent confidence fusion | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 4 profiles | `agent_confidence_fusion_registry.v1` | Describes confidence fusion context without calculating or weighting confidence |
+| Decision provenance | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 4 profiles | `decision_provenance_registry.v1` | Describes future decision lineage without recording provenance or writing memory |
+| Escalation trace | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 4 profiles | `escalation_trace_registry.v1` | Describes future trace context without capturing or emitting traces |
+| Creative exploration budget | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 4 profiles | `creative_exploration_budget_registry.v1` | Describes advisory exploration posture without enforcing budgets or generating variants |
+| Result normalization | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 4 profiles | `result_normalization_registry.v1` | Describes future result packet surfaces without transforming or rewriting outputs |
+| Return-to-workflow handoff | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 4 profiles | `return_to_workflow_handoff_registry.v1` | Describes handoff context without changing workflow control or prompts |
+| HITL escalation gate | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 4 profiles | `hitl_escalation_gate_registry.v1` | Describes human-review visibility without requesting review or approving escalation |
+| Confidence threshold routing | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 4 profiles | `confidence_threshold_routing_registry.v1` | Describes confidence bands without routing by confidence |
+| Cost threshold routing | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 4 profiles | `cost_threshold_routing_registry.v1` | Describes cost bands without routing by cost or enforcing budgets |
+| Latency threshold routing | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 4 profiles | `latency_threshold_routing_registry.v1` | Describes latency bands without routing by latency or selecting runtimes |
+| Ambiguity escalation | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 4 profiles | `ambiguity_escalation_registry.v1` | Describes ambiguity posture without evaluating ambiguity or requesting clarification |
+| Risk escalation | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 4 profiles | `risk_escalation_registry.v1` | Describes risk posture without evaluating risk or applying mitigation |
+| Quality escalation | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 4 profiles | `quality_escalation_registry.v1` | Describes quality posture without evaluating quality or triggering refinement |
+| Adaptive multi-agent escalation | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 4 profiles | `adaptive_multi_agent_escalation_registry.v1` | Describes adaptive escalation posture without orchestrating agents or executing escalation |
+| Hybrid workflow integration | `src/creative_coding_assistant/orchestration/hybrid_agentic_workflow.py` | 5 stages / 43 source registries | `hybrid_workflow_registry.v1` | Exposes V4.3 source coverage without adding runtime behavior |
+
+All V4.3 hybrid workflow registries remain export-only metadata surfaces.
+Boundary tests assert that they do not enter provider/model routing, prompt
+rendering, workflow node order, generated outputs, retry behavior, storage
+behavior, runtime selection, or active multi-agent orchestration.
 
 ## V3.5 Workstation Contracts
 

@@ -36,6 +36,16 @@ integration manifest. These registries are discoverable Python metadata APIs;
 they do not execute orchestration, invoke agents, synchronize runtime state,
 mutate blackboard storage, change provider/model routing, alter prompts, add
 workflow nodes, trigger retries, or modify generated output.
+V4.3 Hybrid Agentic Workflow builds on V4.2 as passive hybrid workflow
+metadata. It declares the V3 backbone, conditional escalation candidates,
+specialist-loop candidates, gates, creative escalation policy, reflection
+escalation, debate, voting, confidence fusion, provenance, traces, exploration
+budgets, result normalization, return handoff, HITL gates, confidence/cost/
+latency threshold routing, ambiguity/risk/quality escalation, adaptive
+multi-agent escalation, and integration source coverage. These registries are
+inspectable metadata APIs; they do not execute escalation, invoke agents,
+change LangGraph node order, route providers or models, select runtimes,
+trigger retries, mutate prompts, or modify generated output.
 `_planning_node()` deterministically derives and stores the V3.1 Creative
 Cognition metadata, the V3.2 Generative Design metadata, the V3.3 Artifact
 Intelligence metadata, and the V3.4 Creative Evaluation metadata:
@@ -114,6 +124,9 @@ This separation is intentional:
   definitions over the completed V3 platform
 - The V4.2 Agent Orchestration layer owns passive orchestration contracts over
   those V4.1 agent roles, but still does not own runtime execution
+- The V4.3 Hybrid Agentic Workflow layer owns passive escalation, handoff,
+  threshold, adaptive, and integration metadata over the stable V3 backbone
+  and V4 contracts, but still does not own runtime execution
 - The internal capability pipeline and dependency graph remain decomposition
   candidates for later orchestration, but they are not a true multi-agent or
   multi-node runtime graph here
@@ -167,6 +180,28 @@ workflow node order, generated outputs, retries, or storage behavior.
 | Agent State Synchronization Registry | Checkpoint, consistency, stale-warning, and conflict-surface metadata only; does not synchronize runtime state |
 | Workflow Agent Handoff Registry | V3 workflow-surface to V4 agent handoff metadata only; does not alter workflow payloads or prompts |
 | Orchestration Contract Integration Registry | Discoverability manifest only; does not create an active orchestration path |
+
+## V4.3 Hybrid Agentic Workflow Metadata Boundary
+
+V4.3 introduces hybrid workflow metadata over the stable V3 graph and the V4.1/
+V4.2 agent contract layers. The registries describe future escalation
+readiness and source coverage. They remain metadata-only and are covered by
+tests that prove they do not change provider/model routing, runtime selection,
+prompt rendering, workflow node order, retries, generated outputs, or active
+multi-agent behavior.
+
+| Registry group | Current boundary |
+| --- | --- |
+| V3 Backbone Mode Registry | Declares the current V3 workflow graph as the active backbone without changing node order |
+| Conditional Multi-Agent Escalation Registry | Describes advisory escalation candidates without evaluating conditions or invoking agents |
+| Specialist Agent Loop Registry | Describes bounded future loop candidates without executing loops or coordinating agents |
+| Escalation Gate and Creative Escalation Policy registries | Describe advisory gates and creative-domain escalation rules without evaluating or approving escalation |
+| Reflection, Debate, Voting, and Confidence Fusion registries | Describe future review, debate, vote, and confidence context without running debates, voting, or selecting outputs |
+| Decision Provenance and Escalation Trace registries | Describe future lineage and trace visibility without recording traces or writing memory |
+| Creative Exploration Budget, Result Normalization, and Return-to-Workflow Handoff registries | Describe future budget, result packet, and handoff context without enforcing budgets, transforming outputs, or changing workflow control |
+| HITL Gate and Confidence/Cost/Latency Threshold Routing registries | Describe human-review visibility and advisory threshold bands without triggering HITL, routing, runtime selection, or retries |
+| Ambiguity, Risk, Quality, and Adaptive Escalation registries | Describe advisory escalation posture without evaluating ambiguity/risk/quality, executing escalation, orchestrating agents, or triggering refinement |
+| Hybrid Workflow Integration source coverage | Exposes the full passive V4.3 source set for audit and inspection without adding runtime behavior |
 
 ## Current Implemented Flow
 
@@ -260,6 +295,7 @@ flowchart TB
     metadata_boundary["Metadata boundary<br/>V3.1-V3.4 planning outputs<br/>stored on workflow + prompt input state"]:::relationship
     workstation_boundary["Workstation inspection boundary<br/>stream events + snapshots hydrate UI<br/>no extra runtime nodes"]:::relationship
     orchestration_boundary["V4.2 orchestration metadata boundary<br/>passive registries over V4.1 agents<br/>no runtime orchestration"]:::relationship
+    hybrid_workflow_boundary["V4.3 hybrid workflow metadata boundary<br/>passive escalation + integration registries<br/>no runtime escalation"]:::relationship
 
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
     review -->|"pass or max retry"| finalization --> finish
@@ -275,6 +311,9 @@ flowchart TB
     finalization -. final payload .-> workstation_boundary
     metadata_boundary -. future contract references .-> orchestration_boundary
     workstation_boundary -. inspection context references .-> orchestration_boundary
+    orchestration_boundary -. future escalation context .-> hybrid_workflow_boundary
+    metadata_boundary -. V3 backbone references .-> hybrid_workflow_boundary
+    workstation_boundary -. review surface context .-> hybrid_workflow_boundary
     intake -. intake_error .-> failure
     routing -. routing_error .-> failure
     memory -. memory_error .-> failure
@@ -299,7 +338,7 @@ flowchart TB
     class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,reasoning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
-    class metadata_boundary,workstation_boundary,orchestration_boundary relationship
+    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary relationship
     style phase_1 rx:6px,ry:6px
     style phase_2 rx:6px,ry:6px
     style phase_3 rx:6px,ry:6px

@@ -48,6 +48,30 @@ V35_WORKSTATION_SURFACES = (
     "V3 Inspector Panels",
     "Workstation Dashboard",
 )
+V43_HYBRID_WORKFLOW_REGISTRIES = (
+    "V3 Backbone Mode Registry",
+    "Conditional Multi-Agent Escalation Registry",
+    "Specialist Agent Loop Registry",
+    "Escalation Gate Registry",
+    "Creative Escalation Policy Registry",
+    "Reflection Escalation Registry",
+    "Hybrid Agent Debate Loop Registry",
+    "Hybrid Agent Voting Registry",
+    "Agent Confidence Fusion Registry",
+    "Decision Provenance Registry",
+    "Escalation Trace Registry",
+    "Creative Exploration Budget Registry",
+    "Result Normalization Registry",
+    "Return-to-Workflow Handoff Registry",
+    "HITL Escalation Gate Registry",
+    "Confidence Threshold Routing Registry",
+    "Cost Threshold Routing Registry",
+    "Latency Threshold Routing Registry",
+    "Ambiguity Escalation Registry",
+    "Risk Escalation Registry",
+    "Quality Escalation Registry",
+    "Adaptive Multi-Agent Escalation Registry",
+)
 PUBLIC_README_INTERNAL_MARKERS = (
     "Current Branch Status",
     "feature/",
@@ -83,6 +107,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("Multi-Agent Core", readme)
         self.assertIn("V4.2", readme)
         self.assertIn("Agent Orchestration", readme)
+        self.assertIn("V4.3", readme)
+        self.assertIn("Hybrid Agentic Workflow", readme)
         self.assertIn("Next.js workstation", readme)
         self.assertIn("Capability Scope", readme)
         self.assertIn("architecture/artifact_intelligence_graph.md", readme)
@@ -102,11 +128,19 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("Agent Lifecycle Registry", readme)
         self.assertIn("Workflow Agent Handoff Registry", readme)
         self.assertIn("Orchestration Contract Integration Registry", readme)
+        for registry_name in V43_HYBRID_WORKFLOW_REGISTRIES:
+            self.assertIn(registry_name, readme)
+        self.assertIn("Hybrid Workflow Integration source coverage", readme)
         self.assertIn("metadata-only", readme)
         self.assertIn("passive role and contract metadata", normalized_readme)
         self.assertIn("passive orchestration metadata", normalized_readme)
+        self.assertIn("passive hybrid workflow metadata", normalized_readme)
         self.assertIn("orchestration readiness metadata", normalized_readme)
         self.assertIn("not active multi-agent orchestration", normalized_readme)
+        self.assertIn(
+            "not active agent execution or autonomous escalation",
+            normalized_readme,
+        )
         self.assertIn("do not execute orchestration", normalized_readme)
         self.assertIn("do not create agents", normalized_readme)
         self.assertIn("route tasks", normalized_readme)
@@ -153,6 +187,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "prompt_input --> planning --> director --> reasoning --> prompt_rendering",
             mermaid,
         )
+        self.assertIn("V4.3 hybrid workflow metadata boundary", mermaid)
+        self.assertIn("no runtime escalation", mermaid)
 
     def test_workflow_doc_distinguishes_runtime_pipeline_and_dependency_views(
         self,
@@ -185,6 +221,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("multi-node runtime graph", architecture_doc)
         self.assertIn("## V4.1 Multi-Agent Core Contract Boundary", architecture_doc)
         self.assertIn("## V4.2 Agent Orchestration Metadata Boundary", architecture_doc)
+        self.assertIn(
+            "## V4.3 Hybrid Agentic Workflow Metadata Boundary",
+            architecture_doc,
+        )
         self.assertIn("Agent Contract Registry", architecture_doc)
         self.assertIn("Agent Memory Contract Registry", architecture_doc)
         self.assertIn("Agent Metadata Registry", architecture_doc)
@@ -192,8 +232,12 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("Blackboard Memory Registry", architecture_doc)
         self.assertIn("Workflow Agent Handoff Registry", architecture_doc)
         self.assertIn("Orchestration Contract Integration Registry", architecture_doc)
+        self.assertIn("Adaptive Escalation", architecture_doc)
+        self.assertIn("Hybrid Workflow Integration source coverage", architecture_doc)
         self.assertIn("passive orchestration metadata", normalized_architecture_doc)
+        self.assertIn("passive hybrid workflow metadata", normalized_architecture_doc)
         self.assertIn("do not execute orchestration", normalized_architecture_doc)
+        self.assertIn("do not execute escalation", normalized_architecture_doc)
         self.assertIn("do not enter provider prompts", normalized_architecture_doc)
         self.assertIn("LangGraph node ordering", architecture_doc)
 
@@ -291,6 +335,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "Multi-Agent Core",
             "V4.2",
             "Agent Orchestration",
+            "V4.3",
+            "Hybrid Agentic Workflow",
             "V4",
             "Agentic Studio",
             "V5",
@@ -305,6 +351,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("V3.6 Audit And Future-Readiness Metadata", engine_matrix)
         self.assertIn("## V4.1 Multi-Agent Core Registries", engine_matrix)
         self.assertIn("## V4.2 Agent Orchestration Registries", engine_matrix)
+        self.assertIn("## V4.3 Hybrid Agentic Workflow Registries", engine_matrix)
 
         for registry_marker in (
             "agent_capability_registry.v1",
@@ -331,6 +378,28 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "agent_state_sync_registry.v1",
             "workflow_agent_handoff_registry.v1",
             "orchestration_contract_integration.v1",
+            "v3_backbone_mode_registry.v1",
+            "conditional_multi_agent_escalation_registry.v1",
+            "specialist_agent_loop_registry.v1",
+            "escalation_gate_registry.v1",
+            "creative_escalation_policy_registry.v1",
+            "reflection_escalation_registry.v1",
+            "hybrid_agent_debate_loop_registry.v1",
+            "hybrid_agent_voting_registry.v1",
+            "agent_confidence_fusion_registry.v1",
+            "decision_provenance_registry.v1",
+            "escalation_trace_registry.v1",
+            "creative_exploration_budget_registry.v1",
+            "result_normalization_registry.v1",
+            "return_to_workflow_handoff_registry.v1",
+            "hitl_escalation_gate_registry.v1",
+            "confidence_threshold_routing_registry.v1",
+            "cost_threshold_routing_registry.v1",
+            "latency_threshold_routing_registry.v1",
+            "ambiguity_escalation_registry.v1",
+            "risk_escalation_registry.v1",
+            "quality_escalation_registry.v1",
+            "adaptive_multi_agent_escalation_registry.v1",
         ):
             self.assertIn(registry_marker, engine_matrix)
 
@@ -364,6 +433,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
 
         self.assertIn("export-only metadata surfaces", engine_matrix)
         self.assertIn("not active multi-agent orchestration", normalized_engine_matrix)
+        self.assertIn("passive hybrid workflow metadata", normalized_engine_matrix)
+        self.assertIn("runtime selection", normalized_engine_matrix)
         self.assertIn("storage behavior", normalized_engine_matrix)
         self.assertIn("active runtime orchestration", normalized_engine_matrix)
         self.assertIn("change LangGraph node order", normalized_engine_matrix)
