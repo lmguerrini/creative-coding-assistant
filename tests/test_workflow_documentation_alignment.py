@@ -162,6 +162,12 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("not code generation execution", normalized_architecture_doc)
         self.assertIn("true multi-agent", architecture_doc)
         self.assertIn("multi-node runtime graph", architecture_doc)
+        self.assertIn("## V4.1 Multi-Agent Core Contract Boundary", architecture_doc)
+        self.assertIn("Agent Contract Registry", architecture_doc)
+        self.assertIn("Agent Memory Contract Registry", architecture_doc)
+        self.assertIn("Agent Metadata Registry", architecture_doc)
+        self.assertIn("do not enter provider prompts", normalized_architecture_doc)
+        self.assertIn("LangGraph node ordering", architecture_doc)
 
     def test_creative_intelligence_graph_docs_cover_current_pipeline(self) -> None:
         architecture_doc = (
@@ -253,6 +259,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "Creative Workstation",
             "V3.6",
             "Stabilization & Refactor Pass",
+            "V4.1",
+            "Multi-Agent Core",
             "V4",
             "Agentic Studio",
             "V5",
@@ -265,12 +273,19 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("workstation_surface_graph.md", engine_matrix)
         self.assertIn("workstation_engine_contract_registry.v1", engine_matrix)
         self.assertIn("V3.6 Audit And Future-Readiness Metadata", engine_matrix)
+        self.assertIn("## V4.1 Multi-Agent Core Registries", engine_matrix)
 
         for registry_marker in (
             "agent_capability_registry.v1",
             "escalation_policy_registry.v1",
             "hybrid_workflow_registry.v1",
             "engine_contract_consistency_registry.v1",
+            "agent_contract_registry.v1",
+            "agent_identity_registry.v1",
+            "agent_memory_contract_registry.v1",
+            "agent_role_registry.v1",
+            "agent_boundary_registry.v1",
+            "agent_metadata_registry.v1",
         ):
             self.assertIn(registry_marker, engine_matrix)
 
@@ -279,10 +294,17 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "escalation_policy.py",
             "hybrid_agentic_workflow.py",
             "engine_contract_consistency.py",
+            "agent_contracts.py",
+            "agent_identities.py",
+            "agent_memory_contracts.py",
+            "agent_roles.py",
+            "agent_boundaries.py",
+            "agent_metadata.py",
         ):
             self.assertIn(module_path, engine_matrix)
 
         self.assertIn("export-only metadata surfaces", engine_matrix)
+        self.assertIn("change LangGraph node order", normalized_engine_matrix)
         self.assertIn(
             "not additional LangGraph runtime nodes",
             normalized_engine_matrix,

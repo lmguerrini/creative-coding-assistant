@@ -22,6 +22,11 @@ events, workflow trace, V3 metadata, and static workstation surface contracts.
 V3.6 keeps the same runtime node set while stabilizing graph registration,
 stream/event payload helpers, workflow serialization, and local backend
 mounting around the existing implementation.
+V4.1 Multi-Agent Core keeps that same runtime node set. It adds passive
+agent identity, contract, memory, role, boundary, and advisory metadata
+registries that describe future agent responsibilities without invoking
+agents, routing tasks, rendering agent text into prompts, or adding workflow
+payload behavior.
 `_planning_node()` deterministically derives and stores the V3.1 Creative
 Cognition metadata, the V3.2 Generative Design metadata, the V3.3 Artifact
 Intelligence metadata, and the V3.4 Creative Evaluation metadata:
@@ -96,8 +101,35 @@ This separation is intentional:
   and Creative Evaluation layers own bounded, inspectable metadata derivation
 - The V3.5 Workstation layer owns client-side inspection, provenance, timeline,
   dashboard, and contract surfaces over existing metadata
-- The internal capability pipeline and dependency graph are V4 decomposition
-  candidates, but they are not yet a true multi-agent or multi-node runtime graph
+- The V4.1 Multi-Agent Core layer owns passive agent role and contract
+  definitions over the completed V3 platform
+- The internal capability pipeline and dependency graph remain decomposition
+  candidates for later orchestration, but they are not a true multi-agent or
+  multi-node runtime graph here
+
+## V4.1 Multi-Agent Core Contract Boundary
+
+V4.1 introduces a static Multi-Agent Core as metadata, not a runtime
+orchestration layer. The backend exposes inspectable registries for agent
+identities, contracts, memory access boundaries, role ordering, role authority
+boundaries, and advisory operational metadata. The role set covers Planner,
+Research, Style, Runtime, Artifact, Art Direction, Aesthetic Critic, Narrative
+& Symbolic, Creative Curator, Critic, Refiner, and Final Synthesizer agents.
+
+These registries sit beside the V3 engine and workstation contract registries.
+They are importable Python metadata APIs for future orchestration consumers, but
+they do not enter provider prompts, workflow event payloads, LangGraph node ordering,
+provider/model routing, runtime selection, retries, artifact execution, final
+response generation, or generated output modification.
+
+| Registry | Current boundary |
+| --- | --- |
+| Agent Identity Registry | Stable names, role families, capability classes, visibility, and version metadata |
+| Agent Contract Registry | Per-agent passive input, output, capability, cost, latency, and future hook metadata |
+| Agent Memory Contract Registry | Session, artifact, evaluation, provenance, and future blackboard read/write/reference boundaries without storage |
+| Agent Role Registry | Static role order, role-family grouping, and capability-family grouping |
+| Agent Boundary Registry | Role-specific allowed inputs, allowed outputs, forbidden behaviors, and rationale |
+| Agent Metadata Registry | Advisory cacheability, parallelization, observability, auditability, cost, latency, and future-readiness metadata |
 
 ## Current Implemented Flow
 

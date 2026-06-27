@@ -37,6 +37,7 @@ Use this matrix together with:
 | V3.4 | Creative Evaluation adds metadata-only critic, self-evaluation, improvement, reflection, confidence, score, consistency, report, and evaluation engine-contract metadata | Retrieval and memory continue to ground evaluation context without introducing a new knowledge runtime | Evaluation metadata is serialized through workflow payloads without changing provider routing, runtime selection, artifact execution, autonomous retries, or preview behavior | Next.js stream hydration reads evaluation summaries and the engine contract registry for future inspector/workflow surfaces |
 | V3.5 | Creative Workstation exposes state, session, workflow, provenance, timeline, inspector, dashboard, and workstation contract metadata without changing generation behavior | Knowledge surfaces become more operator-legible without changing retrieval ownership | Execution metadata is exposed more clearly without adding hidden runtime behavior | Workstation surfaces become the primary focus for usability, inspection, and operator flow |
 | V3.6 | Stabilization & Refactor Pass hardens the completed V3 surface without adding new generation behavior | Knowledge boundaries are simplified without changing source-of-truth ownership | Runtime contracts, validation seams, backend dev mounting, and serialization paths are stabilized without feature expansion | Experience surfaces and documentation are aligned without changing capability scope |
+| V4.1 | Multi-Agent Core defines passive agent identities, contracts, roles, boundaries, and metadata over completed V3 capabilities without changing generation behavior | Agent-facing knowledge and memory access are described as metadata contracts only; no blackboard, shared context view, or retrieval side effect is implemented | Agent contracts remain export-only metadata and do not enter workflow control, provider routing, runtime selection, retries, or execution | Agentic Studio can inspect role and boundary contracts later, but no collaborative studio behavior is implemented here |
 | V4 | Agentic Studio decomposes more internal creative work into bounded collaborative systems | Deeper agent-facing knowledge packets may emerge here | More inspectable orchestration paths may appear here | Agentic Studio becomes the main collaboration surface |
 | V5 | Core Engine remains creative-first but hands more optimization work outward | Knowledge signals can guide execution optimization and production policy | Execution Optimization & Production Intelligence becomes the primary expansion | Experience surfaces emphasize production telemetry and operational controls |
 | V6 | HoloGenesis Core OS can unify long-horizon creative strategy, lineage, and system identity | Long-horizon knowledge and memory adaptation move into the future OS direction | Execution can learn from prior runs without replacing bounded workflow control | Experience surfaces expose lineage, feedback, and evolving operator guidance |
@@ -89,6 +90,31 @@ These V3.6 registries remain export-only metadata surfaces. Tests assert that
 they do not alter provider/model routing, runtime selection, prompt rendering,
 workflow payloads, retry behavior, artifact execution, preview execution,
 generated output, or the V3 node order.
+
+## V4.1 Multi-Agent Core Registries
+
+V4.1 adds a passive Multi-Agent Core on top of the completed V3 platform. It
+defines the agent society as static metadata: identities, contracts, memory
+access boundaries, role ordering, role-specific authority boundaries, and
+advisory operational metadata. These registries are product architecture
+surfaces for inspection and future orchestration consumption; they are not
+active multi-agent orchestration.
+
+| Registry | Source module | Count | Serialization version | Current boundary |
+| --- | --- | ---: | --- | --- |
+| Agent contracts | `src/creative_coding_assistant/orchestration/agent_contracts.py` | 12 | `agent_contract_registry.v1` | Describes per-agent passive inputs, outputs, capabilities, memory posture, cost, latency, and future orchestration hooks |
+| Agent identities | `src/creative_coding_assistant/orchestration/agent_identities.py` | 12 | `agent_identity_registry.v1` | Defines stable agent names, role families, purposes, capability classes, authority scope, visibility, and version metadata |
+| Agent memory contracts | `src/creative_coding_assistant/orchestration/agent_memory_contracts.py` | 12 | `agent_memory_contract_registry.v1` | Describes session, artifact, evaluation, provenance, and future blackboard read/write/reference boundaries without storage |
+| Agent roles | `src/creative_coding_assistant/orchestration/agent_roles.py` | 12 | `agent_role_registry.v1` | Exposes static role order, lookup, role-family grouping, and capability-family grouping |
+| Agent boundaries | `src/creative_coding_assistant/orchestration/agent_boundaries.py` | 12 | `agent_boundary_registry.v1` | Records allowed inputs, allowed outputs, forbidden behaviors, and role-specific boundary rationale |
+| Agent metadata | `src/creative_coding_assistant/orchestration/agent_metadata.py` | 12 | `agent_metadata_registry.v1` | Provides advisory cacheability, parallelization, observability, auditability, cost, latency, and future-readiness metadata |
+
+All V4.1 agent registries remain export-only metadata surfaces. They do not
+create agents, route tasks dynamically, implement blackboard memory, materialize
+shared context views, render agent contract text into provider prompts, enter
+workflow event payloads, change LangGraph node order, alter provider/model
+routing, select runtimes, trigger retries, execute artifacts, change final
+response generation, or modify generated output.
 
 ## V3.5 Workstation Contracts
 
