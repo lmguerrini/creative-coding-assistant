@@ -227,6 +227,9 @@ _SERVICE = "creative_coding_assistant.orchestration.service"
 _WORKFLOW = "creative_coding_assistant.orchestration.workflow"
 _WORKFLOW_GRAPH = "creative_coding_assistant.orchestration.workflow_graph"
 _WORKFLOW_REVIEW = "creative_coding_assistant.orchestration.workflow_review"
+_EXECUTION_GRAPH_ANALYZER = (
+    "creative_coding_assistant.orchestration.execution_graph_analyzer"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -234,6 +237,9 @@ _EXPORT_MAP = {
     "AssistantWorkflowGraphState": _WORKFLOW_GRAPH,
     "AssistantWorkflowRuntime": _WORKFLOW_GRAPH,
     "AssistantWorkflowState": _WORKFLOW,
+    "ExecutionGraphAnalysis": _EXECUTION_GRAPH_ANALYZER,
+    "ExecutionGraphEdge": _EXECUTION_GRAPH_ANALYZER,
+    "ExecutionGraphNode": _EXECUTION_GRAPH_ANALYZER,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1157,6 +1163,7 @@ _EXPORT_MAP = {
     "WorkflowArtifactCritique": _ARTIFACTS,
     "JinjaPromptRenderer": _PROMPT_TEMPLATES,
     "begin_assistant_workflow": _WORKFLOW,
+    "analyze_assistant_execution_graph": _EXECUTION_GRAPH_ANALYZER,
     "build_assistant_workflow_graph": _WORKFLOW_GRAPH,
     "calibrate_artifact_quality": _QUALITY_CALIBRATION,
     "artifact_quality_score": _REFINEMENT_PASSES,
@@ -1170,6 +1177,9 @@ _EXPORT_MAP = {
     "build_rendered_prompt_request": _PROMPT_TEMPLATES,
     "build_retrieval_context_request": _RETRIEVAL,
     "complete_workflow_step": _WORKFLOW,
+    "execution_graph_edges_from": _EXECUTION_GRAPH_ANALYZER,
+    "execution_graph_edges_to": _EXECUTION_GRAPH_ANALYZER,
+    "execution_graph_node_by_id": _EXECUTION_GRAPH_ANALYZER,
     "complete_latest_refinement_pass": _REFINEMENT_PASSES,
     "critique_workflow_artifacts": _ARTIFACT_CRITIQUE,
     "creative_translation_prompt_lines": _CREATIVE_TRANSLATION,
