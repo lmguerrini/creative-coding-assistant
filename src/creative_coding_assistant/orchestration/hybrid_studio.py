@@ -1549,3 +1549,387 @@ AUTO_MODE_REGISTRY = AutoModeRegistry(
     studio_surface_refs=_AUTO_MODE_STUDIO_SURFACES,
     observability_surfaces=_AUTO_MODE_OBSERVABILITY_SURFACES,
 )
+
+StudioModePosture = Literal[
+    "inspect",
+    "compare",
+    "simulate",
+    "operator_review",
+]
+
+STUDIO_MODE_PROFILE_SERIALIZATION_VERSION = "studio_mode_profile.v1"
+STUDIO_MODE_REGISTRY_SERIALIZATION_VERSION = "studio_mode_registry.v1"
+STUDIO_MODE_REGISTRY_AUTHORITY_BOUNDARY = (
+    "Studio Mode metadata describes passive V4.4 Hybrid Studio operator views "
+    "and inspectable mode surfaces only; it does not control workflows, run "
+    "Auto Mode, execute hybrid profiles, route providers or models, execute "
+    "artifacts, trigger retries, request human input automatically, mutate "
+    "prompts, write replay storage, or modify generated output."
+)
+
+_STUDIO_MODE_SOURCE_REGISTRIES = (
+    "auto_mode_registry",
+    "hybrid_execution_registry",
+    "local_model_registry",
+    "cloud_model_registry",
+    "workstation_engine_contract_registry",
+    "hybrid_agentic_workflow_registry",
+)
+
+_STUDIO_MODE_SURFACES = (
+    "studio_mode_shell",
+    "model_catalog_panel",
+    "auto_mode_panel",
+    "hybrid_execution_panel",
+    "comparison_panel",
+)
+
+_STUDIO_MODE_OBSERVABILITY_SURFACES = (
+    "studio_mode_profile_id",
+    "studio_mode_posture",
+    "source_auto_mode_profile_ids",
+    "source_execution_profile_ids",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_STUDIO_MODE_BLOCKED_RUNTIME_BEHAVIORS = (
+    "studio_mode_runtime_control",
+    "auto_mode_execution",
+    "hybrid_execution",
+    "workflow_control",
+    "provider_or_model_routing",
+    "artifact_execution",
+    "human_input_request",
+    "retry_or_refinement_triggering",
+    "prompt_mutation",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class StudioModeProfile(BaseModel):
+    """Inspectable passive Studio Mode surface profile."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    studio_mode_profile_id: str = Field(min_length=1, max_length=100)
+    profile_name: str = Field(min_length=1, max_length=140)
+    studio_mode_posture: StudioModePosture
+    source_auto_mode_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_execution_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    visible_surface_refs: tuple[str, ...] = Field(min_length=1, max_length=5)
+    operator_actions: tuple[str, ...] = Field(min_length=1, max_length=10)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    authority_boundary: str = Field(
+        default=STUDIO_MODE_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_STUDIO_MODE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=14,
+    )
+    studio_mode_runtime_control_implemented: Literal[False] = False
+    auto_mode_execution_implemented: Literal[False] = False
+    hybrid_execution_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    artifact_execution_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["studio_mode_profile.v1"] = (
+        STUDIO_MODE_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class StudioModeRegistry(BaseModel):
+    """Stable passive registry for V4.4 Hybrid Studio Mode metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["studio_mode_registry"] = "studio_mode_registry"
+    serialization_version: Literal["studio_mode_registry.v1"] = (
+        STUDIO_MODE_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=STUDIO_MODE_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    studio_mode_profiles: tuple[StudioModeProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    studio_mode_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    studio_mode_postures: tuple[StudioModePosture, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    auto_mode_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    execution_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    visible_surface_refs: tuple[str, ...] = Field(min_length=5, max_length=5)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_STUDIO_MODE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=14,
+    )
+    studio_mode_runtime_control_implemented: Literal[False] = False
+    auto_mode_execution_implemented: Literal[False] = False
+    hybrid_execution_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    artifact_execution_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.studio_mode_profile_id for profile in self.studio_mode_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("studio_mode_profile_ids must be unique")
+        if self.studio_mode_profile_ids != derived_profile_ids:
+            raise ValueError("studio_mode_profile_ids must match studio_mode_profiles")
+        if self.profile_count != len(self.studio_mode_profiles):
+            raise ValueError("profile_count must match studio_mode_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.studio_mode_postures != tuple(
+            profile.studio_mode_posture for profile in self.studio_mode_profiles
+        ):
+            raise ValueError("studio_mode_postures must match studio_mode_profiles")
+
+        known_routes = set(self.route_names)
+        known_auto_profiles = set(self.auto_mode_profile_ids)
+        known_execution_profiles = set(self.execution_profile_ids)
+        known_visible_surfaces = set(self.visible_surface_refs)
+        profile_sources = {
+            source_registry
+            for profile in self.studio_mode_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match studio mode sources")
+
+        for profile in self.studio_mode_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.source_auto_mode_profile_ids).issubset(
+                known_auto_profiles
+            ):
+                raise ValueError(
+                    "source_auto_mode_profile_ids must be known Auto Mode profiles"
+                )
+            if not set(profile.source_execution_profile_ids).issubset(
+                known_execution_profiles
+            ):
+                raise ValueError(
+                    "source_execution_profile_ids must be known execution profiles"
+                )
+            if not set(profile.visible_surface_refs).issubset(known_visible_surfaces):
+                raise ValueError("visible_surface_refs must be known registry surfaces")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def studio_mode_registry() -> StudioModeRegistry:
+    """Return passive V4.4 Hybrid Studio Mode metadata."""
+
+    return STUDIO_MODE_REGISTRY
+
+
+def studio_mode_profile_by_id(
+    studio_mode_profile_id: str,
+    registry: StudioModeRegistry | None = None,
+) -> StudioModeProfile | None:
+    """Return one Studio Mode profile without activating it."""
+
+    source_registry = registry or STUDIO_MODE_REGISTRY
+    for profile in source_registry.studio_mode_profiles:
+        if profile.studio_mode_profile_id == studio_mode_profile_id:
+            return profile
+    return None
+
+
+def studio_mode_profiles_for_route(
+    route: RouteName | str,
+    registry: StudioModeRegistry | None = None,
+) -> tuple[StudioModeProfile, ...]:
+    """Return passive Studio Mode profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or STUDIO_MODE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.studio_mode_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def _studio_mode_profile(
+    *,
+    studio_mode_profile_id: str,
+    profile_name: str,
+    studio_mode_posture: StudioModePosture,
+    source_auto_mode_profile_ids: tuple[str, ...],
+    source_execution_profile_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    visible_surface_refs: tuple[str, ...],
+    operator_actions: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> StudioModeProfile:
+    return StudioModeProfile(
+        studio_mode_profile_id=studio_mode_profile_id,
+        profile_name=profile_name,
+        studio_mode_posture=studio_mode_posture,
+        source_auto_mode_profile_ids=source_auto_mode_profile_ids,
+        source_execution_profile_ids=source_execution_profile_ids,
+        route_applicability=route_applicability,
+        visible_surface_refs=visible_surface_refs,
+        operator_actions=operator_actions,
+        advisory_outputs=advisory_outputs,
+        source_registries=_STUDIO_MODE_SOURCE_REGISTRIES,
+        observability_surfaces=_STUDIO_MODE_OBSERVABILITY_SURFACES,
+    )
+
+
+STUDIO_MODE_PROFILES = (
+    _studio_mode_profile(
+        studio_mode_profile_id="studio_mode_inspection_profile",
+        profile_name="Studio Mode Inspection Profile",
+        studio_mode_posture="inspect",
+        source_auto_mode_profile_ids=("auto_mode_observe_only_profile",),
+        source_execution_profile_ids=("operator_selected_context_profile",),
+        route_applicability=tuple(RouteName),
+        visible_surface_refs=(
+            "studio_mode_shell",
+            "model_catalog_panel",
+            "auto_mode_panel",
+        ),
+        operator_actions=(
+            "inspect_model_catalog_metadata",
+            "inspect_auto_mode_metadata",
+            "inspect_execution_boundaries",
+        ),
+        advisory_outputs=(
+            "studio_inspection_summary",
+            "metadata_surface_inventory",
+            "authority_boundary_snapshot",
+        ),
+    ),
+    _studio_mode_profile(
+        studio_mode_profile_id="studio_mode_comparison_profile",
+        profile_name="Studio Mode Comparison Profile",
+        studio_mode_posture="compare",
+        source_auto_mode_profile_ids=("auto_mode_suggestion_profile",),
+        source_execution_profile_ids=(
+            "local_first_context_profile",
+            "cloud_first_context_profile",
+            "side_by_side_comparison_profile",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        visible_surface_refs=(
+            "studio_mode_shell",
+            "model_catalog_panel",
+            "comparison_panel",
+        ),
+        operator_actions=(
+            "compare_local_cloud_metadata",
+            "compare_provider_boundary_metadata",
+            "select_metadata_view",
+        ),
+        advisory_outputs=(
+            "comparison_view_metadata",
+            "surface_difference_summary",
+            "manual_selection_context",
+        ),
+    ),
+    _studio_mode_profile(
+        studio_mode_profile_id="studio_mode_simulation_profile",
+        profile_name="Studio Mode Simulation Profile",
+        studio_mode_posture="simulate",
+        source_auto_mode_profile_ids=("auto_mode_simulation_profile",),
+        source_execution_profile_ids=("side_by_side_comparison_profile",),
+        route_applicability=(
+            RouteName.EXPLAIN,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        visible_surface_refs=(
+            "studio_mode_shell",
+            "hybrid_execution_panel",
+            "comparison_panel",
+        ),
+        operator_actions=(
+            "open_simulation_metadata_view",
+            "review_simulated_plan_metadata",
+            "clear_simulation_metadata",
+        ),
+        advisory_outputs=(
+            "simulation_view_metadata",
+            "non_execution_notice",
+            "manual_review_context",
+        ),
+    ),
+    _studio_mode_profile(
+        studio_mode_profile_id="studio_mode_operator_review_profile",
+        profile_name="Studio Mode Operator Review Profile",
+        studio_mode_posture="operator_review",
+        source_auto_mode_profile_ids=("auto_mode_operator_confirmed_profile",),
+        source_execution_profile_ids=tuple(
+            HYBRID_EXECUTION_REGISTRY.execution_profile_ids
+        ),
+        route_applicability=tuple(RouteName),
+        visible_surface_refs=tuple(_STUDIO_MODE_SURFACES),
+        operator_actions=(
+            "review_operator_selection_metadata",
+            "review_authority_boundaries",
+            "record_manual_review_note_metadata",
+        ),
+        advisory_outputs=(
+            "operator_review_snapshot",
+            "manual_confirmation_context",
+            "audit_ready_studio_metadata",
+        ),
+    ),
+)
+
+STUDIO_MODE_REGISTRY = StudioModeRegistry(
+    studio_mode_profiles=STUDIO_MODE_PROFILES,
+    studio_mode_profile_ids=tuple(
+        profile.studio_mode_profile_id for profile in STUDIO_MODE_PROFILES
+    ),
+    studio_mode_postures=tuple(
+        profile.studio_mode_posture for profile in STUDIO_MODE_PROFILES
+    ),
+    auto_mode_profile_ids=tuple(AUTO_MODE_REGISTRY.auto_mode_profile_ids),
+    execution_profile_ids=tuple(HYBRID_EXECUTION_REGISTRY.execution_profile_ids),
+    visible_surface_refs=_STUDIO_MODE_SURFACES,
+    route_names=tuple(RouteName),
+    profile_count=len(STUDIO_MODE_PROFILES),
+    source_registries=_STUDIO_MODE_SOURCE_REGISTRIES,
+    observability_surfaces=_STUDIO_MODE_OBSERVABILITY_SURFACES,
+)
