@@ -1157,3 +1157,395 @@ HYBRID_EXECUTION_REGISTRY = HybridExecutionRegistry(
     studio_surface_refs=_HYBRID_EXECUTION_STUDIO_SURFACES,
     observability_surfaces=_HYBRID_EXECUTION_OBSERVABILITY_SURFACES,
 )
+
+AutoModePosture = Literal[
+    "observe_only",
+    "suggestion_only",
+    "simulation_only",
+    "operator_confirmed",
+]
+
+AUTO_MODE_PROFILE_SERIALIZATION_VERSION = "auto_mode_profile.v1"
+AUTO_MODE_REGISTRY_SERIALIZATION_VERSION = "auto_mode_registry.v1"
+AUTO_MODE_REGISTRY_AUTHORITY_BOUNDARY = (
+    "Auto Mode metadata describes passive V4.4 Hybrid Studio advisory mode "
+    "postures only; it does not execute workflows, route providers or models, "
+    "select models automatically, run hybrid execution, trigger retries, ask "
+    "for human input automatically, mutate prompts, write replay storage, or "
+    "modify generated output."
+)
+
+_AUTO_MODE_SOURCE_REGISTRIES = (
+    "local_model_registry",
+    "cloud_model_registry",
+    "hybrid_execution_registry",
+    "agent_routing_registry",
+    "settings_generation_provider_config",
+    "hybrid_agentic_workflow_registry",
+)
+
+_AUTO_MODE_STUDIO_SURFACES = (
+    "auto_mode_panel",
+    "hybrid_execution_panel",
+    "provider_selection_metadata",
+    "execution_simulator_metadata",
+    "local_cloud_comparison_metadata",
+)
+
+_AUTO_MODE_OBSERVABILITY_SURFACES = (
+    "auto_mode_profile_id",
+    "auto_mode_posture",
+    "source_execution_profile_ids",
+    "route_applicability",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_AUTO_MODE_BLOCKED_RUNTIME_BEHAVIORS = (
+    "auto_mode_execution",
+    "automatic_provider_selection",
+    "automatic_model_selection",
+    "hybrid_execution",
+    "provider_or_model_routing",
+    "human_input_request",
+    "retry_or_refinement_triggering",
+    "prompt_mutation",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class AutoModeProfile(BaseModel):
+    """Inspectable advisory Auto Mode profile for Hybrid Studio."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    auto_mode_profile_id: str = Field(min_length=1, max_length=100)
+    profile_name: str = Field(min_length=1, max_length=140)
+    auto_mode_posture: AutoModePosture
+    source_execution_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    advisory_inputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    operator_controls: tuple[str, ...] = Field(min_length=1, max_length=8)
+    studio_surface_refs: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    authority_boundary: str = Field(
+        default=AUTO_MODE_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_AUTO_MODE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=14,
+    )
+    auto_mode_execution_implemented: Literal[False] = False
+    automatic_provider_selection_implemented: Literal[False] = False
+    automatic_model_selection_implemented: Literal[False] = False
+    hybrid_execution_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["auto_mode_profile.v1"] = (
+        AUTO_MODE_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class AutoModeRegistry(BaseModel):
+    """Stable passive registry for V4.4 Hybrid Studio Auto Mode metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["auto_mode_registry"] = "auto_mode_registry"
+    serialization_version: Literal["auto_mode_registry.v1"] = (
+        AUTO_MODE_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=AUTO_MODE_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    auto_mode_profiles: tuple[AutoModeProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    auto_mode_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    auto_mode_postures: tuple[AutoModePosture, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    execution_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    studio_surface_refs: tuple[str, ...] = Field(min_length=5, max_length=5)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_AUTO_MODE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=14,
+    )
+    auto_mode_execution_implemented: Literal[False] = False
+    automatic_provider_selection_implemented: Literal[False] = False
+    automatic_model_selection_implemented: Literal[False] = False
+    hybrid_execution_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.auto_mode_profile_id for profile in self.auto_mode_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("auto_mode_profile_ids must be unique")
+        if self.auto_mode_profile_ids != derived_profile_ids:
+            raise ValueError("auto_mode_profile_ids must match auto_mode_profiles")
+        if self.profile_count != len(self.auto_mode_profiles):
+            raise ValueError("profile_count must match auto_mode_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.auto_mode_postures != tuple(
+            profile.auto_mode_posture for profile in self.auto_mode_profiles
+        ):
+            raise ValueError("auto_mode_postures must match auto_mode_profiles")
+
+        known_routes = set(self.route_names)
+        known_execution_profiles = set(self.execution_profile_ids)
+        known_studio_surfaces = set(self.studio_surface_refs)
+        profile_sources = {
+            source_registry
+            for profile in self.auto_mode_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match auto mode sources")
+
+        for profile in self.auto_mode_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.source_execution_profile_ids).issubset(
+                known_execution_profiles
+            ):
+                raise ValueError(
+                    "source_execution_profile_ids must be known execution profiles"
+                )
+            if not set(profile.studio_surface_refs).issubset(known_studio_surfaces):
+                raise ValueError("studio_surface_refs must be known registry surfaces")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def auto_mode_registry() -> AutoModeRegistry:
+    """Return passive V4.4 Hybrid Studio Auto Mode metadata."""
+
+    return AUTO_MODE_REGISTRY
+
+
+def auto_mode_profile_by_id(
+    auto_mode_profile_id: str,
+    registry: AutoModeRegistry | None = None,
+) -> AutoModeProfile | None:
+    """Return one Auto Mode profile without executing it."""
+
+    source_registry = registry or AUTO_MODE_REGISTRY
+    for profile in source_registry.auto_mode_profiles:
+        if profile.auto_mode_profile_id == auto_mode_profile_id:
+            return profile
+    return None
+
+
+def auto_mode_profiles_for_route(
+    route: RouteName | str,
+    registry: AutoModeRegistry | None = None,
+) -> tuple[AutoModeProfile, ...]:
+    """Return passive Auto Mode profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or AUTO_MODE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.auto_mode_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def _auto_mode_profile(
+    *,
+    auto_mode_profile_id: str,
+    profile_name: str,
+    auto_mode_posture: AutoModePosture,
+    source_execution_profile_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    advisory_inputs: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+    operator_controls: tuple[str, ...],
+    studio_surface_refs: tuple[str, ...],
+) -> AutoModeProfile:
+    return AutoModeProfile(
+        auto_mode_profile_id=auto_mode_profile_id,
+        profile_name=profile_name,
+        auto_mode_posture=auto_mode_posture,
+        source_execution_profile_ids=source_execution_profile_ids,
+        route_applicability=route_applicability,
+        advisory_inputs=advisory_inputs,
+        advisory_outputs=advisory_outputs,
+        operator_controls=operator_controls,
+        studio_surface_refs=studio_surface_refs,
+        source_registries=_AUTO_MODE_SOURCE_REGISTRIES,
+        observability_surfaces=_AUTO_MODE_OBSERVABILITY_SURFACES,
+    )
+
+
+AUTO_MODE_PROFILES = (
+    _auto_mode_profile(
+        auto_mode_profile_id="auto_mode_observe_only_profile",
+        profile_name="Auto Mode Observe Only Profile",
+        auto_mode_posture="observe_only",
+        source_execution_profile_ids=("operator_selected_context_profile",),
+        route_applicability=tuple(RouteName),
+        advisory_inputs=(
+            "workflow_route_metadata",
+            "model_catalog_metadata",
+            "operator_visibility_metadata",
+        ),
+        advisory_outputs=(
+            "auto_mode_observation_summary",
+            "available_surface_snapshot",
+            "no_automatic_action_notice",
+        ),
+        operator_controls=(
+            "view_only_toggle",
+            "manual_provider_override",
+            "manual_model_override",
+        ),
+        studio_surface_refs=(
+            "auto_mode_panel",
+            "hybrid_execution_panel",
+            "provider_selection_metadata",
+        ),
+    ),
+    _auto_mode_profile(
+        auto_mode_profile_id="auto_mode_suggestion_profile",
+        profile_name="Auto Mode Suggestion Profile",
+        auto_mode_posture="suggestion_only",
+        source_execution_profile_ids=(
+            "local_first_context_profile",
+            "cloud_first_context_profile",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        advisory_inputs=(
+            "route_applicability_metadata",
+            "local_readiness_metadata",
+            "cloud_configuration_metadata",
+        ),
+        advisory_outputs=(
+            "suggested_execution_profile_metadata",
+            "manual_confirmation_requirement",
+            "routing_boundary_notice",
+        ),
+        operator_controls=(
+            "accept_suggestion_control",
+            "dismiss_suggestion_control",
+            "manual_selection_control",
+        ),
+        studio_surface_refs=(
+            "auto_mode_panel",
+            "provider_selection_metadata",
+            "local_cloud_comparison_metadata",
+        ),
+    ),
+    _auto_mode_profile(
+        auto_mode_profile_id="auto_mode_simulation_profile",
+        profile_name="Auto Mode Simulation Profile",
+        auto_mode_posture="simulation_only",
+        source_execution_profile_ids=("side_by_side_comparison_profile",),
+        route_applicability=(
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        advisory_inputs=(
+            "execution_profile_metadata",
+            "comparison_context_metadata",
+            "evaluation_surface_metadata",
+        ),
+        advisory_outputs=(
+            "simulated_execution_plan_metadata",
+            "side_by_side_preview_metadata",
+            "no_execution_notice",
+        ),
+        operator_controls=(
+            "run_simulation_control",
+            "clear_simulation_control",
+            "manual_review_control",
+        ),
+        studio_surface_refs=(
+            "auto_mode_panel",
+            "execution_simulator_metadata",
+            "local_cloud_comparison_metadata",
+        ),
+    ),
+    _auto_mode_profile(
+        auto_mode_profile_id="auto_mode_operator_confirmed_profile",
+        profile_name="Auto Mode Operator Confirmed Profile",
+        auto_mode_posture="operator_confirmed",
+        source_execution_profile_ids=tuple(
+            HYBRID_EXECUTION_REGISTRY.execution_profile_ids
+        ),
+        route_applicability=tuple(RouteName),
+        advisory_inputs=(
+            "explicit_operator_confirmation_metadata",
+            "selected_execution_profile_metadata",
+            "authority_boundary_metadata",
+        ),
+        advisory_outputs=(
+            "operator_confirmed_selection_metadata",
+            "manual_execution_boundary_notice",
+            "audit_ready_mode_snapshot",
+        ),
+        operator_controls=(
+            "confirm_selection_control",
+            "cancel_selection_control",
+            "manual_override_control",
+        ),
+        studio_surface_refs=(
+            "auto_mode_panel",
+            "hybrid_execution_panel",
+            "provider_selection_metadata",
+            "execution_simulator_metadata",
+        ),
+    ),
+)
+
+AUTO_MODE_REGISTRY = AutoModeRegistry(
+    auto_mode_profiles=AUTO_MODE_PROFILES,
+    auto_mode_profile_ids=tuple(
+        profile.auto_mode_profile_id for profile in AUTO_MODE_PROFILES
+    ),
+    auto_mode_postures=tuple(
+        profile.auto_mode_posture for profile in AUTO_MODE_PROFILES
+    ),
+    execution_profile_ids=tuple(HYBRID_EXECUTION_REGISTRY.execution_profile_ids),
+    route_names=tuple(RouteName),
+    profile_count=len(AUTO_MODE_PROFILES),
+    source_registries=_AUTO_MODE_SOURCE_REGISTRIES,
+    studio_surface_refs=_AUTO_MODE_STUDIO_SURFACES,
+    observability_surfaces=_AUTO_MODE_OBSERVABILITY_SURFACES,
+)
