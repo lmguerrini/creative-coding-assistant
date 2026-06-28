@@ -16,15 +16,33 @@ LivePreviewProfileKind = Literal[
     "structured_panel_preview",
     "runtime_status_preview",
 ]
+MultiPreviewLayoutKind = Literal["empty", "single", "split", "grid"]
+MultiPreviewOutputKind = Literal["visual", "audio", "audiovisual", "code"]
+MultiPreviewProfileKind = Literal[
+    "candidate_grid_preview",
+    "split_comparison_preview",
+    "recommended_candidate_preview",
+    "comparison_fallback_preview",
+]
 
 LIVE_PREVIEW_PROFILE_SERIALIZATION_VERSION = "multimodal_live_preview_profile.v1"
 LIVE_PREVIEW_REGISTRY_SERIALIZATION_VERSION = "multimodal_live_preview_registry.v1"
+MULTI_PREVIEW_PROFILE_SERIALIZATION_VERSION = "multimodal_multi_preview_profile.v1"
+MULTI_PREVIEW_REGISTRY_SERIALIZATION_VERSION = "multimodal_multi_preview_registry.v1"
 LIVE_PREVIEW_AUTHORITY_BOUNDARY = (
     "Live Preview metadata describes passive V4.5 Multimodal Studio surfaces "
     "for inspection only; it does not execute rendering, change browser canvas "
     "runtime behavior, route providers or models, call external providers, "
     "trigger retries, mutate generated outputs, open networking, persist "
     "collaboration state, or activate Studio runtime behavior."
+)
+MULTI_PREVIEW_AUTHORITY_BOUNDARY = (
+    "Multi Preview metadata describes passive V4.5 Multimodal Studio "
+    "comparison surfaces for inspection only; it does not execute rendering, "
+    "select artifacts, mutate generated outputs, change browser canvas runtime "
+    "behavior, route providers or models, call external providers, trigger "
+    "retries, open networking, persist collaboration state, or activate Studio "
+    "runtime behavior."
 )
 
 _LIVE_PREVIEW_SOURCE_REGISTRIES = (
@@ -69,6 +87,60 @@ _LIVE_PREVIEW_OBSERVABILITY_SURFACES = (
 
 _LIVE_PREVIEW_BLOCKED_RUNTIME_BEHAVIORS = (
     "rendering_execution",
+    "browser_canvas_runtime_change",
+    "provider_or_model_routing",
+    "external_provider_calling",
+    "retry_triggering",
+    "generated_output_mutation",
+    "networking",
+    "persistent_collaboration_storage",
+    "active_studio_runtime_behavior",
+)
+
+_MULTI_PREVIEW_SOURCE_REGISTRIES = (
+    "multimodal_live_preview_registry",
+    "nextjs_multi_preview_comparison",
+    "nextjs_multi_preview_workspace",
+    "nextjs_artifact_comparison",
+    "nextjs_preview_renderers",
+    "nextjs_preview_runtime_adapters",
+)
+
+_MULTI_PREVIEW_SOURCE_REFERENCES = (
+    "multimodal_studio.MULTIMODAL_LIVE_PREVIEW_REGISTRY",
+    "clients.nextjs.multi_preview_comparison.buildMultiPreviewComparisonModel",
+    "clients.nextjs.multi_preview_comparison.resolveMultiPreviewLayout",
+    "clients.nextjs.multi_preview_comparison.MultiPreviewCandidate",
+    "clients.nextjs.components.MultiPreviewComparisonWorkspace",
+    "clients.nextjs.artifact_comparison.buildArtifactComparisonModel",
+    "clients.nextjs.preview_renderers.buildPreviewRendererRoute",
+    "clients.nextjs.preview_runtime_adapters.buildPreviewRuntimeSource",
+)
+
+_MULTI_PREVIEW_SURFACES = (
+    "multi_preview_workspace",
+    "multi_preview_candidate_grid",
+    "multi_preview_split_layout",
+    "candidate_preview_card",
+    "comparison_fallback_panel",
+    "recommendation_summary_panel",
+    "multi_preview_boundary_panel",
+)
+
+_MULTI_PREVIEW_OBSERVABILITY_SURFACES = (
+    "profile_id",
+    "preview_kind",
+    "comparison_layouts",
+    "source_live_preview_profile_ids",
+    "candidate_state_fields",
+    "source_reference_ids",
+    "authority_boundary",
+)
+
+_MULTI_PREVIEW_BLOCKED_RUNTIME_BEHAVIORS = (
+    "rendering_execution",
+    "candidate_selection_execution",
+    "artifact_selection_mutation",
     "browser_canvas_runtime_change",
     "provider_or_model_routing",
     "external_provider_calling",
@@ -478,4 +550,461 @@ MULTIMODAL_LIVE_PREVIEW_REGISTRY = MultimodalLivePreviewRegistry(
     source_reference_ids=_LIVE_PREVIEW_SOURCE_REFERENCES,
     live_preview_surface_refs=_LIVE_PREVIEW_SURFACES,
     observability_surfaces=_LIVE_PREVIEW_OBSERVABILITY_SURFACES,
+)
+
+
+class MultiPreviewProfile(BaseModel):
+    """Inspectable metadata for one passive Multi Preview surface."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    profile_id: str = Field(min_length=1, max_length=120)
+    profile_name: str = Field(min_length=1, max_length=140)
+    preview_kind: MultiPreviewProfileKind
+    comparison_layouts: tuple[MultiPreviewLayoutKind, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    output_kinds: tuple[MultiPreviewOutputKind, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_live_preview_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    candidate_state_fields: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_reference_ids: tuple[str, ...] = Field(min_length=1, max_length=8)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    multi_preview_surfaces: tuple[str, ...] = Field(min_length=1, max_length=7)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=MULTI_PREVIEW_AUTHORITY_BOUNDARY,
+        max_length=900,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_MULTI_PREVIEW_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    rendering_execution_implemented: Literal[False] = False
+    candidate_selection_execution_implemented: Literal[False] = False
+    artifact_selection_mutation_implemented: Literal[False] = False
+    browser_canvas_runtime_change_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    external_provider_calls_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_storage_implemented: Literal[False] = False
+    active_studio_behavior_implemented: Literal[False] = False
+    serialization_version: Literal["multimodal_multi_preview_profile.v1"] = (
+        MULTI_PREVIEW_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class MultimodalMultiPreviewRegistry(BaseModel):
+    """Stable passive registry for V4.5 Multimodal Studio Multi Preview."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["multimodal_multi_preview_registry"] = (
+        "multimodal_multi_preview_registry"
+    )
+    serialization_version: Literal["multimodal_multi_preview_registry.v1"] = (
+        MULTI_PREVIEW_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=MULTI_PREVIEW_AUTHORITY_BOUNDARY,
+        max_length=900,
+    )
+    multi_preview_profiles: tuple[MultiPreviewProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    preview_kinds: tuple[MultiPreviewProfileKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    comparison_layouts: tuple[MultiPreviewLayoutKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    output_kinds: tuple[MultiPreviewOutputKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    live_preview_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    source_reference_ids: tuple[str, ...] = Field(min_length=8, max_length=8)
+    multi_preview_surface_refs: tuple[str, ...] = Field(min_length=7, max_length=7)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_MULTI_PREVIEW_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    rendering_execution_implemented: Literal[False] = False
+    candidate_selection_execution_implemented: Literal[False] = False
+    artifact_selection_mutation_implemented: Literal[False] = False
+    browser_canvas_runtime_change_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    external_provider_calls_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_storage_implemented: Literal[False] = False
+    active_studio_behavior_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.profile_id for profile in self.multi_preview_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("profile_ids must be unique")
+        if self.profile_ids != derived_profile_ids:
+            raise ValueError("profile_ids must match multi_preview_profiles")
+        if self.profile_count != len(self.multi_preview_profiles):
+            raise ValueError("profile_count must match multi_preview_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if (
+            self.live_preview_profile_ids
+            != MULTIMODAL_LIVE_PREVIEW_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "live_preview_profile_ids must match Live Preview registry"
+            )
+
+        derived_preview_kinds = _ordered_unique(
+            profile.preview_kind for profile in self.multi_preview_profiles
+        )
+        if self.preview_kinds != derived_preview_kinds:
+            raise ValueError("preview_kinds must match multi preview profiles")
+
+        profile_source_references = {
+            source_reference
+            for profile in self.multi_preview_profiles
+            for source_reference in profile.source_reference_ids
+        }
+        if set(self.source_reference_ids) != profile_source_references:
+            raise ValueError(
+                "source_reference_ids must match profile source references"
+            )
+
+        profile_layouts = {
+            layout
+            for profile in self.multi_preview_profiles
+            for layout in profile.comparison_layouts
+        }
+        if set(self.comparison_layouts) != profile_layouts:
+            raise ValueError("comparison_layouts must match profile layouts")
+
+        profile_output_kinds = {
+            output_kind
+            for profile in self.multi_preview_profiles
+            for output_kind in profile.output_kinds
+        }
+        if set(self.output_kinds) != profile_output_kinds:
+            raise ValueError("output_kinds must match profile output kinds")
+
+        known_routes = set(self.route_names)
+        known_layouts = set(self.comparison_layouts)
+        known_output_kinds = set(self.output_kinds)
+        known_live_profiles = set(self.live_preview_profile_ids)
+        known_surfaces = set(self.multi_preview_surface_refs)
+        known_source_references = set(self.source_reference_ids)
+        for profile in self.multi_preview_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must use known routes")
+            if not set(profile.comparison_layouts).issubset(known_layouts):
+                raise ValueError("comparison_layouts must use known layouts")
+            if not set(profile.output_kinds).issubset(known_output_kinds):
+                raise ValueError("output_kinds must use known output kinds")
+            if not set(profile.source_live_preview_profile_ids).issubset(
+                known_live_profiles
+            ):
+                raise ValueError(
+                    "source_live_preview_profile_ids must be known profiles"
+                )
+            if not set(profile.multi_preview_surfaces).issubset(known_surfaces):
+                raise ValueError("multi_preview_surfaces must be known surfaces")
+            if not set(profile.source_reference_ids).issubset(
+                known_source_references
+            ):
+                raise ValueError(
+                    "source_reference_ids must be known registry references"
+                )
+        return self
+
+
+def multimodal_multi_preview_registry() -> MultimodalMultiPreviewRegistry:
+    """Return passive V4.5 Multimodal Studio Multi Preview metadata."""
+
+    return MULTIMODAL_MULTI_PREVIEW_REGISTRY
+
+
+def multimodal_multi_preview_profile_by_id(
+    profile_id: str,
+    registry: MultimodalMultiPreviewRegistry | None = None,
+) -> MultiPreviewProfile | None:
+    """Return one Multi Preview profile without executing preview behavior."""
+
+    source_registry = registry or MULTIMODAL_MULTI_PREVIEW_REGISTRY
+    normalized_profile_id = str(profile_id).strip()
+    for profile in source_registry.multi_preview_profiles:
+        if profile.profile_id == normalized_profile_id:
+            return profile
+    return None
+
+
+def multimodal_multi_preview_profiles_for_route(
+    route: RouteName | str,
+    registry: MultimodalMultiPreviewRegistry | None = None,
+) -> tuple[MultiPreviewProfile, ...]:
+    """Return passive Multi Preview profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or MULTIMODAL_MULTI_PREVIEW_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.multi_preview_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def multimodal_multi_preview_profiles_for_layout(
+    layout: MultiPreviewLayoutKind | str,
+    registry: MultimodalMultiPreviewRegistry | None = None,
+) -> tuple[MultiPreviewProfile, ...]:
+    """Return passive Multi Preview profiles covering a comparison layout."""
+
+    layout_name = str(layout).strip()
+    source_registry = registry or MULTIMODAL_MULTI_PREVIEW_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.multi_preview_profiles
+        if layout_name in profile.comparison_layouts
+    )
+
+
+def multimodal_multi_preview_profiles_for_live_preview_profile(
+    live_preview_profile_id: str,
+    registry: MultimodalMultiPreviewRegistry | None = None,
+) -> tuple[MultiPreviewProfile, ...]:
+    """Return Multi Preview profiles referencing one Live Preview profile."""
+
+    source_registry = registry or MULTIMODAL_MULTI_PREVIEW_REGISTRY
+    source_profile_id = str(live_preview_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.multi_preview_profiles
+        if source_profile_id in profile.source_live_preview_profile_ids
+    )
+
+
+def _multi_preview_profile(
+    *,
+    profile_id: str,
+    profile_name: str,
+    preview_kind: MultiPreviewProfileKind,
+    comparison_layouts: tuple[MultiPreviewLayoutKind, ...],
+    output_kinds: tuple[MultiPreviewOutputKind, ...],
+    source_live_preview_profile_ids: tuple[str, ...],
+    candidate_state_fields: tuple[str, ...],
+    source_reference_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    multi_preview_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> MultiPreviewProfile:
+    return MultiPreviewProfile(
+        profile_id=profile_id,
+        profile_name=profile_name,
+        preview_kind=preview_kind,
+        comparison_layouts=comparison_layouts,
+        output_kinds=output_kinds,
+        source_live_preview_profile_ids=source_live_preview_profile_ids,
+        candidate_state_fields=candidate_state_fields,
+        source_reference_ids=source_reference_ids,
+        route_applicability=route_applicability,
+        multi_preview_surfaces=multi_preview_surfaces,
+        advisory_outputs=advisory_outputs,
+        source_registries=_MULTI_PREVIEW_SOURCE_REGISTRIES,
+        observability_surfaces=_MULTI_PREVIEW_OBSERVABILITY_SURFACES,
+    )
+
+
+MULTIMODAL_MULTI_PREVIEW_PROFILES = (
+    _multi_preview_profile(
+        profile_id="candidate_grid_multi_preview",
+        profile_name="Candidate Grid Multi Preview",
+        preview_kind="candidate_grid_preview",
+        comparison_layouts=("grid",),
+        output_kinds=("visual", "audio", "audiovisual", "code"),
+        source_live_preview_profile_ids=MULTIMODAL_LIVE_PREVIEW_REGISTRY.profile_ids,
+        candidate_state_fields=(
+            "candidate_count",
+            "layout",
+            "can_render",
+            "runtime_session_key",
+            "runtime_source",
+            "output_kind",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_LIVE_PREVIEW_REGISTRY",
+            "clients.nextjs.multi_preview_comparison.buildMultiPreviewComparisonModel",
+            "clients.nextjs.multi_preview_comparison.MultiPreviewCandidate",
+            "clients.nextjs.components.MultiPreviewComparisonWorkspace",
+            "clients.nextjs.preview_renderers.buildPreviewRendererRoute",
+            "clients.nextjs.preview_runtime_adapters.buildPreviewRuntimeSource",
+        ),
+        route_applicability=tuple(RouteName),
+        multi_preview_surfaces=(
+            "multi_preview_workspace",
+            "multi_preview_candidate_grid",
+            "candidate_preview_card",
+            "multi_preview_boundary_panel",
+        ),
+        advisory_outputs=(
+            "candidate_grid_preview_inventory",
+            "manual_candidate_review_hint",
+            "no_rendering_execution_notice",
+        ),
+    ),
+    _multi_preview_profile(
+        profile_id="split_comparison_multi_preview",
+        profile_name="Split Comparison Multi Preview",
+        preview_kind="split_comparison_preview",
+        comparison_layouts=("split",),
+        output_kinds=("visual", "audio", "audiovisual", "code"),
+        source_live_preview_profile_ids=(
+            "browser_sandbox_live_preview",
+            "media_asset_live_preview",
+            "structured_panel_live_preview",
+        ),
+        candidate_state_fields=(
+            "active_artifact_id",
+            "comparison_rows",
+            "preview_route",
+            "preview_target",
+            "score_label",
+        ),
+        source_reference_ids=(
+            "clients.nextjs.multi_preview_comparison.buildMultiPreviewComparisonModel",
+            "clients.nextjs.multi_preview_comparison.resolveMultiPreviewLayout",
+            "clients.nextjs.artifact_comparison.buildArtifactComparisonModel",
+            "clients.nextjs.preview_renderers.buildPreviewRendererRoute",
+        ),
+        route_applicability=tuple(RouteName),
+        multi_preview_surfaces=(
+            "multi_preview_workspace",
+            "multi_preview_split_layout",
+            "candidate_preview_card",
+            "recommendation_summary_panel",
+            "multi_preview_boundary_panel",
+        ),
+        advisory_outputs=(
+            "split_comparison_preview_inventory",
+            "manual_split_review_hint",
+            "no_artifact_selection_mutation_notice",
+        ),
+    ),
+    _multi_preview_profile(
+        profile_id="recommended_candidate_multi_preview",
+        profile_name="Recommended Candidate Multi Preview",
+        preview_kind="recommended_candidate_preview",
+        comparison_layouts=("single", "split", "grid"),
+        output_kinds=("visual", "audio", "audiovisual", "code"),
+        source_live_preview_profile_ids=MULTIMODAL_LIVE_PREVIEW_REGISTRY.profile_ids,
+        candidate_state_fields=(
+            "recommended_title",
+            "recommended_reason",
+            "is_recommended",
+            "rank_label",
+            "score_label",
+        ),
+        source_reference_ids=(
+            "clients.nextjs.multi_preview_comparison.buildMultiPreviewComparisonModel",
+            "clients.nextjs.components.MultiPreviewComparisonWorkspace",
+            "clients.nextjs.artifact_comparison.buildArtifactComparisonModel",
+        ),
+        route_applicability=tuple(RouteName),
+        multi_preview_surfaces=(
+            "multi_preview_workspace",
+            "candidate_preview_card",
+            "recommendation_summary_panel",
+            "multi_preview_boundary_panel",
+        ),
+        advisory_outputs=(
+            "recommended_candidate_preview_inventory",
+            "manual_recommendation_review_hint",
+            "no_candidate_selection_execution_notice",
+        ),
+    ),
+    _multi_preview_profile(
+        profile_id="fallback_multi_preview",
+        profile_name="Fallback Multi Preview",
+        preview_kind="comparison_fallback_preview",
+        comparison_layouts=("empty", "single", "split", "grid"),
+        output_kinds=("code", "audio"),
+        source_live_preview_profile_ids=(
+            "structured_panel_live_preview",
+            "runtime_status_live_preview",
+        ),
+        candidate_state_fields=(
+            "can_render",
+            "runtime_support",
+            "preview_state",
+            "preview_label",
+            "audio_safety_label",
+        ),
+        source_reference_ids=(
+            "clients.nextjs.multi_preview_comparison.resolveMultiPreviewLayout",
+            "clients.nextjs.multi_preview_comparison.MultiPreviewCandidate",
+            "clients.nextjs.components.MultiPreviewComparisonWorkspace",
+        ),
+        route_applicability=tuple(RouteName),
+        multi_preview_surfaces=(
+            "multi_preview_workspace",
+            "comparison_fallback_panel",
+            "candidate_preview_card",
+            "multi_preview_boundary_panel",
+        ),
+        advisory_outputs=(
+            "fallback_multi_preview_inventory",
+            "manual_fallback_review_hint",
+            "no_runtime_control_notice",
+        ),
+    ),
+)
+
+MULTIMODAL_MULTI_PREVIEW_REGISTRY = MultimodalMultiPreviewRegistry(
+    multi_preview_profiles=MULTIMODAL_MULTI_PREVIEW_PROFILES,
+    profile_ids=tuple(
+        profile.profile_id for profile in MULTIMODAL_MULTI_PREVIEW_PROFILES
+    ),
+    preview_kinds=tuple(
+        profile.preview_kind for profile in MULTIMODAL_MULTI_PREVIEW_PROFILES
+    ),
+    comparison_layouts=("empty", "single", "split", "grid"),
+    output_kinds=("visual", "audio", "audiovisual", "code"),
+    live_preview_profile_ids=MULTIMODAL_LIVE_PREVIEW_REGISTRY.profile_ids,
+    route_names=tuple(RouteName),
+    profile_count=len(MULTIMODAL_MULTI_PREVIEW_PROFILES),
+    source_registries=_MULTI_PREVIEW_SOURCE_REGISTRIES,
+    source_reference_ids=_MULTI_PREVIEW_SOURCE_REFERENCES,
+    multi_preview_surface_refs=_MULTI_PREVIEW_SURFACES,
+    observability_surfaces=_MULTI_PREVIEW_OBSERVABILITY_SURFACES,
 )
