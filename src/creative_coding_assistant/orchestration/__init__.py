@@ -133,6 +133,10 @@ _AGENT_TELEMETRY_FOUNDATION = (
 _AGENT_COST_TRACKING_FOUNDATION = (
     "creative_coding_assistant.orchestration.agent_cost_tracking_foundation"
 )
+_AGENT_PERFORMANCE_TRACKING_FOUNDATION = (
+    "creative_coding_assistant.orchestration."
+    "agent_performance_tracking_foundation"
+)
 _HYBRID_STUDIO = "creative_coding_assistant.orchestration.hybrid_studio"
 _MULTIMODAL_STUDIO = "creative_coding_assistant.orchestration.multimodal_studio"
 _ENGINE_CONTRACT_CONSISTENCY = (
@@ -715,6 +719,24 @@ _EXPORT_MAP = {
     ),
     "agent_cost_tracking_profiles_for_cost_profile": (
         _AGENT_COST_TRACKING_FOUNDATION
+    ),
+    "AgentPerformanceTrackingFoundationProfile": (
+        _AGENT_PERFORMANCE_TRACKING_FOUNDATION
+    ),
+    "AgentPerformanceTrackingFoundationRegistry": (
+        _AGENT_PERFORMANCE_TRACKING_FOUNDATION
+    ),
+    "agent_performance_tracking_foundation_registry": (
+        _AGENT_PERFORMANCE_TRACKING_FOUNDATION
+    ),
+    "agent_performance_tracking_profile_by_agent_id": (
+        _AGENT_PERFORMANCE_TRACKING_FOUNDATION
+    ),
+    "agent_performance_tracking_profiles_for_latency_class": (
+        _AGENT_PERFORMANCE_TRACKING_FOUNDATION
+    ),
+    "agent_performance_tracking_profiles_for_latency_threshold": (
+        _AGENT_PERFORMANCE_TRACKING_FOUNDATION
     ),
     "hybrid_execution_profile_by_id": _HYBRID_STUDIO,
     "hybrid_execution_profiles_for_route": _HYBRID_STUDIO,
