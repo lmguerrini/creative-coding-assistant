@@ -6,6 +6,16 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from creative_coding_assistant.orchestration.agent_capabilities import (
+    AGENT_CAPABILITY_REGISTRY,
+)
+from creative_coding_assistant.orchestration.agent_identities import (
+    AGENT_IDENTITY_REGISTRY,
+)
+from creative_coding_assistant.orchestration.agent_metadata import (
+    AGENT_METADATA_REGISTRY,
+)
+from creative_coding_assistant.orchestration.agent_roles import AGENT_ROLE_REGISTRY
 from creative_coding_assistant.orchestration.hybrid_agentic_workflow import (
     COST_THRESHOLD_ROUTING_REGISTRY,
     QUALITY_ESCALATION_REGISTRY,
@@ -5384,4 +5394,553 @@ LOCAL_CLOUD_COMPARISON_REGISTRY = LocalCloudComparisonRegistry(
     profile_count=len(LOCAL_CLOUD_COMPARISON_PROFILES),
     source_registries=_LOCAL_CLOUD_COMPARISON_SOURCE_REGISTRIES,
     observability_surfaces=_LOCAL_CLOUD_COMPARISON_OBSERVABILITY_SURFACES,
+)
+
+AgentWorkspaceKind = Literal[
+    "planning_context_workspace",
+    "artifact_runtime_workspace",
+    "critique_curation_workspace",
+    "refinement_synthesis_workspace",
+]
+
+AGENT_WORKSPACE_PROFILE_SERIALIZATION_VERSION = "agent_workspace_profile.v1"
+AGENT_WORKSPACE_REGISTRY_SERIALIZATION_VERSION = "agent_workspace_registry.v1"
+AGENT_WORKSPACE_REGISTRY_AUTHORITY_BOUNDARY = (
+    "Agent Workspace metadata describes passive Studio-visible groupings of "
+    "agent identities, roles, capability readiness, comparison context, "
+    "quality context, and HITL context for V4.4 inspection only; it does not "
+    "instantiate agents, invoke agents, orchestrate multiple agents, mutate "
+    "workspace state, write memory, route providers or models, control "
+    "workflow transitions, request human input, trigger retries, write replay "
+    "storage, or modify generated output."
+)
+
+_AGENT_WORKSPACE_SOURCE_REGISTRIES = (
+    "agent_identity_registry",
+    "agent_role_registry",
+    "agent_metadata_registry",
+    "agent_capability_registry",
+    "local_cloud_comparison_registry",
+    "quality_profile_registry",
+    "hitl_decision_registry",
+    "studio_mode_registry",
+)
+
+_AGENT_WORKSPACE_SURFACES = (
+    "agent_workspace_panel",
+    "agent_roster_panel",
+    "agent_role_matrix",
+    "comparison_context_panel",
+    "quality_context_panel",
+    "hitl_review_panel",
+)
+
+_AGENT_WORKSPACE_OBSERVABILITY_SURFACES = (
+    "workspace_profile_id",
+    "workspace_kind",
+    "source_agent_ids",
+    "source_role_ids",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_AGENT_WORKSPACE_BLOCKED_RUNTIME_BEHAVIORS = (
+    "workspace_execution",
+    "agent_instantiation",
+    "agent_invocation",
+    "multi_agent_orchestration",
+    "workspace_state_mutation",
+    "memory_write",
+    "provider_or_model_routing",
+    "workflow_control",
+    "human_input_request",
+    "retry_or_refinement_triggering",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class AgentWorkspaceProfile(BaseModel):
+    """Inspectable passive agent workspace grouping for Hybrid Studio."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    workspace_profile_id: str = Field(min_length=1, max_length=120)
+    profile_name: str = Field(min_length=1, max_length=150)
+    workspace_kind: AgentWorkspaceKind
+    source_agent_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_role_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_agent_metadata_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_capability_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_comparison_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_quality_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_hitl_decision_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    workspace_surfaces: tuple[str, ...] = Field(min_length=1, max_length=6)
+    visible_context_fields: tuple[str, ...] = Field(min_length=1, max_length=10)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    authority_boundary: str = Field(
+        default=AGENT_WORKSPACE_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1300,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_AGENT_WORKSPACE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    workspace_execution_implemented: Literal[False] = False
+    agent_instantiation_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    multi_agent_orchestration_implemented: Literal[False] = False
+    workspace_state_mutation_implemented: Literal[False] = False
+    memory_write_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["agent_workspace_profile.v1"] = (
+        AGENT_WORKSPACE_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class AgentWorkspaceRegistry(BaseModel):
+    """Stable passive registry for V4.4 Hybrid Studio agent workspaces."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["agent_workspace_registry"] = "agent_workspace_registry"
+    serialization_version: Literal["agent_workspace_registry.v1"] = (
+        AGENT_WORKSPACE_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=AGENT_WORKSPACE_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1300,
+    )
+    workspace_profiles: tuple[AgentWorkspaceProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    workspace_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    workspace_kinds: tuple[AgentWorkspaceKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    agent_ids: tuple[str, ...] = Field(min_length=12, max_length=12)
+    role_ids: tuple[str, ...] = Field(min_length=12, max_length=12)
+    agent_metadata_ids: tuple[str, ...] = Field(min_length=12, max_length=12)
+    capability_ids: tuple[str, ...] = Field(min_length=6, max_length=6)
+    comparison_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    quality_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    hitl_decision_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    workspace_surface_refs: tuple[str, ...] = Field(min_length=6, max_length=6)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_AGENT_WORKSPACE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    workspace_execution_implemented: Literal[False] = False
+    agent_instantiation_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    multi_agent_orchestration_implemented: Literal[False] = False
+    workspace_state_mutation_implemented: Literal[False] = False
+    memory_write_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.workspace_profile_id for profile in self.workspace_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("workspace_profile_ids must be unique")
+        if self.workspace_profile_ids != derived_profile_ids:
+            raise ValueError("workspace_profile_ids must match workspace_profiles")
+        if self.profile_count != len(self.workspace_profiles):
+            raise ValueError("profile_count must match workspace_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.workspace_kinds != tuple(
+            profile.workspace_kind for profile in self.workspace_profiles
+        ):
+            raise ValueError("workspace_kinds must match workspace_profiles")
+
+        known_routes = set(self.route_names)
+        known_agents = set(self.agent_ids)
+        known_roles = set(self.role_ids)
+        known_agent_metadata = set(self.agent_metadata_ids)
+        known_capabilities = set(self.capability_ids)
+        known_comparisons = set(self.comparison_profile_ids)
+        known_quality_profiles = set(self.quality_profile_ids)
+        known_hitl_profiles = set(self.hitl_decision_profile_ids)
+        known_surfaces = set(self.workspace_surface_refs)
+        profile_sources = {
+            source_registry
+            for profile in self.workspace_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match agent workspace sources")
+
+        for profile in self.workspace_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.source_agent_ids).issubset(known_agents):
+                raise ValueError("source_agent_ids must be known agents")
+            if not set(profile.source_role_ids).issubset(known_roles):
+                raise ValueError("source_role_ids must be known roles")
+            if not set(profile.source_agent_metadata_ids).issubset(
+                known_agent_metadata
+            ):
+                raise ValueError(
+                    "source_agent_metadata_ids must be known metadata entries"
+                )
+            if not set(profile.source_capability_ids).issubset(known_capabilities):
+                raise ValueError("source_capability_ids must be known capabilities")
+            if not set(profile.source_comparison_profile_ids).issubset(
+                known_comparisons
+            ):
+                raise ValueError("source_comparison_profile_ids must be known profiles")
+            if not set(profile.source_quality_profile_ids).issubset(
+                known_quality_profiles
+            ):
+                raise ValueError("source_quality_profile_ids must be known profiles")
+            if not set(profile.source_hitl_decision_profile_ids).issubset(
+                known_hitl_profiles
+            ):
+                raise ValueError(
+                    "source_hitl_decision_profile_ids must be known profiles"
+                )
+            if not set(profile.workspace_surfaces).issubset(known_surfaces):
+                raise ValueError("workspace_surfaces must be known registry surfaces")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def agent_workspace_registry() -> AgentWorkspaceRegistry:
+    """Return passive V4.4 Hybrid Studio agent workspace metadata."""
+
+    return AGENT_WORKSPACE_REGISTRY
+
+
+def agent_workspace_profile_by_id(
+    workspace_profile_id: str,
+    registry: AgentWorkspaceRegistry | None = None,
+) -> AgentWorkspaceProfile | None:
+    """Return one agent workspace profile without creating a workspace."""
+
+    source_registry = registry or AGENT_WORKSPACE_REGISTRY
+    for profile in source_registry.workspace_profiles:
+        if profile.workspace_profile_id == workspace_profile_id:
+            return profile
+    return None
+
+
+def agent_workspace_profiles_for_route(
+    route: RouteName | str,
+    registry: AgentWorkspaceRegistry | None = None,
+) -> tuple[AgentWorkspaceProfile, ...]:
+    """Return passive agent workspaces applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or AGENT_WORKSPACE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.workspace_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def agent_workspace_profiles_for_agent_id(
+    agent_id: str,
+    registry: AgentWorkspaceRegistry | None = None,
+) -> tuple[AgentWorkspaceProfile, ...]:
+    """Return passive workspace profiles containing an agent id."""
+
+    source_registry = registry or AGENT_WORKSPACE_REGISTRY
+    agent_id_value = str(agent_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.workspace_profiles
+        if agent_id_value in profile.source_agent_ids
+    )
+
+
+def _agent_workspace_profile(
+    *,
+    workspace_profile_id: str,
+    profile_name: str,
+    workspace_kind: AgentWorkspaceKind,
+    source_agent_ids: tuple[str, ...],
+    source_role_ids: tuple[str, ...],
+    source_capability_ids: tuple[str, ...],
+    source_comparison_profile_ids: tuple[str, ...],
+    source_quality_profile_ids: tuple[str, ...],
+    source_hitl_decision_profile_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    workspace_surfaces: tuple[str, ...],
+    visible_context_fields: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> AgentWorkspaceProfile:
+    return AgentWorkspaceProfile(
+        workspace_profile_id=workspace_profile_id,
+        profile_name=profile_name,
+        workspace_kind=workspace_kind,
+        source_agent_ids=source_agent_ids,
+        source_role_ids=source_role_ids,
+        source_agent_metadata_ids=source_agent_ids,
+        source_capability_ids=source_capability_ids,
+        source_comparison_profile_ids=source_comparison_profile_ids,
+        source_quality_profile_ids=source_quality_profile_ids,
+        source_hitl_decision_profile_ids=source_hitl_decision_profile_ids,
+        route_applicability=route_applicability,
+        workspace_surfaces=workspace_surfaces,
+        visible_context_fields=visible_context_fields,
+        advisory_outputs=advisory_outputs,
+        source_registries=_AGENT_WORKSPACE_SOURCE_REGISTRIES,
+        observability_surfaces=_AGENT_WORKSPACE_OBSERVABILITY_SURFACES,
+    )
+
+
+AGENT_WORKSPACE_SURFACES = (
+    "agent_workspace_panel",
+    "agent_roster_panel",
+    "agent_role_matrix",
+    "comparison_context_panel",
+    "quality_context_panel",
+    "hitl_review_panel",
+)
+
+AGENT_WORKSPACE_PROFILES = (
+    _agent_workspace_profile(
+        workspace_profile_id="planning_context_agent_workspace",
+        profile_name="Planning Context Agent Workspace",
+        workspace_kind="planning_context_workspace",
+        source_agent_ids=(
+            "planner_agent",
+            "research_agent",
+            "style_agent",
+        ),
+        source_role_ids=("planner", "research", "style"),
+        source_capability_ids=("v4_planner_agent", "v4_agent_router"),
+        source_comparison_profile_ids=(
+            "generation_route_comparison_profile",
+            "creative_reasoning_comparison_profile",
+        ),
+        source_quality_profile_ids=(
+            "planning_quality_profile",
+            "creative_quality_profile",
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_visibility_decision_profile",
+            "hitl_confirmation_decision_profile",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.PREVIEW,
+        ),
+        workspace_surfaces=(
+            "agent_workspace_panel",
+            "agent_roster_panel",
+            "comparison_context_panel",
+        ),
+        visible_context_fields=(
+            "agent_identity_metadata",
+            "role_family_metadata",
+            "planning_comparison_context",
+        ),
+        advisory_outputs=(
+            "planning_agent_workspace_context",
+            "manual_planning_handoff_hint",
+            "no_agent_invocation_notice",
+        ),
+    ),
+    _agent_workspace_profile(
+        workspace_profile_id="artifact_runtime_agent_workspace",
+        profile_name="Artifact Runtime Agent Workspace",
+        workspace_kind="artifact_runtime_workspace",
+        source_agent_ids=(
+            "runtime_agent",
+            "artifact_agent",
+            "art_direction_agent",
+        ),
+        source_role_ids=("runtime", "artifact", "art_direction"),
+        source_capability_ids=("v4_artifact_agent", "v4_runtime_agent"),
+        source_comparison_profile_ids=(
+            "generation_route_comparison_profile",
+            "code_review_comparison_profile",
+        ),
+        source_quality_profile_ids=(
+            "planning_quality_profile",
+            "refinement_quality_profile",
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_confirmation_decision_profile",
+            "hitl_risk_review_decision_profile",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.PREVIEW,
+        ),
+        workspace_surfaces=(
+            "agent_workspace_panel",
+            "agent_role_matrix",
+            "comparison_context_panel",
+            "quality_context_panel",
+        ),
+        visible_context_fields=(
+            "runtime_agent_metadata",
+            "artifact_agent_metadata",
+            "implementation_comparison_context",
+        ),
+        advisory_outputs=(
+            "artifact_runtime_agent_workspace_context",
+            "manual_runtime_handoff_hint",
+            "no_artifact_execution_notice",
+        ),
+    ),
+    _agent_workspace_profile(
+        workspace_profile_id="critique_curation_agent_workspace",
+        profile_name="Critique Curation Agent Workspace",
+        workspace_kind="critique_curation_workspace",
+        source_agent_ids=(
+            "aesthetic_critic_agent",
+            "narrative_symbolic_agent",
+            "creative_curator_agent",
+            "critic_agent",
+        ),
+        source_role_ids=(
+            "aesthetic_critic",
+            "narrative_symbolic",
+            "creative_curator",
+            "critic",
+        ),
+        source_capability_ids=("v4_agentic_studio", "adaptive_multi_agent_escalation"),
+        source_comparison_profile_ids=(
+            "creative_reasoning_comparison_profile",
+            "evaluation_review_comparison_profile",
+        ),
+        source_quality_profile_ids=(
+            "creative_quality_profile",
+            "refinement_quality_profile",
+            "final_review_quality_profile",
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_risk_review_decision_profile",
+            "hitl_final_review_decision_profile",
+        ),
+        route_applicability=(
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        workspace_surfaces=(
+            "agent_workspace_panel",
+            "agent_role_matrix",
+            "quality_context_panel",
+            "hitl_review_panel",
+        ),
+        visible_context_fields=(
+            "critique_agent_metadata",
+            "quality_profile_context",
+            "hitl_review_context",
+        ),
+        advisory_outputs=(
+            "critique_curation_agent_workspace_context",
+            "manual_critique_review_hint",
+            "no_multi_agent_orchestration_notice",
+        ),
+    ),
+    _agent_workspace_profile(
+        workspace_profile_id="refinement_synthesis_agent_workspace",
+        profile_name="Refinement Synthesis Agent Workspace",
+        workspace_kind="refinement_synthesis_workspace",
+        source_agent_ids=(
+            "refiner_agent",
+            "final_synthesizer_agent",
+        ),
+        source_role_ids=("refiner", "final_synthesizer"),
+        source_capability_ids=("v4_agentic_studio", "adaptive_multi_agent_escalation"),
+        source_comparison_profile_ids=(
+            "code_review_comparison_profile",
+            "evaluation_review_comparison_profile",
+        ),
+        source_quality_profile_ids=(
+            "refinement_quality_profile",
+            "final_review_quality_profile",
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_confirmation_decision_profile",
+            "hitl_final_review_decision_profile",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        workspace_surfaces=(
+            "agent_workspace_panel",
+            "agent_roster_panel",
+            "quality_context_panel",
+            "hitl_review_panel",
+        ),
+        visible_context_fields=(
+            "refiner_agent_metadata",
+            "synthesis_agent_metadata",
+            "final_review_quality_context",
+        ),
+        advisory_outputs=(
+            "refinement_synthesis_agent_workspace_context",
+            "manual_synthesis_review_hint",
+            "no_output_mutation_notice",
+        ),
+    ),
+)
+
+AGENT_WORKSPACE_REGISTRY = AgentWorkspaceRegistry(
+    workspace_profiles=AGENT_WORKSPACE_PROFILES,
+    workspace_profile_ids=tuple(
+        profile.workspace_profile_id for profile in AGENT_WORKSPACE_PROFILES
+    ),
+    workspace_kinds=tuple(
+        profile.workspace_kind for profile in AGENT_WORKSPACE_PROFILES
+    ),
+    agent_ids=tuple(AGENT_IDENTITY_REGISTRY.agent_ids),
+    role_ids=tuple(AGENT_ROLE_REGISTRY.role_ids),
+    agent_metadata_ids=tuple(AGENT_METADATA_REGISTRY.agent_ids),
+    capability_ids=tuple(AGENT_CAPABILITY_REGISTRY.capability_ids),
+    comparison_profile_ids=tuple(
+        LOCAL_CLOUD_COMPARISON_REGISTRY.comparison_profile_ids
+    ),
+    quality_profile_ids=tuple(QUALITY_PROFILE_REGISTRY.quality_profile_ids),
+    hitl_decision_profile_ids=tuple(HITL_DECISION_REGISTRY.hitl_decision_profile_ids),
+    workspace_surface_refs=AGENT_WORKSPACE_SURFACES,
+    route_names=tuple(RouteName),
+    profile_count=len(AGENT_WORKSPACE_PROFILES),
+    source_registries=_AGENT_WORKSPACE_SOURCE_REGISTRIES,
+    observability_surfaces=_AGENT_WORKSPACE_OBSERVABILITY_SURFACES,
 )
