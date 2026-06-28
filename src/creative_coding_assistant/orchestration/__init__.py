@@ -5,6 +5,7 @@ from __future__ import annotations
 from importlib import import_module
 
 _CTX = "creative_coding_assistant.orchestration.context"
+_CACHE_LAYER = "creative_coding_assistant.orchestration.cache_layer"
 _CREATIVE_TRANSLATION = (
     "creative_coding_assistant.orchestration.creative_translation"
 )
@@ -260,6 +261,8 @@ _EXPORT_MAP = {
     "AssistantWorkflowGraphState": _WORKFLOW_GRAPH,
     "AssistantWorkflowRuntime": _WORKFLOW_GRAPH,
     "AssistantWorkflowState": _WORKFLOW,
+    "ExecutionCacheEntry": _CACHE_LAYER,
+    "ExecutionCacheLookup": _CACHE_LAYER,
     "ExecutionGraphAnalysis": _EXECUTION_GRAPH_ANALYZER,
     "ExecutionGraphEdge": _EXECUTION_GRAPH_ANALYZER,
     "ExecutionGraphNode": _EXECUTION_GRAPH_ANALYZER,
@@ -1203,6 +1206,7 @@ _EXPORT_MAP = {
     "WorkflowStep": _WORKFLOW,
     "WorkflowArtifact": _ARTIFACTS,
     "WorkflowArtifactCritique": _ARTIFACTS,
+    "InMemoryExecutionCache": _CACHE_LAYER,
     "JinjaPromptRenderer": _PROMPT_TEMPLATES,
     "begin_assistant_workflow": _WORKFLOW,
     "analyze_assistant_execution_graph": _EXECUTION_GRAPH_ANALYZER,
@@ -1216,6 +1220,7 @@ _EXPORT_MAP = {
     "build_initial_workflow_graph_state": _WORKFLOW_GRAPH,
     "build_refinement_objective": _REFINEMENT_PASSES,
     "build_assembled_context_request": _CTX,
+    "build_execution_cache_key": _CACHE_LAYER,
     "build_memory_context_request": _MEM,
     "build_prompt_input_request": _PROMPT_INPUTS,
     "build_provider_generation_request": _GEN,
@@ -1238,6 +1243,7 @@ _EXPORT_MAP = {
     "execution_graph_edges_from": _EXECUTION_GRAPH_ANALYZER,
     "execution_graph_edges_to": _EXECUTION_GRAPH_ANALYZER,
     "execution_graph_node_by_id": _EXECUTION_GRAPH_ANALYZER,
+    "execution_cache_entry_is_fresh": _CACHE_LAYER,
     "workflow_cost_component_by_id": _WORKFLOW_COST_ANALYZER,
     "workflow_cost_components_for_kind": _WORKFLOW_COST_ANALYZER,
     "workflow_complexity_factor_by_id": _WORKFLOW_COMPLEXITY_ANALYZER,
