@@ -92,6 +92,23 @@ V44_HYBRID_STUDIO_REGISTRIES = (
     "Execution Replay Registry",
     "Hybrid Studio Integration Registry",
 )
+V45_MULTIMODAL_STUDIO_REGISTRIES = (
+    "Live Preview Registry",
+    "Multi Preview Registry",
+    "Interactive Canvas Registry",
+    "Visual Workspace Registry",
+    "Runtime Collaboration Registry",
+    "Artifact Collaboration Registry",
+    "Artifact Provenance Registry",
+    "Artifact Lineage Registry",
+    "Cross-Agent Workspace Registry",
+    "Shared Artifact Board Registry",
+    "Workspace History Registry",
+    "Branching Timeline Registry",
+    "Creative Evolution Timeline Registry",
+    "Real-Time Workflow Visualization Registry",
+    "Multimodal Studio Integration Registry",
+)
 PUBLIC_README_INTERNAL_MARKERS = (
     "Current Branch Status",
     "feature/",
@@ -280,6 +297,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("no runtime escalation", mermaid)
         self.assertIn("V4.4 hybrid studio metadata boundary", mermaid)
         self.assertIn("no Studio runtime", mermaid)
+        self.assertIn("V4.5 multimodal studio metadata boundary", mermaid)
+        self.assertIn("no rendering execution", mermaid)
 
     def test_workflow_doc_distinguishes_runtime_pipeline_and_dependency_views(
         self,
@@ -320,6 +339,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "## V4.4 Hybrid Studio Metadata Boundary",
             architecture_doc,
         )
+        self.assertIn(
+            "## V4.5 Multimodal Studio Metadata Boundary",
+            architecture_doc,
+        )
         self.assertIn("Agent Contract Registry", architecture_doc)
         self.assertIn("Agent Memory Contract Registry", architecture_doc)
         self.assertIn("Agent Metadata Registry", architecture_doc)
@@ -331,13 +354,21 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("Hybrid Workflow Integration source coverage", architecture_doc)
         for registry_name in V44_HYBRID_STUDIO_REGISTRIES:
             self.assertIn(registry_name, architecture_doc)
+        for registry_name in V45_MULTIMODAL_STUDIO_REGISTRIES:
+            self.assertIn(registry_name, architecture_doc)
         self.assertIn("Hybrid Studio Integration source coverage", architecture_doc)
+        self.assertIn(
+            "Multimodal Studio Integration source coverage",
+            architecture_doc,
+        )
         self.assertIn("passive orchestration metadata", normalized_architecture_doc)
         self.assertIn("passive hybrid workflow metadata", normalized_architecture_doc)
         self.assertIn("passive hybrid studio metadata", normalized_architecture_doc)
+        self.assertIn("passive multimodal studio metadata", normalized_architecture_doc)
         self.assertIn("do not execute orchestration", normalized_architecture_doc)
         self.assertIn("do not execute escalation", normalized_architecture_doc)
         self.assertIn("does not activate Studio runtime", normalized_architecture_doc)
+        self.assertIn("does not execute rendering", normalized_architecture_doc)
         self.assertIn("do not enter provider prompts", normalized_architecture_doc)
         self.assertIn("LangGraph node ordering", architecture_doc)
 
@@ -439,6 +470,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "Hybrid Agentic Workflow",
             "V4.4",
             "Hybrid Studio",
+            "V4.5",
+            "Multimodal Studio",
             "V4",
             "Agentic Studio",
             "V5",
@@ -455,6 +488,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("## V4.2 Agent Orchestration Registries", engine_matrix)
         self.assertIn("## V4.3 Hybrid Agentic Workflow Registries", engine_matrix)
         self.assertIn("## V4.4 Hybrid Studio Registries", engine_matrix)
+        self.assertIn("## V4.5 Multimodal Studio Registries", engine_matrix)
 
         for registry_marker in (
             "agent_capability_registry.v1",
@@ -521,6 +555,21 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "session_replay_registry.v1",
             "execution_replay_registry.v1",
             "hybrid_studio_integration_registry.v1",
+            "multimodal_live_preview_registry.v1",
+            "multimodal_multi_preview_registry.v1",
+            "multimodal_interactive_canvas_registry.v1",
+            "multimodal_visual_workspace_registry.v1",
+            "multimodal_runtime_collaboration_registry.v1",
+            "multimodal_artifact_collaboration_registry.v1",
+            "multimodal_artifact_provenance_registry.v1",
+            "multimodal_artifact_lineage_registry.v1",
+            "multimodal_cross_agent_workspace_registry.v1",
+            "multimodal_shared_artifact_board_registry.v1",
+            "multimodal_workspace_history_registry.v1",
+            "multimodal_branching_timeline_registry.v1",
+            "multimodal_creative_evolution_timeline_registry.v1",
+            "multimodal_real_time_workflow_visualization_registry.v1",
+            "multimodal_studio_integration_registry.v1",
         ):
             self.assertIn(registry_marker, engine_matrix)
 
@@ -550,6 +599,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "workflow_agent_handoff.py",
             "orchestration_contract_integration.py",
             "hybrid_studio.py",
+            "multimodal_studio.py",
         ):
             self.assertIn(module_path, engine_matrix)
 
@@ -557,7 +607,9 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("not active multi-agent orchestration", normalized_engine_matrix)
         self.assertIn("passive hybrid workflow metadata", normalized_engine_matrix)
         self.assertIn("passive hybrid studio metadata", normalized_engine_matrix)
+        self.assertIn("passive multimodal studio metadata", normalized_engine_matrix)
         self.assertIn("does not activate Studio runtime", normalized_engine_matrix)
+        self.assertIn("does not execute rendering", normalized_engine_matrix)
         self.assertIn("runtime selection", normalized_engine_matrix)
         self.assertIn("storage behavior", normalized_engine_matrix)
         self.assertIn("active runtime orchestration", normalized_engine_matrix)

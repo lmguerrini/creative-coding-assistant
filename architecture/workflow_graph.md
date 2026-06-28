@@ -57,6 +57,17 @@ they do not activate Studio runtime, execute providers, invoke agents, change
 LangGraph node order, change provider/model routing, select runtimes, request
 human input, write replay storage, trigger retries, mutate storage, or modify
 generated output.
+V4.5 Multimodal Studio builds on V4.4 as passive multimodal studio metadata.
+It declares live preview, multi preview, interactive canvas, visual workspace,
+runtime collaboration, artifact collaboration, artifact provenance, artifact
+lineage, cross-agent workspace, shared artifact board, workspace history,
+branching timeline, creative evolution timeline, real-time workflow
+visualization, and integration source coverage. These registries are
+inspectable metadata APIs; they do not execute rendering, activate Studio
+runtime, change LangGraph node order, route providers or models, select
+runtimes, control workflows, request human input, trigger retries, mutate
+artifacts, modify generated output, persist collaboration storage, subscribe
+to live streams, or open networking.
 `_planning_node()` deterministically derives and stores the V3.1 Creative
 Cognition metadata, the V3.2 Generative Design metadata, the V3.3 Artifact
 Intelligence metadata, and the V3.4 Creative Evaluation metadata:
@@ -251,6 +262,40 @@ The V4.4 Hybrid Studio layer does not activate Studio runtime.
 | Session Replay Registry | Describes session replay context without session replay execution, session recording, timeline reconstruction, replay persistence, conversation persistence, or snapshot capture |
 | Execution Replay Registry | Describes execution replay context without provider execution, model selection, execution trace reconstruction, replay persistence, cost scoring, quality scoring, or workflow control |
 | Hybrid Studio Integration Registry | Exposes Hybrid Studio Integration source coverage across the full passive V4.4 source set for audit and inspection without adding runtime behavior or activating Studio runtime |
+
+## V4.5 Multimodal Studio Metadata Boundary
+
+V4.5 introduces Multimodal Studio metadata over the passive V4.4 surface
+without turning the current backend into an active multimodal Studio runtime.
+The registries describe future preview inspection, multi-preview comparison,
+interactive canvas boundaries, visual workspace context, runtime and artifact
+collaboration, provenance, lineage, workspace history, branching, creative
+evolution, workflow visualization, and source coverage. They remain
+metadata-only and are covered by tests that prove they do not execute
+rendering, activate Studio runtime, change provider/model routing, select
+runtimes, request human input, control workflows, persist collaboration
+storage, subscribe to live streams, open networking, trigger retries, mutate
+artifacts, alter prompts, change workflow node order, or modify generated
+output.
+The V4.5 Multimodal Studio layer does not execute rendering.
+
+| Registry group | Current boundary |
+| --- | --- |
+| Live Preview Registry | Describes preview target, renderer match, source metadata, and runtime status surfaces without executing rendering, changing browser canvas behavior, routing providers/models, networking, retries, persistence, or output mutation |
+| Multi Preview Registry | Describes passive multi-output comparison surfaces without executing rendering, selecting artifacts, mutating generated output, changing browser canvas behavior, provider/model routing, networking, or persistence |
+| Interactive Canvas Registry | Describes canvas inspection, timeline scrub, shader parameter, and audio-reactive controls without executing rendering, binding input handlers, mutating canvas contexts, changing browser canvas behavior, provider/model routing, networking, or output mutation |
+| Visual Workspace Registry | Describes inspector, comparison, preview shelf, and composition workspace context without mutating workspace state, selecting artifacts, executing rendering, binding canvas input, provider/model routing, networking, or output mutation |
+| Runtime Collaboration Registry | Describes runtime trace, stream event, console, and operator-context surfaces without runtime synchronization, rendering execution, workflow control, human-input requests, provider/model routing, retries, networking, or output mutation |
+| Artifact Collaboration Registry | Describes artifact selection, inspection, comparison, and refinement surfaces without creating collaborative board state, mutating artifacts, persisting collaboration storage, invoking agents, controlling workflows, or output mutation |
+| Artifact Provenance Registry | Describes evidence, payload, evaluation, and missing-source provenance surfaces without provenance recording, artifact mutation, persistent provenance storage, rendering execution, workflow control, or output mutation |
+| Artifact Lineage Registry | Describes dependency, transition, timeline-stage, and missing-artifact lineage surfaces without lineage inference, timeline reconstruction, provenance recording, persistent lineage storage, artifact mutation, or workflow control |
+| Cross-Agent Workspace Registry | Describes agent workspace, shared context, blackboard, and lineage workspace surfaces without agent instantiation, agent invocation, shared context materialization, blackboard writes, workspace mutation, or output mutation |
+| Shared Artifact Board Registry | Describes selection, comparison, provenance-lineage, and handoff board surfaces without board state creation, artifact mutation, artifact selection changes, board persistence, agent invocation, or output mutation |
+| Workspace History Registry | Describes session record, snapshot, artifact board, and runtime-event history surfaces without recording history, capturing snapshots, reconstructing timelines, persisting history storage, replaying runtime events, or mutating workspace state |
+| Branching Timeline Registry | Describes workflow branch, artifact variant, review retry, and fallback failure branch surfaces without creating branches, executing branch routing, reconstructing timelines, replaying events, triggering retries, mutating workflow state, or output mutation |
+| Creative Evolution Timeline Registry | Describes intent, artifact iteration, quality refinement, and final synthesis evolution surfaces without generating creative evolution, reconstructing timelines, creating branches, mutating artifacts, changing quality scores, or recording provenance |
+| Real-Time Workflow Visualization Registry | Describes runtime state, timeline event, metadata stage, and console health visualization surfaces without subscribing to live streams, mutating workflow state, replaying events, controlling runtime consoles, executing rendering, or networking |
+| Multimodal Studio Integration Registry | Exposes Multimodal Studio Integration source coverage across the full passive V4.5 source set for audit and inspection without activating Studio runtime, executing rendering, provider/model routing, artifact mutation, workflow control, collaboration storage persistence, or networking |
 
 ## Current Implemented Flow
 
