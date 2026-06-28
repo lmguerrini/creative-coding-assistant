@@ -96,6 +96,9 @@ _AGENT_CAPABILITY_REGISTRY = (
 _ESCALATION_POLICY = (
     "creative_coding_assistant.orchestration.escalation_policy"
 )
+_ESCALATION_POLICY_AUDIT = (
+    "creative_coding_assistant.orchestration.escalation_policy_audit"
+)
 _HYBRID_AGENTIC_WORKFLOW = (
     "creative_coding_assistant.orchestration.hybrid_agentic_workflow"
 )
@@ -366,6 +369,13 @@ _EXPORT_MAP = {
     "EscalationPolicyRegistry": _ESCALATION_POLICY,
     "escalation_policy_by_id": _ESCALATION_POLICY,
     "escalation_policy_registry": _ESCALATION_POLICY,
+    "EscalationPolicyAuditRecord": _ESCALATION_POLICY_AUDIT,
+    "EscalationPolicyAuditRegistry": _ESCALATION_POLICY_AUDIT,
+    "escalation_policy_audit_by_rule_id": _ESCALATION_POLICY_AUDIT,
+    "escalation_policy_audit_registry": _ESCALATION_POLICY_AUDIT,
+    "escalation_policy_audits_for_downstream_registry": (
+        _ESCALATION_POLICY_AUDIT
+    ),
     "ConditionalMultiAgentEscalationCondition": _HYBRID_AGENTIC_WORKFLOW,
     "ConditionalMultiAgentEscalationRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "CreativeExplorationBudgetProfile": _HYBRID_AGENTIC_WORKFLOW,
