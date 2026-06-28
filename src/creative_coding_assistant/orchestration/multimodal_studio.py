@@ -24,11 +24,29 @@ MultiPreviewProfileKind = Literal[
     "recommended_candidate_preview",
     "comparison_fallback_preview",
 ]
+InteractiveCanvasProfileKind = Literal[
+    "canvas_surface_inspection",
+    "webgl_canvas_inspection",
+    "input_boundary_inspection",
+    "canvas_status_inspection",
+]
+InteractiveCanvasSurfaceKind = Literal[
+    "canvas_2d",
+    "webgl_canvas",
+    "input_boundary",
+    "runtime_status",
+]
 
 LIVE_PREVIEW_PROFILE_SERIALIZATION_VERSION = "multimodal_live_preview_profile.v1"
 LIVE_PREVIEW_REGISTRY_SERIALIZATION_VERSION = "multimodal_live_preview_registry.v1"
 MULTI_PREVIEW_PROFILE_SERIALIZATION_VERSION = "multimodal_multi_preview_profile.v1"
 MULTI_PREVIEW_REGISTRY_SERIALIZATION_VERSION = "multimodal_multi_preview_registry.v1"
+INTERACTIVE_CANVAS_PROFILE_SERIALIZATION_VERSION = (
+    "multimodal_interactive_canvas_profile.v1"
+)
+INTERACTIVE_CANVAS_REGISTRY_SERIALIZATION_VERSION = (
+    "multimodal_interactive_canvas_registry.v1"
+)
 LIVE_PREVIEW_AUTHORITY_BOUNDARY = (
     "Live Preview metadata describes passive V4.5 Multimodal Studio surfaces "
     "for inspection only; it does not execute rendering, change browser canvas "
@@ -43,6 +61,14 @@ MULTI_PREVIEW_AUTHORITY_BOUNDARY = (
     "behavior, route providers or models, call external providers, trigger "
     "retries, open networking, persist collaboration state, or activate Studio "
     "runtime behavior."
+)
+INTERACTIVE_CANVAS_AUTHORITY_BOUNDARY = (
+    "Interactive Canvas metadata describes passive V4.5 Multimodal Studio "
+    "canvas inspection surfaces only; it does not execute rendering, bind "
+    "interactive input handlers, mutate canvas contexts, change browser canvas "
+    "runtime behavior, route providers or models, call external providers, "
+    "trigger retries, mutate generated outputs, open networking, persist "
+    "collaboration state, or activate Studio runtime behavior."
 )
 
 _LIVE_PREVIEW_SOURCE_REGISTRIES = (
@@ -142,6 +168,60 @@ _MULTI_PREVIEW_BLOCKED_RUNTIME_BEHAVIORS = (
     "candidate_selection_execution",
     "artifact_selection_mutation",
     "browser_canvas_runtime_change",
+    "provider_or_model_routing",
+    "external_provider_calling",
+    "retry_triggering",
+    "generated_output_mutation",
+    "networking",
+    "persistent_collaboration_storage",
+    "active_studio_runtime_behavior",
+)
+
+_INTERACTIVE_CANVAS_SOURCE_REGISTRIES = (
+    "multimodal_live_preview_registry",
+    "multimodal_multi_preview_registry",
+    "nextjs_svg_canvas_runtime",
+    "nextjs_preview_runtime_adapters",
+    "nextjs_preview_sandbox_runtime",
+    "nextjs_preview_renderers",
+)
+
+_INTERACTIVE_CANVAS_SOURCE_REFERENCES = (
+    "multimodal_studio.MULTIMODAL_LIVE_PREVIEW_REGISTRY",
+    "multimodal_studio.MULTIMODAL_MULTI_PREVIEW_REGISTRY",
+    "clients.nextjs.svg_canvas_runtime.hasCanvasPreviewSignal",
+    "clients.nextjs.svg_canvas_runtime.getCanvasRuntimeSupportIssue",
+    "clients.nextjs.preview_runtime_adapters.buildPreviewRuntimeSource",
+    "clients.nextjs.preview_runtime_adapters.mountPreviewRuntime",
+    "clients.nextjs.preview_sandbox_runtime.buildPreviewSandboxDocument",
+    "clients.nextjs.preview_renderers.surface.canvas",
+)
+
+_INTERACTIVE_CANVAS_SURFACES = (
+    "interactive_canvas_panel",
+    "canvas_surface_contract_panel",
+    "canvas_input_boundary_panel",
+    "canvas_runtime_status_panel",
+    "canvas_source_guardrail_panel",
+    "canvas_fallback_panel",
+    "interactive_canvas_boundary_panel",
+)
+
+_INTERACTIVE_CANVAS_OBSERVABILITY_SURFACES = (
+    "profile_id",
+    "canvas_profile_kind",
+    "canvas_surface_kind",
+    "source_live_preview_profile_ids",
+    "source_multi_preview_profile_ids",
+    "source_reference_ids",
+    "authority_boundary",
+)
+
+_INTERACTIVE_CANVAS_BLOCKED_RUNTIME_BEHAVIORS = (
+    "rendering_execution",
+    "interactive_input_binding",
+    "browser_canvas_runtime_change",
+    "canvas_context_mutation",
     "provider_or_model_routing",
     "external_provider_calling",
     "retry_triggering",
@@ -1007,4 +1087,510 @@ MULTIMODAL_MULTI_PREVIEW_REGISTRY = MultimodalMultiPreviewRegistry(
     source_reference_ids=_MULTI_PREVIEW_SOURCE_REFERENCES,
     multi_preview_surface_refs=_MULTI_PREVIEW_SURFACES,
     observability_surfaces=_MULTI_PREVIEW_OBSERVABILITY_SURFACES,
+)
+
+
+class InteractiveCanvasProfile(BaseModel):
+    """Inspectable metadata for one passive Interactive Canvas surface."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    profile_id: str = Field(min_length=1, max_length=120)
+    profile_name: str = Field(min_length=1, max_length=140)
+    canvas_profile_kind: InteractiveCanvasProfileKind
+    canvas_surface_kind: InteractiveCanvasSurfaceKind
+    preview_targets: tuple[PreviewTarget, ...] = Field(min_length=1, max_length=2)
+    source_live_preview_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_multi_preview_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    canvas_signal_refs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_reference_ids: tuple[str, ...] = Field(min_length=1, max_length=8)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    interactive_canvas_surfaces: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=7,
+    )
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=INTERACTIVE_CANVAS_AUTHORITY_BOUNDARY,
+        max_length=900,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_INTERACTIVE_CANVAS_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    rendering_execution_implemented: Literal[False] = False
+    interactive_input_binding_implemented: Literal[False] = False
+    browser_canvas_runtime_change_implemented: Literal[False] = False
+    canvas_context_mutation_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    external_provider_calls_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_storage_implemented: Literal[False] = False
+    active_studio_behavior_implemented: Literal[False] = False
+    serialization_version: Literal["multimodal_interactive_canvas_profile.v1"] = (
+        INTERACTIVE_CANVAS_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class MultimodalInteractiveCanvasRegistry(BaseModel):
+    """Stable passive registry for V4.5 Multimodal Studio Interactive Canvas."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["multimodal_interactive_canvas_registry"] = (
+        "multimodal_interactive_canvas_registry"
+    )
+    serialization_version: Literal["multimodal_interactive_canvas_registry.v1"] = (
+        INTERACTIVE_CANVAS_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=INTERACTIVE_CANVAS_AUTHORITY_BOUNDARY,
+        max_length=900,
+    )
+    interactive_canvas_profiles: tuple[InteractiveCanvasProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    canvas_profile_kinds: tuple[InteractiveCanvasProfileKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    canvas_surface_kinds: tuple[InteractiveCanvasSurfaceKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    preview_targets: tuple[PreviewTarget, ...] = Field(min_length=1, max_length=1)
+    live_preview_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    multi_preview_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    source_reference_ids: tuple[str, ...] = Field(min_length=8, max_length=8)
+    interactive_canvas_surface_refs: tuple[str, ...] = Field(
+        min_length=7,
+        max_length=7,
+    )
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_INTERACTIVE_CANVAS_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    rendering_execution_implemented: Literal[False] = False
+    interactive_input_binding_implemented: Literal[False] = False
+    browser_canvas_runtime_change_implemented: Literal[False] = False
+    canvas_context_mutation_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    external_provider_calls_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_storage_implemented: Literal[False] = False
+    active_studio_behavior_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.profile_id for profile in self.interactive_canvas_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("profile_ids must be unique")
+        if self.profile_ids != derived_profile_ids:
+            raise ValueError("profile_ids must match interactive_canvas_profiles")
+        if self.profile_count != len(self.interactive_canvas_profiles):
+            raise ValueError(
+                "profile_count must match interactive_canvas_profiles"
+            )
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.preview_targets != (PreviewTarget.BROWSER_SANDBOX,):
+            raise ValueError(
+                "preview_targets must describe the browser sandbox canvas"
+            )
+        if (
+            self.live_preview_profile_ids
+            != MULTIMODAL_LIVE_PREVIEW_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "live_preview_profile_ids must match Live Preview registry"
+            )
+        if (
+            self.multi_preview_profile_ids
+            != MULTIMODAL_MULTI_PREVIEW_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "multi_preview_profile_ids must match Multi Preview registry"
+            )
+
+        derived_profile_kinds = _ordered_unique(
+            profile.canvas_profile_kind
+            for profile in self.interactive_canvas_profiles
+        )
+        if self.canvas_profile_kinds != derived_profile_kinds:
+            raise ValueError(
+                "canvas_profile_kinds must match interactive canvas profiles"
+            )
+
+        derived_surface_kinds = _ordered_unique(
+            profile.canvas_surface_kind
+            for profile in self.interactive_canvas_profiles
+        )
+        if self.canvas_surface_kinds != derived_surface_kinds:
+            raise ValueError(
+                "canvas_surface_kinds must match interactive canvas profiles"
+            )
+
+        profile_source_references = {
+            source_reference
+            for profile in self.interactive_canvas_profiles
+            for source_reference in profile.source_reference_ids
+        }
+        if set(self.source_reference_ids) != profile_source_references:
+            raise ValueError(
+                "source_reference_ids must match profile source references"
+            )
+
+        known_routes = set(self.route_names)
+        known_targets = set(self.preview_targets)
+        known_live_profiles = set(self.live_preview_profile_ids)
+        known_multi_profiles = set(self.multi_preview_profile_ids)
+        known_surfaces = set(self.interactive_canvas_surface_refs)
+        known_source_references = set(self.source_reference_ids)
+        for profile in self.interactive_canvas_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must use known routes")
+            if not set(profile.preview_targets).issubset(known_targets):
+                raise ValueError("preview_targets must use known targets")
+            if not set(profile.source_live_preview_profile_ids).issubset(
+                known_live_profiles
+            ):
+                raise ValueError(
+                    "source_live_preview_profile_ids must be known profiles"
+                )
+            if not set(profile.source_multi_preview_profile_ids).issubset(
+                known_multi_profiles
+            ):
+                raise ValueError(
+                    "source_multi_preview_profile_ids must be known profiles"
+                )
+            if not set(profile.interactive_canvas_surfaces).issubset(
+                known_surfaces
+            ):
+                raise ValueError(
+                    "interactive_canvas_surfaces must be known surfaces"
+                )
+            if not set(profile.source_reference_ids).issubset(
+                known_source_references
+            ):
+                raise ValueError(
+                    "source_reference_ids must be known registry references"
+                )
+        return self
+
+
+def multimodal_interactive_canvas_registry() -> (
+    MultimodalInteractiveCanvasRegistry
+):
+    """Return passive V4.5 Multimodal Studio Interactive Canvas metadata."""
+
+    return MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY
+
+
+def multimodal_interactive_canvas_profile_by_id(
+    profile_id: str,
+    registry: MultimodalInteractiveCanvasRegistry | None = None,
+) -> InteractiveCanvasProfile | None:
+    """Return one Interactive Canvas profile without executing canvas behavior."""
+
+    source_registry = registry or MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY
+    normalized_profile_id = str(profile_id).strip()
+    for profile in source_registry.interactive_canvas_profiles:
+        if profile.profile_id == normalized_profile_id:
+            return profile
+    return None
+
+
+def multimodal_interactive_canvas_profiles_for_route(
+    route: RouteName | str,
+    registry: MultimodalInteractiveCanvasRegistry | None = None,
+) -> tuple[InteractiveCanvasProfile, ...]:
+    """Return passive Interactive Canvas profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.interactive_canvas_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def multimodal_interactive_canvas_profiles_for_surface_kind(
+    surface_kind: InteractiveCanvasSurfaceKind | str,
+    registry: MultimodalInteractiveCanvasRegistry | None = None,
+) -> tuple[InteractiveCanvasProfile, ...]:
+    """Return passive Interactive Canvas profiles for one surface kind."""
+
+    surface_value = str(surface_kind).strip()
+    source_registry = registry or MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.interactive_canvas_profiles
+        if profile.canvas_surface_kind == surface_value
+    )
+
+
+def multimodal_interactive_canvas_profiles_for_live_preview_profile(
+    live_preview_profile_id: str,
+    registry: MultimodalInteractiveCanvasRegistry | None = None,
+) -> tuple[InteractiveCanvasProfile, ...]:
+    """Return Interactive Canvas profiles referencing one Live Preview profile."""
+
+    source_registry = registry or MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY
+    source_profile_id = str(live_preview_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.interactive_canvas_profiles
+        if source_profile_id in profile.source_live_preview_profile_ids
+    )
+
+
+def multimodal_interactive_canvas_profiles_for_multi_preview_profile(
+    multi_preview_profile_id: str,
+    registry: MultimodalInteractiveCanvasRegistry | None = None,
+) -> tuple[InteractiveCanvasProfile, ...]:
+    """Return Interactive Canvas profiles referencing one Multi Preview profile."""
+
+    source_registry = registry or MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY
+    source_profile_id = str(multi_preview_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.interactive_canvas_profiles
+        if source_profile_id in profile.source_multi_preview_profile_ids
+    )
+
+
+def _interactive_canvas_profile(
+    *,
+    profile_id: str,
+    profile_name: str,
+    canvas_profile_kind: InteractiveCanvasProfileKind,
+    canvas_surface_kind: InteractiveCanvasSurfaceKind,
+    source_live_preview_profile_ids: tuple[str, ...],
+    source_multi_preview_profile_ids: tuple[str, ...],
+    canvas_signal_refs: tuple[str, ...],
+    source_reference_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    interactive_canvas_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> InteractiveCanvasProfile:
+    return InteractiveCanvasProfile(
+        profile_id=profile_id,
+        profile_name=profile_name,
+        canvas_profile_kind=canvas_profile_kind,
+        canvas_surface_kind=canvas_surface_kind,
+        preview_targets=(PreviewTarget.BROWSER_SANDBOX,),
+        source_live_preview_profile_ids=source_live_preview_profile_ids,
+        source_multi_preview_profile_ids=source_multi_preview_profile_ids,
+        canvas_signal_refs=canvas_signal_refs,
+        source_reference_ids=source_reference_ids,
+        route_applicability=route_applicability,
+        interactive_canvas_surfaces=interactive_canvas_surfaces,
+        advisory_outputs=advisory_outputs,
+        source_registries=_INTERACTIVE_CANVAS_SOURCE_REGISTRIES,
+        observability_surfaces=_INTERACTIVE_CANVAS_OBSERVABILITY_SURFACES,
+    )
+
+
+MULTIMODAL_INTERACTIVE_CANVAS_PROFILES = (
+    _interactive_canvas_profile(
+        profile_id="canvas_2d_interactive_canvas",
+        profile_name="Canvas 2D Interactive Canvas",
+        canvas_profile_kind="canvas_surface_inspection",
+        canvas_surface_kind="canvas_2d",
+        source_live_preview_profile_ids=(
+            "browser_sandbox_live_preview",
+            "runtime_status_live_preview",
+        ),
+        source_multi_preview_profile_ids=(
+            "candidate_grid_multi_preview",
+            "fallback_multi_preview",
+        ),
+        canvas_signal_refs=(
+            "hasCanvasPreviewSignal",
+            "getCanvasRuntimeSupportIssue",
+            "surface.canvas",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_LIVE_PREVIEW_REGISTRY",
+            "multimodal_studio.MULTIMODAL_MULTI_PREVIEW_REGISTRY",
+            "clients.nextjs.svg_canvas_runtime.hasCanvasPreviewSignal",
+            "clients.nextjs.svg_canvas_runtime.getCanvasRuntimeSupportIssue",
+            "clients.nextjs.preview_renderers.surface.canvas",
+        ),
+        route_applicability=tuple(RouteName),
+        interactive_canvas_surfaces=(
+            "interactive_canvas_panel",
+            "canvas_surface_contract_panel",
+            "canvas_source_guardrail_panel",
+            "interactive_canvas_boundary_panel",
+        ),
+        advisory_outputs=(
+            "canvas_2d_surface_inventory",
+            "manual_canvas_surface_review_hint",
+            "no_canvas_context_mutation_notice",
+        ),
+    ),
+    _interactive_canvas_profile(
+        profile_id="webgl_interactive_canvas",
+        profile_name="WebGL Interactive Canvas",
+        canvas_profile_kind="webgl_canvas_inspection",
+        canvas_surface_kind="webgl_canvas",
+        source_live_preview_profile_ids=(
+            "browser_sandbox_live_preview",
+            "runtime_status_live_preview",
+        ),
+        source_multi_preview_profile_ids=(
+            "candidate_grid_multi_preview",
+            "recommended_candidate_multi_preview",
+        ),
+        canvas_signal_refs=(
+            "surface.three",
+            "surface.glsl",
+            "buildPreviewRuntimeSource",
+            "mountPreviewRuntime",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_LIVE_PREVIEW_REGISTRY",
+            "multimodal_studio.MULTIMODAL_MULTI_PREVIEW_REGISTRY",
+            "clients.nextjs.preview_runtime_adapters.buildPreviewRuntimeSource",
+            "clients.nextjs.preview_runtime_adapters.mountPreviewRuntime",
+            "clients.nextjs.preview_sandbox_runtime.buildPreviewSandboxDocument",
+        ),
+        route_applicability=tuple(RouteName),
+        interactive_canvas_surfaces=(
+            "interactive_canvas_panel",
+            "canvas_surface_contract_panel",
+            "canvas_runtime_status_panel",
+            "interactive_canvas_boundary_panel",
+        ),
+        advisory_outputs=(
+            "webgl_canvas_surface_inventory",
+            "manual_webgl_canvas_review_hint",
+            "no_rendering_execution_notice",
+        ),
+    ),
+    _interactive_canvas_profile(
+        profile_id="input_boundary_interactive_canvas",
+        profile_name="Input Boundary Interactive Canvas",
+        canvas_profile_kind="input_boundary_inspection",
+        canvas_surface_kind="input_boundary",
+        source_live_preview_profile_ids=(
+            "browser_sandbox_live_preview",
+            "runtime_status_live_preview",
+        ),
+        source_multi_preview_profile_ids=(
+            "candidate_grid_multi_preview",
+            "split_comparison_multi_preview",
+            "fallback_multi_preview",
+        ),
+        canvas_signal_refs=(
+            "interactive_input_handler_patterns",
+            "getCanvasRuntimeSupportIssue",
+            "sandbox_boundary_panel",
+        ),
+        source_reference_ids=(
+            "clients.nextjs.svg_canvas_runtime.getCanvasRuntimeSupportIssue",
+            "clients.nextjs.preview_sandbox_runtime.buildPreviewSandboxDocument",
+            "clients.nextjs.preview_runtime_adapters.mountPreviewRuntime",
+        ),
+        route_applicability=tuple(RouteName),
+        interactive_canvas_surfaces=(
+            "interactive_canvas_panel",
+            "canvas_input_boundary_panel",
+            "canvas_source_guardrail_panel",
+            "interactive_canvas_boundary_panel",
+        ),
+        advisory_outputs=(
+            "input_boundary_inventory",
+            "manual_input_boundary_review_hint",
+            "no_interactive_input_binding_notice",
+        ),
+    ),
+    _interactive_canvas_profile(
+        profile_id="runtime_status_interactive_canvas",
+        profile_name="Runtime Status Interactive Canvas",
+        canvas_profile_kind="canvas_status_inspection",
+        canvas_surface_kind="runtime_status",
+        source_live_preview_profile_ids=("runtime_status_live_preview",),
+        source_multi_preview_profile_ids=(
+            "candidate_grid_multi_preview",
+            "fallback_multi_preview",
+        ),
+        canvas_signal_refs=(
+            "preview_runtime_status",
+            "preview_runtime_source",
+            "canvas_fallback_panel",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_LIVE_PREVIEW_REGISTRY",
+            "multimodal_studio.MULTIMODAL_MULTI_PREVIEW_REGISTRY",
+            "clients.nextjs.preview_runtime_adapters.buildPreviewRuntimeSource",
+            "clients.nextjs.preview_sandbox_runtime.buildPreviewSandboxDocument",
+        ),
+        route_applicability=tuple(RouteName),
+        interactive_canvas_surfaces=(
+            "interactive_canvas_panel",
+            "canvas_runtime_status_panel",
+            "canvas_fallback_panel",
+            "interactive_canvas_boundary_panel",
+        ),
+        advisory_outputs=(
+            "canvas_runtime_status_inventory",
+            "manual_canvas_status_review_hint",
+            "no_runtime_control_notice",
+        ),
+    ),
+)
+
+MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY = MultimodalInteractiveCanvasRegistry(
+    interactive_canvas_profiles=MULTIMODAL_INTERACTIVE_CANVAS_PROFILES,
+    profile_ids=tuple(
+        profile.profile_id for profile in MULTIMODAL_INTERACTIVE_CANVAS_PROFILES
+    ),
+    canvas_profile_kinds=tuple(
+        profile.canvas_profile_kind
+        for profile in MULTIMODAL_INTERACTIVE_CANVAS_PROFILES
+    ),
+    canvas_surface_kinds=tuple(
+        profile.canvas_surface_kind
+        for profile in MULTIMODAL_INTERACTIVE_CANVAS_PROFILES
+    ),
+    preview_targets=(PreviewTarget.BROWSER_SANDBOX,),
+    live_preview_profile_ids=MULTIMODAL_LIVE_PREVIEW_REGISTRY.profile_ids,
+    multi_preview_profile_ids=MULTIMODAL_MULTI_PREVIEW_REGISTRY.profile_ids,
+    route_names=tuple(RouteName),
+    profile_count=len(MULTIMODAL_INTERACTIVE_CANVAS_PROFILES),
+    source_registries=_INTERACTIVE_CANVAS_SOURCE_REGISTRIES,
+    source_reference_ids=_INTERACTIVE_CANVAS_SOURCE_REFERENCES,
+    interactive_canvas_surface_refs=_INTERACTIVE_CANVAS_SURFACES,
+    observability_surfaces=_INTERACTIVE_CANVAS_OBSERVABILITY_SURFACES,
 )

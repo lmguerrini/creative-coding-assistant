@@ -390,12 +390,16 @@ _EXPORT_MAP = {
     "HybridStudioIntegrationKind": _HYBRID_STUDIO,
     "HybridStudioIntegrationProfile": _HYBRID_STUDIO,
     "HybridStudioIntegrationRegistry": _HYBRID_STUDIO,
+    "InteractiveCanvasProfile": _MULTIMODAL_STUDIO,
+    "InteractiveCanvasProfileKind": _MULTIMODAL_STUDIO,
+    "InteractiveCanvasSurfaceKind": _MULTIMODAL_STUDIO,
     "LivePreviewProfile": _MULTIMODAL_STUDIO,
     "LivePreviewProfileKind": _MULTIMODAL_STUDIO,
     "MultiPreviewLayoutKind": _MULTIMODAL_STUDIO,
     "MultiPreviewOutputKind": _MULTIMODAL_STUDIO,
     "MultiPreviewProfile": _MULTIMODAL_STUDIO,
     "MultiPreviewProfileKind": _MULTIMODAL_STUDIO,
+    "MultimodalInteractiveCanvasRegistry": _MULTIMODAL_STUDIO,
     "MultimodalLivePreviewRegistry": _MULTIMODAL_STUDIO,
     "MultimodalMultiPreviewRegistry": _MULTIMODAL_STUDIO,
     "HitlDecisionPosture": _HYBRID_STUDIO,
@@ -543,6 +547,18 @@ _EXPORT_MAP = {
     "model_profile_by_id": _HYBRID_STUDIO,
     "model_profile_registry": _HYBRID_STUDIO,
     "model_profiles_for_route": _HYBRID_STUDIO,
+    "multimodal_interactive_canvas_profile_by_id": _MULTIMODAL_STUDIO,
+    "multimodal_interactive_canvas_profiles_for_live_preview_profile": (
+        _MULTIMODAL_STUDIO
+    ),
+    "multimodal_interactive_canvas_profiles_for_multi_preview_profile": (
+        _MULTIMODAL_STUDIO
+    ),
+    "multimodal_interactive_canvas_profiles_for_route": _MULTIMODAL_STUDIO,
+    "multimodal_interactive_canvas_profiles_for_surface_kind": (
+        _MULTIMODAL_STUDIO
+    ),
+    "multimodal_interactive_canvas_registry": _MULTIMODAL_STUDIO,
     "multimodal_live_preview_profile_by_id": _MULTIMODAL_STUDIO,
     "multimodal_live_preview_profiles_for_route": _MULTIMODAL_STUDIO,
     "multimodal_live_preview_profiles_for_source_reference": (
