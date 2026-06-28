@@ -36,6 +36,9 @@ _REFLECTION_LOOP_ENGINE = (
 _CREATIVE_CONFIDENCE_ENGINE = (
     "creative_coding_assistant.orchestration.creative_confidence_engine"
 )
+_CREATIVE_COMPLEXITY_ANALYZER = (
+    "creative_coding_assistant.orchestration.creative_complexity_analyzer"
+)
 _CREATIVE_SCORE_ENGINE = (
     "creative_coding_assistant.orchestration.creative_score_engine"
 )
@@ -246,6 +249,8 @@ _EXPORT_MAP = {
     "ExecutionGraphAnalysis": _EXECUTION_GRAPH_ANALYZER,
     "ExecutionGraphEdge": _EXECUTION_GRAPH_ANALYZER,
     "ExecutionGraphNode": _EXECUTION_GRAPH_ANALYZER,
+    "CreativeComplexityAnalysis": _CREATIVE_COMPLEXITY_ANALYZER,
+    "CreativeComplexityFactor": _CREATIVE_COMPLEXITY_ANALYZER,
     "WorkflowCostAnalysis": _WORKFLOW_COST_ANALYZER,
     "WorkflowCostComponent": _WORKFLOW_COST_ANALYZER,
     "WorkflowComplexityAnalysis": _WORKFLOW_COMPLEXITY_ANALYZER,
@@ -1174,6 +1179,7 @@ _EXPORT_MAP = {
     "JinjaPromptRenderer": _PROMPT_TEMPLATES,
     "begin_assistant_workflow": _WORKFLOW,
     "analyze_assistant_execution_graph": _EXECUTION_GRAPH_ANALYZER,
+    "analyze_creative_complexity": _CREATIVE_COMPLEXITY_ANALYZER,
     "analyze_workflow_cost": _WORKFLOW_COST_ANALYZER,
     "analyze_workflow_complexity": _WORKFLOW_COMPLEXITY_ANALYZER,
     "build_assistant_workflow_graph": _WORKFLOW_GRAPH,
@@ -1189,6 +1195,8 @@ _EXPORT_MAP = {
     "build_rendered_prompt_request": _PROMPT_TEMPLATES,
     "build_retrieval_context_request": _RETRIEVAL,
     "complete_workflow_step": _WORKFLOW,
+    "creative_complexity_factor_by_id": _CREATIVE_COMPLEXITY_ANALYZER,
+    "creative_complexity_factors_for_kind": _CREATIVE_COMPLEXITY_ANALYZER,
     "execution_graph_edges_from": _EXECUTION_GRAPH_ANALYZER,
     "execution_graph_edges_to": _EXECUTION_GRAPH_ANALYZER,
     "execution_graph_node_by_id": _EXECUTION_GRAPH_ANALYZER,
