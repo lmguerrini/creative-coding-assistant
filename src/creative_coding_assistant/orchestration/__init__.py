@@ -20,6 +20,7 @@ _CONTEXT_BUDGET_PLANNER = (
     "creative_coding_assistant.orchestration.context_budget_planner"
 )
 _CONTEXT_ROUTER = "creative_coding_assistant.orchestration.context_router"
+_CONTEXT_REUSE = "creative_coding_assistant.orchestration.context_reuse"
 _EXPLORATION_BUDGET_PLANNER = (
     "creative_coding_assistant.orchestration.exploration_budget_planner"
 )
@@ -272,6 +273,8 @@ _EXPORT_MAP = {
     "ContextBudgetPlan": _CONTEXT_BUDGET_PLANNER,
     "ContextRouteDecision": _CONTEXT_ROUTER,
     "ContextRoutingPlan": _CONTEXT_ROUTER,
+    "ContextReuseCandidate": _CONTEXT_REUSE,
+    "ContextReusePlan": _CONTEXT_REUSE,
     "ExplorationBudgetAllocation": _EXPLORATION_BUDGET_PLANNER,
     "ExplorationBudgetPlan": _EXPLORATION_BUDGET_PLANNER,
     "WorkflowCostAnalysis": _WORKFLOW_COST_ANALYZER,
@@ -1238,6 +1241,8 @@ _EXPORT_MAP = {
     "context_budget_allocations_for_kind": _CONTEXT_BUDGET_PLANNER,
     "context_route_decision_by_id": _CONTEXT_ROUTER,
     "context_route_decisions_for_lane": _CONTEXT_ROUTER,
+    "context_reuse_candidate_by_id": _CONTEXT_REUSE,
+    "context_reuse_candidates_for_status": _CONTEXT_REUSE,
     "exploration_budget_allocation_by_id": _EXPLORATION_BUDGET_PLANNER,
     "exploration_budget_allocations_for_topic": _EXPLORATION_BUDGET_PLANNER,
     "execution_graph_edges_from": _EXECUTION_GRAPH_ANALYZER,
@@ -1365,6 +1370,7 @@ _EXPORT_MAP = {
     "next_workflow_step": _WORKFLOW,
     "prepare_workflow_preview_results": _ARTIFACTS,
     "plan_context_budget": _CONTEXT_BUDGET_PLANNER,
+    "plan_context_reuse": _CONTEXT_REUSE,
     "plan_exploration_budget": _EXPLORATION_BUDGET_PLANNER,
     "plan_next_refinement_pass": _REFINEMENT_PASSES,
     "prompt_compression_section_by_id": _PROMPT_COMPRESSION,
