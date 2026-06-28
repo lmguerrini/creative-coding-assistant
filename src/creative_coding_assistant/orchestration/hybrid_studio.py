@@ -12,6 +12,9 @@ from creative_coding_assistant.orchestration.agent_capabilities import (
 from creative_coding_assistant.orchestration.agent_identities import (
     AGENT_IDENTITY_REGISTRY,
 )
+from creative_coding_assistant.orchestration.agent_memory_contracts import (
+    AGENT_MEMORY_CONTRACT_REGISTRY,
+)
 from creative_coding_assistant.orchestration.agent_metadata import (
     AGENT_METADATA_REGISTRY,
 )
@@ -21,6 +24,12 @@ from creative_coding_assistant.orchestration.hybrid_agentic_workflow import (
     QUALITY_ESCALATION_REGISTRY,
 )
 from creative_coding_assistant.orchestration.routing import RouteName
+from creative_coding_assistant.orchestration.shared_context_views import (
+    SHARED_CONTEXT_VIEW_REGISTRY,
+)
+from creative_coding_assistant.orchestration.workflow_agent_handoff import (
+    WORKFLOW_AGENT_HANDOFF_REGISTRY,
+)
 
 LocalModelRuntimeKind = Literal[
     "ollama",
@@ -5943,4 +5952,599 @@ AGENT_WORKSPACE_REGISTRY = AgentWorkspaceRegistry(
     profile_count=len(AGENT_WORKSPACE_PROFILES),
     source_registries=_AGENT_WORKSPACE_SOURCE_REGISTRIES,
     observability_surfaces=_AGENT_WORKSPACE_OBSERVABILITY_SURFACES,
+)
+
+AgentConversationViewKind = Literal[
+    "workspace_thread_view",
+    "agent_handoff_view",
+    "review_discussion_view",
+    "audit_trail_view",
+]
+
+AGENT_CONVERSATION_VIEW_PROFILE_SERIALIZATION_VERSION = (
+    "agent_conversation_view_profile.v1"
+)
+AGENT_CONVERSATION_VIEW_REGISTRY_SERIALIZATION_VERSION = (
+    "agent_conversation_view_registry.v1"
+)
+AGENT_CONVERSATION_VIEW_REGISTRY_AUTHORITY_BOUNDARY = (
+    "Agent Conversation View metadata describes passive Studio-visible "
+    "conversation thread, handoff, review, and audit surfaces over existing "
+    "agent workspace, shared context, memory contract, workflow handoff, and "
+    "HITL decision metadata for V4.4 inspection only; it does not record "
+    "conversations, generate messages, invoke agents, persist conversation "
+    "state, write memory, mutate workspace state, control workflow "
+    "transitions, request human input, route providers or models, trigger "
+    "retries, write replay storage, or modify generated output."
+)
+
+_AGENT_CONVERSATION_VIEW_SOURCE_REGISTRIES = (
+    "agent_workspace_registry",
+    "agent_identity_registry",
+    "agent_role_registry",
+    "shared_context_view_registry",
+    "agent_memory_contract_registry",
+    "workflow_agent_handoff_registry",
+    "hitl_decision_registry",
+    "studio_mode_registry",
+)
+
+_AGENT_CONVERSATION_VIEW_SURFACES = (
+    "agent_conversation_panel",
+    "conversation_thread_list",
+    "agent_message_timeline",
+    "handoff_context_panel",
+    "shared_context_scope_panel",
+    "hitl_conversation_review_panel",
+)
+
+_AGENT_CONVERSATION_VIEW_OBSERVABILITY_SURFACES = (
+    "conversation_view_profile_id",
+    "conversation_view_kind",
+    "source_workspace_profile_ids",
+    "source_agent_ids",
+    "source_shared_context_view_ids",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_AGENT_CONVERSATION_VIEW_BLOCKED_RUNTIME_BEHAVIORS = (
+    "conversation_execution",
+    "conversation_persistence",
+    "agent_message_generation",
+    "agent_invocation",
+    "memory_write",
+    "workspace_state_mutation",
+    "workflow_control",
+    "human_input_request",
+    "provider_or_model_routing",
+    "retry_or_refinement_triggering",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class AgentConversationViewProfile(BaseModel):
+    """Inspectable passive agent conversation view for Hybrid Studio."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    conversation_view_profile_id: str = Field(min_length=1, max_length=140)
+    profile_name: str = Field(min_length=1, max_length=160)
+    conversation_view_kind: AgentConversationViewKind
+    source_workspace_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_agent_ids: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_role_ids: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_shared_context_view_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=8,
+    )
+    source_memory_contract_ids: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_handoff_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_hitl_decision_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    conversation_surfaces: tuple[str, ...] = Field(min_length=1, max_length=6)
+    visible_thread_fields: tuple[str, ...] = Field(min_length=1, max_length=10)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=AGENT_CONVERSATION_VIEW_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1400,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_AGENT_CONVERSATION_VIEW_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    conversation_execution_implemented: Literal[False] = False
+    conversation_persistence_implemented: Literal[False] = False
+    agent_message_generation_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    memory_write_implemented: Literal[False] = False
+    workspace_state_mutation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["agent_conversation_view_profile.v1"] = (
+        AGENT_CONVERSATION_VIEW_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class AgentConversationViewRegistry(BaseModel):
+    """Stable passive registry for V4.4 Hybrid Studio conversation views."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["agent_conversation_view_registry"] = (
+        "agent_conversation_view_registry"
+    )
+    serialization_version: Literal["agent_conversation_view_registry.v1"] = (
+        AGENT_CONVERSATION_VIEW_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=AGENT_CONVERSATION_VIEW_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1400,
+    )
+    conversation_view_profiles: tuple[AgentConversationViewProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    conversation_view_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    conversation_view_kinds: tuple[AgentConversationViewKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    workspace_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    agent_ids: tuple[str, ...] = Field(min_length=12, max_length=12)
+    role_ids: tuple[str, ...] = Field(min_length=12, max_length=12)
+    shared_context_view_ids: tuple[str, ...] = Field(min_length=12, max_length=12)
+    memory_contract_ids: tuple[str, ...] = Field(min_length=12, max_length=12)
+    handoff_profile_ids: tuple[str, ...] = Field(min_length=12, max_length=12)
+    hitl_decision_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    conversation_surface_refs: tuple[str, ...] = Field(min_length=6, max_length=6)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_AGENT_CONVERSATION_VIEW_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    conversation_execution_implemented: Literal[False] = False
+    conversation_persistence_implemented: Literal[False] = False
+    agent_message_generation_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    memory_write_implemented: Literal[False] = False
+    workspace_state_mutation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.conversation_view_profile_id
+            for profile in self.conversation_view_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("conversation_view_profile_ids must be unique")
+        if self.conversation_view_profile_ids != derived_profile_ids:
+            raise ValueError(
+                "conversation_view_profile_ids must match conversation_view_profiles"
+            )
+        if self.profile_count != len(self.conversation_view_profiles):
+            raise ValueError("profile_count must match conversation_view_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.conversation_view_kinds != tuple(
+            profile.conversation_view_kind
+            for profile in self.conversation_view_profiles
+        ):
+            raise ValueError(
+                "conversation_view_kinds must match conversation_view_profiles"
+            )
+
+        known_routes = set(self.route_names)
+        known_workspaces = set(self.workspace_profile_ids)
+        known_agents = set(self.agent_ids)
+        known_roles = set(self.role_ids)
+        known_shared_context_views = set(self.shared_context_view_ids)
+        known_memory_contracts = set(self.memory_contract_ids)
+        known_handoff_profiles = set(self.handoff_profile_ids)
+        known_hitl_profiles = set(self.hitl_decision_profile_ids)
+        known_surfaces = set(self.conversation_surface_refs)
+        profile_sources = {
+            source_registry
+            for profile in self.conversation_view_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match conversation view sources")
+
+        for profile in self.conversation_view_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.source_workspace_profile_ids).issubset(known_workspaces):
+                raise ValueError(
+                    "source_workspace_profile_ids must be known workspace profiles"
+                )
+            if not set(profile.source_agent_ids).issubset(known_agents):
+                raise ValueError("source_agent_ids must be known agents")
+            if not set(profile.source_role_ids).issubset(known_roles):
+                raise ValueError("source_role_ids must be known roles")
+            if not set(profile.source_shared_context_view_ids).issubset(
+                known_shared_context_views
+            ):
+                raise ValueError(
+                    "source_shared_context_view_ids must be known context views"
+                )
+            if not set(profile.source_memory_contract_ids).issubset(
+                known_memory_contracts
+            ):
+                raise ValueError(
+                    "source_memory_contract_ids must be known memory contracts"
+                )
+            if not set(profile.source_handoff_profile_ids).issubset(
+                known_handoff_profiles
+            ):
+                raise ValueError(
+                    "source_handoff_profile_ids must be known handoff profiles"
+                )
+            if not set(profile.source_hitl_decision_profile_ids).issubset(
+                known_hitl_profiles
+            ):
+                raise ValueError(
+                    "source_hitl_decision_profile_ids must be known profiles"
+                )
+            if not set(profile.conversation_surfaces).issubset(known_surfaces):
+                raise ValueError(
+                    "conversation_surfaces must be known registry surfaces"
+                )
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def agent_conversation_view_registry() -> AgentConversationViewRegistry:
+    """Return passive V4.4 Hybrid Studio agent conversation view metadata."""
+
+    return AGENT_CONVERSATION_VIEW_REGISTRY
+
+
+def agent_conversation_view_profile_by_id(
+    conversation_view_profile_id: str,
+    registry: AgentConversationViewRegistry | None = None,
+) -> AgentConversationViewProfile | None:
+    """Return one conversation view profile without recording a conversation."""
+
+    source_registry = registry or AGENT_CONVERSATION_VIEW_REGISTRY
+    for profile in source_registry.conversation_view_profiles:
+        if profile.conversation_view_profile_id == conversation_view_profile_id:
+            return profile
+    return None
+
+
+def agent_conversation_view_profiles_for_route(
+    route: RouteName | str,
+    registry: AgentConversationViewRegistry | None = None,
+) -> tuple[AgentConversationViewProfile, ...]:
+    """Return passive conversation views applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or AGENT_CONVERSATION_VIEW_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.conversation_view_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def agent_conversation_view_profiles_for_workspace(
+    workspace_profile_id: str,
+    registry: AgentConversationViewRegistry | None = None,
+) -> tuple[AgentConversationViewProfile, ...]:
+    """Return passive conversation views for a workspace profile id."""
+
+    source_registry = registry or AGENT_CONVERSATION_VIEW_REGISTRY
+    workspace_id = str(workspace_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.conversation_view_profiles
+        if workspace_id in profile.source_workspace_profile_ids
+    )
+
+
+def agent_conversation_view_profiles_for_agent_id(
+    agent_id: str,
+    registry: AgentConversationViewRegistry | None = None,
+) -> tuple[AgentConversationViewProfile, ...]:
+    """Return passive conversation views containing an agent id."""
+
+    source_registry = registry or AGENT_CONVERSATION_VIEW_REGISTRY
+    agent_id_value = str(agent_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.conversation_view_profiles
+        if agent_id_value in profile.source_agent_ids
+    )
+
+
+def _role_ids_for_conversation_agent_ids(agent_ids: tuple[str, ...]) -> tuple[str, ...]:
+    role_by_agent_id = {
+        role.agent_id: role.role_id for role in AGENT_ROLE_REGISTRY.roles
+    }
+    return tuple(role_by_agent_id[agent_id] for agent_id in agent_ids)
+
+
+def _shared_context_view_ids_for_agent_ids(
+    agent_ids: tuple[str, ...],
+) -> tuple[str, ...]:
+    view_by_agent_id = {
+        view.agent_id: view.view_id for view in SHARED_CONTEXT_VIEW_REGISTRY.views
+    }
+    return tuple(view_by_agent_id[agent_id] for agent_id in agent_ids)
+
+
+def _memory_contract_ids_for_agent_ids(agent_ids: tuple[str, ...]) -> tuple[str, ...]:
+    contract_by_agent_id = {
+        contract.agent_id: contract.memory_contract_id
+        for contract in AGENT_MEMORY_CONTRACT_REGISTRY.contracts
+    }
+    return tuple(contract_by_agent_id[agent_id] for agent_id in agent_ids)
+
+
+def _handoff_profile_ids_for_agent_ids(agent_ids: tuple[str, ...]) -> tuple[str, ...]:
+    profile_by_agent_id = {
+        profile.agent_id: profile.handoff_profile_id
+        for profile in WORKFLOW_AGENT_HANDOFF_REGISTRY.profiles
+    }
+    return tuple(profile_by_agent_id[agent_id] for agent_id in agent_ids)
+
+
+def _agent_conversation_view_profile(
+    *,
+    conversation_view_profile_id: str,
+    profile_name: str,
+    conversation_view_kind: AgentConversationViewKind,
+    source_workspace_profile_ids: tuple[str, ...],
+    source_agent_ids: tuple[str, ...],
+    source_hitl_decision_profile_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    conversation_surfaces: tuple[str, ...],
+    visible_thread_fields: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> AgentConversationViewProfile:
+    return AgentConversationViewProfile(
+        conversation_view_profile_id=conversation_view_profile_id,
+        profile_name=profile_name,
+        conversation_view_kind=conversation_view_kind,
+        source_workspace_profile_ids=source_workspace_profile_ids,
+        source_agent_ids=source_agent_ids,
+        source_role_ids=_role_ids_for_conversation_agent_ids(source_agent_ids),
+        source_shared_context_view_ids=_shared_context_view_ids_for_agent_ids(
+            source_agent_ids
+        ),
+        source_memory_contract_ids=_memory_contract_ids_for_agent_ids(source_agent_ids),
+        source_handoff_profile_ids=_handoff_profile_ids_for_agent_ids(source_agent_ids),
+        source_hitl_decision_profile_ids=source_hitl_decision_profile_ids,
+        route_applicability=route_applicability,
+        conversation_surfaces=conversation_surfaces,
+        visible_thread_fields=visible_thread_fields,
+        advisory_outputs=advisory_outputs,
+        source_registries=_AGENT_CONVERSATION_VIEW_SOURCE_REGISTRIES,
+        observability_surfaces=_AGENT_CONVERSATION_VIEW_OBSERVABILITY_SURFACES,
+    )
+
+
+AGENT_CONVERSATION_VIEW_SURFACES = (
+    "agent_conversation_panel",
+    "conversation_thread_list",
+    "agent_message_timeline",
+    "handoff_context_panel",
+    "shared_context_scope_panel",
+    "hitl_conversation_review_panel",
+)
+
+AGENT_CONVERSATION_VIEW_PROFILES = (
+    _agent_conversation_view_profile(
+        conversation_view_profile_id="workspace_thread_conversation_view",
+        profile_name="Workspace Thread Conversation View",
+        conversation_view_kind="workspace_thread_view",
+        source_workspace_profile_ids=(
+            "planning_context_agent_workspace",
+            "artifact_runtime_agent_workspace",
+        ),
+        source_agent_ids=(
+            "planner_agent",
+            "research_agent",
+            "runtime_agent",
+            "artifact_agent",
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_visibility_decision_profile",
+            "hitl_confirmation_decision_profile",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DEBUG,
+            RouteName.PREVIEW,
+        ),
+        conversation_surfaces=(
+            "agent_conversation_panel",
+            "conversation_thread_list",
+            "agent_message_timeline",
+            "shared_context_scope_panel",
+        ),
+        visible_thread_fields=(
+            "workspace_profile_metadata",
+            "agent_identity_summary",
+            "route_context_metadata",
+            "shared_context_scope_metadata",
+        ),
+        advisory_outputs=(
+            "workspace_thread_conversation_context",
+            "manual_agent_note_hint",
+            "no_agent_message_generation_notice",
+        ),
+    ),
+    _agent_conversation_view_profile(
+        conversation_view_profile_id="agent_handoff_conversation_view",
+        profile_name="Agent Handoff Conversation View",
+        conversation_view_kind="agent_handoff_view",
+        source_workspace_profile_ids=(
+            "planning_context_agent_workspace",
+            "artifact_runtime_agent_workspace",
+            "critique_curation_agent_workspace",
+        ),
+        source_agent_ids=(
+            "planner_agent",
+            "runtime_agent",
+            "artifact_agent",
+            "critic_agent",
+            "final_synthesizer_agent",
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_confirmation_decision_profile",
+            "hitl_risk_review_decision_profile",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        conversation_surfaces=(
+            "agent_conversation_panel",
+            "agent_message_timeline",
+            "handoff_context_panel",
+            "shared_context_scope_panel",
+        ),
+        visible_thread_fields=(
+            "handoff_profile_metadata",
+            "accepted_surface_metadata",
+            "source_workflow_field_metadata",
+            "shared_context_scope_metadata",
+        ),
+        advisory_outputs=(
+            "agent_handoff_conversation_context",
+            "manual_handoff_review_hint",
+            "no_runtime_handoff_notice",
+        ),
+    ),
+    _agent_conversation_view_profile(
+        conversation_view_profile_id="review_conversation_view",
+        profile_name="Review Conversation View",
+        conversation_view_kind="review_discussion_view",
+        source_workspace_profile_ids=(
+            "critique_curation_agent_workspace",
+            "refinement_synthesis_agent_workspace",
+        ),
+        source_agent_ids=(
+            "aesthetic_critic_agent",
+            "creative_curator_agent",
+            "critic_agent",
+            "refiner_agent",
+            "final_synthesizer_agent",
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_risk_review_decision_profile",
+            "hitl_final_review_decision_profile",
+        ),
+        route_applicability=(
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        conversation_surfaces=(
+            "agent_conversation_panel",
+            "agent_message_timeline",
+            "shared_context_scope_panel",
+            "hitl_conversation_review_panel",
+        ),
+        visible_thread_fields=(
+            "review_agent_metadata",
+            "quality_signal_context",
+            "hitl_decision_context",
+            "refinement_handoff_metadata",
+        ),
+        advisory_outputs=(
+            "review_conversation_context",
+            "manual_review_handoff_hint",
+            "no_output_mutation_notice",
+        ),
+    ),
+    _agent_conversation_view_profile(
+        conversation_view_profile_id="audit_trail_conversation_view",
+        profile_name="Audit Trail Conversation View",
+        conversation_view_kind="audit_trail_view",
+        source_workspace_profile_ids=tuple(
+            AGENT_WORKSPACE_REGISTRY.workspace_profile_ids
+        ),
+        source_agent_ids=(
+            "planner_agent",
+            "artifact_agent",
+            "critic_agent",
+            "refiner_agent",
+            "final_synthesizer_agent",
+        ),
+        source_hitl_decision_profile_ids=tuple(
+            HITL_DECISION_REGISTRY.hitl_decision_profile_ids
+        ),
+        route_applicability=tuple(RouteName),
+        conversation_surfaces=tuple(_AGENT_CONVERSATION_VIEW_SURFACES),
+        visible_thread_fields=(
+            "conversation_profile_metadata",
+            "workspace_source_metadata",
+            "handoff_profile_metadata",
+            "hitl_decision_metadata",
+            "authority_boundary_snapshot",
+        ),
+        advisory_outputs=(
+            "audit_trail_conversation_context",
+            "manual_audit_trace_hint",
+            "no_persistent_replay_storage_notice",
+        ),
+    ),
+)
+
+AGENT_CONVERSATION_VIEW_REGISTRY = AgentConversationViewRegistry(
+    conversation_view_profiles=AGENT_CONVERSATION_VIEW_PROFILES,
+    conversation_view_profile_ids=tuple(
+        profile.conversation_view_profile_id
+        for profile in AGENT_CONVERSATION_VIEW_PROFILES
+    ),
+    conversation_view_kinds=tuple(
+        profile.conversation_view_kind for profile in AGENT_CONVERSATION_VIEW_PROFILES
+    ),
+    workspace_profile_ids=tuple(AGENT_WORKSPACE_REGISTRY.workspace_profile_ids),
+    agent_ids=tuple(AGENT_IDENTITY_REGISTRY.agent_ids),
+    role_ids=tuple(AGENT_ROLE_REGISTRY.role_ids),
+    shared_context_view_ids=tuple(SHARED_CONTEXT_VIEW_REGISTRY.view_ids),
+    memory_contract_ids=tuple(
+        contract.memory_contract_id
+        for contract in AGENT_MEMORY_CONTRACT_REGISTRY.contracts
+    ),
+    handoff_profile_ids=tuple(WORKFLOW_AGENT_HANDOFF_REGISTRY.profile_ids),
+    hitl_decision_profile_ids=tuple(HITL_DECISION_REGISTRY.hitl_decision_profile_ids),
+    conversation_surface_refs=AGENT_CONVERSATION_VIEW_SURFACES,
+    route_names=tuple(RouteName),
+    profile_count=len(AGENT_CONVERSATION_VIEW_PROFILES),
+    source_registries=_AGENT_CONVERSATION_VIEW_SOURCE_REGISTRIES,
+    observability_surfaces=_AGENT_CONVERSATION_VIEW_OBSERVABILITY_SURFACES,
 )
