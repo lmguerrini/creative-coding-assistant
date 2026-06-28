@@ -70,12 +70,22 @@ change provider/model routing, select runtimes, trigger retries, mutate
 artifacts, modify generated output, persist collaboration storage, subscribe
 to live streams, open networking, or change LangGraph node order.
 
+The V4.6 layer is a completed passive metadata layer. It records Agentic Studio
+Hardening coverage across contract, policy, workflow, registry, memory,
+context, collaboration, diversity, explainability, reliability, determinism,
+telemetry, cost, performance, architecture consistency, final hardening, and
+LangGraph error-path audit surfaces. It does not execute hardening checks,
+add LangGraph nodes, bypass failure normalization, activate passive registries,
+control workflows, change provider/model routing, select runtimes, trigger
+retries, mutate storage, execute artifacts, invoke agents, or modify generated
+output.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current
-  V4.1, V4.2, V4.3, V4.4, and V4.5 registries provide inspection and contract
-  metadata for that direction, but not active collaboration behavior or active
-  Studio runtime.
+  V4.1, V4.2, V4.3, V4.4, V4.5, and V4.6 registries provide inspection,
+  contract, and hardening metadata for that direction, but not active
+  collaboration behavior, active Studio runtime, or runtime hardening behavior.
 - V5 Execution Optimization & Production Intelligence remains future runtime
   policy, production telemetry, and cost/performance work.
 - V6 HoloGenesis Core OS remains future long-horizon creative lineage,

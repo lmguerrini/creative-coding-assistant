@@ -105,6 +105,11 @@ observed through live preview and runtime inspection from the same interface.
   history, branching, creative evolution, real-time workflow visualization,
   and integration metadata without rendering execution or active Studio
   runtime
+- V4.6 Agentic Studio Hardening registries for passive contract, policy,
+  workflow, registry, memory/context, collaboration/diversity, quality,
+  reliability, determinism, observability, cost, performance, architecture,
+  final hardening, and LangGraph error-path audit metadata without new runtime
+  behavior
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -182,6 +187,16 @@ remains passive multimodal studio metadata, not rendering execution, active
 Studio runtime, provider/model routing, runtime selection, workflow control,
 artifact mutation, collaboration storage persistence, networking, or
 generated-output mutation. It does not execute rendering.
+
+V4.6 Agentic Studio Hardening defines the hardening layer as product metadata:
+contract, policy, hybrid workflow, registry, memory/context, collaboration,
+diversity, explainability, reliability, determinism, telemetry, cost,
+performance, architecture consistency, final hardening, and LangGraph
+error-path audit coverage. It preserves the current LangGraph runtime and
+remains passive agentic studio hardening metadata, not runtime hardening
+execution, provider/model routing, workflow control, registry activation,
+agent invocation, retry triggering, storage mutation, or generated-output
+mutation.
 
 Artifact Intelligence capabilities:
 
@@ -313,6 +328,26 @@ Multimodal Studio registries:
 - Multimodal Studio Integration Registry
 - Multimodal Studio Integration source coverage
 
+Agentic Studio Hardening registries:
+
+- Agent Contract Audit Registry
+- Escalation Policy Audit Registry
+- Hybrid Workflow Audit Registry
+- Agent Registry Audit Registry
+- Blackboard Audit Registry
+- Shared Context Audit Registry
+- Agent Collaboration Audit Registry
+- Creative Diversity Audit Registry
+- Agent Explainability Audit Registry
+- Agent Reliability Audit Registry
+- Agent Determinism Audit Registry
+- Agent Telemetry Foundation Registry
+- Agent Cost Tracking Foundation Registry
+- Agent Performance Tracking Foundation Registry
+- Architecture Consistency Pass Registry
+- Final V4 Hardening Registry
+- LangGraph Error Path Audit
+
 The architecture documents six complementary views:
 
 - the real runtime graph in
@@ -325,16 +360,17 @@ The architecture documents six complementary views:
   [`architecture/artifact_intelligence_graph.md`](architecture/artifact_intelligence_graph.md)
 - the V3.5 Creative Workstation surface graph in
   [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
-- the cross-cutting engine matrix, including V4.1, V4.2, V4.3, V4.4, and V4.5
+- the cross-cutting engine matrix, including V4.1, V4.2, V4.3, V4.4, V4.5,
+  and V4.6
   registries, in
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
 The runtime graph remains compact and truthful. The internal pipeline and
 dependency views remain blueprints for future V4 Agentic Studio decomposition,
-while V4.1, V4.2, V4.3, V4.4, and V4.5 document passive roles, contracts,
-orchestration, hybrid workflow, hybrid studio, and multimodal studio metadata
-rather than claiming that a multi-agent runtime, Studio runtime, or rendering
-execution path already exists.
+while V4.1, V4.2, V4.3, V4.4, V4.5, and V4.6 document passive roles,
+contracts, orchestration, hybrid workflow, hybrid studio, multimodal studio,
+and hardening metadata rather than claiming that a multi-agent runtime, Studio
+runtime, rendering execution path, or runtime hardening engine already exists.
 
 ## Creative Workflow
 
@@ -719,6 +755,42 @@ runtime, change provider/model routing, select runtimes, control workflows,
 request human input, trigger retries, mutate artifacts, modify generated
 output, persist collaboration storage, subscribe to live streams, open
 networking, or change LangGraph node order.
+
+### V4.6 Agentic Studio Hardening
+
+- Agent Contract Audit Registry for passive contract coverage checks without
+  changing agent contracts or invoking agents
+- Escalation Policy Audit Registry for passive policy coverage without
+  evaluating escalation or routing providers
+- Hybrid Workflow Audit Registry for passive readiness coverage without
+  executing hybrid workflow behavior
+- Agent Registry Audit Registry for passive registry discoverability coverage
+  without loading active runtime behavior
+- Blackboard Audit Registry and Shared Context Audit Registry for passive
+  memory/context boundary coverage without storage reads, writes, or shared
+  context materialization
+- Agent Collaboration Audit Registry and Creative Diversity Audit Registry for
+  passive collaboration and diversity coverage without coordination, debate,
+  consensus, agent execution, or variant generation
+- Agent Explainability Audit Registry, Agent Reliability Audit Registry, and
+  Agent Determinism Audit Registry for passive quality boundary coverage
+  without altering prompt rendering, retries, routing, or generated output
+- Agent Telemetry Foundation Registry, Agent Cost Tracking Foundation Registry,
+  and Agent Performance Tracking Foundation Registry for passive observability
+  foundations without telemetry emission, pricing lookup, cost routing, latency
+  routing, scheduling, or provider execution
+- Architecture Consistency Pass Registry and Final V4 Hardening Registry for
+  passive source coverage and closure metadata without changing architecture
+  docs at runtime or mutating the workflow graph
+- LangGraph Error Path Audit for passive documentation and regression coverage
+  of terminal failure paths without adding LangGraph nodes or recovery
+  behavior
+
+These V4.6 registries are passive product and architecture metadata over the
+V4.1-V4.5 Agentic Studio stack. They do not execute hardening checks at
+runtime, bypass failure normalization, activate passive registries, change
+provider/model routing, select runtimes, trigger retries, control workflows,
+invoke agents, mutate storage, execute artifacts, or mutate generated output.
 
 ### Creative Core
 

@@ -109,6 +109,25 @@ V45_MULTIMODAL_STUDIO_REGISTRIES = (
     "Real-Time Workflow Visualization Registry",
     "Multimodal Studio Integration Registry",
 )
+V46_AGENTIC_STUDIO_HARDENING_REGISTRIES = (
+    "Agent Contract Audit Registry",
+    "Escalation Policy Audit Registry",
+    "Hybrid Workflow Audit Registry",
+    "Agent Registry Audit Registry",
+    "Blackboard Audit Registry",
+    "Shared Context Audit Registry",
+    "Agent Collaboration Audit Registry",
+    "Creative Diversity Audit Registry",
+    "Agent Explainability Audit Registry",
+    "Agent Reliability Audit Registry",
+    "Agent Determinism Audit Registry",
+    "Agent Telemetry Foundation Registry",
+    "Agent Cost Tracking Foundation Registry",
+    "Agent Performance Tracking Foundation Registry",
+    "Architecture Consistency Pass Registry",
+    "Final V4 Hardening Registry",
+    "LangGraph Error Path Audit",
+)
 PUBLIC_README_INTERNAL_MARKERS = (
     "Current Branch Status",
     "feature/",
@@ -150,6 +169,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("Hybrid Studio", readme)
         self.assertIn("V4.5", readme)
         self.assertIn("Multimodal Studio", readme)
+        self.assertIn("V4.6", readme)
+        self.assertIn("Agentic Studio Hardening", readme)
         self.assertIn("Next.js workstation", readme)
         self.assertIn("Capability Scope", readme)
         self.assertIn("architecture/artifact_intelligence_graph.md", readme)
@@ -178,12 +199,18 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         for registry_name in V45_MULTIMODAL_STUDIO_REGISTRIES:
             self.assertIn(registry_name, readme)
         self.assertIn("Multimodal Studio Integration source coverage", readme)
+        for registry_name in V46_AGENTIC_STUDIO_HARDENING_REGISTRIES:
+            self.assertIn(registry_name, readme)
         self.assertIn("metadata-only", readme)
         self.assertIn("passive role and contract metadata", normalized_readme)
         self.assertIn("passive orchestration metadata", normalized_readme)
         self.assertIn("passive hybrid workflow metadata", normalized_readme)
         self.assertIn("passive hybrid studio metadata", normalized_readme)
         self.assertIn("passive multimodal studio metadata", normalized_readme)
+        self.assertIn(
+            "passive agentic studio hardening metadata",
+            normalized_readme,
+        )
         self.assertIn("orchestration readiness metadata", normalized_readme)
         self.assertIn("not active Studio runtime", normalized_readme)
         self.assertIn("not rendering execution", normalized_readme)
@@ -200,6 +227,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("modify artifacts", normalized_readme)
         self.assertIn("select runtimes", normalized_readme)
         self.assertIn("product roadmap context", normalized_readme)
+        self.assertIn("bypass failure normalization", normalized_readme)
+        self.assertIn("runtime hardening engine", normalized_readme)
 
         for internal_marker in PUBLIC_README_INTERNAL_MARKERS:
             self.assertNotIn(internal_marker, readme)
@@ -295,6 +324,41 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("modify generated output", normalized_combined)
         self.assertIn("compact LangGraph workflow", normalized_combined)
 
+    def test_project_docs_cover_current_v4_6_passive_scope(self) -> None:
+        project_context = (
+            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
+        ).read_text(encoding="utf-8")
+        roadmap = (
+            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
+        ).read_text(encoding="utf-8")
+        decisions = (
+            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
+        ).read_text(encoding="utf-8")
+        combined = "\n".join((project_context, roadmap, decisions))
+        normalized_project_context = re.sub(r"\s+", " ", project_context)
+        normalized_combined = re.sub(r"\s+", " ", combined)
+
+        self.assertIn("V4.6 Agentic Studio Hardening", combined)
+        self.assertIn("LangGraph Error Path Audit", project_context)
+        self.assertIn("Final V4 Hardening Registry", project_context)
+        self.assertIn(
+            "passive agentic studio hardening metadata",
+            normalized_combined,
+        )
+        self.assertIn("V4.6 layer is a completed passive metadata layer", roadmap)
+        self.assertIn("V4.6 Boundary Decision", decisions)
+        self.assertIn("does not execute hardening checks", normalized_combined)
+        self.assertIn("add LangGraph nodes", normalized_combined)
+        self.assertIn("bypass failure normalization", normalized_combined)
+        self.assertIn("activate passive registries", normalized_combined)
+        self.assertIn("change provider/model routing", normalized_combined)
+        self.assertIn("select runtimes", normalized_combined)
+        self.assertIn("modify generated output", normalized_combined)
+        self.assertIn(
+            "terminal failure coverage",
+            normalized_project_context,
+        )
+
     def test_architecture_doc_node_order_matches_backend_node_order(self) -> None:
         architecture_doc = (
             REPO_ROOT / "architecture" / "workflow_graph.md"
@@ -337,6 +401,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("no Studio runtime", mermaid)
         self.assertIn("V4.5 multimodal studio metadata boundary", mermaid)
         self.assertIn("no rendering execution", mermaid)
+        self.assertIn("V4.6 agentic studio hardening metadata boundary", mermaid)
+        self.assertIn("terminal failure audit only", mermaid)
 
     def test_workflow_doc_distinguishes_runtime_pipeline_and_dependency_views(
         self,
@@ -381,6 +447,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "## V4.5 Multimodal Studio Metadata Boundary",
             architecture_doc,
         )
+        self.assertIn(
+            "## V4.6 Agentic Studio Hardening Metadata Boundary",
+            architecture_doc,
+        )
         self.assertIn("Agent Contract Registry", architecture_doc)
         self.assertIn("Agent Memory Contract Registry", architecture_doc)
         self.assertIn("Agent Metadata Registry", architecture_doc)
@@ -394,6 +464,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             self.assertIn(registry_name, architecture_doc)
         for registry_name in V45_MULTIMODAL_STUDIO_REGISTRIES:
             self.assertIn(registry_name, architecture_doc)
+        for registry_name in V46_AGENTIC_STUDIO_HARDENING_REGISTRIES:
+            self.assertIn(registry_name, architecture_doc)
         self.assertIn("Hybrid Studio Integration source coverage", architecture_doc)
         self.assertIn(
             "Multimodal Studio Integration source coverage",
@@ -403,10 +475,16 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("passive hybrid workflow metadata", normalized_architecture_doc)
         self.assertIn("passive hybrid studio metadata", normalized_architecture_doc)
         self.assertIn("passive multimodal studio metadata", normalized_architecture_doc)
+        self.assertIn(
+            "passive hardening and audit metadata",
+            normalized_architecture_doc,
+        )
         self.assertIn("do not execute orchestration", normalized_architecture_doc)
         self.assertIn("do not execute escalation", normalized_architecture_doc)
         self.assertIn("does not activate Studio runtime", normalized_architecture_doc)
         self.assertIn("does not execute rendering", normalized_architecture_doc)
+        self.assertIn("do not execute hardening checks", normalized_architecture_doc)
+        self.assertIn("bypass failure normalization", normalized_architecture_doc)
         self.assertIn("do not enter provider prompts", normalized_architecture_doc)
         self.assertIn("LangGraph node ordering", architecture_doc)
 
@@ -510,6 +588,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "Hybrid Studio",
             "V4.5",
             "Multimodal Studio",
+            "V4.6",
+            "Agentic Studio Hardening",
             "V4",
             "Agentic Studio",
             "V5",
@@ -527,6 +607,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("## V4.3 Hybrid Agentic Workflow Registries", engine_matrix)
         self.assertIn("## V4.4 Hybrid Studio Registries", engine_matrix)
         self.assertIn("## V4.5 Multimodal Studio Registries", engine_matrix)
+        self.assertIn("## V4.6 Agentic Studio Hardening Registries", engine_matrix)
 
         for registry_marker in (
             "agent_capability_registry.v1",
@@ -608,6 +689,23 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "multimodal_creative_evolution_timeline_registry.v1",
             "multimodal_real_time_workflow_visualization_registry.v1",
             "multimodal_studio_integration_registry.v1",
+            "agent_contract_audit_registry.v1",
+            "escalation_policy_audit_registry.v1",
+            "hybrid_workflow_audit_registry.v1",
+            "agent_registry_audit_registry.v1",
+            "blackboard_audit_registry.v1",
+            "shared_context_audit_registry.v1",
+            "agent_collaboration_audit_registry.v1",
+            "creative_diversity_audit_registry.v1",
+            "agent_explainability_audit_registry.v1",
+            "agent_reliability_audit_registry.v1",
+            "agent_determinism_audit_registry.v1",
+            "agent_telemetry_foundation_registry.v1",
+            "agent_cost_tracking_foundation_registry.v1",
+            "agent_performance_tracking_foundation_registry.v1",
+            "architecture_consistency_pass_registry.v1",
+            "final_v4_hardening_registry.v1",
+            "langgraph_error_path_audit.v1",
         ):
             self.assertIn(registry_marker, engine_matrix)
 
@@ -636,6 +734,22 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "agent_state_synchronization.py",
             "workflow_agent_handoff.py",
             "orchestration_contract_integration.py",
+            "agent_contract_audit.py",
+            "escalation_policy_audit.py",
+            "hybrid_workflow_audit.py",
+            "agent_registry_audit.py",
+            "blackboard_audit.py",
+            "shared_context_audit.py",
+            "agent_collaboration_audit.py",
+            "creative_diversity_audit.py",
+            "agent_explainability_audit.py",
+            "agent_reliability_audit.py",
+            "agent_determinism_audit.py",
+            "agent_telemetry_foundation.py",
+            "agent_cost_tracking_foundation.py",
+            "agent_performance_tracking_foundation.py",
+            "architecture_consistency_pass.py",
+            "final_v4_hardening.py",
             "hybrid_studio.py",
             "multimodal_studio.py",
         ):
@@ -646,8 +760,15 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("passive hybrid workflow metadata", normalized_engine_matrix)
         self.assertIn("passive hybrid studio metadata", normalized_engine_matrix)
         self.assertIn("passive multimodal studio metadata", normalized_engine_matrix)
+        self.assertIn(
+            "passive agentic studio hardening metadata",
+            normalized_engine_matrix,
+        )
         self.assertIn("does not activate Studio runtime", normalized_engine_matrix)
         self.assertIn("does not execute rendering", normalized_engine_matrix)
+        self.assertIn("does not execute hardening checks", normalized_engine_matrix)
+        self.assertIn("bypass failure normalization", normalized_engine_matrix)
+        self.assertIn("activate passive registries", normalized_engine_matrix)
         self.assertIn("runtime selection", normalized_engine_matrix)
         self.assertIn("storage behavior", normalized_engine_matrix)
         self.assertIn("active runtime orchestration", normalized_engine_matrix)

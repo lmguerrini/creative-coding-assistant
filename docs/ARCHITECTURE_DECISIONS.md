@@ -89,6 +89,23 @@ branches, record provenance, or change workflow order. More generally, it does
 not execute rendering, does not activate Studio runtime, does not change
 provider/model routing, and does not modify generated output.
 
+## V4.6 Boundary Decision
+
+V4.6 Agentic Studio Hardening is passive audit and hardening metadata over the
+V4.1-V4.5 Agentic Studio stack. It records coverage for agent contracts,
+policy, hybrid workflow, registry discoverability, memory/context boundaries,
+collaboration, creative diversity, explainability, reliability, determinism,
+telemetry, cost, performance, architecture consistency, final hardening, and
+LangGraph error paths.
+
+It must not execute hardening checks, add LangGraph nodes, bypass failure
+normalization, activate passive registries, control workflows, invoke agents,
+select providers or models, route providers or models, select runtimes, trigger
+retries, mutate storage, execute artifacts, mutate generated output, or change
+workflow order. More generally, it does not change provider/model routing,
+does not introduce runtime recovery behavior, and does not modify generated
+output.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -102,6 +119,7 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - passive V4.3 hybrid workflow metadata
 - passive V4.4 hybrid studio metadata
 - passive V4.5 multimodal studio metadata
+- passive V4.6 agentic studio hardening metadata
 - future active V4 Agentic Studio, V5 execution optimization, and V6 learning
   work
 

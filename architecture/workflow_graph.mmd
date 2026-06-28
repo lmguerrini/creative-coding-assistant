@@ -53,6 +53,7 @@ flowchart TB
     hybrid_workflow_boundary["V4.3 hybrid workflow metadata boundary<br/>passive escalation + integration registries<br/>no runtime escalation"]:::relationship
     hybrid_studio_boundary["V4.4 hybrid studio metadata boundary<br/>passive local/cloud + Studio inspection registries<br/>no Studio runtime"]:::relationship
     multimodal_studio_boundary["V4.5 multimodal studio metadata boundary<br/>passive preview + canvas + lineage registries<br/>no rendering execution"]:::relationship
+    hardening_boundary["V4.6 agentic studio hardening metadata boundary<br/>passive audit + error-path coverage<br/>terminal failure audit only"]:::relationship
 
     %% Main success path
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
@@ -79,6 +80,8 @@ flowchart TB
     workstation_boundary -. Studio inspection context .-> hybrid_studio_boundary
     hybrid_studio_boundary -. future multimodal context .-> multimodal_studio_boundary
     workstation_boundary -. preview + timeline context .-> multimodal_studio_boundary
+    multimodal_studio_boundary -. hardening source coverage .-> hardening_boundary
+    failure -. terminal failure coverage .-> hardening_boundary
 
     %% Failure paths
     intake -. intake_error .-> failure
@@ -106,7 +109,7 @@ flowchart TB
     class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,reasoning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
-    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary,multimodal_studio_boundary relationship
+    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary,multimodal_studio_boundary,hardening_boundary relationship
 
     %% Subgraph styling
     style phase_1 rx:6px,ry:6px

@@ -65,8 +65,9 @@ inspection metadata, critique, and refinement context.
 - Chroma remains the persistent retrieval and memory database.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
-- V4.1, V4.2, V4.3, V4.4, and V4.5 registries are passive product and architecture
-  metadata. They are inspectable Python APIs and documentation surfaces.
+- V4.1, V4.2, V4.3, V4.4, V4.5, and V4.6 registries are passive product and
+  architecture metadata. They are inspectable Python APIs and documentation
+  surfaces.
 
 ## V4.3 Passive Boundary
 
@@ -114,7 +115,26 @@ The Multimodal Studio Integration Registry exposes Multimodal Studio
 Integration source coverage for audit without activating Studio runtime or
 executing rendering.
 
-## Non-Goals For V4.5
+## V4.6 Passive Boundary
+
+V4.6 Agentic Studio Hardening is passive agentic studio hardening metadata. It
+includes the Agent Contract Audit Registry, Escalation Policy Audit Registry,
+Hybrid Workflow Audit Registry, Agent Registry Audit Registry, Blackboard Audit
+Registry, Shared Context Audit Registry, Agent Collaboration Audit Registry,
+Creative Diversity Audit Registry, Agent Explainability Audit Registry, Agent
+Reliability Audit Registry, Agent Determinism Audit Registry, Agent Telemetry
+Foundation Registry, Agent Cost Tracking Foundation Registry, Agent Performance
+Tracking Foundation Registry, Architecture Consistency Pass Registry, Final V4 Hardening Registry, and LangGraph Error Path Audit, but it does not execute a
+hardening engine, add LangGraph nodes, bypass failure normalization, activate
+passive registries, control workflows, change provider/model routing, select
+runtimes, trigger retries, invoke agents, mutate storage, execute artifacts, or
+modify generated output.
+
+The LangGraph Error Path Audit documents and tests terminal failure coverage
+for the existing graph and backend/frontend boundaries without introducing new
+runtime behavior.
+
+## Non-Goals For V4.6
 
 - active multi-agent execution
 - autonomous escalation
@@ -123,6 +143,10 @@ executing rendering.
 - preview runtime execution
 - canvas input binding or canvas mutation
 - workflow visualization execution
+- runtime hardening execution
+- LangGraph node additions
+- failure normalization bypasses
+- passive registry activation
 - provider execution
 - agent invocation
 - human-input requests

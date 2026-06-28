@@ -68,6 +68,16 @@ runtime, change LangGraph node order, route providers or models, select
 runtimes, control workflows, request human input, trigger retries, mutate
 artifacts, modify generated output, persist collaboration storage, subscribe
 to live streams, or open networking.
+V4.6 Agentic Studio Hardening builds on V4.5 as passive hardening and audit
+metadata. It declares contract audit, policy audit, hybrid workflow audit,
+registry audit, memory/context boundary audit, collaboration and diversity
+audit, explainability/reliability/determinism audit, telemetry/cost/performance
+foundation coverage, architecture consistency, final hardening, and LangGraph
+error-path audit coverage. These registries are inspectable metadata APIs; they
+do not execute hardening checks, add LangGraph nodes, bypass failure
+normalization, activate passive registries, route providers or models, select
+runtimes, control workflows, trigger retries, invoke agents, mutate storage,
+execute artifacts, or modify generated output.
 `_planning_node()` deterministically derives and stores the V3.1 Creative
 Cognition metadata, the V3.2 Generative Design metadata, the V3.3 Artifact
 Intelligence metadata, and the V3.4 Creative Evaluation metadata:
@@ -153,6 +163,14 @@ This separation is intentional:
   execution, Studio surface, HITL, profile, comparison, workspace, snapshot,
   replay, and integration metadata over the V4 contract stack, but still does
   not own runtime execution or Studio runtime activation
+- The V4.5 Multimodal Studio layer owns passive preview, canvas, visual
+  workspace, collaboration, provenance, lineage, history, branching, evolution,
+  workflow visualization, and integration metadata, but still does not own
+  rendering execution or Studio runtime activation
+- The V4.6 Agentic Studio Hardening layer owns passive audit, foundation,
+  architecture consistency, final hardening, and LangGraph error-path coverage
+  metadata, but still does not own runtime hardening execution, failure
+  recovery behavior, provider/model routing, or generated-output mutation
 - The internal capability pipeline and dependency graph remain decomposition
   candidates for later orchestration, but they are not a true multi-agent or
   multi-node runtime graph here
@@ -297,6 +315,29 @@ The V4.5 Multimodal Studio layer does not execute rendering.
 | Real-Time Workflow Visualization Registry | Describes runtime state, timeline event, metadata stage, and console health visualization surfaces without subscribing to live streams, mutating workflow state, replaying events, controlling runtime consoles, executing rendering, or networking |
 | Multimodal Studio Integration Registry | Exposes Multimodal Studio Integration source coverage across the full passive V4.5 source set for audit and inspection without activating Studio runtime, executing rendering, provider/model routing, artifact mutation, workflow control, collaboration storage persistence, or networking |
 
+## V4.6 Agentic Studio Hardening Metadata Boundary
+
+V4.6 introduces passive hardening coverage over the V4.1-V4.5 Agentic Studio
+metadata stack. The registries describe source coverage, consistency checks,
+failure-path audit evidence, and blocked runtime behaviors. They remain
+metadata-only and are covered by tests that prove they do not execute hardening
+checks, add LangGraph nodes, bypass failure normalization, activate passive
+registries, change provider/model routing, select runtimes, control workflows,
+trigger retries, mutate storage, invoke agents, execute artifacts, alter
+prompts, change workflow node order, or modify generated output.
+
+| Registry group | Current boundary |
+| --- | --- |
+| Agent Contract Audit Registry | Describes passive per-agent contract coverage without changing contracts or invoking agents |
+| Escalation Policy Audit Registry and Hybrid Workflow Audit Registry | Describe policy and workflow readiness coverage without evaluating escalation, routing providers, or executing hybrid workflow behavior |
+| Agent Registry Audit Registry | Describes registry discoverability coverage without turning passive metadata imports into active runtime behavior |
+| Blackboard Audit Registry and Shared Context Audit Registry | Describe memory/context boundary coverage without storage reads, writes, blackboard mutation, or shared context materialization |
+| Agent Collaboration Audit Registry and Creative Diversity Audit Registry | Describe collaboration and diversity coverage without coordinating agents, running debates, building consensus, or generating variants |
+| Agent Explainability Audit Registry, Agent Reliability Audit Registry, and Agent Determinism Audit Registry | Describe quality and determinism coverage without changing prompts, retries, routing, workflow control, or generated output |
+| Agent Telemetry Foundation Registry, Agent Cost Tracking Foundation Registry, and Agent Performance Tracking Foundation Registry | Describe observability, cost, and performance foundation coverage without telemetry emission, pricing lookup, cost routing, latency routing, scheduling, or provider execution |
+| Architecture Consistency Pass Registry and Final V4 Hardening Registry | Describe architecture/source coverage and hardening closure without changing architecture docs at runtime, mutating workflow graph order, or activating hardening behavior |
+| LangGraph Error Path Audit | Documents tested and documented terminal failure coverage for provider errors, stream errors, planning helper failures, prompt rendering failures, serialization failures, workflow state consistency after failures, refinement/review failures, workstation hydration failures, preview preparation failures, artifact extraction failures, artifact critique failures, registry loading failures, passive metadata import failures, and backend/frontend boundary failures without adding runtime recovery behavior |
+
 ## Current Implemented Flow
 
 The graph is compiled once in `AssistantService.__init__()` and executed
@@ -391,6 +432,8 @@ flowchart TB
     orchestration_boundary["V4.2 orchestration metadata boundary<br/>passive registries over V4.1 agents<br/>no runtime orchestration"]:::relationship
     hybrid_workflow_boundary["V4.3 hybrid workflow metadata boundary<br/>passive escalation + integration registries<br/>no runtime escalation"]:::relationship
     hybrid_studio_boundary["V4.4 hybrid studio metadata boundary<br/>passive local/cloud + Studio inspection registries<br/>no Studio runtime"]:::relationship
+    multimodal_studio_boundary["V4.5 multimodal studio metadata boundary<br/>passive preview + canvas + lineage registries<br/>no rendering execution"]:::relationship
+    hardening_boundary["V4.6 agentic studio hardening metadata boundary<br/>passive audit + error-path coverage<br/>terminal failure audit only"]:::relationship
 
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
     review -->|"pass or max retry"| finalization --> finish
@@ -412,6 +455,10 @@ flowchart TB
     hybrid_workflow_boundary -. future Studio context .-> hybrid_studio_boundary
     metadata_boundary -. passive model/profile references .-> hybrid_studio_boundary
     workstation_boundary -. Studio inspection context .-> hybrid_studio_boundary
+    hybrid_studio_boundary -. future multimodal context .-> multimodal_studio_boundary
+    workstation_boundary -. preview + timeline context .-> multimodal_studio_boundary
+    multimodal_studio_boundary -. hardening source coverage .-> hardening_boundary
+    failure -. terminal failure coverage .-> hardening_boundary
     intake -. intake_error .-> failure
     routing -. routing_error .-> failure
     memory -. memory_error .-> failure
@@ -436,7 +483,7 @@ flowchart TB
     class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,reasoning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
-    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary relationship
+    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary,multimodal_studio_boundary,hardening_boundary relationship
     style phase_1 rx:6px,ry:6px
     style phase_2 rx:6px,ry:6px
     style phase_3 rx:6px,ry:6px

@@ -42,6 +42,7 @@ Use this matrix together with:
 | V4.3 | Hybrid Agentic Workflow defines passive V3 backbone, escalation, specialist loop, gate, debate, voting, confidence, provenance, trace, budget, normalization, handoff, threshold, quality, adaptive, and integration metadata without changing generation behavior | Agent-facing ambiguity, risk, quality, HITL, and handoff context is described as metadata only; no knowledge runtime, blackboard storage, or retrieval side effect is implemented | Hybrid workflow registries remain export-only metadata and do not enter workflow control, provider routing, model routing, runtime selection, retries, prompt rendering, storage behavior, or execution | Agentic Studio can inspect hybrid workflow readiness later, but no active escalation, agent execution, or autonomous orchestration UI behavior is implemented here |
 | V4.4 | Hybrid Studio defines passive local/cloud model, hybrid execution, Auto Mode, Studio Mode, HITL, profile, comparison, workspace, snapshot, replay, and integration metadata without changing generation behavior | Agent-facing Studio workspace, conversation, snapshot, and replay context is described as metadata only; no knowledge runtime, memory storage, blackboard storage, or retrieval side effect is implemented | Hybrid Studio registries remain export-only metadata and do not activate Studio runtime, enter workflow control, route providers/models, select runtimes, trigger retries, mutate storage, persist replay data, or execute providers | Agentic Studio can inspect Hybrid Studio readiness later, but no active Studio runtime, provider execution, agent invocation, replay execution, or autonomous operator UI behavior is implemented here |
 | V4.5 | Multimodal Studio defines passive live preview, multi preview, interactive canvas, visual workspace, collaboration, artifact provenance, lineage, history, branching, creative evolution, workflow visualization, and integration metadata without changing generation behavior | Multimodal preview, workspace, artifact, provenance, timeline, and visualization context is described as metadata only; no new knowledge runtime, memory storage, blackboard storage, or retrieval side effect is implemented | Multimodal Studio registries remain export-only metadata and do not execute rendering, activate Studio runtime, enter workflow control, route providers/models, select runtimes, trigger retries, mutate artifacts, persist collaboration storage, subscribe to streams, or open networking | Agentic Studio can inspect Multimodal Studio readiness later, but no live preview execution, canvas interaction, workflow visualization execution, or autonomous multimodal collaboration behavior is implemented here |
+| V4.6 | Agentic Studio Hardening defines passive audit, foundation, architecture consistency, final hardening, and LangGraph error-path coverage metadata without changing generation behavior | Agent-facing contract, memory/context, collaboration, diversity, quality, reliability, determinism, cost, performance, and error-path context is described as metadata only; no knowledge runtime, memory storage, blackboard storage, or retrieval side effect is implemented | Hardening registries remain export-only metadata and do not execute hardening checks, add LangGraph nodes, bypass failure normalization, activate passive registries, enter workflow control, route providers/models, select runtimes, trigger retries, mutate storage, execute artifacts, or mutate generated output | Agentic Studio can inspect hardening readiness later, but no runtime hardening engine, active recovery behavior, agent invocation, or autonomous operator behavior is implemented here |
 | V4 | Agentic Studio decomposes more internal creative work into bounded collaborative systems | Deeper agent-facing knowledge packets may emerge here | More inspectable orchestration paths may appear here | Agentic Studio becomes the main collaboration surface |
 | V5 | Core Engine remains creative-first but hands more optimization work outward | Knowledge signals can guide execution optimization and production policy | Execution Optimization & Production Intelligence becomes the primary expansion | Experience surfaces emphasize production telemetry and operational controls |
 | V6 | HoloGenesis Core OS can unify long-horizon creative strategy, lineage, and system identity | Long-horizon knowledge and memory adaptation move into the future OS direction | Execution can learn from prior runs without replacing bounded workflow control | Experience surfaces expose lineage, feedback, and evolving operator guidance |
@@ -266,6 +267,44 @@ runtimes, control workflows, request human input, trigger retries, mutate
 artifacts, modify generated output, persist collaboration storage, subscribe to
 live streams, open networking, or change LangGraph node order.
 
+## V4.6 Agentic Studio Hardening Registries
+
+V4.6 adds passive Agentic Studio hardening metadata over the V4.1-V4.5
+contract stack. The registries describe audit coverage, foundation coverage,
+architecture consistency, final V4 hardening closure, and LangGraph error-path
+audit evidence. They are not a runtime hardening engine and do not add
+LangGraph nodes, bypass failure normalization, activate passive registries,
+change provider/model routing, select runtimes, control workflows, trigger
+retries, mutate storage, execute artifacts, invoke agents, or mutate generated
+output.
+
+| Registry | Source module | Count | Serialization version | Current boundary |
+| --- | --- | ---: | --- | --- |
+| Agent Contract Audit Registry | `src/creative_coding_assistant/orchestration/agent_contract_audit.py` | 12 records | `agent_contract_audit_registry.v1` | Describes passive per-agent contract coverage without changing contracts, routing work, or invoking agents |
+| Escalation Policy Audit Registry | `src/creative_coding_assistant/orchestration/escalation_policy_audit.py` | 5 records | `escalation_policy_audit_registry.v1` | Describes policy coverage without evaluating escalation, routing providers, or triggering HITL |
+| Hybrid Workflow Audit Registry | `src/creative_coding_assistant/orchestration/hybrid_workflow_audit.py` | 5 records | `hybrid_workflow_audit_registry.v1` | Describes hybrid workflow readiness coverage without executing hybrid workflow behavior |
+| Agent Registry Audit Registry | `src/creative_coding_assistant/orchestration/agent_registry_audit.py` | 20 records | `agent_registry_audit_registry.v1` | Describes registry discoverability coverage without turning passive metadata imports into runtime behavior |
+| Blackboard Audit Registry | `src/creative_coding_assistant/orchestration/blackboard_audit.py` | 12 records | `blackboard_audit_registry.v1` | Describes blackboard channel and permission coverage without storage reads, writes, or mutation |
+| Shared Context Audit Registry | `src/creative_coding_assistant/orchestration/shared_context_audit.py` | 12 records | `shared_context_audit_registry.v1` | Describes shared context view coverage without materializing shared context or exposing runtime global state |
+| Agent Collaboration Audit Registry | `src/creative_coding_assistant/orchestration/agent_collaboration_audit.py` | 4 records | `agent_collaboration_audit_registry.v1` | Describes coordination, debate, consensus, and handoff coverage without coordinating live agents |
+| Creative Diversity Audit Registry | `src/creative_coding_assistant/orchestration/creative_diversity_audit.py` | 4 records | `creative_diversity_audit_registry.v1` | Describes diversity and exploration-budget coverage without generating variants or enforcing budgets |
+| Agent Explainability Audit Registry | `src/creative_coding_assistant/orchestration/agent_explainability_audit.py` | 12 records | `agent_explainability_audit_registry.v1` | Describes explanation and provenance coverage without altering prompts, payloads, or generated output |
+| Agent Reliability Audit Registry | `src/creative_coding_assistant/orchestration/agent_reliability_audit.py` | 12 records | `agent_reliability_audit_registry.v1` | Describes lifecycle, sync, escalation, and consistency coverage without changing workflow control or retry behavior |
+| Agent Determinism Audit Registry | `src/creative_coding_assistant/orchestration/agent_determinism_audit.py` | 12 records | `agent_determinism_audit_registry.v1` | Describes determinism and cacheability coverage without changing ordering, routing, or output mutation |
+| Agent Telemetry Foundation Registry | `src/creative_coding_assistant/orchestration/agent_telemetry_foundation.py` | 12 records | `agent_telemetry_foundation_registry.v1` | Describes telemetry foundation coverage without emitting telemetry or changing observability runtime behavior |
+| Agent Cost Tracking Foundation Registry | `src/creative_coding_assistant/orchestration/agent_cost_tracking_foundation.py` | 12 records | `agent_cost_tracking_foundation_registry.v1` | Describes cost foundation coverage without pricing lookup, budget enforcement, or cost-based routing |
+| Agent Performance Tracking Foundation Registry | `src/creative_coding_assistant/orchestration/agent_performance_tracking_foundation.py` | 12 records | `agent_performance_tracking_foundation_registry.v1` | Describes latency and scheduling coverage without latency routing, scheduling execution, or provider execution |
+| Architecture Consistency Pass Registry | `src/creative_coding_assistant/orchestration/architecture_consistency_pass.py` | 15 records | `architecture_consistency_pass_registry.v1` | Describes source registry and architecture reference coverage without mutating architecture docs or workflow behavior |
+| Final V4 Hardening Registry | `src/creative_coding_assistant/orchestration/final_v4_hardening.py` | 7 records | `final_v4_hardening_registry.v1` | Describes final V4 hardening closure without executing hardening checks or activating runtime behavior |
+| LangGraph Error Path Audit | `src/creative_coding_assistant/orchestration/final_v4_hardening.py` | 16 surfaces | `langgraph_error_path_audit.v1` | Documents tested and documented terminal failure coverage without adding LangGraph nodes or recovery behavior |
+
+All V4.6 Agentic Studio Hardening registries remain export-only metadata
+surfaces. Boundary tests assert that passive agentic studio hardening metadata
+does not execute hardening checks, bypass failure normalization, activate
+passive registries, change LangGraph node order, enter provider/model routing,
+select runtimes, control workflows, trigger retries, mutate storage, execute
+artifacts, invoke agents, or mutate generated output.
+
 ## V3.5 Workstation Contracts
 
 The Creative Workstation exposes a metadata-only
@@ -299,7 +338,7 @@ workstation responsible for future behavior.
   artifact export, runtime selection, runtime repair, provider/model routing,
   autonomous retries, or preview behavior changes.
 - V3.6 is the current stabilization layer over V3.5, not a new runtime feature
-  family. After V4.4, active V4 Agentic Studio, V5 Execution Optimization &
+  family. After V4.6, active V4 Agentic Studio, V5 Execution Optimization &
   Production Intelligence, and V6 HoloGenesis Core OS remain future work.
 - The current runtime graph remains the source of truth for execution order.
 - The matrix is a planning and architecture aid, not a claim that every engine
