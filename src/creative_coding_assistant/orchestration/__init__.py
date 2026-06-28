@@ -127,6 +127,9 @@ _AGENT_RELIABILITY_AUDIT = (
 _AGENT_DETERMINISM_AUDIT = (
     "creative_coding_assistant.orchestration.agent_determinism_audit"
 )
+_AGENT_TELEMETRY_FOUNDATION = (
+    "creative_coding_assistant.orchestration.agent_telemetry_foundation"
+)
 _HYBRID_STUDIO = "creative_coding_assistant.orchestration.hybrid_studio"
 _MULTIMODAL_STUDIO = "creative_coding_assistant.orchestration.multimodal_studio"
 _ENGINE_CONTRACT_CONSISTENCY = (
@@ -692,6 +695,12 @@ _EXPORT_MAP = {
     "agent_determinism_audits_for_scheduling_group": (
         _AGENT_DETERMINISM_AUDIT
     ),
+    "AgentTelemetryFoundationProfile": _AGENT_TELEMETRY_FOUNDATION,
+    "AgentTelemetryFoundationRegistry": _AGENT_TELEMETRY_FOUNDATION,
+    "agent_telemetry_foundation_registry": _AGENT_TELEMETRY_FOUNDATION,
+    "agent_telemetry_profile_by_agent_id": _AGENT_TELEMETRY_FOUNDATION,
+    "agent_telemetry_profiles_for_dimension": _AGENT_TELEMETRY_FOUNDATION,
+    "agent_telemetry_profiles_for_event_type": _AGENT_TELEMETRY_FOUNDATION,
     "hybrid_execution_profile_by_id": _HYBRID_STUDIO,
     "hybrid_execution_profiles_for_route": _HYBRID_STUDIO,
     "hybrid_execution_registry": _HYBRID_STUDIO,
