@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from creative_coding_assistant.orchestration.hybrid_agentic_workflow import (
     COST_THRESHOLD_ROUTING_REGISTRY,
+    QUALITY_ESCALATION_REGISTRY,
 )
 from creative_coding_assistant.orchestration.routing import RouteName
 
@@ -4217,4 +4218,581 @@ COST_PROFILE_REGISTRY = CostProfileRegistry(
     profile_count=len(COST_PROFILES),
     source_registries=_COST_PROFILE_SOURCE_REGISTRIES,
     observability_surfaces=_COST_PROFILE_OBSERVABILITY_SURFACES,
+)
+
+QualityProfileKind = Literal[
+    "planning_quality_review",
+    "creative_quality_review",
+    "refinement_quality_review",
+    "final_review_quality",
+]
+QualityProfileLevel = Literal["medium", "high", "critical", "low"]
+
+QUALITY_PROFILE_SERIALIZATION_VERSION = "quality_profile.v1"
+QUALITY_PROFILE_REGISTRY_SERIALIZATION_VERSION = "quality_profile_registry.v1"
+QUALITY_PROFILE_REGISTRY_AUTHORITY_BOUNDARY = (
+    "Quality Profiles metadata describes passive quality review context, "
+    "quality escalation source references, and studio-visible quality signals "
+    "for V4.4 Hybrid Studio inspection only; it does not calculate quality "
+    "scores, evaluate quality, execute quality escalation, trigger refinement, "
+    "route providers or models, select models, execute providers, request "
+    "human input, trigger retries, mutate prompts, write replay storage, or "
+    "modify generated output."
+)
+
+_QUALITY_PROFILE_SOURCE_REGISTRIES = (
+    "model_profile_registry",
+    "cost_profile_registry",
+    "provider_selection_registry",
+    "quality_escalation_registry",
+    "execution_simulator_registry",
+    "hitl_decision_registry",
+)
+
+_QUALITY_PROFILE_SURFACES = (
+    "quality_profile_panel",
+    "model_profile_panel",
+    "cost_profile_panel",
+    "execution_simulator_panel",
+    "hitl_decision_panel",
+)
+
+_QUALITY_PROFILE_OBSERVABILITY_SURFACES = (
+    "quality_profile_id",
+    "quality_profile_kind",
+    "quality_level",
+    "source_model_profile_ids",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_QUALITY_PROFILE_BLOCKED_RUNTIME_BEHAVIORS = (
+    "quality_profile_execution",
+    "quality_scoring",
+    "quality_evaluation",
+    "quality_escalation",
+    "refinement_triggering",
+    "provider_or_model_routing",
+    "provider_execution",
+    "model_selection",
+    "cost_optimization",
+    "workflow_control",
+    "human_input_request",
+    "retry_or_refinement_triggering",
+    "prompt_mutation",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class QualityProfile(BaseModel):
+    """Inspectable passive quality profile for Hybrid Studio."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    quality_profile_id: str = Field(min_length=1, max_length=110)
+    profile_name: str = Field(min_length=1, max_length=140)
+    quality_profile_kind: QualityProfileKind
+    quality_level: QualityProfileLevel
+    source_model_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_cost_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_provider_selection_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_quality_escalation_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_execution_simulation_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_hitl_decision_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    quality_dimensions: tuple[str, ...] = Field(min_length=1, max_length=10)
+    quality_inputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    quality_surface_refs: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    authority_boundary: str = Field(
+        default=QUALITY_PROFILE_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1300,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_QUALITY_PROFILE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=18,
+    )
+    quality_profile_execution_implemented: Literal[False] = False
+    quality_scoring_implemented: Literal[False] = False
+    quality_evaluation_implemented: Literal[False] = False
+    quality_escalation_implemented: Literal[False] = False
+    refinement_triggering_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    provider_execution_implemented: Literal[False] = False
+    model_selection_implemented: Literal[False] = False
+    cost_optimization_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["quality_profile.v1"] = (
+        QUALITY_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class QualityProfileRegistry(BaseModel):
+    """Stable passive registry for V4.4 Hybrid Studio quality profiles."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["quality_profile_registry"] = "quality_profile_registry"
+    serialization_version: Literal["quality_profile_registry.v1"] = (
+        QUALITY_PROFILE_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=QUALITY_PROFILE_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1300,
+    )
+    quality_profiles: tuple[QualityProfile, ...] = Field(min_length=4, max_length=4)
+    quality_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    quality_profile_kinds: tuple[QualityProfileKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    quality_levels: tuple[QualityProfileLevel, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    model_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    cost_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    provider_selection_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    quality_escalation_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    execution_simulation_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    hitl_decision_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    quality_surface_refs: tuple[str, ...] = Field(min_length=5, max_length=5)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_QUALITY_PROFILE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=18,
+    )
+    quality_profile_execution_implemented: Literal[False] = False
+    quality_scoring_implemented: Literal[False] = False
+    quality_evaluation_implemented: Literal[False] = False
+    quality_escalation_implemented: Literal[False] = False
+    refinement_triggering_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    provider_execution_implemented: Literal[False] = False
+    model_selection_implemented: Literal[False] = False
+    cost_optimization_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.quality_profile_id for profile in self.quality_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("quality_profile_ids must be unique")
+        if self.quality_profile_ids != derived_profile_ids:
+            raise ValueError("quality_profile_ids must match quality_profiles")
+        if self.profile_count != len(self.quality_profiles):
+            raise ValueError("profile_count must match quality_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.quality_profile_kinds != tuple(
+            profile.quality_profile_kind for profile in self.quality_profiles
+        ):
+            raise ValueError("quality_profile_kinds must match quality_profiles")
+        if self.quality_levels != tuple(
+            profile.quality_level for profile in self.quality_profiles
+        ):
+            raise ValueError("quality_levels must match quality_profiles")
+
+        known_routes = set(self.route_names)
+        known_model_profiles = set(self.model_profile_ids)
+        known_cost_profiles = set(self.cost_profile_ids)
+        known_provider_profiles = set(self.provider_selection_profile_ids)
+        known_quality_escalations = set(self.quality_escalation_profile_ids)
+        known_simulation_profiles = set(self.execution_simulation_profile_ids)
+        known_hitl_profiles = set(self.hitl_decision_profile_ids)
+        known_quality_surfaces = set(self.quality_surface_refs)
+        profile_sources = {
+            source_registry
+            for profile in self.quality_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match quality profile sources")
+
+        for profile in self.quality_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.source_model_profile_ids).issubset(known_model_profiles):
+                raise ValueError("source_model_profile_ids must be known profiles")
+            if not set(profile.source_cost_profile_ids).issubset(known_cost_profiles):
+                raise ValueError("source_cost_profile_ids must be known profiles")
+            if not set(profile.source_provider_selection_profile_ids).issubset(
+                known_provider_profiles
+            ):
+                raise ValueError(
+                    "source_provider_selection_profile_ids must be known profiles"
+                )
+            if not set(profile.source_quality_escalation_profile_ids).issubset(
+                known_quality_escalations
+            ):
+                raise ValueError(
+                    "source_quality_escalation_profile_ids must be known profiles"
+                )
+            if not set(profile.source_execution_simulation_profile_ids).issubset(
+                known_simulation_profiles
+            ):
+                raise ValueError(
+                    "source_execution_simulation_profile_ids must be known profiles"
+                )
+            if not set(profile.source_hitl_decision_profile_ids).issubset(
+                known_hitl_profiles
+            ):
+                raise ValueError(
+                    "source_hitl_decision_profile_ids must be known profiles"
+                )
+            if not set(profile.quality_surface_refs).issubset(known_quality_surfaces):
+                raise ValueError("quality_surface_refs must be known registry surfaces")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def quality_profile_registry() -> QualityProfileRegistry:
+    """Return passive V4.4 Hybrid Studio quality profile metadata."""
+
+    return QUALITY_PROFILE_REGISTRY
+
+
+def quality_profile_by_id(
+    quality_profile_id: str,
+    registry: QualityProfileRegistry | None = None,
+) -> QualityProfile | None:
+    """Return one quality profile without evaluating or scoring it."""
+
+    source_registry = registry or QUALITY_PROFILE_REGISTRY
+    for profile in source_registry.quality_profiles:
+        if profile.quality_profile_id == quality_profile_id:
+            return profile
+    return None
+
+
+def quality_profiles_for_route(
+    route: RouteName | str,
+    registry: QualityProfileRegistry | None = None,
+) -> tuple[QualityProfile, ...]:
+    """Return passive quality profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or QUALITY_PROFILE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.quality_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def quality_profiles_for_level(
+    quality_level: QualityProfileLevel | str,
+    registry: QualityProfileRegistry | None = None,
+) -> tuple[QualityProfile, ...]:
+    """Return passive quality profiles for an advisory quality level."""
+
+    level_value = str(quality_level).strip()
+    source_registry = registry or QUALITY_PROFILE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.quality_profiles
+        if profile.quality_level == level_value
+    )
+
+
+def _quality_profile(
+    *,
+    quality_profile_id: str,
+    profile_name: str,
+    quality_profile_kind: QualityProfileKind,
+    quality_level: QualityProfileLevel,
+    source_model_profile_ids: tuple[str, ...],
+    source_cost_profile_ids: tuple[str, ...],
+    source_provider_selection_profile_ids: tuple[str, ...],
+    source_quality_escalation_profile_ids: tuple[str, ...],
+    source_execution_simulation_profile_ids: tuple[str, ...],
+    source_hitl_decision_profile_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    quality_dimensions: tuple[str, ...],
+    quality_inputs: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+    quality_surface_refs: tuple[str, ...],
+) -> QualityProfile:
+    return QualityProfile(
+        quality_profile_id=quality_profile_id,
+        profile_name=profile_name,
+        quality_profile_kind=quality_profile_kind,
+        quality_level=quality_level,
+        source_model_profile_ids=source_model_profile_ids,
+        source_cost_profile_ids=source_cost_profile_ids,
+        source_provider_selection_profile_ids=source_provider_selection_profile_ids,
+        source_quality_escalation_profile_ids=source_quality_escalation_profile_ids,
+        source_execution_simulation_profile_ids=(
+            source_execution_simulation_profile_ids
+        ),
+        source_hitl_decision_profile_ids=source_hitl_decision_profile_ids,
+        route_applicability=route_applicability,
+        quality_dimensions=quality_dimensions,
+        quality_inputs=quality_inputs,
+        advisory_outputs=advisory_outputs,
+        quality_surface_refs=quality_surface_refs,
+        source_registries=_QUALITY_PROFILE_SOURCE_REGISTRIES,
+        observability_surfaces=_QUALITY_PROFILE_OBSERVABILITY_SURFACES,
+    )
+
+
+QUALITY_PROFILE_SURFACES = (
+    "quality_profile_panel",
+    "model_profile_panel",
+    "cost_profile_panel",
+    "execution_simulator_panel",
+    "hitl_decision_panel",
+)
+
+QUALITY_PROFILES = (
+    _quality_profile(
+        quality_profile_id="planning_quality_profile",
+        profile_name="Planning Quality Profile",
+        quality_profile_kind="planning_quality_review",
+        quality_level="medium",
+        source_model_profile_ids=("fast_iteration_model_profile",),
+        source_cost_profile_ids=("planning_iteration_cost_profile",),
+        source_provider_selection_profile_ids=(
+            "current_config_provider_visibility_profile",
+            "local_candidate_provider_visibility_profile",
+        ),
+        source_quality_escalation_profile_ids=(
+            "quality_escalation::planning_execution_fit",
+        ),
+        source_execution_simulation_profile_ids=("route_preview_simulation_profile",),
+        source_hitl_decision_profile_ids=("hitl_visibility_decision_profile",),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DEBUG,
+            RouteName.PREVIEW,
+        ),
+        quality_dimensions=(
+            "planning_execution_fit_metadata",
+            "route_preview_quality_context",
+            "iteration_readiness_quality",
+        ),
+        quality_inputs=(
+            "fast_iteration_capability_profile",
+            "planning_quality_context",
+            "route_preview_simulation_metadata",
+        ),
+        advisory_outputs=(
+            "planning_quality_review_context",
+            "manual_quality_review_hint",
+            "no_quality_scoring_notice",
+        ),
+        quality_surface_refs=("quality_profile_panel", "model_profile_panel"),
+    ),
+    _quality_profile(
+        quality_profile_id="creative_quality_profile",
+        profile_name="Creative Quality Profile",
+        quality_profile_kind="creative_quality_review",
+        quality_level="high",
+        source_model_profile_ids=("creative_reasoning_model_profile",),
+        source_cost_profile_ids=("creative_reasoning_cost_profile",),
+        source_provider_selection_profile_ids=(
+            "local_candidate_provider_visibility_profile",
+            "cloud_candidate_provider_visibility_profile",
+        ),
+        source_quality_escalation_profile_ids=(
+            "quality_escalation::style_aesthetic_alignment",
+        ),
+        source_execution_simulation_profile_ids=(
+            "local_cloud_comparison_simulation_profile",
+        ),
+        source_hitl_decision_profile_ids=("hitl_risk_review_decision_profile",),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        quality_dimensions=(
+            "creative_reasoning_quality_metadata",
+            "style_aesthetic_alignment_context",
+            "local_cloud_quality_comparison",
+        ),
+        quality_inputs=(
+            "creative_reasoning_capability_profile",
+            "aesthetic_quality_context",
+            "local_cloud_comparison_simulation_metadata",
+        ),
+        advisory_outputs=(
+            "creative_quality_review_context",
+            "manual_aesthetic_quality_hint",
+            "no_quality_evaluation_notice",
+        ),
+        quality_surface_refs=(
+            "quality_profile_panel",
+            "cost_profile_panel",
+            "execution_simulator_panel",
+        ),
+    ),
+    _quality_profile(
+        quality_profile_id="refinement_quality_profile",
+        profile_name="Refinement Quality Profile",
+        quality_profile_kind="refinement_quality_review",
+        quality_level="critical",
+        source_model_profile_ids=(
+            "code_assistance_model_profile",
+            "evaluation_review_model_profile",
+        ),
+        source_cost_profile_ids=("curation_refinement_cost_profile",),
+        source_provider_selection_profile_ids=(
+            "cloud_candidate_provider_visibility_profile",
+            "operator_override_provider_visibility_profile",
+        ),
+        source_quality_escalation_profile_ids=(
+            "quality_escalation::curation_refinement_need",
+        ),
+        source_execution_simulation_profile_ids=(
+            "local_cloud_comparison_simulation_profile",
+            "hitl_review_simulation_profile",
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_risk_review_decision_profile",
+            "hitl_final_review_decision_profile",
+        ),
+        route_applicability=(
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        quality_dimensions=(
+            "curation_refinement_quality_metadata",
+            "review_quality_signal_context",
+            "evaluation_boundary_quality_context",
+        ),
+        quality_inputs=(
+            "code_assistance_capability_profile",
+            "evaluation_review_capability_profile",
+            "refinement_quality_context",
+        ),
+        advisory_outputs=(
+            "refinement_quality_review_context",
+            "manual_critical_quality_hint",
+            "no_refinement_trigger_notice",
+        ),
+        quality_surface_refs=(
+            "quality_profile_panel",
+            "execution_simulator_panel",
+            "hitl_decision_panel",
+        ),
+    ),
+    _quality_profile(
+        quality_profile_id="final_review_quality_profile",
+        profile_name="Final Review Quality Profile",
+        quality_profile_kind="final_review_quality",
+        quality_level="low",
+        source_model_profile_ids=("evaluation_review_model_profile",),
+        source_cost_profile_ids=("final_review_cost_profile",),
+        source_provider_selection_profile_ids=(
+            "current_config_provider_visibility_profile",
+            "operator_override_provider_visibility_profile",
+        ),
+        source_quality_escalation_profile_ids=(
+            "quality_escalation::final_synthesis_readiness",
+        ),
+        source_execution_simulation_profile_ids=("hitl_review_simulation_profile",),
+        source_hitl_decision_profile_ids=("hitl_final_review_decision_profile",),
+        route_applicability=(
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        quality_dimensions=(
+            "final_synthesis_quality_metadata",
+            "evaluation_review_quality_context",
+            "manual_signoff_quality_context",
+        ),
+        quality_inputs=(
+            "evaluation_review_capability_profile",
+            "final_quality_context",
+            "hitl_review_simulation_metadata",
+        ),
+        advisory_outputs=(
+            "final_review_quality_context",
+            "manual_final_quality_hint",
+            "no_output_mutation_notice",
+        ),
+        quality_surface_refs=(
+            "quality_profile_panel",
+            "cost_profile_panel",
+            "hitl_decision_panel",
+        ),
+    ),
+)
+
+QUALITY_PROFILE_REGISTRY = QualityProfileRegistry(
+    quality_profiles=QUALITY_PROFILES,
+    quality_profile_ids=tuple(
+        profile.quality_profile_id for profile in QUALITY_PROFILES
+    ),
+    quality_profile_kinds=tuple(
+        profile.quality_profile_kind for profile in QUALITY_PROFILES
+    ),
+    quality_levels=tuple(profile.quality_level for profile in QUALITY_PROFILES),
+    model_profile_ids=tuple(MODEL_PROFILE_REGISTRY.model_profile_ids),
+    cost_profile_ids=tuple(COST_PROFILE_REGISTRY.cost_profile_ids),
+    provider_selection_profile_ids=tuple(
+        PROVIDER_SELECTION_REGISTRY.provider_selection_profile_ids
+    ),
+    quality_escalation_profile_ids=tuple(
+        QUALITY_ESCALATION_REGISTRY.quality_profile_ids
+    ),
+    execution_simulation_profile_ids=tuple(
+        EXECUTION_SIMULATOR_REGISTRY.execution_simulation_profile_ids
+    ),
+    hitl_decision_profile_ids=tuple(HITL_DECISION_REGISTRY.hitl_decision_profile_ids),
+    quality_surface_refs=QUALITY_PROFILE_SURFACES,
+    route_names=tuple(RouteName),
+    profile_count=len(QUALITY_PROFILES),
+    source_registries=_QUALITY_PROFILE_SOURCE_REGISTRIES,
+    observability_surfaces=_QUALITY_PROFILE_OBSERVABILITY_SURFACES,
 )
