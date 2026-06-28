@@ -18,6 +18,9 @@ _CREATIVE_CONSTRAINT_PRIORITIES = (
 _CONTEXT_BUDGET_PLANNER = (
     "creative_coding_assistant.orchestration.context_budget_planner"
 )
+_EXPLORATION_BUDGET_PLANNER = (
+    "creative_coding_assistant.orchestration.exploration_budget_planner"
+)
 _CREATIVE_HIERARCHY = "creative_coding_assistant.orchestration.creative_hierarchy"
 _CREATIVE_INTENT = "creative_coding_assistant.orchestration.creative_intent"
 _CREATIVE_STRATEGY = "creative_coding_assistant.orchestration.creative_strategy"
@@ -256,6 +259,8 @@ _EXPORT_MAP = {
     "CreativeComplexityFactor": _CREATIVE_COMPLEXITY_ANALYZER,
     "ContextBudgetAllocation": _CONTEXT_BUDGET_PLANNER,
     "ContextBudgetPlan": _CONTEXT_BUDGET_PLANNER,
+    "ExplorationBudgetAllocation": _EXPLORATION_BUDGET_PLANNER,
+    "ExplorationBudgetPlan": _EXPLORATION_BUDGET_PLANNER,
     "WorkflowCostAnalysis": _WORKFLOW_COST_ANALYZER,
     "WorkflowCostComponent": _WORKFLOW_COST_ANALYZER,
     "WorkflowComplexityAnalysis": _WORKFLOW_COMPLEXITY_ANALYZER,
@@ -1204,6 +1209,8 @@ _EXPORT_MAP = {
     "creative_complexity_factors_for_kind": _CREATIVE_COMPLEXITY_ANALYZER,
     "context_budget_allocation_by_id": _CONTEXT_BUDGET_PLANNER,
     "context_budget_allocations_for_kind": _CONTEXT_BUDGET_PLANNER,
+    "exploration_budget_allocation_by_id": _EXPLORATION_BUDGET_PLANNER,
+    "exploration_budget_allocations_for_topic": _EXPLORATION_BUDGET_PLANNER,
     "execution_graph_edges_from": _EXECUTION_GRAPH_ANALYZER,
     "execution_graph_edges_to": _EXECUTION_GRAPH_ANALYZER,
     "execution_graph_node_by_id": _EXECUTION_GRAPH_ANALYZER,
@@ -1325,6 +1332,7 @@ _EXPORT_MAP = {
     "finish_workflow": _WORKFLOW,
     "next_workflow_step": _WORKFLOW,
     "prepare_workflow_preview_results": _ARTIFACTS,
+    "plan_exploration_budget": _EXPLORATION_BUDGET_PLANNER,
     "plan_context_budget": _CONTEXT_BUDGET_PLANNER,
     "plan_next_refinement_pass": _REFINEMENT_PASSES,
     "refinement_opportunities": _REFINEMENT_PASSES,
