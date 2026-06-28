@@ -233,6 +233,9 @@ _QUALITY_CALIBRATION = (
 _REFINEMENT_PASSES = "creative_coding_assistant.orchestration.refinement_passes"
 _REFERENCE_FUSION = "creative_coding_assistant.orchestration.reference_fusion"
 _RETRIEVAL = "creative_coding_assistant.orchestration.retrieval"
+_RETRIEVAL_COMPRESSION = (
+    "creative_coding_assistant.orchestration.retrieval_compression"
+)
 _ROUTING = "creative_coding_assistant.orchestration.routing"
 _SERVICE = "creative_coding_assistant.orchestration.service"
 _WORKFLOW = "creative_coding_assistant.orchestration.workflow"
@@ -1176,6 +1179,8 @@ _EXPORT_MAP = {
     "RetrievalContextRequest": _RETRIEVAL,
     "RetrievalContextResponse": _RETRIEVAL,
     "RetrievalContextSource": _RETRIEVAL,
+    "RetrievalCompressionChunk": _RETRIEVAL_COMPRESSION,
+    "RetrievalCompressionResult": _RETRIEVAL_COMPRESSION,
     "RetrievalGateway": _RETRIEVAL,
     "RetrievedKnowledgeChunk": _RETRIEVAL,
     "RouteCapability": _ROUTING,
@@ -1214,6 +1219,8 @@ _EXPORT_MAP = {
     "compress_prompt_sections": _PROMPT_COMPRESSION,
     "compress_prompt_text": _PROMPT_COMPRESSION,
     "compress_rendered_prompt": _PROMPT_COMPRESSION,
+    "compress_retrieval_chunks": _RETRIEVAL_COMPRESSION,
+    "compress_retrieval_context": _RETRIEVAL_COMPRESSION,
     "complete_workflow_step": _WORKFLOW,
     "creative_complexity_factor_by_id": _CREATIVE_COMPLEXITY_ANALYZER,
     "creative_complexity_factors_for_kind": _CREATIVE_COMPLEXITY_ANALYZER,
@@ -1352,6 +1359,8 @@ _EXPORT_MAP = {
     "refinement_opportunities": _REFINEMENT_PASSES,
     "reference_fusion_prompt_lines": _REFERENCE_FUSION,
     "restart_workflow_step": _WORKFLOW,
+    "retrieval_compression_chunk_by_id": _RETRIEVAL_COMPRESSION,
+    "retrieval_compression_chunks_for_status": _RETRIEVAL_COMPRESSION,
     "review_assistant_answer": _WORKFLOW_REVIEW,
     "route_context_sources": _CONTEXT_ROUTER,
     "route_request": _ROUTING,
