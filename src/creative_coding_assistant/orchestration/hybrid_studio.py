@@ -7164,3 +7164,628 @@ WORKSPACE_SNAPSHOT_REGISTRY = WorkspaceSnapshotRegistry(
     source_registries=_WORKSPACE_SNAPSHOT_SOURCE_REGISTRIES,
     observability_surfaces=_WORKSPACE_SNAPSHOT_OBSERVABILITY_SURFACES,
 )
+
+SessionReplayKind = Literal[
+    "session_overview_replay",
+    "conversation_timeline_replay",
+    "snapshot_transition_replay",
+    "review_decision_replay",
+]
+
+SESSION_REPLAY_PROFILE_SERIALIZATION_VERSION = "session_replay_profile.v1"
+SESSION_REPLAY_REGISTRY_SERIALIZATION_VERSION = "session_replay_registry.v1"
+SESSION_REPLAY_REGISTRY_AUTHORITY_BOUNDARY = (
+    "Session Replay metadata describes passive Studio-visible replay views "
+    "over existing workspace snapshot, conversation view, workspace, HITL, "
+    "Studio Mode, and Auto Mode metadata for V4.4 inspection only; it does "
+    "not record sessions, reconstruct timelines, persist replay data, replay "
+    "runtime events, persist conversations, capture snapshots, invoke agents, "
+    "read or write memory, mutate workspace state, control workflow "
+    "transitions, request human input, route providers or models, trigger "
+    "retries, write replay storage, or modify generated output."
+)
+
+_SESSION_REPLAY_SOURCE_REGISTRIES = (
+    "workspace_snapshot_registry",
+    "agent_conversation_view_registry",
+    "agent_workspace_registry",
+    "hitl_decision_registry",
+    "studio_mode_registry",
+    "auto_mode_registry",
+)
+
+_SESSION_REPLAY_SURFACES = (
+    "session_replay_panel",
+    "session_timeline_strip",
+    "conversation_replay_panel",
+    "snapshot_replay_panel",
+    "decision_replay_panel",
+    "replay_boundary_panel",
+)
+
+_SESSION_REPLAY_OBSERVABILITY_SURFACES = (
+    "session_replay_profile_id",
+    "session_replay_kind",
+    "source_workspace_snapshot_profile_ids",
+    "source_conversation_view_profile_ids",
+    "route_applicability",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_SESSION_REPLAY_BLOCKED_RUNTIME_BEHAVIORS = (
+    "session_replay_execution",
+    "session_recording",
+    "timeline_reconstruction",
+    "replay_persistence",
+    "conversation_persistence",
+    "snapshot_capture",
+    "agent_invocation",
+    "memory_read",
+    "memory_write",
+    "workspace_state_mutation",
+    "workflow_control",
+    "human_input_request",
+    "provider_or_model_routing",
+    "retry_or_refinement_triggering",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class SessionReplayProfile(BaseModel):
+    """Inspectable passive Studio session replay metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    session_replay_profile_id: str = Field(min_length=1, max_length=140)
+    profile_name: str = Field(min_length=1, max_length=160)
+    session_replay_kind: SessionReplayKind
+    source_workspace_snapshot_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_conversation_view_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_workspace_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_hitl_decision_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_studio_mode_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_auto_mode_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    replay_surfaces: tuple[str, ...] = Field(min_length=1, max_length=6)
+    replay_context_fields: tuple[str, ...] = Field(min_length=1, max_length=10)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=SESSION_REPLAY_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1500,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_SESSION_REPLAY_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=18,
+    )
+    session_replay_execution_implemented: Literal[False] = False
+    session_recording_implemented: Literal[False] = False
+    timeline_reconstruction_implemented: Literal[False] = False
+    replay_persistence_implemented: Literal[False] = False
+    conversation_persistence_implemented: Literal[False] = False
+    snapshot_capture_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    memory_read_implemented: Literal[False] = False
+    memory_write_implemented: Literal[False] = False
+    workspace_state_mutation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["session_replay_profile.v1"] = (
+        SESSION_REPLAY_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class SessionReplayRegistry(BaseModel):
+    """Stable passive registry for V4.4 Hybrid Studio session replay metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["session_replay_registry"] = "session_replay_registry"
+    serialization_version: Literal["session_replay_registry.v1"] = (
+        SESSION_REPLAY_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=SESSION_REPLAY_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1500,
+    )
+    session_replay_profiles: tuple[SessionReplayProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    session_replay_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    session_replay_kinds: tuple[SessionReplayKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    workspace_snapshot_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    conversation_view_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    workspace_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    hitl_decision_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    studio_mode_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    auto_mode_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    replay_surface_refs: tuple[str, ...] = Field(min_length=6, max_length=6)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_SESSION_REPLAY_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=18,
+    )
+    session_replay_execution_implemented: Literal[False] = False
+    session_recording_implemented: Literal[False] = False
+    timeline_reconstruction_implemented: Literal[False] = False
+    replay_persistence_implemented: Literal[False] = False
+    conversation_persistence_implemented: Literal[False] = False
+    snapshot_capture_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    memory_read_implemented: Literal[False] = False
+    memory_write_implemented: Literal[False] = False
+    workspace_state_mutation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.session_replay_profile_id
+            for profile in self.session_replay_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("session_replay_profile_ids must be unique")
+        if self.session_replay_profile_ids != derived_profile_ids:
+            raise ValueError(
+                "session_replay_profile_ids must match session_replay_profiles"
+            )
+        if self.profile_count != len(self.session_replay_profiles):
+            raise ValueError("profile_count must match session_replay_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.session_replay_kinds != tuple(
+            profile.session_replay_kind for profile in self.session_replay_profiles
+        ):
+            raise ValueError("session_replay_kinds must match session_replay_profiles")
+
+        known_routes = set(self.route_names)
+        known_snapshots = set(self.workspace_snapshot_profile_ids)
+        known_conversation_views = set(self.conversation_view_profile_ids)
+        known_workspaces = set(self.workspace_profile_ids)
+        known_hitl_profiles = set(self.hitl_decision_profile_ids)
+        known_studio_profiles = set(self.studio_mode_profile_ids)
+        known_auto_profiles = set(self.auto_mode_profile_ids)
+        known_surfaces = set(self.replay_surface_refs)
+        profile_sources = {
+            source_registry
+            for profile in self.session_replay_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match session replay sources")
+
+        for profile in self.session_replay_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.source_workspace_snapshot_profile_ids).issubset(
+                known_snapshots
+            ):
+                raise ValueError(
+                    "source_workspace_snapshot_profile_ids must be known snapshots"
+                )
+            if not set(profile.source_conversation_view_profile_ids).issubset(
+                known_conversation_views
+            ):
+                raise ValueError(
+                    "source_conversation_view_profile_ids must be known views"
+                )
+            if not set(profile.source_workspace_profile_ids).issubset(known_workspaces):
+                raise ValueError(
+                    "source_workspace_profile_ids must be known workspace profiles"
+                )
+            if not set(profile.source_hitl_decision_profile_ids).issubset(
+                known_hitl_profiles
+            ):
+                raise ValueError(
+                    "source_hitl_decision_profile_ids must be known profiles"
+                )
+            if not set(profile.source_studio_mode_profile_ids).issubset(
+                known_studio_profiles
+            ):
+                raise ValueError(
+                    "source_studio_mode_profile_ids must be known Studio Mode profiles"
+                )
+            if not set(profile.source_auto_mode_profile_ids).issubset(
+                known_auto_profiles
+            ):
+                raise ValueError(
+                    "source_auto_mode_profile_ids must be known Auto Mode profiles"
+                )
+            if not set(profile.replay_surfaces).issubset(known_surfaces):
+                raise ValueError("replay_surfaces must be known registry surfaces")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def session_replay_registry() -> SessionReplayRegistry:
+    """Return passive V4.4 Hybrid Studio session replay metadata."""
+
+    return SESSION_REPLAY_REGISTRY
+
+
+def session_replay_profile_by_id(
+    session_replay_profile_id: str,
+    registry: SessionReplayRegistry | None = None,
+) -> SessionReplayProfile | None:
+    """Return one session replay profile without replaying runtime events."""
+
+    source_registry = registry or SESSION_REPLAY_REGISTRY
+    for profile in source_registry.session_replay_profiles:
+        if profile.session_replay_profile_id == session_replay_profile_id:
+            return profile
+    return None
+
+
+def session_replay_profiles_for_route(
+    route: RouteName | str,
+    registry: SessionReplayRegistry | None = None,
+) -> tuple[SessionReplayProfile, ...]:
+    """Return passive session replay profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or SESSION_REPLAY_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.session_replay_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def session_replay_profiles_for_workspace_snapshot(
+    workspace_snapshot_profile_id: str,
+    registry: SessionReplayRegistry | None = None,
+) -> tuple[SessionReplayProfile, ...]:
+    """Return passive session replay profiles for a workspace snapshot id."""
+
+    source_registry = registry or SESSION_REPLAY_REGISTRY
+    snapshot_id = str(workspace_snapshot_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.session_replay_profiles
+        if snapshot_id in profile.source_workspace_snapshot_profile_ids
+    )
+
+
+def session_replay_profiles_for_conversation_view(
+    conversation_view_profile_id: str,
+    registry: SessionReplayRegistry | None = None,
+) -> tuple[SessionReplayProfile, ...]:
+    """Return passive session replay profiles for a conversation view id."""
+
+    source_registry = registry or SESSION_REPLAY_REGISTRY
+    view_id = str(conversation_view_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.session_replay_profiles
+        if view_id in profile.source_conversation_view_profile_ids
+    )
+
+
+def _session_replay_profile(
+    *,
+    session_replay_profile_id: str,
+    profile_name: str,
+    session_replay_kind: SessionReplayKind,
+    source_workspace_snapshot_profile_ids: tuple[str, ...],
+    source_conversation_view_profile_ids: tuple[str, ...],
+    source_workspace_profile_ids: tuple[str, ...],
+    source_hitl_decision_profile_ids: tuple[str, ...],
+    source_studio_mode_profile_ids: tuple[str, ...],
+    source_auto_mode_profile_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    replay_surfaces: tuple[str, ...],
+    replay_context_fields: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> SessionReplayProfile:
+    return SessionReplayProfile(
+        session_replay_profile_id=session_replay_profile_id,
+        profile_name=profile_name,
+        session_replay_kind=session_replay_kind,
+        source_workspace_snapshot_profile_ids=source_workspace_snapshot_profile_ids,
+        source_conversation_view_profile_ids=source_conversation_view_profile_ids,
+        source_workspace_profile_ids=source_workspace_profile_ids,
+        source_hitl_decision_profile_ids=source_hitl_decision_profile_ids,
+        source_studio_mode_profile_ids=source_studio_mode_profile_ids,
+        source_auto_mode_profile_ids=source_auto_mode_profile_ids,
+        route_applicability=route_applicability,
+        replay_surfaces=replay_surfaces,
+        replay_context_fields=replay_context_fields,
+        advisory_outputs=advisory_outputs,
+        source_registries=_SESSION_REPLAY_SOURCE_REGISTRIES,
+        observability_surfaces=_SESSION_REPLAY_OBSERVABILITY_SURFACES,
+    )
+
+
+SESSION_REPLAY_SURFACES = (
+    "session_replay_panel",
+    "session_timeline_strip",
+    "conversation_replay_panel",
+    "snapshot_replay_panel",
+    "decision_replay_panel",
+    "replay_boundary_panel",
+)
+
+SESSION_REPLAY_PROFILES = (
+    _session_replay_profile(
+        session_replay_profile_id="session_overview_replay_profile",
+        profile_name="Session Overview Replay Profile",
+        session_replay_kind="session_overview_replay",
+        source_workspace_snapshot_profile_ids=(
+            "studio_overview_workspace_snapshot",
+            "agent_context_workspace_snapshot",
+        ),
+        source_conversation_view_profile_ids=(
+            "workspace_thread_conversation_view",
+            "audit_trail_conversation_view",
+        ),
+        source_workspace_profile_ids=(
+            "planning_context_agent_workspace",
+            "artifact_runtime_agent_workspace",
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_visibility_decision_profile",
+            "hitl_confirmation_decision_profile",
+        ),
+        source_studio_mode_profile_ids=(
+            "studio_mode_inspection_profile",
+            "studio_mode_operator_review_profile",
+        ),
+        source_auto_mode_profile_ids=(
+            "auto_mode_observe_only_profile",
+            "auto_mode_operator_confirmed_profile",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.PREVIEW,
+        ),
+        replay_surfaces=(
+            "session_replay_panel",
+            "session_timeline_strip",
+            "snapshot_replay_panel",
+            "replay_boundary_panel",
+        ),
+        replay_context_fields=(
+            "session_metadata_summary",
+            "workspace_snapshot_refs",
+            "conversation_view_refs",
+            "operator_visibility_refs",
+        ),
+        advisory_outputs=(
+            "session_overview_replay_context",
+            "manual_session_review_hint",
+            "no_session_recording_notice",
+        ),
+    ),
+    _session_replay_profile(
+        session_replay_profile_id="conversation_timeline_replay_profile",
+        profile_name="Conversation Timeline Replay Profile",
+        session_replay_kind="conversation_timeline_replay",
+        source_workspace_snapshot_profile_ids=(
+            "agent_context_workspace_snapshot",
+            "review_audit_workspace_snapshot",
+        ),
+        source_conversation_view_profile_ids=(
+            "workspace_thread_conversation_view",
+            "agent_handoff_conversation_view",
+            "review_conversation_view",
+        ),
+        source_workspace_profile_ids=(
+            "planning_context_agent_workspace",
+            "critique_curation_agent_workspace",
+            "refinement_synthesis_agent_workspace",
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_confirmation_decision_profile",
+            "hitl_risk_review_decision_profile",
+            "hitl_final_review_decision_profile",
+        ),
+        source_studio_mode_profile_ids=(
+            "studio_mode_inspection_profile",
+            "studio_mode_comparison_profile",
+            "studio_mode_operator_review_profile",
+        ),
+        source_auto_mode_profile_ids=(
+            "auto_mode_observe_only_profile",
+            "auto_mode_suggestion_profile",
+            "auto_mode_operator_confirmed_profile",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        replay_surfaces=(
+            "session_replay_panel",
+            "session_timeline_strip",
+            "conversation_replay_panel",
+        ),
+        replay_context_fields=(
+            "conversation_view_sequence_metadata",
+            "agent_handoff_refs",
+            "shared_context_scope_refs",
+            "manual_note_refs",
+        ),
+        advisory_outputs=(
+            "conversation_timeline_replay_context",
+            "manual_conversation_trace_hint",
+            "no_timeline_reconstruction_notice",
+        ),
+    ),
+    _session_replay_profile(
+        session_replay_profile_id="snapshot_transition_replay_profile",
+        profile_name="Snapshot Transition Replay Profile",
+        session_replay_kind="snapshot_transition_replay",
+        source_workspace_snapshot_profile_ids=tuple(
+            WORKSPACE_SNAPSHOT_REGISTRY.workspace_snapshot_profile_ids
+        ),
+        source_conversation_view_profile_ids=(
+            "agent_handoff_conversation_view",
+            "audit_trail_conversation_view",
+        ),
+        source_workspace_profile_ids=tuple(
+            AGENT_WORKSPACE_REGISTRY.workspace_profile_ids
+        ),
+        source_hitl_decision_profile_ids=tuple(
+            HITL_DECISION_REGISTRY.hitl_decision_profile_ids
+        ),
+        source_studio_mode_profile_ids=(
+            "studio_mode_comparison_profile",
+            "studio_mode_simulation_profile",
+            "studio_mode_operator_review_profile",
+        ),
+        source_auto_mode_profile_ids=(
+            "auto_mode_suggestion_profile",
+            "auto_mode_simulation_profile",
+            "auto_mode_operator_confirmed_profile",
+        ),
+        route_applicability=(
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        replay_surfaces=(
+            "session_replay_panel",
+            "session_timeline_strip",
+            "snapshot_replay_panel",
+            "replay_boundary_panel",
+        ),
+        replay_context_fields=(
+            "workspace_snapshot_order_metadata",
+            "snapshot_transition_refs",
+            "execution_context_snapshot_refs",
+            "review_snapshot_refs",
+        ),
+        advisory_outputs=(
+            "snapshot_transition_replay_context",
+            "manual_transition_review_hint",
+            "no_snapshot_capture_notice",
+        ),
+    ),
+    _session_replay_profile(
+        session_replay_profile_id="review_decision_replay_profile",
+        profile_name="Review Decision Replay Profile",
+        session_replay_kind="review_decision_replay",
+        source_workspace_snapshot_profile_ids=(
+            "execution_context_workspace_snapshot",
+            "review_audit_workspace_snapshot",
+        ),
+        source_conversation_view_profile_ids=(
+            "review_conversation_view",
+            "audit_trail_conversation_view",
+        ),
+        source_workspace_profile_ids=(
+            "critique_curation_agent_workspace",
+            "refinement_synthesis_agent_workspace",
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_risk_review_decision_profile",
+            "hitl_final_review_decision_profile",
+        ),
+        source_studio_mode_profile_ids=(
+            "studio_mode_simulation_profile",
+            "studio_mode_operator_review_profile",
+        ),
+        source_auto_mode_profile_ids=(
+            "auto_mode_simulation_profile",
+            "auto_mode_operator_confirmed_profile",
+        ),
+        route_applicability=(
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        replay_surfaces=(
+            "session_replay_panel",
+            "conversation_replay_panel",
+            "snapshot_replay_panel",
+            "decision_replay_panel",
+            "replay_boundary_panel",
+        ),
+        replay_context_fields=(
+            "hitl_decision_refs",
+            "review_snapshot_refs",
+            "audit_boundary_refs",
+            "manual_signoff_refs",
+        ),
+        advisory_outputs=(
+            "review_decision_replay_context",
+            "manual_decision_trace_hint",
+            "no_human_input_request_notice",
+        ),
+    ),
+)
+
+SESSION_REPLAY_REGISTRY = SessionReplayRegistry(
+    session_replay_profiles=SESSION_REPLAY_PROFILES,
+    session_replay_profile_ids=tuple(
+        profile.session_replay_profile_id for profile in SESSION_REPLAY_PROFILES
+    ),
+    session_replay_kinds=tuple(
+        profile.session_replay_kind for profile in SESSION_REPLAY_PROFILES
+    ),
+    workspace_snapshot_profile_ids=tuple(
+        WORKSPACE_SNAPSHOT_REGISTRY.workspace_snapshot_profile_ids
+    ),
+    conversation_view_profile_ids=tuple(
+        AGENT_CONVERSATION_VIEW_REGISTRY.conversation_view_profile_ids
+    ),
+    workspace_profile_ids=tuple(AGENT_WORKSPACE_REGISTRY.workspace_profile_ids),
+    hitl_decision_profile_ids=tuple(HITL_DECISION_REGISTRY.hitl_decision_profile_ids),
+    studio_mode_profile_ids=tuple(STUDIO_MODE_REGISTRY.studio_mode_profile_ids),
+    auto_mode_profile_ids=tuple(AUTO_MODE_REGISTRY.auto_mode_profile_ids),
+    replay_surface_refs=SESSION_REPLAY_SURFACES,
+    route_names=tuple(RouteName),
+    profile_count=len(SESSION_REPLAY_PROFILES),
+    source_registries=_SESSION_REPLAY_SOURCE_REGISTRIES,
+    observability_surfaces=_SESSION_REPLAY_OBSERVABILITY_SURFACES,
+)
