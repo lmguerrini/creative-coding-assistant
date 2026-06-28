@@ -51,6 +51,7 @@ flowchart TB
     workstation_boundary["Workstation inspection boundary<br/>stream events + snapshots hydrate UI<br/>no extra runtime nodes"]:::relationship
     orchestration_boundary["V4.2 orchestration metadata boundary<br/>passive registries over V4.1 agents<br/>no runtime orchestration"]:::relationship
     hybrid_workflow_boundary["V4.3 hybrid workflow metadata boundary<br/>passive escalation + integration registries<br/>no runtime escalation"]:::relationship
+    hybrid_studio_boundary["V4.4 hybrid studio metadata boundary<br/>passive local/cloud + Studio inspection registries<br/>no Studio runtime"]:::relationship
 
     %% Main success path
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
@@ -72,6 +73,9 @@ flowchart TB
     orchestration_boundary -. future escalation context .-> hybrid_workflow_boundary
     metadata_boundary -. V3 backbone references .-> hybrid_workflow_boundary
     workstation_boundary -. review surface context .-> hybrid_workflow_boundary
+    hybrid_workflow_boundary -. future Studio context .-> hybrid_studio_boundary
+    metadata_boundary -. passive model/profile references .-> hybrid_studio_boundary
+    workstation_boundary -. Studio inspection context .-> hybrid_studio_boundary
 
     %% Failure paths
     intake -. intake_error .-> failure
@@ -99,7 +103,7 @@ flowchart TB
     class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,reasoning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
-    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary relationship
+    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary relationship
 
     %% Subgraph styling
     style phase_1 rx:6px,ry:6px

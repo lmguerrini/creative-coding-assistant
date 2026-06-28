@@ -41,17 +41,29 @@ future systems are active in the current runtime.
   exploration budget, result normalization, return-to-workflow handoff, HITL
   gate, confidence/cost/latency threshold, ambiguity, risk, quality, adaptive
   multi-agent escalation, and hybrid workflow integration metadata.
+- V4.4 Hybrid Studio defines passive local model, cloud model, hybrid
+  execution, Auto Mode, Studio Mode, HITL decision, provider selection,
+  execution simulator, model profile, cost profile, quality profile,
+  local/cloud comparison, agent workspace, agent conversation, workspace
+  snapshot, session replay, execution replay, and hybrid studio integration
+  metadata.
 
 The V4.3 layer is a completed passive metadata layer. It does not execute
 agents, run autonomous escalation, change workflow order, route providers or
 models, select runtimes, trigger retries, mutate prompts, write storage, or
 modify generated output.
 
+The V4.4 layer is a completed passive metadata layer. It does not activate
+Studio runtime, execute providers, invoke agents, control workflows, request
+human input, change provider/model routing, select runtimes, trigger retries,
+mutate storage, write replay storage, or modify generated output.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current
-  V4.1, V4.2, and V4.3 registries provide inspection and contract metadata for
-  that direction, but not active collaboration behavior.
+  V4.1, V4.2, V4.3, and V4.4 registries provide inspection and contract
+  metadata for that direction, but not active collaboration behavior or active
+  Studio runtime.
 - V5 Execution Optimization & Production Intelligence remains future runtime
   policy, production telemetry, and cost/performance work.
 - V6 HoloGenesis Core OS remains future long-horizon creative lineage,

@@ -37,6 +37,11 @@ inspection metadata, critique, and refinement context.
   voting, confidence, provenance, trace, budget, normalization, return
   handoff, HITL, threshold, ambiguity, risk, quality, adaptive escalation, and
   hybrid workflow integration metadata.
+- V4.4 Hybrid Studio for passive local model, cloud model, hybrid execution,
+  Auto Mode, Studio Mode, HITL decision, provider selection, execution
+  simulator, model profile, cost profile, quality profile, local/cloud
+  comparison, agent workspace, agent conversation, workspace snapshot, session
+  replay, execution replay, and hybrid studio integration metadata.
 
 ## Supported Creative Domains
 
@@ -55,7 +60,7 @@ inspection metadata, critique, and refinement context.
 - Chroma remains the persistent retrieval and memory database.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
-- V4.1, V4.2, and V4.3 registries are passive product and architecture
+- V4.1, V4.2, V4.3, and V4.4 registries are passive product and architecture
   metadata. They are inspectable Python APIs and documentation surfaces.
 
 ## V4.3 Passive Boundary
@@ -66,12 +71,35 @@ source coverage, but it does not execute escalation, invoke agents, change
 LangGraph node order, change provider/model routing, select runtimes, trigger
 retries, mutate prompts, write storage, or modify generated output.
 
-## Non-Goals For V4.3
+## V4.4 Passive Boundary
+
+V4.4 Hybrid Studio is passive hybrid studio metadata. It includes the Local
+Model Registry, Cloud Model Registry, Hybrid Execution Registry, Auto Mode
+Registry, Studio Mode Registry, HITL Decision Registry, Provider Selection
+Registry, Execution Simulator Registry, Model Profile Registry, Cost Profile
+Registry, Quality Profile Registry, Local/Cloud Comparison Registry, Agent
+Workspace Registry, Agent Conversation View Registry, Workspace Snapshot
+Registry, Session Replay Registry, Execution Replay Registry, and Hybrid
+Studio Integration Registry with Hybrid Studio Integration source coverage,
+but it does not activate Studio runtime, execute providers, invoke agents,
+control workflows, request human input, change provider/model routing, select
+runtimes, trigger retries, mutate storage, write replay storage, or modify
+generated output.
+
+The Hybrid Studio Integration Registry exposes Hybrid Studio Integration
+source coverage for audit without activating Studio runtime.
+
+## Non-Goals For V4.4
 
 - active multi-agent execution
 - autonomous escalation
+- active Studio runtime
+- provider execution
+- agent invocation
+- human-input requests
 - provider or model routing changes
 - runtime auto-selection
+- replay persistence or storage mutation
 - generated-output mutation
 - prompt rendering changes
 - storage or blackboard runtime behavior

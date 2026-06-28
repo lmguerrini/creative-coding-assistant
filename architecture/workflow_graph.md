@@ -46,6 +46,17 @@ multi-agent escalation, and integration source coverage. These registries are
 inspectable metadata APIs; they do not execute escalation, invoke agents,
 change LangGraph node order, route providers or models, select runtimes,
 trigger retries, mutate prompts, or modify generated output.
+V4.4 Hybrid Studio builds on V4.3 as passive hybrid studio metadata. It
+declares local model surfaces, cloud model surfaces, hybrid execution
+profiles, Auto Mode postures, Studio Mode surfaces, HITL decisions, provider
+selection visibility, execution simulation, model/cost/quality profiles,
+local/cloud comparisons, agent workspace views, agent conversation views,
+workspace snapshots, session replay, execution replay, and Hybrid Studio
+Integration source coverage. These registries are inspectable metadata APIs;
+they do not activate Studio runtime, execute providers, invoke agents, change
+LangGraph node order, change provider/model routing, select runtimes, request
+human input, write replay storage, trigger retries, mutate storage, or modify
+generated output.
 `_planning_node()` deterministically derives and stores the V3.1 Creative
 Cognition metadata, the V3.2 Generative Design metadata, the V3.3 Artifact
 Intelligence metadata, and the V3.4 Creative Evaluation metadata:
@@ -127,6 +138,10 @@ This separation is intentional:
 - The V4.3 Hybrid Agentic Workflow layer owns passive escalation, handoff,
   threshold, adaptive, and integration metadata over the stable V3 backbone
   and V4 contracts, but still does not own runtime execution
+- The V4.4 Hybrid Studio layer owns passive local/cloud model, hybrid
+  execution, Studio surface, HITL, profile, comparison, workspace, snapshot,
+  replay, and integration metadata over the V4 contract stack, but still does
+  not own runtime execution or Studio runtime activation
 - The internal capability pipeline and dependency graph remain decomposition
   candidates for later orchestration, but they are not a true multi-agent or
   multi-node runtime graph here
@@ -202,6 +217,40 @@ multi-agent behavior.
 | HITL Gate and Confidence/Cost/Latency Threshold Routing registries | Describe human-review visibility and advisory threshold bands without triggering HITL, routing, runtime selection, or retries |
 | Ambiguity, Risk, Quality, and Adaptive Escalation registries | Describe advisory escalation posture without evaluating ambiguity/risk/quality, executing escalation, orchestrating agents, or triggering refinement |
 | Hybrid Workflow Integration source coverage | Exposes the full passive V4.3 source set for audit and inspection without adding runtime behavior |
+
+## V4.4 Hybrid Studio Metadata Boundary
+
+V4.4 introduces Hybrid Studio metadata over the passive V4.1, V4.2, and V4.3
+contract layers without turning the current backend into an active Studio
+runtime. The registries describe future local/cloud model inspection,
+operator-visible Studio surfaces, replay context, and source coverage. They
+remain metadata-only and are covered by hardening tests that prove they do not
+activate Studio runtime, execute providers, invoke agents, change
+provider/model routing, select runtimes, request human input, control
+workflows, persist replay data, trigger retries, mutate storage, alter prompts,
+change workflow node order, or modify generated output.
+The V4.4 Hybrid Studio layer does not activate Studio runtime.
+
+| Registry group | Current boundary |
+| --- | --- |
+| Local Model Registry | Describes candidate local model surfaces without discovering runtimes, starting local processes, executing local providers, routing models, or selecting models automatically |
+| Cloud Model Registry | Describes candidate cloud model surfaces without calling cloud providers, routing providers/models, selecting models automatically, or optimizing cost/latency |
+| Hybrid Execution Registry | Describes advisory local/cloud coordination profiles without executing providers, running fallback, parallel model calls, routing, or automatic model selection |
+| Auto Mode Registry | Describes advisory Auto Mode postures without executing workflows, automatic provider/model selection, hybrid execution, HITL requests, or retries |
+| Studio Mode Registry | Describes inspectable Studio Mode surfaces without workflow control, runtime control, provider/model routing, artifact execution, or human-input requests |
+| HITL Decision Registry | Describes human-review visibility without requesting human input, approving escalation, interrupting workflows, controlling workflows, or triggering retries |
+| Provider Selection Registry | Describes provider-candidate visibility without selecting providers, switching models, executing providers, routing providers/models, or requesting human input |
+| Execution Simulator Registry | Describes passive simulation metadata without simulation runtime execution, provider execution, artifact execution, workflow transition execution, or generated-output mutation |
+| Model Profile Registry | Describes advisory model profiles without model selection, provider execution, cost scoring, quality scoring, execution optimization, or retries |
+| Cost Profile Registry | Describes advisory cost posture without cost scoring, pricing lookup, budget enforcement, cost-based routing, provider execution, or model selection |
+| Quality Profile Registry | Describes advisory quality posture without quality scoring, quality evaluation, quality escalation, refinement triggering, workflow control, or human-input requests |
+| Local/Cloud Comparison Registry | Describes advisory local/cloud comparison metadata without executing providers, parallel model execution, winner selection, fallback execution, cost scoring, or quality scoring |
+| Agent Workspace Registry | Describes passive agent workspace visibility without agent instantiation, agent invocation, multi-agent orchestration, workspace mutation, memory writes, or workflow control |
+| Agent Conversation View Registry | Describes passive conversation visibility without conversation persistence, agent message generation, agent invocation, memory writes, workspace mutation, or workflow control |
+| Workspace Snapshot Registry | Describes snapshot-context metadata without live workspace reads, snapshot capture, snapshot persistence, conversation recording, memory reads, or memory writes |
+| Session Replay Registry | Describes session replay context without session replay execution, session recording, timeline reconstruction, replay persistence, conversation persistence, or snapshot capture |
+| Execution Replay Registry | Describes execution replay context without provider execution, model selection, execution trace reconstruction, replay persistence, cost scoring, quality scoring, or workflow control |
+| Hybrid Studio Integration Registry | Exposes Hybrid Studio Integration source coverage across the full passive V4.4 source set for audit and inspection without adding runtime behavior or activating Studio runtime |
 
 ## Current Implemented Flow
 
@@ -296,6 +345,7 @@ flowchart TB
     workstation_boundary["Workstation inspection boundary<br/>stream events + snapshots hydrate UI<br/>no extra runtime nodes"]:::relationship
     orchestration_boundary["V4.2 orchestration metadata boundary<br/>passive registries over V4.1 agents<br/>no runtime orchestration"]:::relationship
     hybrid_workflow_boundary["V4.3 hybrid workflow metadata boundary<br/>passive escalation + integration registries<br/>no runtime escalation"]:::relationship
+    hybrid_studio_boundary["V4.4 hybrid studio metadata boundary<br/>passive local/cloud + Studio inspection registries<br/>no Studio runtime"]:::relationship
 
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
     review -->|"pass or max retry"| finalization --> finish
@@ -314,6 +364,9 @@ flowchart TB
     orchestration_boundary -. future escalation context .-> hybrid_workflow_boundary
     metadata_boundary -. V3 backbone references .-> hybrid_workflow_boundary
     workstation_boundary -. review surface context .-> hybrid_workflow_boundary
+    hybrid_workflow_boundary -. future Studio context .-> hybrid_studio_boundary
+    metadata_boundary -. passive model/profile references .-> hybrid_studio_boundary
+    workstation_boundary -. Studio inspection context .-> hybrid_studio_boundary
     intake -. intake_error .-> failure
     routing -. routing_error .-> failure
     memory -. memory_error .-> failure
@@ -338,7 +391,7 @@ flowchart TB
     class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,reasoning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
-    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary relationship
+    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary relationship
     style phase_1 rx:6px,ry:6px
     style phase_2 rx:6px,ry:6px
     style phase_3 rx:6px,ry:6px
@@ -609,6 +662,11 @@ Current implemented flow:
   blackboard, shared context, dependency, scheduling, coordination, debate,
   consensus, lifecycle, state synchronization, workflow handoff, and
   integration-manifest surfaces without active orchestration
+- V4.4 Hybrid Studio metadata registries for future local/cloud model
+  inspection, hybrid execution visibility, Auto Mode, Studio Mode, HITL,
+  provider selection, execution simulation, model/cost/quality profiles,
+  comparison, agent workspace, conversation, snapshot, session replay,
+  execution replay, and integration surfaces without active Studio runtime
 - Node lifecycle, review outcome, retry, refinement, and edge decision events
 - Explicit failure node and failure transitions
 - No tool nodes

@@ -39,6 +39,15 @@ workflow integration metadata. These registries describe future escalation
 readiness without executing agents, changing workflow order, routing providers
 or models, selecting runtimes, triggering retries, mutating prompts, or
 modifying generated output.
+V4.4 adds passive Hybrid Studio metadata for local model surfaces, cloud model
+surfaces, hybrid execution profiles, Auto Mode, Studio Mode, HITL decisions,
+provider selection, execution simulation, model/cost/quality profiles,
+local/cloud comparison, agent workspace, agent conversation views, workspace
+snapshots, session replay, execution replay, and hybrid studio integration.
+These registries describe future Studio inspection readiness without
+activating Studio runtime, executing providers, invoking agents, changing
+provider/model routing, selecting runtimes, requesting human input, writing
+replay storage, or modifying generated output.
 
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
@@ -76,6 +85,11 @@ observed through live preview and runtime inspection from the same interface.
   escalation, specialist-loop, debate, voting, confidence, provenance, trace,
   budget, normalization, handoff, threshold, quality, adaptive, and workflow
   integration metadata without active hybrid orchestration
+- V4.4 Hybrid Studio registries for passive local/cloud model surfaces,
+  hybrid execution, Auto Mode, Studio Mode, HITL decision, provider selection,
+  execution simulator, model/cost/quality profile, comparison, workspace,
+  conversation, snapshot, session replay, execution replay, and integration
+  metadata without active Studio runtime
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -130,6 +144,17 @@ HITL gates, confidence/cost/latency threshold routing, ambiguity/risk/quality
 escalation, adaptive escalation, and workflow integration source coverage. It
 preserves the current LangGraph runtime and remains passive hybrid workflow
 metadata, not active agent execution or autonomous escalation.
+
+V4.4 Hybrid Studio defines the Studio inspection layer as product metadata:
+local model candidates, cloud model candidates, hybrid execution profiles,
+Auto Mode postures, Studio Mode surfaces, HITL decision surfaces, provider
+selection visibility, execution simulation, model/cost/quality profiles,
+local/cloud comparisons, agent workspace views, agent conversation views,
+workspace snapshots, session replay, execution replay, and Hybrid Studio
+Integration source coverage. It preserves the current LangGraph runtime and
+remains passive hybrid studio metadata, not active Studio runtime, provider
+execution, model selection, agent invocation, replay persistence, or
+autonomous operator workflow control.
 
 Artifact Intelligence capabilities:
 
@@ -220,6 +245,28 @@ Hybrid Agentic Workflow registries:
 - Adaptive Multi-Agent Escalation Registry
 - Hybrid Workflow Integration source coverage
 
+Hybrid Studio registries:
+
+- Local Model Registry
+- Cloud Model Registry
+- Hybrid Execution Registry
+- Auto Mode Registry
+- Studio Mode Registry
+- HITL Decision Registry
+- Provider Selection Registry
+- Execution Simulator Registry
+- Model Profile Registry
+- Cost Profile Registry
+- Quality Profile Registry
+- Local/Cloud Comparison Registry
+- Agent Workspace Registry
+- Agent Conversation View Registry
+- Workspace Snapshot Registry
+- Session Replay Registry
+- Execution Replay Registry
+- Hybrid Studio Integration Registry
+- Hybrid Studio Integration source coverage
+
 The architecture documents six complementary views:
 
 - the real runtime graph in
@@ -232,14 +279,15 @@ The architecture documents six complementary views:
   [`architecture/artifact_intelligence_graph.md`](architecture/artifact_intelligence_graph.md)
 - the V3.5 Creative Workstation surface graph in
   [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
-- the cross-cutting engine matrix, including V4.1, V4.2, and V4.3 registries, in
+- the cross-cutting engine matrix, including V4.1, V4.2, V4.3, and V4.4
+  registries, in
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
 The runtime graph remains compact and truthful. The internal pipeline and
 dependency views remain blueprints for future V4 Agentic Studio decomposition,
-while V4.1, V4.2, and V4.3 document passive roles, contracts, orchestration,
-and hybrid workflow metadata rather than claiming that a multi-agent runtime
-already exists.
+while V4.1, V4.2, V4.3, and V4.4 document passive roles, contracts,
+orchestration, hybrid workflow, and hybrid studio metadata rather than
+claiming that a multi-agent runtime or Studio runtime already exists.
 
 ## Creative Workflow
 
@@ -248,7 +296,8 @@ V3.1 Creative Cognition Core, V3.2 Generative Design Core, V3.3 Artifact
 Intelligence, V3.4 Creative Evaluation metadata, and V3.5 Creative
 Workstation inspection surfaces, plus V4.1 passive Multi-Agent Core contracts
 and V4.2 passive Agent Orchestration contracts, with V4.3 passive Hybrid
-Agentic Workflow metadata available for future escalation inspection:
+Agentic Workflow metadata and V4.4 passive Hybrid Studio metadata available
+for future escalation and Studio inspection:
 
 `Intent -> HITL Clarification -> Creative Translation -> Reference Fusion -> Creative Planning -> Generation -> Preview -> Critique -> Creative Evaluation -> Calibrated Quality -> Multi-Pass Refinement -> Export Preparation`
 
@@ -292,6 +341,13 @@ Agentic Workflow metadata available for future escalation inspection:
   synchronization, handoff, and integration metadata describe future
   orchestration readiness without adding active orchestration, workflow graph
   changes, prompt injection, storage mutation, retries, or runtime changes.
+- Hybrid Studio: passive local/cloud model, hybrid execution, Auto Mode,
+  Studio Mode, HITL, provider selection, execution simulation, profile,
+  comparison, workspace, conversation, snapshot, session replay, execution
+  replay, and integration metadata describe future Studio inspection
+  readiness without activating Studio runtime, executing providers, invoking
+  agents, changing provider/model routing, selecting runtimes, requesting
+  human input, writing replay storage, or modifying generated output.
 - Generation: the backend resolves effective domains, assembles the prompt,
   and streams one or more creative artifacts.
 - Preview: supported artifacts mount in controlled preview runtimes with
@@ -500,6 +556,61 @@ synchronize runtime state, mutate blackboard or storage state, alter prompts,
 enter workflow payloads, change LangGraph node order, route providers or
 models, select runtimes, trigger retries, execute artifacts, modify artifacts,
 or change generated output.
+
+### V4.4 Hybrid Studio
+
+- Local Model Registry for candidate local model surfaces, runtime kinds,
+  readiness signals, supported payloads, and blocked runtime behaviors
+- Cloud Model Registry for candidate cloud model surfaces, provider sources,
+  readiness signals, supported payloads, and blocked runtime behaviors
+- Hybrid Execution Registry for advisory local/cloud coordination profiles
+  without executing local or cloud providers
+- Auto Mode Registry for advisory automatic-mode postures without automatic
+  provider selection, model selection, hybrid execution, or human requests
+- Studio Mode Registry for inspectable Studio mode surfaces without workflow
+  control, artifact execution, runtime control, or provider/model routing
+- HITL Decision Registry for human-review visibility without requesting human
+  input, approving escalation, interrupting workflows, or triggering retries
+- Provider Selection Registry for provider-candidate visibility without
+  selecting providers, switching models, or routing providers/models
+- Execution Simulator Registry for passive simulation metadata without
+  simulation execution, provider execution, artifact execution, or workflow
+  transition execution
+- Model Profile Registry for advisory model profile metadata without model
+  selection, provider execution, cost scoring, quality scoring, or execution
+  optimization
+- Cost Profile Registry for advisory cost posture metadata without pricing
+  lookup, cost scoring, budget enforcement, cost routing, or provider
+  execution
+- Quality Profile Registry for advisory quality posture metadata without
+  quality scoring, quality evaluation, quality escalation, refinement
+  triggering, or workflow control
+- Local/Cloud Comparison Registry for advisory comparison metadata without
+  local/cloud execution, parallel model execution, winner selection, fallback,
+  cost scoring, or quality scoring
+- Agent Workspace Registry for passive workspace visibility without agent
+  instantiation, agent invocation, multi-agent orchestration, memory writes, or
+  workspace state mutation
+- Agent Conversation View Registry for passive conversation visibility without
+  conversation persistence, agent message generation, agent invocation, memory
+  writes, or workspace state mutation
+- Workspace Snapshot Registry for snapshot-context metadata without live
+  workspace reads, snapshot capture, persistence, conversation recording,
+  memory reads, or memory writes
+- Session Replay Registry for replay-context metadata without session replay
+  execution, session recording, timeline reconstruction, replay persistence,
+  snapshot capture, or agent invocation
+- Execution Replay Registry for execution replay metadata without provider
+  execution, model selection, execution trace reconstruction, replay
+  persistence, cost scoring, quality scoring, or workflow control
+- Hybrid Studio Integration Registry for source coverage across the passive
+  V4.4 registry set without activating Studio runtime
+
+These V4.4 registries are passive product and architecture metadata over the
+V4.1-V4.3 contract layers. They do not activate Studio runtime, execute
+providers, invoke agents, control workflows, request human input, write replay
+storage, mutate storage, change provider/model routing, select runtimes,
+trigger retries, or modify generated output.
 
 ### Creative Core
 
@@ -855,8 +966,9 @@ current runtime.
   critique, and refinement when future runtime boundaries support it. V4.1
   supplies passive role and contract metadata, and V4.2 supplies passive
   orchestration readiness metadata, while V4.3 supplies passive hybrid
-  workflow escalation metadata, for that direction. These layers are not active
-  collaboration behavior in the current runtime.
+  workflow escalation metadata and V4.4 supplies passive hybrid studio
+  metadata, for that direction. These layers are not active collaboration
+  behavior in the current runtime and V4.4 does not activate Studio runtime.
 - Execution Optimization: stronger production telemetry, runtime policy, and
   cost/performance intelligence.
 - HoloGenesis Core OS: long-horizon creative lineage, feedback, memory, and

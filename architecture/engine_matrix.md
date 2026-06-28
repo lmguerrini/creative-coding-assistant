@@ -40,6 +40,7 @@ Use this matrix together with:
 | V4.1 | Multi-Agent Core defines passive agent identities, contracts, roles, boundaries, and metadata over completed V3 capabilities without changing generation behavior | Agent-facing knowledge and memory access are described as metadata contracts only; no blackboard, shared context view, or retrieval side effect is implemented | Agent contracts remain export-only metadata and do not enter workflow control, provider routing, runtime selection, retries, or execution | Agentic Studio can inspect role and boundary contracts later, but no collaborative studio behavior is implemented here |
 | V4.2 | Agent Orchestration defines passive orchestration contracts over V4.1 agents without activating multi-agent execution | Blackboard, shared context view, state synchronization, and handoff surfaces are metadata contracts only; no memory storage, runtime synchronization, or retrieval side effect is implemented | Orchestration registries remain export-only metadata and do not enter workflow control, provider routing, runtime selection, retries, storage behavior, or execution | Agentic Studio can inspect orchestration readiness later, but no active coordination, debate, consensus, or lifecycle UI behavior is implemented here |
 | V4.3 | Hybrid Agentic Workflow defines passive V3 backbone, escalation, specialist loop, gate, debate, voting, confidence, provenance, trace, budget, normalization, handoff, threshold, quality, adaptive, and integration metadata without changing generation behavior | Agent-facing ambiguity, risk, quality, HITL, and handoff context is described as metadata only; no knowledge runtime, blackboard storage, or retrieval side effect is implemented | Hybrid workflow registries remain export-only metadata and do not enter workflow control, provider routing, model routing, runtime selection, retries, prompt rendering, storage behavior, or execution | Agentic Studio can inspect hybrid workflow readiness later, but no active escalation, agent execution, or autonomous orchestration UI behavior is implemented here |
+| V4.4 | Hybrid Studio defines passive local/cloud model, hybrid execution, Auto Mode, Studio Mode, HITL, profile, comparison, workspace, snapshot, replay, and integration metadata without changing generation behavior | Agent-facing Studio workspace, conversation, snapshot, and replay context is described as metadata only; no knowledge runtime, memory storage, blackboard storage, or retrieval side effect is implemented | Hybrid Studio registries remain export-only metadata and do not activate Studio runtime, enter workflow control, route providers/models, select runtimes, trigger retries, mutate storage, persist replay data, or execute providers | Agentic Studio can inspect Hybrid Studio readiness later, but no active Studio runtime, provider execution, agent invocation, replay execution, or autonomous operator UI behavior is implemented here |
 | V4 | Agentic Studio decomposes more internal creative work into bounded collaborative systems | Deeper agent-facing knowledge packets may emerge here | More inspectable orchestration paths may appear here | Agentic Studio becomes the main collaboration surface |
 | V5 | Core Engine remains creative-first but hands more optimization work outward | Knowledge signals can guide execution optimization and production policy | Execution Optimization & Production Intelligence becomes the primary expansion | Experience surfaces emphasize production telemetry and operational controls |
 | V6 | HoloGenesis Core OS can unify long-horizon creative strategy, lineage, and system identity | Long-horizon knowledge and memory adaptation move into the future OS direction | Execution can learn from prior runs without replacing bounded workflow control | Experience surfaces expose lineage, feedback, and evolving operator guidance |
@@ -190,6 +191,43 @@ Boundary tests assert that they do not enter provider/model routing, prompt
 rendering, workflow node order, generated outputs, retry behavior, storage
 behavior, runtime selection, or active multi-agent orchestration.
 
+## V4.4 Hybrid Studio Registries
+
+V4.4 adds passive hybrid studio metadata over the V4.1-V4.3 contract layers.
+The registries describe future local/cloud model inspection, Studio mode
+visibility, manual HITL review surfaces, simulation/replay context, workspace
+inspection, and source coverage. They are not active Studio runtime and do not
+activate Studio runtime, execute providers, invoke agents, control workflows,
+request human input, change provider/model routing, select runtimes, trigger
+retries, mutate storage, write replay storage, or modify generated output.
+
+| Registry | Source module | Count | Serialization version | Current boundary |
+| --- | --- | ---: | --- | --- |
+| Local Model Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 surfaces | `local_model_registry.v1` | Describes local model candidate surfaces without local runtime discovery, local provider execution, provider/model routing, automatic model selection, retries, replay storage, or output mutation |
+| Cloud Model Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 surfaces | `cloud_model_registry.v1` | Describes cloud model candidate surfaces without cloud provider execution, provider/model routing, automatic model selection, cost/latency optimization, retries, replay storage, or output mutation |
+| Hybrid Execution Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 profiles | `hybrid_execution_registry.v1` | Describes advisory local/cloud coordination without hybrid execution, provider execution, fallback execution, parallel model calls, provider/model routing, or automatic model selection |
+| Auto Mode Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 profiles | `auto_mode_registry.v1` | Describes advisory Auto Mode postures without workflow execution, automatic provider/model selection, hybrid execution, human-input requests, retries, or output mutation |
+| Studio Mode Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 profiles | `studio_mode_registry.v1` | Describes Studio mode surfaces without Studio runtime control, workflow control, hybrid execution, provider/model routing, artifact execution, human-input requests, or output mutation |
+| HITL Decision Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 profiles | `hitl_decision_registry.v1` | Describes HITL decision visibility without requesting human input, approving escalation, interrupting workflows, workflow control, provider/model routing, retries, or output mutation |
+| Provider Selection Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 profiles | `provider_selection_registry.v1` | Describes provider-candidate visibility without selecting providers, automatic model selection, model switching, provider execution, workflow control, human-input requests, or routing |
+| Execution Simulator Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 profiles | `execution_simulator_registry.v1` | Describes simulation metadata without simulation runtime execution, provider execution, artifact execution, workflow transition execution, human-input requests, retries, or output mutation |
+| Model Profile Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 profiles | `model_profile_registry.v1` | Describes advisory model profiles without model selection, provider execution, cost scoring, quality scoring, execution optimization, retries, or output mutation |
+| Cost Profile Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 profiles | `cost_profile_registry.v1` | Describes advisory cost postures without pricing lookup, cost scoring, budget enforcement, cost-based routing, provider execution, model selection, or output mutation |
+| Quality Profile Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 profiles | `quality_profile_registry.v1` | Describes advisory quality postures without quality scoring, quality evaluation, quality escalation, refinement triggering, workflow control, human-input requests, or output mutation |
+| Local/Cloud Comparison Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 profiles | `local_cloud_comparison_registry.v1` | Describes comparison metadata without local/cloud provider execution, parallel model execution, model selection, winner selection, fallback execution, cost scoring, or quality scoring |
+| Agent Workspace Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 profiles | `agent_workspace_registry.v1` | Describes agent workspace visibility without workspace execution, agent instantiation, agent invocation, multi-agent orchestration, memory writes, workflow control, or output mutation |
+| Agent Conversation View Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 profiles | `agent_conversation_view_registry.v1` | Describes conversation visibility without conversation execution, conversation persistence, agent message generation, agent invocation, memory writes, workflow control, or output mutation |
+| Workspace Snapshot Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 profiles | `workspace_snapshot_registry.v1` | Describes snapshot context without snapshot capture, snapshot persistence, live workspace reads, conversation recording, memory reads/writes, workspace mutation, or workflow control |
+| Session Replay Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 profiles | `session_replay_registry.v1` | Describes session replay context without session replay execution, session recording, timeline reconstruction, replay persistence, conversation persistence, snapshot capture, or agent invocation |
+| Execution Replay Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 profiles | `execution_replay_registry.v1` | Describes execution replay context without provider execution, local/cloud execution, model selection, execution trace reconstruction, replay persistence, cost scoring, quality scoring, or workflow control |
+| Hybrid Studio Integration Registry | `src/creative_coding_assistant/orchestration/hybrid_studio.py` | 4 profiles / 17 source registries | `hybrid_studio_integration_registry.v1` | Exposes V4.4 Hybrid Studio Integration source coverage without activating Studio runtime, selecting providers/models, executing providers, invoking agents, controlling workflows, mutating storage, or writing replay storage |
+
+All V4.4 Hybrid Studio registries remain export-only metadata surfaces.
+Boundary tests assert that passive hybrid studio metadata does not activate
+Studio runtime, enter provider/model routing, select runtimes, execute
+providers, invoke agents, control workflows, request human input, mutate
+storage, write replay storage, trigger retries, or modify generated output.
+
 ## V3.5 Workstation Contracts
 
 The Creative Workstation exposes a metadata-only
@@ -223,8 +261,8 @@ workstation responsible for future behavior.
   artifact export, runtime selection, runtime repair, provider/model routing,
   autonomous retries, or preview behavior changes.
 - V3.6 is the current stabilization layer over V3.5, not a new runtime feature
-  family. After V3.6, the roadmap remains V4 Agentic Studio, V5 Execution
-  Optimization & Production Intelligence, and V6 HoloGenesis Core OS.
+  family. After V4.4, active V4 Agentic Studio, V5 Execution Optimization &
+  Production Intelligence, and V6 HoloGenesis Core OS remain future work.
 - The current runtime graph remains the source of truth for execution order.
 - The matrix is a planning and architecture aid, not a claim that every engine
   is already a separate runtime subsystem.
