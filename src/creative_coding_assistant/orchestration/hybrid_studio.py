@@ -1933,3 +1933,412 @@ STUDIO_MODE_REGISTRY = StudioModeRegistry(
     source_registries=_STUDIO_MODE_SOURCE_REGISTRIES,
     observability_surfaces=_STUDIO_MODE_OBSERVABILITY_SURFACES,
 )
+
+HitlDecisionPosture = Literal[
+    "visible_only",
+    "confirmation_advised",
+    "risk_review_advised",
+    "final_review_advised",
+]
+
+HITL_DECISION_PROFILE_SERIALIZATION_VERSION = "hitl_decision_profile.v1"
+HITL_DECISION_REGISTRY_SERIALIZATION_VERSION = "hitl_decision_registry.v1"
+HITL_DECISION_REGISTRY_AUTHORITY_BOUNDARY = (
+    "HITL decision metadata describes passive human-review decision surfaces "
+    "for V4.4 Hybrid Studio inspection only; it does not request human input, "
+    "approve escalation, interrupt workflows, route providers or models, run "
+    "Auto Mode, execute hybrid profiles, trigger retries, mutate prompts, "
+    "write replay storage, or modify generated output."
+)
+
+_HITL_DECISION_SOURCE_REGISTRIES = (
+    "studio_mode_registry",
+    "auto_mode_registry",
+    "hybrid_execution_registry",
+    "hitl_escalation_gate_registry",
+    "workflow_agent_handoff_registry",
+    "agent_escalation_signal_registry",
+)
+
+_HITL_DECISION_SURFACES = (
+    "hitl_decision_panel",
+    "studio_mode_shell",
+    "auto_mode_panel",
+    "hybrid_execution_panel",
+    "operator_review_panel",
+)
+
+_HITL_DECISION_OBSERVABILITY_SURFACES = (
+    "hitl_decision_profile_id",
+    "hitl_decision_posture",
+    "source_studio_mode_profile_ids",
+    "source_auto_mode_profile_ids",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_HITL_DECISION_BLOCKED_RUNTIME_BEHAVIORS = (
+    "hitl_decision_execution",
+    "human_input_request",
+    "escalation_approval",
+    "workflow_interruption",
+    "workflow_control",
+    "auto_mode_execution",
+    "hybrid_execution",
+    "provider_or_model_routing",
+    "retry_or_refinement_triggering",
+    "prompt_mutation",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class HitlDecisionProfile(BaseModel):
+    """Inspectable passive HITL decision profile for Hybrid Studio."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    hitl_decision_profile_id: str = Field(min_length=1, max_length=100)
+    profile_name: str = Field(min_length=1, max_length=140)
+    hitl_decision_posture: HitlDecisionPosture
+    source_studio_mode_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_auto_mode_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_execution_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    decision_inputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    advisory_decision_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    human_review_surfaces: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    authority_boundary: str = Field(
+        default=HITL_DECISION_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_HITL_DECISION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=14,
+    )
+    hitl_decision_execution_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    escalation_approval_implemented: Literal[False] = False
+    workflow_interruption_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    auto_mode_execution_implemented: Literal[False] = False
+    hybrid_execution_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["hitl_decision_profile.v1"] = (
+        HITL_DECISION_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class HitlDecisionRegistry(BaseModel):
+    """Stable passive registry for V4.4 Hybrid Studio HITL decisions."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["hitl_decision_registry"] = "hitl_decision_registry"
+    serialization_version: Literal["hitl_decision_registry.v1"] = (
+        HITL_DECISION_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=HITL_DECISION_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    hitl_decision_profiles: tuple[HitlDecisionProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    hitl_decision_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    hitl_decision_postures: tuple[HitlDecisionPosture, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    studio_mode_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    auto_mode_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    execution_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    human_review_surfaces: tuple[str, ...] = Field(min_length=5, max_length=5)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_HITL_DECISION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=14,
+    )
+    hitl_decision_execution_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    escalation_approval_implemented: Literal[False] = False
+    workflow_interruption_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    auto_mode_execution_implemented: Literal[False] = False
+    hybrid_execution_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.hitl_decision_profile_id for profile in self.hitl_decision_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("hitl_decision_profile_ids must be unique")
+        if self.hitl_decision_profile_ids != derived_profile_ids:
+            raise ValueError(
+                "hitl_decision_profile_ids must match hitl_decision_profiles"
+            )
+        if self.profile_count != len(self.hitl_decision_profiles):
+            raise ValueError("profile_count must match hitl_decision_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.hitl_decision_postures != tuple(
+            profile.hitl_decision_posture for profile in self.hitl_decision_profiles
+        ):
+            raise ValueError("hitl_decision_postures must match hitl_decision_profiles")
+
+        known_routes = set(self.route_names)
+        known_studio_profiles = set(self.studio_mode_profile_ids)
+        known_auto_profiles = set(self.auto_mode_profile_ids)
+        known_execution_profiles = set(self.execution_profile_ids)
+        known_review_surfaces = set(self.human_review_surfaces)
+        profile_sources = {
+            source_registry
+            for profile in self.hitl_decision_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match HITL decision sources")
+
+        for profile in self.hitl_decision_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.source_studio_mode_profile_ids).issubset(
+                known_studio_profiles
+            ):
+                raise ValueError(
+                    "source_studio_mode_profile_ids must be known Studio Mode profiles"
+                )
+            if not set(profile.source_auto_mode_profile_ids).issubset(
+                known_auto_profiles
+            ):
+                raise ValueError(
+                    "source_auto_mode_profile_ids must be known Auto Mode profiles"
+                )
+            if not set(profile.source_execution_profile_ids).issubset(
+                known_execution_profiles
+            ):
+                raise ValueError(
+                    "source_execution_profile_ids must be known execution profiles"
+                )
+            if not set(profile.human_review_surfaces).issubset(known_review_surfaces):
+                raise ValueError(
+                    "human_review_surfaces must be known registry surfaces"
+                )
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def hitl_decision_registry() -> HitlDecisionRegistry:
+    """Return passive V4.4 Hybrid Studio HITL decision metadata."""
+
+    return HITL_DECISION_REGISTRY
+
+
+def hitl_decision_profile_by_id(
+    hitl_decision_profile_id: str,
+    registry: HitlDecisionRegistry | None = None,
+) -> HitlDecisionProfile | None:
+    """Return one HITL decision profile without requesting input."""
+
+    source_registry = registry or HITL_DECISION_REGISTRY
+    for profile in source_registry.hitl_decision_profiles:
+        if profile.hitl_decision_profile_id == hitl_decision_profile_id:
+            return profile
+    return None
+
+
+def hitl_decision_profiles_for_route(
+    route: RouteName | str,
+    registry: HitlDecisionRegistry | None = None,
+) -> tuple[HitlDecisionProfile, ...]:
+    """Return passive HITL decision profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or HITL_DECISION_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.hitl_decision_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def _hitl_decision_profile(
+    *,
+    hitl_decision_profile_id: str,
+    profile_name: str,
+    hitl_decision_posture: HitlDecisionPosture,
+    source_studio_mode_profile_ids: tuple[str, ...],
+    source_auto_mode_profile_ids: tuple[str, ...],
+    source_execution_profile_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    decision_inputs: tuple[str, ...],
+    advisory_decision_outputs: tuple[str, ...],
+    human_review_surfaces: tuple[str, ...],
+) -> HitlDecisionProfile:
+    return HitlDecisionProfile(
+        hitl_decision_profile_id=hitl_decision_profile_id,
+        profile_name=profile_name,
+        hitl_decision_posture=hitl_decision_posture,
+        source_studio_mode_profile_ids=source_studio_mode_profile_ids,
+        source_auto_mode_profile_ids=source_auto_mode_profile_ids,
+        source_execution_profile_ids=source_execution_profile_ids,
+        route_applicability=route_applicability,
+        decision_inputs=decision_inputs,
+        advisory_decision_outputs=advisory_decision_outputs,
+        human_review_surfaces=human_review_surfaces,
+        source_registries=_HITL_DECISION_SOURCE_REGISTRIES,
+        observability_surfaces=_HITL_DECISION_OBSERVABILITY_SURFACES,
+    )
+
+
+HITL_DECISION_PROFILES = (
+    _hitl_decision_profile(
+        hitl_decision_profile_id="hitl_visibility_decision_profile",
+        profile_name="HITL Visibility Decision Profile",
+        hitl_decision_posture="visible_only",
+        source_studio_mode_profile_ids=("studio_mode_inspection_profile",),
+        source_auto_mode_profile_ids=("auto_mode_observe_only_profile",),
+        source_execution_profile_ids=("operator_selected_context_profile",),
+        route_applicability=tuple(RouteName),
+        decision_inputs=(
+            "operator_visibility_metadata",
+            "studio_surface_inventory",
+            "authority_boundary_snapshot",
+        ),
+        advisory_decision_outputs=(
+            "human_review_visibility_metadata",
+            "no_interruption_notice",
+            "manual_review_optional_context",
+        ),
+        human_review_surfaces=(
+            "hitl_decision_panel",
+            "studio_mode_shell",
+            "operator_review_panel",
+        ),
+    ),
+    _hitl_decision_profile(
+        hitl_decision_profile_id="hitl_confirmation_decision_profile",
+        profile_name="HITL Confirmation Decision Profile",
+        hitl_decision_posture="confirmation_advised",
+        source_studio_mode_profile_ids=("studio_mode_operator_review_profile",),
+        source_auto_mode_profile_ids=("auto_mode_operator_confirmed_profile",),
+        source_execution_profile_ids=tuple(
+            HYBRID_EXECUTION_REGISTRY.execution_profile_ids
+        ),
+        route_applicability=tuple(RouteName),
+        decision_inputs=(
+            "operator_confirmed_selection_metadata",
+            "manual_execution_boundary_notice",
+            "selected_execution_profile_metadata",
+        ),
+        advisory_decision_outputs=(
+            "confirmation_recommended_metadata",
+            "manual_confirmation_context",
+            "no_automatic_approval_notice",
+        ),
+        human_review_surfaces=(
+            "hitl_decision_panel",
+            "auto_mode_panel",
+            "operator_review_panel",
+        ),
+    ),
+    _hitl_decision_profile(
+        hitl_decision_profile_id="hitl_risk_review_decision_profile",
+        profile_name="HITL Risk Review Decision Profile",
+        hitl_decision_posture="risk_review_advised",
+        source_studio_mode_profile_ids=(
+            "studio_mode_comparison_profile",
+            "studio_mode_simulation_profile",
+        ),
+        source_auto_mode_profile_ids=(
+            "auto_mode_suggestion_profile",
+            "auto_mode_simulation_profile",
+        ),
+        source_execution_profile_ids=("side_by_side_comparison_profile",),
+        route_applicability=(
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        decision_inputs=(
+            "risk_review_metadata",
+            "comparison_view_metadata",
+            "simulation_view_metadata",
+        ),
+        advisory_decision_outputs=(
+            "risk_review_recommended_metadata",
+            "operator_attention_context",
+            "no_workflow_interruption_notice",
+        ),
+        human_review_surfaces=(
+            "hitl_decision_panel",
+            "hybrid_execution_panel",
+            "operator_review_panel",
+        ),
+    ),
+    _hitl_decision_profile(
+        hitl_decision_profile_id="hitl_final_review_decision_profile",
+        profile_name="HITL Final Review Decision Profile",
+        hitl_decision_posture="final_review_advised",
+        source_studio_mode_profile_ids=("studio_mode_operator_review_profile",),
+        source_auto_mode_profile_ids=("auto_mode_operator_confirmed_profile",),
+        source_execution_profile_ids=tuple(
+            HYBRID_EXECUTION_REGISTRY.execution_profile_ids
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        decision_inputs=(
+            "final_review_metadata",
+            "operator_review_snapshot",
+            "audit_ready_studio_metadata",
+        ),
+        advisory_decision_outputs=(
+            "final_review_recommended_metadata",
+            "manual_signoff_context",
+            "no_output_mutation_notice",
+        ),
+        human_review_surfaces=tuple(_HITL_DECISION_SURFACES),
+    ),
+)
+
+HITL_DECISION_REGISTRY = HitlDecisionRegistry(
+    hitl_decision_profiles=HITL_DECISION_PROFILES,
+    hitl_decision_profile_ids=tuple(
+        profile.hitl_decision_profile_id for profile in HITL_DECISION_PROFILES
+    ),
+    hitl_decision_postures=tuple(
+        profile.hitl_decision_posture for profile in HITL_DECISION_PROFILES
+    ),
+    studio_mode_profile_ids=tuple(STUDIO_MODE_REGISTRY.studio_mode_profile_ids),
+    auto_mode_profile_ids=tuple(AUTO_MODE_REGISTRY.auto_mode_profile_ids),
+    execution_profile_ids=tuple(HYBRID_EXECUTION_REGISTRY.execution_profile_ids),
+    human_review_surfaces=_HITL_DECISION_SURFACES,
+    route_names=tuple(RouteName),
+    profile_count=len(HITL_DECISION_PROFILES),
+    source_registries=_HITL_DECISION_SOURCE_REGISTRIES,
+    observability_surfaces=_HITL_DECISION_OBSERVABILITY_SURFACES,
+)
