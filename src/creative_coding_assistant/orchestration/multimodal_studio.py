@@ -117,6 +117,18 @@ CrossAgentWorkspaceSurfaceKind = Literal[
     "critique_curation",
     "refinement_synthesis",
 ]
+SharedArtifactBoardProfileKind = Literal[
+    "artifact_selection_board",
+    "comparison_review_board",
+    "provenance_lineage_board",
+    "handoff_refinement_board",
+]
+SharedArtifactBoardSurfaceKind = Literal[
+    "selection",
+    "comparison",
+    "provenance_lineage",
+    "handoff_refinement",
+]
 
 LIVE_PREVIEW_PROFILE_SERIALIZATION_VERSION = "multimodal_live_preview_profile.v1"
 LIVE_PREVIEW_REGISTRY_SERIALIZATION_VERSION = "multimodal_live_preview_registry.v1"
@@ -163,6 +175,12 @@ CROSS_AGENT_WORKSPACE_PROFILE_SERIALIZATION_VERSION = (
 )
 CROSS_AGENT_WORKSPACE_REGISTRY_SERIALIZATION_VERSION = (
     "multimodal_cross_agent_workspace_registry.v1"
+)
+SHARED_ARTIFACT_BOARD_PROFILE_SERIALIZATION_VERSION = (
+    "multimodal_shared_artifact_board_profile.v1"
+)
+SHARED_ARTIFACT_BOARD_REGISTRY_SERIALIZATION_VERSION = (
+    "multimodal_shared_artifact_board_registry.v1"
 )
 LIVE_PREVIEW_AUTHORITY_BOUNDARY = (
     "Live Preview metadata describes passive V4.5 Multimodal Studio surfaces "
@@ -231,6 +249,14 @@ CROSS_AGENT_WORKSPACE_AUTHORITY_BOUNDARY = (
     "workspace state, persist collaboration storage, execute rendering, "
     "control workflows, request human input, route providers or models, "
     "trigger retries, or modify generated output."
+)
+SHARED_ARTIFACT_BOARD_AUTHORITY_BOUNDARY = (
+    "Shared Artifact Board metadata describes passive V4.5 Multimodal Studio "
+    "artifact board surfaces for inspection only; it does not create "
+    "collaborative board state, mutate artifacts, change artifact selection, "
+    "persist board storage, execute rendering, invoke agents, materialize "
+    "shared context, control workflows, request human input, route providers "
+    "or models, trigger retries, open networking, or modify generated output."
 )
 
 _LIVE_PREVIEW_SOURCE_REGISTRIES = (
@@ -723,6 +749,66 @@ _CROSS_AGENT_WORKSPACE_BLOCKED_RUNTIME_BEHAVIORS = (
     "provider_or_model_routing",
     "retry_triggering",
     "generated_output_mutation",
+)
+
+_SHARED_ARTIFACT_BOARD_SOURCE_REGISTRIES = (
+    "multimodal_cross_agent_workspace_registry",
+    "multimodal_artifact_collaboration_registry",
+    "multimodal_multi_preview_registry",
+    "multimodal_artifact_provenance_registry",
+    "multimodal_artifact_lineage_registry",
+    "nextjs_artifact_comparison",
+    "nextjs_artifact_inspector",
+    "nextjs_workstation_shell",
+)
+
+_SHARED_ARTIFACT_BOARD_SOURCE_REFERENCES = (
+    "multimodal_studio.MULTIMODAL_CROSS_AGENT_WORKSPACE_REGISTRY",
+    "multimodal_studio.MULTIMODAL_ARTIFACT_COLLABORATION_REGISTRY",
+    "multimodal_studio.MULTIMODAL_MULTI_PREVIEW_REGISTRY",
+    "multimodal_studio.MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY",
+    "multimodal_studio.MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY",
+    "clients.nextjs.artifact_comparison.buildArtifactComparisonModel",
+    "clients.nextjs.artifact_comparison.ArtifactComparisonRow",
+    "clients.nextjs.artifact_inspector.buildArtifactDocument",
+    "clients.nextjs.artifact_inspector.highlightArtifactDocument",
+    "clients.nextjs.workstation_shell.WorkstationShell",
+)
+
+_SHARED_ARTIFACT_BOARD_SURFACES = (
+    "shared_artifact_board_panel",
+    "artifact_selection_board_surface",
+    "artifact_comparison_board_surface",
+    "artifact_provenance_board_surface",
+    "artifact_lineage_board_surface",
+    "artifact_handoff_board_surface",
+    "shared_artifact_board_boundary_panel",
+)
+
+_SHARED_ARTIFACT_BOARD_OBSERVABILITY_SURFACES = (
+    "profile_id",
+    "board_profile_kind",
+    "board_surface_kind",
+    "source_cross_agent_workspace_profile_ids",
+    "source_artifact_collaboration_profile_ids",
+    "source_reference_ids",
+    "authority_boundary",
+)
+
+_SHARED_ARTIFACT_BOARD_BLOCKED_RUNTIME_BEHAVIORS = (
+    "board_state_creation",
+    "collaborative_board_persistence",
+    "artifact_selection_mutation",
+    "artifact_mutation",
+    "generated_output_mutation",
+    "rendering_execution",
+    "agent_invocation",
+    "shared_context_materialization",
+    "workflow_control",
+    "human_input_request",
+    "provider_or_model_routing",
+    "retry_triggering",
+    "networking",
 )
 
 
@@ -5051,4 +5137,644 @@ MULTIMODAL_CROSS_AGENT_WORKSPACE_REGISTRY = MultimodalCrossAgentWorkspaceRegistr
     source_reference_ids=_CROSS_AGENT_WORKSPACE_SOURCE_REFERENCES,
     cross_agent_workspace_surface_refs=_CROSS_AGENT_WORKSPACE_SURFACES,
     observability_surfaces=_CROSS_AGENT_WORKSPACE_OBSERVABILITY_SURFACES,
+)
+
+
+class SharedArtifactBoardProfile(BaseModel):
+    """Inspectable metadata for one passive Shared Artifact Board surface."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    profile_id: str = Field(min_length=1, max_length=140)
+    profile_name: str = Field(min_length=1, max_length=160)
+    board_profile_kind: SharedArtifactBoardProfileKind
+    board_surface_kind: SharedArtifactBoardSurfaceKind
+    source_cross_agent_workspace_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=3,
+    )
+    source_artifact_collaboration_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_multi_preview_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_artifact_provenance_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_artifact_lineage_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    board_context_fields: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_reference_ids: tuple[str, ...] = Field(min_length=1, max_length=10)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    shared_artifact_board_surfaces: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=7,
+    )
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=SHARED_ARTIFACT_BOARD_AUTHORITY_BOUNDARY,
+        max_length=1300,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_SHARED_ARTIFACT_BOARD_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    board_state_creation_implemented: Literal[False] = False
+    collaborative_board_persistence_implemented: Literal[False] = False
+    artifact_selection_mutation_implemented: Literal[False] = False
+    artifact_mutation_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    shared_context_materialization_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    serialization_version: Literal["multimodal_shared_artifact_board_profile.v1"] = (
+        SHARED_ARTIFACT_BOARD_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class MultimodalSharedArtifactBoardRegistry(BaseModel):
+    """Stable passive registry for V4.5 Shared Artifact Board metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["multimodal_shared_artifact_board_registry"] = (
+        "multimodal_shared_artifact_board_registry"
+    )
+    serialization_version: Literal["multimodal_shared_artifact_board_registry.v1"] = (
+        SHARED_ARTIFACT_BOARD_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=SHARED_ARTIFACT_BOARD_AUTHORITY_BOUNDARY,
+        max_length=1300,
+    )
+    shared_artifact_board_profiles: tuple[SharedArtifactBoardProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    board_profile_kinds: tuple[SharedArtifactBoardProfileKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    board_surface_kinds: tuple[SharedArtifactBoardSurfaceKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    cross_agent_workspace_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    artifact_collaboration_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    multi_preview_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    artifact_provenance_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    artifact_lineage_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    source_reference_ids: tuple[str, ...] = Field(min_length=10, max_length=10)
+    shared_artifact_board_surface_refs: tuple[str, ...] = Field(
+        min_length=7,
+        max_length=7,
+    )
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_SHARED_ARTIFACT_BOARD_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    board_state_creation_implemented: Literal[False] = False
+    collaborative_board_persistence_implemented: Literal[False] = False
+    artifact_selection_mutation_implemented: Literal[False] = False
+    artifact_mutation_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    shared_context_materialization_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.profile_id for profile in self.shared_artifact_board_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("profile_ids must be unique")
+        if self.profile_ids != derived_profile_ids:
+            raise ValueError("profile_ids must match shared_artifact_board_profiles")
+        if self.profile_count != len(self.shared_artifact_board_profiles):
+            raise ValueError("profile_count must match shared_artifact_board_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if (
+            self.cross_agent_workspace_profile_ids
+            != MULTIMODAL_CROSS_AGENT_WORKSPACE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "cross_agent_workspace_profile_ids must match Cross-Agent Workspace registry"
+            )
+        if (
+            self.artifact_collaboration_profile_ids
+            != MULTIMODAL_ARTIFACT_COLLABORATION_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "artifact_collaboration_profile_ids must match Artifact Collaboration registry"
+            )
+        if self.multi_preview_profile_ids != MULTIMODAL_MULTI_PREVIEW_REGISTRY.profile_ids:
+            raise ValueError(
+                "multi_preview_profile_ids must match Multi Preview registry"
+            )
+        if (
+            self.artifact_provenance_profile_ids
+            != MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "artifact_provenance_profile_ids must match Artifact Provenance registry"
+            )
+        if (
+            self.artifact_lineage_profile_ids
+            != MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "artifact_lineage_profile_ids must match Artifact Lineage registry"
+            )
+        if self.board_profile_kinds != _ordered_unique(
+            profile.board_profile_kind
+            for profile in self.shared_artifact_board_profiles
+        ):
+            raise ValueError("board_profile_kinds must match profiles")
+        if self.board_surface_kinds != _ordered_unique(
+            profile.board_surface_kind
+            for profile in self.shared_artifact_board_profiles
+        ):
+            raise ValueError("board_surface_kinds must match profiles")
+
+        profile_source_references = {
+            source_reference
+            for profile in self.shared_artifact_board_profiles
+            for source_reference in profile.source_reference_ids
+        }
+        if set(self.source_reference_ids) != profile_source_references:
+            raise ValueError(
+                "source_reference_ids must match profile source references"
+            )
+
+        known_routes = set(self.route_names)
+        known_cross_agent_workspaces = set(self.cross_agent_workspace_profile_ids)
+        known_artifact_collaboration_profiles = set(
+            self.artifact_collaboration_profile_ids
+        )
+        known_multi_preview_profiles = set(self.multi_preview_profile_ids)
+        known_provenance_profiles = set(self.artifact_provenance_profile_ids)
+        known_lineage_profiles = set(self.artifact_lineage_profile_ids)
+        known_surfaces = set(self.shared_artifact_board_surface_refs)
+        known_source_references = set(self.source_reference_ids)
+        for profile in self.shared_artifact_board_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must use known routes")
+            if not set(profile.source_cross_agent_workspace_profile_ids).issubset(
+                known_cross_agent_workspaces
+            ):
+                raise ValueError(
+                    "source_cross_agent_workspace_profile_ids must be known profiles"
+                )
+            if not set(profile.source_artifact_collaboration_profile_ids).issubset(
+                known_artifact_collaboration_profiles
+            ):
+                raise ValueError(
+                    "source_artifact_collaboration_profile_ids must be known profiles"
+                )
+            if not set(profile.source_multi_preview_profile_ids).issubset(
+                known_multi_preview_profiles
+            ):
+                raise ValueError(
+                    "source_multi_preview_profile_ids must be known profiles"
+                )
+            if not set(profile.source_artifact_provenance_profile_ids).issubset(
+                known_provenance_profiles
+            ):
+                raise ValueError(
+                    "source_artifact_provenance_profile_ids must be known profiles"
+                )
+            if not set(profile.source_artifact_lineage_profile_ids).issubset(
+                known_lineage_profiles
+            ):
+                raise ValueError(
+                    "source_artifact_lineage_profile_ids must be known profiles"
+                )
+            if not set(profile.shared_artifact_board_surfaces).issubset(
+                known_surfaces
+            ):
+                raise ValueError(
+                    "shared_artifact_board_surfaces must be known surfaces"
+                )
+            if not set(profile.source_reference_ids).issubset(
+                known_source_references
+            ):
+                raise ValueError(
+                    "source_reference_ids must be known registry references"
+                )
+        return self
+
+
+def multimodal_shared_artifact_board_registry() -> (
+    MultimodalSharedArtifactBoardRegistry
+):
+    """Return passive V4.5 Shared Artifact Board metadata."""
+
+    return MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY
+
+
+def multimodal_shared_artifact_board_profile_by_id(
+    profile_id: str,
+    registry: MultimodalSharedArtifactBoardRegistry | None = None,
+) -> SharedArtifactBoardProfile | None:
+    """Return one Shared Artifact Board profile without mutating artifacts."""
+
+    source_registry = registry or MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY
+    normalized_profile_id = str(profile_id).strip()
+    for profile in source_registry.shared_artifact_board_profiles:
+        if profile.profile_id == normalized_profile_id:
+            return profile
+    return None
+
+
+def multimodal_shared_artifact_board_profiles_for_route(
+    route: RouteName | str,
+    registry: MultimodalSharedArtifactBoardRegistry | None = None,
+) -> tuple[SharedArtifactBoardProfile, ...]:
+    """Return passive Shared Artifact Board profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.shared_artifact_board_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def multimodal_shared_artifact_board_profiles_for_surface_kind(
+    surface_kind: SharedArtifactBoardSurfaceKind | str,
+    registry: MultimodalSharedArtifactBoardRegistry | None = None,
+) -> tuple[SharedArtifactBoardProfile, ...]:
+    """Return Shared Artifact Board profiles for one passive surface kind."""
+
+    surface_value = str(surface_kind).strip()
+    source_registry = registry or MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.shared_artifact_board_profiles
+        if profile.board_surface_kind == surface_value
+    )
+
+
+def multimodal_shared_artifact_board_profiles_for_cross_agent_workspace_profile(
+    cross_agent_workspace_profile_id: str,
+    registry: MultimodalSharedArtifactBoardRegistry | None = None,
+) -> tuple[SharedArtifactBoardProfile, ...]:
+    """Return board profiles referencing one cross-agent workspace profile."""
+
+    source_registry = registry or MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY
+    source_profile_id = str(cross_agent_workspace_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.shared_artifact_board_profiles
+        if source_profile_id in profile.source_cross_agent_workspace_profile_ids
+    )
+
+
+def _shared_artifact_board_profile(
+    *,
+    profile_id: str,
+    profile_name: str,
+    board_profile_kind: SharedArtifactBoardProfileKind,
+    board_surface_kind: SharedArtifactBoardSurfaceKind,
+    source_cross_agent_workspace_profile_ids: tuple[str, ...],
+    source_artifact_collaboration_profile_ids: tuple[str, ...],
+    source_multi_preview_profile_ids: tuple[str, ...],
+    source_artifact_provenance_profile_ids: tuple[str, ...],
+    source_artifact_lineage_profile_ids: tuple[str, ...],
+    board_context_fields: tuple[str, ...],
+    source_reference_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    shared_artifact_board_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> SharedArtifactBoardProfile:
+    return SharedArtifactBoardProfile(
+        profile_id=profile_id,
+        profile_name=profile_name,
+        board_profile_kind=board_profile_kind,
+        board_surface_kind=board_surface_kind,
+        source_cross_agent_workspace_profile_ids=(
+            source_cross_agent_workspace_profile_ids
+        ),
+        source_artifact_collaboration_profile_ids=(
+            source_artifact_collaboration_profile_ids
+        ),
+        source_multi_preview_profile_ids=source_multi_preview_profile_ids,
+        source_artifact_provenance_profile_ids=(
+            source_artifact_provenance_profile_ids
+        ),
+        source_artifact_lineage_profile_ids=source_artifact_lineage_profile_ids,
+        board_context_fields=board_context_fields,
+        source_reference_ids=source_reference_ids,
+        route_applicability=route_applicability,
+        shared_artifact_board_surfaces=shared_artifact_board_surfaces,
+        advisory_outputs=advisory_outputs,
+        source_registries=_SHARED_ARTIFACT_BOARD_SOURCE_REGISTRIES,
+        observability_surfaces=_SHARED_ARTIFACT_BOARD_OBSERVABILITY_SURFACES,
+    )
+
+
+MULTIMODAL_SHARED_ARTIFACT_BOARD_PROFILES = (
+    _shared_artifact_board_profile(
+        profile_id="selection_shared_artifact_board",
+        profile_name="Selection Shared Artifact Board",
+        board_profile_kind="artifact_selection_board",
+        board_surface_kind="selection",
+        source_cross_agent_workspace_profile_ids=(
+            "planning_cross_agent_workspace",
+            "artifact_runtime_cross_agent_workspace",
+        ),
+        source_artifact_collaboration_profile_ids=(
+            "selection_artifact_collaboration",
+            "inspection_artifact_collaboration",
+        ),
+        source_multi_preview_profile_ids=(
+            "candidate_grid_multi_preview",
+            "recommended_candidate_multi_preview",
+        ),
+        source_artifact_provenance_profile_ids=(
+            "payload_artifact_provenance",
+            "evidence_artifact_provenance",
+        ),
+        source_artifact_lineage_profile_ids=(
+            "dependency_graph_artifact_lineage",
+            "source_transition_artifact_lineage",
+        ),
+        board_context_fields=(
+            "activeArtifactId",
+            "artifacts",
+            "artifact_selection_surface",
+            "sourceKeys",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_CROSS_AGENT_WORKSPACE_REGISTRY",
+            "multimodal_studio.MULTIMODAL_ARTIFACT_COLLABORATION_REGISTRY",
+            "multimodal_studio.MULTIMODAL_MULTI_PREVIEW_REGISTRY",
+            "clients.nextjs.artifact_comparison.buildArtifactComparisonModel",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.PREVIEW,
+        ),
+        shared_artifact_board_surfaces=(
+            "shared_artifact_board_panel",
+            "artifact_selection_board_surface",
+            "artifact_comparison_board_surface",
+            "shared_artifact_board_boundary_panel",
+        ),
+        advisory_outputs=(
+            "artifact_selection_board_inventory",
+            "manual_selection_review_hint",
+            "no_artifact_selection_mutation_notice",
+        ),
+    ),
+    _shared_artifact_board_profile(
+        profile_id="comparison_shared_artifact_board",
+        profile_name="Comparison Shared Artifact Board",
+        board_profile_kind="comparison_review_board",
+        board_surface_kind="comparison",
+        source_cross_agent_workspace_profile_ids=(
+            "artifact_runtime_cross_agent_workspace",
+            "critique_curation_cross_agent_workspace",
+        ),
+        source_artifact_collaboration_profile_ids=(
+            "comparison_artifact_collaboration",
+            "selection_artifact_collaboration",
+        ),
+        source_multi_preview_profile_ids=(
+            "split_comparison_multi_preview",
+            "candidate_grid_multi_preview",
+        ),
+        source_artifact_provenance_profile_ids=(
+            "evaluation_artifact_provenance",
+            "payload_artifact_provenance",
+        ),
+        source_artifact_lineage_profile_ids=(
+            "dependency_graph_artifact_lineage",
+            "source_transition_artifact_lineage",
+        ),
+        board_context_fields=(
+            "comparison.rows",
+            "recommendedRow",
+            "artifact.runtimeSupport",
+            "qualityRank",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_CROSS_AGENT_WORKSPACE_REGISTRY",
+            "multimodal_studio.MULTIMODAL_ARTIFACT_COLLABORATION_REGISTRY",
+            "multimodal_studio.MULTIMODAL_MULTI_PREVIEW_REGISTRY",
+            "clients.nextjs.artifact_comparison.buildArtifactComparisonModel",
+            "clients.nextjs.artifact_comparison.ArtifactComparisonRow",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        shared_artifact_board_surfaces=(
+            "shared_artifact_board_panel",
+            "artifact_comparison_board_surface",
+            "artifact_lineage_board_surface",
+            "shared_artifact_board_boundary_panel",
+        ),
+        advisory_outputs=(
+            "artifact_comparison_board_inventory",
+            "manual_comparison_review_hint",
+            "no_rendering_execution_notice",
+        ),
+    ),
+    _shared_artifact_board_profile(
+        profile_id="provenance_lineage_shared_artifact_board",
+        profile_name="Provenance Lineage Shared Artifact Board",
+        board_profile_kind="provenance_lineage_board",
+        board_surface_kind="provenance_lineage",
+        source_cross_agent_workspace_profile_ids=(
+            "critique_curation_cross_agent_workspace",
+            "refinement_synthesis_cross_agent_workspace",
+        ),
+        source_artifact_collaboration_profile_ids=(
+            "inspection_artifact_collaboration",
+            "comparison_artifact_collaboration",
+        ),
+        source_multi_preview_profile_ids=(
+            "fallback_multi_preview",
+            "recommended_candidate_multi_preview",
+        ),
+        source_artifact_provenance_profile_ids=(
+            "evidence_artifact_provenance",
+            "evaluation_artifact_provenance",
+            "missing_source_artifact_provenance",
+        ),
+        source_artifact_lineage_profile_ids=(
+            "timeline_stage_artifact_lineage",
+            "source_transition_artifact_lineage",
+            "missing_artifact_lineage",
+        ),
+        board_context_fields=(
+            "artifact_provenance_surfaces",
+            "artifact_lineage_surfaces",
+            "unsupported_or_missing_sources",
+            "eventSequence",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY",
+            "multimodal_studio.MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY",
+            "clients.nextjs.artifact_inspector.buildArtifactDocument",
+            "clients.nextjs.artifact_inspector.highlightArtifactDocument",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+        ),
+        route_applicability=(
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        shared_artifact_board_surfaces=(
+            "shared_artifact_board_panel",
+            "artifact_provenance_board_surface",
+            "artifact_lineage_board_surface",
+            "shared_artifact_board_boundary_panel",
+        ),
+        advisory_outputs=(
+            "provenance_lineage_board_inventory",
+            "manual_provenance_review_hint",
+            "no_collaborative_board_persistence_notice",
+        ),
+    ),
+    _shared_artifact_board_profile(
+        profile_id="handoff_refinement_shared_artifact_board",
+        profile_name="Handoff Refinement Shared Artifact Board",
+        board_profile_kind="handoff_refinement_board",
+        board_surface_kind="handoff_refinement",
+        source_cross_agent_workspace_profile_ids=(
+            "artifact_runtime_cross_agent_workspace",
+            "refinement_synthesis_cross_agent_workspace",
+        ),
+        source_artifact_collaboration_profile_ids=(
+            "refinement_artifact_collaboration",
+            "inspection_artifact_collaboration",
+        ),
+        source_multi_preview_profile_ids=(
+            "recommended_candidate_multi_preview",
+            "fallback_multi_preview",
+        ),
+        source_artifact_provenance_profile_ids=(
+            "evaluation_artifact_provenance",
+            "payload_artifact_provenance",
+            "missing_source_artifact_provenance",
+        ),
+        source_artifact_lineage_profile_ids=(
+            "timeline_stage_artifact_lineage",
+            "missing_artifact_lineage",
+        ),
+        board_context_fields=(
+            "artifact_refinement_surface",
+            "artifact_document",
+            "handoff_context",
+            "final_payload_lineage_context",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_CROSS_AGENT_WORKSPACE_REGISTRY",
+            "multimodal_studio.MULTIMODAL_ARTIFACT_COLLABORATION_REGISTRY",
+            "clients.nextjs.artifact_inspector.buildArtifactDocument",
+            "clients.nextjs.artifact_inspector.highlightArtifactDocument",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        shared_artifact_board_surfaces=(
+            "shared_artifact_board_panel",
+            "artifact_handoff_board_surface",
+            "artifact_provenance_board_surface",
+            "shared_artifact_board_boundary_panel",
+        ),
+        advisory_outputs=(
+            "handoff_refinement_board_inventory",
+            "manual_refinement_handoff_review_hint",
+            "no_artifact_mutation_notice",
+        ),
+    ),
+)
+
+MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY = MultimodalSharedArtifactBoardRegistry(
+    shared_artifact_board_profiles=MULTIMODAL_SHARED_ARTIFACT_BOARD_PROFILES,
+    profile_ids=tuple(
+        profile.profile_id
+        for profile in MULTIMODAL_SHARED_ARTIFACT_BOARD_PROFILES
+    ),
+    board_profile_kinds=tuple(
+        profile.board_profile_kind
+        for profile in MULTIMODAL_SHARED_ARTIFACT_BOARD_PROFILES
+    ),
+    board_surface_kinds=tuple(
+        profile.board_surface_kind
+        for profile in MULTIMODAL_SHARED_ARTIFACT_BOARD_PROFILES
+    ),
+    cross_agent_workspace_profile_ids=(
+        MULTIMODAL_CROSS_AGENT_WORKSPACE_REGISTRY.profile_ids
+    ),
+    artifact_collaboration_profile_ids=(
+        MULTIMODAL_ARTIFACT_COLLABORATION_REGISTRY.profile_ids
+    ),
+    multi_preview_profile_ids=MULTIMODAL_MULTI_PREVIEW_REGISTRY.profile_ids,
+    artifact_provenance_profile_ids=(
+        MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY.profile_ids
+    ),
+    artifact_lineage_profile_ids=MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY.profile_ids,
+    route_names=tuple(RouteName),
+    profile_count=len(MULTIMODAL_SHARED_ARTIFACT_BOARD_PROFILES),
+    source_registries=_SHARED_ARTIFACT_BOARD_SOURCE_REGISTRIES,
+    source_reference_ids=_SHARED_ARTIFACT_BOARD_SOURCE_REFERENCES,
+    shared_artifact_board_surface_refs=_SHARED_ARTIFACT_BOARD_SURFACES,
+    observability_surfaces=_SHARED_ARTIFACT_BOARD_OBSERVABILITY_SURFACES,
 )
