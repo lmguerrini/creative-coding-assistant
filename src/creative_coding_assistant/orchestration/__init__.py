@@ -50,6 +50,9 @@ _WORKSTATION_ENGINE_CONTRACTS = (
     "creative_coding_assistant.orchestration.workstation_contracts"
 )
 _AGENT_CONTRACTS = "creative_coding_assistant.orchestration.agent_contracts"
+_AGENT_CONTRACT_AUDIT = (
+    "creative_coding_assistant.orchestration.agent_contract_audit"
+)
 _AGENT_IDENTITIES = "creative_coding_assistant.orchestration.agent_identities"
 _AGENT_MEMORY_CONTRACTS = (
     "creative_coding_assistant.orchestration.agent_memory_contracts"
@@ -211,6 +214,11 @@ _EXPORT_MAP = {
     "agent_contract_by_id": _AGENT_CONTRACTS,
     "agent_contract_registry": _AGENT_CONTRACTS,
     "build_agent_contract_registry": _AGENT_CONTRACTS,
+    "AgentContractAuditRecord": _AGENT_CONTRACT_AUDIT,
+    "AgentContractAuditRegistry": _AGENT_CONTRACT_AUDIT,
+    "agent_contract_audit_by_agent_id": _AGENT_CONTRACT_AUDIT,
+    "agent_contract_audit_registry": _AGENT_CONTRACT_AUDIT,
+    "agent_contract_audits_for_registry_ref": _AGENT_CONTRACT_AUDIT,
     "AgentIdentityMetadata": _AGENT_IDENTITIES,
     "AgentIdentityRegistry": _AGENT_IDENTITIES,
     "agent_identities_by_role_family": _AGENT_IDENTITIES,
