@@ -18,6 +18,7 @@ _CREATIVE_CONSTRAINT_PRIORITIES = (
 _CONTEXT_BUDGET_PLANNER = (
     "creative_coding_assistant.orchestration.context_budget_planner"
 )
+_CONTEXT_ROUTER = "creative_coding_assistant.orchestration.context_router"
 _EXPLORATION_BUDGET_PLANNER = (
     "creative_coding_assistant.orchestration.exploration_budget_planner"
 )
@@ -259,6 +260,8 @@ _EXPORT_MAP = {
     "CreativeComplexityFactor": _CREATIVE_COMPLEXITY_ANALYZER,
     "ContextBudgetAllocation": _CONTEXT_BUDGET_PLANNER,
     "ContextBudgetPlan": _CONTEXT_BUDGET_PLANNER,
+    "ContextRouteDecision": _CONTEXT_ROUTER,
+    "ContextRoutingPlan": _CONTEXT_ROUTER,
     "ExplorationBudgetAllocation": _EXPLORATION_BUDGET_PLANNER,
     "ExplorationBudgetPlan": _EXPLORATION_BUDGET_PLANNER,
     "WorkflowCostAnalysis": _WORKFLOW_COST_ANALYZER,
@@ -1209,6 +1212,8 @@ _EXPORT_MAP = {
     "creative_complexity_factors_for_kind": _CREATIVE_COMPLEXITY_ANALYZER,
     "context_budget_allocation_by_id": _CONTEXT_BUDGET_PLANNER,
     "context_budget_allocations_for_kind": _CONTEXT_BUDGET_PLANNER,
+    "context_route_decision_by_id": _CONTEXT_ROUTER,
+    "context_route_decisions_for_lane": _CONTEXT_ROUTER,
     "exploration_budget_allocation_by_id": _EXPLORATION_BUDGET_PLANNER,
     "exploration_budget_allocations_for_topic": _EXPLORATION_BUDGET_PLANNER,
     "execution_graph_edges_from": _EXECUTION_GRAPH_ANALYZER,
@@ -1332,13 +1337,14 @@ _EXPORT_MAP = {
     "finish_workflow": _WORKFLOW,
     "next_workflow_step": _WORKFLOW,
     "prepare_workflow_preview_results": _ARTIFACTS,
-    "plan_exploration_budget": _EXPLORATION_BUDGET_PLANNER,
     "plan_context_budget": _CONTEXT_BUDGET_PLANNER,
+    "plan_exploration_budget": _EXPLORATION_BUDGET_PLANNER,
     "plan_next_refinement_pass": _REFINEMENT_PASSES,
     "refinement_opportunities": _REFINEMENT_PASSES,
     "reference_fusion_prompt_lines": _REFERENCE_FUSION,
     "restart_workflow_step": _WORKFLOW,
     "review_assistant_answer": _WORKFLOW_REVIEW,
+    "route_context_sources": _CONTEXT_ROUTER,
     "route_request": _ROUTING,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
     "shader_preset_prompt_lines": _SHADER_PRESETS,
