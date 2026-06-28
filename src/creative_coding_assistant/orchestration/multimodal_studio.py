@@ -36,6 +36,18 @@ InteractiveCanvasSurfaceKind = Literal[
     "input_boundary",
     "runtime_status",
 ]
+VisualWorkspaceProfileKind = Literal[
+    "workspace_shell",
+    "artifact_workspace",
+    "preview_workspace",
+    "inspector_workspace",
+]
+VisualWorkspaceSurfaceKind = Literal[
+    "shell",
+    "artifact_selection",
+    "preview",
+    "inspector",
+]
 
 LIVE_PREVIEW_PROFILE_SERIALIZATION_VERSION = "multimodal_live_preview_profile.v1"
 LIVE_PREVIEW_REGISTRY_SERIALIZATION_VERSION = "multimodal_live_preview_registry.v1"
@@ -46,6 +58,12 @@ INTERACTIVE_CANVAS_PROFILE_SERIALIZATION_VERSION = (
 )
 INTERACTIVE_CANVAS_REGISTRY_SERIALIZATION_VERSION = (
     "multimodal_interactive_canvas_registry.v1"
+)
+VISUAL_WORKSPACE_PROFILE_SERIALIZATION_VERSION = (
+    "multimodal_visual_workspace_profile.v1"
+)
+VISUAL_WORKSPACE_REGISTRY_SERIALIZATION_VERSION = (
+    "multimodal_visual_workspace_registry.v1"
 )
 LIVE_PREVIEW_AUTHORITY_BOUNDARY = (
     "Live Preview metadata describes passive V4.5 Multimodal Studio surfaces "
@@ -69,6 +87,13 @@ INTERACTIVE_CANVAS_AUTHORITY_BOUNDARY = (
     "runtime behavior, route providers or models, call external providers, "
     "trigger retries, mutate generated outputs, open networking, persist "
     "collaboration state, or activate Studio runtime behavior."
+)
+VISUAL_WORKSPACE_AUTHORITY_BOUNDARY = (
+    "Visual Workspace metadata describes passive V4.5 Multimodal Studio "
+    "workspace surfaces for inspection only; it does not mutate workspace "
+    "state, create persistent storage behavior, execute rendering, route "
+    "providers or models, call external providers, trigger retries, mutate "
+    "generated outputs, open networking, or activate Studio runtime behavior."
 )
 
 _LIVE_PREVIEW_SOURCE_REGISTRIES = (
@@ -228,6 +253,59 @@ _INTERACTIVE_CANVAS_BLOCKED_RUNTIME_BEHAVIORS = (
     "generated_output_mutation",
     "networking",
     "persistent_collaboration_storage",
+    "active_studio_runtime_behavior",
+)
+
+_VISUAL_WORKSPACE_SOURCE_REGISTRIES = (
+    "multimodal_live_preview_registry",
+    "multimodal_multi_preview_registry",
+    "multimodal_interactive_canvas_registry",
+    "nextjs_workstation_state",
+    "nextjs_workstation_dashboard",
+    "nextjs_workstation_shell",
+    "nextjs_workspace_persistence",
+)
+
+_VISUAL_WORKSPACE_SOURCE_REFERENCES = (
+    "multimodal_studio.MULTIMODAL_LIVE_PREVIEW_REGISTRY",
+    "multimodal_studio.MULTIMODAL_MULTI_PREVIEW_REGISTRY",
+    "multimodal_studio.MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY",
+    "clients.nextjs.workstation_state.buildWorkstationState",
+    "clients.nextjs.workstation_dashboard.buildWorkstationDashboardModel",
+    "clients.nextjs.workstation_shell.WorkstationShell",
+    "clients.nextjs.workspace_persistence.createWorkspaceSessionRecord",
+    "clients.nextjs.assistant_client.AssistantWorkspaceSnapshot",
+)
+
+_VISUAL_WORKSPACE_SURFACES = (
+    "visual_workspace_shell",
+    "artifact_selection_surface",
+    "preview_workspace_surface",
+    "inspector_workspace_surface",
+    "workspace_dashboard_surface",
+    "visual_context_surface",
+    "workspace_boundary_panel",
+)
+
+_VISUAL_WORKSPACE_OBSERVABILITY_SURFACES = (
+    "profile_id",
+    "workspace_profile_kind",
+    "workspace_surface_kind",
+    "source_preview_profile_ids",
+    "workspace_state_fields",
+    "source_reference_ids",
+    "authority_boundary",
+)
+
+_VISUAL_WORKSPACE_BLOCKED_RUNTIME_BEHAVIORS = (
+    "workspace_state_mutation",
+    "persistent_storage_mutation",
+    "rendering_execution",
+    "provider_or_model_routing",
+    "external_provider_calling",
+    "retry_triggering",
+    "generated_output_mutation",
+    "networking",
     "active_studio_runtime_behavior",
 )
 
@@ -1593,4 +1671,497 @@ MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY = MultimodalInteractiveCanvasRegistry(
     source_reference_ids=_INTERACTIVE_CANVAS_SOURCE_REFERENCES,
     interactive_canvas_surface_refs=_INTERACTIVE_CANVAS_SURFACES,
     observability_surfaces=_INTERACTIVE_CANVAS_OBSERVABILITY_SURFACES,
+)
+
+
+class VisualWorkspaceProfile(BaseModel):
+    """Inspectable metadata for one passive Visual Workspace surface."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    profile_id: str = Field(min_length=1, max_length=120)
+    profile_name: str = Field(min_length=1, max_length=140)
+    workspace_profile_kind: VisualWorkspaceProfileKind
+    workspace_surface_kind: VisualWorkspaceSurfaceKind
+    source_live_preview_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_multi_preview_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_interactive_canvas_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    workspace_state_fields: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_reference_ids: tuple[str, ...] = Field(min_length=1, max_length=8)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    visual_workspace_surfaces: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=7,
+    )
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=VISUAL_WORKSPACE_AUTHORITY_BOUNDARY,
+        max_length=900,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_VISUAL_WORKSPACE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    workspace_state_mutation_implemented: Literal[False] = False
+    persistent_storage_mutation_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    external_provider_calls_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    active_studio_behavior_implemented: Literal[False] = False
+    serialization_version: Literal["multimodal_visual_workspace_profile.v1"] = (
+        VISUAL_WORKSPACE_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class MultimodalVisualWorkspaceRegistry(BaseModel):
+    """Stable passive registry for V4.5 Multimodal Studio Visual Workspace."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["multimodal_visual_workspace_registry"] = (
+        "multimodal_visual_workspace_registry"
+    )
+    serialization_version: Literal["multimodal_visual_workspace_registry.v1"] = (
+        VISUAL_WORKSPACE_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=VISUAL_WORKSPACE_AUTHORITY_BOUNDARY,
+        max_length=900,
+    )
+    visual_workspace_profiles: tuple[VisualWorkspaceProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    workspace_profile_kinds: tuple[VisualWorkspaceProfileKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    workspace_surface_kinds: tuple[VisualWorkspaceSurfaceKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    live_preview_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    multi_preview_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    interactive_canvas_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    source_reference_ids: tuple[str, ...] = Field(min_length=8, max_length=8)
+    visual_workspace_surface_refs: tuple[str, ...] = Field(
+        min_length=7,
+        max_length=7,
+    )
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_VISUAL_WORKSPACE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    workspace_state_mutation_implemented: Literal[False] = False
+    persistent_storage_mutation_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    external_provider_calls_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    active_studio_behavior_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.profile_id for profile in self.visual_workspace_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("profile_ids must be unique")
+        if self.profile_ids != derived_profile_ids:
+            raise ValueError("profile_ids must match visual_workspace_profiles")
+        if self.profile_count != len(self.visual_workspace_profiles):
+            raise ValueError("profile_count must match visual_workspace_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if (
+            self.live_preview_profile_ids
+            != MULTIMODAL_LIVE_PREVIEW_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "live_preview_profile_ids must match Live Preview registry"
+            )
+        if (
+            self.multi_preview_profile_ids
+            != MULTIMODAL_MULTI_PREVIEW_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "multi_preview_profile_ids must match Multi Preview registry"
+            )
+        if (
+            self.interactive_canvas_profile_ids
+            != MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "interactive_canvas_profile_ids must match Interactive Canvas registry"
+            )
+
+        derived_profile_kinds = _ordered_unique(
+            profile.workspace_profile_kind
+            for profile in self.visual_workspace_profiles
+        )
+        if self.workspace_profile_kinds != derived_profile_kinds:
+            raise ValueError(
+                "workspace_profile_kinds must match visual workspace profiles"
+            )
+
+        derived_surface_kinds = _ordered_unique(
+            profile.workspace_surface_kind
+            for profile in self.visual_workspace_profiles
+        )
+        if self.workspace_surface_kinds != derived_surface_kinds:
+            raise ValueError(
+                "workspace_surface_kinds must match visual workspace profiles"
+            )
+
+        profile_source_references = {
+            source_reference
+            for profile in self.visual_workspace_profiles
+            for source_reference in profile.source_reference_ids
+        }
+        if set(self.source_reference_ids) != profile_source_references:
+            raise ValueError(
+                "source_reference_ids must match profile source references"
+            )
+
+        known_routes = set(self.route_names)
+        known_live_profiles = set(self.live_preview_profile_ids)
+        known_multi_profiles = set(self.multi_preview_profile_ids)
+        known_canvas_profiles = set(self.interactive_canvas_profile_ids)
+        known_surfaces = set(self.visual_workspace_surface_refs)
+        known_source_references = set(self.source_reference_ids)
+        for profile in self.visual_workspace_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must use known routes")
+            if not set(profile.source_live_preview_profile_ids).issubset(
+                known_live_profiles
+            ):
+                raise ValueError(
+                    "source_live_preview_profile_ids must be known profiles"
+                )
+            if not set(profile.source_multi_preview_profile_ids).issubset(
+                known_multi_profiles
+            ):
+                raise ValueError(
+                    "source_multi_preview_profile_ids must be known profiles"
+                )
+            if not set(profile.source_interactive_canvas_profile_ids).issubset(
+                known_canvas_profiles
+            ):
+                raise ValueError(
+                    "source_interactive_canvas_profile_ids must be known profiles"
+                )
+            if not set(profile.visual_workspace_surfaces).issubset(known_surfaces):
+                raise ValueError("visual_workspace_surfaces must be known surfaces")
+            if not set(profile.source_reference_ids).issubset(
+                known_source_references
+            ):
+                raise ValueError(
+                    "source_reference_ids must be known registry references"
+                )
+        return self
+
+
+def multimodal_visual_workspace_registry() -> MultimodalVisualWorkspaceRegistry:
+    """Return passive V4.5 Multimodal Studio Visual Workspace metadata."""
+
+    return MULTIMODAL_VISUAL_WORKSPACE_REGISTRY
+
+
+def multimodal_visual_workspace_profile_by_id(
+    profile_id: str,
+    registry: MultimodalVisualWorkspaceRegistry | None = None,
+) -> VisualWorkspaceProfile | None:
+    """Return one Visual Workspace profile without mutating workspace state."""
+
+    source_registry = registry or MULTIMODAL_VISUAL_WORKSPACE_REGISTRY
+    normalized_profile_id = str(profile_id).strip()
+    for profile in source_registry.visual_workspace_profiles:
+        if profile.profile_id == normalized_profile_id:
+            return profile
+    return None
+
+
+def multimodal_visual_workspace_profiles_for_route(
+    route: RouteName | str,
+    registry: MultimodalVisualWorkspaceRegistry | None = None,
+) -> tuple[VisualWorkspaceProfile, ...]:
+    """Return passive Visual Workspace profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or MULTIMODAL_VISUAL_WORKSPACE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.visual_workspace_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def multimodal_visual_workspace_profiles_for_surface_kind(
+    surface_kind: VisualWorkspaceSurfaceKind | str,
+    registry: MultimodalVisualWorkspaceRegistry | None = None,
+) -> tuple[VisualWorkspaceProfile, ...]:
+    """Return passive Visual Workspace profiles for one surface kind."""
+
+    surface_value = str(surface_kind).strip()
+    source_registry = registry or MULTIMODAL_VISUAL_WORKSPACE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.visual_workspace_profiles
+        if profile.workspace_surface_kind == surface_value
+    )
+
+
+def multimodal_visual_workspace_profiles_for_interactive_canvas_profile(
+    interactive_canvas_profile_id: str,
+    registry: MultimodalVisualWorkspaceRegistry | None = None,
+) -> tuple[VisualWorkspaceProfile, ...]:
+    """Return Visual Workspace profiles referencing one canvas profile."""
+
+    source_registry = registry or MULTIMODAL_VISUAL_WORKSPACE_REGISTRY
+    source_profile_id = str(interactive_canvas_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.visual_workspace_profiles
+        if source_profile_id in profile.source_interactive_canvas_profile_ids
+    )
+
+
+def _visual_workspace_profile(
+    *,
+    profile_id: str,
+    profile_name: str,
+    workspace_profile_kind: VisualWorkspaceProfileKind,
+    workspace_surface_kind: VisualWorkspaceSurfaceKind,
+    source_live_preview_profile_ids: tuple[str, ...],
+    source_multi_preview_profile_ids: tuple[str, ...],
+    source_interactive_canvas_profile_ids: tuple[str, ...],
+    workspace_state_fields: tuple[str, ...],
+    source_reference_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    visual_workspace_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> VisualWorkspaceProfile:
+    return VisualWorkspaceProfile(
+        profile_id=profile_id,
+        profile_name=profile_name,
+        workspace_profile_kind=workspace_profile_kind,
+        workspace_surface_kind=workspace_surface_kind,
+        source_live_preview_profile_ids=source_live_preview_profile_ids,
+        source_multi_preview_profile_ids=source_multi_preview_profile_ids,
+        source_interactive_canvas_profile_ids=source_interactive_canvas_profile_ids,
+        workspace_state_fields=workspace_state_fields,
+        source_reference_ids=source_reference_ids,
+        route_applicability=route_applicability,
+        visual_workspace_surfaces=visual_workspace_surfaces,
+        advisory_outputs=advisory_outputs,
+        source_registries=_VISUAL_WORKSPACE_SOURCE_REGISTRIES,
+        observability_surfaces=_VISUAL_WORKSPACE_OBSERVABILITY_SURFACES,
+    )
+
+
+MULTIMODAL_VISUAL_WORKSPACE_PROFILES = (
+    _visual_workspace_profile(
+        profile_id="shell_visual_workspace",
+        profile_name="Shell Visual Workspace",
+        workspace_profile_kind="workspace_shell",
+        workspace_surface_kind="shell",
+        source_live_preview_profile_ids=MULTIMODAL_LIVE_PREVIEW_REGISTRY.profile_ids,
+        source_multi_preview_profile_ids=MULTIMODAL_MULTI_PREVIEW_REGISTRY.profile_ids,
+        source_interactive_canvas_profile_ids=(
+            MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY.profile_ids
+        ),
+        workspace_state_fields=(
+            "session",
+            "currentRun",
+            "selection",
+            "panels",
+            "readiness",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_LIVE_PREVIEW_REGISTRY",
+            "multimodal_studio.MULTIMODAL_MULTI_PREVIEW_REGISTRY",
+            "multimodal_studio.MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY",
+            "clients.nextjs.workstation_state.buildWorkstationState",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+            "clients.nextjs.workspace_persistence.createWorkspaceSessionRecord",
+        ),
+        route_applicability=tuple(RouteName),
+        visual_workspace_surfaces=(
+            "visual_workspace_shell",
+            "workspace_dashboard_surface",
+            "visual_context_surface",
+            "workspace_boundary_panel",
+        ),
+        advisory_outputs=(
+            "workspace_shell_inventory",
+            "manual_workspace_state_review_hint",
+            "no_workspace_state_mutation_notice",
+        ),
+    ),
+    _visual_workspace_profile(
+        profile_id="artifact_selection_visual_workspace",
+        profile_name="Artifact Selection Visual Workspace",
+        workspace_profile_kind="artifact_workspace",
+        workspace_surface_kind="artifact_selection",
+        source_live_preview_profile_ids=(
+            "browser_sandbox_live_preview",
+            "media_asset_live_preview",
+            "structured_panel_live_preview",
+        ),
+        source_multi_preview_profile_ids=MULTIMODAL_MULTI_PREVIEW_REGISTRY.profile_ids,
+        source_interactive_canvas_profile_ids=(
+            "canvas_2d_interactive_canvas",
+            "webgl_interactive_canvas",
+        ),
+        workspace_state_fields=(
+            "activeArtifactId",
+            "activeArtifact",
+            "previewArtifactId",
+            "previewArtifact",
+        ),
+        source_reference_ids=(
+            "clients.nextjs.assistant_client.AssistantWorkspaceSnapshot",
+            "clients.nextjs.workstation_state.buildWorkstationState",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+        ),
+        route_applicability=tuple(RouteName),
+        visual_workspace_surfaces=(
+            "visual_workspace_shell",
+            "artifact_selection_surface",
+            "workspace_boundary_panel",
+        ),
+        advisory_outputs=(
+            "artifact_selection_inventory",
+            "manual_artifact_selection_review_hint",
+            "no_artifact_mutation_notice",
+        ),
+    ),
+    _visual_workspace_profile(
+        profile_id="preview_visual_workspace",
+        profile_name="Preview Visual Workspace",
+        workspace_profile_kind="preview_workspace",
+        workspace_surface_kind="preview",
+        source_live_preview_profile_ids=MULTIMODAL_LIVE_PREVIEW_REGISTRY.profile_ids,
+        source_multi_preview_profile_ids=MULTIMODAL_MULTI_PREVIEW_REGISTRY.profile_ids,
+        source_interactive_canvas_profile_ids=(
+            MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY.profile_ids
+        ),
+        workspace_state_fields=(
+            "previewOpen",
+            "previewFullscreen",
+            "previewArtifact",
+            "activeInspectorTab",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_LIVE_PREVIEW_REGISTRY",
+            "multimodal_studio.MULTIMODAL_MULTI_PREVIEW_REGISTRY",
+            "multimodal_studio.MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY",
+            "clients.nextjs.assistant_client.AssistantWorkspaceSnapshot",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+        ),
+        route_applicability=tuple(RouteName),
+        visual_workspace_surfaces=(
+            "preview_workspace_surface",
+            "visual_workspace_shell",
+            "workspace_boundary_panel",
+        ),
+        advisory_outputs=(
+            "preview_workspace_inventory",
+            "manual_preview_workspace_review_hint",
+            "no_rendering_execution_notice",
+        ),
+    ),
+    _visual_workspace_profile(
+        profile_id="inspector_visual_workspace",
+        profile_name="Inspector Visual Workspace",
+        workspace_profile_kind="inspector_workspace",
+        workspace_surface_kind="inspector",
+        source_live_preview_profile_ids=("runtime_status_live_preview",),
+        source_multi_preview_profile_ids=("recommended_candidate_multi_preview",),
+        source_interactive_canvas_profile_ids=(
+            "input_boundary_interactive_canvas",
+            "runtime_status_interactive_canvas",
+        ),
+        workspace_state_fields=(
+            "activeInspectorTab",
+            "metadata",
+            "readiness",
+            "status",
+            "dashboard",
+        ),
+        source_reference_ids=(
+            "clients.nextjs.workstation_state.buildWorkstationState",
+            "clients.nextjs.workstation_dashboard.buildWorkstationDashboardModel",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+            "clients.nextjs.assistant_client.AssistantWorkspaceSnapshot",
+        ),
+        route_applicability=tuple(RouteName),
+        visual_workspace_surfaces=(
+            "inspector_workspace_surface",
+            "workspace_dashboard_surface",
+            "visual_context_surface",
+            "workspace_boundary_panel",
+        ),
+        advisory_outputs=(
+            "inspector_workspace_inventory",
+            "manual_inspector_review_hint",
+            "no_provider_or_model_routing_notice",
+        ),
+    ),
+)
+
+MULTIMODAL_VISUAL_WORKSPACE_REGISTRY = MultimodalVisualWorkspaceRegistry(
+    visual_workspace_profiles=MULTIMODAL_VISUAL_WORKSPACE_PROFILES,
+    profile_ids=tuple(
+        profile.profile_id for profile in MULTIMODAL_VISUAL_WORKSPACE_PROFILES
+    ),
+    workspace_profile_kinds=tuple(
+        profile.workspace_profile_kind
+        for profile in MULTIMODAL_VISUAL_WORKSPACE_PROFILES
+    ),
+    workspace_surface_kinds=tuple(
+        profile.workspace_surface_kind
+        for profile in MULTIMODAL_VISUAL_WORKSPACE_PROFILES
+    ),
+    live_preview_profile_ids=MULTIMODAL_LIVE_PREVIEW_REGISTRY.profile_ids,
+    multi_preview_profile_ids=MULTIMODAL_MULTI_PREVIEW_REGISTRY.profile_ids,
+    interactive_canvas_profile_ids=MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY.profile_ids,
+    route_names=tuple(RouteName),
+    profile_count=len(MULTIMODAL_VISUAL_WORKSPACE_PROFILES),
+    source_registries=_VISUAL_WORKSPACE_SOURCE_REGISTRIES,
+    source_reference_ids=_VISUAL_WORKSPACE_SOURCE_REFERENCES,
+    visual_workspace_surface_refs=_VISUAL_WORKSPACE_SURFACES,
+    observability_surfaces=_VISUAL_WORKSPACE_OBSERVABILITY_SURFACES,
 )
