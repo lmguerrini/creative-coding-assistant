@@ -143,6 +143,18 @@ WorkspaceHistorySurfaceKind = Literal[
     "artifact_board",
     "runtime_event",
 ]
+BranchingTimelineProfileKind = Literal[
+    "workflow_branch_timeline",
+    "artifact_variant_branch_timeline",
+    "review_retry_branch_timeline",
+    "fallback_failure_branch_timeline",
+]
+BranchingTimelineSurfaceKind = Literal[
+    "workflow_branch",
+    "artifact_variant",
+    "review_retry",
+    "fallback_failure",
+]
 
 LIVE_PREVIEW_PROFILE_SERIALIZATION_VERSION = "multimodal_live_preview_profile.v1"
 LIVE_PREVIEW_REGISTRY_SERIALIZATION_VERSION = "multimodal_live_preview_registry.v1"
@@ -201,6 +213,12 @@ WORKSPACE_HISTORY_PROFILE_SERIALIZATION_VERSION = (
 )
 WORKSPACE_HISTORY_REGISTRY_SERIALIZATION_VERSION = (
     "multimodal_workspace_history_registry.v1"
+)
+BRANCHING_TIMELINE_PROFILE_SERIALIZATION_VERSION = (
+    "multimodal_branching_timeline_profile.v1"
+)
+BRANCHING_TIMELINE_REGISTRY_SERIALIZATION_VERSION = (
+    "multimodal_branching_timeline_registry.v1"
 )
 LIVE_PREVIEW_AUTHORITY_BOUNDARY = (
     "Live Preview metadata describes passive V4.5 Multimodal Studio surfaces "
@@ -286,6 +304,15 @@ WORKSPACE_HISTORY_AUTHORITY_BOUNDARY = (
     "artifacts, execute rendering, control workflows, request human input, "
     "route providers or models, trigger retries, open networking, or modify "
     "generated output."
+)
+BRANCHING_TIMELINE_AUTHORITY_BOUNDARY = (
+    "Branching Timeline metadata describes passive V4.5 Multimodal Studio "
+    "branching timeline surfaces for inspection only; it does not create "
+    "branches, execute branch routing, reconstruct timelines, replay runtime "
+    "events, trigger retries or refinements, mutate workflow state, mutate "
+    "workspace state, mutate artifacts, persist branch storage, execute "
+    "rendering, request human input, route providers or models, open "
+    "networking, or modify generated output."
 )
 
 _LIVE_PREVIEW_SOURCE_REGISTRIES = (
@@ -899,6 +926,68 @@ _WORKSPACE_HISTORY_BLOCKED_RUNTIME_BEHAVIORS = (
     "human_input_request",
     "provider_or_model_routing",
     "retry_triggering",
+    "networking",
+)
+
+_BRANCHING_TIMELINE_SOURCE_REGISTRIES = (
+    "multimodal_workspace_history_registry",
+    "multimodal_artifact_lineage_registry",
+    "multimodal_shared_artifact_board_registry",
+    "multimodal_runtime_collaboration_registry",
+    "session_replay_registry",
+    "nextjs_workflow_runtime",
+    "nextjs_workflow_timeline",
+    "nextjs_workstation_shell",
+)
+
+_BRANCHING_TIMELINE_SOURCE_REFERENCES = (
+    "multimodal_studio.MULTIMODAL_WORKSPACE_HISTORY_REGISTRY",
+    "multimodal_studio.MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY",
+    "multimodal_studio.MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY",
+    "multimodal_studio.MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY",
+    "hybrid_studio.SESSION_REPLAY_REGISTRY",
+    "clients.nextjs.workflow_runtime.WorkflowRuntimeVisualState",
+    "clients.nextjs.workflow_runtime.deriveWorkflowVisualState",
+    "clients.nextjs.workflow_timeline.buildWorkflowTimelineModel",
+    "clients.nextjs.workflow_timeline.WorkflowTimelineEvent",
+    "clients.nextjs.workstation_shell.WorkstationShell",
+)
+
+_BRANCHING_TIMELINE_SURFACES = (
+    "branching_timeline_panel",
+    "workflow_branch_surface",
+    "artifact_variant_branch_surface",
+    "review_retry_branch_surface",
+    "fallback_failure_branch_surface",
+    "branch_summary_surface",
+    "branching_timeline_boundary_panel",
+)
+
+_BRANCHING_TIMELINE_OBSERVABILITY_SURFACES = (
+    "profile_id",
+    "branching_timeline_kind",
+    "branch_surface_kind",
+    "source_workspace_history_profile_ids",
+    "source_runtime_collaboration_profile_ids",
+    "source_reference_ids",
+    "authority_boundary",
+)
+
+_BRANCHING_TIMELINE_BLOCKED_RUNTIME_BEHAVIORS = (
+    "branch_creation",
+    "branch_routing_execution",
+    "timeline_reconstruction",
+    "runtime_event_replay",
+    "retry_triggering",
+    "refinement_triggering",
+    "workflow_state_mutation",
+    "workspace_state_mutation",
+    "artifact_mutation",
+    "generated_output_mutation",
+    "branch_storage_persistence",
+    "rendering_execution",
+    "human_input_request",
+    "provider_or_model_routing",
     "networking",
 )
 
@@ -6461,4 +6550,625 @@ MULTIMODAL_WORKSPACE_HISTORY_REGISTRY = MultimodalWorkspaceHistoryRegistry(
     source_reference_ids=_WORKSPACE_HISTORY_SOURCE_REFERENCES,
     workspace_history_surface_refs=_WORKSPACE_HISTORY_SURFACES,
     observability_surfaces=_WORKSPACE_HISTORY_OBSERVABILITY_SURFACES,
+)
+
+
+class BranchingTimelineProfile(BaseModel):
+    """Inspectable metadata for one passive Branching Timeline surface."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    profile_id: str = Field(min_length=1, max_length=140)
+    profile_name: str = Field(min_length=1, max_length=160)
+    branching_timeline_kind: BranchingTimelineProfileKind
+    branch_surface_kind: BranchingTimelineSurfaceKind
+    source_workspace_history_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_artifact_lineage_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_shared_artifact_board_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_runtime_collaboration_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_session_replay_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    branch_context_fields: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_reference_ids: tuple[str, ...] = Field(min_length=1, max_length=10)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    branching_timeline_surfaces: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=7,
+    )
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=BRANCHING_TIMELINE_AUTHORITY_BOUNDARY,
+        max_length=1300,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_BRANCHING_TIMELINE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    branch_creation_implemented: Literal[False] = False
+    branch_routing_execution_implemented: Literal[False] = False
+    timeline_reconstruction_implemented: Literal[False] = False
+    runtime_event_replay_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    refinement_triggering_implemented: Literal[False] = False
+    workflow_state_mutation_implemented: Literal[False] = False
+    workspace_state_mutation_implemented: Literal[False] = False
+    artifact_mutation_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    branch_storage_persistence_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    serialization_version: Literal["multimodal_branching_timeline_profile.v1"] = (
+        BRANCHING_TIMELINE_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class MultimodalBranchingTimelineRegistry(BaseModel):
+    """Stable passive registry for V4.5 Branching Timeline metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["multimodal_branching_timeline_registry"] = (
+        "multimodal_branching_timeline_registry"
+    )
+    serialization_version: Literal["multimodal_branching_timeline_registry.v1"] = (
+        BRANCHING_TIMELINE_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=BRANCHING_TIMELINE_AUTHORITY_BOUNDARY,
+        max_length=1300,
+    )
+    branching_timeline_profiles: tuple[BranchingTimelineProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    branching_timeline_kinds: tuple[BranchingTimelineProfileKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    branch_surface_kinds: tuple[BranchingTimelineSurfaceKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    workspace_history_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    artifact_lineage_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    shared_artifact_board_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    runtime_collaboration_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    session_replay_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    source_reference_ids: tuple[str, ...] = Field(min_length=10, max_length=10)
+    branching_timeline_surface_refs: tuple[str, ...] = Field(
+        min_length=7,
+        max_length=7,
+    )
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_BRANCHING_TIMELINE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    branch_creation_implemented: Literal[False] = False
+    branch_routing_execution_implemented: Literal[False] = False
+    timeline_reconstruction_implemented: Literal[False] = False
+    runtime_event_replay_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    refinement_triggering_implemented: Literal[False] = False
+    workflow_state_mutation_implemented: Literal[False] = False
+    workspace_state_mutation_implemented: Literal[False] = False
+    artifact_mutation_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    branch_storage_persistence_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.profile_id for profile in self.branching_timeline_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("profile_ids must be unique")
+        if self.profile_ids != derived_profile_ids:
+            raise ValueError("profile_ids must match branching_timeline_profiles")
+        if self.profile_count != len(self.branching_timeline_profiles):
+            raise ValueError("profile_count must match branching_timeline_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if (
+            self.workspace_history_profile_ids
+            != MULTIMODAL_WORKSPACE_HISTORY_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "workspace_history_profile_ids must match Workspace History registry"
+            )
+        if (
+            self.artifact_lineage_profile_ids
+            != MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "artifact_lineage_profile_ids must match Artifact Lineage registry"
+            )
+        if (
+            self.shared_artifact_board_profile_ids
+            != MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "shared_artifact_board_profile_ids must match Shared Artifact Board registry"
+            )
+        if (
+            self.runtime_collaboration_profile_ids
+            != MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "runtime_collaboration_profile_ids must match Runtime Collaboration registry"
+            )
+        if (
+            self.session_replay_profile_ids
+            != SESSION_REPLAY_REGISTRY.session_replay_profile_ids
+        ):
+            raise ValueError(
+                "session_replay_profile_ids must match Session Replay registry"
+            )
+        if self.branching_timeline_kinds != _ordered_unique(
+            profile.branching_timeline_kind
+            for profile in self.branching_timeline_profiles
+        ):
+            raise ValueError("branching_timeline_kinds must match profiles")
+        if self.branch_surface_kinds != _ordered_unique(
+            profile.branch_surface_kind
+            for profile in self.branching_timeline_profiles
+        ):
+            raise ValueError("branch_surface_kinds must match profiles")
+
+        profile_source_references = {
+            source_reference
+            for profile in self.branching_timeline_profiles
+            for source_reference in profile.source_reference_ids
+        }
+        if set(self.source_reference_ids) != profile_source_references:
+            raise ValueError(
+                "source_reference_ids must match profile source references"
+            )
+
+        known_routes = set(self.route_names)
+        known_history = set(self.workspace_history_profile_ids)
+        known_lineage = set(self.artifact_lineage_profile_ids)
+        known_boards = set(self.shared_artifact_board_profile_ids)
+        known_runtime = set(self.runtime_collaboration_profile_ids)
+        known_replays = set(self.session_replay_profile_ids)
+        known_surfaces = set(self.branching_timeline_surface_refs)
+        known_source_references = set(self.source_reference_ids)
+        for profile in self.branching_timeline_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must use known routes")
+            if not set(profile.source_workspace_history_profile_ids).issubset(
+                known_history
+            ):
+                raise ValueError(
+                    "source_workspace_history_profile_ids must be known profiles"
+                )
+            if not set(profile.source_artifact_lineage_profile_ids).issubset(
+                known_lineage
+            ):
+                raise ValueError(
+                    "source_artifact_lineage_profile_ids must be known profiles"
+                )
+            if not set(profile.source_shared_artifact_board_profile_ids).issubset(
+                known_boards
+            ):
+                raise ValueError(
+                    "source_shared_artifact_board_profile_ids must be known profiles"
+                )
+            if not set(profile.source_runtime_collaboration_profile_ids).issubset(
+                known_runtime
+            ):
+                raise ValueError(
+                    "source_runtime_collaboration_profile_ids must be known profiles"
+                )
+            if not set(profile.source_session_replay_profile_ids).issubset(
+                known_replays
+            ):
+                raise ValueError(
+                    "source_session_replay_profile_ids must be known profiles"
+                )
+            if not set(profile.branching_timeline_surfaces).issubset(
+                known_surfaces
+            ):
+                raise ValueError("branching_timeline_surfaces must be known surfaces")
+            if not set(profile.source_reference_ids).issubset(
+                known_source_references
+            ):
+                raise ValueError(
+                    "source_reference_ids must be known registry references"
+                )
+        return self
+
+
+def multimodal_branching_timeline_registry() -> MultimodalBranchingTimelineRegistry:
+    """Return passive V4.5 Branching Timeline metadata."""
+
+    return MULTIMODAL_BRANCHING_TIMELINE_REGISTRY
+
+
+def multimodal_branching_timeline_profile_by_id(
+    profile_id: str,
+    registry: MultimodalBranchingTimelineRegistry | None = None,
+) -> BranchingTimelineProfile | None:
+    """Return one Branching Timeline profile without creating branches."""
+
+    source_registry = registry or MULTIMODAL_BRANCHING_TIMELINE_REGISTRY
+    normalized_profile_id = str(profile_id).strip()
+    for profile in source_registry.branching_timeline_profiles:
+        if profile.profile_id == normalized_profile_id:
+            return profile
+    return None
+
+
+def multimodal_branching_timeline_profiles_for_route(
+    route: RouteName | str,
+    registry: MultimodalBranchingTimelineRegistry | None = None,
+) -> tuple[BranchingTimelineProfile, ...]:
+    """Return passive Branching Timeline profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or MULTIMODAL_BRANCHING_TIMELINE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.branching_timeline_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def multimodal_branching_timeline_profiles_for_surface_kind(
+    surface_kind: BranchingTimelineSurfaceKind | str,
+    registry: MultimodalBranchingTimelineRegistry | None = None,
+) -> tuple[BranchingTimelineProfile, ...]:
+    """Return Branching Timeline profiles for one passive surface kind."""
+
+    surface_value = str(surface_kind).strip()
+    source_registry = registry or MULTIMODAL_BRANCHING_TIMELINE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.branching_timeline_profiles
+        if profile.branch_surface_kind == surface_value
+    )
+
+
+def multimodal_branching_timeline_profiles_for_workspace_history_profile(
+    workspace_history_profile_id: str,
+    registry: MultimodalBranchingTimelineRegistry | None = None,
+) -> tuple[BranchingTimelineProfile, ...]:
+    """Return branching timeline profiles for one workspace history profile."""
+
+    source_registry = registry or MULTIMODAL_BRANCHING_TIMELINE_REGISTRY
+    source_profile_id = str(workspace_history_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.branching_timeline_profiles
+        if source_profile_id in profile.source_workspace_history_profile_ids
+    )
+
+
+def _branching_timeline_profile(
+    *,
+    profile_id: str,
+    profile_name: str,
+    branching_timeline_kind: BranchingTimelineProfileKind,
+    branch_surface_kind: BranchingTimelineSurfaceKind,
+    source_workspace_history_profile_ids: tuple[str, ...],
+    source_artifact_lineage_profile_ids: tuple[str, ...],
+    source_shared_artifact_board_profile_ids: tuple[str, ...],
+    source_runtime_collaboration_profile_ids: tuple[str, ...],
+    source_session_replay_profile_ids: tuple[str, ...],
+    branch_context_fields: tuple[str, ...],
+    source_reference_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    branching_timeline_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> BranchingTimelineProfile:
+    return BranchingTimelineProfile(
+        profile_id=profile_id,
+        profile_name=profile_name,
+        branching_timeline_kind=branching_timeline_kind,
+        branch_surface_kind=branch_surface_kind,
+        source_workspace_history_profile_ids=source_workspace_history_profile_ids,
+        source_artifact_lineage_profile_ids=source_artifact_lineage_profile_ids,
+        source_shared_artifact_board_profile_ids=(
+            source_shared_artifact_board_profile_ids
+        ),
+        source_runtime_collaboration_profile_ids=(
+            source_runtime_collaboration_profile_ids
+        ),
+        source_session_replay_profile_ids=source_session_replay_profile_ids,
+        branch_context_fields=branch_context_fields,
+        source_reference_ids=source_reference_ids,
+        route_applicability=route_applicability,
+        branching_timeline_surfaces=branching_timeline_surfaces,
+        advisory_outputs=advisory_outputs,
+        source_registries=_BRANCHING_TIMELINE_SOURCE_REGISTRIES,
+        observability_surfaces=_BRANCHING_TIMELINE_OBSERVABILITY_SURFACES,
+    )
+
+
+MULTIMODAL_BRANCHING_TIMELINE_PROFILES = (
+    _branching_timeline_profile(
+        profile_id="workflow_branching_timeline",
+        profile_name="Workflow Branching Timeline",
+        branching_timeline_kind="workflow_branch_timeline",
+        branch_surface_kind="workflow_branch",
+        source_workspace_history_profile_ids=(
+            "runtime_event_workspace_history",
+            "snapshot_workspace_history",
+        ),
+        source_artifact_lineage_profile_ids=(
+            "timeline_stage_artifact_lineage",
+            "source_transition_artifact_lineage",
+        ),
+        source_shared_artifact_board_profile_ids=(
+            "comparison_shared_artifact_board",
+            "provenance_lineage_shared_artifact_board",
+        ),
+        source_runtime_collaboration_profile_ids=(
+            "trace_runtime_collaboration",
+            "stream_event_runtime_collaboration",
+        ),
+        source_session_replay_profile_ids=(
+            "conversation_timeline_replay_profile",
+            "snapshot_transition_replay_profile",
+        ),
+        branch_context_fields=(
+            "WorkflowRuntimeVisualState",
+            "workflow.steps.state",
+            "branch_node_refs",
+            "transitionReason",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_WORKSPACE_HISTORY_REGISTRY",
+            "multimodal_studio.MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY",
+            "clients.nextjs.workflow_runtime.WorkflowRuntimeVisualState",
+            "clients.nextjs.workflow_runtime.deriveWorkflowVisualState",
+            "clients.nextjs.workflow_timeline.buildWorkflowTimelineModel",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        branching_timeline_surfaces=(
+            "branching_timeline_panel",
+            "workflow_branch_surface",
+            "branch_summary_surface",
+            "branching_timeline_boundary_panel",
+        ),
+        advisory_outputs=(
+            "workflow_branch_timeline_inventory",
+            "manual_workflow_branch_review_hint",
+            "no_branch_routing_execution_notice",
+        ),
+    ),
+    _branching_timeline_profile(
+        profile_id="artifact_variant_branching_timeline",
+        profile_name="Artifact Variant Branching Timeline",
+        branching_timeline_kind="artifact_variant_branch_timeline",
+        branch_surface_kind="artifact_variant",
+        source_workspace_history_profile_ids=(
+            "artifact_board_workspace_history",
+            "session_record_workspace_history",
+        ),
+        source_artifact_lineage_profile_ids=(
+            "dependency_graph_artifact_lineage",
+            "source_transition_artifact_lineage",
+        ),
+        source_shared_artifact_board_profile_ids=(
+            "selection_shared_artifact_board",
+            "comparison_shared_artifact_board",
+            "handoff_refinement_shared_artifact_board",
+        ),
+        source_runtime_collaboration_profile_ids=(
+            "stream_event_runtime_collaboration",
+            "operator_context_runtime_collaboration",
+        ),
+        source_session_replay_profile_ids=(
+            "session_overview_replay_profile",
+            "snapshot_transition_replay_profile",
+        ),
+        branch_context_fields=(
+            "activeArtifactId",
+            "comparison.rows",
+            "recommendedRow",
+            "artifact_lineage_refs",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY",
+            "multimodal_studio.MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY",
+            "clients.nextjs.workflow_timeline.buildWorkflowTimelineModel",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        branching_timeline_surfaces=(
+            "branching_timeline_panel",
+            "artifact_variant_branch_surface",
+            "branch_summary_surface",
+            "branching_timeline_boundary_panel",
+        ),
+        advisory_outputs=(
+            "artifact_variant_branch_timeline_inventory",
+            "manual_variant_branch_review_hint",
+            "no_artifact_mutation_notice",
+        ),
+    ),
+    _branching_timeline_profile(
+        profile_id="review_retry_branching_timeline",
+        profile_name="Review Retry Branching Timeline",
+        branching_timeline_kind="review_retry_branch_timeline",
+        branch_surface_kind="review_retry",
+        source_workspace_history_profile_ids=(
+            "runtime_event_workspace_history",
+            "snapshot_workspace_history",
+        ),
+        source_artifact_lineage_profile_ids=(
+            "timeline_stage_artifact_lineage",
+            "missing_artifact_lineage",
+        ),
+        source_shared_artifact_board_profile_ids=(
+            "provenance_lineage_shared_artifact_board",
+            "handoff_refinement_shared_artifact_board",
+        ),
+        source_runtime_collaboration_profile_ids=(
+            "trace_runtime_collaboration",
+            "console_runtime_collaboration",
+        ),
+        source_session_replay_profile_ids=(
+            "review_decision_replay_profile",
+            "snapshot_transition_replay_profile",
+        ),
+        branch_context_fields=(
+            "review_failed",
+            "retry_started",
+            "refinement_requested",
+            "transitionReason",
+        ),
+        source_reference_ids=(
+            "hybrid_studio.SESSION_REPLAY_REGISTRY",
+            "clients.nextjs.workflow_runtime.WorkflowRuntimeVisualState",
+            "clients.nextjs.workflow_timeline.WorkflowTimelineEvent",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+        ),
+        route_applicability=(
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        branching_timeline_surfaces=(
+            "branching_timeline_panel",
+            "review_retry_branch_surface",
+            "branch_summary_surface",
+            "branching_timeline_boundary_panel",
+        ),
+        advisory_outputs=(
+            "review_retry_branch_timeline_inventory",
+            "manual_retry_branch_review_hint",
+            "no_retry_triggering_notice",
+        ),
+    ),
+    _branching_timeline_profile(
+        profile_id="fallback_failure_branching_timeline",
+        profile_name="Fallback Failure Branching Timeline",
+        branching_timeline_kind="fallback_failure_branch_timeline",
+        branch_surface_kind="fallback_failure",
+        source_workspace_history_profile_ids=("runtime_event_workspace_history",),
+        source_artifact_lineage_profile_ids=(
+            "missing_artifact_lineage",
+            "timeline_stage_artifact_lineage",
+        ),
+        source_shared_artifact_board_profile_ids=(
+            "provenance_lineage_shared_artifact_board",
+        ),
+        source_runtime_collaboration_profile_ids=(
+            "console_runtime_collaboration",
+            "operator_context_runtime_collaboration",
+        ),
+        source_session_replay_profile_ids=("review_decision_replay_profile",),
+        branch_context_fields=(
+            "failure_node",
+            "failed_state",
+            "fallback_panel",
+            "workflow_error",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_WORKSPACE_HISTORY_REGISTRY",
+            "hybrid_studio.SESSION_REPLAY_REGISTRY",
+            "clients.nextjs.workflow_runtime.deriveWorkflowVisualState",
+            "clients.nextjs.workflow_timeline.WorkflowTimelineEvent",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+        ),
+        route_applicability=(
+            RouteName.DEBUG,
+            RouteName.REVIEW,
+        ),
+        branching_timeline_surfaces=(
+            "branching_timeline_panel",
+            "fallback_failure_branch_surface",
+            "branch_summary_surface",
+            "branching_timeline_boundary_panel",
+        ),
+        advisory_outputs=(
+            "fallback_failure_branch_timeline_inventory",
+            "manual_failure_branch_review_hint",
+            "no_branch_creation_notice",
+        ),
+    ),
+)
+
+MULTIMODAL_BRANCHING_TIMELINE_REGISTRY = MultimodalBranchingTimelineRegistry(
+    branching_timeline_profiles=MULTIMODAL_BRANCHING_TIMELINE_PROFILES,
+    profile_ids=tuple(
+        profile.profile_id for profile in MULTIMODAL_BRANCHING_TIMELINE_PROFILES
+    ),
+    branching_timeline_kinds=tuple(
+        profile.branching_timeline_kind
+        for profile in MULTIMODAL_BRANCHING_TIMELINE_PROFILES
+    ),
+    branch_surface_kinds=tuple(
+        profile.branch_surface_kind
+        for profile in MULTIMODAL_BRANCHING_TIMELINE_PROFILES
+    ),
+    workspace_history_profile_ids=MULTIMODAL_WORKSPACE_HISTORY_REGISTRY.profile_ids,
+    artifact_lineage_profile_ids=MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY.profile_ids,
+    shared_artifact_board_profile_ids=(
+        MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY.profile_ids
+    ),
+    runtime_collaboration_profile_ids=(
+        MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY.profile_ids
+    ),
+    session_replay_profile_ids=SESSION_REPLAY_REGISTRY.session_replay_profile_ids,
+    route_names=tuple(RouteName),
+    profile_count=len(MULTIMODAL_BRANCHING_TIMELINE_PROFILES),
+    source_registries=_BRANCHING_TIMELINE_SOURCE_REGISTRIES,
+    source_reference_ids=_BRANCHING_TIMELINE_SOURCE_REFERENCES,
+    branching_timeline_surface_refs=_BRANCHING_TIMELINE_SURFACES,
+    observability_surfaces=_BRANCHING_TIMELINE_OBSERVABILITY_SURFACES,
 )
