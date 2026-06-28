@@ -393,6 +393,9 @@ _EXPORT_MAP = {
     "ArtifactCollaborationProfile": _MULTIMODAL_STUDIO,
     "ArtifactCollaborationProfileKind": _MULTIMODAL_STUDIO,
     "ArtifactCollaborationSurfaceKind": _MULTIMODAL_STUDIO,
+    "ArtifactLineageProfile": _MULTIMODAL_STUDIO,
+    "ArtifactLineageProfileKind": _MULTIMODAL_STUDIO,
+    "ArtifactLineageSurfaceKind": _MULTIMODAL_STUDIO,
     "ArtifactProvenanceProfile": _MULTIMODAL_STUDIO,
     "ArtifactProvenanceProfileKind": _MULTIMODAL_STUDIO,
     "ArtifactProvenanceSurfaceKind": _MULTIMODAL_STUDIO,
@@ -406,6 +409,7 @@ _EXPORT_MAP = {
     "MultiPreviewProfile": _MULTIMODAL_STUDIO,
     "MultiPreviewProfileKind": _MULTIMODAL_STUDIO,
     "MultimodalArtifactCollaborationRegistry": _MULTIMODAL_STUDIO,
+    "MultimodalArtifactLineageRegistry": _MULTIMODAL_STUDIO,
     "MultimodalArtifactProvenanceRegistry": _MULTIMODAL_STUDIO,
     "MultimodalInteractiveCanvasRegistry": _MULTIMODAL_STUDIO,
     "MultimodalLivePreviewRegistry": _MULTIMODAL_STUDIO,
@@ -572,6 +576,15 @@ _EXPORT_MAP = {
         _MULTIMODAL_STUDIO
     ),
     "multimodal_artifact_collaboration_registry": _MULTIMODAL_STUDIO,
+    "multimodal_artifact_lineage_profile_by_id": _MULTIMODAL_STUDIO,
+    "multimodal_artifact_lineage_profiles_for_artifact_provenance_profile": (
+        _MULTIMODAL_STUDIO
+    ),
+    "multimodal_artifact_lineage_profiles_for_route": _MULTIMODAL_STUDIO,
+    "multimodal_artifact_lineage_profiles_for_surface_kind": (
+        _MULTIMODAL_STUDIO
+    ),
+    "multimodal_artifact_lineage_registry": _MULTIMODAL_STUDIO,
     "multimodal_artifact_provenance_profile_by_id": _MULTIMODAL_STUDIO,
     "multimodal_artifact_provenance_profiles_for_artifact_collaboration_profile": (
         _MULTIMODAL_STUDIO
