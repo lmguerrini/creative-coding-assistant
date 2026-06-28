@@ -3246,3 +3246,424 @@ EXECUTION_SIMULATOR_REGISTRY = ExecutionSimulatorRegistry(
     source_registries=_EXECUTION_SIMULATOR_SOURCE_REGISTRIES,
     observability_surfaces=_EXECUTION_SIMULATOR_OBSERVABILITY_SURFACES,
 )
+
+ModelProfileKind = Literal[
+    "fast_iteration",
+    "creative_reasoning",
+    "code_assistance",
+    "evaluation_review",
+]
+
+MODEL_PROFILE_SERIALIZATION_VERSION = "model_profile.v1"
+MODEL_PROFILE_REGISTRY_SERIALIZATION_VERSION = "model_profile_registry.v1"
+MODEL_PROFILE_REGISTRY_AUTHORITY_BOUNDARY = (
+    "Model Profiles metadata describes passive local and cloud model capability "
+    "profiles for V4.4 Hybrid Studio inspection only; it does not select "
+    "models, route providers or models, execute providers, calculate cost or "
+    "quality scores, optimize execution, trigger retries, mutate prompts, "
+    "write replay storage, or modify generated output."
+)
+
+_MODEL_PROFILE_SOURCE_REGISTRIES = (
+    "local_model_registry",
+    "cloud_model_registry",
+    "provider_selection_registry",
+    "execution_simulator_registry",
+    "settings_generation_provider_config",
+    "hybrid_agentic_workflow_registry",
+)
+
+_MODEL_PROFILE_SURFACES = (
+    "model_profile_panel",
+    "model_catalog_panel",
+    "provider_selection_panel",
+    "execution_simulator_panel",
+)
+
+_MODEL_PROFILE_OBSERVABILITY_SURFACES = (
+    "model_profile_id",
+    "model_profile_kind",
+    "source_local_surface_ids",
+    "source_cloud_surface_ids",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_MODEL_PROFILE_BLOCKED_RUNTIME_BEHAVIORS = (
+    "model_profile_execution",
+    "model_selection",
+    "provider_or_model_routing",
+    "provider_execution",
+    "cost_scoring",
+    "quality_scoring",
+    "execution_optimization",
+    "retry_or_refinement_triggering",
+    "prompt_mutation",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class ModelProfile(BaseModel):
+    """Inspectable passive model capability profile."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    model_profile_id: str = Field(min_length=1, max_length=100)
+    profile_name: str = Field(min_length=1, max_length=140)
+    model_profile_kind: ModelProfileKind
+    source_local_surface_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=4
+    )
+    source_cloud_surface_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=4
+    )
+    provider_candidate_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    capability_dimensions: tuple[str, ...] = Field(min_length=1, max_length=10)
+    profile_inputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    profile_surface_refs: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    authority_boundary: str = Field(
+        default=MODEL_PROFILE_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1100,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_MODEL_PROFILE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=14,
+    )
+    model_profile_execution_implemented: Literal[False] = False
+    model_selection_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    provider_execution_implemented: Literal[False] = False
+    cost_scoring_implemented: Literal[False] = False
+    quality_scoring_implemented: Literal[False] = False
+    execution_optimization_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["model_profile.v1"] = (
+        MODEL_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class ModelProfileRegistry(BaseModel):
+    """Stable passive registry for V4.4 Hybrid Studio model profiles."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["model_profile_registry"] = "model_profile_registry"
+    serialization_version: Literal["model_profile_registry.v1"] = (
+        MODEL_PROFILE_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=MODEL_PROFILE_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1100,
+    )
+    model_profiles: tuple[ModelProfile, ...] = Field(min_length=4, max_length=4)
+    model_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    model_profile_kinds: tuple[ModelProfileKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    local_surface_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    cloud_surface_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    provider_candidate_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    profile_surface_refs: tuple[str, ...] = Field(min_length=4, max_length=4)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_MODEL_PROFILE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=14,
+    )
+    model_profile_execution_implemented: Literal[False] = False
+    model_selection_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    provider_execution_implemented: Literal[False] = False
+    cost_scoring_implemented: Literal[False] = False
+    quality_scoring_implemented: Literal[False] = False
+    execution_optimization_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.model_profile_id for profile in self.model_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("model_profile_ids must be unique")
+        if self.model_profile_ids != derived_profile_ids:
+            raise ValueError("model_profile_ids must match model_profiles")
+        if self.profile_count != len(self.model_profiles):
+            raise ValueError("profile_count must match model_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.model_profile_kinds != tuple(
+            profile.model_profile_kind for profile in self.model_profiles
+        ):
+            raise ValueError("model_profile_kinds must match model_profiles")
+
+        known_routes = set(self.route_names)
+        known_local_surfaces = set(self.local_surface_ids)
+        known_cloud_surfaces = set(self.cloud_surface_ids)
+        known_provider_candidates = set(self.provider_candidate_ids)
+        known_surfaces = set(self.profile_surface_refs)
+        profile_sources = {
+            source_registry
+            for profile in self.model_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match model profile sources")
+
+        for profile in self.model_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.source_local_surface_ids).issubset(known_local_surfaces):
+                raise ValueError("source_local_surface_ids must be known local models")
+            if not set(profile.source_cloud_surface_ids).issubset(known_cloud_surfaces):
+                raise ValueError("source_cloud_surface_ids must be known cloud models")
+            if not set(profile.provider_candidate_ids).issubset(
+                known_provider_candidates
+            ):
+                raise ValueError("provider_candidate_ids must be known providers")
+            if not set(profile.profile_surface_refs).issubset(known_surfaces):
+                raise ValueError("profile_surface_refs must be known registry surfaces")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def model_profile_registry() -> ModelProfileRegistry:
+    """Return passive V4.4 Hybrid Studio model profile metadata."""
+
+    return MODEL_PROFILE_REGISTRY
+
+
+def model_profile_by_id(
+    model_profile_id: str,
+    registry: ModelProfileRegistry | None = None,
+) -> ModelProfile | None:
+    """Return one model profile without selecting or executing it."""
+
+    source_registry = registry or MODEL_PROFILE_REGISTRY
+    for profile in source_registry.model_profiles:
+        if profile.model_profile_id == model_profile_id:
+            return profile
+    return None
+
+
+def model_profiles_for_route(
+    route: RouteName | str,
+    registry: ModelProfileRegistry | None = None,
+) -> tuple[ModelProfile, ...]:
+    """Return passive model profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or MODEL_PROFILE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.model_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def _model_profile(
+    *,
+    model_profile_id: str,
+    profile_name: str,
+    model_profile_kind: ModelProfileKind,
+    source_local_surface_ids: tuple[str, ...],
+    source_cloud_surface_ids: tuple[str, ...],
+    provider_candidate_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    capability_dimensions: tuple[str, ...],
+    profile_inputs: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+    profile_surface_refs: tuple[str, ...],
+) -> ModelProfile:
+    return ModelProfile(
+        model_profile_id=model_profile_id,
+        profile_name=profile_name,
+        model_profile_kind=model_profile_kind,
+        source_local_surface_ids=source_local_surface_ids,
+        source_cloud_surface_ids=source_cloud_surface_ids,
+        provider_candidate_ids=provider_candidate_ids,
+        route_applicability=route_applicability,
+        capability_dimensions=capability_dimensions,
+        profile_inputs=profile_inputs,
+        advisory_outputs=advisory_outputs,
+        profile_surface_refs=profile_surface_refs,
+        source_registries=_MODEL_PROFILE_SOURCE_REGISTRIES,
+        observability_surfaces=_MODEL_PROFILE_OBSERVABILITY_SURFACES,
+    )
+
+
+MODEL_PROFILE_SURFACES = (
+    "model_profile_panel",
+    "model_catalog_panel",
+    "provider_selection_panel",
+    "execution_simulator_panel",
+)
+
+MODEL_PROFILES = (
+    _model_profile(
+        model_profile_id="fast_iteration_model_profile",
+        profile_name="Fast Iteration Model Profile",
+        model_profile_kind="fast_iteration",
+        source_local_surface_ids=(
+            "ollama_chat_surface",
+            "llama_cpp_completion_surface",
+        ),
+        source_cloud_surface_ids=("openai_generation_model_surface",),
+        provider_candidate_ids=("ollama", "llama_cpp", "openai"),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DEBUG,
+            RouteName.PREVIEW,
+        ),
+        capability_dimensions=(
+            "iteration_latency_metadata",
+            "local_readiness_metadata",
+            "route_preview_metadata",
+        ),
+        profile_inputs=(
+            "local_candidate_visibility_metadata",
+            "route_preview_simulation_metadata",
+            "provider_boundary_metadata",
+        ),
+        advisory_outputs=(
+            "fast_iteration_capability_profile",
+            "manual_fast_path_context",
+            "no_selection_notice",
+        ),
+        profile_surface_refs=("model_profile_panel", "model_catalog_panel"),
+    ),
+    _model_profile(
+        model_profile_id="creative_reasoning_model_profile",
+        profile_name="Creative Reasoning Model Profile",
+        model_profile_kind="creative_reasoning",
+        source_local_surface_ids=("lm_studio_chat_surface",),
+        source_cloud_surface_ids=("openai_generation_model_surface",),
+        provider_candidate_ids=("lm_studio", "openai"),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        capability_dimensions=(
+            "creative_reasoning_metadata",
+            "context_window_metadata",
+            "studio_comparison_metadata",
+        ),
+        profile_inputs=(
+            "cloud_candidate_visibility_metadata",
+            "local_cloud_comparison_simulation_metadata",
+            "creative_route_metadata",
+        ),
+        advisory_outputs=(
+            "creative_reasoning_capability_profile",
+            "manual_reasoning_selection_context",
+            "no_quality_scoring_notice",
+        ),
+        profile_surface_refs=(
+            "model_profile_panel",
+            "provider_selection_panel",
+            "execution_simulator_panel",
+        ),
+    ),
+    _model_profile(
+        model_profile_id="code_assistance_model_profile",
+        profile_name="Code Assistance Model Profile",
+        model_profile_kind="code_assistance",
+        source_local_surface_ids=("llama_cpp_completion_surface",),
+        source_cloud_surface_ids=("openai_generation_model_surface",),
+        provider_candidate_ids=("llama_cpp", "openai"),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        capability_dimensions=(
+            "code_context_metadata",
+            "runtime_diagnostic_metadata",
+            "debug_route_metadata",
+        ),
+        profile_inputs=(
+            "local_runtime_readiness_metadata",
+            "provider_selection_simulation_metadata",
+            "runtime_route_metadata",
+        ),
+        advisory_outputs=(
+            "code_assistance_capability_profile",
+            "manual_debug_model_context",
+            "no_runtime_execution_notice",
+        ),
+        profile_surface_refs=("model_profile_panel", "execution_simulator_panel"),
+    ),
+    _model_profile(
+        model_profile_id="evaluation_review_model_profile",
+        profile_name="Evaluation Review Model Profile",
+        model_profile_kind="evaluation_review",
+        source_local_surface_ids=("local_transformers_multimodal_surface",),
+        source_cloud_surface_ids=(
+            "ragas_evaluator_model_surface",
+            "provider_reported_response_model_surface",
+        ),
+        provider_candidate_ids=("local_transformers", "openai"),
+        route_applicability=(
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        capability_dimensions=(
+            "review_metadata",
+            "evaluation_surface_metadata",
+            "provider_response_metadata",
+        ),
+        profile_inputs=(
+            "hitl_review_simulation_metadata",
+            "evaluation_dataset_metadata",
+            "provider_telemetry_metadata",
+        ),
+        advisory_outputs=(
+            "evaluation_review_capability_profile",
+            "manual_review_model_context",
+            "no_evaluator_call_notice",
+        ),
+        profile_surface_refs=(
+            "model_profile_panel",
+            "model_catalog_panel",
+            "execution_simulator_panel",
+        ),
+    ),
+)
+
+MODEL_PROFILE_REGISTRY = ModelProfileRegistry(
+    model_profiles=MODEL_PROFILES,
+    model_profile_ids=tuple(profile.model_profile_id for profile in MODEL_PROFILES),
+    model_profile_kinds=tuple(profile.model_profile_kind for profile in MODEL_PROFILES),
+    local_surface_ids=tuple(LOCAL_MODEL_REGISTRY.surface_ids),
+    cloud_surface_ids=tuple(CLOUD_MODEL_REGISTRY.surface_ids),
+    provider_candidate_ids=PROVIDER_SELECTION_CANDIDATE_IDS,
+    profile_surface_refs=MODEL_PROFILE_SURFACES,
+    route_names=tuple(RouteName),
+    profile_count=len(MODEL_PROFILES),
+    source_registries=_MODEL_PROFILE_SOURCE_REGISTRIES,
+    observability_surfaces=_MODEL_PROFILE_OBSERVABILITY_SURFACES,
+)
