@@ -6548,3 +6548,619 @@ AGENT_CONVERSATION_VIEW_REGISTRY = AgentConversationViewRegistry(
     source_registries=_AGENT_CONVERSATION_VIEW_SOURCE_REGISTRIES,
     observability_surfaces=_AGENT_CONVERSATION_VIEW_OBSERVABILITY_SURFACES,
 )
+
+WorkspaceSnapshotKind = Literal[
+    "studio_overview_snapshot",
+    "agent_context_snapshot",
+    "execution_context_snapshot",
+    "review_audit_snapshot",
+]
+
+WORKSPACE_SNAPSHOT_PROFILE_SERIALIZATION_VERSION = "workspace_snapshot_profile.v1"
+WORKSPACE_SNAPSHOT_REGISTRY_SERIALIZATION_VERSION = "workspace_snapshot_registry.v1"
+WORKSPACE_SNAPSHOT_REGISTRY_AUTHORITY_BOUNDARY = (
+    "Workspace Snapshot metadata describes passive Studio-visible summary "
+    "snapshots over existing agent workspace, conversation view, local/cloud "
+    "comparison, execution simulation, quality, and HITL decision metadata "
+    "for V4.4 inspection only; it does not capture live workspace state, "
+    "persist snapshots, record conversations, invoke agents, read or write "
+    "memory, mutate workspace state, control workflow transitions, request "
+    "human input, route providers or models, trigger retries, write replay "
+    "storage, or modify generated output."
+)
+
+_WORKSPACE_SNAPSHOT_SOURCE_REGISTRIES = (
+    "agent_workspace_registry",
+    "agent_conversation_view_registry",
+    "local_cloud_comparison_registry",
+    "execution_simulator_registry",
+    "quality_profile_registry",
+    "hitl_decision_registry",
+    "studio_mode_registry",
+)
+
+_WORKSPACE_SNAPSHOT_SURFACES = (
+    "workspace_snapshot_panel",
+    "snapshot_summary_strip",
+    "snapshot_context_matrix",
+    "conversation_snapshot_panel",
+    "execution_snapshot_panel",
+    "review_snapshot_panel",
+)
+
+_WORKSPACE_SNAPSHOT_OBSERVABILITY_SURFACES = (
+    "workspace_snapshot_profile_id",
+    "snapshot_kind",
+    "source_workspace_profile_ids",
+    "source_conversation_view_profile_ids",
+    "snapshot_context_fields",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_WORKSPACE_SNAPSHOT_BLOCKED_RUNTIME_BEHAVIORS = (
+    "live_workspace_capture",
+    "runtime_state_capture",
+    "snapshot_persistence",
+    "conversation_recording",
+    "agent_invocation",
+    "memory_read",
+    "memory_write",
+    "workspace_state_mutation",
+    "workflow_control",
+    "human_input_request",
+    "provider_or_model_routing",
+    "retry_or_refinement_triggering",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class WorkspaceSnapshotProfile(BaseModel):
+    """Inspectable passive Studio workspace snapshot metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    workspace_snapshot_profile_id: str = Field(min_length=1, max_length=140)
+    profile_name: str = Field(min_length=1, max_length=160)
+    snapshot_kind: WorkspaceSnapshotKind
+    source_workspace_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_conversation_view_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_comparison_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_execution_simulation_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_quality_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_hitl_decision_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    snapshot_surfaces: tuple[str, ...] = Field(min_length=1, max_length=6)
+    snapshot_context_fields: tuple[str, ...] = Field(min_length=1, max_length=10)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=WORKSPACE_SNAPSHOT_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1400,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_WORKSPACE_SNAPSHOT_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=18,
+    )
+    snapshot_capture_implemented: Literal[False] = False
+    snapshot_persistence_implemented: Literal[False] = False
+    conversation_recording_implemented: Literal[False] = False
+    live_workspace_state_read_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    memory_read_implemented: Literal[False] = False
+    memory_write_implemented: Literal[False] = False
+    workspace_state_mutation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["workspace_snapshot_profile.v1"] = (
+        WORKSPACE_SNAPSHOT_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class WorkspaceSnapshotRegistry(BaseModel):
+    """Stable passive registry for V4.4 Hybrid Studio workspace snapshots."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["workspace_snapshot_registry"] = "workspace_snapshot_registry"
+    serialization_version: Literal["workspace_snapshot_registry.v1"] = (
+        WORKSPACE_SNAPSHOT_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=WORKSPACE_SNAPSHOT_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1400,
+    )
+    snapshot_profiles: tuple[WorkspaceSnapshotProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    workspace_snapshot_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    snapshot_kinds: tuple[WorkspaceSnapshotKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    workspace_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    conversation_view_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    comparison_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    execution_simulation_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    quality_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    hitl_decision_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    snapshot_surface_refs: tuple[str, ...] = Field(min_length=6, max_length=6)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_WORKSPACE_SNAPSHOT_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=18,
+    )
+    snapshot_capture_implemented: Literal[False] = False
+    snapshot_persistence_implemented: Literal[False] = False
+    conversation_recording_implemented: Literal[False] = False
+    live_workspace_state_read_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    memory_read_implemented: Literal[False] = False
+    memory_write_implemented: Literal[False] = False
+    workspace_state_mutation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.workspace_snapshot_profile_id for profile in self.snapshot_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("workspace_snapshot_profile_ids must be unique")
+        if self.workspace_snapshot_profile_ids != derived_profile_ids:
+            raise ValueError(
+                "workspace_snapshot_profile_ids must match snapshot_profiles"
+            )
+        if self.profile_count != len(self.snapshot_profiles):
+            raise ValueError("profile_count must match snapshot_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.snapshot_kinds != tuple(
+            profile.snapshot_kind for profile in self.snapshot_profiles
+        ):
+            raise ValueError("snapshot_kinds must match snapshot_profiles")
+
+        known_routes = set(self.route_names)
+        known_workspaces = set(self.workspace_profile_ids)
+        known_conversation_views = set(self.conversation_view_profile_ids)
+        known_comparisons = set(self.comparison_profile_ids)
+        known_simulation_profiles = set(self.execution_simulation_profile_ids)
+        known_quality_profiles = set(self.quality_profile_ids)
+        known_hitl_profiles = set(self.hitl_decision_profile_ids)
+        known_surfaces = set(self.snapshot_surface_refs)
+        profile_sources = {
+            source_registry
+            for profile in self.snapshot_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match workspace snapshot sources")
+
+        for profile in self.snapshot_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.source_workspace_profile_ids).issubset(known_workspaces):
+                raise ValueError(
+                    "source_workspace_profile_ids must be known workspace profiles"
+                )
+            if not set(profile.source_conversation_view_profile_ids).issubset(
+                known_conversation_views
+            ):
+                raise ValueError(
+                    "source_conversation_view_profile_ids must be known views"
+                )
+            if not set(profile.source_comparison_profile_ids).issubset(
+                known_comparisons
+            ):
+                raise ValueError("source_comparison_profile_ids must be known profiles")
+            if not set(profile.source_execution_simulation_profile_ids).issubset(
+                known_simulation_profiles
+            ):
+                raise ValueError(
+                    "source_execution_simulation_profile_ids must be known profiles"
+                )
+            if not set(profile.source_quality_profile_ids).issubset(
+                known_quality_profiles
+            ):
+                raise ValueError("source_quality_profile_ids must be known profiles")
+            if not set(profile.source_hitl_decision_profile_ids).issubset(
+                known_hitl_profiles
+            ):
+                raise ValueError(
+                    "source_hitl_decision_profile_ids must be known profiles"
+                )
+            if not set(profile.snapshot_surfaces).issubset(known_surfaces):
+                raise ValueError("snapshot_surfaces must be known registry surfaces")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def workspace_snapshot_registry() -> WorkspaceSnapshotRegistry:
+    """Return passive V4.4 Hybrid Studio workspace snapshot metadata."""
+
+    return WORKSPACE_SNAPSHOT_REGISTRY
+
+
+def workspace_snapshot_profile_by_id(
+    workspace_snapshot_profile_id: str,
+    registry: WorkspaceSnapshotRegistry | None = None,
+) -> WorkspaceSnapshotProfile | None:
+    """Return one workspace snapshot profile without capturing runtime state."""
+
+    source_registry = registry or WORKSPACE_SNAPSHOT_REGISTRY
+    for profile in source_registry.snapshot_profiles:
+        if profile.workspace_snapshot_profile_id == workspace_snapshot_profile_id:
+            return profile
+    return None
+
+
+def workspace_snapshot_profiles_for_route(
+    route: RouteName | str,
+    registry: WorkspaceSnapshotRegistry | None = None,
+) -> tuple[WorkspaceSnapshotProfile, ...]:
+    """Return passive workspace snapshots applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or WORKSPACE_SNAPSHOT_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.snapshot_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def workspace_snapshot_profiles_for_workspace(
+    workspace_profile_id: str,
+    registry: WorkspaceSnapshotRegistry | None = None,
+) -> tuple[WorkspaceSnapshotProfile, ...]:
+    """Return passive snapshot profiles for a workspace profile id."""
+
+    source_registry = registry or WORKSPACE_SNAPSHOT_REGISTRY
+    workspace_id = str(workspace_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.snapshot_profiles
+        if workspace_id in profile.source_workspace_profile_ids
+    )
+
+
+def workspace_snapshot_profiles_for_conversation_view(
+    conversation_view_profile_id: str,
+    registry: WorkspaceSnapshotRegistry | None = None,
+) -> tuple[WorkspaceSnapshotProfile, ...]:
+    """Return passive snapshot profiles for a conversation view id."""
+
+    source_registry = registry or WORKSPACE_SNAPSHOT_REGISTRY
+    view_id = str(conversation_view_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.snapshot_profiles
+        if view_id in profile.source_conversation_view_profile_ids
+    )
+
+
+def _workspace_snapshot_profile(
+    *,
+    workspace_snapshot_profile_id: str,
+    profile_name: str,
+    snapshot_kind: WorkspaceSnapshotKind,
+    source_workspace_profile_ids: tuple[str, ...],
+    source_conversation_view_profile_ids: tuple[str, ...],
+    source_comparison_profile_ids: tuple[str, ...],
+    source_execution_simulation_profile_ids: tuple[str, ...],
+    source_quality_profile_ids: tuple[str, ...],
+    source_hitl_decision_profile_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    snapshot_surfaces: tuple[str, ...],
+    snapshot_context_fields: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> WorkspaceSnapshotProfile:
+    return WorkspaceSnapshotProfile(
+        workspace_snapshot_profile_id=workspace_snapshot_profile_id,
+        profile_name=profile_name,
+        snapshot_kind=snapshot_kind,
+        source_workspace_profile_ids=source_workspace_profile_ids,
+        source_conversation_view_profile_ids=source_conversation_view_profile_ids,
+        source_comparison_profile_ids=source_comparison_profile_ids,
+        source_execution_simulation_profile_ids=(
+            source_execution_simulation_profile_ids
+        ),
+        source_quality_profile_ids=source_quality_profile_ids,
+        source_hitl_decision_profile_ids=source_hitl_decision_profile_ids,
+        route_applicability=route_applicability,
+        snapshot_surfaces=snapshot_surfaces,
+        snapshot_context_fields=snapshot_context_fields,
+        advisory_outputs=advisory_outputs,
+        source_registries=_WORKSPACE_SNAPSHOT_SOURCE_REGISTRIES,
+        observability_surfaces=_WORKSPACE_SNAPSHOT_OBSERVABILITY_SURFACES,
+    )
+
+
+WORKSPACE_SNAPSHOT_SURFACES = (
+    "workspace_snapshot_panel",
+    "snapshot_summary_strip",
+    "snapshot_context_matrix",
+    "conversation_snapshot_panel",
+    "execution_snapshot_panel",
+    "review_snapshot_panel",
+)
+
+WORKSPACE_SNAPSHOT_PROFILES = (
+    _workspace_snapshot_profile(
+        workspace_snapshot_profile_id="studio_overview_workspace_snapshot",
+        profile_name="Studio Overview Workspace Snapshot",
+        snapshot_kind="studio_overview_snapshot",
+        source_workspace_profile_ids=(
+            "planning_context_agent_workspace",
+            "artifact_runtime_agent_workspace",
+        ),
+        source_conversation_view_profile_ids=(
+            "workspace_thread_conversation_view",
+            "audit_trail_conversation_view",
+        ),
+        source_comparison_profile_ids=(
+            "generation_route_comparison_profile",
+            "creative_reasoning_comparison_profile",
+        ),
+        source_execution_simulation_profile_ids=(
+            "route_preview_simulation_profile",
+            "local_cloud_comparison_simulation_profile",
+        ),
+        source_quality_profile_ids=(
+            "planning_quality_profile",
+            "creative_quality_profile",
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_visibility_decision_profile",
+            "hitl_confirmation_decision_profile",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.PREVIEW,
+        ),
+        snapshot_surfaces=(
+            "workspace_snapshot_panel",
+            "snapshot_summary_strip",
+            "conversation_snapshot_panel",
+            "execution_snapshot_panel",
+        ),
+        snapshot_context_fields=(
+            "workspace_profile_metadata",
+            "conversation_view_metadata",
+            "route_applicability_metadata",
+            "manual_visibility_metadata",
+        ),
+        advisory_outputs=(
+            "studio_overview_snapshot_context",
+            "manual_snapshot_review_hint",
+            "no_live_workspace_capture_notice",
+        ),
+    ),
+    _workspace_snapshot_profile(
+        workspace_snapshot_profile_id="agent_context_workspace_snapshot",
+        profile_name="Agent Context Workspace Snapshot",
+        snapshot_kind="agent_context_snapshot",
+        source_workspace_profile_ids=(
+            "planning_context_agent_workspace",
+            "artifact_runtime_agent_workspace",
+            "critique_curation_agent_workspace",
+        ),
+        source_conversation_view_profile_ids=(
+            "workspace_thread_conversation_view",
+            "agent_handoff_conversation_view",
+        ),
+        source_comparison_profile_ids=(
+            "generation_route_comparison_profile",
+            "code_review_comparison_profile",
+        ),
+        source_execution_simulation_profile_ids=(
+            "route_preview_simulation_profile",
+            "provider_selection_simulation_profile",
+        ),
+        source_quality_profile_ids=(
+            "planning_quality_profile",
+            "refinement_quality_profile",
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_confirmation_decision_profile",
+            "hitl_risk_review_decision_profile",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+        ),
+        snapshot_surfaces=(
+            "workspace_snapshot_panel",
+            "snapshot_context_matrix",
+            "conversation_snapshot_panel",
+        ),
+        snapshot_context_fields=(
+            "agent_workspace_metadata",
+            "handoff_conversation_metadata",
+            "shared_context_scope_metadata",
+            "role_matrix_snapshot_metadata",
+        ),
+        advisory_outputs=(
+            "agent_context_snapshot_context",
+            "manual_agent_context_review_hint",
+            "no_agent_invocation_notice",
+        ),
+    ),
+    _workspace_snapshot_profile(
+        workspace_snapshot_profile_id="execution_context_workspace_snapshot",
+        profile_name="Execution Context Workspace Snapshot",
+        snapshot_kind="execution_context_snapshot",
+        source_workspace_profile_ids=(
+            "artifact_runtime_agent_workspace",
+            "refinement_synthesis_agent_workspace",
+        ),
+        source_conversation_view_profile_ids=(
+            "agent_handoff_conversation_view",
+            "audit_trail_conversation_view",
+        ),
+        source_comparison_profile_ids=(
+            "generation_route_comparison_profile",
+            "code_review_comparison_profile",
+            "evaluation_review_comparison_profile",
+        ),
+        source_execution_simulation_profile_ids=(
+            "local_cloud_comparison_simulation_profile",
+            "provider_selection_simulation_profile",
+            "hitl_review_simulation_profile",
+        ),
+        source_quality_profile_ids=(
+            "refinement_quality_profile",
+            "final_review_quality_profile",
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_confirmation_decision_profile",
+            "hitl_risk_review_decision_profile",
+            "hitl_final_review_decision_profile",
+        ),
+        route_applicability=(
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        snapshot_surfaces=(
+            "workspace_snapshot_panel",
+            "snapshot_context_matrix",
+            "execution_snapshot_panel",
+            "review_snapshot_panel",
+        ),
+        snapshot_context_fields=(
+            "execution_simulation_metadata",
+            "local_cloud_comparison_metadata",
+            "quality_review_metadata",
+            "hitl_decision_metadata",
+        ),
+        advisory_outputs=(
+            "execution_context_snapshot_context",
+            "manual_execution_snapshot_review_hint",
+            "no_provider_execution_notice",
+        ),
+    ),
+    _workspace_snapshot_profile(
+        workspace_snapshot_profile_id="review_audit_workspace_snapshot",
+        profile_name="Review Audit Workspace Snapshot",
+        snapshot_kind="review_audit_snapshot",
+        source_workspace_profile_ids=(
+            "critique_curation_agent_workspace",
+            "refinement_synthesis_agent_workspace",
+        ),
+        source_conversation_view_profile_ids=(
+            "review_conversation_view",
+            "audit_trail_conversation_view",
+        ),
+        source_comparison_profile_ids=(
+            "creative_reasoning_comparison_profile",
+            "code_review_comparison_profile",
+            "evaluation_review_comparison_profile",
+        ),
+        source_execution_simulation_profile_ids=(
+            "local_cloud_comparison_simulation_profile",
+            "hitl_review_simulation_profile",
+        ),
+        source_quality_profile_ids=(
+            "creative_quality_profile",
+            "refinement_quality_profile",
+            "final_review_quality_profile",
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_risk_review_decision_profile",
+            "hitl_final_review_decision_profile",
+        ),
+        route_applicability=(
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        snapshot_surfaces=(
+            "workspace_snapshot_panel",
+            "snapshot_summary_strip",
+            "conversation_snapshot_panel",
+            "review_snapshot_panel",
+        ),
+        snapshot_context_fields=(
+            "review_conversation_metadata",
+            "audit_boundary_metadata",
+            "final_review_quality_metadata",
+            "manual_signoff_context_metadata",
+        ),
+        advisory_outputs=(
+            "review_audit_snapshot_context",
+            "manual_audit_snapshot_review_hint",
+            "no_snapshot_persistence_notice",
+        ),
+    ),
+)
+
+WORKSPACE_SNAPSHOT_REGISTRY = WorkspaceSnapshotRegistry(
+    snapshot_profiles=WORKSPACE_SNAPSHOT_PROFILES,
+    workspace_snapshot_profile_ids=tuple(
+        profile.workspace_snapshot_profile_id for profile in WORKSPACE_SNAPSHOT_PROFILES
+    ),
+    snapshot_kinds=tuple(
+        profile.snapshot_kind for profile in WORKSPACE_SNAPSHOT_PROFILES
+    ),
+    workspace_profile_ids=tuple(AGENT_WORKSPACE_REGISTRY.workspace_profile_ids),
+    conversation_view_profile_ids=tuple(
+        AGENT_CONVERSATION_VIEW_REGISTRY.conversation_view_profile_ids
+    ),
+    comparison_profile_ids=tuple(
+        LOCAL_CLOUD_COMPARISON_REGISTRY.comparison_profile_ids
+    ),
+    execution_simulation_profile_ids=tuple(
+        EXECUTION_SIMULATOR_REGISTRY.execution_simulation_profile_ids
+    ),
+    quality_profile_ids=tuple(QUALITY_PROFILE_REGISTRY.quality_profile_ids),
+    hitl_decision_profile_ids=tuple(HITL_DECISION_REGISTRY.hitl_decision_profile_ids),
+    snapshot_surface_refs=WORKSPACE_SNAPSHOT_SURFACES,
+    route_names=tuple(RouteName),
+    profile_count=len(WORKSPACE_SNAPSHOT_PROFILES),
+    source_registries=_WORKSPACE_SNAPSHOT_SOURCE_REGISTRIES,
+    observability_surfaces=_WORKSPACE_SNAPSHOT_OBSERVABILITY_SURFACES,
+)
