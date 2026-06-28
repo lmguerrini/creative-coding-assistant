@@ -12,6 +12,8 @@ from creative_coding_assistant.orchestration.blackboard_memory import (
 )
 from creative_coding_assistant.orchestration.hybrid_studio import (
     AGENT_WORKSPACE_REGISTRY,
+    SESSION_REPLAY_REGISTRY,
+    WORKSPACE_SNAPSHOT_REGISTRY,
 )
 from creative_coding_assistant.orchestration.routing import RouteName
 from creative_coding_assistant.orchestration.shared_context_views import (
@@ -129,6 +131,18 @@ SharedArtifactBoardSurfaceKind = Literal[
     "provenance_lineage",
     "handoff_refinement",
 ]
+WorkspaceHistoryProfileKind = Literal[
+    "session_record_history",
+    "snapshot_history",
+    "artifact_board_history",
+    "runtime_event_history",
+]
+WorkspaceHistorySurfaceKind = Literal[
+    "session_record",
+    "snapshot",
+    "artifact_board",
+    "runtime_event",
+]
 
 LIVE_PREVIEW_PROFILE_SERIALIZATION_VERSION = "multimodal_live_preview_profile.v1"
 LIVE_PREVIEW_REGISTRY_SERIALIZATION_VERSION = "multimodal_live_preview_registry.v1"
@@ -181,6 +195,12 @@ SHARED_ARTIFACT_BOARD_PROFILE_SERIALIZATION_VERSION = (
 )
 SHARED_ARTIFACT_BOARD_REGISTRY_SERIALIZATION_VERSION = (
     "multimodal_shared_artifact_board_registry.v1"
+)
+WORKSPACE_HISTORY_PROFILE_SERIALIZATION_VERSION = (
+    "multimodal_workspace_history_profile.v1"
+)
+WORKSPACE_HISTORY_REGISTRY_SERIALIZATION_VERSION = (
+    "multimodal_workspace_history_registry.v1"
 )
 LIVE_PREVIEW_AUTHORITY_BOUNDARY = (
     "Live Preview metadata describes passive V4.5 Multimodal Studio surfaces "
@@ -257,6 +277,15 @@ SHARED_ARTIFACT_BOARD_AUTHORITY_BOUNDARY = (
     "persist board storage, execute rendering, invoke agents, materialize "
     "shared context, control workflows, request human input, route providers "
     "or models, trigger retries, open networking, or modify generated output."
+)
+WORKSPACE_HISTORY_AUTHORITY_BOUNDARY = (
+    "Workspace History metadata describes passive V4.5 Multimodal Studio "
+    "workspace history surfaces for inspection only; it does not record "
+    "workspace history, capture snapshots, reconstruct timelines, persist "
+    "history storage, replay runtime events, mutate workspace state, mutate "
+    "artifacts, execute rendering, control workflows, request human input, "
+    "route providers or models, trigger retries, open networking, or modify "
+    "generated output."
 )
 
 _LIVE_PREVIEW_SOURCE_REGISTRIES = (
@@ -804,6 +833,68 @@ _SHARED_ARTIFACT_BOARD_BLOCKED_RUNTIME_BEHAVIORS = (
     "rendering_execution",
     "agent_invocation",
     "shared_context_materialization",
+    "workflow_control",
+    "human_input_request",
+    "provider_or_model_routing",
+    "retry_triggering",
+    "networking",
+)
+
+_WORKSPACE_HISTORY_SOURCE_REGISTRIES = (
+    "multimodal_shared_artifact_board_registry",
+    "multimodal_runtime_collaboration_registry",
+    "workspace_snapshot_registry",
+    "session_replay_registry",
+    "nextjs_workspace_persistence",
+    "nextjs_creative_timeline",
+    "nextjs_workflow_runtime",
+    "nextjs_workstation_shell",
+)
+
+_WORKSPACE_HISTORY_SOURCE_REFERENCES = (
+    "multimodal_studio.MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY",
+    "multimodal_studio.MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY",
+    "hybrid_studio.WORKSPACE_SNAPSHOT_REGISTRY",
+    "hybrid_studio.SESSION_REPLAY_REGISTRY",
+    "clients.nextjs.workspace_persistence.WorkspaceSessionRecord",
+    "clients.nextjs.workspace_persistence.createWorkspaceSessionRecord",
+    "clients.nextjs.workspace_persistence.snapshotFromWorkspaceSessionRecord",
+    "clients.nextjs.creative_timeline.buildCreativeTimelineModel",
+    "clients.nextjs.workflow_runtime.WorkflowRuntimeTraceEvent",
+    "clients.nextjs.workstation_shell.WorkstationShell",
+)
+
+_WORKSPACE_HISTORY_SURFACES = (
+    "workspace_history_panel",
+    "session_record_history_surface",
+    "snapshot_history_surface",
+    "artifact_board_history_surface",
+    "runtime_event_history_surface",
+    "history_summary_surface",
+    "workspace_history_boundary_panel",
+)
+
+_WORKSPACE_HISTORY_OBSERVABILITY_SURFACES = (
+    "profile_id",
+    "history_profile_kind",
+    "history_surface_kind",
+    "source_workspace_snapshot_profile_ids",
+    "source_session_replay_profile_ids",
+    "source_reference_ids",
+    "authority_boundary",
+)
+
+_WORKSPACE_HISTORY_BLOCKED_RUNTIME_BEHAVIORS = (
+    "history_recording",
+    "snapshot_capture",
+    "timeline_reconstruction",
+    "history_persistence",
+    "session_replay_execution",
+    "runtime_event_replay",
+    "workspace_state_mutation",
+    "artifact_mutation",
+    "generated_output_mutation",
+    "rendering_execution",
     "workflow_control",
     "human_input_request",
     "provider_or_model_routing",
@@ -5777,4 +5868,597 @@ MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY = MultimodalSharedArtifactBoardRegistr
     source_reference_ids=_SHARED_ARTIFACT_BOARD_SOURCE_REFERENCES,
     shared_artifact_board_surface_refs=_SHARED_ARTIFACT_BOARD_SURFACES,
     observability_surfaces=_SHARED_ARTIFACT_BOARD_OBSERVABILITY_SURFACES,
+)
+
+
+class WorkspaceHistoryProfile(BaseModel):
+    """Inspectable metadata for one passive Workspace History surface."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    profile_id: str = Field(min_length=1, max_length=140)
+    profile_name: str = Field(min_length=1, max_length=160)
+    history_profile_kind: WorkspaceHistoryProfileKind
+    history_surface_kind: WorkspaceHistorySurfaceKind
+    source_shared_artifact_board_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_runtime_collaboration_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_workspace_snapshot_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_session_replay_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    history_context_fields: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_reference_ids: tuple[str, ...] = Field(min_length=1, max_length=10)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    workspace_history_surfaces: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=7,
+    )
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=WORKSPACE_HISTORY_AUTHORITY_BOUNDARY,
+        max_length=1300,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_WORKSPACE_HISTORY_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    history_recording_implemented: Literal[False] = False
+    snapshot_capture_implemented: Literal[False] = False
+    timeline_reconstruction_implemented: Literal[False] = False
+    history_persistence_implemented: Literal[False] = False
+    session_replay_execution_implemented: Literal[False] = False
+    runtime_event_replay_implemented: Literal[False] = False
+    workspace_state_mutation_implemented: Literal[False] = False
+    artifact_mutation_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    serialization_version: Literal["multimodal_workspace_history_profile.v1"] = (
+        WORKSPACE_HISTORY_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class MultimodalWorkspaceHistoryRegistry(BaseModel):
+    """Stable passive registry for V4.5 Workspace History metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["multimodal_workspace_history_registry"] = (
+        "multimodal_workspace_history_registry"
+    )
+    serialization_version: Literal["multimodal_workspace_history_registry.v1"] = (
+        WORKSPACE_HISTORY_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=WORKSPACE_HISTORY_AUTHORITY_BOUNDARY,
+        max_length=1300,
+    )
+    workspace_history_profiles: tuple[WorkspaceHistoryProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    history_profile_kinds: tuple[WorkspaceHistoryProfileKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    history_surface_kinds: tuple[WorkspaceHistorySurfaceKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    shared_artifact_board_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    runtime_collaboration_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    workspace_snapshot_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    session_replay_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    source_reference_ids: tuple[str, ...] = Field(min_length=10, max_length=10)
+    workspace_history_surface_refs: tuple[str, ...] = Field(
+        min_length=7,
+        max_length=7,
+    )
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_WORKSPACE_HISTORY_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    history_recording_implemented: Literal[False] = False
+    snapshot_capture_implemented: Literal[False] = False
+    timeline_reconstruction_implemented: Literal[False] = False
+    history_persistence_implemented: Literal[False] = False
+    session_replay_execution_implemented: Literal[False] = False
+    runtime_event_replay_implemented: Literal[False] = False
+    workspace_state_mutation_implemented: Literal[False] = False
+    artifact_mutation_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.profile_id for profile in self.workspace_history_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("profile_ids must be unique")
+        if self.profile_ids != derived_profile_ids:
+            raise ValueError("profile_ids must match workspace_history_profiles")
+        if self.profile_count != len(self.workspace_history_profiles):
+            raise ValueError("profile_count must match workspace_history_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if (
+            self.shared_artifact_board_profile_ids
+            != MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "shared_artifact_board_profile_ids must match Shared Artifact Board registry"
+            )
+        if (
+            self.runtime_collaboration_profile_ids
+            != MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "runtime_collaboration_profile_ids must match Runtime Collaboration registry"
+            )
+        if (
+            self.workspace_snapshot_profile_ids
+            != WORKSPACE_SNAPSHOT_REGISTRY.workspace_snapshot_profile_ids
+        ):
+            raise ValueError(
+                "workspace_snapshot_profile_ids must match Workspace Snapshot registry"
+            )
+        if (
+            self.session_replay_profile_ids
+            != SESSION_REPLAY_REGISTRY.session_replay_profile_ids
+        ):
+            raise ValueError(
+                "session_replay_profile_ids must match Session Replay registry"
+            )
+        if self.history_profile_kinds != _ordered_unique(
+            profile.history_profile_kind
+            for profile in self.workspace_history_profiles
+        ):
+            raise ValueError("history_profile_kinds must match profiles")
+        if self.history_surface_kinds != _ordered_unique(
+            profile.history_surface_kind
+            for profile in self.workspace_history_profiles
+        ):
+            raise ValueError("history_surface_kinds must match profiles")
+
+        profile_source_references = {
+            source_reference
+            for profile in self.workspace_history_profiles
+            for source_reference in profile.source_reference_ids
+        }
+        if set(self.source_reference_ids) != profile_source_references:
+            raise ValueError(
+                "source_reference_ids must match profile source references"
+            )
+
+        known_routes = set(self.route_names)
+        known_boards = set(self.shared_artifact_board_profile_ids)
+        known_runtime_profiles = set(self.runtime_collaboration_profile_ids)
+        known_snapshots = set(self.workspace_snapshot_profile_ids)
+        known_replays = set(self.session_replay_profile_ids)
+        known_surfaces = set(self.workspace_history_surface_refs)
+        known_source_references = set(self.source_reference_ids)
+        for profile in self.workspace_history_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must use known routes")
+            if not set(profile.source_shared_artifact_board_profile_ids).issubset(
+                known_boards
+            ):
+                raise ValueError(
+                    "source_shared_artifact_board_profile_ids must be known profiles"
+                )
+            if not set(profile.source_runtime_collaboration_profile_ids).issubset(
+                known_runtime_profiles
+            ):
+                raise ValueError(
+                    "source_runtime_collaboration_profile_ids must be known profiles"
+                )
+            if not set(profile.source_workspace_snapshot_profile_ids).issubset(
+                known_snapshots
+            ):
+                raise ValueError(
+                    "source_workspace_snapshot_profile_ids must be known profiles"
+                )
+            if not set(profile.source_session_replay_profile_ids).issubset(
+                known_replays
+            ):
+                raise ValueError(
+                    "source_session_replay_profile_ids must be known profiles"
+                )
+            if not set(profile.workspace_history_surfaces).issubset(known_surfaces):
+                raise ValueError("workspace_history_surfaces must be known surfaces")
+            if not set(profile.source_reference_ids).issubset(
+                known_source_references
+            ):
+                raise ValueError(
+                    "source_reference_ids must be known registry references"
+                )
+        return self
+
+
+def multimodal_workspace_history_registry() -> MultimodalWorkspaceHistoryRegistry:
+    """Return passive V4.5 Workspace History metadata."""
+
+    return MULTIMODAL_WORKSPACE_HISTORY_REGISTRY
+
+
+def multimodal_workspace_history_profile_by_id(
+    profile_id: str,
+    registry: MultimodalWorkspaceHistoryRegistry | None = None,
+) -> WorkspaceHistoryProfile | None:
+    """Return one Workspace History profile without recording history."""
+
+    source_registry = registry or MULTIMODAL_WORKSPACE_HISTORY_REGISTRY
+    normalized_profile_id = str(profile_id).strip()
+    for profile in source_registry.workspace_history_profiles:
+        if profile.profile_id == normalized_profile_id:
+            return profile
+    return None
+
+
+def multimodal_workspace_history_profiles_for_route(
+    route: RouteName | str,
+    registry: MultimodalWorkspaceHistoryRegistry | None = None,
+) -> tuple[WorkspaceHistoryProfile, ...]:
+    """Return passive Workspace History profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or MULTIMODAL_WORKSPACE_HISTORY_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.workspace_history_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def multimodal_workspace_history_profiles_for_surface_kind(
+    surface_kind: WorkspaceHistorySurfaceKind | str,
+    registry: MultimodalWorkspaceHistoryRegistry | None = None,
+) -> tuple[WorkspaceHistoryProfile, ...]:
+    """Return Workspace History profiles for one passive surface kind."""
+
+    surface_value = str(surface_kind).strip()
+    source_registry = registry or MULTIMODAL_WORKSPACE_HISTORY_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.workspace_history_profiles
+        if profile.history_surface_kind == surface_value
+    )
+
+
+def multimodal_workspace_history_profiles_for_workspace_snapshot_profile(
+    workspace_snapshot_profile_id: str,
+    registry: MultimodalWorkspaceHistoryRegistry | None = None,
+) -> tuple[WorkspaceHistoryProfile, ...]:
+    """Return history profiles referencing one workspace snapshot profile."""
+
+    source_registry = registry or MULTIMODAL_WORKSPACE_HISTORY_REGISTRY
+    source_profile_id = str(workspace_snapshot_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.workspace_history_profiles
+        if source_profile_id in profile.source_workspace_snapshot_profile_ids
+    )
+
+
+def _workspace_history_profile(
+    *,
+    profile_id: str,
+    profile_name: str,
+    history_profile_kind: WorkspaceHistoryProfileKind,
+    history_surface_kind: WorkspaceHistorySurfaceKind,
+    source_shared_artifact_board_profile_ids: tuple[str, ...],
+    source_runtime_collaboration_profile_ids: tuple[str, ...],
+    source_workspace_snapshot_profile_ids: tuple[str, ...],
+    source_session_replay_profile_ids: tuple[str, ...],
+    history_context_fields: tuple[str, ...],
+    source_reference_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    workspace_history_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> WorkspaceHistoryProfile:
+    return WorkspaceHistoryProfile(
+        profile_id=profile_id,
+        profile_name=profile_name,
+        history_profile_kind=history_profile_kind,
+        history_surface_kind=history_surface_kind,
+        source_shared_artifact_board_profile_ids=(
+            source_shared_artifact_board_profile_ids
+        ),
+        source_runtime_collaboration_profile_ids=(
+            source_runtime_collaboration_profile_ids
+        ),
+        source_workspace_snapshot_profile_ids=source_workspace_snapshot_profile_ids,
+        source_session_replay_profile_ids=source_session_replay_profile_ids,
+        history_context_fields=history_context_fields,
+        source_reference_ids=source_reference_ids,
+        route_applicability=route_applicability,
+        workspace_history_surfaces=workspace_history_surfaces,
+        advisory_outputs=advisory_outputs,
+        source_registries=_WORKSPACE_HISTORY_SOURCE_REGISTRIES,
+        observability_surfaces=_WORKSPACE_HISTORY_OBSERVABILITY_SURFACES,
+    )
+
+
+MULTIMODAL_WORKSPACE_HISTORY_PROFILES = (
+    _workspace_history_profile(
+        profile_id="session_record_workspace_history",
+        profile_name="Session Record Workspace History",
+        history_profile_kind="session_record_history",
+        history_surface_kind="session_record",
+        source_shared_artifact_board_profile_ids=(
+            "selection_shared_artifact_board",
+            "comparison_shared_artifact_board",
+        ),
+        source_runtime_collaboration_profile_ids=(
+            "stream_event_runtime_collaboration",
+            "operator_context_runtime_collaboration",
+        ),
+        source_workspace_snapshot_profile_ids=(
+            "studio_overview_workspace_snapshot",
+            "agent_context_workspace_snapshot",
+        ),
+        source_session_replay_profile_ids=(
+            "session_overview_replay_profile",
+            "conversation_timeline_replay_profile",
+        ),
+        history_context_fields=(
+            "WorkspaceSessionRecord",
+            "createdAt",
+            "updatedAt",
+            "snapshot.session",
+            "messages",
+        ),
+        source_reference_ids=(
+            "hybrid_studio.SESSION_REPLAY_REGISTRY",
+            "clients.nextjs.workspace_persistence.WorkspaceSessionRecord",
+            "clients.nextjs.workspace_persistence.createWorkspaceSessionRecord",
+            "clients.nextjs.workspace_persistence.snapshotFromWorkspaceSessionRecord",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.PREVIEW,
+        ),
+        workspace_history_surfaces=(
+            "workspace_history_panel",
+            "session_record_history_surface",
+            "history_summary_surface",
+            "workspace_history_boundary_panel",
+        ),
+        advisory_outputs=(
+            "session_record_history_inventory",
+            "manual_session_history_review_hint",
+            "no_history_recording_notice",
+        ),
+    ),
+    _workspace_history_profile(
+        profile_id="snapshot_workspace_history",
+        profile_name="Snapshot Workspace History",
+        history_profile_kind="snapshot_history",
+        history_surface_kind="snapshot",
+        source_shared_artifact_board_profile_ids=(
+            "provenance_lineage_shared_artifact_board",
+            "handoff_refinement_shared_artifact_board",
+        ),
+        source_runtime_collaboration_profile_ids=(
+            "trace_runtime_collaboration",
+            "operator_context_runtime_collaboration",
+        ),
+        source_workspace_snapshot_profile_ids=tuple(
+            WORKSPACE_SNAPSHOT_REGISTRY.workspace_snapshot_profile_ids
+        ),
+        source_session_replay_profile_ids=(
+            "snapshot_transition_replay_profile",
+            "review_decision_replay_profile",
+        ),
+        history_context_fields=(
+            "workspace_snapshot_profile_ids",
+            "snapshot_context_fields",
+            "snapshot_surfaces",
+            "snapshot_transition_refs",
+        ),
+        source_reference_ids=(
+            "hybrid_studio.WORKSPACE_SNAPSHOT_REGISTRY",
+            "hybrid_studio.SESSION_REPLAY_REGISTRY",
+            "clients.nextjs.workspace_persistence.createWorkspaceSessionRecord",
+            "clients.nextjs.workspace_persistence.snapshotFromWorkspaceSessionRecord",
+            "clients.nextjs.creative_timeline.buildCreativeTimelineModel",
+        ),
+        route_applicability=(
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        workspace_history_surfaces=(
+            "workspace_history_panel",
+            "snapshot_history_surface",
+            "history_summary_surface",
+            "workspace_history_boundary_panel",
+        ),
+        advisory_outputs=(
+            "snapshot_history_inventory",
+            "manual_snapshot_history_review_hint",
+            "no_snapshot_capture_notice",
+        ),
+    ),
+    _workspace_history_profile(
+        profile_id="artifact_board_workspace_history",
+        profile_name="Artifact Board Workspace History",
+        history_profile_kind="artifact_board_history",
+        history_surface_kind="artifact_board",
+        source_shared_artifact_board_profile_ids=tuple(
+            MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY.profile_ids
+        ),
+        source_runtime_collaboration_profile_ids=(
+            "trace_runtime_collaboration",
+            "stream_event_runtime_collaboration",
+        ),
+        source_workspace_snapshot_profile_ids=(
+            "execution_context_workspace_snapshot",
+            "review_audit_workspace_snapshot",
+        ),
+        source_session_replay_profile_ids=(
+            "snapshot_transition_replay_profile",
+            "review_decision_replay_profile",
+        ),
+        history_context_fields=(
+            "shared_artifact_board_surfaces",
+            "activeArtifactId",
+            "artifact_lineage_refs",
+            "artifact_provenance_refs",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY",
+            "multimodal_studio.MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY",
+            "clients.nextjs.workspace_persistence.WorkspaceSessionRecord",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        workspace_history_surfaces=(
+            "workspace_history_panel",
+            "artifact_board_history_surface",
+            "history_summary_surface",
+            "workspace_history_boundary_panel",
+        ),
+        advisory_outputs=(
+            "artifact_board_history_inventory",
+            "manual_artifact_history_review_hint",
+            "no_artifact_mutation_notice",
+        ),
+    ),
+    _workspace_history_profile(
+        profile_id="runtime_event_workspace_history",
+        profile_name="Runtime Event Workspace History",
+        history_profile_kind="runtime_event_history",
+        history_surface_kind="runtime_event",
+        source_shared_artifact_board_profile_ids=(
+            "comparison_shared_artifact_board",
+            "provenance_lineage_shared_artifact_board",
+        ),
+        source_runtime_collaboration_profile_ids=tuple(
+            MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY.profile_ids
+        ),
+        source_workspace_snapshot_profile_ids=(
+            "execution_context_workspace_snapshot",
+            "review_audit_workspace_snapshot",
+        ),
+        source_session_replay_profile_ids=(
+            "conversation_timeline_replay_profile",
+            "snapshot_transition_replay_profile",
+        ),
+        history_context_fields=(
+            "WorkflowRuntimeTraceEvent",
+            "workflow.timeline",
+            "creativeTimeline.events",
+            "eventSequence",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY",
+            "hybrid_studio.SESSION_REPLAY_REGISTRY",
+            "clients.nextjs.creative_timeline.buildCreativeTimelineModel",
+            "clients.nextjs.workflow_runtime.WorkflowRuntimeTraceEvent",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        workspace_history_surfaces=(
+            "workspace_history_panel",
+            "runtime_event_history_surface",
+            "history_summary_surface",
+            "workspace_history_boundary_panel",
+        ),
+        advisory_outputs=(
+            "runtime_event_history_inventory",
+            "manual_runtime_history_review_hint",
+            "no_runtime_event_replay_notice",
+        ),
+    ),
+)
+
+MULTIMODAL_WORKSPACE_HISTORY_REGISTRY = MultimodalWorkspaceHistoryRegistry(
+    workspace_history_profiles=MULTIMODAL_WORKSPACE_HISTORY_PROFILES,
+    profile_ids=tuple(
+        profile.profile_id for profile in MULTIMODAL_WORKSPACE_HISTORY_PROFILES
+    ),
+    history_profile_kinds=tuple(
+        profile.history_profile_kind
+        for profile in MULTIMODAL_WORKSPACE_HISTORY_PROFILES
+    ),
+    history_surface_kinds=tuple(
+        profile.history_surface_kind
+        for profile in MULTIMODAL_WORKSPACE_HISTORY_PROFILES
+    ),
+    shared_artifact_board_profile_ids=(
+        MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY.profile_ids
+    ),
+    runtime_collaboration_profile_ids=(
+        MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY.profile_ids
+    ),
+    workspace_snapshot_profile_ids=(
+        WORKSPACE_SNAPSHOT_REGISTRY.workspace_snapshot_profile_ids
+    ),
+    session_replay_profile_ids=SESSION_REPLAY_REGISTRY.session_replay_profile_ids,
+    route_names=tuple(RouteName),
+    profile_count=len(MULTIMODAL_WORKSPACE_HISTORY_PROFILES),
+    source_registries=_WORKSPACE_HISTORY_SOURCE_REGISTRIES,
+    source_reference_ids=_WORKSPACE_HISTORY_SOURCE_REFERENCES,
+    workspace_history_surface_refs=_WORKSPACE_HISTORY_SURFACES,
+    observability_surfaces=_WORKSPACE_HISTORY_OBSERVABILITY_SURFACES,
 )
