@@ -130,6 +130,9 @@ _AGENT_DETERMINISM_AUDIT = (
 _AGENT_TELEMETRY_FOUNDATION = (
     "creative_coding_assistant.orchestration.agent_telemetry_foundation"
 )
+_AGENT_COST_TRACKING_FOUNDATION = (
+    "creative_coding_assistant.orchestration.agent_cost_tracking_foundation"
+)
 _HYBRID_STUDIO = "creative_coding_assistant.orchestration.hybrid_studio"
 _MULTIMODAL_STUDIO = "creative_coding_assistant.orchestration.multimodal_studio"
 _ENGINE_CONTRACT_CONSISTENCY = (
@@ -701,6 +704,18 @@ _EXPORT_MAP = {
     "agent_telemetry_profile_by_agent_id": _AGENT_TELEMETRY_FOUNDATION,
     "agent_telemetry_profiles_for_dimension": _AGENT_TELEMETRY_FOUNDATION,
     "agent_telemetry_profiles_for_event_type": _AGENT_TELEMETRY_FOUNDATION,
+    "AgentCostTrackingFoundationProfile": _AGENT_COST_TRACKING_FOUNDATION,
+    "AgentCostTrackingFoundationRegistry": _AGENT_COST_TRACKING_FOUNDATION,
+    "agent_cost_tracking_foundation_registry": (
+        _AGENT_COST_TRACKING_FOUNDATION
+    ),
+    "agent_cost_tracking_profile_by_agent_id": _AGENT_COST_TRACKING_FOUNDATION,
+    "agent_cost_tracking_profiles_for_cost_class": (
+        _AGENT_COST_TRACKING_FOUNDATION
+    ),
+    "agent_cost_tracking_profiles_for_cost_profile": (
+        _AGENT_COST_TRACKING_FOUNDATION
+    ),
     "hybrid_execution_profile_by_id": _HYBRID_STUDIO,
     "hybrid_execution_profiles_for_route": _HYBRID_STUDIO,
     "hybrid_execution_registry": _HYBRID_STUDIO,
