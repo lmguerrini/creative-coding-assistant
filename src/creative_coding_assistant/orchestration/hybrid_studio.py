@@ -2342,3 +2342,460 @@ HITL_DECISION_REGISTRY = HitlDecisionRegistry(
     source_registries=_HITL_DECISION_SOURCE_REGISTRIES,
     observability_surfaces=_HITL_DECISION_OBSERVABILITY_SURFACES,
 )
+
+ProviderSelectionPosture = Literal[
+    "current_config_visibility",
+    "local_candidate_visibility",
+    "cloud_candidate_visibility",
+    "operator_override_visibility",
+]
+
+PROVIDER_SELECTION_PROFILE_SERIALIZATION_VERSION = "provider_selection_profile.v1"
+PROVIDER_SELECTION_REGISTRY_SERIALIZATION_VERSION = "provider_selection_registry.v1"
+PROVIDER_SELECTION_REGISTRY_AUTHORITY_BOUNDARY = (
+    "Provider Selection metadata describes passive provider and model candidate "
+    "visibility for V4.4 Hybrid Studio inspection only; it does not select "
+    "providers automatically, switch models, alter build_generation_provider, "
+    "route providers or models, execute local or cloud providers, trigger "
+    "retries, request human input automatically, mutate prompts, write replay "
+    "storage, or modify generated output."
+)
+
+_PROVIDER_SELECTION_SOURCE_REGISTRIES = (
+    "local_model_registry",
+    "cloud_model_registry",
+    "auto_mode_registry",
+    "hitl_decision_registry",
+    "generation_provider_factory",
+    "settings_generation_provider_config",
+)
+
+_PROVIDER_SELECTION_SURFACES = (
+    "provider_selection_panel",
+    "model_catalog_panel",
+    "auto_mode_panel",
+    "hitl_decision_panel",
+    "operator_override_panel",
+)
+
+_PROVIDER_SELECTION_OBSERVABILITY_SURFACES = (
+    "provider_selection_profile_id",
+    "provider_selection_posture",
+    "provider_candidate_ids",
+    "route_applicability",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_PROVIDER_SELECTION_BLOCKED_RUNTIME_BEHAVIORS = (
+    "provider_selection_execution",
+    "automatic_provider_selection",
+    "automatic_model_selection",
+    "provider_or_model_routing",
+    "model_switching",
+    "local_provider_execution",
+    "cloud_provider_execution",
+    "workflow_control",
+    "human_input_request",
+    "retry_or_refinement_triggering",
+    "prompt_mutation",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class ProviderSelectionProfile(BaseModel):
+    """Inspectable passive provider selection metadata profile."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    provider_selection_profile_id: str = Field(min_length=1, max_length=110)
+    profile_name: str = Field(min_length=1, max_length=150)
+    provider_selection_posture: ProviderSelectionPosture
+    provider_candidate_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_local_surface_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=4
+    )
+    source_cloud_surface_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=4
+    )
+    source_auto_mode_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_hitl_decision_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    selection_inputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    selection_surface_refs: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    authority_boundary: str = Field(
+        default=PROVIDER_SELECTION_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1100,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_PROVIDER_SELECTION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    provider_selection_execution_implemented: Literal[False] = False
+    automatic_provider_selection_implemented: Literal[False] = False
+    automatic_model_selection_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    model_switching_implemented: Literal[False] = False
+    local_provider_execution_implemented: Literal[False] = False
+    cloud_provider_execution_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["provider_selection_profile.v1"] = (
+        PROVIDER_SELECTION_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class ProviderSelectionRegistry(BaseModel):
+    """Stable passive registry for V4.4 Hybrid Studio provider selection."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["provider_selection_registry"] = "provider_selection_registry"
+    serialization_version: Literal["provider_selection_registry.v1"] = (
+        PROVIDER_SELECTION_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=PROVIDER_SELECTION_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1100,
+    )
+    provider_selection_profiles: tuple[ProviderSelectionProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    provider_selection_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    provider_selection_postures: tuple[ProviderSelectionPosture, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    provider_candidate_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
+    local_surface_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    cloud_surface_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    auto_mode_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    hitl_decision_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    selection_surface_refs: tuple[str, ...] = Field(min_length=5, max_length=5)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_PROVIDER_SELECTION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    provider_selection_execution_implemented: Literal[False] = False
+    automatic_provider_selection_implemented: Literal[False] = False
+    automatic_model_selection_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    model_switching_implemented: Literal[False] = False
+    local_provider_execution_implemented: Literal[False] = False
+    cloud_provider_execution_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.provider_selection_profile_id
+            for profile in self.provider_selection_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("provider_selection_profile_ids must be unique")
+        if self.provider_selection_profile_ids != derived_profile_ids:
+            raise ValueError(
+                "provider_selection_profile_ids must match provider_selection_profiles"
+            )
+        if self.profile_count != len(self.provider_selection_profiles):
+            raise ValueError("profile_count must match provider_selection_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.provider_selection_postures != tuple(
+            profile.provider_selection_posture
+            for profile in self.provider_selection_profiles
+        ):
+            raise ValueError(
+                "provider_selection_postures must match provider_selection_profiles"
+            )
+
+        known_routes = set(self.route_names)
+        known_provider_candidates = set(self.provider_candidate_ids)
+        known_local_surfaces = set(self.local_surface_ids)
+        known_cloud_surfaces = set(self.cloud_surface_ids)
+        known_auto_profiles = set(self.auto_mode_profile_ids)
+        known_hitl_profiles = set(self.hitl_decision_profile_ids)
+        known_selection_surfaces = set(self.selection_surface_refs)
+        profile_sources = {
+            source_registry
+            for profile in self.provider_selection_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match provider selection sources")
+
+        for profile in self.provider_selection_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.provider_candidate_ids).issubset(
+                known_provider_candidates
+            ):
+                raise ValueError("provider_candidate_ids must be known providers")
+            if not set(profile.source_local_surface_ids).issubset(known_local_surfaces):
+                raise ValueError("source_local_surface_ids must be known local models")
+            if not set(profile.source_cloud_surface_ids).issubset(known_cloud_surfaces):
+                raise ValueError("source_cloud_surface_ids must be known cloud models")
+            if not set(profile.source_auto_mode_profile_ids).issubset(
+                known_auto_profiles
+            ):
+                raise ValueError(
+                    "source_auto_mode_profile_ids must be known Auto Mode profiles"
+                )
+            if not set(profile.source_hitl_decision_profile_ids).issubset(
+                known_hitl_profiles
+            ):
+                raise ValueError(
+                    "source_hitl_decision_profile_ids must be known HITL profiles"
+                )
+            if not set(profile.selection_surface_refs).issubset(
+                known_selection_surfaces
+            ):
+                raise ValueError(
+                    "selection_surface_refs must be known registry surfaces"
+                )
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def provider_selection_registry() -> ProviderSelectionRegistry:
+    """Return passive V4.4 Hybrid Studio provider selection metadata."""
+
+    return PROVIDER_SELECTION_REGISTRY
+
+
+def provider_selection_profile_by_id(
+    provider_selection_profile_id: str,
+    registry: ProviderSelectionRegistry | None = None,
+) -> ProviderSelectionProfile | None:
+    """Return one provider selection profile without selecting a provider."""
+
+    source_registry = registry or PROVIDER_SELECTION_REGISTRY
+    for profile in source_registry.provider_selection_profiles:
+        if profile.provider_selection_profile_id == provider_selection_profile_id:
+            return profile
+    return None
+
+
+def provider_selection_profiles_for_route(
+    route: RouteName | str,
+    registry: ProviderSelectionRegistry | None = None,
+) -> tuple[ProviderSelectionProfile, ...]:
+    """Return passive provider selection profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or PROVIDER_SELECTION_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.provider_selection_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def _provider_selection_profile(
+    *,
+    provider_selection_profile_id: str,
+    profile_name: str,
+    provider_selection_posture: ProviderSelectionPosture,
+    provider_candidate_ids: tuple[str, ...],
+    source_local_surface_ids: tuple[str, ...],
+    source_cloud_surface_ids: tuple[str, ...],
+    source_auto_mode_profile_ids: tuple[str, ...],
+    source_hitl_decision_profile_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    selection_inputs: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+    selection_surface_refs: tuple[str, ...],
+) -> ProviderSelectionProfile:
+    return ProviderSelectionProfile(
+        provider_selection_profile_id=provider_selection_profile_id,
+        profile_name=profile_name,
+        provider_selection_posture=provider_selection_posture,
+        provider_candidate_ids=provider_candidate_ids,
+        source_local_surface_ids=source_local_surface_ids,
+        source_cloud_surface_ids=source_cloud_surface_ids,
+        source_auto_mode_profile_ids=source_auto_mode_profile_ids,
+        source_hitl_decision_profile_ids=source_hitl_decision_profile_ids,
+        route_applicability=route_applicability,
+        selection_inputs=selection_inputs,
+        advisory_outputs=advisory_outputs,
+        selection_surface_refs=selection_surface_refs,
+        source_registries=_PROVIDER_SELECTION_SOURCE_REGISTRIES,
+        observability_surfaces=_PROVIDER_SELECTION_OBSERVABILITY_SURFACES,
+    )
+
+
+PROVIDER_SELECTION_CANDIDATE_IDS = (
+    "openai",
+    "ollama",
+    "lm_studio",
+    "llama_cpp",
+    "local_transformers",
+)
+
+PROVIDER_SELECTION_PROFILES = (
+    _provider_selection_profile(
+        provider_selection_profile_id="current_config_provider_visibility_profile",
+        profile_name="Current Config Provider Visibility Profile",
+        provider_selection_posture="current_config_visibility",
+        provider_candidate_ids=("openai",),
+        source_local_surface_ids=(),
+        source_cloud_surface_ids=("openai_generation_model_surface",),
+        source_auto_mode_profile_ids=("auto_mode_observe_only_profile",),
+        source_hitl_decision_profile_ids=("hitl_visibility_decision_profile",),
+        route_applicability=tuple(RouteName),
+        selection_inputs=(
+            "default_generation_provider_config",
+            "openai_model_setting",
+            "provider_factory_metadata",
+        ),
+        advisory_outputs=(
+            "current_provider_visibility_metadata",
+            "configured_model_visibility_metadata",
+            "no_provider_switch_notice",
+        ),
+        selection_surface_refs=(
+            "provider_selection_panel",
+            "model_catalog_panel",
+            "operator_override_panel",
+        ),
+    ),
+    _provider_selection_profile(
+        provider_selection_profile_id="local_candidate_provider_visibility_profile",
+        profile_name="Local Candidate Provider Visibility Profile",
+        provider_selection_posture="local_candidate_visibility",
+        provider_candidate_ids=(
+            "ollama",
+            "lm_studio",
+            "llama_cpp",
+            "local_transformers",
+        ),
+        source_local_surface_ids=tuple(LOCAL_MODEL_REGISTRY.surface_ids),
+        source_cloud_surface_ids=(),
+        source_auto_mode_profile_ids=("auto_mode_suggestion_profile",),
+        source_hitl_decision_profile_ids=("hitl_confirmation_decision_profile",),
+        route_applicability=tuple(RouteName),
+        selection_inputs=(
+            "local_model_catalog_metadata",
+            "local_runtime_readiness_metadata",
+            "operator_local_preference_metadata",
+        ),
+        advisory_outputs=(
+            "local_candidate_visibility_metadata",
+            "manual_local_selection_context",
+            "no_local_execution_notice",
+        ),
+        selection_surface_refs=(
+            "provider_selection_panel",
+            "model_catalog_panel",
+            "auto_mode_panel",
+        ),
+    ),
+    _provider_selection_profile(
+        provider_selection_profile_id="cloud_candidate_provider_visibility_profile",
+        profile_name="Cloud Candidate Provider Visibility Profile",
+        provider_selection_posture="cloud_candidate_visibility",
+        provider_candidate_ids=("openai",),
+        source_local_surface_ids=(),
+        source_cloud_surface_ids=tuple(CLOUD_MODEL_REGISTRY.surface_ids),
+        source_auto_mode_profile_ids=("auto_mode_suggestion_profile",),
+        source_hitl_decision_profile_ids=(
+            "hitl_confirmation_decision_profile",
+            "hitl_risk_review_decision_profile",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        selection_inputs=(
+            "cloud_model_catalog_metadata",
+            "provider_configuration_metadata",
+            "provider_boundary_metadata",
+        ),
+        advisory_outputs=(
+            "cloud_candidate_visibility_metadata",
+            "manual_cloud_selection_context",
+            "no_cloud_execution_notice",
+        ),
+        selection_surface_refs=(
+            "provider_selection_panel",
+            "model_catalog_panel",
+            "hitl_decision_panel",
+        ),
+    ),
+    _provider_selection_profile(
+        provider_selection_profile_id="operator_override_provider_visibility_profile",
+        profile_name="Operator Override Provider Visibility Profile",
+        provider_selection_posture="operator_override_visibility",
+        provider_candidate_ids=PROVIDER_SELECTION_CANDIDATE_IDS,
+        source_local_surface_ids=tuple(LOCAL_MODEL_REGISTRY.surface_ids),
+        source_cloud_surface_ids=tuple(CLOUD_MODEL_REGISTRY.surface_ids),
+        source_auto_mode_profile_ids=("auto_mode_operator_confirmed_profile",),
+        source_hitl_decision_profile_ids=(
+            "hitl_confirmation_decision_profile",
+            "hitl_final_review_decision_profile",
+        ),
+        route_applicability=tuple(RouteName),
+        selection_inputs=(
+            "explicit_operator_override_metadata",
+            "provider_candidate_visibility_metadata",
+            "hitl_confirmation_metadata",
+        ),
+        advisory_outputs=(
+            "operator_override_visibility_metadata",
+            "manual_selection_boundary_notice",
+            "no_automatic_provider_selection_notice",
+        ),
+        selection_surface_refs=tuple(_PROVIDER_SELECTION_SURFACES),
+    ),
+)
+
+PROVIDER_SELECTION_REGISTRY = ProviderSelectionRegistry(
+    provider_selection_profiles=PROVIDER_SELECTION_PROFILES,
+    provider_selection_profile_ids=tuple(
+        profile.provider_selection_profile_id for profile in PROVIDER_SELECTION_PROFILES
+    ),
+    provider_selection_postures=tuple(
+        profile.provider_selection_posture for profile in PROVIDER_SELECTION_PROFILES
+    ),
+    provider_candidate_ids=PROVIDER_SELECTION_CANDIDATE_IDS,
+    local_surface_ids=tuple(LOCAL_MODEL_REGISTRY.surface_ids),
+    cloud_surface_ids=tuple(CLOUD_MODEL_REGISTRY.surface_ids),
+    auto_mode_profile_ids=tuple(AUTO_MODE_REGISTRY.auto_mode_profile_ids),
+    hitl_decision_profile_ids=tuple(HITL_DECISION_REGISTRY.hitl_decision_profile_ids),
+    selection_surface_refs=_PROVIDER_SELECTION_SURFACES,
+    route_names=tuple(RouteName),
+    profile_count=len(PROVIDER_SELECTION_PROFILES),
+    source_registries=_PROVIDER_SELECTION_SOURCE_REGISTRIES,
+    observability_surfaces=_PROVIDER_SELECTION_OBSERVABILITY_SURFACES,
+)

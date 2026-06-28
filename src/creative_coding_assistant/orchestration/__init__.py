@@ -390,6 +390,9 @@ _EXPORT_MAP = {
     "LocalModelRegistry": _HYBRID_STUDIO,
     "LocalModelRuntimeKind": _HYBRID_STUDIO,
     "LocalModelSurface": _HYBRID_STUDIO,
+    "ProviderSelectionPosture": _HYBRID_STUDIO,
+    "ProviderSelectionProfile": _HYBRID_STUDIO,
+    "ProviderSelectionRegistry": _HYBRID_STUDIO,
     "StudioModePosture": _HYBRID_STUDIO,
     "StudioModeProfile": _HYBRID_STUDIO,
     "StudioModeRegistry": _HYBRID_STUDIO,
@@ -424,6 +427,9 @@ _EXPORT_MAP = {
     "latency_threshold_routing_registry": _HYBRID_AGENTIC_WORKFLOW,
     "quality_escalation_profile_by_id": _HYBRID_AGENTIC_WORKFLOW,
     "quality_escalation_registry": _HYBRID_AGENTIC_WORKFLOW,
+    "provider_selection_profile_by_id": _HYBRID_STUDIO,
+    "provider_selection_profiles_for_route": _HYBRID_STUDIO,
+    "provider_selection_registry": _HYBRID_STUDIO,
     "conditional_multi_agent_escalation_condition_by_id": (
         _HYBRID_AGENTIC_WORKFLOW
     ),
