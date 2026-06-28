@@ -2799,3 +2799,450 @@ PROVIDER_SELECTION_REGISTRY = ProviderSelectionRegistry(
     source_registries=_PROVIDER_SELECTION_SOURCE_REGISTRIES,
     observability_surfaces=_PROVIDER_SELECTION_OBSERVABILITY_SURFACES,
 )
+
+ExecutionSimulationScope = Literal[
+    "route_preview",
+    "local_cloud_comparison",
+    "hitl_review",
+    "provider_selection",
+]
+
+EXECUTION_SIMULATION_PROFILE_SERIALIZATION_VERSION = "execution_simulation_profile.v1"
+EXECUTION_SIMULATOR_REGISTRY_SERIALIZATION_VERSION = "execution_simulator_registry.v1"
+EXECUTION_SIMULATOR_REGISTRY_AUTHORITY_BOUNDARY = (
+    "Execution Simulator metadata describes passive simulated execution plans "
+    "and comparison surfaces for V4.4 Hybrid Studio inspection only; it does "
+    "not execute providers, execute artifacts, route providers or models, run "
+    "workflow transitions, trigger retries, request human input automatically, "
+    "mutate prompts, write replay storage, or modify generated output."
+)
+
+_EXECUTION_SIMULATOR_SOURCE_REGISTRIES = (
+    "provider_selection_registry",
+    "hitl_decision_registry",
+    "auto_mode_registry",
+    "studio_mode_registry",
+    "hybrid_execution_registry",
+    "workflow_agent_handoff_registry",
+)
+
+_EXECUTION_SIMULATOR_SURFACES = (
+    "execution_simulator_panel",
+    "provider_selection_panel",
+    "hitl_decision_panel",
+    "hybrid_execution_panel",
+    "comparison_panel",
+)
+
+_EXECUTION_SIMULATOR_OBSERVABILITY_SURFACES = (
+    "execution_simulation_profile_id",
+    "simulation_scope",
+    "source_provider_selection_profile_ids",
+    "source_execution_profile_ids",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_EXECUTION_SIMULATOR_BLOCKED_RUNTIME_BEHAVIORS = (
+    "simulation_runtime_execution",
+    "provider_execution",
+    "artifact_execution",
+    "provider_or_model_routing",
+    "workflow_transition_execution",
+    "human_input_request",
+    "retry_or_refinement_triggering",
+    "prompt_mutation",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class ExecutionSimulationProfile(BaseModel):
+    """Inspectable passive execution simulation profile."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    execution_simulation_profile_id: str = Field(min_length=1, max_length=120)
+    profile_name: str = Field(min_length=1, max_length=150)
+    simulation_scope: ExecutionSimulationScope
+    source_provider_selection_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_hitl_decision_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_auto_mode_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_execution_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    simulated_inputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    simulated_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    simulation_surface_refs: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    authority_boundary: str = Field(
+        default=EXECUTION_SIMULATOR_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1100,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_EXECUTION_SIMULATOR_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=14,
+    )
+    simulation_runtime_execution_implemented: Literal[False] = False
+    provider_execution_implemented: Literal[False] = False
+    artifact_execution_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    workflow_transition_execution_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["execution_simulation_profile.v1"] = (
+        EXECUTION_SIMULATION_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class ExecutionSimulatorRegistry(BaseModel):
+    """Stable passive registry for V4.4 Hybrid Studio execution simulation."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["execution_simulator_registry"] = "execution_simulator_registry"
+    serialization_version: Literal["execution_simulator_registry.v1"] = (
+        EXECUTION_SIMULATOR_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=EXECUTION_SIMULATOR_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1100,
+    )
+    simulation_profiles: tuple[ExecutionSimulationProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    execution_simulation_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    simulation_scopes: tuple[ExecutionSimulationScope, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    provider_selection_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    hitl_decision_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    auto_mode_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    execution_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    simulation_surface_refs: tuple[str, ...] = Field(min_length=5, max_length=5)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_EXECUTION_SIMULATOR_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=14,
+    )
+    simulation_runtime_execution_implemented: Literal[False] = False
+    provider_execution_implemented: Literal[False] = False
+    artifact_execution_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    workflow_transition_execution_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.execution_simulation_profile_id
+            for profile in self.simulation_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("execution_simulation_profile_ids must be unique")
+        if self.execution_simulation_profile_ids != derived_profile_ids:
+            raise ValueError(
+                "execution_simulation_profile_ids must match simulation_profiles"
+            )
+        if self.profile_count != len(self.simulation_profiles):
+            raise ValueError("profile_count must match simulation_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.simulation_scopes != tuple(
+            profile.simulation_scope for profile in self.simulation_profiles
+        ):
+            raise ValueError("simulation_scopes must match simulation_profiles")
+
+        known_routes = set(self.route_names)
+        known_provider_profiles = set(self.provider_selection_profile_ids)
+        known_hitl_profiles = set(self.hitl_decision_profile_ids)
+        known_auto_profiles = set(self.auto_mode_profile_ids)
+        known_execution_profiles = set(self.execution_profile_ids)
+        known_surfaces = set(self.simulation_surface_refs)
+        profile_sources = {
+            source_registry
+            for profile in self.simulation_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match simulator sources")
+
+        for profile in self.simulation_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.source_provider_selection_profile_ids).issubset(
+                known_provider_profiles
+            ):
+                raise ValueError(
+                    "source_provider_selection_profile_ids must be known provider profiles"
+                )
+            if not set(profile.source_hitl_decision_profile_ids).issubset(
+                known_hitl_profiles
+            ):
+                raise ValueError(
+                    "source_hitl_decision_profile_ids must be known HITL profiles"
+                )
+            if not set(profile.source_auto_mode_profile_ids).issubset(
+                known_auto_profiles
+            ):
+                raise ValueError(
+                    "source_auto_mode_profile_ids must be known Auto Mode profiles"
+                )
+            if not set(profile.source_execution_profile_ids).issubset(
+                known_execution_profiles
+            ):
+                raise ValueError(
+                    "source_execution_profile_ids must be known execution profiles"
+                )
+            if not set(profile.simulation_surface_refs).issubset(known_surfaces):
+                raise ValueError(
+                    "simulation_surface_refs must be known registry surfaces"
+                )
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def execution_simulator_registry() -> ExecutionSimulatorRegistry:
+    """Return passive V4.4 Hybrid Studio execution simulator metadata."""
+
+    return EXECUTION_SIMULATOR_REGISTRY
+
+
+def execution_simulation_profile_by_id(
+    execution_simulation_profile_id: str,
+    registry: ExecutionSimulatorRegistry | None = None,
+) -> ExecutionSimulationProfile | None:
+    """Return one execution simulation profile without running it."""
+
+    source_registry = registry or EXECUTION_SIMULATOR_REGISTRY
+    for profile in source_registry.simulation_profiles:
+        if profile.execution_simulation_profile_id == execution_simulation_profile_id:
+            return profile
+    return None
+
+
+def execution_simulation_profiles_for_route(
+    route: RouteName | str,
+    registry: ExecutionSimulatorRegistry | None = None,
+) -> tuple[ExecutionSimulationProfile, ...]:
+    """Return passive execution simulation profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or EXECUTION_SIMULATOR_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.simulation_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def _execution_simulation_profile(
+    *,
+    execution_simulation_profile_id: str,
+    profile_name: str,
+    simulation_scope: ExecutionSimulationScope,
+    source_provider_selection_profile_ids: tuple[str, ...],
+    source_hitl_decision_profile_ids: tuple[str, ...],
+    source_auto_mode_profile_ids: tuple[str, ...],
+    source_execution_profile_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    simulated_inputs: tuple[str, ...],
+    simulated_outputs: tuple[str, ...],
+    simulation_surface_refs: tuple[str, ...],
+) -> ExecutionSimulationProfile:
+    return ExecutionSimulationProfile(
+        execution_simulation_profile_id=execution_simulation_profile_id,
+        profile_name=profile_name,
+        simulation_scope=simulation_scope,
+        source_provider_selection_profile_ids=source_provider_selection_profile_ids,
+        source_hitl_decision_profile_ids=source_hitl_decision_profile_ids,
+        source_auto_mode_profile_ids=source_auto_mode_profile_ids,
+        source_execution_profile_ids=source_execution_profile_ids,
+        route_applicability=route_applicability,
+        simulated_inputs=simulated_inputs,
+        simulated_outputs=simulated_outputs,
+        simulation_surface_refs=simulation_surface_refs,
+        source_registries=_EXECUTION_SIMULATOR_SOURCE_REGISTRIES,
+        observability_surfaces=_EXECUTION_SIMULATOR_OBSERVABILITY_SURFACES,
+    )
+
+
+EXECUTION_SIMULATION_PROFILES = (
+    _execution_simulation_profile(
+        execution_simulation_profile_id="route_preview_simulation_profile",
+        profile_name="Route Preview Simulation Profile",
+        simulation_scope="route_preview",
+        source_provider_selection_profile_ids=(
+            "current_config_provider_visibility_profile",
+        ),
+        source_hitl_decision_profile_ids=("hitl_visibility_decision_profile",),
+        source_auto_mode_profile_ids=("auto_mode_observe_only_profile",),
+        source_execution_profile_ids=("operator_selected_context_profile",),
+        route_applicability=tuple(RouteName),
+        simulated_inputs=(
+            "route_decision_metadata",
+            "current_provider_visibility_metadata",
+            "studio_inspection_summary",
+        ),
+        simulated_outputs=(
+            "route_preview_simulation_metadata",
+            "provider_visibility_snapshot",
+            "no_execution_notice",
+        ),
+        simulation_surface_refs=(
+            "execution_simulator_panel",
+            "provider_selection_panel",
+            "comparison_panel",
+        ),
+    ),
+    _execution_simulation_profile(
+        execution_simulation_profile_id="local_cloud_comparison_simulation_profile",
+        profile_name="Local Cloud Comparison Simulation Profile",
+        simulation_scope="local_cloud_comparison",
+        source_provider_selection_profile_ids=(
+            "local_candidate_provider_visibility_profile",
+            "cloud_candidate_provider_visibility_profile",
+        ),
+        source_hitl_decision_profile_ids=("hitl_risk_review_decision_profile",),
+        source_auto_mode_profile_ids=("auto_mode_simulation_profile",),
+        source_execution_profile_ids=("side_by_side_comparison_profile",),
+        route_applicability=(
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        simulated_inputs=(
+            "local_candidate_visibility_metadata",
+            "cloud_candidate_visibility_metadata",
+            "comparison_view_metadata",
+        ),
+        simulated_outputs=(
+            "local_cloud_comparison_simulation_metadata",
+            "side_by_side_non_execution_plan",
+            "manual_review_context",
+        ),
+        simulation_surface_refs=(
+            "execution_simulator_panel",
+            "hybrid_execution_panel",
+            "comparison_panel",
+        ),
+    ),
+    _execution_simulation_profile(
+        execution_simulation_profile_id="hitl_review_simulation_profile",
+        profile_name="HITL Review Simulation Profile",
+        simulation_scope="hitl_review",
+        source_provider_selection_profile_ids=(
+            "operator_override_provider_visibility_profile",
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_confirmation_decision_profile",
+            "hitl_final_review_decision_profile",
+        ),
+        source_auto_mode_profile_ids=("auto_mode_operator_confirmed_profile",),
+        source_execution_profile_ids=tuple(
+            HYBRID_EXECUTION_REGISTRY.execution_profile_ids
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        simulated_inputs=(
+            "operator_override_visibility_metadata",
+            "confirmation_recommended_metadata",
+            "final_review_recommended_metadata",
+        ),
+        simulated_outputs=(
+            "hitl_review_simulation_metadata",
+            "manual_signoff_context",
+            "no_human_request_notice",
+        ),
+        simulation_surface_refs=(
+            "execution_simulator_panel",
+            "hitl_decision_panel",
+            "provider_selection_panel",
+        ),
+    ),
+    _execution_simulation_profile(
+        execution_simulation_profile_id="provider_selection_simulation_profile",
+        profile_name="Provider Selection Simulation Profile",
+        simulation_scope="provider_selection",
+        source_provider_selection_profile_ids=tuple(
+            PROVIDER_SELECTION_REGISTRY.provider_selection_profile_ids
+        ),
+        source_hitl_decision_profile_ids=(
+            "hitl_visibility_decision_profile",
+            "hitl_confirmation_decision_profile",
+        ),
+        source_auto_mode_profile_ids=(
+            "auto_mode_suggestion_profile",
+            "auto_mode_operator_confirmed_profile",
+        ),
+        source_execution_profile_ids=tuple(
+            HYBRID_EXECUTION_REGISTRY.execution_profile_ids
+        ),
+        route_applicability=tuple(RouteName),
+        simulated_inputs=(
+            "provider_candidate_visibility_metadata",
+            "manual_selection_boundary_notice",
+            "auto_mode_suggestion_metadata",
+        ),
+        simulated_outputs=(
+            "provider_selection_simulation_metadata",
+            "candidate_selection_plan_metadata",
+            "no_provider_switch_notice",
+        ),
+        simulation_surface_refs=tuple(_EXECUTION_SIMULATOR_SURFACES),
+    ),
+)
+
+EXECUTION_SIMULATOR_REGISTRY = ExecutionSimulatorRegistry(
+    simulation_profiles=EXECUTION_SIMULATION_PROFILES,
+    execution_simulation_profile_ids=tuple(
+        profile.execution_simulation_profile_id
+        for profile in EXECUTION_SIMULATION_PROFILES
+    ),
+    simulation_scopes=tuple(
+        profile.simulation_scope for profile in EXECUTION_SIMULATION_PROFILES
+    ),
+    provider_selection_profile_ids=tuple(
+        PROVIDER_SELECTION_REGISTRY.provider_selection_profile_ids
+    ),
+    hitl_decision_profile_ids=tuple(HITL_DECISION_REGISTRY.hitl_decision_profile_ids),
+    auto_mode_profile_ids=tuple(AUTO_MODE_REGISTRY.auto_mode_profile_ids),
+    execution_profile_ids=tuple(HYBRID_EXECUTION_REGISTRY.execution_profile_ids),
+    simulation_surface_refs=_EXECUTION_SIMULATOR_SURFACES,
+    route_names=tuple(RouteName),
+    profile_count=len(EXECUTION_SIMULATION_PROFILES),
+    source_registries=_EXECUTION_SIMULATOR_SOURCE_REGISTRIES,
+    observability_surfaces=_EXECUTION_SIMULATOR_OBSERVABILITY_SURFACES,
+)
