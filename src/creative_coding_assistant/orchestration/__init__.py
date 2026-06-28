@@ -224,6 +224,9 @@ _CLARIFICATION = "creative_coding_assistant.orchestration.clarification"
 _EVENTS = "creative_coding_assistant.orchestration.events"
 _GEN = "creative_coding_assistant.orchestration.generation"
 _MEM = "creative_coding_assistant.orchestration.memory"
+_MEMORY_SUMMARIZATION = (
+    "creative_coding_assistant.orchestration.memory_summarization"
+)
 _PROMPT_INPUTS = "creative_coding_assistant.orchestration.prompt_inputs"
 _PROMPT_COMPRESSION = "creative_coding_assistant.orchestration.prompt_compression"
 _PROMPT_TEMPLATES = "creative_coding_assistant.orchestration.prompt_templates"
@@ -1149,6 +1152,8 @@ _EXPORT_MAP = {
     "MemoryContextResponse": _MEM,
     "MemoryContextSource": _MEM,
     "MemoryGateway": _MEM,
+    "MemorySummarizationResult": _MEMORY_SUMMARIZATION,
+    "MemorySummarySegment": _MEMORY_SUMMARIZATION,
     "OrchestrationContextAssembler": _CTX,
     "ProjectMemoryContext": _MEM,
     "PromptConversationTurnInput": _PROMPT_INPUTS,
@@ -1349,6 +1354,8 @@ _EXPORT_MAP = {
     "extract_workflow_artifacts": _ARTIFACTS,
     "fail_workflow": _WORKFLOW,
     "finish_workflow": _WORKFLOW,
+    "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
+    "memory_summary_segments_for_kind": _MEMORY_SUMMARIZATION,
     "next_workflow_step": _WORKFLOW,
     "prepare_workflow_preview_results": _ARTIFACTS,
     "plan_context_budget": _CONTEXT_BUDGET_PLANNER,
@@ -1364,6 +1371,7 @@ _EXPORT_MAP = {
     "review_assistant_answer": _WORKFLOW_REVIEW,
     "route_context_sources": _CONTEXT_ROUTER,
     "route_request": _ROUTING,
+    "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
     "shader_preset_prompt_lines": _SHADER_PRESETS,
     "visual_style_prompt_lines": _VISUAL_STYLES,
