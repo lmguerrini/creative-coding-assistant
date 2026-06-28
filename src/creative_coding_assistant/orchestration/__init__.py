@@ -96,6 +96,7 @@ _ESCALATION_POLICY = (
 _HYBRID_AGENTIC_WORKFLOW = (
     "creative_coding_assistant.orchestration.hybrid_agentic_workflow"
 )
+_HYBRID_STUDIO = "creative_coding_assistant.orchestration.hybrid_studio"
 _ENGINE_CONTRACT_CONSISTENCY = (
     "creative_coding_assistant.orchestration.engine_contract_consistency"
 )
@@ -367,6 +368,13 @@ _EXPORT_MAP = {
     "HybridAgentVotingRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "HybridAgenticWorkflowRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "HybridAgenticWorkflowStage": _HYBRID_AGENTIC_WORKFLOW,
+    "LocalModelCapabilityBand": _HYBRID_STUDIO,
+    "LocalModelContextWindowBand": _HYBRID_STUDIO,
+    "LocalModelExecutionSurface": _HYBRID_STUDIO,
+    "LocalModelLatencyPosture": _HYBRID_STUDIO,
+    "LocalModelRegistry": _HYBRID_STUDIO,
+    "LocalModelRuntimeKind": _HYBRID_STUDIO,
+    "LocalModelSurface": _HYBRID_STUDIO,
     "QualityEscalationProfile": _HYBRID_AGENTIC_WORKFLOW,
     "QualityEscalationRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "ReflectionEscalationProfile": _HYBRID_AGENTIC_WORKFLOW,
@@ -417,6 +425,9 @@ _EXPORT_MAP = {
     "hybrid_agent_voting_registry": _HYBRID_AGENTIC_WORKFLOW,
     "hybrid_agentic_workflow_registry": _HYBRID_AGENTIC_WORKFLOW,
     "hybrid_agentic_workflow_stage_by_id": _HYBRID_AGENTIC_WORKFLOW,
+    "local_model_registry": _HYBRID_STUDIO,
+    "local_model_surface_by_id": _HYBRID_STUDIO,
+    "local_model_surfaces_for_runtime": _HYBRID_STUDIO,
     "reflection_escalation_profile_by_id": _HYBRID_AGENTIC_WORKFLOW,
     "reflection_escalation_registry": _HYBRID_AGENTIC_WORKFLOW,
     "result_normalization_profile_by_id": _HYBRID_AGENTIC_WORKFLOW,
