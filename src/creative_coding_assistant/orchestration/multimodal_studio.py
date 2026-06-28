@@ -155,6 +155,18 @@ BranchingTimelineSurfaceKind = Literal[
     "review_retry",
     "fallback_failure",
 ]
+CreativeEvolutionTimelineProfileKind = Literal[
+    "intent_evolution_timeline",
+    "artifact_iteration_evolution_timeline",
+    "quality_refinement_evolution_timeline",
+    "final_synthesis_evolution_timeline",
+]
+CreativeEvolutionTimelineSurfaceKind = Literal[
+    "intent_evolution",
+    "artifact_iteration",
+    "quality_refinement",
+    "final_synthesis",
+]
 
 LIVE_PREVIEW_PROFILE_SERIALIZATION_VERSION = "multimodal_live_preview_profile.v1"
 LIVE_PREVIEW_REGISTRY_SERIALIZATION_VERSION = "multimodal_live_preview_registry.v1"
@@ -219,6 +231,12 @@ BRANCHING_TIMELINE_PROFILE_SERIALIZATION_VERSION = (
 )
 BRANCHING_TIMELINE_REGISTRY_SERIALIZATION_VERSION = (
     "multimodal_branching_timeline_registry.v1"
+)
+CREATIVE_EVOLUTION_TIMELINE_PROFILE_SERIALIZATION_VERSION = (
+    "multimodal_creative_evolution_timeline_profile.v1"
+)
+CREATIVE_EVOLUTION_TIMELINE_REGISTRY_SERIALIZATION_VERSION = (
+    "multimodal_creative_evolution_timeline_registry.v1"
 )
 LIVE_PREVIEW_AUTHORITY_BOUNDARY = (
     "Live Preview metadata describes passive V4.5 Multimodal Studio surfaces "
@@ -313,6 +331,15 @@ BRANCHING_TIMELINE_AUTHORITY_BOUNDARY = (
     "workspace state, mutate artifacts, persist branch storage, execute "
     "rendering, request human input, route providers or models, open "
     "networking, or modify generated output."
+)
+CREATIVE_EVOLUTION_TIMELINE_AUTHORITY_BOUNDARY = (
+    "Creative Evolution Timeline metadata describes passive V4.5 Multimodal "
+    "Studio evolution timeline surfaces for inspection only; it does not "
+    "generate creative evolution, reconstruct timelines, create branches, "
+    "mutate artifacts, modify generated output, change quality scores, record "
+    "provenance, replay runtime events, control workflows, request human "
+    "input, route providers or models, trigger retries, open networking, or "
+    "execute rendering."
 )
 
 _LIVE_PREVIEW_SOURCE_REGISTRIES = (
@@ -989,6 +1016,67 @@ _BRANCHING_TIMELINE_BLOCKED_RUNTIME_BEHAVIORS = (
     "human_input_request",
     "provider_or_model_routing",
     "networking",
+)
+
+_CREATIVE_EVOLUTION_TIMELINE_SOURCE_REGISTRIES = (
+    "multimodal_branching_timeline_registry",
+    "multimodal_workspace_history_registry",
+    "multimodal_shared_artifact_board_registry",
+    "multimodal_artifact_lineage_registry",
+    "multimodal_artifact_provenance_registry",
+    "nextjs_creative_timeline",
+    "nextjs_workflow_explorer",
+    "nextjs_workstation_shell",
+)
+
+_CREATIVE_EVOLUTION_TIMELINE_SOURCE_REFERENCES = (
+    "multimodal_studio.MULTIMODAL_BRANCHING_TIMELINE_REGISTRY",
+    "multimodal_studio.MULTIMODAL_WORKSPACE_HISTORY_REGISTRY",
+    "multimodal_studio.MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY",
+    "multimodal_studio.MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY",
+    "multimodal_studio.MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY",
+    "clients.nextjs.creative_timeline.buildCreativeTimelineModel",
+    "clients.nextjs.creative_timeline.CreativeTimelineEvent",
+    "clients.nextjs.creative_timeline.provenanceSourceCount",
+    "clients.nextjs.workflow_explorer.WorkflowExplorerStage",
+    "clients.nextjs.workstation_shell.WorkstationShell",
+)
+
+_CREATIVE_EVOLUTION_TIMELINE_SURFACES = (
+    "creative_evolution_timeline_panel",
+    "intent_evolution_surface",
+    "artifact_iteration_evolution_surface",
+    "quality_refinement_evolution_surface",
+    "final_synthesis_evolution_surface",
+    "evolution_summary_surface",
+    "creative_evolution_boundary_panel",
+)
+
+_CREATIVE_EVOLUTION_TIMELINE_OBSERVABILITY_SURFACES = (
+    "profile_id",
+    "evolution_profile_kind",
+    "evolution_surface_kind",
+    "source_branching_timeline_profile_ids",
+    "source_workspace_history_profile_ids",
+    "source_reference_ids",
+    "authority_boundary",
+)
+
+_CREATIVE_EVOLUTION_TIMELINE_BLOCKED_RUNTIME_BEHAVIORS = (
+    "evolution_generation",
+    "timeline_reconstruction",
+    "branch_creation",
+    "artifact_mutation",
+    "generated_output_mutation",
+    "quality_score_mutation",
+    "provenance_recording",
+    "runtime_event_replay",
+    "workflow_control",
+    "human_input_request",
+    "provider_or_model_routing",
+    "retry_triggering",
+    "networking",
+    "rendering_execution",
 )
 
 
@@ -7171,4 +7259,653 @@ MULTIMODAL_BRANCHING_TIMELINE_REGISTRY = MultimodalBranchingTimelineRegistry(
     source_reference_ids=_BRANCHING_TIMELINE_SOURCE_REFERENCES,
     branching_timeline_surface_refs=_BRANCHING_TIMELINE_SURFACES,
     observability_surfaces=_BRANCHING_TIMELINE_OBSERVABILITY_SURFACES,
+)
+
+
+class CreativeEvolutionTimelineProfile(BaseModel):
+    """Inspectable metadata for one passive Creative Evolution Timeline surface."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    profile_id: str = Field(min_length=1, max_length=150)
+    profile_name: str = Field(min_length=1, max_length=170)
+    evolution_profile_kind: CreativeEvolutionTimelineProfileKind
+    evolution_surface_kind: CreativeEvolutionTimelineSurfaceKind
+    source_branching_timeline_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_workspace_history_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_shared_artifact_board_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_artifact_lineage_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_artifact_provenance_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    evolution_context_fields: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_reference_ids: tuple[str, ...] = Field(min_length=1, max_length=10)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    creative_evolution_surfaces: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=7,
+    )
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=CREATIVE_EVOLUTION_TIMELINE_AUTHORITY_BOUNDARY,
+        max_length=1300,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_CREATIVE_EVOLUTION_TIMELINE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=14,
+    )
+    evolution_generation_implemented: Literal[False] = False
+    timeline_reconstruction_implemented: Literal[False] = False
+    branch_creation_implemented: Literal[False] = False
+    artifact_mutation_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    quality_score_mutation_implemented: Literal[False] = False
+    provenance_recording_implemented: Literal[False] = False
+    runtime_event_replay_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    serialization_version: Literal[
+        "multimodal_creative_evolution_timeline_profile.v1"
+    ] = CREATIVE_EVOLUTION_TIMELINE_PROFILE_SERIALIZATION_VERSION
+    metadata_only: Literal[True] = True
+
+
+class MultimodalCreativeEvolutionTimelineRegistry(BaseModel):
+    """Stable passive registry for V4.5 Creative Evolution Timeline metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["multimodal_creative_evolution_timeline_registry"] = (
+        "multimodal_creative_evolution_timeline_registry"
+    )
+    serialization_version: Literal[
+        "multimodal_creative_evolution_timeline_registry.v1"
+    ] = CREATIVE_EVOLUTION_TIMELINE_REGISTRY_SERIALIZATION_VERSION
+    authority_boundary: str = Field(
+        default=CREATIVE_EVOLUTION_TIMELINE_AUTHORITY_BOUNDARY,
+        max_length=1300,
+    )
+    creative_evolution_timeline_profiles: tuple[
+        CreativeEvolutionTimelineProfile,
+        ...,
+    ] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    evolution_profile_kinds: tuple[
+        CreativeEvolutionTimelineProfileKind,
+        ...,
+    ] = Field(min_length=4, max_length=4)
+    evolution_surface_kinds: tuple[
+        CreativeEvolutionTimelineSurfaceKind,
+        ...,
+    ] = Field(min_length=4, max_length=4)
+    branching_timeline_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    workspace_history_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    shared_artifact_board_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    artifact_lineage_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    artifact_provenance_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    source_reference_ids: tuple[str, ...] = Field(min_length=10, max_length=10)
+    creative_evolution_surface_refs: tuple[str, ...] = Field(
+        min_length=7,
+        max_length=7,
+    )
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_CREATIVE_EVOLUTION_TIMELINE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=14,
+    )
+    evolution_generation_implemented: Literal[False] = False
+    timeline_reconstruction_implemented: Literal[False] = False
+    branch_creation_implemented: Literal[False] = False
+    artifact_mutation_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    quality_score_mutation_implemented: Literal[False] = False
+    provenance_recording_implemented: Literal[False] = False
+    runtime_event_replay_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.profile_id
+            for profile in self.creative_evolution_timeline_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("profile_ids must be unique")
+        if self.profile_ids != derived_profile_ids:
+            raise ValueError(
+                "profile_ids must match creative_evolution_timeline_profiles"
+            )
+        if self.profile_count != len(self.creative_evolution_timeline_profiles):
+            raise ValueError(
+                "profile_count must match creative_evolution_timeline_profiles"
+            )
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if (
+            self.branching_timeline_profile_ids
+            != MULTIMODAL_BRANCHING_TIMELINE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "branching_timeline_profile_ids must match Branching Timeline registry"
+            )
+        if (
+            self.workspace_history_profile_ids
+            != MULTIMODAL_WORKSPACE_HISTORY_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "workspace_history_profile_ids must match Workspace History registry"
+            )
+        if (
+            self.shared_artifact_board_profile_ids
+            != MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "shared_artifact_board_profile_ids must match Shared Artifact Board registry"
+            )
+        if (
+            self.artifact_lineage_profile_ids
+            != MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "artifact_lineage_profile_ids must match Artifact Lineage registry"
+            )
+        if (
+            self.artifact_provenance_profile_ids
+            != MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "artifact_provenance_profile_ids must match Artifact Provenance registry"
+            )
+        if self.evolution_profile_kinds != _ordered_unique(
+            profile.evolution_profile_kind
+            for profile in self.creative_evolution_timeline_profiles
+        ):
+            raise ValueError("evolution_profile_kinds must match profiles")
+        if self.evolution_surface_kinds != _ordered_unique(
+            profile.evolution_surface_kind
+            for profile in self.creative_evolution_timeline_profiles
+        ):
+            raise ValueError("evolution_surface_kinds must match profiles")
+
+        profile_source_references = {
+            source_reference
+            for profile in self.creative_evolution_timeline_profiles
+            for source_reference in profile.source_reference_ids
+        }
+        if set(self.source_reference_ids) != profile_source_references:
+            raise ValueError(
+                "source_reference_ids must match profile source references"
+            )
+
+        known_routes = set(self.route_names)
+        known_branching = set(self.branching_timeline_profile_ids)
+        known_history = set(self.workspace_history_profile_ids)
+        known_boards = set(self.shared_artifact_board_profile_ids)
+        known_lineage = set(self.artifact_lineage_profile_ids)
+        known_provenance = set(self.artifact_provenance_profile_ids)
+        known_surfaces = set(self.creative_evolution_surface_refs)
+        known_source_references = set(self.source_reference_ids)
+        for profile in self.creative_evolution_timeline_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must use known routes")
+            if not set(profile.source_branching_timeline_profile_ids).issubset(
+                known_branching
+            ):
+                raise ValueError(
+                    "source_branching_timeline_profile_ids must be known profiles"
+                )
+            if not set(profile.source_workspace_history_profile_ids).issubset(
+                known_history
+            ):
+                raise ValueError(
+                    "source_workspace_history_profile_ids must be known profiles"
+                )
+            if not set(profile.source_shared_artifact_board_profile_ids).issubset(
+                known_boards
+            ):
+                raise ValueError(
+                    "source_shared_artifact_board_profile_ids must be known profiles"
+                )
+            if not set(profile.source_artifact_lineage_profile_ids).issubset(
+                known_lineage
+            ):
+                raise ValueError(
+                    "source_artifact_lineage_profile_ids must be known profiles"
+                )
+            if not set(profile.source_artifact_provenance_profile_ids).issubset(
+                known_provenance
+            ):
+                raise ValueError(
+                    "source_artifact_provenance_profile_ids must be known profiles"
+                )
+            if not set(profile.creative_evolution_surfaces).issubset(known_surfaces):
+                raise ValueError("creative_evolution_surfaces must be known surfaces")
+            if not set(profile.source_reference_ids).issubset(
+                known_source_references
+            ):
+                raise ValueError(
+                    "source_reference_ids must be known registry references"
+                )
+        return self
+
+
+def multimodal_creative_evolution_timeline_registry() -> (
+    MultimodalCreativeEvolutionTimelineRegistry
+):
+    """Return passive V4.5 Creative Evolution Timeline metadata."""
+
+    return MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_REGISTRY
+
+
+def multimodal_creative_evolution_timeline_profile_by_id(
+    profile_id: str,
+    registry: MultimodalCreativeEvolutionTimelineRegistry | None = None,
+) -> CreativeEvolutionTimelineProfile | None:
+    """Return one Creative Evolution Timeline profile without generating evolution."""
+
+    source_registry = registry or MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_REGISTRY
+    normalized_profile_id = str(profile_id).strip()
+    for profile in source_registry.creative_evolution_timeline_profiles:
+        if profile.profile_id == normalized_profile_id:
+            return profile
+    return None
+
+
+def multimodal_creative_evolution_timeline_profiles_for_route(
+    route: RouteName | str,
+    registry: MultimodalCreativeEvolutionTimelineRegistry | None = None,
+) -> tuple[CreativeEvolutionTimelineProfile, ...]:
+    """Return passive Creative Evolution Timeline profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.creative_evolution_timeline_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def multimodal_creative_evolution_timeline_profiles_for_surface_kind(
+    surface_kind: CreativeEvolutionTimelineSurfaceKind | str,
+    registry: MultimodalCreativeEvolutionTimelineRegistry | None = None,
+) -> tuple[CreativeEvolutionTimelineProfile, ...]:
+    """Return Creative Evolution Timeline profiles for one passive surface kind."""
+
+    surface_value = str(surface_kind).strip()
+    source_registry = registry or MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.creative_evolution_timeline_profiles
+        if profile.evolution_surface_kind == surface_value
+    )
+
+
+def multimodal_creative_evolution_timeline_profiles_for_branching_timeline_profile(
+    branching_timeline_profile_id: str,
+    registry: MultimodalCreativeEvolutionTimelineRegistry | None = None,
+) -> tuple[CreativeEvolutionTimelineProfile, ...]:
+    """Return creative evolution profiles for one branching timeline profile."""
+
+    source_registry = registry or MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_REGISTRY
+    source_profile_id = str(branching_timeline_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.creative_evolution_timeline_profiles
+        if source_profile_id in profile.source_branching_timeline_profile_ids
+    )
+
+
+def _creative_evolution_timeline_profile(
+    *,
+    profile_id: str,
+    profile_name: str,
+    evolution_profile_kind: CreativeEvolutionTimelineProfileKind,
+    evolution_surface_kind: CreativeEvolutionTimelineSurfaceKind,
+    source_branching_timeline_profile_ids: tuple[str, ...],
+    source_workspace_history_profile_ids: tuple[str, ...],
+    source_shared_artifact_board_profile_ids: tuple[str, ...],
+    source_artifact_lineage_profile_ids: tuple[str, ...],
+    source_artifact_provenance_profile_ids: tuple[str, ...],
+    evolution_context_fields: tuple[str, ...],
+    source_reference_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    creative_evolution_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> CreativeEvolutionTimelineProfile:
+    return CreativeEvolutionTimelineProfile(
+        profile_id=profile_id,
+        profile_name=profile_name,
+        evolution_profile_kind=evolution_profile_kind,
+        evolution_surface_kind=evolution_surface_kind,
+        source_branching_timeline_profile_ids=(
+            source_branching_timeline_profile_ids
+        ),
+        source_workspace_history_profile_ids=source_workspace_history_profile_ids,
+        source_shared_artifact_board_profile_ids=(
+            source_shared_artifact_board_profile_ids
+        ),
+        source_artifact_lineage_profile_ids=source_artifact_lineage_profile_ids,
+        source_artifact_provenance_profile_ids=(
+            source_artifact_provenance_profile_ids
+        ),
+        evolution_context_fields=evolution_context_fields,
+        source_reference_ids=source_reference_ids,
+        route_applicability=route_applicability,
+        creative_evolution_surfaces=creative_evolution_surfaces,
+        advisory_outputs=advisory_outputs,
+        source_registries=_CREATIVE_EVOLUTION_TIMELINE_SOURCE_REGISTRIES,
+        observability_surfaces=(
+            _CREATIVE_EVOLUTION_TIMELINE_OBSERVABILITY_SURFACES
+        ),
+    )
+
+
+MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_PROFILES = (
+    _creative_evolution_timeline_profile(
+        profile_id="intent_creative_evolution_timeline",
+        profile_name="Intent Creative Evolution Timeline",
+        evolution_profile_kind="intent_evolution_timeline",
+        evolution_surface_kind="intent_evolution",
+        source_branching_timeline_profile_ids=("workflow_branching_timeline",),
+        source_workspace_history_profile_ids=(
+            "session_record_workspace_history",
+            "snapshot_workspace_history",
+        ),
+        source_shared_artifact_board_profile_ids=(
+            "selection_shared_artifact_board",
+        ),
+        source_artifact_lineage_profile_ids=(
+            "dependency_graph_artifact_lineage",
+            "source_transition_artifact_lineage",
+        ),
+        source_artifact_provenance_profile_ids=("evidence_artifact_provenance",),
+        evolution_context_fields=(
+            "request_intake",
+            "planning",
+            "retrieval",
+            "creative_intelligence",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_BRANCHING_TIMELINE_REGISTRY",
+            "multimodal_studio.MULTIMODAL_WORKSPACE_HISTORY_REGISTRY",
+            "clients.nextjs.creative_timeline.buildCreativeTimelineModel",
+            "clients.nextjs.creative_timeline.CreativeTimelineEvent",
+            "clients.nextjs.workflow_explorer.WorkflowExplorerStage",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.PREVIEW,
+        ),
+        creative_evolution_surfaces=(
+            "creative_evolution_timeline_panel",
+            "intent_evolution_surface",
+            "evolution_summary_surface",
+            "creative_evolution_boundary_panel",
+        ),
+        advisory_outputs=(
+            "intent_evolution_timeline_inventory",
+            "manual_intent_evolution_review_hint",
+            "no_evolution_generation_notice",
+        ),
+    ),
+    _creative_evolution_timeline_profile(
+        profile_id="artifact_iteration_creative_evolution_timeline",
+        profile_name="Artifact Iteration Creative Evolution Timeline",
+        evolution_profile_kind="artifact_iteration_evolution_timeline",
+        evolution_surface_kind="artifact_iteration",
+        source_branching_timeline_profile_ids=(
+            "artifact_variant_branching_timeline",
+            "workflow_branching_timeline",
+        ),
+        source_workspace_history_profile_ids=(
+            "artifact_board_workspace_history",
+        ),
+        source_shared_artifact_board_profile_ids=(
+            "selection_shared_artifact_board",
+            "comparison_shared_artifact_board",
+        ),
+        source_artifact_lineage_profile_ids=(
+            "dependency_graph_artifact_lineage",
+            "source_transition_artifact_lineage",
+        ),
+        source_artifact_provenance_profile_ids=(
+            "payload_artifact_provenance",
+            "evidence_artifact_provenance",
+        ),
+        evolution_context_fields=(
+            "artifact_intelligence",
+            "generative_design",
+            "activeArtifactId",
+            "comparison.rows",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY",
+            "multimodal_studio.MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY",
+            "clients.nextjs.creative_timeline.buildCreativeTimelineModel",
+            "clients.nextjs.creative_timeline.provenanceSourceCount",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        creative_evolution_surfaces=(
+            "creative_evolution_timeline_panel",
+            "artifact_iteration_evolution_surface",
+            "evolution_summary_surface",
+            "creative_evolution_boundary_panel",
+        ),
+        advisory_outputs=(
+            "artifact_iteration_evolution_inventory",
+            "manual_artifact_iteration_review_hint",
+            "no_artifact_mutation_notice",
+        ),
+    ),
+    _creative_evolution_timeline_profile(
+        profile_id="quality_refinement_creative_evolution_timeline",
+        profile_name="Quality Refinement Creative Evolution Timeline",
+        evolution_profile_kind="quality_refinement_evolution_timeline",
+        evolution_surface_kind="quality_refinement",
+        source_branching_timeline_profile_ids=(
+            "review_retry_branching_timeline",
+            "fallback_failure_branching_timeline",
+        ),
+        source_workspace_history_profile_ids=(
+            "runtime_event_workspace_history",
+            "snapshot_workspace_history",
+        ),
+        source_shared_artifact_board_profile_ids=(
+            "provenance_lineage_shared_artifact_board",
+            "handoff_refinement_shared_artifact_board",
+        ),
+        source_artifact_lineage_profile_ids=(
+            "timeline_stage_artifact_lineage",
+            "missing_artifact_lineage",
+        ),
+        source_artifact_provenance_profile_ids=(
+            "evaluation_artifact_provenance",
+            "missing_source_artifact_provenance",
+        ),
+        evolution_context_fields=(
+            "creative_evaluation",
+            "review_failed",
+            "refinement_requested",
+            "warningCount",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY",
+            "multimodal_studio.MULTIMODAL_BRANCHING_TIMELINE_REGISTRY",
+            "clients.nextjs.creative_timeline.CreativeTimelineEvent",
+            "clients.nextjs.workflow_explorer.WorkflowExplorerStage",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+        ),
+        route_applicability=(
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        creative_evolution_surfaces=(
+            "creative_evolution_timeline_panel",
+            "quality_refinement_evolution_surface",
+            "evolution_summary_surface",
+            "creative_evolution_boundary_panel",
+        ),
+        advisory_outputs=(
+            "quality_refinement_evolution_inventory",
+            "manual_quality_refinement_review_hint",
+            "no_quality_score_mutation_notice",
+        ),
+    ),
+    _creative_evolution_timeline_profile(
+        profile_id="final_synthesis_creative_evolution_timeline",
+        profile_name="Final Synthesis Creative Evolution Timeline",
+        evolution_profile_kind="final_synthesis_evolution_timeline",
+        evolution_surface_kind="final_synthesis",
+        source_branching_timeline_profile_ids=(
+            "workflow_branching_timeline",
+            "review_retry_branching_timeline",
+        ),
+        source_workspace_history_profile_ids=(
+            "session_record_workspace_history",
+            "runtime_event_workspace_history",
+        ),
+        source_shared_artifact_board_profile_ids=(
+            "handoff_refinement_shared_artifact_board",
+            "provenance_lineage_shared_artifact_board",
+        ),
+        source_artifact_lineage_profile_ids=(
+            "timeline_stage_artifact_lineage",
+            "source_transition_artifact_lineage",
+            "missing_artifact_lineage",
+        ),
+        source_artifact_provenance_profile_ids=(
+            "evaluation_artifact_provenance",
+            "payload_artifact_provenance",
+        ),
+        evolution_context_fields=(
+            "final_synthesis",
+            "final_payload",
+            "sourceCount",
+            "evolution_summary",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_WORKSPACE_HISTORY_REGISTRY",
+            "multimodal_studio.MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY",
+            "clients.nextjs.creative_timeline.buildCreativeTimelineModel",
+            "clients.nextjs.creative_timeline.provenanceSourceCount",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        creative_evolution_surfaces=(
+            "creative_evolution_timeline_panel",
+            "final_synthesis_evolution_surface",
+            "evolution_summary_surface",
+            "creative_evolution_boundary_panel",
+        ),
+        advisory_outputs=(
+            "final_synthesis_evolution_inventory",
+            "manual_final_synthesis_review_hint",
+            "no_timeline_reconstruction_notice",
+        ),
+    ),
+)
+
+MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_REGISTRY = (
+    MultimodalCreativeEvolutionTimelineRegistry(
+        creative_evolution_timeline_profiles=(
+            MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_PROFILES
+        ),
+        profile_ids=tuple(
+            profile.profile_id
+            for profile in MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_PROFILES
+        ),
+        evolution_profile_kinds=tuple(
+            profile.evolution_profile_kind
+            for profile in MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_PROFILES
+        ),
+        evolution_surface_kinds=tuple(
+            profile.evolution_surface_kind
+            for profile in MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_PROFILES
+        ),
+        branching_timeline_profile_ids=(
+            MULTIMODAL_BRANCHING_TIMELINE_REGISTRY.profile_ids
+        ),
+        workspace_history_profile_ids=(
+            MULTIMODAL_WORKSPACE_HISTORY_REGISTRY.profile_ids
+        ),
+        shared_artifact_board_profile_ids=(
+            MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY.profile_ids
+        ),
+        artifact_lineage_profile_ids=(
+            MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY.profile_ids
+        ),
+        artifact_provenance_profile_ids=(
+            MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY.profile_ids
+        ),
+        route_names=tuple(RouteName),
+        profile_count=len(MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_PROFILES),
+        source_registries=_CREATIVE_EVOLUTION_TIMELINE_SOURCE_REGISTRIES,
+        source_reference_ids=_CREATIVE_EVOLUTION_TIMELINE_SOURCE_REFERENCES,
+        creative_evolution_surface_refs=_CREATIVE_EVOLUTION_TIMELINE_SURFACES,
+        observability_surfaces=(
+            _CREATIVE_EVOLUTION_TIMELINE_OBSERVABILITY_SURFACES
+        ),
+    )
 )
