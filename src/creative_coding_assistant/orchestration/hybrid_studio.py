@@ -767,3 +767,393 @@ CLOUD_MODEL_REGISTRY = CloudModelRegistry(
     studio_surface_refs=_CLOUD_MODEL_STUDIO_SURFACES,
     observability_surfaces=_CLOUD_MODEL_OBSERVABILITY_SURFACES,
 )
+
+HybridExecutionStrategy = Literal[
+    "local_first_advisory",
+    "cloud_first_advisory",
+    "side_by_side_advisory",
+    "operator_selected_advisory",
+]
+
+HYBRID_EXECUTION_PROFILE_SERIALIZATION_VERSION = "hybrid_execution_profile.v1"
+HYBRID_EXECUTION_REGISTRY_SERIALIZATION_VERSION = "hybrid_execution_registry.v1"
+HYBRID_EXECUTION_REGISTRY_AUTHORITY_BOUNDARY = (
+    "Hybrid execution metadata describes passive advisory coordination between "
+    "local and cloud model surfaces for V4.4 Hybrid Studio inspection only; "
+    "it does not execute local or cloud providers, route providers or models, "
+    "run fallback, run parallel model calls, select models automatically, "
+    "trigger retries, mutate prompts, write replay storage, or modify "
+    "generated output."
+)
+
+_HYBRID_EXECUTION_SOURCE_REGISTRIES = (
+    "local_model_registry",
+    "cloud_model_registry",
+    "generation_provider_contract",
+    "agent_routing_registry",
+    "workflow_agent_handoff_registry",
+    "hybrid_agentic_workflow_registry",
+)
+
+_HYBRID_EXECUTION_STUDIO_SURFACES = (
+    "hybrid_execution_panel",
+    "provider_selection_metadata",
+    "execution_simulator_metadata",
+    "local_cloud_comparison_metadata",
+)
+
+_HYBRID_EXECUTION_OBSERVABILITY_SURFACES = (
+    "execution_profile_id",
+    "coordination_strategy",
+    "source_local_surface_ids",
+    "source_cloud_surface_ids",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_HYBRID_EXECUTION_BLOCKED_RUNTIME_BEHAVIORS = (
+    "hybrid_execution",
+    "local_provider_execution",
+    "cloud_provider_execution",
+    "provider_or_model_routing",
+    "parallel_model_execution",
+    "fallback_execution",
+    "automatic_model_selection",
+    "retry_or_refinement_triggering",
+    "prompt_mutation",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class HybridExecutionProfile(BaseModel):
+    """Inspectable advisory profile for local/cloud execution context."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    execution_profile_id: str = Field(min_length=1, max_length=100)
+    profile_name: str = Field(min_length=1, max_length=140)
+    coordination_strategy: HybridExecutionStrategy
+    source_local_surface_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_cloud_surface_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    decision_inputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    studio_surface_refs: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    authority_boundary: str = Field(
+        default=HYBRID_EXECUTION_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_HYBRID_EXECUTION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=14,
+    )
+    hybrid_execution_implemented: Literal[False] = False
+    local_provider_execution_implemented: Literal[False] = False
+    cloud_provider_execution_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    parallel_model_execution_implemented: Literal[False] = False
+    fallback_execution_implemented: Literal[False] = False
+    automatic_model_selection_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["hybrid_execution_profile.v1"] = (
+        HYBRID_EXECUTION_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class HybridExecutionRegistry(BaseModel):
+    """Stable passive registry for V4.4 Hybrid Studio execution metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["hybrid_execution_registry"] = "hybrid_execution_registry"
+    serialization_version: Literal["hybrid_execution_registry.v1"] = (
+        HYBRID_EXECUTION_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=HYBRID_EXECUTION_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1000,
+    )
+    execution_profiles: tuple[HybridExecutionProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    execution_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    coordination_strategies: tuple[HybridExecutionStrategy, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    local_surface_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    cloud_surface_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    studio_surface_refs: tuple[str, ...] = Field(min_length=4, max_length=4)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_HYBRID_EXECUTION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=14,
+    )
+    hybrid_execution_implemented: Literal[False] = False
+    local_provider_execution_implemented: Literal[False] = False
+    cloud_provider_execution_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    parallel_model_execution_implemented: Literal[False] = False
+    fallback_execution_implemented: Literal[False] = False
+    automatic_model_selection_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.execution_profile_id for profile in self.execution_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("execution_profile_ids must be unique")
+        if self.execution_profile_ids != derived_profile_ids:
+            raise ValueError("execution_profile_ids must match execution_profiles")
+        if self.profile_count != len(self.execution_profiles):
+            raise ValueError("profile_count must match execution_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.coordination_strategies != tuple(
+            profile.coordination_strategy for profile in self.execution_profiles
+        ):
+            raise ValueError("coordination_strategies must match execution_profiles")
+
+        known_routes = set(self.route_names)
+        known_local_surfaces = set(self.local_surface_ids)
+        known_cloud_surfaces = set(self.cloud_surface_ids)
+        known_studio_surfaces = set(self.studio_surface_refs)
+        profile_sources = {
+            source_registry
+            for profile in self.execution_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match hybrid execution sources")
+
+        for profile in self.execution_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.source_local_surface_ids).issubset(known_local_surfaces):
+                raise ValueError("source_local_surface_ids must be known local models")
+            if not set(profile.source_cloud_surface_ids).issubset(known_cloud_surfaces):
+                raise ValueError("source_cloud_surface_ids must be known cloud models")
+            if not set(profile.studio_surface_refs).issubset(known_studio_surfaces):
+                raise ValueError("studio_surface_refs must be known registry surfaces")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def hybrid_execution_registry() -> HybridExecutionRegistry:
+    """Return passive V4.4 Hybrid Studio execution metadata."""
+
+    return HYBRID_EXECUTION_REGISTRY
+
+
+def hybrid_execution_profile_by_id(
+    execution_profile_id: str,
+    registry: HybridExecutionRegistry | None = None,
+) -> HybridExecutionProfile | None:
+    """Return one hybrid execution profile without running it."""
+
+    source_registry = registry or HYBRID_EXECUTION_REGISTRY
+    for profile in source_registry.execution_profiles:
+        if profile.execution_profile_id == execution_profile_id:
+            return profile
+    return None
+
+
+def hybrid_execution_profiles_for_route(
+    route: RouteName | str,
+    registry: HybridExecutionRegistry | None = None,
+) -> tuple[HybridExecutionProfile, ...]:
+    """Return passive hybrid execution profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or HYBRID_EXECUTION_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.execution_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def _hybrid_execution_profile(
+    *,
+    execution_profile_id: str,
+    profile_name: str,
+    coordination_strategy: HybridExecutionStrategy,
+    source_local_surface_ids: tuple[str, ...],
+    source_cloud_surface_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    decision_inputs: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+    studio_surface_refs: tuple[str, ...],
+) -> HybridExecutionProfile:
+    return HybridExecutionProfile(
+        execution_profile_id=execution_profile_id,
+        profile_name=profile_name,
+        coordination_strategy=coordination_strategy,
+        source_local_surface_ids=source_local_surface_ids,
+        source_cloud_surface_ids=source_cloud_surface_ids,
+        route_applicability=route_applicability,
+        decision_inputs=decision_inputs,
+        advisory_outputs=advisory_outputs,
+        studio_surface_refs=studio_surface_refs,
+        source_registries=_HYBRID_EXECUTION_SOURCE_REGISTRIES,
+        observability_surfaces=_HYBRID_EXECUTION_OBSERVABILITY_SURFACES,
+    )
+
+
+HYBRID_EXECUTION_PROFILES = (
+    _hybrid_execution_profile(
+        execution_profile_id="local_first_context_profile",
+        profile_name="Local First Context Profile",
+        coordination_strategy="local_first_advisory",
+        source_local_surface_ids=(
+            "ollama_chat_surface",
+            "llama_cpp_completion_surface",
+        ),
+        source_cloud_surface_ids=("openai_generation_model_surface",),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DEBUG,
+            RouteName.PREVIEW,
+        ),
+        decision_inputs=(
+            "operator_local_preference_metadata",
+            "privacy_posture_metadata",
+            "local_readiness_metadata",
+        ),
+        advisory_outputs=(
+            "local_first_candidate_summary",
+            "cloud_context_backup_note",
+            "execution_boundary_notice",
+        ),
+        studio_surface_refs=(
+            "hybrid_execution_panel",
+            "provider_selection_metadata",
+            "local_cloud_comparison_metadata",
+        ),
+    ),
+    _hybrid_execution_profile(
+        execution_profile_id="cloud_first_context_profile",
+        profile_name="Cloud First Context Profile",
+        coordination_strategy="cloud_first_advisory",
+        source_local_surface_ids=("lm_studio_chat_surface",),
+        source_cloud_surface_ids=(
+            "openai_generation_model_surface",
+            "provider_reported_response_model_surface",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        decision_inputs=(
+            "operator_cloud_preference_metadata",
+            "provider_configuration_metadata",
+            "quality_expectation_metadata",
+        ),
+        advisory_outputs=(
+            "cloud_first_candidate_summary",
+            "local_context_review_note",
+            "execution_boundary_notice",
+        ),
+        studio_surface_refs=(
+            "hybrid_execution_panel",
+            "provider_selection_metadata",
+            "execution_simulator_metadata",
+        ),
+    ),
+    _hybrid_execution_profile(
+        execution_profile_id="side_by_side_comparison_profile",
+        profile_name="Side By Side Comparison Profile",
+        coordination_strategy="side_by_side_advisory",
+        source_local_surface_ids=(
+            "ollama_chat_surface",
+            "local_transformers_multimodal_surface",
+        ),
+        source_cloud_surface_ids=(
+            "openai_generation_model_surface",
+            "ragas_evaluator_model_surface",
+        ),
+        route_applicability=(
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        decision_inputs=(
+            "local_cloud_comparison_metadata",
+            "evaluation_context_metadata",
+            "operator_review_metadata",
+        ),
+        advisory_outputs=(
+            "side_by_side_candidate_summary",
+            "comparison_only_boundary_notice",
+            "manual_review_prompt_metadata",
+        ),
+        studio_surface_refs=(
+            "hybrid_execution_panel",
+            "execution_simulator_metadata",
+            "local_cloud_comparison_metadata",
+        ),
+    ),
+    _hybrid_execution_profile(
+        execution_profile_id="operator_selected_context_profile",
+        profile_name="Operator Selected Context Profile",
+        coordination_strategy="operator_selected_advisory",
+        source_local_surface_ids=tuple(LOCAL_MODEL_REGISTRY.surface_ids),
+        source_cloud_surface_ids=tuple(CLOUD_MODEL_REGISTRY.surface_ids),
+        route_applicability=tuple(RouteName),
+        decision_inputs=(
+            "explicit_operator_selection_metadata",
+            "model_catalog_metadata",
+            "provider_boundary_metadata",
+        ),
+        advisory_outputs=(
+            "operator_selected_candidate_summary",
+            "manual_selection_boundary_notice",
+            "no_automatic_execution_notice",
+        ),
+        studio_surface_refs=(
+            "hybrid_execution_panel",
+            "provider_selection_metadata",
+            "execution_simulator_metadata",
+            "local_cloud_comparison_metadata",
+        ),
+    ),
+)
+
+HYBRID_EXECUTION_REGISTRY = HybridExecutionRegistry(
+    execution_profiles=HYBRID_EXECUTION_PROFILES,
+    execution_profile_ids=tuple(
+        profile.execution_profile_id for profile in HYBRID_EXECUTION_PROFILES
+    ),
+    coordination_strategies=tuple(
+        profile.coordination_strategy for profile in HYBRID_EXECUTION_PROFILES
+    ),
+    local_surface_ids=tuple(LOCAL_MODEL_REGISTRY.surface_ids),
+    cloud_surface_ids=tuple(CLOUD_MODEL_REGISTRY.surface_ids),
+    route_names=tuple(RouteName),
+    profile_count=len(HYBRID_EXECUTION_PROFILES),
+    source_registries=_HYBRID_EXECUTION_SOURCE_REGISTRIES,
+    studio_surface_refs=_HYBRID_EXECUTION_STUDIO_SURFACES,
+    observability_surfaces=_HYBRID_EXECUTION_OBSERVABILITY_SURFACES,
+)
