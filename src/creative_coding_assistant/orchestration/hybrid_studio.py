@@ -4796,3 +4796,592 @@ QUALITY_PROFILE_REGISTRY = QualityProfileRegistry(
     source_registries=_QUALITY_PROFILE_SOURCE_REGISTRIES,
     observability_surfaces=_QUALITY_PROFILE_OBSERVABILITY_SURFACES,
 )
+
+LocalCloudComparisonKind = Literal[
+    "generation_route_comparison",
+    "creative_reasoning_comparison",
+    "code_review_comparison",
+    "evaluation_review_comparison",
+]
+
+LOCAL_CLOUD_COMPARISON_PROFILE_SERIALIZATION_VERSION = (
+    "local_cloud_comparison_profile.v1"
+)
+LOCAL_CLOUD_COMPARISON_REGISTRY_SERIALIZATION_VERSION = (
+    "local_cloud_comparison_registry.v1"
+)
+LOCAL_CLOUD_COMPARISON_REGISTRY_AUTHORITY_BOUNDARY = (
+    "Local/Cloud Comparison Layer metadata describes passive side-by-side "
+    "inspection context for local and cloud model surfaces in V4.4 Hybrid "
+    "Studio only; it does not execute local or cloud providers, run parallel "
+    "model calls, select comparison winners, route providers or models, score "
+    "cost or quality, run fallback, trigger retries, mutate prompts, write "
+    "replay storage, or modify generated output."
+)
+
+_LOCAL_CLOUD_COMPARISON_SOURCE_REGISTRIES = (
+    "local_model_registry",
+    "cloud_model_registry",
+    "hybrid_execution_registry",
+    "provider_selection_registry",
+    "execution_simulator_registry",
+    "model_profile_registry",
+    "cost_profile_registry",
+    "quality_profile_registry",
+)
+
+_LOCAL_CLOUD_COMPARISON_SURFACES = (
+    "local_cloud_comparison_panel",
+    "model_catalog_panel",
+    "provider_selection_panel",
+    "execution_simulator_panel",
+    "cost_profile_panel",
+    "quality_profile_panel",
+)
+
+_LOCAL_CLOUD_COMPARISON_OBSERVABILITY_SURFACES = (
+    "comparison_profile_id",
+    "comparison_kind",
+    "source_local_surface_ids",
+    "source_cloud_surface_ids",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_LOCAL_CLOUD_COMPARISON_BLOCKED_RUNTIME_BEHAVIORS = (
+    "comparison_runtime_execution",
+    "local_provider_execution",
+    "cloud_provider_execution",
+    "parallel_model_execution",
+    "provider_or_model_routing",
+    "model_selection",
+    "cost_scoring",
+    "quality_scoring",
+    "winner_selection",
+    "fallback_execution",
+    "retry_or_refinement_triggering",
+    "prompt_mutation",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class LocalCloudComparisonProfile(BaseModel):
+    """Inspectable passive local/cloud comparison profile."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    comparison_profile_id: str = Field(min_length=1, max_length=120)
+    profile_name: str = Field(min_length=1, max_length=150)
+    comparison_kind: LocalCloudComparisonKind
+    source_local_surface_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_cloud_surface_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_execution_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_provider_selection_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_execution_simulation_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_model_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_cost_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_quality_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    comparison_dimensions: tuple[str, ...] = Field(min_length=1, max_length=10)
+    comparison_inputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    comparison_surface_refs: tuple[str, ...] = Field(min_length=1, max_length=6)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    authority_boundary: str = Field(
+        default=LOCAL_CLOUD_COMPARISON_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1300,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_LOCAL_CLOUD_COMPARISON_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=18,
+    )
+    comparison_runtime_execution_implemented: Literal[False] = False
+    local_provider_execution_implemented: Literal[False] = False
+    cloud_provider_execution_implemented: Literal[False] = False
+    parallel_model_execution_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    model_selection_implemented: Literal[False] = False
+    cost_scoring_implemented: Literal[False] = False
+    quality_scoring_implemented: Literal[False] = False
+    winner_selection_implemented: Literal[False] = False
+    fallback_execution_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["local_cloud_comparison_profile.v1"] = (
+        LOCAL_CLOUD_COMPARISON_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class LocalCloudComparisonRegistry(BaseModel):
+    """Stable passive registry for V4.4 local/cloud comparison metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["local_cloud_comparison_registry"] = "local_cloud_comparison_registry"
+    serialization_version: Literal["local_cloud_comparison_registry.v1"] = (
+        LOCAL_CLOUD_COMPARISON_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=LOCAL_CLOUD_COMPARISON_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1300,
+    )
+    comparison_profiles: tuple[LocalCloudComparisonProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    comparison_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    comparison_kinds: tuple[LocalCloudComparisonKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    local_surface_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    cloud_surface_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    execution_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    provider_selection_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    execution_simulation_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    model_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    cost_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    quality_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    comparison_surface_refs: tuple[str, ...] = Field(min_length=6, max_length=6)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_LOCAL_CLOUD_COMPARISON_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=18,
+    )
+    comparison_runtime_execution_implemented: Literal[False] = False
+    local_provider_execution_implemented: Literal[False] = False
+    cloud_provider_execution_implemented: Literal[False] = False
+    parallel_model_execution_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    model_selection_implemented: Literal[False] = False
+    cost_scoring_implemented: Literal[False] = False
+    quality_scoring_implemented: Literal[False] = False
+    winner_selection_implemented: Literal[False] = False
+    fallback_execution_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.comparison_profile_id for profile in self.comparison_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("comparison_profile_ids must be unique")
+        if self.comparison_profile_ids != derived_profile_ids:
+            raise ValueError("comparison_profile_ids must match comparison_profiles")
+        if self.profile_count != len(self.comparison_profiles):
+            raise ValueError("profile_count must match comparison_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.comparison_kinds != tuple(
+            profile.comparison_kind for profile in self.comparison_profiles
+        ):
+            raise ValueError("comparison_kinds must match comparison_profiles")
+
+        known_routes = set(self.route_names)
+        known_local_surfaces = set(self.local_surface_ids)
+        known_cloud_surfaces = set(self.cloud_surface_ids)
+        known_execution_profiles = set(self.execution_profile_ids)
+        known_provider_profiles = set(self.provider_selection_profile_ids)
+        known_simulation_profiles = set(self.execution_simulation_profile_ids)
+        known_model_profiles = set(self.model_profile_ids)
+        known_cost_profiles = set(self.cost_profile_ids)
+        known_quality_profiles = set(self.quality_profile_ids)
+        known_comparison_surfaces = set(self.comparison_surface_refs)
+        profile_sources = {
+            source_registry
+            for profile in self.comparison_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match comparison sources")
+
+        for profile in self.comparison_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.source_local_surface_ids).issubset(known_local_surfaces):
+                raise ValueError("source_local_surface_ids must be known local models")
+            if not set(profile.source_cloud_surface_ids).issubset(known_cloud_surfaces):
+                raise ValueError("source_cloud_surface_ids must be known cloud models")
+            if not set(profile.source_execution_profile_ids).issubset(
+                known_execution_profiles
+            ):
+                raise ValueError("source_execution_profile_ids must be known profiles")
+            if not set(profile.source_provider_selection_profile_ids).issubset(
+                known_provider_profiles
+            ):
+                raise ValueError(
+                    "source_provider_selection_profile_ids must be known profiles"
+                )
+            if not set(profile.source_execution_simulation_profile_ids).issubset(
+                known_simulation_profiles
+            ):
+                raise ValueError(
+                    "source_execution_simulation_profile_ids must be known profiles"
+                )
+            if not set(profile.source_model_profile_ids).issubset(known_model_profiles):
+                raise ValueError("source_model_profile_ids must be known profiles")
+            if not set(profile.source_cost_profile_ids).issubset(known_cost_profiles):
+                raise ValueError("source_cost_profile_ids must be known profiles")
+            if not set(profile.source_quality_profile_ids).issubset(
+                known_quality_profiles
+            ):
+                raise ValueError("source_quality_profile_ids must be known profiles")
+            if not set(profile.comparison_surface_refs).issubset(
+                known_comparison_surfaces
+            ):
+                raise ValueError(
+                    "comparison_surface_refs must be known registry surfaces"
+                )
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def local_cloud_comparison_registry() -> LocalCloudComparisonRegistry:
+    """Return passive V4.4 Hybrid Studio local/cloud comparison metadata."""
+
+    return LOCAL_CLOUD_COMPARISON_REGISTRY
+
+
+def local_cloud_comparison_profile_by_id(
+    comparison_profile_id: str,
+    registry: LocalCloudComparisonRegistry | None = None,
+) -> LocalCloudComparisonProfile | None:
+    """Return one comparison profile without executing either side."""
+
+    source_registry = registry or LOCAL_CLOUD_COMPARISON_REGISTRY
+    for profile in source_registry.comparison_profiles:
+        if profile.comparison_profile_id == comparison_profile_id:
+            return profile
+    return None
+
+
+def local_cloud_comparison_profiles_for_route(
+    route: RouteName | str,
+    registry: LocalCloudComparisonRegistry | None = None,
+) -> tuple[LocalCloudComparisonProfile, ...]:
+    """Return passive comparison profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or LOCAL_CLOUD_COMPARISON_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.comparison_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def _local_cloud_comparison_profile(
+    *,
+    comparison_profile_id: str,
+    profile_name: str,
+    comparison_kind: LocalCloudComparisonKind,
+    source_local_surface_ids: tuple[str, ...],
+    source_cloud_surface_ids: tuple[str, ...],
+    source_execution_profile_ids: tuple[str, ...],
+    source_provider_selection_profile_ids: tuple[str, ...],
+    source_execution_simulation_profile_ids: tuple[str, ...],
+    source_model_profile_ids: tuple[str, ...],
+    source_cost_profile_ids: tuple[str, ...],
+    source_quality_profile_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    comparison_dimensions: tuple[str, ...],
+    comparison_inputs: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+    comparison_surface_refs: tuple[str, ...],
+) -> LocalCloudComparisonProfile:
+    return LocalCloudComparisonProfile(
+        comparison_profile_id=comparison_profile_id,
+        profile_name=profile_name,
+        comparison_kind=comparison_kind,
+        source_local_surface_ids=source_local_surface_ids,
+        source_cloud_surface_ids=source_cloud_surface_ids,
+        source_execution_profile_ids=source_execution_profile_ids,
+        source_provider_selection_profile_ids=source_provider_selection_profile_ids,
+        source_execution_simulation_profile_ids=(
+            source_execution_simulation_profile_ids
+        ),
+        source_model_profile_ids=source_model_profile_ids,
+        source_cost_profile_ids=source_cost_profile_ids,
+        source_quality_profile_ids=source_quality_profile_ids,
+        route_applicability=route_applicability,
+        comparison_dimensions=comparison_dimensions,
+        comparison_inputs=comparison_inputs,
+        advisory_outputs=advisory_outputs,
+        comparison_surface_refs=comparison_surface_refs,
+        source_registries=_LOCAL_CLOUD_COMPARISON_SOURCE_REGISTRIES,
+        observability_surfaces=_LOCAL_CLOUD_COMPARISON_OBSERVABILITY_SURFACES,
+    )
+
+
+LOCAL_CLOUD_COMPARISON_SURFACES = (
+    "local_cloud_comparison_panel",
+    "model_catalog_panel",
+    "provider_selection_panel",
+    "execution_simulator_panel",
+    "cost_profile_panel",
+    "quality_profile_panel",
+)
+
+LOCAL_CLOUD_COMPARISON_PROFILES = (
+    _local_cloud_comparison_profile(
+        comparison_profile_id="generation_route_comparison_profile",
+        profile_name="Generation Route Comparison Profile",
+        comparison_kind="generation_route_comparison",
+        source_local_surface_ids=(
+            "ollama_chat_surface",
+            "llama_cpp_completion_surface",
+        ),
+        source_cloud_surface_ids=("openai_generation_model_surface",),
+        source_execution_profile_ids=(
+            "local_first_context_profile",
+            "side_by_side_comparison_profile",
+        ),
+        source_provider_selection_profile_ids=(
+            "current_config_provider_visibility_profile",
+            "local_candidate_provider_visibility_profile",
+            "cloud_candidate_provider_visibility_profile",
+        ),
+        source_execution_simulation_profile_ids=(
+            "route_preview_simulation_profile",
+            "provider_selection_simulation_profile",
+        ),
+        source_model_profile_ids=(
+            "fast_iteration_model_profile",
+            "code_assistance_model_profile",
+        ),
+        source_cost_profile_ids=("planning_iteration_cost_profile",),
+        source_quality_profile_ids=("planning_quality_profile",),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DEBUG,
+            RouteName.PREVIEW,
+        ),
+        comparison_dimensions=(
+            "route_fit_metadata",
+            "latency_cost_posture_metadata",
+            "provider_boundary_visibility",
+        ),
+        comparison_inputs=(
+            "local_candidate_visibility_metadata",
+            "cloud_candidate_visibility_metadata",
+            "planning_quality_review_context",
+        ),
+        advisory_outputs=(
+            "generation_route_comparison_context",
+            "manual_route_comparison_hint",
+            "no_winner_selection_notice",
+        ),
+        comparison_surface_refs=(
+            "local_cloud_comparison_panel",
+            "model_catalog_panel",
+            "provider_selection_panel",
+        ),
+    ),
+    _local_cloud_comparison_profile(
+        comparison_profile_id="creative_reasoning_comparison_profile",
+        profile_name="Creative Reasoning Comparison Profile",
+        comparison_kind="creative_reasoning_comparison",
+        source_local_surface_ids=("lm_studio_chat_surface",),
+        source_cloud_surface_ids=("openai_generation_model_surface",),
+        source_execution_profile_ids=(
+            "cloud_first_context_profile",
+            "side_by_side_comparison_profile",
+        ),
+        source_provider_selection_profile_ids=(
+            "local_candidate_provider_visibility_profile",
+            "cloud_candidate_provider_visibility_profile",
+            "operator_override_provider_visibility_profile",
+        ),
+        source_execution_simulation_profile_ids=(
+            "local_cloud_comparison_simulation_profile",
+            "provider_selection_simulation_profile",
+        ),
+        source_model_profile_ids=("creative_reasoning_model_profile",),
+        source_cost_profile_ids=("creative_reasoning_cost_profile",),
+        source_quality_profile_ids=("creative_quality_profile",),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        comparison_dimensions=(
+            "creative_reasoning_metadata",
+            "context_window_metadata",
+            "quality_cost_visibility",
+        ),
+        comparison_inputs=(
+            "creative_reasoning_capability_profile",
+            "creative_reasoning_cost_context",
+            "creative_quality_review_context",
+        ),
+        advisory_outputs=(
+            "creative_reasoning_comparison_context",
+            "manual_creative_comparison_hint",
+            "no_parallel_execution_notice",
+        ),
+        comparison_surface_refs=(
+            "local_cloud_comparison_panel",
+            "execution_simulator_panel",
+            "quality_profile_panel",
+        ),
+    ),
+    _local_cloud_comparison_profile(
+        comparison_profile_id="code_review_comparison_profile",
+        profile_name="Code Review Comparison Profile",
+        comparison_kind="code_review_comparison",
+        source_local_surface_ids=("llama_cpp_completion_surface",),
+        source_cloud_surface_ids=(
+            "openai_generation_model_surface",
+            "provider_reported_response_model_surface",
+        ),
+        source_execution_profile_ids=(
+            "local_first_context_profile",
+            "side_by_side_comparison_profile",
+        ),
+        source_provider_selection_profile_ids=(
+            "local_candidate_provider_visibility_profile",
+            "cloud_candidate_provider_visibility_profile",
+            "operator_override_provider_visibility_profile",
+        ),
+        source_execution_simulation_profile_ids=(
+            "local_cloud_comparison_simulation_profile",
+            "hitl_review_simulation_profile",
+        ),
+        source_model_profile_ids=("code_assistance_model_profile",),
+        source_cost_profile_ids=("curation_refinement_cost_profile",),
+        source_quality_profile_ids=("refinement_quality_profile",),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        comparison_dimensions=(
+            "code_context_metadata",
+            "runtime_diagnostic_metadata",
+            "review_quality_visibility",
+        ),
+        comparison_inputs=(
+            "code_assistance_capability_profile",
+            "curation_refinement_cost_context",
+            "refinement_quality_review_context",
+        ),
+        advisory_outputs=(
+            "code_review_comparison_context",
+            "manual_debug_comparison_hint",
+            "no_provider_execution_notice",
+        ),
+        comparison_surface_refs=(
+            "local_cloud_comparison_panel",
+            "cost_profile_panel",
+            "quality_profile_panel",
+        ),
+    ),
+    _local_cloud_comparison_profile(
+        comparison_profile_id="evaluation_review_comparison_profile",
+        profile_name="Evaluation Review Comparison Profile",
+        comparison_kind="evaluation_review_comparison",
+        source_local_surface_ids=("local_transformers_multimodal_surface",),
+        source_cloud_surface_ids=(
+            "ragas_evaluator_model_surface",
+            "provider_reported_response_model_surface",
+        ),
+        source_execution_profile_ids=(
+            "side_by_side_comparison_profile",
+            "operator_selected_context_profile",
+        ),
+        source_provider_selection_profile_ids=(
+            "cloud_candidate_provider_visibility_profile",
+            "operator_override_provider_visibility_profile",
+        ),
+        source_execution_simulation_profile_ids=(
+            "local_cloud_comparison_simulation_profile",
+            "hitl_review_simulation_profile",
+        ),
+        source_model_profile_ids=("evaluation_review_model_profile",),
+        source_cost_profile_ids=("final_review_cost_profile",),
+        source_quality_profile_ids=("final_review_quality_profile",),
+        route_applicability=(
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        comparison_dimensions=(
+            "evaluation_review_metadata",
+            "provider_response_metadata",
+            "human_review_visibility",
+        ),
+        comparison_inputs=(
+            "evaluation_review_capability_profile",
+            "final_review_cost_context",
+            "final_review_quality_context",
+        ),
+        advisory_outputs=(
+            "evaluation_review_comparison_context",
+            "manual_evaluation_comparison_hint",
+            "no_evaluator_call_notice",
+        ),
+        comparison_surface_refs=(
+            "local_cloud_comparison_panel",
+            "execution_simulator_panel",
+            "quality_profile_panel",
+        ),
+    ),
+)
+
+LOCAL_CLOUD_COMPARISON_REGISTRY = LocalCloudComparisonRegistry(
+    comparison_profiles=LOCAL_CLOUD_COMPARISON_PROFILES,
+    comparison_profile_ids=tuple(
+        profile.comparison_profile_id for profile in LOCAL_CLOUD_COMPARISON_PROFILES
+    ),
+    comparison_kinds=tuple(
+        profile.comparison_kind for profile in LOCAL_CLOUD_COMPARISON_PROFILES
+    ),
+    local_surface_ids=tuple(LOCAL_MODEL_REGISTRY.surface_ids),
+    cloud_surface_ids=tuple(CLOUD_MODEL_REGISTRY.surface_ids),
+    execution_profile_ids=tuple(HYBRID_EXECUTION_REGISTRY.execution_profile_ids),
+    provider_selection_profile_ids=tuple(
+        PROVIDER_SELECTION_REGISTRY.provider_selection_profile_ids
+    ),
+    execution_simulation_profile_ids=tuple(
+        EXECUTION_SIMULATOR_REGISTRY.execution_simulation_profile_ids
+    ),
+    model_profile_ids=tuple(MODEL_PROFILE_REGISTRY.model_profile_ids),
+    cost_profile_ids=tuple(COST_PROFILE_REGISTRY.cost_profile_ids),
+    quality_profile_ids=tuple(QUALITY_PROFILE_REGISTRY.quality_profile_ids),
+    comparison_surface_refs=LOCAL_CLOUD_COMPARISON_SURFACES,
+    route_names=tuple(RouteName),
+    profile_count=len(LOCAL_CLOUD_COMPARISON_PROFILES),
+    source_registries=_LOCAL_CLOUD_COMPARISON_SOURCE_REGISTRIES,
+    observability_surfaces=_LOCAL_CLOUD_COMPARISON_OBSERVABILITY_SURFACES,
+)
