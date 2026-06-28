@@ -390,6 +390,9 @@ _EXPORT_MAP = {
     "HybridStudioIntegrationKind": _HYBRID_STUDIO,
     "HybridStudioIntegrationProfile": _HYBRID_STUDIO,
     "HybridStudioIntegrationRegistry": _HYBRID_STUDIO,
+    "ArtifactCollaborationProfile": _MULTIMODAL_STUDIO,
+    "ArtifactCollaborationProfileKind": _MULTIMODAL_STUDIO,
+    "ArtifactCollaborationSurfaceKind": _MULTIMODAL_STUDIO,
     "InteractiveCanvasProfile": _MULTIMODAL_STUDIO,
     "InteractiveCanvasProfileKind": _MULTIMODAL_STUDIO,
     "InteractiveCanvasSurfaceKind": _MULTIMODAL_STUDIO,
@@ -399,6 +402,7 @@ _EXPORT_MAP = {
     "MultiPreviewOutputKind": _MULTIMODAL_STUDIO,
     "MultiPreviewProfile": _MULTIMODAL_STUDIO,
     "MultiPreviewProfileKind": _MULTIMODAL_STUDIO,
+    "MultimodalArtifactCollaborationRegistry": _MULTIMODAL_STUDIO,
     "MultimodalInteractiveCanvasRegistry": _MULTIMODAL_STUDIO,
     "MultimodalLivePreviewRegistry": _MULTIMODAL_STUDIO,
     "MultimodalMultiPreviewRegistry": _MULTIMODAL_STUDIO,
@@ -555,6 +559,15 @@ _EXPORT_MAP = {
     "model_profile_by_id": _HYBRID_STUDIO,
     "model_profile_registry": _HYBRID_STUDIO,
     "model_profiles_for_route": _HYBRID_STUDIO,
+    "multimodal_artifact_collaboration_profile_by_id": _MULTIMODAL_STUDIO,
+    "multimodal_artifact_collaboration_profiles_for_route": _MULTIMODAL_STUDIO,
+    "multimodal_artifact_collaboration_profiles_for_surface_kind": (
+        _MULTIMODAL_STUDIO
+    ),
+    "multimodal_artifact_collaboration_profiles_for_workspace_profile": (
+        _MULTIMODAL_STUDIO
+    ),
+    "multimodal_artifact_collaboration_registry": _MULTIMODAL_STUDIO,
     "multimodal_interactive_canvas_profile_by_id": _MULTIMODAL_STUDIO,
     "multimodal_interactive_canvas_profiles_for_live_preview_profile": (
         _MULTIMODAL_STUDIO
