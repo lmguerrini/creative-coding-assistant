@@ -14,7 +14,7 @@
 ## Persistence
 
 Chroma remains the only persistent retrieval and memory database. Passive V4.1,
-V4.2, V4.3, and V4.4 registries do not create storage backends, write
+V4.2, V4.3, V4.4, and V4.5 registries do not create storage backends, write
 blackboard state, write replay storage, or introduce runtime synchronization
 behavior.
 
@@ -33,6 +33,10 @@ behavior.
 - V4.4 Hybrid Studio registries describe passive local/cloud model, hybrid
   execution, Studio surface, HITL, profile, comparison, workspace, snapshot,
   replay, and integration metadata over the V4.1-V4.3 contract layers.
+- V4.5 Multimodal Studio registries describe passive preview, canvas,
+  workspace, collaboration, provenance, lineage, history, branching, creative
+  evolution, workflow visualization, and integration metadata over the V4.4
+  Studio inspection layer.
 
 ## V4.3 Boundary Decision
 
@@ -67,6 +71,24 @@ output. More generally, it does not execute providers, does not activate
 Studio runtime, does not change provider/model routing, and does not modify
 generated output.
 
+## V4.5 Boundary Decision
+
+V4.5 Multimodal Studio is an inspectable metadata layer only. It may expose live
+preview, multi preview, interactive canvas, visual workspace, runtime
+collaboration, artifact collaboration, artifact provenance, artifact lineage,
+cross-agent workspace, shared artifact board, workspace history, branching
+timeline, creative evolution timeline, real-time workflow visualization, and
+Multimodal Studio Integration source coverage.
+
+It must not execute rendering, activate Studio runtime, control workflows,
+request human input, select providers or models, route providers or models,
+select runtimes, trigger retries, mutate artifacts, modify generated output,
+persist collaboration storage, subscribe to live streams, open networking,
+bind canvas inputs, mutate canvas contexts, reconstruct timelines, create
+branches, record provenance, or change workflow order. More generally, it does
+not execute rendering, does not activate Studio runtime, does not change
+provider/model routing, and does not modify generated output.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -79,6 +101,7 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - passive V4.2 orchestration contracts
 - passive V4.3 hybrid workflow metadata
 - passive V4.4 hybrid studio metadata
+- passive V4.5 multimodal studio metadata
 - future active V4 Agentic Studio, V5 execution optimization, and V6 learning
   work
 

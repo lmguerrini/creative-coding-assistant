@@ -148,6 +148,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("Hybrid Agentic Workflow", readme)
         self.assertIn("V4.4", readme)
         self.assertIn("Hybrid Studio", readme)
+        self.assertIn("V4.5", readme)
+        self.assertIn("Multimodal Studio", readme)
         self.assertIn("Next.js workstation", readme)
         self.assertIn("Capability Scope", readme)
         self.assertIn("architecture/artifact_intelligence_graph.md", readme)
@@ -173,19 +175,25 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         for registry_name in V44_HYBRID_STUDIO_REGISTRIES:
             self.assertIn(registry_name, readme)
         self.assertIn("Hybrid Studio Integration source coverage", readme)
+        for registry_name in V45_MULTIMODAL_STUDIO_REGISTRIES:
+            self.assertIn(registry_name, readme)
+        self.assertIn("Multimodal Studio Integration source coverage", readme)
         self.assertIn("metadata-only", readme)
         self.assertIn("passive role and contract metadata", normalized_readme)
         self.assertIn("passive orchestration metadata", normalized_readme)
         self.assertIn("passive hybrid workflow metadata", normalized_readme)
         self.assertIn("passive hybrid studio metadata", normalized_readme)
+        self.assertIn("passive multimodal studio metadata", normalized_readme)
         self.assertIn("orchestration readiness metadata", normalized_readme)
         self.assertIn("not active Studio runtime", normalized_readme)
+        self.assertIn("not rendering execution", normalized_readme)
         self.assertIn("not active multi-agent orchestration", normalized_readme)
         self.assertIn(
             "not active agent execution or autonomous escalation",
             normalized_readme,
         )
         self.assertIn("does not activate Studio runtime", normalized_readme)
+        self.assertIn("does not execute rendering", normalized_readme)
         self.assertIn("do not execute orchestration", normalized_readme)
         self.assertIn("do not create agents", normalized_readme)
         self.assertIn("route tasks", normalized_readme)
@@ -251,6 +259,36 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("V4.4 Boundary Decision", decisions)
         self.assertIn("passive hybrid studio metadata", normalized_combined)
         self.assertIn("does not execute providers", normalized_combined)
+        self.assertIn("does not activate Studio runtime", normalized_combined)
+        self.assertIn("change provider/model routing", normalized_combined)
+        self.assertIn("select runtimes", normalized_combined)
+        self.assertIn("modify generated output", normalized_combined)
+        self.assertIn("compact LangGraph workflow", normalized_combined)
+
+    def test_project_docs_cover_current_v4_5_passive_scope(self) -> None:
+        project_context = (
+            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
+        ).read_text(encoding="utf-8")
+        roadmap = (
+            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
+        ).read_text(encoding="utf-8")
+        decisions = (
+            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
+        ).read_text(encoding="utf-8")
+        combined = "\n".join((project_context, roadmap, decisions))
+        normalized_project_context = re.sub(r"\s+", " ", project_context)
+        normalized_combined = re.sub(r"\s+", " ", combined)
+
+        self.assertIn("V4.5 Multimodal Studio", combined)
+        self.assertIn("Multimodal Studio Integration Registry", project_context)
+        self.assertIn(
+            "Multimodal Studio Integration source coverage",
+            normalized_project_context,
+        )
+        self.assertIn("V4.5 layer is a completed passive metadata layer", roadmap)
+        self.assertIn("V4.5 Boundary Decision", decisions)
+        self.assertIn("passive multimodal studio metadata", normalized_combined)
+        self.assertIn("does not execute rendering", normalized_combined)
         self.assertIn("does not activate Studio runtime", normalized_combined)
         self.assertIn("change provider/model routing", normalized_combined)
         self.assertIn("select runtimes", normalized_combined)

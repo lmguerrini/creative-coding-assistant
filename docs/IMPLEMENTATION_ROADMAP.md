@@ -47,6 +47,12 @@ future systems are active in the current runtime.
   local/cloud comparison, agent workspace, agent conversation, workspace
   snapshot, session replay, execution replay, and hybrid studio integration
   metadata.
+- V4.5 Multimodal Studio defines passive live preview, multi preview,
+  interactive canvas, visual workspace, runtime collaboration, artifact
+  collaboration, artifact provenance, artifact lineage, cross-agent workspace,
+  shared artifact board, workspace history, branching timeline, creative
+  evolution timeline, real-time workflow visualization, and multimodal studio
+  integration metadata.
 
 The V4.3 layer is a completed passive metadata layer. It does not execute
 agents, run autonomous escalation, change workflow order, route providers or
@@ -58,10 +64,16 @@ Studio runtime, execute providers, invoke agents, control workflows, request
 human input, change provider/model routing, select runtimes, trigger retries,
 mutate storage, write replay storage, or modify generated output.
 
+The V4.5 layer is a completed passive metadata layer. It does not execute
+rendering, activate Studio runtime, control workflows, request human input,
+change provider/model routing, select runtimes, trigger retries, mutate
+artifacts, modify generated output, persist collaboration storage, subscribe
+to live streams, open networking, or change LangGraph node order.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current
-  V4.1, V4.2, V4.3, and V4.4 registries provide inspection and contract
+  V4.1, V4.2, V4.3, V4.4, and V4.5 registries provide inspection and contract
   metadata for that direction, but not active collaboration behavior or active
   Studio runtime.
 - V5 Execution Optimization & Production Intelligence remains future runtime

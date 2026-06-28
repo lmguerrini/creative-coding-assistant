@@ -42,6 +42,11 @@ inspection metadata, critique, and refinement context.
   simulator, model profile, cost profile, quality profile, local/cloud
   comparison, agent workspace, agent conversation, workspace snapshot, session
   replay, execution replay, and hybrid studio integration metadata.
+- V4.5 Multimodal Studio for passive live preview, multi preview, interactive
+  canvas, visual workspace, runtime collaboration, artifact collaboration,
+  artifact provenance, artifact lineage, cross-agent workspace, shared artifact
+  board, workspace history, branching timeline, creative evolution timeline,
+  real-time workflow visualization, and multimodal studio integration metadata.
 
 ## Supported Creative Domains
 
@@ -60,7 +65,7 @@ inspection metadata, critique, and refinement context.
 - Chroma remains the persistent retrieval and memory database.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
-- V4.1, V4.2, V4.3, and V4.4 registries are passive product and architecture
+- V4.1, V4.2, V4.3, V4.4, and V4.5 registries are passive product and architecture
   metadata. They are inspectable Python APIs and documentation surfaces.
 
 ## V4.3 Passive Boundary
@@ -89,17 +94,43 @@ generated output.
 The Hybrid Studio Integration Registry exposes Hybrid Studio Integration
 source coverage for audit without activating Studio runtime.
 
-## Non-Goals For V4.4
+## V4.5 Passive Boundary
+
+V4.5 Multimodal Studio is passive multimodal studio metadata. It includes the
+Live Preview Registry, Multi Preview Registry, Interactive Canvas Registry,
+Visual Workspace Registry, Runtime Collaboration Registry, Artifact
+Collaboration Registry, Artifact Provenance Registry, Artifact Lineage
+Registry, Cross-Agent Workspace Registry, Shared Artifact Board Registry,
+Workspace History Registry, Branching Timeline Registry, Creative Evolution
+Timeline Registry, Real-Time Workflow Visualization Registry, and Multimodal
+Studio Integration Registry with Multimodal Studio Integration source
+coverage, but it does not execute rendering, activate Studio runtime, control
+workflows, request human input, change provider/model routing, select
+runtimes, trigger retries, mutate artifacts, modify generated output, persist
+collaboration storage, subscribe to live streams, open networking, or change
+LangGraph node order.
+
+The Multimodal Studio Integration Registry exposes Multimodal Studio
+Integration source coverage for audit without activating Studio runtime or
+executing rendering.
+
+## Non-Goals For V4.5
 
 - active multi-agent execution
 - autonomous escalation
 - active Studio runtime
+- rendering execution
+- preview runtime execution
+- canvas input binding or canvas mutation
+- workflow visualization execution
 - provider execution
 - agent invocation
 - human-input requests
 - provider or model routing changes
 - runtime auto-selection
+- collaboration storage persistence
 - replay persistence or storage mutation
+- artifact mutation
 - generated-output mutation
 - prompt rendering changes
 - storage or blackboard runtime behavior

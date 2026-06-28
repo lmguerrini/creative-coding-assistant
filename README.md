@@ -48,6 +48,16 @@ These registries describe future Studio inspection readiness without
 activating Studio runtime, executing providers, invoking agents, changing
 provider/model routing, selecting runtimes, requesting human input, writing
 replay storage, or modifying generated output.
+V4.5 adds passive Multimodal Studio metadata for live preview, multi preview,
+interactive canvas, visual workspace, runtime collaboration, artifact
+collaboration, provenance, lineage, cross-agent workspace, shared artifact
+boards, workspace history, branching timelines, creative evolution timelines,
+real-time workflow visualization, and multimodal studio integration. These
+registries describe future multimodal inspection readiness without executing
+rendering, activating Studio runtime, changing provider/model routing,
+selecting runtimes, controlling workflows, mutating artifacts, persisting
+collaboration storage, subscribing to live streams, opening networking, or
+modifying generated output.
 
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
@@ -90,6 +100,11 @@ observed through live preview and runtime inspection from the same interface.
   execution simulator, model/cost/quality profile, comparison, workspace,
   conversation, snapshot, session replay, execution replay, and integration
   metadata without active Studio runtime
+- V4.5 Multimodal Studio registries for passive live preview, multi preview,
+  interactive canvas, visual workspace, collaboration, provenance, lineage,
+  history, branching, creative evolution, real-time workflow visualization,
+  and integration metadata without rendering execution or active Studio
+  runtime
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -155,6 +170,18 @@ Integration source coverage. It preserves the current LangGraph runtime and
 remains passive hybrid studio metadata, not active Studio runtime, provider
 execution, model selection, agent invocation, replay persistence, or
 autonomous operator workflow control.
+
+V4.5 Multimodal Studio defines the multimodal inspection layer as product
+metadata: live preview profiles, multi-preview comparisons, interactive canvas
+boundaries, visual workspace context, runtime collaboration, artifact
+collaboration, artifact provenance, artifact lineage, cross-agent workspace,
+shared artifact board, workspace history, branching timeline, creative
+evolution timeline, real-time workflow visualization, and Multimodal Studio
+Integration source coverage. It preserves the current LangGraph runtime and
+remains passive multimodal studio metadata, not rendering execution, active
+Studio runtime, provider/model routing, runtime selection, workflow control,
+artifact mutation, collaboration storage persistence, networking, or
+generated-output mutation. It does not execute rendering.
 
 Artifact Intelligence capabilities:
 
@@ -267,6 +294,25 @@ Hybrid Studio registries:
 - Hybrid Studio Integration Registry
 - Hybrid Studio Integration source coverage
 
+Multimodal Studio registries:
+
+- Live Preview Registry
+- Multi Preview Registry
+- Interactive Canvas Registry
+- Visual Workspace Registry
+- Runtime Collaboration Registry
+- Artifact Collaboration Registry
+- Artifact Provenance Registry
+- Artifact Lineage Registry
+- Cross-Agent Workspace Registry
+- Shared Artifact Board Registry
+- Workspace History Registry
+- Branching Timeline Registry
+- Creative Evolution Timeline Registry
+- Real-Time Workflow Visualization Registry
+- Multimodal Studio Integration Registry
+- Multimodal Studio Integration source coverage
+
 The architecture documents six complementary views:
 
 - the real runtime graph in
@@ -279,15 +325,16 @@ The architecture documents six complementary views:
   [`architecture/artifact_intelligence_graph.md`](architecture/artifact_intelligence_graph.md)
 - the V3.5 Creative Workstation surface graph in
   [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
-- the cross-cutting engine matrix, including V4.1, V4.2, V4.3, and V4.4
+- the cross-cutting engine matrix, including V4.1, V4.2, V4.3, V4.4, and V4.5
   registries, in
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
 The runtime graph remains compact and truthful. The internal pipeline and
 dependency views remain blueprints for future V4 Agentic Studio decomposition,
-while V4.1, V4.2, V4.3, and V4.4 document passive roles, contracts,
-orchestration, hybrid workflow, and hybrid studio metadata rather than
-claiming that a multi-agent runtime or Studio runtime already exists.
+while V4.1, V4.2, V4.3, V4.4, and V4.5 document passive roles, contracts,
+orchestration, hybrid workflow, hybrid studio, and multimodal studio metadata
+rather than claiming that a multi-agent runtime, Studio runtime, or rendering
+execution path already exists.
 
 ## Creative Workflow
 
@@ -296,8 +343,9 @@ V3.1 Creative Cognition Core, V3.2 Generative Design Core, V3.3 Artifact
 Intelligence, V3.4 Creative Evaluation metadata, and V3.5 Creative
 Workstation inspection surfaces, plus V4.1 passive Multi-Agent Core contracts
 and V4.2 passive Agent Orchestration contracts, with V4.3 passive Hybrid
-Agentic Workflow metadata and V4.4 passive Hybrid Studio metadata available
-for future escalation and Studio inspection:
+Agentic Workflow metadata, V4.4 passive Hybrid Studio metadata, and V4.5
+passive Multimodal Studio metadata available for future escalation, Studio
+inspection, and multimodal workspace inspection:
 
 `Intent -> HITL Clarification -> Creative Translation -> Reference Fusion -> Creative Planning -> Generation -> Preview -> Critique -> Creative Evaluation -> Calibrated Quality -> Multi-Pass Refinement -> Export Preparation`
 
@@ -348,6 +396,14 @@ for future escalation and Studio inspection:
   readiness without activating Studio runtime, executing providers, invoking
   agents, changing provider/model routing, selecting runtimes, requesting
   human input, writing replay storage, or modifying generated output.
+- Multimodal Studio: passive live preview, multi preview, interactive canvas,
+  visual workspace, collaboration, provenance, lineage, workspace history,
+  branching, creative evolution, real-time workflow visualization, and
+  integration metadata describe future multimodal inspection readiness without
+  executing rendering, activating Studio runtime, changing provider/model
+  routing, selecting runtimes, controlling workflows, mutating artifacts,
+  persisting collaboration storage, opening networking, or modifying generated
+  output.
 - Generation: the backend resolves effective domains, assembles the prompt,
   and streams one or more creative artifacts.
 - Preview: supported artifacts mount in controlled preview runtimes with
@@ -611,6 +667,58 @@ V4.1-V4.3 contract layers. They do not activate Studio runtime, execute
 providers, invoke agents, control workflows, request human input, write replay
 storage, mutate storage, change provider/model routing, select runtimes,
 trigger retries, or modify generated output.
+
+### V4.5 Multimodal Studio
+
+- Live Preview Registry for passive preview target, renderer match, source
+  metadata, and runtime-status surfaces without rendering execution
+- Multi Preview Registry for passive visual, audio, audiovisual, and code
+  comparison surfaces without selecting artifacts or mutating generated output
+- Interactive Canvas Registry for passive canvas inspection, timeline scrub,
+  shader parameter, and audio-reactive controls without binding inputs or
+  mutating canvas contexts
+- Visual Workspace Registry for passive inspector, comparison, preview shelf,
+  and composition workspace context without workspace mutation or artifact
+  selection changes
+- Runtime Collaboration Registry for passive trace, stream event, console, and
+  operator-context surfaces without runtime synchronization or workflow
+  control
+- Artifact Collaboration Registry for passive artifact selection, inspection,
+  comparison, and refinement surfaces without collaborative state creation or
+  artifact mutation
+- Artifact Provenance Registry for passive evidence, payload, evaluation, and
+  missing-source provenance surfaces without provenance recording or storage
+- Artifact Lineage Registry for passive dependency, transition, timeline-stage,
+  and missing-artifact lineage surfaces without lineage inference or timeline
+  reconstruction
+- Cross-Agent Workspace Registry for passive workspace, shared context,
+  blackboard, and lineage surfaces without agent invocation or shared context
+  materialization
+- Shared Artifact Board Registry for passive selection, comparison,
+  provenance-lineage, and handoff board surfaces without board persistence or
+  artifact mutation
+- Workspace History Registry for passive session record, snapshot, artifact
+  board, and runtime-event history surfaces without recording history,
+  capturing snapshots, or replaying runtime events
+- Branching Timeline Registry for passive workflow branch, artifact variant,
+  review retry, and fallback failure surfaces without branch creation or retry
+  triggering
+- Creative Evolution Timeline Registry for passive intent, artifact iteration,
+  quality refinement, and final synthesis evolution surfaces without creative
+  evolution generation or quality-score mutation
+- Real-Time Workflow Visualization Registry for passive runtime state,
+  timeline event, metadata stage, and console health visualization surfaces
+  without stream subscription or runtime console control
+- Multimodal Studio Integration Registry for source coverage across the
+  passive V4.5 registry set without activating Studio runtime or executing
+  rendering
+
+These V4.5 registries are passive product and architecture metadata over the
+V4.4 Studio inspection layer. They do not execute rendering, activate Studio
+runtime, change provider/model routing, select runtimes, control workflows,
+request human input, trigger retries, mutate artifacts, modify generated
+output, persist collaboration storage, subscribe to live streams, open
+networking, or change LangGraph node order.
 
 ### Creative Core
 
