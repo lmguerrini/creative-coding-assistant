@@ -140,6 +140,9 @@ _AGENT_PERFORMANCE_TRACKING_FOUNDATION = (
 _ARCHITECTURE_CONSISTENCY_PASS = (
     "creative_coding_assistant.orchestration.architecture_consistency_pass"
 )
+_FINAL_V4_HARDENING = (
+    "creative_coding_assistant.orchestration.final_v4_hardening"
+)
 _HYBRID_STUDIO = "creative_coding_assistant.orchestration.hybrid_studio"
 _MULTIMODAL_STUDIO = "creative_coding_assistant.orchestration.multimodal_studio"
 _ENGINE_CONTRACT_CONSISTENCY = (
@@ -750,6 +753,16 @@ _EXPORT_MAP = {
     "architecture_consistency_records_for_layer": (
         _ARCHITECTURE_CONSISTENCY_PASS
     ),
+    "FinalV4HardeningRecord": _FINAL_V4_HARDENING,
+    "FinalV4HardeningRegistry": _FINAL_V4_HARDENING,
+    "LangGraphErrorPathAuditRecord": _FINAL_V4_HARDENING,
+    "LangGraphErrorPathAuditRegistry": _FINAL_V4_HARDENING,
+    "final_v4_hardening_registry": _FINAL_V4_HARDENING,
+    "final_v4_hardening_record_by_domain_id": _FINAL_V4_HARDENING,
+    "final_v4_hardening_records_for_source_registry": _FINAL_V4_HARDENING,
+    "langgraph_error_path_audit_registry": _FINAL_V4_HARDENING,
+    "langgraph_error_path_audit_record_by_surface_id": _FINAL_V4_HARDENING,
+    "langgraph_error_path_audit_records_for_node": _FINAL_V4_HARDENING,
     "hybrid_execution_profile_by_id": _HYBRID_STUDIO,
     "hybrid_execution_profiles_for_route": _HYBRID_STUDIO,
     "hybrid_execution_registry": _HYBRID_STUDIO,

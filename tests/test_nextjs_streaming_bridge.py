@@ -9,7 +9,11 @@ from creative_coding_assistant.api import (
     iter_assistant_stream_ndjson,
     serialize_stream_event,
 )
-from creative_coding_assistant.contracts import AssistantRequest, StreamEvent
+from creative_coding_assistant.contracts import (
+    AssistantRequest,
+    StreamEvent,
+    StreamEventType,
+)
 from creative_coding_assistant.orchestration import StreamEventBuilder
 
 
@@ -236,6 +240,29 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
         self.assertTrue(event["payload"]["recoverable"])
         self.assertEqual(event["payload"]["subsystem"], "assistant_stream")
 
+    def test_iter_stream_ndjson_normalizes_serialization_failures(self) -> None:
+        service = _FakeService(
+            (
+                StreamEvent(
+                    event_type=StreamEventType.STATUS,
+                    sequence=4,
+                    payload={"unserializable": _UnserializablePayload()},
+                ),
+            )
+        )
+        request = AssistantStreamRequest(query="Generate.")
+
+        lines = tuple(
+            iter_assistant_stream_ndjson(request=request, service=service)
+        )
+
+        self.assertEqual(len(lines), 1)
+        event = json.loads(lines[0])
+        self.assertEqual(event["event_type"], "error")
+        self.assertEqual(event["sequence"], 5)
+        self.assertEqual(event["payload"]["code"], "assistant_stream_failed")
+        self.assertTrue(event["payload"]["recoverable"])
+
     def test_wsgi_endpoint_streams_ndjson(self) -> None:
         service = _FakeService(
             (
@@ -370,6 +397,10 @@ class _FailingService:
     def stream(self, request: AssistantRequest):
         del request
         raise RuntimeError("boom")
+
+
+class _UnserializablePayload:
+    pass
 
 
 class _StaticWsgiApp:

@@ -1,6 +1,8 @@
 import unittest
 from collections.abc import Callable, Iterator, Sequence
+from unittest.mock import patch
 
+import creative_coding_assistant.orchestration.workflow_graph as workflow_graph_module
 from creative_coding_assistant.analytics import build_langsmith_observability
 from creative_coding_assistant.contracts import (
     AssistantMode,
@@ -1318,6 +1320,269 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(workflow_state.review_result, None)
         self.assertEqual(workflow_state.refinement_count, 0)
 
+    def test_every_runtime_node_has_conditional_failure_target(self) -> None:
+        node_specs = workflow_graph_module._assistant_workflow_node_specs()
+        edge_specs = workflow_graph_module._assistant_workflow_conditional_edge_specs()
+        edge_specs_by_source = {spec.source: spec for spec in edge_specs}
+
+        self.assertEqual(
+            tuple(spec.name for spec in node_specs),
+            ASSISTANT_WORKFLOW_NODE_ORDER,
+        )
+        self.assertEqual(
+            tuple(edge_specs_by_source),
+            ASSISTANT_WORKFLOW_NODE_ORDER[:-1],
+        )
+        self.assertNotIn("failure", edge_specs_by_source)
+        for node in ASSISTANT_WORKFLOW_NODE_ORDER[:-1]:
+            with self.subTest(node=node):
+                self.assertIn("failure", edge_specs_by_source[node].targets)
+                self.assertEqual(
+                    edge_specs_by_source[node].targets["failure"],
+                    "failure",
+                )
+
+    def test_stream_exceptions_route_to_terminal_failure_without_state_corruption(
+        self,
+    ) -> None:
+        graph = build_assistant_workflow_graph()
+        request = _request()
+        runtime = _runtime(
+            stream_memory_context=_failing_stream("memory stream failed")
+        )
+
+        events = tuple(
+            stream_assistant_workflow_events(
+                graph=graph,
+                request=request,
+                runtime=runtime,
+            )
+        )
+        final_state = graph.invoke(
+            build_initial_workflow_graph_state(request),
+            config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
+            context={
+                "runtime": _runtime(
+                    stream_memory_context=_failing_stream("memory stream failed")
+                )
+            },
+        )
+
+        memory_failure = _first_transition(
+            events,
+            StreamEventType.NODE_FAILED,
+            source="memory",
+            target="failure",
+        )
+        error_event = _first_event(events, StreamEventType.ERROR)
+
+        self.assertEqual(memory_failure.payload["decision_reason"], "node_exception")
+        self.assertEqual(error_event.payload["code"], "workflow_memory_failed")
+        _assert_failed_workflow(
+            self,
+            final_state,
+            step=WorkflowStep.MEMORY,
+            code="workflow_memory_failed",
+            message="memory stream failed",
+            request=request,
+        )
+        workflow_state = final_state["workflow_state"]
+        self.assertNotIn(WorkflowStep.MEMORY, workflow_state.completed_steps)
+        self.assertNotIn(WorkflowStep.MEMORY, workflow_state.skipped_steps)
+
+    def test_planning_sub_helper_failure_routes_to_terminal_failure_without_partial_plan(
+        self,
+    ) -> None:
+        graph = build_assistant_workflow_graph()
+        request = _request(
+            query="Generate a luminous p5.js mandala sketch.",
+            domain=CreativeCodingDomain.P5_JS,
+        )
+
+        with patch.object(
+            workflow_graph_module,
+            "derive_creative_strategy_profile",
+            side_effect=RuntimeError("planning helper failed"),
+        ):
+            final_state = graph.invoke(
+                build_initial_workflow_graph_state(request),
+                config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
+                context={
+                    "runtime": _runtime(
+                        stream_prompt_inputs=_stream_prompt_inputs_with_builder,
+                        stream_generation=_unexpected_generation,
+                    )
+                },
+            )
+
+        _assert_failed_workflow(
+            self,
+            final_state,
+            step=WorkflowStep.PLANNING,
+            code="workflow_planning_failed",
+            message="planning helper failed",
+            request=request,
+        )
+        workflow_state = final_state["workflow_state"]
+        self.assertIsNotNone(workflow_state.prompt_input)
+        self.assertIsNone(workflow_state.creative_intent)
+        self.assertIsNone(workflow_state.creative_hierarchy)
+        self.assertIsNone(workflow_state.creative_strategy)
+        self.assertIn(WorkflowStep.PROMPT_INPUT, workflow_state.completed_steps)
+        self.assertNotIn(WorkflowStep.PLANNING, workflow_state.completed_steps)
+
+    def test_prompt_rendering_exception_routes_to_terminal_failure(self) -> None:
+        graph = build_assistant_workflow_graph()
+        request = _request(
+            query="Generate a luminous p5.js mandala sketch.",
+            domain=CreativeCodingDomain.P5_JS,
+        )
+
+        final_state = graph.invoke(
+            build_initial_workflow_graph_state(request),
+            config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
+            context={
+                "runtime": _runtime(
+                    stream_prompt_inputs=_stream_prompt_inputs_with_builder,
+                    stream_rendered_prompt=_failing_stream("render failed"),
+                    stream_generation=_unexpected_generation,
+                )
+            },
+        )
+
+        _assert_failed_workflow(
+            self,
+            final_state,
+            step=WorkflowStep.PROMPT_RENDERING,
+            code="workflow_prompt_rendering_failed",
+            message="render failed",
+            request=request,
+        )
+        workflow_state = final_state["workflow_state"]
+        self.assertIsNone(workflow_state.rendered_prompt)
+        self.assertIn(WorkflowStep.REASONING, workflow_state.completed_steps)
+        self.assertNotIn(WorkflowStep.PROMPT_RENDERING, workflow_state.completed_steps)
+
+    def test_artifact_pipeline_failures_preserve_generated_outputs(self) -> None:
+        graph = build_assistant_workflow_graph()
+        answer = _code_generation_answer()
+        extracted_content = _code_generation_content()
+        cases = (
+            (
+                "extract_workflow_artifacts",
+                WorkflowStep.ARTIFACT_EXTRACTION,
+                "artifact extraction failed",
+                0,
+                0,
+            ),
+            (
+                "prepare_workflow_preview_results",
+                WorkflowStep.PREVIEW_PREPARATION,
+                "preview preparation failed",
+                1,
+                0,
+            ),
+            (
+                "critique_workflow_artifacts",
+                WorkflowStep.ARTIFACT_CRITIQUE,
+                "artifact critique failed",
+                1,
+                1,
+            ),
+        )
+
+        for function_name, step, message, artifact_count, preview_count in cases:
+            with self.subTest(step=step.value):
+                request = _request(query="Write a p5.js sketch.")
+                with patch.object(
+                    workflow_graph_module,
+                    function_name,
+                    side_effect=RuntimeError(message),
+                ):
+                    final_state = graph.invoke(
+                        build_initial_workflow_graph_state(request),
+                        config={
+                            "recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT
+                        },
+                        context={
+                            "runtime": _runtime(
+                                stream_generation=_single_generation(answer)
+                            )
+                        },
+                    )
+
+                _assert_failed_workflow(
+                    self,
+                    final_state,
+                    step=step,
+                    code=f"workflow_{step.value}_failed",
+                    message=message,
+                    request=request,
+                )
+                workflow_state = final_state["workflow_state"]
+                self.assertEqual(len(workflow_state.artifacts), artifact_count)
+                self.assertEqual(len(workflow_state.preview_results), preview_count)
+                if workflow_state.artifacts:
+                    self.assertEqual(
+                        workflow_state.artifacts[0].content,
+                        extracted_content,
+                    )
+
+    def test_review_and_refinement_failures_route_to_terminal_failure(self) -> None:
+        graph = build_assistant_workflow_graph()
+        request = _request(query="Write code for a Three.js scene.")
+
+        with patch.object(
+            workflow_graph_module,
+            "review_assistant_answer",
+            side_effect=RuntimeError("review failed"),
+        ):
+            review_failure_state = graph.invoke(
+                build_initial_workflow_graph_state(request),
+                config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
+                context={
+                    "runtime": _runtime(
+                        stream_generation=_single_generation(_code_generation_answer())
+                    )
+                },
+            )
+
+        _assert_failed_workflow(
+            self,
+            review_failure_state,
+            step=WorkflowStep.REVIEW,
+            code="workflow_review_failed",
+            message="review failed",
+            request=request,
+        )
+        self.assertIsNone(review_failure_state["workflow_state"].review_result)
+
+        generation = _SequentialGeneration("Still no fenced code.")
+        with patch.object(
+            workflow_graph_module,
+            "_append_refinement_guidance",
+            side_effect=RuntimeError("refinement failed"),
+        ):
+            refinement_failure_state = graph.invoke(
+                build_initial_workflow_graph_state(request),
+                config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
+                context={"runtime": _runtime(stream_generation=generation.stream)},
+            )
+
+        _assert_failed_workflow(
+            self,
+            refinement_failure_state,
+            step=WorkflowStep.REFINEMENT,
+            code="workflow_refinement_failed",
+            message="refinement failed",
+            request=request,
+        )
+        workflow_state = refinement_failure_state["workflow_state"]
+        self.assertEqual(generation.calls, 1)
+        self.assertIsNotNone(workflow_state.review_result)
+        self.assertEqual(workflow_state.refinement_count, 0)
+        self.assertNotIn(WorkflowStep.REFINEMENT, workflow_state.completed_steps)
+
     def test_assistant_service_executes_via_compiled_graph(self) -> None:
         service = AssistantService()
 
@@ -1442,8 +1707,15 @@ def _failing_route(request: AssistantRequest) -> RouteDecision:
 def _runtime(
     *,
     route_fn=_route_generate,
+    stream_request_received=None,
+    stream_route_selected=None,
+    stream_memory_context=None,
+    stream_retrieval_context=None,
+    stream_assembled_context=None,
     stream_prompt_inputs=None,
+    stream_rendered_prompt=None,
     stream_generation=None,
+    build_shell_answer=None,
 ) -> AssistantWorkflowRuntime:
     observability = build_langsmith_observability(Settings(_env_file=None))
     return AssistantWorkflowRuntime(
@@ -1451,15 +1723,15 @@ def _runtime(
         observability=observability,
         observability_run=observability.assistant_run_context(_request()),
         route_fn=route_fn,
-        stream_request_received=_stream_request_received,
-        stream_route_selected=_stream_route_selected,
-        stream_memory_context=_empty_streaming_step,
-        stream_retrieval_context=_empty_streaming_step,
-        stream_assembled_context=_empty_streaming_step,
+        stream_request_received=stream_request_received or _stream_request_received,
+        stream_route_selected=stream_route_selected or _stream_route_selected,
+        stream_memory_context=stream_memory_context or _empty_streaming_step,
+        stream_retrieval_context=stream_retrieval_context or _empty_streaming_step,
+        stream_assembled_context=stream_assembled_context or _empty_streaming_step,
         stream_prompt_inputs=stream_prompt_inputs or _empty_streaming_step,
-        stream_rendered_prompt=_empty_streaming_step,
+        stream_rendered_prompt=stream_rendered_prompt or _empty_streaming_step,
         stream_generation=stream_generation or _empty_streaming_step,
-        build_shell_answer=_shell_answer,
+        build_shell_answer=build_shell_answer or _shell_answer,
     )
 
 
@@ -1495,6 +1767,20 @@ def _empty_streaming_step(**kwargs: object) -> Iterator[StreamEvent]:
             payload={},
         )
     return None
+
+
+def _failing_stream(message: str) -> Callable[..., Iterator[StreamEvent]]:
+    def stream(**kwargs: object) -> Iterator[StreamEvent]:
+        del kwargs
+        raise RuntimeError(message)
+        if False:
+            yield StreamEvent(
+                event_type=StreamEventType.STATUS,
+                sequence=0,
+                payload={},
+            )
+
+    return stream
 
 
 def _stream_prompt_inputs_with_builder(
@@ -1567,6 +1853,56 @@ def _stream_failed_generation(
 
 def _single_generation(answer: str) -> Callable[..., Iterator[StreamEvent]]:
     return _SequentialGeneration(answer).stream
+
+
+def _code_generation_answer() -> str:
+    return "\n".join(
+        [
+            "```javascript",
+            *_code_generation_content().splitlines(),
+            "```",
+        ]
+    )
+
+
+def _code_generation_content() -> str:
+    return "\n".join(
+        [
+            "function setup() {",
+            "  createCanvas(640, 360);",
+            "}",
+            "function draw() {",
+            "  background(12);",
+            "}",
+        ]
+    )
+
+
+def _assert_failed_workflow(
+    testcase: unittest.TestCase,
+    final_state: dict[str, object],
+    *,
+    step: WorkflowStep,
+    code: str,
+    message: str,
+    request: AssistantRequest | None = None,
+) -> None:
+    workflow_state = final_state["workflow_state"]
+    testcase.assertEqual(workflow_state.status, WorkflowStatus.FAILED)
+    testcase.assertEqual(workflow_state.current_step, None)
+    testcase.assertEqual(final_state.get("pending_failure"), None)
+    testcase.assertEqual(final_state.get("failure_event_emitted"), True)
+    testcase.assertEqual(final_state.get("generation_result"), None)
+    testcase.assertEqual(
+        workflow_state.failure_info,
+        WorkflowFailureInfo(step=step, code=code, message=message),
+    )
+    testcase.assertEqual(workflow_state.error_message, message)
+    testcase.assertIsNotNone(workflow_state.final_answer)
+    assert workflow_state.final_answer is not None
+    testcase.assertIn(message, workflow_state.final_answer)
+    if request is not None and step is not WorkflowStep.ROUTING:
+        testcase.assertEqual(workflow_state.route_decision, _route_generate(request))
 
 
 def _shell_answer(decision: RouteDecision) -> str:
