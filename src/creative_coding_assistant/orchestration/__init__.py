@@ -121,6 +121,9 @@ _CREATIVE_DIVERSITY_AUDIT = (
 _AGENT_EXPLAINABILITY_AUDIT = (
     "creative_coding_assistant.orchestration.agent_explainability_audit"
 )
+_AGENT_RELIABILITY_AUDIT = (
+    "creative_coding_assistant.orchestration.agent_reliability_audit"
+)
 _HYBRID_STUDIO = "creative_coding_assistant.orchestration.hybrid_studio"
 _MULTIMODAL_STUDIO = "creative_coding_assistant.orchestration.multimodal_studio"
 _ENGINE_CONTRACT_CONSISTENCY = (
@@ -662,6 +665,16 @@ _EXPORT_MAP = {
     ),
     "agent_explainability_audits_for_source_registry": (
         _AGENT_EXPLAINABILITY_AUDIT
+    ),
+    "AgentReliabilityAuditRecord": _AGENT_RELIABILITY_AUDIT,
+    "AgentReliabilityAuditRegistry": _AGENT_RELIABILITY_AUDIT,
+    "agent_reliability_audit_by_agent_id": _AGENT_RELIABILITY_AUDIT,
+    "agent_reliability_audit_registry": _AGENT_RELIABILITY_AUDIT,
+    "agent_reliability_audits_for_consistency_family": (
+        _AGENT_RELIABILITY_AUDIT
+    ),
+    "agent_reliability_audits_for_escalation_category": (
+        _AGENT_RELIABILITY_AUDIT
     ),
     "hybrid_execution_profile_by_id": _HYBRID_STUDIO,
     "hybrid_execution_profiles_for_route": _HYBRID_STUDIO,
