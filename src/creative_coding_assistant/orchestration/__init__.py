@@ -115,6 +115,9 @@ _HYBRID_AGENTIC_WORKFLOW = (
 _HYBRID_WORKFLOW_AUDIT = (
     "creative_coding_assistant.orchestration.hybrid_workflow_audit"
 )
+_CREATIVE_DIVERSITY_AUDIT = (
+    "creative_coding_assistant.orchestration.creative_diversity_audit"
+)
 _HYBRID_STUDIO = "creative_coding_assistant.orchestration.hybrid_studio"
 _MULTIMODAL_STUDIO = "creative_coding_assistant.orchestration.multimodal_studio"
 _ENGINE_CONTRACT_CONSISTENCY = (
@@ -639,6 +642,14 @@ _EXPORT_MAP = {
     "hybrid_workflow_audit_by_stage_id": _HYBRID_WORKFLOW_AUDIT,
     "hybrid_workflow_audit_registry": _HYBRID_WORKFLOW_AUDIT,
     "hybrid_workflow_audits_for_source_registry": _HYBRID_WORKFLOW_AUDIT,
+    "CreativeDiversityAuditRecord": _CREATIVE_DIVERSITY_AUDIT,
+    "CreativeDiversityAuditRegistry": _CREATIVE_DIVERSITY_AUDIT,
+    "creative_diversity_audit_by_profile_id": _CREATIVE_DIVERSITY_AUDIT,
+    "creative_diversity_audit_registry": _CREATIVE_DIVERSITY_AUDIT,
+    "creative_diversity_audits_for_posture": _CREATIVE_DIVERSITY_AUDIT,
+    "creative_diversity_audits_for_source_registry": (
+        _CREATIVE_DIVERSITY_AUDIT
+    ),
     "hybrid_execution_profile_by_id": _HYBRID_STUDIO,
     "hybrid_execution_profiles_for_route": _HYBRID_STUDIO,
     "hybrid_execution_registry": _HYBRID_STUDIO,
