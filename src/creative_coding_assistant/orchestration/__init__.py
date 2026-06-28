@@ -137,6 +137,9 @@ _AGENT_PERFORMANCE_TRACKING_FOUNDATION = (
     "creative_coding_assistant.orchestration."
     "agent_performance_tracking_foundation"
 )
+_ARCHITECTURE_CONSISTENCY_PASS = (
+    "creative_coding_assistant.orchestration.architecture_consistency_pass"
+)
 _HYBRID_STUDIO = "creative_coding_assistant.orchestration.hybrid_studio"
 _MULTIMODAL_STUDIO = "creative_coding_assistant.orchestration.multimodal_studio"
 _ENGINE_CONTRACT_CONSISTENCY = (
@@ -737,6 +740,15 @@ _EXPORT_MAP = {
     ),
     "agent_performance_tracking_profiles_for_latency_threshold": (
         _AGENT_PERFORMANCE_TRACKING_FOUNDATION
+    ),
+    "ArchitectureConsistencyPassRegistry": _ARCHITECTURE_CONSISTENCY_PASS,
+    "ArchitectureConsistencyRecord": _ARCHITECTURE_CONSISTENCY_PASS,
+    "architecture_consistency_pass_registry": _ARCHITECTURE_CONSISTENCY_PASS,
+    "architecture_consistency_record_by_source_registry": (
+        _ARCHITECTURE_CONSISTENCY_PASS
+    ),
+    "architecture_consistency_records_for_layer": (
+        _ARCHITECTURE_CONSISTENCY_PASS
     ),
     "hybrid_execution_profile_by_id": _HYBRID_STUDIO,
     "hybrid_execution_profiles_for_route": _HYBRID_STUDIO,
