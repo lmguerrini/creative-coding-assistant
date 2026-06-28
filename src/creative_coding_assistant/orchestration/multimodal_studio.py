@@ -167,6 +167,18 @@ CreativeEvolutionTimelineSurfaceKind = Literal[
     "quality_refinement",
     "final_synthesis",
 ]
+RealTimeWorkflowVisualizationProfileKind = Literal[
+    "runtime_state_visualization",
+    "timeline_event_visualization",
+    "metadata_stage_visualization",
+    "console_health_visualization",
+]
+RealTimeWorkflowVisualizationSurfaceKind = Literal[
+    "runtime_state",
+    "timeline_event",
+    "metadata_stage",
+    "console_health",
+]
 
 LIVE_PREVIEW_PROFILE_SERIALIZATION_VERSION = "multimodal_live_preview_profile.v1"
 LIVE_PREVIEW_REGISTRY_SERIALIZATION_VERSION = "multimodal_live_preview_registry.v1"
@@ -237,6 +249,12 @@ CREATIVE_EVOLUTION_TIMELINE_PROFILE_SERIALIZATION_VERSION = (
 )
 CREATIVE_EVOLUTION_TIMELINE_REGISTRY_SERIALIZATION_VERSION = (
     "multimodal_creative_evolution_timeline_registry.v1"
+)
+REAL_TIME_WORKFLOW_VISUALIZATION_PROFILE_SERIALIZATION_VERSION = (
+    "multimodal_real_time_workflow_visualization_profile.v1"
+)
+REAL_TIME_WORKFLOW_VISUALIZATION_REGISTRY_SERIALIZATION_VERSION = (
+    "multimodal_real_time_workflow_visualization_registry.v1"
 )
 LIVE_PREVIEW_AUTHORITY_BOUNDARY = (
     "Live Preview metadata describes passive V4.5 Multimodal Studio surfaces "
@@ -340,6 +358,16 @@ CREATIVE_EVOLUTION_TIMELINE_AUTHORITY_BOUNDARY = (
     "provenance, replay runtime events, control workflows, request human "
     "input, route providers or models, trigger retries, open networking, or "
     "execute rendering."
+)
+REAL_TIME_WORKFLOW_VISUALIZATION_AUTHORITY_BOUNDARY = (
+    "Real-Time Workflow Visualization metadata describes passive V4.5 "
+    "Multimodal Studio workflow visualization surfaces for inspection only; "
+    "it does not subscribe to live streams, mutate workflow state, reconstruct "
+    "timelines, replay events, control runtime consoles, control preview "
+    "runtimes, mutate artifacts, modify generated output, persist "
+    "collaboration storage, execute rendering, control workflows, request "
+    "human input, route providers or models, trigger retries, or open "
+    "networking."
 )
 
 _LIVE_PREVIEW_SOURCE_REGISTRIES = (
@@ -1077,6 +1105,68 @@ _CREATIVE_EVOLUTION_TIMELINE_BLOCKED_RUNTIME_BEHAVIORS = (
     "retry_triggering",
     "networking",
     "rendering_execution",
+)
+
+_REAL_TIME_WORKFLOW_VISUALIZATION_SOURCE_REGISTRIES = (
+    "multimodal_creative_evolution_timeline_registry",
+    "multimodal_branching_timeline_registry",
+    "multimodal_runtime_collaboration_registry",
+    "multimodal_workspace_history_registry",
+    "nextjs_workflow_runtime",
+    "nextjs_workflow_timeline",
+    "nextjs_workflow_explorer",
+    "nextjs_runtime_console",
+)
+
+_REAL_TIME_WORKFLOW_VISUALIZATION_SOURCE_REFERENCES = (
+    "multimodal_studio.MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_REGISTRY",
+    "multimodal_studio.MULTIMODAL_BRANCHING_TIMELINE_REGISTRY",
+    "multimodal_studio.MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY",
+    "multimodal_studio.MULTIMODAL_WORKSPACE_HISTORY_REGISTRY",
+    "clients.nextjs.workflow_runtime.WorkflowRuntimeModel",
+    "clients.nextjs.workflow_runtime.WorkflowRuntimeVisualState",
+    "clients.nextjs.workflow_timeline.WorkflowTimelineModel",
+    "clients.nextjs.workflow_timeline.WorkflowTimelineEvent",
+    "clients.nextjs.workflow_explorer.WorkflowExplorerStage",
+    "clients.nextjs.runtime_console.RuntimeConsoleModel",
+)
+
+_REAL_TIME_WORKFLOW_VISUALIZATION_SURFACES = (
+    "real_time_workflow_visualization_panel",
+    "runtime_state_visual_surface",
+    "timeline_event_visual_surface",
+    "metadata_stage_visual_surface",
+    "console_health_visual_surface",
+    "workflow_visualization_summary_surface",
+    "real_time_workflow_visualization_boundary_panel",
+)
+
+_REAL_TIME_WORKFLOW_VISUALIZATION_OBSERVABILITY_SURFACES = (
+    "profile_id",
+    "visualization_profile_kind",
+    "visualization_surface_kind",
+    "source_creative_evolution_timeline_profile_ids",
+    "source_runtime_collaboration_profile_ids",
+    "source_reference_ids",
+    "authority_boundary",
+)
+
+_REAL_TIME_WORKFLOW_VISUALIZATION_BLOCKED_RUNTIME_BEHAVIORS = (
+    "real_time_stream_subscription",
+    "workflow_state_mutation",
+    "timeline_reconstruction",
+    "event_replay",
+    "runtime_console_control",
+    "preview_runtime_control",
+    "artifact_mutation",
+    "generated_output_mutation",
+    "collaboration_storage_persistence",
+    "rendering_execution",
+    "workflow_control",
+    "human_input_request",
+    "provider_or_model_routing",
+    "retry_triggering",
+    "networking",
 )
 
 
@@ -7906,6 +7996,637 @@ MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_REGISTRY = (
         creative_evolution_surface_refs=_CREATIVE_EVOLUTION_TIMELINE_SURFACES,
         observability_surfaces=(
             _CREATIVE_EVOLUTION_TIMELINE_OBSERVABILITY_SURFACES
+        ),
+    )
+)
+
+
+class RealTimeWorkflowVisualizationProfile(BaseModel):
+    """Inspectable metadata for one passive Real-Time Workflow Visualization surface."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    profile_id: str = Field(min_length=1, max_length=160)
+    profile_name: str = Field(min_length=1, max_length=180)
+    visualization_profile_kind: RealTimeWorkflowVisualizationProfileKind
+    visualization_surface_kind: RealTimeWorkflowVisualizationSurfaceKind
+    source_creative_evolution_timeline_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_branching_timeline_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_runtime_collaboration_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_workspace_history_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    visualization_context_fields: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=10,
+    )
+    source_reference_ids: tuple[str, ...] = Field(min_length=1, max_length=10)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    workflow_visualization_surfaces: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=7,
+    )
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=REAL_TIME_WORKFLOW_VISUALIZATION_AUTHORITY_BOUNDARY,
+        max_length=1400,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_REAL_TIME_WORKFLOW_VISUALIZATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=15,
+    )
+    real_time_stream_subscription_implemented: Literal[False] = False
+    workflow_state_mutation_implemented: Literal[False] = False
+    timeline_reconstruction_implemented: Literal[False] = False
+    event_replay_implemented: Literal[False] = False
+    runtime_console_control_implemented: Literal[False] = False
+    preview_runtime_control_implemented: Literal[False] = False
+    artifact_mutation_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    collaboration_storage_persistence_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    serialization_version: Literal[
+        "multimodal_real_time_workflow_visualization_profile.v1"
+    ] = REAL_TIME_WORKFLOW_VISUALIZATION_PROFILE_SERIALIZATION_VERSION
+    metadata_only: Literal[True] = True
+
+
+class MultimodalRealTimeWorkflowVisualizationRegistry(BaseModel):
+    """Stable passive registry for V4.5 Real-Time Workflow Visualization metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["multimodal_real_time_workflow_visualization_registry"] = (
+        "multimodal_real_time_workflow_visualization_registry"
+    )
+    serialization_version: Literal[
+        "multimodal_real_time_workflow_visualization_registry.v1"
+    ] = REAL_TIME_WORKFLOW_VISUALIZATION_REGISTRY_SERIALIZATION_VERSION
+    authority_boundary: str = Field(
+        default=REAL_TIME_WORKFLOW_VISUALIZATION_AUTHORITY_BOUNDARY,
+        max_length=1400,
+    )
+    real_time_workflow_visualization_profiles: tuple[
+        RealTimeWorkflowVisualizationProfile,
+        ...,
+    ] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    visualization_profile_kinds: tuple[
+        RealTimeWorkflowVisualizationProfileKind,
+        ...,
+    ] = Field(min_length=4, max_length=4)
+    visualization_surface_kinds: tuple[
+        RealTimeWorkflowVisualizationSurfaceKind,
+        ...,
+    ] = Field(min_length=4, max_length=4)
+    creative_evolution_timeline_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    branching_timeline_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    runtime_collaboration_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    workspace_history_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    source_reference_ids: tuple[str, ...] = Field(min_length=10, max_length=10)
+    workflow_visualization_surface_refs: tuple[str, ...] = Field(
+        min_length=7,
+        max_length=7,
+    )
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_REAL_TIME_WORKFLOW_VISUALIZATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=15,
+    )
+    real_time_stream_subscription_implemented: Literal[False] = False
+    workflow_state_mutation_implemented: Literal[False] = False
+    timeline_reconstruction_implemented: Literal[False] = False
+    event_replay_implemented: Literal[False] = False
+    runtime_console_control_implemented: Literal[False] = False
+    preview_runtime_control_implemented: Literal[False] = False
+    artifact_mutation_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    collaboration_storage_persistence_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.profile_id
+            for profile in self.real_time_workflow_visualization_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("profile_ids must be unique")
+        if self.profile_ids != derived_profile_ids:
+            raise ValueError(
+                "profile_ids must match real_time_workflow_visualization_profiles"
+            )
+        if self.profile_count != len(
+            self.real_time_workflow_visualization_profiles
+        ):
+            raise ValueError(
+                "profile_count must match real_time_workflow_visualization_profiles"
+            )
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if (
+            self.creative_evolution_timeline_profile_ids
+            != MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "creative_evolution_timeline_profile_ids must match Creative Evolution Timeline registry"
+            )
+        if (
+            self.branching_timeline_profile_ids
+            != MULTIMODAL_BRANCHING_TIMELINE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "branching_timeline_profile_ids must match Branching Timeline registry"
+            )
+        if (
+            self.runtime_collaboration_profile_ids
+            != MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "runtime_collaboration_profile_ids must match Runtime Collaboration registry"
+            )
+        if (
+            self.workspace_history_profile_ids
+            != MULTIMODAL_WORKSPACE_HISTORY_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "workspace_history_profile_ids must match Workspace History registry"
+            )
+        if self.visualization_profile_kinds != _ordered_unique(
+            profile.visualization_profile_kind
+            for profile in self.real_time_workflow_visualization_profiles
+        ):
+            raise ValueError("visualization_profile_kinds must match profiles")
+        if self.visualization_surface_kinds != _ordered_unique(
+            profile.visualization_surface_kind
+            for profile in self.real_time_workflow_visualization_profiles
+        ):
+            raise ValueError("visualization_surface_kinds must match profiles")
+
+        profile_source_references = {
+            source_reference
+            for profile in self.real_time_workflow_visualization_profiles
+            for source_reference in profile.source_reference_ids
+        }
+        if set(self.source_reference_ids) != profile_source_references:
+            raise ValueError(
+                "source_reference_ids must match profile source references"
+            )
+
+        known_routes = set(self.route_names)
+        known_evolution = set(self.creative_evolution_timeline_profile_ids)
+        known_branching = set(self.branching_timeline_profile_ids)
+        known_runtime = set(self.runtime_collaboration_profile_ids)
+        known_history = set(self.workspace_history_profile_ids)
+        known_surfaces = set(self.workflow_visualization_surface_refs)
+        known_source_references = set(self.source_reference_ids)
+        for profile in self.real_time_workflow_visualization_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must use known routes")
+            if not set(
+                profile.source_creative_evolution_timeline_profile_ids
+            ).issubset(known_evolution):
+                raise ValueError(
+                    "source_creative_evolution_timeline_profile_ids must be known profiles"
+                )
+            if not set(profile.source_branching_timeline_profile_ids).issubset(
+                known_branching
+            ):
+                raise ValueError(
+                    "source_branching_timeline_profile_ids must be known profiles"
+                )
+            if not set(profile.source_runtime_collaboration_profile_ids).issubset(
+                known_runtime
+            ):
+                raise ValueError(
+                    "source_runtime_collaboration_profile_ids must be known profiles"
+                )
+            if not set(profile.source_workspace_history_profile_ids).issubset(
+                known_history
+            ):
+                raise ValueError(
+                    "source_workspace_history_profile_ids must be known profiles"
+                )
+            if not set(profile.workflow_visualization_surfaces).issubset(
+                known_surfaces
+            ):
+                raise ValueError(
+                    "workflow_visualization_surfaces must be known surfaces"
+                )
+            if not set(profile.source_reference_ids).issubset(
+                known_source_references
+            ):
+                raise ValueError(
+                    "source_reference_ids must be known registry references"
+                )
+        return self
+
+
+def multimodal_real_time_workflow_visualization_registry() -> (
+    MultimodalRealTimeWorkflowVisualizationRegistry
+):
+    """Return passive V4.5 Real-Time Workflow Visualization metadata."""
+
+    return MULTIMODAL_REAL_TIME_WORKFLOW_VISUALIZATION_REGISTRY
+
+
+def multimodal_real_time_workflow_visualization_profile_by_id(
+    profile_id: str,
+    registry: MultimodalRealTimeWorkflowVisualizationRegistry | None = None,
+) -> RealTimeWorkflowVisualizationProfile | None:
+    """Return one Real-Time Workflow Visualization profile without execution."""
+
+    source_registry = registry or MULTIMODAL_REAL_TIME_WORKFLOW_VISUALIZATION_REGISTRY
+    normalized_profile_id = str(profile_id).strip()
+    for profile in source_registry.real_time_workflow_visualization_profiles:
+        if profile.profile_id == normalized_profile_id:
+            return profile
+    return None
+
+
+def multimodal_real_time_workflow_visualization_profiles_for_route(
+    route: RouteName | str,
+    registry: MultimodalRealTimeWorkflowVisualizationRegistry | None = None,
+) -> tuple[RealTimeWorkflowVisualizationProfile, ...]:
+    """Return passive Real-Time Workflow Visualization profiles for a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or MULTIMODAL_REAL_TIME_WORKFLOW_VISUALIZATION_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.real_time_workflow_visualization_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def multimodal_real_time_workflow_visualization_profiles_for_surface_kind(
+    surface_kind: RealTimeWorkflowVisualizationSurfaceKind | str,
+    registry: MultimodalRealTimeWorkflowVisualizationRegistry | None = None,
+) -> tuple[RealTimeWorkflowVisualizationProfile, ...]:
+    """Return Real-Time Workflow Visualization profiles for one passive surface."""
+
+    surface_value = str(surface_kind).strip()
+    source_registry = registry or MULTIMODAL_REAL_TIME_WORKFLOW_VISUALIZATION_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.real_time_workflow_visualization_profiles
+        if profile.visualization_surface_kind == surface_value
+    )
+
+
+def multimodal_real_time_workflow_visualization_profiles_for_creative_evolution_timeline_profile(
+    creative_evolution_timeline_profile_id: str,
+    registry: MultimodalRealTimeWorkflowVisualizationRegistry | None = None,
+) -> tuple[RealTimeWorkflowVisualizationProfile, ...]:
+    """Return workflow visualization profiles for one creative evolution profile."""
+
+    source_registry = registry or MULTIMODAL_REAL_TIME_WORKFLOW_VISUALIZATION_REGISTRY
+    source_profile_id = str(creative_evolution_timeline_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.real_time_workflow_visualization_profiles
+        if source_profile_id
+        in profile.source_creative_evolution_timeline_profile_ids
+    )
+
+
+def _real_time_workflow_visualization_profile(
+    *,
+    profile_id: str,
+    profile_name: str,
+    visualization_profile_kind: RealTimeWorkflowVisualizationProfileKind,
+    visualization_surface_kind: RealTimeWorkflowVisualizationSurfaceKind,
+    source_creative_evolution_timeline_profile_ids: tuple[str, ...],
+    source_branching_timeline_profile_ids: tuple[str, ...],
+    source_runtime_collaboration_profile_ids: tuple[str, ...],
+    source_workspace_history_profile_ids: tuple[str, ...],
+    visualization_context_fields: tuple[str, ...],
+    source_reference_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    workflow_visualization_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> RealTimeWorkflowVisualizationProfile:
+    return RealTimeWorkflowVisualizationProfile(
+        profile_id=profile_id,
+        profile_name=profile_name,
+        visualization_profile_kind=visualization_profile_kind,
+        visualization_surface_kind=visualization_surface_kind,
+        source_creative_evolution_timeline_profile_ids=(
+            source_creative_evolution_timeline_profile_ids
+        ),
+        source_branching_timeline_profile_ids=(
+            source_branching_timeline_profile_ids
+        ),
+        source_runtime_collaboration_profile_ids=(
+            source_runtime_collaboration_profile_ids
+        ),
+        source_workspace_history_profile_ids=source_workspace_history_profile_ids,
+        visualization_context_fields=visualization_context_fields,
+        source_reference_ids=source_reference_ids,
+        route_applicability=route_applicability,
+        workflow_visualization_surfaces=workflow_visualization_surfaces,
+        advisory_outputs=advisory_outputs,
+        source_registries=_REAL_TIME_WORKFLOW_VISUALIZATION_SOURCE_REGISTRIES,
+        observability_surfaces=(
+            _REAL_TIME_WORKFLOW_VISUALIZATION_OBSERVABILITY_SURFACES
+        ),
+    )
+
+
+MULTIMODAL_REAL_TIME_WORKFLOW_VISUALIZATION_PROFILES = (
+    _real_time_workflow_visualization_profile(
+        profile_id="runtime_state_real_time_workflow_visualization",
+        profile_name="Runtime State Real-Time Workflow Visualization",
+        visualization_profile_kind="runtime_state_visualization",
+        visualization_surface_kind="runtime_state",
+        source_creative_evolution_timeline_profile_ids=(
+            "intent_creative_evolution_timeline",
+            "artifact_iteration_creative_evolution_timeline",
+        ),
+        source_branching_timeline_profile_ids=(
+            "workflow_branching_timeline",
+            "artifact_variant_branching_timeline",
+        ),
+        source_runtime_collaboration_profile_ids=(
+            "trace_runtime_collaboration",
+            "stream_event_runtime_collaboration",
+        ),
+        source_workspace_history_profile_ids=(
+            "runtime_event_workspace_history",
+            "snapshot_workspace_history",
+        ),
+        visualization_context_fields=(
+            "WorkflowRuntimeModel",
+            "WorkflowRuntimeVisualState",
+            "workflow.steps.state",
+            "activeWorkflowNodeId",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY",
+            "multimodal_studio.MULTIMODAL_WORKSPACE_HISTORY_REGISTRY",
+            "clients.nextjs.workflow_runtime.WorkflowRuntimeModel",
+            "clients.nextjs.workflow_runtime.WorkflowRuntimeVisualState",
+            "clients.nextjs.workflow_timeline.WorkflowTimelineModel",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        workflow_visualization_surfaces=(
+            "real_time_workflow_visualization_panel",
+            "runtime_state_visual_surface",
+            "workflow_visualization_summary_surface",
+            "real_time_workflow_visualization_boundary_panel",
+        ),
+        advisory_outputs=(
+            "runtime_state_visualization_inventory",
+            "manual_runtime_state_review_hint",
+            "no_real_time_stream_subscription_notice",
+        ),
+    ),
+    _real_time_workflow_visualization_profile(
+        profile_id="timeline_event_real_time_workflow_visualization",
+        profile_name="Timeline Event Real-Time Workflow Visualization",
+        visualization_profile_kind="timeline_event_visualization",
+        visualization_surface_kind="timeline_event",
+        source_creative_evolution_timeline_profile_ids=(
+            "intent_creative_evolution_timeline",
+            "quality_refinement_creative_evolution_timeline",
+        ),
+        source_branching_timeline_profile_ids=(
+            "workflow_branching_timeline",
+            "review_retry_branching_timeline",
+            "fallback_failure_branching_timeline",
+        ),
+        source_runtime_collaboration_profile_ids=(
+            "trace_runtime_collaboration",
+            "console_runtime_collaboration",
+        ),
+        source_workspace_history_profile_ids=(
+            "runtime_event_workspace_history",
+            "snapshot_workspace_history",
+        ),
+        visualization_context_fields=(
+            "WorkflowTimelineEvent",
+            "event.sequence",
+            "transitionReason",
+            "warningCount",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_BRANCHING_TIMELINE_REGISTRY",
+            "clients.nextjs.workflow_runtime.WorkflowRuntimeModel",
+            "clients.nextjs.workflow_timeline.WorkflowTimelineModel",
+            "clients.nextjs.workflow_timeline.WorkflowTimelineEvent",
+            "clients.nextjs.workflow_explorer.WorkflowExplorerStage",
+        ),
+        route_applicability=(
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        workflow_visualization_surfaces=(
+            "real_time_workflow_visualization_panel",
+            "timeline_event_visual_surface",
+            "workflow_visualization_summary_surface",
+            "real_time_workflow_visualization_boundary_panel",
+        ),
+        advisory_outputs=(
+            "timeline_event_visualization_inventory",
+            "manual_timeline_event_review_hint",
+            "no_timeline_reconstruction_notice",
+        ),
+    ),
+    _real_time_workflow_visualization_profile(
+        profile_id="metadata_stage_real_time_workflow_visualization",
+        profile_name="Metadata Stage Real-Time Workflow Visualization",
+        visualization_profile_kind="metadata_stage_visualization",
+        visualization_surface_kind="metadata_stage",
+        source_creative_evolution_timeline_profile_ids=(
+            "artifact_iteration_creative_evolution_timeline",
+            "final_synthesis_creative_evolution_timeline",
+        ),
+        source_branching_timeline_profile_ids=(
+            "artifact_variant_branching_timeline",
+            "workflow_branching_timeline",
+        ),
+        source_runtime_collaboration_profile_ids=(
+            "operator_context_runtime_collaboration",
+            "stream_event_runtime_collaboration",
+        ),
+        source_workspace_history_profile_ids=(
+            "session_record_workspace_history",
+            "artifact_board_workspace_history",
+        ),
+        visualization_context_fields=(
+            "WorkflowExplorerStage",
+            "metadataGroups",
+            "workstationState.selection.activeWorkflowNodeId",
+            "availableMetadataGroupCount",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_REGISTRY",
+            "clients.nextjs.workflow_runtime.WorkflowRuntimeModel",
+            "clients.nextjs.workflow_runtime.WorkflowRuntimeVisualState",
+            "clients.nextjs.workflow_timeline.WorkflowTimelineEvent",
+            "clients.nextjs.workflow_explorer.WorkflowExplorerStage",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.PREVIEW,
+        ),
+        workflow_visualization_surfaces=(
+            "real_time_workflow_visualization_panel",
+            "metadata_stage_visual_surface",
+            "workflow_visualization_summary_surface",
+            "real_time_workflow_visualization_boundary_panel",
+        ),
+        advisory_outputs=(
+            "metadata_stage_visualization_inventory",
+            "manual_metadata_stage_review_hint",
+            "no_workflow_control_notice",
+        ),
+    ),
+    _real_time_workflow_visualization_profile(
+        profile_id="console_health_real_time_workflow_visualization",
+        profile_name="Console Health Real-Time Workflow Visualization",
+        visualization_profile_kind="console_health_visualization",
+        visualization_surface_kind="console_health",
+        source_creative_evolution_timeline_profile_ids=(
+            "quality_refinement_creative_evolution_timeline",
+            "final_synthesis_creative_evolution_timeline",
+        ),
+        source_branching_timeline_profile_ids=(
+            "review_retry_branching_timeline",
+            "fallback_failure_branching_timeline",
+        ),
+        source_runtime_collaboration_profile_ids=(
+            "console_runtime_collaboration",
+            "operator_context_runtime_collaboration",
+        ),
+        source_workspace_history_profile_ids=(
+            "runtime_event_workspace_history",
+            "snapshot_workspace_history",
+        ),
+        visualization_context_fields=(
+            "RuntimeConsoleModel",
+            "RuntimeConsoleHealthSignal",
+            "diagnostics",
+            "reloadHistory",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY",
+            "multimodal_studio.MULTIMODAL_WORKSPACE_HISTORY_REGISTRY",
+            "clients.nextjs.workflow_runtime.WorkflowRuntimeModel",
+            "clients.nextjs.workflow_timeline.WorkflowTimelineEvent",
+            "clients.nextjs.runtime_console.RuntimeConsoleModel",
+        ),
+        route_applicability=(
+            RouteName.DEBUG,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        workflow_visualization_surfaces=(
+            "real_time_workflow_visualization_panel",
+            "console_health_visual_surface",
+            "workflow_visualization_summary_surface",
+            "real_time_workflow_visualization_boundary_panel",
+        ),
+        advisory_outputs=(
+            "console_health_visualization_inventory",
+            "manual_console_health_review_hint",
+            "no_runtime_console_control_notice",
+        ),
+    ),
+)
+
+MULTIMODAL_REAL_TIME_WORKFLOW_VISUALIZATION_REGISTRY = (
+    MultimodalRealTimeWorkflowVisualizationRegistry(
+        real_time_workflow_visualization_profiles=(
+            MULTIMODAL_REAL_TIME_WORKFLOW_VISUALIZATION_PROFILES
+        ),
+        profile_ids=tuple(
+            profile.profile_id
+            for profile in MULTIMODAL_REAL_TIME_WORKFLOW_VISUALIZATION_PROFILES
+        ),
+        visualization_profile_kinds=tuple(
+            profile.visualization_profile_kind
+            for profile in MULTIMODAL_REAL_TIME_WORKFLOW_VISUALIZATION_PROFILES
+        ),
+        visualization_surface_kinds=tuple(
+            profile.visualization_surface_kind
+            for profile in MULTIMODAL_REAL_TIME_WORKFLOW_VISUALIZATION_PROFILES
+        ),
+        creative_evolution_timeline_profile_ids=(
+            MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_REGISTRY.profile_ids
+        ),
+        branching_timeline_profile_ids=(
+            MULTIMODAL_BRANCHING_TIMELINE_REGISTRY.profile_ids
+        ),
+        runtime_collaboration_profile_ids=(
+            MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY.profile_ids
+        ),
+        workspace_history_profile_ids=(
+            MULTIMODAL_WORKSPACE_HISTORY_REGISTRY.profile_ids
+        ),
+        route_names=tuple(RouteName),
+        profile_count=len(MULTIMODAL_REAL_TIME_WORKFLOW_VISUALIZATION_PROFILES),
+        source_registries=_REAL_TIME_WORKFLOW_VISUALIZATION_SOURCE_REGISTRIES,
+        source_reference_ids=_REAL_TIME_WORKFLOW_VISUALIZATION_SOURCE_REFERENCES,
+        workflow_visualization_surface_refs=(
+            _REAL_TIME_WORKFLOW_VISUALIZATION_SURFACES
+        ),
+        observability_surfaces=(
+            _REAL_TIME_WORKFLOW_VISUALIZATION_OBSERVABILITY_SURFACES
         ),
     )
 )
