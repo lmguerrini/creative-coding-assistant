@@ -102,6 +102,9 @@ _ESCALATION_POLICY_AUDIT = (
 _HYBRID_AGENTIC_WORKFLOW = (
     "creative_coding_assistant.orchestration.hybrid_agentic_workflow"
 )
+_HYBRID_WORKFLOW_AUDIT = (
+    "creative_coding_assistant.orchestration.hybrid_workflow_audit"
+)
 _HYBRID_STUDIO = "creative_coding_assistant.orchestration.hybrid_studio"
 _MULTIMODAL_STUDIO = "creative_coding_assistant.orchestration.multimodal_studio"
 _ENGINE_CONTRACT_CONSISTENCY = (
@@ -399,6 +402,8 @@ _EXPORT_MAP = {
     "HybridAgentVotingRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "HybridAgenticWorkflowRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "HybridAgenticWorkflowStage": _HYBRID_AGENTIC_WORKFLOW,
+    "HybridWorkflowAuditRecord": _HYBRID_WORKFLOW_AUDIT,
+    "HybridWorkflowAuditRegistry": _HYBRID_WORKFLOW_AUDIT,
     "AutoModePosture": _HYBRID_STUDIO,
     "AutoModeProfile": _HYBRID_STUDIO,
     "AutoModeRegistry": _HYBRID_STUDIO,
@@ -596,6 +601,9 @@ _EXPORT_MAP = {
     "hybrid_agent_voting_registry": _HYBRID_AGENTIC_WORKFLOW,
     "hybrid_agentic_workflow_registry": _HYBRID_AGENTIC_WORKFLOW,
     "hybrid_agentic_workflow_stage_by_id": _HYBRID_AGENTIC_WORKFLOW,
+    "hybrid_workflow_audit_by_stage_id": _HYBRID_WORKFLOW_AUDIT,
+    "hybrid_workflow_audit_registry": _HYBRID_WORKFLOW_AUDIT,
+    "hybrid_workflow_audits_for_source_registry": _HYBRID_WORKFLOW_AUDIT,
     "hybrid_execution_profile_by_id": _HYBRID_STUDIO,
     "hybrid_execution_profiles_for_route": _HYBRID_STUDIO,
     "hybrid_execution_registry": _HYBRID_STUDIO,
