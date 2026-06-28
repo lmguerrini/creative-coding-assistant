@@ -397,3 +397,373 @@ LOCAL_MODEL_REGISTRY = LocalModelRegistry(
     studio_surface_refs=_LOCAL_MODEL_STUDIO_SURFACES,
     observability_surfaces=_LOCAL_MODEL_OBSERVABILITY_SURFACES,
 )
+
+CloudModelProviderKind = Literal["openai"]
+CloudModelCapabilityBand = Literal[
+    "assistant_generation",
+    "retrieval_embedding",
+    "evaluation_scoring",
+    "provider_response_metadata",
+]
+CloudModelConfigurationSource = Literal[
+    "openai_model",
+    "openai_embedding_model",
+    "eval_ragas_model",
+    "provider_response_model",
+]
+CloudModelLatencyPosture = Literal[
+    "network_dependent",
+    "provider_reported",
+    "batch_sensitive",
+]
+
+CLOUD_MODEL_SURFACE_SERIALIZATION_VERSION = "cloud_model_surface.v1"
+CLOUD_MODEL_REGISTRY_SERIALIZATION_VERSION = "cloud_model_registry.v1"
+CLOUD_MODEL_REGISTRY_AUTHORITY_BOUNDARY = (
+    "Cloud model metadata describes passive candidate cloud surfaces for V4.4 "
+    "Hybrid Studio inspection only; it does not call cloud providers, change "
+    "provider or model routing, select models automatically, optimize by cost "
+    "or latency, trigger retries, mutate prompts, write replay storage, or "
+    "modify generated output."
+)
+
+_CLOUD_MODEL_SOURCE_REGISTRIES = (
+    "settings_generation_provider_config",
+    "generation_provider_factory",
+    "generation_provider_contract",
+    "openai_provider_adapter",
+    "provider_telemetry_metadata",
+    "local_model_registry",
+)
+
+_CLOUD_MODEL_STUDIO_SURFACES = (
+    "cloud_model_catalog",
+    "cloud_model_readiness_inspector",
+    "provider_selection_metadata",
+    "execution_simulator_metadata",
+    "local_cloud_comparison_metadata",
+)
+
+_CLOUD_MODEL_OBSERVABILITY_SURFACES = (
+    "surface_id",
+    "provider_kind",
+    "configuration_source",
+    "route_applicability",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_CLOUD_MODEL_BLOCKED_RUNTIME_BEHAVIORS = (
+    "cloud_provider_execution",
+    "provider_or_model_routing",
+    "automatic_model_selection",
+    "external_provider_calling",
+    "pricing_or_latency_optimization",
+    "retry_or_refinement_triggering",
+    "prompt_mutation",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class CloudModelSurface(BaseModel):
+    """Inspectable metadata for one candidate cloud model surface."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    surface_id: str = Field(min_length=1, max_length=80)
+    surface_name: str = Field(min_length=1, max_length=120)
+    provider_kind: CloudModelProviderKind
+    capability_band: CloudModelCapabilityBand
+    configuration_source: CloudModelConfigurationSource
+    latency_posture: CloudModelLatencyPosture
+    cost_posture: Literal["provider_metered"] = "provider_metered"
+    privacy_posture: Literal["external_provider_boundary"] = (
+        "external_provider_boundary"
+    )
+    route_applicability: tuple[RouteName, ...] = Field(
+        default_factory=tuple, max_length=6
+    )
+    supported_payloads: tuple[str, ...] = Field(min_length=1, max_length=8)
+    readiness_signals: tuple[str, ...] = Field(min_length=1, max_length=8)
+    studio_surface_refs: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    authority_boundary: str = Field(
+        default=CLOUD_MODEL_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=900,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_CLOUD_MODEL_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    cloud_provider_execution_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    automatic_model_selection_implemented: Literal[False] = False
+    external_provider_calls_implemented: Literal[False] = False
+    pricing_latency_optimization_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["cloud_model_surface.v1"] = (
+        CLOUD_MODEL_SURFACE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class CloudModelRegistry(BaseModel):
+    """Stable passive registry for V4.4 Hybrid Studio cloud model metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["cloud_model_registry"] = "cloud_model_registry"
+    serialization_version: Literal["cloud_model_registry.v1"] = (
+        CLOUD_MODEL_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=CLOUD_MODEL_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=900,
+    )
+    model_surfaces: tuple[CloudModelSurface, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    surface_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    provider_kinds: tuple[CloudModelProviderKind, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    studio_surface_refs: tuple[str, ...] = Field(min_length=5, max_length=5)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_CLOUD_MODEL_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    cloud_provider_execution_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    automatic_model_selection_implemented: Literal[False] = False
+    external_provider_calls_implemented: Literal[False] = False
+    pricing_latency_optimization_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_surfaces(self) -> Self:
+        derived_surface_ids = tuple(
+            surface.surface_id for surface in self.model_surfaces
+        )
+        if len(set(derived_surface_ids)) != len(derived_surface_ids):
+            raise ValueError("surface_ids must be unique")
+        if self.surface_ids != derived_surface_ids:
+            raise ValueError("surface_ids must match model_surfaces")
+        if self.profile_count != len(self.model_surfaces):
+            raise ValueError("profile_count must match model_surfaces")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.provider_kinds != tuple(
+            dict.fromkeys(surface.provider_kind for surface in self.model_surfaces)
+        ):
+            raise ValueError("provider_kinds must match model_surfaces")
+
+        known_routes = set(self.route_names)
+        known_studio_surfaces = set(self.studio_surface_refs)
+        profile_sources = {
+            source_registry
+            for surface in self.model_surfaces
+            for source_registry in surface.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match cloud model sources")
+
+        for surface in self.model_surfaces:
+            if surface.source_registries != self.source_registries:
+                raise ValueError("surface source_registries must match registry")
+            if surface.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(surface.studio_surface_refs).issubset(known_studio_surfaces):
+                raise ValueError("studio_surface_refs must be known registry surfaces")
+            if not set(surface.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def cloud_model_registry() -> CloudModelRegistry:
+    """Return passive V4.4 Hybrid Studio cloud model metadata."""
+
+    return CLOUD_MODEL_REGISTRY
+
+
+def cloud_model_surface_by_id(
+    surface_id: str,
+    registry: CloudModelRegistry | None = None,
+) -> CloudModelSurface | None:
+    """Return one cloud model surface without routing or executing it."""
+
+    source_registry = registry or CLOUD_MODEL_REGISTRY
+    for surface in source_registry.model_surfaces:
+        if surface.surface_id == surface_id:
+            return surface
+    return None
+
+
+def cloud_model_surfaces_for_provider(
+    provider_kind: CloudModelProviderKind | str,
+    registry: CloudModelRegistry | None = None,
+) -> tuple[CloudModelSurface, ...]:
+    """Return passive cloud model surfaces for a provider kind."""
+
+    source_registry = registry or CLOUD_MODEL_REGISTRY
+    provider_value = str(provider_kind).strip()
+    return tuple(
+        surface
+        for surface in source_registry.model_surfaces
+        if surface.provider_kind == provider_value
+    )
+
+
+def _cloud_surface(
+    *,
+    surface_id: str,
+    surface_name: str,
+    provider_kind: CloudModelProviderKind,
+    capability_band: CloudModelCapabilityBand,
+    configuration_source: CloudModelConfigurationSource,
+    latency_posture: CloudModelLatencyPosture,
+    supported_payloads: tuple[str, ...],
+    readiness_signals: tuple[str, ...],
+    studio_surface_refs: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...] = (),
+) -> CloudModelSurface:
+    return CloudModelSurface(
+        surface_id=surface_id,
+        surface_name=surface_name,
+        provider_kind=provider_kind,
+        capability_band=capability_band,
+        configuration_source=configuration_source,
+        latency_posture=latency_posture,
+        route_applicability=route_applicability,
+        supported_payloads=supported_payloads,
+        readiness_signals=readiness_signals,
+        studio_surface_refs=studio_surface_refs,
+        source_registries=_CLOUD_MODEL_SOURCE_REGISTRIES,
+        observability_surfaces=_CLOUD_MODEL_OBSERVABILITY_SURFACES,
+    )
+
+
+CLOUD_MODEL_SURFACES = (
+    _cloud_surface(
+        surface_id="openai_generation_model_surface",
+        surface_name="OpenAI Generation Model Surface",
+        provider_kind="openai",
+        capability_band="assistant_generation",
+        configuration_source="openai_model",
+        latency_posture="network_dependent",
+        route_applicability=tuple(RouteName),
+        supported_payloads=(
+            "provider_ready_messages",
+            "rendered_prompt_sections",
+            "retrieval_context_metadata",
+        ),
+        readiness_signals=(
+            "default_generation_provider_configured",
+            "openai_model_setting_available",
+            "api_key_required_at_execution_time",
+        ),
+        studio_surface_refs=(
+            "cloud_model_catalog",
+            "cloud_model_readiness_inspector",
+            "provider_selection_metadata",
+        ),
+    ),
+    _cloud_surface(
+        surface_id="openai_embedding_model_surface",
+        surface_name="OpenAI Embedding Model Surface",
+        provider_kind="openai",
+        capability_band="retrieval_embedding",
+        configuration_source="openai_embedding_model",
+        latency_posture="batch_sensitive",
+        supported_payloads=(
+            "knowledge_base_chunks",
+            "retrieval_query_text",
+            "embedding_metadata",
+        ),
+        readiness_signals=(
+            "openai_embedding_model_setting_available",
+            "retrieval_pipeline_metadata_only",
+            "api_key_required_at_execution_time",
+        ),
+        studio_surface_refs=(
+            "cloud_model_catalog",
+            "cloud_model_readiness_inspector",
+            "local_cloud_comparison_metadata",
+        ),
+    ),
+    _cloud_surface(
+        surface_id="ragas_evaluator_model_surface",
+        surface_name="RAGAs Evaluator Model Surface",
+        provider_kind="openai",
+        capability_band="evaluation_scoring",
+        configuration_source="eval_ragas_model",
+        latency_posture="batch_sensitive",
+        route_applicability=(RouteName.REVIEW,),
+        supported_payloads=(
+            "evaluation_dataset_rows",
+            "provider_metadata_snapshots",
+            "retrieval_grounding_metadata",
+        ),
+        readiness_signals=(
+            "eval_ragas_model_setting_available",
+            "provider_calls_require_explicit_opt_in",
+            "dry_run_boundary_available",
+        ),
+        studio_surface_refs=(
+            "cloud_model_readiness_inspector",
+            "execution_simulator_metadata",
+            "local_cloud_comparison_metadata",
+        ),
+    ),
+    _cloud_surface(
+        surface_id="provider_reported_response_model_surface",
+        surface_name="Provider Reported Response Model Surface",
+        provider_kind="openai",
+        capability_band="provider_response_metadata",
+        configuration_source="provider_response_model",
+        latency_posture="provider_reported",
+        route_applicability=tuple(RouteName),
+        supported_payloads=(
+            "provider_response_id",
+            "provider_model_name",
+            "token_usage_metadata",
+        ),
+        readiness_signals=(
+            "generation_response_metadata_available",
+            "provider_telemetry_metadata_only",
+            "no_model_selection_authority",
+        ),
+        studio_surface_refs=(
+            "provider_selection_metadata",
+            "execution_simulator_metadata",
+            "local_cloud_comparison_metadata",
+        ),
+    ),
+)
+
+CLOUD_MODEL_REGISTRY = CloudModelRegistry(
+    model_surfaces=CLOUD_MODEL_SURFACES,
+    surface_ids=tuple(surface.surface_id for surface in CLOUD_MODEL_SURFACES),
+    provider_kinds=tuple(
+        dict.fromkeys(surface.provider_kind for surface in CLOUD_MODEL_SURFACES)
+    ),
+    route_names=tuple(RouteName),
+    profile_count=len(CLOUD_MODEL_SURFACES),
+    source_registries=_CLOUD_MODEL_SOURCE_REGISTRIES,
+    studio_surface_refs=_CLOUD_MODEL_STUDIO_SURFACES,
+    observability_surfaces=_CLOUD_MODEL_OBSERVABILITY_SURFACES,
+)
