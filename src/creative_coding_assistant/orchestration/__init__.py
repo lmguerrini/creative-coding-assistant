@@ -429,6 +429,9 @@ _EXPORT_MAP = {
     "MultimodalRealTimeWorkflowVisualizationRegistry": _MULTIMODAL_STUDIO,
     "MultimodalRuntimeCollaborationRegistry": _MULTIMODAL_STUDIO,
     "MultimodalSharedArtifactBoardRegistry": _MULTIMODAL_STUDIO,
+    "MultimodalStudioIntegrationKind": _MULTIMODAL_STUDIO,
+    "MultimodalStudioIntegrationProfile": _MULTIMODAL_STUDIO,
+    "MultimodalStudioIntegrationRegistry": _MULTIMODAL_STUDIO,
     "MultimodalVisualWorkspaceRegistry": _MULTIMODAL_STUDIO,
     "MultimodalWorkspaceHistoryRegistry": _MULTIMODAL_STUDIO,
     "RealTimeWorkflowVisualizationProfile": _MULTIMODAL_STUDIO,
@@ -706,6 +709,12 @@ _EXPORT_MAP = {
         _MULTIMODAL_STUDIO
     ),
     "multimodal_shared_artifact_board_registry": _MULTIMODAL_STUDIO,
+    "multimodal_studio_integration_profile_by_id": _MULTIMODAL_STUDIO,
+    "multimodal_studio_integration_profiles_for_route": _MULTIMODAL_STUDIO,
+    "multimodal_studio_integration_profiles_for_source_registry": (
+        _MULTIMODAL_STUDIO
+    ),
+    "multimodal_studio_integration_registry": _MULTIMODAL_STUDIO,
     "multimodal_visual_workspace_profile_by_id": _MULTIMODAL_STUDIO,
     "multimodal_visual_workspace_profiles_for_interactive_canvas_profile": (
         _MULTIMODAL_STUDIO

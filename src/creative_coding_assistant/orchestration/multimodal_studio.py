@@ -179,6 +179,12 @@ RealTimeWorkflowVisualizationSurfaceKind = Literal[
     "metadata_stage",
     "console_health",
 ]
+MultimodalStudioIntegrationKind = Literal[
+    "preview_workspace_integration",
+    "collaboration_artifact_integration",
+    "history_lineage_integration",
+    "timeline_visualization_integration",
+]
 
 LIVE_PREVIEW_PROFILE_SERIALIZATION_VERSION = "multimodal_live_preview_profile.v1"
 LIVE_PREVIEW_REGISTRY_SERIALIZATION_VERSION = "multimodal_live_preview_registry.v1"
@@ -255,6 +261,12 @@ REAL_TIME_WORKFLOW_VISUALIZATION_PROFILE_SERIALIZATION_VERSION = (
 )
 REAL_TIME_WORKFLOW_VISUALIZATION_REGISTRY_SERIALIZATION_VERSION = (
     "multimodal_real_time_workflow_visualization_registry.v1"
+)
+MULTIMODAL_STUDIO_INTEGRATION_PROFILE_SERIALIZATION_VERSION = (
+    "multimodal_studio_integration_profile.v1"
+)
+MULTIMODAL_STUDIO_INTEGRATION_REGISTRY_SERIALIZATION_VERSION = (
+    "multimodal_studio_integration_registry.v1"
 )
 LIVE_PREVIEW_AUTHORITY_BOUNDARY = (
     "Live Preview metadata describes passive V4.5 Multimodal Studio surfaces "
@@ -368,6 +380,16 @@ REAL_TIME_WORKFLOW_VISUALIZATION_AUTHORITY_BOUNDARY = (
     "collaboration storage, execute rendering, control workflows, request "
     "human input, route providers or models, trigger retries, or open "
     "networking."
+)
+MULTIMODAL_STUDIO_INTEGRATION_AUTHORITY_BOUNDARY = (
+    "Multimodal Studio Integration metadata describes a passive V4.5 inventory "
+    "of Multimodal Studio preview, canvas, workspace, collaboration, artifact, "
+    "provenance, lineage, history, branching, creative evolution, and workflow "
+    "visualization registries only; it does not activate Studio runtime, "
+    "execute rendering, route providers or models, execute providers, mutate "
+    "artifacts, modify generated output, control workflows, request human "
+    "input, trigger retries, mutate storage, persist collaboration storage, "
+    "reconstruct timelines, subscribe to live streams, or open networking."
 )
 
 _LIVE_PREVIEW_SOURCE_REGISTRIES = (
@@ -1166,6 +1188,77 @@ _REAL_TIME_WORKFLOW_VISUALIZATION_BLOCKED_RUNTIME_BEHAVIORS = (
     "human_input_request",
     "provider_or_model_routing",
     "retry_triggering",
+    "networking",
+)
+
+_MULTIMODAL_STUDIO_INTEGRATION_SOURCE_REGISTRIES = (
+    "multimodal_live_preview_registry",
+    "multimodal_multi_preview_registry",
+    "multimodal_interactive_canvas_registry",
+    "multimodal_visual_workspace_registry",
+    "multimodal_runtime_collaboration_registry",
+    "multimodal_artifact_collaboration_registry",
+    "multimodal_artifact_provenance_registry",
+    "multimodal_artifact_lineage_registry",
+    "multimodal_cross_agent_workspace_registry",
+    "multimodal_shared_artifact_board_registry",
+    "multimodal_workspace_history_registry",
+    "multimodal_branching_timeline_registry",
+    "multimodal_creative_evolution_timeline_registry",
+    "multimodal_real_time_workflow_visualization_registry",
+)
+
+_MULTIMODAL_STUDIO_INTEGRATION_PROFILE_GROUPS = (
+    "live_preview_profiles",
+    "multi_preview_profiles",
+    "interactive_canvas_profiles",
+    "visual_workspace_profiles",
+    "runtime_collaboration_profiles",
+    "artifact_collaboration_profiles",
+    "artifact_provenance_profiles",
+    "artifact_lineage_profiles",
+    "cross_agent_workspace_profiles",
+    "shared_artifact_board_profiles",
+    "workspace_history_profiles",
+    "branching_timeline_profiles",
+    "creative_evolution_timeline_profiles",
+    "real_time_workflow_visualization_profiles",
+)
+
+_MULTIMODAL_STUDIO_INTEGRATION_SURFACES = (
+    "multimodal_studio_shell",
+    "preview_workspace_integration_surface",
+    "collaboration_artifact_integration_surface",
+    "history_lineage_integration_surface",
+    "timeline_visualization_integration_surface",
+    "integration_summary_surface",
+    "multimodal_studio_integration_boundary_panel",
+)
+
+_MULTIMODAL_STUDIO_INTEGRATION_OBSERVABILITY_SURFACES = (
+    "integration_profile_id",
+    "integration_kind",
+    "source_registry_names",
+    "linked_profile_group_refs",
+    "route_applicability",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_MULTIMODAL_STUDIO_INTEGRATION_BLOCKED_RUNTIME_BEHAVIORS = (
+    "studio_runtime_activation",
+    "rendering_execution",
+    "provider_or_model_routing",
+    "provider_execution",
+    "artifact_mutation",
+    "generated_output_mutation",
+    "workflow_control",
+    "human_input_request",
+    "retry_triggering",
+    "storage_mutation",
+    "collaboration_storage_persistence",
+    "timeline_reconstruction",
+    "real_time_stream_subscription",
     "networking",
 )
 
@@ -8629,4 +8722,551 @@ MULTIMODAL_REAL_TIME_WORKFLOW_VISUALIZATION_REGISTRY = (
             _REAL_TIME_WORKFLOW_VISUALIZATION_OBSERVABILITY_SURFACES
         ),
     )
+)
+
+
+class MultimodalStudioIntegrationProfile(BaseModel):
+    """Inspectable passive integration profile for V4.5 Multimodal Studio metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    integration_profile_id: str = Field(min_length=1, max_length=160)
+    profile_name: str = Field(min_length=1, max_length=180)
+    integration_kind: MultimodalStudioIntegrationKind
+    source_registry_names: tuple[str, ...] = Field(min_length=1, max_length=14)
+    linked_profile_group_refs: tuple[str, ...] = Field(min_length=1, max_length=14)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    integration_surfaces: tuple[str, ...] = Field(min_length=1, max_length=7)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_registries: tuple[str, ...] = Field(min_length=14, max_length=14)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=MULTIMODAL_STUDIO_INTEGRATION_AUTHORITY_BOUNDARY,
+        max_length=1600,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_MULTIMODAL_STUDIO_INTEGRATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=14,
+    )
+    studio_runtime_activation_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    provider_execution_implemented: Literal[False] = False
+    artifact_mutation_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    storage_mutation_implemented: Literal[False] = False
+    collaboration_storage_persistence_implemented: Literal[False] = False
+    timeline_reconstruction_implemented: Literal[False] = False
+    real_time_stream_subscription_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    serialization_version: Literal["multimodal_studio_integration_profile.v1"] = (
+        MULTIMODAL_STUDIO_INTEGRATION_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class MultimodalStudioIntegrationRegistry(BaseModel):
+    """Stable passive registry integrating V4.5 Multimodal Studio metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["multimodal_studio_integration_registry"] = (
+        "multimodal_studio_integration_registry"
+    )
+    serialization_version: Literal["multimodal_studio_integration_registry.v1"] = (
+        MULTIMODAL_STUDIO_INTEGRATION_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=MULTIMODAL_STUDIO_INTEGRATION_AUTHORITY_BOUNDARY,
+        max_length=1600,
+    )
+    integration_profiles: tuple[MultimodalStudioIntegrationProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    integration_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    integration_kinds: tuple[MultimodalStudioIntegrationKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    live_preview_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    multi_preview_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    interactive_canvas_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    visual_workspace_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    runtime_collaboration_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    artifact_collaboration_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    artifact_provenance_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    artifact_lineage_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    cross_agent_workspace_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    shared_artifact_board_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    workspace_history_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    branching_timeline_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    creative_evolution_timeline_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    real_time_workflow_visualization_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    profile_group_refs: tuple[str, ...] = Field(min_length=14, max_length=14)
+    integration_surface_refs: tuple[str, ...] = Field(min_length=7, max_length=7)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=14, max_length=14)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_MULTIMODAL_STUDIO_INTEGRATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=14,
+    )
+    studio_runtime_activation_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    provider_execution_implemented: Literal[False] = False
+    artifact_mutation_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    storage_mutation_implemented: Literal[False] = False
+    collaboration_storage_persistence_implemented: Literal[False] = False
+    timeline_reconstruction_implemented: Literal[False] = False
+    real_time_stream_subscription_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.integration_profile_id for profile in self.integration_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("integration_profile_ids must be unique")
+        if self.integration_profile_ids != derived_profile_ids:
+            raise ValueError("integration_profile_ids must match integration_profiles")
+        if self.profile_count != len(self.integration_profiles):
+            raise ValueError("profile_count must match integration_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.integration_kinds != _ordered_unique(
+            profile.integration_kind for profile in self.integration_profiles
+        ):
+            raise ValueError("integration_kinds must match integration_profiles")
+        if self.live_preview_profile_ids != MULTIMODAL_LIVE_PREVIEW_REGISTRY.profile_ids:
+            raise ValueError(
+                "live_preview_profile_ids must match Live Preview registry"
+            )
+        if self.multi_preview_profile_ids != MULTIMODAL_MULTI_PREVIEW_REGISTRY.profile_ids:
+            raise ValueError(
+                "multi_preview_profile_ids must match Multi Preview registry"
+            )
+        if (
+            self.interactive_canvas_profile_ids
+            != MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "interactive_canvas_profile_ids must match Interactive Canvas registry"
+            )
+        if (
+            self.visual_workspace_profile_ids
+            != MULTIMODAL_VISUAL_WORKSPACE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "visual_workspace_profile_ids must match Visual Workspace registry"
+            )
+        if (
+            self.runtime_collaboration_profile_ids
+            != MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "runtime_collaboration_profile_ids must match Runtime Collaboration registry"
+            )
+        if (
+            self.artifact_collaboration_profile_ids
+            != MULTIMODAL_ARTIFACT_COLLABORATION_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "artifact_collaboration_profile_ids must match Artifact Collaboration registry"
+            )
+        if (
+            self.artifact_provenance_profile_ids
+            != MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "artifact_provenance_profile_ids must match Artifact Provenance registry"
+            )
+        if (
+            self.artifact_lineage_profile_ids
+            != MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "artifact_lineage_profile_ids must match Artifact Lineage registry"
+            )
+        if (
+            self.cross_agent_workspace_profile_ids
+            != MULTIMODAL_CROSS_AGENT_WORKSPACE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "cross_agent_workspace_profile_ids must match Cross-Agent Workspace registry"
+            )
+        if (
+            self.shared_artifact_board_profile_ids
+            != MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "shared_artifact_board_profile_ids must match Shared Artifact Board registry"
+            )
+        if (
+            self.workspace_history_profile_ids
+            != MULTIMODAL_WORKSPACE_HISTORY_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "workspace_history_profile_ids must match Workspace History registry"
+            )
+        if (
+            self.branching_timeline_profile_ids
+            != MULTIMODAL_BRANCHING_TIMELINE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "branching_timeline_profile_ids must match Branching Timeline registry"
+            )
+        if (
+            self.creative_evolution_timeline_profile_ids
+            != MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "creative_evolution_timeline_profile_ids must match Creative Evolution Timeline registry"
+            )
+        if (
+            self.real_time_workflow_visualization_profile_ids
+            != MULTIMODAL_REAL_TIME_WORKFLOW_VISUALIZATION_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "real_time_workflow_visualization_profile_ids must match Real-Time Workflow Visualization registry"
+            )
+
+        known_routes = set(self.route_names)
+        known_sources = set(self.source_registries)
+        known_profile_groups = set(self.profile_group_refs)
+        known_surfaces = set(self.integration_surface_refs)
+        for profile in self.integration_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.source_registry_names).issubset(known_sources):
+                raise ValueError("source_registry_names must be known registries")
+            if not set(profile.linked_profile_group_refs).issubset(
+                known_profile_groups
+            ):
+                raise ValueError("linked_profile_group_refs must be known groups")
+            if not set(profile.integration_surfaces).issubset(known_surfaces):
+                raise ValueError("integration_surfaces must be known registry surfaces")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def multimodal_studio_integration_registry() -> MultimodalStudioIntegrationRegistry:
+    """Return passive V4.5 Multimodal Studio integration metadata."""
+
+    return MULTIMODAL_STUDIO_INTEGRATION_REGISTRY
+
+
+def multimodal_studio_integration_profile_by_id(
+    integration_profile_id: str,
+    registry: MultimodalStudioIntegrationRegistry | None = None,
+) -> MultimodalStudioIntegrationProfile | None:
+    """Return one integration profile without activating Studio behavior."""
+
+    source_registry = registry or MULTIMODAL_STUDIO_INTEGRATION_REGISTRY
+    source_profile_id = str(integration_profile_id).strip()
+    for profile in source_registry.integration_profiles:
+        if profile.integration_profile_id == source_profile_id:
+            return profile
+    return None
+
+
+def multimodal_studio_integration_profiles_for_route(
+    route: RouteName | str,
+    registry: MultimodalStudioIntegrationRegistry | None = None,
+) -> tuple[MultimodalStudioIntegrationProfile, ...]:
+    """Return passive Multimodal Studio integration profiles for a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or MULTIMODAL_STUDIO_INTEGRATION_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.integration_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def multimodal_studio_integration_profiles_for_source_registry(
+    source_registry_name: str,
+    registry: MultimodalStudioIntegrationRegistry | None = None,
+) -> tuple[MultimodalStudioIntegrationProfile, ...]:
+    """Return integration profiles referencing one source registry."""
+
+    source_registry = registry or MULTIMODAL_STUDIO_INTEGRATION_REGISTRY
+    source_name = str(source_registry_name).strip()
+    return tuple(
+        profile
+        for profile in source_registry.integration_profiles
+        if source_name in profile.source_registry_names
+    )
+
+
+def _multimodal_studio_integration_profile(
+    *,
+    integration_profile_id: str,
+    profile_name: str,
+    integration_kind: MultimodalStudioIntegrationKind,
+    source_registry_names: tuple[str, ...],
+    linked_profile_group_refs: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    integration_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> MultimodalStudioIntegrationProfile:
+    return MultimodalStudioIntegrationProfile(
+        integration_profile_id=integration_profile_id,
+        profile_name=profile_name,
+        integration_kind=integration_kind,
+        source_registry_names=source_registry_names,
+        linked_profile_group_refs=linked_profile_group_refs,
+        route_applicability=route_applicability,
+        integration_surfaces=integration_surfaces,
+        advisory_outputs=advisory_outputs,
+        source_registries=_MULTIMODAL_STUDIO_INTEGRATION_SOURCE_REGISTRIES,
+        observability_surfaces=(
+            _MULTIMODAL_STUDIO_INTEGRATION_OBSERVABILITY_SURFACES
+        ),
+    )
+
+
+MULTIMODAL_STUDIO_INTEGRATION_PROFILES = (
+    _multimodal_studio_integration_profile(
+        integration_profile_id="preview_workspace_multimodal_studio_integration",
+        profile_name="Preview Workspace Multimodal Studio Integration",
+        integration_kind="preview_workspace_integration",
+        source_registry_names=(
+            "multimodal_live_preview_registry",
+            "multimodal_multi_preview_registry",
+            "multimodal_interactive_canvas_registry",
+            "multimodal_visual_workspace_registry",
+            "multimodal_runtime_collaboration_registry",
+            "multimodal_real_time_workflow_visualization_registry",
+        ),
+        linked_profile_group_refs=(
+            "live_preview_profiles",
+            "multi_preview_profiles",
+            "interactive_canvas_profiles",
+            "visual_workspace_profiles",
+            "runtime_collaboration_profiles",
+            "real_time_workflow_visualization_profiles",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.PREVIEW,
+        ),
+        integration_surfaces=(
+            "multimodal_studio_shell",
+            "preview_workspace_integration_surface",
+            "integration_summary_surface",
+            "multimodal_studio_integration_boundary_panel",
+        ),
+        advisory_outputs=(
+            "preview_workspace_integration_inventory",
+            "manual_preview_workspace_review_hint",
+            "no_rendering_execution_notice",
+        ),
+    ),
+    _multimodal_studio_integration_profile(
+        integration_profile_id="collaboration_artifact_multimodal_studio_integration",
+        profile_name="Collaboration Artifact Multimodal Studio Integration",
+        integration_kind="collaboration_artifact_integration",
+        source_registry_names=(
+            "multimodal_runtime_collaboration_registry",
+            "multimodal_artifact_collaboration_registry",
+            "multimodal_artifact_provenance_registry",
+            "multimodal_artifact_lineage_registry",
+            "multimodal_cross_agent_workspace_registry",
+            "multimodal_shared_artifact_board_registry",
+        ),
+        linked_profile_group_refs=(
+            "runtime_collaboration_profiles",
+            "artifact_collaboration_profiles",
+            "artifact_provenance_profiles",
+            "artifact_lineage_profiles",
+            "cross_agent_workspace_profiles",
+            "shared_artifact_board_profiles",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        integration_surfaces=(
+            "multimodal_studio_shell",
+            "collaboration_artifact_integration_surface",
+            "integration_summary_surface",
+            "multimodal_studio_integration_boundary_panel",
+        ),
+        advisory_outputs=(
+            "collaboration_artifact_integration_inventory",
+            "manual_collaboration_artifact_review_hint",
+            "no_artifact_mutation_notice",
+        ),
+    ),
+    _multimodal_studio_integration_profile(
+        integration_profile_id="history_lineage_multimodal_studio_integration",
+        profile_name="History Lineage Multimodal Studio Integration",
+        integration_kind="history_lineage_integration",
+        source_registry_names=(
+            "multimodal_workspace_history_registry",
+            "multimodal_branching_timeline_registry",
+            "multimodal_creative_evolution_timeline_registry",
+            "multimodal_artifact_lineage_registry",
+            "multimodal_artifact_provenance_registry",
+            "multimodal_shared_artifact_board_registry",
+        ),
+        linked_profile_group_refs=(
+            "workspace_history_profiles",
+            "branching_timeline_profiles",
+            "creative_evolution_timeline_profiles",
+            "artifact_lineage_profiles",
+            "artifact_provenance_profiles",
+            "shared_artifact_board_profiles",
+        ),
+        route_applicability=(
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        integration_surfaces=(
+            "multimodal_studio_shell",
+            "history_lineage_integration_surface",
+            "integration_summary_surface",
+            "multimodal_studio_integration_boundary_panel",
+        ),
+        advisory_outputs=(
+            "history_lineage_integration_inventory",
+            "manual_history_lineage_review_hint",
+            "no_timeline_reconstruction_notice",
+        ),
+    ),
+    _multimodal_studio_integration_profile(
+        integration_profile_id="timeline_visualization_multimodal_studio_integration",
+        profile_name="Timeline Visualization Multimodal Studio Integration",
+        integration_kind="timeline_visualization_integration",
+        source_registry_names=(
+            "multimodal_real_time_workflow_visualization_registry",
+            "multimodal_creative_evolution_timeline_registry",
+            "multimodal_branching_timeline_registry",
+            "multimodal_workspace_history_registry",
+            "multimodal_runtime_collaboration_registry",
+        ),
+        linked_profile_group_refs=(
+            "real_time_workflow_visualization_profiles",
+            "creative_evolution_timeline_profiles",
+            "branching_timeline_profiles",
+            "workspace_history_profiles",
+            "runtime_collaboration_profiles",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        integration_surfaces=(
+            "multimodal_studio_shell",
+            "timeline_visualization_integration_surface",
+            "integration_summary_surface",
+            "multimodal_studio_integration_boundary_panel",
+        ),
+        advisory_outputs=(
+            "timeline_visualization_integration_inventory",
+            "manual_timeline_visualization_review_hint",
+            "no_real_time_stream_subscription_notice",
+        ),
+    ),
+)
+
+MULTIMODAL_STUDIO_INTEGRATION_REGISTRY = MultimodalStudioIntegrationRegistry(
+    integration_profiles=MULTIMODAL_STUDIO_INTEGRATION_PROFILES,
+    integration_profile_ids=tuple(
+        profile.integration_profile_id
+        for profile in MULTIMODAL_STUDIO_INTEGRATION_PROFILES
+    ),
+    integration_kinds=tuple(
+        profile.integration_kind for profile in MULTIMODAL_STUDIO_INTEGRATION_PROFILES
+    ),
+    live_preview_profile_ids=MULTIMODAL_LIVE_PREVIEW_REGISTRY.profile_ids,
+    multi_preview_profile_ids=MULTIMODAL_MULTI_PREVIEW_REGISTRY.profile_ids,
+    interactive_canvas_profile_ids=(
+        MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY.profile_ids
+    ),
+    visual_workspace_profile_ids=MULTIMODAL_VISUAL_WORKSPACE_REGISTRY.profile_ids,
+    runtime_collaboration_profile_ids=(
+        MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY.profile_ids
+    ),
+    artifact_collaboration_profile_ids=(
+        MULTIMODAL_ARTIFACT_COLLABORATION_REGISTRY.profile_ids
+    ),
+    artifact_provenance_profile_ids=(
+        MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY.profile_ids
+    ),
+    artifact_lineage_profile_ids=MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY.profile_ids,
+    cross_agent_workspace_profile_ids=(
+        MULTIMODAL_CROSS_AGENT_WORKSPACE_REGISTRY.profile_ids
+    ),
+    shared_artifact_board_profile_ids=(
+        MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY.profile_ids
+    ),
+    workspace_history_profile_ids=MULTIMODAL_WORKSPACE_HISTORY_REGISTRY.profile_ids,
+    branching_timeline_profile_ids=MULTIMODAL_BRANCHING_TIMELINE_REGISTRY.profile_ids,
+    creative_evolution_timeline_profile_ids=(
+        MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_REGISTRY.profile_ids
+    ),
+    real_time_workflow_visualization_profile_ids=(
+        MULTIMODAL_REAL_TIME_WORKFLOW_VISUALIZATION_REGISTRY.profile_ids
+    ),
+    profile_group_refs=_MULTIMODAL_STUDIO_INTEGRATION_PROFILE_GROUPS,
+    integration_surface_refs=_MULTIMODAL_STUDIO_INTEGRATION_SURFACES,
+    route_names=tuple(RouteName),
+    profile_count=len(MULTIMODAL_STUDIO_INTEGRATION_PROFILES),
+    source_registries=_MULTIMODAL_STUDIO_INTEGRATION_SOURCE_REGISTRIES,
+    observability_surfaces=_MULTIMODAL_STUDIO_INTEGRATION_OBSERVABILITY_SURFACES,
 )
