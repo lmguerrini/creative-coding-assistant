@@ -69,6 +69,9 @@ _BLACKBOARD_AUDIT = "creative_coding_assistant.orchestration.blackboard_audit"
 _SHARED_CONTEXT_VIEWS = (
     "creative_coding_assistant.orchestration.shared_context_views"
 )
+_SHARED_CONTEXT_AUDIT = (
+    "creative_coding_assistant.orchestration.shared_context_audit"
+)
 _AGENT_DEPENDENCY_GRAPH = (
     "creative_coding_assistant.orchestration.agent_dependency_graph"
 )
@@ -287,6 +290,12 @@ _EXPORT_MAP = {
     "shared_context_view_by_agent_id": _SHARED_CONTEXT_VIEWS,
     "shared_context_view_by_id": _SHARED_CONTEXT_VIEWS,
     "shared_context_view_registry": _SHARED_CONTEXT_VIEWS,
+    "SharedContextAuditRecord": _SHARED_CONTEXT_AUDIT,
+    "SharedContextAuditRegistry": _SHARED_CONTEXT_AUDIT,
+    "shared_context_audit_by_agent_id": _SHARED_CONTEXT_AUDIT,
+    "shared_context_audit_by_view_id": _SHARED_CONTEXT_AUDIT,
+    "shared_context_audit_registry": _SHARED_CONTEXT_AUDIT,
+    "shared_context_audits_for_source_registry": _SHARED_CONTEXT_AUDIT,
     "AgentDependencyEdge": _AGENT_DEPENDENCY_GRAPH,
     "AgentDependencyGraphRegistry": _AGENT_DEPENDENCY_GRAPH,
     "AgentDependencyNode": _AGENT_DEPENDENCY_GRAPH,
