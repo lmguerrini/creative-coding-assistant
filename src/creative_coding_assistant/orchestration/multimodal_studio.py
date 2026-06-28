@@ -7,7 +7,16 @@ from typing import Literal, Self, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from creative_coding_assistant.orchestration.blackboard_memory import (
+    BLACKBOARD_MEMORY_REGISTRY,
+)
+from creative_coding_assistant.orchestration.hybrid_studio import (
+    AGENT_WORKSPACE_REGISTRY,
+)
 from creative_coding_assistant.orchestration.routing import RouteName
+from creative_coding_assistant.orchestration.shared_context_views import (
+    SHARED_CONTEXT_VIEW_REGISTRY,
+)
 from creative_coding_assistant.preview import PreviewTarget
 
 LivePreviewProfileKind = Literal[
@@ -96,6 +105,18 @@ ArtifactLineageSurfaceKind = Literal[
     "source_transition",
     "missing_lineage",
 ]
+CrossAgentWorkspaceProfileKind = Literal[
+    "planning_cross_agent_workspace",
+    "artifact_runtime_cross_agent_workspace",
+    "critique_curation_cross_agent_workspace",
+    "refinement_synthesis_cross_agent_workspace",
+]
+CrossAgentWorkspaceSurfaceKind = Literal[
+    "planning_context",
+    "artifact_runtime",
+    "critique_curation",
+    "refinement_synthesis",
+]
 
 LIVE_PREVIEW_PROFILE_SERIALIZATION_VERSION = "multimodal_live_preview_profile.v1"
 LIVE_PREVIEW_REGISTRY_SERIALIZATION_VERSION = "multimodal_live_preview_registry.v1"
@@ -136,6 +157,12 @@ ARTIFACT_LINEAGE_PROFILE_SERIALIZATION_VERSION = (
 )
 ARTIFACT_LINEAGE_REGISTRY_SERIALIZATION_VERSION = (
     "multimodal_artifact_lineage_registry.v1"
+)
+CROSS_AGENT_WORKSPACE_PROFILE_SERIALIZATION_VERSION = (
+    "multimodal_cross_agent_workspace_profile.v1"
+)
+CROSS_AGENT_WORKSPACE_REGISTRY_SERIALIZATION_VERSION = (
+    "multimodal_cross_agent_workspace_registry.v1"
 )
 LIVE_PREVIEW_AUTHORITY_BOUNDARY = (
     "Live Preview metadata describes passive V4.5 Multimodal Studio surfaces "
@@ -195,6 +222,15 @@ ARTIFACT_LINEAGE_AUTHORITY_BOUNDARY = (
     "storage, mutate artifacts, modify generated outputs, execute rendering, "
     "control workflows, request human input, route providers or models, "
     "trigger retries, or open networking."
+)
+CROSS_AGENT_WORKSPACE_AUTHORITY_BOUNDARY = (
+    "Cross-Agent Workspace metadata describes passive V4.5 Multimodal Studio "
+    "cross-agent workspace surfaces for inspection only; it does not "
+    "instantiate agents, invoke agents, orchestrate multiple agents, "
+    "materialize shared context, read or write blackboard state, mutate "
+    "workspace state, persist collaboration storage, execute rendering, "
+    "control workflows, request human input, route providers or models, "
+    "trigger retries, or modify generated output."
 )
 
 _LIVE_PREVIEW_SOURCE_REGISTRIES = (
@@ -626,6 +662,67 @@ _ARTIFACT_LINEAGE_BLOCKED_RUNTIME_BEHAVIORS = (
     "provider_or_model_routing",
     "retry_triggering",
     "networking",
+)
+
+_CROSS_AGENT_WORKSPACE_SOURCE_REGISTRIES = (
+    "multimodal_visual_workspace_registry",
+    "multimodal_artifact_lineage_registry",
+    "agent_workspace_registry",
+    "shared_context_view_registry",
+    "blackboard_memory_registry",
+    "nextjs_workstation_shell",
+    "nextjs_workstation_state",
+)
+
+_CROSS_AGENT_WORKSPACE_SOURCE_REFERENCES = (
+    "multimodal_studio.MULTIMODAL_VISUAL_WORKSPACE_REGISTRY",
+    "multimodal_studio.MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY",
+    "hybrid_studio.AGENT_WORKSPACE_REGISTRY",
+    "shared_context_views.SHARED_CONTEXT_VIEW_REGISTRY",
+    "blackboard_memory.BLACKBOARD_MEMORY_REGISTRY",
+    "hybrid_studio.AgentWorkspaceProfile",
+    "shared_context_views.SharedContextViewContract",
+    "blackboard_memory.BlackboardMemoryChannelContract",
+    "clients.nextjs.workstation_shell.WorkstationShell",
+    "clients.nextjs.workstation_state.buildWorkstationState",
+)
+
+_CROSS_AGENT_WORKSPACE_SURFACES = (
+    "cross_agent_workspace_panel",
+    "cross_agent_roster_surface",
+    "shared_context_scope_surface",
+    "blackboard_channel_surface",
+    "lineage_context_surface",
+    "workspace_handoff_surface",
+    "cross_agent_workspace_boundary_panel",
+)
+
+_CROSS_AGENT_WORKSPACE_OBSERVABILITY_SURFACES = (
+    "profile_id",
+    "cross_agent_workspace_kind",
+    "cross_agent_surface_kind",
+    "source_agent_workspace_profile_ids",
+    "source_shared_context_view_ids",
+    "source_reference_ids",
+    "authority_boundary",
+)
+
+_CROSS_AGENT_WORKSPACE_BLOCKED_RUNTIME_BEHAVIORS = (
+    "workspace_execution",
+    "agent_instantiation",
+    "agent_invocation",
+    "multi_agent_orchestration",
+    "shared_context_materialization",
+    "blackboard_state_reads",
+    "blackboard_state_writes",
+    "workspace_state_mutation",
+    "collaboration_storage_persistence",
+    "rendering_execution",
+    "workflow_control",
+    "human_input_request",
+    "provider_or_model_routing",
+    "retry_triggering",
+    "generated_output_mutation",
 )
 
 
@@ -4335,4 +4432,623 @@ MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY = MultimodalArtifactLineageRegistry(
     source_reference_ids=_ARTIFACT_LINEAGE_SOURCE_REFERENCES,
     artifact_lineage_surface_refs=_ARTIFACT_LINEAGE_SURFACES,
     observability_surfaces=_ARTIFACT_LINEAGE_OBSERVABILITY_SURFACES,
+)
+
+
+class CrossAgentWorkspaceProfile(BaseModel):
+    """Inspectable metadata for one passive Cross-Agent Workspace surface."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    profile_id: str = Field(min_length=1, max_length=140)
+    profile_name: str = Field(min_length=1, max_length=160)
+    cross_agent_workspace_kind: CrossAgentWorkspaceProfileKind
+    cross_agent_surface_kind: CrossAgentWorkspaceSurfaceKind
+    source_agent_workspace_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=2,
+    )
+    source_visual_workspace_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_artifact_lineage_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_shared_context_view_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_blackboard_channel_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    workspace_context_fields: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_reference_ids: tuple[str, ...] = Field(min_length=1, max_length=10)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    cross_agent_workspace_surfaces: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=7,
+    )
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=CROSS_AGENT_WORKSPACE_AUTHORITY_BOUNDARY,
+        max_length=1300,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_CROSS_AGENT_WORKSPACE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    workspace_execution_implemented: Literal[False] = False
+    agent_instantiation_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    multi_agent_orchestration_implemented: Literal[False] = False
+    shared_context_materialization_implemented: Literal[False] = False
+    blackboard_state_read_implemented: Literal[False] = False
+    blackboard_state_write_implemented: Literal[False] = False
+    workspace_state_mutation_implemented: Literal[False] = False
+    collaboration_storage_persistence_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["multimodal_cross_agent_workspace_profile.v1"] = (
+        CROSS_AGENT_WORKSPACE_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class MultimodalCrossAgentWorkspaceRegistry(BaseModel):
+    """Stable passive registry for V4.5 Cross-Agent Workspace metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["multimodal_cross_agent_workspace_registry"] = (
+        "multimodal_cross_agent_workspace_registry"
+    )
+    serialization_version: Literal["multimodal_cross_agent_workspace_registry.v1"] = (
+        CROSS_AGENT_WORKSPACE_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=CROSS_AGENT_WORKSPACE_AUTHORITY_BOUNDARY,
+        max_length=1300,
+    )
+    cross_agent_workspace_profiles: tuple[CrossAgentWorkspaceProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    cross_agent_workspace_kinds: tuple[CrossAgentWorkspaceProfileKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    cross_agent_surface_kinds: tuple[CrossAgentWorkspaceSurfaceKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    agent_workspace_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    visual_workspace_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    artifact_lineage_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    shared_context_view_ids: tuple[str, ...] = Field(min_length=12, max_length=12)
+    blackboard_channel_ids: tuple[str, ...] = Field(min_length=12, max_length=12)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    source_reference_ids: tuple[str, ...] = Field(min_length=10, max_length=10)
+    cross_agent_workspace_surface_refs: tuple[str, ...] = Field(
+        min_length=7,
+        max_length=7,
+    )
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_CROSS_AGENT_WORKSPACE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    workspace_execution_implemented: Literal[False] = False
+    agent_instantiation_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    multi_agent_orchestration_implemented: Literal[False] = False
+    shared_context_materialization_implemented: Literal[False] = False
+    blackboard_state_read_implemented: Literal[False] = False
+    blackboard_state_write_implemented: Literal[False] = False
+    workspace_state_mutation_implemented: Literal[False] = False
+    collaboration_storage_persistence_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.profile_id for profile in self.cross_agent_workspace_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("profile_ids must be unique")
+        if self.profile_ids != derived_profile_ids:
+            raise ValueError("profile_ids must match cross_agent_workspace_profiles")
+        if self.profile_count != len(self.cross_agent_workspace_profiles):
+            raise ValueError("profile_count must match cross_agent_workspace_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.agent_workspace_profile_ids != AGENT_WORKSPACE_REGISTRY.workspace_profile_ids:
+            raise ValueError(
+                "agent_workspace_profile_ids must match Agent Workspace registry"
+            )
+        if (
+            self.visual_workspace_profile_ids
+            != MULTIMODAL_VISUAL_WORKSPACE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "visual_workspace_profile_ids must match Visual Workspace registry"
+            )
+        if (
+            self.artifact_lineage_profile_ids
+            != MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "artifact_lineage_profile_ids must match Artifact Lineage registry"
+            )
+        if self.shared_context_view_ids != SHARED_CONTEXT_VIEW_REGISTRY.view_ids:
+            raise ValueError(
+                "shared_context_view_ids must match Shared Context View registry"
+            )
+        if self.blackboard_channel_ids != BLACKBOARD_MEMORY_REGISTRY.channel_ids:
+            raise ValueError(
+                "blackboard_channel_ids must match Blackboard Memory registry"
+            )
+        if self.cross_agent_workspace_kinds != _ordered_unique(
+            profile.cross_agent_workspace_kind
+            for profile in self.cross_agent_workspace_profiles
+        ):
+            raise ValueError("cross_agent_workspace_kinds must match profiles")
+        if self.cross_agent_surface_kinds != _ordered_unique(
+            profile.cross_agent_surface_kind
+            for profile in self.cross_agent_workspace_profiles
+        ):
+            raise ValueError("cross_agent_surface_kinds must match profiles")
+
+        profile_source_references = {
+            source_reference
+            for profile in self.cross_agent_workspace_profiles
+            for source_reference in profile.source_reference_ids
+        }
+        if set(self.source_reference_ids) != profile_source_references:
+            raise ValueError(
+                "source_reference_ids must match profile source references"
+            )
+
+        known_routes = set(self.route_names)
+        known_agent_workspaces = set(self.agent_workspace_profile_ids)
+        known_visual_workspaces = set(self.visual_workspace_profile_ids)
+        known_lineage_profiles = set(self.artifact_lineage_profile_ids)
+        known_shared_context_views = set(self.shared_context_view_ids)
+        known_blackboard_channels = set(self.blackboard_channel_ids)
+        known_surfaces = set(self.cross_agent_workspace_surface_refs)
+        known_source_references = set(self.source_reference_ids)
+        for profile in self.cross_agent_workspace_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must use known routes")
+            if not set(profile.source_agent_workspace_profile_ids).issubset(
+                known_agent_workspaces
+            ):
+                raise ValueError(
+                    "source_agent_workspace_profile_ids must be known profiles"
+                )
+            if not set(profile.source_visual_workspace_profile_ids).issubset(
+                known_visual_workspaces
+            ):
+                raise ValueError(
+                    "source_visual_workspace_profile_ids must be known profiles"
+                )
+            if not set(profile.source_artifact_lineage_profile_ids).issubset(
+                known_lineage_profiles
+            ):
+                raise ValueError(
+                    "source_artifact_lineage_profile_ids must be known profiles"
+                )
+            if not set(profile.source_shared_context_view_ids).issubset(
+                known_shared_context_views
+            ):
+                raise ValueError(
+                    "source_shared_context_view_ids must be known views"
+                )
+            if not set(profile.source_blackboard_channel_ids).issubset(
+                known_blackboard_channels
+            ):
+                raise ValueError(
+                    "source_blackboard_channel_ids must be known channels"
+                )
+            if not set(profile.cross_agent_workspace_surfaces).issubset(
+                known_surfaces
+            ):
+                raise ValueError(
+                    "cross_agent_workspace_surfaces must be known surfaces"
+                )
+            if not set(profile.source_reference_ids).issubset(
+                known_source_references
+            ):
+                raise ValueError(
+                    "source_reference_ids must be known registry references"
+                )
+        return self
+
+
+def multimodal_cross_agent_workspace_registry() -> (
+    MultimodalCrossAgentWorkspaceRegistry
+):
+    """Return passive V4.5 Cross-Agent Workspace metadata."""
+
+    return MULTIMODAL_CROSS_AGENT_WORKSPACE_REGISTRY
+
+
+def multimodal_cross_agent_workspace_profile_by_id(
+    profile_id: str,
+    registry: MultimodalCrossAgentWorkspaceRegistry | None = None,
+) -> CrossAgentWorkspaceProfile | None:
+    """Return one Cross-Agent Workspace profile without invoking agents."""
+
+    source_registry = registry or MULTIMODAL_CROSS_AGENT_WORKSPACE_REGISTRY
+    normalized_profile_id = str(profile_id).strip()
+    for profile in source_registry.cross_agent_workspace_profiles:
+        if profile.profile_id == normalized_profile_id:
+            return profile
+    return None
+
+
+def multimodal_cross_agent_workspace_profiles_for_route(
+    route: RouteName | str,
+    registry: MultimodalCrossAgentWorkspaceRegistry | None = None,
+) -> tuple[CrossAgentWorkspaceProfile, ...]:
+    """Return passive Cross-Agent Workspace profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or MULTIMODAL_CROSS_AGENT_WORKSPACE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.cross_agent_workspace_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def multimodal_cross_agent_workspace_profiles_for_surface_kind(
+    surface_kind: CrossAgentWorkspaceSurfaceKind | str,
+    registry: MultimodalCrossAgentWorkspaceRegistry | None = None,
+) -> tuple[CrossAgentWorkspaceProfile, ...]:
+    """Return Cross-Agent Workspace profiles for one passive surface kind."""
+
+    surface_value = str(surface_kind).strip()
+    source_registry = registry or MULTIMODAL_CROSS_AGENT_WORKSPACE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.cross_agent_workspace_profiles
+        if profile.cross_agent_surface_kind == surface_value
+    )
+
+
+def multimodal_cross_agent_workspace_profiles_for_agent_workspace_profile(
+    agent_workspace_profile_id: str,
+    registry: MultimodalCrossAgentWorkspaceRegistry | None = None,
+) -> tuple[CrossAgentWorkspaceProfile, ...]:
+    """Return cross-agent profiles referencing one agent workspace profile."""
+
+    source_registry = registry or MULTIMODAL_CROSS_AGENT_WORKSPACE_REGISTRY
+    source_profile_id = str(agent_workspace_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.cross_agent_workspace_profiles
+        if source_profile_id in profile.source_agent_workspace_profile_ids
+    )
+
+
+def _cross_agent_workspace_profile(
+    *,
+    profile_id: str,
+    profile_name: str,
+    cross_agent_workspace_kind: CrossAgentWorkspaceProfileKind,
+    cross_agent_surface_kind: CrossAgentWorkspaceSurfaceKind,
+    source_agent_workspace_profile_ids: tuple[str, ...],
+    source_visual_workspace_profile_ids: tuple[str, ...],
+    source_artifact_lineage_profile_ids: tuple[str, ...],
+    source_shared_context_view_ids: tuple[str, ...],
+    source_blackboard_channel_ids: tuple[str, ...],
+    workspace_context_fields: tuple[str, ...],
+    source_reference_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    cross_agent_workspace_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> CrossAgentWorkspaceProfile:
+    return CrossAgentWorkspaceProfile(
+        profile_id=profile_id,
+        profile_name=profile_name,
+        cross_agent_workspace_kind=cross_agent_workspace_kind,
+        cross_agent_surface_kind=cross_agent_surface_kind,
+        source_agent_workspace_profile_ids=source_agent_workspace_profile_ids,
+        source_visual_workspace_profile_ids=source_visual_workspace_profile_ids,
+        source_artifact_lineage_profile_ids=source_artifact_lineage_profile_ids,
+        source_shared_context_view_ids=source_shared_context_view_ids,
+        source_blackboard_channel_ids=source_blackboard_channel_ids,
+        workspace_context_fields=workspace_context_fields,
+        source_reference_ids=source_reference_ids,
+        route_applicability=route_applicability,
+        cross_agent_workspace_surfaces=cross_agent_workspace_surfaces,
+        advisory_outputs=advisory_outputs,
+        source_registries=_CROSS_AGENT_WORKSPACE_SOURCE_REGISTRIES,
+        observability_surfaces=_CROSS_AGENT_WORKSPACE_OBSERVABILITY_SURFACES,
+    )
+
+
+MULTIMODAL_CROSS_AGENT_WORKSPACE_PROFILES = (
+    _cross_agent_workspace_profile(
+        profile_id="planning_cross_agent_workspace",
+        profile_name="Planning Cross-Agent Workspace",
+        cross_agent_workspace_kind="planning_cross_agent_workspace",
+        cross_agent_surface_kind="planning_context",
+        source_agent_workspace_profile_ids=("planning_context_agent_workspace",),
+        source_visual_workspace_profile_ids=(
+            "shell_visual_workspace",
+            "inspector_visual_workspace",
+        ),
+        source_artifact_lineage_profile_ids=(
+            "dependency_graph_artifact_lineage",
+            "source_transition_artifact_lineage",
+        ),
+        source_shared_context_view_ids=(
+            "planner_agent_shared_context_view",
+            "research_agent_shared_context_view",
+            "style_agent_shared_context_view",
+        ),
+        source_blackboard_channel_ids=(
+            "planner_agent_blackboard_channel",
+            "research_agent_blackboard_channel",
+            "style_agent_blackboard_channel",
+        ),
+        workspace_context_fields=(
+            "agent_workspace_profiles",
+            "visible_blackboard_channel_ids",
+            "planning_lineage_context",
+            "workspace.focus",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_VISUAL_WORKSPACE_REGISTRY",
+            "multimodal_studio.MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY",
+            "hybrid_studio.AGENT_WORKSPACE_REGISTRY",
+            "shared_context_views.SHARED_CONTEXT_VIEW_REGISTRY",
+            "blackboard_memory.BLACKBOARD_MEMORY_REGISTRY",
+            "hybrid_studio.AgentWorkspaceProfile",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.PREVIEW,
+        ),
+        cross_agent_workspace_surfaces=(
+            "cross_agent_workspace_panel",
+            "cross_agent_roster_surface",
+            "shared_context_scope_surface",
+            "lineage_context_surface",
+            "cross_agent_workspace_boundary_panel",
+        ),
+        advisory_outputs=(
+            "planning_cross_agent_workspace_inventory",
+            "manual_planning_context_review_hint",
+            "no_agent_invocation_notice",
+        ),
+    ),
+    _cross_agent_workspace_profile(
+        profile_id="artifact_runtime_cross_agent_workspace",
+        profile_name="Artifact Runtime Cross-Agent Workspace",
+        cross_agent_workspace_kind="artifact_runtime_cross_agent_workspace",
+        cross_agent_surface_kind="artifact_runtime",
+        source_agent_workspace_profile_ids=("artifact_runtime_agent_workspace",),
+        source_visual_workspace_profile_ids=(
+            "artifact_selection_visual_workspace",
+            "preview_visual_workspace",
+        ),
+        source_artifact_lineage_profile_ids=(
+            "dependency_graph_artifact_lineage",
+            "source_transition_artifact_lineage",
+        ),
+        source_shared_context_view_ids=(
+            "runtime_agent_shared_context_view",
+            "artifact_agent_shared_context_view",
+            "art_direction_agent_shared_context_view",
+        ),
+        source_blackboard_channel_ids=(
+            "runtime_agent_blackboard_channel",
+            "artifact_agent_blackboard_channel",
+            "art_direction_agent_blackboard_channel",
+        ),
+        workspace_context_fields=(
+            "artifact_runtime_agent_workspace",
+            "artifact_lineage_context",
+            "preview_workspace_surface",
+            "blackboard_metadata_keys",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_VISUAL_WORKSPACE_REGISTRY",
+            "multimodal_studio.MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY",
+            "hybrid_studio.AGENT_WORKSPACE_REGISTRY",
+            "shared_context_views.SharedContextViewContract",
+            "blackboard_memory.BlackboardMemoryChannelContract",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.PREVIEW,
+        ),
+        cross_agent_workspace_surfaces=(
+            "cross_agent_workspace_panel",
+            "cross_agent_roster_surface",
+            "shared_context_scope_surface",
+            "blackboard_channel_surface",
+            "lineage_context_surface",
+            "cross_agent_workspace_boundary_panel",
+        ),
+        advisory_outputs=(
+            "artifact_runtime_cross_agent_workspace_inventory",
+            "manual_runtime_context_review_hint",
+            "no_rendering_execution_notice",
+        ),
+    ),
+    _cross_agent_workspace_profile(
+        profile_id="critique_curation_cross_agent_workspace",
+        profile_name="Critique Curation Cross-Agent Workspace",
+        cross_agent_workspace_kind="critique_curation_cross_agent_workspace",
+        cross_agent_surface_kind="critique_curation",
+        source_agent_workspace_profile_ids=("critique_curation_agent_workspace",),
+        source_visual_workspace_profile_ids=(
+            "shell_visual_workspace",
+            "inspector_visual_workspace",
+        ),
+        source_artifact_lineage_profile_ids=(
+            "timeline_stage_artifact_lineage",
+            "source_transition_artifact_lineage",
+            "missing_artifact_lineage",
+        ),
+        source_shared_context_view_ids=(
+            "aesthetic_critic_agent_shared_context_view",
+            "narrative_symbolic_agent_shared_context_view",
+            "creative_curator_agent_shared_context_view",
+            "critic_agent_shared_context_view",
+        ),
+        source_blackboard_channel_ids=(
+            "aesthetic_critic_agent_blackboard_channel",
+            "narrative_symbolic_agent_blackboard_channel",
+            "creative_curator_agent_blackboard_channel",
+            "critic_agent_blackboard_channel",
+        ),
+        workspace_context_fields=(
+            "critique_curation_agent_workspace",
+            "timeline_stage_lineage",
+            "missing_lineage_context",
+            "visible_metadata_keys",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_VISUAL_WORKSPACE_REGISTRY",
+            "multimodal_studio.MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY",
+            "hybrid_studio.AGENT_WORKSPACE_REGISTRY",
+            "shared_context_views.SHARED_CONTEXT_VIEW_REGISTRY",
+            "blackboard_memory.BLACKBOARD_MEMORY_REGISTRY",
+            "clients.nextjs.workstation_state.buildWorkstationState",
+        ),
+        route_applicability=(
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        cross_agent_workspace_surfaces=(
+            "cross_agent_workspace_panel",
+            "shared_context_scope_surface",
+            "blackboard_channel_surface",
+            "lineage_context_surface",
+            "workspace_handoff_surface",
+            "cross_agent_workspace_boundary_panel",
+        ),
+        advisory_outputs=(
+            "critique_curation_cross_agent_workspace_inventory",
+            "manual_critique_context_review_hint",
+            "no_multi_agent_orchestration_notice",
+        ),
+    ),
+    _cross_agent_workspace_profile(
+        profile_id="refinement_synthesis_cross_agent_workspace",
+        profile_name="Refinement Synthesis Cross-Agent Workspace",
+        cross_agent_workspace_kind="refinement_synthesis_cross_agent_workspace",
+        cross_agent_surface_kind="refinement_synthesis",
+        source_agent_workspace_profile_ids=("refinement_synthesis_agent_workspace",),
+        source_visual_workspace_profile_ids=(
+            "artifact_selection_visual_workspace",
+            "inspector_visual_workspace",
+        ),
+        source_artifact_lineage_profile_ids=(
+            "timeline_stage_artifact_lineage",
+            "missing_artifact_lineage",
+        ),
+        source_shared_context_view_ids=(
+            "refiner_agent_shared_context_view",
+            "final_synthesizer_agent_shared_context_view",
+        ),
+        source_blackboard_channel_ids=(
+            "refiner_agent_blackboard_channel",
+            "final_synthesizer_agent_blackboard_channel",
+        ),
+        workspace_context_fields=(
+            "refinement_synthesis_agent_workspace",
+            "final_payload_lineage_context",
+            "shared_context_scope",
+            "workspace.readiness",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_VISUAL_WORKSPACE_REGISTRY",
+            "multimodal_studio.MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY",
+            "hybrid_studio.AGENT_WORKSPACE_REGISTRY",
+            "shared_context_views.SharedContextViewContract",
+            "blackboard_memory.BlackboardMemoryChannelContract",
+            "clients.nextjs.workstation_shell.WorkstationShell",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        cross_agent_workspace_surfaces=(
+            "cross_agent_workspace_panel",
+            "cross_agent_roster_surface",
+            "shared_context_scope_surface",
+            "blackboard_channel_surface",
+            "workspace_handoff_surface",
+            "cross_agent_workspace_boundary_panel",
+        ),
+        advisory_outputs=(
+            "refinement_synthesis_cross_agent_workspace_inventory",
+            "manual_synthesis_context_review_hint",
+            "no_workspace_state_mutation_notice",
+        ),
+    ),
+)
+
+MULTIMODAL_CROSS_AGENT_WORKSPACE_REGISTRY = MultimodalCrossAgentWorkspaceRegistry(
+    cross_agent_workspace_profiles=MULTIMODAL_CROSS_AGENT_WORKSPACE_PROFILES,
+    profile_ids=tuple(
+        profile.profile_id
+        for profile in MULTIMODAL_CROSS_AGENT_WORKSPACE_PROFILES
+    ),
+    cross_agent_workspace_kinds=tuple(
+        profile.cross_agent_workspace_kind
+        for profile in MULTIMODAL_CROSS_AGENT_WORKSPACE_PROFILES
+    ),
+    cross_agent_surface_kinds=tuple(
+        profile.cross_agent_surface_kind
+        for profile in MULTIMODAL_CROSS_AGENT_WORKSPACE_PROFILES
+    ),
+    agent_workspace_profile_ids=AGENT_WORKSPACE_REGISTRY.workspace_profile_ids,
+    visual_workspace_profile_ids=MULTIMODAL_VISUAL_WORKSPACE_REGISTRY.profile_ids,
+    artifact_lineage_profile_ids=MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY.profile_ids,
+    shared_context_view_ids=SHARED_CONTEXT_VIEW_REGISTRY.view_ids,
+    blackboard_channel_ids=BLACKBOARD_MEMORY_REGISTRY.channel_ids,
+    route_names=tuple(RouteName),
+    profile_count=len(MULTIMODAL_CROSS_AGENT_WORKSPACE_PROFILES),
+    source_registries=_CROSS_AGENT_WORKSPACE_SOURCE_REGISTRIES,
+    source_reference_ids=_CROSS_AGENT_WORKSPACE_SOURCE_REFERENCES,
+    cross_agent_workspace_surface_refs=_CROSS_AGENT_WORKSPACE_SURFACES,
+    observability_surfaces=_CROSS_AGENT_WORKSPACE_OBSERVABILITY_SURFACES,
 )

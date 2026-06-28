@@ -399,6 +399,9 @@ _EXPORT_MAP = {
     "ArtifactProvenanceProfile": _MULTIMODAL_STUDIO,
     "ArtifactProvenanceProfileKind": _MULTIMODAL_STUDIO,
     "ArtifactProvenanceSurfaceKind": _MULTIMODAL_STUDIO,
+    "CrossAgentWorkspaceProfile": _MULTIMODAL_STUDIO,
+    "CrossAgentWorkspaceProfileKind": _MULTIMODAL_STUDIO,
+    "CrossAgentWorkspaceSurfaceKind": _MULTIMODAL_STUDIO,
     "InteractiveCanvasProfile": _MULTIMODAL_STUDIO,
     "InteractiveCanvasProfileKind": _MULTIMODAL_STUDIO,
     "InteractiveCanvasSurfaceKind": _MULTIMODAL_STUDIO,
@@ -411,6 +414,7 @@ _EXPORT_MAP = {
     "MultimodalArtifactCollaborationRegistry": _MULTIMODAL_STUDIO,
     "MultimodalArtifactLineageRegistry": _MULTIMODAL_STUDIO,
     "MultimodalArtifactProvenanceRegistry": _MULTIMODAL_STUDIO,
+    "MultimodalCrossAgentWorkspaceRegistry": _MULTIMODAL_STUDIO,
     "MultimodalInteractiveCanvasRegistry": _MULTIMODAL_STUDIO,
     "MultimodalLivePreviewRegistry": _MULTIMODAL_STUDIO,
     "MultimodalMultiPreviewRegistry": _MULTIMODAL_STUDIO,
@@ -594,6 +598,15 @@ _EXPORT_MAP = {
         _MULTIMODAL_STUDIO
     ),
     "multimodal_artifact_provenance_registry": _MULTIMODAL_STUDIO,
+    "multimodal_cross_agent_workspace_profile_by_id": _MULTIMODAL_STUDIO,
+    "multimodal_cross_agent_workspace_profiles_for_agent_workspace_profile": (
+        _MULTIMODAL_STUDIO
+    ),
+    "multimodal_cross_agent_workspace_profiles_for_route": _MULTIMODAL_STUDIO,
+    "multimodal_cross_agent_workspace_profiles_for_surface_kind": (
+        _MULTIMODAL_STUDIO
+    ),
+    "multimodal_cross_agent_workspace_registry": _MULTIMODAL_STUDIO,
     "multimodal_interactive_canvas_profile_by_id": _MULTIMODAL_STUDIO,
     "multimodal_interactive_canvas_profiles_for_live_preview_profile": (
         _MULTIMODAL_STUDIO
