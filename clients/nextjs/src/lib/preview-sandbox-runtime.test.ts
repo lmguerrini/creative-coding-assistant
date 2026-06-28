@@ -53,14 +53,65 @@ describe("preview sandbox runtime", () => {
         }
       })
     ).toContain("HTML documents cannot run");
+  });
+
+  it("detects leading-comment HTML documents as incompatible with the p5 JavaScript runtime", () => {
+    const commentedHtmlSource = [
+      "<!-- index.html -->",
+      "<!doctype html>",
+      "<html>",
+      "<body><script>function draw() { circle(20, 20, 10); }</script></body>",
+      "</html>"
+    ].join("\n");
+    const spacedCommentedHtmlSource = [
+      "",
+      "  <!-- index.html -->",
+      "  <!doctype html>",
+      "<html>",
+      "<body><script>function setup() { createCanvas(200, 200); }</script></body>",
+      "</html>"
+    ].join("\n");
 
     expect(
       getPreviewRuntimeSourceMismatch({
         kind: "p5",
         source: {
+          fingerprint: "html-comment123",
+          lineCount: 5,
+          source: commentedHtmlSource,
+          title: "generated-sketch-1.p5.ts"
+        }
+      })
+    ).toContain("HTML documents cannot run");
+
+    expect(
+      getPreviewRuntimeSourceMismatch({
+        kind: "p5",
+        source: {
+          fingerprint: "html-comment-spaced123",
+          lineCount: 6,
+          source: spacedCommentedHtmlSource,
+          title: "generated-sketch-1.p5.ts"
+        }
+      })
+    ).toContain("HTML documents cannot run");
+  });
+
+  it("accepts valid p5 JavaScript source with normal comments", () => {
+    expect(
+      getPreviewRuntimeSourceMismatch({
+        kind: "p5",
+        source: {
           fingerprint: "p5js123",
-          lineCount: 3,
-          source: "function setup() { createCanvas(200, 200); }\nfunction draw() { circle(20, 20, 10); }",
+          lineCount: 6,
+          source: [
+            "// index.js",
+            "/* p5 sketch source */",
+            "function setup() { createCanvas(200, 200); }",
+            "function draw() {",
+            "  circle(20, 20, 10);",
+            "}"
+          ].join("\n"),
           title: "generated-sketch-1.p5.ts"
         }
       })
@@ -272,8 +323,9 @@ describe("preview sandbox runtime", () => {
       runtimeId: "runtime-html",
       source: {
         fingerprint: "html123",
-        lineCount: 4,
+        lineCount: 5,
         source: [
+          "<!-- index.html -->",
           "<!doctype html>",
           "<html>",
           "<body><script>function draw() { circle(20, 20, 10); }</script></body>",

@@ -235,6 +235,41 @@ describe("preview renderers", () => {
     });
   });
 
+  it("keeps leading-comment HTML documents out of the p5 live renderer", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const artifact = creativeArtifact({
+      content: [
+        "  <!-- index.html -->",
+        "<!doctype html>",
+        "<html>",
+        "<head><script src=\"https://cdn.jsdelivr.net/npm/p5/lib/p5.min.js\"></script></head>",
+        "<body><script>function setup() { createCanvas(200, 200); }</script></body>",
+        "</html>"
+      ].join("\n"),
+      domain: "p5_js",
+      previewEligible: true,
+      previewTarget: "browser_sandbox",
+      runtime: "p5",
+      summary: "A browser document that embeds a p5 sketch.",
+      title: "generated-sketch-1.p5.ts"
+    });
+    const preview = creativePreviewSummary(artifact, snapshot.preview);
+
+    expect(matchCreativePreviewRenderer(artifact)).toBeNull();
+    expect(
+      buildPreviewRendererRoute({
+        artifacts: [artifact],
+        preview,
+        previewArtifactId: artifact.id
+      })
+    ).toMatchObject({
+      supportState: "unsupported",
+      supportReason:
+        "HTML documents cannot run in the p5 JavaScript preview runtime. Use JavaScript p5 source with setup() or draw(), or route the artifact to a compatible preview surface.",
+      surfaceKind: "unsupported"
+    });
+  });
+
   it("falls back safely when GSAP source exceeds the bounded sandbox rules", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const artifact = creativeArtifact({

@@ -16,11 +16,23 @@ export function getP5RuntimeSourceSupportIssue(
 }
 
 export function looksLikeHtmlSource(source: string | null | undefined) {
-  const text = source?.trim();
+  const text = stripLeadingHtmlComments(source?.trimStart() ?? "");
 
   if (!text) {
     return false;
   }
 
   return htmlSourcePatterns.some((pattern) => pattern.test(text));
+}
+
+function stripLeadingHtmlComments(source: string) {
+  let text = source;
+  let match = text.match(/^<!--[\s\S]*?-->\s*/);
+
+  while (match) {
+    text = text.slice(match[0].length).trimStart();
+    match = text.match(/^<!--[\s\S]*?-->\s*/);
+  }
+
+  return text.trim();
 }
