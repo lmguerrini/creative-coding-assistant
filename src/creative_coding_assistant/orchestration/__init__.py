@@ -233,6 +233,9 @@ _EXECUTION_GRAPH_ANALYZER = (
 _WORKFLOW_COST_ANALYZER = (
     "creative_coding_assistant.orchestration.workflow_cost_analyzer"
 )
+_WORKFLOW_COMPLEXITY_ANALYZER = (
+    "creative_coding_assistant.orchestration.workflow_complexity_analyzer"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -245,6 +248,8 @@ _EXPORT_MAP = {
     "ExecutionGraphNode": _EXECUTION_GRAPH_ANALYZER,
     "WorkflowCostAnalysis": _WORKFLOW_COST_ANALYZER,
     "WorkflowCostComponent": _WORKFLOW_COST_ANALYZER,
+    "WorkflowComplexityAnalysis": _WORKFLOW_COMPLEXITY_ANALYZER,
+    "WorkflowComplexityFactor": _WORKFLOW_COMPLEXITY_ANALYZER,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1170,6 +1175,7 @@ _EXPORT_MAP = {
     "begin_assistant_workflow": _WORKFLOW,
     "analyze_assistant_execution_graph": _EXECUTION_GRAPH_ANALYZER,
     "analyze_workflow_cost": _WORKFLOW_COST_ANALYZER,
+    "analyze_workflow_complexity": _WORKFLOW_COMPLEXITY_ANALYZER,
     "build_assistant_workflow_graph": _WORKFLOW_GRAPH,
     "calibrate_artifact_quality": _QUALITY_CALIBRATION,
     "artifact_quality_score": _REFINEMENT_PASSES,
@@ -1188,6 +1194,8 @@ _EXPORT_MAP = {
     "execution_graph_node_by_id": _EXECUTION_GRAPH_ANALYZER,
     "workflow_cost_component_by_id": _WORKFLOW_COST_ANALYZER,
     "workflow_cost_components_for_kind": _WORKFLOW_COST_ANALYZER,
+    "workflow_complexity_factor_by_id": _WORKFLOW_COMPLEXITY_ANALYZER,
+    "workflow_complexity_factors_for_kind": _WORKFLOW_COMPLEXITY_ANALYZER,
     "complete_latest_refinement_pass": _REFINEMENT_PASSES,
     "critique_workflow_artifacts": _ARTIFACT_CRITIQUE,
     "creative_translation_prompt_lines": _CREATIVE_TRANSLATION,
