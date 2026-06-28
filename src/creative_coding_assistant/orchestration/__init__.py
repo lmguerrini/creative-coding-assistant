@@ -402,7 +402,11 @@ _EXPORT_MAP = {
     "MultimodalInteractiveCanvasRegistry": _MULTIMODAL_STUDIO,
     "MultimodalLivePreviewRegistry": _MULTIMODAL_STUDIO,
     "MultimodalMultiPreviewRegistry": _MULTIMODAL_STUDIO,
+    "MultimodalRuntimeCollaborationRegistry": _MULTIMODAL_STUDIO,
     "MultimodalVisualWorkspaceRegistry": _MULTIMODAL_STUDIO,
+    "RuntimeCollaborationProfile": _MULTIMODAL_STUDIO,
+    "RuntimeCollaborationProfileKind": _MULTIMODAL_STUDIO,
+    "RuntimeCollaborationSurfaceKind": _MULTIMODAL_STUDIO,
     "VisualWorkspaceProfile": _MULTIMODAL_STUDIO,
     "VisualWorkspaceProfileKind": _MULTIMODAL_STUDIO,
     "VisualWorkspaceSurfaceKind": _MULTIMODAL_STUDIO,
@@ -577,6 +581,15 @@ _EXPORT_MAP = {
     ),
     "multimodal_multi_preview_profiles_for_route": _MULTIMODAL_STUDIO,
     "multimodal_multi_preview_registry": _MULTIMODAL_STUDIO,
+    "multimodal_runtime_collaboration_profile_by_id": _MULTIMODAL_STUDIO,
+    "multimodal_runtime_collaboration_profiles_for_route": _MULTIMODAL_STUDIO,
+    "multimodal_runtime_collaboration_profiles_for_surface_kind": (
+        _MULTIMODAL_STUDIO
+    ),
+    "multimodal_runtime_collaboration_profiles_for_visual_workspace_profile": (
+        _MULTIMODAL_STUDIO
+    ),
+    "multimodal_runtime_collaboration_registry": _MULTIMODAL_STUDIO,
     "multimodal_visual_workspace_profile_by_id": _MULTIMODAL_STUDIO,
     "multimodal_visual_workspace_profiles_for_interactive_canvas_profile": (
         _MULTIMODAL_STUDIO

@@ -48,6 +48,18 @@ VisualWorkspaceSurfaceKind = Literal[
     "preview",
     "inspector",
 ]
+RuntimeCollaborationProfileKind = Literal[
+    "runtime_trace_collaboration",
+    "runtime_console_collaboration",
+    "stream_event_collaboration",
+    "operator_context_collaboration",
+]
+RuntimeCollaborationSurfaceKind = Literal[
+    "trace",
+    "console",
+    "stream",
+    "operator_context",
+]
 
 LIVE_PREVIEW_PROFILE_SERIALIZATION_VERSION = "multimodal_live_preview_profile.v1"
 LIVE_PREVIEW_REGISTRY_SERIALIZATION_VERSION = "multimodal_live_preview_registry.v1"
@@ -64,6 +76,12 @@ VISUAL_WORKSPACE_PROFILE_SERIALIZATION_VERSION = (
 )
 VISUAL_WORKSPACE_REGISTRY_SERIALIZATION_VERSION = (
     "multimodal_visual_workspace_registry.v1"
+)
+RUNTIME_COLLABORATION_PROFILE_SERIALIZATION_VERSION = (
+    "multimodal_runtime_collaboration_profile.v1"
+)
+RUNTIME_COLLABORATION_REGISTRY_SERIALIZATION_VERSION = (
+    "multimodal_runtime_collaboration_registry.v1"
 )
 LIVE_PREVIEW_AUTHORITY_BOUNDARY = (
     "Live Preview metadata describes passive V4.5 Multimodal Studio surfaces "
@@ -94,6 +112,13 @@ VISUAL_WORKSPACE_AUTHORITY_BOUNDARY = (
     "state, create persistent storage behavior, execute rendering, route "
     "providers or models, call external providers, trigger retries, mutate "
     "generated outputs, open networking, or activate Studio runtime behavior."
+)
+RUNTIME_COLLABORATION_AUTHORITY_BOUNDARY = (
+    "Runtime Collaboration metadata describes passive V4.5 Multimodal Studio "
+    "runtime collaboration surfaces for inspection only; it does not open "
+    "real-time networking, synchronize external peers, persist collaboration "
+    "state, execute runtime behavior, control workflows, request human input, "
+    "route providers or models, trigger retries, or mutate generated outputs."
 )
 
 _LIVE_PREVIEW_SOURCE_REGISTRIES = (
@@ -307,6 +332,59 @@ _VISUAL_WORKSPACE_BLOCKED_RUNTIME_BEHAVIORS = (
     "generated_output_mutation",
     "networking",
     "active_studio_runtime_behavior",
+)
+
+_RUNTIME_COLLABORATION_SOURCE_REGISTRIES = (
+    "multimodal_visual_workspace_registry",
+    "nextjs_workflow_runtime",
+    "nextjs_runtime_console",
+    "nextjs_assistant_stream",
+    "nextjs_workstation_shell",
+    "nextjs_provider_telemetry",
+    "nextjs_session_intelligence",
+)
+
+_RUNTIME_COLLABORATION_SOURCE_REFERENCES = (
+    "multimodal_studio.MULTIMODAL_VISUAL_WORKSPACE_REGISTRY",
+    "clients.nextjs.workflow_runtime.buildWorkflowRuntimeModel",
+    "clients.nextjs.runtime_console.buildRuntimeConsoleModel",
+    "clients.nextjs.assistant_stream.streamAssistantEvents",
+    "clients.nextjs.workstation_shell.applyStreamEventToWorkspace",
+    "clients.nextjs.provider_telemetry.buildProviderTelemetryModel",
+    "clients.nextjs.session_intelligence.buildSessionIntelligenceModel",
+    "clients.nextjs.session_intelligence.readSessionIntelligenceMetadata",
+)
+
+_RUNTIME_COLLABORATION_SURFACES = (
+    "runtime_collaboration_panel",
+    "runtime_trace_surface",
+    "runtime_console_surface",
+    "stream_event_surface",
+    "operator_context_surface",
+    "runtime_health_surface",
+    "runtime_collaboration_boundary_panel",
+)
+
+_RUNTIME_COLLABORATION_OBSERVABILITY_SURFACES = (
+    "profile_id",
+    "collaboration_profile_kind",
+    "collaboration_surface_kind",
+    "source_visual_workspace_profile_ids",
+    "runtime_context_fields",
+    "source_reference_ids",
+    "authority_boundary",
+)
+
+_RUNTIME_COLLABORATION_BLOCKED_RUNTIME_BEHAVIORS = (
+    "real_time_networking",
+    "external_peer_synchronization",
+    "persistent_collaboration_storage",
+    "runtime_execution",
+    "workflow_control",
+    "human_input_request",
+    "provider_or_model_routing",
+    "retry_triggering",
+    "generated_output_mutation",
 )
 
 
@@ -2164,4 +2242,455 @@ MULTIMODAL_VISUAL_WORKSPACE_REGISTRY = MultimodalVisualWorkspaceRegistry(
     source_reference_ids=_VISUAL_WORKSPACE_SOURCE_REFERENCES,
     visual_workspace_surface_refs=_VISUAL_WORKSPACE_SURFACES,
     observability_surfaces=_VISUAL_WORKSPACE_OBSERVABILITY_SURFACES,
+)
+
+
+class RuntimeCollaborationProfile(BaseModel):
+    """Inspectable metadata for one passive Runtime Collaboration surface."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    profile_id: str = Field(min_length=1, max_length=120)
+    profile_name: str = Field(min_length=1, max_length=140)
+    collaboration_profile_kind: RuntimeCollaborationProfileKind
+    collaboration_surface_kind: RuntimeCollaborationSurfaceKind
+    source_visual_workspace_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    runtime_context_fields: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_reference_ids: tuple[str, ...] = Field(min_length=1, max_length=8)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    runtime_collaboration_surfaces: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=7,
+    )
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=RUNTIME_COLLABORATION_AUTHORITY_BOUNDARY,
+        max_length=900,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_RUNTIME_COLLABORATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    real_time_networking_implemented: Literal[False] = False
+    external_peer_synchronization_implemented: Literal[False] = False
+    persistent_collaboration_storage_implemented: Literal[False] = False
+    runtime_execution_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    serialization_version: Literal["multimodal_runtime_collaboration_profile.v1"] = (
+        RUNTIME_COLLABORATION_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class MultimodalRuntimeCollaborationRegistry(BaseModel):
+    """Stable passive registry for V4.5 Runtime Collaboration metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["multimodal_runtime_collaboration_registry"] = (
+        "multimodal_runtime_collaboration_registry"
+    )
+    serialization_version: Literal["multimodal_runtime_collaboration_registry.v1"] = (
+        RUNTIME_COLLABORATION_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=RUNTIME_COLLABORATION_AUTHORITY_BOUNDARY,
+        max_length=900,
+    )
+    runtime_collaboration_profiles: tuple[RuntimeCollaborationProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    collaboration_profile_kinds: tuple[RuntimeCollaborationProfileKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    collaboration_surface_kinds: tuple[RuntimeCollaborationSurfaceKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    visual_workspace_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    source_reference_ids: tuple[str, ...] = Field(min_length=8, max_length=8)
+    runtime_collaboration_surface_refs: tuple[str, ...] = Field(
+        min_length=7,
+        max_length=7,
+    )
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_RUNTIME_COLLABORATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    real_time_networking_implemented: Literal[False] = False
+    external_peer_synchronization_implemented: Literal[False] = False
+    persistent_collaboration_storage_implemented: Literal[False] = False
+    runtime_execution_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.profile_id
+            for profile in self.runtime_collaboration_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("profile_ids must be unique")
+        if self.profile_ids != derived_profile_ids:
+            raise ValueError(
+                "profile_ids must match runtime_collaboration_profiles"
+            )
+        if self.profile_count != len(self.runtime_collaboration_profiles):
+            raise ValueError(
+                "profile_count must match runtime_collaboration_profiles"
+            )
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if (
+            self.visual_workspace_profile_ids
+            != MULTIMODAL_VISUAL_WORKSPACE_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "visual_workspace_profile_ids must match Visual Workspace registry"
+            )
+
+        derived_profile_kinds = _ordered_unique(
+            profile.collaboration_profile_kind
+            for profile in self.runtime_collaboration_profiles
+        )
+        if self.collaboration_profile_kinds != derived_profile_kinds:
+            raise ValueError(
+                "collaboration_profile_kinds must match runtime profiles"
+            )
+
+        derived_surface_kinds = _ordered_unique(
+            profile.collaboration_surface_kind
+            for profile in self.runtime_collaboration_profiles
+        )
+        if self.collaboration_surface_kinds != derived_surface_kinds:
+            raise ValueError(
+                "collaboration_surface_kinds must match runtime profiles"
+            )
+
+        profile_source_references = {
+            source_reference
+            for profile in self.runtime_collaboration_profiles
+            for source_reference in profile.source_reference_ids
+        }
+        if set(self.source_reference_ids) != profile_source_references:
+            raise ValueError(
+                "source_reference_ids must match profile source references"
+            )
+
+        known_routes = set(self.route_names)
+        known_workspace_profiles = set(self.visual_workspace_profile_ids)
+        known_surfaces = set(self.runtime_collaboration_surface_refs)
+        known_source_references = set(self.source_reference_ids)
+        for profile in self.runtime_collaboration_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must use known routes")
+            if not set(profile.source_visual_workspace_profile_ids).issubset(
+                known_workspace_profiles
+            ):
+                raise ValueError(
+                    "source_visual_workspace_profile_ids must be known profiles"
+                )
+            if not set(profile.runtime_collaboration_surfaces).issubset(
+                known_surfaces
+            ):
+                raise ValueError(
+                    "runtime_collaboration_surfaces must be known surfaces"
+                )
+            if not set(profile.source_reference_ids).issubset(
+                known_source_references
+            ):
+                raise ValueError(
+                    "source_reference_ids must be known registry references"
+                )
+        return self
+
+
+def multimodal_runtime_collaboration_registry() -> (
+    MultimodalRuntimeCollaborationRegistry
+):
+    """Return passive V4.5 Runtime Collaboration metadata."""
+
+    return MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY
+
+
+def multimodal_runtime_collaboration_profile_by_id(
+    profile_id: str,
+    registry: MultimodalRuntimeCollaborationRegistry | None = None,
+) -> RuntimeCollaborationProfile | None:
+    """Return one Runtime Collaboration profile without synchronization."""
+
+    source_registry = registry or MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY
+    normalized_profile_id = str(profile_id).strip()
+    for profile in source_registry.runtime_collaboration_profiles:
+        if profile.profile_id == normalized_profile_id:
+            return profile
+    return None
+
+
+def multimodal_runtime_collaboration_profiles_for_route(
+    route: RouteName | str,
+    registry: MultimodalRuntimeCollaborationRegistry | None = None,
+) -> tuple[RuntimeCollaborationProfile, ...]:
+    """Return passive Runtime Collaboration profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.runtime_collaboration_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def multimodal_runtime_collaboration_profiles_for_surface_kind(
+    surface_kind: RuntimeCollaborationSurfaceKind | str,
+    registry: MultimodalRuntimeCollaborationRegistry | None = None,
+) -> tuple[RuntimeCollaborationProfile, ...]:
+    """Return Runtime Collaboration profiles for one passive surface kind."""
+
+    surface_value = str(surface_kind).strip()
+    source_registry = registry or MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.runtime_collaboration_profiles
+        if profile.collaboration_surface_kind == surface_value
+    )
+
+
+def multimodal_runtime_collaboration_profiles_for_visual_workspace_profile(
+    visual_workspace_profile_id: str,
+    registry: MultimodalRuntimeCollaborationRegistry | None = None,
+) -> tuple[RuntimeCollaborationProfile, ...]:
+    """Return Runtime Collaboration profiles referencing one workspace profile."""
+
+    source_registry = registry or MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY
+    source_profile_id = str(visual_workspace_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.runtime_collaboration_profiles
+        if source_profile_id in profile.source_visual_workspace_profile_ids
+    )
+
+
+def _runtime_collaboration_profile(
+    *,
+    profile_id: str,
+    profile_name: str,
+    collaboration_profile_kind: RuntimeCollaborationProfileKind,
+    collaboration_surface_kind: RuntimeCollaborationSurfaceKind,
+    source_visual_workspace_profile_ids: tuple[str, ...],
+    runtime_context_fields: tuple[str, ...],
+    source_reference_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    runtime_collaboration_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> RuntimeCollaborationProfile:
+    return RuntimeCollaborationProfile(
+        profile_id=profile_id,
+        profile_name=profile_name,
+        collaboration_profile_kind=collaboration_profile_kind,
+        collaboration_surface_kind=collaboration_surface_kind,
+        source_visual_workspace_profile_ids=source_visual_workspace_profile_ids,
+        runtime_context_fields=runtime_context_fields,
+        source_reference_ids=source_reference_ids,
+        route_applicability=route_applicability,
+        runtime_collaboration_surfaces=runtime_collaboration_surfaces,
+        advisory_outputs=advisory_outputs,
+        source_registries=_RUNTIME_COLLABORATION_SOURCE_REGISTRIES,
+        observability_surfaces=_RUNTIME_COLLABORATION_OBSERVABILITY_SURFACES,
+    )
+
+
+MULTIMODAL_RUNTIME_COLLABORATION_PROFILES = (
+    _runtime_collaboration_profile(
+        profile_id="trace_runtime_collaboration",
+        profile_name="Trace Runtime Collaboration",
+        collaboration_profile_kind="runtime_trace_collaboration",
+        collaboration_surface_kind="trace",
+        source_visual_workspace_profile_ids=(
+            "shell_visual_workspace",
+            "inspector_visual_workspace",
+        ),
+        runtime_context_fields=(
+            "traceEventCount",
+            "transitionCount",
+            "retryCount",
+            "currentNode",
+            "currentStep",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_VISUAL_WORKSPACE_REGISTRY",
+            "clients.nextjs.workflow_runtime.buildWorkflowRuntimeModel",
+            "clients.nextjs.workstation_shell.applyStreamEventToWorkspace",
+        ),
+        route_applicability=tuple(RouteName),
+        runtime_collaboration_surfaces=(
+            "runtime_collaboration_panel",
+            "runtime_trace_surface",
+            "runtime_health_surface",
+            "runtime_collaboration_boundary_panel",
+        ),
+        advisory_outputs=(
+            "runtime_trace_collaboration_inventory",
+            "manual_trace_review_hint",
+            "no_workflow_control_notice",
+        ),
+    ),
+    _runtime_collaboration_profile(
+        profile_id="console_runtime_collaboration",
+        profile_name="Console Runtime Collaboration",
+        collaboration_profile_kind="runtime_console_collaboration",
+        collaboration_surface_kind="console",
+        source_visual_workspace_profile_ids=(
+            "preview_visual_workspace",
+            "inspector_visual_workspace",
+        ),
+        runtime_context_fields=(
+            "runtimeId",
+            "source",
+            "status",
+            "metrics",
+            "diagnostics",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_VISUAL_WORKSPACE_REGISTRY",
+            "clients.nextjs.runtime_console.buildRuntimeConsoleModel",
+            "clients.nextjs.workflow_runtime.buildWorkflowRuntimeModel",
+        ),
+        route_applicability=tuple(RouteName),
+        runtime_collaboration_surfaces=(
+            "runtime_collaboration_panel",
+            "runtime_console_surface",
+            "runtime_health_surface",
+            "runtime_collaboration_boundary_panel",
+        ),
+        advisory_outputs=(
+            "runtime_console_collaboration_inventory",
+            "manual_console_review_hint",
+            "no_runtime_execution_notice",
+        ),
+    ),
+    _runtime_collaboration_profile(
+        profile_id="stream_event_runtime_collaboration",
+        profile_name="Stream Event Runtime Collaboration",
+        collaboration_profile_kind="stream_event_collaboration",
+        collaboration_surface_kind="stream",
+        source_visual_workspace_profile_ids=(
+            "shell_visual_workspace",
+            "artifact_selection_visual_workspace",
+            "preview_visual_workspace",
+        ),
+        runtime_context_fields=(
+            "event_type",
+            "sequence",
+            "payload",
+            "workflow",
+            "providerTelemetry",
+        ),
+        source_reference_ids=(
+            "clients.nextjs.assistant_stream.streamAssistantEvents",
+            "clients.nextjs.workstation_shell.applyStreamEventToWorkspace",
+            "clients.nextjs.provider_telemetry.buildProviderTelemetryModel",
+        ),
+        route_applicability=tuple(RouteName),
+        runtime_collaboration_surfaces=(
+            "runtime_collaboration_panel",
+            "stream_event_surface",
+            "runtime_trace_surface",
+            "runtime_collaboration_boundary_panel",
+        ),
+        advisory_outputs=(
+            "stream_event_collaboration_inventory",
+            "manual_stream_event_review_hint",
+            "no_real_time_networking_notice",
+        ),
+    ),
+    _runtime_collaboration_profile(
+        profile_id="operator_context_runtime_collaboration",
+        profile_name="Operator Context Runtime Collaboration",
+        collaboration_profile_kind="operator_context_collaboration",
+        collaboration_surface_kind="operator_context",
+        source_visual_workspace_profile_ids=(
+            "shell_visual_workspace",
+            "inspector_visual_workspace",
+        ),
+        runtime_context_fields=(
+            "sessionIntelligence",
+            "streamedMetadata",
+            "operatorReview",
+            "readiness",
+        ),
+        source_reference_ids=(
+            "clients.nextjs.session_intelligence.buildSessionIntelligenceModel",
+            "clients.nextjs.session_intelligence.readSessionIntelligenceMetadata",
+            "clients.nextjs.provider_telemetry.buildProviderTelemetryModel",
+        ),
+        route_applicability=tuple(RouteName),
+        runtime_collaboration_surfaces=(
+            "runtime_collaboration_panel",
+            "operator_context_surface",
+            "runtime_health_surface",
+            "runtime_collaboration_boundary_panel",
+        ),
+        advisory_outputs=(
+            "operator_context_collaboration_inventory",
+            "manual_operator_context_review_hint",
+            "no_human_input_request_notice",
+        ),
+    ),
+)
+
+MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY = (
+    MultimodalRuntimeCollaborationRegistry(
+        runtime_collaboration_profiles=MULTIMODAL_RUNTIME_COLLABORATION_PROFILES,
+        profile_ids=tuple(
+            profile.profile_id
+            for profile in MULTIMODAL_RUNTIME_COLLABORATION_PROFILES
+        ),
+        collaboration_profile_kinds=tuple(
+            profile.collaboration_profile_kind
+            for profile in MULTIMODAL_RUNTIME_COLLABORATION_PROFILES
+        ),
+        collaboration_surface_kinds=tuple(
+            profile.collaboration_surface_kind
+            for profile in MULTIMODAL_RUNTIME_COLLABORATION_PROFILES
+        ),
+        visual_workspace_profile_ids=MULTIMODAL_VISUAL_WORKSPACE_REGISTRY.profile_ids,
+        route_names=tuple(RouteName),
+        profile_count=len(MULTIMODAL_RUNTIME_COLLABORATION_PROFILES),
+        source_registries=_RUNTIME_COLLABORATION_SOURCE_REGISTRIES,
+        source_reference_ids=_RUNTIME_COLLABORATION_SOURCE_REFERENCES,
+        runtime_collaboration_surface_refs=_RUNTIME_COLLABORATION_SURFACES,
+        observability_surfaces=_RUNTIME_COLLABORATION_OBSERVABILITY_SURFACES,
+    )
 )
