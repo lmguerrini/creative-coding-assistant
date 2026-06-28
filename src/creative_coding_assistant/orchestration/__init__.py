@@ -225,6 +225,7 @@ _EVENTS = "creative_coding_assistant.orchestration.events"
 _GEN = "creative_coding_assistant.orchestration.generation"
 _MEM = "creative_coding_assistant.orchestration.memory"
 _PROMPT_INPUTS = "creative_coding_assistant.orchestration.prompt_inputs"
+_PROMPT_COMPRESSION = "creative_coding_assistant.orchestration.prompt_compression"
 _PROMPT_TEMPLATES = "creative_coding_assistant.orchestration.prompt_templates"
 _QUALITY_CALIBRATION = (
     "creative_coding_assistant.orchestration.quality_calibration"
@@ -1149,6 +1150,9 @@ _EXPORT_MAP = {
     "ProjectMemoryContext": _MEM,
     "PromptConversationTurnInput": _PROMPT_INPUTS,
     "PromptArtifactRefinementInput": _PROMPT_INPUTS,
+    "PromptCompressionInputSection": _PROMPT_COMPRESSION,
+    "PromptCompressionResult": _PROMPT_COMPRESSION,
+    "PromptCompressionSection": _PROMPT_COMPRESSION,
     "PromptImageReferenceInput": _PROMPT_INPUTS,
     "PromptInputBuilder": _PROMPT_INPUTS,
     "PromptInputRequest": _PROMPT_INPUTS,
@@ -1207,6 +1211,9 @@ _EXPORT_MAP = {
     "build_provider_generation_request": _GEN,
     "build_rendered_prompt_request": _PROMPT_TEMPLATES,
     "build_retrieval_context_request": _RETRIEVAL,
+    "compress_prompt_sections": _PROMPT_COMPRESSION,
+    "compress_prompt_text": _PROMPT_COMPRESSION,
+    "compress_rendered_prompt": _PROMPT_COMPRESSION,
     "complete_workflow_step": _WORKFLOW,
     "creative_complexity_factor_by_id": _CREATIVE_COMPLEXITY_ANALYZER,
     "creative_complexity_factors_for_kind": _CREATIVE_COMPLEXITY_ANALYZER,
@@ -1340,6 +1347,8 @@ _EXPORT_MAP = {
     "plan_context_budget": _CONTEXT_BUDGET_PLANNER,
     "plan_exploration_budget": _EXPLORATION_BUDGET_PLANNER,
     "plan_next_refinement_pass": _REFINEMENT_PASSES,
+    "prompt_compression_section_by_id": _PROMPT_COMPRESSION,
+    "prompt_compression_sections_for_status": _PROMPT_COMPRESSION,
     "refinement_opportunities": _REFINEMENT_PASSES,
     "reference_fusion_prompt_lines": _REFERENCE_FUSION,
     "restart_workflow_step": _WORKFLOW,
