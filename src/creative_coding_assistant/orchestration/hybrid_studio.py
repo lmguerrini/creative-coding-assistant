@@ -6,6 +6,9 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from creative_coding_assistant.orchestration.hybrid_agentic_workflow import (
+    COST_THRESHOLD_ROUTING_REGISTRY,
+)
 from creative_coding_assistant.orchestration.routing import RouteName
 
 LocalModelRuntimeKind = Literal[
@@ -3666,4 +3669,552 @@ MODEL_PROFILE_REGISTRY = ModelProfileRegistry(
     profile_count=len(MODEL_PROFILES),
     source_registries=_MODEL_PROFILE_SOURCE_REGISTRIES,
     observability_surfaces=_MODEL_PROFILE_OBSERVABILITY_SURFACES,
+)
+
+CostProfileKind = Literal[
+    "planning_iteration_budget",
+    "creative_reasoning_budget",
+    "curation_refinement_budget",
+    "final_review_budget",
+]
+CostProfileBand = Literal["medium", "high", "guarded", "low"]
+
+COST_PROFILE_SERIALIZATION_VERSION = "cost_profile.v1"
+COST_PROFILE_REGISTRY_SERIALIZATION_VERSION = "cost_profile_registry.v1"
+COST_PROFILE_REGISTRY_AUTHORITY_BOUNDARY = (
+    "Cost Profiles metadata describes passive cost posture, budget context, "
+    "and source cost-threshold references for V4.4 Hybrid Studio inspection "
+    "only; it does not calculate cost scores, look up provider pricing, "
+    "enforce budgets, optimize execution, route by cost, select providers or "
+    "models, execute providers, trigger retries, mutate prompts, write replay "
+    "storage, or modify generated output."
+)
+
+_COST_PROFILE_SOURCE_REGISTRIES = (
+    "model_profile_registry",
+    "provider_selection_registry",
+    "cost_threshold_routing_registry",
+    "local_model_registry",
+    "cloud_model_registry",
+    "execution_simulator_registry",
+)
+
+_COST_PROFILE_SURFACES = (
+    "cost_profile_panel",
+    "model_profile_panel",
+    "provider_selection_panel",
+    "execution_simulator_panel",
+    "budget_boundary_panel",
+)
+
+_COST_PROFILE_OBSERVABILITY_SURFACES = (
+    "cost_profile_id",
+    "cost_profile_kind",
+    "cost_band",
+    "source_model_profile_ids",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_COST_PROFILE_BLOCKED_RUNTIME_BEHAVIORS = (
+    "cost_profile_execution",
+    "cost_scoring",
+    "pricing_lookup",
+    "budget_enforcement",
+    "cost_based_routing",
+    "provider_or_model_routing",
+    "provider_execution",
+    "model_selection",
+    "execution_optimization",
+    "retry_or_refinement_triggering",
+    "prompt_mutation",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class CostProfile(BaseModel):
+    """Inspectable passive cost profile for Hybrid Studio."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    cost_profile_id: str = Field(min_length=1, max_length=100)
+    profile_name: str = Field(min_length=1, max_length=140)
+    cost_profile_kind: CostProfileKind
+    cost_band: CostProfileBand
+    advisory_cost_range: tuple[int, int]
+    source_model_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_provider_selection_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_cost_threshold_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_local_surface_ids: tuple[str, ...] = Field(
+        default_factory=tuple,
+        max_length=4,
+    )
+    source_cloud_surface_ids: tuple[str, ...] = Field(
+        default_factory=tuple,
+        max_length=4,
+    )
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    cost_dimensions: tuple[str, ...] = Field(min_length=1, max_length=10)
+    cost_inputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    cost_surface_refs: tuple[str, ...] = Field(min_length=1, max_length=5)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    authority_boundary: str = Field(
+        default=COST_PROFILE_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1200,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_COST_PROFILE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    cost_profile_execution_implemented: Literal[False] = False
+    cost_scoring_implemented: Literal[False] = False
+    pricing_lookup_implemented: Literal[False] = False
+    budget_enforcement_implemented: Literal[False] = False
+    cost_based_routing_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    provider_execution_implemented: Literal[False] = False
+    model_selection_implemented: Literal[False] = False
+    execution_optimization_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["cost_profile.v1"] = (
+        COST_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class CostProfileRegistry(BaseModel):
+    """Stable passive registry for V4.4 Hybrid Studio cost profiles."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["cost_profile_registry"] = "cost_profile_registry"
+    serialization_version: Literal["cost_profile_registry.v1"] = (
+        COST_PROFILE_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=COST_PROFILE_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1200,
+    )
+    cost_profiles: tuple[CostProfile, ...] = Field(min_length=4, max_length=4)
+    cost_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    cost_profile_kinds: tuple[CostProfileKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    cost_bands: tuple[CostProfileBand, ...] = Field(min_length=4, max_length=4)
+    model_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    provider_selection_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    cost_threshold_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    local_surface_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    cloud_surface_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    cost_surface_refs: tuple[str, ...] = Field(min_length=5, max_length=5)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=6, max_length=6)
+    observability_surfaces: tuple[str, ...] = Field(min_length=6, max_length=6)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_COST_PROFILE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    cost_profile_execution_implemented: Literal[False] = False
+    cost_scoring_implemented: Literal[False] = False
+    pricing_lookup_implemented: Literal[False] = False
+    budget_enforcement_implemented: Literal[False] = False
+    cost_based_routing_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    provider_execution_implemented: Literal[False] = False
+    model_selection_implemented: Literal[False] = False
+    execution_optimization_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.cost_profile_id for profile in self.cost_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("cost_profile_ids must be unique")
+        if self.cost_profile_ids != derived_profile_ids:
+            raise ValueError("cost_profile_ids must match cost_profiles")
+        if self.profile_count != len(self.cost_profiles):
+            raise ValueError("profile_count must match cost_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.cost_profile_kinds != tuple(
+            profile.cost_profile_kind for profile in self.cost_profiles
+        ):
+            raise ValueError("cost_profile_kinds must match cost_profiles")
+        if self.cost_bands != tuple(
+            profile.cost_band for profile in self.cost_profiles
+        ):
+            raise ValueError("cost_bands must match cost_profiles")
+
+        known_routes = set(self.route_names)
+        known_model_profiles = set(self.model_profile_ids)
+        known_provider_profiles = set(self.provider_selection_profile_ids)
+        known_cost_thresholds = set(self.cost_threshold_profile_ids)
+        known_local_surfaces = set(self.local_surface_ids)
+        known_cloud_surfaces = set(self.cloud_surface_ids)
+        known_cost_surfaces = set(self.cost_surface_refs)
+        profile_sources = {
+            source_registry
+            for profile in self.cost_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match cost profile sources")
+
+        for profile in self.cost_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.source_model_profile_ids).issubset(known_model_profiles):
+                raise ValueError("source_model_profile_ids must be known profiles")
+            if not set(profile.source_provider_selection_profile_ids).issubset(
+                known_provider_profiles
+            ):
+                raise ValueError(
+                    "source_provider_selection_profile_ids must be known profiles"
+                )
+            if not set(profile.source_cost_threshold_profile_ids).issubset(
+                known_cost_thresholds
+            ):
+                raise ValueError(
+                    "source_cost_threshold_profile_ids must be known profiles"
+                )
+            if not set(profile.source_local_surface_ids).issubset(known_local_surfaces):
+                raise ValueError("source_local_surface_ids must be known local models")
+            if not set(profile.source_cloud_surface_ids).issubset(known_cloud_surfaces):
+                raise ValueError("source_cloud_surface_ids must be known cloud models")
+            if not set(profile.cost_surface_refs).issubset(known_cost_surfaces):
+                raise ValueError("cost_surface_refs must be known registry surfaces")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+            cost_low, cost_high = profile.advisory_cost_range
+            if not 0 <= cost_low <= cost_high:
+                raise ValueError("advisory cost range must be non-negative")
+        return self
+
+
+def cost_profile_registry() -> CostProfileRegistry:
+    """Return passive V4.4 Hybrid Studio cost profile metadata."""
+
+    return COST_PROFILE_REGISTRY
+
+
+def cost_profile_by_id(
+    cost_profile_id: str,
+    registry: CostProfileRegistry | None = None,
+) -> CostProfile | None:
+    """Return one cost profile without scoring or enforcing it."""
+
+    source_registry = registry or COST_PROFILE_REGISTRY
+    for profile in source_registry.cost_profiles:
+        if profile.cost_profile_id == cost_profile_id:
+            return profile
+    return None
+
+
+def cost_profiles_for_route(
+    route: RouteName | str,
+    registry: CostProfileRegistry | None = None,
+) -> tuple[CostProfile, ...]:
+    """Return passive cost profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or COST_PROFILE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.cost_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def cost_profiles_for_band(
+    cost_band: CostProfileBand | str,
+    registry: CostProfileRegistry | None = None,
+) -> tuple[CostProfile, ...]:
+    """Return passive cost profiles for an advisory cost band."""
+
+    band_value = str(cost_band).strip()
+    source_registry = registry or COST_PROFILE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.cost_profiles
+        if profile.cost_band == band_value
+    )
+
+
+def _cost_profile(
+    *,
+    cost_profile_id: str,
+    profile_name: str,
+    cost_profile_kind: CostProfileKind,
+    cost_band: CostProfileBand,
+    advisory_cost_range: tuple[int, int],
+    source_model_profile_ids: tuple[str, ...],
+    source_provider_selection_profile_ids: tuple[str, ...],
+    source_cost_threshold_profile_ids: tuple[str, ...],
+    source_local_surface_ids: tuple[str, ...],
+    source_cloud_surface_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    cost_dimensions: tuple[str, ...],
+    cost_inputs: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+    cost_surface_refs: tuple[str, ...],
+) -> CostProfile:
+    return CostProfile(
+        cost_profile_id=cost_profile_id,
+        profile_name=profile_name,
+        cost_profile_kind=cost_profile_kind,
+        cost_band=cost_band,
+        advisory_cost_range=advisory_cost_range,
+        source_model_profile_ids=source_model_profile_ids,
+        source_provider_selection_profile_ids=source_provider_selection_profile_ids,
+        source_cost_threshold_profile_ids=source_cost_threshold_profile_ids,
+        source_local_surface_ids=source_local_surface_ids,
+        source_cloud_surface_ids=source_cloud_surface_ids,
+        route_applicability=route_applicability,
+        cost_dimensions=cost_dimensions,
+        cost_inputs=cost_inputs,
+        advisory_outputs=advisory_outputs,
+        cost_surface_refs=cost_surface_refs,
+        source_registries=_COST_PROFILE_SOURCE_REGISTRIES,
+        observability_surfaces=_COST_PROFILE_OBSERVABILITY_SURFACES,
+    )
+
+
+COST_PROFILE_SURFACES = (
+    "cost_profile_panel",
+    "model_profile_panel",
+    "provider_selection_panel",
+    "execution_simulator_panel",
+    "budget_boundary_panel",
+)
+
+COST_PROFILES = (
+    _cost_profile(
+        cost_profile_id="planning_iteration_cost_profile",
+        profile_name="Planning Iteration Cost Profile",
+        cost_profile_kind="planning_iteration_budget",
+        cost_band="medium",
+        advisory_cost_range=(2, 4),
+        source_model_profile_ids=("fast_iteration_model_profile",),
+        source_provider_selection_profile_ids=(
+            "current_config_provider_visibility_profile",
+            "local_candidate_provider_visibility_profile",
+        ),
+        source_cost_threshold_profile_ids=(
+            "cost_threshold_routing::planning_execution_fit",
+        ),
+        source_local_surface_ids=(
+            "ollama_chat_surface",
+            "llama_cpp_completion_surface",
+        ),
+        source_cloud_surface_ids=("openai_generation_model_surface",),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DEBUG,
+            RouteName.PREVIEW,
+        ),
+        cost_dimensions=(
+            "iteration_budget_metadata",
+            "local_hardware_cost_posture",
+            "cloud_metered_fallback_context",
+        ),
+        cost_inputs=(
+            "fast_iteration_capability_profile",
+            "planning_token_budget_context",
+            "current_provider_visibility_metadata",
+        ),
+        advisory_outputs=(
+            "planning_iteration_cost_context",
+            "manual_budget_review_hint",
+            "no_cost_scoring_notice",
+        ),
+        cost_surface_refs=("cost_profile_panel", "model_profile_panel"),
+    ),
+    _cost_profile(
+        cost_profile_id="creative_reasoning_cost_profile",
+        profile_name="Creative Reasoning Cost Profile",
+        cost_profile_kind="creative_reasoning_budget",
+        cost_band="high",
+        advisory_cost_range=(4, 7),
+        source_model_profile_ids=("creative_reasoning_model_profile",),
+        source_provider_selection_profile_ids=(
+            "local_candidate_provider_visibility_profile",
+            "cloud_candidate_provider_visibility_profile",
+        ),
+        source_cost_threshold_profile_ids=(
+            "cost_threshold_routing::style_aesthetic_alignment",
+        ),
+        source_local_surface_ids=("lm_studio_chat_surface",),
+        source_cloud_surface_ids=("openai_generation_model_surface",),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        cost_dimensions=(
+            "creative_reasoning_budget_metadata",
+            "style_variant_budget_context",
+            "provider_metered_cost_posture",
+        ),
+        cost_inputs=(
+            "creative_reasoning_capability_profile",
+            "style_variant_budget_context",
+            "cloud_candidate_visibility_metadata",
+        ),
+        advisory_outputs=(
+            "creative_reasoning_cost_context",
+            "manual_high_cost_review_hint",
+            "no_pricing_lookup_notice",
+        ),
+        cost_surface_refs=(
+            "cost_profile_panel",
+            "provider_selection_panel",
+            "budget_boundary_panel",
+        ),
+    ),
+    _cost_profile(
+        cost_profile_id="curation_refinement_cost_profile",
+        profile_name="Curation Refinement Cost Profile",
+        cost_profile_kind="curation_refinement_budget",
+        cost_band="guarded",
+        advisory_cost_range=(3, 5),
+        source_model_profile_ids=(
+            "code_assistance_model_profile",
+            "evaluation_review_model_profile",
+        ),
+        source_provider_selection_profile_ids=(
+            "cloud_candidate_provider_visibility_profile",
+            "operator_override_provider_visibility_profile",
+        ),
+        source_cost_threshold_profile_ids=(
+            "cost_threshold_routing::curation_refinement_need",
+        ),
+        source_local_surface_ids=(
+            "llama_cpp_completion_surface",
+            "local_transformers_multimodal_surface",
+        ),
+        source_cloud_surface_ids=(
+            "openai_generation_model_surface",
+            "ragas_evaluator_model_surface",
+            "provider_reported_response_model_surface",
+        ),
+        route_applicability=(
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        cost_dimensions=(
+            "refinement_budget_metadata",
+            "evaluation_review_budget_context",
+            "operator_override_cost_visibility",
+        ),
+        cost_inputs=(
+            "code_assistance_capability_profile",
+            "evaluation_review_capability_profile",
+            "refinement_budget_context",
+        ),
+        advisory_outputs=(
+            "curation_refinement_cost_context",
+            "manual_guarded_budget_review_hint",
+            "no_budget_enforcement_notice",
+        ),
+        cost_surface_refs=(
+            "cost_profile_panel",
+            "execution_simulator_panel",
+            "budget_boundary_panel",
+        ),
+    ),
+    _cost_profile(
+        cost_profile_id="final_review_cost_profile",
+        profile_name="Final Review Cost Profile",
+        cost_profile_kind="final_review_budget",
+        cost_band="low",
+        advisory_cost_range=(0, 2),
+        source_model_profile_ids=("evaluation_review_model_profile",),
+        source_provider_selection_profile_ids=(
+            "current_config_provider_visibility_profile",
+            "operator_override_provider_visibility_profile",
+        ),
+        source_cost_threshold_profile_ids=(
+            "cost_threshold_routing::final_synthesis_readiness",
+        ),
+        source_local_surface_ids=("local_transformers_multimodal_surface",),
+        source_cloud_surface_ids=(
+            "ragas_evaluator_model_surface",
+            "provider_reported_response_model_surface",
+        ),
+        route_applicability=(
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        cost_dimensions=(
+            "final_review_budget_metadata",
+            "final_synthesis_budget_context",
+            "evaluation_call_boundary_metadata",
+        ),
+        cost_inputs=(
+            "evaluation_review_capability_profile",
+            "final_cost_routing_context",
+            "provider_response_metadata",
+        ),
+        advisory_outputs=(
+            "final_review_cost_context",
+            "manual_low_cost_review_hint",
+            "no_evaluator_call_notice",
+        ),
+        cost_surface_refs=(
+            "cost_profile_panel",
+            "model_profile_panel",
+            "budget_boundary_panel",
+        ),
+    ),
+)
+
+COST_PROFILE_REGISTRY = CostProfileRegistry(
+    cost_profiles=COST_PROFILES,
+    cost_profile_ids=tuple(profile.cost_profile_id for profile in COST_PROFILES),
+    cost_profile_kinds=tuple(profile.cost_profile_kind for profile in COST_PROFILES),
+    cost_bands=tuple(profile.cost_band for profile in COST_PROFILES),
+    model_profile_ids=tuple(MODEL_PROFILE_REGISTRY.model_profile_ids),
+    provider_selection_profile_ids=tuple(
+        PROVIDER_SELECTION_REGISTRY.provider_selection_profile_ids
+    ),
+    cost_threshold_profile_ids=tuple(
+        COST_THRESHOLD_ROUTING_REGISTRY.cost_threshold_profile_ids
+    ),
+    local_surface_ids=tuple(LOCAL_MODEL_REGISTRY.surface_ids),
+    cloud_surface_ids=tuple(CLOUD_MODEL_REGISTRY.surface_ids),
+    cost_surface_refs=COST_PROFILE_SURFACES,
+    route_names=tuple(RouteName),
+    profile_count=len(COST_PROFILES),
+    source_registries=_COST_PROFILE_SOURCE_REGISTRIES,
+    observability_surfaces=_COST_PROFILE_OBSERVABILITY_SURFACES,
 )
