@@ -81,6 +81,9 @@ _AGENT_PARALLEL_SCHEDULING = (
 _AGENT_COORDINATION = "creative_coding_assistant.orchestration.agent_coordination"
 _AGENT_DEBATE = "creative_coding_assistant.orchestration.agent_debate"
 _AGENT_CONSENSUS = "creative_coding_assistant.orchestration.agent_consensus"
+_AGENT_COLLABORATION_AUDIT = (
+    "creative_coding_assistant.orchestration.agent_collaboration_audit"
+)
 _AGENT_CAPABILITY_ALIGNMENT = (
     "creative_coding_assistant.orchestration.agent_capability_alignment"
 )
@@ -330,6 +333,14 @@ _EXPORT_MAP = {
     "consensus_agreement_surface_by_topic": _AGENT_CONSENSUS,
     "consensus_builder_registry": _AGENT_CONSENSUS,
     "consensus_voting_input_by_topic": _AGENT_CONSENSUS,
+    "AgentCollaborationAuditRecord": _AGENT_COLLABORATION_AUDIT,
+    "AgentCollaborationAuditRegistry": _AGENT_COLLABORATION_AUDIT,
+    "agent_collaboration_audit_by_registry_id": _AGENT_COLLABORATION_AUDIT,
+    "agent_collaboration_audit_registry": _AGENT_COLLABORATION_AUDIT,
+    "agent_collaboration_audits_for_source_registry": (
+        _AGENT_COLLABORATION_AUDIT
+    ),
+    "agent_collaboration_audits_for_surface": _AGENT_COLLABORATION_AUDIT,
     "AgentCapabilityAlignmentProfile": _AGENT_CAPABILITY_ALIGNMENT,
     "AgentCapabilityAlignmentRegistry": _AGENT_CAPABILITY_ALIGNMENT,
     "agent_capability_alignment_by_agent_id": _AGENT_CAPABILITY_ALIGNMENT,
