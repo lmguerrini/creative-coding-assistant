@@ -8461,3 +8461,536 @@ EXECUTION_REPLAY_REGISTRY = ExecutionReplayRegistry(
     source_registries=_EXECUTION_REPLAY_SOURCE_REGISTRIES,
     observability_surfaces=_EXECUTION_REPLAY_OBSERVABILITY_SURFACES,
 )
+
+HybridStudioIntegrationKind = Literal[
+    "model_execution_integration",
+    "agent_workspace_integration",
+    "snapshot_replay_integration",
+    "operator_review_integration",
+]
+
+HYBRID_STUDIO_INTEGRATION_PROFILE_SERIALIZATION_VERSION = (
+    "hybrid_studio_integration_profile.v1"
+)
+HYBRID_STUDIO_INTEGRATION_REGISTRY_SERIALIZATION_VERSION = (
+    "hybrid_studio_integration_registry.v1"
+)
+HYBRID_STUDIO_INTEGRATION_REGISTRY_AUTHORITY_BOUNDARY = (
+    "Hybrid Studio Integration metadata describes a passive V4.4 inventory of "
+    "Studio-visible local model, cloud model, hybrid execution, Auto Mode, "
+    "Studio Mode, HITL, provider selection, simulator, model, cost, quality, "
+    "comparison, agent workspace, conversation, snapshot, session replay, and "
+    "execution replay registries only; it does not activate Studio runtime, "
+    "select providers or models, execute providers, invoke agents, control "
+    "workflows, request human input, trigger retries, mutate storage, write "
+    "replay storage, or modify generated output."
+)
+
+_HYBRID_STUDIO_INTEGRATION_SOURCE_REGISTRIES = (
+    "local_model_registry",
+    "cloud_model_registry",
+    "hybrid_execution_registry",
+    "auto_mode_registry",
+    "studio_mode_registry",
+    "hitl_decision_registry",
+    "provider_selection_registry",
+    "execution_simulator_registry",
+    "model_profile_registry",
+    "cost_profile_registry",
+    "quality_profile_registry",
+    "local_cloud_comparison_registry",
+    "agent_workspace_registry",
+    "agent_conversation_view_registry",
+    "workspace_snapshot_registry",
+    "session_replay_registry",
+    "execution_replay_registry",
+)
+
+_HYBRID_STUDIO_INTEGRATION_PROFILE_GROUPS = (
+    "local_model_surfaces",
+    "cloud_model_surfaces",
+    "hybrid_execution_profiles",
+    "auto_mode_profiles",
+    "studio_mode_profiles",
+    "hitl_decision_profiles",
+    "provider_selection_profiles",
+    "execution_simulation_profiles",
+    "model_profiles",
+    "cost_profiles",
+    "quality_profiles",
+    "comparison_profiles",
+    "agent_workspace_profiles",
+    "conversation_view_profiles",
+    "workspace_snapshot_profiles",
+    "session_replay_profiles",
+    "execution_replay_profiles",
+)
+
+_HYBRID_STUDIO_INTEGRATION_SURFACES = (
+    "hybrid_studio_shell",
+    "model_execution_surface",
+    "agent_workspace_surface",
+    "snapshot_replay_surface",
+    "operator_review_surface",
+    "integration_boundary_panel",
+)
+
+_HYBRID_STUDIO_INTEGRATION_OBSERVABILITY_SURFACES = (
+    "integration_profile_id",
+    "integration_kind",
+    "source_registry_names",
+    "linked_profile_group_refs",
+    "route_applicability",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_HYBRID_STUDIO_INTEGRATION_BLOCKED_RUNTIME_BEHAVIORS = (
+    "studio_runtime_activation",
+    "runtime_selection",
+    "provider_or_model_routing",
+    "provider_execution",
+    "agent_invocation",
+    "workflow_control",
+    "human_input_request",
+    "retry_or_refinement_triggering",
+    "storage_mutation",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class HybridStudioIntegrationProfile(BaseModel):
+    """Inspectable passive integration profile for V4.4 Hybrid Studio metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    integration_profile_id: str = Field(min_length=1, max_length=140)
+    profile_name: str = Field(min_length=1, max_length=160)
+    integration_kind: HybridStudioIntegrationKind
+    source_registry_names: tuple[str, ...] = Field(min_length=1, max_length=17)
+    linked_profile_group_refs: tuple[str, ...] = Field(min_length=1, max_length=17)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    integration_surfaces: tuple[str, ...] = Field(min_length=1, max_length=6)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_registries: tuple[str, ...] = Field(min_length=17, max_length=17)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=HYBRID_STUDIO_INTEGRATION_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1500,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_HYBRID_STUDIO_INTEGRATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    studio_runtime_activation_implemented: Literal[False] = False
+    runtime_selection_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    provider_execution_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    storage_mutation_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["hybrid_studio_integration_profile.v1"] = (
+        HYBRID_STUDIO_INTEGRATION_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class HybridStudioIntegrationRegistry(BaseModel):
+    """Stable passive registry integrating V4.4 Hybrid Studio metadata surfaces."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["hybrid_studio_integration_registry"] = (
+        "hybrid_studio_integration_registry"
+    )
+    serialization_version: Literal["hybrid_studio_integration_registry.v1"] = (
+        HYBRID_STUDIO_INTEGRATION_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=HYBRID_STUDIO_INTEGRATION_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1500,
+    )
+    integration_profiles: tuple[HybridStudioIntegrationProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    integration_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    integration_kinds: tuple[HybridStudioIntegrationKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    local_surface_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    cloud_surface_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    execution_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    auto_mode_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    studio_mode_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    hitl_decision_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    provider_selection_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    execution_simulation_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    model_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    cost_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    quality_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    comparison_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    workspace_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    conversation_view_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    workspace_snapshot_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    session_replay_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    execution_replay_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    profile_group_refs: tuple[str, ...] = Field(min_length=17, max_length=17)
+    integration_surface_refs: tuple[str, ...] = Field(min_length=6, max_length=6)
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=17, max_length=17)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_HYBRID_STUDIO_INTEGRATION_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=16,
+    )
+    studio_runtime_activation_implemented: Literal[False] = False
+    runtime_selection_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    provider_execution_implemented: Literal[False] = False
+    agent_invocation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    storage_mutation_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.integration_profile_id for profile in self.integration_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("integration_profile_ids must be unique")
+        if self.integration_profile_ids != derived_profile_ids:
+            raise ValueError("integration_profile_ids must match integration_profiles")
+        if self.profile_count != len(self.integration_profiles):
+            raise ValueError("profile_count must match integration_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.integration_kinds != tuple(
+            profile.integration_kind for profile in self.integration_profiles
+        ):
+            raise ValueError("integration_kinds must match integration_profiles")
+
+        known_routes = set(self.route_names)
+        known_sources = set(self.source_registries)
+        known_profile_groups = set(self.profile_group_refs)
+        known_surfaces = set(self.integration_surface_refs)
+        for profile in self.integration_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.source_registry_names).issubset(known_sources):
+                raise ValueError("source_registry_names must be known registries")
+            if not set(profile.linked_profile_group_refs).issubset(
+                known_profile_groups
+            ):
+                raise ValueError("linked_profile_group_refs must be known groups")
+            if not set(profile.integration_surfaces).issubset(known_surfaces):
+                raise ValueError("integration_surfaces must be known registry surfaces")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def hybrid_studio_integration_registry() -> HybridStudioIntegrationRegistry:
+    """Return passive V4.4 Hybrid Studio integration metadata."""
+
+    return HYBRID_STUDIO_INTEGRATION_REGISTRY
+
+
+def hybrid_studio_integration_profile_by_id(
+    integration_profile_id: str,
+    registry: HybridStudioIntegrationRegistry | None = None,
+) -> HybridStudioIntegrationProfile | None:
+    """Return one integration profile without activating Studio behavior."""
+
+    source_registry = registry or HYBRID_STUDIO_INTEGRATION_REGISTRY
+    for profile in source_registry.integration_profiles:
+        if profile.integration_profile_id == integration_profile_id:
+            return profile
+    return None
+
+
+def hybrid_studio_integration_profiles_for_route(
+    route: RouteName | str,
+    registry: HybridStudioIntegrationRegistry | None = None,
+) -> tuple[HybridStudioIntegrationProfile, ...]:
+    """Return passive integration profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or HYBRID_STUDIO_INTEGRATION_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.integration_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def hybrid_studio_integration_profiles_for_source_registry(
+    source_registry_name: str,
+    registry: HybridStudioIntegrationRegistry | None = None,
+) -> tuple[HybridStudioIntegrationProfile, ...]:
+    """Return passive integration profiles referencing one source registry."""
+
+    source_registry = registry or HYBRID_STUDIO_INTEGRATION_REGISTRY
+    source_name = str(source_registry_name).strip()
+    return tuple(
+        profile
+        for profile in source_registry.integration_profiles
+        if source_name in profile.source_registry_names
+    )
+
+
+def _hybrid_studio_integration_profile(
+    *,
+    integration_profile_id: str,
+    profile_name: str,
+    integration_kind: HybridStudioIntegrationKind,
+    source_registry_names: tuple[str, ...],
+    linked_profile_group_refs: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    integration_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> HybridStudioIntegrationProfile:
+    return HybridStudioIntegrationProfile(
+        integration_profile_id=integration_profile_id,
+        profile_name=profile_name,
+        integration_kind=integration_kind,
+        source_registry_names=source_registry_names,
+        linked_profile_group_refs=linked_profile_group_refs,
+        route_applicability=route_applicability,
+        integration_surfaces=integration_surfaces,
+        advisory_outputs=advisory_outputs,
+        source_registries=_HYBRID_STUDIO_INTEGRATION_SOURCE_REGISTRIES,
+        observability_surfaces=_HYBRID_STUDIO_INTEGRATION_OBSERVABILITY_SURFACES,
+    )
+
+
+HYBRID_STUDIO_INTEGRATION_PROFILES = (
+    _hybrid_studio_integration_profile(
+        integration_profile_id="model_execution_studio_integration",
+        profile_name="Model Execution Studio Integration",
+        integration_kind="model_execution_integration",
+        source_registry_names=(
+            "local_model_registry",
+            "cloud_model_registry",
+            "hybrid_execution_registry",
+            "provider_selection_registry",
+            "execution_simulator_registry",
+            "model_profile_registry",
+            "cost_profile_registry",
+            "quality_profile_registry",
+            "local_cloud_comparison_registry",
+            "execution_replay_registry",
+        ),
+        linked_profile_group_refs=(
+            "local_model_surfaces",
+            "cloud_model_surfaces",
+            "hybrid_execution_profiles",
+            "provider_selection_profiles",
+            "execution_simulation_profiles",
+            "model_profiles",
+            "cost_profiles",
+            "quality_profiles",
+            "comparison_profiles",
+            "execution_replay_profiles",
+        ),
+        route_applicability=tuple(RouteName),
+        integration_surfaces=(
+            "hybrid_studio_shell",
+            "model_execution_surface",
+            "integration_boundary_panel",
+        ),
+        advisory_outputs=(
+            "model_execution_integration_inventory",
+            "manual_model_execution_review_hint",
+            "no_provider_execution_notice",
+        ),
+    ),
+    _hybrid_studio_integration_profile(
+        integration_profile_id="agent_workspace_studio_integration",
+        profile_name="Agent Workspace Studio Integration",
+        integration_kind="agent_workspace_integration",
+        source_registry_names=(
+            "agent_workspace_registry",
+            "agent_conversation_view_registry",
+            "workspace_snapshot_registry",
+            "session_replay_registry",
+            "hitl_decision_registry",
+            "quality_profile_registry",
+            "studio_mode_registry",
+        ),
+        linked_profile_group_refs=(
+            "agent_workspace_profiles",
+            "conversation_view_profiles",
+            "workspace_snapshot_profiles",
+            "session_replay_profiles",
+            "hitl_decision_profiles",
+            "quality_profiles",
+            "studio_mode_profiles",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        integration_surfaces=(
+            "hybrid_studio_shell",
+            "agent_workspace_surface",
+            "operator_review_surface",
+            "integration_boundary_panel",
+        ),
+        advisory_outputs=(
+            "agent_workspace_integration_inventory",
+            "manual_agent_workspace_review_hint",
+            "no_agent_invocation_notice",
+        ),
+    ),
+    _hybrid_studio_integration_profile(
+        integration_profile_id="snapshot_replay_studio_integration",
+        profile_name="Snapshot Replay Studio Integration",
+        integration_kind="snapshot_replay_integration",
+        source_registry_names=(
+            "workspace_snapshot_registry",
+            "session_replay_registry",
+            "execution_replay_registry",
+            "execution_simulator_registry",
+            "local_cloud_comparison_registry",
+            "quality_profile_registry",
+        ),
+        linked_profile_group_refs=(
+            "workspace_snapshot_profiles",
+            "session_replay_profiles",
+            "execution_replay_profiles",
+            "execution_simulation_profiles",
+            "comparison_profiles",
+            "quality_profiles",
+        ),
+        route_applicability=(
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        integration_surfaces=(
+            "hybrid_studio_shell",
+            "snapshot_replay_surface",
+            "model_execution_surface",
+            "integration_boundary_panel",
+        ),
+        advisory_outputs=(
+            "snapshot_replay_integration_inventory",
+            "manual_replay_review_hint",
+            "no_replay_execution_notice",
+        ),
+    ),
+    _hybrid_studio_integration_profile(
+        integration_profile_id="operator_review_studio_integration",
+        profile_name="Operator Review Studio Integration",
+        integration_kind="operator_review_integration",
+        source_registry_names=(
+            "studio_mode_registry",
+            "auto_mode_registry",
+            "hitl_decision_registry",
+            "provider_selection_registry",
+            "workspace_snapshot_registry",
+            "session_replay_registry",
+            "execution_replay_registry",
+        ),
+        linked_profile_group_refs=(
+            "studio_mode_profiles",
+            "auto_mode_profiles",
+            "hitl_decision_profiles",
+            "provider_selection_profiles",
+            "workspace_snapshot_profiles",
+            "session_replay_profiles",
+            "execution_replay_profiles",
+        ),
+        route_applicability=tuple(RouteName),
+        integration_surfaces=(
+            "hybrid_studio_shell",
+            "operator_review_surface",
+            "snapshot_replay_surface",
+            "integration_boundary_panel",
+        ),
+        advisory_outputs=(
+            "operator_review_integration_inventory",
+            "manual_operator_review_hint",
+            "no_human_input_request_notice",
+        ),
+    ),
+)
+
+HYBRID_STUDIO_INTEGRATION_REGISTRY = HybridStudioIntegrationRegistry(
+    integration_profiles=HYBRID_STUDIO_INTEGRATION_PROFILES,
+    integration_profile_ids=tuple(
+        profile.integration_profile_id for profile in HYBRID_STUDIO_INTEGRATION_PROFILES
+    ),
+    integration_kinds=tuple(
+        profile.integration_kind for profile in HYBRID_STUDIO_INTEGRATION_PROFILES
+    ),
+    local_surface_ids=tuple(LOCAL_MODEL_REGISTRY.surface_ids),
+    cloud_surface_ids=tuple(CLOUD_MODEL_REGISTRY.surface_ids),
+    execution_profile_ids=tuple(HYBRID_EXECUTION_REGISTRY.execution_profile_ids),
+    auto_mode_profile_ids=tuple(AUTO_MODE_REGISTRY.auto_mode_profile_ids),
+    studio_mode_profile_ids=tuple(STUDIO_MODE_REGISTRY.studio_mode_profile_ids),
+    hitl_decision_profile_ids=tuple(HITL_DECISION_REGISTRY.hitl_decision_profile_ids),
+    provider_selection_profile_ids=tuple(
+        PROVIDER_SELECTION_REGISTRY.provider_selection_profile_ids
+    ),
+    execution_simulation_profile_ids=tuple(
+        EXECUTION_SIMULATOR_REGISTRY.execution_simulation_profile_ids
+    ),
+    model_profile_ids=tuple(MODEL_PROFILE_REGISTRY.model_profile_ids),
+    cost_profile_ids=tuple(COST_PROFILE_REGISTRY.cost_profile_ids),
+    quality_profile_ids=tuple(QUALITY_PROFILE_REGISTRY.quality_profile_ids),
+    comparison_profile_ids=tuple(
+        LOCAL_CLOUD_COMPARISON_REGISTRY.comparison_profile_ids
+    ),
+    workspace_profile_ids=tuple(AGENT_WORKSPACE_REGISTRY.workspace_profile_ids),
+    conversation_view_profile_ids=tuple(
+        AGENT_CONVERSATION_VIEW_REGISTRY.conversation_view_profile_ids
+    ),
+    workspace_snapshot_profile_ids=tuple(
+        WORKSPACE_SNAPSHOT_REGISTRY.workspace_snapshot_profile_ids
+    ),
+    session_replay_profile_ids=tuple(
+        SESSION_REPLAY_REGISTRY.session_replay_profile_ids
+    ),
+    execution_replay_profile_ids=tuple(
+        EXECUTION_REPLAY_REGISTRY.execution_replay_profile_ids
+    ),
+    profile_group_refs=_HYBRID_STUDIO_INTEGRATION_PROFILE_GROUPS,
+    integration_surface_refs=_HYBRID_STUDIO_INTEGRATION_SURFACES,
+    route_names=tuple(RouteName),
+    profile_count=len(HYBRID_STUDIO_INTEGRATION_PROFILES),
+    source_registries=_HYBRID_STUDIO_INTEGRATION_SOURCE_REGISTRIES,
+    observability_surfaces=_HYBRID_STUDIO_INTEGRATION_OBSERVABILITY_SURFACES,
+)
