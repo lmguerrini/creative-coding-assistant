@@ -72,6 +72,18 @@ ArtifactCollaborationSurfaceKind = Literal[
     "inspection",
     "refinement",
 ]
+ArtifactProvenanceProfileKind = Literal[
+    "source_evidence_provenance",
+    "artifact_payload_provenance",
+    "evaluation_provenance",
+    "missing_source_provenance",
+]
+ArtifactProvenanceSurfaceKind = Literal[
+    "evidence",
+    "artifact_payload",
+    "evaluation",
+    "missing_source",
+]
 
 LIVE_PREVIEW_PROFILE_SERIALIZATION_VERSION = "multimodal_live_preview_profile.v1"
 LIVE_PREVIEW_REGISTRY_SERIALIZATION_VERSION = "multimodal_live_preview_registry.v1"
@@ -100,6 +112,12 @@ ARTIFACT_COLLABORATION_PROFILE_SERIALIZATION_VERSION = (
 )
 ARTIFACT_COLLABORATION_REGISTRY_SERIALIZATION_VERSION = (
     "multimodal_artifact_collaboration_registry.v1"
+)
+ARTIFACT_PROVENANCE_PROFILE_SERIALIZATION_VERSION = (
+    "multimodal_artifact_provenance_profile.v1"
+)
+ARTIFACT_PROVENANCE_REGISTRY_SERIALIZATION_VERSION = (
+    "multimodal_artifact_provenance_registry.v1"
 )
 LIVE_PREVIEW_AUTHORITY_BOUNDARY = (
     "Live Preview metadata describes passive V4.5 Multimodal Studio surfaces "
@@ -144,6 +162,13 @@ ARTIFACT_COLLABORATION_AUTHORITY_BOUNDARY = (
     "artifacts, modify generated outputs, create persistent collaboration "
     "storage, execute rendering, control workflows, request human input, route "
     "providers or models, trigger retries, or open networking."
+)
+ARTIFACT_PROVENANCE_AUTHORITY_BOUNDARY = (
+    "Artifact Provenance metadata describes passive V4.5 Multimodal Studio "
+    "provenance surfaces for inspection only; it does not record provenance, "
+    "persist provenance storage, mutate artifacts, modify generated outputs, "
+    "execute rendering, control workflows, request human input, route providers "
+    "or models, trigger retries, or open networking."
 )
 
 _LIVE_PREVIEW_SOURCE_REGISTRIES = (
@@ -457,6 +482,60 @@ _ARTIFACT_COLLABORATION_BLOCKED_RUNTIME_BEHAVIORS = (
     "artifact_mutation",
     "generated_output_mutation",
     "persistent_collaboration_storage",
+    "rendering_execution",
+    "workflow_control",
+    "human_input_request",
+    "provider_or_model_routing",
+    "retry_triggering",
+    "networking",
+)
+
+_ARTIFACT_PROVENANCE_SOURCE_REGISTRIES = (
+    "multimodal_artifact_collaboration_registry",
+    "multimodal_runtime_collaboration_registry",
+    "nextjs_provenance_engine",
+    "nextjs_v3_inspector_panels",
+    "nextjs_workstation_state",
+    "preview_contracts",
+    "workflow_trace_events",
+)
+
+_ARTIFACT_PROVENANCE_SOURCE_REFERENCES = (
+    "multimodal_studio.MULTIMODAL_ARTIFACT_COLLABORATION_REGISTRY",
+    "multimodal_studio.MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY",
+    "clients.nextjs.provenance_engine.buildProvenanceEngineModel",
+    "clients.nextjs.provenance_engine.ProvenanceSource",
+    "clients.nextjs.v3_inspector_panels.buildProvenancePanel",
+    "clients.nextjs.workstation_state.buildWorkstationState",
+    "preview.contracts.PreviewProvenance",
+    "clients.nextjs.workflow_runtime.WorkflowRuntimeTraceEvent",
+)
+
+_ARTIFACT_PROVENANCE_SURFACES = (
+    "artifact_provenance_panel",
+    "evidence_source_surface",
+    "artifact_payload_source_surface",
+    "evaluation_source_surface",
+    "missing_source_surface",
+    "provenance_summary_surface",
+    "artifact_provenance_boundary_panel",
+)
+
+_ARTIFACT_PROVENANCE_OBSERVABILITY_SURFACES = (
+    "profile_id",
+    "provenance_profile_kind",
+    "provenance_surface_kind",
+    "source_artifact_collaboration_profile_ids",
+    "source_runtime_collaboration_profile_ids",
+    "source_reference_ids",
+    "authority_boundary",
+)
+
+_ARTIFACT_PROVENANCE_BLOCKED_RUNTIME_BEHAVIORS = (
+    "provenance_recording",
+    "persistent_provenance_storage",
+    "artifact_mutation",
+    "generated_output_mutation",
     "rendering_execution",
     "workflow_control",
     "human_input_request",
@@ -3253,4 +3332,483 @@ MULTIMODAL_ARTIFACT_COLLABORATION_REGISTRY = (
         artifact_collaboration_surface_refs=_ARTIFACT_COLLABORATION_SURFACES,
         observability_surfaces=_ARTIFACT_COLLABORATION_OBSERVABILITY_SURFACES,
     )
+)
+
+
+class ArtifactProvenanceProfile(BaseModel):
+    """Inspectable metadata for one passive Artifact Provenance surface."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    profile_id: str = Field(min_length=1, max_length=120)
+    profile_name: str = Field(min_length=1, max_length=140)
+    provenance_profile_kind: ArtifactProvenanceProfileKind
+    provenance_surface_kind: ArtifactProvenanceSurfaceKind
+    source_artifact_collaboration_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_runtime_collaboration_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    provenance_context_fields: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_reference_ids: tuple[str, ...] = Field(min_length=1, max_length=8)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    artifact_provenance_surfaces: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=7,
+    )
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=8)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=ARTIFACT_PROVENANCE_AUTHORITY_BOUNDARY,
+        max_length=900,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_ARTIFACT_PROVENANCE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    provenance_recording_implemented: Literal[False] = False
+    persistent_provenance_storage_implemented: Literal[False] = False
+    artifact_mutation_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    serialization_version: Literal["multimodal_artifact_provenance_profile.v1"] = (
+        ARTIFACT_PROVENANCE_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class MultimodalArtifactProvenanceRegistry(BaseModel):
+    """Stable passive registry for V4.5 Artifact Provenance metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["multimodal_artifact_provenance_registry"] = (
+        "multimodal_artifact_provenance_registry"
+    )
+    serialization_version: Literal["multimodal_artifact_provenance_registry.v1"] = (
+        ARTIFACT_PROVENANCE_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=ARTIFACT_PROVENANCE_AUTHORITY_BOUNDARY,
+        max_length=900,
+    )
+    artifact_provenance_profiles: tuple[ArtifactProvenanceProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    provenance_profile_kinds: tuple[ArtifactProvenanceProfileKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    provenance_surface_kinds: tuple[ArtifactProvenanceSurfaceKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    artifact_collaboration_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    runtime_collaboration_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=7, max_length=7)
+    source_reference_ids: tuple[str, ...] = Field(min_length=8, max_length=8)
+    artifact_provenance_surface_refs: tuple[str, ...] = Field(
+        min_length=7,
+        max_length=7,
+    )
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_ARTIFACT_PROVENANCE_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=12,
+    )
+    provenance_recording_implemented: Literal[False] = False
+    persistent_provenance_storage_implemented: Literal[False] = False
+    artifact_mutation_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    rendering_execution_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    networking_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.profile_id for profile in self.artifact_provenance_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("profile_ids must be unique")
+        if self.profile_ids != derived_profile_ids:
+            raise ValueError("profile_ids must match artifact_provenance_profiles")
+        if self.profile_count != len(self.artifact_provenance_profiles):
+            raise ValueError("profile_count must match artifact_provenance_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if (
+            self.artifact_collaboration_profile_ids
+            != MULTIMODAL_ARTIFACT_COLLABORATION_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "artifact_collaboration_profile_ids must match Artifact Collaboration registry"
+            )
+        if (
+            self.runtime_collaboration_profile_ids
+            != MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY.profile_ids
+        ):
+            raise ValueError(
+                "runtime_collaboration_profile_ids must match Runtime Collaboration registry"
+            )
+        if self.provenance_profile_kinds != _ordered_unique(
+            profile.provenance_profile_kind
+            for profile in self.artifact_provenance_profiles
+        ):
+            raise ValueError("provenance_profile_kinds must match profiles")
+        if self.provenance_surface_kinds != _ordered_unique(
+            profile.provenance_surface_kind
+            for profile in self.artifact_provenance_profiles
+        ):
+            raise ValueError("provenance_surface_kinds must match profiles")
+
+        profile_source_references = {
+            source_reference
+            for profile in self.artifact_provenance_profiles
+            for source_reference in profile.source_reference_ids
+        }
+        if set(self.source_reference_ids) != profile_source_references:
+            raise ValueError(
+                "source_reference_ids must match profile source references"
+            )
+
+        known_routes = set(self.route_names)
+        known_artifact_profiles = set(self.artifact_collaboration_profile_ids)
+        known_runtime_profiles = set(self.runtime_collaboration_profile_ids)
+        known_surfaces = set(self.artifact_provenance_surface_refs)
+        known_source_references = set(self.source_reference_ids)
+        for profile in self.artifact_provenance_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must use known routes")
+            if not set(profile.source_artifact_collaboration_profile_ids).issubset(
+                known_artifact_profiles
+            ):
+                raise ValueError(
+                    "source_artifact_collaboration_profile_ids must be known profiles"
+                )
+            if not set(profile.source_runtime_collaboration_profile_ids).issubset(
+                known_runtime_profiles
+            ):
+                raise ValueError(
+                    "source_runtime_collaboration_profile_ids must be known profiles"
+                )
+            if not set(profile.artifact_provenance_surfaces).issubset(
+                known_surfaces
+            ):
+                raise ValueError(
+                    "artifact_provenance_surfaces must be known surfaces"
+                )
+            if not set(profile.source_reference_ids).issubset(
+                known_source_references
+            ):
+                raise ValueError(
+                    "source_reference_ids must be known registry references"
+                )
+        return self
+
+
+def multimodal_artifact_provenance_registry() -> (
+    MultimodalArtifactProvenanceRegistry
+):
+    """Return passive V4.5 Artifact Provenance metadata."""
+
+    return MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY
+
+
+def multimodal_artifact_provenance_profile_by_id(
+    profile_id: str,
+    registry: MultimodalArtifactProvenanceRegistry | None = None,
+) -> ArtifactProvenanceProfile | None:
+    """Return one Artifact Provenance profile without recording provenance."""
+
+    source_registry = registry or MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY
+    normalized_profile_id = str(profile_id).strip()
+    for profile in source_registry.artifact_provenance_profiles:
+        if profile.profile_id == normalized_profile_id:
+            return profile
+    return None
+
+
+def multimodal_artifact_provenance_profiles_for_route(
+    route: RouteName | str,
+    registry: MultimodalArtifactProvenanceRegistry | None = None,
+) -> tuple[ArtifactProvenanceProfile, ...]:
+    """Return passive Artifact Provenance profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.artifact_provenance_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def multimodal_artifact_provenance_profiles_for_surface_kind(
+    surface_kind: ArtifactProvenanceSurfaceKind | str,
+    registry: MultimodalArtifactProvenanceRegistry | None = None,
+) -> tuple[ArtifactProvenanceProfile, ...]:
+    """Return Artifact Provenance profiles for one passive surface kind."""
+
+    surface_value = str(surface_kind).strip()
+    source_registry = registry or MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.artifact_provenance_profiles
+        if profile.provenance_surface_kind == surface_value
+    )
+
+
+def multimodal_artifact_provenance_profiles_for_artifact_collaboration_profile(
+    artifact_collaboration_profile_id: str,
+    registry: MultimodalArtifactProvenanceRegistry | None = None,
+) -> tuple[ArtifactProvenanceProfile, ...]:
+    """Return provenance profiles referencing one artifact collaboration profile."""
+
+    source_registry = registry or MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY
+    source_profile_id = str(artifact_collaboration_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.artifact_provenance_profiles
+        if source_profile_id in profile.source_artifact_collaboration_profile_ids
+    )
+
+
+def _artifact_provenance_profile(
+    *,
+    profile_id: str,
+    profile_name: str,
+    provenance_profile_kind: ArtifactProvenanceProfileKind,
+    provenance_surface_kind: ArtifactProvenanceSurfaceKind,
+    source_artifact_collaboration_profile_ids: tuple[str, ...],
+    source_runtime_collaboration_profile_ids: tuple[str, ...],
+    provenance_context_fields: tuple[str, ...],
+    source_reference_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    artifact_provenance_surfaces: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> ArtifactProvenanceProfile:
+    return ArtifactProvenanceProfile(
+        profile_id=profile_id,
+        profile_name=profile_name,
+        provenance_profile_kind=provenance_profile_kind,
+        provenance_surface_kind=provenance_surface_kind,
+        source_artifact_collaboration_profile_ids=(
+            source_artifact_collaboration_profile_ids
+        ),
+        source_runtime_collaboration_profile_ids=(
+            source_runtime_collaboration_profile_ids
+        ),
+        provenance_context_fields=provenance_context_fields,
+        source_reference_ids=source_reference_ids,
+        route_applicability=route_applicability,
+        artifact_provenance_surfaces=artifact_provenance_surfaces,
+        advisory_outputs=advisory_outputs,
+        source_registries=_ARTIFACT_PROVENANCE_SOURCE_REGISTRIES,
+        observability_surfaces=_ARTIFACT_PROVENANCE_OBSERVABILITY_SURFACES,
+    )
+
+
+MULTIMODAL_ARTIFACT_PROVENANCE_PROFILES = (
+    _artifact_provenance_profile(
+        profile_id="evidence_artifact_provenance",
+        profile_name="Evidence Artifact Provenance",
+        provenance_profile_kind="source_evidence_provenance",
+        provenance_surface_kind="evidence",
+        source_artifact_collaboration_profile_ids=(
+            "inspection_artifact_collaboration",
+            "comparison_artifact_collaboration",
+        ),
+        source_runtime_collaboration_profile_ids=(
+            "trace_runtime_collaboration",
+            "stream_event_runtime_collaboration",
+        ),
+        provenance_context_fields=(
+            "evidence_sources",
+            "retrieval.sources",
+            "reasoning_evidence",
+            "sourceKeys",
+        ),
+        source_reference_ids=(
+            "multimodal_studio.MULTIMODAL_ARTIFACT_COLLABORATION_REGISTRY",
+            "multimodal_studio.MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY",
+            "clients.nextjs.provenance_engine.buildProvenanceEngineModel",
+            "clients.nextjs.provenance_engine.ProvenanceSource",
+        ),
+        route_applicability=tuple(RouteName),
+        artifact_provenance_surfaces=(
+            "artifact_provenance_panel",
+            "evidence_source_surface",
+            "provenance_summary_surface",
+            "artifact_provenance_boundary_panel",
+        ),
+        advisory_outputs=(
+            "evidence_provenance_inventory",
+            "manual_evidence_review_hint",
+            "no_provenance_recording_notice",
+        ),
+    ),
+    _artifact_provenance_profile(
+        profile_id="payload_artifact_provenance",
+        profile_name="Payload Artifact Provenance",
+        provenance_profile_kind="artifact_payload_provenance",
+        provenance_surface_kind="artifact_payload",
+        source_artifact_collaboration_profile_ids=(
+            "selection_artifact_collaboration",
+            "inspection_artifact_collaboration",
+        ),
+        source_runtime_collaboration_profile_ids=("stream_event_runtime_collaboration",),
+        provenance_context_fields=(
+            "artifact_sources",
+            "artifact.id",
+            "artifact.title",
+            "eventSequence",
+        ),
+        source_reference_ids=(
+            "clients.nextjs.provenance_engine.buildProvenanceEngineModel",
+            "clients.nextjs.provenance_engine.ProvenanceSource",
+            "preview.contracts.PreviewProvenance",
+        ),
+        route_applicability=tuple(RouteName),
+        artifact_provenance_surfaces=(
+            "artifact_provenance_panel",
+            "artifact_payload_source_surface",
+            "provenance_summary_surface",
+            "artifact_provenance_boundary_panel",
+        ),
+        advisory_outputs=(
+            "artifact_payload_provenance_inventory",
+            "manual_payload_review_hint",
+            "no_artifact_mutation_notice",
+        ),
+    ),
+    _artifact_provenance_profile(
+        profile_id="evaluation_artifact_provenance",
+        profile_name="Evaluation Artifact Provenance",
+        provenance_profile_kind="evaluation_provenance",
+        provenance_surface_kind="evaluation",
+        source_artifact_collaboration_profile_ids=(
+            "comparison_artifact_collaboration",
+            "refinement_artifact_collaboration",
+        ),
+        source_runtime_collaboration_profile_ids=(
+            "trace_runtime_collaboration",
+            "operator_context_runtime_collaboration",
+        ),
+        provenance_context_fields=(
+            "evaluation_sources",
+            "final_payload",
+            "eval_update",
+            "totals",
+        ),
+        source_reference_ids=(
+            "clients.nextjs.provenance_engine.buildProvenanceEngineModel",
+            "clients.nextjs.v3_inspector_panels.buildProvenancePanel",
+            "clients.nextjs.workflow_runtime.WorkflowRuntimeTraceEvent",
+        ),
+        route_applicability=tuple(RouteName),
+        artifact_provenance_surfaces=(
+            "artifact_provenance_panel",
+            "evaluation_source_surface",
+            "provenance_summary_surface",
+            "artifact_provenance_boundary_panel",
+        ),
+        advisory_outputs=(
+            "evaluation_provenance_inventory",
+            "manual_evaluation_provenance_review_hint",
+            "no_workflow_control_notice",
+        ),
+    ),
+    _artifact_provenance_profile(
+        profile_id="missing_source_artifact_provenance",
+        profile_name="Missing Source Artifact Provenance",
+        provenance_profile_kind="missing_source_provenance",
+        provenance_surface_kind="missing_source",
+        source_artifact_collaboration_profile_ids=(
+            "inspection_artifact_collaboration",
+            "refinement_artifact_collaboration",
+        ),
+        source_runtime_collaboration_profile_ids=(
+            "operator_context_runtime_collaboration",
+        ),
+        provenance_context_fields=(
+            "unsupported_or_missing_sources",
+            "missingSourceCount",
+            "unsupportedSourceCount",
+            "readiness",
+        ),
+        source_reference_ids=(
+            "clients.nextjs.provenance_engine.buildProvenanceEngineModel",
+            "clients.nextjs.v3_inspector_panels.buildProvenancePanel",
+            "clients.nextjs.workstation_state.buildWorkstationState",
+        ),
+        route_applicability=tuple(RouteName),
+        artifact_provenance_surfaces=(
+            "artifact_provenance_panel",
+            "missing_source_surface",
+            "provenance_summary_surface",
+            "artifact_provenance_boundary_panel",
+        ),
+        advisory_outputs=(
+            "missing_source_provenance_inventory",
+            "manual_missing_source_review_hint",
+            "no_persistent_provenance_storage_notice",
+        ),
+    ),
+)
+
+MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY = MultimodalArtifactProvenanceRegistry(
+    artifact_provenance_profiles=MULTIMODAL_ARTIFACT_PROVENANCE_PROFILES,
+    profile_ids=tuple(
+        profile.profile_id for profile in MULTIMODAL_ARTIFACT_PROVENANCE_PROFILES
+    ),
+    provenance_profile_kinds=tuple(
+        profile.provenance_profile_kind
+        for profile in MULTIMODAL_ARTIFACT_PROVENANCE_PROFILES
+    ),
+    provenance_surface_kinds=tuple(
+        profile.provenance_surface_kind
+        for profile in MULTIMODAL_ARTIFACT_PROVENANCE_PROFILES
+    ),
+    artifact_collaboration_profile_ids=(
+        MULTIMODAL_ARTIFACT_COLLABORATION_REGISTRY.profile_ids
+    ),
+    runtime_collaboration_profile_ids=(
+        MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY.profile_ids
+    ),
+    route_names=tuple(RouteName),
+    profile_count=len(MULTIMODAL_ARTIFACT_PROVENANCE_PROFILES),
+    source_registries=_ARTIFACT_PROVENANCE_SOURCE_REGISTRIES,
+    source_reference_ids=_ARTIFACT_PROVENANCE_SOURCE_REFERENCES,
+    artifact_provenance_surface_refs=_ARTIFACT_PROVENANCE_SURFACES,
+    observability_surfaces=_ARTIFACT_PROVENANCE_OBSERVABILITY_SURFACES,
 )
