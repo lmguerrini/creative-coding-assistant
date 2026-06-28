@@ -97,6 +97,7 @@ _HYBRID_AGENTIC_WORKFLOW = (
     "creative_coding_assistant.orchestration.hybrid_agentic_workflow"
 )
 _HYBRID_STUDIO = "creative_coding_assistant.orchestration.hybrid_studio"
+_MULTIMODAL_STUDIO = "creative_coding_assistant.orchestration.multimodal_studio"
 _ENGINE_CONTRACT_CONSISTENCY = (
     "creative_coding_assistant.orchestration.engine_contract_consistency"
 )
@@ -389,6 +390,9 @@ _EXPORT_MAP = {
     "HybridStudioIntegrationKind": _HYBRID_STUDIO,
     "HybridStudioIntegrationProfile": _HYBRID_STUDIO,
     "HybridStudioIntegrationRegistry": _HYBRID_STUDIO,
+    "LivePreviewProfile": _MULTIMODAL_STUDIO,
+    "LivePreviewProfileKind": _MULTIMODAL_STUDIO,
+    "MultimodalLivePreviewRegistry": _MULTIMODAL_STUDIO,
     "HitlDecisionPosture": _HYBRID_STUDIO,
     "HitlDecisionProfile": _HYBRID_STUDIO,
     "HitlDecisionRegistry": _HYBRID_STUDIO,
@@ -534,6 +538,13 @@ _EXPORT_MAP = {
     "model_profile_by_id": _HYBRID_STUDIO,
     "model_profile_registry": _HYBRID_STUDIO,
     "model_profiles_for_route": _HYBRID_STUDIO,
+    "multimodal_live_preview_profile_by_id": _MULTIMODAL_STUDIO,
+    "multimodal_live_preview_profiles_for_route": _MULTIMODAL_STUDIO,
+    "multimodal_live_preview_profiles_for_source_reference": (
+        _MULTIMODAL_STUDIO
+    ),
+    "multimodal_live_preview_profiles_for_target": _MULTIMODAL_STUDIO,
+    "multimodal_live_preview_registry": _MULTIMODAL_STUDIO,
     "reflection_escalation_profile_by_id": _HYBRID_AGENTIC_WORKFLOW,
     "reflection_escalation_registry": _HYBRID_AGENTIC_WORKFLOW,
     "result_normalization_profile_by_id": _HYBRID_AGENTIC_WORKFLOW,
