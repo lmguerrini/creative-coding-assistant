@@ -7789,3 +7789,675 @@ SESSION_REPLAY_REGISTRY = SessionReplayRegistry(
     source_registries=_SESSION_REPLAY_SOURCE_REGISTRIES,
     observability_surfaces=_SESSION_REPLAY_OBSERVABILITY_SURFACES,
 )
+
+ExecutionReplayKind = Literal[
+    "route_execution_replay",
+    "provider_selection_replay",
+    "local_cloud_execution_replay",
+    "quality_review_execution_replay",
+]
+
+EXECUTION_REPLAY_PROFILE_SERIALIZATION_VERSION = "execution_replay_profile.v1"
+EXECUTION_REPLAY_REGISTRY_SERIALIZATION_VERSION = "execution_replay_registry.v1"
+EXECUTION_REPLAY_REGISTRY_AUTHORITY_BOUNDARY = (
+    "Execution Replay metadata describes passive Studio-visible execution "
+    "replay views over existing session replay, execution simulation, hybrid "
+    "execution, provider selection, model, cost, quality, and local/cloud "
+    "comparison metadata for V4.4 inspection only; it does not execute "
+    "providers, reconstruct execution traces, replay runtime events, persist "
+    "replay data, select providers or models, calculate cost or quality "
+    "scores, control workflows, request human input, trigger retries, write "
+    "replay storage, or modify generated output."
+)
+
+_EXECUTION_REPLAY_SOURCE_REGISTRIES = (
+    "session_replay_registry",
+    "execution_simulator_registry",
+    "hybrid_execution_registry",
+    "provider_selection_registry",
+    "model_profile_registry",
+    "cost_profile_registry",
+    "quality_profile_registry",
+    "local_cloud_comparison_registry",
+)
+
+_EXECUTION_REPLAY_SURFACES = (
+    "execution_replay_panel",
+    "execution_trace_timeline",
+    "simulation_replay_panel",
+    "provider_selection_replay_panel",
+    "cost_quality_replay_panel",
+    "replay_boundary_panel",
+)
+
+_EXECUTION_REPLAY_OBSERVABILITY_SURFACES = (
+    "execution_replay_profile_id",
+    "execution_replay_kind",
+    "source_session_replay_profile_ids",
+    "source_execution_simulation_profile_ids",
+    "route_applicability",
+    "blocked_runtime_behaviors",
+    "authority_boundary",
+)
+
+_EXECUTION_REPLAY_BLOCKED_RUNTIME_BEHAVIORS = (
+    "execution_replay_execution",
+    "provider_execution",
+    "local_provider_execution",
+    "cloud_provider_execution",
+    "model_selection",
+    "provider_or_model_routing",
+    "execution_trace_reconstruction",
+    "replay_persistence",
+    "session_replay_execution",
+    "cost_scoring",
+    "quality_scoring",
+    "quality_evaluation",
+    "workflow_control",
+    "human_input_request",
+    "retry_or_refinement_triggering",
+    "persistent_replay_storage",
+    "generated_output_modification",
+)
+
+
+class ExecutionReplayProfile(BaseModel):
+    """Inspectable passive Studio execution replay metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    execution_replay_profile_id: str = Field(min_length=1, max_length=140)
+    profile_name: str = Field(min_length=1, max_length=160)
+    execution_replay_kind: ExecutionReplayKind
+    source_session_replay_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_execution_simulation_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_execution_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_provider_selection_profile_ids: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=4,
+    )
+    source_model_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_cost_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_quality_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    source_comparison_profile_ids: tuple[str, ...] = Field(min_length=1, max_length=4)
+    route_applicability: tuple[RouteName, ...] = Field(min_length=1, max_length=6)
+    execution_replay_surfaces: tuple[str, ...] = Field(min_length=1, max_length=6)
+    replay_context_fields: tuple[str, ...] = Field(min_length=1, max_length=10)
+    advisory_outputs: tuple[str, ...] = Field(min_length=1, max_length=10)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    authority_boundary: str = Field(
+        default=EXECUTION_REPLAY_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1500,
+    )
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_EXECUTION_REPLAY_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=20,
+    )
+    execution_replay_execution_implemented: Literal[False] = False
+    provider_execution_implemented: Literal[False] = False
+    local_provider_execution_implemented: Literal[False] = False
+    cloud_provider_execution_implemented: Literal[False] = False
+    model_selection_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    execution_trace_reconstruction_implemented: Literal[False] = False
+    replay_persistence_implemented: Literal[False] = False
+    session_replay_execution_implemented: Literal[False] = False
+    cost_scoring_implemented: Literal[False] = False
+    quality_scoring_implemented: Literal[False] = False
+    quality_evaluation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    serialization_version: Literal["execution_replay_profile.v1"] = (
+        EXECUTION_REPLAY_PROFILE_SERIALIZATION_VERSION
+    )
+    metadata_only: Literal[True] = True
+
+
+class ExecutionReplayRegistry(BaseModel):
+    """Stable passive registry for V4.4 Hybrid Studio execution replay metadata."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    role: Literal["execution_replay_registry"] = "execution_replay_registry"
+    serialization_version: Literal["execution_replay_registry.v1"] = (
+        EXECUTION_REPLAY_REGISTRY_SERIALIZATION_VERSION
+    )
+    authority_boundary: str = Field(
+        default=EXECUTION_REPLAY_REGISTRY_AUTHORITY_BOUNDARY,
+        max_length=1500,
+    )
+    execution_replay_profiles: tuple[ExecutionReplayProfile, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    execution_replay_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    execution_replay_kinds: tuple[ExecutionReplayKind, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    session_replay_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    execution_simulation_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    execution_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    provider_selection_profile_ids: tuple[str, ...] = Field(
+        min_length=4,
+        max_length=4,
+    )
+    model_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    cost_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    quality_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    comparison_profile_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
+    execution_replay_surface_refs: tuple[str, ...] = Field(
+        min_length=6,
+        max_length=6,
+    )
+    route_names: tuple[RouteName, ...] = Field(min_length=6, max_length=6)
+    profile_count: int = Field(ge=4, le=4)
+    source_registries: tuple[str, ...] = Field(min_length=8, max_length=8)
+    observability_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
+    blocked_runtime_behaviors: tuple[str, ...] = Field(
+        default=_EXECUTION_REPLAY_BLOCKED_RUNTIME_BEHAVIORS,
+        min_length=1,
+        max_length=20,
+    )
+    execution_replay_execution_implemented: Literal[False] = False
+    provider_execution_implemented: Literal[False] = False
+    local_provider_execution_implemented: Literal[False] = False
+    cloud_provider_execution_implemented: Literal[False] = False
+    model_selection_implemented: Literal[False] = False
+    provider_model_routing_implemented: Literal[False] = False
+    execution_trace_reconstruction_implemented: Literal[False] = False
+    replay_persistence_implemented: Literal[False] = False
+    session_replay_execution_implemented: Literal[False] = False
+    cost_scoring_implemented: Literal[False] = False
+    quality_scoring_implemented: Literal[False] = False
+    quality_evaluation_implemented: Literal[False] = False
+    workflow_control_implemented: Literal[False] = False
+    human_input_request_implemented: Literal[False] = False
+    retry_triggering_implemented: Literal[False] = False
+    generated_output_mutation_implemented: Literal[False] = False
+    persistent_replay_storage_implemented: Literal[False] = False
+    metadata_only: Literal[True] = True
+
+    @model_validator(mode="after")
+    def _registry_matches_profiles(self) -> Self:
+        derived_profile_ids = tuple(
+            profile.execution_replay_profile_id
+            for profile in self.execution_replay_profiles
+        )
+        if len(set(derived_profile_ids)) != len(derived_profile_ids):
+            raise ValueError("execution_replay_profile_ids must be unique")
+        if self.execution_replay_profile_ids != derived_profile_ids:
+            raise ValueError(
+                "execution_replay_profile_ids must match execution_replay_profiles"
+            )
+        if self.profile_count != len(self.execution_replay_profiles):
+            raise ValueError("profile_count must match execution_replay_profiles")
+        if self.route_names != tuple(RouteName):
+            raise ValueError("route_names must match route enum order")
+        if self.execution_replay_kinds != tuple(
+            profile.execution_replay_kind for profile in self.execution_replay_profiles
+        ):
+            raise ValueError(
+                "execution_replay_kinds must match execution_replay_profiles"
+            )
+
+        known_routes = set(self.route_names)
+        known_session_replays = set(self.session_replay_profile_ids)
+        known_simulation_profiles = set(self.execution_simulation_profile_ids)
+        known_execution_profiles = set(self.execution_profile_ids)
+        known_provider_profiles = set(self.provider_selection_profile_ids)
+        known_model_profiles = set(self.model_profile_ids)
+        known_cost_profiles = set(self.cost_profile_ids)
+        known_quality_profiles = set(self.quality_profile_ids)
+        known_comparison_profiles = set(self.comparison_profile_ids)
+        known_surfaces = set(self.execution_replay_surface_refs)
+        profile_sources = {
+            source_registry
+            for profile in self.execution_replay_profiles
+            for source_registry in profile.source_registries
+        }
+        if set(self.source_registries) != profile_sources:
+            raise ValueError("source_registries must match execution replay sources")
+
+        for profile in self.execution_replay_profiles:
+            if profile.source_registries != self.source_registries:
+                raise ValueError("profile source_registries must match registry")
+            if profile.observability_surfaces != self.observability_surfaces:
+                raise ValueError("observability_surfaces must match registry")
+            if not set(profile.source_session_replay_profile_ids).issubset(
+                known_session_replays
+            ):
+                raise ValueError(
+                    "source_session_replay_profile_ids must be known session replays"
+                )
+            if not set(profile.source_execution_simulation_profile_ids).issubset(
+                known_simulation_profiles
+            ):
+                raise ValueError(
+                    "source_execution_simulation_profile_ids must be known profiles"
+                )
+            if not set(profile.source_execution_profile_ids).issubset(
+                known_execution_profiles
+            ):
+                raise ValueError(
+                    "source_execution_profile_ids must be known execution profiles"
+                )
+            if not set(profile.source_provider_selection_profile_ids).issubset(
+                known_provider_profiles
+            ):
+                raise ValueError(
+                    "source_provider_selection_profile_ids must be known profiles"
+                )
+            if not set(profile.source_model_profile_ids).issubset(known_model_profiles):
+                raise ValueError("source_model_profile_ids must be known profiles")
+            if not set(profile.source_cost_profile_ids).issubset(known_cost_profiles):
+                raise ValueError("source_cost_profile_ids must be known profiles")
+            if not set(profile.source_quality_profile_ids).issubset(
+                known_quality_profiles
+            ):
+                raise ValueError("source_quality_profile_ids must be known profiles")
+            if not set(profile.source_comparison_profile_ids).issubset(
+                known_comparison_profiles
+            ):
+                raise ValueError("source_comparison_profile_ids must be known profiles")
+            if not set(profile.execution_replay_surfaces).issubset(known_surfaces):
+                raise ValueError(
+                    "execution_replay_surfaces must be known registry surfaces"
+                )
+            if not set(profile.route_applicability).issubset(known_routes):
+                raise ValueError("route_applicability must be known route names")
+        return self
+
+
+def execution_replay_registry() -> ExecutionReplayRegistry:
+    """Return passive V4.4 Hybrid Studio execution replay metadata."""
+
+    return EXECUTION_REPLAY_REGISTRY
+
+
+def execution_replay_profile_by_id(
+    execution_replay_profile_id: str,
+    registry: ExecutionReplayRegistry | None = None,
+) -> ExecutionReplayProfile | None:
+    """Return one execution replay profile without executing or replaying it."""
+
+    source_registry = registry or EXECUTION_REPLAY_REGISTRY
+    for profile in source_registry.execution_replay_profiles:
+        if profile.execution_replay_profile_id == execution_replay_profile_id:
+            return profile
+    return None
+
+
+def execution_replay_profiles_for_route(
+    route: RouteName | str,
+    registry: ExecutionReplayRegistry | None = None,
+) -> tuple[ExecutionReplayProfile, ...]:
+    """Return passive execution replay profiles applicable to a route."""
+
+    route_name = route if isinstance(route, RouteName) else RouteName(str(route))
+    source_registry = registry or EXECUTION_REPLAY_REGISTRY
+    return tuple(
+        profile
+        for profile in source_registry.execution_replay_profiles
+        if route_name in profile.route_applicability
+    )
+
+
+def execution_replay_profiles_for_session_replay(
+    session_replay_profile_id: str,
+    registry: ExecutionReplayRegistry | None = None,
+) -> tuple[ExecutionReplayProfile, ...]:
+    """Return passive execution replays for a session replay profile id."""
+
+    source_registry = registry or EXECUTION_REPLAY_REGISTRY
+    replay_id = str(session_replay_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.execution_replay_profiles
+        if replay_id in profile.source_session_replay_profile_ids
+    )
+
+
+def execution_replay_profiles_for_execution_simulation(
+    execution_simulation_profile_id: str,
+    registry: ExecutionReplayRegistry | None = None,
+) -> tuple[ExecutionReplayProfile, ...]:
+    """Return passive execution replays for an execution simulation profile id."""
+
+    source_registry = registry or EXECUTION_REPLAY_REGISTRY
+    simulation_id = str(execution_simulation_profile_id).strip()
+    return tuple(
+        profile
+        for profile in source_registry.execution_replay_profiles
+        if simulation_id in profile.source_execution_simulation_profile_ids
+    )
+
+
+def _execution_replay_profile(
+    *,
+    execution_replay_profile_id: str,
+    profile_name: str,
+    execution_replay_kind: ExecutionReplayKind,
+    source_session_replay_profile_ids: tuple[str, ...],
+    source_execution_simulation_profile_ids: tuple[str, ...],
+    source_execution_profile_ids: tuple[str, ...],
+    source_provider_selection_profile_ids: tuple[str, ...],
+    source_model_profile_ids: tuple[str, ...],
+    source_cost_profile_ids: tuple[str, ...],
+    source_quality_profile_ids: tuple[str, ...],
+    source_comparison_profile_ids: tuple[str, ...],
+    route_applicability: tuple[RouteName, ...],
+    execution_replay_surfaces: tuple[str, ...],
+    replay_context_fields: tuple[str, ...],
+    advisory_outputs: tuple[str, ...],
+) -> ExecutionReplayProfile:
+    return ExecutionReplayProfile(
+        execution_replay_profile_id=execution_replay_profile_id,
+        profile_name=profile_name,
+        execution_replay_kind=execution_replay_kind,
+        source_session_replay_profile_ids=source_session_replay_profile_ids,
+        source_execution_simulation_profile_ids=(
+            source_execution_simulation_profile_ids
+        ),
+        source_execution_profile_ids=source_execution_profile_ids,
+        source_provider_selection_profile_ids=source_provider_selection_profile_ids,
+        source_model_profile_ids=source_model_profile_ids,
+        source_cost_profile_ids=source_cost_profile_ids,
+        source_quality_profile_ids=source_quality_profile_ids,
+        source_comparison_profile_ids=source_comparison_profile_ids,
+        route_applicability=route_applicability,
+        execution_replay_surfaces=execution_replay_surfaces,
+        replay_context_fields=replay_context_fields,
+        advisory_outputs=advisory_outputs,
+        source_registries=_EXECUTION_REPLAY_SOURCE_REGISTRIES,
+        observability_surfaces=_EXECUTION_REPLAY_OBSERVABILITY_SURFACES,
+    )
+
+
+EXECUTION_REPLAY_SURFACES = (
+    "execution_replay_panel",
+    "execution_trace_timeline",
+    "simulation_replay_panel",
+    "provider_selection_replay_panel",
+    "cost_quality_replay_panel",
+    "replay_boundary_panel",
+)
+
+EXECUTION_REPLAY_PROFILES = (
+    _execution_replay_profile(
+        execution_replay_profile_id="route_execution_replay_profile",
+        profile_name="Route Execution Replay Profile",
+        execution_replay_kind="route_execution_replay",
+        source_session_replay_profile_ids=(
+            "session_overview_replay_profile",
+            "conversation_timeline_replay_profile",
+        ),
+        source_execution_simulation_profile_ids=(
+            "route_preview_simulation_profile",
+            "provider_selection_simulation_profile",
+        ),
+        source_execution_profile_ids=(
+            "operator_selected_context_profile",
+            "local_first_context_profile",
+        ),
+        source_provider_selection_profile_ids=(
+            "current_config_provider_visibility_profile",
+            "local_candidate_provider_visibility_profile",
+        ),
+        source_model_profile_ids=("fast_iteration_model_profile",),
+        source_cost_profile_ids=("planning_iteration_cost_profile",),
+        source_quality_profile_ids=("planning_quality_profile",),
+        source_comparison_profile_ids=("generation_route_comparison_profile",),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.EXPLAIN,
+            RouteName.PREVIEW,
+        ),
+        execution_replay_surfaces=(
+            "execution_replay_panel",
+            "execution_trace_timeline",
+            "simulation_replay_panel",
+            "replay_boundary_panel",
+        ),
+        replay_context_fields=(
+            "route_simulation_metadata",
+            "operator_selection_metadata",
+            "fast_iteration_model_refs",
+            "planning_cost_quality_refs",
+        ),
+        advisory_outputs=(
+            "route_execution_replay_context",
+            "manual_route_replay_review_hint",
+            "no_execution_replay_notice",
+        ),
+    ),
+    _execution_replay_profile(
+        execution_replay_profile_id="provider_selection_execution_replay_profile",
+        profile_name="Provider Selection Execution Replay Profile",
+        execution_replay_kind="provider_selection_replay",
+        source_session_replay_profile_ids=(
+            "session_overview_replay_profile",
+            "snapshot_transition_replay_profile",
+        ),
+        source_execution_simulation_profile_ids=(
+            "provider_selection_simulation_profile",
+            "local_cloud_comparison_simulation_profile",
+        ),
+        source_execution_profile_ids=(
+            "local_first_context_profile",
+            "cloud_first_context_profile",
+            "operator_selected_context_profile",
+        ),
+        source_provider_selection_profile_ids=tuple(
+            PROVIDER_SELECTION_REGISTRY.provider_selection_profile_ids
+        ),
+        source_model_profile_ids=(
+            "fast_iteration_model_profile",
+            "creative_reasoning_model_profile",
+        ),
+        source_cost_profile_ids=(
+            "planning_iteration_cost_profile",
+            "creative_reasoning_cost_profile",
+        ),
+        source_quality_profile_ids=(
+            "planning_quality_profile",
+            "creative_quality_profile",
+        ),
+        source_comparison_profile_ids=(
+            "generation_route_comparison_profile",
+            "creative_reasoning_comparison_profile",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+        ),
+        execution_replay_surfaces=(
+            "execution_replay_panel",
+            "provider_selection_replay_panel",
+            "simulation_replay_panel",
+            "replay_boundary_panel",
+        ),
+        replay_context_fields=(
+            "provider_visibility_metadata",
+            "operator_override_metadata",
+            "model_profile_refs",
+            "provider_selection_boundary_refs",
+        ),
+        advisory_outputs=(
+            "provider_selection_execution_replay_context",
+            "manual_provider_replay_review_hint",
+            "no_provider_selection_notice",
+        ),
+    ),
+    _execution_replay_profile(
+        execution_replay_profile_id="local_cloud_execution_replay_profile",
+        profile_name="Local Cloud Execution Replay Profile",
+        execution_replay_kind="local_cloud_execution_replay",
+        source_session_replay_profile_ids=("snapshot_transition_replay_profile",),
+        source_execution_simulation_profile_ids=(
+            "local_cloud_comparison_simulation_profile",
+            "provider_selection_simulation_profile",
+        ),
+        source_execution_profile_ids=(
+            "local_first_context_profile",
+            "cloud_first_context_profile",
+            "side_by_side_comparison_profile",
+        ),
+        source_provider_selection_profile_ids=(
+            "local_candidate_provider_visibility_profile",
+            "cloud_candidate_provider_visibility_profile",
+            "operator_override_provider_visibility_profile",
+        ),
+        source_model_profile_ids=(
+            "creative_reasoning_model_profile",
+            "code_assistance_model_profile",
+        ),
+        source_cost_profile_ids=(
+            "creative_reasoning_cost_profile",
+            "curation_refinement_cost_profile",
+        ),
+        source_quality_profile_ids=(
+            "creative_quality_profile",
+            "refinement_quality_profile",
+        ),
+        source_comparison_profile_ids=(
+            "creative_reasoning_comparison_profile",
+            "code_review_comparison_profile",
+        ),
+        route_applicability=(
+            RouteName.GENERATE,
+            RouteName.DEBUG,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+            RouteName.PREVIEW,
+        ),
+        execution_replay_surfaces=(
+            "execution_replay_panel",
+            "execution_trace_timeline",
+            "simulation_replay_panel",
+            "cost_quality_replay_panel",
+        ),
+        replay_context_fields=(
+            "local_cloud_comparison_refs",
+            "side_by_side_execution_metadata",
+            "provider_boundary_metadata",
+            "cost_quality_context_refs",
+        ),
+        advisory_outputs=(
+            "local_cloud_execution_replay_context",
+            "manual_local_cloud_replay_hint",
+            "no_parallel_provider_execution_notice",
+        ),
+    ),
+    _execution_replay_profile(
+        execution_replay_profile_id="quality_review_execution_replay_profile",
+        profile_name="Quality Review Execution Replay Profile",
+        execution_replay_kind="quality_review_execution_replay",
+        source_session_replay_profile_ids=(
+            "conversation_timeline_replay_profile",
+            "snapshot_transition_replay_profile",
+            "review_decision_replay_profile",
+        ),
+        source_execution_simulation_profile_ids=(
+            "hitl_review_simulation_profile",
+            "local_cloud_comparison_simulation_profile",
+        ),
+        source_execution_profile_ids=(
+            "side_by_side_comparison_profile",
+            "operator_selected_context_profile",
+        ),
+        source_provider_selection_profile_ids=(
+            "cloud_candidate_provider_visibility_profile",
+            "operator_override_provider_visibility_profile",
+            "current_config_provider_visibility_profile",
+        ),
+        source_model_profile_ids=(
+            "code_assistance_model_profile",
+            "evaluation_review_model_profile",
+        ),
+        source_cost_profile_ids=(
+            "curation_refinement_cost_profile",
+            "final_review_cost_profile",
+        ),
+        source_quality_profile_ids=(
+            "refinement_quality_profile",
+            "final_review_quality_profile",
+        ),
+        source_comparison_profile_ids=(
+            "code_review_comparison_profile",
+            "evaluation_review_comparison_profile",
+        ),
+        route_applicability=(
+            RouteName.EXPLAIN,
+            RouteName.DESIGN,
+            RouteName.REVIEW,
+        ),
+        execution_replay_surfaces=(
+            "execution_replay_panel",
+            "execution_trace_timeline",
+            "simulation_replay_panel",
+            "cost_quality_replay_panel",
+            "replay_boundary_panel",
+        ),
+        replay_context_fields=(
+            "hitl_review_simulation_refs",
+            "quality_profile_refs",
+            "final_review_cost_refs",
+            "manual_review_decision_refs",
+        ),
+        advisory_outputs=(
+            "quality_review_execution_replay_context",
+            "manual_quality_replay_review_hint",
+            "no_quality_evaluation_notice",
+        ),
+    ),
+)
+
+EXECUTION_REPLAY_REGISTRY = ExecutionReplayRegistry(
+    execution_replay_profiles=EXECUTION_REPLAY_PROFILES,
+    execution_replay_profile_ids=tuple(
+        profile.execution_replay_profile_id for profile in EXECUTION_REPLAY_PROFILES
+    ),
+    execution_replay_kinds=tuple(
+        profile.execution_replay_kind for profile in EXECUTION_REPLAY_PROFILES
+    ),
+    session_replay_profile_ids=tuple(
+        SESSION_REPLAY_REGISTRY.session_replay_profile_ids
+    ),
+    execution_simulation_profile_ids=tuple(
+        EXECUTION_SIMULATOR_REGISTRY.execution_simulation_profile_ids
+    ),
+    execution_profile_ids=tuple(HYBRID_EXECUTION_REGISTRY.execution_profile_ids),
+    provider_selection_profile_ids=tuple(
+        PROVIDER_SELECTION_REGISTRY.provider_selection_profile_ids
+    ),
+    model_profile_ids=tuple(MODEL_PROFILE_REGISTRY.model_profile_ids),
+    cost_profile_ids=tuple(COST_PROFILE_REGISTRY.cost_profile_ids),
+    quality_profile_ids=tuple(QUALITY_PROFILE_REGISTRY.quality_profile_ids),
+    comparison_profile_ids=tuple(
+        LOCAL_CLOUD_COMPARISON_REGISTRY.comparison_profile_ids
+    ),
+    execution_replay_surface_refs=EXECUTION_REPLAY_SURFACES,
+    route_names=tuple(RouteName),
+    profile_count=len(EXECUTION_REPLAY_PROFILES),
+    source_registries=_EXECUTION_REPLAY_SOURCE_REGISTRIES,
+    observability_surfaces=_EXECUTION_REPLAY_OBSERVABILITY_SURFACES,
+)
