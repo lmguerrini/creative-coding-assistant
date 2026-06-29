@@ -316,6 +316,9 @@ _RESOURCE_UTILIZATION_OPTIMIZER = (
 _PERFORMANCE_ARCHITECTURE_CONSISTENCY = (
     "creative_coding_assistant.orchestration.performance_architecture_consistency"
 )
+_PERFORMANCE_FAILURE_PATH_AUDIT = (
+    "creative_coding_assistant.orchestration.performance_failure_path_audit"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -442,6 +445,8 @@ _EXPORT_MAP = {
     "PerformanceArchitectureConsistencyRegistry": (
         _PERFORMANCE_ARCHITECTURE_CONSISTENCY
     ),
+    "PerformanceFailurePathAuditRecord": _PERFORMANCE_FAILURE_PATH_AUDIT,
+    "PerformanceFailurePathAuditRegistry": _PERFORMANCE_FAILURE_PATH_AUDIT,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1663,6 +1668,14 @@ _EXPORT_MAP = {
     ),
     "performance_architecture_consistency_records_for_layer": (
         _PERFORMANCE_ARCHITECTURE_CONSISTENCY
+    ),
+    "performance_failure_path_audit_registry": _PERFORMANCE_FAILURE_PATH_AUDIT,
+    "performance_failure_path_audit_by_id": _PERFORMANCE_FAILURE_PATH_AUDIT,
+    "performance_failure_path_audits_for_check": (
+        _PERFORMANCE_FAILURE_PATH_AUDIT
+    ),
+    "performance_failure_path_audits_for_surface": (
+        _PERFORMANCE_FAILURE_PATH_AUDIT
     ),
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
