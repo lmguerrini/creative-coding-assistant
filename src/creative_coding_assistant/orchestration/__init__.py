@@ -268,6 +268,9 @@ _EXECUTION_STRATEGY_SELECTION = (
 _PARALLEL_SCHEDULER = (
     "creative_coding_assistant.orchestration.parallel_scheduler"
 )
+_LATENCY_OPTIMIZER = (
+    "creative_coding_assistant.orchestration.latency_optimizer"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -358,6 +361,8 @@ _EXPORT_MAP = {
     "ExecutionStrategySelection": _EXECUTION_STRATEGY_SELECTION,
     "ParallelScheduleCandidate": _PARALLEL_SCHEDULER,
     "ParallelSchedulerPlan": _PARALLEL_SCHEDULER,
+    "LatencyOptimizationCandidate": _LATENCY_OPTIMIZER,
+    "LatencyOptimizationPlan": _LATENCY_OPTIMIZER,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1532,6 +1537,8 @@ _EXPORT_MAP = {
     "execution_path_candidates_for_status": _EXECUTION_PATH_OPTIMIZATION,
     "parallel_schedule_candidate_by_id": _PARALLEL_SCHEDULER,
     "parallel_schedule_candidates_for_status": _PARALLEL_SCHEDULER,
+    "latency_optimization_candidate_by_id": _LATENCY_OPTIMIZER,
+    "latency_optimization_candidates_for_status": _LATENCY_OPTIMIZER,
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "execution_optimization_failure_audit_by_id": (
@@ -1600,6 +1607,7 @@ _EXPORT_MAP = {
     "advisory_hybrid_routing_policy_registry": _ROUTING_INTELLIGENCE,
     "credential_boundary_by_provider_id": _ROUTING_INTELLIGENCE,
     "model_routing_intelligence_registry": _ROUTING_INTELLIGENCE,
+    "optimize_latency": _LATENCY_OPTIMIZER,
     "provider_availability_by_provider_id": _ROUTING_INTELLIGENCE,
     "provider_availability_registry": _ROUTING_INTELLIGENCE,
     "routing_execution_mode_by_id": _ROUTING_INTELLIGENCE,
