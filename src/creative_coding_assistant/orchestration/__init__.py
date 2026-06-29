@@ -304,6 +304,9 @@ _PERFORMANCE_PREDICTION = (
 _PERFORMANCE_BENCHMARKING = (
     "creative_coding_assistant.orchestration.performance_benchmarking"
 )
+_REASONING_BUDGET_OPTIMIZER = (
+    "creative_coding_assistant.orchestration.reasoning_budget_optimizer"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -418,6 +421,8 @@ _EXPORT_MAP = {
     "PerformancePredictionPlan": _PERFORMANCE_PREDICTION,
     "PerformanceBenchmarkScenario": _PERFORMANCE_BENCHMARKING,
     "PerformanceBenchmarkingPlan": _PERFORMANCE_BENCHMARKING,
+    "ReasoningBudgetOptimizationPlan": _REASONING_BUDGET_OPTIMIZER,
+    "ReasoningBudgetRecommendation": _REASONING_BUDGET_OPTIMIZER,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1617,6 +1622,8 @@ _EXPORT_MAP = {
     "performance_predictions_for_band": _PERFORMANCE_PREDICTION,
     "performance_benchmark_scenario_by_id": _PERFORMANCE_BENCHMARKING,
     "performance_benchmark_scenarios_for_status": _PERFORMANCE_BENCHMARKING,
+    "reasoning_budget_recommendation_by_id": _REASONING_BUDGET_OPTIMIZER,
+    "reasoning_budget_recommendations_for_status": _REASONING_BUDGET_OPTIMIZER,
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "execution_optimization_failure_audit_by_id": (
@@ -1706,6 +1713,7 @@ _EXPORT_MAP = {
     "next_workflow_step": _WORKFLOW,
     "optimize_quality_cost": _QUALITY_COST_OPTIMIZER,
     "estimate_routing_cost": _COST_ESTIMATOR,
+    "optimize_reasoning_budget": _REASONING_BUDGET_OPTIMIZER,
     "optimize_throughput": _THROUGHPUT_OPTIMIZER,
     "prepare_workflow_preview_results": _ARTIFACTS,
     "plan_context_budget": _CONTEXT_BUDGET_PLANNER,
