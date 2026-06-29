@@ -337,6 +337,9 @@ _AGENT_DIAGNOSTICS = (
 _ROUTING_DIAGNOSTICS = (
     "creative_coding_assistant.orchestration.routing_diagnostics"
 )
+_ESCALATION_DIAGNOSTICS = (
+    "creative_coding_assistant.orchestration.escalation_diagnostics"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -481,6 +484,8 @@ _EXPORT_MAP = {
     "AgentDiagnostics": _AGENT_DIAGNOSTICS,
     "RoutingDiagnosticPanel": _ROUTING_DIAGNOSTICS,
     "RoutingDiagnostics": _ROUTING_DIAGNOSTICS,
+    "EscalationDiagnosticPanel": _ESCALATION_DIAGNOSTICS,
+    "EscalationDiagnostics": _ESCALATION_DIAGNOSTICS,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1803,6 +1808,7 @@ _EXPORT_MAP = {
     "build_workflow_diagnostics": _WORKFLOW_DIAGNOSTICS,
     "build_agent_diagnostics": _AGENT_DIAGNOSTICS,
     "build_routing_diagnostics": _ROUTING_DIAGNOSTICS,
+    "build_escalation_diagnostics": _ESCALATION_DIAGNOSTICS,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
     "memory_summary_segments_for_kind": _MEMORY_SUMMARIZATION,
     "next_workflow_step": _WORKFLOW,
@@ -1864,6 +1870,8 @@ _EXPORT_MAP = {
     "agent_diagnostic_panels_for_status": _AGENT_DIAGNOSTICS,
     "routing_diagnostic_panel_by_id": _ROUTING_DIAGNOSTICS,
     "routing_diagnostic_panels_for_status": _ROUTING_DIAGNOSTICS,
+    "escalation_diagnostic_panel_by_id": _ESCALATION_DIAGNOSTICS,
+    "escalation_diagnostic_panels_for_status": _ESCALATION_DIAGNOSTICS,
     "workflow_diagnostic_panel_by_id": _WORKFLOW_DIAGNOSTICS,
     "workflow_diagnostic_panels_for_status": _WORKFLOW_DIAGNOSTICS,
 }
