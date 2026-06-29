@@ -274,6 +274,9 @@ _LATENCY_OPTIMIZER = (
 _ASYNC_EXECUTION = (
     "creative_coding_assistant.orchestration.async_execution"
 )
+_STREAMING_OPTIMIZER = (
+    "creative_coding_assistant.orchestration.streaming_optimizer"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -368,6 +371,8 @@ _EXPORT_MAP = {
     "LatencyOptimizationPlan": _LATENCY_OPTIMIZER,
     "AsyncExecutionCandidate": _ASYNC_EXECUTION,
     "AsyncExecutionPlan": _ASYNC_EXECUTION,
+    "StreamingOptimizationCandidate": _STREAMING_OPTIMIZER,
+    "StreamingOptimizationPlan": _STREAMING_OPTIMIZER,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1546,6 +1551,8 @@ _EXPORT_MAP = {
     "latency_optimization_candidates_for_status": _LATENCY_OPTIMIZER,
     "async_execution_candidate_by_id": _ASYNC_EXECUTION,
     "async_execution_candidates_for_status": _ASYNC_EXECUTION,
+    "streaming_optimization_candidate_by_id": _STREAMING_OPTIMIZER,
+    "streaming_optimization_candidates_for_status": _STREAMING_OPTIMIZER,
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "execution_optimization_failure_audit_by_id": (
@@ -1615,6 +1622,7 @@ _EXPORT_MAP = {
     "credential_boundary_by_provider_id": _ROUTING_INTELLIGENCE,
     "model_routing_intelligence_registry": _ROUTING_INTELLIGENCE,
     "optimize_latency": _LATENCY_OPTIMIZER,
+    "optimize_streaming": _STREAMING_OPTIMIZER,
     "provider_availability_by_provider_id": _ROUTING_INTELLIGENCE,
     "provider_availability_registry": _ROUTING_INTELLIGENCE,
     "routing_execution_mode_by_id": _ROUTING_INTELLIGENCE,
