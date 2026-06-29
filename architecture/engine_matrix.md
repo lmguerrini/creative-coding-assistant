@@ -44,7 +44,7 @@ Use this matrix together with:
 | V4.5 | Multimodal Studio defines passive live preview, multi preview, interactive canvas, visual workspace, collaboration, artifact provenance, lineage, history, branching, creative evolution, workflow visualization, and integration metadata without changing generation behavior | Multimodal preview, workspace, artifact, provenance, timeline, and visualization context is described as metadata only; no new knowledge runtime, memory storage, blackboard storage, or retrieval side effect is implemented | Multimodal Studio registries remain export-only metadata and do not execute rendering, activate Studio runtime, enter workflow control, route providers/models, select runtimes, trigger retries, mutate artifacts, persist collaboration storage, subscribe to streams, or open networking | Agentic Studio can inspect Multimodal Studio readiness later, but no live preview execution, canvas interaction, workflow visualization execution, or autonomous multimodal collaboration behavior is implemented here |
 | V4.6 | Agentic Studio Hardening defines passive audit, foundation, architecture consistency, final hardening, and LangGraph error-path coverage metadata without changing generation behavior | Agent-facing contract, memory/context, collaboration, diversity, quality, reliability, determinism, cost, performance, and error-path context is described as metadata only; no knowledge runtime, memory storage, blackboard storage, or retrieval side effect is implemented | Hardening registries remain export-only metadata and do not execute hardening checks, add LangGraph nodes, bypass failure normalization, activate passive registries, enter workflow control, route providers/models, select runtimes, trigger retries, mutate storage, execute artifacts, or mutate generated output | Agentic Studio can inspect hardening readiness later, but no runtime hardening engine, active recovery behavior, agent invocation, or autonomous operator behavior is implemented here |
 | V4 | Agentic Studio decomposes more internal creative work into bounded collaborative systems | Deeper agent-facing knowledge packets may emerge here | More inspectable orchestration paths may appear here | Agentic Studio becomes the main collaboration surface |
-| V5 | Core Engine remains creative-first but hands more optimization work outward | Knowledge signals can guide execution optimization and production policy | Execution Optimization & Production Intelligence becomes the primary expansion | Experience surfaces emphasize production telemetry and operational controls |
+| V5.1 | Core Engine remains creative-first while exposing creative complexity metadata to execution planning | Knowledge signals can guide context budgeting, compression, summarization, cache lookup, and reuse planning without changing retrieval or memory ownership | Execution Optimization Engine adds bounded analysis, planning, pruning, forecasting, path optimization, strategy selection, architecture consistency, and failure audit metadata without changing provider/model routing or runtime graph control | Experience surfaces can inspect optimization metadata later, but no production telemetry UI or operational control surface is activated here |
 | V6 | HoloGenesis Core OS can unify long-horizon creative strategy, lineage, and system identity | Long-horizon knowledge and memory adaptation move into the future OS direction | Execution can learn from prior runs without replacing bounded workflow control | Experience surfaces expose lineage, feedback, and evolving operator guidance |
 
 ## Reading The Matrix
@@ -305,6 +305,27 @@ passive registries, change LangGraph node order, enter provider/model routing,
 select runtimes, control workflows, trigger retries, mutate storage, execute
 artifacts, invoke agents, or mutate generated output.
 
+## V5.1 Execution Optimization Surfaces
+
+V5.1 adds execution optimization contracts to the Execution Engine while
+preserving the current LangGraph runtime graph as the execution source of
+truth. These surfaces are typed metadata and deterministic local planning
+helpers. They do not execute providers, route providers or models, enforce
+budgets, select runtimes, apply pruning, apply selected strategies, mutate
+source prompts/context/memory, trigger retries, write persistent storage, or
+modify generated output.
+
+| Surface group | Source module | Serialization boundary | Current boundary |
+| --- | --- | --- | --- |
+| Execution graph analysis | `src/creative_coding_assistant/orchestration/execution_graph_analyzer.py` | `execution_graph_analysis.v1` | Observes node order, branches, retry edges, and terminal failure paths without compiling or executing LangGraph |
+| Workflow and creative complexity analysis | `workflow_cost_analyzer.py`, `workflow_complexity_analyzer.py`, `creative_complexity_analyzer.py` | `workflow_cost_analysis.v1`, `workflow_complexity_analysis.v1`, `creative_complexity_analysis.v1` | Derives bounded cost and complexity pressure without pricing lookup, budget enforcement, provider/model routing, creative output scoring, or prompt mutation |
+| Context and exploration planning | `context_budget_planner.py`, `exploration_budget_planner.py`, `context_router.py` | `context_budget_plan.v1`, `exploration_budget_plan.v1`, `context_routing_plan.v1` | Plans allocation, exploration breadth/depth, and advisory context lanes without trimming context, executing variants, routing providers/models, or controlling workflow execution |
+| Prompt, retrieval, and memory compression | `prompt_compression.py`, `retrieval_compression.py`, `memory_summarization.py` | `prompt_compression_result.v1`, `retrieval_compression_result.v1`, `memory_summarization_result.v1` | Produces separate compressed/summarized artifacts without mutating source prompts, retrieval chunks, memory records, provider prompts, storage, or generated output |
+| Cache and reuse planning | `cache_layer.py`, `context_reuse.py` | `execution_cache_lookup.v1`, `context_reuse_plan.v1` | Models in-memory cache hit/miss/stale and reusable context metadata without persistent cache writes, network cache access, shared-context materialization, memory writes, or output mutation |
+| Pruning and cost forecasting | `workflow_pruning.py`, `execution_cost_forecasting.py` | `workflow_pruning_plan.v1`, `execution_cost_forecast.v1` | Exposes pruning candidates and token forecast scenarios without removing workflow nodes, applying pruning, looking up provider pricing, enforcing budgets, or route-by-cost behavior |
+| Path optimization and strategy selection | `execution_path_optimization.py`, `execution_strategy_selection.py` | `execution_path_optimization_plan.v1`, `execution_strategy_selection.v1` | Ranks path candidates and selects one advisory strategy profile without selecting runtime paths, applying strategies, changing graph order, controlling workflow execution, or triggering retries |
+| Consistency and failure audit coverage | `tests/test_v5_1_execution_optimization_architecture_consistency.py`, `execution_optimization_failure_audit.py` | `execution_optimization_failure_audit.v1` | Verifies V5.1 architecture and runtime failure boundaries without activating audit behavior as runtime recovery or changing output behavior |
+
 ## V3.5 Workstation Contracts
 
 The Creative Workstation exposes a metadata-only
@@ -337,9 +358,11 @@ workstation responsible for future behavior.
   optimization, learning behavior, artifact execution, artifact modification,
   artifact export, runtime selection, runtime repair, provider/model routing,
   autonomous retries, or preview behavior changes.
-- V3.6 is the current stabilization layer over V3.5, not a new runtime feature
-  family. After V4.6, active V4 Agentic Studio, V5 Execution Optimization &
-  Production Intelligence, and V6 HoloGenesis Core OS remain future work.
+- V5.1 is the current execution optimization metadata layer over the stable
+  LangGraph runtime. It adds bounded optimization planning and audit surfaces
+  without provider/model routing, workflow graph control, budget enforcement,
+  retry triggering, or output mutation. Later V5 production intelligence and
+  V6 HoloGenesis Core OS remain future work.
 - The current runtime graph remains the source of truth for execution order.
 - The matrix is a planning and architecture aid, not a claim that every engine
   is already a separate runtime subsystem.

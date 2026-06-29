@@ -78,6 +78,14 @@ do not execute hardening checks, add LangGraph nodes, bypass failure
 normalization, activate passive registries, route providers or models, select
 runtimes, control workflows, trigger retries, invoke agents, mutate storage,
 execute artifacts, or modify generated output.
+V5.1 Execution Optimization Engine keeps the same LangGraph runtime node set
+while adding bounded analysis, planning, compression, cache, reuse, pruning,
+forecasting, path optimization, strategy selection, architecture consistency,
+and runtime failure-audit metadata. These surfaces are importable Python
+contracts and deterministic local helpers; they do not add graph nodes, compile
+or execute alternate graphs, change provider/model routing, enforce budgets,
+apply pruning or selected strategies, trigger retries, mutate prompts, persist
+storage, or modify generated output.
 `_planning_node()` deterministically derives and stores the V3.1 Creative
 Cognition metadata, the V3.2 Generative Design metadata, the V3.3 Artifact
 Intelligence metadata, and the V3.4 Creative Evaluation metadata:
@@ -171,6 +179,13 @@ This separation is intentional:
   architecture consistency, final hardening, and LangGraph error-path coverage
   metadata, but still does not own runtime hardening execution, failure
   recovery behavior, provider/model routing, or generated-output mutation
+- The V5.1 Execution Optimization Engine layer owns bounded execution
+  analysis, context/cost budget planning, compression summaries, cache/reuse
+  metadata, pruning plans, cost forecasts, path candidates, advisory strategy
+  selection, architecture consistency, and runtime failure audit metadata, but
+  still does not own LangGraph execution, provider/model routing, retry
+  triggering, budget enforcement, strategy application, or generated-output
+  mutation
 - The internal capability pipeline and dependency graph remain decomposition
   candidates for later orchestration, but they are not a true multi-agent or
   multi-node runtime graph here
@@ -337,6 +352,34 @@ prompts, change workflow node order, or modify generated output.
 | Agent Telemetry Foundation Registry, Agent Cost Tracking Foundation Registry, and Agent Performance Tracking Foundation Registry | Describe observability, cost, and performance foundation coverage without telemetry emission, pricing lookup, cost routing, latency routing, scheduling, or provider execution |
 | Architecture Consistency Pass Registry and Final V4 Hardening Registry | Describe architecture/source coverage and hardening closure without changing architecture docs at runtime, mutating workflow graph order, or activating hardening behavior |
 | LangGraph Error Path Audit | Documents tested and documented terminal failure coverage for provider errors, stream errors, planning helper failures, prompt rendering failures, serialization failures, workflow state consistency after failures, refinement/review failures, workstation hydration failures, preview preparation failures, artifact extraction failures, artifact critique failures, registry loading failures, passive metadata import failures, and backend/frontend boundary failures without adding runtime recovery behavior |
+
+## V5.1 Execution Optimization Metadata Boundary
+
+V5.1 introduces execution optimization surfaces over the stable V3 runtime
+graph and V4 passive contract stack. The implementation adds typed metadata
+and deterministic local planning helpers for execution graph analysis,
+workflow cost and complexity analysis, creative complexity analysis, context
+and exploration budget planning, context routing, prompt/retrieval/memory
+compression, in-memory cache lookup, context reuse, workflow pruning,
+execution cost forecasting, execution path optimization, advisory execution
+strategy selection, architecture consistency coverage, and runtime failure
+path audit coverage.
+
+These surfaces are not a replacement runtime. They do not add LangGraph nodes,
+compile alternate graphs, invoke node handlers, select runtime execution paths,
+apply strategies, route providers or models, enforce budgets, trigger retries,
+mutate prompts, write persistent storage, mutate memory, or modify generated
+output.
+
+| Surface group | Current boundary |
+| --- | --- |
+| Execution graph, cost, workflow complexity, and creative complexity analyzers | Derive bounded topology, token, structural, and creative-pressure metadata without compiling or executing the graph, routing providers, triggering retries, scoring creative output, or mutating prompts |
+| Context budget, exploration budget, and context router planners | Allocate and route advisory context/exploration metadata without trimming source context, enforcing budgets, routing providers/models, executing variants, or changing workflow control |
+| Prompt compression, retrieval compression, and memory summarization | Produce separate compressed or summarized artifacts without mutating source prompts, source chunks, memory records, retrieval filters, provider prompts, persistent storage, or generated output |
+| Cache layer and context reuse planner | Model deterministic in-memory cache hit/miss/stale and reusable context metadata without persistent cache writes, network cache access, shared-context materialization, memory writes, routing, or output mutation |
+| Workflow pruning and execution cost forecasting | Expose pruning candidates and token forecast scenarios without removing workflow nodes, applying pruning, looking up provider pricing, enforcing budgets, route-by-cost behavior, or workflow control |
+| Execution path optimization and execution strategy selection | Rank advisory path candidates and select one strategy profile without selecting runtime paths, applying strategies, changing graph order, triggering retries, controlling workflows, or routing providers/models |
+| Architecture consistency and runtime failure path audit | Verify V5.1 surfaces preserve architecture and failure-path boundaries without executing audits as runtime recovery, activating passive registries, mutating architecture docs at runtime, or changing output behavior |
 
 ## Current Implemented Flow
 
