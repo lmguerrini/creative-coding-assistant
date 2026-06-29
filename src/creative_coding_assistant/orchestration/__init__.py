@@ -295,6 +295,9 @@ _EXECUTION_REPLAY_ENGINE = (
 _BOTTLENECK_DETECTION = (
     "creative_coding_assistant.orchestration.bottleneck_detection"
 )
+_THROUGHPUT_OPTIMIZER = (
+    "creative_coding_assistant.orchestration.throughput_optimizer"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -403,6 +406,8 @@ _EXPORT_MAP = {
     "ExecutionReplayPlan": _EXECUTION_REPLAY_ENGINE,
     "BottleneckCandidate": _BOTTLENECK_DETECTION,
     "BottleneckDetectionPlan": _BOTTLENECK_DETECTION,
+    "ThroughputOptimizationCandidate": _THROUGHPUT_OPTIMIZER,
+    "ThroughputOptimizationPlan": _THROUGHPUT_OPTIMIZER,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1595,6 +1600,8 @@ _EXPORT_MAP = {
     "execution_replay_candidates_for_status": _EXECUTION_REPLAY_ENGINE,
     "bottleneck_candidate_by_id": _BOTTLENECK_DETECTION,
     "bottleneck_candidates_for_status": _BOTTLENECK_DETECTION,
+    "throughput_optimization_candidate_by_id": _THROUGHPUT_OPTIMIZER,
+    "throughput_optimization_candidates_for_status": _THROUGHPUT_OPTIMIZER,
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "execution_optimization_failure_audit_by_id": (
@@ -1684,6 +1691,7 @@ _EXPORT_MAP = {
     "next_workflow_step": _WORKFLOW,
     "optimize_quality_cost": _QUALITY_COST_OPTIMIZER,
     "estimate_routing_cost": _COST_ESTIMATOR,
+    "optimize_throughput": _THROUGHPUT_OPTIMIZER,
     "prepare_workflow_preview_results": _ARTIFACTS,
     "plan_context_budget": _CONTEXT_BUDGET_PLANNER,
     "plan_context_reuse": _CONTEXT_REUSE,
