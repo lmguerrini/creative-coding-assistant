@@ -277,6 +277,7 @@ _QUALITY_COST_OPTIMIZER = (
     "creative_coding_assistant.orchestration.quality_cost_optimizer"
 )
 _COST_ESTIMATOR = "creative_coding_assistant.orchestration.cost_estimator"
+_BUDGET_POLICIES = "creative_coding_assistant.orchestration.budget_policies"
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -327,6 +328,8 @@ _EXPORT_MAP = {
     "QualityCostOptimizationPlan": _QUALITY_COST_OPTIMIZER,
     "CostEstimateScenario": _COST_ESTIMATOR,
     "CostEstimationPlan": _COST_ESTIMATOR,
+    "BudgetPolicyDecision": _BUDGET_POLICIES,
+    "BudgetPolicyPlan": _BUDGET_POLICIES,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1406,6 +1409,7 @@ _EXPORT_MAP = {
     "detect_shader_presets": _SHADER_PRESETS,
     "derive_shader_preset_guidance": _SHADER_PRESETS,
     "derive_visual_style_guidance": _VISUAL_STYLES,
+    "evaluate_budget_policies": _BUDGET_POLICIES,
     "derive_reference_fusion_guidance": _REFERENCE_FUSION,
     "detect_visual_styles": _VISUAL_STYLES,
     "extract_workflow_artifacts": _ARTIFACTS,
@@ -1435,6 +1439,8 @@ _EXPORT_MAP = {
     "quality_cost_candidates_for_posture": _QUALITY_COST_OPTIMIZER,
     "cost_estimate_scenario_by_id": _COST_ESTIMATOR,
     "cost_estimate_scenarios_for_confidence": _COST_ESTIMATOR,
+    "budget_policy_by_id": _BUDGET_POLICIES,
+    "budget_policies_for_posture": _BUDGET_POLICIES,
     "finish_workflow": _WORKFLOW,
     "forecast_execution_cost": _EXECUTION_COST_FORECASTING,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
