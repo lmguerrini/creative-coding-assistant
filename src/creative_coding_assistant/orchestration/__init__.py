@@ -279,6 +279,9 @@ _QUALITY_COST_OPTIMIZER = (
 _COST_ESTIMATOR = "creative_coding_assistant.orchestration.cost_estimator"
 _BUDGET_POLICIES = "creative_coding_assistant.orchestration.budget_policies"
 _HITL_BUDGET_GATE = "creative_coding_assistant.orchestration.hitl_budget_gate"
+_RUNTIME_RECOMMENDATION_ENGINE = (
+    "creative_coding_assistant.orchestration.runtime_recommendation_engine"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -333,6 +336,8 @@ _EXPORT_MAP = {
     "BudgetPolicyPlan": _BUDGET_POLICIES,
     "HitlBudgetGateDecision": _HITL_BUDGET_GATE,
     "HitlBudgetGatePlan": _HITL_BUDGET_GATE,
+    "RuntimeRecommendationDecision": _RUNTIME_RECOMMENDATION_ENGINE,
+    "RuntimeRecommendationPlan": _RUNTIME_RECOMMENDATION_ENGINE,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1408,6 +1413,7 @@ _EXPORT_MAP = {
     "evaluate_artifact_sacred_consistency": _SACRED_CONSISTENCY,
     "evaluate_artifact_creative_quality": _CREATIVE_QUALITY,
     "evaluate_hitl_budget_gate": _HITL_BUDGET_GATE,
+    "recommend_runtime_execution": _RUNTIME_RECOMMENDATION_ENGINE,
     "derive_sacred_geometry_guidance": _SACRED_GEOMETRY,
     "detect_sacred_geometry_concepts": _SACRED_GEOMETRY,
     "detect_shader_presets": _SHADER_PRESETS,
@@ -1447,6 +1453,8 @@ _EXPORT_MAP = {
     "budget_policies_for_posture": _BUDGET_POLICIES,
     "hitl_budget_gate_by_id": _HITL_BUDGET_GATE,
     "hitl_budget_gates_for_status": _HITL_BUDGET_GATE,
+    "runtime_recommendation_by_id": _RUNTIME_RECOMMENDATION_ENGINE,
+    "runtime_recommendations_for_posture": _RUNTIME_RECOMMENDATION_ENGINE,
     "finish_workflow": _WORKFLOW,
     "forecast_execution_cost": _EXECUTION_COST_FORECASTING,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
