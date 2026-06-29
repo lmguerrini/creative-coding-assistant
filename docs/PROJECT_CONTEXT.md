@@ -56,6 +56,12 @@ inspection metadata, critique, and refinement context.
   compression, summarization, cache, reuse, pruning, forecasting, path
   optimization, strategy selection, architecture consistency, and failure audit
   metadata.
+- V5.2 Intelligent Model Routing Engine for advisory model routing,
+  local/cloud routing, hybrid routing, quality/cost optimization, cost
+  estimation, budget policies, HITL budget gates, runtime recommendation,
+  execution policy, model recommendation, model/provider capability matrices,
+  quality/cost prediction, creative quality/diversity/consistency prediction,
+  routing explainability, architecture consistency, and failure audit metadata.
 
 ## Supported Creative Domains
 
@@ -74,9 +80,9 @@ inspection metadata, critique, and refinement context.
 - Chroma remains the persistent retrieval and memory database.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
-- V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, and V5.1 registries and helpers are
-  passive or advisory product and architecture metadata. They are inspectable
-  Python APIs and documentation surfaces.
+- V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, and V5.2 registries and helpers
+  are passive or advisory product and architecture metadata. They are
+  inspectable Python APIs and documentation surfaces.
 
 ## V4.3 Passive Boundary
 
@@ -160,6 +166,23 @@ providers or models, trigger retries, mutate prompts, write persistent cache
 storage, change retrieval or memory ownership, control workflows, activate
 passive registries, or modify generated output.
 
+## V5.2 Advisory Boundary
+
+V5.2 Intelligent Model Routing Engine is advisory model-routing metadata over
+the existing compact LangGraph workflow. It includes model routing candidates,
+local/cloud and hybrid routing posture, quality/cost optimization, cost
+estimation, budget policy metadata, HITL budget gate posture, runtime
+recommendations, execution policy posture, model recommendations, model and
+provider capability matrices, quality and cost prediction, creative quality,
+creative diversity, creative consistency, routing explainability, architecture
+consistency coverage, and runtime failure-path audit coverage.
+
+It must not apply routing, switch providers or models, execute providers,
+enforce budgets, emit HITL requests, request human input, select runtimes,
+control workflows, trigger retries, mutate prompts, write persistent storage,
+activate passive registries, apply Runtime Evolution, or modify generated
+output.
+
 ## Non-Goals For Current Baseline
 
 - active multi-agent execution
@@ -175,6 +198,7 @@ passive registries, or modify generated output.
 - failure normalization bypasses
 - passive registry activation
 - provider execution
+- provider/model recommendation application
 - agent invocation
 - human-input requests
 - provider or model routing changes

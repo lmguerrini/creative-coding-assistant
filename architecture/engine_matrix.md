@@ -45,6 +45,7 @@ Use this matrix together with:
 | V4.6 | Agentic Studio Hardening defines passive audit, foundation, architecture consistency, final hardening, and LangGraph error-path coverage metadata without changing generation behavior | Agent-facing contract, memory/context, collaboration, diversity, quality, reliability, determinism, cost, performance, and error-path context is described as metadata only; no knowledge runtime, memory storage, blackboard storage, or retrieval side effect is implemented | Hardening registries remain export-only metadata and do not execute hardening checks, add LangGraph nodes, bypass failure normalization, activate passive registries, enter workflow control, route providers/models, select runtimes, trigger retries, mutate storage, execute artifacts, or mutate generated output | Agentic Studio can inspect hardening readiness later, but no runtime hardening engine, active recovery behavior, agent invocation, or autonomous operator behavior is implemented here |
 | V4 | Agentic Studio decomposes more internal creative work into bounded collaborative systems | Deeper agent-facing knowledge packets may emerge here | More inspectable orchestration paths may appear here | Agentic Studio becomes the main collaboration surface |
 | V5.1 | Core Engine remains creative-first while exposing creative complexity metadata to execution planning | Knowledge signals can guide context budgeting, compression, summarization, cache lookup, and reuse planning without changing retrieval or memory ownership | Execution Optimization Engine adds bounded analysis, planning, pruning, forecasting, path optimization, strategy selection, architecture consistency, and failure audit metadata without changing provider/model routing or runtime graph control | Experience surfaces can inspect optimization metadata later, but no production telemetry UI or operational control surface is activated here |
+| V5.2 | Core Engine exposes creative quality, diversity, and consistency prediction metadata for route recommendations without changing generation behavior | Knowledge and model/provider profile signals are referenced as metadata only; no retrieval, memory, provider, or model backend ownership changes | Intelligent Model Routing Engine adds advisory model routing, local/cloud routing, hybrid routing, quality/cost optimization, cost estimation, budget policy, HITL budget gate, runtime recommendation, execution policy, model recommendation, capability matrices, prediction, explainability, architecture consistency, and failure audit metadata without applying routing or executing providers | Experience surfaces can inspect routing explanations later, but no model switcher, HITL prompt, budget enforcement, or operator control surface is activated here |
 | V6 | HoloGenesis Core OS can unify long-horizon creative strategy, lineage, and system identity | Long-horizon knowledge and memory adaptation move into the future OS direction | Execution can learn from prior runs without replacing bounded workflow control | Experience surfaces expose lineage, feedback, and evolving operator guidance |
 
 ## Reading The Matrix
@@ -326,6 +327,26 @@ modify generated output.
 | Path optimization and strategy selection | `execution_path_optimization.py`, `execution_strategy_selection.py` | `execution_path_optimization_plan.v1`, `execution_strategy_selection.v1` | Ranks path candidates and selects one advisory strategy profile without selecting runtime paths, applying strategies, changing graph order, controlling workflow execution, or triggering retries |
 | Consistency and failure audit coverage | `tests/test_v5_1_execution_optimization_architecture_consistency.py`, `execution_optimization_failure_audit.py` | `execution_optimization_failure_audit.v1` | Verifies V5.1 architecture and runtime failure boundaries without activating audit behavior as runtime recovery or changing output behavior |
 
+## V5.2 Intelligent Model Routing Surfaces
+
+V5.2 adds advisory model-routing metadata to the Execution Engine while
+preserving the current LangGraph runtime graph and explicit provider/model
+routing boundary. These surfaces are typed contracts and deterministic local
+helpers. They do not apply routing, switch providers or models, execute
+providers, enforce budgets, emit HITL requests, select runtimes, control
+workflows, trigger retries, mutate prompts, write persistent storage, apply
+Runtime Evolution, or modify generated output.
+
+| Surface group | Source module | Serialization boundary | Current boundary |
+| --- | --- | --- | --- |
+| Model, local/cloud, and hybrid routing | `model_router.py`, `local_cloud_routing.py`, `hybrid_routing.py` | `model_routing_plan.v1`, `local_cloud_routing_plan.v1`, `hybrid_routing_plan.v1` | Ranks model and local/cloud/hybrid route candidates without selecting providers, switching models, executing providers, or changing workflow routing |
+| Quality/cost optimization, cost estimation, budget policy, and HITL gate posture | `quality_cost_optimizer.py`, `cost_estimator.py`, `budget_policies.py`, `hitl_budget_gate.py` | `quality_cost_optimization_plan.v1`, `cost_estimation_plan.v1`, `budget_policy_plan.v1`, `hitl_budget_gate_plan.v1` | Projects relative quality/cost posture, budget policy posture, and HITL visibility without pricing lookup, budget enforcement, HITL emission, provider execution, or cost-based routing |
+| Runtime recommendation, execution policy, and model recommendation | `runtime_recommendation_engine.py`, `execution_policy_engine.py`, `model_recommendation_engine.py` | `runtime_recommendation_plan.v1`, `execution_policy_plan.v1`, `model_recommendation_plan.v1` | Converts advisory budget/routing posture into recommendations without applying policies, selecting runtimes, switching models, controlling workflows, or triggering retries |
+| Model and provider capability matrices | `model_capability_matrix.py`, `provider_capability_matrix.py` | `model_capability_matrix.v1`, `provider_capability_matrix.v1` | Projects passive V4.4 model and provider profile metadata into rows without scoring live providers, discovering models, routing providers, or executing providers |
+| Quality, cost, and creative prediction | `quality_prediction_engine.py`, `cost_prediction_engine.py`, `creative_quality_prediction.py`, `creative_diversity_predictor.py`, `creative_consistency_predictor.py` | `quality_prediction_plan.v1`, `cost_prediction_plan.v1`, `creative_quality_prediction.v1`, `creative_diversity_prediction_plan.v1`, `creative_consistency_prediction_plan.v1` | Produces advisory prediction bands and creative posture metadata without evaluating generated artifacts, generating variants, enforcing budgets, or routing models by score |
+| Routing explainability | `routing_explainability.py` | `routing_explainability_plan.v1` | Summarizes route, quality, cost, and model recommendation metadata without changing decisions, provider routing, prompts, storage, or generated output |
+| Architecture consistency and runtime failure path audit | `model_routing_architecture_consistency.py`, `model_routing_failure_path_audit.py` | `model_routing_architecture_consistency_registry.v1`, `model_routing_failure_path_audit_registry.v1` | Verifies V5.2 architecture, passive activation, and runtime failure-path boundaries without applying routing, executing providers, enforcing budgets, emitting HITL requests, or mutating output |
+
 ## V3.5 Workstation Contracts
 
 The Creative Workstation exposes a metadata-only
@@ -358,11 +379,17 @@ workstation responsible for future behavior.
   optimization, learning behavior, artifact execution, artifact modification,
   artifact export, runtime selection, runtime repair, provider/model routing,
   autonomous retries, or preview behavior changes.
-- V5.1 is the current execution optimization metadata layer over the stable
-  LangGraph runtime. It adds bounded optimization planning and audit surfaces
-  without provider/model routing, workflow graph control, budget enforcement,
-  retry triggering, or output mutation. Later V5 production intelligence and
-  V6 HoloGenesis Core OS remain future work.
+- V5.1 is the execution optimization metadata layer over the stable LangGraph
+  runtime. It adds bounded optimization planning and audit surfaces without
+  provider/model routing, workflow graph control, budget enforcement, retry
+  triggering, or output mutation.
+- V5.2 is the advisory model-routing metadata layer over the stable LangGraph
+  runtime. It adds routing recommendations, capability matrices, prediction
+  metadata, explainability, architecture consistency, and failure audit
+  surfaces without applying provider/model routing, switching models, executing
+  providers, emitting HITL requests, enforcing budgets, or mutating output.
+  Later V5 production intelligence and V6 HoloGenesis Core OS remain future
+  work.
 - The current runtime graph remains the source of truth for execution order.
 - The matrix is a planning and architecture aid, not a claim that every engine
   is already a separate runtime subsystem.

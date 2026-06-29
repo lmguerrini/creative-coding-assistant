@@ -7,17 +7,18 @@
   review, bounded refinement, finalization, and failure handling.
 - Keep the LangGraph workflow compact. Internal creative intelligence,
   generative design, artifact intelligence, evaluation, workstation, V4
-  registry layers, and V5.1 execution optimization helpers are metadata
-  surfaces, not additional runtime nodes.
+  registry layers, V5.1 execution optimization helpers, and V5.2 model-routing
+  helpers are metadata surfaces, not additional runtime nodes.
 - Keep the Next.js workstation responsible for product inspection, preview,
   comparison, export, telemetry, workflow visibility, and operator controls.
 
 ## Persistence
 
 Chroma remains the only persistent retrieval and memory database. Passive V4.1,
-V4.2, V4.3, V4.4, V4.5, and V4.6 registries and advisory V5.1 optimization
-helpers do not create storage backends, write blackboard state, write replay
-storage, persist cache entries, or introduce runtime synchronization behavior.
+V4.2, V4.3, V4.4, V4.5, and V4.6 registries, advisory V5.1 optimization
+helpers, and advisory V5.2 model-routing helpers do not create storage
+backends, write blackboard state, write replay storage, persist cache entries,
+or introduce runtime synchronization behavior.
 
 ## Metadata Layering
 
@@ -45,6 +46,13 @@ storage, persist cache entries, or introduce runtime synchronization behavior.
   compression, summarization, cache, reuse, pruning, forecasting, path,
   strategy, consistency, and failure-path metadata over the existing compact
   workflow.
+- V5.2 Intelligent Model Routing Engine helpers describe advisory model routing,
+  local/cloud and hybrid routing, quality/cost optimization, cost estimation,
+  budget policy, HITL budget gate, runtime recommendation, execution policy,
+  model recommendation, capability matrix, provider matrix, quality prediction,
+  cost prediction, creative quality/diversity/consistency prediction,
+  explainability, architecture consistency, and failure-path metadata over the
+  existing compact workflow.
 
 ## V4.3 Boundary Decision
 
@@ -132,6 +140,25 @@ registries, or modify generated output. More generally, it does not change
 provider/model routing, does not introduce autonomous execution optimization
 behavior, and does not modify generated output.
 
+## V5.2 Boundary Decision
+
+V5.2 Intelligent Model Routing Engine is an advisory model-routing metadata
+layer only. It may expose model route candidates, local/cloud posture, hybrid
+routing posture, quality/cost optimization candidates, cost estimates, budget
+policy posture, HITL budget gate posture, runtime recommendations, execution
+policy posture, model recommendations, model and provider capability matrices,
+quality and cost predictions, creative quality/diversity/consistency
+predictions, routing explanations, architecture consistency coverage, and
+runtime failure-path audit coverage.
+
+It must not apply routing, select or switch providers or models, execute
+providers, enforce budgets, emit HITL requests, request human input, select
+runtimes, control workflows, trigger retries, mutate prompts, write persistent
+storage, activate passive registries as runtime behavior, apply Runtime
+Evolution, or modify generated output. More generally, it does not change
+provider/model routing, does not introduce autonomous model selection behavior,
+and does not modify generated output.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -147,6 +174,7 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - passive V4.5 multimodal studio metadata
 - passive V4.6 agentic studio hardening metadata
 - advisory V5.1 execution optimization metadata
+- advisory V5.2 model-routing metadata
 - future active V4 Agentic Studio, later V5 production intelligence, and V6
   learning work
 

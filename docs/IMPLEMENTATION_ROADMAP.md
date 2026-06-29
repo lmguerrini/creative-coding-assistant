@@ -84,7 +84,7 @@ control workflows, change provider/model routing, select runtimes, trigger
 retries, mutate storage, execute artifacts, invoke agents, or modify generated
 output.
 
-## Advisory Execution Optimization Metadata
+## Advisory Execution And Model Routing Metadata
 
 The V5.1 Execution Optimization Engine is a completed advisory metadata layer.
 It records execution graph analysis, workflow cost and complexity analysis,
@@ -101,15 +101,30 @@ providers or models, trigger retries, mutate prompts, write persistent cache
 storage, change retrieval or memory ownership, control workflows, activate
 passive registries, or modify generated output.
 
+The V5.2 Intelligent Model Routing Engine is a completed advisory metadata
+layer. It records model routing candidates, local/cloud routing posture, hybrid
+routing posture, quality/cost optimization, cost estimation, budget policy
+posture, HITL budget gate posture, runtime recommendations, execution policy
+posture, model recommendations, model/provider capability matrices, quality and
+cost prediction, creative quality/diversity/consistency prediction, routing
+explainability, architecture consistency coverage, and runtime failure-path
+audit coverage.
+
+It does not apply routing, switch providers or models, execute providers,
+enforce budgets, emit HITL requests, request human input, select runtimes,
+control workflows, trigger retries, mutate prompts, write persistent storage,
+activate passive registries, apply Runtime Evolution, or modify generated
+output.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current
   V4.1, V4.2, V4.3, V4.4, V4.5, and V4.6 registries provide inspection,
   contract, and hardening metadata for that direction, but not active
   collaboration behavior, active Studio runtime, or runtime hardening behavior.
-- Later V5 Execution Optimization & Production Intelligence work remains
-  future active runtime policy, production telemetry, adaptive optimization,
-  and cost/performance enforcement work.
+- Later V5 Production Intelligence work remains future active runtime policy,
+  production telemetry, adaptive optimization, and cost/performance enforcement
+  work.
 - V6 HoloGenesis Core OS remains future long-horizon creative lineage,
   feedback, memory, and system continuity work.
 
@@ -117,5 +132,6 @@ passive registries, or modify generated output.
 
 Product docs should describe delivered metadata layers without overstating
 future behavior. Architecture docs may show passive registry boundaries and
-source coverage, including V5.1 execution optimization metadata, but must keep
-the current compact LangGraph workflow as the execution source of truth.
+source coverage, including V5.1 execution optimization metadata and V5.2
+model-routing metadata, but must keep the current compact LangGraph workflow as
+the execution source of truth.

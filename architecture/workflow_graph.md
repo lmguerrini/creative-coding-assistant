@@ -86,6 +86,17 @@ contracts and deterministic local helpers; they do not add graph nodes, compile
 or execute alternate graphs, change provider/model routing, enforce budgets,
 apply pruning or selected strategies, trigger retries, mutate prompts, persist
 storage, or modify generated output.
+V5.2 Intelligent Model Routing Engine also keeps the same LangGraph runtime
+node set while adding advisory model routing, local/cloud routing, hybrid
+routing, quality/cost optimization, cost estimation, budget policy, HITL budget
+gate, runtime recommendation, execution policy, model recommendation, model and
+provider capability matrices, quality/cost prediction, creative prediction,
+routing explainability, architecture consistency, and runtime failure-path
+audit metadata. These surfaces are importable Python contracts and
+deterministic local helpers; they do not apply routing, switch providers or
+models, execute providers, enforce budgets, emit HITL requests, select
+runtimes, control workflows, trigger retries, mutate prompts, persist storage,
+apply Runtime Evolution, or modify generated output.
 `_planning_node()` deterministically derives and stores the V3.1 Creative
 Cognition metadata, the V3.2 Generative Design metadata, the V3.3 Artifact
 Intelligence metadata, and the V3.4 Creative Evaluation metadata:
@@ -186,6 +197,14 @@ This separation is intentional:
   still does not own LangGraph execution, provider/model routing, retry
   triggering, budget enforcement, strategy application, or generated-output
   mutation
+- The V5.2 Intelligent Model Routing Engine layer owns advisory model route
+  candidates, local/cloud and hybrid posture, quality/cost optimization, cost
+  estimates, budget policy, HITL budget gate, runtime/execution policy, model
+  recommendations, capability matrices, quality/cost and creative prediction,
+  routing explanations, architecture consistency, and runtime failure audit
+  metadata, but still does not own provider/model routing application, provider
+  execution, HITL request emission, budget enforcement, runtime selection,
+  workflow control, or generated-output mutation
 - The internal capability pipeline and dependency graph remain decomposition
   candidates for later orchestration, but they are not a true multi-agent or
   multi-node runtime graph here
@@ -381,6 +400,43 @@ output.
 | Execution path optimization and execution strategy selection | Rank advisory path candidates and select one strategy profile without selecting runtime paths, applying strategies, changing graph order, triggering retries, controlling workflows, or routing providers/models |
 | Architecture consistency and runtime failure path audit | Verify V5.1 surfaces preserve architecture and failure-path boundaries without executing audits as runtime recovery, activating passive registries, mutating architecture docs at runtime, or changing output behavior |
 
+## V5.2 Intelligent Model Routing Metadata Boundary
+
+V5.2 introduces advisory model-routing metadata over the stable V3 runtime
+graph, V4 passive contract stack, and V5.1 execution optimization metadata.
+The implementation adds typed metadata and deterministic local helpers for
+model route candidates, local/cloud routing posture, hybrid routing posture,
+quality/cost optimization, cost estimation, budget policy, HITL budget gate
+posture, runtime recommendations, execution policy posture, model
+recommendations, model capability rows, provider capability rows, quality and
+cost prediction bands, creative quality/diversity/consistency prediction,
+routing explanations, architecture consistency coverage, and runtime
+failure-path audit coverage.
+
+These surfaces are not an active routing layer. They do not apply routing,
+switch providers or models, execute providers, enforce budgets, emit HITL
+requests, request human input, select runtimes, control workflows, trigger
+retries, mutate prompts, write persistent storage, activate passive registries
+as runtime behavior, apply Runtime Evolution, or modify generated output.
+
+Canonical V5.2 surfaces are Model Router, Local vs Cloud Routing, Hybrid
+Routing, Quality/Cost Optimizer, Cost Estimator, Budget Policies, HITL Budget
+Gate, Runtime Recommendation Engine, Execution Policy Engine, Model
+Recommendation Engine, Model Capability Matrix, Provider Capability Matrix,
+Quality Prediction Engine, Cost Prediction Engine, Creative Quality Predictor,
+Creative Diversity Predictor, Creative Consistency Predictor, and Routing
+Explainability.
+
+| Surface group | Current boundary |
+| --- | --- |
+| Model, local/cloud, and hybrid routing | Rank advisory route candidates without selecting providers, switching models, executing providers, or changing LangGraph routing |
+| Quality/cost optimization, cost estimation, budget policy, and HITL budget gate | Project relative quality/cost and budget posture without pricing lookup, budget enforcement, HITL emission, provider execution, or cost-based routing |
+| Runtime recommendation, execution policy, and model recommendation | Derive advisory policy and recommendation metadata without applying policies, selecting runtimes, switching models, controlling workflows, or triggering retries |
+| Model and provider capability matrices | Project passive model/provider profile metadata into rows without discovering live models, scoring live providers, routing providers, or executing providers |
+| Quality, cost, and creative prediction | Produce prediction bands and creative posture metadata without evaluating generated artifacts, generating variants, enforcing budgets, or routing by score |
+| Routing explainability | Summarize routing, quality, cost, and recommendation metadata without changing decisions, prompts, storage, or generated output |
+| Architecture consistency and runtime failure path audit | Verify V5.2 source coverage, passive activation, and failure-path boundaries without executing audits as recovery behavior or changing output behavior |
+
 ## Current Implemented Flow
 
 The graph is compiled once in `AssistantService.__init__()` and executed
@@ -477,6 +533,7 @@ flowchart TB
     hybrid_studio_boundary["V4.4 hybrid studio metadata boundary<br/>passive local/cloud + Studio inspection registries<br/>no Studio runtime"]:::relationship
     multimodal_studio_boundary["V4.5 multimodal studio metadata boundary<br/>passive preview + canvas + lineage registries<br/>no rendering execution"]:::relationship
     hardening_boundary["V4.6 agentic studio hardening metadata boundary<br/>passive audit + error-path coverage<br/>terminal failure audit only"]:::relationship
+    model_routing_boundary["V5.2 model routing metadata boundary<br/>advisory routing + budget + explainability<br/>no provider/model switching"]:::relationship
 
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
     review -->|"pass or max retry"| finalization --> finish
@@ -502,6 +559,8 @@ flowchart TB
     workstation_boundary -. preview + timeline context .-> multimodal_studio_boundary
     multimodal_studio_boundary -. hardening source coverage .-> hardening_boundary
     failure -. terminal failure coverage .-> hardening_boundary
+    hardening_boundary -. advisory execution context .-> model_routing_boundary
+    routing -. stable route reference .-> model_routing_boundary
     intake -. intake_error .-> failure
     routing -. routing_error .-> failure
     memory -. memory_error .-> failure
@@ -526,7 +585,7 @@ flowchart TB
     class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,reasoning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
-    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary,multimodal_studio_boundary,hardening_boundary relationship
+    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary,multimodal_studio_boundary,hardening_boundary,model_routing_boundary relationship
     style phase_1 rx:6px,ry:6px
     style phase_2 rx:6px,ry:6px
     style phase_3 rx:6px,ry:6px

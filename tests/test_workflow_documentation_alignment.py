@@ -128,6 +128,26 @@ V46_AGENTIC_STUDIO_HARDENING_REGISTRIES = (
     "Final V4 Hardening Registry",
     "LangGraph Error Path Audit",
 )
+V52_MODEL_ROUTING_SURFACES = (
+    "Model Router",
+    "Local vs Cloud Routing",
+    "Hybrid Routing",
+    "Quality/Cost Optimizer",
+    "Cost Estimator",
+    "Budget Policies",
+    "HITL Budget Gate",
+    "Runtime Recommendation Engine",
+    "Execution Policy Engine",
+    "Model Recommendation Engine",
+    "Model Capability Matrix",
+    "Provider Capability Matrix",
+    "Quality Prediction Engine",
+    "Cost Prediction Engine",
+    "Creative Quality Predictor",
+    "Creative Diversity Predictor",
+    "Creative Consistency Predictor",
+    "Routing Explainability",
+)
 PUBLIC_README_INTERNAL_MARKERS = (
     "Current Branch Status",
     "feature/",
@@ -359,6 +379,34 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             normalized_project_context,
         )
 
+    def test_project_docs_cover_current_v5_2_advisory_scope(self) -> None:
+        project_context = (
+            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
+        ).read_text(encoding="utf-8")
+        decisions = (
+            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
+        ).read_text(encoding="utf-8")
+        roadmap = (
+            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
+        ).read_text(encoding="utf-8")
+        combined = "\n".join((project_context, roadmap, decisions))
+        normalized_combined = re.sub(r"\s+", " ", combined)
+
+        self.assertIn("V5.2 Intelligent Model Routing Engine", combined)
+        self.assertIn("V5.2 Advisory Boundary", project_context)
+        self.assertIn("V5.2 Boundary Decision", decisions)
+        self.assertIn("completed advisory metadata layer", roadmap)
+        self.assertIn("advisory model-routing metadata", normalized_combined)
+        self.assertIn("routing explainability", normalized_combined)
+        self.assertIn("runtime failure-path audit coverage", normalized_combined)
+        self.assertIn("does not apply routing", normalized_combined)
+        self.assertIn("switch providers or models", normalized_combined)
+        self.assertIn("execute providers", normalized_combined)
+        self.assertIn("emit HITL requests", normalized_combined)
+        self.assertIn("enforce budgets", normalized_combined)
+        self.assertIn("apply Runtime Evolution", normalized_combined)
+        self.assertIn("modify generated output", normalized_combined)
+
     def test_architecture_doc_node_order_matches_backend_node_order(self) -> None:
         architecture_doc = (
             REPO_ROOT / "architecture" / "workflow_graph.md"
@@ -403,6 +451,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("no rendering execution", mermaid)
         self.assertIn("V4.6 agentic studio hardening metadata boundary", mermaid)
         self.assertIn("terminal failure audit only", mermaid)
+        self.assertIn("V5.2 model routing metadata boundary", mermaid)
+        self.assertIn("no provider/model switching", mermaid)
 
     def test_workflow_doc_distinguishes_runtime_pipeline_and_dependency_views(
         self,
@@ -451,6 +501,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "## V4.6 Agentic Studio Hardening Metadata Boundary",
             architecture_doc,
         )
+        self.assertIn(
+            "## V5.2 Intelligent Model Routing Metadata Boundary",
+            architecture_doc,
+        )
         self.assertIn("Agent Contract Registry", architecture_doc)
         self.assertIn("Agent Memory Contract Registry", architecture_doc)
         self.assertIn("Agent Metadata Registry", architecture_doc)
@@ -466,6 +520,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             self.assertIn(registry_name, architecture_doc)
         for registry_name in V46_AGENTIC_STUDIO_HARDENING_REGISTRIES:
             self.assertIn(registry_name, architecture_doc)
+        for surface in V52_MODEL_ROUTING_SURFACES:
+            self.assertIn(surface, normalized_architecture_doc)
         self.assertIn("Hybrid Studio Integration source coverage", architecture_doc)
         self.assertIn(
             "Multimodal Studio Integration source coverage",
@@ -479,6 +535,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "passive hardening and audit metadata",
             normalized_architecture_doc,
         )
+        self.assertIn("advisory model-routing metadata", normalized_architecture_doc)
         self.assertIn("do not execute orchestration", normalized_architecture_doc)
         self.assertIn("do not execute escalation", normalized_architecture_doc)
         self.assertIn("does not activate Studio runtime", normalized_architecture_doc)
@@ -487,6 +544,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("bypass failure normalization", normalized_architecture_doc)
         self.assertIn("do not enter provider prompts", normalized_architecture_doc)
         self.assertIn("LangGraph node ordering", architecture_doc)
+        self.assertIn("do not apply routing", normalized_architecture_doc)
+        self.assertIn("no provider/model switching", architecture_doc)
 
     def test_creative_intelligence_graph_docs_cover_current_pipeline(self) -> None:
         architecture_doc = (
@@ -594,6 +653,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "Agentic Studio",
             "V5",
             "Execution Optimization & Production Intelligence",
+            "V5.2",
+            "Intelligent Model Routing Engine",
             "V6",
             "HoloGenesis Core OS",
         ):
@@ -608,6 +669,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("## V4.4 Hybrid Studio Registries", engine_matrix)
         self.assertIn("## V4.5 Multimodal Studio Registries", engine_matrix)
         self.assertIn("## V4.6 Agentic Studio Hardening Registries", engine_matrix)
+        self.assertIn("## V5.2 Intelligent Model Routing Surfaces", engine_matrix)
 
         for registry_marker in (
             "agent_capability_registry.v1",
@@ -706,6 +768,26 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "architecture_consistency_pass_registry.v1",
             "final_v4_hardening_registry.v1",
             "langgraph_error_path_audit.v1",
+            "model_routing_plan.v1",
+            "local_cloud_routing_plan.v1",
+            "hybrid_routing_plan.v1",
+            "quality_cost_optimization_plan.v1",
+            "cost_estimation_plan.v1",
+            "budget_policy_plan.v1",
+            "hitl_budget_gate_plan.v1",
+            "runtime_recommendation_plan.v1",
+            "execution_policy_plan.v1",
+            "model_recommendation_plan.v1",
+            "model_capability_matrix.v1",
+            "provider_capability_matrix.v1",
+            "quality_prediction_plan.v1",
+            "cost_prediction_plan.v1",
+            "creative_quality_prediction.v1",
+            "creative_diversity_prediction_plan.v1",
+            "creative_consistency_prediction_plan.v1",
+            "routing_explainability_plan.v1",
+            "model_routing_architecture_consistency_registry.v1",
+            "model_routing_failure_path_audit_registry.v1",
         ):
             self.assertIn(registry_marker, engine_matrix)
 
@@ -752,6 +834,26 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "final_v4_hardening.py",
             "hybrid_studio.py",
             "multimodal_studio.py",
+            "model_router.py",
+            "local_cloud_routing.py",
+            "hybrid_routing.py",
+            "quality_cost_optimizer.py",
+            "cost_estimator.py",
+            "budget_policies.py",
+            "hitl_budget_gate.py",
+            "runtime_recommendation_engine.py",
+            "execution_policy_engine.py",
+            "model_recommendation_engine.py",
+            "model_capability_matrix.py",
+            "provider_capability_matrix.py",
+            "quality_prediction_engine.py",
+            "cost_prediction_engine.py",
+            "creative_quality_prediction.py",
+            "creative_diversity_predictor.py",
+            "creative_consistency_predictor.py",
+            "routing_explainability.py",
+            "model_routing_architecture_consistency.py",
+            "model_routing_failure_path_audit.py",
         ):
             self.assertIn(module_path, engine_matrix)
 
@@ -764,6 +866,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "passive agentic studio hardening metadata",
             normalized_engine_matrix,
         )
+        self.assertIn("advisory model-routing metadata", normalized_engine_matrix)
         self.assertIn("does not activate Studio runtime", normalized_engine_matrix)
         self.assertIn("does not execute rendering", normalized_engine_matrix)
         self.assertIn("does not execute hardening checks", normalized_engine_matrix)
@@ -789,6 +892,9 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "generated output, or the V3 node order",
             normalized_engine_matrix,
         )
+        self.assertIn("do not apply routing", normalized_engine_matrix)
+        self.assertIn("switching models", normalized_engine_matrix)
+        self.assertIn("emitting HITL requests", normalized_engine_matrix)
 
     def test_workstation_surface_docs_cover_v35_surface_layer(self) -> None:
         architecture_doc = (
