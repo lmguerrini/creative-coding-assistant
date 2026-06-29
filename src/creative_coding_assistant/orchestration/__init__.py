@@ -298,6 +298,9 @@ _BOTTLENECK_DETECTION = (
 _THROUGHPUT_OPTIMIZER = (
     "creative_coding_assistant.orchestration.throughput_optimizer"
 )
+_PERFORMANCE_PREDICTION = (
+    "creative_coding_assistant.orchestration.performance_prediction"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -408,6 +411,8 @@ _EXPORT_MAP = {
     "BottleneckDetectionPlan": _BOTTLENECK_DETECTION,
     "ThroughputOptimizationCandidate": _THROUGHPUT_OPTIMIZER,
     "ThroughputOptimizationPlan": _THROUGHPUT_OPTIMIZER,
+    "PerformancePrediction": _PERFORMANCE_PREDICTION,
+    "PerformancePredictionPlan": _PERFORMANCE_PREDICTION,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1562,6 +1567,7 @@ _EXPORT_MAP = {
     "predict_cost_for_route": _COST_PREDICTION_ENGINE,
     "predict_creative_diversity": _CREATIVE_DIVERSITY_PREDICTOR,
     "predict_creative_consistency": _CREATIVE_CONSISTENCY_PREDICTOR,
+    "predict_performance": _PERFORMANCE_PREDICTION,
     "explain_routing_decision": _ROUTING_EXPLAINABILITY,
     "model_routing_architecture_consistency_registry": (
         _MODEL_ROUTING_ARCHITECTURE_CONSISTENCY
@@ -1602,6 +1608,8 @@ _EXPORT_MAP = {
     "bottleneck_candidates_for_status": _BOTTLENECK_DETECTION,
     "throughput_optimization_candidate_by_id": _THROUGHPUT_OPTIMIZER,
     "throughput_optimization_candidates_for_status": _THROUGHPUT_OPTIMIZER,
+    "performance_prediction_by_id": _PERFORMANCE_PREDICTION,
+    "performance_predictions_for_band": _PERFORMANCE_PREDICTION,
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "execution_optimization_failure_audit_by_id": (
