@@ -289,6 +289,9 @@ _EXECUTION_PROFILING = (
 _WORKFLOW_REPLAY_ENGINE = (
     "creative_coding_assistant.orchestration.workflow_replay_engine"
 )
+_EXECUTION_REPLAY_ENGINE = (
+    "creative_coding_assistant.orchestration.execution_replay_engine"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -393,6 +396,8 @@ _EXPORT_MAP = {
     "ExecutionProfilingPlan": _EXECUTION_PROFILING,
     "WorkflowReplayCandidate": _WORKFLOW_REPLAY_ENGINE,
     "WorkflowReplayPlan": _WORKFLOW_REPLAY_ENGINE,
+    "ExecutionReplayCandidate": _EXECUTION_REPLAY_ENGINE,
+    "ExecutionReplayPlan": _EXECUTION_REPLAY_ENGINE,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1581,6 +1586,8 @@ _EXPORT_MAP = {
     "execution_profile_candidates_for_status": _EXECUTION_PROFILING,
     "workflow_replay_candidate_by_id": _WORKFLOW_REPLAY_ENGINE,
     "workflow_replay_candidates_for_status": _WORKFLOW_REPLAY_ENGINE,
+    "execution_replay_candidate_by_id": _EXECUTION_REPLAY_ENGINE,
+    "execution_replay_candidates_for_status": _EXECUTION_REPLAY_ENGINE,
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "execution_optimization_failure_audit_by_id": (
@@ -1677,6 +1684,7 @@ _EXPORT_MAP = {
     "plan_exploration_budget": _EXPLORATION_BUDGET_PLANNER,
     "plan_execution_profiling": _EXECUTION_PROFILING,
     "plan_execution_path_optimization": _EXECUTION_PATH_OPTIMIZATION,
+    "plan_execution_replay": _EXECUTION_REPLAY_ENGINE,
     "plan_load_balancer": _LOAD_BALANCER,
     "plan_parallel_scheduler": _PARALLEL_SCHEDULER,
     "plan_workflow_replay": _WORKFLOW_REPLAY_ENGINE,
