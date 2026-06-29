@@ -313,6 +313,9 @@ _PERFORMANCE_REGRESSION_DETECTION = (
 _RESOURCE_UTILIZATION_OPTIMIZER = (
     "creative_coding_assistant.orchestration.resource_utilization_optimizer"
 )
+_PERFORMANCE_ARCHITECTURE_CONSISTENCY = (
+    "creative_coding_assistant.orchestration.performance_architecture_consistency"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -433,6 +436,12 @@ _EXPORT_MAP = {
     "PerformanceRegressionSignal": _PERFORMANCE_REGRESSION_DETECTION,
     "ResourceUtilizationOptimizationPlan": _RESOURCE_UTILIZATION_OPTIMIZER,
     "ResourceUtilizationRecommendation": _RESOURCE_UTILIZATION_OPTIMIZER,
+    "PerformanceArchitectureConsistencyRecord": (
+        _PERFORMANCE_ARCHITECTURE_CONSISTENCY
+    ),
+    "PerformanceArchitectureConsistencyRegistry": (
+        _PERFORMANCE_ARCHITECTURE_CONSISTENCY
+    ),
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1645,6 +1654,15 @@ _EXPORT_MAP = {
     ),
     "resource_utilization_recommendations_for_status": (
         _RESOURCE_UTILIZATION_OPTIMIZER
+    ),
+    "performance_architecture_consistency_registry": (
+        _PERFORMANCE_ARCHITECTURE_CONSISTENCY
+    ),
+    "performance_architecture_consistency_by_surface": (
+        _PERFORMANCE_ARCHITECTURE_CONSISTENCY
+    ),
+    "performance_architecture_consistency_records_for_layer": (
+        _PERFORMANCE_ARCHITECTURE_CONSISTENCY
     ),
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
