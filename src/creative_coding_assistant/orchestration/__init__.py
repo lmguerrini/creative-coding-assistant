@@ -307,6 +307,9 @@ _PERFORMANCE_BENCHMARKING = (
 _REASONING_BUDGET_OPTIMIZER = (
     "creative_coding_assistant.orchestration.reasoning_budget_optimizer"
 )
+_PERFORMANCE_REGRESSION_DETECTION = (
+    "creative_coding_assistant.orchestration.performance_regression_detection"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -423,6 +426,8 @@ _EXPORT_MAP = {
     "PerformanceBenchmarkingPlan": _PERFORMANCE_BENCHMARKING,
     "ReasoningBudgetOptimizationPlan": _REASONING_BUDGET_OPTIMIZER,
     "ReasoningBudgetRecommendation": _REASONING_BUDGET_OPTIMIZER,
+    "PerformanceRegressionDetectionPlan": _PERFORMANCE_REGRESSION_DETECTION,
+    "PerformanceRegressionSignal": _PERFORMANCE_REGRESSION_DETECTION,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1578,6 +1583,7 @@ _EXPORT_MAP = {
     "predict_creative_diversity": _CREATIVE_DIVERSITY_PREDICTOR,
     "predict_creative_consistency": _CREATIVE_CONSISTENCY_PREDICTOR,
     "predict_performance": _PERFORMANCE_PREDICTION,
+    "detect_performance_regressions": _PERFORMANCE_REGRESSION_DETECTION,
     "explain_routing_decision": _ROUTING_EXPLAINABILITY,
     "model_routing_architecture_consistency_registry": (
         _MODEL_ROUTING_ARCHITECTURE_CONSISTENCY
@@ -1624,6 +1630,10 @@ _EXPORT_MAP = {
     "performance_benchmark_scenarios_for_status": _PERFORMANCE_BENCHMARKING,
     "reasoning_budget_recommendation_by_id": _REASONING_BUDGET_OPTIMIZER,
     "reasoning_budget_recommendations_for_status": _REASONING_BUDGET_OPTIMIZER,
+    "performance_regression_signal_by_id": _PERFORMANCE_REGRESSION_DETECTION,
+    "performance_regression_signals_for_status": (
+        _PERFORMANCE_REGRESSION_DETECTION
+    ),
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "execution_optimization_failure_audit_by_id": (
