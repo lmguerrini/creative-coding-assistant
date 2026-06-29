@@ -310,6 +310,9 @@ _REASONING_BUDGET_OPTIMIZER = (
 _PERFORMANCE_REGRESSION_DETECTION = (
     "creative_coding_assistant.orchestration.performance_regression_detection"
 )
+_RESOURCE_UTILIZATION_OPTIMIZER = (
+    "creative_coding_assistant.orchestration.resource_utilization_optimizer"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -428,6 +431,8 @@ _EXPORT_MAP = {
     "ReasoningBudgetRecommendation": _REASONING_BUDGET_OPTIMIZER,
     "PerformanceRegressionDetectionPlan": _PERFORMANCE_REGRESSION_DETECTION,
     "PerformanceRegressionSignal": _PERFORMANCE_REGRESSION_DETECTION,
+    "ResourceUtilizationOptimizationPlan": _RESOURCE_UTILIZATION_OPTIMIZER,
+    "ResourceUtilizationRecommendation": _RESOURCE_UTILIZATION_OPTIMIZER,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1584,6 +1589,7 @@ _EXPORT_MAP = {
     "predict_creative_consistency": _CREATIVE_CONSISTENCY_PREDICTOR,
     "predict_performance": _PERFORMANCE_PREDICTION,
     "detect_performance_regressions": _PERFORMANCE_REGRESSION_DETECTION,
+    "optimize_resource_utilization": _RESOURCE_UTILIZATION_OPTIMIZER,
     "explain_routing_decision": _ROUTING_EXPLAINABILITY,
     "model_routing_architecture_consistency_registry": (
         _MODEL_ROUTING_ARCHITECTURE_CONSISTENCY
@@ -1633,6 +1639,12 @@ _EXPORT_MAP = {
     "performance_regression_signal_by_id": _PERFORMANCE_REGRESSION_DETECTION,
     "performance_regression_signals_for_status": (
         _PERFORMANCE_REGRESSION_DETECTION
+    ),
+    "resource_utilization_recommendation_by_id": (
+        _RESOURCE_UTILIZATION_OPTIMIZER
+    ),
+    "resource_utilization_recommendations_for_status": (
+        _RESOURCE_UTILIZATION_OPTIMIZER
     ),
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
