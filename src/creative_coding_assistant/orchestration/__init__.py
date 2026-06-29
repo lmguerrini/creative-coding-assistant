@@ -301,6 +301,9 @@ _THROUGHPUT_OPTIMIZER = (
 _PERFORMANCE_PREDICTION = (
     "creative_coding_assistant.orchestration.performance_prediction"
 )
+_PERFORMANCE_BENCHMARKING = (
+    "creative_coding_assistant.orchestration.performance_benchmarking"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -413,6 +416,8 @@ _EXPORT_MAP = {
     "ThroughputOptimizationPlan": _THROUGHPUT_OPTIMIZER,
     "PerformancePrediction": _PERFORMANCE_PREDICTION,
     "PerformancePredictionPlan": _PERFORMANCE_PREDICTION,
+    "PerformanceBenchmarkScenario": _PERFORMANCE_BENCHMARKING,
+    "PerformanceBenchmarkingPlan": _PERFORMANCE_BENCHMARKING,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1610,6 +1615,8 @@ _EXPORT_MAP = {
     "throughput_optimization_candidates_for_status": _THROUGHPUT_OPTIMIZER,
     "performance_prediction_by_id": _PERFORMANCE_PREDICTION,
     "performance_predictions_for_band": _PERFORMANCE_PREDICTION,
+    "performance_benchmark_scenario_by_id": _PERFORMANCE_BENCHMARKING,
+    "performance_benchmark_scenarios_for_status": _PERFORMANCE_BENCHMARKING,
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "execution_optimization_failure_audit_by_id": (
@@ -1710,6 +1717,7 @@ _EXPORT_MAP = {
     "plan_execution_path_optimization": _EXECUTION_PATH_OPTIMIZATION,
     "plan_execution_replay": _EXECUTION_REPLAY_ENGINE,
     "plan_load_balancer": _LOAD_BALANCER,
+    "plan_performance_benchmarking": _PERFORMANCE_BENCHMARKING,
     "plan_parallel_scheduler": _PARALLEL_SCHEDULER,
     "plan_workflow_replay": _WORKFLOW_REPLAY_ENGINE,
     "plan_retry_policies": _RETRY_POLICIES,
