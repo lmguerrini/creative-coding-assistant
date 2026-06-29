@@ -325,6 +325,9 @@ _QUALITY_DASHBOARD = "creative_coding_assistant.orchestration.quality_dashboard"
 _PERFORMANCE_DASHBOARD = (
     "creative_coding_assistant.orchestration.performance_dashboard"
 )
+_PRODUCTION_TELEMETRY = (
+    "creative_coding_assistant.orchestration.production_telemetry"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -461,6 +464,8 @@ _EXPORT_MAP = {
     "QualityDashboardPanel": _QUALITY_DASHBOARD,
     "PerformanceDashboard": _PERFORMANCE_DASHBOARD,
     "PerformanceDashboardPanel": _PERFORMANCE_DASHBOARD,
+    "ProductionTelemetryChannel": _PRODUCTION_TELEMETRY,
+    "ProductionTelemetrySurface": _PRODUCTION_TELEMETRY,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1779,6 +1784,7 @@ _EXPORT_MAP = {
     "build_cost_dashboard": _COST_DASHBOARD,
     "build_quality_dashboard": _QUALITY_DASHBOARD,
     "build_performance_dashboard": _PERFORMANCE_DASHBOARD,
+    "build_production_telemetry": _PRODUCTION_TELEMETRY,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
     "memory_summary_segments_for_kind": _MEMORY_SUMMARIZATION,
     "next_workflow_step": _WORKFLOW,
@@ -1832,6 +1838,8 @@ _EXPORT_MAP = {
     "quality_dashboard_panels_for_pressure": _QUALITY_DASHBOARD,
     "performance_dashboard_panel_by_id": _PERFORMANCE_DASHBOARD,
     "performance_dashboard_panels_for_pressure": _PERFORMANCE_DASHBOARD,
+    "production_telemetry_channel_by_id": _PRODUCTION_TELEMETRY,
+    "production_telemetry_channels_for_status": _PRODUCTION_TELEMETRY,
     "token_dashboard_panel_by_id": _TOKEN_DASHBOARD,
     "token_dashboard_panels_for_pressure": _TOKEN_DASHBOARD,
 }
