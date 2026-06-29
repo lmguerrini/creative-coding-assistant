@@ -292,6 +292,9 @@ _WORKFLOW_REPLAY_ENGINE = (
 _EXECUTION_REPLAY_ENGINE = (
     "creative_coding_assistant.orchestration.execution_replay_engine"
 )
+_BOTTLENECK_DETECTION = (
+    "creative_coding_assistant.orchestration.bottleneck_detection"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -398,6 +401,8 @@ _EXPORT_MAP = {
     "WorkflowReplayPlan": _WORKFLOW_REPLAY_ENGINE,
     "ExecutionReplayCandidate": _EXECUTION_REPLAY_ENGINE,
     "ExecutionReplayPlan": _EXECUTION_REPLAY_ENGINE,
+    "BottleneckCandidate": _BOTTLENECK_DETECTION,
+    "BottleneckDetectionPlan": _BOTTLENECK_DETECTION,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1588,6 +1593,8 @@ _EXPORT_MAP = {
     "workflow_replay_candidates_for_status": _WORKFLOW_REPLAY_ENGINE,
     "execution_replay_candidate_by_id": _EXECUTION_REPLAY_ENGINE,
     "execution_replay_candidates_for_status": _EXECUTION_REPLAY_ENGINE,
+    "bottleneck_candidate_by_id": _BOTTLENECK_DETECTION,
+    "bottleneck_candidates_for_status": _BOTTLENECK_DETECTION,
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "execution_optimization_failure_audit_by_id": (
@@ -1681,6 +1688,7 @@ _EXPORT_MAP = {
     "plan_context_budget": _CONTEXT_BUDGET_PLANNER,
     "plan_context_reuse": _CONTEXT_REUSE,
     "plan_async_execution": _ASYNC_EXECUTION,
+    "detect_bottlenecks": _BOTTLENECK_DETECTION,
     "plan_exploration_budget": _EXPLORATION_BUDGET_PLANNER,
     "plan_execution_profiling": _EXECUTION_PROFILING,
     "plan_execution_path_optimization": _EXECUTION_PATH_OPTIMIZATION,
