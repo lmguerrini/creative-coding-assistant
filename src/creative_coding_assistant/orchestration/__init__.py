@@ -309,6 +309,10 @@ _CREATIVE_CONSISTENCY_PREDICTOR = (
 _ROUTING_EXPLAINABILITY = (
     "creative_coding_assistant.orchestration.routing_explainability"
 )
+_MODEL_ROUTING_ARCHITECTURE_CONSISTENCY = (
+    "creative_coding_assistant.orchestration."
+    "model_routing_architecture_consistency"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -383,6 +387,12 @@ _EXPORT_MAP = {
     "CreativeConsistencyPredictionPlan": _CREATIVE_CONSISTENCY_PREDICTOR,
     "RoutingExplainabilityPlan": _ROUTING_EXPLAINABILITY,
     "RoutingExplanationRecord": _ROUTING_EXPLAINABILITY,
+    "ModelRoutingArchitectureConsistencyRecord": (
+        _MODEL_ROUTING_ARCHITECTURE_CONSISTENCY
+    ),
+    "ModelRoutingArchitectureConsistencyRegistry": (
+        _MODEL_ROUTING_ARCHITECTURE_CONSISTENCY
+    ),
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1468,6 +1478,9 @@ _EXPORT_MAP = {
     "predict_creative_diversity": _CREATIVE_DIVERSITY_PREDICTOR,
     "predict_creative_consistency": _CREATIVE_CONSISTENCY_PREDICTOR,
     "explain_routing_decision": _ROUTING_EXPLAINABILITY,
+    "model_routing_architecture_consistency_registry": (
+        _MODEL_ROUTING_ARCHITECTURE_CONSISTENCY
+    ),
     "derive_sacred_geometry_guidance": _SACRED_GEOMETRY,
     "detect_sacred_geometry_concepts": _SACRED_GEOMETRY,
     "detect_shader_presets": _SHADER_PRESETS,
@@ -1528,6 +1541,12 @@ _EXPORT_MAP = {
     "creative_consistency_predictions_for_band": _CREATIVE_CONSISTENCY_PREDICTOR,
     "routing_explanation_by_id": _ROUTING_EXPLAINABILITY,
     "routing_explanations_for_source": _ROUTING_EXPLAINABILITY,
+    "model_routing_architecture_consistency_by_surface": (
+        _MODEL_ROUTING_ARCHITECTURE_CONSISTENCY
+    ),
+    "model_routing_architecture_consistency_records_for_layer": (
+        _MODEL_ROUTING_ARCHITECTURE_CONSISTENCY
+    ),
     "finish_workflow": _WORKFLOW,
     "forecast_execution_cost": _EXECUTION_COST_FORECASTING,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
