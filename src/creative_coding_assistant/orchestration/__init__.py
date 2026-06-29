@@ -265,6 +265,9 @@ _EXECUTION_PATH_OPTIMIZATION = (
 _EXECUTION_STRATEGY_SELECTION = (
     "creative_coding_assistant.orchestration.execution_strategy_selection"
 )
+_EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
+    "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -299,6 +302,12 @@ _EXPORT_MAP = {
     "ExecutionPathOptimizationPlan": _EXECUTION_PATH_OPTIMIZATION,
     "ExecutionStrategyCandidate": _EXECUTION_STRATEGY_SELECTION,
     "ExecutionStrategySelection": _EXECUTION_STRATEGY_SELECTION,
+    "ExecutionOptimizationFailureAuditRecord": (
+        _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
+    ),
+    "ExecutionOptimizationFailureAuditRegistry": (
+        _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
+    ),
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1388,6 +1397,15 @@ _EXPORT_MAP = {
     "execution_path_candidates_for_status": _EXECUTION_PATH_OPTIMIZATION,
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
+    "execution_optimization_failure_audit_by_id": (
+        _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
+    ),
+    "execution_optimization_failure_audit_registry": (
+        _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
+    ),
+    "execution_optimization_failure_audits_for_check": (
+        _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
+    ),
     "finish_workflow": _WORKFLOW,
     "forecast_execution_cost": _EXECUTION_COST_FORECASTING,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
