@@ -97,6 +97,17 @@ deterministic local helpers; they do not apply routing, switch providers or
 models, execute providers, enforce budgets, emit HITL requests, select
 runtimes, control workflows, trigger retries, mutate prompts, persist storage,
 apply Runtime Evolution, or modify generated output.
+V5.3 Performance Engine keeps the same LangGraph runtime node set while adding
+advisory parallel scheduling, latency, async execution, streaming, retry
+policy, load balancing, execution profiling, workflow replay, execution replay,
+bottleneck detection, throughput, performance prediction, performance
+benchmarking, reasoning budget, performance regression, resource utilization,
+architecture consistency, and runtime failure-path audit metadata. These
+surfaces are importable Python contracts and deterministic local helpers; they
+do not measure live performance, execute workflows, execute benchmarks, execute
+replay, allocate resources, enforce capacity or budgets, select runtimes,
+control workflows, trigger retries, route providers or models, mutate prompts,
+persist storage, apply Runtime Evolution, or modify generated output.
 `_planning_node()` deterministically derives and stores the V3.1 Creative
 Cognition metadata, the V3.2 Generative Design metadata, the V3.3 Artifact
 Intelligence metadata, and the V3.4 Creative Evaluation metadata:
@@ -205,6 +216,14 @@ This separation is intentional:
   metadata, but still does not own provider/model routing application, provider
   execution, HITL request emission, budget enforcement, runtime selection,
   workflow control, or generated-output mutation
+- The V5.3 Performance Engine layer owns advisory scheduling, latency, async,
+  streaming, retry-policy, load-balancing, profiling, replay, bottleneck,
+  throughput, prediction, benchmarking, reasoning-budget, regression,
+  resource-utilization, architecture consistency, and runtime failure audit
+  metadata, but still does not own runtime measurement, workflow execution,
+  benchmark execution, replay execution, resource allocation, capacity or
+  budget enforcement, provider/model routing, retry triggering, workflow
+  control, or generated-output mutation
 - The internal capability pipeline and dependency graph remain decomposition
   candidates for later orchestration, but they are not a true multi-agent or
   multi-node runtime graph here
@@ -437,6 +456,43 @@ Explainability.
 | Routing explainability | Summarize routing, quality, cost, and recommendation metadata without changing decisions, prompts, storage, or generated output |
 | Architecture consistency and runtime failure path audit | Verify V5.2 source coverage, passive activation, and failure-path boundaries without executing audits as recovery behavior or changing output behavior |
 
+## V5.3 Performance Engine Metadata Boundary
+
+V5.3 introduces advisory performance metadata over the stable V3 runtime graph,
+V4 passive contract stack, V5.1 execution optimization metadata, and V5.2
+model-routing metadata. The implementation adds typed metadata and
+deterministic local helpers for parallel scheduling, latency optimization,
+async readiness, streaming optimization, retry policy posture, load balancing,
+execution profiling, workflow replay, execution replay, bottleneck detection,
+throughput optimization, performance prediction, performance benchmarking,
+reasoning budget optimization, performance regression detection, resource
+utilization optimization, architecture consistency coverage, and runtime
+failure-path audit coverage.
+
+These surfaces are not an active performance runtime. They do not measure live
+latency or throughput, install profilers, collect traces, execute workflows,
+execute benchmarks, execute replay, allocate resources, autoscale, enforce
+capacity or budgets, select runtimes, control workflows, trigger retries, route
+providers or models, mutate prompts, write persistent storage, activate passive
+registries as runtime behavior, apply Runtime Evolution, or modify generated
+output.
+
+Canonical V5.3 surfaces are Parallel Scheduler, Latency Optimizer, Async
+Execution, Streaming Optimizer, Retry Policies, Load Balancer, Execution
+Profiling, Workflow Replay Engine, Execution Replay Engine, Bottleneck
+Detection, Throughput Optimizer, Performance Prediction, Performance
+Benchmarking, Reasoning Budget Optimizer, Performance Regression Detection,
+Resource Utilization Optimizer, Performance Architecture Consistency, and
+Performance Failure Path Audit.
+
+| Surface group | Current boundary |
+| --- | --- |
+| Parallel scheduling, latency, async, streaming, and retry policy posture | Rank advisory scheduling, latency, async, streaming, and retry candidates without running tasks in parallel, measuring latency, creating async tasks, reordering streams, or triggering retries |
+| Load balancing, profiling, replay, and bottleneck posture | Derive advisory balancing, profiling, replay, and bottleneck metadata without balancing live load, installing profilers, executing replay, invoking node handlers, or changing workflow control |
+| Throughput, prediction, benchmarking, and reasoning budget posture | Project throughput, performance, benchmark, and reasoning-budget posture without measuring throughput, executing benchmarks, enforcing token budgets, selecting models, or routing by score |
+| Regression and resource utilization posture | Flag advisory regression and resource recommendations without comparing live telemetry, allocating resources, enforcing capacity, autoscaling, controlling queues, or changing provider/model routing |
+| Architecture consistency and runtime failure path audit | Verify V5.3 source coverage, passive activation, Runtime Evolution, architecture, and failure-path boundaries without executing audits as recovery behavior or changing output behavior |
+
 ## Current Implemented Flow
 
 The graph is compiled once in `AssistantService.__init__()` and executed
@@ -534,6 +590,7 @@ flowchart TB
     multimodal_studio_boundary["V4.5 multimodal studio metadata boundary<br/>passive preview + canvas + lineage registries<br/>no rendering execution"]:::relationship
     hardening_boundary["V4.6 agentic studio hardening metadata boundary<br/>passive audit + error-path coverage<br/>terminal failure audit only"]:::relationship
     model_routing_boundary["V5.2 model routing metadata boundary<br/>advisory routing + budget + explainability<br/>no provider/model switching"]:::relationship
+    performance_boundary["V5.3 performance metadata boundary<br/>advisory scheduling + profiling + benchmarking<br/>no runtime measurement or control"]:::relationship
 
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
     review -->|"pass or max retry"| finalization --> finish
@@ -561,6 +618,9 @@ flowchart TB
     failure -. terminal failure coverage .-> hardening_boundary
     hardening_boundary -. advisory execution context .-> model_routing_boundary
     routing -. stable route reference .-> model_routing_boundary
+    model_routing_boundary -. advisory routing posture .-> performance_boundary
+    hardening_boundary -. performance audit sources .-> performance_boundary
+    failure -. terminal failure coverage .-> performance_boundary
     intake -. intake_error .-> failure
     routing -. routing_error .-> failure
     memory -. memory_error .-> failure
@@ -585,7 +645,7 @@ flowchart TB
     class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,reasoning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
-    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary,multimodal_studio_boundary,hardening_boundary,model_routing_boundary relationship
+    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary,multimodal_studio_boundary,hardening_boundary,model_routing_boundary,performance_boundary relationship
     style phase_1 rx:6px,ry:6px
     style phase_2 rx:6px,ry:6px
     style phase_3 rx:6px,ry:6px

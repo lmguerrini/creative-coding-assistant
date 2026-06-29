@@ -7,8 +7,9 @@
   review, bounded refinement, finalization, and failure handling.
 - Keep the LangGraph workflow compact. Internal creative intelligence,
   generative design, artifact intelligence, evaluation, workstation, V4
-  registry layers, V5.1 execution optimization helpers, and V5.2 model-routing
-  helpers are metadata surfaces, not additional runtime nodes.
+  registry layers, V5.1 execution optimization helpers, V5.2 model-routing
+  helpers, and V5.3 performance helpers are metadata surfaces, not additional
+  runtime nodes.
 - Keep the Next.js workstation responsible for product inspection, preview,
   comparison, export, telemetry, workflow visibility, and operator controls.
 
@@ -16,9 +17,10 @@
 
 Chroma remains the only persistent retrieval and memory database. Passive V4.1,
 V4.2, V4.3, V4.4, V4.5, and V4.6 registries, advisory V5.1 optimization
-helpers, and advisory V5.2 model-routing helpers do not create storage
-backends, write blackboard state, write replay storage, persist cache entries,
-or introduce runtime synchronization behavior.
+helpers, advisory V5.2 model-routing helpers, and advisory V5.3 performance
+helpers do not create storage backends, write blackboard state, write replay
+storage, persist cache entries, write telemetry stores, or introduce runtime
+synchronization behavior.
 
 ## Metadata Layering
 
@@ -53,6 +55,12 @@ or introduce runtime synchronization behavior.
   cost prediction, creative quality/diversity/consistency prediction,
   explainability, architecture consistency, and failure-path metadata over the
   existing compact workflow.
+- V5.3 Performance Engine helpers describe advisory parallel scheduling,
+  latency, async execution, streaming, retry policy, load balancing, execution
+  profiling, workflow replay, execution replay, bottleneck detection,
+  throughput, performance prediction, performance benchmarking, reasoning
+  budget, performance regression, resource utilization, architecture
+  consistency, and failure-path metadata over the existing compact workflow.
 
 ## V4.3 Boundary Decision
 
@@ -159,6 +167,27 @@ Evolution, or modify generated output. More generally, it does not change
 provider/model routing, does not introduce autonomous model selection behavior,
 and does not modify generated output.
 
+## V5.3 Boundary Decision
+
+V5.3 Performance Engine is an advisory performance metadata layer only. It may
+expose parallel scheduling candidates, latency optimization posture, async
+execution readiness, streaming optimization posture, retry policy posture,
+load balancing posture, execution profiling candidates, workflow replay
+planning, execution replay planning, bottleneck detection, throughput
+optimization, performance predictions, benchmark scenarios, reasoning budget
+recommendations, performance regression signals, resource utilization
+recommendations, architecture consistency coverage, and runtime failure-path
+audit coverage.
+
+It must not measure live performance, install profilers, collect traces,
+execute workflows, execute benchmarks, execute replay, allocate resources,
+autoscale, enforce capacity or budgets, select runtimes, control workflows,
+trigger retries, route providers or models, mutate prompts, write persistent
+storage, activate passive registries as runtime behavior, apply Runtime
+Evolution, or modify generated output. More generally, it does not change
+provider/model routing, does not introduce autonomous performance optimization
+behavior, and does not modify generated output.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -175,6 +204,7 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - passive V4.6 agentic studio hardening metadata
 - advisory V5.1 execution optimization metadata
 - advisory V5.2 model-routing metadata
+- advisory V5.3 performance metadata
 - future active V4 Agentic Studio, later V5 production intelligence, and V6
   learning work
 

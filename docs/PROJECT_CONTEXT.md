@@ -62,6 +62,13 @@ inspection metadata, critique, and refinement context.
   execution policy, model recommendation, model/provider capability matrices,
   quality/cost prediction, creative quality/diversity/consistency prediction,
   routing explainability, architecture consistency, and failure audit metadata.
+- V5.3 Performance Engine for advisory parallel scheduling, latency
+  optimization, async execution, streaming optimization, retry policies, load
+  balancing, execution profiling, workflow replay, execution replay,
+  bottleneck detection, throughput optimization, performance prediction,
+  performance benchmarking, reasoning budget optimization, performance
+  regression detection, resource utilization optimization, architecture
+  consistency, and failure audit metadata.
 
 ## Supported Creative Domains
 
@@ -80,8 +87,8 @@ inspection metadata, critique, and refinement context.
 - Chroma remains the persistent retrieval and memory database.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
-- V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, and V5.2 registries and helpers
-  are passive or advisory product and architecture metadata. They are
+- V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, V5.2, and V5.3 registries and
+  helpers are passive or advisory product and architecture metadata. They are
   inspectable Python APIs and documentation surfaces.
 
 ## V4.3 Passive Boundary
@@ -183,6 +190,25 @@ control workflows, trigger retries, mutate prompts, write persistent storage,
 activate passive registries, apply Runtime Evolution, or modify generated
 output.
 
+## V5.3 Advisory Boundary
+
+V5.3 Performance Engine is advisory performance metadata over the existing
+compact LangGraph workflow. It includes parallel scheduling candidates,
+latency optimization posture, async execution readiness, streaming
+optimization posture, retry policy posture, load balancing posture, execution
+profiling candidates, workflow replay planning, execution replay planning,
+bottleneck detection, throughput optimization, performance prediction,
+performance benchmarking, reasoning budget recommendations, performance
+regression signals, resource utilization recommendations, architecture
+consistency coverage, and runtime failure-path audit coverage.
+
+It must not measure live performance, install profilers, collect traces,
+execute workflows, execute benchmarks, execute replay, allocate resources,
+autoscale, enforce capacity or budgets, select runtimes, control workflows,
+trigger retries, route providers or models, mutate prompts, write persistent
+storage, activate passive registries, apply Runtime Evolution, or modify
+generated output.
+
 ## Non-Goals For Current Baseline
 
 - active multi-agent execution
@@ -194,6 +220,10 @@ output.
 - workflow visualization execution
 - runtime hardening execution
 - active execution optimization
+- active performance optimization
+- runtime performance measurement
+- benchmark execution
+- resource allocation or autoscaling
 - LangGraph node additions
 - failure normalization bypasses
 - passive registry activation
