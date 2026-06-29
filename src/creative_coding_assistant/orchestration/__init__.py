@@ -269,6 +269,9 @@ _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
 _MODEL_ROUTER = "creative_coding_assistant.orchestration.model_router"
+_LOCAL_CLOUD_ROUTING = (
+    "creative_coding_assistant.orchestration.local_cloud_routing"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -311,6 +314,8 @@ _EXPORT_MAP = {
     ),
     "ModelRouteCandidate": _MODEL_ROUTER,
     "ModelRoutingPlan": _MODEL_ROUTER,
+    "LocalCloudRouteDecision": _LOCAL_CLOUD_ROUTING,
+    "LocalCloudRoutingPlan": _LOCAL_CLOUD_ROUTING,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1411,6 +1416,8 @@ _EXPORT_MAP = {
     ),
     "model_route_candidate_by_id": _MODEL_ROUTER,
     "model_route_candidates_for_status": _MODEL_ROUTER,
+    "local_cloud_route_decision_by_id": _LOCAL_CLOUD_ROUTING,
+    "local_cloud_route_decisions_for_lane": _LOCAL_CLOUD_ROUTING,
     "finish_workflow": _WORKFLOW,
     "forecast_execution_cost": _EXECUTION_COST_FORECASTING,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
@@ -1432,6 +1439,7 @@ _EXPORT_MAP = {
     "retrieval_compression_chunks_for_status": _RETRIEVAL_COMPRESSION,
     "review_assistant_answer": _WORKFLOW_REVIEW,
     "route_context_sources": _CONTEXT_ROUTER,
+    "route_local_vs_cloud": _LOCAL_CLOUD_ROUTING,
     "route_model_request": _MODEL_ROUTER,
     "route_request": _ROUTING,
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
