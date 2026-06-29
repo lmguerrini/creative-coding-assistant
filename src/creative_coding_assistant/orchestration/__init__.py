@@ -256,6 +256,9 @@ _WORKFLOW_COMPLEXITY_ANALYZER = (
     "creative_coding_assistant.orchestration.workflow_complexity_analyzer"
 )
 _WORKFLOW_PRUNING = "creative_coding_assistant.orchestration.workflow_pruning"
+_EXECUTION_COST_FORECASTING = (
+    "creative_coding_assistant.orchestration.execution_cost_forecasting"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -284,6 +287,8 @@ _EXPORT_MAP = {
     "WorkflowComplexityFactor": _WORKFLOW_COMPLEXITY_ANALYZER,
     "WorkflowPruningCandidate": _WORKFLOW_PRUNING,
     "WorkflowPruningPlan": _WORKFLOW_PRUNING,
+    "ExecutionCostForecast": _EXECUTION_COST_FORECASTING,
+    "ExecutionCostForecastScenario": _EXECUTION_COST_FORECASTING,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1367,7 +1372,10 @@ _EXPORT_MAP = {
     "detect_visual_styles": _VISUAL_STYLES,
     "extract_workflow_artifacts": _ARTIFACTS,
     "fail_workflow": _WORKFLOW,
+    "execution_cost_forecast_scenario_by_id": _EXECUTION_COST_FORECASTING,
+    "execution_cost_forecast_scenarios_for_kind": _EXECUTION_COST_FORECASTING,
     "finish_workflow": _WORKFLOW,
+    "forecast_execution_cost": _EXECUTION_COST_FORECASTING,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
     "memory_summary_segments_for_kind": _MEMORY_SUMMARIZATION,
     "next_workflow_step": _WORKFLOW,
