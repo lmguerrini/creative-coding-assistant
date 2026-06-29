@@ -331,6 +331,9 @@ _PRODUCTION_TELEMETRY = (
 _WORKFLOW_DIAGNOSTICS = (
     "creative_coding_assistant.orchestration.workflow_diagnostics"
 )
+_AGENT_DIAGNOSTICS = (
+    "creative_coding_assistant.orchestration.agent_diagnostics"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -471,6 +474,8 @@ _EXPORT_MAP = {
     "ProductionTelemetrySurface": _PRODUCTION_TELEMETRY,
     "WorkflowDiagnosticPanel": _WORKFLOW_DIAGNOSTICS,
     "WorkflowDiagnostics": _WORKFLOW_DIAGNOSTICS,
+    "AgentDiagnosticPanel": _AGENT_DIAGNOSTICS,
+    "AgentDiagnostics": _AGENT_DIAGNOSTICS,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1791,6 +1796,7 @@ _EXPORT_MAP = {
     "build_performance_dashboard": _PERFORMANCE_DASHBOARD,
     "build_production_telemetry": _PRODUCTION_TELEMETRY,
     "build_workflow_diagnostics": _WORKFLOW_DIAGNOSTICS,
+    "build_agent_diagnostics": _AGENT_DIAGNOSTICS,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
     "memory_summary_segments_for_kind": _MEMORY_SUMMARIZATION,
     "next_workflow_step": _WORKFLOW,
@@ -1848,6 +1854,8 @@ _EXPORT_MAP = {
     "production_telemetry_channels_for_status": _PRODUCTION_TELEMETRY,
     "token_dashboard_panel_by_id": _TOKEN_DASHBOARD,
     "token_dashboard_panels_for_pressure": _TOKEN_DASHBOARD,
+    "agent_diagnostic_panel_by_id": _AGENT_DIAGNOSTICS,
+    "agent_diagnostic_panels_for_status": _AGENT_DIAGNOSTICS,
     "workflow_diagnostic_panel_by_id": _WORKFLOW_DIAGNOSTICS,
     "workflow_diagnostic_panels_for_status": _WORKFLOW_DIAGNOSTICS,
 }
