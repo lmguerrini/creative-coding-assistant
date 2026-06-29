@@ -321,6 +321,7 @@ _PERFORMANCE_FAILURE_PATH_AUDIT = (
 )
 _TOKEN_DASHBOARD = "creative_coding_assistant.orchestration.token_dashboard"
 _COST_DASHBOARD = "creative_coding_assistant.orchestration.cost_dashboard"
+_QUALITY_DASHBOARD = "creative_coding_assistant.orchestration.quality_dashboard"
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -453,6 +454,8 @@ _EXPORT_MAP = {
     "TokenDashboardPanel": _TOKEN_DASHBOARD,
     "CostDashboard": _COST_DASHBOARD,
     "CostDashboardPanel": _COST_DASHBOARD,
+    "QualityDashboard": _QUALITY_DASHBOARD,
+    "QualityDashboardPanel": _QUALITY_DASHBOARD,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1769,6 +1772,7 @@ _EXPORT_MAP = {
     "forecast_execution_cost": _EXECUTION_COST_FORECASTING,
     "build_token_dashboard": _TOKEN_DASHBOARD,
     "build_cost_dashboard": _COST_DASHBOARD,
+    "build_quality_dashboard": _QUALITY_DASHBOARD,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
     "memory_summary_segments_for_kind": _MEMORY_SUMMARIZATION,
     "next_workflow_step": _WORKFLOW,
@@ -1818,6 +1822,8 @@ _EXPORT_MAP = {
     "start_workflow_step": _WORKFLOW,
     "cost_dashboard_panel_by_id": _COST_DASHBOARD,
     "cost_dashboard_panels_for_pressure": _COST_DASHBOARD,
+    "quality_dashboard_panel_by_id": _QUALITY_DASHBOARD,
+    "quality_dashboard_panels_for_pressure": _QUALITY_DASHBOARD,
     "token_dashboard_panel_by_id": _TOKEN_DASHBOARD,
     "token_dashboard_panels_for_pressure": _TOKEN_DASHBOARD,
 }
