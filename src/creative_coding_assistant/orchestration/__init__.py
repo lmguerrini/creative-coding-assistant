@@ -342,6 +342,9 @@ _ESCALATION_DIAGNOSTICS = (
 )
 _FAILURE_ANALYSIS = "creative_coding_assistant.orchestration.failure_analysis"
 _ERROR_INTELLIGENCE = "creative_coding_assistant.orchestration.error_intelligence"
+_WORKFLOW_HEALTH_MONITORING = (
+    "creative_coding_assistant.orchestration.workflow_health_monitoring"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -492,6 +495,8 @@ _EXPORT_MAP = {
     "FailureAnalysis": _FAILURE_ANALYSIS,
     "ErrorIntelligencePanel": _ERROR_INTELLIGENCE,
     "ErrorIntelligence": _ERROR_INTELLIGENCE,
+    "WorkflowHealthPanel": _WORKFLOW_HEALTH_MONITORING,
+    "WorkflowHealthMonitoring": _WORKFLOW_HEALTH_MONITORING,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1817,6 +1822,7 @@ _EXPORT_MAP = {
     "build_escalation_diagnostics": _ESCALATION_DIAGNOSTICS,
     "build_failure_analysis": _FAILURE_ANALYSIS,
     "build_error_intelligence": _ERROR_INTELLIGENCE,
+    "build_workflow_health_monitoring": _WORKFLOW_HEALTH_MONITORING,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
     "memory_summary_segments_for_kind": _MEMORY_SUMMARIZATION,
     "next_workflow_step": _WORKFLOW,
@@ -1884,6 +1890,8 @@ _EXPORT_MAP = {
     "failure_analysis_panels_for_status": _FAILURE_ANALYSIS,
     "error_intelligence_panel_by_id": _ERROR_INTELLIGENCE,
     "error_intelligence_panels_for_status": _ERROR_INTELLIGENCE,
+    "workflow_health_panel_by_id": _WORKFLOW_HEALTH_MONITORING,
+    "workflow_health_panels_for_status": _WORKFLOW_HEALTH_MONITORING,
     "workflow_diagnostic_panel_by_id": _WORKFLOW_DIAGNOSTICS,
     "workflow_diagnostic_panels_for_status": _WORKFLOW_DIAGNOSTICS,
 }
