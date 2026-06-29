@@ -297,6 +297,9 @@ _PROVIDER_CAPABILITY_MATRIX = (
 _QUALITY_PREDICTION_ENGINE = (
     "creative_coding_assistant.orchestration.quality_prediction_engine"
 )
+_COST_PREDICTION_ENGINE = (
+    "creative_coding_assistant.orchestration.cost_prediction_engine"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -363,6 +366,8 @@ _EXPORT_MAP = {
     "ProviderCapabilityMatrixRow": _PROVIDER_CAPABILITY_MATRIX,
     "QualityPredictionDecision": _QUALITY_PREDICTION_ENGINE,
     "QualityPredictionPlan": _QUALITY_PREDICTION_ENGINE,
+    "CostPredictionDecision": _COST_PREDICTION_ENGINE,
+    "CostPredictionPlan": _COST_PREDICTION_ENGINE,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1444,6 +1449,7 @@ _EXPORT_MAP = {
     "build_model_capability_matrix": _MODEL_CAPABILITY_MATRIX,
     "build_provider_capability_matrix": _PROVIDER_CAPABILITY_MATRIX,
     "predict_quality_for_route": _QUALITY_PREDICTION_ENGINE,
+    "predict_cost_for_route": _COST_PREDICTION_ENGINE,
     "derive_sacred_geometry_guidance": _SACRED_GEOMETRY,
     "detect_sacred_geometry_concepts": _SACRED_GEOMETRY,
     "detect_shader_presets": _SHADER_PRESETS,
@@ -1496,6 +1502,8 @@ _EXPORT_MAP = {
     "provider_capability_rows_for_route": _PROVIDER_CAPABILITY_MATRIX,
     "quality_prediction_by_id": _QUALITY_PREDICTION_ENGINE,
     "quality_predictions_for_level": _QUALITY_PREDICTION_ENGINE,
+    "cost_prediction_by_id": _COST_PREDICTION_ENGINE,
+    "cost_predictions_for_band": _COST_PREDICTION_ENGINE,
     "finish_workflow": _WORKFLOW,
     "forecast_execution_cost": _EXECUTION_COST_FORECASTING,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
