@@ -277,6 +277,9 @@ _ASYNC_EXECUTION = (
 _STREAMING_OPTIMIZER = (
     "creative_coding_assistant.orchestration.streaming_optimizer"
 )
+_RETRY_POLICIES = (
+    "creative_coding_assistant.orchestration.retry_policies"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -373,6 +376,8 @@ _EXPORT_MAP = {
     "AsyncExecutionPlan": _ASYNC_EXECUTION,
     "StreamingOptimizationCandidate": _STREAMING_OPTIMIZER,
     "StreamingOptimizationPlan": _STREAMING_OPTIMIZER,
+    "RetryPolicyCandidate": _RETRY_POLICIES,
+    "RetryPolicyPlan": _RETRY_POLICIES,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1553,6 +1558,8 @@ _EXPORT_MAP = {
     "async_execution_candidates_for_status": _ASYNC_EXECUTION,
     "streaming_optimization_candidate_by_id": _STREAMING_OPTIMIZER,
     "streaming_optimization_candidates_for_status": _STREAMING_OPTIMIZER,
+    "retry_policy_candidate_by_id": _RETRY_POLICIES,
+    "retry_policy_candidates_for_status": _RETRY_POLICIES,
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "execution_optimization_failure_audit_by_id": (
@@ -1649,6 +1656,7 @@ _EXPORT_MAP = {
     "plan_exploration_budget": _EXPLORATION_BUDGET_PLANNER,
     "plan_execution_path_optimization": _EXECUTION_PATH_OPTIMIZATION,
     "plan_parallel_scheduler": _PARALLEL_SCHEDULER,
+    "plan_retry_policies": _RETRY_POLICIES,
     "plan_workflow_pruning": _WORKFLOW_PRUNING,
     "plan_next_refinement_pass": _REFINEMENT_PASSES,
     "prompt_compression_section_by_id": _PROMPT_COMPRESSION,
