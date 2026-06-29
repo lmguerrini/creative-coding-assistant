@@ -316,6 +316,9 @@ _MODEL_ROUTING_ARCHITECTURE_CONSISTENCY = (
 _MODEL_ROUTING_FAILURE_PATH_AUDIT = (
     "creative_coding_assistant.orchestration.model_routing_failure_path_audit"
 )
+_ROUTING_INTELLIGENCE = (
+    "creative_coding_assistant.orchestration.routing_intelligence"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -398,6 +401,25 @@ _EXPORT_MAP = {
     ),
     "ModelRoutingFailurePathAuditRecord": _MODEL_ROUTING_FAILURE_PATH_AUDIT,
     "ModelRoutingFailurePathAuditRegistry": _MODEL_ROUTING_FAILURE_PATH_AUDIT,
+    "AdvisoryHybridRoutingPolicy": _ROUTING_INTELLIGENCE,
+    "AdvisoryHybridRoutingPolicyRegistry": _ROUTING_INTELLIGENCE,
+    "ApiKeyDetectionMetadata": _ROUTING_INTELLIGENCE,
+    "CredentialBoundary": _ROUTING_INTELLIGENCE,
+    "LocalModelAvailabilityMetadata": _ROUTING_INTELLIGENCE,
+    "LocalModelInventoryMetadata": _ROUTING_INTELLIGENCE,
+    "LocalRuntimeDetectionMetadata": _ROUTING_INTELLIGENCE,
+    "ModelRoutingIntelligenceRegistry": _ROUTING_INTELLIGENCE,
+    "ProviderAvailabilityMetadata": _ROUTING_INTELLIGENCE,
+    "ProviderAvailabilityRegistry": _ROUTING_INTELLIGENCE,
+    "RoutingExecutionModeProfile": _ROUTING_INTELLIGENCE,
+    "RoutingExecutionModeRegistry": _ROUTING_INTELLIGENCE,
+    "RoutingProviderProfile": _ROUTING_INTELLIGENCE,
+    "RoutingProviderProfileRegistry": _ROUTING_INTELLIGENCE,
+    "RoutingSafetyContract": _ROUTING_INTELLIGENCE,
+    "RoutingSafetyContractRegistry": _ROUTING_INTELLIGENCE,
+    "RoutingUnavailableReason": _ROUTING_INTELLIGENCE,
+    "TaskAwareRoutingDecision": _ROUTING_INTELLIGENCE,
+    "TaskAwareRoutingRegistry": _ROUTING_INTELLIGENCE,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1039,7 +1061,10 @@ _EXPORT_MAP = {
     "multimodal_real_time_workflow_visualization_profile_by_id": (
         _MULTIMODAL_STUDIO
     ),
-    "multimodal_real_time_workflow_visualization_profiles_for_creative_evolution_timeline_profile": (
+    (
+        "multimodal_real_time_workflow_visualization_profiles_for_"
+        "creative_evolution_timeline_profile"
+    ): (
         _MULTIMODAL_STUDIO
     ),
     "multimodal_real_time_workflow_visualization_profiles_for_route": (
@@ -1564,6 +1589,22 @@ _EXPORT_MAP = {
     "model_routing_failure_path_audits_for_surface": (
         _MODEL_ROUTING_FAILURE_PATH_AUDIT
     ),
+    "advisory_hybrid_routing_policy_by_direction": _ROUTING_INTELLIGENCE,
+    "advisory_hybrid_routing_policy_registry": _ROUTING_INTELLIGENCE,
+    "credential_boundary_by_provider_id": _ROUTING_INTELLIGENCE,
+    "model_routing_intelligence_registry": _ROUTING_INTELLIGENCE,
+    "provider_availability_by_provider_id": _ROUTING_INTELLIGENCE,
+    "provider_availability_registry": _ROUTING_INTELLIGENCE,
+    "routing_execution_mode_by_id": _ROUTING_INTELLIGENCE,
+    "routing_execution_mode_registry": _ROUTING_INTELLIGENCE,
+    "routing_provider_profile_by_id": _ROUTING_INTELLIGENCE,
+    "routing_provider_profile_registry": _ROUTING_INTELLIGENCE,
+    "routing_safety_contract_by_boundary": _ROUTING_INTELLIGENCE,
+    "routing_safety_contract_registry": _ROUTING_INTELLIGENCE,
+    "routing_unavailable_reason_by_code": _ROUTING_INTELLIGENCE,
+    "task_aware_routing_registry": _ROUTING_INTELLIGENCE,
+    "task_routing_decision_by_task_type": _ROUTING_INTELLIGENCE,
+    "task_routing_decisions_requiring_hitl": _ROUTING_INTELLIGENCE,
     "finish_workflow": _WORKFLOW,
     "forecast_execution_cost": _EXECUTION_COST_FORECASTING,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,

@@ -6,7 +6,7 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from creative_coding_assistant.orchestration.model_routing_architecture_consistency import (
+from .model_routing_architecture_consistency import (
     model_routing_architecture_consistency_registry,
 )
 
@@ -48,6 +48,7 @@ MODEL_ROUTING_FAILURE_PATH_AUDIT_AUTHORITY_BOUNDARY = (
 _CHECKLIST_SOURCE = "runtime/RUNTIME_FAILURE_PATH_AUDIT.md"
 _SOURCE_SURFACE_IDS = (
     "model_router",
+    "routing_intelligence",
     "local_cloud_routing",
     "hybrid_routing",
     "quality_cost_optimizer",
@@ -135,7 +136,7 @@ class ModelRoutingFailurePathAuditRecord(BaseModel):
     checklist_source: Literal["runtime/RUNTIME_FAILURE_PATH_AUDIT.md"] = (
         _CHECKLIST_SOURCE
     )
-    source_surface_ids: tuple[str, ...] = Field(min_length=1, max_length=18)
+    source_surface_ids: tuple[str, ...] = Field(min_length=1, max_length=19)
     evidence: tuple[str, ...] = Field(min_length=1, max_length=8)
     invariant_assertions: tuple[str, ...] = Field(min_length=1, max_length=8)
     failure_response_boundary: str = Field(min_length=1, max_length=240)
@@ -198,8 +199,8 @@ class ModelRoutingFailurePathAuditRegistry(BaseModel):
         min_length=1,
         max_length=120,
     )
-    architecture_registry_record_count: int = Field(ge=18, le=18)
-    source_surface_ids: tuple[str, ...] = Field(min_length=18, max_length=18)
+    architecture_registry_record_count: int = Field(ge=19, le=19)
+    source_surface_ids: tuple[str, ...] = Field(min_length=19, max_length=19)
     required_checks: tuple[str, ...] = Field(min_length=19, max_length=19)
     applicable_required_checks: tuple[ModelRoutingFailurePathCheckKind, ...] = Field(
         min_length=14,
@@ -320,7 +321,9 @@ def model_routing_failure_path_audits_for_check(
     """Return V5.2 failure audit records by checklist item."""
 
     source_registry = registry or model_routing_failure_path_audit_registry()
-    return tuple(record for record in source_registry.records if record.check_kind == check_kind)
+    return tuple(
+        record for record in source_registry.records if record.check_kind == check_kind
+    )
 
 
 def model_routing_failure_path_audits_for_surface(
@@ -357,6 +360,7 @@ def _records() -> tuple[ModelRoutingFailurePathAuditRecord, ...]:
             "terminal_failure_routing",
             (
                 "model_router",
+                "routing_intelligence",
                 "local_cloud_routing",
                 "hybrid_routing",
                 "execution_policy_engine",
@@ -374,6 +378,7 @@ def _records() -> tuple[ModelRoutingFailurePathAuditRecord, ...]:
         _record(
             "provider_failures",
             (
+                "routing_intelligence",
                 "local_cloud_routing",
                 "hybrid_routing",
                 "provider_capability_matrix",
@@ -393,6 +398,7 @@ def _records() -> tuple[ModelRoutingFailurePathAuditRecord, ...]:
             "model_routing_failures",
             (
                 "model_router",
+                "routing_intelligence",
                 "local_cloud_routing",
                 "hybrid_routing",
                 "model_capability_matrix",

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import Any, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -65,6 +64,9 @@ from creative_coding_assistant.orchestration.routing import (
 )
 from creative_coding_assistant.orchestration.routing_explainability import (
     explain_routing_decision,
+)
+from creative_coding_assistant.orchestration.routing_intelligence import (
+    model_routing_intelligence_registry,
 )
 from creative_coding_assistant.orchestration.runtime_recommendation_engine import (
     recommend_runtime_execution,
@@ -173,6 +175,7 @@ _COUNT_FIELD_CANDIDATES = (
 )
 _SURFACE_LAYERS: tuple[tuple[str, ModelRoutingArchitectureLayer], ...] = (
     ("model_router", "routing_metadata_boundary"),
+    ("routing_intelligence", "routing_metadata_boundary"),
     ("local_cloud_routing", "routing_metadata_boundary"),
     ("hybrid_routing", "routing_metadata_boundary"),
     ("quality_cost_optimizer", "optimization_budget_boundary"),
@@ -221,7 +224,10 @@ class ModelRoutingArchitectureConsistencyRecord(BaseModel):
         default_factory=tuple,
         max_length=24,
     )
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=16)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple,
+        max_length=16,
+    )
     source_metadata_only_declared: Literal[True] = True
     v5_architecture_consistency_confirmed: Literal[True] = True
     v4_boundary_compatibility_confirmed: Literal[True] = True
@@ -263,11 +269,11 @@ class ModelRoutingArchitectureConsistencyRegistry(BaseModel):
     )
     route_name: RouteName = _ROUTE_NAME
     records: tuple[ModelRoutingArchitectureConsistencyRecord, ...] = Field(
-        min_length=18,
-        max_length=18,
+        min_length=19,
+        max_length=19,
     )
-    surface_ids: tuple[str, ...] = Field(min_length=18, max_length=18)
-    record_count: int = Field(ge=18, le=18)
+    surface_ids: tuple[str, ...] = Field(min_length=19, max_length=19)
+    record_count: int = Field(ge=19, le=19)
     architecture_layers: tuple[ModelRoutingArchitectureLayer, ...] = Field(
         min_length=7,
         max_length=7,
@@ -429,6 +435,7 @@ def _source_objects() -> dict[str, Any]:
 
     return {
         "model_router": model_routing,
+        "routing_intelligence": model_routing_intelligence_registry(),
         "local_cloud_routing": local_cloud,
         "hybrid_routing": hybrid,
         "quality_cost_optimizer": quality_cost,
@@ -541,7 +548,11 @@ def _source_metadata_only_declared(source: Any) -> bool:
         getattr(
             source,
             "advisory_only",
-            getattr(source, "recommendation_only", getattr(source, "metadata_only", True)),
+            getattr(
+                source,
+                "recommendation_only",
+                getattr(source, "metadata_only", True),
+            ),
         )
     )
 

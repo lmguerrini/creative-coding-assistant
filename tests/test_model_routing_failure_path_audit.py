@@ -17,6 +17,7 @@ from creative_coding_assistant.orchestration.routing import RouteName
 
 EXPECTED_SURFACE_IDS = (
     "model_router",
+    "routing_intelligence",
     "local_cloud_routing",
     "hybrid_routing",
     "quality_cost_optimizer",
@@ -128,7 +129,7 @@ class ModelRoutingFailurePathAuditTests(unittest.TestCase):
             registry.architecture_registry_serialization_version,
             "model_routing_architecture_consistency_registry.v1",
         )
-        self.assertEqual(registry.architecture_registry_record_count, 18)
+        self.assertEqual(registry.architecture_registry_record_count, 19)
         self.assertEqual(registry.source_surface_ids, EXPECTED_SURFACE_IDS)
         self.assertEqual(registry.required_checks, EXPECTED_REQUIRED_CHECKS)
         self.assertEqual(

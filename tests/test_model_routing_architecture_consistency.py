@@ -16,6 +16,7 @@ from creative_coding_assistant.orchestration.routing import RouteName
 
 EXPECTED_SURFACE_IDS = (
     "model_router",
+    "routing_intelligence",
     "local_cloud_routing",
     "hybrid_routing",
     "quality_cost_optimizer",
@@ -96,7 +97,7 @@ class ModelRoutingArchitectureConsistencyTests(unittest.TestCase):
         self.assertEqual(registry.route_name, RouteName.GENERATE)
         self.assertEqual(registry.surface_ids, EXPECTED_SURFACE_IDS)
         self.assertEqual(registry.architecture_layers, EXPECTED_ARCHITECTURE_LAYERS)
-        self.assertEqual(registry.record_count, 18)
+        self.assertEqual(registry.record_count, 19)
         self.assertTrue(registry.all_surfaces_covered)
         self.assertTrue(registry.route_consistency_confirmed)
         self.assertTrue(registry.no_active_runtime_flags)
@@ -149,7 +150,10 @@ class ModelRoutingArchitectureConsistencyTests(unittest.TestCase):
                 record.validated_version_rules,
                 registry.validated_version_rules,
             )
-            self.assertEqual(record.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                record.passive_boundary_flags,
+                registry.passive_boundary_flags,
+            )
             self.assertTrue(record.source_blocked_runtime_behaviors)
             self.assertFalse(record.source_active_runtime_flags)
             self.assertFalse(record.missing_coverage_items)
@@ -214,7 +218,11 @@ class ModelRoutingArchitectureConsistencyTests(unittest.TestCase):
             update={"missing_coverage_items": ("serialization_version_missing",)}
         )
         active_record = first_record.model_copy(
-            update={"source_active_runtime_flags": ("provider_model_routing_implemented",)}
+            update={
+                "source_active_runtime_flags": (
+                    "provider_model_routing_implemented",
+                )
+            }
         )
 
         with self.assertRaisesRegex(ValueError, "surface_ids must be unique"):
