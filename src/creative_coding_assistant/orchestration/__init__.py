@@ -262,6 +262,9 @@ _EXECUTION_COST_FORECASTING = (
 _EXECUTION_PATH_OPTIMIZATION = (
     "creative_coding_assistant.orchestration.execution_path_optimization"
 )
+_EXECUTION_STRATEGY_SELECTION = (
+    "creative_coding_assistant.orchestration.execution_strategy_selection"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -294,6 +297,8 @@ _EXPORT_MAP = {
     "ExecutionCostForecastScenario": _EXECUTION_COST_FORECASTING,
     "ExecutionPathCandidate": _EXECUTION_PATH_OPTIMIZATION,
     "ExecutionPathOptimizationPlan": _EXECUTION_PATH_OPTIMIZATION,
+    "ExecutionStrategyCandidate": _EXECUTION_STRATEGY_SELECTION,
+    "ExecutionStrategySelection": _EXECUTION_STRATEGY_SELECTION,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1381,6 +1386,8 @@ _EXPORT_MAP = {
     "execution_cost_forecast_scenarios_for_kind": _EXECUTION_COST_FORECASTING,
     "execution_path_candidate_by_id": _EXECUTION_PATH_OPTIMIZATION,
     "execution_path_candidates_for_status": _EXECUTION_PATH_OPTIMIZATION,
+    "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
+    "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "finish_workflow": _WORKFLOW,
     "forecast_execution_cost": _EXECUTION_COST_FORECASTING,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
@@ -1403,6 +1410,7 @@ _EXPORT_MAP = {
     "review_assistant_answer": _WORKFLOW_REVIEW,
     "route_context_sources": _CONTEXT_ROUTER,
     "route_request": _ROUTING,
+    "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
     "shader_preset_prompt_lines": _SHADER_PRESETS,
