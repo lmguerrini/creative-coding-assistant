@@ -306,6 +306,9 @@ _CREATIVE_DIVERSITY_PREDICTOR = (
 _CREATIVE_CONSISTENCY_PREDICTOR = (
     "creative_coding_assistant.orchestration.creative_consistency_predictor"
 )
+_ROUTING_EXPLAINABILITY = (
+    "creative_coding_assistant.orchestration.routing_explainability"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -378,6 +381,8 @@ _EXPORT_MAP = {
     "CreativeDiversityPredictionPlan": _CREATIVE_DIVERSITY_PREDICTOR,
     "CreativeConsistencyPrediction": _CREATIVE_CONSISTENCY_PREDICTOR,
     "CreativeConsistencyPredictionPlan": _CREATIVE_CONSISTENCY_PREDICTOR,
+    "RoutingExplainabilityPlan": _ROUTING_EXPLAINABILITY,
+    "RoutingExplanationRecord": _ROUTING_EXPLAINABILITY,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1462,6 +1467,7 @@ _EXPORT_MAP = {
     "predict_cost_for_route": _COST_PREDICTION_ENGINE,
     "predict_creative_diversity": _CREATIVE_DIVERSITY_PREDICTOR,
     "predict_creative_consistency": _CREATIVE_CONSISTENCY_PREDICTOR,
+    "explain_routing_decision": _ROUTING_EXPLAINABILITY,
     "derive_sacred_geometry_guidance": _SACRED_GEOMETRY,
     "detect_sacred_geometry_concepts": _SACRED_GEOMETRY,
     "detect_shader_presets": _SHADER_PRESETS,
@@ -1520,6 +1526,8 @@ _EXPORT_MAP = {
     "creative_diversity_predictions_for_band": _CREATIVE_DIVERSITY_PREDICTOR,
     "creative_consistency_prediction_by_id": _CREATIVE_CONSISTENCY_PREDICTOR,
     "creative_consistency_predictions_for_band": _CREATIVE_CONSISTENCY_PREDICTOR,
+    "routing_explanation_by_id": _ROUTING_EXPLAINABILITY,
+    "routing_explanations_for_source": _ROUTING_EXPLAINABILITY,
     "finish_workflow": _WORKFLOW,
     "forecast_execution_cost": _EXECUTION_COST_FORECASTING,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
