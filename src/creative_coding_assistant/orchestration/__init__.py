@@ -280,6 +280,9 @@ _STREAMING_OPTIMIZER = (
 _RETRY_POLICIES = (
     "creative_coding_assistant.orchestration.retry_policies"
 )
+_LOAD_BALANCER = (
+    "creative_coding_assistant.orchestration.load_balancer"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -378,6 +381,8 @@ _EXPORT_MAP = {
     "StreamingOptimizationPlan": _STREAMING_OPTIMIZER,
     "RetryPolicyCandidate": _RETRY_POLICIES,
     "RetryPolicyPlan": _RETRY_POLICIES,
+    "LoadBalanceCandidate": _LOAD_BALANCER,
+    "LoadBalancerPlan": _LOAD_BALANCER,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1560,6 +1565,8 @@ _EXPORT_MAP = {
     "streaming_optimization_candidates_for_status": _STREAMING_OPTIMIZER,
     "retry_policy_candidate_by_id": _RETRY_POLICIES,
     "retry_policy_candidates_for_status": _RETRY_POLICIES,
+    "load_balance_candidate_by_id": _LOAD_BALANCER,
+    "load_balance_candidates_for_status": _LOAD_BALANCER,
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "execution_optimization_failure_audit_by_id": (
@@ -1655,6 +1662,7 @@ _EXPORT_MAP = {
     "plan_async_execution": _ASYNC_EXECUTION,
     "plan_exploration_budget": _EXPLORATION_BUDGET_PLANNER,
     "plan_execution_path_optimization": _EXECUTION_PATH_OPTIMIZATION,
+    "plan_load_balancer": _LOAD_BALANCER,
     "plan_parallel_scheduler": _PARALLEL_SCHEDULER,
     "plan_retry_policies": _RETRY_POLICIES,
     "plan_workflow_pruning": _WORKFLOW_PRUNING,
