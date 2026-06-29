@@ -273,6 +273,9 @@ _LOCAL_CLOUD_ROUTING = (
     "creative_coding_assistant.orchestration.local_cloud_routing"
 )
 _HYBRID_ROUTING = "creative_coding_assistant.orchestration.hybrid_routing"
+_QUALITY_COST_OPTIMIZER = (
+    "creative_coding_assistant.orchestration.quality_cost_optimizer"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -319,6 +322,8 @@ _EXPORT_MAP = {
     "LocalCloudRoutingPlan": _LOCAL_CLOUD_ROUTING,
     "HybridRouteDecision": _HYBRID_ROUTING,
     "HybridRoutingPlan": _HYBRID_ROUTING,
+    "QualityCostOptimizationCandidate": _QUALITY_COST_OPTIMIZER,
+    "QualityCostOptimizationPlan": _QUALITY_COST_OPTIMIZER,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1423,11 +1428,14 @@ _EXPORT_MAP = {
     "local_cloud_route_decisions_for_lane": _LOCAL_CLOUD_ROUTING,
     "hybrid_route_decision_by_id": _HYBRID_ROUTING,
     "hybrid_route_decisions_for_mode": _HYBRID_ROUTING,
+    "quality_cost_candidate_by_id": _QUALITY_COST_OPTIMIZER,
+    "quality_cost_candidates_for_posture": _QUALITY_COST_OPTIMIZER,
     "finish_workflow": _WORKFLOW,
     "forecast_execution_cost": _EXECUTION_COST_FORECASTING,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
     "memory_summary_segments_for_kind": _MEMORY_SUMMARIZATION,
     "next_workflow_step": _WORKFLOW,
+    "optimize_quality_cost": _QUALITY_COST_OPTIMIZER,
     "prepare_workflow_preview_results": _ARTIFACTS,
     "plan_context_budget": _CONTEXT_BUDGET_PLANNER,
     "plan_context_reuse": _CONTEXT_REUSE,
