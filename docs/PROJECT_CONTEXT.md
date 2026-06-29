@@ -47,6 +47,15 @@ inspection metadata, critique, and refinement context.
   artifact provenance, artifact lineage, cross-agent workspace, shared artifact
   board, workspace history, branching timeline, creative evolution timeline,
   real-time workflow visualization, and multimodal studio integration metadata.
+- V4.6 Agentic Studio Hardening for passive contract, policy, workflow,
+  registry, memory/context, collaboration, diversity, explainability,
+  reliability, determinism, telemetry, cost, performance, architecture
+  consistency, final hardening, and LangGraph error-path audit metadata.
+- V5.1 Execution Optimization Engine for advisory graph, cost, complexity,
+  creative complexity, context budget, exploration budget, context routing,
+  compression, summarization, cache, reuse, pruning, forecasting, path
+  optimization, strategy selection, architecture consistency, and failure audit
+  metadata.
 
 ## Supported Creative Domains
 
@@ -65,9 +74,9 @@ inspection metadata, critique, and refinement context.
 - Chroma remains the persistent retrieval and memory database.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
-- V4.1, V4.2, V4.3, V4.4, V4.5, and V4.6 registries are passive product and
-  architecture metadata. They are inspectable Python APIs and documentation
-  surfaces.
+- V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, and V5.1 registries and helpers are
+  passive or advisory product and architecture metadata. They are inspectable
+  Python APIs and documentation surfaces.
 
 ## V4.3 Passive Boundary
 
@@ -134,7 +143,24 @@ The LangGraph Error Path Audit documents and tests terminal failure coverage
 for the existing graph and backend/frontend boundaries without introducing new
 runtime behavior.
 
-## Non-Goals For V4.6
+## V5.1 Advisory Boundary
+
+V5.1 Execution Optimization Engine is advisory execution optimization metadata
+over the existing compact LangGraph workflow. It includes graph analysis,
+workflow cost and complexity analysis, creative complexity analysis, context
+budget planning, exploration budget planning, context routing, prompt and
+retrieval compression metadata, memory summarization metadata, deterministic
+in-memory cache metadata, context reuse planning, workflow pruning candidates,
+execution cost forecasts, path optimization candidates, strategy selection,
+architecture consistency coverage, and runtime failure-path audit coverage.
+
+It must not add LangGraph nodes, compile or execute alternate graphs, enforce
+budgets, apply pruning, select runtime paths, apply execution strategies, route
+providers or models, trigger retries, mutate prompts, write persistent cache
+storage, change retrieval or memory ownership, control workflows, activate
+passive registries, or modify generated output.
+
+## Non-Goals For Current Baseline
 
 - active multi-agent execution
 - autonomous escalation
@@ -144,6 +170,7 @@ runtime behavior.
 - canvas input binding or canvas mutation
 - workflow visualization execution
 - runtime hardening execution
+- active execution optimization
 - LangGraph node additions
 - failure normalization bypasses
 - passive registry activation
@@ -158,5 +185,6 @@ runtime behavior.
 - generated-output mutation
 - prompt rendering changes
 - storage or blackboard runtime behavior
-- V5 execution optimization
+- provider pricing lookup or budget enforcement
+- production telemetry and adaptive runtime policy
 - V6 learning or long-horizon adaptation

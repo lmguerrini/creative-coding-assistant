@@ -6,17 +6,18 @@
   retrieval, memory, planning metadata, provider execution, artifact metadata,
   review, bounded refinement, finalization, and failure handling.
 - Keep the LangGraph workflow compact. Internal creative intelligence,
-  generative design, artifact intelligence, evaluation, workstation, and V4
-  registry layers are metadata surfaces, not additional runtime nodes.
+  generative design, artifact intelligence, evaluation, workstation, V4
+  registry layers, and V5.1 execution optimization helpers are metadata
+  surfaces, not additional runtime nodes.
 - Keep the Next.js workstation responsible for product inspection, preview,
   comparison, export, telemetry, workflow visibility, and operator controls.
 
 ## Persistence
 
 Chroma remains the only persistent retrieval and memory database. Passive V4.1,
-V4.2, V4.3, V4.4, and V4.5 registries do not create storage backends, write
-blackboard state, write replay storage, or introduce runtime synchronization
-behavior.
+V4.2, V4.3, V4.4, V4.5, and V4.6 registries and advisory V5.1 optimization
+helpers do not create storage backends, write blackboard state, write replay
+storage, persist cache entries, or introduce runtime synchronization behavior.
 
 ## Metadata Layering
 
@@ -37,6 +38,13 @@ behavior.
   workspace, collaboration, provenance, lineage, history, branching, creative
   evolution, workflow visualization, and integration metadata over the V4.4
   Studio inspection layer.
+- V4.6 Agentic Studio Hardening registries describe passive audit and
+  hardening coverage across the V4.1-V4.5 Agentic Studio stack.
+- V5.1 Execution Optimization Engine helpers describe advisory execution graph,
+  cost, complexity, creative complexity, context budget, exploration, routing,
+  compression, summarization, cache, reuse, pruning, forecasting, path,
+  strategy, consistency, and failure-path metadata over the existing compact
+  workflow.
 
 ## V4.3 Boundary Decision
 
@@ -106,6 +114,24 @@ workflow order. More generally, it does not change provider/model routing,
 does not introduce runtime recovery behavior, and does not modify generated
 output.
 
+## V5.1 Boundary Decision
+
+V5.1 Execution Optimization Engine is an advisory metadata layer only. It may
+expose graph topology analysis, workflow cost and complexity estimates,
+creative complexity pressure, context and exploration budget plans, context
+route recommendations, compression and summarization metadata, deterministic
+in-memory cache status, context reuse opportunities, pruning candidates,
+forecast scenarios, path optimization candidates, selected strategy metadata,
+architecture consistency checks, and runtime failure-path audit coverage.
+
+It must not add LangGraph nodes, compile or execute alternate graphs, enforce
+budgets, apply pruning, select runtime paths, apply strategies, route providers
+or models, trigger retries, mutate prompts, write persistent cache storage,
+change retrieval or memory ownership, control workflows, activate passive
+registries, or modify generated output. More generally, it does not change
+provider/model routing, does not introduce autonomous execution optimization
+behavior, and does not modify generated output.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -120,8 +146,9 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - passive V4.4 hybrid studio metadata
 - passive V4.5 multimodal studio metadata
 - passive V4.6 agentic studio hardening metadata
-- future active V4 Agentic Studio, V5 execution optimization, and V6 learning
-  work
+- advisory V5.1 execution optimization metadata
+- future active V4 Agentic Studio, later V5 production intelligence, and V6
+  learning work
 
 ## Code Quality Rules
 

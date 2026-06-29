@@ -53,6 +53,10 @@ future systems are active in the current runtime.
   shared artifact board, workspace history, branching timeline, creative
   evolution timeline, real-time workflow visualization, and multimodal studio
   integration metadata.
+- V4.6 Agentic Studio Hardening defines passive contract, policy, workflow,
+  registry, memory/context, collaboration, diversity, explainability,
+  reliability, determinism, telemetry, cost, performance, architecture
+  consistency, final hardening, and LangGraph error-path audit metadata.
 
 The V4.3 layer is a completed passive metadata layer. It does not execute
 agents, run autonomous escalation, change workflow order, route providers or
@@ -80,14 +84,32 @@ control workflows, change provider/model routing, select runtimes, trigger
 retries, mutate storage, execute artifacts, invoke agents, or modify generated
 output.
 
+## Advisory Execution Optimization Metadata
+
+The V5.1 Execution Optimization Engine is a completed advisory metadata layer.
+It records execution graph analysis, workflow cost and complexity analysis,
+creative complexity pressure, context budget planning, exploration budget
+planning, context routing, prompt/retrieval/memory compression metadata,
+deterministic in-memory cache metadata, context reuse planning, workflow
+pruning candidates, execution cost forecasts, path optimization candidates,
+strategy selection, architecture consistency coverage, and runtime failure-path
+audit coverage.
+
+It does not add LangGraph nodes, compile or execute alternate graphs, enforce
+budgets, apply pruning, select runtime paths, apply execution strategies, route
+providers or models, trigger retries, mutate prompts, write persistent cache
+storage, change retrieval or memory ownership, control workflows, activate
+passive registries, or modify generated output.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current
   V4.1, V4.2, V4.3, V4.4, V4.5, and V4.6 registries provide inspection,
   contract, and hardening metadata for that direction, but not active
   collaboration behavior, active Studio runtime, or runtime hardening behavior.
-- V5 Execution Optimization & Production Intelligence remains future runtime
-  policy, production telemetry, and cost/performance work.
+- Later V5 Execution Optimization & Production Intelligence work remains
+  future active runtime policy, production telemetry, adaptive optimization,
+  and cost/performance enforcement work.
 - V6 HoloGenesis Core OS remains future long-horizon creative lineage,
   feedback, memory, and system continuity work.
 
@@ -95,5 +117,5 @@ output.
 
 Product docs should describe delivered metadata layers without overstating
 future behavior. Architecture docs may show passive registry boundaries and
-source coverage, but must keep the current compact LangGraph workflow as the
-execution source of truth.
+source coverage, including V5.1 execution optimization metadata, but must keep
+the current compact LangGraph workflow as the execution source of truth.
