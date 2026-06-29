@@ -271,6 +271,9 @@ _PARALLEL_SCHEDULER = (
 _LATENCY_OPTIMIZER = (
     "creative_coding_assistant.orchestration.latency_optimizer"
 )
+_ASYNC_EXECUTION = (
+    "creative_coding_assistant.orchestration.async_execution"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -363,6 +366,8 @@ _EXPORT_MAP = {
     "ParallelSchedulerPlan": _PARALLEL_SCHEDULER,
     "LatencyOptimizationCandidate": _LATENCY_OPTIMIZER,
     "LatencyOptimizationPlan": _LATENCY_OPTIMIZER,
+    "AsyncExecutionCandidate": _ASYNC_EXECUTION,
+    "AsyncExecutionPlan": _ASYNC_EXECUTION,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1539,6 +1544,8 @@ _EXPORT_MAP = {
     "parallel_schedule_candidates_for_status": _PARALLEL_SCHEDULER,
     "latency_optimization_candidate_by_id": _LATENCY_OPTIMIZER,
     "latency_optimization_candidates_for_status": _LATENCY_OPTIMIZER,
+    "async_execution_candidate_by_id": _ASYNC_EXECUTION,
+    "async_execution_candidates_for_status": _ASYNC_EXECUTION,
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "execution_optimization_failure_audit_by_id": (
@@ -1630,6 +1637,7 @@ _EXPORT_MAP = {
     "prepare_workflow_preview_results": _ARTIFACTS,
     "plan_context_budget": _CONTEXT_BUDGET_PLANNER,
     "plan_context_reuse": _CONTEXT_REUSE,
+    "plan_async_execution": _ASYNC_EXECUTION,
     "plan_exploration_budget": _EXPLORATION_BUDGET_PLANNER,
     "plan_execution_path_optimization": _EXECUTION_PATH_OPTIMIZATION,
     "plan_parallel_scheduler": _PARALLEL_SCHEDULER,
