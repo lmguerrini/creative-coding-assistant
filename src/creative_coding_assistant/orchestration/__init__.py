@@ -288,6 +288,9 @@ _EXECUTION_POLICY_ENGINE = (
 _MODEL_RECOMMENDATION_ENGINE = (
     "creative_coding_assistant.orchestration.model_recommendation_engine"
 )
+_MODEL_CAPABILITY_MATRIX = (
+    "creative_coding_assistant.orchestration.model_capability_matrix"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -348,6 +351,8 @@ _EXPORT_MAP = {
     "ExecutionPolicyPlan": _EXECUTION_POLICY_ENGINE,
     "ModelRecommendationDecision": _MODEL_RECOMMENDATION_ENGINE,
     "ModelRecommendationPlan": _MODEL_RECOMMENDATION_ENGINE,
+    "ModelCapabilityMatrix": _MODEL_CAPABILITY_MATRIX,
+    "ModelCapabilityMatrixRow": _MODEL_CAPABILITY_MATRIX,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1426,6 +1431,7 @@ _EXPORT_MAP = {
     "recommend_runtime_execution": _RUNTIME_RECOMMENDATION_ENGINE,
     "evaluate_execution_policies": _EXECUTION_POLICY_ENGINE,
     "recommend_model_profile": _MODEL_RECOMMENDATION_ENGINE,
+    "build_model_capability_matrix": _MODEL_CAPABILITY_MATRIX,
     "derive_sacred_geometry_guidance": _SACRED_GEOMETRY,
     "detect_sacred_geometry_concepts": _SACRED_GEOMETRY,
     "detect_shader_presets": _SHADER_PRESETS,
@@ -1471,6 +1477,8 @@ _EXPORT_MAP = {
     "execution_policies_for_posture": _EXECUTION_POLICY_ENGINE,
     "model_recommendation_by_id": _MODEL_RECOMMENDATION_ENGINE,
     "model_recommendations_for_policy_posture": _MODEL_RECOMMENDATION_ENGINE,
+    "model_capability_row_by_profile_id": _MODEL_CAPABILITY_MATRIX,
+    "model_capability_rows_for_route": _MODEL_CAPABILITY_MATRIX,
     "finish_workflow": _WORKFLOW,
     "forecast_execution_cost": _EXECUTION_COST_FORECASTING,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
