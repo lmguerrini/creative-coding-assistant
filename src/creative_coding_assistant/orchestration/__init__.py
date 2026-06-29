@@ -265,6 +265,9 @@ _EXECUTION_PATH_OPTIMIZATION = (
 _EXECUTION_STRATEGY_SELECTION = (
     "creative_coding_assistant.orchestration.execution_strategy_selection"
 )
+_PARALLEL_SCHEDULER = (
+    "creative_coding_assistant.orchestration.parallel_scheduler"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -353,6 +356,8 @@ _EXPORT_MAP = {
     "ExecutionPathOptimizationPlan": _EXECUTION_PATH_OPTIMIZATION,
     "ExecutionStrategyCandidate": _EXECUTION_STRATEGY_SELECTION,
     "ExecutionStrategySelection": _EXECUTION_STRATEGY_SELECTION,
+    "ParallelScheduleCandidate": _PARALLEL_SCHEDULER,
+    "ParallelSchedulerPlan": _PARALLEL_SCHEDULER,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1525,6 +1530,8 @@ _EXPORT_MAP = {
     "execution_cost_forecast_scenarios_for_kind": _EXECUTION_COST_FORECASTING,
     "execution_path_candidate_by_id": _EXECUTION_PATH_OPTIMIZATION,
     "execution_path_candidates_for_status": _EXECUTION_PATH_OPTIMIZATION,
+    "parallel_schedule_candidate_by_id": _PARALLEL_SCHEDULER,
+    "parallel_schedule_candidates_for_status": _PARALLEL_SCHEDULER,
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "execution_optimization_failure_audit_by_id": (
@@ -1617,6 +1624,7 @@ _EXPORT_MAP = {
     "plan_context_reuse": _CONTEXT_REUSE,
     "plan_exploration_budget": _EXPLORATION_BUDGET_PLANNER,
     "plan_execution_path_optimization": _EXECUTION_PATH_OPTIMIZATION,
+    "plan_parallel_scheduler": _PARALLEL_SCHEDULER,
     "plan_workflow_pruning": _WORKFLOW_PRUNING,
     "plan_next_refinement_pass": _REFINEMENT_PASSES,
     "prompt_compression_section_by_id": _PROMPT_COMPRESSION,
