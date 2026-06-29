@@ -283,6 +283,9 @@ _RETRY_POLICIES = (
 _LOAD_BALANCER = (
     "creative_coding_assistant.orchestration.load_balancer"
 )
+_EXECUTION_PROFILING = (
+    "creative_coding_assistant.orchestration.execution_profiling"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -383,6 +386,8 @@ _EXPORT_MAP = {
     "RetryPolicyPlan": _RETRY_POLICIES,
     "LoadBalanceCandidate": _LOAD_BALANCER,
     "LoadBalancerPlan": _LOAD_BALANCER,
+    "ExecutionProfileCandidate": _EXECUTION_PROFILING,
+    "ExecutionProfilingPlan": _EXECUTION_PROFILING,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1567,6 +1572,8 @@ _EXPORT_MAP = {
     "retry_policy_candidates_for_status": _RETRY_POLICIES,
     "load_balance_candidate_by_id": _LOAD_BALANCER,
     "load_balance_candidates_for_status": _LOAD_BALANCER,
+    "execution_profile_candidate_by_id": _EXECUTION_PROFILING,
+    "execution_profile_candidates_for_status": _EXECUTION_PROFILING,
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "execution_optimization_failure_audit_by_id": (
@@ -1661,6 +1668,7 @@ _EXPORT_MAP = {
     "plan_context_reuse": _CONTEXT_REUSE,
     "plan_async_execution": _ASYNC_EXECUTION,
     "plan_exploration_budget": _EXPLORATION_BUDGET_PLANNER,
+    "plan_execution_profiling": _EXECUTION_PROFILING,
     "plan_execution_path_optimization": _EXECUTION_PATH_OPTIMIZATION,
     "plan_load_balancer": _LOAD_BALANCER,
     "plan_parallel_scheduler": _PARALLEL_SCHEDULER,
