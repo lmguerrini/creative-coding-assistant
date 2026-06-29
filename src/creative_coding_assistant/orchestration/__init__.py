@@ -278,6 +278,7 @@ _QUALITY_COST_OPTIMIZER = (
 )
 _COST_ESTIMATOR = "creative_coding_assistant.orchestration.cost_estimator"
 _BUDGET_POLICIES = "creative_coding_assistant.orchestration.budget_policies"
+_HITL_BUDGET_GATE = "creative_coding_assistant.orchestration.hitl_budget_gate"
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -330,6 +331,8 @@ _EXPORT_MAP = {
     "CostEstimationPlan": _COST_ESTIMATOR,
     "BudgetPolicyDecision": _BUDGET_POLICIES,
     "BudgetPolicyPlan": _BUDGET_POLICIES,
+    "HitlBudgetGateDecision": _HITL_BUDGET_GATE,
+    "HitlBudgetGatePlan": _HITL_BUDGET_GATE,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1404,6 +1407,7 @@ _EXPORT_MAP = {
     "derive_hitl_clarification": _CLARIFICATION,
     "evaluate_artifact_sacred_consistency": _SACRED_CONSISTENCY,
     "evaluate_artifact_creative_quality": _CREATIVE_QUALITY,
+    "evaluate_hitl_budget_gate": _HITL_BUDGET_GATE,
     "derive_sacred_geometry_guidance": _SACRED_GEOMETRY,
     "detect_sacred_geometry_concepts": _SACRED_GEOMETRY,
     "detect_shader_presets": _SHADER_PRESETS,
@@ -1441,6 +1445,8 @@ _EXPORT_MAP = {
     "cost_estimate_scenarios_for_confidence": _COST_ESTIMATOR,
     "budget_policy_by_id": _BUDGET_POLICIES,
     "budget_policies_for_posture": _BUDGET_POLICIES,
+    "hitl_budget_gate_by_id": _HITL_BUDGET_GATE,
+    "hitl_budget_gates_for_status": _HITL_BUDGET_GATE,
     "finish_workflow": _WORKFLOW,
     "forecast_execution_cost": _EXECUTION_COST_FORECASTING,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
