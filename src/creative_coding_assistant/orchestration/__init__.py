@@ -319,6 +319,7 @@ _PERFORMANCE_ARCHITECTURE_CONSISTENCY = (
 _PERFORMANCE_FAILURE_PATH_AUDIT = (
     "creative_coding_assistant.orchestration.performance_failure_path_audit"
 )
+_TOKEN_DASHBOARD = "creative_coding_assistant.orchestration.token_dashboard"
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -447,6 +448,8 @@ _EXPORT_MAP = {
     ),
     "PerformanceFailurePathAuditRecord": _PERFORMANCE_FAILURE_PATH_AUDIT,
     "PerformanceFailurePathAuditRegistry": _PERFORMANCE_FAILURE_PATH_AUDIT,
+    "TokenDashboard": _TOKEN_DASHBOARD,
+    "TokenDashboardPanel": _TOKEN_DASHBOARD,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1761,6 +1764,7 @@ _EXPORT_MAP = {
     "task_routing_decisions_requiring_hitl": _ROUTING_INTELLIGENCE,
     "finish_workflow": _WORKFLOW,
     "forecast_execution_cost": _EXECUTION_COST_FORECASTING,
+    "build_token_dashboard": _TOKEN_DASHBOARD,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
     "memory_summary_segments_for_kind": _MEMORY_SUMMARIZATION,
     "next_workflow_step": _WORKFLOW,
@@ -1808,6 +1812,8 @@ _EXPORT_MAP = {
     "start_refinement_pass_record": _REFINEMENT_PASSES,
     "stream_assistant_workflow_events": _WORKFLOW_GRAPH,
     "start_workflow_step": _WORKFLOW,
+    "token_dashboard_panel_by_id": _TOKEN_DASHBOARD,
+    "token_dashboard_panels_for_pressure": _TOKEN_DASHBOARD,
 }
 
 __all__ = list(_EXPORT_MAP)
