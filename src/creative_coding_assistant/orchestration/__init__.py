@@ -313,6 +313,9 @@ _MODEL_ROUTING_ARCHITECTURE_CONSISTENCY = (
     "creative_coding_assistant.orchestration."
     "model_routing_architecture_consistency"
 )
+_MODEL_ROUTING_FAILURE_PATH_AUDIT = (
+    "creative_coding_assistant.orchestration.model_routing_failure_path_audit"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -393,6 +396,8 @@ _EXPORT_MAP = {
     "ModelRoutingArchitectureConsistencyRegistry": (
         _MODEL_ROUTING_ARCHITECTURE_CONSISTENCY
     ),
+    "ModelRoutingFailurePathAuditRecord": _MODEL_ROUTING_FAILURE_PATH_AUDIT,
+    "ModelRoutingFailurePathAuditRegistry": _MODEL_ROUTING_FAILURE_PATH_AUDIT,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1546,6 +1551,18 @@ _EXPORT_MAP = {
     ),
     "model_routing_architecture_consistency_records_for_layer": (
         _MODEL_ROUTING_ARCHITECTURE_CONSISTENCY
+    ),
+    "model_routing_failure_path_audit_by_id": (
+        _MODEL_ROUTING_FAILURE_PATH_AUDIT
+    ),
+    "model_routing_failure_path_audit_registry": (
+        _MODEL_ROUTING_FAILURE_PATH_AUDIT
+    ),
+    "model_routing_failure_path_audits_for_check": (
+        _MODEL_ROUTING_FAILURE_PATH_AUDIT
+    ),
+    "model_routing_failure_path_audits_for_surface": (
+        _MODEL_ROUTING_FAILURE_PATH_AUDIT
     ),
     "finish_workflow": _WORKFLOW,
     "forecast_execution_cost": _EXECUTION_COST_FORECASTING,
