@@ -58,6 +58,23 @@ rendering, activating Studio runtime, changing provider/model routing,
 selecting runtimes, controlling workflows, mutating artifacts, persisting
 collaboration storage, subscribing to live streams, opening networking, or
 modifying generated output.
+V4.6 adds passive Agentic Studio Hardening metadata for contracts, policies,
+workflow readiness, registry discoverability, memory/context boundaries,
+collaboration/diversity, explainability/reliability/determinism, observability,
+cost, performance, architecture consistency, final hardening, and LangGraph
+error-path coverage without executing hardening behavior.
+V5.1 adds advisory Execution Optimization metadata for graph analysis,
+workflow cost/complexity, context/exploration budget, compression, cache/reuse,
+pruning, forecasting, path optimization, strategy selection, architecture
+consistency, and runtime failure-path audit coverage. V5.2 adds advisory
+Intelligent Model Routing metadata for model/local/cloud/hybrid routing
+posture, quality/cost optimization, budget/HITL gates, runtime/execution
+policy, model recommendations, model/provider capability matrices,
+quality/cost and creative prediction, routing explainability, architecture
+consistency, and runtime failure-path audit coverage. These V5 layers do not
+apply routing, switch providers or models, execute providers, enforce budgets,
+emit HITL requests, control workflows, trigger retries, mutate prompts, or
+modify generated output.
 
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
@@ -110,6 +127,15 @@ observed through live preview and runtime inspection from the same interface.
   reliability, determinism, observability, cost, performance, architecture,
   final hardening, and LangGraph error-path audit metadata without new runtime
   behavior
+- V5.1 Execution Optimization helpers for advisory graph, cost, complexity,
+  context budget, exploration, compression, cache/reuse, pruning, forecasting,
+  path optimization, strategy selection, architecture consistency, and failure
+  audit metadata without changing runtime control
+- V5.2 Intelligent Model Routing helpers for advisory model routing,
+  local/cloud routing, hybrid routing, quality/cost optimization, budget/HITL
+  gates, runtime/execution policy, model recommendations, capability matrices,
+  prediction, explainability, architecture consistency, and failure audit
+  metadata without active model selection or provider execution
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -196,6 +222,31 @@ error-path audit coverage. It preserves the current LangGraph runtime and
 remains passive agentic studio hardening metadata, not runtime hardening
 execution, provider/model routing, workflow control, registry activation,
 agent invocation, retry triggering, storage mutation, or generated-output
+mutation.
+
+V5.1 Execution Optimization defines the execution optimization layer as
+advisory product metadata: execution graph analysis, workflow cost/complexity
+analysis, creative complexity analysis, context and exploration budget plans,
+context routing, prompt/retrieval/memory compression, deterministic cache
+metadata, context reuse, workflow pruning candidates, cost forecasts, path
+optimization candidates, strategy selection, architecture consistency, and
+runtime failure-path audit coverage. It preserves the current LangGraph
+runtime and remains advisory execution optimization metadata, not alternate
+graph execution, runtime selection, provider/model routing, budget
+enforcement, retry triggering, prompt mutation, storage mutation, or
+generated-output mutation.
+
+V5.2 Intelligent Model Routing defines the model-routing layer as advisory
+product metadata: model route candidates, local/cloud routing posture, hybrid
+routing posture, quality/cost optimization, cost estimation, budget policy,
+HITL budget gate posture, runtime recommendation, execution policy, model
+recommendation, model/provider capability matrices, quality/cost prediction,
+creative quality/diversity/consistency prediction, routing explainability,
+architecture consistency, and runtime failure-path audit coverage. It preserves
+the current LangGraph runtime and remains advisory model-routing metadata, not
+active model selection, provider/model switching, provider execution, HITL
+request emission, budget enforcement, workflow control, retry triggering,
+prompt mutation, storage mutation, Runtime Evolution, or generated-output
 mutation.
 
 Artifact Intelligence capabilities:
@@ -348,6 +399,49 @@ Agentic Studio Hardening registries:
 - Final V4 Hardening Registry
 - LangGraph Error Path Audit
 
+Execution Optimization surfaces:
+
+- Execution Graph Analysis
+- Workflow Cost Analysis
+- Workflow Complexity Analysis
+- Creative Complexity Analysis
+- Context Budget Plan
+- Exploration Budget Plan
+- Context Routing Plan
+- Prompt Compression
+- Retrieval Compression
+- Memory Summarization
+- Execution Cache Lookup
+- Context Reuse Plan
+- Workflow Pruning Plan
+- Execution Cost Forecast
+- Execution Path Optimization
+- Execution Strategy Selection
+- Execution Optimization Failure Audit
+
+Intelligent Model Routing surfaces:
+
+- Model Router
+- Local vs Cloud Routing
+- Hybrid Routing
+- Quality/Cost Optimizer
+- Cost Estimator
+- Budget Policies
+- HITL Budget Gate
+- Runtime Recommendation Engine
+- Execution Policy Engine
+- Model Recommendation Engine
+- Model Capability Matrix
+- Provider Capability Matrix
+- Quality Prediction Engine
+- Cost Prediction Engine
+- Creative Quality Predictor
+- Creative Diversity Predictor
+- Creative Consistency Predictor
+- Routing Explainability
+- Model Routing Architecture Consistency
+- Model Routing Failure Path Audit
+
 The architecture documents six complementary views:
 
 - the real runtime graph in
@@ -361,8 +455,7 @@ The architecture documents six complementary views:
 - the V3.5 Creative Workstation surface graph in
   [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
 - the cross-cutting engine matrix, including V4.1, V4.2, V4.3, V4.4, V4.5,
-  and V4.6
-  registries, in
+  V4.6, V5.1, and V5.2 metadata layers, in
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
 The runtime graph remains compact and truthful. The internal pipeline and
@@ -371,6 +464,9 @@ while V4.1, V4.2, V4.3, V4.4, V4.5, and V4.6 document passive roles,
 contracts, orchestration, hybrid workflow, hybrid studio, multimodal studio,
 and hardening metadata rather than claiming that a multi-agent runtime, Studio
 runtime, rendering execution path, or runtime hardening engine already exists.
+V5.1 and V5.2 document advisory execution optimization and model-routing
+metadata without claiming that active runtime policy, model switching, or
+provider execution has been added.
 
 ## Creative Workflow
 
@@ -440,6 +536,22 @@ inspection, and multimodal workspace inspection:
   routing, selecting runtimes, controlling workflows, mutating artifacts,
   persisting collaboration storage, opening networking, or modifying generated
   output.
+- Agentic Studio Hardening: passive contract, policy, workflow, registry,
+  memory/context, collaboration/diversity, quality, determinism, telemetry,
+  cost, performance, architecture, final hardening, and LangGraph error-path
+  coverage describe hardening readiness without executing hardening checks,
+  changing provider/model routing, or modifying generated output.
+- Execution Optimization: advisory graph, cost, complexity, context,
+  compression, cache/reuse, pruning, forecasting, path, strategy,
+  architecture, and failure-audit metadata describe optimization posture
+  without changing LangGraph control, applying strategies, enforcing budgets,
+  triggering retries, or modifying generated output.
+- Intelligent Model Routing: advisory model routing, local/cloud and hybrid
+  posture, quality/cost optimization, budget/HITL gates, runtime/execution
+  policy, model recommendation, capability matrices, prediction, and
+  explainability metadata describe route recommendation posture without active
+  model selection, provider/model switching, provider execution, HITL request
+  emission, budget enforcement, or Runtime Evolution.
 - Generation: the backend resolves effective domains, assembles the prompt,
   and streams one or more creative artifacts.
 - Preview: supported artifacts mount in controlled preview runtimes with
@@ -936,6 +1048,9 @@ Key backend capabilities include:
 - deterministic review checks with at most one refinement retry
 - selected-artifact refinement context threaded into request contracts, prompt
   inputs, and rendered prompts
+- advisory execution optimization and intelligent model-routing metadata
+  exposed as importable helpers without changing graph control, provider/model
+  routing, provider execution, budget enforcement, or generated output
 - structured terminal failure handling
 - live session recording, optional LangSmith runtime metadata, and offline
   evaluation support
@@ -1149,8 +1264,10 @@ current runtime.
   workflow escalation metadata and V4.4 supplies passive hybrid studio
   metadata, for that direction. These layers are not active collaboration
   behavior in the current runtime and V4.4 does not activate Studio runtime.
-- Execution Optimization: stronger production telemetry, runtime policy, and
-  cost/performance intelligence.
+- Execution Optimization and Model Routing: V5.1 and V5.2 provide advisory
+  optimization and routing metadata today; future production intelligence
+  remains active runtime policy, telemetry, adaptive optimization, and
+  cost/performance enforcement work.
 - HoloGenesis Core OS: long-horizon creative lineage, feedback, memory, and
   system-level continuity.
 

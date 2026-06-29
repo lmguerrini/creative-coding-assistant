@@ -191,6 +191,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("Multimodal Studio", readme)
         self.assertIn("V4.6", readme)
         self.assertIn("Agentic Studio Hardening", readme)
+        self.assertIn("V5.1", readme)
+        self.assertIn("Execution Optimization", readme)
+        self.assertIn("V5.2", readme)
+        self.assertIn("Intelligent Model Routing", readme)
         self.assertIn("Next.js workstation", readme)
         self.assertIn("Capability Scope", readme)
         self.assertIn("architecture/artifact_intelligence_graph.md", readme)
@@ -221,6 +225,11 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("Multimodal Studio Integration source coverage", readme)
         for registry_name in V46_AGENTIC_STUDIO_HARDENING_REGISTRIES:
             self.assertIn(registry_name, readme)
+        for surface in V52_MODEL_ROUTING_SURFACES:
+            self.assertIn(surface, readme)
+        self.assertIn("Execution Optimization Failure Audit", readme)
+        self.assertIn("Model Routing Architecture Consistency", readme)
+        self.assertIn("Model Routing Failure Path Audit", readme)
         self.assertIn("metadata-only", readme)
         self.assertIn("passive role and contract metadata", normalized_readme)
         self.assertIn("passive orchestration metadata", normalized_readme)
@@ -231,6 +240,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "passive agentic studio hardening metadata",
             normalized_readme,
         )
+        self.assertIn("advisory execution optimization metadata", normalized_readme)
+        self.assertIn("advisory model-routing metadata", normalized_readme)
         self.assertIn("orchestration readiness metadata", normalized_readme)
         self.assertIn("not active Studio runtime", normalized_readme)
         self.assertIn("not rendering execution", normalized_readme)
@@ -249,6 +260,11 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("product roadmap context", normalized_readme)
         self.assertIn("bypass failure normalization", normalized_readme)
         self.assertIn("runtime hardening engine", normalized_readme)
+        self.assertIn("not active model selection", normalized_readme)
+        self.assertIn("do not apply routing", normalized_readme)
+        self.assertIn("provider/model switching", normalized_readme)
+        self.assertIn("provider execution", normalized_readme)
+        self.assertIn("Runtime Evolution", normalized_readme)
 
         for internal_marker in PUBLIC_README_INTERNAL_MARKERS:
             self.assertNotIn(internal_marker, readme)
