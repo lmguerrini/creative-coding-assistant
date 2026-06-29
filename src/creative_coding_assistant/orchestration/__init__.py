@@ -255,6 +255,7 @@ _WORKFLOW_COST_ANALYZER = (
 _WORKFLOW_COMPLEXITY_ANALYZER = (
     "creative_coding_assistant.orchestration.workflow_complexity_analyzer"
 )
+_WORKFLOW_PRUNING = "creative_coding_assistant.orchestration.workflow_pruning"
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -281,6 +282,8 @@ _EXPORT_MAP = {
     "WorkflowCostComponent": _WORKFLOW_COST_ANALYZER,
     "WorkflowComplexityAnalysis": _WORKFLOW_COMPLEXITY_ANALYZER,
     "WorkflowComplexityFactor": _WORKFLOW_COMPLEXITY_ANALYZER,
+    "WorkflowPruningCandidate": _WORKFLOW_PRUNING,
+    "WorkflowPruningPlan": _WORKFLOW_PRUNING,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1372,6 +1375,7 @@ _EXPORT_MAP = {
     "plan_context_budget": _CONTEXT_BUDGET_PLANNER,
     "plan_context_reuse": _CONTEXT_REUSE,
     "plan_exploration_budget": _EXPLORATION_BUDGET_PLANNER,
+    "plan_workflow_pruning": _WORKFLOW_PRUNING,
     "plan_next_refinement_pass": _REFINEMENT_PASSES,
     "prompt_compression_section_by_id": _PROMPT_COMPRESSION,
     "prompt_compression_sections_for_status": _PROMPT_COMPRESSION,
@@ -1387,6 +1391,8 @@ _EXPORT_MAP = {
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
     "shader_preset_prompt_lines": _SHADER_PRESETS,
     "visual_style_prompt_lines": _VISUAL_STYLES,
+    "workflow_pruning_candidate_by_id": _WORKFLOW_PRUNING,
+    "workflow_pruning_candidates_for_status": _WORKFLOW_PRUNING,
     "skip_workflow_step": _WORKFLOW,
     "start_refinement_pass_record": _REFINEMENT_PASSES,
     "stream_assistant_workflow_events": _WORKFLOW_GRAPH,
