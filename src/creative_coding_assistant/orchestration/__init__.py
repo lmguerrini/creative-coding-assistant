@@ -286,6 +286,9 @@ _LOAD_BALANCER = (
 _EXECUTION_PROFILING = (
     "creative_coding_assistant.orchestration.execution_profiling"
 )
+_WORKFLOW_REPLAY_ENGINE = (
+    "creative_coding_assistant.orchestration.workflow_replay_engine"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -388,6 +391,8 @@ _EXPORT_MAP = {
     "LoadBalancerPlan": _LOAD_BALANCER,
     "ExecutionProfileCandidate": _EXECUTION_PROFILING,
     "ExecutionProfilingPlan": _EXECUTION_PROFILING,
+    "WorkflowReplayCandidate": _WORKFLOW_REPLAY_ENGINE,
+    "WorkflowReplayPlan": _WORKFLOW_REPLAY_ENGINE,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1574,6 +1579,8 @@ _EXPORT_MAP = {
     "load_balance_candidates_for_status": _LOAD_BALANCER,
     "execution_profile_candidate_by_id": _EXECUTION_PROFILING,
     "execution_profile_candidates_for_status": _EXECUTION_PROFILING,
+    "workflow_replay_candidate_by_id": _WORKFLOW_REPLAY_ENGINE,
+    "workflow_replay_candidates_for_status": _WORKFLOW_REPLAY_ENGINE,
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "execution_optimization_failure_audit_by_id": (
@@ -1672,6 +1679,7 @@ _EXPORT_MAP = {
     "plan_execution_path_optimization": _EXECUTION_PATH_OPTIMIZATION,
     "plan_load_balancer": _LOAD_BALANCER,
     "plan_parallel_scheduler": _PARALLEL_SCHEDULER,
+    "plan_workflow_replay": _WORKFLOW_REPLAY_ENGINE,
     "plan_retry_policies": _RETRY_POLICIES,
     "plan_workflow_pruning": _WORKFLOW_PRUNING,
     "plan_next_refinement_pass": _REFINEMENT_PASSES,
