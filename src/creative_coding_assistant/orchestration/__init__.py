@@ -352,6 +352,9 @@ _CREATIVE_ANALYTICS = "creative_coding_assistant.orchestration.creative_analytic
 _CONFIDENCE_ANALYTICS = (
     "creative_coding_assistant.orchestration.confidence_analytics"
 )
+_CREATIVE_DIVERSITY_ANALYTICS = (
+    "creative_coding_assistant.orchestration.creative_diversity_analytics"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -510,6 +513,8 @@ _EXPORT_MAP = {
     "CreativeAnalytics": _CREATIVE_ANALYTICS,
     "ConfidenceAnalyticsPanel": _CONFIDENCE_ANALYTICS,
     "ConfidenceAnalytics": _CONFIDENCE_ANALYTICS,
+    "CreativeDiversityAnalyticsPanel": _CREATIVE_DIVERSITY_ANALYTICS,
+    "CreativeDiversityAnalytics": _CREATIVE_DIVERSITY_ANALYTICS,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1839,6 +1844,7 @@ _EXPORT_MAP = {
     "build_system_health_monitoring": _SYSTEM_HEALTH_MONITORING,
     "build_creative_analytics": _CREATIVE_ANALYTICS,
     "build_confidence_analytics": _CONFIDENCE_ANALYTICS,
+    "build_creative_diversity_analytics": _CREATIVE_DIVERSITY_ANALYTICS,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
     "memory_summary_segments_for_kind": _MEMORY_SUMMARIZATION,
     "next_workflow_step": _WORKFLOW,
@@ -1914,6 +1920,10 @@ _EXPORT_MAP = {
     "creative_analytics_panels_for_status": _CREATIVE_ANALYTICS,
     "confidence_analytics_panel_by_id": _CONFIDENCE_ANALYTICS,
     "confidence_analytics_panels_for_status": _CONFIDENCE_ANALYTICS,
+    "creative_diversity_analytics_panel_by_id": _CREATIVE_DIVERSITY_ANALYTICS,
+    "creative_diversity_analytics_panels_for_status": (
+        _CREATIVE_DIVERSITY_ANALYTICS
+    ),
     "workflow_diagnostic_panel_by_id": _WORKFLOW_DIAGNOSTICS,
     "workflow_diagnostic_panels_for_status": _WORKFLOW_DIAGNOSTICS,
 }
