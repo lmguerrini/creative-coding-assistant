@@ -22,7 +22,7 @@ Use this matrix together with:
 | --- | --- | --- | --- |
 | Core Engine | Owns creative translation, planning, cognition, generative design, artifact intelligence, creative evaluation, critique, and final prompt construction. | Active and implemented through V2.5, V3.1, V3.2, V3.3, V3.4, and the V3.5 workstation metadata consumers; V3.6 stabilizes shared utilities without expanding behavior. | Creative Translation, Creative Planning, Creative Cognition Core, Generative Design Core, Artifact Intelligence, Creative Evaluation, Director, Creative Reasoning |
 | Knowledge Engine | Owns retrieval, source grounding, memory, and future knowledge reasoning interfaces. | Active and implemented for retrieval and memory; future HoloMind integration remains outside the current runtime. | Source registry, KB retrieval, prompt memory, grounded prompt input |
-| Execution Engine | Owns workflow orchestration, provider execution, validation, artifact extraction, preview preparation, metadata serialization, backend dev mounting, and future optimization. | Active and implemented for the bounded LangGraph runtime; V3.6 stabilizes graph assembly and serialization seams, and V5 expands this layer into Execution Optimization & Production Intelligence metadata, including model routing and performance posture. | Workflow graph, generation, review gate, refinement loop, artifact extraction, preview preparation, workflow metadata payloads, backend bridge |
+| Execution Engine | Owns workflow orchestration, provider execution, validation, artifact extraction, preview preparation, metadata serialization, backend dev mounting, and future optimization. | Active and implemented for the bounded LangGraph runtime; V3.6 stabilizes graph assembly and serialization seams, and V5 expands this layer into Execution Optimization & Production Intelligence metadata, including model routing, performance posture, and production observability posture. | Workflow graph, generation, review gate, refinement loop, artifact extraction, preview preparation, workflow metadata payloads, backend bridge |
 | Experience Layer | Owns workstation UX, preview surfaces, inspector views, comparison, export, stream hydration, operator controls, and workstation surface contracts. | Active and implemented in the Next.js workstation; V3.6 aligns the documented surface boundary, and V4 expands this layer into Agentic Studio collaboration patterns. | Workstation shell, preview shelf, inspectors, comparison workspace, provenance, timeline, dashboard, export surfaces, V3 metadata hydration |
 
 ## Version Vs Engine View
@@ -47,6 +47,7 @@ Use this matrix together with:
 | V5.1 | Core Engine remains creative-first while exposing creative complexity metadata to execution planning | Knowledge signals can guide context budgeting, compression, summarization, cache lookup, and reuse planning without changing retrieval or memory ownership | Execution Optimization Engine adds bounded analysis, planning, pruning, forecasting, path optimization, strategy selection, architecture consistency, and failure audit metadata without changing provider/model routing or runtime graph control | Experience surfaces can inspect optimization metadata later, but no production telemetry UI or operational control surface is activated here |
 | V5.2 | Core Engine exposes creative quality, diversity, and consistency prediction metadata for route recommendations without changing generation behavior | Knowledge and model/provider profile signals are referenced as metadata only; no retrieval, memory, provider, or model backend ownership changes | Intelligent Model Routing Engine adds advisory model routing, local/cloud routing, hybrid routing, quality/cost optimization, cost estimation, budget policy, HITL budget gate, runtime recommendation, execution policy, model recommendation, capability matrices, prediction, explainability, architecture consistency, and failure audit metadata without applying routing or executing providers | Experience surfaces can inspect routing explanations later, but no model switcher, HITL prompt, budget enforcement, or operator control surface is activated here |
 | V5.3 | Core Engine metadata can inform performance posture without changing creative planning or generation behavior | Knowledge and memory signals remain source references only; no retrieval, memory, cache, telemetry, or resource backend ownership changes | Performance Engine adds advisory parallel scheduling, latency, async, streaming, retry policy, load balancing, profiling, replay, bottleneck, throughput, prediction, benchmarking, reasoning budget, regression, resource utilization, architecture consistency, and failure audit metadata without measuring performance, executing workflows, enforcing resources, or changing provider/model routing | Experience surfaces can inspect performance posture later, but no profiling UI, benchmark runner, autoscaler, or operational control surface is activated here |
+| V5.4 | Core Engine metadata can inform creative, confidence, and diversity analytics without changing creative planning or generation behavior | Knowledge and memory signals remain source references only; no retrieval, memory, telemetry store, trace store, or observability backend ownership changes | Production Observability adds read-only token, cost, quality, performance, telemetry, diagnostic, health, analytics, timeline, explainability, architecture consistency, and failure audit metadata without collecting live metrics, emitting telemetry, controlling workflows, or changing provider/model routing | Experience surfaces can inspect observability posture later, but no alerting UI, live telemetry sink, trace capture, remediation workflow, or operational control surface is activated here |
 | V6 | HoloGenesis Core OS can unify long-horizon creative strategy, lineage, and system identity | Long-horizon knowledge and memory adaptation move into the future OS direction | Execution can learn from prior runs without replacing bounded workflow control | Experience surfaces expose lineage, feedback, and evolving operator guidance |
 
 ## Reading The Matrix
@@ -367,6 +368,25 @@ generated output.
 | Regression and resource utilization posture | `performance_regression_detection.py`, `resource_utilization_optimizer.py` | `performance_regression_detection_plan.v1`, `resource_utilization_optimization_plan.v1` | Flags advisory regression and resource recommendations without comparing live telemetry, allocating resources, enforcing capacity, autoscaling, controlling queues, or changing provider/model routing |
 | Architecture consistency and runtime failure path audit | `performance_architecture_consistency.py`, `performance_failure_path_audit.py` | `performance_architecture_consistency_registry.v1`, `performance_failure_path_audit_registry.v1` | Verifies V5.3 source coverage, passive activation, Runtime Evolution, architecture, and failure-path boundaries without executing audits as recovery behavior or changing output behavior |
 
+## V5.4 Production Observability Surfaces
+
+V5.4 adds read-only production observability metadata to the Execution Engine
+while preserving the current LangGraph runtime graph, provider/model routing
+boundary, and output mutation boundary. These surfaces are typed contracts and
+deterministic local helpers. They do not collect live metrics, emit telemetry
+or alerts, capture traces, execute workflows, run health checks, classify live
+errors, remediate failures, reconstruct timelines, generate explanations,
+request human review, trigger retries, mutate prompts, write persistent
+storage, apply Runtime Evolution, or modify generated output.
+
+| Surface group | Source module | Serialization boundary | Current boundary |
+| --- | --- | --- | --- |
+| Dashboard observability | `token_dashboard.py`, `cost_dashboard.py`, `quality_dashboard.py`, `performance_dashboard.py` | `token_dashboard.v1`, `cost_dashboard.v1`, `quality_dashboard.v1`, `performance_dashboard.v1` | Summarizes token, cost, quality, and performance posture without live usage metering, pricing lookup, generated-output evaluation, runtime measurement, budget enforcement, or provider/model routing |
+| Telemetry and diagnostics | `production_telemetry.py`, `workflow_diagnostics.py`, `agent_diagnostics.py`, `routing_diagnostics.py`, `escalation_diagnostics.py` | `production_telemetry.v1`, `workflow_diagnostics.v1`, `agent_diagnostics.v1`, `routing_diagnostics.v1`, `escalation_diagnostics.v1` | Projects telemetry and diagnostic boundaries without emitting telemetry, capturing traces, invoking agents, applying routing, triggering escalation, requesting HITL, or changing workflow control |
+| Failure, error, and health posture | `failure_analysis.py`, `error_intelligence.py`, `workflow_health_monitoring.py`, `system_health_monitoring.py` | `failure_analysis.v1`, `error_intelligence.v1`, `workflow_health_monitoring.v1`, `system_health_monitoring.v1` | Summarizes failure/error and health context without live error capture, classification, health check execution, remediation, alerting, resource allocation, or workflow mutation |
+| Creative, confidence, and diversity analytics | `creative_analytics.py`, `confidence_analytics.py`, `creative_diversity_analytics.py` | `creative_analytics.v1`, `confidence_analytics.v1`, `creative_diversity_analytics.v1` | Aggregates creative, confidence, and diversity posture without scoring generated output, calculating confidence, evaluating thresholds, generating variants, enforcing budgets, or triggering refinement |
+| Timeline, explainability, architecture, and failure audit | `runtime_timeline.py`, `workflow_explainability_dashboard.py`, `production_observability_architecture_consistency.py`, `production_observability_failure_path_audit.py` | `runtime_timeline.v1`, `workflow_explainability_dashboard.v1`, `production_observability_architecture_registry.v1`, `production_observability_failure_path_audit_registry.v1` | Verifies V5.4 source coverage, read-only observability, Runtime Evolution, architecture, and failure-path boundaries without reconstructing timelines, recording provenance, generating explanations, or executing audits as recovery behavior |
+
 ## V3.5 Workstation Contracts
 
 The Creative Workstation exposes a metadata-only
@@ -416,6 +436,14 @@ workstation responsible for future behavior.
   performance, executing workflows or benchmarks, enforcing resources or
   budgets, changing provider/model routing, triggering retries, or mutating
   output.
+- V5.4 is the read-only production observability metadata layer over the
+  stable LangGraph runtime. It adds token, cost, quality, performance,
+  telemetry, diagnostics, health, creative analytics, confidence analytics,
+  diversity analytics, timeline, explainability, architecture consistency, and
+  failure audit surfaces without collecting live metrics, emitting telemetry or
+  alerts, capturing traces, executing health checks, classifying live errors,
+  remediating failures, controlling workflows, changing provider/model
+  routing, triggering retries, or mutating output.
   Later V5 production intelligence and V6 HoloGenesis Core OS remain future
   work.
 - The current runtime graph remains the source of truth for execution order.

@@ -148,6 +148,28 @@ V52_MODEL_ROUTING_SURFACES = (
     "Creative Consistency Predictor",
     "Routing Explainability",
 )
+V54_PRODUCTION_OBSERVABILITY_SURFACES = (
+    "Token Dashboard",
+    "Cost Dashboard",
+    "Quality Dashboard",
+    "Performance Dashboard",
+    "Production Telemetry",
+    "Workflow Diagnostics",
+    "Agent Diagnostics",
+    "Routing Diagnostics",
+    "Escalation Diagnostics",
+    "Failure Analysis",
+    "Error Intelligence",
+    "Workflow Health Monitoring",
+    "System Health Monitoring",
+    "Creative Analytics",
+    "Confidence Analytics",
+    "Creative Diversity Analytics",
+    "Runtime Timeline",
+    "Workflow Explainability Dashboard",
+    "Production Observability Architecture Consistency",
+    "Production Observability Failure Path Audit",
+)
 PUBLIC_README_INTERNAL_MARKERS = (
     "Current Branch Status",
     "feature/",
@@ -423,6 +445,31 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("apply Runtime Evolution", normalized_combined)
         self.assertIn("modify generated output", normalized_combined)
 
+    def test_project_docs_cover_current_v5_4_read_only_scope(self) -> None:
+        project_context = (
+            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
+        ).read_text(encoding="utf-8")
+        decisions = (
+            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
+        ).read_text(encoding="utf-8")
+        combined = "\n".join((project_context, decisions))
+        normalized_combined = re.sub(r"\s+", " ", combined)
+
+        self.assertIn("V5.4 Production Observability", combined)
+        self.assertIn("V5.4 Read-Only Observability Boundary", project_context)
+        self.assertIn("V5.4 Boundary Decision", decisions)
+        self.assertIn("read-only observability metadata", normalized_combined)
+        self.assertIn("runtime failure-path audit coverage", normalized_combined)
+        self.assertIn("collect live metrics", normalized_combined)
+        self.assertIn("emit telemetry or alerts", normalized_combined)
+        self.assertIn("capture traces", normalized_combined)
+        self.assertIn("execute health checks", normalized_combined)
+        self.assertIn("classify live errors", normalized_combined)
+        self.assertIn("remediate failures", normalized_combined)
+        self.assertIn("change provider/model routing", normalized_combined)
+        self.assertIn("apply Runtime Evolution", normalized_combined)
+        self.assertIn("modify generated output", normalized_combined)
+
     def test_architecture_doc_node_order_matches_backend_node_order(self) -> None:
         architecture_doc = (
             REPO_ROOT / "architecture" / "workflow_graph.md"
@@ -469,6 +516,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("terminal failure audit only", mermaid)
         self.assertIn("V5.2 model routing metadata boundary", mermaid)
         self.assertIn("no provider/model switching", mermaid)
+        self.assertIn("V5.4 production observability metadata boundary", mermaid)
+        self.assertIn("no live telemetry emission", mermaid)
 
     def test_workflow_doc_distinguishes_runtime_pipeline_and_dependency_views(
         self,
@@ -521,6 +570,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "## V5.2 Intelligent Model Routing Metadata Boundary",
             architecture_doc,
         )
+        self.assertIn(
+            "## V5.4 Production Observability Metadata Boundary",
+            architecture_doc,
+        )
         self.assertIn("Agent Contract Registry", architecture_doc)
         self.assertIn("Agent Memory Contract Registry", architecture_doc)
         self.assertIn("Agent Metadata Registry", architecture_doc)
@@ -538,6 +591,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             self.assertIn(registry_name, architecture_doc)
         for surface in V52_MODEL_ROUTING_SURFACES:
             self.assertIn(surface, normalized_architecture_doc)
+        for surface in V54_PRODUCTION_OBSERVABILITY_SURFACES:
+            self.assertIn(surface, normalized_architecture_doc)
         self.assertIn("Hybrid Studio Integration source coverage", architecture_doc)
         self.assertIn(
             "Multimodal Studio Integration source coverage",
@@ -552,6 +607,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             normalized_architecture_doc,
         )
         self.assertIn("advisory model-routing metadata", normalized_architecture_doc)
+        self.assertIn(
+            "read-only production observability metadata",
+            normalized_architecture_doc,
+        )
         self.assertIn("do not execute orchestration", normalized_architecture_doc)
         self.assertIn("do not execute escalation", normalized_architecture_doc)
         self.assertIn("does not activate Studio runtime", normalized_architecture_doc)
@@ -671,6 +730,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "Execution Optimization & Production Intelligence",
             "V5.2",
             "Intelligent Model Routing Engine",
+            "V5.4",
+            "Production Observability",
             "V6",
             "HoloGenesis Core OS",
         ):
@@ -686,6 +747,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("## V4.5 Multimodal Studio Registries", engine_matrix)
         self.assertIn("## V4.6 Agentic Studio Hardening Registries", engine_matrix)
         self.assertIn("## V5.2 Intelligent Model Routing Surfaces", engine_matrix)
+        self.assertIn("## V5.4 Production Observability Surfaces", engine_matrix)
 
         for registry_marker in (
             "agent_capability_registry.v1",
@@ -804,6 +866,26 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "routing_explainability_plan.v1",
             "model_routing_architecture_consistency_registry.v1",
             "model_routing_failure_path_audit_registry.v1",
+            "token_dashboard.v1",
+            "cost_dashboard.v1",
+            "quality_dashboard.v1",
+            "performance_dashboard.v1",
+            "production_telemetry.v1",
+            "workflow_diagnostics.v1",
+            "agent_diagnostics.v1",
+            "routing_diagnostics.v1",
+            "escalation_diagnostics.v1",
+            "failure_analysis.v1",
+            "error_intelligence.v1",
+            "workflow_health_monitoring.v1",
+            "system_health_monitoring.v1",
+            "creative_analytics.v1",
+            "confidence_analytics.v1",
+            "creative_diversity_analytics.v1",
+            "runtime_timeline.v1",
+            "workflow_explainability_dashboard.v1",
+            "production_observability_architecture_registry.v1",
+            "production_observability_failure_path_audit_registry.v1",
         ):
             self.assertIn(registry_marker, engine_matrix)
 
@@ -870,6 +952,26 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "routing_explainability.py",
             "model_routing_architecture_consistency.py",
             "model_routing_failure_path_audit.py",
+            "token_dashboard.py",
+            "cost_dashboard.py",
+            "quality_dashboard.py",
+            "performance_dashboard.py",
+            "production_telemetry.py",
+            "workflow_diagnostics.py",
+            "agent_diagnostics.py",
+            "routing_diagnostics.py",
+            "escalation_diagnostics.py",
+            "failure_analysis.py",
+            "error_intelligence.py",
+            "workflow_health_monitoring.py",
+            "system_health_monitoring.py",
+            "creative_analytics.py",
+            "confidence_analytics.py",
+            "creative_diversity_analytics.py",
+            "runtime_timeline.py",
+            "workflow_explainability_dashboard.py",
+            "production_observability_architecture_consistency.py",
+            "production_observability_failure_path_audit.py",
         ):
             self.assertIn(module_path, engine_matrix)
 
@@ -883,6 +985,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             normalized_engine_matrix,
         )
         self.assertIn("advisory model-routing metadata", normalized_engine_matrix)
+        self.assertIn(
+            "read-only production observability metadata",
+            normalized_engine_matrix,
+        )
         self.assertIn("does not activate Studio runtime", normalized_engine_matrix)
         self.assertIn("does not execute rendering", normalized_engine_matrix)
         self.assertIn("does not execute hardening checks", normalized_engine_matrix)
@@ -911,6 +1017,9 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("do not apply routing", normalized_engine_matrix)
         self.assertIn("switching models", normalized_engine_matrix)
         self.assertIn("emitting HITL requests", normalized_engine_matrix)
+        self.assertIn("collect live metrics", normalized_engine_matrix)
+        self.assertIn("emit telemetry or alerts", normalized_engine_matrix)
+        self.assertIn("capture traces", normalized_engine_matrix)
 
     def test_workstation_surface_docs_cover_v35_surface_layer(self) -> None:
         architecture_doc = (

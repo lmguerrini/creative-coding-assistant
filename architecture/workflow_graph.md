@@ -108,6 +108,18 @@ do not measure live performance, execute workflows, execute benchmarks, execute
 replay, allocate resources, enforce capacity or budgets, select runtimes,
 control workflows, trigger retries, route providers or models, mutate prompts,
 persist storage, apply Runtime Evolution, or modify generated output.
+V5.4 Production Observability keeps the same LangGraph runtime node set while
+adding read-only token, cost, quality, performance, telemetry, workflow
+diagnostic, agent diagnostic, routing diagnostic, escalation diagnostic,
+failure, error, workflow health, system health, creative analytics, confidence
+analytics, diversity analytics, runtime timeline, workflow explainability,
+architecture consistency, and runtime failure-path audit metadata. These
+surfaces are importable Python contracts and deterministic local helpers; they
+do not collect live metrics, emit telemetry or alerts, capture traces, execute
+health checks, classify live errors, remediate failures, reconstruct timelines,
+generate explanations, request human review, control workflows, trigger
+retries, route providers or models, mutate prompts, persist storage, apply
+Runtime Evolution, or modify generated output.
 `_planning_node()` deterministically derives and stores the V3.1 Creative
 Cognition metadata, the V3.2 Generative Design metadata, the V3.3 Artifact
 Intelligence metadata, and the V3.4 Creative Evaluation metadata:
@@ -224,6 +236,14 @@ This separation is intentional:
   benchmark execution, replay execution, resource allocation, capacity or
   budget enforcement, provider/model routing, retry triggering, workflow
   control, or generated-output mutation
+- The V5.4 Production Observability layer owns read-only dashboards,
+  production telemetry metadata, diagnostics, failure/error intelligence,
+  health monitoring, creative/confidence/diversity analytics, timeline,
+  explainability, architecture consistency, and runtime failure audit metadata,
+  but still does not own live metric collection, telemetry or alert emission,
+  trace capture, health check execution, live error classification,
+  remediation, workflow control, provider/model routing, retry triggering, or
+  generated-output mutation
 - The internal capability pipeline and dependency graph remain decomposition
   candidates for later orchestration, but they are not a true multi-agent or
   multi-node runtime graph here
@@ -493,6 +513,44 @@ Performance Failure Path Audit.
 | Regression and resource utilization posture | Flag advisory regression and resource recommendations without comparing live telemetry, allocating resources, enforcing capacity, autoscaling, controlling queues, or changing provider/model routing |
 | Architecture consistency and runtime failure path audit | Verify V5.3 source coverage, passive activation, Runtime Evolution, architecture, and failure-path boundaries without executing audits as recovery behavior or changing output behavior |
 
+## V5.4 Production Observability Metadata Boundary
+
+V5.4 introduces read-only production observability metadata over the stable V3
+runtime graph, V4 passive contract stack, V5.1 execution optimization
+metadata, V5.2 model-routing metadata, and V5.3 performance metadata. The
+implementation adds typed metadata and deterministic local helpers for token,
+cost, quality, performance, production telemetry, workflow diagnostics, agent
+diagnostics, routing diagnostics, escalation diagnostics, failure analysis,
+error intelligence, workflow health monitoring, system health monitoring,
+creative analytics, confidence analytics, creative diversity analytics,
+runtime timeline, workflow explainability, architecture consistency coverage,
+and runtime failure-path audit coverage.
+
+These surfaces are not an active telemetry or operations runtime. They do not
+collect live metrics, emit telemetry or alerts, capture traces, execute health
+checks, classify live errors, remediate failures, reconstruct timelines,
+record provenance, generate explanations, request human review, execute or
+control workflows, trigger retries, route providers or models, mutate prompts,
+write persistent storage, activate passive registries as runtime behavior,
+apply Runtime Evolution, or modify generated output.
+
+Canonical V5.4 surfaces are Token Dashboard, Cost Dashboard, Quality
+Dashboard, Performance Dashboard, Production Telemetry, Workflow Diagnostics,
+Agent Diagnostics, Routing Diagnostics, Escalation Diagnostics, Failure
+Analysis, Error Intelligence, Workflow Health Monitoring, System Health
+Monitoring, Creative Analytics, Confidence Analytics, Creative Diversity
+Analytics, Runtime Timeline, Workflow Explainability Dashboard, Production
+Observability Architecture Consistency, and Production Observability Failure
+Path Audit.
+
+| Surface group | Current boundary |
+| --- | --- |
+| Token, cost, quality, and performance dashboards | Summarize existing advisory budget, cost, quality, and performance metadata without live usage metering, pricing lookup, generated-output evaluation, runtime measurement, budget enforcement, or provider/model routing |
+| Production telemetry and diagnostics | Project telemetry, workflow, agent, routing, and escalation diagnostic boundaries without telemetry emission, trace capture, routing application, escalation triggering, HITL requests, or workflow control |
+| Failure, error, and health monitoring | Summarize failure, error, workflow health, and system health context without live error capture, health check execution, alerting, remediation, resource allocation, or workflow mutation |
+| Creative, confidence, and diversity analytics | Aggregate creative, confidence, and diversity posture without scoring generated output, calculating confidence, evaluating thresholds, generating variants, enforcing budgets, or triggering refinement |
+| Runtime timeline, explainability, architecture, and failure audit | Verify V5.4 source coverage, read-only observability, Runtime Evolution, architecture, and failure-path boundaries without timeline reconstruction, provenance recording, explanation generation, or recovery execution |
+
 ## Current Implemented Flow
 
 The graph is compiled once in `AssistantService.__init__()` and executed
@@ -591,6 +649,7 @@ flowchart TB
     hardening_boundary["V4.6 agentic studio hardening metadata boundary<br/>passive audit + error-path coverage<br/>terminal failure audit only"]:::relationship
     model_routing_boundary["V5.2 model routing metadata boundary<br/>advisory routing + budget + explainability<br/>no provider/model switching"]:::relationship
     performance_boundary["V5.3 performance metadata boundary<br/>advisory scheduling + profiling + benchmarking<br/>no runtime measurement or control"]:::relationship
+    observability_boundary["V5.4 production observability metadata boundary<br/>read-only dashboards + diagnostics<br/>no live telemetry emission"]:::relationship
 
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
     review -->|"pass or max retry"| finalization --> finish
@@ -621,6 +680,9 @@ flowchart TB
     model_routing_boundary -. advisory routing posture .-> performance_boundary
     hardening_boundary -. performance audit sources .-> performance_boundary
     failure -. terminal failure coverage .-> performance_boundary
+    performance_boundary -. performance posture sources .-> observability_boundary
+    model_routing_boundary -. routing posture sources .-> observability_boundary
+    failure -. terminal failure coverage .-> observability_boundary
     intake -. intake_error .-> failure
     routing -. routing_error .-> failure
     memory -. memory_error .-> failure
@@ -645,7 +707,7 @@ flowchart TB
     class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,reasoning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
-    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary,multimodal_studio_boundary,hardening_boundary,model_routing_boundary,performance_boundary relationship
+    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary,multimodal_studio_boundary,hardening_boundary,model_routing_boundary,performance_boundary,observability_boundary relationship
     style phase_1 rx:6px,ry:6px
     style phase_2 rx:6px,ry:6px
     style phase_3 rx:6px,ry:6px

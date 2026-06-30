@@ -8,8 +8,8 @@
 - Keep the LangGraph workflow compact. Internal creative intelligence,
   generative design, artifact intelligence, evaluation, workstation, V4
   registry layers, V5.1 execution optimization helpers, V5.2 model-routing
-  helpers, and V5.3 performance helpers are metadata surfaces, not additional
-  runtime nodes.
+  helpers, V5.3 performance helpers, and V5.4 production observability helpers
+  are metadata surfaces, not additional runtime nodes.
 - Keep the Next.js workstation responsible for product inspection, preview,
   comparison, export, telemetry, workflow visibility, and operator controls.
 
@@ -17,10 +17,11 @@
 
 Chroma remains the only persistent retrieval and memory database. Passive V4.1,
 V4.2, V4.3, V4.4, V4.5, and V4.6 registries, advisory V5.1 optimization
-helpers, advisory V5.2 model-routing helpers, and advisory V5.3 performance
-helpers do not create storage backends, write blackboard state, write replay
-storage, persist cache entries, write telemetry stores, or introduce runtime
-synchronization behavior.
+helpers, advisory V5.2 model-routing helpers, advisory V5.3 performance
+helpers, and read-only V5.4 production observability helpers do not create
+storage backends, write blackboard state, write replay storage, persist cache
+entries, write telemetry or trace stores, emit monitoring events, or introduce
+runtime synchronization behavior.
 
 ## Metadata Layering
 
@@ -61,6 +62,13 @@ synchronization behavior.
   throughput, performance prediction, performance benchmarking, reasoning
   budget, performance regression, resource utilization, architecture
   consistency, and failure-path metadata over the existing compact workflow.
+- V5.4 Production Observability helpers describe read-only token, cost,
+  quality, performance, production telemetry, workflow diagnostics, agent
+  diagnostics, routing diagnostics, escalation diagnostics, failure analysis,
+  error intelligence, workflow health, system health, creative analytics,
+  confidence analytics, creative diversity analytics, runtime timeline,
+  workflow explainability, architecture consistency, and failure-path metadata
+  over the existing compact workflow.
 
 ## V4.3 Boundary Decision
 
@@ -188,6 +196,25 @@ Evolution, or modify generated output. More generally, it does not change
 provider/model routing, does not introduce autonomous performance optimization
 behavior, and does not modify generated output.
 
+## V5.4 Boundary Decision
+
+V5.4 Production Observability is a read-only observability metadata layer only.
+It may expose token, cost, quality, performance, production telemetry,
+workflow diagnostic, agent diagnostic, routing diagnostic, escalation
+diagnostic, failure, error, workflow health, system health, creative analytics,
+confidence analytics, creative diversity analytics, runtime timeline, workflow
+explainability, architecture consistency, and runtime failure-path audit
+coverage.
+
+It must not collect live metrics, emit telemetry or alerts, capture traces,
+execute health checks, classify live errors, remediate failures, reconstruct
+timelines, record provenance, generate explanations, request human review,
+execute or control workflows, trigger retries, route providers or models,
+mutate prompts, write persistent storage, activate passive registries as
+runtime behavior, apply Runtime Evolution, or modify generated output. More
+generally, it does not change provider/model routing, does not introduce an
+active telemetry or remediation runtime, and does not modify generated output.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -205,8 +232,9 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - advisory V5.1 execution optimization metadata
 - advisory V5.2 model-routing metadata
 - advisory V5.3 performance metadata
-- future active V4 Agentic Studio, later V5 production intelligence, and V6
-  learning work
+- read-only V5.4 production observability metadata
+- future active V4 Agentic Studio, V5.5 adaptive execution intelligence, and
+  V6 learning work
 
 ## Code Quality Rules
 

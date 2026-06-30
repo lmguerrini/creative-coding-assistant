@@ -69,6 +69,13 @@ inspection metadata, critique, and refinement context.
   performance benchmarking, reasoning budget optimization, performance
   regression detection, resource utilization optimization, architecture
   consistency, and failure audit metadata.
+- V5.4 Production Observability for read-only token, cost, quality,
+  performance, production telemetry, workflow diagnostics, agent diagnostics,
+  routing diagnostics, escalation diagnostics, failure analysis, error
+  intelligence, workflow health monitoring, system health monitoring, creative
+  analytics, confidence analytics, creative diversity analytics, runtime
+  timeline, workflow explainability, architecture consistency, and failure
+  audit metadata.
 
 ## Supported Creative Domains
 
@@ -87,9 +94,9 @@ inspection metadata, critique, and refinement context.
 - Chroma remains the persistent retrieval and memory database.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
-- V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, V5.2, and V5.3 registries and
-  helpers are passive or advisory product and architecture metadata. They are
-  inspectable Python APIs and documentation surfaces.
+- V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, V5.2, V5.3, and V5.4 registries
+  and helpers are passive, advisory, or read-only product and architecture
+  metadata. They are inspectable Python APIs and documentation surfaces.
 
 ## V4.3 Passive Boundary
 
@@ -209,6 +216,24 @@ trigger retries, route providers or models, mutate prompts, write persistent
 storage, activate passive registries, apply Runtime Evolution, or modify
 generated output.
 
+## V5.4 Read-Only Observability Boundary
+
+V5.4 Production Observability is read-only observability metadata over the
+existing compact LangGraph workflow. It includes token dashboards, cost
+dashboards, quality dashboards, performance dashboards, production telemetry,
+workflow diagnostics, agent diagnostics, routing diagnostics, escalation
+diagnostics, failure analysis, error intelligence, workflow health monitoring,
+system health monitoring, creative analytics, confidence analytics, creative
+diversity analytics, runtime timeline, workflow explainability, architecture
+consistency coverage, and runtime failure-path audit coverage.
+
+It must not collect live metrics, emit telemetry or alerts, capture traces,
+execute health checks, classify live errors, remediate failures, reconstruct
+timelines, record provenance, generate explanations, request human review,
+execute or control workflows, trigger retries, route providers or models,
+mutate prompts, write persistent storage, activate passive registries, apply
+Runtime Evolution, or modify generated output.
+
 ## Non-Goals For Current Baseline
 
 - active multi-agent execution
@@ -222,6 +247,8 @@ generated output.
 - active execution optimization
 - active performance optimization
 - runtime performance measurement
+- live production telemetry emission
+- active observability remediation
 - benchmark execution
 - resource allocation or autoscaling
 - LangGraph node additions
@@ -240,5 +267,5 @@ generated output.
 - prompt rendering changes
 - storage or blackboard runtime behavior
 - provider pricing lookup or budget enforcement
-- production telemetry and adaptive runtime policy
+- active adaptive runtime policy
 - V6 learning or long-horizon adaptation
