@@ -497,6 +497,10 @@ _FAILURE_PATTERN_DISCOVERY = (
     "creative_coding_assistant.orchestration.failure_pattern_discovery"
 )
 _LEARNING_GOVERNANCE = "creative_coding_assistant.orchestration.learning_governance"
+_ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT = (
+    "creative_coding_assistant.orchestration."
+    "adaptive_learning_failure_path_audit"
+)
 _WORKFLOW_RISK_ENGINE = (
     "creative_coding_assistant.orchestration.workflow_risk_engine"
 )
@@ -816,6 +820,12 @@ _EXPORT_MAP = {
     "FailurePatternDiscoveryPlan": _FAILURE_PATTERN_DISCOVERY,
     "LearningGovernancePolicy": _LEARNING_GOVERNANCE,
     "LearningGovernancePlan": _LEARNING_GOVERNANCE,
+    "AdaptiveLearningFailurePathAuditRecord": (
+        _ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT
+    ),
+    "AdaptiveLearningFailurePathAuditRegistry": (
+        _ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT
+    ),
     "WorkflowRiskFactor": _WORKFLOW_RISK_ENGINE,
     "WorkflowRiskPlan": _WORKFLOW_RISK_ENGINE,
     "CreativeExplorationOptimizationCandidate": _CREATIVE_EXPLORATION_OPTIMIZER,
@@ -2312,6 +2322,18 @@ _EXPORT_MAP = {
     "build_learning_governance": _LEARNING_GOVERNANCE,
     "learning_governance_policy_by_id": _LEARNING_GOVERNANCE,
     "learning_governance_policies_for_status": _LEARNING_GOVERNANCE,
+    "adaptive_learning_failure_path_audit_registry": (
+        _ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT
+    ),
+    "adaptive_learning_failure_path_audit_by_id": (
+        _ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT
+    ),
+    "adaptive_learning_failure_path_audits_for_check": (
+        _ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT
+    ),
+    "adaptive_learning_failure_path_audits_for_surface": (
+        _ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT
+    ),
     "evaluate_workflow_risk": _WORKFLOW_RISK_ENGINE,
     "workflow_risk_factor_by_id": _WORKFLOW_RISK_ENGINE,
     "workflow_risk_factors_for_severity": _WORKFLOW_RISK_ENGINE,

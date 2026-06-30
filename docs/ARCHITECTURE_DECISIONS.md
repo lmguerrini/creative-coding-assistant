@@ -315,6 +315,10 @@ mutating terminal routing. Learning governance may describe memory, feedback,
 policy, HITL, explainability, and no-automation boundaries without persisting
 memory, applying feedback, updating or enforcing policies, emitting HITL
 requests, or requesting human input.
+The V6.1 runtime failure path audit verifies those learning surfaces against
+the runtime failure checklist without creating failure handlers, routing
+terminal failures, changing provider/model routing, writing storage, mutating
+generated output, or applying Runtime Evolution.
 
 It must not persist learning memory, apply feedback, update policies, mutate
 strategies, change provider/model routing, execute providers, probe local
