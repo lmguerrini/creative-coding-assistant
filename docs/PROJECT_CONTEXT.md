@@ -315,7 +315,10 @@ signals without selecting runtimes, probing local runtimes, installing
 dependencies, or changing preview behavior. Routing learning derives route
 patterns from read-only task-aware routing metadata and adaptive learning
 signals without applying routes, switching providers or models, executing
-providers, probing local runtimes, or assuming credentials.
+providers, probing local runtimes, or assuming credentials. Artifact learning
+derives artifact-shape, capability, and risk patterns from read-only artifact
+planning and artifact capability metadata without selecting, mutating,
+generating, executing, merging, exporting, or previewing artifacts.
 
 It must not persist learning memory, apply feedback, update policies, mutate
 strategies, change provider/model routing, execute providers, probe local
