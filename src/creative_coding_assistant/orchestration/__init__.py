@@ -457,6 +457,10 @@ _ADAPTIVE_EXECUTION_ARCHITECTURE_CONSISTENCY = (
     "creative_coding_assistant.orchestration."
     "adaptive_execution_architecture_consistency"
 )
+_ADAPTIVE_EXECUTION_FAILURE_PATH_AUDIT = (
+    "creative_coding_assistant.orchestration."
+    "adaptive_execution_failure_path_audit"
+)
 _DYNAMIC_RESOURCE_ALLOCATION = (
     "creative_coding_assistant.orchestration.dynamic_resource_allocation"
 )
@@ -699,6 +703,12 @@ _EXPORT_MAP = {
     ),
     "AdaptiveExecutionArchitectureConsistencyRegistry": (
         _ADAPTIVE_EXECUTION_ARCHITECTURE_CONSISTENCY
+    ),
+    "AdaptiveExecutionFailurePathAuditRecord": (
+        _ADAPTIVE_EXECUTION_FAILURE_PATH_AUDIT
+    ),
+    "AdaptiveExecutionFailurePathAuditRegistry": (
+        _ADAPTIVE_EXECUTION_FAILURE_PATH_AUDIT
     ),
     "DynamicResourceAllocationCandidate": _DYNAMIC_RESOURCE_ALLOCATION,
     "DynamicResourceAllocationPlan": _DYNAMIC_RESOURCE_ALLOCATION,
@@ -2086,6 +2096,18 @@ _EXPORT_MAP = {
     ),
     "adaptive_execution_architecture_consistency_records_for_layer": (
         _ADAPTIVE_EXECUTION_ARCHITECTURE_CONSISTENCY
+    ),
+    "adaptive_execution_failure_path_audit_registry": (
+        _ADAPTIVE_EXECUTION_FAILURE_PATH_AUDIT
+    ),
+    "adaptive_execution_failure_path_audit_by_id": (
+        _ADAPTIVE_EXECUTION_FAILURE_PATH_AUDIT
+    ),
+    "adaptive_execution_failure_path_audits_for_check": (
+        _ADAPTIVE_EXECUTION_FAILURE_PATH_AUDIT
+    ),
+    "adaptive_execution_failure_path_audits_for_surface": (
+        _ADAPTIVE_EXECUTION_FAILURE_PATH_AUDIT
     ),
     "allocate_dynamic_resources": _DYNAMIC_RESOURCE_ALLOCATION,
     "dynamic_resource_allocation_by_id": _DYNAMIC_RESOURCE_ALLOCATION,
