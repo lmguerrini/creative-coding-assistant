@@ -477,6 +477,9 @@ _EXECUTION_CONFIDENCE_ENGINE = (
 _ADAPTIVE_LEARNING_ENGINE = (
     "creative_coding_assistant.orchestration.adaptive_learning_engine"
 )
+_LONG_TERM_CREATIVE_MEMORY = (
+    "creative_coding_assistant.orchestration.long_term_creative_memory"
+)
 _WORKFLOW_SUCCESS_TRACKING = (
     "creative_coding_assistant.orchestration.workflow_success_tracking"
 )
@@ -808,6 +811,8 @@ _EXPORT_MAP = {
     "ExecutionConfidencePlan": _EXECUTION_CONFIDENCE_ENGINE,
     "AdaptiveLearningSignal": _ADAPTIVE_LEARNING_ENGINE,
     "AdaptiveLearningPlan": _ADAPTIVE_LEARNING_ENGINE,
+    "LongTermCreativeMemoryRecord": _LONG_TERM_CREATIVE_MEMORY,
+    "LongTermCreativeMemoryPlan": _LONG_TERM_CREATIVE_MEMORY,
     "WorkflowSuccessIndicator": _WORKFLOW_SUCCESS_TRACKING,
     "WorkflowSuccessTrackingPlan": _WORKFLOW_SUCCESS_TRACKING,
     "FailureTrackingIndicator": _FAILURE_TRACKING,
@@ -2291,6 +2296,12 @@ _EXPORT_MAP = {
     "adaptive_learning_signal_by_id": _ADAPTIVE_LEARNING_ENGINE,
     "adaptive_learning_signals_for_priority": _ADAPTIVE_LEARNING_ENGINE,
     "adaptive_learning_signals_for_status": _ADAPTIVE_LEARNING_ENGINE,
+    "build_long_term_creative_memory": _LONG_TERM_CREATIVE_MEMORY,
+    "long_term_creative_memory_record_by_id": _LONG_TERM_CREATIVE_MEMORY,
+    "long_term_creative_memory_records_for_sensitivity": (
+        _LONG_TERM_CREATIVE_MEMORY
+    ),
+    "long_term_creative_memory_records_for_status": _LONG_TERM_CREATIVE_MEMORY,
     "track_workflow_success": _WORKFLOW_SUCCESS_TRACKING,
     "workflow_success_indicator_by_id": _WORKFLOW_SUCCESS_TRACKING,
     "workflow_success_indicators_for_confidence": _WORKFLOW_SUCCESS_TRACKING,
