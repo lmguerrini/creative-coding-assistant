@@ -348,6 +348,7 @@ _WORKFLOW_HEALTH_MONITORING = (
 _SYSTEM_HEALTH_MONITORING = (
     "creative_coding_assistant.orchestration.system_health_monitoring"
 )
+_CREATIVE_ANALYTICS = "creative_coding_assistant.orchestration.creative_analytics"
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -502,6 +503,8 @@ _EXPORT_MAP = {
     "WorkflowHealthMonitoring": _WORKFLOW_HEALTH_MONITORING,
     "SystemHealthPanel": _SYSTEM_HEALTH_MONITORING,
     "SystemHealthMonitoring": _SYSTEM_HEALTH_MONITORING,
+    "CreativeAnalyticsPanel": _CREATIVE_ANALYTICS,
+    "CreativeAnalytics": _CREATIVE_ANALYTICS,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1829,6 +1832,7 @@ _EXPORT_MAP = {
     "build_error_intelligence": _ERROR_INTELLIGENCE,
     "build_workflow_health_monitoring": _WORKFLOW_HEALTH_MONITORING,
     "build_system_health_monitoring": _SYSTEM_HEALTH_MONITORING,
+    "build_creative_analytics": _CREATIVE_ANALYTICS,
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
     "memory_summary_segments_for_kind": _MEMORY_SUMMARIZATION,
     "next_workflow_step": _WORKFLOW,
@@ -1900,6 +1904,8 @@ _EXPORT_MAP = {
     "workflow_health_panels_for_status": _WORKFLOW_HEALTH_MONITORING,
     "system_health_panel_by_id": _SYSTEM_HEALTH_MONITORING,
     "system_health_panels_for_status": _SYSTEM_HEALTH_MONITORING,
+    "creative_analytics_panel_by_id": _CREATIVE_ANALYTICS,
+    "creative_analytics_panels_for_status": _CREATIVE_ANALYTICS,
     "workflow_diagnostic_panel_by_id": _WORKFLOW_DIAGNOSTICS,
     "workflow_diagnostic_panels_for_status": _WORKFLOW_DIAGNOSTICS,
 }
