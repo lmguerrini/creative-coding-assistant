@@ -514,6 +514,9 @@ _PRODUCTION_RELEASE_AUDIT = (
 _PRODUCTION_FINAL_HARDENING = (
     "creative_coding_assistant.orchestration.production_final_hardening"
 )
+_PRODUCTION_ARCHITECTURE_CONSISTENCY = (
+    "creative_coding_assistant.orchestration.production_architecture_consistency"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -789,6 +792,12 @@ _EXPORT_MAP = {
     "ProductionReleaseAuditRecord": _PRODUCTION_RELEASE_AUDIT,
     "ProductionFinalHardening": _PRODUCTION_FINAL_HARDENING,
     "ProductionHardeningRecord": _PRODUCTION_FINAL_HARDENING,
+    "ProductionArchitectureConsistencyRecord": (
+        _PRODUCTION_ARCHITECTURE_CONSISTENCY
+    ),
+    "ProductionArchitectureConsistencyRegistry": (
+        _PRODUCTION_ARCHITECTURE_CONSISTENCY
+    ),
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -2247,6 +2256,15 @@ _EXPORT_MAP = {
     "build_production_final_hardening": _PRODUCTION_FINAL_HARDENING,
     "production_hardening_record_by_area": _PRODUCTION_FINAL_HARDENING,
     "production_hardening_records_for_status": _PRODUCTION_FINAL_HARDENING,
+    "production_architecture_consistency_registry": (
+        _PRODUCTION_ARCHITECTURE_CONSISTENCY
+    ),
+    "production_architecture_consistency_by_surface": (
+        _PRODUCTION_ARCHITECTURE_CONSISTENCY
+    ),
+    "production_architecture_consistency_records_for_layer": (
+        _PRODUCTION_ARCHITECTURE_CONSISTENCY
+    ),
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
