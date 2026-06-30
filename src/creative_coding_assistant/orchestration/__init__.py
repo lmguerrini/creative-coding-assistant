@@ -356,6 +356,9 @@ _CREATIVE_DIVERSITY_ANALYTICS = (
     "creative_coding_assistant.orchestration.creative_diversity_analytics"
 )
 _RUNTIME_TIMELINE = "creative_coding_assistant.orchestration.runtime_timeline"
+_WORKFLOW_EXPLAINABILITY_DASHBOARD = (
+    "creative_coding_assistant.orchestration.workflow_explainability_dashboard"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -518,6 +521,8 @@ _EXPORT_MAP = {
     "CreativeDiversityAnalytics": _CREATIVE_DIVERSITY_ANALYTICS,
     "RuntimeTimelinePanel": _RUNTIME_TIMELINE,
     "RuntimeTimeline": _RUNTIME_TIMELINE,
+    "WorkflowExplainabilityPanel": _WORKFLOW_EXPLAINABILITY_DASHBOARD,
+    "WorkflowExplainabilityDashboard": _WORKFLOW_EXPLAINABILITY_DASHBOARD,
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1849,6 +1854,9 @@ _EXPORT_MAP = {
     "build_confidence_analytics": _CONFIDENCE_ANALYTICS,
     "build_creative_diversity_analytics": _CREATIVE_DIVERSITY_ANALYTICS,
     "build_runtime_timeline": _RUNTIME_TIMELINE,
+    "build_workflow_explainability_dashboard": (
+        _WORKFLOW_EXPLAINABILITY_DASHBOARD
+    ),
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
     "memory_summary_segments_for_kind": _MEMORY_SUMMARIZATION,
     "next_workflow_step": _WORKFLOW,
@@ -1930,6 +1938,10 @@ _EXPORT_MAP = {
     ),
     "runtime_timeline_panel_by_id": _RUNTIME_TIMELINE,
     "runtime_timeline_panels_for_status": _RUNTIME_TIMELINE,
+    "workflow_explainability_panel_by_id": _WORKFLOW_EXPLAINABILITY_DASHBOARD,
+    "workflow_explainability_panels_for_status": (
+        _WORKFLOW_EXPLAINABILITY_DASHBOARD
+    ),
     "workflow_diagnostic_panel_by_id": _WORKFLOW_DIAGNOSTICS,
     "workflow_diagnostic_panels_for_status": _WORKFLOW_DIAGNOSTICS,
 }
