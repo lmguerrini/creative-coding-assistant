@@ -21,6 +21,7 @@ EXPECTED_SURFACE_IDS = (
     "adaptive_cost_quality_optimizer",
     "adaptive_latency_optimizer",
     "adaptive_execution_strategy_selection",
+    "adaptive_execution_policy_engine",
     "dynamic_agent_allocation",
     "dynamic_resource_allocation",
     "workflow_self_tuning_policies",
@@ -57,11 +58,13 @@ REQUIRED_RECORD_FIELDS = {
     "source_active_runtime_flags",
     "missing_coverage_items",
     "source_advisory_only_declared",
+    "source_controlled_policy_declared",
     "v5_architecture_consistency_confirmed",
     "v4_boundary_compatibility_confirmed",
     "version_runtime_rules_confirmed",
     "architecture_consistency_status",
     "policy_application_implemented",
+    "execution_policy_application_implemented",
     "strategy_application_implemented",
     "provider_model_routing_implemented",
     "provider_execution_implemented",
@@ -101,17 +104,20 @@ class AdaptiveExecutionArchitectureConsistencyTests(unittest.TestCase):
         self.assertEqual(registry.route_name, RouteName.GENERATE)
         self.assertEqual(registry.surface_ids, EXPECTED_SURFACE_IDS)
         self.assertEqual(registry.architecture_layers, EXPECTED_ARCHITECTURE_LAYERS)
-        self.assertEqual(registry.record_count, 16)
+        self.assertEqual(registry.record_count, 17)
         self.assertTrue(registry.all_surfaces_covered)
         self.assertTrue(registry.route_consistency_confirmed)
-        self.assertTrue(registry.no_active_runtime_flags)
+        self.assertFalse(registry.no_active_runtime_flags)
+        self.assertTrue(registry.controlled_active_runtime_flags_present)
+        self.assertTrue(registry.no_uncontrolled_runtime_flags)
         self.assertTrue(registry.no_missing_coverage)
         self.assertTrue(registry.v4_boundaries_preserved)
         self.assertTrue(registry.runtime_evolution_not_applied)
         self.assertIn("runtime_evolution_not_applied", registry.validated_version_rules)
         self.assertIn("provider_or_model_routing", registry.blocked_runtime_behaviors)
-        self.assertIn("does not apply adaptive policies", registry.authority_boundary)
-        self.assertFalse(registry.policy_application_implemented)
+        self.assertIn("controlled adaptive policy application", registry.authority_boundary)
+        self.assertTrue(registry.policy_application_implemented)
+        self.assertTrue(registry.execution_policy_application_implemented)
         self.assertFalse(registry.strategy_application_implemented)
         self.assertFalse(registry.provider_model_routing_implemented)
         self.assertFalse(registry.provider_execution_implemented)
@@ -166,14 +172,29 @@ class AdaptiveExecutionArchitectureConsistencyTests(unittest.TestCase):
                 registry.passive_boundary_flags,
             )
             self.assertTrue(record.source_blocked_runtime_behaviors)
-            self.assertFalse(record.source_active_runtime_flags)
             self.assertFalse(record.missing_coverage_items)
-            self.assertTrue(record.source_advisory_only_declared)
+            if record.surface_id == "adaptive_execution_policy_engine":
+                self.assertEqual(
+                    record.source_active_runtime_flags,
+                    (
+                        "policy_application_implemented",
+                        "execution_policy_application_implemented",
+                    ),
+                )
+                self.assertFalse(record.source_advisory_only_declared)
+                self.assertTrue(record.source_controlled_policy_declared)
+                self.assertTrue(record.policy_application_implemented)
+                self.assertTrue(record.execution_policy_application_implemented)
+            else:
+                self.assertFalse(record.source_active_runtime_flags)
+                self.assertTrue(record.source_advisory_only_declared)
+                self.assertFalse(record.source_controlled_policy_declared)
+                self.assertFalse(record.policy_application_implemented)
+                self.assertFalse(record.execution_policy_application_implemented)
             self.assertTrue(record.v5_architecture_consistency_confirmed)
             self.assertTrue(record.v4_boundary_compatibility_confirmed)
             self.assertTrue(record.version_runtime_rules_confirmed)
             self.assertEqual(record.architecture_consistency_status, "pass")
-            self.assertFalse(record.policy_application_implemented)
             self.assertFalse(record.strategy_application_implemented)
             self.assertFalse(record.provider_model_routing_implemented)
             self.assertFalse(record.provider_execution_implemented)

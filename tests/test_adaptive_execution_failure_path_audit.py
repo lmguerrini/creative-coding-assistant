@@ -22,6 +22,7 @@ EXPECTED_SURFACE_IDS = (
     "adaptive_cost_quality_optimizer",
     "adaptive_latency_optimizer",
     "adaptive_execution_strategy_selection",
+    "adaptive_execution_policy_engine",
     "dynamic_agent_allocation",
     "dynamic_resource_allocation",
     "workflow_self_tuning_policies",
@@ -147,7 +148,7 @@ class AdaptiveExecutionFailurePathAuditTests(unittest.TestCase):
             registry.architecture_registry_serialization_version,
             "adaptive_execution_architecture_consistency_registry.v1",
         )
-        self.assertEqual(registry.architecture_registry_record_count, 16)
+        self.assertEqual(registry.architecture_registry_record_count, 17)
         self.assertEqual(registry.source_surface_ids, EXPECTED_SURFACE_IDS)
         self.assertEqual(registry.required_checks, EXPECTED_REQUIRED_CHECKS)
         self.assertEqual(
@@ -169,7 +170,7 @@ class AdaptiveExecutionFailurePathAuditTests(unittest.TestCase):
         self.assertTrue(registry.generated_output_mutation_boundary_preserved)
         self.assertTrue(registry.passive_registry_activation_boundary_preserved)
         self.assertTrue(registry.runtime_evolution_not_applied)
-        self.assertIn("does not apply adaptive policies", registry.authority_boundary)
+        self.assertIn("controlled adaptive policy", registry.authority_boundary)
         self.assertFalse(registry.policy_application_implemented)
         self.assertFalse(registry.execution_policy_application_implemented)
         self.assertFalse(registry.strategy_application_implemented)

@@ -57,7 +57,7 @@ flowchart TB
     model_routing_boundary["V5.2 model routing metadata boundary<br/>advisory routing + budget + explainability<br/>no provider/model switching"]:::relationship
     performance_boundary["V5.3 performance metadata boundary<br/>advisory scheduling + profiling + benchmarking<br/>no runtime measurement or control"]:::relationship
     observability_boundary["V5.4 production observability metadata boundary<br/>read-only dashboards + diagnostics<br/>no live telemetry emission"]:::relationship
-    adaptive_execution_boundary["V5.5 adaptive execution metadata boundary<br/>advisory policy + allocation posture<br/>no adaptive behavior application"]:::relationship
+    adaptive_execution_boundary["V5.5 adaptive execution policy boundary<br/>controlled allow/confirm/block simulation<br/>no provider execution or routing mutation"]:::relationship
 
     %% Main success path
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review

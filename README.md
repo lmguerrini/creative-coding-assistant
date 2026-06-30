@@ -79,13 +79,14 @@ consistency, and runtime failure-path audit coverage. V5.4 adds read-only
 Production Observability metadata for token, cost, quality, performance,
 telemetry, diagnostics, health, analytics, timeline, explainability,
 architecture consistency, and runtime failure-path audit coverage. V5.5 adds
-advisory Adaptive Execution Intelligence metadata for hybrid workflow,
-escalation, agent activation, adaptive cost/quality and latency, dynamic
-strategy, agent/resource allocation, self-tuning, confidence/risk, creative
-exploration, emergence, diversity, reflection budget, explainability,
-architecture consistency, and runtime failure-path audit coverage. These V5
-layers do not apply routing or adaptive policies, switch providers or models,
-execute providers, allocate agents or resources, measure live performance,
+controlled Adaptive Execution Intelligence policy and simulation for
+task-aware allow/confirm/block decisions, guarded provider/model path
+selection, fallback and escalation reasoning, hybrid workflow policies,
+manual/Assisted/Auto mode semantics, and manual/HITL-only surfaces for local
+model download, provider provisioning, runtime installation, and Runtime
+Evolution review. These V5 layers do not mutate configured routing, silently
+switch providers or models, execute providers, download models, provision
+providers, install runtimes, allocate agents or resources, measure live performance,
 collect live metrics, emit telemetry or alerts, capture traces, execute
 benchmarks or replay, enforce budgets or capacity, emit HITL requests, control
 workflows, trigger retries, mutate prompts, or modify generated output.
@@ -161,13 +162,13 @@ observed through live preview and runtime inspection from the same interface.
   analytics, diversity analytics, timeline, explainability, architecture
   consistency, and failure audit metadata without live metric collection,
   telemetry emission, trace capture, remediation, or workflow control
-- V5.5 Adaptive Execution Intelligence helpers for advisory hybrid workflow,
-  escalation, agent activation, adaptive cost/quality, adaptive latency,
-  dynamic strategy, agent/resource allocation, self-tuning, confidence/risk,
-  creative exploration, emergence, diversity, reflection budget,
-  explainability, architecture consistency, and failure audit metadata without
-  policy application, provider/model routing, agent/resource allocation,
-  workflow control, budget enforcement, HITL emission, or output mutation
+- V5.5 Adaptive Execution Intelligence helpers for controlled adaptive
+  execution policy, pre-run simulation, availability-aware allow/confirm/block
+  decisions, hybrid workflow policy, fallback/escalation reasoning, advisory
+  agent/resource/cost/latency/risk surfaces, explainability, architecture
+  consistency, and failure audit metadata without provider execution,
+  provider/model routing mutation, automatic downloads, provider provisioning,
+  runtime installation, HITL emission, workflow control, or output mutation
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -526,6 +527,7 @@ Adaptive Execution Intelligence surfaces:
 - Adaptive Cost/Quality Optimizer
 - Adaptive Latency Optimizer
 - Adaptive Execution Strategy Selection
+- Adaptive Execution Policy Engine
 - Dynamic Agent Allocation
 - Dynamic Resource Allocation
 - Workflow Self-Tuning Policies
@@ -562,11 +564,11 @@ contracts, orchestration, hybrid workflow, hybrid studio, multimodal studio,
 and hardening metadata rather than claiming that a multi-agent runtime, Studio
 runtime, rendering execution path, or runtime hardening engine already exists.
 V5.1, V5.2, V5.3, V5.4, and V5.5 document advisory execution optimization,
-model-routing, performance, read-only observability, and adaptive execution
-metadata without claiming that active runtime policy, model switching, live
-telemetry emission, performance measurement, benchmark execution, resource
-enforcement, adaptive policy application, or provider execution has been
-added.
+model-routing, performance, read-only observability, and controlled adaptive
+execution policy/simulation without claiming that provider execution, model
+switching, live telemetry emission, performance measurement, benchmark
+execution, resource enforcement, runtime workflow control, automatic
+downloads, or generated-output mutation has been added.
 
 ## Creative Workflow
 
@@ -1383,9 +1385,9 @@ current runtime.
 - Execution Optimization, Model Routing, Performance, Observability, and
   Adaptive Execution: V5.1, V5.2, V5.3, V5.4, and V5.5 provide advisory
   optimization metadata, routing metadata, performance metadata, read-only
-  observability metadata, and advisory adaptive execution metadata today;
-  future production intelligence remains active runtime policy application,
-  live telemetry emission, adaptive behavior application, and cost/performance
+  observability metadata, and controlled adaptive execution policy/simulation
+  today; future production intelligence remains live runtime policy
+  enforcement, telemetry emission, provider execution, and cost/performance
   enforcement work.
 - HoloGenesis Core OS: long-horizon creative lineage, feedback, memory, and
   system-level continuity.

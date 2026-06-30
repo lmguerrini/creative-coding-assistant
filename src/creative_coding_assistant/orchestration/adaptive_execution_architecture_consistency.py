@@ -1,4 +1,4 @@
-"""Passive V5.5 adaptive execution architecture consistency metadata."""
+"""V5.5 adaptive execution architecture consistency metadata."""
 
 from __future__ import annotations
 
@@ -14,6 +14,9 @@ from creative_coding_assistant.orchestration.adaptive_escalation_optimizer impor
 )
 from creative_coding_assistant.orchestration.adaptive_execution_strategy_selection import (
     select_dynamic_execution_strategy,
+)
+from creative_coding_assistant.orchestration.adaptive_execution_policy_engine import (
+    evaluate_adaptive_execution_policy,
 )
 from creative_coding_assistant.orchestration.adaptive_hybrid_workflow_optimizer import (
     optimize_hybrid_workflow,
@@ -77,14 +80,15 @@ ADAPTIVE_EXECUTION_ARCHITECTURE_REGISTRY_SERIALIZATION_VERSION = (
 )
 ADAPTIVE_EXECUTION_ARCHITECTURE_AUTHORITY_BOUNDARY = (
     "V5.5 adaptive execution architecture consistency metadata checks "
-    "advisory surface coverage, serialization, route consistency, passive "
-    "runtime boundaries, V4 compatibility, and version-level HITL/runtime "
-    "evolution rules only; it does not apply adaptive policies or strategies, "
-    "change provider or model routing, execute providers, invoke agents, "
-    "allocate resources, enforce budgets, emit HITL requests, control or "
-    "execute workflows, mutate workflow graphs, trigger retries, mutate "
-    "prompts, write storage, modify generated output, or apply Runtime "
-    "Evolution."
+    "advisory surface coverage, controlled adaptive policy application, "
+    "serialization, route consistency, runtime boundaries, V4 compatibility, "
+    "and version-level HITL/runtime evolution rules; it allows only the "
+    "controlled V5.5 policy decision surface to apply allow/confirm/block "
+    "policy semantics and does not change provider or model routing, execute "
+    "providers, invoke agents, allocate resources, enforce budgets, emit HITL "
+    "requests, control or execute workflows, mutate workflow graphs, trigger "
+    "retries, mutate prompts, write storage, modify generated output, or "
+    "apply Runtime Evolution."
 )
 
 _ROUTE_NAME = RouteName.GENERATE
@@ -101,8 +105,8 @@ _ARCHITECTURE_LAYERS: tuple[AdaptiveExecutionArchitectureLayer, ...] = (
 _VALIDATED_VERSION_RULES = (
     "v5_5_surface_role_declared",
     "serialization_version_declared",
-    "advisory_metadata_only",
-    "adaptive_policy_not_applied",
+    "advisory_or_controlled_policy_declared",
+    "controlled_policy_application_scoped",
     "provider_model_routing_not_applied",
     "provider_execution_not_applied",
     "agent_invocation_blocked",
@@ -113,7 +117,7 @@ _VALIDATED_VERSION_RULES = (
     "human_gate_not_emitted",
 )
 _PASSIVE_BOUNDARY_FLAGS = (
-    "policy_application_blocked",
+    "uncontrolled_policy_application_blocked",
     "strategy_application_blocked",
     "provider_model_routing_blocked",
     "provider_execution_blocked",
@@ -131,7 +135,7 @@ _PASSIVE_BOUNDARY_FLAGS = (
     "runtime_evolution_blocked",
 )
 _BLOCKED_RUNTIME_BEHAVIORS = (
-    "adaptive_policy_application",
+    "uncontrolled_adaptive_policy_application",
     "strategy_application",
     "provider_or_model_routing",
     "provider_execution",
@@ -149,6 +153,10 @@ _BLOCKED_RUNTIME_BEHAVIORS = (
     "persistent_storage_write",
     "generated_output_modification",
     "runtime_evolution_application",
+)
+_ALLOWED_CONTROLLED_ACTIVE_FLAGS = (
+    "policy_application_implemented",
+    "execution_policy_application_implemented",
 )
 _ACTIVE_RUNTIME_FLAGS = (
     "policy_application_implemented",
@@ -203,6 +211,7 @@ _SURFACE_LAYERS: tuple[tuple[str, AdaptiveExecutionArchitectureLayer], ...] = (
     ("adaptive_cost_quality_optimizer", "cost_latency_boundary"),
     ("adaptive_latency_optimizer", "cost_latency_boundary"),
     ("adaptive_execution_strategy_selection", "execution_strategy_boundary"),
+    ("adaptive_execution_policy_engine", "execution_strategy_boundary"),
     ("dynamic_agent_allocation", "agent_resource_boundary"),
     ("dynamic_resource_allocation", "agent_resource_boundary"),
     ("workflow_self_tuning_policies", "execution_strategy_boundary"),
@@ -217,7 +226,7 @@ _SURFACE_LAYERS: tuple[tuple[str, AdaptiveExecutionArchitectureLayer], ...] = (
 
 
 class AdaptiveExecutionArchitectureConsistencyRecord(BaseModel):
-    """One passive V5.5 architecture consistency record."""
+    """One V5.5 architecture consistency record."""
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -245,12 +254,14 @@ class AdaptiveExecutionArchitectureConsistencyRecord(BaseModel):
         default_factory=tuple,
         max_length=16,
     )
-    source_advisory_only_declared: Literal[True] = True
+    source_advisory_only_declared: bool = True
+    source_controlled_policy_declared: bool = False
     v5_architecture_consistency_confirmed: Literal[True] = True
     v4_boundary_compatibility_confirmed: Literal[True] = True
     version_runtime_rules_confirmed: Literal[True] = True
     architecture_consistency_status: AdaptiveExecutionArchitectureStatus = "pass"
-    policy_application_implemented: Literal[False] = False
+    policy_application_implemented: bool = False
+    execution_policy_application_implemented: bool = False
     strategy_application_implemented: Literal[False] = False
     provider_model_routing_implemented: Literal[False] = False
     provider_execution_implemented: Literal[False] = False
@@ -273,7 +284,7 @@ class AdaptiveExecutionArchitectureConsistencyRecord(BaseModel):
 
 
 class AdaptiveExecutionArchitectureConsistencyRegistry(BaseModel):
-    """Passive V5.5 adaptive execution architecture consistency registry."""
+    """V5.5 adaptive execution architecture consistency registry."""
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -292,11 +303,11 @@ class AdaptiveExecutionArchitectureConsistencyRegistry(BaseModel):
     )
     route_name: RouteName = _ROUTE_NAME
     records: tuple[AdaptiveExecutionArchitectureConsistencyRecord, ...] = Field(
-        min_length=16,
-        max_length=16,
+        min_length=17,
+        max_length=17,
     )
-    surface_ids: tuple[str, ...] = Field(min_length=16, max_length=16)
-    record_count: int = Field(ge=16, le=16)
+    surface_ids: tuple[str, ...] = Field(min_length=17, max_length=17)
+    record_count: int = Field(ge=17, le=17)
     architecture_layers: tuple[AdaptiveExecutionArchitectureLayer, ...] = Field(
         min_length=8,
         max_length=8,
@@ -310,11 +321,14 @@ class AdaptiveExecutionArchitectureConsistencyRegistry(BaseModel):
     )
     all_surfaces_covered: Literal[True] = True
     route_consistency_confirmed: Literal[True] = True
-    no_active_runtime_flags: Literal[True] = True
+    no_active_runtime_flags: Literal[False] = False
+    controlled_active_runtime_flags_present: Literal[True] = True
+    no_uncontrolled_runtime_flags: Literal[True] = True
     no_missing_coverage: Literal[True] = True
     v4_boundaries_preserved: Literal[True] = True
     runtime_evolution_not_applied: Literal[True] = True
-    policy_application_implemented: Literal[False] = False
+    policy_application_implemented: Literal[True] = True
+    execution_policy_application_implemented: Literal[True] = True
     strategy_application_implemented: Literal[False] = False
     provider_model_routing_implemented: Literal[False] = False
     provider_execution_implemented: Literal[False] = False
@@ -360,8 +374,8 @@ class AdaptiveExecutionArchitectureConsistencyRegistry(BaseModel):
                 record.source_route_name != self.route_name
             ):
                 raise ValueError("source_route_name must match registry route")
-            if record.source_active_runtime_flags:
-                raise ValueError("records must not contain active runtime flags")
+            if record.source_active_runtime_flags and not _active_flags_allowed(record):
+                raise ValueError("records must not contain uncontrolled active runtime flags")
             if record.missing_coverage_items:
                 raise ValueError("records must not contain missing coverage")
         return self
@@ -427,6 +441,9 @@ def _source_specs(
         "adaptive_execution_strategy_selection": select_dynamic_execution_strategy(
             route=_ROUTE_NAME
         ),
+        "adaptive_execution_policy_engine": evaluate_adaptive_execution_policy(
+            route=_ROUTE_NAME
+        ),
         "dynamic_agent_allocation": allocate_dynamic_agents(route=_ROUTE_NAME),
         "dynamic_resource_allocation": allocate_dynamic_resources(route=_ROUTE_NAME),
         "workflow_self_tuning_policies": plan_workflow_self_tuning_policies(
@@ -473,6 +490,16 @@ def _record_from_source(
         source_blocked_runtime_behaviors=blocked or _BLOCKED_RUNTIME_BEHAVIORS,
         source_active_runtime_flags=active_flags,
         missing_coverage_items=missing,
+        source_advisory_only_declared=bool(getattr(source, "advisory_only", False)),
+        source_controlled_policy_declared=bool(
+            getattr(source, "controlled_policy_only", False)
+        ),
+        policy_application_implemented=bool(
+            getattr(source, "policy_application_implemented", False)
+        ),
+        execution_policy_application_implemented=bool(
+            getattr(source, "execution_policy_application_implemented", False)
+        ),
     )
 
 
@@ -506,13 +533,27 @@ def _missing_coverage(
         missing.append("role_missing")
     if not getattr(source, "serialization_version", ""):
         missing.append("serialization_version_missing")
-    if not getattr(source, "advisory_only", False):
-        missing.append("advisory_only_missing")
+    if not (
+        getattr(source, "advisory_only", False)
+        or getattr(source, "controlled_policy_only", False)
+    ):
+        missing.append("advisory_or_controlled_policy_missing")
     if not count_field:
         missing.append("count_field_missing")
     if not blocked:
         missing.append("blocked_runtime_behaviors_missing")
     return tuple(missing)
+
+
+def _active_flags_allowed(
+    record: AdaptiveExecutionArchitectureConsistencyRecord,
+) -> bool:
+    return (
+        record.surface_id == "adaptive_execution_policy_engine"
+        and set(record.source_active_runtime_flags).issubset(
+            set(_ALLOWED_CONTROLLED_ACTIVE_FLAGS)
+        )
+    )
 
 
 def _surface_ids() -> tuple[str, ...]:

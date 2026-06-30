@@ -121,15 +121,16 @@ generate explanations, request human review, control workflows, trigger
 retries, route providers or models, mutate prompts, persist storage, apply
 Runtime Evolution, or modify generated output.
 V5.5 Adaptive Execution Intelligence keeps the same LangGraph runtime node set
-while adding advisory hybrid workflow optimization, escalation optimization,
-agent activation optimization, adaptive cost/quality and latency posture,
-dynamic execution strategy selection, dynamic agent/resource allocation,
-workflow self-tuning posture, execution confidence, workflow risk, creative
-exploration, emergence, agent diversity, reflection budget, adaptive policy
-explainability, architecture consistency, and runtime failure-path audit
-metadata. These surfaces are importable Python contracts and deterministic
-local helpers; they do not apply policies or strategies, switch providers or
-models, execute providers, instantiate or invoke agents, allocate resources,
+while adding controlled adaptive execution policy/simulation, advisory hybrid
+workflow optimization, escalation optimization, agent activation optimization,
+adaptive cost/quality and latency posture, dynamic execution strategy
+selection, dynamic agent/resource allocation, workflow self-tuning posture,
+execution confidence, workflow risk, creative exploration, emergence, agent
+diversity, reflection budget, adaptive policy explainability, architecture
+consistency, and runtime failure-path audit metadata. These surfaces are
+importable Python contracts and deterministic local helpers; they do not
+mutate configured provider/model routing, silently switch providers or models,
+execute providers, instantiate or invoke agents, allocate resources,
 enforce budgets, emit HITL requests, compile graphs, execute or control
 workflows, mutate workflow graphs, trigger retries or refinements, mutate
 prompts, persist storage, apply Runtime Evolution, or modify generated output.
@@ -257,15 +258,16 @@ This separation is intentional:
   trace capture, health check execution, live error classification,
   remediation, workflow control, provider/model routing, retry triggering, or
   generated-output mutation
-- The V5.5 Adaptive Execution Intelligence layer owns advisory hybrid
-  workflow, escalation, agent activation, adaptive cost/quality and latency,
-  dynamic strategy, agent/resource allocation, self-tuning, confidence/risk,
-  creative exploration, emergence, diversity, reflection budget,
-  explainability, architecture consistency, and runtime failure audit metadata,
-  but still does not own adaptive policy application, provider/model routing,
-  provider execution, agent invocation, resource allocation, budget
-  enforcement, HITL request emission, workflow control, workflow graph
-  mutation, retry triggering, or generated-output mutation
+- The V5.5 Adaptive Execution Intelligence layer owns controlled adaptive
+  execution policy/simulation, advisory hybrid workflow, escalation, agent
+  activation, adaptive cost/quality and latency, dynamic strategy,
+  agent/resource allocation, self-tuning, confidence/risk, creative
+  exploration, emergence, diversity, reflection budget, explainability,
+  architecture consistency, and runtime failure audit metadata, but still does
+  not own provider/model routing mutation, provider execution, agent
+  invocation, resource allocation, budget enforcement, HITL request emission,
+  workflow control, workflow graph mutation, retry triggering, automatic local
+  model downloads, or generated-output mutation
 - The internal capability pipeline and dependency graph remain decomposition
   candidates for later orchestration, but they are not a true multi-agent or
   multi-node runtime graph here
@@ -575,11 +577,13 @@ Path Audit.
 
 ## V5.5 Adaptive Execution Intelligence Metadata Boundary
 
-V5.5 introduces advisory adaptive execution metadata over the stable V3
-runtime graph, V4 passive contract stack, V5.1 execution optimization
-metadata, V5.2 model-routing metadata, V5.3 performance metadata, and V5.4
-production observability metadata. The implementation adds typed metadata and
-deterministic local helpers for adaptive hybrid workflow optimization,
+V5.5 introduces controlled adaptive execution policy and simulation over the
+stable V3 runtime graph, V4 passive contract stack, V5.1 execution
+optimization metadata, V5.2 model-routing metadata, V5.3 performance
+metadata, and V5.4 production observability metadata. The implementation adds
+typed deterministic helpers for task-aware allow/confirm/block decisions,
+provider/model path readiness, pre-run tradeoff simulation, hybrid workflow
+policy, fallback/escalation policy, adaptive hybrid workflow optimization,
 adaptive escalation optimization, agent activation optimization, adaptive
 cost/quality optimization, adaptive latency optimization, dynamic execution
 strategy selection, dynamic agent allocation, dynamic resource allocation,
@@ -589,31 +593,33 @@ diversity optimization, reflection budget optimization, adaptive policy
 explainability, architecture consistency coverage, and runtime failure-path
 audit coverage.
 
-These surfaces are not an active adaptive execution runtime. They do not apply
-adaptive policies or strategies, apply routing, switch providers or models,
-execute providers, instantiate or invoke agents, activate agents, allocate
-agents or resources, measure runtime resources, enforce budgets, emit HITL
-requests, request human input, compile graphs, execute or control workflows,
-mutate workflow graphs, trigger retries or refinements, mutate prompts, write
-persistent storage, activate passive registries as runtime behavior, apply
-Runtime Evolution, or modify generated output.
+These surfaces are controlled policy helpers, not provider or workflow
+execution. They do not mutate configured routing, silently switch providers or
+models, execute providers, instantiate or invoke agents, activate agents,
+allocate agents or resources, measure runtime resources, enforce budgets, emit
+HITL requests, request human input on their own, compile graphs, execute or
+control workflows, mutate workflow graphs, trigger retries or refinements,
+mutate prompts, write persistent storage, activate passive registries as
+runtime behavior, apply Runtime Evolution, download local models, provision
+providers, install runtimes, or modify generated output.
 
 Canonical V5.5 surfaces are Adaptive Hybrid Workflow Optimizer, Adaptive
 Escalation Optimizer, Agent Activation Optimizer, Adaptive Cost/Quality
 Optimizer, Adaptive Latency Optimizer, Adaptive Execution Strategy Selection,
-Dynamic Agent Allocation, Dynamic Resource Allocation, Workflow Self-Tuning
-Policies, Execution Confidence Engine, Workflow Risk Engine, Creative
-Exploration Optimizer, Emergence Optimizer, Agent Diversity Optimizer,
-Reflection Budget Optimizer, Adaptive Policy Explainability, Adaptive
-Execution Architecture Consistency, and Adaptive Execution Failure Path Audit.
+Adaptive Execution Policy Engine, Dynamic Agent Allocation, Dynamic Resource
+Allocation, Workflow Self-Tuning Policies, Execution Confidence Engine,
+Workflow Risk Engine, Creative Exploration Optimizer, Emergence Optimizer,
+Agent Diversity Optimizer, Reflection Budget Optimizer, Adaptive Policy
+Explainability, Adaptive Execution Architecture Consistency, and Adaptive
+Execution Failure Path Audit.
 
 | Surface group | Current boundary |
 | --- | --- |
 | Hybrid workflow, escalation, and agent activation posture | Combine advisory path/routing, escalation, HITL, lifecycle, and capability metadata without applying escalation, emitting HITL requests, invoking or activating agents, executing providers, or changing workflow control |
-| Adaptive cost/quality, latency, and dynamic strategy posture | Rank advisory cost/quality, latency, and strategy candidates without pricing lookup, live measurement, model/provider switching, runtime selection, budget enforcement, or strategy application |
+| Adaptive cost/quality, latency, dynamic strategy, and controlled policy | Rank advisory cost/quality, latency, and strategy candidates and apply controlled allow/confirm/block policy decisions without pricing lookup, live measurement, provider execution, model/provider switching, runtime installation, automatic downloads, HITL emission, or routing mutation |
 | Dynamic agent/resource allocation and self-tuning posture | Project allocation and self-tuning recommendations without allocating agents or resources, changing queues or capacity, triggering retries, reordering workflows, compiling graphs, or executing node handlers |
 | Confidence, risk, exploration, emergence, diversity, and reflection posture | Summarize advisory confidence, risk, creative exploration, emergence, diversity, and reflection budgets without applying risk decisions, generating variants, selecting artifacts, running reflection loops, or enforcing token budgets |
-| Explainability, architecture, and failure audit | Explain adaptive policy posture and verify V5.5 source coverage, passive activation, Runtime Evolution, architecture, and failure-path boundaries without applying policies, routing providers/models, emitting HITL, or recovery execution |
+| Explainability, architecture, and failure audit | Explain adaptive policy posture and verify V5.5 source coverage, controlled policy activation, Runtime Evolution, architecture, and failure-path boundaries without routing providers/models, emitting HITL, or recovery execution |
 
 ## Current Implemented Flow
 
@@ -714,7 +720,7 @@ flowchart TB
     model_routing_boundary["V5.2 model routing metadata boundary<br/>advisory routing + budget + explainability<br/>no provider/model switching"]:::relationship
     performance_boundary["V5.3 performance metadata boundary<br/>advisory scheduling + profiling + benchmarking<br/>no runtime measurement or control"]:::relationship
     observability_boundary["V5.4 production observability metadata boundary<br/>read-only dashboards + diagnostics<br/>no live telemetry emission"]:::relationship
-    adaptive_execution_boundary["V5.5 adaptive execution metadata boundary<br/>advisory policy + allocation posture<br/>no adaptive behavior application"]:::relationship
+    adaptive_execution_boundary["V5.5 adaptive execution policy boundary<br/>controlled allow/confirm/block simulation<br/>no provider execution or routing mutation"]:::relationship
 
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
     review -->|"pass or max retry"| finalization --> finish

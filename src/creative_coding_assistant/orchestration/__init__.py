@@ -441,6 +441,10 @@ _ADAPTIVE_EXECUTION_STRATEGY_SELECTION = (
     "creative_coding_assistant.orchestration."
     "adaptive_execution_strategy_selection"
 )
+_ADAPTIVE_EXECUTION_POLICY_ENGINE = (
+    "creative_coding_assistant.orchestration."
+    "adaptive_execution_policy_engine"
+)
 _DYNAMIC_AGENT_ALLOCATION = (
     "creative_coding_assistant.orchestration.dynamic_agent_allocation"
 )
@@ -690,6 +694,16 @@ _EXPORT_MAP = {
     "AdaptiveExecutionStrategySelectionPlan": (
         _ADAPTIVE_EXECUTION_STRATEGY_SELECTION
     ),
+    "AdaptiveExecutionAvailabilityContext": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
+    "AdaptiveExecutionEscalationRule": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
+    "AdaptiveExecutionFallbackDecision": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
+    "AdaptiveExecutionManualAction": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
+    "AdaptiveExecutionPathStep": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
+    "AdaptiveExecutionSimulation": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
+    "ControlledAdaptiveExecutionDecision": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
+    "ControlledAdaptiveExecutionOption": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
+    "ControlledAdaptiveExecutionPlan": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
+    "ControlledHybridExecutionPolicy": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
     "DynamicAgentAllocationCandidate": _DYNAMIC_AGENT_ALLOCATION,
     "DynamicAgentAllocationPlan": _DYNAMIC_AGENT_ALLOCATION,
     "AgentDiversityOptimizationCandidate": _AGENT_DIVERSITY_OPTIMIZER,
@@ -2076,6 +2090,11 @@ _EXPORT_MAP = {
     "adaptive_execution_strategies_for_status": (
         _ADAPTIVE_EXECUTION_STRATEGY_SELECTION
     ),
+    "adaptive_execution_availability_context": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
+    "adaptive_execution_option_by_id": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
+    "adaptive_execution_options_for_readiness": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
+    "evaluate_adaptive_execution_policy": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
+    "simulate_adaptive_execution": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
     "allocate_dynamic_agents": _DYNAMIC_AGENT_ALLOCATION,
     "dynamic_agent_allocation_by_agent_id": _DYNAMIC_AGENT_ALLOCATION,
     "dynamic_agent_allocations_for_lane": _DYNAMIC_AGENT_ALLOCATION,

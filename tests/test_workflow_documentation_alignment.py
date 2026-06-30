@@ -177,6 +177,7 @@ V55_ADAPTIVE_EXECUTION_SURFACES = (
     "Adaptive Cost/Quality Optimizer",
     "Adaptive Latency Optimizer",
     "Adaptive Execution Strategy Selection",
+    "Adaptive Execution Policy Engine",
     "Dynamic Agent Allocation",
     "Dynamic Resource Allocation",
     "Workflow Self-Tuning Policies",
@@ -293,8 +294,11 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("advisory execution optimization metadata", normalized_readme)
         self.assertIn("advisory model-routing metadata", normalized_readme)
         self.assertIn("read-only observability metadata", normalized_readme)
-        self.assertIn("advisory adaptive execution metadata", normalized_readme)
-        self.assertIn("adaptive behavior application", normalized_readme)
+        self.assertIn(
+            "controlled adaptive execution policy/simulation",
+            normalized_readme,
+        )
+        self.assertIn("runtime workflow control", normalized_readme)
         self.assertIn("orchestration readiness metadata", normalized_readme)
         self.assertIn("not active Studio runtime", normalized_readme)
         self.assertIn("not rendering execution", normalized_readme)
@@ -314,7 +318,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("bypass failure normalization", normalized_readme)
         self.assertIn("runtime hardening engine", normalized_readme)
         self.assertIn("not active model selection", normalized_readme)
-        self.assertIn("do not apply routing", normalized_readme)
+        self.assertIn("do not mutate configured routing", normalized_readme)
         self.assertIn("provider/model switching", normalized_readme)
         self.assertIn("provider execution", normalized_readme)
         self.assertIn("Runtime Evolution", normalized_readme)
@@ -505,7 +509,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("apply Runtime Evolution", normalized_combined)
         self.assertIn("modify generated output", normalized_combined)
 
-    def test_project_docs_cover_current_v5_5_advisory_scope(self) -> None:
+    def test_project_docs_cover_current_v5_5_controlled_scope(self) -> None:
         project_context = (
             REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
         ).read_text(encoding="utf-8")
@@ -519,12 +523,19 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         normalized_combined = re.sub(r"\s+", " ", combined)
 
         self.assertIn("V5.5 Adaptive Execution Intelligence", combined)
-        self.assertIn("V5.5 Advisory Adaptive Execution Boundary", project_context)
+        self.assertIn("V5.5 Controlled Adaptive Execution Boundary", project_context)
         self.assertIn("V5.5 Boundary Decision", decisions)
-        self.assertIn("completed advisory metadata layer", normalized_combined)
-        self.assertIn("advisory adaptive execution metadata", normalized_combined)
+        self.assertIn(
+            "completed controlled policy and simulation layer",
+            normalized_combined,
+        )
+        self.assertIn(
+            "controlled adaptive execution policy",
+            normalized_combined,
+        )
+        self.assertIn("allow/confirm/block decisions", normalized_combined)
         self.assertIn("runtime failure-path audit coverage", normalized_combined)
-        self.assertIn("apply adaptive policies or strategies", normalized_combined)
+        self.assertIn("mutate configured provider/model routing", normalized_combined)
         self.assertIn("switch providers or models", normalized_combined)
         self.assertIn("execute providers", normalized_combined)
         self.assertIn("invoke agents", normalized_combined)
@@ -582,8 +593,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("no provider/model switching", mermaid)
         self.assertIn("V5.4 production observability metadata boundary", mermaid)
         self.assertIn("no live telemetry emission", mermaid)
-        self.assertIn("V5.5 adaptive execution metadata boundary", mermaid)
-        self.assertIn("no adaptive behavior application", mermaid)
+        self.assertIn("V5.5 adaptive execution policy boundary", mermaid)
+        self.assertIn("no provider execution or routing mutation", mermaid)
 
     def test_workflow_doc_distinguishes_runtime_pipeline_and_dependency_views(
         self,
@@ -684,7 +695,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             normalized_architecture_doc,
         )
         self.assertIn(
-            "advisory adaptive execution metadata",
+            "controlled adaptive execution policy/simulation",
             normalized_architecture_doc,
         )
         self.assertIn("do not execute orchestration", normalized_architecture_doc)
@@ -971,6 +982,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "adaptive_cost_quality_plan.v1",
             "adaptive_latency_plan.v1",
             "adaptive_execution_strategy_selection_plan.v1",
+            "adaptive_execution_policy_plan.v1",
             "dynamic_agent_allocation_plan.v1",
             "dynamic_resource_allocation_plan.v1",
             "workflow_self_tuning_policy_plan.v1",
@@ -1075,6 +1087,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "adaptive_cost_quality_optimizer.py",
             "adaptive_latency_optimizer.py",
             "adaptive_execution_strategy_selection.py",
+            "adaptive_execution_policy_engine.py",
             "dynamic_agent_allocation.py",
             "dynamic_resource_allocation.py",
             "workflow_self_tuning_policies.py",
@@ -1105,7 +1118,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             normalized_engine_matrix,
         )
         self.assertIn(
-            "advisory adaptive execution metadata",
+            "controlled adaptive execution policy",
             normalized_engine_matrix,
         )
         self.assertIn("does not activate Studio runtime", normalized_engine_matrix)
@@ -1139,8 +1152,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("collect live metrics", normalized_engine_matrix)
         self.assertIn("emit telemetry or alerts", normalized_engine_matrix)
         self.assertIn("capture traces", normalized_engine_matrix)
-        self.assertIn("apply adaptive policies or strategies", normalized_engine_matrix)
-        self.assertIn("adaptive behavior application", normalized_engine_matrix)
+        self.assertIn("allow/confirm/block decisions", normalized_engine_matrix)
+        self.assertIn("automatic downloads", normalized_engine_matrix)
 
     def test_workstation_surface_docs_cover_v35_surface_layer(self) -> None:
         architecture_doc = (
@@ -1160,8 +1173,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("Future V4/V5/V6 consumers", mermaid)
         self.assertIn("named hooks only", mermaid)
         self.assertIn(
-            "V5 advisory adaptive execution metadata",
-            architecture_doc,
+            "V5 controlled adaptive execution policy metadata",
+            normalized_architecture_doc,
         )
         self.assertIn("apply adaptive execution policy", normalized_architecture_doc)
         self.assertIn(

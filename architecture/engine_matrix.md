@@ -48,7 +48,7 @@ Use this matrix together with:
 | V5.2 | Core Engine exposes creative quality, diversity, and consistency prediction metadata for route recommendations without changing generation behavior | Knowledge and model/provider profile signals are referenced as metadata only; no retrieval, memory, provider, or model backend ownership changes | Intelligent Model Routing Engine adds advisory model routing, local/cloud routing, hybrid routing, quality/cost optimization, cost estimation, budget policy, HITL budget gate, runtime recommendation, execution policy, model recommendation, capability matrices, prediction, explainability, architecture consistency, and failure audit metadata without applying routing or executing providers | Experience surfaces can inspect routing explanations later, but no model switcher, HITL prompt, budget enforcement, or operator control surface is activated here |
 | V5.3 | Core Engine metadata can inform performance posture without changing creative planning or generation behavior | Knowledge and memory signals remain source references only; no retrieval, memory, cache, telemetry, or resource backend ownership changes | Performance Engine adds advisory parallel scheduling, latency, async, streaming, retry policy, load balancing, profiling, replay, bottleneck, throughput, prediction, benchmarking, reasoning budget, regression, resource utilization, architecture consistency, and failure audit metadata without measuring performance, executing workflows, enforcing resources, or changing provider/model routing | Experience surfaces can inspect performance posture later, but no profiling UI, benchmark runner, autoscaler, or operational control surface is activated here |
 | V5.4 | Core Engine metadata can inform creative, confidence, and diversity analytics without changing creative planning or generation behavior | Knowledge and memory signals remain source references only; no retrieval, memory, telemetry store, trace store, or observability backend ownership changes | Production Observability adds read-only token, cost, quality, performance, telemetry, diagnostic, health, analytics, timeline, explainability, architecture consistency, and failure audit metadata without collecting live metrics, emitting telemetry, controlling workflows, or changing provider/model routing | Experience surfaces can inspect observability posture later, but no alerting UI, live telemetry sink, trace capture, remediation workflow, or operational control surface is activated here |
-| V5.5 | Core Engine metadata can inform adaptive execution posture without changing creative planning or generation behavior | Knowledge, model/provider, cost, latency, agent, risk, and analytics signals remain source references only; no retrieval, memory, provider, model, telemetry, or resource backend ownership changes | Adaptive Execution Intelligence adds advisory hybrid workflow, escalation, agent activation, adaptive cost/quality and latency, dynamic strategy, agent/resource allocation, self-tuning, confidence/risk, creative exploration, emergence, diversity, reflection budget, explainability, architecture consistency, and failure audit metadata without applying policies, allocating resources, executing workflows, or changing provider/model routing | Experience surfaces can inspect adaptive policy explanations later, but no Auto Mode policy application, HITL prompt emission, agent scheduler, resource allocator, or adaptive control surface is activated here |
+| V5.5 | Core Engine metadata can inform adaptive execution posture without changing creative planning or generation behavior | Knowledge, model/provider, cost, latency, agent, risk, and analytics signals remain source references only; no retrieval, memory, provider, model, telemetry, or resource backend ownership changes | Adaptive Execution Intelligence adds controlled policy/simulation, advisory hybrid workflow, escalation, agent activation, adaptive cost/quality and latency, dynamic strategy, agent/resource allocation, self-tuning, confidence/risk, creative exploration, emergence, diversity, reflection budget, explainability, architecture consistency, and failure audit metadata without mutating routing, allocating resources, executing providers, executing workflows, automatic downloads, or generated-output mutation | Experience surfaces can inspect adaptive policy explanations later, but no HITL prompt emission, agent scheduler, resource allocator, provider execution, or workflow control surface is activated here |
 | V6 | HoloGenesis Core OS can unify long-horizon creative strategy, lineage, and system identity | Long-horizon knowledge and memory adaptation move into the future OS direction | Execution can learn from prior runs without replacing bounded workflow control | Experience surfaces expose lineage, feedback, and evolving operator guidance |
 
 ## Reading The Matrix
@@ -390,24 +390,27 @@ storage, apply Runtime Evolution, or modify generated output.
 
 ## V5.5 Adaptive Execution Intelligence Surfaces
 
-V5.5 adds advisory adaptive execution metadata to the Execution Engine while
-preserving the current LangGraph runtime graph, provider/model routing
-boundary, and output mutation boundary. These surfaces are typed contracts and
-deterministic local helpers. They do not apply adaptive policies or strategies,
-apply routing, switch providers or models, execute providers, instantiate or
-invoke agents, activate agents, allocate agents or resources, measure runtime
-resources, enforce budgets, emit HITL requests, compile graphs, execute or
-control workflows, mutate workflow graphs, trigger retries or refinements,
-mutate prompts, write persistent storage, apply Runtime Evolution, or modify
-generated output.
+V5.5 adds controlled adaptive execution policy and simulation to the Execution
+Engine while preserving the current LangGraph runtime graph, provider/model
+routing boundary, and output mutation boundary. These surfaces are typed
+contracts and deterministic local helpers. They can produce task-aware
+allow/confirm/block decisions, simulate tradeoffs, select an explicit safe
+path when policy permits, and expose fallback/escalation guidance. They do not
+mutate configured routing, silently switch providers or models, execute
+providers, instantiate or invoke agents, allocate agents or resources, measure
+runtime resources, enforce budgets, emit HITL requests, compile graphs,
+execute or control workflows, mutate workflow graphs, trigger retries or
+refinements, mutate prompts, write persistent storage, apply Runtime
+Evolution, download local models, provision providers, install runtimes, or
+modify generated output.
 
 | Surface group | Source module | Serialization boundary | Current boundary |
 | --- | --- | --- | --- |
 | Hybrid workflow, escalation, and agent activation posture | `adaptive_hybrid_workflow_optimizer.py`, `adaptive_escalation_optimizer.py`, `agent_activation_optimizer.py` | `adaptive_hybrid_workflow_optimization_plan.v1`, `adaptive_escalation_optimization_plan.v1`, `agent_activation_optimization_plan.v1` | Combines advisory path/routing, escalation, HITL, lifecycle, and capability metadata without applying escalation, emitting HITL requests, invoking or activating agents, executing providers, or changing workflow control |
-| Adaptive cost/quality, latency, and dynamic strategy posture | `adaptive_cost_quality_optimizer.py`, `adaptive_latency_optimizer.py`, `adaptive_execution_strategy_selection.py` | `adaptive_cost_quality_plan.v1`, `adaptive_latency_plan.v1`, `adaptive_execution_strategy_selection_plan.v1` | Ranks advisory cost/quality, latency, and strategy candidates without pricing lookup, live measurement, model/provider switching, runtime selection, budget enforcement, or strategy application |
+| Adaptive cost/quality, latency, dynamic strategy, and controlled policy | `adaptive_cost_quality_optimizer.py`, `adaptive_latency_optimizer.py`, `adaptive_execution_strategy_selection.py`, `adaptive_execution_policy_engine.py` | `adaptive_cost_quality_plan.v1`, `adaptive_latency_plan.v1`, `adaptive_execution_strategy_selection_plan.v1`, `adaptive_execution_policy_plan.v1` | Ranks advisory cost/quality, latency, and strategy candidates and applies controlled policy decisions without pricing lookup, live measurement, provider execution, model/provider switching, runtime installation, automatic downloads, HITL emission, or routing mutation |
 | Dynamic agent/resource allocation and self-tuning posture | `dynamic_agent_allocation.py`, `dynamic_resource_allocation.py`, `workflow_self_tuning_policies.py` | `dynamic_agent_allocation_plan.v1`, `dynamic_resource_allocation_plan.v1`, `workflow_self_tuning_policy_plan.v1` | Projects allocation and self-tuning recommendations without allocating agents or resources, changing queues or capacity, triggering retries, reordering workflows, compiling graphs, or executing node handlers |
 | Confidence, risk, exploration, emergence, diversity, and reflection posture | `execution_confidence_engine.py`, `workflow_risk_engine.py`, `creative_exploration_optimizer.py`, `emergence_optimizer.py`, `agent_diversity_optimizer.py`, `reflection_budget_optimizer.py` | `execution_confidence_plan.v1`, `workflow_risk_plan.v1`, `creative_exploration_optimization_plan.v1`, `emergence_optimization_plan.v1`, `agent_diversity_optimization_plan.v1`, `reflection_budget_optimization_plan.v1` | Summarizes advisory confidence, risk, creative exploration, emergence, diversity, and reflection budgets without applying risk decisions, generating variants, selecting artifacts, running reflection loops, or enforcing token budgets |
-| Explainability, architecture, and failure audit | `adaptive_policy_explainability.py`, `adaptive_execution_architecture_consistency.py`, `adaptive_execution_failure_path_audit.py` | `adaptive_policy_explainability_plan.v1`, `adaptive_execution_architecture_consistency_registry.v1`, `adaptive_execution_failure_path_audit_registry.v1` | Explains adaptive policy posture and verifies V5.5 source coverage, passive activation, Runtime Evolution, architecture, and failure-path boundaries without applying policies, routing providers/models, emitting HITL, or executing audits as recovery behavior |
+| Explainability, architecture, and failure audit | `adaptive_policy_explainability.py`, `adaptive_execution_architecture_consistency.py`, `adaptive_execution_failure_path_audit.py` | `adaptive_policy_explainability_plan.v1`, `adaptive_execution_architecture_consistency_registry.v1`, `adaptive_execution_failure_path_audit_registry.v1` | Explains adaptive policy posture and verifies V5.5 source coverage, controlled policy activation, Runtime Evolution, architecture, and failure-path boundaries without routing providers/models, emitting HITL, or executing audits as recovery behavior |
 
 ## V3.5 Workstation Contracts
 
@@ -466,16 +469,15 @@ workstation responsible for future behavior.
   alerts, capturing traces, executing health checks, classifying live errors,
   remediating failures, controlling workflows, changing provider/model
   routing, triggering retries, or mutating output.
-- V5.5 is the advisory adaptive execution metadata layer over the stable
-  LangGraph runtime. It adds hybrid workflow, escalation, agent activation,
-  adaptive cost/quality and latency, dynamic strategy, agent/resource
-  allocation, self-tuning, confidence/risk, creative exploration, emergence,
-  diversity, reflection budget, explainability, architecture consistency, and
-  failure audit surfaces without applying policies or strategies, switching
-  providers or models, executing providers, invoking or activating agents,
-  allocating resources, enforcing budgets, emitting HITL requests, controlling
-  workflows, mutating workflow graphs, triggering retries, adaptive behavior
-  application, or mutating output.
+- V5.5 is the controlled adaptive execution policy and simulation layer over
+  the stable LangGraph runtime. It adds allow/confirm/block decisions, path
+  readiness, tradeoff simulation, hybrid workflow policy, fallback and
+  escalation policy, optimization posture, explainability, architecture
+  consistency, and failure audit surfaces without mutating configured routing,
+  silently switching providers or models, executing providers, invoking or
+  activating agents, allocating resources, enforcing budgets, emitting HITL
+  requests, controlling workflows, mutating workflow graphs, triggering
+  retries, automatic downloads, Runtime Evolution, or mutating output.
   Later V5 production intelligence and V6 HoloGenesis Core OS remain future
   work.
 - The current runtime graph remains the source of truth for execution order.

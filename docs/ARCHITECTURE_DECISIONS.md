@@ -9,8 +9,8 @@
   generative design, artifact intelligence, evaluation, workstation, V4
   registry layers, V5.1 execution optimization helpers, V5.2 model-routing
   helpers, V5.3 performance helpers, V5.4 production observability helpers,
-  and V5.5 adaptive execution helpers are metadata surfaces, not additional
-  runtime nodes.
+  and V5.5 adaptive execution policy helpers are metadata surfaces, not
+  additional runtime nodes.
 - Keep the Next.js workstation responsible for product inspection, preview,
   comparison, export, telemetry, workflow visibility, and operator controls.
 
@@ -19,11 +19,11 @@
 Chroma remains the only persistent retrieval and memory database. Passive V4.1,
 V4.2, V4.3, V4.4, V4.5, and V4.6 registries, advisory V5.1 optimization
 helpers, advisory V5.2 model-routing helpers, advisory V5.3 performance
-helpers, read-only V5.4 production observability helpers, and advisory V5.5
-adaptive execution helpers do not create storage backends, write blackboard
-state, write replay storage, persist cache entries, write telemetry or trace
-stores, emit monitoring events, allocate resources, or introduce runtime
-synchronization behavior.
+helpers, read-only V5.4 production observability helpers, and controlled V5.5
+adaptive execution policy helpers do not create storage backends, write
+blackboard state, write replay storage, persist cache entries, write telemetry
+or trace stores, emit monitoring events, allocate resources, or introduce
+runtime synchronization behavior.
 
 ## Metadata Layering
 
@@ -71,13 +71,14 @@ synchronization behavior.
   confidence analytics, creative diversity analytics, runtime timeline,
   workflow explainability, architecture consistency, and failure-path metadata
   over the existing compact workflow.
-- V5.5 Adaptive Execution Intelligence helpers describe advisory hybrid
-  workflow optimization, escalation optimization, agent activation, adaptive
-  cost/quality and latency posture, dynamic execution strategy, dynamic agent
-  and resource allocation, workflow self-tuning, execution confidence,
-  workflow risk, creative exploration, emergence, agent diversity, reflection
-  budget, adaptive policy explainability, architecture consistency, and
-  failure-path metadata over the existing compact workflow.
+- V5.5 Adaptive Execution Intelligence helpers describe controlled adaptive
+  execution policy and simulation plus advisory hybrid workflow optimization,
+  escalation optimization, agent activation, adaptive cost/quality and latency
+  posture, dynamic execution strategy, dynamic agent and resource allocation,
+  workflow self-tuning, execution confidence, workflow risk, creative
+  exploration, emergence, agent diversity, reflection budget, adaptive policy
+  explainability, architecture consistency, and failure-path metadata over the
+  existing compact workflow.
 
 ## V4.3 Boundary Decision
 
@@ -226,26 +227,22 @@ active telemetry or remediation runtime, and does not modify generated output.
 
 ## V5.5 Boundary Decision
 
-V5.5 Adaptive Execution Intelligence is an advisory adaptive execution
-metadata layer only. It may expose hybrid workflow optimization, escalation
-optimization, agent activation optimization, adaptive cost/quality and latency
-recommendations, dynamic execution strategy selection, dynamic agent and
-resource allocation posture, workflow self-tuning policy posture, execution
-confidence signals, workflow risk factors, creative exploration posture,
-emergence posture, agent diversity posture, reflection budget posture,
-adaptive policy explanations, architecture consistency coverage, and runtime
-failure-path audit coverage.
+V5.5 Adaptive Execution Intelligence is a controlled adaptive execution policy
+and simulation layer. It may evaluate task-aware options, provider/model path
+readiness, configured credential metadata, local runtime/model availability
+metadata, hybrid workflow policy, fallback and escalation policy, and
+Manual/Assisted/Auto mode semantics into actionable allow/confirm/block
+decisions.
 
-It must not apply adaptive policies or strategies, apply routing, select or
-switch providers or models, execute providers, instantiate or invoke agents,
-activate agents, allocate agents or resources, measure runtime resources,
-enforce budgets, emit HITL requests, request human input, compile graphs,
-execute or control workflows, mutate workflow graphs, trigger retries or
-refinements, mutate prompts, write persistent storage, activate passive
-registries as runtime behavior, apply Runtime Evolution, or modify generated
-output. More generally, it does not change provider/model routing, does not
-introduce autonomous adaptive execution behavior, and does not modify generated
-output.
+It must not execute providers, mutate configured provider/model routing,
+silently switch providers or models, instantiate or invoke agents, allocate
+agents or resources, measure runtime resources, enforce budgets, emit HITL
+requests, request human input on its own, compile graphs, execute or control
+workflows, mutate workflow graphs, trigger retries or refinements, mutate
+prompts, write persistent storage, activate passive registries as runtime
+behavior, apply Runtime Evolution, or modify generated output. Local model
+download, provider provisioning, runtime installation, and Runtime Evolution
+automation remain manual/HITL-only surfaces.
 
 ## Documentation Decision
 
@@ -265,9 +262,9 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - advisory V5.2 model-routing metadata
 - advisory V5.3 performance metadata
 - read-only V5.4 production observability metadata
-- advisory V5.5 adaptive execution metadata
-- future active V4 Agentic Studio, active adaptive execution application, and
-  V6 learning work
+- controlled V5.5 adaptive execution policy/simulation
+- future active V4 Agentic Studio, live adaptive runtime control, and V6
+  learning work
 
 ## Code Quality Rules
 

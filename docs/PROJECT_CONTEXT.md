@@ -76,12 +76,13 @@ inspection metadata, critique, and refinement context.
   analytics, confidence analytics, creative diversity analytics, runtime
   timeline, workflow explainability, architecture consistency, and failure
   audit metadata.
-- V5.5 Adaptive Execution Intelligence for advisory hybrid workflow,
-  escalation, agent activation, adaptive cost/quality and latency, dynamic
-  execution strategy, dynamic agent/resource allocation, workflow self-tuning,
-  execution confidence, workflow risk, creative exploration, emergence, agent
-  diversity, reflection budget, adaptive policy explainability, architecture
-  consistency, and failure audit metadata.
+- V5.5 Adaptive Execution Intelligence for controlled adaptive execution
+  policy and simulation, advisory hybrid workflow, escalation, agent
+  activation, adaptive cost/quality and latency, dynamic execution strategy,
+  dynamic agent/resource allocation, workflow self-tuning, execution
+  confidence, workflow risk, creative exploration, emergence, agent diversity,
+  reflection budget, adaptive policy explainability, architecture consistency,
+  and failure audit metadata.
 
 ## Supported Creative Domains
 
@@ -101,9 +102,9 @@ inspection metadata, critique, and refinement context.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
 - V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, V5.2, V5.3, V5.4, and V5.5
-  registries and helpers are passive, advisory, or read-only product and
-  architecture metadata. They are inspectable Python APIs and documentation
-  surfaces.
+  registries and helpers are passive, advisory, read-only, or controlled-policy
+  product and architecture metadata. They are inspectable Python APIs and
+  documentation surfaces.
 
 ## V4.3 Passive Boundary
 
@@ -241,26 +242,30 @@ execute or control workflows, trigger retries, route providers or models,
 mutate prompts, write persistent storage, activate passive registries, apply
 Runtime Evolution, or modify generated output.
 
-## V5.5 Advisory Adaptive Execution Boundary
+## V5.5 Controlled Adaptive Execution Boundary
 
-V5.5 Adaptive Execution Intelligence is advisory adaptive execution metadata
-over the existing compact LangGraph workflow. It includes adaptive hybrid
-workflow optimization, adaptive escalation optimization, agent activation
-optimization, adaptive cost/quality optimization, adaptive latency
-optimization, dynamic execution strategy selection, dynamic agent allocation,
-dynamic resource allocation, workflow self-tuning policy posture, execution
-confidence signals, workflow risk factors, creative exploration optimization,
-emergence optimization, agent diversity optimization, reflection budget
-optimization, adaptive policy explainability, architecture consistency
-coverage, and runtime failure-path audit coverage.
+V5.5 Adaptive Execution Intelligence is a controlled adaptive execution policy
+and simulation layer over the existing compact LangGraph workflow. It includes
+task-aware allow/confirm/block decisions, provider/model path readiness,
+pre-run tradeoff simulation, hybrid workflow policy, fallback and escalation
+policy, Manual/Assisted/Auto mode semantics, adaptive hybrid workflow
+optimization, adaptive escalation optimization, agent activation optimization,
+adaptive cost/quality optimization, adaptive latency optimization, dynamic
+execution strategy selection, dynamic agent allocation, dynamic resource
+allocation, workflow self-tuning policy posture, execution confidence signals,
+workflow risk factors, creative exploration optimization, emergence
+optimization, agent diversity optimization, reflection budget optimization,
+adaptive policy explainability, architecture consistency coverage, and runtime
+failure-path audit coverage.
 
-It must not apply adaptive policies or strategies, apply routing, switch
+It must not mutate configured provider/model routing, silently switch
 providers or models, execute providers, instantiate or invoke agents, activate
 agents, allocate agents or resources, measure runtime resources, enforce
-budgets, emit HITL requests, request human input, compile graphs, execute or
-control workflows, mutate workflow graphs, trigger retries or refinements,
-mutate prompts, write persistent storage, activate passive registries, apply
-Runtime Evolution, or modify generated output.
+budgets, emit HITL requests, request human input on its own, compile graphs,
+execute or control workflows, mutate workflow graphs, trigger retries or
+refinements, mutate prompts, write persistent storage, activate passive
+registries, apply Runtime Evolution, download local models, provision
+providers, install runtimes, or modify generated output.
 
 ## Non-Goals For Current Baseline
 

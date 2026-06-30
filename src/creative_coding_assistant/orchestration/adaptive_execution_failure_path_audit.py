@@ -1,4 +1,4 @@
-"""Passive V5.5 runtime failure path audit metadata for adaptive execution."""
+"""V5.5 runtime failure path audit metadata for adaptive execution."""
 
 from __future__ import annotations
 
@@ -44,12 +44,13 @@ ADAPTIVE_EXECUTION_FAILURE_PATH_AUDIT_AUTHORITY_BOUNDARY = (
     "limits, confidence/risk/explainability failure limits, serialization and "
     "registry loading guards, provider/model routing preservation, "
     "generated-output mutation limits, and passive activation limits only; it "
-    "does not apply adaptive policies or strategies, change provider or model "
-    "routing, switch providers or models, execute providers, invoke or activate "
-    "agents, allocate resources, measure runtime resources, enforce budgets, "
-    "emit HITL requests, control or execute workflows, mutate workflow graphs, "
-    "compile graphs, trigger retries or refinements, mutate prompts, write "
-    "storage, modify generated output, or apply Runtime Evolution."
+    "allows only controlled adaptive policy allow/confirm/block decisions and "
+    "does not change provider or model routing, switch providers or models, "
+    "execute providers, invoke or activate agents, allocate resources, measure "
+    "runtime resources, enforce budgets, emit HITL requests, control or "
+    "execute workflows, mutate workflow graphs, compile graphs, trigger "
+    "retries or refinements, mutate prompts, write storage, modify generated "
+    "output, or apply Runtime Evolution."
 )
 
 _CHECKLIST_SOURCE = "runtime/RUNTIME_FAILURE_PATH_AUDIT.md"
@@ -60,6 +61,7 @@ _SOURCE_SURFACE_IDS = (
     "adaptive_cost_quality_optimizer",
     "adaptive_latency_optimizer",
     "adaptive_execution_strategy_selection",
+    "adaptive_execution_policy_engine",
     "dynamic_agent_allocation",
     "dynamic_resource_allocation",
     "workflow_self_tuning_policies",
@@ -160,7 +162,7 @@ class AdaptiveExecutionFailurePathAuditRecord(BaseModel):
     checklist_source: Literal["runtime/RUNTIME_FAILURE_PATH_AUDIT.md"] = (
         _CHECKLIST_SOURCE
     )
-    source_surface_ids: tuple[str, ...] = Field(min_length=1, max_length=16)
+    source_surface_ids: tuple[str, ...] = Field(min_length=1, max_length=17)
     evidence: tuple[str, ...] = Field(min_length=1, max_length=8)
     invariant_assertions: tuple[str, ...] = Field(min_length=1, max_length=8)
     failure_response_boundary: str = Field(min_length=1, max_length=320)
@@ -244,8 +246,8 @@ class AdaptiveExecutionFailurePathAuditRegistry(BaseModel):
         min_length=1,
         max_length=140,
     )
-    architecture_registry_record_count: int = Field(ge=16, le=16)
-    source_surface_ids: tuple[str, ...] = Field(min_length=16, max_length=16)
+    architecture_registry_record_count: int = Field(ge=17, le=17)
+    source_surface_ids: tuple[str, ...] = Field(min_length=17, max_length=17)
     required_checks: tuple[str, ...] = Field(min_length=19, max_length=19)
     applicable_required_checks: tuple[
         AdaptiveExecutionFailurePathCheckKind,
@@ -416,19 +418,20 @@ def _records() -> tuple[AdaptiveExecutionFailurePathAuditRecord, ...]:
             _SOURCE_SURFACE_IDS,
             (
                 "source_surface_order_matches_architecture_registry",
-                "each_surface_declares_advisory_metadata_boundary",
+                "each_surface_declares_advisory_or_controlled_policy_boundary",
             ),
             (
-                "surface-level failures cannot activate adaptive runtime nodes",
-                "source records remain passive when validation fails",
+                "surface-level failures cannot activate provider or workflow runtime nodes",
+                "controlled policy failures stop at allow/confirm/block decisions",
             ),
-            "Surface failures remain validation metadata instead of runtime nodes.",
+            "Surface failures cannot execute providers, workflows, or output mutation.",
         ),
         _record(
             "terminal_failure_routing",
             (
                 "adaptive_hybrid_workflow_optimizer",
                 "adaptive_escalation_optimizer",
+                "adaptive_execution_policy_engine",
                 "workflow_self_tuning_policies",
                 "workflow_risk_engine",
                 "adaptive_policy_explainability",
@@ -438,10 +441,10 @@ def _records() -> tuple[AdaptiveExecutionFailurePathAuditRecord, ...]:
                 "workflow_execution_implemented_false",
             ),
             (
-                "terminal failures cannot apply policies or execute workflows",
-                "escalation and explainability remain advisory metadata",
+                "terminal failures cannot execute workflows",
+                "controlled policy decisions can only return blocked or HITL states",
             ),
-            "Terminal failure handling is audit metadata, not workflow routing.",
+            "Terminal failure handling cannot route or execute workflows.",
         ),
         _record(
             "provider_failures",
@@ -450,6 +453,7 @@ def _records() -> tuple[AdaptiveExecutionFailurePathAuditRecord, ...]:
                 "adaptive_cost_quality_optimizer",
                 "adaptive_latency_optimizer",
                 "adaptive_execution_strategy_selection",
+                "adaptive_execution_policy_engine",
                 "execution_confidence_engine",
                 "adaptive_policy_explainability",
             ),
@@ -459,9 +463,9 @@ def _records() -> tuple[AdaptiveExecutionFailurePathAuditRecord, ...]:
             ),
             (
                 "provider failures cannot call, switch, or fail over providers",
-                "adaptive pressure remains read-only recommendation metadata",
+                "controlled policy can mark execution blocked or fallback-only",
             ),
-            "Provider failures are represented as blocked routing boundaries.",
+            "Provider failures are represented as blocked policy decisions.",
         ),
         _record(
             "model_routing_failures",
@@ -470,6 +474,7 @@ def _records() -> tuple[AdaptiveExecutionFailurePathAuditRecord, ...]:
                 "adaptive_cost_quality_optimizer",
                 "adaptive_latency_optimizer",
                 "adaptive_execution_strategy_selection",
+                "adaptive_execution_policy_engine",
                 "execution_confidence_engine",
                 "adaptive_policy_explainability",
             ),
@@ -479,9 +484,9 @@ def _records() -> tuple[AdaptiveExecutionFailurePathAuditRecord, ...]:
             ),
             (
                 "model-routing failures cannot switch the selected model",
-                "strategy and explainability metadata cannot rewrite routes",
+                "controlled policy path selection cannot mutate configured routing",
             ),
-            "Model-routing failures stop at passive adaptive metadata.",
+            "Model-routing failures stop at controlled policy decisions.",
         ),
         _record(
             "stream_failures",
@@ -620,6 +625,7 @@ def _records() -> tuple[AdaptiveExecutionFailurePathAuditRecord, ...]:
             "budget_cost_prediction_failures",
             (
                 "adaptive_hybrid_workflow_optimizer",
+                "adaptive_execution_policy_engine",
                 "adaptive_cost_quality_optimizer",
                 "dynamic_resource_allocation",
                 "reflection_budget_optimizer",
@@ -630,16 +636,17 @@ def _records() -> tuple[AdaptiveExecutionFailurePathAuditRecord, ...]:
                 "reflection_budget_enforcement_implemented_false",
             ),
             (
-                "budget pressure cannot enforce spend or block execution",
-                "cost prediction failures remain advisory estimates",
+                "budget pressure cannot enforce spend",
+                "cost prediction failures can only require confirmation or block policy allowance",
             ),
-            "Budget and cost failures cannot enforce policy or route execution.",
+            "Budget and cost failures cannot route or execute providers.",
         ),
         _record(
             "workflow_state_integrity_after_failure",
             (
                 "adaptive_hybrid_workflow_optimizer",
                 "adaptive_escalation_optimizer",
+                "adaptive_execution_policy_engine",
                 "workflow_self_tuning_policies",
                 "workflow_risk_engine",
                 "adaptive_policy_explainability",
@@ -650,7 +657,7 @@ def _records() -> tuple[AdaptiveExecutionFailurePathAuditRecord, ...]:
             ),
             (
                 "adaptive failures cannot advance workflow state",
-                "policy explanation failures cannot modify graph order or outputs",
+                "controlled policy failures cannot modify graph order or outputs",
             ),
             "Workflow state remains untouched after adaptive metadata failures.",
         ),
@@ -663,9 +670,9 @@ def _records() -> tuple[AdaptiveExecutionFailurePathAuditRecord, ...]:
             ),
             (
                 "audit metadata cannot change provider or model selection",
-                "adaptive surfaces describe signals without choosing routes",
+                "controlled policy path selection cannot mutate configured routes",
             ),
-            "Provider/model routing preservation is enforced by false active flags.",
+            "Provider/model routing preservation is enforced by false routing flags.",
         ),
         _record(
             "generated_output_mutation_boundaries",
@@ -684,14 +691,14 @@ def _records() -> tuple[AdaptiveExecutionFailurePathAuditRecord, ...]:
             "passive_registry_activation_boundaries",
             _SOURCE_SURFACE_IDS,
             (
-                "metadata_only_true",
+                "advisory_or_controlled_policy_boundary_declared",
                 "runtime_evolution_implemented_false",
             ),
             (
-                "passive registry reads cannot activate adaptive behavior",
+                "registry reads cannot activate provider or workflow execution",
                 "Runtime Evolution cannot be applied without a human gate",
             ),
-            "Passive registry activation is limited to metadata construction.",
+            "Registry activation is limited to metadata and controlled policy construction.",
         ),
     )
 
