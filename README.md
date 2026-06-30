@@ -75,11 +75,15 @@ consistency, and runtime failure-path audit coverage. V5.3 adds advisory
 Performance Engine metadata for scheduling, latency, async, streaming, retry
 policy, load balancing, profiling, replay, bottleneck, throughput, prediction,
 benchmarking, reasoning budget, regression, resource utilization, architecture
-consistency, and runtime failure-path audit coverage. These V5 layers do not
-apply routing, switch providers or models, execute providers, measure live
-performance, execute benchmarks or replay, enforce budgets or capacity, emit
-HITL requests, control workflows, trigger retries, mutate prompts, or modify
-generated output.
+consistency, and runtime failure-path audit coverage. V5.4 adds read-only
+Production Observability metadata for token, cost, quality, performance,
+telemetry, diagnostics, health, analytics, timeline, explainability,
+architecture consistency, and runtime failure-path audit coverage. These V5
+layers do not apply routing, switch providers or models, execute providers,
+measure live performance, collect live metrics, emit telemetry or alerts,
+capture traces, execute benchmarks or replay, enforce budgets or capacity,
+emit HITL requests, control workflows, trigger retries, mutate prompts, or
+modify generated output.
 
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
@@ -147,6 +151,11 @@ observed through live preview and runtime inspection from the same interface.
   utilization, architecture consistency, and failure audit metadata without
   runtime measurement, benchmark execution, resource enforcement, or workflow
   control
+- V5.4 Production Observability helpers for read-only token, cost, quality,
+  performance, telemetry, diagnostics, health, creative analytics, confidence
+  analytics, diversity analytics, timeline, explainability, architecture
+  consistency, and failure audit metadata without live metric collection,
+  telemetry emission, trace capture, remediation, or workflow control
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -474,6 +483,29 @@ Performance Engine surfaces:
 - Performance Architecture Consistency
 - Performance Failure Path Audit
 
+Production Observability surfaces:
+
+- Token Dashboard
+- Cost Dashboard
+- Quality Dashboard
+- Performance Dashboard
+- Production Telemetry
+- Workflow Diagnostics
+- Agent Diagnostics
+- Routing Diagnostics
+- Escalation Diagnostics
+- Failure Analysis
+- Error Intelligence
+- Workflow Health Monitoring
+- System Health Monitoring
+- Creative Analytics
+- Confidence Analytics
+- Creative Diversity Analytics
+- Runtime Timeline
+- Workflow Explainability Dashboard
+- Production Observability Architecture Consistency
+- Production Observability Failure Path Audit
+
 The architecture documents six complementary views:
 
 - the real runtime graph in
@@ -487,7 +519,7 @@ The architecture documents six complementary views:
 - the V3.5 Creative Workstation surface graph in
   [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
 - the cross-cutting engine matrix, including V4.1, V4.2, V4.3, V4.4, V4.5,
-  V4.6, V5.1, V5.2, and V5.3 metadata layers, in
+  V4.6, V5.1, V5.2, V5.3, and V5.4 metadata layers, in
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
 The runtime graph remains compact and truthful. The internal pipeline and
@@ -496,10 +528,11 @@ while V4.1, V4.2, V4.3, V4.4, V4.5, and V4.6 document passive roles,
 contracts, orchestration, hybrid workflow, hybrid studio, multimodal studio,
 and hardening metadata rather than claiming that a multi-agent runtime, Studio
 runtime, rendering execution path, or runtime hardening engine already exists.
-V5.1, V5.2, and V5.3 document advisory execution optimization, model-routing,
-and performance metadata without claiming that active runtime policy, model
-switching, performance measurement, benchmark execution, resource enforcement,
-or provider execution has been added.
+V5.1, V5.2, V5.3, and V5.4 document advisory execution optimization,
+model-routing, performance, and read-only observability metadata without
+claiming that active runtime policy, model switching, live telemetry emission,
+performance measurement, benchmark execution, resource enforcement, or
+provider execution has been added.
 
 ## Creative Workflow
 
@@ -592,6 +625,13 @@ inspection, and multimodal workspace inspection:
   posture without runtime measurement, profiler installation, benchmark or
   replay execution, resource allocation, capacity enforcement, workflow
   control, provider/model routing, or Runtime Evolution.
+- Production Observability: read-only token, cost, quality, performance,
+  telemetry, diagnostic, health, creative analytics, confidence analytics,
+  diversity analytics, timeline, explainability, architecture, and
+  failure-audit metadata describe observability posture without live metric
+  collection, telemetry or alert emission, trace capture, health check
+  execution, remediation, workflow control, provider/model routing, or Runtime
+  Evolution.
 - Generation: the backend resolves effective domains, assembles the prompt,
   and streams one or more creative artifacts.
 - Preview: supported artifacts mount in controlled preview runtimes with
@@ -1304,10 +1344,11 @@ current runtime.
   workflow escalation metadata and V4.4 supplies passive hybrid studio
   metadata, for that direction. These layers are not active collaboration
   behavior in the current runtime and V4.4 does not activate Studio runtime.
-- Execution Optimization, Model Routing, and Performance: V5.1, V5.2, and
-  V5.3 provide advisory optimization, routing, and performance metadata today;
-  future production intelligence remains active runtime policy, telemetry,
-  adaptive optimization, and cost/performance enforcement work.
+- Execution Optimization, Model Routing, Performance, and Observability: V5.1,
+  V5.2, V5.3, and V5.4 provide advisory optimization, routing, performance,
+  and read-only observability metadata today; future production intelligence
+  remains active runtime policy, live telemetry emission, adaptive
+  optimization, and cost/performance enforcement work.
 - HoloGenesis Core OS: long-horizon creative lineage, feedback, memory, and
   system-level continuity.
 

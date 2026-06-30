@@ -84,7 +84,7 @@ control workflows, change provider/model routing, select runtimes, trigger
 retries, mutate storage, execute artifacts, invoke agents, or modify generated
 output.
 
-## Advisory Execution, Model Routing, And Performance Metadata
+## Advisory Execution, Model Routing, Performance, And Observability Metadata
 
 The V5.1 Execution Optimization Engine is a completed advisory metadata layer.
 It records execution graph analysis, workflow cost and complexity analysis,
@@ -132,6 +132,22 @@ trigger retries, route providers or models, mutate prompts, write persistent
 storage, activate passive registries, apply Runtime Evolution, or modify
 generated output.
 
+The V5.4 Production Observability layer is a completed read-only metadata
+layer. It records token dashboard, cost dashboard, quality dashboard,
+performance dashboard, production telemetry, workflow diagnostics, agent
+diagnostics, routing diagnostics, escalation diagnostics, failure analysis,
+error intelligence, workflow health monitoring, system health monitoring,
+creative analytics, confidence analytics, creative diversity analytics,
+runtime timeline, workflow explainability, architecture consistency coverage,
+and runtime failure-path audit coverage.
+
+It does not collect live metrics, emit telemetry or alerts, capture traces,
+execute health checks, classify live errors, remediate failures, reconstruct
+timelines, record provenance, generate explanations, request human review,
+execute or control workflows, trigger retries, route providers or models,
+mutate prompts, write persistent storage, activate passive registries, apply
+Runtime Evolution, or modify generated output.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current
@@ -139,8 +155,8 @@ generated output.
   contract, and hardening metadata for that direction, but not active
   collaboration behavior, active Studio runtime, or runtime hardening behavior.
 - Later V5 Production Intelligence work remains future active runtime policy,
-  production telemetry, adaptive optimization, live performance measurement,
-  resource enforcement, and cost/performance enforcement work.
+  live telemetry emission, adaptive optimization, live performance
+  measurement, resource enforcement, and cost/performance enforcement work.
 - V6 HoloGenesis Core OS remains future long-horizon creative lineage,
   feedback, memory, and system continuity work.
 
@@ -149,5 +165,6 @@ generated output.
 Product docs should describe delivered metadata layers without overstating
 future behavior. Architecture docs may show passive registry boundaries and
 source coverage, including V5.1 execution optimization metadata, V5.2
-model-routing metadata, and V5.3 performance metadata, but must keep the
-current compact LangGraph workflow as the execution source of truth.
+model-routing metadata, V5.3 performance metadata, and V5.4 read-only
+observability metadata, but must keep the current compact LangGraph workflow
+as the execution source of truth.
