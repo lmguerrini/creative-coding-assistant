@@ -483,6 +483,10 @@ _CREATIVE_EXPLORATION_OPTIMIZER = (
 _EMERGENCE_OPTIMIZER = (
     "creative_coding_assistant.orchestration.emergence_optimizer"
 )
+_PRODUCTION_RELEASE_FINAL_OPTIMIZATION = (
+    "creative_coding_assistant.orchestration."
+    "production_release_final_optimization"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -736,6 +740,10 @@ _EXPORT_MAP = {
     "CreativeExplorationOptimizationPlan": _CREATIVE_EXPLORATION_OPTIMIZER,
     "EmergenceOptimizationCandidate": _EMERGENCE_OPTIMIZER,
     "EmergenceOptimizationPlan": _EMERGENCE_OPTIMIZER,
+    "ProductionOptimizationRecord": _PRODUCTION_RELEASE_FINAL_OPTIMIZATION,
+    "ProductionReleaseFinalOptimizationPlan": (
+        _PRODUCTION_RELEASE_FINAL_OPTIMIZATION
+    ),
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -2148,6 +2156,15 @@ _EXPORT_MAP = {
     "optimize_emergence": _EMERGENCE_OPTIMIZER,
     "emergence_candidate_by_id": _EMERGENCE_OPTIMIZER,
     "emergence_candidates_for_status": _EMERGENCE_OPTIMIZER,
+    "build_production_release_final_optimization": (
+        _PRODUCTION_RELEASE_FINAL_OPTIMIZATION
+    ),
+    "production_optimization_record_by_domain": (
+        _PRODUCTION_RELEASE_FINAL_OPTIMIZATION
+    ),
+    "production_optimization_records_for_status": (
+        _PRODUCTION_RELEASE_FINAL_OPTIMIZATION
+    ),
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
