@@ -11,10 +11,14 @@ from .artifact_learning import learn_artifacts
 from .continuous_improvement_signals import (
     derive_continuous_improvement_signals,
 )
+from .creative_failure_learning import learn_creative_failures
+from .creative_success_learning import learn_creative_success
 from .evaluation_learning import learn_evaluations
 from .failure_pattern_discovery import discover_failure_patterns
 from .failure_tracking import track_failures
+from .learning_confidence_calibration import calibrate_learning_confidence
 from .learning_governance import build_learning_governance
+from .learning_replay_engine import build_learning_replay_engine
 from .routing_learning import learn_routing
 from .runtime_learning import learn_runtimes
 from .strategy_learning import learn_strategies
@@ -54,14 +58,16 @@ ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT_AUTHORITY_BOUNDARY = (
     "runtime/RUNTIME_FAILURE_PATH_AUDIT.md checklist coverage for adaptive "
     "learning, workflow success tracking, failure tracking, strategy, "
     "technique, runtime, routing, artifact, evaluation, continuous "
-    "improvement, success pattern, failure pattern, and learning governance "
-    "surfaces only; it does not persist learning memory, apply feedback, "
-    "update or enforce learning policies, observe live outcomes, classify "
-    "live errors, route terminal failures, handle or repair failures, change "
-    "provider/model routing, execute providers, probe runtimes, install "
-    "dependencies, emit HITL requests, evaluate generated output, execute or "
-    "control workflows, mutate workflow graphs, write storage, modify "
-    "generated output, or apply Runtime Evolution."
+    "improvement, success pattern, failure pattern, learning governance, "
+    "learning replay, confidence calibration, creative success learning, and "
+    "creative failure learning surfaces only; it does not persist learning "
+    "memory, apply feedback, update or enforce learning policies, execute "
+    "replay, train models, observe live outcomes, classify live errors, route "
+    "terminal failures, handle or repair failures, change provider/model "
+    "routing, execute providers, probe runtimes, install dependencies, emit "
+    "HITL requests, evaluate generated output, execute or control workflows, "
+    "mutate workflow graphs, write storage, mutate generated output or "
+    "preferences, perform remediation, or apply Runtime Evolution."
 )
 
 _CHECKLIST_SOURCE = "runtime/RUNTIME_FAILURE_PATH_AUDIT.md"
@@ -79,6 +85,10 @@ _SOURCE_SURFACE_IDS = (
     "success_pattern_discovery",
     "failure_pattern_discovery",
     "learning_governance",
+    "learning_replay_engine",
+    "learning_confidence_calibration",
+    "creative_success_learning",
+    "creative_failure_learning",
 )
 _REQUIRED_CHECKS = (
     "node_level_failure_paths",
@@ -152,6 +162,12 @@ _BLOCKED_RUNTIME_BEHAVIORS = (
     "workflow_control",
     "workflow_graph_mutation",
     "retry_or_refinement_triggering",
+    "learning_replay_execution",
+    "workflow_replay_execution",
+    "model_training",
+    "runtime_mutation",
+    "automatic_preference_mutation",
+    "automatic_remediation",
     "technique_application",
     "runtime_selection",
     "artifact_execution",
@@ -176,7 +192,7 @@ class AdaptiveLearningFailurePathAuditRecord(BaseModel):
     checklist_source: Literal["runtime/RUNTIME_FAILURE_PATH_AUDIT.md"] = (
         _CHECKLIST_SOURCE
     )
-    source_surface_ids: tuple[str, ...] = Field(min_length=1, max_length=13)
+    source_surface_ids: tuple[str, ...] = Field(min_length=1, max_length=17)
     evidence: tuple[str, ...] = Field(min_length=1, max_length=8)
     invariant_assertions: tuple[str, ...] = Field(min_length=1, max_length=8)
     failure_response_boundary: str = Field(min_length=1, max_length=360)
@@ -184,7 +200,7 @@ class AdaptiveLearningFailurePathAuditRecord(BaseModel):
     blocked_runtime_behaviors: tuple[str, ...] = Field(
         default=_BLOCKED_RUNTIME_BEHAVIORS,
         min_length=1,
-        max_length=36,
+        max_length=44,
     )
     checklist_item_applicable: Literal[True] = True
     runtime_failure_path_audit_implemented: Literal[True] = True
@@ -215,6 +231,12 @@ class AdaptiveLearningFailurePathAuditRecord(BaseModel):
     workflow_graph_mutation_implemented: Literal[False] = False
     retry_triggering_implemented: Literal[False] = False
     refinement_triggering_implemented: Literal[False] = False
+    learning_replay_execution_implemented: Literal[False] = False
+    workflow_replay_execution_implemented: Literal[False] = False
+    model_training_implemented: Literal[False] = False
+    runtime_mutation_implemented: Literal[False] = False
+    automatic_preference_mutation_implemented: Literal[False] = False
+    automatic_remediation_implemented: Literal[False] = False
     technique_application_implemented: Literal[False] = False
     runtime_selection_implemented: Literal[False] = False
     artifact_execution_implemented: Literal[False] = False
@@ -262,10 +284,10 @@ class AdaptiveLearningFailurePathAuditRegistry(BaseModel):
     checklist_source: Literal["runtime/RUNTIME_FAILURE_PATH_AUDIT.md"] = (
         _CHECKLIST_SOURCE
     )
-    source_surface_ids: tuple[str, ...] = Field(min_length=13, max_length=13)
+    source_surface_ids: tuple[str, ...] = Field(min_length=17, max_length=17)
     source_serialization_versions: tuple[str, ...] = Field(
-        min_length=13,
-        max_length=13,
+        min_length=17,
+        max_length=17,
     )
     required_checks: tuple[str, ...] = Field(min_length=19, max_length=19)
     applicable_required_checks: tuple[
@@ -324,6 +346,12 @@ class AdaptiveLearningFailurePathAuditRegistry(BaseModel):
     workflow_graph_mutation_implemented: Literal[False] = False
     retry_triggering_implemented: Literal[False] = False
     refinement_triggering_implemented: Literal[False] = False
+    learning_replay_execution_implemented: Literal[False] = False
+    workflow_replay_execution_implemented: Literal[False] = False
+    model_training_implemented: Literal[False] = False
+    runtime_mutation_implemented: Literal[False] = False
+    automatic_preference_mutation_implemented: Literal[False] = False
+    automatic_remediation_implemented: Literal[False] = False
     technique_application_implemented: Literal[False] = False
     runtime_selection_implemented: Literal[False] = False
     artifact_execution_implemented: Literal[False] = False
@@ -339,7 +367,7 @@ class AdaptiveLearningFailurePathAuditRegistry(BaseModel):
     blocked_runtime_behaviors: tuple[str, ...] = Field(
         default=_BLOCKED_RUNTIME_BEHAVIORS,
         min_length=1,
-        max_length=36,
+        max_length=44,
     )
     metadata_only: Literal[True] = True
 
@@ -453,6 +481,10 @@ def _source_serialization_versions() -> tuple[str, ...]:
             discover_success_patterns(),
             discover_failure_patterns(),
             build_learning_governance(),
+            build_learning_replay_engine(),
+            calibrate_learning_confidence(),
+            learn_creative_success(),
+            learn_creative_failures(),
         )
     )
 
@@ -496,6 +528,8 @@ def _records() -> tuple[AdaptiveLearningFailurePathAuditRecord, ...]:
                 "routing_learning",
                 "continuous_improvement_signals",
                 "learning_governance",
+                "learning_replay_engine",
+                "learning_confidence_calibration",
             ),
             (
                 "provider_execution_implemented_false",
@@ -504,6 +538,7 @@ def _records() -> tuple[AdaptiveLearningFailurePathAuditRecord, ...]:
             (
                 "provider failures cannot call providers",
                 "routing learning cannot switch providers or models",
+                "learning replay and confidence calibration cannot call providers",
             ),
             "Provider failures are recorded only as passive learning guardrails.",
         ),
@@ -514,6 +549,7 @@ def _records() -> tuple[AdaptiveLearningFailurePathAuditRecord, ...]:
                 "routing_learning",
                 "failure_pattern_discovery",
                 "learning_governance",
+                "learning_confidence_calibration",
             ),
             (
                 "provider_model_routing_implemented_false",
@@ -566,6 +602,7 @@ def _records() -> tuple[AdaptiveLearningFailurePathAuditRecord, ...]:
                 "failure_tracking",
                 "failure_pattern_discovery",
                 "continuous_improvement_signals",
+                "creative_failure_learning",
             ),
             (
                 "retry_triggering_implemented_false",
@@ -596,6 +633,7 @@ def _records() -> tuple[AdaptiveLearningFailurePathAuditRecord, ...]:
                 "technique_learning",
                 "artifact_learning",
                 "evaluation_learning",
+                "creative_failure_learning",
             ),
             (
                 "prompt_rendering_implemented_false",
@@ -674,6 +712,9 @@ def _records() -> tuple[AdaptiveLearningFailurePathAuditRecord, ...]:
                 "workflow_success_tracking",
                 "continuous_improvement_signals",
                 "learning_governance",
+                "learning_replay_engine",
+                "creative_success_learning",
+                "creative_failure_learning",
             ),
             (
                 "workflow_graph_mutation_implemented_false",
@@ -691,6 +732,7 @@ def _records() -> tuple[AdaptiveLearningFailurePathAuditRecord, ...]:
                 "routing_learning",
                 "adaptive_learning_engine",
                 "learning_governance",
+                "learning_confidence_calibration",
             ),
             (
                 "provider_model_routing_implemented_false",
@@ -709,6 +751,8 @@ def _records() -> tuple[AdaptiveLearningFailurePathAuditRecord, ...]:
                 "evaluation_learning",
                 "success_pattern_discovery",
                 "failure_pattern_discovery",
+                "creative_success_learning",
+                "creative_failure_learning",
             ),
             (
                 "generated_output_mutation_implemented_false",

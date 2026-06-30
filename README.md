@@ -101,12 +101,14 @@ output, execute deployment, or create release tags.
 V6.1 adds Adaptive Learning Engine metadata for learning signals, workflow
 success tracking, failure tracking, strategy/technique/runtime/routing
 learning, artifact/evaluation learning, continuous improvement signals,
-success/failure pattern discovery, learning governance, and runtime
-failure-path audit coverage. It remains advisory metadata only: it does not
-persist learning memory, apply feedback, update policies, observe live
-outcomes, classify live errors, route terminal failures, change provider/model
-routing, execute providers or workflows, write storage, apply Runtime
-Evolution, or mutate generated output.
+success/failure pattern discovery, learning replay metadata, learning
+confidence calibration, creative success/failure learning, learning
+governance, and runtime failure-path audit coverage. It remains advisory
+metadata only: it does not persist learning memory, execute replay, train
+models, apply feedback, update policies, observe live outcomes, classify live
+errors, route terminal failures, change provider/model routing, execute
+providers or workflows, write storage, apply Runtime Evolution, mutate
+preferences, remediate failures, or mutate generated output.
 
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
@@ -197,11 +199,13 @@ observed through live preview and runtime inspection from the same interface.
 - V6.1 Adaptive Learning Engine helpers for advisory learning signals,
   workflow success tracking, failure tracking, strategy, technique, runtime,
   and routing learning, artifact/evaluation learning, continuous improvement,
-  success/failure pattern discovery, learning governance, and runtime
-  failure-path audit coverage without memory persistence, feedback
-  application, policy updates, live outcome observation, terminal failure
-  routing, provider/model routing mutation, workflow execution, storage
-  writes, Runtime Evolution, or output mutation
+  success/failure pattern discovery, learning replay metadata, confidence
+  calibration, creative success/failure learning, learning governance, and
+  runtime failure-path audit coverage without memory persistence, replay
+  execution, model training, feedback application, policy updates, live
+  outcome observation, terminal failure routing, provider/model routing
+  mutation, workflow execution, storage writes, preference mutation,
+  automatic remediation, Runtime Evolution, or output mutation
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -603,6 +607,10 @@ Adaptive Learning Engine surfaces:
 - Continuous Improvement Signals
 - Success Pattern Discovery
 - Failure Pattern Discovery
+- Learning Replay Engine
+- Learning Confidence Calibration
+- Creative Success Learning
+- Creative Failure Learning
 - Learning Governance
 - Adaptive Learning Failure Path Audit
 
@@ -1456,9 +1464,11 @@ current runtime.
   enforcement, telemetry emission, provider execution, and cost/performance
   enforcement work.
 - Adaptive Learning: V6.1 provides advisory learning, success/failure,
-  pattern-discovery, governance, and failure-audit metadata today without
-  memory persistence, feedback application, policy mutation, live outcome
-  observation, workflow control, provider execution, or output mutation.
+  pattern-discovery, replay, confidence calibration, creative success/failure,
+  governance, and failure-audit metadata today without memory persistence,
+  replay execution, model training, feedback application, policy mutation,
+  live outcome observation, workflow control, provider execution, storage
+  writes, preference mutation, remediation, or output mutation.
 - HoloGenesis Core OS: long-horizon creative lineage, persistent feedback,
   creative memory, and system-level continuity beyond the current V6.1
   metadata boundary.

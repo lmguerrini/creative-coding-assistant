@@ -497,6 +497,18 @@ _FAILURE_PATTERN_DISCOVERY = (
     "creative_coding_assistant.orchestration.failure_pattern_discovery"
 )
 _LEARNING_GOVERNANCE = "creative_coding_assistant.orchestration.learning_governance"
+_LEARNING_REPLAY_ENGINE = (
+    "creative_coding_assistant.orchestration.learning_replay_engine"
+)
+_LEARNING_CONFIDENCE_CALIBRATION = (
+    "creative_coding_assistant.orchestration.learning_confidence_calibration"
+)
+_CREATIVE_SUCCESS_LEARNING = (
+    "creative_coding_assistant.orchestration.creative_success_learning"
+)
+_CREATIVE_FAILURE_LEARNING = (
+    "creative_coding_assistant.orchestration.creative_failure_learning"
+)
 _ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT = (
     "creative_coding_assistant.orchestration."
     "adaptive_learning_failure_path_audit"
@@ -820,6 +832,14 @@ _EXPORT_MAP = {
     "FailurePatternDiscoveryPlan": _FAILURE_PATTERN_DISCOVERY,
     "LearningGovernancePolicy": _LEARNING_GOVERNANCE,
     "LearningGovernancePlan": _LEARNING_GOVERNANCE,
+    "LearningReplayScenario": _LEARNING_REPLAY_ENGINE,
+    "LearningReplayPlan": _LEARNING_REPLAY_ENGINE,
+    "LearningConfidenceCalibrationRecord": _LEARNING_CONFIDENCE_CALIBRATION,
+    "LearningConfidenceCalibrationPlan": _LEARNING_CONFIDENCE_CALIBRATION,
+    "CreativeSuccessPattern": _CREATIVE_SUCCESS_LEARNING,
+    "CreativeSuccessLearningPlan": _CREATIVE_SUCCESS_LEARNING,
+    "CreativeFailurePattern": _CREATIVE_FAILURE_LEARNING,
+    "CreativeFailureLearningPlan": _CREATIVE_FAILURE_LEARNING,
     "AdaptiveLearningFailurePathAuditRecord": (
         _ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT
     ),
@@ -2322,6 +2342,24 @@ _EXPORT_MAP = {
     "build_learning_governance": _LEARNING_GOVERNANCE,
     "learning_governance_policy_by_id": _LEARNING_GOVERNANCE,
     "learning_governance_policies_for_status": _LEARNING_GOVERNANCE,
+    "build_learning_replay_engine": _LEARNING_REPLAY_ENGINE,
+    "learning_replay_scenario_by_id": _LEARNING_REPLAY_ENGINE,
+    "learning_replay_scenarios_for_confidence": _LEARNING_REPLAY_ENGINE,
+    "calibrate_learning_confidence": _LEARNING_CONFIDENCE_CALIBRATION,
+    "learning_confidence_calibration_by_id": (
+        _LEARNING_CONFIDENCE_CALIBRATION
+    ),
+    "learning_confidence_calibrations_for_band": (
+        _LEARNING_CONFIDENCE_CALIBRATION
+    ),
+    "learn_creative_success": _CREATIVE_SUCCESS_LEARNING,
+    "creative_success_pattern_by_id": _CREATIVE_SUCCESS_LEARNING,
+    "creative_success_patterns_for_quality_signal": (
+        _CREATIVE_SUCCESS_LEARNING
+    ),
+    "learn_creative_failures": _CREATIVE_FAILURE_LEARNING,
+    "creative_failure_pattern_by_id": _CREATIVE_FAILURE_LEARNING,
+    "creative_failure_patterns_for_mode": _CREATIVE_FAILURE_LEARNING,
     "adaptive_learning_failure_path_audit_registry": (
         _ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT
     ),

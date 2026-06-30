@@ -194,16 +194,20 @@ metadata layer. It records adaptive learning signals, workflow success
 tracking, failure tracking, strategy learning, technique learning, runtime
 learning, routing learning, artifact learning, evaluation learning,
 continuous improvement signals, success pattern discovery, failure pattern
-discovery, learning governance, and runtime failure-path audit coverage.
+discovery, learning replay metadata, learning confidence calibration, creative
+success learning, creative failure learning, learning governance, and runtime
+failure-path audit coverage.
 
-It does not persist learning memory, apply feedback, update or enforce
-policies, observe live success, observe live failures, classify live errors,
-route terminal failures, handle or repair failures, mutate strategies, apply
-techniques, select runtimes, probe local runtimes, change provider/model
-routing, execute providers, execute artifacts, evaluate generated output,
-emit HITL requests, execute or control workflows, mutate workflow graphs,
-trigger retries or refinements, write persistent storage, activate passive
-registries, apply Runtime Evolution, or modify generated output.
+It does not persist learning memory, execute learning replay, execute workflow
+replay, train models, apply feedback, update or enforce policies, observe live
+success, observe live failures, classify live errors, route terminal failures,
+handle or repair failures, mutate strategies, apply techniques, select
+runtimes, probe local runtimes, change provider/model routing, execute
+providers, execute artifacts, evaluate generated output, emit HITL requests,
+execute or control workflows, mutate workflow graphs, trigger retries or
+refinements, write persistent storage, mutate preferences, automatically
+remediate failures, activate passive registries, apply Runtime Evolution, or
+modify generated output.
 
 ## Future Product Directions
 

@@ -93,10 +93,12 @@ inspection metadata, critique, and refinement context.
   success tracking, failure tracking, strategy learning, technique learning,
   runtime learning, routing learning, artifact learning, evaluation learning,
   continuous improvement signals, success pattern discovery, failure pattern
-  discovery, learning governance, and runtime failure-path audit metadata
-  without memory persistence, feedback application, policy mutation, live
-  outcome observation, workflow control, provider execution, or output
-  mutation.
+  discovery, learning replay metadata, learning confidence calibration,
+  creative success learning, creative failure learning, learning governance,
+  and runtime failure-path audit metadata without memory persistence, replay
+  execution, model training, feedback application, policy mutation, live
+  outcome observation, workflow control, provider execution, storage writes,
+  preference mutation, automatic remediation, or output mutation.
 
 ## Supported Creative Domains
 
@@ -345,22 +347,38 @@ mutating terminal routing. Learning governance describes memory, feedback,
 policy, HITL, explainability, and no-automation boundaries without persisting
 memory, applying feedback, updating or enforcing policies, emitting HITL
 requests, or requesting human input.
+Learning replay records replay scenarios, source learning signal references,
+expected replay insight, replay confidence, and replay safety boundaries
+without executing learning replay, workflow replay, provider calls, storage
+writes, generated-output mutation, or Runtime Evolution. Learning confidence
+calibration maps confidence before/after bands from existing learning signals
+and V5 execution/confidence metadata with rationale, uncertainty factors, and
+HITL requirements for low or risky confidence without model training,
+feedback application, storage writes, or runtime mutation. Creative success
+learning specializes success patterns for creative coding artifact, aesthetic,
+usefulness, and originality dimensions with explainability and without
+generated-output mutation, automatic preference mutation, or storage writes.
+Creative failure learning specializes failure patterns for artifact, preview,
+runtime, aesthetic, prompt, and retrieval failure modes with explainability and
+without generated-output mutation, automatic remediation, or storage writes.
 The V6.1 runtime failure path audit verifies these learning surfaces against
 the runtime failure checklist without creating failure handlers, routing
 terminal failures, changing provider/model routing, writing storage, mutating
 generated output, or applying Runtime Evolution.
 
-It must not persist learning memory, apply feedback, update policies, mutate
-strategies, change provider/model routing, execute providers, probe local
-runtimes, download models, invoke agents, allocate resources, emit HITL
-requests, enforce budgets, collect telemetry, observe runtime success,
-observe runtime failures, classify live errors, route terminal failures,
-handle or repair failures, evaluate generated output, execute or control
-workflows, mutate workflow graphs, trigger retries or refinements, mutate
-strategy selection, apply techniques, select runtimes, execute artifacts,
+It must not persist learning memory, execute learning replay, execute workflow
+replay, train models, apply feedback, update policies, mutate strategies,
+change provider/model routing, execute providers, probe local runtimes,
+download models, invoke agents, allocate resources, emit HITL requests,
+enforce budgets, collect telemetry, observe runtime success, observe runtime
+failures, classify live errors, route terminal failures, handle or repair
+failures, evaluate generated output, execute or control workflows, mutate
+workflow graphs, trigger retries or refinements, mutate strategy selection,
+mutate preferences, apply techniques, select runtimes, execute artifacts,
 probe local runtimes, install dependencies, change preview behavior, compile
 graphs, render or mutate prompts, write persistent storage, persist success
-metrics, modify generated output, or apply Runtime Evolution.
+metrics, automatically remediate failures, modify generated output, or apply
+Runtime Evolution.
 
 ## Non-Goals For Current Baseline
 
