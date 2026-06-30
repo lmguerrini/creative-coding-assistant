@@ -9,8 +9,8 @@
   generative design, artifact intelligence, evaluation, workstation, V4
   registry layers, V5.1 execution optimization helpers, V5.2 model-routing
   helpers, V5.3 performance helpers, V5.4 production observability helpers,
-  and V5.5 adaptive execution policy helpers are metadata surfaces, not
-  additional runtime nodes.
+  V5.5 adaptive execution policy helpers, and V5.6 production-release
+  readiness helpers are metadata surfaces, not additional runtime nodes.
 - Keep the Next.js workstation responsible for product inspection, preview,
   comparison, export, telemetry, workflow visibility, and operator controls.
 
@@ -20,10 +20,11 @@ Chroma remains the only persistent retrieval and memory database. Passive V4.1,
 V4.2, V4.3, V4.4, V4.5, and V4.6 registries, advisory V5.1 optimization
 helpers, advisory V5.2 model-routing helpers, advisory V5.3 performance
 helpers, read-only V5.4 production observability helpers, and controlled V5.5
-adaptive execution policy helpers do not create storage backends, write
-blackboard state, write replay storage, persist cache entries, write telemetry
-or trace stores, emit monitoring events, allocate resources, or introduce
-runtime synchronization behavior.
+adaptive execution policy helpers, and V5.6 production-release readiness
+helpers do not create storage backends, write blackboard state, write replay
+storage, persist cache entries, write telemetry or trace stores, emit
+monitoring events, allocate resources, create release artifacts, run
+deployment storage writes, or introduce runtime synchronization behavior.
 
 ## Metadata Layering
 
@@ -80,9 +81,10 @@ runtime synchronization behavior.
   explainability, architecture consistency, and failure-path metadata over the
   existing compact workflow.
 - V5.6 Production Release helpers describe final optimization, packaging,
-  release-candidate, demo asset, and deployment readiness metadata over the
-  existing V5 architecture without adding deployment automation or new core
-  runtime architecture.
+  release-candidate, demo asset, deployment, production readiness, creative
+  readiness, architecture freeze, release audit, final hardening, architecture
+  consistency, and failure-path metadata over the existing V5 architecture
+  without adding deployment automation or new core runtime architecture.
 
 ## V4.3 Boundary Decision
 
@@ -253,8 +255,10 @@ automation remain manual/HITL-only surfaces.
 V5.6 Production Release is a production-readiness metadata layer. It may
 inspect existing package metadata, environment templates, runtime path
 assumptions, release-candidate posture, demo assets, deployment assumptions,
-execution-mode safety, explainability fields, and deterministic failure
-posture.
+execution-mode safety, explainability fields, deterministic failure posture,
+production readiness, creative readiness, architecture freeze posture, release
+audit posture, guarded final hardening actions, architecture consistency, and
+runtime failure-path coverage.
 
 It must not introduce new core architecture, execute providers, mutate
 configured provider/model routing, silently switch providers or models,
@@ -262,9 +266,10 @@ generate assets, execute retrieval, run package builds, install dependencies,
 deploy services, create containers, provision providers, install runtimes,
 download local models, emit HITL requests, compile graphs, execute or control
 workflows, mutate workflow graphs, write persistent storage, create release
-artifacts, merge, push, tag, apply Runtime Evolution, or modify generated
-output. External deployment manifests are explicit guarded assumptions, not
-automatic deployment work.
+artifacts, execute hardening actions, create runtime failure handlers, mutate
+terminal routing, merge, push, tag, apply Runtime Evolution, or modify
+generated output. External deployment manifests are explicit guarded
+assumptions, not automatic deployment work.
 
 ## Documentation Decision
 

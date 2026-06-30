@@ -84,7 +84,9 @@ inspection metadata, critique, and refinement context.
   reflection budget, adaptive policy explainability, architecture consistency,
   and failure audit metadata.
 - V5.6 Production Release for production final optimization, packaging
-  readiness, release-candidate posture, demo assets, and deployment assumption
+  readiness, release-candidate posture, demo assets, deployment assumptions,
+  production readiness, creative readiness, architecture freeze, release
+  audit, final hardening, architecture consistency, and runtime failure-path
   metadata that prepares the existing V5 system for demo/release review
   without adding new core architecture.
 
@@ -277,8 +279,11 @@ V5.6 Production Release is production-readiness metadata over the existing V5
 system. It includes final optimization posture, packaging readiness,
 release-candidate posture, demo asset readiness, deployment assumption
 metadata, provider/environment/API-key diagnostics, Manual/Assisted/Auto safety
-boundaries, explainability fields, deterministic failure review, and explicit
-local-demo versus external-deployment assumptions.
+boundaries, explainability fields, deterministic failure review, production
+readiness review, creative readiness review, architecture freeze, release
+audit, guarded final hardening posture, architecture consistency coverage,
+runtime failure-path audit coverage, and explicit local-demo versus
+external-deployment assumptions.
 
 It must not introduce new core architecture, mutate configured provider/model
 routing, silently switch providers or models, execute providers, generate or
@@ -286,7 +291,8 @@ mutate assets, execute retrieval, run package builds, install dependencies,
 deploy services, create containers, provision providers, install runtimes,
 download local models, emit HITL requests, execute or control workflows,
 mutate workflow graphs, write persistent storage, create release artifacts,
-merge, push, tag, apply Runtime Evolution, or modify generated output.
+execute hardening actions, create runtime failure handlers, mutate terminal
+routing, merge, push, tag, apply Runtime Evolution, or modify generated output.
 
 ## Non-Goals For Current Baseline
 

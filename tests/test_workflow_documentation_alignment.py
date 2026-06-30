@@ -197,6 +197,13 @@ V56_PRODUCTION_RELEASE_SURFACES = (
     "Production Release Candidate",
     "Production Demo Assets",
     "Production Deployment",
+    "Production Readiness Review",
+    "Production Creative Readiness Review",
+    "Production Architecture Freeze",
+    "Production Release Audit",
+    "Production Final Hardening",
+    "Production Architecture Consistency",
+    "Production Release Failure Path Audit",
 )
 PUBLIC_README_INTERNAL_MARKERS = (
     "Current Branch Status",
@@ -585,11 +592,21 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("configuration diagnostics", normalized_combined)
         self.assertIn("explainability expectations", normalized_combined)
         self.assertIn("deterministic failure posture", normalized_combined)
+        self.assertIn("production readiness review", normalized_combined)
+        self.assertIn("creative readiness review", normalized_combined)
+        self.assertIn("architecture freeze", normalized_combined)
+        self.assertIn("release audit", normalized_combined)
+        self.assertIn("final hardening", normalized_combined)
+        self.assertIn("architecture consistency coverage", normalized_combined)
+        self.assertIn("runtime failure-path audit coverage", normalized_combined)
         self.assertIn("introduce new core architecture", normalized_combined)
         self.assertIn("run package builds", normalized_combined)
         self.assertIn("install dependencies", normalized_combined)
         self.assertIn("deploy services", normalized_combined)
         self.assertIn("create release artifacts", normalized_combined)
+        self.assertIn("execute hardening actions", normalized_combined)
+        self.assertIn("create runtime failure handlers", normalized_combined)
+        self.assertIn("mutate terminal routing", normalized_combined)
         self.assertIn("merge, push, tag", normalized_combined)
         self.assertIn("apply Runtime Evolution", normalized_combined)
         self.assertIn("modify generated output", normalized_combined)
@@ -870,6 +887,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "Production Observability",
             "V5.5",
             "Adaptive Execution Intelligence",
+            "V5.6",
+            "Production Release",
             "V6",
             "HoloGenesis Core OS",
         ):
@@ -887,6 +906,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("## V5.2 Intelligent Model Routing Surfaces", engine_matrix)
         self.assertIn("## V5.4 Production Observability Surfaces", engine_matrix)
         self.assertIn("## V5.5 Adaptive Execution Intelligence Surfaces", engine_matrix)
+        self.assertIn("## V5.6 Production Release Surfaces", engine_matrix)
 
         for registry_marker in (
             "agent_capability_registry.v1",
@@ -1044,6 +1064,18 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "adaptive_policy_explainability_plan.v1",
             "adaptive_execution_architecture_consistency_registry.v1",
             "adaptive_execution_failure_path_audit_registry.v1",
+            "production_release_final_optimization_plan.v1",
+            "production_release_packaging_plan.v1",
+            "production_release_candidate_plan.v1",
+            "production_demo_asset_plan.v1",
+            "production_deployment_plan.v1",
+            "production_readiness_review.v1",
+            "production_creative_readiness_review.v1",
+            "production_architecture_freeze.v1",
+            "production_release_audit.v1",
+            "production_final_hardening.v1",
+            "production_architecture_consistency_registry.v1",
+            "production_release_failure_path_audit_registry.v1",
         ):
             self.assertIn(registry_marker, engine_matrix)
 
@@ -1149,6 +1181,18 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "adaptive_policy_explainability.py",
             "adaptive_execution_architecture_consistency.py",
             "adaptive_execution_failure_path_audit.py",
+            "production_release_final_optimization.py",
+            "production_release_packaging.py",
+            "production_release_candidate.py",
+            "production_demo_assets.py",
+            "production_deployment.py",
+            "production_readiness_review.py",
+            "production_creative_readiness_review.py",
+            "production_architecture_freeze.py",
+            "production_release_audit.py",
+            "production_final_hardening.py",
+            "production_architecture_consistency.py",
+            "production_release_failure_path_audit.py",
         ):
             self.assertIn(module_path, engine_matrix)
 
@@ -1168,6 +1212,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         )
         self.assertIn(
             "controlled adaptive execution policy",
+            normalized_engine_matrix,
+        )
+        self.assertIn(
+            "production-release readiness metadata",
             normalized_engine_matrix,
         )
         self.assertIn("does not activate Studio runtime", normalized_engine_matrix)
@@ -1203,6 +1251,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("capture traces", normalized_engine_matrix)
         self.assertIn("allow/confirm/block decisions", normalized_engine_matrix)
         self.assertIn("automatic downloads", normalized_engine_matrix)
+        self.assertIn("without package builds", normalized_engine_matrix)
+        self.assertIn("release operations", normalized_engine_matrix)
+        self.assertIn("mutating terminal routing", normalized_engine_matrix)
+        self.assertIn("merge/push/tag operations", normalized_engine_matrix)
 
     def test_workstation_surface_docs_cover_v35_surface_layer(self) -> None:
         architecture_doc = (

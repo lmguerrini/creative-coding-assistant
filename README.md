@@ -85,9 +85,12 @@ selection, fallback and escalation reasoning, hybrid workflow policies,
 manual/Assisted/Auto mode semantics, and manual/HITL-only surfaces for local
 model download, provider provisioning, runtime installation, and Runtime
 Evolution review. V5.6 adds Production Release readiness metadata for final
-optimization, packaging, release-candidate posture, demo assets, and deployment
-assumptions so the system can be demonstrated and reviewed without introducing
-new core architecture. These V5 layers do not mutate configured routing,
+optimization, packaging, release-candidate posture, demo assets, deployment
+assumptions, production readiness, creative readiness, architecture freeze,
+release audit, final hardening, architecture consistency, and runtime
+failure-path audit coverage so the system can be demonstrated and reviewed
+without introducing new core architecture. These V5 layers do not mutate
+configured routing,
 silently switch providers or models, execute providers, download models,
 provision providers, install runtimes, allocate agents or resources, measure
 live performance, collect live metrics, emit telemetry or alerts, capture
@@ -174,10 +177,13 @@ observed through live preview and runtime inspection from the same interface.
   provider/model routing mutation, automatic downloads, provider provisioning,
   runtime installation, HITL emission, workflow control, or output mutation
 - V5.6 Production Release helpers for production final optimization,
-  packaging readiness, release-candidate posture, demo asset readiness, and
-  deployment assumptions without new core architecture, automatic installation,
-  package builds, deployment execution, provider execution, provider/model
-  routing mutation, release tag creation, or Runtime Evolution
+  packaging readiness, release-candidate posture, demo asset readiness,
+  deployment assumptions, production readiness review, creative readiness
+  review, architecture freeze, release audit, final hardening, architecture
+  consistency, and runtime failure-path audit coverage without new core
+  architecture, automatic installation, package builds, deployment execution,
+  provider execution, provider/model routing mutation, release tag creation,
+  release artifact creation, terminal routing mutation, or Runtime Evolution
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -557,6 +563,13 @@ Production Release surfaces:
 - Production Release Candidate
 - Production Demo Assets
 - Production Deployment
+- Production Readiness Review
+- Production Creative Readiness Review
+- Production Architecture Freeze
+- Production Release Audit
+- Production Final Hardening
+- Production Architecture Consistency
+- Production Release Failure Path Audit
 
 The architecture documents six complementary views:
 

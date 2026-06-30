@@ -134,6 +134,17 @@ execute providers, instantiate or invoke agents, allocate resources,
 enforce budgets, emit HITL requests, compile graphs, execute or control
 workflows, mutate workflow graphs, trigger retries or refinements, mutate
 prompts, persist storage, apply Runtime Evolution, or modify generated output.
+V5.6 Production Release keeps the same LangGraph runtime node set while adding
+production-release readiness metadata for final optimization, packaging,
+release-candidate posture, demo asset readiness, deployment assumptions,
+production readiness, creative readiness, architecture freeze, release audit,
+final hardening, architecture consistency, and runtime failure-path audit
+coverage. These surfaces are importable Python contracts and deterministic
+local helpers; they do not install dependencies, run package builds, deploy
+services, create release artifacts, generate assets, execute retrieval,
+execute providers, mutate configured provider/model routing, emit HITL
+requests, compile graphs, execute or control workflows, mutate workflow
+graphs, apply Runtime Evolution, merge, push, tag, or modify generated output.
 `_planning_node()` deterministically derives and stores the V3.1 Creative
 Cognition metadata, the V3.2 Generative Design metadata, the V3.3 Artifact
 Intelligence metadata, and the V3.4 Creative Evaluation metadata:
@@ -268,6 +279,13 @@ This separation is intentional:
   invocation, resource allocation, budget enforcement, HITL request emission,
   workflow control, workflow graph mutation, retry triggering, automatic local
   model downloads, or generated-output mutation
+- The V5.6 Production Release layer owns final optimization, packaging,
+  release-candidate, demo asset, deployment, production readiness, creative
+  readiness, architecture freeze, release audit, final hardening, architecture
+  consistency, and runtime failure audit metadata, but still does not own
+  dependency installation, package builds, deployment execution, provider/model
+  routing mutation, provider execution, workflow control, release operations,
+  Runtime Evolution, or generated-output mutation
 - The internal capability pipeline and dependency graph remain decomposition
   candidates for later orchestration, but they are not a true multi-agent or
   multi-node runtime graph here
@@ -620,6 +638,40 @@ Execution Failure Path Audit.
 | Dynamic agent/resource allocation and self-tuning posture | Project allocation and self-tuning recommendations without allocating agents or resources, changing queues or capacity, triggering retries, reordering workflows, compiling graphs, or executing node handlers |
 | Confidence, risk, exploration, emergence, diversity, and reflection posture | Summarize advisory confidence, risk, creative exploration, emergence, diversity, and reflection budgets without applying risk decisions, generating variants, selecting artifacts, running reflection loops, or enforcing token budgets |
 | Explainability, architecture, and failure audit | Explain adaptive policy posture and verify V5.5 source coverage, controlled policy activation, Runtime Evolution, architecture, and failure-path boundaries without routing providers/models, emitting HITL, or recovery execution |
+
+## V5.6 Production Release Metadata Boundary
+
+V5.6 introduces production-release readiness metadata over the stable V3
+runtime graph, V4 passive contract stack, and V5.1-V5.5 metadata layers. The
+implementation adds typed deterministic helpers for final optimization,
+packaging readiness, release-candidate posture, demo asset readiness,
+deployment assumptions, production readiness review, creative readiness review,
+architecture freeze, release audit, final production hardening, architecture
+consistency coverage, and runtime failure-path audit coverage.
+
+These surfaces are release-readiness helpers, not packaging, deployment, or
+release execution. They do not install dependencies, run package builds, start
+servers, deploy services, create containers, create release artifacts, create
+tags, merge, push, provision providers, execute providers, mutate configured
+provider/model routing, execute retrieval, generate assets, render previews,
+emit HITL requests, compile graphs, execute or control workflows, mutate
+workflow graphs, trigger retries or refinements, mutate prompts, write
+persistent storage, activate passive registries as runtime behavior, apply
+Runtime Evolution, or modify generated output.
+
+Canonical V5.6 surfaces are Production Release Final Optimization, Production
+Packaging, Production Release Candidate, Production Demo Assets, Production
+Deployment, Production Readiness Review, Production Creative Readiness Review,
+Production Architecture Freeze, Production Release Audit, Production Final
+Hardening, Production Architecture Consistency, and Production Release Failure
+Path Audit.
+
+| Surface group | Current boundary |
+| --- | --- |
+| Final optimization and packaging readiness | Inspect existing execution, routing, provider, health, explainability, adaptive policy, package, frontend, environment, runtime-data, and script metadata without mutating configuration, installing dependencies, running builds, provisioning providers, or changing routing |
+| Release candidate, demo assets, and deployment assumptions | Record release-candidate posture, existing demo media, retrieval scenario descriptions, local runtime entrypoints, and external deployment manifest assumptions without creating release artifacts, generating assets, executing retrieval, starting servers, or deploying services |
+| Production and creative readiness reviews | Aggregate configuration, safety, UX explainability, deterministic failure, prompt, preview, creative quality, diversity, consistency, and workflow narrative posture without provider execution, preview rendering, generated-output evaluation, retrieval execution, or HITL emission |
+| Architecture freeze, release audit, hardening, consistency, and failure audit | Freeze production architecture assumptions, aggregate release controls, record guarded hardening actions, verify source coverage, and audit runtime failure-path boundaries without architecture expansion, workflow graph mutation, terminal routing mutation, recovery behavior, merge/push/tag operations, Runtime Evolution, or output mutation |
 
 ## Current Implemented Flow
 
