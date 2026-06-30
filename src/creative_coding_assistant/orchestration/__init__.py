@@ -444,6 +444,9 @@ _ADAPTIVE_EXECUTION_STRATEGY_SELECTION = (
 _DYNAMIC_AGENT_ALLOCATION = (
     "creative_coding_assistant.orchestration.dynamic_agent_allocation"
 )
+_DYNAMIC_RESOURCE_ALLOCATION = (
+    "creative_coding_assistant.orchestration.dynamic_resource_allocation"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -657,6 +660,8 @@ _EXPORT_MAP = {
     ),
     "DynamicAgentAllocationCandidate": _DYNAMIC_AGENT_ALLOCATION,
     "DynamicAgentAllocationPlan": _DYNAMIC_AGENT_ALLOCATION,
+    "DynamicResourceAllocationCandidate": _DYNAMIC_RESOURCE_ALLOCATION,
+    "DynamicResourceAllocationPlan": _DYNAMIC_RESOURCE_ALLOCATION,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -2014,6 +2019,9 @@ _EXPORT_MAP = {
     "allocate_dynamic_agents": _DYNAMIC_AGENT_ALLOCATION,
     "dynamic_agent_allocation_by_agent_id": _DYNAMIC_AGENT_ALLOCATION,
     "dynamic_agent_allocations_for_lane": _DYNAMIC_AGENT_ALLOCATION,
+    "allocate_dynamic_resources": _DYNAMIC_RESOURCE_ALLOCATION,
+    "dynamic_resource_allocation_by_id": _DYNAMIC_RESOURCE_ALLOCATION,
+    "dynamic_resource_allocations_for_status": _DYNAMIC_RESOURCE_ALLOCATION,
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
