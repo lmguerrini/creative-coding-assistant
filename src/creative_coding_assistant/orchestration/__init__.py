@@ -477,6 +477,9 @@ _EXECUTION_CONFIDENCE_ENGINE = (
 _ADAPTIVE_LEARNING_ENGINE = (
     "creative_coding_assistant.orchestration.adaptive_learning_engine"
 )
+_WORKFLOW_SUCCESS_TRACKING = (
+    "creative_coding_assistant.orchestration.workflow_success_tracking"
+)
 _WORKFLOW_RISK_ENGINE = (
     "creative_coding_assistant.orchestration.workflow_risk_engine"
 )
@@ -772,6 +775,8 @@ _EXPORT_MAP = {
     "ExecutionConfidencePlan": _EXECUTION_CONFIDENCE_ENGINE,
     "AdaptiveLearningSignal": _ADAPTIVE_LEARNING_ENGINE,
     "AdaptiveLearningPlan": _ADAPTIVE_LEARNING_ENGINE,
+    "WorkflowSuccessIndicator": _WORKFLOW_SUCCESS_TRACKING,
+    "WorkflowSuccessTrackingPlan": _WORKFLOW_SUCCESS_TRACKING,
     "WorkflowRiskFactor": _WORKFLOW_RISK_ENGINE,
     "WorkflowRiskPlan": _WORKFLOW_RISK_ENGINE,
     "CreativeExplorationOptimizationCandidate": _CREATIVE_EXPLORATION_OPTIMIZER,
@@ -2217,6 +2222,10 @@ _EXPORT_MAP = {
     "adaptive_learning_signal_by_id": _ADAPTIVE_LEARNING_ENGINE,
     "adaptive_learning_signals_for_priority": _ADAPTIVE_LEARNING_ENGINE,
     "adaptive_learning_signals_for_status": _ADAPTIVE_LEARNING_ENGINE,
+    "track_workflow_success": _WORKFLOW_SUCCESS_TRACKING,
+    "workflow_success_indicator_by_id": _WORKFLOW_SUCCESS_TRACKING,
+    "workflow_success_indicators_for_confidence": _WORKFLOW_SUCCESS_TRACKING,
+    "workflow_success_indicators_for_status": _WORKFLOW_SUCCESS_TRACKING,
     "evaluate_workflow_risk": _WORKFLOW_RISK_ENGINE,
     "workflow_risk_factor_by_id": _WORKFLOW_RISK_ENGINE,
     "workflow_risk_factors_for_severity": _WORKFLOW_RISK_ENGINE,

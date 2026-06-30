@@ -300,14 +300,17 @@ V6.1 Adaptive Learning Engine begins as controlled learning metadata over the
 V5 decision engine. The initial learning engine derives adaptive learning
 signals from execution confidence, workflow risk, and workflow self-tuning
 metadata, including priority scores, pattern tags, evidence, and review
-posture.
+posture. Workflow success tracking derives success indicators from adaptive
+learning signals without observing live outcomes or persisting metrics.
 
 It must not persist learning memory, apply feedback, update policies, mutate
 strategies, change provider/model routing, execute providers, probe local
 runtimes, download models, invoke agents, allocate resources, emit HITL
-requests, enforce budgets, execute or control workflows, mutate workflow
+requests, enforce budgets, collect telemetry, observe runtime success,
+evaluate generated output, execute or control workflows, mutate workflow
 graphs, trigger retries or refinements, mutate prompts, write persistent
-storage, modify generated output, or apply Runtime Evolution.
+storage, persist success metrics, modify generated output, or apply Runtime
+Evolution.
 
 ## Non-Goals For Current Baseline
 
