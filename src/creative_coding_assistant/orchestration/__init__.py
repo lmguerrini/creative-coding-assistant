@@ -487,6 +487,9 @@ _RUNTIME_LEARNING = "creative_coding_assistant.orchestration.runtime_learning"
 _ROUTING_LEARNING = "creative_coding_assistant.orchestration.routing_learning"
 _ARTIFACT_LEARNING = "creative_coding_assistant.orchestration.artifact_learning"
 _EVALUATION_LEARNING = "creative_coding_assistant.orchestration.evaluation_learning"
+_CONTINUOUS_IMPROVEMENT_SIGNALS = (
+    "creative_coding_assistant.orchestration.continuous_improvement_signals"
+)
 _WORKFLOW_RISK_ENGINE = (
     "creative_coding_assistant.orchestration.workflow_risk_engine"
 )
@@ -798,6 +801,8 @@ _EXPORT_MAP = {
     "ArtifactLearningPlan": _ARTIFACT_LEARNING,
     "EvaluationLearningPattern": _EVALUATION_LEARNING,
     "EvaluationLearningPlan": _EVALUATION_LEARNING,
+    "ContinuousImprovementSignal": _CONTINUOUS_IMPROVEMENT_SIGNALS,
+    "ContinuousImprovementSignalPlan": _CONTINUOUS_IMPROVEMENT_SIGNALS,
     "WorkflowRiskFactor": _WORKFLOW_RISK_ENGINE,
     "WorkflowRiskPlan": _WORKFLOW_RISK_ENGINE,
     "CreativeExplorationOptimizationCandidate": _CREATIVE_EXPLORATION_OPTIMIZER,
@@ -2275,6 +2280,14 @@ _EXPORT_MAP = {
     "evaluation_learning_pattern_by_id": _EVALUATION_LEARNING,
     "evaluation_learning_patterns_for_priority": _EVALUATION_LEARNING,
     "evaluation_learning_patterns_for_status": _EVALUATION_LEARNING,
+    "derive_continuous_improvement_signals": _CONTINUOUS_IMPROVEMENT_SIGNALS,
+    "continuous_improvement_signal_by_id": _CONTINUOUS_IMPROVEMENT_SIGNALS,
+    "continuous_improvement_signals_for_priority": (
+        _CONTINUOUS_IMPROVEMENT_SIGNALS
+    ),
+    "continuous_improvement_signals_for_status": (
+        _CONTINUOUS_IMPROVEMENT_SIGNALS
+    ),
     "evaluate_workflow_risk": _WORKFLOW_RISK_ENGINE,
     "workflow_risk_factor_by_id": _WORKFLOW_RISK_ENGINE,
     "workflow_risk_factors_for_severity": _WORKFLOW_RISK_ENGINE,

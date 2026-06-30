@@ -300,7 +300,11 @@ generating, executing, merging, exporting, or previewing artifacts.
 Evaluation learning may derive evaluation patterns from read-only evaluation
 engine contract metadata without running evaluations, evaluating generated
 output, mutating scores or confidence, executing reflection loops, generating
-reports, or changing workflow order.
+reports, or changing workflow order. Continuous improvement signals may
+synthesize read-only V6.1 success, failure, artifact, and evaluation learning
+metadata into advisory improvement candidates without applying feedback,
+persisting learning memory, updating policies, observing runtime outcomes, or
+changing workflows.
 
 It must not persist learning memory, apply feedback, update policies, mutate
 strategies, change provider/model routing, execute providers, probe local
