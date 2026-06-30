@@ -287,7 +287,10 @@ adaptive execution strategy metadata and adaptive learning signals without
 applying or mutating strategy selection. Technique learning may derive
 technique patterns from read-only creative technique metadata and adaptive
 learning signals without rendering prompts, applying techniques, selecting
-runtimes, or executing artifacts.
+runtimes, or executing artifacts. Runtime learning may derive runtime patterns
+from read-only runtime capability metadata and adaptive learning signals
+without selecting runtimes, probing local runtimes, installing dependencies,
+or changing preview behavior.
 
 It must not persist learning memory, apply feedback, update policies, mutate
 strategies, change provider/model routing, execute providers, probe local
@@ -297,8 +300,9 @@ observe runtime failures, classify live errors, route terminal failures,
 handle or repair failures, evaluate generated output, execute or control
 workflows, mutate workflow graphs, trigger retries or refinements, mutate
 strategy selection, apply techniques, select runtimes, execute artifacts,
-compile graphs, render or mutate prompts, write persistent storage, persist
-success metrics, modify generated output, or apply Runtime Evolution.
+probe local runtimes, install dependencies, change preview behavior, compile
+graphs, render or mutate prompts, write persistent storage, persist success
+metrics, modify generated output, or apply Runtime Evolution.
 
 ## Documentation Decision
 
