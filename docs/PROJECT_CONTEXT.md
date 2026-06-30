@@ -302,15 +302,19 @@ signals from execution confidence, workflow risk, and workflow self-tuning
 metadata, including priority scores, pattern tags, evidence, and review
 posture. Workflow success tracking derives success indicators from adaptive
 learning signals without observing live outcomes or persisting metrics.
+Failure tracking derives failure indicators from read-only failure analysis
+and adaptive learning metadata without observing, classifying, routing,
+handling, or repairing live failures.
 
 It must not persist learning memory, apply feedback, update policies, mutate
 strategies, change provider/model routing, execute providers, probe local
 runtimes, download models, invoke agents, allocate resources, emit HITL
 requests, enforce budgets, collect telemetry, observe runtime success,
-evaluate generated output, execute or control workflows, mutate workflow
-graphs, trigger retries or refinements, mutate prompts, write persistent
-storage, persist success metrics, modify generated output, or apply Runtime
-Evolution.
+observe runtime failures, classify live errors, route terminal failures,
+handle or repair failures, evaluate generated output, execute or control
+workflows, mutate workflow graphs, trigger retries or refinements, mutate
+prompts, write persistent storage, persist success metrics, modify generated
+output, or apply Runtime Evolution.
 
 ## Non-Goals For Current Baseline
 
