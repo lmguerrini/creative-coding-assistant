@@ -493,6 +493,9 @@ _CONTINUOUS_IMPROVEMENT_SIGNALS = (
 _SUCCESS_PATTERN_DISCOVERY = (
     "creative_coding_assistant.orchestration.success_pattern_discovery"
 )
+_FAILURE_PATTERN_DISCOVERY = (
+    "creative_coding_assistant.orchestration.failure_pattern_discovery"
+)
 _WORKFLOW_RISK_ENGINE = (
     "creative_coding_assistant.orchestration.workflow_risk_engine"
 )
@@ -808,6 +811,8 @@ _EXPORT_MAP = {
     "ContinuousImprovementSignalPlan": _CONTINUOUS_IMPROVEMENT_SIGNALS,
     "SuccessPattern": _SUCCESS_PATTERN_DISCOVERY,
     "SuccessPatternDiscoveryPlan": _SUCCESS_PATTERN_DISCOVERY,
+    "FailurePattern": _FAILURE_PATTERN_DISCOVERY,
+    "FailurePatternDiscoveryPlan": _FAILURE_PATTERN_DISCOVERY,
     "WorkflowRiskFactor": _WORKFLOW_RISK_ENGINE,
     "WorkflowRiskPlan": _WORKFLOW_RISK_ENGINE,
     "CreativeExplorationOptimizationCandidate": _CREATIVE_EXPLORATION_OPTIMIZER,
@@ -2297,6 +2302,10 @@ _EXPORT_MAP = {
     "success_pattern_by_id": _SUCCESS_PATTERN_DISCOVERY,
     "success_patterns_for_priority": _SUCCESS_PATTERN_DISCOVERY,
     "success_patterns_for_status": _SUCCESS_PATTERN_DISCOVERY,
+    "discover_failure_patterns": _FAILURE_PATTERN_DISCOVERY,
+    "failure_pattern_by_id": _FAILURE_PATTERN_DISCOVERY,
+    "failure_patterns_for_priority": _FAILURE_PATTERN_DISCOVERY,
+    "failure_patterns_for_status": _FAILURE_PATTERN_DISCOVERY,
     "evaluate_workflow_risk": _WORKFLOW_RISK_ENGINE,
     "workflow_risk_factor_by_id": _WORKFLOW_RISK_ENGINE,
     "workflow_risk_factors_for_severity": _WORKFLOW_RISK_ENGINE,
