@@ -359,6 +359,10 @@ _RUNTIME_TIMELINE = "creative_coding_assistant.orchestration.runtime_timeline"
 _WORKFLOW_EXPLAINABILITY_DASHBOARD = (
     "creative_coding_assistant.orchestration.workflow_explainability_dashboard"
 )
+_PRODUCTION_OBSERVABILITY_ARCHITECTURE_CONSISTENCY = (
+    "creative_coding_assistant.orchestration."
+    "production_observability_architecture_consistency"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -523,6 +527,12 @@ _EXPORT_MAP = {
     "RuntimeTimeline": _RUNTIME_TIMELINE,
     "WorkflowExplainabilityPanel": _WORKFLOW_EXPLAINABILITY_DASHBOARD,
     "WorkflowExplainabilityDashboard": _WORKFLOW_EXPLAINABILITY_DASHBOARD,
+    "ProductionObservabilityArchitectureRecord": (
+        _PRODUCTION_OBSERVABILITY_ARCHITECTURE_CONSISTENCY
+    ),
+    "ProductionObservabilityArchitectureRegistry": (
+        _PRODUCTION_OBSERVABILITY_ARCHITECTURE_CONSISTENCY
+    ),
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1735,6 +1745,15 @@ _EXPORT_MAP = {
     ),
     "resource_utilization_recommendations_for_status": (
         _RESOURCE_UTILIZATION_OPTIMIZER
+    ),
+    "production_observability_architecture_registry": (
+        _PRODUCTION_OBSERVABILITY_ARCHITECTURE_CONSISTENCY
+    ),
+    "production_observability_architecture_by_surface": (
+        _PRODUCTION_OBSERVABILITY_ARCHITECTURE_CONSISTENCY
+    ),
+    "production_observability_architecture_records_for_layer": (
+        _PRODUCTION_OBSERVABILITY_ARCHITECTURE_CONSISTENCY
     ),
     "performance_architecture_consistency_registry": (
         _PERFORMANCE_ARCHITECTURE_CONSISTENCY
