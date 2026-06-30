@@ -170,6 +170,26 @@ V54_PRODUCTION_OBSERVABILITY_SURFACES = (
     "Production Observability Architecture Consistency",
     "Production Observability Failure Path Audit",
 )
+V55_ADAPTIVE_EXECUTION_SURFACES = (
+    "Adaptive Hybrid Workflow Optimizer",
+    "Adaptive Escalation Optimizer",
+    "Agent Activation Optimizer",
+    "Adaptive Cost/Quality Optimizer",
+    "Adaptive Latency Optimizer",
+    "Adaptive Execution Strategy Selection",
+    "Dynamic Agent Allocation",
+    "Dynamic Resource Allocation",
+    "Workflow Self-Tuning Policies",
+    "Execution Confidence Engine",
+    "Workflow Risk Engine",
+    "Creative Exploration Optimizer",
+    "Emergence Optimizer",
+    "Agent Diversity Optimizer",
+    "Reflection Budget Optimizer",
+    "Adaptive Policy Explainability",
+    "Adaptive Execution Architecture Consistency",
+    "Adaptive Execution Failure Path Audit",
+)
 PUBLIC_README_INTERNAL_MARKERS = (
     "Current Branch Status",
     "feature/",
@@ -219,6 +239,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("Intelligent Model Routing", readme)
         self.assertIn("V5.4", readme)
         self.assertIn("Production Observability", readme)
+        self.assertIn("V5.5", readme)
+        self.assertIn("Adaptive Execution Intelligence", readme)
         self.assertIn("Next.js workstation", readme)
         self.assertIn("Capability Scope", readme)
         self.assertIn("architecture/artifact_intelligence_graph.md", readme)
@@ -253,6 +275,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             self.assertIn(surface, readme)
         for surface in V54_PRODUCTION_OBSERVABILITY_SURFACES:
             self.assertIn(surface, readme)
+        for surface in V55_ADAPTIVE_EXECUTION_SURFACES:
+            self.assertIn(surface, readme)
         self.assertIn("Execution Optimization Failure Audit", readme)
         self.assertIn("Model Routing Architecture Consistency", readme)
         self.assertIn("Model Routing Failure Path Audit", readme)
@@ -269,6 +293,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("advisory execution optimization metadata", normalized_readme)
         self.assertIn("advisory model-routing metadata", normalized_readme)
         self.assertIn("read-only observability metadata", normalized_readme)
+        self.assertIn("advisory adaptive execution metadata", normalized_readme)
         self.assertIn("orchestration readiness metadata", normalized_readme)
         self.assertIn("not active Studio runtime", normalized_readme)
         self.assertIn("not rendering execution", normalized_readme)
@@ -479,6 +504,35 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("apply Runtime Evolution", normalized_combined)
         self.assertIn("modify generated output", normalized_combined)
 
+    def test_project_docs_cover_current_v5_5_advisory_scope(self) -> None:
+        project_context = (
+            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
+        ).read_text(encoding="utf-8")
+        decisions = (
+            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
+        ).read_text(encoding="utf-8")
+        roadmap = (
+            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
+        ).read_text(encoding="utf-8")
+        combined = "\n".join((project_context, decisions, roadmap))
+        normalized_combined = re.sub(r"\s+", " ", combined)
+
+        self.assertIn("V5.5 Adaptive Execution Intelligence", combined)
+        self.assertIn("V5.5 Advisory Adaptive Execution Boundary", project_context)
+        self.assertIn("V5.5 Boundary Decision", decisions)
+        self.assertIn("completed advisory metadata layer", normalized_combined)
+        self.assertIn("advisory adaptive execution metadata", normalized_combined)
+        self.assertIn("runtime failure-path audit coverage", normalized_combined)
+        self.assertIn("apply adaptive policies or strategies", normalized_combined)
+        self.assertIn("switch providers or models", normalized_combined)
+        self.assertIn("execute providers", normalized_combined)
+        self.assertIn("invoke agents", normalized_combined)
+        self.assertIn("allocate agents or resources", normalized_combined)
+        self.assertIn("emit HITL requests", normalized_combined)
+        self.assertIn("mutate workflow graphs", normalized_combined)
+        self.assertIn("apply Runtime Evolution", normalized_combined)
+        self.assertIn("modify generated output", normalized_combined)
+
     def test_architecture_doc_node_order_matches_backend_node_order(self) -> None:
         architecture_doc = (
             REPO_ROOT / "architecture" / "workflow_graph.md"
@@ -527,6 +581,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("no provider/model switching", mermaid)
         self.assertIn("V5.4 production observability metadata boundary", mermaid)
         self.assertIn("no live telemetry emission", mermaid)
+        self.assertIn("V5.5 adaptive execution metadata boundary", mermaid)
+        self.assertIn("no adaptive behavior application", mermaid)
 
     def test_workflow_doc_distinguishes_runtime_pipeline_and_dependency_views(
         self,
@@ -583,6 +639,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "## V5.4 Production Observability Metadata Boundary",
             architecture_doc,
         )
+        self.assertIn(
+            "## V5.5 Adaptive Execution Intelligence Metadata Boundary",
+            architecture_doc,
+        )
         self.assertIn("Agent Contract Registry", architecture_doc)
         self.assertIn("Agent Memory Contract Registry", architecture_doc)
         self.assertIn("Agent Metadata Registry", architecture_doc)
@@ -602,6 +662,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             self.assertIn(surface, normalized_architecture_doc)
         for surface in V54_PRODUCTION_OBSERVABILITY_SURFACES:
             self.assertIn(surface, normalized_architecture_doc)
+        for surface in V55_ADAPTIVE_EXECUTION_SURFACES:
+            self.assertIn(surface, normalized_architecture_doc)
         self.assertIn("Hybrid Studio Integration source coverage", architecture_doc)
         self.assertIn(
             "Multimodal Studio Integration source coverage",
@@ -618,6 +680,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("advisory model-routing metadata", normalized_architecture_doc)
         self.assertIn(
             "read-only production observability metadata",
+            normalized_architecture_doc,
+        )
+        self.assertIn(
+            "advisory adaptive execution metadata",
             normalized_architecture_doc,
         )
         self.assertIn("do not execute orchestration", normalized_architecture_doc)
@@ -741,6 +807,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "Intelligent Model Routing Engine",
             "V5.4",
             "Production Observability",
+            "V5.5",
+            "Adaptive Execution Intelligence",
             "V6",
             "HoloGenesis Core OS",
         ):
@@ -757,6 +825,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("## V4.6 Agentic Studio Hardening Registries", engine_matrix)
         self.assertIn("## V5.2 Intelligent Model Routing Surfaces", engine_matrix)
         self.assertIn("## V5.4 Production Observability Surfaces", engine_matrix)
+        self.assertIn("## V5.5 Adaptive Execution Intelligence Surfaces", engine_matrix)
 
         for registry_marker in (
             "agent_capability_registry.v1",
@@ -895,6 +964,24 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "workflow_explainability_dashboard.v1",
             "production_observability_architecture_registry.v1",
             "production_observability_failure_path_audit_registry.v1",
+            "adaptive_hybrid_workflow_optimization_plan.v1",
+            "adaptive_escalation_optimization_plan.v1",
+            "agent_activation_optimization_plan.v1",
+            "adaptive_cost_quality_plan.v1",
+            "adaptive_latency_plan.v1",
+            "adaptive_execution_strategy_selection_plan.v1",
+            "dynamic_agent_allocation_plan.v1",
+            "dynamic_resource_allocation_plan.v1",
+            "workflow_self_tuning_policy_plan.v1",
+            "execution_confidence_plan.v1",
+            "workflow_risk_plan.v1",
+            "creative_exploration_optimization_plan.v1",
+            "emergence_optimization_plan.v1",
+            "agent_diversity_optimization_plan.v1",
+            "reflection_budget_optimization_plan.v1",
+            "adaptive_policy_explainability_plan.v1",
+            "adaptive_execution_architecture_consistency_registry.v1",
+            "adaptive_execution_failure_path_audit_registry.v1",
         ):
             self.assertIn(registry_marker, engine_matrix)
 
@@ -981,6 +1068,24 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "workflow_explainability_dashboard.py",
             "production_observability_architecture_consistency.py",
             "production_observability_failure_path_audit.py",
+            "adaptive_hybrid_workflow_optimizer.py",
+            "adaptive_escalation_optimizer.py",
+            "agent_activation_optimizer.py",
+            "adaptive_cost_quality_optimizer.py",
+            "adaptive_latency_optimizer.py",
+            "adaptive_execution_strategy_selection.py",
+            "dynamic_agent_allocation.py",
+            "dynamic_resource_allocation.py",
+            "workflow_self_tuning_policies.py",
+            "execution_confidence_engine.py",
+            "workflow_risk_engine.py",
+            "creative_exploration_optimizer.py",
+            "emergence_optimizer.py",
+            "agent_diversity_optimizer.py",
+            "reflection_budget_optimizer.py",
+            "adaptive_policy_explainability.py",
+            "adaptive_execution_architecture_consistency.py",
+            "adaptive_execution_failure_path_audit.py",
         ):
             self.assertIn(module_path, engine_matrix)
 
@@ -996,6 +1101,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("advisory model-routing metadata", normalized_engine_matrix)
         self.assertIn(
             "read-only production observability metadata",
+            normalized_engine_matrix,
+        )
+        self.assertIn(
+            "advisory adaptive execution metadata",
             normalized_engine_matrix,
         )
         self.assertIn("does not activate Studio runtime", normalized_engine_matrix)
@@ -1029,6 +1138,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("collect live metrics", normalized_engine_matrix)
         self.assertIn("emit telemetry or alerts", normalized_engine_matrix)
         self.assertIn("capture traces", normalized_engine_matrix)
+        self.assertIn("apply adaptive policies or strategies", normalized_engine_matrix)
+        self.assertIn("adaptive behavior application", normalized_engine_matrix)
 
     def test_workstation_surface_docs_cover_v35_surface_layer(self) -> None:
         architecture_doc = (

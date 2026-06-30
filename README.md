@@ -78,12 +78,17 @@ benchmarking, reasoning budget, regression, resource utilization, architecture
 consistency, and runtime failure-path audit coverage. V5.4 adds read-only
 Production Observability metadata for token, cost, quality, performance,
 telemetry, diagnostics, health, analytics, timeline, explainability,
+architecture consistency, and runtime failure-path audit coverage. V5.5 adds
+advisory Adaptive Execution Intelligence metadata for hybrid workflow,
+escalation, agent activation, adaptive cost/quality and latency, dynamic
+strategy, agent/resource allocation, self-tuning, confidence/risk, creative
+exploration, emergence, diversity, reflection budget, explainability,
 architecture consistency, and runtime failure-path audit coverage. These V5
-layers do not apply routing, switch providers or models, execute providers,
-measure live performance, collect live metrics, emit telemetry or alerts,
-capture traces, execute benchmarks or replay, enforce budgets or capacity,
-emit HITL requests, control workflows, trigger retries, mutate prompts, or
-modify generated output.
+layers do not apply routing or adaptive policies, switch providers or models,
+execute providers, allocate agents or resources, measure live performance,
+collect live metrics, emit telemetry or alerts, capture traces, execute
+benchmarks or replay, enforce budgets or capacity, emit HITL requests, control
+workflows, trigger retries, mutate prompts, or modify generated output.
 
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
@@ -156,6 +161,13 @@ observed through live preview and runtime inspection from the same interface.
   analytics, diversity analytics, timeline, explainability, architecture
   consistency, and failure audit metadata without live metric collection,
   telemetry emission, trace capture, remediation, or workflow control
+- V5.5 Adaptive Execution Intelligence helpers for advisory hybrid workflow,
+  escalation, agent activation, adaptive cost/quality, adaptive latency,
+  dynamic strategy, agent/resource allocation, self-tuning, confidence/risk,
+  creative exploration, emergence, diversity, reflection budget,
+  explainability, architecture consistency, and failure audit metadata without
+  policy application, provider/model routing, agent/resource allocation,
+  workflow control, budget enforcement, HITL emission, or output mutation
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -506,6 +518,27 @@ Production Observability surfaces:
 - Production Observability Architecture Consistency
 - Production Observability Failure Path Audit
 
+Adaptive Execution Intelligence surfaces:
+
+- Adaptive Hybrid Workflow Optimizer
+- Adaptive Escalation Optimizer
+- Agent Activation Optimizer
+- Adaptive Cost/Quality Optimizer
+- Adaptive Latency Optimizer
+- Adaptive Execution Strategy Selection
+- Dynamic Agent Allocation
+- Dynamic Resource Allocation
+- Workflow Self-Tuning Policies
+- Execution Confidence Engine
+- Workflow Risk Engine
+- Creative Exploration Optimizer
+- Emergence Optimizer
+- Agent Diversity Optimizer
+- Reflection Budget Optimizer
+- Adaptive Policy Explainability
+- Adaptive Execution Architecture Consistency
+- Adaptive Execution Failure Path Audit
+
 The architecture documents six complementary views:
 
 - the real runtime graph in
@@ -519,7 +552,7 @@ The architecture documents six complementary views:
 - the V3.5 Creative Workstation surface graph in
   [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
 - the cross-cutting engine matrix, including V4.1, V4.2, V4.3, V4.4, V4.5,
-  V4.6, V5.1, V5.2, V5.3, and V5.4 metadata layers, in
+  V4.6, V5.1, V5.2, V5.3, V5.4, and V5.5 metadata layers, in
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
 The runtime graph remains compact and truthful. The internal pipeline and
@@ -528,11 +561,12 @@ while V4.1, V4.2, V4.3, V4.4, V4.5, and V4.6 document passive roles,
 contracts, orchestration, hybrid workflow, hybrid studio, multimodal studio,
 and hardening metadata rather than claiming that a multi-agent runtime, Studio
 runtime, rendering execution path, or runtime hardening engine already exists.
-V5.1, V5.2, V5.3, and V5.4 document advisory execution optimization,
-model-routing, performance, and read-only observability metadata without
-claiming that active runtime policy, model switching, live telemetry emission,
-performance measurement, benchmark execution, resource enforcement, or
-provider execution has been added.
+V5.1, V5.2, V5.3, V5.4, and V5.5 document advisory execution optimization,
+model-routing, performance, read-only observability, and adaptive execution
+metadata without claiming that active runtime policy, model switching, live
+telemetry emission, performance measurement, benchmark execution, resource
+enforcement, adaptive policy application, or provider execution has been
+added.
 
 ## Creative Workflow
 
@@ -1344,11 +1378,13 @@ current runtime.
   workflow escalation metadata and V4.4 supplies passive hybrid studio
   metadata, for that direction. These layers are not active collaboration
   behavior in the current runtime and V4.4 does not activate Studio runtime.
-- Execution Optimization, Model Routing, Performance, and Observability: V5.1,
-  V5.2, V5.3, and V5.4 provide advisory optimization, routing, performance,
-  and read-only observability metadata today; future production intelligence
-  remains active runtime policy, live telemetry emission, adaptive
-  optimization, and cost/performance enforcement work.
+- Execution Optimization, Model Routing, Performance, Observability, and
+  Adaptive Execution: V5.1, V5.2, V5.3, V5.4, and V5.5 provide advisory
+  optimization metadata, routing metadata, performance metadata, read-only
+  observability metadata, and advisory adaptive execution metadata today;
+  future production intelligence remains active runtime policy application,
+  live telemetry emission, adaptive behavior application, and cost/performance
+  enforcement work.
 - HoloGenesis Core OS: long-horizon creative lineage, feedback, memory, and
   system-level continuity.
 

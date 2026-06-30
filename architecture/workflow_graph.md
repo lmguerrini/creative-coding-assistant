@@ -120,6 +120,19 @@ health checks, classify live errors, remediate failures, reconstruct timelines,
 generate explanations, request human review, control workflows, trigger
 retries, route providers or models, mutate prompts, persist storage, apply
 Runtime Evolution, or modify generated output.
+V5.5 Adaptive Execution Intelligence keeps the same LangGraph runtime node set
+while adding advisory hybrid workflow optimization, escalation optimization,
+agent activation optimization, adaptive cost/quality and latency posture,
+dynamic execution strategy selection, dynamic agent/resource allocation,
+workflow self-tuning posture, execution confidence, workflow risk, creative
+exploration, emergence, agent diversity, reflection budget, adaptive policy
+explainability, architecture consistency, and runtime failure-path audit
+metadata. These surfaces are importable Python contracts and deterministic
+local helpers; they do not apply policies or strategies, switch providers or
+models, execute providers, instantiate or invoke agents, allocate resources,
+enforce budgets, emit HITL requests, compile graphs, execute or control
+workflows, mutate workflow graphs, trigger retries or refinements, mutate
+prompts, persist storage, apply Runtime Evolution, or modify generated output.
 `_planning_node()` deterministically derives and stores the V3.1 Creative
 Cognition metadata, the V3.2 Generative Design metadata, the V3.3 Artifact
 Intelligence metadata, and the V3.4 Creative Evaluation metadata:
@@ -244,6 +257,15 @@ This separation is intentional:
   trace capture, health check execution, live error classification,
   remediation, workflow control, provider/model routing, retry triggering, or
   generated-output mutation
+- The V5.5 Adaptive Execution Intelligence layer owns advisory hybrid
+  workflow, escalation, agent activation, adaptive cost/quality and latency,
+  dynamic strategy, agent/resource allocation, self-tuning, confidence/risk,
+  creative exploration, emergence, diversity, reflection budget,
+  explainability, architecture consistency, and runtime failure audit metadata,
+  but still does not own adaptive policy application, provider/model routing,
+  provider execution, agent invocation, resource allocation, budget
+  enforcement, HITL request emission, workflow control, workflow graph
+  mutation, retry triggering, or generated-output mutation
 - The internal capability pipeline and dependency graph remain decomposition
   candidates for later orchestration, but they are not a true multi-agent or
   multi-node runtime graph here
@@ -551,6 +573,48 @@ Path Audit.
 | Creative, confidence, and diversity analytics | Aggregate creative, confidence, and diversity posture without scoring generated output, calculating confidence, evaluating thresholds, generating variants, enforcing budgets, or triggering refinement |
 | Runtime timeline, explainability, architecture, and failure audit | Verify V5.4 source coverage, read-only observability, Runtime Evolution, architecture, and failure-path boundaries without timeline reconstruction, provenance recording, explanation generation, or recovery execution |
 
+## V5.5 Adaptive Execution Intelligence Metadata Boundary
+
+V5.5 introduces advisory adaptive execution metadata over the stable V3
+runtime graph, V4 passive contract stack, V5.1 execution optimization
+metadata, V5.2 model-routing metadata, V5.3 performance metadata, and V5.4
+production observability metadata. The implementation adds typed metadata and
+deterministic local helpers for adaptive hybrid workflow optimization,
+adaptive escalation optimization, agent activation optimization, adaptive
+cost/quality optimization, adaptive latency optimization, dynamic execution
+strategy selection, dynamic agent allocation, dynamic resource allocation,
+workflow self-tuning policy posture, execution confidence signals, workflow
+risk factors, creative exploration optimization, emergence optimization, agent
+diversity optimization, reflection budget optimization, adaptive policy
+explainability, architecture consistency coverage, and runtime failure-path
+audit coverage.
+
+These surfaces are not an active adaptive execution runtime. They do not apply
+adaptive policies or strategies, apply routing, switch providers or models,
+execute providers, instantiate or invoke agents, activate agents, allocate
+agents or resources, measure runtime resources, enforce budgets, emit HITL
+requests, request human input, compile graphs, execute or control workflows,
+mutate workflow graphs, trigger retries or refinements, mutate prompts, write
+persistent storage, activate passive registries as runtime behavior, apply
+Runtime Evolution, or modify generated output.
+
+Canonical V5.5 surfaces are Adaptive Hybrid Workflow Optimizer, Adaptive
+Escalation Optimizer, Agent Activation Optimizer, Adaptive Cost/Quality
+Optimizer, Adaptive Latency Optimizer, Adaptive Execution Strategy Selection,
+Dynamic Agent Allocation, Dynamic Resource Allocation, Workflow Self-Tuning
+Policies, Execution Confidence Engine, Workflow Risk Engine, Creative
+Exploration Optimizer, Emergence Optimizer, Agent Diversity Optimizer,
+Reflection Budget Optimizer, Adaptive Policy Explainability, Adaptive
+Execution Architecture Consistency, and Adaptive Execution Failure Path Audit.
+
+| Surface group | Current boundary |
+| --- | --- |
+| Hybrid workflow, escalation, and agent activation posture | Combine advisory path/routing, escalation, HITL, lifecycle, and capability metadata without applying escalation, emitting HITL requests, invoking or activating agents, executing providers, or changing workflow control |
+| Adaptive cost/quality, latency, and dynamic strategy posture | Rank advisory cost/quality, latency, and strategy candidates without pricing lookup, live measurement, model/provider switching, runtime selection, budget enforcement, or strategy application |
+| Dynamic agent/resource allocation and self-tuning posture | Project allocation and self-tuning recommendations without allocating agents or resources, changing queues or capacity, triggering retries, reordering workflows, compiling graphs, or executing node handlers |
+| Confidence, risk, exploration, emergence, diversity, and reflection posture | Summarize advisory confidence, risk, creative exploration, emergence, diversity, and reflection budgets without applying risk decisions, generating variants, selecting artifacts, running reflection loops, or enforcing token budgets |
+| Explainability, architecture, and failure audit | Explain adaptive policy posture and verify V5.5 source coverage, passive activation, Runtime Evolution, architecture, and failure-path boundaries without applying policies, routing providers/models, emitting HITL, or recovery execution |
+
 ## Current Implemented Flow
 
 The graph is compiled once in `AssistantService.__init__()` and executed
@@ -650,6 +714,7 @@ flowchart TB
     model_routing_boundary["V5.2 model routing metadata boundary<br/>advisory routing + budget + explainability<br/>no provider/model switching"]:::relationship
     performance_boundary["V5.3 performance metadata boundary<br/>advisory scheduling + profiling + benchmarking<br/>no runtime measurement or control"]:::relationship
     observability_boundary["V5.4 production observability metadata boundary<br/>read-only dashboards + diagnostics<br/>no live telemetry emission"]:::relationship
+    adaptive_execution_boundary["V5.5 adaptive execution metadata boundary<br/>advisory policy + allocation posture<br/>no adaptive behavior application"]:::relationship
 
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
     review -->|"pass or max retry"| finalization --> finish
@@ -683,6 +748,10 @@ flowchart TB
     performance_boundary -. performance posture sources .-> observability_boundary
     model_routing_boundary -. routing posture sources .-> observability_boundary
     failure -. terminal failure coverage .-> observability_boundary
+    observability_boundary -. observability posture sources .-> adaptive_execution_boundary
+    model_routing_boundary -. routing posture sources .-> adaptive_execution_boundary
+    performance_boundary -. performance posture sources .-> adaptive_execution_boundary
+    failure -. terminal failure coverage .-> adaptive_execution_boundary
     intake -. intake_error .-> failure
     routing -. routing_error .-> failure
     memory -. memory_error .-> failure
@@ -707,7 +776,7 @@ flowchart TB
     class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,reasoning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
-    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary,multimodal_studio_boundary,hardening_boundary,model_routing_boundary,performance_boundary,observability_boundary relationship
+    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary,multimodal_studio_boundary,hardening_boundary,model_routing_boundary,performance_boundary,observability_boundary,adaptive_execution_boundary relationship
     style phase_1 rx:6px,ry:6px
     style phase_2 rx:6px,ry:6px
     style phase_3 rx:6px,ry:6px

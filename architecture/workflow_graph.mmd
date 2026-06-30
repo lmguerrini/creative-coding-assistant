@@ -57,6 +57,7 @@ flowchart TB
     model_routing_boundary["V5.2 model routing metadata boundary<br/>advisory routing + budget + explainability<br/>no provider/model switching"]:::relationship
     performance_boundary["V5.3 performance metadata boundary<br/>advisory scheduling + profiling + benchmarking<br/>no runtime measurement or control"]:::relationship
     observability_boundary["V5.4 production observability metadata boundary<br/>read-only dashboards + diagnostics<br/>no live telemetry emission"]:::relationship
+    adaptive_execution_boundary["V5.5 adaptive execution metadata boundary<br/>advisory policy + allocation posture<br/>no adaptive behavior application"]:::relationship
 
     %% Main success path
     start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
@@ -93,6 +94,10 @@ flowchart TB
     performance_boundary -. performance posture sources .-> observability_boundary
     model_routing_boundary -. routing posture sources .-> observability_boundary
     failure -. terminal failure coverage .-> observability_boundary
+    observability_boundary -. observability posture sources .-> adaptive_execution_boundary
+    model_routing_boundary -. routing posture sources .-> adaptive_execution_boundary
+    performance_boundary -. performance posture sources .-> adaptive_execution_boundary
+    failure -. terminal failure coverage .-> adaptive_execution_boundary
 
     %% Failure paths
     intake -. intake_error .-> failure
@@ -120,7 +125,7 @@ flowchart TB
     class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,reasoning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
     class review gate
     class failure failure
-    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary,multimodal_studio_boundary,hardening_boundary,model_routing_boundary,performance_boundary,observability_boundary relationship
+    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary,multimodal_studio_boundary,hardening_boundary,model_routing_boundary,performance_boundary,observability_boundary,adaptive_execution_boundary relationship
 
     %% Subgraph styling
     style phase_1 rx:6px,ry:6px
