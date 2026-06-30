@@ -499,6 +499,9 @@ _PRODUCTION_DEMO_ASSETS = (
 _PRODUCTION_DEPLOYMENT = (
     "creative_coding_assistant.orchestration.production_deployment"
 )
+_PRODUCTION_READINESS_REVIEW = (
+    "creative_coding_assistant.orchestration.production_readiness_review"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -764,6 +767,8 @@ _EXPORT_MAP = {
     "ProductionDemoAssetRecord": _PRODUCTION_DEMO_ASSETS,
     "ProductionDeploymentPlan": _PRODUCTION_DEPLOYMENT,
     "ProductionDeploymentRecord": _PRODUCTION_DEPLOYMENT,
+    "ProductionReadinessRecord": _PRODUCTION_READINESS_REVIEW,
+    "ProductionReadinessReview": _PRODUCTION_READINESS_REVIEW,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -2197,6 +2202,9 @@ _EXPORT_MAP = {
     "build_production_deployment_plan": _PRODUCTION_DEPLOYMENT,
     "production_deployment_record_by_surface": _PRODUCTION_DEPLOYMENT,
     "production_deployment_records_for_status": _PRODUCTION_DEPLOYMENT,
+    "build_production_readiness_review": _PRODUCTION_READINESS_REVIEW,
+    "production_readiness_record_by_area": _PRODUCTION_READINESS_REVIEW,
+    "production_readiness_records_for_status": _PRODUCTION_READINESS_REVIEW,
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
