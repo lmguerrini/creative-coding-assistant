@@ -456,6 +456,9 @@ _EXECUTION_CONFIDENCE_ENGINE = (
 _WORKFLOW_RISK_ENGINE = (
     "creative_coding_assistant.orchestration.workflow_risk_engine"
 )
+_CREATIVE_EXPLORATION_OPTIMIZER = (
+    "creative_coding_assistant.orchestration.creative_exploration_optimizer"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -677,6 +680,8 @@ _EXPORT_MAP = {
     "ExecutionConfidencePlan": _EXECUTION_CONFIDENCE_ENGINE,
     "WorkflowRiskFactor": _WORKFLOW_RISK_ENGINE,
     "WorkflowRiskPlan": _WORKFLOW_RISK_ENGINE,
+    "CreativeExplorationOptimizationCandidate": _CREATIVE_EXPLORATION_OPTIMIZER,
+    "CreativeExplorationOptimizationPlan": _CREATIVE_EXPLORATION_OPTIMIZER,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -2046,6 +2051,11 @@ _EXPORT_MAP = {
     "evaluate_workflow_risk": _WORKFLOW_RISK_ENGINE,
     "workflow_risk_factor_by_id": _WORKFLOW_RISK_ENGINE,
     "workflow_risk_factors_for_severity": _WORKFLOW_RISK_ENGINE,
+    "optimize_creative_exploration": _CREATIVE_EXPLORATION_OPTIMIZER,
+    "creative_exploration_candidate_by_id": _CREATIVE_EXPLORATION_OPTIMIZER,
+    "creative_exploration_candidates_for_status": (
+        _CREATIVE_EXPLORATION_OPTIMIZER
+    ),
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
