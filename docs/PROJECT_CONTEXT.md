@@ -319,6 +319,10 @@ providers, probing local runtimes, or assuming credentials. Artifact learning
 derives artifact-shape, capability, and risk patterns from read-only artifact
 planning and artifact capability metadata without selecting, mutating,
 generating, executing, merging, exporting, or previewing artifacts.
+Evaluation learning derives evaluation patterns from read-only evaluation
+engine contract metadata without running evaluations, evaluating generated
+output, mutating scores or confidence, executing reflection loops, generating
+reports, or changing workflow order.
 
 It must not persist learning memory, apply feedback, update policies, mutate
 strategies, change provider/model routing, execute providers, probe local
