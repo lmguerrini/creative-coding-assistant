@@ -453,6 +453,9 @@ _WORKFLOW_SELF_TUNING_POLICIES = (
 _EXECUTION_CONFIDENCE_ENGINE = (
     "creative_coding_assistant.orchestration.execution_confidence_engine"
 )
+_WORKFLOW_RISK_ENGINE = (
+    "creative_coding_assistant.orchestration.workflow_risk_engine"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -672,6 +675,8 @@ _EXPORT_MAP = {
     "WorkflowSelfTuningPolicyPlan": _WORKFLOW_SELF_TUNING_POLICIES,
     "ExecutionConfidenceSignal": _EXECUTION_CONFIDENCE_ENGINE,
     "ExecutionConfidencePlan": _EXECUTION_CONFIDENCE_ENGINE,
+    "WorkflowRiskFactor": _WORKFLOW_RISK_ENGINE,
+    "WorkflowRiskPlan": _WORKFLOW_RISK_ENGINE,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -2038,6 +2043,9 @@ _EXPORT_MAP = {
     "evaluate_execution_confidence": _EXECUTION_CONFIDENCE_ENGINE,
     "execution_confidence_signal_by_id": _EXECUTION_CONFIDENCE_ENGINE,
     "execution_confidence_signals_for_band": _EXECUTION_CONFIDENCE_ENGINE,
+    "evaluate_workflow_risk": _WORKFLOW_RISK_ENGINE,
+    "workflow_risk_factor_by_id": _WORKFLOW_RISK_ENGINE,
+    "workflow_risk_factors_for_severity": _WORKFLOW_RISK_ENGINE,
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
