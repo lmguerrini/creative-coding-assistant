@@ -84,7 +84,7 @@ control workflows, change provider/model routing, select runtimes, trigger
 retries, mutate storage, execute artifacts, invoke agents, or modify generated
 output.
 
-## Advisory Execution, Model Routing, Performance, Observability, And Controlled Adaptive Execution
+## Advisory Execution, Model Routing, Performance, Observability, Controlled Adaptive Execution, And Learning
 
 The V5.1 Execution Optimization Engine is a completed advisory metadata layer.
 It records execution graph analysis, workflow cost and complexity analysis,
@@ -171,7 +171,7 @@ refinements, mutate prompts, write persistent storage, activate passive
 registries, apply Runtime Evolution, download local models, provision
 providers, install runtimes, or modify generated output.
 
-The V5.6 Production Release layer is an in-progress production-readiness
+The V5.6 Production Release layer is a completed production-readiness
 metadata layer. It records final optimization, packaging readiness,
 release-candidate posture, demo asset readiness, deployment assumptions,
 configuration diagnostics, safety boundaries, explainability expectations,
@@ -189,6 +189,22 @@ mutate workflow graphs, write persistent storage, create release artifacts,
 execute hardening actions, create runtime failure handlers, mutate terminal
 routing, merge, push, tag, apply Runtime Evolution, or modify generated output.
 
+The V6.1 Adaptive Learning Engine is an in-progress advisory learning
+metadata layer. It records adaptive learning signals, workflow success
+tracking, failure tracking, strategy learning, technique learning, runtime
+learning, routing learning, artifact learning, evaluation learning,
+continuous improvement signals, success pattern discovery, failure pattern
+discovery, learning governance, and runtime failure-path audit coverage.
+
+It does not persist learning memory, apply feedback, update or enforce
+policies, observe live success, observe live failures, classify live errors,
+route terminal failures, handle or repair failures, mutate strategies, apply
+techniques, select runtimes, probe local runtimes, change provider/model
+routing, execute providers, execute artifacts, evaluate generated output,
+emit HITL requests, execute or control workflows, mutate workflow graphs,
+trigger retries or refinements, write persistent storage, activate passive
+registries, apply Runtime Evolution, or modify generated output.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current
@@ -198,8 +214,10 @@ routing, merge, push, tag, apply Runtime Evolution, or modify generated output.
 - Later V5 Production Intelligence work remains future live runtime policy
   enforcement, telemetry emission, provider execution, live performance
   measurement, resource enforcement, and cost/performance enforcement work.
-- V6 HoloGenesis Core OS remains future long-horizon creative lineage,
-  feedback, memory, and system continuity work.
+- Later V6 Cognitive OS work remains future persistent memory, feedback
+  application, research, knowledge evolution, self-evolution, long-horizon
+  creative lineage, and system continuity work beyond the current V6.1
+  advisory metadata boundary.
 
 ## Documentation Contract
 
@@ -208,5 +226,6 @@ future behavior. Architecture docs may show passive registry boundaries and
 source coverage, including V5.1 execution optimization metadata, V5.2
 model-routing metadata, V5.3 performance metadata, V5.4 read-only
 observability metadata, and V5.5 controlled adaptive execution
-policy/simulation, and V5.6 production-release readiness metadata, but must
-keep the current compact LangGraph workflow as the execution source of truth.
+policy/simulation, V5.6 production-release readiness metadata, and V6.1
+adaptive learning metadata, but must keep the current compact LangGraph
+workflow as the execution source of truth.

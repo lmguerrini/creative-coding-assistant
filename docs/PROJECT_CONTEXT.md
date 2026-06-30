@@ -89,6 +89,14 @@ inspection metadata, critique, and refinement context.
   audit, final hardening, architecture consistency, and runtime failure-path
   metadata that prepares the existing V5 system for demo/release review
   without adding new core architecture.
+- V6.1 Adaptive Learning Engine for advisory learning signals, workflow
+  success tracking, failure tracking, strategy learning, technique learning,
+  runtime learning, routing learning, artifact learning, evaluation learning,
+  continuous improvement signals, success pattern discovery, failure pattern
+  discovery, learning governance, and runtime failure-path audit metadata
+  without memory persistence, feedback application, policy mutation, live
+  outcome observation, workflow control, provider execution, or output
+  mutation.
 
 ## Supported Creative Domains
 
@@ -107,10 +115,10 @@ inspection metadata, critique, and refinement context.
 - Chroma remains the persistent retrieval and memory database.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
-- V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, and V5.6
-  registries and helpers are passive, advisory, read-only, or controlled-policy
-  product and architecture metadata. They are inspectable Python APIs and
-  documentation surfaces.
+- V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6,
+  and V6.1 registries and helpers are passive, advisory, read-only,
+  controlled-policy, or advisory-learning product and architecture metadata.
+  They are inspectable Python APIs and documentation surfaces.
 
 ## V4.3 Passive Boundary
 

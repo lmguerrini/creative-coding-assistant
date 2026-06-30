@@ -98,6 +98,16 @@ traces, execute benchmarks or replay, enforce budgets or capacity, emit HITL
 requests, control workflows, trigger retries, mutate prompts, modify generated
 output, execute deployment, or create release tags.
 
+V6.1 adds Adaptive Learning Engine metadata for learning signals, workflow
+success tracking, failure tracking, strategy/technique/runtime/routing
+learning, artifact/evaluation learning, continuous improvement signals,
+success/failure pattern discovery, learning governance, and runtime
+failure-path audit coverage. It remains advisory metadata only: it does not
+persist learning memory, apply feedback, update policies, observe live
+outcomes, classify live errors, route terminal failures, change provider/model
+routing, execute providers or workflows, write storage, apply Runtime
+Evolution, or mutate generated output.
+
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
 shader language, motion systems, audio-reactive mappings, and visual references
@@ -184,6 +194,14 @@ observed through live preview and runtime inspection from the same interface.
   architecture, automatic installation, package builds, deployment execution,
   provider execution, provider/model routing mutation, release tag creation,
   release artifact creation, terminal routing mutation, or Runtime Evolution
+- V6.1 Adaptive Learning Engine helpers for advisory learning signals,
+  workflow success tracking, failure tracking, strategy, technique, runtime,
+  and routing learning, artifact/evaluation learning, continuous improvement,
+  success/failure pattern discovery, learning governance, and runtime
+  failure-path audit coverage without memory persistence, feedback
+  application, policy updates, live outcome observation, terminal failure
+  routing, provider/model routing mutation, workflow execution, storage
+  writes, Runtime Evolution, or output mutation
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -571,6 +589,23 @@ Production Release surfaces:
 - Production Architecture Consistency
 - Production Release Failure Path Audit
 
+Adaptive Learning Engine surfaces:
+
+- Adaptive Learning Engine
+- Workflow Success Tracking
+- Failure Tracking
+- Strategy Learning
+- Technique Learning
+- Runtime Learning
+- Routing Learning
+- Artifact Learning
+- Evaluation Learning
+- Continuous Improvement Signals
+- Success Pattern Discovery
+- Failure Pattern Discovery
+- Learning Governance
+- Adaptive Learning Failure Path Audit
+
 The architecture documents six complementary views:
 
 - the real runtime graph in
@@ -584,7 +619,7 @@ The architecture documents six complementary views:
 - the V3.5 Creative Workstation surface graph in
   [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
 - the cross-cutting engine matrix, including V4.1, V4.2, V4.3, V4.4, V4.5,
-  V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, and V5.6 metadata layers, in
+  V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, and V6.1 metadata layers, in
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
 The runtime graph remains compact and truthful. The internal pipeline and
@@ -1420,8 +1455,13 @@ current runtime.
   today; future production intelligence remains live runtime policy
   enforcement, telemetry emission, provider execution, and cost/performance
   enforcement work.
-- HoloGenesis Core OS: long-horizon creative lineage, feedback, memory, and
-  system-level continuity.
+- Adaptive Learning: V6.1 provides advisory learning, success/failure,
+  pattern-discovery, governance, and failure-audit metadata today without
+  memory persistence, feedback application, policy mutation, live outcome
+  observation, workflow control, provider execution, or output mutation.
+- HoloGenesis Core OS: long-horizon creative lineage, persistent feedback,
+  creative memory, and system-level continuity beyond the current V6.1
+  metadata boundary.
 
 ## Setup
 

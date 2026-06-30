@@ -205,6 +205,22 @@ V56_PRODUCTION_RELEASE_SURFACES = (
     "Production Architecture Consistency",
     "Production Release Failure Path Audit",
 )
+V61_ADAPTIVE_LEARNING_SURFACES = (
+    "Adaptive Learning Engine",
+    "Workflow Success Tracking",
+    "Failure Tracking",
+    "Strategy Learning",
+    "Technique Learning",
+    "Runtime Learning",
+    "Routing Learning",
+    "Artifact Learning",
+    "Evaluation Learning",
+    "Continuous Improvement Signals",
+    "Success Pattern Discovery",
+    "Failure Pattern Discovery",
+    "Learning Governance",
+    "Adaptive Learning Failure Path Audit",
+)
 PUBLIC_README_INTERNAL_MARKERS = (
     "Current Branch Status",
     "feature/",
@@ -258,6 +274,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("Adaptive Execution Intelligence", readme)
         self.assertIn("V5.6", readme)
         self.assertIn("Production Release", readme)
+        self.assertIn("V6.1", readme)
+        self.assertIn("Adaptive Learning Engine", readme)
         self.assertIn("Next.js workstation", readme)
         self.assertIn("Capability Scope", readme)
         self.assertIn("architecture/artifact_intelligence_graph.md", readme)
@@ -296,6 +314,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             self.assertIn(surface, readme)
         for surface in V56_PRODUCTION_RELEASE_SURFACES:
             self.assertIn(surface, readme)
+        for surface in V61_ADAPTIVE_LEARNING_SURFACES:
+            self.assertIn(surface, readme)
         self.assertIn("Execution Optimization Failure Audit", readme)
         self.assertIn("Model Routing Architecture Consistency", readme)
         self.assertIn("Model Routing Failure Path Audit", readme)
@@ -317,6 +337,9 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             normalized_readme,
         )
         self.assertIn("production-release readiness", normalized_readme)
+        self.assertIn("advisory learning", normalized_readme)
+        self.assertIn("workflow success tracking", normalized_readme)
+        self.assertIn("failure tracking", normalized_readme)
         self.assertIn("automatic installation", normalized_readme)
         self.assertIn("deployment execution", normalized_readme)
         self.assertIn("release tag creation", normalized_readme)
@@ -343,6 +366,9 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("do not mutate configured routing", normalized_readme)
         self.assertIn("provider/model switching", normalized_readme)
         self.assertIn("provider execution", normalized_readme)
+        self.assertIn("memory persistence", normalized_readme)
+        self.assertIn("feedback application", normalized_readme)
+        self.assertIn("live outcome observation", normalized_readme)
         self.assertIn("Runtime Evolution", normalized_readme)
 
         for internal_marker in PUBLIC_README_INTERNAL_MARKERS:
@@ -608,6 +634,50 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("create runtime failure handlers", normalized_combined)
         self.assertIn("mutate terminal routing", normalized_combined)
         self.assertIn("merge, push, tag", normalized_combined)
+        self.assertIn("apply Runtime Evolution", normalized_combined)
+        self.assertIn("modify generated output", normalized_combined)
+
+    def test_project_docs_cover_current_v6_1_adaptive_learning_scope(self) -> None:
+        project_context = (
+            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
+        ).read_text(encoding="utf-8")
+        decisions = (
+            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
+        ).read_text(encoding="utf-8")
+        roadmap = (
+            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
+        ).read_text(encoding="utf-8")
+        combined = "\n".join((project_context, decisions, roadmap))
+        normalized_combined = re.sub(r"\s+", " ", combined)
+
+        self.assertIn("V6.1 Adaptive Learning Engine", combined)
+        self.assertIn("V6.1 Adaptive Learning Boundary", project_context)
+        self.assertIn("V6.1 Boundary Decision", decisions)
+        self.assertIn("advisory learning metadata layer", normalized_combined)
+        self.assertIn("adaptive learning signals", normalized_combined)
+        self.assertIn("workflow success tracking", normalized_combined)
+        self.assertIn("failure tracking", normalized_combined)
+        self.assertIn("strategy learning", normalized_combined)
+        self.assertIn("technique learning", normalized_combined)
+        self.assertIn("runtime learning", normalized_combined)
+        self.assertIn("routing learning", normalized_combined)
+        self.assertIn("artifact learning", normalized_combined)
+        self.assertIn("evaluation learning", normalized_combined)
+        self.assertIn("continuous improvement signals", normalized_combined)
+        self.assertIn("success pattern discovery", normalized_combined)
+        self.assertIn("failure pattern discovery", normalized_combined)
+        self.assertIn("learning governance", normalized_combined)
+        self.assertIn("runtime failure-path audit", normalized_combined)
+        self.assertIn("learning memory", normalized_combined)
+        self.assertIn("feedback application", normalized_combined)
+        self.assertIn("policy mutation", normalized_combined)
+        self.assertIn("observe live success", normalized_combined)
+        self.assertIn("observe live failures", normalized_combined)
+        self.assertIn("classify live errors", normalized_combined)
+        self.assertIn("route terminal failures", normalized_combined)
+        self.assertIn("execute providers", normalized_combined)
+        self.assertIn("execute or control workflows", normalized_combined)
+        self.assertIn("write persistent storage", normalized_combined)
         self.assertIn("apply Runtime Evolution", normalized_combined)
         self.assertIn("modify generated output", normalized_combined)
 
