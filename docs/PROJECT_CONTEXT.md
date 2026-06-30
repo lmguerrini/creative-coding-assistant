@@ -333,7 +333,10 @@ metrics, applying patterns, or applying feedback. Failure pattern discovery
 derives guarded failure patterns from read-only failure tracking and
 continuous improvement metadata without observing live failures, classifying
 live errors, routing terminal failures, handling or repairing failures, or
-mutating terminal routing.
+mutating terminal routing. Learning governance describes memory, feedback,
+policy, HITL, explainability, and no-automation boundaries without persisting
+memory, applying feedback, updating or enforcing policies, emitting HITL
+requests, or requesting human input.
 
 It must not persist learning memory, apply feedback, update policies, mutate
 strategies, change provider/model routing, execute providers, probe local

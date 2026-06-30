@@ -496,6 +496,7 @@ _SUCCESS_PATTERN_DISCOVERY = (
 _FAILURE_PATTERN_DISCOVERY = (
     "creative_coding_assistant.orchestration.failure_pattern_discovery"
 )
+_LEARNING_GOVERNANCE = "creative_coding_assistant.orchestration.learning_governance"
 _WORKFLOW_RISK_ENGINE = (
     "creative_coding_assistant.orchestration.workflow_risk_engine"
 )
@@ -813,6 +814,8 @@ _EXPORT_MAP = {
     "SuccessPatternDiscoveryPlan": _SUCCESS_PATTERN_DISCOVERY,
     "FailurePattern": _FAILURE_PATTERN_DISCOVERY,
     "FailurePatternDiscoveryPlan": _FAILURE_PATTERN_DISCOVERY,
+    "LearningGovernancePolicy": _LEARNING_GOVERNANCE,
+    "LearningGovernancePlan": _LEARNING_GOVERNANCE,
     "WorkflowRiskFactor": _WORKFLOW_RISK_ENGINE,
     "WorkflowRiskPlan": _WORKFLOW_RISK_ENGINE,
     "CreativeExplorationOptimizationCandidate": _CREATIVE_EXPLORATION_OPTIMIZER,
@@ -2306,6 +2309,9 @@ _EXPORT_MAP = {
     "failure_pattern_by_id": _FAILURE_PATTERN_DISCOVERY,
     "failure_patterns_for_priority": _FAILURE_PATTERN_DISCOVERY,
     "failure_patterns_for_status": _FAILURE_PATTERN_DISCOVERY,
+    "build_learning_governance": _LEARNING_GOVERNANCE,
+    "learning_governance_policy_by_id": _LEARNING_GOVERNANCE,
+    "learning_governance_policies_for_status": _LEARNING_GOVERNANCE,
     "evaluate_workflow_risk": _WORKFLOW_RISK_ENGINE,
     "workflow_risk_factor_by_id": _WORKFLOW_RISK_ENGINE,
     "workflow_risk_factors_for_severity": _WORKFLOW_RISK_ENGINE,
