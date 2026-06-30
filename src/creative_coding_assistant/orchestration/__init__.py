@@ -447,6 +447,9 @@ _DYNAMIC_AGENT_ALLOCATION = (
 _AGENT_DIVERSITY_OPTIMIZER = (
     "creative_coding_assistant.orchestration.agent_diversity_optimizer"
 )
+_REFLECTION_BUDGET_OPTIMIZER = (
+    "creative_coding_assistant.orchestration.reflection_budget_optimizer"
+)
 _DYNAMIC_RESOURCE_ALLOCATION = (
     "creative_coding_assistant.orchestration.dynamic_resource_allocation"
 )
@@ -680,6 +683,8 @@ _EXPORT_MAP = {
     "DynamicAgentAllocationPlan": _DYNAMIC_AGENT_ALLOCATION,
     "AgentDiversityOptimizationCandidate": _AGENT_DIVERSITY_OPTIMIZER,
     "AgentDiversityOptimizationPlan": _AGENT_DIVERSITY_OPTIMIZER,
+    "ReflectionBudgetOptimizationCandidate": _REFLECTION_BUDGET_OPTIMIZER,
+    "ReflectionBudgetOptimizationPlan": _REFLECTION_BUDGET_OPTIMIZER,
     "DynamicResourceAllocationCandidate": _DYNAMIC_RESOURCE_ALLOCATION,
     "DynamicResourceAllocationPlan": _DYNAMIC_RESOURCE_ALLOCATION,
     "WorkflowSelfTuningPolicy": _WORKFLOW_SELF_TUNING_POLICIES,
@@ -2052,6 +2057,9 @@ _EXPORT_MAP = {
     "optimize_agent_diversity": _AGENT_DIVERSITY_OPTIMIZER,
     "agent_diversity_candidate_by_agent_id": _AGENT_DIVERSITY_OPTIMIZER,
     "agent_diversity_candidates_for_status": _AGENT_DIVERSITY_OPTIMIZER,
+    "optimize_reflection_budget": _REFLECTION_BUDGET_OPTIMIZER,
+    "reflection_budget_candidate_by_id": _REFLECTION_BUDGET_OPTIMIZER,
+    "reflection_budget_candidates_for_status": _REFLECTION_BUDGET_OPTIMIZER,
     "allocate_dynamic_resources": _DYNAMIC_RESOURCE_ALLOCATION,
     "dynamic_resource_allocation_by_id": _DYNAMIC_RESOURCE_ALLOCATION,
     "dynamic_resource_allocations_for_status": _DYNAMIC_RESOURCE_ALLOCATION,
