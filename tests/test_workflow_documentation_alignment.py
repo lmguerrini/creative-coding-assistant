@@ -889,6 +889,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "Adaptive Execution Intelligence",
             "V5.6",
             "Production Release",
+            "V6.1",
+            "Adaptive Learning Engine",
             "V6",
             "HoloGenesis Core OS",
         ):
@@ -907,6 +909,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("## V5.4 Production Observability Surfaces", engine_matrix)
         self.assertIn("## V5.5 Adaptive Execution Intelligence Surfaces", engine_matrix)
         self.assertIn("## V5.6 Production Release Surfaces", engine_matrix)
+        self.assertIn("## V6.1 Adaptive Learning Engine Surfaces", engine_matrix)
 
         for registry_marker in (
             "agent_capability_registry.v1",
@@ -1076,6 +1079,20 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "production_final_hardening.v1",
             "production_architecture_consistency_registry.v1",
             "production_release_failure_path_audit_registry.v1",
+            "adaptive_learning_plan.v1",
+            "workflow_success_tracking_plan.v1",
+            "failure_tracking_plan.v1",
+            "strategy_learning_plan.v1",
+            "technique_learning_plan.v1",
+            "runtime_learning_plan.v1",
+            "routing_learning_plan.v1",
+            "artifact_learning_plan.v1",
+            "evaluation_learning_plan.v1",
+            "continuous_improvement_signal_plan.v1",
+            "success_pattern_discovery_plan.v1",
+            "failure_pattern_discovery_plan.v1",
+            "learning_governance_plan.v1",
+            "adaptive_learning_failure_path_audit_registry.v1",
         ):
             self.assertIn(registry_marker, engine_matrix)
 
@@ -1193,6 +1210,20 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "production_final_hardening.py",
             "production_architecture_consistency.py",
             "production_release_failure_path_audit.py",
+            "adaptive_learning_engine.py",
+            "workflow_success_tracking.py",
+            "failure_tracking.py",
+            "strategy_learning.py",
+            "technique_learning.py",
+            "runtime_learning.py",
+            "routing_learning.py",
+            "artifact_learning.py",
+            "evaluation_learning.py",
+            "continuous_improvement_signals.py",
+            "success_pattern_discovery.py",
+            "failure_pattern_discovery.py",
+            "learning_governance.py",
+            "adaptive_learning_failure_path_audit.py",
         ):
             self.assertIn(module_path, engine_matrix)
 
@@ -1216,6 +1247,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         )
         self.assertIn(
             "production-release readiness metadata",
+            normalized_engine_matrix,
+        )
+        self.assertIn(
+            "advisory adaptive learning metadata",
             normalized_engine_matrix,
         )
         self.assertIn("does not activate Studio runtime", normalized_engine_matrix)
@@ -1255,6 +1290,9 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("release operations", normalized_engine_matrix)
         self.assertIn("mutating terminal routing", normalized_engine_matrix)
         self.assertIn("merge/push/tag operations", normalized_engine_matrix)
+        self.assertIn("learning memory persistence", normalized_engine_matrix)
+        self.assertIn("applying feedback", normalized_engine_matrix)
+        self.assertIn("observe live success or failure", normalized_engine_matrix)
 
     def test_workstation_surface_docs_cover_v35_surface_layer(self) -> None:
         architecture_doc = (
