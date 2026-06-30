@@ -363,6 +363,10 @@ _PRODUCTION_OBSERVABILITY_ARCHITECTURE_CONSISTENCY = (
     "creative_coding_assistant.orchestration."
     "production_observability_architecture_consistency"
 )
+_PRODUCTION_OBSERVABILITY_FAILURE_PATH_AUDIT = (
+    "creative_coding_assistant.orchestration."
+    "production_observability_failure_path_audit"
+)
 _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
@@ -532,6 +536,12 @@ _EXPORT_MAP = {
     ),
     "ProductionObservabilityArchitectureRegistry": (
         _PRODUCTION_OBSERVABILITY_ARCHITECTURE_CONSISTENCY
+    ),
+    "ProductionObservabilityFailurePathAuditRecord": (
+        _PRODUCTION_OBSERVABILITY_FAILURE_PATH_AUDIT
+    ),
+    "ProductionObservabilityFailurePathAuditRegistry": (
+        _PRODUCTION_OBSERVABILITY_FAILURE_PATH_AUDIT
     ),
     "ExecutionOptimizationFailureAuditRecord": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
@@ -1754,6 +1764,18 @@ _EXPORT_MAP = {
     ),
     "production_observability_architecture_records_for_layer": (
         _PRODUCTION_OBSERVABILITY_ARCHITECTURE_CONSISTENCY
+    ),
+    "production_observability_failure_path_audit_registry": (
+        _PRODUCTION_OBSERVABILITY_FAILURE_PATH_AUDIT
+    ),
+    "production_observability_failure_path_audit_by_id": (
+        _PRODUCTION_OBSERVABILITY_FAILURE_PATH_AUDIT
+    ),
+    "production_observability_failure_path_audits_for_check": (
+        _PRODUCTION_OBSERVABILITY_FAILURE_PATH_AUDIT
+    ),
+    "production_observability_failure_path_audits_for_surface": (
+        _PRODUCTION_OBSERVABILITY_FAILURE_PATH_AUDIT
     ),
     "performance_architecture_consistency_registry": (
         _PERFORMANCE_ARCHITECTURE_CONSISTENCY
