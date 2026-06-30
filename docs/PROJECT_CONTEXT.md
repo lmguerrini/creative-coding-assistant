@@ -306,7 +306,10 @@ Failure tracking derives failure indicators from read-only failure analysis
 and adaptive learning metadata without observing, classifying, routing,
 handling, or repairing live failures. Strategy learning derives strategy
 patterns from advisory adaptive execution strategy metadata and adaptive
-learning signals without applying or mutating strategy selection.
+learning signals without applying or mutating strategy selection. Technique
+learning derives technique patterns from read-only creative technique metadata
+and adaptive learning signals without rendering prompts, applying techniques,
+selecting runtimes, or executing artifacts.
 
 It must not persist learning memory, apply feedback, update policies, mutate
 strategies, change provider/model routing, execute providers, probe local
@@ -315,8 +318,9 @@ requests, enforce budgets, collect telemetry, observe runtime success,
 observe runtime failures, classify live errors, route terminal failures,
 handle or repair failures, evaluate generated output, execute or control
 workflows, mutate workflow graphs, trigger retries or refinements, mutate
-strategy selection, compile graphs, mutate prompts, write persistent storage,
-persist success metrics, modify generated output, or apply Runtime Evolution.
+strategy selection, apply techniques, select runtimes, execute artifacts,
+compile graphs, render or mutate prompts, write persistent storage, persist
+success metrics, modify generated output, or apply Runtime Evolution.
 
 ## Non-Goals For Current Baseline
 

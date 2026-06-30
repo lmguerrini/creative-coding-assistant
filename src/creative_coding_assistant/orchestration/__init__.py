@@ -482,6 +482,7 @@ _WORKFLOW_SUCCESS_TRACKING = (
 )
 _FAILURE_TRACKING = "creative_coding_assistant.orchestration.failure_tracking"
 _STRATEGY_LEARNING = "creative_coding_assistant.orchestration.strategy_learning"
+_TECHNIQUE_LEARNING = "creative_coding_assistant.orchestration.technique_learning"
 _WORKFLOW_RISK_ENGINE = (
     "creative_coding_assistant.orchestration.workflow_risk_engine"
 )
@@ -783,6 +784,8 @@ _EXPORT_MAP = {
     "FailureTrackingPlan": _FAILURE_TRACKING,
     "StrategyLearningPattern": _STRATEGY_LEARNING,
     "StrategyLearningPlan": _STRATEGY_LEARNING,
+    "TechniqueLearningPattern": _TECHNIQUE_LEARNING,
+    "TechniqueLearningPlan": _TECHNIQUE_LEARNING,
     "WorkflowRiskFactor": _WORKFLOW_RISK_ENGINE,
     "WorkflowRiskPlan": _WORKFLOW_RISK_ENGINE,
     "CreativeExplorationOptimizationCandidate": _CREATIVE_EXPLORATION_OPTIMIZER,
@@ -2240,6 +2243,10 @@ _EXPORT_MAP = {
     "strategy_learning_pattern_by_id": _STRATEGY_LEARNING,
     "strategy_learning_patterns_for_priority": _STRATEGY_LEARNING,
     "strategy_learning_patterns_for_status": _STRATEGY_LEARNING,
+    "learn_techniques": _TECHNIQUE_LEARNING,
+    "technique_learning_pattern_by_id": _TECHNIQUE_LEARNING,
+    "technique_learning_patterns_for_priority": _TECHNIQUE_LEARNING,
+    "technique_learning_patterns_for_status": _TECHNIQUE_LEARNING,
     "evaluate_workflow_risk": _WORKFLOW_RISK_ENGINE,
     "workflow_risk_factor_by_id": _WORKFLOW_RISK_ENGINE,
     "workflow_risk_factors_for_severity": _WORKFLOW_RISK_ENGINE,
