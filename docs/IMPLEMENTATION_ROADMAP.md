@@ -171,6 +171,20 @@ refinements, mutate prompts, write persistent storage, activate passive
 registries, apply Runtime Evolution, download local models, provision
 providers, install runtimes, or modify generated output.
 
+The V5.6 Production Release layer is an in-progress production-readiness
+metadata layer. It records final optimization, packaging readiness,
+release-candidate posture, demo asset readiness, deployment assumptions,
+configuration diagnostics, safety boundaries, explainability expectations, and
+deterministic failure posture for demo/release review.
+
+It does not introduce new core architecture, execute providers, mutate
+configured provider/model routing, silently switch providers or models,
+generate assets, execute retrieval, run package builds, install dependencies,
+deploy services, create containers, provision providers, install runtimes,
+download local models, emit HITL requests, execute or control workflows,
+mutate workflow graphs, write persistent storage, create release artifacts,
+merge, push, tag, apply Runtime Evolution, or modify generated output.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current

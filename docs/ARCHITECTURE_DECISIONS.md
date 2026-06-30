@@ -79,6 +79,10 @@ runtime synchronization behavior.
   exploration, emergence, agent diversity, reflection budget, adaptive policy
   explainability, architecture consistency, and failure-path metadata over the
   existing compact workflow.
+- V5.6 Production Release helpers describe final optimization, packaging,
+  release-candidate, demo asset, and deployment readiness metadata over the
+  existing V5 architecture without adding deployment automation or new core
+  runtime architecture.
 
 ## V4.3 Boundary Decision
 
@@ -244,6 +248,24 @@ behavior, apply Runtime Evolution, or modify generated output. Local model
 download, provider provisioning, runtime installation, and Runtime Evolution
 automation remain manual/HITL-only surfaces.
 
+## V5.6 Boundary Decision
+
+V5.6 Production Release is a production-readiness metadata layer. It may
+inspect existing package metadata, environment templates, runtime path
+assumptions, release-candidate posture, demo assets, deployment assumptions,
+execution-mode safety, explainability fields, and deterministic failure
+posture.
+
+It must not introduce new core architecture, execute providers, mutate
+configured provider/model routing, silently switch providers or models,
+generate assets, execute retrieval, run package builds, install dependencies,
+deploy services, create containers, provision providers, install runtimes,
+download local models, emit HITL requests, compile graphs, execute or control
+workflows, mutate workflow graphs, write persistent storage, create release
+artifacts, merge, push, tag, apply Runtime Evolution, or modify generated
+output. External deployment manifests are explicit guarded assumptions, not
+automatic deployment work.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -263,6 +285,7 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - advisory V5.3 performance metadata
 - read-only V5.4 production observability metadata
 - controlled V5.5 adaptive execution policy/simulation
+- V5.6 production release readiness metadata
 - future active V4 Agentic Studio, live adaptive runtime control, and V6
   learning work
 

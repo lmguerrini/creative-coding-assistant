@@ -84,12 +84,16 @@ task-aware allow/confirm/block decisions, guarded provider/model path
 selection, fallback and escalation reasoning, hybrid workflow policies,
 manual/Assisted/Auto mode semantics, and manual/HITL-only surfaces for local
 model download, provider provisioning, runtime installation, and Runtime
-Evolution review. These V5 layers do not mutate configured routing, silently
-switch providers or models, execute providers, download models, provision
-providers, install runtimes, allocate agents or resources, measure live performance,
-collect live metrics, emit telemetry or alerts, capture traces, execute
-benchmarks or replay, enforce budgets or capacity, emit HITL requests, control
-workflows, trigger retries, mutate prompts, or modify generated output.
+Evolution review. V5.6 adds Production Release readiness metadata for final
+optimization, packaging, release-candidate posture, demo assets, and deployment
+assumptions so the system can be demonstrated and reviewed without introducing
+new core architecture. These V5 layers do not mutate configured routing,
+silently switch providers or models, execute providers, download models,
+provision providers, install runtimes, allocate agents or resources, measure
+live performance, collect live metrics, emit telemetry or alerts, capture
+traces, execute benchmarks or replay, enforce budgets or capacity, emit HITL
+requests, control workflows, trigger retries, mutate prompts, modify generated
+output, execute deployment, or create release tags.
 
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
@@ -169,6 +173,11 @@ observed through live preview and runtime inspection from the same interface.
   consistency, and failure audit metadata without provider execution,
   provider/model routing mutation, automatic downloads, provider provisioning,
   runtime installation, HITL emission, workflow control, or output mutation
+- V5.6 Production Release helpers for production final optimization,
+  packaging readiness, release-candidate posture, demo asset readiness, and
+  deployment assumptions without new core architecture, automatic installation,
+  package builds, deployment execution, provider execution, provider/model
+  routing mutation, release tag creation, or Runtime Evolution
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -541,6 +550,14 @@ Adaptive Execution Intelligence surfaces:
 - Adaptive Execution Architecture Consistency
 - Adaptive Execution Failure Path Audit
 
+Production Release surfaces:
+
+- Production Release Final Optimization
+- Production Packaging
+- Production Release Candidate
+- Production Demo Assets
+- Production Deployment
+
 The architecture documents six complementary views:
 
 - the real runtime graph in
@@ -554,7 +571,7 @@ The architecture documents six complementary views:
 - the V3.5 Creative Workstation surface graph in
   [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
 - the cross-cutting engine matrix, including V4.1, V4.2, V4.3, V4.4, V4.5,
-  V4.6, V5.1, V5.2, V5.3, V5.4, and V5.5 metadata layers, in
+  V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, and V5.6 metadata layers, in
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
 The runtime graph remains compact and truthful. The internal pipeline and
@@ -563,12 +580,13 @@ while V4.1, V4.2, V4.3, V4.4, V4.5, and V4.6 document passive roles,
 contracts, orchestration, hybrid workflow, hybrid studio, multimodal studio,
 and hardening metadata rather than claiming that a multi-agent runtime, Studio
 runtime, rendering execution path, or runtime hardening engine already exists.
-V5.1, V5.2, V5.3, V5.4, and V5.5 document advisory execution optimization,
-model-routing, performance, read-only observability, and controlled adaptive
-execution policy/simulation without claiming that provider execution, model
-switching, live telemetry emission, performance measurement, benchmark
-execution, resource enforcement, runtime workflow control, automatic
-downloads, or generated-output mutation has been added.
+V5.1, V5.2, V5.3, V5.4, V5.5, and V5.6 document advisory execution
+optimization, model-routing, performance, read-only observability, controlled
+adaptive execution policy/simulation, and production-release readiness without
+claiming that provider execution, model switching, live telemetry emission,
+performance measurement, benchmark execution, resource enforcement, runtime
+workflow control, automatic downloads, deployment execution, release tag
+creation, or generated-output mutation has been added.
 
 ## Creative Workflow
 

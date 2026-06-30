@@ -191,6 +191,13 @@ V55_ADAPTIVE_EXECUTION_SURFACES = (
     "Adaptive Execution Architecture Consistency",
     "Adaptive Execution Failure Path Audit",
 )
+V56_PRODUCTION_RELEASE_SURFACES = (
+    "Production Release Final Optimization",
+    "Production Packaging",
+    "Production Release Candidate",
+    "Production Demo Assets",
+    "Production Deployment",
+)
 PUBLIC_README_INTERNAL_MARKERS = (
     "Current Branch Status",
     "feature/",
@@ -242,6 +249,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("Production Observability", readme)
         self.assertIn("V5.5", readme)
         self.assertIn("Adaptive Execution Intelligence", readme)
+        self.assertIn("V5.6", readme)
+        self.assertIn("Production Release", readme)
         self.assertIn("Next.js workstation", readme)
         self.assertIn("Capability Scope", readme)
         self.assertIn("architecture/artifact_intelligence_graph.md", readme)
@@ -278,6 +287,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             self.assertIn(surface, readme)
         for surface in V55_ADAPTIVE_EXECUTION_SURFACES:
             self.assertIn(surface, readme)
+        for surface in V56_PRODUCTION_RELEASE_SURFACES:
+            self.assertIn(surface, readme)
         self.assertIn("Execution Optimization Failure Audit", readme)
         self.assertIn("Model Routing Architecture Consistency", readme)
         self.assertIn("Model Routing Failure Path Audit", readme)
@@ -298,6 +309,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "controlled adaptive execution policy/simulation",
             normalized_readme,
         )
+        self.assertIn("production-release readiness", normalized_readme)
+        self.assertIn("automatic installation", normalized_readme)
+        self.assertIn("deployment execution", normalized_readme)
+        self.assertIn("release tag creation", normalized_readme)
         self.assertIn("runtime workflow control", normalized_readme)
         self.assertIn("orchestration readiness metadata", normalized_readme)
         self.assertIn("not active Studio runtime", normalized_readme)
@@ -542,6 +557,40 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("allocate agents or resources", normalized_combined)
         self.assertIn("emit HITL requests", normalized_combined)
         self.assertIn("mutate workflow graphs", normalized_combined)
+        self.assertIn("apply Runtime Evolution", normalized_combined)
+        self.assertIn("modify generated output", normalized_combined)
+
+    def test_project_docs_cover_current_v5_6_production_release_scope(self) -> None:
+        project_context = (
+            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
+        ).read_text(encoding="utf-8")
+        decisions = (
+            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
+        ).read_text(encoding="utf-8")
+        roadmap = (
+            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
+        ).read_text(encoding="utf-8")
+        combined = "\n".join((project_context, decisions, roadmap))
+        normalized_combined = re.sub(r"\s+", " ", combined)
+
+        self.assertIn("V5.6 Production Release", combined)
+        self.assertIn("V5.6 Production Release Boundary", project_context)
+        self.assertIn("V5.6 Boundary Decision", decisions)
+        self.assertIn("production-readiness metadata", normalized_combined)
+        self.assertIn("final optimization", normalized_combined)
+        self.assertIn("packaging readiness", normalized_combined)
+        self.assertIn("release-candidate posture", normalized_combined)
+        self.assertIn("demo asset readiness", normalized_combined)
+        self.assertIn("deployment assumptions", normalized_combined)
+        self.assertIn("configuration diagnostics", normalized_combined)
+        self.assertIn("explainability expectations", normalized_combined)
+        self.assertIn("deterministic failure posture", normalized_combined)
+        self.assertIn("introduce new core architecture", normalized_combined)
+        self.assertIn("run package builds", normalized_combined)
+        self.assertIn("install dependencies", normalized_combined)
+        self.assertIn("deploy services", normalized_combined)
+        self.assertIn("create release artifacts", normalized_combined)
+        self.assertIn("merge, push, tag", normalized_combined)
         self.assertIn("apply Runtime Evolution", normalized_combined)
         self.assertIn("modify generated output", normalized_combined)
 

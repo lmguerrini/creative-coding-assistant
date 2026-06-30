@@ -83,6 +83,10 @@ inspection metadata, critique, and refinement context.
   confidence, workflow risk, creative exploration, emergence, agent diversity,
   reflection budget, adaptive policy explainability, architecture consistency,
   and failure audit metadata.
+- V5.6 Production Release for production final optimization, packaging
+  readiness, release-candidate posture, demo assets, and deployment assumption
+  metadata that prepares the existing V5 system for demo/release review
+  without adding new core architecture.
 
 ## Supported Creative Domains
 
@@ -101,7 +105,7 @@ inspection metadata, critique, and refinement context.
 - Chroma remains the persistent retrieval and memory database.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
-- V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, V5.2, V5.3, V5.4, and V5.5
+- V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, and V5.6
   registries and helpers are passive, advisory, read-only, or controlled-policy
   product and architecture metadata. They are inspectable Python APIs and
   documentation surfaces.
@@ -266,6 +270,23 @@ execute or control workflows, mutate workflow graphs, trigger retries or
 refinements, mutate prompts, write persistent storage, activate passive
 registries, apply Runtime Evolution, download local models, provision
 providers, install runtimes, or modify generated output.
+
+## V5.6 Production Release Boundary
+
+V5.6 Production Release is production-readiness metadata over the existing V5
+system. It includes final optimization posture, packaging readiness,
+release-candidate posture, demo asset readiness, deployment assumption
+metadata, provider/environment/API-key diagnostics, Manual/Assisted/Auto safety
+boundaries, explainability fields, deterministic failure review, and explicit
+local-demo versus external-deployment assumptions.
+
+It must not introduce new core architecture, mutate configured provider/model
+routing, silently switch providers or models, execute providers, generate or
+mutate assets, execute retrieval, run package builds, install dependencies,
+deploy services, create containers, provision providers, install runtimes,
+download local models, emit HITL requests, execute or control workflows,
+mutate workflow graphs, write persistent storage, create release artifacts,
+merge, push, tag, apply Runtime Evolution, or modify generated output.
 
 ## Non-Goals For Current Baseline
 
