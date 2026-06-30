@@ -425,6 +425,9 @@ _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER = (
     "creative_coding_assistant.orchestration."
     "adaptive_hybrid_workflow_optimizer"
 )
+_ADAPTIVE_ESCALATION_OPTIMIZER = (
+    "creative_coding_assistant.orchestration.adaptive_escalation_optimizer"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -622,6 +625,8 @@ _EXPORT_MAP = {
     "HybridWorkflowSimulationEstimate": (
         _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER
     ),
+    "EscalationOptimizationDecision": _ADAPTIVE_ESCALATION_OPTIMIZER,
+    "EscalationOptimizationPlan": _ADAPTIVE_ESCALATION_OPTIMIZER,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1950,6 +1955,13 @@ _EXPORT_MAP = {
     "hybrid_workflow_candidate_by_id": _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER,
     "hybrid_workflow_candidates_requiring_hitl": (
         _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER
+    ),
+    "optimize_escalation_policy": _ADAPTIVE_ESCALATION_OPTIMIZER,
+    "escalation_optimization_decision_by_id": (
+        _ADAPTIVE_ESCALATION_OPTIMIZER
+    ),
+    "escalation_optimization_decisions_for_posture": (
+        _ADAPTIVE_ESCALATION_OPTIMIZER
     ),
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
