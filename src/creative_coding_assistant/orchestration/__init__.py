@@ -496,6 +496,9 @@ _PRODUCTION_RELEASE_CANDIDATE = (
 _PRODUCTION_DEMO_ASSETS = (
     "creative_coding_assistant.orchestration.production_demo_assets"
 )
+_PRODUCTION_DEPLOYMENT = (
+    "creative_coding_assistant.orchestration.production_deployment"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -759,6 +762,8 @@ _EXPORT_MAP = {
     "ProductionReleaseCandidateRecord": _PRODUCTION_RELEASE_CANDIDATE,
     "ProductionDemoAssetPlan": _PRODUCTION_DEMO_ASSETS,
     "ProductionDemoAssetRecord": _PRODUCTION_DEMO_ASSETS,
+    "ProductionDeploymentPlan": _PRODUCTION_DEPLOYMENT,
+    "ProductionDeploymentRecord": _PRODUCTION_DEPLOYMENT,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -2189,6 +2194,9 @@ _EXPORT_MAP = {
     "build_production_demo_asset_plan": _PRODUCTION_DEMO_ASSETS,
     "production_demo_asset_by_kind": _PRODUCTION_DEMO_ASSETS,
     "production_demo_assets_for_status": _PRODUCTION_DEMO_ASSETS,
+    "build_production_deployment_plan": _PRODUCTION_DEPLOYMENT,
+    "production_deployment_record_by_surface": _PRODUCTION_DEPLOYMENT,
+    "production_deployment_records_for_status": _PRODUCTION_DEPLOYMENT,
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
