@@ -450,6 +450,9 @@ _AGENT_DIVERSITY_OPTIMIZER = (
 _REFLECTION_BUDGET_OPTIMIZER = (
     "creative_coding_assistant.orchestration.reflection_budget_optimizer"
 )
+_ADAPTIVE_POLICY_EXPLAINABILITY = (
+    "creative_coding_assistant.orchestration.adaptive_policy_explainability"
+)
 _DYNAMIC_RESOURCE_ALLOCATION = (
     "creative_coding_assistant.orchestration.dynamic_resource_allocation"
 )
@@ -685,6 +688,8 @@ _EXPORT_MAP = {
     "AgentDiversityOptimizationPlan": _AGENT_DIVERSITY_OPTIMIZER,
     "ReflectionBudgetOptimizationCandidate": _REFLECTION_BUDGET_OPTIMIZER,
     "ReflectionBudgetOptimizationPlan": _REFLECTION_BUDGET_OPTIMIZER,
+    "AdaptivePolicyExplanationRecord": _ADAPTIVE_POLICY_EXPLAINABILITY,
+    "AdaptivePolicyExplainabilityPlan": _ADAPTIVE_POLICY_EXPLAINABILITY,
     "DynamicResourceAllocationCandidate": _DYNAMIC_RESOURCE_ALLOCATION,
     "DynamicResourceAllocationPlan": _DYNAMIC_RESOURCE_ALLOCATION,
     "WorkflowSelfTuningPolicy": _WORKFLOW_SELF_TUNING_POLICIES,
@@ -2060,6 +2065,9 @@ _EXPORT_MAP = {
     "optimize_reflection_budget": _REFLECTION_BUDGET_OPTIMIZER,
     "reflection_budget_candidate_by_id": _REFLECTION_BUDGET_OPTIMIZER,
     "reflection_budget_candidates_for_status": _REFLECTION_BUDGET_OPTIMIZER,
+    "explain_adaptive_policy": _ADAPTIVE_POLICY_EXPLAINABILITY,
+    "adaptive_policy_explanation_by_id": _ADAPTIVE_POLICY_EXPLAINABILITY,
+    "adaptive_policy_explanations_for_status": _ADAPTIVE_POLICY_EXPLAINABILITY,
     "allocate_dynamic_resources": _DYNAMIC_RESOURCE_ALLOCATION,
     "dynamic_resource_allocation_by_id": _DYNAMIC_RESOURCE_ALLOCATION,
     "dynamic_resource_allocations_for_status": _DYNAMIC_RESOURCE_ALLOCATION,
