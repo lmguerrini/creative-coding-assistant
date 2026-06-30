@@ -421,6 +421,10 @@ _MODEL_ROUTING_FAILURE_PATH_AUDIT = (
 _ROUTING_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.routing_intelligence"
 )
+_ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER = (
+    "creative_coding_assistant.orchestration."
+    "adaptive_hybrid_workflow_optimizer"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -610,6 +614,14 @@ _EXPORT_MAP = {
     "RoutingUnavailableReason": _ROUTING_INTELLIGENCE,
     "TaskAwareRoutingDecision": _ROUTING_INTELLIGENCE,
     "TaskAwareRoutingRegistry": _ROUTING_INTELLIGENCE,
+    "HybridWorkflowFallback": _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER,
+    "HybridWorkflowOptimizationCandidate": (
+        _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER
+    ),
+    "HybridWorkflowOptimizationPlan": _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER,
+    "HybridWorkflowSimulationEstimate": (
+        _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER
+    ),
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1934,6 +1946,11 @@ _EXPORT_MAP = {
     "route_hybrid_model_request": _HYBRID_ROUTING,
     "route_model_request": _MODEL_ROUTER,
     "route_request": _ROUTING,
+    "optimize_hybrid_workflow": _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER,
+    "hybrid_workflow_candidate_by_id": _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER,
+    "hybrid_workflow_candidates_requiring_hitl": (
+        _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER
+    ),
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
