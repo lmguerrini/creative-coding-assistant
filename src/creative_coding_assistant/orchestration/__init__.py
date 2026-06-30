@@ -437,6 +437,10 @@ _ADAPTIVE_COST_QUALITY_OPTIMIZER = (
 _ADAPTIVE_LATENCY_OPTIMIZER = (
     "creative_coding_assistant.orchestration.adaptive_latency_optimizer"
 )
+_ADAPTIVE_EXECUTION_STRATEGY_SELECTION = (
+    "creative_coding_assistant.orchestration."
+    "adaptive_execution_strategy_selection"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -642,6 +646,12 @@ _EXPORT_MAP = {
     "AdaptiveCostQualityPlan": _ADAPTIVE_COST_QUALITY_OPTIMIZER,
     "AdaptiveLatencyCandidate": _ADAPTIVE_LATENCY_OPTIMIZER,
     "AdaptiveLatencyPlan": _ADAPTIVE_LATENCY_OPTIMIZER,
+    "AdaptiveExecutionStrategyCandidate": (
+        _ADAPTIVE_EXECUTION_STRATEGY_SELECTION
+    ),
+    "AdaptiveExecutionStrategySelectionPlan": (
+        _ADAPTIVE_EXECUTION_STRATEGY_SELECTION
+    ),
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -1989,6 +1999,13 @@ _EXPORT_MAP = {
     "optimize_adaptive_latency": _ADAPTIVE_LATENCY_OPTIMIZER,
     "adaptive_latency_candidate_by_id": _ADAPTIVE_LATENCY_OPTIMIZER,
     "adaptive_latency_candidates_for_posture": _ADAPTIVE_LATENCY_OPTIMIZER,
+    "select_dynamic_execution_strategy": _ADAPTIVE_EXECUTION_STRATEGY_SELECTION,
+    "adaptive_execution_strategy_by_id": (
+        _ADAPTIVE_EXECUTION_STRATEGY_SELECTION
+    ),
+    "adaptive_execution_strategies_for_status": (
+        _ADAPTIVE_EXECUTION_STRATEGY_SELECTION
+    ),
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
