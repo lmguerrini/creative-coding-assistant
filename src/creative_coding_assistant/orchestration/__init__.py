@@ -447,6 +447,9 @@ _DYNAMIC_AGENT_ALLOCATION = (
 _DYNAMIC_RESOURCE_ALLOCATION = (
     "creative_coding_assistant.orchestration.dynamic_resource_allocation"
 )
+_WORKFLOW_SELF_TUNING_POLICIES = (
+    "creative_coding_assistant.orchestration.workflow_self_tuning_policies"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -662,6 +665,8 @@ _EXPORT_MAP = {
     "DynamicAgentAllocationPlan": _DYNAMIC_AGENT_ALLOCATION,
     "DynamicResourceAllocationCandidate": _DYNAMIC_RESOURCE_ALLOCATION,
     "DynamicResourceAllocationPlan": _DYNAMIC_RESOURCE_ALLOCATION,
+    "WorkflowSelfTuningPolicy": _WORKFLOW_SELF_TUNING_POLICIES,
+    "WorkflowSelfTuningPolicyPlan": _WORKFLOW_SELF_TUNING_POLICIES,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -2022,6 +2027,9 @@ _EXPORT_MAP = {
     "allocate_dynamic_resources": _DYNAMIC_RESOURCE_ALLOCATION,
     "dynamic_resource_allocation_by_id": _DYNAMIC_RESOURCE_ALLOCATION,
     "dynamic_resource_allocations_for_status": _DYNAMIC_RESOURCE_ALLOCATION,
+    "plan_workflow_self_tuning_policies": _WORKFLOW_SELF_TUNING_POLICIES,
+    "workflow_self_tuning_policy_by_id": _WORKFLOW_SELF_TUNING_POLICIES,
+    "workflow_self_tuning_policies_for_status": _WORKFLOW_SELF_TUNING_POLICIES,
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
