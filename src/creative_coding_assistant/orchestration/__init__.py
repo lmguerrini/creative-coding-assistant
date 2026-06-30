@@ -450,6 +450,9 @@ _DYNAMIC_RESOURCE_ALLOCATION = (
 _WORKFLOW_SELF_TUNING_POLICIES = (
     "creative_coding_assistant.orchestration.workflow_self_tuning_policies"
 )
+_EXECUTION_CONFIDENCE_ENGINE = (
+    "creative_coding_assistant.orchestration.execution_confidence_engine"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -667,6 +670,8 @@ _EXPORT_MAP = {
     "DynamicResourceAllocationPlan": _DYNAMIC_RESOURCE_ALLOCATION,
     "WorkflowSelfTuningPolicy": _WORKFLOW_SELF_TUNING_POLICIES,
     "WorkflowSelfTuningPolicyPlan": _WORKFLOW_SELF_TUNING_POLICIES,
+    "ExecutionConfidenceSignal": _EXECUTION_CONFIDENCE_ENGINE,
+    "ExecutionConfidencePlan": _EXECUTION_CONFIDENCE_ENGINE,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -2030,6 +2035,9 @@ _EXPORT_MAP = {
     "plan_workflow_self_tuning_policies": _WORKFLOW_SELF_TUNING_POLICIES,
     "workflow_self_tuning_policy_by_id": _WORKFLOW_SELF_TUNING_POLICIES,
     "workflow_self_tuning_policies_for_status": _WORKFLOW_SELF_TUNING_POLICIES,
+    "evaluate_execution_confidence": _EXECUTION_CONFIDENCE_ENGINE,
+    "execution_confidence_signal_by_id": _EXECUTION_CONFIDENCE_ENGINE,
+    "execution_confidence_signals_for_band": _EXECUTION_CONFIDENCE_ENGINE,
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
