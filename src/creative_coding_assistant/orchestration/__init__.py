@@ -511,6 +511,9 @@ _PRODUCTION_ARCHITECTURE_FREEZE = (
 _PRODUCTION_RELEASE_AUDIT = (
     "creative_coding_assistant.orchestration.production_release_audit"
 )
+_PRODUCTION_FINAL_HARDENING = (
+    "creative_coding_assistant.orchestration.production_final_hardening"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -784,6 +787,8 @@ _EXPORT_MAP = {
     "ProductionArchitectureFreezeRecord": _PRODUCTION_ARCHITECTURE_FREEZE,
     "ProductionReleaseAudit": _PRODUCTION_RELEASE_AUDIT,
     "ProductionReleaseAuditRecord": _PRODUCTION_RELEASE_AUDIT,
+    "ProductionFinalHardening": _PRODUCTION_FINAL_HARDENING,
+    "ProductionHardeningRecord": _PRODUCTION_FINAL_HARDENING,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -2239,6 +2244,9 @@ _EXPORT_MAP = {
     "build_production_release_audit": _PRODUCTION_RELEASE_AUDIT,
     "production_release_audit_record_by_area": _PRODUCTION_RELEASE_AUDIT,
     "production_release_audit_records_for_status": _PRODUCTION_RELEASE_AUDIT,
+    "build_production_final_hardening": _PRODUCTION_FINAL_HARDENING,
+    "production_hardening_record_by_area": _PRODUCTION_FINAL_HARDENING,
+    "production_hardening_records_for_status": _PRODUCTION_FINAL_HARDENING,
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
