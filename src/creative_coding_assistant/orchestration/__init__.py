@@ -493,6 +493,9 @@ _PRODUCTION_RELEASE_PACKAGING = (
 _PRODUCTION_RELEASE_CANDIDATE = (
     "creative_coding_assistant.orchestration.production_release_candidate"
 )
+_PRODUCTION_DEMO_ASSETS = (
+    "creative_coding_assistant.orchestration.production_demo_assets"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -754,6 +757,8 @@ _EXPORT_MAP = {
     "ProductionPackagingRecord": _PRODUCTION_RELEASE_PACKAGING,
     "ProductionReleaseCandidatePlan": _PRODUCTION_RELEASE_CANDIDATE,
     "ProductionReleaseCandidateRecord": _PRODUCTION_RELEASE_CANDIDATE,
+    "ProductionDemoAssetPlan": _PRODUCTION_DEMO_ASSETS,
+    "ProductionDemoAssetRecord": _PRODUCTION_DEMO_ASSETS,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -2181,6 +2186,9 @@ _EXPORT_MAP = {
     "build_production_release_candidate": _PRODUCTION_RELEASE_CANDIDATE,
     "release_candidate_record_by_surface": _PRODUCTION_RELEASE_CANDIDATE,
     "release_candidate_records_for_status": _PRODUCTION_RELEASE_CANDIDATE,
+    "build_production_demo_asset_plan": _PRODUCTION_DEMO_ASSETS,
+    "production_demo_asset_by_kind": _PRODUCTION_DEMO_ASSETS,
+    "production_demo_assets_for_status": _PRODUCTION_DEMO_ASSETS,
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
