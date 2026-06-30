@@ -459,6 +459,9 @@ _WORKFLOW_RISK_ENGINE = (
 _CREATIVE_EXPLORATION_OPTIMIZER = (
     "creative_coding_assistant.orchestration.creative_exploration_optimizer"
 )
+_EMERGENCE_OPTIMIZER = (
+    "creative_coding_assistant.orchestration.emergence_optimizer"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -682,6 +685,8 @@ _EXPORT_MAP = {
     "WorkflowRiskPlan": _WORKFLOW_RISK_ENGINE,
     "CreativeExplorationOptimizationCandidate": _CREATIVE_EXPLORATION_OPTIMIZER,
     "CreativeExplorationOptimizationPlan": _CREATIVE_EXPLORATION_OPTIMIZER,
+    "EmergenceOptimizationCandidate": _EMERGENCE_OPTIMIZER,
+    "EmergenceOptimizationPlan": _EMERGENCE_OPTIMIZER,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -2056,6 +2061,9 @@ _EXPORT_MAP = {
     "creative_exploration_candidates_for_status": (
         _CREATIVE_EXPLORATION_OPTIMIZER
     ),
+    "optimize_emergence": _EMERGENCE_OPTIMIZER,
+    "emergence_candidate_by_id": _EMERGENCE_OPTIMIZER,
+    "emergence_candidates_for_status": _EMERGENCE_OPTIMIZER,
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
