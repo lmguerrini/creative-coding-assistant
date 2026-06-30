@@ -453,6 +453,10 @@ _REFLECTION_BUDGET_OPTIMIZER = (
 _ADAPTIVE_POLICY_EXPLAINABILITY = (
     "creative_coding_assistant.orchestration.adaptive_policy_explainability"
 )
+_ADAPTIVE_EXECUTION_ARCHITECTURE_CONSISTENCY = (
+    "creative_coding_assistant.orchestration."
+    "adaptive_execution_architecture_consistency"
+)
 _DYNAMIC_RESOURCE_ALLOCATION = (
     "creative_coding_assistant.orchestration.dynamic_resource_allocation"
 )
@@ -690,6 +694,12 @@ _EXPORT_MAP = {
     "ReflectionBudgetOptimizationPlan": _REFLECTION_BUDGET_OPTIMIZER,
     "AdaptivePolicyExplanationRecord": _ADAPTIVE_POLICY_EXPLAINABILITY,
     "AdaptivePolicyExplainabilityPlan": _ADAPTIVE_POLICY_EXPLAINABILITY,
+    "AdaptiveExecutionArchitectureConsistencyRecord": (
+        _ADAPTIVE_EXECUTION_ARCHITECTURE_CONSISTENCY
+    ),
+    "AdaptiveExecutionArchitectureConsistencyRegistry": (
+        _ADAPTIVE_EXECUTION_ARCHITECTURE_CONSISTENCY
+    ),
     "DynamicResourceAllocationCandidate": _DYNAMIC_RESOURCE_ALLOCATION,
     "DynamicResourceAllocationPlan": _DYNAMIC_RESOURCE_ALLOCATION,
     "WorkflowSelfTuningPolicy": _WORKFLOW_SELF_TUNING_POLICIES,
@@ -2068,6 +2078,15 @@ _EXPORT_MAP = {
     "explain_adaptive_policy": _ADAPTIVE_POLICY_EXPLAINABILITY,
     "adaptive_policy_explanation_by_id": _ADAPTIVE_POLICY_EXPLAINABILITY,
     "adaptive_policy_explanations_for_status": _ADAPTIVE_POLICY_EXPLAINABILITY,
+    "adaptive_execution_architecture_consistency_registry": (
+        _ADAPTIVE_EXECUTION_ARCHITECTURE_CONSISTENCY
+    ),
+    "adaptive_execution_architecture_consistency_by_surface": (
+        _ADAPTIVE_EXECUTION_ARCHITECTURE_CONSISTENCY
+    ),
+    "adaptive_execution_architecture_consistency_records_for_layer": (
+        _ADAPTIVE_EXECUTION_ARCHITECTURE_CONSISTENCY
+    ),
     "allocate_dynamic_resources": _DYNAMIC_RESOURCE_ALLOCATION,
     "dynamic_resource_allocation_by_id": _DYNAMIC_RESOURCE_ALLOCATION,
     "dynamic_resource_allocations_for_status": _DYNAMIC_RESOURCE_ALLOCATION,
