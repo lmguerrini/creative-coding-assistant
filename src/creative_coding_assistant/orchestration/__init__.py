@@ -490,6 +490,9 @@ _EVALUATION_LEARNING = "creative_coding_assistant.orchestration.evaluation_learn
 _CONTINUOUS_IMPROVEMENT_SIGNALS = (
     "creative_coding_assistant.orchestration.continuous_improvement_signals"
 )
+_SUCCESS_PATTERN_DISCOVERY = (
+    "creative_coding_assistant.orchestration.success_pattern_discovery"
+)
 _WORKFLOW_RISK_ENGINE = (
     "creative_coding_assistant.orchestration.workflow_risk_engine"
 )
@@ -803,6 +806,8 @@ _EXPORT_MAP = {
     "EvaluationLearningPlan": _EVALUATION_LEARNING,
     "ContinuousImprovementSignal": _CONTINUOUS_IMPROVEMENT_SIGNALS,
     "ContinuousImprovementSignalPlan": _CONTINUOUS_IMPROVEMENT_SIGNALS,
+    "SuccessPattern": _SUCCESS_PATTERN_DISCOVERY,
+    "SuccessPatternDiscoveryPlan": _SUCCESS_PATTERN_DISCOVERY,
     "WorkflowRiskFactor": _WORKFLOW_RISK_ENGINE,
     "WorkflowRiskPlan": _WORKFLOW_RISK_ENGINE,
     "CreativeExplorationOptimizationCandidate": _CREATIVE_EXPLORATION_OPTIMIZER,
@@ -2288,6 +2293,10 @@ _EXPORT_MAP = {
     "continuous_improvement_signals_for_status": (
         _CONTINUOUS_IMPROVEMENT_SIGNALS
     ),
+    "discover_success_patterns": _SUCCESS_PATTERN_DISCOVERY,
+    "success_pattern_by_id": _SUCCESS_PATTERN_DISCOVERY,
+    "success_patterns_for_priority": _SUCCESS_PATTERN_DISCOVERY,
+    "success_patterns_for_status": _SUCCESS_PATTERN_DISCOVERY,
     "evaluate_workflow_risk": _WORKFLOW_RISK_ENGINE,
     "workflow_risk_factor_by_id": _WORKFLOW_RISK_ENGINE,
     "workflow_risk_factors_for_severity": _WORKFLOW_RISK_ENGINE,

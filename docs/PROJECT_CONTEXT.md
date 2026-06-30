@@ -326,7 +326,10 @@ reports, or changing workflow order. Continuous improvement signals
 synthesize read-only V6.1 success, failure, artifact, and evaluation learning
 metadata into advisory improvement candidates without applying feedback,
 persisting learning memory, updating policies, observing runtime outcomes, or
-changing workflows.
+changing workflows. Success pattern discovery derives candidate success
+patterns from read-only workflow success and continuous improvement metadata
+without observing live success, collecting telemetry, persisting success
+metrics, applying patterns, or applying feedback.
 
 It must not persist learning memory, apply feedback, update policies, mutate
 strategies, change provider/model routing, execute providers, probe local
