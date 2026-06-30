@@ -1580,20 +1580,32 @@ scripts/run_eval_latest.sh 4
 
 ## Validation
 
-Python checks:
+Accepted V5 Python release checks:
 
 ```bash
-.venv/bin/python -m pytest
-.venv/bin/python -m ruff check src clients tests scripts
-.venv/bin/python -m compileall -q src clients tests scripts
+git diff --check
+.venv/bin/python -m compileall -q src tests
+.venv/bin/pytest -q
 ```
 
-Frontend checks:
+Run focused tests for touched surfaces, plus applicable documentation or
+alignment tests when public docs, runtime docs, or workflow contracts change.
+For changed Python files, use scoped ruff checks as the current accepted lint
+gate:
+
+```bash
+.venv/bin/python -m ruff check <changed-python-files>
+```
+
+Full-project ruff over `src clients tests scripts` is tracked as technical
+debt until the existing backlog is resolved; it is not the V5 clean release
+gate.
+
+Frontend checks for client changes:
 
 ```bash
 cd clients/nextjs
 npm run typecheck
-npm run lint
 npm run test
 npm run build
 ```

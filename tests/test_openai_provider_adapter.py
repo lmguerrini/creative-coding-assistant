@@ -1,7 +1,10 @@
+import sys
 import unittest
 from datetime import UTC, datetime
 from types import SimpleNamespace
+from unittest.mock import patch
 
+import creative_coding_assistant.llm.openai_adapter as openai_adapter_module
 from creative_coding_assistant.contracts import (
     AssistantMode,
     AssistantRequest,
@@ -46,6 +49,59 @@ from event_assertions import first_event, legacy_events
 
 
 class OpenAIProviderAdapterTests(unittest.TestCase):
+    def test_live_client_uses_settings_api_key_without_reloading_environment(
+        self,
+    ) -> None:
+        response = SimpleNamespace(
+            output_text="Use a restrained camera drift.",
+            status="completed",
+        )
+        constructor = _FakeOpenAIConstructor(response=response)
+        settings = Settings(
+            openai_api_key="sk-settings-secret",
+            openai_model="gpt-5-mini",
+        )
+
+        with patch.dict(
+            sys.modules,
+            {"openai": SimpleNamespace(OpenAI=constructor)},
+        ):
+            with patch(
+                "creative_coding_assistant.llm.openai_adapter.load_settings",
+                side_effect=AssertionError("settings should not reload"),
+            ):
+                provider = OpenAIGenerationProvider(settings=settings)
+                events = tuple(provider.stream(_generation_input(stream=False)))
+
+        self.assertEqual(constructor.api_keys, ["sk-settings-secret"])
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0].event_type, GenerationEventType.COMPLETED)
+        self.assertEqual(
+            events[0].response.output.content,
+            "Use a restrained camera drift.",
+        )
+
+    def test_live_client_falls_back_to_environment_settings(self) -> None:
+        response = SimpleNamespace(
+            output_text="Use a restrained camera drift.",
+            status="completed",
+        )
+        constructor = _FakeOpenAIConstructor(response=response)
+        fallback_settings = Settings(openai_api_key="sk-env-secret")
+
+        with patch.dict(
+            sys.modules,
+            {"openai": SimpleNamespace(OpenAI=constructor)},
+        ):
+            with patch(
+                "creative_coding_assistant.llm.openai_adapter.load_settings",
+                return_value=fallback_settings,
+            ):
+                client = openai_adapter_module._build_openai_client()
+
+        self.assertIsInstance(client, _FakeOpenAIClient)
+        self.assertEqual(constructor.api_keys, ["sk-env-secret"])
+
     def test_non_streaming_request_maps_to_openai_payload(self) -> None:
         response = SimpleNamespace(
             output_text="Use a restrained camera drift.",
@@ -544,6 +600,16 @@ class _FakeOpenAIClient:
     def last_kwargs(self) -> dict[str, object]:
         assert self.responses.last_kwargs is not None
         return self.responses.last_kwargs
+
+
+class _FakeOpenAIConstructor:
+    def __init__(self, *, response: object) -> None:
+        self._response = response
+        self.api_keys: list[str] = []
+
+    def __call__(self, *, api_key: str) -> _FakeOpenAIClient:
+        self.api_keys.append(api_key)
+        return _FakeOpenAIClient(response=self._response)
 
 
 if __name__ == "__main__":

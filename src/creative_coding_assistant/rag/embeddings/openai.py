@@ -31,7 +31,10 @@ class OpenAIEmbeddingClient:
         if not normalized_texts:
             return ()
 
-        client = self._client or _build_openai_client(api_key=self._api_key)
+        client = self._client or _build_openai_client(
+            settings=self._settings,
+            api_key=self._api_key,
+        )
         logger.info(
             "Dispatching {} embedding input(s) to OpenAI",
             len(normalized_texts),
@@ -43,14 +46,18 @@ class OpenAIEmbeddingClient:
         return _extract_embeddings(response)
 
 
-def _build_openai_client(*, api_key: str | None) -> Any:
+def _build_openai_client(
+    *,
+    settings: Settings | None = None,
+    api_key: str | None = None,
+) -> Any:
     try:
         from openai import OpenAI
     except ImportError as exc:  # pragma: no cover - depends on local env
         raise RuntimeError("The OpenAI SDK is not installed.") from exc
 
-    settings = load_settings()
-    resolved_api_key = api_key or settings.get_openai_api_key()
+    resolved_settings = settings or load_settings()
+    resolved_api_key = api_key or resolved_settings.get_openai_api_key()
     if not resolved_api_key:
         raise RuntimeError("OPENAI_API_KEY is not set.")
     return OpenAI(api_key=resolved_api_key)

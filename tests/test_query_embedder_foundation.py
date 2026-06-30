@@ -1,6 +1,9 @@
+import sys
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
+import creative_coding_assistant.rag.embeddings.openai as embedding_openai_module
 from creative_coding_assistant.core import Settings
 from creative_coding_assistant.rag.retrieval import (
     OpenAIQueryEmbedder,
@@ -59,6 +62,46 @@ class QueryEmbedderFoundationTests(unittest.TestCase):
             ],
         )
 
+    def test_openai_query_embedder_uses_settings_api_key_without_reloading_environment(
+        self,
+    ) -> None:
+        constructor = _FakeOpenAIEmbeddingConstructor(embedding=[0.4, 0.5, 0.6])
+        settings = Settings(
+            openai_api_key="sk-settings-secret",
+            openai_embedding_model="text-embedding-3-large",
+        )
+
+        with patch.dict(
+            sys.modules,
+            {"openai": SimpleNamespace(OpenAI=constructor)},
+        ):
+            with patch(
+                "creative_coding_assistant.rag.embeddings.openai.load_settings",
+                side_effect=AssertionError("settings should not reload"),
+            ):
+                embedder = OpenAIQueryEmbedder(settings=settings)
+                embedding = embedder.embed_query("camera guidance")
+
+        self.assertEqual(embedding, [0.4, 0.5, 0.6])
+        self.assertEqual(constructor.api_keys, ["sk-settings-secret"])
+
+    def test_embedding_client_falls_back_to_environment_settings(self) -> None:
+        constructor = _FakeOpenAIEmbeddingConstructor(embedding=[0.7, 0.8])
+        fallback_settings = Settings(openai_api_key="sk-env-secret")
+
+        with patch.dict(
+            sys.modules,
+            {"openai": SimpleNamespace(OpenAI=constructor)},
+        ):
+            with patch(
+                "creative_coding_assistant.rag.embeddings.openai.load_settings",
+                return_value=fallback_settings,
+            ):
+                client = embedding_openai_module._build_openai_client()
+
+        self.assertIsInstance(client, _FakeOpenAIClient)
+        self.assertEqual(constructor.api_keys, ["sk-env-secret"])
+
     def test_openai_query_embedder_rejects_empty_query_text(self) -> None:
         embedder = OpenAIQueryEmbedder(
             settings=Settings(openai_api_key="sk-test-secret"),
@@ -94,6 +137,16 @@ class _FakeOpenAIClient:
     def __init__(self, *, embedding: list[float]) -> None:
         self.calls: list[dict[str, object]] = []
         self.embeddings = _FakeEmbeddingsApi(embedding=embedding, calls=self.calls)
+
+
+class _FakeOpenAIEmbeddingConstructor:
+    def __init__(self, *, embedding: list[float]) -> None:
+        self._embedding = embedding
+        self.api_keys: list[str] = []
+
+    def __call__(self, *, api_key: str) -> _FakeOpenAIClient:
+        self.api_keys.append(api_key)
+        return _FakeOpenAIClient(embedding=self._embedding)
 
 
 if __name__ == "__main__":
