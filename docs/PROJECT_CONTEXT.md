@@ -294,6 +294,21 @@ mutate workflow graphs, write persistent storage, create release artifacts,
 execute hardening actions, create runtime failure handlers, mutate terminal
 routing, merge, push, tag, apply Runtime Evolution, or modify generated output.
 
+## V6.1 Adaptive Learning Boundary
+
+V6.1 Adaptive Learning Engine begins as controlled learning metadata over the
+V5 decision engine. The initial learning engine derives adaptive learning
+signals from execution confidence, workflow risk, and workflow self-tuning
+metadata, including priority scores, pattern tags, evidence, and review
+posture.
+
+It must not persist learning memory, apply feedback, update policies, mutate
+strategies, change provider/model routing, execute providers, probe local
+runtimes, download models, invoke agents, allocate resources, emit HITL
+requests, enforce budgets, execute or control workflows, mutate workflow
+graphs, trigger retries or refinements, mutate prompts, write persistent
+storage, modify generated output, or apply Runtime Evolution.
+
 ## Non-Goals For Current Baseline
 
 - active multi-agent execution
@@ -328,4 +343,4 @@ routing, merge, push, tag, apply Runtime Evolution, or modify generated output.
 - storage or blackboard runtime behavior
 - provider pricing lookup or budget enforcement
 - active adaptive runtime policy
-- V6 learning or long-horizon adaptation
+- active V6 learning, memory persistence, or long-horizon adaptation

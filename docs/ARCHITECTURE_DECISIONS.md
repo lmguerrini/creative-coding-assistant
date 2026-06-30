@@ -271,6 +271,21 @@ terminal routing, merge, push, tag, apply Runtime Evolution, or modify
 generated output. External deployment manifests are explicit guarded
 assumptions, not automatic deployment work.
 
+## V6.1 Boundary Decision
+
+V6.1 Adaptive Learning Engine starts the V6 cognitive layer as controlled
+learning metadata over the V5 decision and adaptive execution foundations. Its
+initial learning engine may combine execution confidence, workflow risk, and
+workflow self-tuning metadata into inspectable learning candidates, priority
+posture, pattern tags, evidence, and review actions.
+
+It must not persist learning memory, apply feedback, update policies, mutate
+strategies, change provider/model routing, execute providers, probe local
+runtimes, download models, invoke agents, allocate resources, emit HITL
+requests, enforce budgets, execute or control workflows, mutate workflow
+graphs, trigger retries or refinements, mutate prompts, write persistent
+storage, modify generated output, or apply Runtime Evolution.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -291,8 +306,9 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - read-only V5.4 production observability metadata
 - controlled V5.5 adaptive execution policy/simulation
 - V5.6 production release readiness metadata
-- future active V4 Agentic Studio, live adaptive runtime control, and V6
-  learning work
+- advisory V6.1 adaptive learning metadata
+- future active V4 Agentic Studio, live adaptive runtime control, and later
+  V6 learning/memory/research/evolution work
 
 ## Code Quality Rules
 
