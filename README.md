@@ -1162,9 +1162,11 @@ Key backend capabilities include:
 - deterministic review checks with at most one refinement retry
 - selected-artifact refinement context threaded into request contracts, prompt
   inputs, and rendered prompts
-- advisory execution optimization and intelligent model-routing metadata
-  exposed as importable helpers without changing graph control, provider/model
-  routing, provider execution, budget enforcement, or generated output
+- advisory execution optimization, intelligent model-routing, performance,
+  read-only observability, and adaptive execution metadata exposed as
+  importable helpers without changing graph control, provider/model routing,
+  provider execution, live telemetry, budget enforcement, adaptive behavior
+  application, or generated output
 - structured terminal failure handling
 - live session recording, optional LangSmith runtime metadata, and offline
   evaluation support

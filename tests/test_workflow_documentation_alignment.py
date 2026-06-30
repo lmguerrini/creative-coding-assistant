@@ -294,6 +294,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("advisory model-routing metadata", normalized_readme)
         self.assertIn("read-only observability metadata", normalized_readme)
         self.assertIn("advisory adaptive execution metadata", normalized_readme)
+        self.assertIn("adaptive behavior application", normalized_readme)
         self.assertIn("orchestration readiness metadata", normalized_readme)
         self.assertIn("not active Studio runtime", normalized_readme)
         self.assertIn("not rendering execution", normalized_readme)
@@ -1158,6 +1159,11 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("workstation_engine_contract_registry.v1", architecture_doc)
         self.assertIn("Future V4/V5/V6 consumers", mermaid)
         self.assertIn("named hooks only", mermaid)
+        self.assertIn(
+            "V5 advisory adaptive execution metadata",
+            architecture_doc,
+        )
+        self.assertIn("apply adaptive execution policy", normalized_architecture_doc)
         self.assertIn(
             "does not add provider routing, runtime selection, execution "
             "optimization, artifact execution, artifact modification, "

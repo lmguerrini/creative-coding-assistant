@@ -157,11 +157,12 @@ Each contract describes:
 - exposed metadata and exposed signals
 - stability signals and missing-metadata behavior
 - estimated local cost and latency metadata
-- named future hooks for V4 Agentic Studio, V5 Adaptive Creative Execution,
+- named hooks for V4 Agentic Studio, V5 advisory adaptive execution metadata,
   and V6 Creative Evolution
 
-The named future hooks are contract metadata only. They do not create agents,
-adaptive execution policy, learning loops, or autonomous workflow behavior.
+The named hooks are contract metadata only. They do not create agents, apply
+adaptive execution policy, run learning loops, or introduce autonomous
+workflow behavior.
 
 ## Runtime Relationship
 
