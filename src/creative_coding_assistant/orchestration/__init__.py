@@ -517,6 +517,9 @@ _PRODUCTION_FINAL_HARDENING = (
 _PRODUCTION_ARCHITECTURE_CONSISTENCY = (
     "creative_coding_assistant.orchestration.production_architecture_consistency"
 )
+_PRODUCTION_RELEASE_FAILURE_PATH_AUDIT = (
+    "creative_coding_assistant.orchestration.production_release_failure_path_audit"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -797,6 +800,12 @@ _EXPORT_MAP = {
     ),
     "ProductionArchitectureConsistencyRegistry": (
         _PRODUCTION_ARCHITECTURE_CONSISTENCY
+    ),
+    "ProductionReleaseFailurePathAuditRecord": (
+        _PRODUCTION_RELEASE_FAILURE_PATH_AUDIT
+    ),
+    "ProductionReleaseFailurePathAuditRegistry": (
+        _PRODUCTION_RELEASE_FAILURE_PATH_AUDIT
     ),
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -2264,6 +2273,18 @@ _EXPORT_MAP = {
     ),
     "production_architecture_consistency_records_for_layer": (
         _PRODUCTION_ARCHITECTURE_CONSISTENCY
+    ),
+    "production_release_failure_path_audit_registry": (
+        _PRODUCTION_RELEASE_FAILURE_PATH_AUDIT
+    ),
+    "production_release_failure_path_audit_by_id": (
+        _PRODUCTION_RELEASE_FAILURE_PATH_AUDIT
+    ),
+    "production_release_failure_path_audits_for_check": (
+        _PRODUCTION_RELEASE_FAILURE_PATH_AUDIT
+    ),
+    "production_release_failure_path_audits_for_surface": (
+        _PRODUCTION_RELEASE_FAILURE_PATH_AUDIT
     ),
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
