@@ -505,6 +505,9 @@ _PRODUCTION_READINESS_REVIEW = (
 _PRODUCTION_CREATIVE_READINESS_REVIEW = (
     "creative_coding_assistant.orchestration.production_creative_readiness_review"
 )
+_PRODUCTION_ARCHITECTURE_FREEZE = (
+    "creative_coding_assistant.orchestration.production_architecture_freeze"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -774,6 +777,8 @@ _EXPORT_MAP = {
     "ProductionReadinessReview": _PRODUCTION_READINESS_REVIEW,
     "ProductionCreativeReadinessRecord": _PRODUCTION_CREATIVE_READINESS_REVIEW,
     "ProductionCreativeReadinessReview": _PRODUCTION_CREATIVE_READINESS_REVIEW,
+    "ProductionArchitectureFreeze": _PRODUCTION_ARCHITECTURE_FREEZE,
+    "ProductionArchitectureFreezeRecord": _PRODUCTION_ARCHITECTURE_FREEZE,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -2218,6 +2223,13 @@ _EXPORT_MAP = {
     ),
     "production_creative_readiness_records_for_status": (
         _PRODUCTION_CREATIVE_READINESS_REVIEW
+    ),
+    "build_production_architecture_freeze": _PRODUCTION_ARCHITECTURE_FREEZE,
+    "production_architecture_freeze_record_by_domain": (
+        _PRODUCTION_ARCHITECTURE_FREEZE
+    ),
+    "production_architecture_freeze_records_for_status": (
+        _PRODUCTION_ARCHITECTURE_FREEZE
     ),
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
