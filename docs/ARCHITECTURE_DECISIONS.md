@@ -282,7 +282,9 @@ tracking may derive success indicators from those learning candidates without
 observing live outcomes or persisting metrics. Failure tracking may derive
 failure indicators from read-only failure analysis and adaptive learning
 metadata without observing, classifying, routing, handling, or repairing live
-failures.
+failures. Strategy learning may derive strategy patterns from advisory
+adaptive execution strategy metadata and adaptive learning signals without
+applying or mutating strategy selection.
 
 It must not persist learning memory, apply feedback, update policies, mutate
 strategies, change provider/model routing, execute providers, probe local
@@ -291,8 +293,8 @@ requests, enforce budgets, collect telemetry, observe runtime success,
 observe runtime failures, classify live errors, route terminal failures,
 handle or repair failures, evaluate generated output, execute or control
 workflows, mutate workflow graphs, trigger retries or refinements, mutate
-prompts, write persistent storage, persist success metrics, modify generated
-output, or apply Runtime Evolution.
+strategy selection, compile graphs, mutate prompts, write persistent storage,
+persist success metrics, modify generated output, or apply Runtime Evolution.
 
 ## Documentation Decision
 

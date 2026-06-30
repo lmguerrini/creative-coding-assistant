@@ -304,7 +304,9 @@ posture. Workflow success tracking derives success indicators from adaptive
 learning signals without observing live outcomes or persisting metrics.
 Failure tracking derives failure indicators from read-only failure analysis
 and adaptive learning metadata without observing, classifying, routing,
-handling, or repairing live failures.
+handling, or repairing live failures. Strategy learning derives strategy
+patterns from advisory adaptive execution strategy metadata and adaptive
+learning signals without applying or mutating strategy selection.
 
 It must not persist learning memory, apply feedback, update policies, mutate
 strategies, change provider/model routing, execute providers, probe local
@@ -313,8 +315,8 @@ requests, enforce budgets, collect telemetry, observe runtime success,
 observe runtime failures, classify live errors, route terminal failures,
 handle or repair failures, evaluate generated output, execute or control
 workflows, mutate workflow graphs, trigger retries or refinements, mutate
-prompts, write persistent storage, persist success metrics, modify generated
-output, or apply Runtime Evolution.
+strategy selection, compile graphs, mutate prompts, write persistent storage,
+persist success metrics, modify generated output, or apply Runtime Evolution.
 
 ## Non-Goals For Current Baseline
 
