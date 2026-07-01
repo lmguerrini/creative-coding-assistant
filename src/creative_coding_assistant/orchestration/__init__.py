@@ -515,6 +515,7 @@ _KNOWLEDGE_LIFECYCLE_MANAGEMENT = (
 _KNOWLEDGE_PROVENANCE_EVOLUTION = (
     "creative_coding_assistant.orchestration.knowledge_provenance_evolution"
 )
+_KNOWLEDGE_ROLLBACK = "creative_coding_assistant.orchestration.knowledge_rollback"
 _KNOWLEDGE_SNAPSHOT_ENGINE = (
     "creative_coding_assistant.orchestration.knowledge_snapshot_engine"
 )
@@ -2479,6 +2480,12 @@ _EXPORT_MAP = {
         _KNOWLEDGE_PROVENANCE_EVOLUTION
     ),
     "knowledge_provenance_signals_for_status": _KNOWLEDGE_PROVENANCE_EVOLUTION,
+    "KnowledgeRollbackPlan": _KNOWLEDGE_ROLLBACK,
+    "KnowledgeRollbackSignal": _KNOWLEDGE_ROLLBACK,
+    "build_knowledge_rollback": _KNOWLEDGE_ROLLBACK,
+    "knowledge_rollback_signal_by_id": _KNOWLEDGE_ROLLBACK,
+    "knowledge_rollback_signals_for_confidence": _KNOWLEDGE_ROLLBACK,
+    "knowledge_rollback_signals_for_status": _KNOWLEDGE_ROLLBACK,
     "KnowledgeSnapshotEnginePlan": _KNOWLEDGE_SNAPSHOT_ENGINE,
     "KnowledgeSnapshotSignal": _KNOWLEDGE_SNAPSHOT_ENGINE,
     "build_knowledge_snapshot_engine": _KNOWLEDGE_SNAPSHOT_ENGINE,
