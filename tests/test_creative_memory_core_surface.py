@@ -1,0 +1,372 @@
+import unittest
+
+from creative_coding_assistant.contracts import (
+    AssistantMode,
+    AssistantRequest,
+    CreativeCodingDomain,
+)
+from creative_coding_assistant.core import GenerationProviderName, Settings
+from creative_coding_assistant.llm import (
+    OpenAIGenerationProvider,
+    build_generation_provider,
+)
+from creative_coding_assistant.orchestration import (
+    CreativeMemoryCoreSurfacePlan,
+    build_creative_memory_core_surface,
+    creative_memory_core_surface_entries_for_confidence,
+    creative_memory_core_surface_entries_for_status,
+    creative_memory_core_surface_entry_by_id,
+    route_request,
+)
+from creative_coding_assistant.orchestration.routing import RouteName
+
+REQUIRED_EXECUTION_MODES = ("manual_mode", "assisted_mode", "auto_mode")
+EXPECTED_SOURCE_ROLES = (
+    "long_term_creative_memory",
+    "user_preferences",
+    "style_profiles",
+    "project_memory",
+    "creative_dna",
+    "personalization_engine",
+    "session_memory_evolution",
+    "artifact_history",
+    "creative_lineage",
+    "creative_ontology",
+)
+EXPECTED_ROADMAP_ITEMS = (
+    "Long-term Creative Memory",
+    "User Preferences",
+    "Style Profiles",
+    "Project Memory",
+    "Creative DNA",
+    "Personalization Engine",
+    "Session Memory Evolution",
+    "Artifact History",
+    "Creative Lineage",
+    "Creative Ontology",
+)
+REQUIRED_ENTRY_FIELDS = {
+    "core_surface_id",
+    "surface_kind",
+    "status",
+    "confidence",
+    "route_name",
+    "task_type",
+    "execution_mode_id",
+    "surface_axis",
+    "source_plan_roles",
+    "source_serialization_versions",
+    "source_item_ids",
+    "source_item_count",
+    "surface_summary",
+    "surface_coverage_score",
+    "source_traceability_score",
+    "governance_alignment_score",
+    "activation_risk_score",
+    "governance_weight",
+    "core_surface_score",
+    "hitl_required_before_surface_activation",
+    "context_tags",
+    "explainability_notes",
+    "advisory_actions",
+    "evidence",
+    "blocked_runtime_behaviors",
+    "core_surface_implemented",
+    "core_surface_metadata_implemented",
+    "all_sources_metadata_only",
+    "core_surface_activation_implemented",
+    "memory_storage_write_implemented",
+    "memory_retrieval_execution_implemented",
+    "memory_record_creation_implemented",
+    "memory_record_update_implemented",
+    "preference_storage_write_implemented",
+    "automatic_preference_learning_implemented",
+    "preference_mutation_implemented",
+    "personalization_application_implemented",
+    "creative_dna_application_implemented",
+    "artifact_history_persistence_implemented",
+    "creative_lineage_inference_implemented",
+    "ontology_relationship_inference_implemented",
+    "taxonomy_mutation_implemented",
+    "semantic_graph_materialization_implemented",
+    "provider_model_routing_implemented",
+    "automatic_provider_switching_implemented",
+    "automatic_model_switching_implemented",
+    "provider_execution_implemented",
+    "agent_invocation_implemented",
+    "workflow_control_implemented",
+    "workflow_graph_mutation_implemented",
+    "workflow_execution_implemented",
+    "retry_triggering_implemented",
+    "prompt_mutation_implemented",
+    "persistent_storage_write_implemented",
+    "generated_output_mutation_implemented",
+    "runtime_evolution_implemented",
+    "serialization_version",
+    "advisory_only",
+}
+
+
+class CreativeMemoryCoreSurfaceTests(unittest.TestCase):
+    def test_plan_builds_core_surface_metadata(self) -> None:
+        plan = build_creative_memory_core_surface(route=RouteName.GENERATE)
+
+        self.assertEqual(plan.role, "creative_memory_core_surface")
+        self.assertEqual(
+            plan.serialization_version,
+            "creative_memory_core_surface_plan.v1",
+        )
+        self.assertEqual(plan.route_name, RouteName.GENERATE)
+        self.assertEqual(plan.task_type, "creative_coding")
+        self.assertEqual(plan.source_plan_roles, EXPECTED_SOURCE_ROLES)
+        self.assertEqual(len(plan.source_plan_serialization_versions), 10)
+        self.assertEqual(plan.source_item_count, 50)
+        self.assertEqual(len(plan.source_item_ids), 50)
+        self.assertEqual(plan.covered_roadmap_items, EXPECTED_ROADMAP_ITEMS)
+        self.assertEqual(plan.covered_roadmap_item_count, 10)
+        self.assertEqual(plan.execution_mode_ids, REQUIRED_EXECUTION_MODES)
+        self.assertEqual(plan.entry_count, 5)
+        self.assertEqual(plan.candidate_entry_count, 1)
+        self.assertEqual(plan.review_required_entry_count, 2)
+        self.assertEqual(plan.guarded_entry_count, 2)
+        self.assertEqual(plan.high_confidence_entry_count, 3)
+        self.assertEqual(plan.hitl_required_entry_count, 5)
+        self.assertFalse(plan.activated_core_surface_ids)
+        self.assertFalse(plan.persisted_memory_surface_ids)
+        self.assertFalse(plan.applied_personalization_ids)
+        self.assertFalse(plan.mutated_output_ids)
+        self.assertEqual(plan.overall_core_surface_posture, "guarded")
+        self.assertIn("does not activate memory surfaces", plan.authority_boundary)
+        self.assertIn("execute memory retrieval", plan.authority_boundary)
+        self.assertTrue(plan.core_surface_implemented)
+        self.assertTrue(plan.core_surface_metadata_implemented)
+        self.assertTrue(plan.roadmap_core_items_covered)
+        self.assertTrue(plan.all_sources_metadata_only)
+        self.assertFalse(plan.core_surface_activation_implemented)
+        self.assertFalse(plan.memory_storage_write_implemented)
+        self.assertFalse(plan.memory_retrieval_execution_implemented)
+        self.assertFalse(plan.memory_record_creation_implemented)
+        self.assertFalse(plan.memory_record_update_implemented)
+        self.assertFalse(plan.preference_storage_write_implemented)
+        self.assertFalse(plan.automatic_preference_learning_implemented)
+        self.assertFalse(plan.preference_mutation_implemented)
+        self.assertFalse(plan.personalization_application_implemented)
+        self.assertFalse(plan.creative_dna_application_implemented)
+        self.assertFalse(plan.artifact_history_persistence_implemented)
+        self.assertFalse(plan.creative_lineage_inference_implemented)
+        self.assertFalse(plan.ontology_relationship_inference_implemented)
+        self.assertFalse(plan.taxonomy_mutation_implemented)
+        self.assertFalse(plan.semantic_graph_materialization_implemented)
+        self.assertFalse(plan.provider_model_routing_implemented)
+        self.assertFalse(plan.provider_execution_implemented)
+        self.assertFalse(plan.agent_invocation_implemented)
+        self.assertFalse(plan.workflow_control_implemented)
+        self.assertFalse(plan.workflow_graph_mutation_implemented)
+        self.assertFalse(plan.workflow_execution_implemented)
+        self.assertFalse(plan.persistent_storage_write_implemented)
+        self.assertFalse(plan.generated_output_mutation_implemented)
+        self.assertFalse(plan.runtime_evolution_implemented)
+        self.assertTrue(plan.advisory_only)
+
+    def test_entries_score_core_surface_without_activation(self) -> None:
+        plan = build_creative_memory_core_surface(route="generate")
+        source_items = set(plan.source_item_ids)
+        source_roles = set(plan.source_plan_roles)
+
+        for entry in plan.entries:
+            dumped = entry.model_dump(mode="json")
+            self.assertEqual(set(dumped), REQUIRED_ENTRY_FIELDS)
+            self.assertEqual(
+                entry.serialization_version,
+                "creative_memory_core_surface_entry.v1",
+            )
+            self.assertEqual(entry.route_name, RouteName.GENERATE)
+            self.assertEqual(
+                entry.core_surface_id,
+                f"creative_memory_core::{entry.surface_kind}",
+            )
+            self.assertEqual(entry.source_item_count, len(entry.source_item_ids))
+            self.assertTrue(set(entry.source_item_ids).issubset(source_items))
+            self.assertTrue(set(entry.source_plan_roles).issubset(source_roles))
+            self.assertEqual(
+                entry.core_surface_score,
+                min(
+                    1000,
+                    max(
+                        0,
+                        entry.surface_coverage_score * 3
+                        + entry.source_traceability_score * 3
+                        + entry.governance_alignment_score * 2
+                        + entry.activation_risk_score * 2
+                        + entry.governance_weight,
+                    ),
+                ),
+            )
+            self.assertIn("core_surface", entry.context_tags)
+            self.assertIn("core_surface_activation", entry.blocked_runtime_behaviors)
+            self.assertIn("memory_storage_write", entry.blocked_runtime_behaviors)
+            self.assertTrue(entry.explainability_notes)
+            self.assertTrue(entry.advisory_actions)
+            self.assertTrue(entry.evidence)
+            self.assertTrue(entry.hitl_required_before_surface_activation)
+            self.assertTrue(entry.core_surface_implemented)
+            self.assertTrue(entry.core_surface_metadata_implemented)
+            self.assertTrue(entry.all_sources_metadata_only)
+            self.assertFalse(entry.core_surface_activation_implemented)
+            self.assertFalse(entry.memory_storage_write_implemented)
+            self.assertFalse(entry.memory_retrieval_execution_implemented)
+            self.assertFalse(entry.memory_record_creation_implemented)
+            self.assertFalse(entry.memory_record_update_implemented)
+            self.assertFalse(entry.preference_storage_write_implemented)
+            self.assertFalse(entry.automatic_preference_learning_implemented)
+            self.assertFalse(entry.preference_mutation_implemented)
+            self.assertFalse(entry.personalization_application_implemented)
+            self.assertFalse(entry.creative_dna_application_implemented)
+            self.assertFalse(entry.artifact_history_persistence_implemented)
+            self.assertFalse(entry.creative_lineage_inference_implemented)
+            self.assertFalse(entry.ontology_relationship_inference_implemented)
+            self.assertFalse(entry.taxonomy_mutation_implemented)
+            self.assertFalse(entry.semantic_graph_materialization_implemented)
+            self.assertFalse(entry.provider_model_routing_implemented)
+            self.assertFalse(entry.provider_execution_implemented)
+            self.assertFalse(entry.agent_invocation_implemented)
+            self.assertFalse(entry.workflow_control_implemented)
+            self.assertFalse(entry.workflow_graph_mutation_implemented)
+            self.assertFalse(entry.workflow_execution_implemented)
+            self.assertFalse(entry.persistent_storage_write_implemented)
+            self.assertFalse(entry.generated_output_mutation_implemented)
+            self.assertFalse(entry.runtime_evolution_implemented)
+            self.assertTrue(entry.advisory_only)
+
+        foundation = creative_memory_core_surface_entry_by_id(
+            "creative_memory_core::memory_foundation_surface",
+            plan,
+        )
+        self.assertIsNotNone(foundation)
+        assert foundation is not None
+        self.assertEqual(foundation.status, "guarded")
+        self.assertEqual(foundation.confidence, "guarded")
+        self.assertEqual(
+            len(creative_memory_core_surface_entries_for_status("guarded", plan)),
+            2,
+        )
+        self.assertEqual(
+            len(creative_memory_core_surface_entries_for_confidence("high", plan)),
+            1,
+        )
+
+    def test_plan_rejects_mismatched_core_surface_metadata(self) -> None:
+        plan = build_creative_memory_core_surface()
+        payload = plan.model_dump(mode="json")
+        payload["entry_ids"] = ("missing",) + tuple(payload["entry_ids"][1:])
+
+        with self.assertRaisesRegex(ValueError, "entry_ids must match"):
+            CreativeMemoryCoreSurfacePlan(**payload)
+
+        payload = plan.model_dump(mode="json")
+        payload["overall_core_surface_score"] -= 1
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "overall_core_surface_score must match",
+        ):
+            CreativeMemoryCoreSurfacePlan(**payload)
+
+        payload = plan.model_dump(mode="json")
+        payload["activated_core_surface_ids"] = (plan.entry_ids[0],)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "activated_core_surface_ids must remain empty",
+        ):
+            CreativeMemoryCoreSurfacePlan(**payload)
+
+    def test_core_surface_does_not_change_routing_or_provider_factory(self) -> None:
+        request = AssistantRequest(
+            query="Review the creative memory core surface.",
+            mode=AssistantMode.GENERATE,
+            domains=(CreativeCodingDomain.P5_JS,),
+        )
+        baseline_decision = route_request(request)
+        settings = Settings(
+            default_generation_provider=GenerationProviderName.OPENAI,
+            openai_model="gpt-5",
+            openai_api_key="sk-test-secret",
+        )
+
+        plan = build_creative_memory_core_surface(route=RouteName.GENERATE)
+        next_decision = route_request(request)
+        provider = build_generation_provider(settings)
+
+        self.assertEqual(next_decision, baseline_decision)
+        self.assertEqual(plan.route_name, RouteName.GENERATE)
+        self.assertIsInstance(provider, OpenAIGenerationProvider)
+        self.assertEqual(provider._model, "gpt-5")
+        self.assertEqual(provider._settings.default_generation_provider, "openai")
+
+    def test_core_surface_does_not_declare_runtime_mutation_terms(self) -> None:
+        plan = build_creative_memory_core_surface(route=RouteName.GENERATE)
+        combined_text = " ".join(
+            (
+                plan.authority_boundary,
+                *plan.blocked_runtime_behaviors,
+                *plan.advisory_actions,
+                *plan.covered_roadmap_items,
+                *(
+                    field
+                    for entry in plan.entries
+                    for field in (
+                        entry.core_surface_id,
+                        entry.surface_kind,
+                        entry.status,
+                        entry.confidence,
+                        entry.surface_axis,
+                        *entry.source_plan_roles,
+                        *entry.source_serialization_versions,
+                        *entry.source_item_ids,
+                        entry.surface_summary,
+                        *entry.context_tags,
+                        *entry.explainability_notes,
+                        *entry.advisory_actions,
+                        *entry.evidence,
+                        *entry.blocked_runtime_behaviors,
+                    )
+                ),
+            )
+        )
+
+        for forbidden_term in (
+            "activate_core_surface(",
+            "write_memory(",
+            "retrieve_memory(",
+            "create_memory_record(",
+            "update_memory_record(",
+            "write_preference(",
+            "learn_preference(",
+            "mutate_preference(",
+            "apply_personalization(",
+            "apply_creative_dna(",
+            "persist_artifact_history(",
+            "infer_creative_lineage(",
+            "infer_ontology(",
+            "mutate_taxonomy(",
+            "materialize_semantic_graph(",
+            "route_provider(",
+            "switch_provider(",
+            "switch_model(",
+            "execute_provider(",
+            "invoke_agent(",
+            "control_workflow(",
+            "mutate_workflow_graph(",
+            "execute_workflow(",
+            "trigger_retry(",
+            "mutate_prompt(",
+            "write_storage(",
+            "modify_output(",
+            "apply_runtime_evolution(",
+        ):
+            self.assertNotIn(forbidden_term, combined_text)
+
+
+if __name__ == "__main__":
+    unittest.main()
