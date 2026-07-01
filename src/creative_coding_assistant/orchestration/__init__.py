@@ -487,6 +487,9 @@ _CREATIVE_DNA = "creative_coding_assistant.orchestration.creative_dna"
 _PERSONALIZATION_ENGINE = (
     "creative_coding_assistant.orchestration.personalization_engine"
 )
+_SESSION_MEMORY_EVOLUTION = (
+    "creative_coding_assistant.orchestration.session_memory_evolution"
+)
 _WORKFLOW_SUCCESS_TRACKING = (
     "creative_coding_assistant.orchestration.workflow_success_tracking"
 )
@@ -830,6 +833,8 @@ _EXPORT_MAP = {
     "CreativeDNAPlan": _CREATIVE_DNA,
     "PersonalizationRecommendation": _PERSONALIZATION_ENGINE,
     "PersonalizationEnginePlan": _PERSONALIZATION_ENGINE,
+    "SessionMemoryEvolutionSignal": _SESSION_MEMORY_EVOLUTION,
+    "SessionMemoryEvolutionPlan": _SESSION_MEMORY_EVOLUTION,
     "WorkflowSuccessIndicator": _WORKFLOW_SUCCESS_TRACKING,
     "WorkflowSuccessTrackingPlan": _WORKFLOW_SUCCESS_TRACKING,
     "FailureTrackingIndicator": _FAILURE_TRACKING,
@@ -2339,6 +2344,12 @@ _EXPORT_MAP = {
     "personalization_recommendation_by_id": _PERSONALIZATION_ENGINE,
     "personalization_recommendations_for_confidence": _PERSONALIZATION_ENGINE,
     "personalization_recommendations_for_status": _PERSONALIZATION_ENGINE,
+    "build_session_memory_evolution": _SESSION_MEMORY_EVOLUTION,
+    "session_memory_evolution_signal_by_id": _SESSION_MEMORY_EVOLUTION,
+    "session_memory_evolution_signals_for_confidence": (
+        _SESSION_MEMORY_EVOLUTION
+    ),
+    "session_memory_evolution_signals_for_status": _SESSION_MEMORY_EVOLUTION,
     "track_workflow_success": _WORKFLOW_SUCCESS_TRACKING,
     "workflow_success_indicator_by_id": _WORKFLOW_SUCCESS_TRACKING,
     "workflow_success_indicators_for_confidence": _WORKFLOW_SUCCESS_TRACKING,
