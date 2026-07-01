@@ -483,6 +483,7 @@ _AUTOMATIC_KB_UPDATES = (
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
+_EMBEDDING_REFRESH = "creative_coding_assistant.orchestration.embedding_refresh"
 _LONG_TERM_CREATIVE_MEMORY = (
     "creative_coding_assistant.orchestration.long_term_creative_memory"
 )
@@ -2367,6 +2368,12 @@ _EXPORT_MAP = {
         _DOCUMENTATION_INTELLIGENCE
     ),
     "documentation_intelligence_signals_for_status": _DOCUMENTATION_INTELLIGENCE,
+    "EmbeddingRefreshPlan": _EMBEDDING_REFRESH,
+    "EmbeddingRefreshSignal": _EMBEDDING_REFRESH,
+    "build_embedding_refresh": _EMBEDDING_REFRESH,
+    "embedding_refresh_signal_by_id": _EMBEDDING_REFRESH,
+    "embedding_refresh_signals_for_confidence": _EMBEDDING_REFRESH,
+    "embedding_refresh_signals_for_status": _EMBEDDING_REFRESH,
     "build_long_term_creative_memory": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_record_by_id": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_records_for_sensitivity": (
