@@ -482,6 +482,7 @@ _LONG_TERM_CREATIVE_MEMORY = (
 )
 _USER_PREFERENCES = "creative_coding_assistant.orchestration.user_preferences"
 _STYLE_PROFILES = "creative_coding_assistant.orchestration.style_profiles"
+_PROJECT_MEMORY = "creative_coding_assistant.orchestration.project_memory"
 _WORKFLOW_SUCCESS_TRACKING = (
     "creative_coding_assistant.orchestration.workflow_success_tracking"
 )
@@ -819,6 +820,8 @@ _EXPORT_MAP = {
     "UserPreferencesPlan": _USER_PREFERENCES,
     "StyleProfile": _STYLE_PROFILES,
     "StyleProfilePlan": _STYLE_PROFILES,
+    "ProjectMemorySignal": _PROJECT_MEMORY,
+    "ProjectMemoryPlan": _PROJECT_MEMORY,
     "WorkflowSuccessIndicator": _WORKFLOW_SUCCESS_TRACKING,
     "WorkflowSuccessTrackingPlan": _WORKFLOW_SUCCESS_TRACKING,
     "FailureTrackingIndicator": _FAILURE_TRACKING,
@@ -2316,6 +2319,10 @@ _EXPORT_MAP = {
     "style_profile_by_id": _STYLE_PROFILES,
     "style_profiles_for_fidelity": _STYLE_PROFILES,
     "style_profiles_for_status": _STYLE_PROFILES,
+    "build_project_memory": _PROJECT_MEMORY,
+    "project_memory_signal_by_id": _PROJECT_MEMORY,
+    "project_memory_signals_for_confidence": _PROJECT_MEMORY,
+    "project_memory_signals_for_status": _PROJECT_MEMORY,
     "track_workflow_success": _WORKFLOW_SUCCESS_TRACKING,
     "workflow_success_indicator_by_id": _WORKFLOW_SUCCESS_TRACKING,
     "workflow_success_indicators_for_confidence": _WORKFLOW_SUCCESS_TRACKING,
