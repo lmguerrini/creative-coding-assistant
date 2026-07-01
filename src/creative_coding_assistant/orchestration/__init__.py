@@ -484,6 +484,9 @@ _USER_PREFERENCES = "creative_coding_assistant.orchestration.user_preferences"
 _STYLE_PROFILES = "creative_coding_assistant.orchestration.style_profiles"
 _PROJECT_MEMORY = "creative_coding_assistant.orchestration.project_memory"
 _CREATIVE_DNA = "creative_coding_assistant.orchestration.creative_dna"
+_PERSONALIZATION_ENGINE = (
+    "creative_coding_assistant.orchestration.personalization_engine"
+)
 _WORKFLOW_SUCCESS_TRACKING = (
     "creative_coding_assistant.orchestration.workflow_success_tracking"
 )
@@ -825,6 +828,8 @@ _EXPORT_MAP = {
     "ProjectMemoryPlan": _PROJECT_MEMORY,
     "CreativeDNASignature": _CREATIVE_DNA,
     "CreativeDNAPlan": _CREATIVE_DNA,
+    "PersonalizationRecommendation": _PERSONALIZATION_ENGINE,
+    "PersonalizationEnginePlan": _PERSONALIZATION_ENGINE,
     "WorkflowSuccessIndicator": _WORKFLOW_SUCCESS_TRACKING,
     "WorkflowSuccessTrackingPlan": _WORKFLOW_SUCCESS_TRACKING,
     "FailureTrackingIndicator": _FAILURE_TRACKING,
@@ -2330,6 +2335,10 @@ _EXPORT_MAP = {
     "creative_dna_signature_by_id": _CREATIVE_DNA,
     "creative_dna_signatures_for_confidence": _CREATIVE_DNA,
     "creative_dna_signatures_for_status": _CREATIVE_DNA,
+    "build_personalization_engine": _PERSONALIZATION_ENGINE,
+    "personalization_recommendation_by_id": _PERSONALIZATION_ENGINE,
+    "personalization_recommendations_for_confidence": _PERSONALIZATION_ENGINE,
+    "personalization_recommendations_for_status": _PERSONALIZATION_ENGINE,
     "track_workflow_success": _WORKFLOW_SUCCESS_TRACKING,
     "workflow_success_indicator_by_id": _WORKFLOW_SUCCESS_TRACKING,
     "workflow_success_indicators_for_confidence": _WORKFLOW_SUCCESS_TRACKING,
