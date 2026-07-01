@@ -491,6 +491,7 @@ _SESSION_MEMORY_EVOLUTION = (
     "creative_coding_assistant.orchestration.session_memory_evolution"
 )
 _ARTIFACT_HISTORY = "creative_coding_assistant.orchestration.artifact_history"
+_CREATIVE_LINEAGE = "creative_coding_assistant.orchestration.creative_lineage"
 _WORKFLOW_SUCCESS_TRACKING = (
     "creative_coding_assistant.orchestration.workflow_success_tracking"
 )
@@ -838,6 +839,8 @@ _EXPORT_MAP = {
     "SessionMemoryEvolutionPlan": _SESSION_MEMORY_EVOLUTION,
     "ArtifactHistoryRecord": _ARTIFACT_HISTORY,
     "ArtifactHistoryPlan": _ARTIFACT_HISTORY,
+    "CreativeLineageRecord": _CREATIVE_LINEAGE,
+    "CreativeLineagePlan": _CREATIVE_LINEAGE,
     "WorkflowSuccessIndicator": _WORKFLOW_SUCCESS_TRACKING,
     "WorkflowSuccessTrackingPlan": _WORKFLOW_SUCCESS_TRACKING,
     "FailureTrackingIndicator": _FAILURE_TRACKING,
@@ -2357,6 +2360,10 @@ _EXPORT_MAP = {
     "artifact_history_record_by_id": _ARTIFACT_HISTORY,
     "artifact_history_records_for_confidence": _ARTIFACT_HISTORY,
     "artifact_history_records_for_status": _ARTIFACT_HISTORY,
+    "build_creative_lineage": _CREATIVE_LINEAGE,
+    "creative_lineage_record_by_id": _CREATIVE_LINEAGE,
+    "creative_lineage_records_for_confidence": _CREATIVE_LINEAGE,
+    "creative_lineage_records_for_status": _CREATIVE_LINEAGE,
     "track_workflow_success": _WORKFLOW_SUCCESS_TRACKING,
     "workflow_success_indicator_by_id": _WORKFLOW_SUCCESS_TRACKING,
     "workflow_success_indicators_for_confidence": _WORKFLOW_SUCCESS_TRACKING,
