@@ -509,6 +509,9 @@ _KNOWLEDGE_EVOLUTION_CORE_SURFACE = (
 _KNOWLEDGE_EVOLUTION_SECONDARY_SURFACE = (
     "creative_coding_assistant.orchestration.knowledge_evolution_secondary_surface"
 )
+_KNOWLEDGE_EVOLUTION_GOVERNANCE = (
+    "creative_coding_assistant.orchestration.knowledge_evolution_governance"
+)
 _SOURCE_RELIABILITY_ENGINE = (
     "creative_coding_assistant.orchestration.source_reliability_engine"
 )
@@ -2495,6 +2498,15 @@ _EXPORT_MAP = {
     ),
     "knowledge_evolution_secondary_surface_entry_by_id": (
         _KNOWLEDGE_EVOLUTION_SECONDARY_SURFACE
+    ),
+    "KnowledgeEvolutionGovernanceBoundary": _KNOWLEDGE_EVOLUTION_GOVERNANCE,
+    "KnowledgeEvolutionGovernancePlan": _KNOWLEDGE_EVOLUTION_GOVERNANCE,
+    "build_knowledge_evolution_governance": _KNOWLEDGE_EVOLUTION_GOVERNANCE,
+    "knowledge_evolution_governance_boundaries_for_status": (
+        _KNOWLEDGE_EVOLUTION_GOVERNANCE
+    ),
+    "knowledge_evolution_governance_boundary_by_id": (
+        _KNOWLEDGE_EVOLUTION_GOVERNANCE
     ),
     "SourceReliabilityEnginePlan": _SOURCE_RELIABILITY_ENGINE,
     "SourceReliabilitySignal": _SOURCE_RELIABILITY_ENGINE,
