@@ -509,6 +509,9 @@ _SOURCE_RELIABILITY_ENGINE = (
 _KNOWLEDGE_CONSOLIDATION = (
     "creative_coding_assistant.orchestration.knowledge_consolidation"
 )
+_KNOWLEDGE_FRESHNESS_TRACKING = (
+    "creative_coding_assistant.orchestration.knowledge_freshness_tracking"
+)
 _KNOWLEDGE_LIFECYCLE_MANAGEMENT = (
     "creative_coding_assistant.orchestration.knowledge_lifecycle_management"
 )
@@ -2466,6 +2469,12 @@ _EXPORT_MAP = {
     "knowledge_consolidation_signal_by_id": _KNOWLEDGE_CONSOLIDATION,
     "knowledge_consolidation_signals_for_confidence": _KNOWLEDGE_CONSOLIDATION,
     "knowledge_consolidation_signals_for_status": _KNOWLEDGE_CONSOLIDATION,
+    "KnowledgeFreshnessSignal": _KNOWLEDGE_FRESHNESS_TRACKING,
+    "KnowledgeFreshnessTrackingPlan": _KNOWLEDGE_FRESHNESS_TRACKING,
+    "build_knowledge_freshness_tracking": _KNOWLEDGE_FRESHNESS_TRACKING,
+    "knowledge_freshness_signal_by_id": _KNOWLEDGE_FRESHNESS_TRACKING,
+    "knowledge_freshness_signals_for_confidence": _KNOWLEDGE_FRESHNESS_TRACKING,
+    "knowledge_freshness_signals_for_status": _KNOWLEDGE_FRESHNESS_TRACKING,
     "KnowledgeLifecycleManagementPlan": _KNOWLEDGE_LIFECYCLE_MANAGEMENT,
     "KnowledgeLifecycleSignal": _KNOWLEDGE_LIFECYCLE_MANAGEMENT,
     "build_knowledge_lifecycle_management": _KNOWLEDGE_LIFECYCLE_MANAGEMENT,
