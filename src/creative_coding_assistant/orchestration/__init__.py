@@ -503,6 +503,9 @@ _KNOWLEDGE_CONFLICT_RESOLVER = (
 _KNOWLEDGE_DRIFT_DETECTION = (
     "creative_coding_assistant.orchestration.knowledge_drift_detection"
 )
+_SOURCE_RELIABILITY_ENGINE = (
+    "creative_coding_assistant.orchestration.source_reliability_engine"
+)
 _LONG_TERM_CREATIVE_MEMORY = (
     "creative_coding_assistant.orchestration.long_term_creative_memory"
 )
@@ -2435,6 +2438,12 @@ _EXPORT_MAP = {
     "knowledge_drift_signal_by_id": _KNOWLEDGE_DRIFT_DETECTION,
     "knowledge_drift_signals_for_confidence": _KNOWLEDGE_DRIFT_DETECTION,
     "knowledge_drift_signals_for_status": _KNOWLEDGE_DRIFT_DETECTION,
+    "SourceReliabilityEnginePlan": _SOURCE_RELIABILITY_ENGINE,
+    "SourceReliabilitySignal": _SOURCE_RELIABILITY_ENGINE,
+    "build_source_reliability_engine": _SOURCE_RELIABILITY_ENGINE,
+    "source_reliability_signal_by_id": _SOURCE_RELIABILITY_ENGINE,
+    "source_reliability_signals_for_confidence": _SOURCE_RELIABILITY_ENGINE,
+    "source_reliability_signals_for_status": _SOURCE_RELIABILITY_ENGINE,
     "build_long_term_creative_memory": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_record_by_id": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_records_for_sensitivity": (
