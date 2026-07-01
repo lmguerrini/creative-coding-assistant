@@ -247,6 +247,31 @@ V62_CREATIVE_MEMORY_SURFACES = (
     "Creative Memory Governance",
     "Creative Memory Failure Path Audit",
 )
+V63_KNOWLEDGE_EVOLUTION_SURFACES = (
+    "Automatic KB Updates",
+    "Documentation Intelligence",
+    "Embedding Refresh",
+    "Retrieval Evolution",
+    "Ranking Optimization",
+    "Knowledge Health Monitoring",
+    "Knowledge Quality Scoring",
+    "Knowledge Gap Detection",
+    "Knowledge Conflict Resolver",
+    "Knowledge Drift Detection",
+    "Source Reliability Engine",
+    "Knowledge Consolidation",
+    "Knowledge Lifecycle Management",
+    "Knowledge Provenance Evolution",
+    "Knowledge Versioning",
+    "Knowledge Snapshot Engine",
+    "Knowledge Rollback",
+    "Knowledge Freshness Tracking",
+    "Knowledge Trust Score",
+    "Knowledge Evolution Core Surface",
+    "Knowledge Evolution Secondary Surface",
+    "Knowledge Evolution Governance",
+    "Knowledge Evolution Runtime Failure Audit",
+)
 PUBLIC_README_INTERNAL_MARKERS = (
     "Current Branch Status",
     "feature/",
@@ -1056,6 +1081,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "Adaptive Learning Engine",
             "V6.2",
             "Creative Memory Engine",
+            "V6.3",
+            "Knowledge Evolution Engine",
             "V6",
             "HoloGenesis Core OS",
         ):
@@ -1076,6 +1103,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("## V5.6 Production Release Surfaces", engine_matrix)
         self.assertIn("## V6.1 Adaptive Learning Engine Surfaces", engine_matrix)
         self.assertIn("## V6.2 Creative Memory Engine Surfaces", engine_matrix)
+        self.assertIn("## V6.3 Knowledge Evolution Engine Surfaces", engine_matrix)
 
         for registry_marker in (
             "agent_capability_registry.v1",
@@ -1273,8 +1301,34 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "creative_memory_secondary_surface_plan.v1",
             "creative_memory_governance_plan.v1",
             "creative_memory_failure_path_audit_registry.v1",
+            "automatic_kb_update_plan.v1",
+            "documentation_intelligence_plan.v1",
+            "embedding_refresh_plan.v1",
+            "retrieval_evolution_plan.v1",
+            "ranking_optimization_plan.v1",
+            "knowledge_health_plan.v1",
+            "knowledge_quality_plan.v1",
+            "knowledge_gap_plan.v1",
+            "knowledge_conflict_plan.v1",
+            "knowledge_drift_plan.v1",
+            "source_reliability_plan.v1",
+            "knowledge_consolidation_plan.v1",
+            "knowledge_lifecycle_plan.v1",
+            "knowledge_provenance_plan.v1",
+            "knowledge_versioning_plan.v1",
+            "knowledge_snapshot_plan.v1",
+            "knowledge_rollback_plan.v1",
+            "knowledge_freshness_plan.v1",
+            "knowledge_trust_plan.v1",
+            "knowledge_evolution_core_surface_plan.v1",
+            "knowledge_evolution_secondary_surface_plan.v1",
+            "knowledge_evolution_governance_plan.v1",
+            "knowledge_evolution_failure_path_audit_registry.v1",
         ):
             self.assertIn(registry_marker, engine_matrix)
+
+        for surface in V63_KNOWLEDGE_EVOLUTION_SURFACES:
+            self.assertIn(surface, engine_matrix)
 
         for module_path in (
             "agent_capabilities.py",
@@ -1418,6 +1472,29 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "creative_memory_secondary_surface.py",
             "creative_memory_governance.py",
             "creative_memory_failure_path_audit.py",
+            "automatic_kb_updates.py",
+            "documentation_intelligence.py",
+            "embedding_refresh.py",
+            "retrieval_evolution.py",
+            "ranking_optimization.py",
+            "knowledge_health_monitoring.py",
+            "knowledge_quality_scoring.py",
+            "knowledge_gap_detection.py",
+            "knowledge_conflict_resolver.py",
+            "knowledge_drift_detection.py",
+            "source_reliability_engine.py",
+            "knowledge_consolidation.py",
+            "knowledge_lifecycle_management.py",
+            "knowledge_provenance_evolution.py",
+            "knowledge_versioning.py",
+            "knowledge_snapshot_engine.py",
+            "knowledge_rollback.py",
+            "knowledge_freshness_tracking.py",
+            "knowledge_trust_score.py",
+            "knowledge_evolution_core_surface.py",
+            "knowledge_evolution_secondary_surface.py",
+            "knowledge_evolution_governance.py",
+            "knowledge_evolution_failure_path_audit.py",
         ):
             self.assertIn(module_path, engine_matrix)
 
@@ -1491,6 +1568,23 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("creative memory storage writes", normalized_engine_matrix)
         self.assertIn("preference learning execution", normalized_engine_matrix)
         self.assertIn("governance policy enforcement", normalized_engine_matrix)
+        self.assertIn(
+            "advisory knowledge evolution metadata",
+            normalized_engine_matrix,
+        )
+        self.assertIn("automatic KB update execution", normalized_engine_matrix)
+        self.assertIn("retrieval configuration mutation", normalized_engine_matrix)
+        self.assertIn("trust score computation", normalized_engine_matrix)
+        self.assertIn("KB storage writes", normalized_engine_matrix)
+        self.assertIn("source record updates", normalized_engine_matrix)
+        self.assertIn("provenance graph mutation", normalized_engine_matrix)
+        self.assertIn("version graph mutation", normalized_engine_matrix)
+        self.assertIn("snapshot execution", normalized_engine_matrix)
+        self.assertIn("rollback execution", normalized_engine_matrix)
+        self.assertIn(
+            "all 19 V6.3 roadmap surfaces",
+            normalized_engine_matrix,
+        )
 
     def test_workstation_surface_docs_cover_v35_surface_layer(self) -> None:
         architecture_doc = (
