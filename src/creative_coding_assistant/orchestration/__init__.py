@@ -477,6 +477,9 @@ _EXECUTION_CONFIDENCE_ENGINE = (
 _ADAPTIVE_LEARNING_ENGINE = (
     "creative_coding_assistant.orchestration.adaptive_learning_engine"
 )
+_AUTOMATIC_KB_UPDATES = (
+    "creative_coding_assistant.orchestration.automatic_kb_updates"
+)
 _LONG_TERM_CREATIVE_MEMORY = (
     "creative_coding_assistant.orchestration.long_term_creative_memory"
 )
@@ -2347,6 +2350,12 @@ _EXPORT_MAP = {
     "adaptive_learning_signal_by_id": _ADAPTIVE_LEARNING_ENGINE,
     "adaptive_learning_signals_for_priority": _ADAPTIVE_LEARNING_ENGINE,
     "adaptive_learning_signals_for_status": _ADAPTIVE_LEARNING_ENGINE,
+    "AutomaticKBUpdatePlan": _AUTOMATIC_KB_UPDATES,
+    "AutomaticKBUpdateCandidate": _AUTOMATIC_KB_UPDATES,
+    "build_automatic_kb_updates": _AUTOMATIC_KB_UPDATES,
+    "automatic_kb_update_candidate_by_id": _AUTOMATIC_KB_UPDATES,
+    "automatic_kb_update_candidates_for_confidence": _AUTOMATIC_KB_UPDATES,
+    "automatic_kb_update_candidates_for_status": _AUTOMATIC_KB_UPDATES,
     "build_long_term_creative_memory": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_record_by_id": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_records_for_sensitivity": (
