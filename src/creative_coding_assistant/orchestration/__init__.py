@@ -512,6 +512,9 @@ _KNOWLEDGE_CONSOLIDATION = (
 _KNOWLEDGE_FRESHNESS_TRACKING = (
     "creative_coding_assistant.orchestration.knowledge_freshness_tracking"
 )
+_KNOWLEDGE_TRUST_SCORE = (
+    "creative_coding_assistant.orchestration.knowledge_trust_score"
+)
 _KNOWLEDGE_LIFECYCLE_MANAGEMENT = (
     "creative_coding_assistant.orchestration.knowledge_lifecycle_management"
 )
@@ -2475,6 +2478,12 @@ _EXPORT_MAP = {
     "knowledge_freshness_signal_by_id": _KNOWLEDGE_FRESHNESS_TRACKING,
     "knowledge_freshness_signals_for_confidence": _KNOWLEDGE_FRESHNESS_TRACKING,
     "knowledge_freshness_signals_for_status": _KNOWLEDGE_FRESHNESS_TRACKING,
+    "KnowledgeTrustScorePlan": _KNOWLEDGE_TRUST_SCORE,
+    "KnowledgeTrustSignal": _KNOWLEDGE_TRUST_SCORE,
+    "build_knowledge_trust_score": _KNOWLEDGE_TRUST_SCORE,
+    "knowledge_trust_signal_by_id": _KNOWLEDGE_TRUST_SCORE,
+    "knowledge_trust_signals_for_confidence": _KNOWLEDGE_TRUST_SCORE,
+    "knowledge_trust_signals_for_status": _KNOWLEDGE_TRUST_SCORE,
     "KnowledgeLifecycleManagementPlan": _KNOWLEDGE_LIFECYCLE_MANAGEMENT,
     "KnowledgeLifecycleSignal": _KNOWLEDGE_LIFECYCLE_MANAGEMENT,
     "build_knowledge_lifecycle_management": _KNOWLEDGE_LIFECYCLE_MANAGEMENT,
