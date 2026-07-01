@@ -488,6 +488,9 @@ _RETRIEVAL_EVOLUTION = "creative_coding_assistant.orchestration.retrieval_evolut
 _RANKING_OPTIMIZATION = (
     "creative_coding_assistant.orchestration.ranking_optimization"
 )
+_KNOWLEDGE_HEALTH_MONITORING = (
+    "creative_coding_assistant.orchestration.knowledge_health_monitoring"
+)
 _LONG_TERM_CREATIVE_MEMORY = (
     "creative_coding_assistant.orchestration.long_term_creative_memory"
 )
@@ -2390,6 +2393,12 @@ _EXPORT_MAP = {
     "ranking_optimization_signal_by_id": _RANKING_OPTIMIZATION,
     "ranking_optimization_signals_for_confidence": _RANKING_OPTIMIZATION,
     "ranking_optimization_signals_for_status": _RANKING_OPTIMIZATION,
+    "KnowledgeHealthMonitoringPlan": _KNOWLEDGE_HEALTH_MONITORING,
+    "KnowledgeHealthSignal": _KNOWLEDGE_HEALTH_MONITORING,
+    "build_knowledge_health_monitoring": _KNOWLEDGE_HEALTH_MONITORING,
+    "knowledge_health_signal_by_id": _KNOWLEDGE_HEALTH_MONITORING,
+    "knowledge_health_signals_for_confidence": _KNOWLEDGE_HEALTH_MONITORING,
+    "knowledge_health_signals_for_status": _KNOWLEDGE_HEALTH_MONITORING,
     "build_long_term_creative_memory": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_record_by_id": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_records_for_sensitivity": (
