@@ -112,6 +112,20 @@ inspection metadata, critique, and refinement context.
   application, lineage inference, ontology relationship inference, safety
   policy enforcement, HITL request emission, automation activation, workflow
   control, provider execution, Runtime Evolution, or output mutation.
+- V6.3 Knowledge Evolution Engine for advisory automatic KB updates,
+  documentation intelligence, embedding refresh, retrieval evolution, ranking
+  optimization, knowledge health monitoring, knowledge quality scoring,
+  knowledge gap detection, knowledge conflict resolver, knowledge drift
+  detection, source reliability, knowledge consolidation, lifecycle
+  management, provenance evolution, versioning, snapshot, rollback, freshness,
+  trust score, governance, and runtime failure-path audit metadata without
+  automatic KB update execution, documentation fetch execution, embedding
+  refresh execution, retrieval execution, retrieval configuration mutation,
+  ranking mutation, quality or trust score computation, source record updates,
+  KB storage writes, provenance graph mutation, version graph mutation,
+  snapshot execution, rollback execution, freshness scans, policy enforcement,
+  HITL request emission, automation activation, workflow control, provider
+  execution, Runtime Evolution, or output mutation.
 
 ## Supported Creative Domains
 
@@ -131,10 +145,10 @@ inspection metadata, critique, and refinement context.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
 - V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6,
-  V6.1, and V6.2 registries and helpers are passive, advisory, read-only,
-  controlled-policy, advisory-learning, or advisory creative-memory product
-  and architecture metadata. They are inspectable Python APIs and
-  documentation surfaces.
+  V6.1, V6.2, and V6.3 registries and helpers are passive, advisory,
+  read-only, controlled-policy, advisory-learning, advisory creative-memory,
+  or advisory knowledge evolution product and architecture metadata. They are
+  inspectable Python APIs and documentation surfaces.
 
 ## V4.3 Passive Boundary
 
@@ -423,6 +437,34 @@ policies, emit HITL requests, request human input, activate automation,
 change provider/model routing, execute providers, execute or control
 workflows, mutate workflow graphs, trigger retries or refinements, write
 persistent storage, mutate generated output, or apply Runtime Evolution.
+
+## V6.3 Knowledge Evolution Boundary
+
+V6.3 Knowledge Evolution Engine continues the V6 cognitive layer as advisory
+knowledge evolution metadata over V6.2 creative memory, V6.1 learning, V5
+decision foundations, and existing retrieval/source metadata. Automatic KB
+Updates, Documentation Intelligence, Embedding Refresh, Retrieval Evolution,
+Ranking Optimization, Knowledge Health Monitoring, Knowledge Quality Scoring,
+Knowledge Gap Detection, Knowledge Conflict Resolver, Knowledge Drift
+Detection, Source Reliability Engine, Knowledge Consolidation, Knowledge
+Lifecycle Management, Knowledge Provenance Evolution, Knowledge Versioning,
+Knowledge Snapshot Engine, Knowledge Rollback, Knowledge Freshness Tracking,
+and Knowledge Trust Score remain individually traceable roadmap surfaces. The
+core surface, secondary surface, governance/safety metadata, and runtime
+failure path audit aggregate those surfaces for inspection and audit without
+grouping away their individual roadmap identities.
+
+It must not execute automatic KB updates, fetch documentation, refresh
+embeddings, execute retrieval, mutate retrieval configuration, mutate ranking,
+run health monitoring, compute quality or trust scores, execute gap detection,
+resolve conflicts, detect drift, score source reliability, consolidate
+knowledge, manage lifecycle state, mutate provenance graphs, mutate version
+graphs, execute snapshots, execute rollback, run freshness scans, write KB
+storage, update source records, enforce governance or safety policies, emit
+HITL requests, request human input, activate automation, change provider/model
+routing, execute providers, execute or control workflows, mutate workflow
+graphs, trigger retries or refinements, write persistent storage, mutate
+generated output, or apply Runtime Evolution.
 
 ## Non-Goals For Current Baseline
 

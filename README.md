@@ -122,6 +122,18 @@ apply Creative DNA, infer lineage or ontology relationships, enforce safety
 policies, emit HITL requests, activate automation, change provider/model
 routing, execute providers or workflows, apply Runtime Evolution, or mutate
 generated output.
+V6.3 adds Knowledge Evolution Engine metadata for automatic KB updates,
+documentation intelligence, embedding refresh, retrieval evolution, ranking
+optimization, knowledge health, quality, gap, conflict, and drift signals,
+source reliability, consolidation, lifecycle, provenance, versioning,
+snapshot, rollback, freshness, trust, governance, and failure-path audit
+coverage. It remains advisory knowledge evolution metadata only: it does not
+execute automatic KB updates, fetch documentation, refresh embeddings, execute
+retrieval, mutate retrieval configuration, mutate ranking, compute quality or
+trust scores, write KB storage, update source records, mutate provenance or
+version graphs, execute snapshots or rollbacks, enforce policies, emit HITL
+requests, activate automation, change provider/model routing, execute
+providers or workflows, apply Runtime Evolution, or mutate generated output.
 
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
@@ -229,6 +241,17 @@ observed through live preview and runtime inspection from the same interface.
   application, lineage or ontology inference, safety enforcement, HITL
   emission, automation, provider/model routing mutation, workflow execution,
   Runtime Evolution, or output mutation
+- V6.3 Knowledge Evolution Engine helpers for advisory automatic KB updates,
+  documentation intelligence, embedding refresh, retrieval evolution, ranking
+  optimization, health, quality, gap, conflict, drift, source reliability,
+  consolidation, lifecycle, provenance, versioning, snapshot, rollback,
+  freshness, trust, governance, and failure audit metadata without automatic
+  KB update execution, documentation fetch execution, embedding refresh
+  execution, retrieval execution, retrieval configuration mutation, ranking
+  mutation, quality or trust score computation, source record updates, KB
+  storage writes, graph mutation, snapshot or rollback execution, policy
+  enforcement, HITL emission, automation, provider/model routing mutation,
+  workflow execution, Runtime Evolution, or output mutation
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -664,6 +687,32 @@ Creative Memory Engine surfaces:
 - Creative Memory Governance
 - Creative Memory Failure Path Audit
 
+Knowledge Evolution Engine surfaces:
+
+- Automatic KB Updates
+- Documentation Intelligence
+- Embedding Refresh
+- Retrieval Evolution
+- Ranking Optimization
+- Knowledge Health Monitoring
+- Knowledge Quality Scoring
+- Knowledge Gap Detection
+- Knowledge Conflict Resolver
+- Knowledge Drift Detection
+- Source Reliability Engine
+- Knowledge Consolidation
+- Knowledge Lifecycle Management
+- Knowledge Provenance Evolution
+- Knowledge Versioning
+- Knowledge Snapshot Engine
+- Knowledge Rollback
+- Knowledge Freshness Tracking
+- Knowledge Trust Score
+- Knowledge Evolution Core Surface
+- Knowledge Evolution Secondary Surface
+- Knowledge Evolution Governance
+- Knowledge Evolution Runtime Failure Audit
+
 The architecture documents six complementary views:
 
 - the real runtime graph in
@@ -677,8 +726,8 @@ The architecture documents six complementary views:
 - the V3.5 Creative Workstation surface graph in
   [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
 - the cross-cutting engine matrix, including V4.1, V4.2, V4.3, V4.4, V4.5,
-  V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, and V6.2 metadata layers, in
-  [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
+  V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, V6.2, and V6.3 metadata
+  layers, in [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
 The runtime graph remains compact and truthful. The internal pipeline and
 dependency views remain blueprints for future V4 Agentic Studio decomposition,
@@ -686,15 +735,17 @@ while V4.1, V4.2, V4.3, V4.4, V4.5, and V4.6 document passive roles,
 contracts, orchestration, hybrid workflow, hybrid studio, multimodal studio,
 and hardening metadata rather than claiming that a multi-agent runtime, Studio
 runtime, rendering execution path, or runtime hardening engine already exists.
-V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, and V6.2 document advisory
+V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, V6.2, and V6.3 document advisory
 execution optimization, model-routing, performance, read-only observability,
 controlled adaptive execution policy/simulation, production-release readiness,
-adaptive learning, and creative memory metadata without claiming that provider
-execution, model switching, live telemetry emission, performance measurement,
-benchmark execution, resource enforcement, runtime workflow control,
-automatic downloads, deployment execution, release tag creation, memory
-storage writes, preference learning execution, personalization application,
-automation, or generated-output mutation has been added.
+adaptive learning, creative memory, and knowledge evolution metadata without
+claiming that provider execution, model switching, live telemetry emission,
+performance measurement, benchmark execution, resource enforcement, runtime
+workflow control, automatic downloads, deployment execution, release tag
+creation, memory storage writes, preference learning execution,
+personalization application, automatic KB update execution, retrieval
+configuration mutation, source record updates, KB storage writes, automation,
+or generated-output mutation has been added.
 
 ## Creative Workflow
 
@@ -807,6 +858,18 @@ inspection, and multimodal workspace inspection:
   Creative DNA application, lineage or ontology inference, safety enforcement,
   HITL request emission, automation activation, provider/model routing,
   workflow control, Runtime Evolution, or output mutation.
+- Knowledge Evolution: advisory automatic KB update, documentation
+  intelligence, embedding refresh, retrieval, ranking, health, quality, gap,
+  conflict, drift, source reliability, consolidation, lifecycle, provenance,
+  versioning, snapshot, rollback, freshness, trust, governance, and
+  failure-audit metadata describe knowledge evolution posture without
+  automatic KB update execution, documentation fetch execution, embedding
+  refresh execution, retrieval execution, retrieval configuration mutation,
+  ranking mutation, quality or trust score computation, source record updates,
+  KB storage writes, provenance or version graph mutation, snapshot or
+  rollback execution, HITL request emission, automation activation,
+  provider/model routing, workflow control, Runtime Evolution, or output
+  mutation.
 - Generation: the backend resolves effective domains, assembles the prompt,
   and streams one or more creative artifacts.
 - Preview: supported artifacts mount in controlled preview runtimes with
@@ -1544,9 +1607,21 @@ current runtime.
   application, Creative DNA application, lineage or ontology inference,
   safety policy enforcement, HITL emission, automation activation, workflow
   control, provider execution, Runtime Evolution, or output mutation.
+- Knowledge Evolution: V6.3 provides advisory automatic KB updates,
+  documentation intelligence, embedding refresh, retrieval evolution, ranking
+  optimization, health, quality, gap, conflict, drift, source reliability,
+  consolidation, lifecycle, provenance, versioning, snapshot, rollback,
+  freshness, trust, governance, and failure-audit metadata today without
+  automatic KB update execution, documentation fetch execution, embedding
+  refresh execution, retrieval execution, retrieval configuration mutation,
+  ranking mutation, quality or trust score computation, source record updates,
+  KB storage writes, provenance or version graph mutation, snapshot or
+  rollback execution, policy enforcement, HITL emission, automation
+  activation, workflow control, provider execution, Runtime Evolution, or
+  output mutation.
 - HoloGenesis Core OS: long-horizon creative lineage, persistent feedback,
-  active creative memory, and system-level continuity beyond the current V6.2
-  metadata boundary.
+  active creative memory, active knowledge evolution, and system-level
+  continuity beyond the current V6.3 metadata boundary.
 
 ## Setup
 

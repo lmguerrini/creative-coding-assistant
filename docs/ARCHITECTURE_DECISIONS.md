@@ -10,8 +10,9 @@
   registry layers, V5.1 execution optimization helpers, V5.2 model-routing
   helpers, V5.3 performance helpers, V5.4 production observability helpers,
   V5.5 adaptive execution policy helpers, and V5.6 production-release
-  readiness helpers, V6.1 adaptive learning helpers, and V6.2 creative memory
-  helpers are metadata surfaces, not additional runtime nodes.
+  readiness helpers, V6.1 adaptive learning helpers, V6.2 creative memory
+  helpers, and V6.3 knowledge evolution helpers are metadata surfaces, not
+  additional runtime nodes.
 - Keep the Next.js workstation responsible for product inspection, preview,
   comparison, export, telemetry, workflow visibility, and operator controls.
 
@@ -22,12 +23,13 @@ V4.2, V4.3, V4.4, V4.5, and V4.6 registries, advisory V5.1 optimization
 helpers, advisory V5.2 model-routing helpers, advisory V5.3 performance
 helpers, read-only V5.4 production observability helpers, and controlled V5.5
 adaptive execution policy helpers, and V5.6 production-release readiness
-helpers, V6.1 adaptive learning helpers, and V6.2 creative memory helpers do
-not create storage backends, write blackboard state, write replay storage,
-persist cache entries, persist learning memory, write creative memory storage,
-write telemetry or trace stores, emit monitoring events, allocate resources,
-create release artifacts, run deployment storage writes, or introduce runtime
-synchronization behavior.
+helpers, V6.1 adaptive learning helpers, V6.2 creative memory helpers, and
+V6.3 knowledge evolution helpers do not create storage backends, write
+blackboard state, write replay storage, persist cache entries, persist
+learning memory, write creative memory storage, write KB storage, update
+source records, write telemetry or trace stores, emit monitoring events,
+allocate resources, create release artifacts, run deployment storage writes,
+or introduce runtime synchronization behavior.
 
 ## Metadata Layering
 
@@ -99,6 +101,15 @@ synchronization behavior.
   conflict, explainability, safety, taste, preference evolution, governance,
   and failure-path metadata over V6.1 learning and V5 decision foundations
   without writing creative memory, applying personalization, or changing
+  runtime behavior.
+- V6.3 Knowledge Evolution Engine helpers describe advisory automatic KB
+  updates, documentation intelligence, embedding refresh, retrieval evolution,
+  ranking optimization, health, quality, gap, conflict, drift, source
+  reliability, consolidation, lifecycle, provenance, versioning, snapshot,
+  rollback, freshness, trust, governance, and failure-path metadata over V6.2
+  creative memory, V6.1 learning, V5 decision foundations, and existing
+  retrieval/source metadata without writing KB storage, updating source
+  records, mutating retrieval configuration, applying policies, or changing
   runtime behavior.
 
 ## V4.3 Boundary Decision
@@ -389,6 +400,36 @@ Runtime Evolution, or modify generated output. More generally, it does not
 change provider/model routing, does not introduce automatic personalization
 or active memory behavior, and does not modify generated output.
 
+## V6.3 Boundary Decision
+
+V6.3 Knowledge Evolution Engine is an advisory knowledge evolution metadata
+layer only. It may expose Automatic KB Updates, Documentation Intelligence,
+Embedding Refresh, Retrieval Evolution, Ranking Optimization, Knowledge Health
+Monitoring, Knowledge Quality Scoring, Knowledge Gap Detection, Knowledge
+Conflict Resolver, Knowledge Drift Detection, Source Reliability Engine,
+Knowledge Consolidation, Knowledge Lifecycle Management, Knowledge Provenance
+Evolution, Knowledge Versioning, Knowledge Snapshot Engine, Knowledge
+Rollback, Knowledge Freshness Tracking, Knowledge Trust Score, core surface,
+secondary surface, governance/safety, and runtime failure-path audit coverage.
+The 19 contractual roadmap items must remain individually traceable for
+roadmap coverage verification, Codex Engineering Audit classification, and
+future capability-scoped fixes.
+
+It must not execute automatic KB updates, fetch documentation, refresh
+embeddings, execute retrieval, mutate retrieval configuration, mutate ranking,
+run health monitoring, compute quality or trust scores, execute gap detection,
+resolve conflicts, detect drift, score source reliability, consolidate
+knowledge, manage lifecycle state, mutate provenance graphs, mutate version
+graphs, execute snapshots, execute rollback, run freshness scans, write KB
+storage, update source records, enforce governance or safety policies, emit
+HITL requests, request human input, activate automation, change provider/model
+routing, execute providers, execute or control workflows, mutate workflow
+graphs, trigger retries or refinements, write persistent storage, activate
+passive registries as runtime behavior, apply Runtime Evolution, or modify
+generated output. More generally, it does not change provider/model routing,
+does not introduce active knowledge evolution behavior, and does not modify
+generated output.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -411,8 +452,9 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - V5.6 production release readiness metadata
 - advisory V6.1 adaptive learning metadata
 - advisory V6.2 creative memory metadata
+- advisory V6.3 knowledge evolution metadata
 - future active V4 Agentic Studio, live adaptive runtime control, and later
-  V6 learning/memory/research/evolution work
+  V6 learning/memory/research/self-evolution work
 
 ## Code Quality Rules
 

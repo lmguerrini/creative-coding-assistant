@@ -329,6 +329,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("Adaptive Learning Engine", readme)
         self.assertIn("V6.2", readme)
         self.assertIn("Creative Memory Engine", readme)
+        self.assertIn("V6.3", readme)
+        self.assertIn("Knowledge Evolution Engine", readme)
         self.assertIn("Next.js workstation", readme)
         self.assertIn("Capability Scope", readme)
         self.assertIn("architecture/artifact_intelligence_graph.md", readme)
@@ -370,6 +372,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         for surface in V61_ADAPTIVE_LEARNING_SURFACES:
             self.assertIn(surface, readme)
         for surface in V62_CREATIVE_MEMORY_SURFACES:
+            self.assertIn(surface, readme)
+        for surface in V63_KNOWLEDGE_EVOLUTION_SURFACES:
             self.assertIn(surface, readme)
         self.assertIn("Execution Optimization Failure Audit", readme)
         self.assertIn("Model Routing Architecture Consistency", readme)
@@ -430,6 +434,13 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("personalization application", normalized_readme)
         self.assertIn("HITL request emission", normalized_readme)
         self.assertIn("automation activation", normalized_readme)
+        self.assertIn("advisory knowledge evolution metadata", normalized_readme)
+        self.assertIn("automatic KB update execution", normalized_readme)
+        self.assertIn("retrieval configuration mutation", normalized_readme)
+        self.assertIn("quality or trust score computation", normalized_readme)
+        self.assertIn("source record updates", normalized_readme)
+        self.assertIn("KB storage writes", normalized_readme)
+        self.assertIn("active knowledge evolution", normalized_readme)
         self.assertIn("Runtime Evolution", normalized_readme)
 
         for internal_marker in PUBLIC_README_INTERNAL_MARKERS:
@@ -790,6 +801,62 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("apply Creative DNA", normalized_combined)
         self.assertIn("infer creative lineage", normalized_combined)
         self.assertIn("infer ontology relationships", normalized_combined)
+        self.assertIn("enforce governance or safety policies", normalized_combined)
+        self.assertIn("emit HITL requests", normalized_combined)
+        self.assertIn("activate automation", normalized_combined)
+        self.assertIn("change provider/model routing", normalized_combined)
+        self.assertIn("execute providers", normalized_combined)
+        self.assertIn("execute or control workflows", normalized_combined)
+        self.assertIn("apply Runtime Evolution", normalized_combined)
+        self.assertIn("modify generated output", normalized_combined)
+
+    def test_project_docs_cover_current_v6_3_knowledge_evolution_scope(
+        self,
+    ) -> None:
+        project_context = (
+            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
+        ).read_text(encoding="utf-8")
+        decisions = (
+            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
+        ).read_text(encoding="utf-8")
+        roadmap = (
+            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
+        ).read_text(encoding="utf-8")
+        combined = "\n".join((project_context, decisions, roadmap))
+        normalized_combined = re.sub(r"\s+", " ", combined)
+
+        self.assertIn("V6.3 Knowledge Evolution Engine", combined)
+        self.assertIn("V6.3 Knowledge Evolution Boundary", project_context)
+        self.assertIn("V6.3 Boundary Decision", decisions)
+        self.assertIn(
+            "advisory knowledge evolution metadata layer",
+            normalized_combined,
+        )
+        for surface in V63_KNOWLEDGE_EVOLUTION_SURFACES[:19]:
+            self.assertIn(surface, combined)
+        self.assertIn("core surface", normalized_combined)
+        self.assertIn("secondary surface", normalized_combined)
+        self.assertIn("governance/safety", normalized_combined)
+        self.assertIn("runtime failure-path audit coverage", normalized_combined)
+        self.assertIn(
+            "All 19 contractual V6.3 roadmap items remain individually "
+            "traceable",
+            normalized_combined,
+        )
+        self.assertIn("execute automatic KB updates", normalized_combined)
+        self.assertIn("fetch documentation", normalized_combined)
+        self.assertIn("refresh embeddings", normalized_combined)
+        self.assertIn("execute retrieval", normalized_combined)
+        self.assertIn("mutate retrieval configuration", normalized_combined)
+        self.assertIn("mutate ranking", normalized_combined)
+        self.assertIn("compute quality or trust scores", normalized_combined)
+        self.assertIn("write KB storage", normalized_combined)
+        self.assertIn("update source records", normalized_combined)
+        self.assertIn("mutate provenance graphs", normalized_combined)
+        self.assertIn("mutate version graphs", normalized_combined)
+        self.assertIn("execute snapshots", normalized_combined)
+        self.assertIn("execute rollback", normalized_combined)
+        self.assertIn("run freshness scans", normalized_combined)
         self.assertIn("enforce governance or safety policies", normalized_combined)
         self.assertIn("emit HITL requests", normalized_combined)
         self.assertIn("activate automation", normalized_combined)

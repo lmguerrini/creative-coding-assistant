@@ -84,7 +84,7 @@ control workflows, change provider/model routing, select runtimes, trigger
 retries, mutate storage, execute artifacts, invoke agents, or modify generated
 output.
 
-## Advisory Execution, Model Routing, Performance, Observability, Controlled Adaptive Execution, Learning, And Creative Memory
+## Advisory Execution, Model Routing, Performance, Observability, Controlled Adaptive Execution, Learning, Creative Memory, And Knowledge Evolution
 
 The V5.1 Execution Optimization Engine is a completed advisory metadata layer.
 It records execution graph analysis, workflow cost and complexity analysis,
@@ -230,6 +230,32 @@ workflows, mutate workflow graphs, trigger retries or refinements, write
 persistent storage, activate passive registries, apply Runtime Evolution, or
 modify generated output.
 
+The V6.3 Knowledge Evolution Engine is an in-progress advisory knowledge
+evolution metadata layer. It records Automatic KB Updates, Documentation
+Intelligence, Embedding Refresh, Retrieval Evolution, Ranking Optimization,
+Knowledge Health Monitoring, Knowledge Quality Scoring, Knowledge Gap
+Detection, Knowledge Conflict Resolver, Knowledge Drift Detection, Source
+Reliability Engine, Knowledge Consolidation, Knowledge Lifecycle Management,
+Knowledge Provenance Evolution, Knowledge Versioning, Knowledge Snapshot
+Engine, Knowledge Rollback, Knowledge Freshness Tracking, Knowledge Trust
+Score, core and secondary surfaces, governance/safety, and runtime
+failure-path audit coverage.
+
+It does not execute automatic KB updates, fetch documentation, refresh
+embeddings, execute retrieval, mutate retrieval configuration, mutate ranking,
+run health monitoring, compute quality or trust scores, execute gap detection,
+resolve conflicts, detect drift, score source reliability, consolidate
+knowledge, manage lifecycle state, mutate provenance graphs, mutate version
+graphs, execute snapshots, execute rollback, run freshness scans, write KB
+storage, update source records, enforce governance or safety policies, emit
+HITL requests, request human input, activate automation, change provider/model
+routing, execute providers, execute or control workflows, mutate workflow
+graphs, trigger retries or refinements, write persistent storage, activate
+passive registries as runtime behavior, apply Runtime Evolution, or modify
+generated output. All 19 contractual V6.3 roadmap items remain individually
+traceable for roadmap coverage, audit classification, and future
+capability-scoped fixes.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current
@@ -240,9 +266,9 @@ modify generated output.
   enforcement, telemetry emission, provider execution, live performance
   measurement, resource enforcement, and cost/performance enforcement work.
 - Later V6 Cognitive OS work remains future persistent memory, feedback
-  application, research, knowledge evolution, self-evolution, long-horizon
-  creative lineage, active creative memory, and system continuity work beyond
-  the current V6.2 advisory metadata boundary.
+  application, research, self-evolution, long-horizon creative lineage, active
+  creative memory, active knowledge evolution, and system continuity work
+  beyond the current V6.3 advisory metadata boundary.
 
 ## Documentation Contract
 
@@ -252,6 +278,6 @@ source coverage, including V5.1 execution optimization metadata, V5.2
 model-routing metadata, V5.3 performance metadata, V5.4 read-only
 observability metadata, and V5.5 controlled adaptive execution
 policy/simulation, V5.6 production-release readiness metadata, and V6.1
-adaptive learning metadata, and V6.2 advisory creative memory metadata, but
-must keep the current compact LangGraph workflow as the execution source of
-truth.
+adaptive learning metadata, V6.2 advisory creative memory metadata, and V6.3
+advisory knowledge evolution metadata, but must keep the current compact
+LangGraph workflow as the execution source of truth.
