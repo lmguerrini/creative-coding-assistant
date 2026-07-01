@@ -221,6 +221,32 @@ V61_ADAPTIVE_LEARNING_SURFACES = (
     "Learning Governance",
     "Adaptive Learning Failure Path Audit",
 )
+V62_CREATIVE_MEMORY_SURFACES = (
+    "Long-term Creative Memory",
+    "User Preferences",
+    "Style Profiles",
+    "Project Memory",
+    "Creative DNA",
+    "Personalization Engine",
+    "Session Memory Evolution",
+    "Artifact History",
+    "Creative Lineage",
+    "Creative Ontology",
+    "Preference Learning",
+    "User Modeling",
+    "Memory Consolidation",
+    "Memory Retrieval Intelligence",
+    "Memory Retrieval Planner",
+    "Memory Conflict Resolution",
+    "Memory Explainability",
+    "Memory Safety Policies",
+    "Creative Taste Model",
+    "Creative Preference Evolution",
+    "Creative Memory Core Surface",
+    "Creative Memory Secondary Surface",
+    "Creative Memory Governance",
+    "Creative Memory Failure Path Audit",
+)
 PUBLIC_README_INTERNAL_MARKERS = (
     "Current Branch Status",
     "feature/",
@@ -276,6 +302,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("Production Release", readme)
         self.assertIn("V6.1", readme)
         self.assertIn("Adaptive Learning Engine", readme)
+        self.assertIn("V6.2", readme)
+        self.assertIn("Creative Memory Engine", readme)
         self.assertIn("Next.js workstation", readme)
         self.assertIn("Capability Scope", readme)
         self.assertIn("architecture/artifact_intelligence_graph.md", readme)
@@ -315,6 +343,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         for surface in V56_PRODUCTION_RELEASE_SURFACES:
             self.assertIn(surface, readme)
         for surface in V61_ADAPTIVE_LEARNING_SURFACES:
+            self.assertIn(surface, readme)
+        for surface in V62_CREATIVE_MEMORY_SURFACES:
             self.assertIn(surface, readme)
         self.assertIn("Execution Optimization Failure Audit", readme)
         self.assertIn("Model Routing Architecture Consistency", readme)
@@ -369,6 +399,12 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("memory persistence", normalized_readme)
         self.assertIn("feedback application", normalized_readme)
         self.assertIn("live outcome observation", normalized_readme)
+        self.assertIn("advisory creative memory metadata", normalized_readme)
+        self.assertIn("memory storage writes", normalized_readme)
+        self.assertIn("preference learning execution", normalized_readme)
+        self.assertIn("personalization application", normalized_readme)
+        self.assertIn("HITL request emission", normalized_readme)
+        self.assertIn("automation activation", normalized_readme)
         self.assertIn("Runtime Evolution", normalized_readme)
 
         for internal_marker in PUBLIC_README_INTERNAL_MARKERS:
@@ -678,6 +714,63 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("execute providers", normalized_combined)
         self.assertIn("execute or control workflows", normalized_combined)
         self.assertIn("write persistent storage", normalized_combined)
+        self.assertIn("apply Runtime Evolution", normalized_combined)
+        self.assertIn("modify generated output", normalized_combined)
+
+    def test_project_docs_cover_current_v6_2_creative_memory_scope(self) -> None:
+        project_context = (
+            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
+        ).read_text(encoding="utf-8")
+        decisions = (
+            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
+        ).read_text(encoding="utf-8")
+        roadmap = (
+            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
+        ).read_text(encoding="utf-8")
+        combined = "\n".join((project_context, decisions, roadmap))
+        normalized_combined = re.sub(r"\s+", " ", combined)
+
+        self.assertIn("V6.2 Creative Memory Engine", combined)
+        self.assertIn("V6.2 Creative Memory Boundary", project_context)
+        self.assertIn("V6.2 Boundary Decision", decisions)
+        self.assertIn("advisory creative-memory metadata layer", normalized_combined)
+        self.assertIn("long-term creative memory", normalized_combined)
+        self.assertIn("user preferences", normalized_combined)
+        self.assertIn("style profiles", normalized_combined)
+        self.assertIn("project memory", normalized_combined)
+        self.assertIn("Creative DNA", normalized_combined)
+        self.assertIn("personalization posture", normalized_combined)
+        self.assertIn("session memory evolution", normalized_combined)
+        self.assertIn("artifact history", normalized_combined)
+        self.assertIn("creative lineage", normalized_combined)
+        self.assertIn("creative ontology", normalized_combined)
+        self.assertIn("preference learning posture", normalized_combined)
+        self.assertIn("user modeling", normalized_combined)
+        self.assertIn("memory consolidation posture", normalized_combined)
+        self.assertIn("memory retrieval intelligence", normalized_combined)
+        self.assertIn("memory retrieval planning", normalized_combined)
+        self.assertIn("memory conflict resolution", normalized_combined)
+        self.assertIn("memory explainability", normalized_combined)
+        self.assertIn("memory safety policy posture", normalized_combined)
+        self.assertIn("creative taste modeling", normalized_combined)
+        self.assertIn("creative preference evolution", normalized_combined)
+        self.assertIn("creative memory governance", normalized_combined)
+        self.assertIn("runtime failure-path audit coverage", normalized_combined)
+        self.assertIn("write creative memory storage", normalized_combined)
+        self.assertIn("execute memory retrieval", normalized_combined)
+        self.assertIn("execute memory consolidation", normalized_combined)
+        self.assertIn("execute preference learning", normalized_combined)
+        self.assertIn("mutate preferences", normalized_combined)
+        self.assertIn("apply personalization", normalized_combined)
+        self.assertIn("apply Creative DNA", normalized_combined)
+        self.assertIn("infer creative lineage", normalized_combined)
+        self.assertIn("infer ontology relationships", normalized_combined)
+        self.assertIn("enforce governance or safety policies", normalized_combined)
+        self.assertIn("emit HITL requests", normalized_combined)
+        self.assertIn("activate automation", normalized_combined)
+        self.assertIn("change provider/model routing", normalized_combined)
+        self.assertIn("execute providers", normalized_combined)
+        self.assertIn("execute or control workflows", normalized_combined)
         self.assertIn("apply Runtime Evolution", normalized_combined)
         self.assertIn("modify generated output", normalized_combined)
 

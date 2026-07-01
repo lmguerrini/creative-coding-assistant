@@ -99,6 +99,19 @@ inspection metadata, critique, and refinement context.
   execution, model training, feedback application, policy mutation, live
   outcome observation, workflow control, provider execution, storage writes,
   preference mutation, automatic remediation, or output mutation.
+- V6.2 Creative Memory Engine for advisory long-term creative memory, user
+  preferences, style profiles, project memory, Creative DNA, personalization
+  posture, session memory evolution, artifact history, creative lineage,
+  creative ontology, preference learning posture, user modeling, memory
+  consolidation posture, memory retrieval intelligence, memory retrieval
+  planning, memory conflict resolution posture, memory explainability, memory
+  safety policy posture, creative taste modeling, creative preference
+  evolution, creative memory governance, and runtime failure-path audit
+  metadata without memory storage writes, memory retrieval execution,
+  preference learning execution, personalization application, Creative DNA
+  application, lineage inference, ontology relationship inference, safety
+  policy enforcement, HITL request emission, automation activation, workflow
+  control, provider execution, Runtime Evolution, or output mutation.
 
 ## Supported Creative Domains
 
@@ -118,9 +131,10 @@ inspection metadata, critique, and refinement context.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
 - V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6,
-  and V6.1 registries and helpers are passive, advisory, read-only,
-  controlled-policy, or advisory-learning product and architecture metadata.
-  They are inspectable Python APIs and documentation surfaces.
+  V6.1, and V6.2 registries and helpers are passive, advisory, read-only,
+  controlled-policy, advisory-learning, or advisory creative-memory product
+  and architecture metadata. They are inspectable Python APIs and
+  documentation surfaces.
 
 ## V4.3 Passive Boundary
 
@@ -379,6 +393,36 @@ probe local runtimes, install dependencies, change preview behavior, compile
 graphs, render or mutate prompts, write persistent storage, persist success
 metrics, automatically remediate failures, modify generated output, or apply
 Runtime Evolution.
+
+## V6.2 Creative Memory Boundary
+
+V6.2 Creative Memory Engine continues the V6 cognitive layer as advisory
+creative-memory metadata over V6.1 learning and the V5 decision foundations.
+Long-term creative memory records governed memory posture from existing
+creative, artifact, and learning metadata without creating, updating,
+deleting, or retrieving memory records. User preferences, style profiles,
+project memory, Creative DNA, personalization, session memory evolution,
+artifact history, creative lineage, and creative ontology expose inspectable
+signals from prior metadata without learning preferences, applying
+personalization, applying Creative DNA, reconstructing artifacts, inferring
+lineage, or mutating ontology relationships. The secondary creative memory
+surface covers preference learning, user modeling, memory consolidation,
+retrieval intelligence, retrieval planning, memory conflict resolution,
+memory explainability, memory safety policies, creative taste modeling, and
+creative preference evolution as advisory posture only. Governance and safety
+metadata records memory-storage, preference-learning, HITL, explainability,
+safety, and no-automation boundaries, while the runtime failure path audit
+verifies the V6.2 surfaces against runtime failure checklist coverage.
+
+It must not write creative memory storage, execute memory retrieval, execute
+memory consolidation, create or update user models, execute preference
+learning, mutate preferences, apply personalization, apply Creative DNA,
+persist artifact history, infer creative lineage, infer ontology
+relationships, materialize semantic graphs, enforce governance or safety
+policies, emit HITL requests, request human input, activate automation,
+change provider/model routing, execute providers, execute or control
+workflows, mutate workflow graphs, trigger retries or refinements, write
+persistent storage, mutate generated output, or apply Runtime Evolution.
 
 ## Non-Goals For Current Baseline
 

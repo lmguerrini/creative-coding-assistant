@@ -84,7 +84,7 @@ control workflows, change provider/model routing, select runtimes, trigger
 retries, mutate storage, execute artifacts, invoke agents, or modify generated
 output.
 
-## Advisory Execution, Model Routing, Performance, Observability, Controlled Adaptive Execution, And Learning
+## Advisory Execution, Model Routing, Performance, Observability, Controlled Adaptive Execution, Learning, And Creative Memory
 
 The V5.1 Execution Optimization Engine is a completed advisory metadata layer.
 It records execution graph analysis, workflow cost and complexity analysis,
@@ -209,6 +209,27 @@ refinements, write persistent storage, mutate preferences, automatically
 remediate failures, activate passive registries, apply Runtime Evolution, or
 modify generated output.
 
+The V6.2 Creative Memory Engine is an in-progress advisory creative-memory
+metadata layer. It records long-term creative memory, user preferences, style
+profiles, project memory, Creative DNA, personalization posture, session
+memory evolution, artifact history, creative lineage, creative ontology,
+preference learning posture, user modeling, memory consolidation posture,
+memory retrieval intelligence, memory retrieval planning, memory conflict
+resolution posture, memory explainability, memory safety policy posture,
+creative taste modeling, creative preference evolution, governance, and
+runtime failure-path audit coverage.
+
+It does not write creative memory storage, execute memory retrieval, execute
+memory consolidation, create or update user models, execute preference
+learning, mutate preferences, apply personalization, apply Creative DNA,
+persist artifact history, infer creative lineage, infer ontology
+relationships, materialize semantic graphs, enforce governance or safety
+policies, emit HITL requests, request human input, activate automation,
+change provider/model routing, execute providers, execute or control
+workflows, mutate workflow graphs, trigger retries or refinements, write
+persistent storage, activate passive registries, apply Runtime Evolution, or
+modify generated output.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current
@@ -220,8 +241,8 @@ modify generated output.
   measurement, resource enforcement, and cost/performance enforcement work.
 - Later V6 Cognitive OS work remains future persistent memory, feedback
   application, research, knowledge evolution, self-evolution, long-horizon
-  creative lineage, and system continuity work beyond the current V6.1
-  advisory metadata boundary.
+  creative lineage, active creative memory, and system continuity work beyond
+  the current V6.2 advisory metadata boundary.
 
 ## Documentation Contract
 
@@ -231,5 +252,6 @@ source coverage, including V5.1 execution optimization metadata, V5.2
 model-routing metadata, V5.3 performance metadata, V5.4 read-only
 observability metadata, and V5.5 controlled adaptive execution
 policy/simulation, V5.6 production-release readiness metadata, and V6.1
-adaptive learning metadata, but must keep the current compact LangGraph
-workflow as the execution source of truth.
+adaptive learning metadata, and V6.2 advisory creative memory metadata, but
+must keep the current compact LangGraph workflow as the execution source of
+truth.

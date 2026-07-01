@@ -10,7 +10,8 @@
   registry layers, V5.1 execution optimization helpers, V5.2 model-routing
   helpers, V5.3 performance helpers, V5.4 production observability helpers,
   V5.5 adaptive execution policy helpers, and V5.6 production-release
-  readiness helpers are metadata surfaces, not additional runtime nodes.
+  readiness helpers, V6.1 adaptive learning helpers, and V6.2 creative memory
+  helpers are metadata surfaces, not additional runtime nodes.
 - Keep the Next.js workstation responsible for product inspection, preview,
   comparison, export, telemetry, workflow visibility, and operator controls.
 
@@ -21,10 +22,12 @@ V4.2, V4.3, V4.4, V4.5, and V4.6 registries, advisory V5.1 optimization
 helpers, advisory V5.2 model-routing helpers, advisory V5.3 performance
 helpers, read-only V5.4 production observability helpers, and controlled V5.5
 adaptive execution policy helpers, and V5.6 production-release readiness
-helpers do not create storage backends, write blackboard state, write replay
-storage, persist cache entries, write telemetry or trace stores, emit
-monitoring events, allocate resources, create release artifacts, run
-deployment storage writes, or introduce runtime synchronization behavior.
+helpers, V6.1 adaptive learning helpers, and V6.2 creative memory helpers do
+not create storage backends, write blackboard state, write replay storage,
+persist cache entries, persist learning memory, write creative memory storage,
+write telemetry or trace stores, emit monitoring events, allocate resources,
+create release artifacts, run deployment storage writes, or introduce runtime
+synchronization behavior.
 
 ## Metadata Layering
 
@@ -85,6 +88,18 @@ deployment storage writes, or introduce runtime synchronization behavior.
   readiness, architecture freeze, release audit, final hardening, architecture
   consistency, and failure-path metadata over the existing V5 architecture
   without adding deployment automation or new core runtime architecture.
+- V6.1 Adaptive Learning Engine helpers describe advisory learning,
+  success/failure, strategy, technique, runtime, routing, artifact,
+  evaluation, continuous improvement, pattern discovery, replay, confidence,
+  creative success/failure, governance, and failure-path metadata over the V5
+  decision foundations without applying feedback or training models.
+- V6.2 Creative Memory Engine helpers describe advisory memory, preferences,
+  style, project, Creative DNA, personalization, session, artifact, lineage,
+  ontology, preference learning, user modeling, consolidation, retrieval,
+  conflict, explainability, safety, taste, preference evolution, governance,
+  and failure-path metadata over V6.1 learning and V5 decision foundations
+  without writing creative memory, applying personalization, or changing
+  runtime behavior.
 
 ## V4.3 Boundary Decision
 
@@ -349,6 +364,31 @@ graphs, render or mutate prompts, write persistent storage, persist success
 metrics, automatically remediate failures, modify generated output, or apply
 Runtime Evolution.
 
+## V6.2 Boundary Decision
+
+V6.2 Creative Memory Engine is an advisory creative-memory metadata layer
+only. It may expose long-term creative memory, user preferences, style
+profiles, project memory, Creative DNA, personalization posture, session
+memory evolution, artifact history, creative lineage, creative ontology,
+preference learning posture, user modeling, memory consolidation posture,
+memory retrieval intelligence, memory retrieval planning, conflict
+resolution posture, memory explainability, memory safety policy posture,
+creative taste modeling, creative preference evolution, governance, and
+runtime failure-path audit coverage.
+
+It must not write creative memory storage, execute memory retrieval, execute
+memory consolidation, create or update user models, execute preference
+learning, mutate preferences, apply personalization, apply Creative DNA,
+persist artifact history, infer creative lineage, infer ontology
+relationships, materialize semantic graphs, enforce governance or safety
+policies, emit HITL requests, request human input, activate automation,
+change provider/model routing, execute providers, execute or control
+workflows, mutate workflow graphs, trigger retries or refinements, write
+persistent storage, activate passive registries as runtime behavior, apply
+Runtime Evolution, or modify generated output. More generally, it does not
+change provider/model routing, does not introduce automatic personalization
+or active memory behavior, and does not modify generated output.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -370,6 +410,7 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - controlled V5.5 adaptive execution policy/simulation
 - V5.6 production release readiness metadata
 - advisory V6.1 adaptive learning metadata
+- advisory V6.2 creative memory metadata
 - future active V4 Agentic Studio, live adaptive runtime control, and later
   V6 learning/memory/research/evolution work
 

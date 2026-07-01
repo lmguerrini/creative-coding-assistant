@@ -109,6 +109,19 @@ models, apply feedback, update policies, observe live outcomes, classify live
 errors, route terminal failures, change provider/model routing, execute
 providers or workflows, write storage, apply Runtime Evolution, mutate
 preferences, remediate failures, or mutate generated output.
+V6.2 adds Creative Memory Engine metadata for long-term creative memory,
+user preferences, style profiles, project memory, Creative DNA,
+personalization posture, session memory evolution, artifact history,
+creative lineage, creative ontology, preference learning posture, user
+modeling, memory consolidation, retrieval intelligence, retrieval planning,
+conflict resolution, memory explainability, memory safety, creative taste,
+preference evolution, governance, and failure-path audit coverage. It remains
+advisory creative memory metadata only: it does not write creative memory
+storage, retrieve memory, learn or mutate preferences, apply personalization,
+apply Creative DNA, infer lineage or ontology relationships, enforce safety
+policies, emit HITL requests, activate automation, change provider/model
+routing, execute providers or workflows, apply Runtime Evolution, or mutate
+generated output.
 
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
@@ -206,6 +219,16 @@ observed through live preview and runtime inspection from the same interface.
   outcome observation, terminal failure routing, provider/model routing
   mutation, workflow execution, storage writes, preference mutation,
   automatic remediation, Runtime Evolution, or output mutation
+- V6.2 Creative Memory Engine helpers for advisory long-term memory,
+  preferences, style, project memory, Creative DNA, personalization, session
+  evolution, artifact history, lineage, ontology, preference learning, user
+  modeling, consolidation, retrieval intelligence, retrieval planning,
+  conflict resolution, explainability, safety, taste, preference evolution,
+  governance, and failure audit metadata without memory storage writes,
+  preference learning execution, personalization application, Creative DNA
+  application, lineage or ontology inference, safety enforcement, HITL
+  emission, automation, provider/model routing mutation, workflow execution,
+  Runtime Evolution, or output mutation
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -614,6 +637,33 @@ Adaptive Learning Engine surfaces:
 - Learning Governance
 - Adaptive Learning Failure Path Audit
 
+Creative Memory Engine surfaces:
+
+- Long-term Creative Memory
+- User Preferences
+- Style Profiles
+- Project Memory
+- Creative DNA
+- Personalization Engine
+- Session Memory Evolution
+- Artifact History
+- Creative Lineage
+- Creative Ontology
+- Preference Learning
+- User Modeling
+- Memory Consolidation
+- Memory Retrieval Intelligence
+- Memory Retrieval Planner
+- Memory Conflict Resolution
+- Memory Explainability
+- Memory Safety Policies
+- Creative Taste Model
+- Creative Preference Evolution
+- Creative Memory Core Surface
+- Creative Memory Secondary Surface
+- Creative Memory Governance
+- Creative Memory Failure Path Audit
+
 The architecture documents six complementary views:
 
 - the real runtime graph in
@@ -627,7 +677,7 @@ The architecture documents six complementary views:
 - the V3.5 Creative Workstation surface graph in
   [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
 - the cross-cutting engine matrix, including V4.1, V4.2, V4.3, V4.4, V4.5,
-  V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, and V6.1 metadata layers, in
+  V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, and V6.2 metadata layers, in
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
 The runtime graph remains compact and truthful. The internal pipeline and
@@ -636,13 +686,15 @@ while V4.1, V4.2, V4.3, V4.4, V4.5, and V4.6 document passive roles,
 contracts, orchestration, hybrid workflow, hybrid studio, multimodal studio,
 and hardening metadata rather than claiming that a multi-agent runtime, Studio
 runtime, rendering execution path, or runtime hardening engine already exists.
-V5.1, V5.2, V5.3, V5.4, V5.5, and V5.6 document advisory execution
-optimization, model-routing, performance, read-only observability, controlled
-adaptive execution policy/simulation, and production-release readiness without
-claiming that provider execution, model switching, live telemetry emission,
-performance measurement, benchmark execution, resource enforcement, runtime
-workflow control, automatic downloads, deployment execution, release tag
-creation, or generated-output mutation has been added.
+V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, and V6.2 document advisory
+execution optimization, model-routing, performance, read-only observability,
+controlled adaptive execution policy/simulation, production-release readiness,
+adaptive learning, and creative memory metadata without claiming that provider
+execution, model switching, live telemetry emission, performance measurement,
+benchmark execution, resource enforcement, runtime workflow control,
+automatic downloads, deployment execution, release tag creation, memory
+storage writes, preference learning execution, personalization application,
+automation, or generated-output mutation has been added.
 
 ## Creative Workflow
 
@@ -742,6 +794,19 @@ inspection, and multimodal workspace inspection:
   collection, telemetry or alert emission, trace capture, health check
   execution, remediation, workflow control, provider/model routing, or Runtime
   Evolution.
+- Adaptive Learning: advisory learning, success/failure, pattern-discovery,
+  replay, confidence calibration, creative success/failure, governance, and
+  failure-audit metadata describe learning posture without memory persistence,
+  feedback application, policy mutation, live outcome observation, workflow
+  control, provider execution, preference mutation, remediation, or output
+  mutation.
+- Creative Memory: advisory memory, preference, style, project, Creative DNA,
+  personalization, session, artifact, lineage, ontology, governance, and
+  failure-audit metadata describe creative memory posture without memory
+  storage writes, preference learning execution, personalization application,
+  Creative DNA application, lineage or ontology inference, safety enforcement,
+  HITL request emission, automation activation, provider/model routing,
+  workflow control, Runtime Evolution, or output mutation.
 - Generation: the backend resolves effective domains, assembles the prompt,
   and streams one or more creative artifacts.
 - Preview: supported artifacts mount in controlled preview runtimes with
@@ -1469,8 +1534,18 @@ current runtime.
   replay execution, model training, feedback application, policy mutation,
   live outcome observation, workflow control, provider execution, storage
   writes, preference mutation, remediation, or output mutation.
+- Creative Memory: V6.2 provides advisory creative memory, preferences, style,
+  project memory, Creative DNA, personalization posture, session evolution,
+  artifact history, lineage, ontology, preference learning posture, user
+  modeling, consolidation, retrieval intelligence, retrieval planning,
+  conflict resolution, explainability, safety, taste, preference evolution,
+  governance, and failure-audit metadata today without memory storage writes,
+  memory retrieval execution, preference learning execution, personalization
+  application, Creative DNA application, lineage or ontology inference,
+  safety policy enforcement, HITL emission, automation activation, workflow
+  control, provider execution, Runtime Evolution, or output mutation.
 - HoloGenesis Core OS: long-horizon creative lineage, persistent feedback,
-  creative memory, and system-level continuity beyond the current V6.1
+  active creative memory, and system-level continuity beyond the current V6.2
   metadata boundary.
 
 ## Setup
