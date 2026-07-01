@@ -502,6 +502,9 @@ _CREATIVE_MEMORY_SECONDARY_SURFACE = (
 _CREATIVE_MEMORY_GOVERNANCE = (
     "creative_coding_assistant.orchestration.creative_memory_governance"
 )
+_CREATIVE_MEMORY_FAILURE_PATH_AUDIT = (
+    "creative_coding_assistant.orchestration.creative_memory_failure_path_audit"
+)
 _WORKFLOW_SUCCESS_TRACKING = (
     "creative_coding_assistant.orchestration.workflow_success_tracking"
 )
@@ -859,6 +862,8 @@ _EXPORT_MAP = {
     "CreativeMemorySecondarySurfacePlan": _CREATIVE_MEMORY_SECONDARY_SURFACE,
     "CreativeMemoryGovernanceBoundary": _CREATIVE_MEMORY_GOVERNANCE,
     "CreativeMemoryGovernancePlan": _CREATIVE_MEMORY_GOVERNANCE,
+    "CreativeMemoryFailurePathAuditRecord": _CREATIVE_MEMORY_FAILURE_PATH_AUDIT,
+    "CreativeMemoryFailurePathAuditRegistry": _CREATIVE_MEMORY_FAILURE_PATH_AUDIT,
     "WorkflowSuccessIndicator": _WORKFLOW_SUCCESS_TRACKING,
     "WorkflowSuccessTrackingPlan": _WORKFLOW_SUCCESS_TRACKING,
     "FailureTrackingIndicator": _FAILURE_TRACKING,
@@ -2407,6 +2412,18 @@ _EXPORT_MAP = {
     "build_creative_memory_governance": _CREATIVE_MEMORY_GOVERNANCE,
     "creative_memory_governance_boundary_by_id": _CREATIVE_MEMORY_GOVERNANCE,
     "creative_memory_governance_boundaries_for_status": _CREATIVE_MEMORY_GOVERNANCE,
+    "creative_memory_failure_path_audit_by_id": (
+        _CREATIVE_MEMORY_FAILURE_PATH_AUDIT
+    ),
+    "creative_memory_failure_path_audit_registry": (
+        _CREATIVE_MEMORY_FAILURE_PATH_AUDIT
+    ),
+    "creative_memory_failure_path_audits_for_check": (
+        _CREATIVE_MEMORY_FAILURE_PATH_AUDIT
+    ),
+    "creative_memory_failure_path_audits_for_surface": (
+        _CREATIVE_MEMORY_FAILURE_PATH_AUDIT
+    ),
     "track_workflow_success": _WORKFLOW_SUCCESS_TRACKING,
     "workflow_success_indicator_by_id": _WORKFLOW_SUCCESS_TRACKING,
     "workflow_success_indicators_for_confidence": _WORKFLOW_SUCCESS_TRACKING,
