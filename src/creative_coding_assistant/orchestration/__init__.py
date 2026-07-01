@@ -515,6 +515,9 @@ _KNOWLEDGE_LIFECYCLE_MANAGEMENT = (
 _KNOWLEDGE_PROVENANCE_EVOLUTION = (
     "creative_coding_assistant.orchestration.knowledge_provenance_evolution"
 )
+_KNOWLEDGE_VERSIONING = (
+    "creative_coding_assistant.orchestration.knowledge_versioning"
+)
 _LONG_TERM_CREATIVE_MEMORY = (
     "creative_coding_assistant.orchestration.long_term_creative_memory"
 )
@@ -2473,6 +2476,12 @@ _EXPORT_MAP = {
         _KNOWLEDGE_PROVENANCE_EVOLUTION
     ),
     "knowledge_provenance_signals_for_status": _KNOWLEDGE_PROVENANCE_EVOLUTION,
+    "KnowledgeVersioningPlan": _KNOWLEDGE_VERSIONING,
+    "KnowledgeVersioningSignal": _KNOWLEDGE_VERSIONING,
+    "build_knowledge_versioning": _KNOWLEDGE_VERSIONING,
+    "knowledge_versioning_signal_by_id": _KNOWLEDGE_VERSIONING,
+    "knowledge_versioning_signals_for_confidence": _KNOWLEDGE_VERSIONING,
+    "knowledge_versioning_signals_for_status": _KNOWLEDGE_VERSIONING,
     "build_long_term_creative_memory": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_record_by_id": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_records_for_sensitivity": (
