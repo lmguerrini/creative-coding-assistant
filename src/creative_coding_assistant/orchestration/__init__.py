@@ -506,6 +506,9 @@ _KNOWLEDGE_DRIFT_DETECTION = (
 _KNOWLEDGE_EVOLUTION_CORE_SURFACE = (
     "creative_coding_assistant.orchestration.knowledge_evolution_core_surface"
 )
+_KNOWLEDGE_EVOLUTION_SECONDARY_SURFACE = (
+    "creative_coding_assistant.orchestration.knowledge_evolution_secondary_surface"
+)
 _SOURCE_RELIABILITY_ENGINE = (
     "creative_coding_assistant.orchestration.source_reliability_engine"
 )
@@ -2474,6 +2477,24 @@ _EXPORT_MAP = {
     ),
     "knowledge_evolution_core_surface_entry_by_id": (
         _KNOWLEDGE_EVOLUTION_CORE_SURFACE
+    ),
+    "KnowledgeEvolutionSecondarySurfaceEntry": (
+        _KNOWLEDGE_EVOLUTION_SECONDARY_SURFACE
+    ),
+    "KnowledgeEvolutionSecondarySurfacePlan": (
+        _KNOWLEDGE_EVOLUTION_SECONDARY_SURFACE
+    ),
+    "build_knowledge_evolution_secondary_surface": (
+        _KNOWLEDGE_EVOLUTION_SECONDARY_SURFACE
+    ),
+    "knowledge_evolution_secondary_surface_entries_for_confidence": (
+        _KNOWLEDGE_EVOLUTION_SECONDARY_SURFACE
+    ),
+    "knowledge_evolution_secondary_surface_entries_for_status": (
+        _KNOWLEDGE_EVOLUTION_SECONDARY_SURFACE
+    ),
+    "knowledge_evolution_secondary_surface_entry_by_id": (
+        _KNOWLEDGE_EVOLUTION_SECONDARY_SURFACE
     ),
     "SourceReliabilityEnginePlan": _SOURCE_RELIABILITY_ENGINE,
     "SourceReliabilitySignal": _SOURCE_RELIABILITY_ENGINE,
