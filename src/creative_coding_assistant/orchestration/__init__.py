@@ -490,6 +490,7 @@ _PERSONALIZATION_ENGINE = (
 _SESSION_MEMORY_EVOLUTION = (
     "creative_coding_assistant.orchestration.session_memory_evolution"
 )
+_ARTIFACT_HISTORY = "creative_coding_assistant.orchestration.artifact_history"
 _WORKFLOW_SUCCESS_TRACKING = (
     "creative_coding_assistant.orchestration.workflow_success_tracking"
 )
@@ -835,6 +836,8 @@ _EXPORT_MAP = {
     "PersonalizationEnginePlan": _PERSONALIZATION_ENGINE,
     "SessionMemoryEvolutionSignal": _SESSION_MEMORY_EVOLUTION,
     "SessionMemoryEvolutionPlan": _SESSION_MEMORY_EVOLUTION,
+    "ArtifactHistoryRecord": _ARTIFACT_HISTORY,
+    "ArtifactHistoryPlan": _ARTIFACT_HISTORY,
     "WorkflowSuccessIndicator": _WORKFLOW_SUCCESS_TRACKING,
     "WorkflowSuccessTrackingPlan": _WORKFLOW_SUCCESS_TRACKING,
     "FailureTrackingIndicator": _FAILURE_TRACKING,
@@ -2350,6 +2353,10 @@ _EXPORT_MAP = {
         _SESSION_MEMORY_EVOLUTION
     ),
     "session_memory_evolution_signals_for_status": _SESSION_MEMORY_EVOLUTION,
+    "build_artifact_history": _ARTIFACT_HISTORY,
+    "artifact_history_record_by_id": _ARTIFACT_HISTORY,
+    "artifact_history_records_for_confidence": _ARTIFACT_HISTORY,
+    "artifact_history_records_for_status": _ARTIFACT_HISTORY,
     "track_workflow_success": _WORKFLOW_SUCCESS_TRACKING,
     "workflow_success_indicator_by_id": _WORKFLOW_SUCCESS_TRACKING,
     "workflow_success_indicators_for_confidence": _WORKFLOW_SUCCESS_TRACKING,
