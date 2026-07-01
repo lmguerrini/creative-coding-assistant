@@ -512,6 +512,9 @@ _KNOWLEDGE_EVOLUTION_SECONDARY_SURFACE = (
 _KNOWLEDGE_EVOLUTION_GOVERNANCE = (
     "creative_coding_assistant.orchestration.knowledge_evolution_governance"
 )
+_KNOWLEDGE_EVOLUTION_FAILURE_PATH_AUDIT = (
+    "creative_coding_assistant.orchestration.knowledge_evolution_failure_path_audit"
+)
 _SOURCE_RELIABILITY_ENGINE = (
     "creative_coding_assistant.orchestration.source_reliability_engine"
 )
@@ -2507,6 +2510,24 @@ _EXPORT_MAP = {
     ),
     "knowledge_evolution_governance_boundary_by_id": (
         _KNOWLEDGE_EVOLUTION_GOVERNANCE
+    ),
+    "KnowledgeEvolutionFailurePathAuditRecord": (
+        _KNOWLEDGE_EVOLUTION_FAILURE_PATH_AUDIT
+    ),
+    "KnowledgeEvolutionFailurePathAuditRegistry": (
+        _KNOWLEDGE_EVOLUTION_FAILURE_PATH_AUDIT
+    ),
+    "knowledge_evolution_failure_path_audit_by_id": (
+        _KNOWLEDGE_EVOLUTION_FAILURE_PATH_AUDIT
+    ),
+    "knowledge_evolution_failure_path_audit_registry": (
+        _KNOWLEDGE_EVOLUTION_FAILURE_PATH_AUDIT
+    ),
+    "knowledge_evolution_failure_path_audits_for_check": (
+        _KNOWLEDGE_EVOLUTION_FAILURE_PATH_AUDIT
+    ),
+    "knowledge_evolution_failure_path_audits_for_surface": (
+        _KNOWLEDGE_EVOLUTION_FAILURE_PATH_AUDIT
     ),
     "SourceReliabilityEnginePlan": _SOURCE_RELIABILITY_ENGINE,
     "SourceReliabilitySignal": _SOURCE_RELIABILITY_ENGINE,
