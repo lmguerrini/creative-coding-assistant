@@ -497,6 +497,9 @@ _KNOWLEDGE_QUALITY_SCORING = (
 _KNOWLEDGE_GAP_DETECTION = (
     "creative_coding_assistant.orchestration.knowledge_gap_detection"
 )
+_KNOWLEDGE_CONFLICT_RESOLVER = (
+    "creative_coding_assistant.orchestration.knowledge_conflict_resolver"
+)
 _LONG_TERM_CREATIVE_MEMORY = (
     "creative_coding_assistant.orchestration.long_term_creative_memory"
 )
@@ -2417,6 +2420,12 @@ _EXPORT_MAP = {
     "knowledge_gap_signal_by_id": _KNOWLEDGE_GAP_DETECTION,
     "knowledge_gap_signals_for_confidence": _KNOWLEDGE_GAP_DETECTION,
     "knowledge_gap_signals_for_status": _KNOWLEDGE_GAP_DETECTION,
+    "KnowledgeConflictResolverPlan": _KNOWLEDGE_CONFLICT_RESOLVER,
+    "KnowledgeConflictSignal": _KNOWLEDGE_CONFLICT_RESOLVER,
+    "build_knowledge_conflict_resolver": _KNOWLEDGE_CONFLICT_RESOLVER,
+    "knowledge_conflict_signal_by_id": _KNOWLEDGE_CONFLICT_RESOLVER,
+    "knowledge_conflict_signals_for_confidence": _KNOWLEDGE_CONFLICT_RESOLVER,
+    "knowledge_conflict_signals_for_status": _KNOWLEDGE_CONFLICT_RESOLVER,
     "build_long_term_creative_memory": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_record_by_id": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_records_for_sensitivity": (
