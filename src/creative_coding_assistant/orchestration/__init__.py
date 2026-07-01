@@ -484,6 +484,7 @@ _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
 _EMBEDDING_REFRESH = "creative_coding_assistant.orchestration.embedding_refresh"
+_RETRIEVAL_EVOLUTION = "creative_coding_assistant.orchestration.retrieval_evolution"
 _LONG_TERM_CREATIVE_MEMORY = (
     "creative_coding_assistant.orchestration.long_term_creative_memory"
 )
@@ -2374,6 +2375,12 @@ _EXPORT_MAP = {
     "embedding_refresh_signal_by_id": _EMBEDDING_REFRESH,
     "embedding_refresh_signals_for_confidence": _EMBEDDING_REFRESH,
     "embedding_refresh_signals_for_status": _EMBEDDING_REFRESH,
+    "RetrievalEvolutionPlan": _RETRIEVAL_EVOLUTION,
+    "RetrievalEvolutionSignal": _RETRIEVAL_EVOLUTION,
+    "build_retrieval_evolution": _RETRIEVAL_EVOLUTION,
+    "retrieval_evolution_signal_by_id": _RETRIEVAL_EVOLUTION,
+    "retrieval_evolution_signals_for_confidence": _RETRIEVAL_EVOLUTION,
+    "retrieval_evolution_signals_for_status": _RETRIEVAL_EVOLUTION,
     "build_long_term_creative_memory": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_record_by_id": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_records_for_sensitivity": (
