@@ -506,6 +506,9 @@ _KNOWLEDGE_DRIFT_DETECTION = (
 _SOURCE_RELIABILITY_ENGINE = (
     "creative_coding_assistant.orchestration.source_reliability_engine"
 )
+_KNOWLEDGE_CONSOLIDATION = (
+    "creative_coding_assistant.orchestration.knowledge_consolidation"
+)
 _LONG_TERM_CREATIVE_MEMORY = (
     "creative_coding_assistant.orchestration.long_term_creative_memory"
 )
@@ -2444,6 +2447,12 @@ _EXPORT_MAP = {
     "source_reliability_signal_by_id": _SOURCE_RELIABILITY_ENGINE,
     "source_reliability_signals_for_confidence": _SOURCE_RELIABILITY_ENGINE,
     "source_reliability_signals_for_status": _SOURCE_RELIABILITY_ENGINE,
+    "KnowledgeConsolidationPlan": _KNOWLEDGE_CONSOLIDATION,
+    "KnowledgeConsolidationSignal": _KNOWLEDGE_CONSOLIDATION,
+    "build_knowledge_consolidation": _KNOWLEDGE_CONSOLIDATION,
+    "knowledge_consolidation_signal_by_id": _KNOWLEDGE_CONSOLIDATION,
+    "knowledge_consolidation_signals_for_confidence": _KNOWLEDGE_CONSOLIDATION,
+    "knowledge_consolidation_signals_for_status": _KNOWLEDGE_CONSOLIDATION,
     "build_long_term_creative_memory": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_record_by_id": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_records_for_sensitivity": (
