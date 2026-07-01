@@ -485,6 +485,9 @@ _DOCUMENTATION_INTELLIGENCE = (
 )
 _EMBEDDING_REFRESH = "creative_coding_assistant.orchestration.embedding_refresh"
 _RETRIEVAL_EVOLUTION = "creative_coding_assistant.orchestration.retrieval_evolution"
+_RANKING_OPTIMIZATION = (
+    "creative_coding_assistant.orchestration.ranking_optimization"
+)
 _LONG_TERM_CREATIVE_MEMORY = (
     "creative_coding_assistant.orchestration.long_term_creative_memory"
 )
@@ -2381,6 +2384,12 @@ _EXPORT_MAP = {
     "retrieval_evolution_signal_by_id": _RETRIEVAL_EVOLUTION,
     "retrieval_evolution_signals_for_confidence": _RETRIEVAL_EVOLUTION,
     "retrieval_evolution_signals_for_status": _RETRIEVAL_EVOLUTION,
+    "RankingOptimizationPlan": _RANKING_OPTIMIZATION,
+    "RankingOptimizationSignal": _RANKING_OPTIMIZATION,
+    "build_ranking_optimization": _RANKING_OPTIMIZATION,
+    "ranking_optimization_signal_by_id": _RANKING_OPTIMIZATION,
+    "ranking_optimization_signals_for_confidence": _RANKING_OPTIMIZATION,
+    "ranking_optimization_signals_for_status": _RANKING_OPTIMIZATION,
     "build_long_term_creative_memory": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_record_by_id": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_records_for_sensitivity": (
