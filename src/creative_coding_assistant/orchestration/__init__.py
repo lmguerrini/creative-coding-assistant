@@ -503,6 +503,9 @@ _KNOWLEDGE_CONFLICT_RESOLVER = (
 _KNOWLEDGE_DRIFT_DETECTION = (
     "creative_coding_assistant.orchestration.knowledge_drift_detection"
 )
+_KNOWLEDGE_EVOLUTION_CORE_SURFACE = (
+    "creative_coding_assistant.orchestration.knowledge_evolution_core_surface"
+)
 _SOURCE_RELIABILITY_ENGINE = (
     "creative_coding_assistant.orchestration.source_reliability_engine"
 )
@@ -2460,6 +2463,18 @@ _EXPORT_MAP = {
     "knowledge_drift_signal_by_id": _KNOWLEDGE_DRIFT_DETECTION,
     "knowledge_drift_signals_for_confidence": _KNOWLEDGE_DRIFT_DETECTION,
     "knowledge_drift_signals_for_status": _KNOWLEDGE_DRIFT_DETECTION,
+    "KnowledgeEvolutionCoreSurfaceEntry": _KNOWLEDGE_EVOLUTION_CORE_SURFACE,
+    "KnowledgeEvolutionCoreSurfacePlan": _KNOWLEDGE_EVOLUTION_CORE_SURFACE,
+    "build_knowledge_evolution_core_surface": _KNOWLEDGE_EVOLUTION_CORE_SURFACE,
+    "knowledge_evolution_core_surface_entries_for_confidence": (
+        _KNOWLEDGE_EVOLUTION_CORE_SURFACE
+    ),
+    "knowledge_evolution_core_surface_entries_for_status": (
+        _KNOWLEDGE_EVOLUTION_CORE_SURFACE
+    ),
+    "knowledge_evolution_core_surface_entry_by_id": (
+        _KNOWLEDGE_EVOLUTION_CORE_SURFACE
+    ),
     "SourceReliabilityEnginePlan": _SOURCE_RELIABILITY_ENGINE,
     "SourceReliabilitySignal": _SOURCE_RELIABILITY_ENGINE,
     "build_source_reliability_engine": _SOURCE_RELIABILITY_ENGINE,
