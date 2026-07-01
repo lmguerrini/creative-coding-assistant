@@ -961,6 +961,8 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "Production Release",
             "V6.1",
             "Adaptive Learning Engine",
+            "V6.2",
+            "Creative Memory Engine",
             "V6",
             "HoloGenesis Core OS",
         ):
@@ -980,6 +982,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("## V5.5 Adaptive Execution Intelligence Surfaces", engine_matrix)
         self.assertIn("## V5.6 Production Release Surfaces", engine_matrix)
         self.assertIn("## V6.1 Adaptive Learning Engine Surfaces", engine_matrix)
+        self.assertIn("## V6.2 Creative Memory Engine Surfaces", engine_matrix)
 
         for registry_marker in (
             "agent_capability_registry.v1",
@@ -1163,6 +1166,20 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "failure_pattern_discovery_plan.v1",
             "learning_governance_plan.v1",
             "adaptive_learning_failure_path_audit_registry.v1",
+            "long_term_creative_memory_plan.v1",
+            "user_preferences_plan.v1",
+            "style_profile_plan.v1",
+            "project_memory_plan.v1",
+            "creative_dna_plan.v1",
+            "personalization_engine_plan.v1",
+            "session_memory_evolution_plan.v1",
+            "artifact_history_plan.v1",
+            "creative_lineage_plan.v1",
+            "creative_ontology_plan.v1",
+            "creative_memory_core_surface_plan.v1",
+            "creative_memory_secondary_surface_plan.v1",
+            "creative_memory_governance_plan.v1",
+            "creative_memory_failure_path_audit_registry.v1",
         ):
             self.assertIn(registry_marker, engine_matrix)
 
@@ -1294,6 +1311,20 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "failure_pattern_discovery.py",
             "learning_governance.py",
             "adaptive_learning_failure_path_audit.py",
+            "long_term_creative_memory.py",
+            "user_preferences.py",
+            "style_profiles.py",
+            "project_memory.py",
+            "creative_dna.py",
+            "personalization_engine.py",
+            "session_memory_evolution.py",
+            "artifact_history.py",
+            "creative_lineage.py",
+            "creative_ontology.py",
+            "creative_memory_core_surface.py",
+            "creative_memory_secondary_surface.py",
+            "creative_memory_governance.py",
+            "creative_memory_failure_path_audit.py",
         ):
             self.assertIn(module_path, engine_matrix)
 
@@ -1363,6 +1394,10 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("learning memory persistence", normalized_engine_matrix)
         self.assertIn("applying feedback", normalized_engine_matrix)
         self.assertIn("observe live success or failure", normalized_engine_matrix)
+        self.assertIn("advisory creative memory metadata", normalized_engine_matrix)
+        self.assertIn("creative memory storage writes", normalized_engine_matrix)
+        self.assertIn("preference learning execution", normalized_engine_matrix)
+        self.assertIn("governance policy enforcement", normalized_engine_matrix)
 
     def test_workstation_surface_docs_cover_v35_surface_layer(self) -> None:
         architecture_doc = (
