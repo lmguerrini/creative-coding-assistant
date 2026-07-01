@@ -480,6 +480,9 @@ _ADAPTIVE_LEARNING_ENGINE = (
 _AUTOMATIC_KB_UPDATES = (
     "creative_coding_assistant.orchestration.automatic_kb_updates"
 )
+_DOCUMENTATION_INTELLIGENCE = (
+    "creative_coding_assistant.orchestration.documentation_intelligence"
+)
 _LONG_TERM_CREATIVE_MEMORY = (
     "creative_coding_assistant.orchestration.long_term_creative_memory"
 )
@@ -2356,6 +2359,14 @@ _EXPORT_MAP = {
     "automatic_kb_update_candidate_by_id": _AUTOMATIC_KB_UPDATES,
     "automatic_kb_update_candidates_for_confidence": _AUTOMATIC_KB_UPDATES,
     "automatic_kb_update_candidates_for_status": _AUTOMATIC_KB_UPDATES,
+    "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
+    "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
+    "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
+    "documentation_intelligence_signal_by_id": _DOCUMENTATION_INTELLIGENCE,
+    "documentation_intelligence_signals_for_confidence": (
+        _DOCUMENTATION_INTELLIGENCE
+    ),
+    "documentation_intelligence_signals_for_status": _DOCUMENTATION_INTELLIGENCE,
     "build_long_term_creative_memory": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_record_by_id": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_records_for_sensitivity": (
