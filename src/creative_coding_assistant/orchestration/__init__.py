@@ -494,6 +494,9 @@ _KNOWLEDGE_HEALTH_MONITORING = (
 _KNOWLEDGE_QUALITY_SCORING = (
     "creative_coding_assistant.orchestration.knowledge_quality_scoring"
 )
+_KNOWLEDGE_GAP_DETECTION = (
+    "creative_coding_assistant.orchestration.knowledge_gap_detection"
+)
 _LONG_TERM_CREATIVE_MEMORY = (
     "creative_coding_assistant.orchestration.long_term_creative_memory"
 )
@@ -2408,6 +2411,12 @@ _EXPORT_MAP = {
     "knowledge_quality_signal_by_id": _KNOWLEDGE_QUALITY_SCORING,
     "knowledge_quality_signals_for_confidence": _KNOWLEDGE_QUALITY_SCORING,
     "knowledge_quality_signals_for_status": _KNOWLEDGE_QUALITY_SCORING,
+    "KnowledgeGapDetectionPlan": _KNOWLEDGE_GAP_DETECTION,
+    "KnowledgeGapSignal": _KNOWLEDGE_GAP_DETECTION,
+    "build_knowledge_gap_detection": _KNOWLEDGE_GAP_DETECTION,
+    "knowledge_gap_signal_by_id": _KNOWLEDGE_GAP_DETECTION,
+    "knowledge_gap_signals_for_confidence": _KNOWLEDGE_GAP_DETECTION,
+    "knowledge_gap_signals_for_status": _KNOWLEDGE_GAP_DETECTION,
     "build_long_term_creative_memory": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_record_by_id": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_records_for_sensitivity": (
