@@ -509,6 +509,9 @@ _SOURCE_RELIABILITY_ENGINE = (
 _KNOWLEDGE_CONSOLIDATION = (
     "creative_coding_assistant.orchestration.knowledge_consolidation"
 )
+_KNOWLEDGE_LIFECYCLE_MANAGEMENT = (
+    "creative_coding_assistant.orchestration.knowledge_lifecycle_management"
+)
 _LONG_TERM_CREATIVE_MEMORY = (
     "creative_coding_assistant.orchestration.long_term_creative_memory"
 )
@@ -2453,6 +2456,12 @@ _EXPORT_MAP = {
     "knowledge_consolidation_signal_by_id": _KNOWLEDGE_CONSOLIDATION,
     "knowledge_consolidation_signals_for_confidence": _KNOWLEDGE_CONSOLIDATION,
     "knowledge_consolidation_signals_for_status": _KNOWLEDGE_CONSOLIDATION,
+    "KnowledgeLifecycleManagementPlan": _KNOWLEDGE_LIFECYCLE_MANAGEMENT,
+    "KnowledgeLifecycleSignal": _KNOWLEDGE_LIFECYCLE_MANAGEMENT,
+    "build_knowledge_lifecycle_management": _KNOWLEDGE_LIFECYCLE_MANAGEMENT,
+    "knowledge_lifecycle_signal_by_id": _KNOWLEDGE_LIFECYCLE_MANAGEMENT,
+    "knowledge_lifecycle_signals_for_confidence": _KNOWLEDGE_LIFECYCLE_MANAGEMENT,
+    "knowledge_lifecycle_signals_for_status": _KNOWLEDGE_LIFECYCLE_MANAGEMENT,
     "build_long_term_creative_memory": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_record_by_id": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_records_for_sensitivity": (
