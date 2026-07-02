@@ -11,8 +11,8 @@
   helpers, V5.3 performance helpers, V5.4 production observability helpers,
   V5.5 adaptive execution policy helpers, and V5.6 production-release
   readiness helpers, V6.1 adaptive learning helpers, V6.2 creative memory
-  helpers, and V6.3 knowledge evolution helpers are metadata surfaces, not
-  additional runtime nodes.
+  helpers, V6.3 knowledge evolution helpers, and V6.4 autonomous research
+  helpers are metadata surfaces, not additional runtime nodes.
 - Keep the Next.js workstation responsible for product inspection, preview,
   comparison, export, telemetry, workflow visibility, and operator controls.
 
@@ -24,12 +24,13 @@ helpers, advisory V5.2 model-routing helpers, advisory V5.3 performance
 helpers, read-only V5.4 production observability helpers, and controlled V5.5
 adaptive execution policy helpers, and V5.6 production-release readiness
 helpers, V6.1 adaptive learning helpers, V6.2 creative memory helpers, and
-V6.3 knowledge evolution helpers do not create storage backends, write
-blackboard state, write replay storage, persist cache entries, persist
-learning memory, write creative memory storage, write KB storage, update
-source records, write telemetry or trace stores, emit monitoring events,
-allocate resources, create release artifacts, run deployment storage writes,
-or introduce runtime synchronization behavior.
+V6.3 knowledge evolution helpers, and V6.4 autonomous research helpers do not
+create storage backends, write blackboard state, write replay storage, persist
+cache entries, persist learning memory, write creative memory storage, write
+research memory storage, write KB storage, update source records, discover
+sources, fetch external research sources, write telemetry or trace stores,
+emit monitoring events, allocate resources, create release artifacts, run
+deployment storage writes, or introduce runtime synchronization behavior.
 
 ## Metadata Layering
 
@@ -111,6 +112,16 @@ or introduce runtime synchronization behavior.
   retrieval/source metadata without writing KB storage, updating source
   records, mutating retrieval configuration, applying policies, or changing
   runtime behavior.
+- V6.4 Autonomous Research Engine helpers describe advisory research planning,
+  decomposition, paper/web research posture, cross-source comparison,
+  distillation, KB enrichment posture, reports, memory, validation,
+  credibility, contradiction, confidence, gap, recommendation, execution
+  policy, HITL policy, creative research, cross-domain inspiration, core,
+  secondary, governance, and failure-path metadata over V6.3 knowledge
+  evolution, V6.2 creative memory, V6.1 learning, V5 decision foundations,
+  and existing retrieval/source metadata without uncontrolled web access,
+  external downloads, source discovery, KB writes, storage writes, provider
+  execution, workflow control, HITL emission, or runtime behavior changes.
 
 ## V4.3 Boundary Decision
 
@@ -430,6 +441,39 @@ generated output. More generally, it does not change provider/model routing,
 does not introduce active knowledge evolution behavior, and does not modify
 generated output.
 
+## V6.4 Boundary Decision
+
+V6.4 Autonomous Research Engine is an advisory research metadata layer only.
+It may expose Research Planner, Research Decomposer, Paper Research, Web
+Research, Cross-source Comparison, Knowledge Distillation, Automatic KB
+Enrichment, Research Reports, Research Memory, Source Validation Engine,
+Source Credibility Engine, Contradiction Detection, Research Confidence
+Engine, Research Gap Discovery, Research Recommendation Engine, Research
+Execution Policy, Research HITL Policies, Creative Research Engine,
+Cross-domain Inspiration Discovery, core surface, secondary surface,
+governance/safety, and runtime failure-path audit coverage. The 19
+contractual roadmap items must remain individually traceable for roadmap
+coverage verification, Codex Engineering Audit classification, and future
+capability-scoped fixes.
+
+It must not execute research plans, create research tasks, perform
+uncontrolled web access, browse the web, crawl sites, fetch external sources,
+download papers, execute paper or web research, execute cross-source
+comparison, execute knowledge distillation, execute KB enrichment, write KB
+storage, generate research reports, write research memory, execute source
+validation, score source credibility, execute contradiction detection, score
+research confidence, execute gap discovery, generate or execute research
+recommendations, apply research execution policy, emit HITL requests, request
+human input, apply HITL decisions, generate creative output, execute active
+cross-domain inspiration discovery, perform live cross-domain search, enforce
+governance or safety policies, activate automation, change provider/model
+routing, execute providers, execute or control workflows, mutate workflow
+graphs, trigger retries or refinements, write persistent storage, activate
+passive registries as runtime behavior, apply Runtime Evolution, or modify
+generated output. More generally, it does not change provider/model routing,
+does not introduce autonomous web or paper research behavior, and does not
+modify generated output.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -453,8 +497,9 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - advisory V6.1 adaptive learning metadata
 - advisory V6.2 creative memory metadata
 - advisory V6.3 knowledge evolution metadata
+- advisory V6.4 autonomous research metadata
 - future active V4 Agentic Studio, live adaptive runtime control, and later
-  V6 learning/memory/research/self-evolution work
+  V6 self-evolution work
 
 ## Code Quality Rules
 
