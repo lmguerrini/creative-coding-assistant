@@ -481,6 +481,7 @@ _AUTOMATIC_KB_UPDATES = (
     "creative_coding_assistant.orchestration.automatic_kb_updates"
 )
 _PROMPT_EVOLUTION = "creative_coding_assistant.orchestration.prompt_evolution"
+_WORKFLOW_EVOLUTION = "creative_coding_assistant.orchestration.workflow_evolution"
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2482,6 +2483,12 @@ _EXPORT_MAP = {
     "prompt_evolution_proposal_by_id": _PROMPT_EVOLUTION,
     "prompt_evolution_proposals_for_confidence": _PROMPT_EVOLUTION,
     "prompt_evolution_proposals_for_status": _PROMPT_EVOLUTION,
+    "WorkflowEvolutionPlan": _WORKFLOW_EVOLUTION,
+    "WorkflowEvolutionProposal": _WORKFLOW_EVOLUTION,
+    "build_workflow_evolution": _WORKFLOW_EVOLUTION,
+    "workflow_evolution_proposal_by_id": _WORKFLOW_EVOLUTION,
+    "workflow_evolution_proposals_for_confidence": _WORKFLOW_EVOLUTION,
+    "workflow_evolution_proposals_for_status": _WORKFLOW_EVOLUTION,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
