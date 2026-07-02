@@ -489,6 +489,9 @@ _WEB_RESEARCH = "creative_coding_assistant.orchestration.web_research"
 _CROSS_SOURCE_COMPARISON = (
     "creative_coding_assistant.orchestration.cross_source_comparison"
 )
+_KNOWLEDGE_DISTILLATION = (
+    "creative_coding_assistant.orchestration.knowledge_distillation"
+)
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2455,6 +2458,12 @@ _EXPORT_MAP = {
     "cross_source_comparison_entry_by_id": _CROSS_SOURCE_COMPARISON,
     "cross_source_comparison_entries_for_confidence": _CROSS_SOURCE_COMPARISON,
     "cross_source_comparison_entries_for_status": _CROSS_SOURCE_COMPARISON,
+    "KnowledgeDistillationPlan": _KNOWLEDGE_DISTILLATION,
+    "KnowledgeDistillationEntry": _KNOWLEDGE_DISTILLATION,
+    "build_knowledge_distillation": _KNOWLEDGE_DISTILLATION,
+    "knowledge_distillation_entry_by_id": _KNOWLEDGE_DISTILLATION,
+    "knowledge_distillation_entries_for_confidence": _KNOWLEDGE_DISTILLATION,
+    "knowledge_distillation_entries_for_status": _KNOWLEDGE_DISTILLATION,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
