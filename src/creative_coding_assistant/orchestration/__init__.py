@@ -486,6 +486,9 @@ _RESEARCH_DECOMPOSER = (
 )
 _PAPER_RESEARCH = "creative_coding_assistant.orchestration.paper_research"
 _WEB_RESEARCH = "creative_coding_assistant.orchestration.web_research"
+_CROSS_SOURCE_COMPARISON = (
+    "creative_coding_assistant.orchestration.cross_source_comparison"
+)
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2446,6 +2449,12 @@ _EXPORT_MAP = {
     "web_research_entry_by_id": _WEB_RESEARCH,
     "web_research_entries_for_confidence": _WEB_RESEARCH,
     "web_research_entries_for_status": _WEB_RESEARCH,
+    "CrossSourceComparisonPlan": _CROSS_SOURCE_COMPARISON,
+    "CrossSourceComparisonEntry": _CROSS_SOURCE_COMPARISON,
+    "build_cross_source_comparison": _CROSS_SOURCE_COMPARISON,
+    "cross_source_comparison_entry_by_id": _CROSS_SOURCE_COMPARISON,
+    "cross_source_comparison_entries_for_confidence": _CROSS_SOURCE_COMPARISON,
+    "cross_source_comparison_entries_for_status": _CROSS_SOURCE_COMPARISON,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
