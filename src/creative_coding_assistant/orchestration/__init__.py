@@ -500,6 +500,9 @@ _STRATEGY_EVOLUTION_ENGINE = (
 _AGENT_EVOLUTION_POLICIES = (
     "creative_coding_assistant.orchestration.agent_evolution_policies"
 )
+_ROUTING_EVOLUTION_POLICIES = (
+    "creative_coding_assistant.orchestration.routing_evolution_policies"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2576,6 +2579,16 @@ _EXPORT_MAP = {
         _AGENT_EVOLUTION_POLICIES
     ),
     "agent_evolution_policies_proposals_for_status": _AGENT_EVOLUTION_POLICIES,
+    "RoutingEvolutionPoliciesPlan": _ROUTING_EVOLUTION_POLICIES,
+    "RoutingEvolutionPoliciesProposal": _ROUTING_EVOLUTION_POLICIES,
+    "build_routing_evolution_policies": _ROUTING_EVOLUTION_POLICIES,
+    "routing_evolution_policies_proposal_by_id": _ROUTING_EVOLUTION_POLICIES,
+    "routing_evolution_policies_proposals_for_confidence": (
+        _ROUTING_EVOLUTION_POLICIES
+    ),
+    "routing_evolution_policies_proposals_for_status": (
+        _ROUTING_EVOLUTION_POLICIES
+    ),
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
