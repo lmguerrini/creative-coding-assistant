@@ -591,6 +591,9 @@ _CREATIVE_IDENTITY_LAYER = (
 _EMERGENT_CREATIVITY_LAYER = (
     "creative_coding_assistant.orchestration.emergent_creativity_layer"
 )
+_COGNITIVE_SCHEDULER = (
+    "creative_coding_assistant.orchestration.cognitive_scheduler"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2922,6 +2925,13 @@ _EXPORT_MAP = {
     "emergent_creativity_signal_by_id": _EMERGENT_CREATIVITY_LAYER,
     "emergent_creativity_signals_for_agent": _EMERGENT_CREATIVITY_LAYER,
     "emergent_creativity_signals_for_layer": _EMERGENT_CREATIVITY_LAYER,
+    "CognitiveSchedulerPlan": _COGNITIVE_SCHEDULER,
+    "CognitiveScheduleSlot": _COGNITIVE_SCHEDULER,
+    "build_cognitive_scheduler": _COGNITIVE_SCHEDULER,
+    "cognitive_schedule_slot_by_id": _COGNITIVE_SCHEDULER,
+    "cognitive_schedule_slots_for_agent": _COGNITIVE_SCHEDULER,
+    "cognitive_schedule_slots_for_layer": _COGNITIVE_SCHEDULER,
+    "cognitive_schedule_slots_for_posture": _COGNITIVE_SCHEDULER,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
