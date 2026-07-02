@@ -536,6 +536,9 @@ _RESEARCH_SECONDARY_SURFACE = (
 _RESEARCH_GOVERNANCE = (
     "creative_coding_assistant.orchestration.research_governance"
 )
+_RESEARCH_FAILURE_PATH_AUDIT = (
+    "creative_coding_assistant.orchestration.research_failure_path_audit"
+)
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2619,6 +2622,12 @@ _EXPORT_MAP = {
     "build_research_governance": _RESEARCH_GOVERNANCE,
     "research_governance_boundary_by_id": _RESEARCH_GOVERNANCE,
     "research_governance_boundaries_for_status": _RESEARCH_GOVERNANCE,
+    "ResearchFailurePathAuditRecord": _RESEARCH_FAILURE_PATH_AUDIT,
+    "ResearchFailurePathAuditRegistry": _RESEARCH_FAILURE_PATH_AUDIT,
+    "research_failure_path_audit_registry": _RESEARCH_FAILURE_PATH_AUDIT,
+    "research_failure_path_audit_by_id": _RESEARCH_FAILURE_PATH_AUDIT,
+    "research_failure_path_audits_for_check": _RESEARCH_FAILURE_PATH_AUDIT,
+    "research_failure_path_audits_for_surface": _RESEARCH_FAILURE_PATH_AUDIT,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
