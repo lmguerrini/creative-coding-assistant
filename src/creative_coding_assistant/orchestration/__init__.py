@@ -540,6 +540,9 @@ _SELF_EVOLUTION_CORE_SURFACE = (
 _SELF_EVOLUTION_SECONDARY_SURFACE = (
     "creative_coding_assistant.orchestration.self_evolution_secondary_surface"
 )
+_SELF_EVOLUTION_GOVERNANCE = (
+    "creative_coding_assistant.orchestration.self_evolution_governance"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2747,6 +2750,22 @@ _EXPORT_MAP = {
     "self_evolution_secondary_surface_reports_for_status": (
         _SELF_EVOLUTION_SECONDARY_SURFACE
     ),
+    "SelfEvolutionGovernanceBoundary": _SELF_EVOLUTION_GOVERNANCE,
+    "SelfEvolutionGovernancePlan": _SELF_EVOLUTION_GOVERNANCE,
+    "build_self_evolution_governance": _SELF_EVOLUTION_GOVERNANCE,
+    "self_evolution_governance_boundaries_for_priority": (
+        _SELF_EVOLUTION_GOVERNANCE
+    ),
+    "self_evolution_governance_boundaries_for_status": (
+        _SELF_EVOLUTION_GOVERNANCE
+    ),
+    "self_evolution_governance_boundary_by_id": _SELF_EVOLUTION_GOVERNANCE,
+    "self_evolution_governance_boundary_by_roadmap_item": (
+        _SELF_EVOLUTION_GOVERNANCE
+    ),
+    "self_evolution_governance_priority": _SELF_EVOLUTION_GOVERNANCE,
+    "self_evolution_governance_score": _SELF_EVOLUTION_GOVERNANCE,
+    "self_evolution_governance_status": _SELF_EVOLUTION_GOVERNANCE,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
