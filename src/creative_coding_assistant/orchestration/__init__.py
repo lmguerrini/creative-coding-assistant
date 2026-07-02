@@ -506,6 +506,9 @@ _ROUTING_EVOLUTION_POLICIES = (
 _MEMORY_EVOLUTION_POLICIES = (
     "creative_coding_assistant.orchestration.memory_evolution_policies"
 )
+_RETRIEVAL_EVOLUTION_POLICIES = (
+    "creative_coding_assistant.orchestration.retrieval_evolution_policies"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2601,6 +2604,18 @@ _EXPORT_MAP = {
     ),
     "memory_evolution_policies_proposals_for_status": (
         _MEMORY_EVOLUTION_POLICIES
+    ),
+    "RetrievalEvolutionPoliciesPlan": _RETRIEVAL_EVOLUTION_POLICIES,
+    "RetrievalEvolutionPoliciesProposal": _RETRIEVAL_EVOLUTION_POLICIES,
+    "build_retrieval_evolution_policies": _RETRIEVAL_EVOLUTION_POLICIES,
+    "retrieval_evolution_policies_proposal_by_id": (
+        _RETRIEVAL_EVOLUTION_POLICIES
+    ),
+    "retrieval_evolution_policies_proposals_for_confidence": (
+        _RETRIEVAL_EVOLUTION_POLICIES
+    ),
+    "retrieval_evolution_policies_proposals_for_status": (
+        _RETRIEVAL_EVOLUTION_POLICIES
     ),
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
