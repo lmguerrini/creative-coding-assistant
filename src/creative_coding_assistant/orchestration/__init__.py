@@ -497,6 +497,9 @@ _AUTOMATIC_KB_ENRICHMENT = (
 )
 _RESEARCH_REPORTS = "creative_coding_assistant.orchestration.research_reports"
 _RESEARCH_MEMORY = "creative_coding_assistant.orchestration.research_memory"
+_SOURCE_VALIDATION_ENGINE = (
+    "creative_coding_assistant.orchestration.source_validation_engine"
+)
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2489,6 +2492,12 @@ _EXPORT_MAP = {
     "research_memory_entry_by_id": _RESEARCH_MEMORY,
     "research_memory_entries_for_confidence": _RESEARCH_MEMORY,
     "research_memory_entries_for_status": _RESEARCH_MEMORY,
+    "SourceValidationPlan": _SOURCE_VALIDATION_ENGINE,
+    "SourceValidationEntry": _SOURCE_VALIDATION_ENGINE,
+    "build_source_validation_engine": _SOURCE_VALIDATION_ENGINE,
+    "source_validation_entry_by_id": _SOURCE_VALIDATION_ENGINE,
+    "source_validation_entries_for_confidence": _SOURCE_VALIDATION_ENGINE,
+    "source_validation_entries_for_status": _SOURCE_VALIDATION_ENGINE,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
