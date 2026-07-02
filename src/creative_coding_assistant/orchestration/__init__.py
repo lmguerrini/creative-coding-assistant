@@ -485,6 +485,9 @@ _WORKFLOW_EVOLUTION = "creative_coding_assistant.orchestration.workflow_evolutio
 _BENCHMARK_ENGINE = "creative_coding_assistant.orchestration.benchmark_engine"
 _QUALITY_TRENDS = "creative_coding_assistant.orchestration.quality_trends"
 _COST_TRENDS = "creative_coding_assistant.orchestration.cost_trends"
+_AUTONOMOUS_OPTIMIZATION_SUGGESTIONS = (
+    "creative_coding_assistant.orchestration.autonomous_optimization_suggestions"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2510,6 +2513,22 @@ _EXPORT_MAP = {
     "cost_trends_proposal_by_id": _COST_TRENDS,
     "cost_trends_proposals_for_confidence": _COST_TRENDS,
     "cost_trends_proposals_for_status": _COST_TRENDS,
+    "AutonomousOptimizationSuggestionsPlan": _AUTONOMOUS_OPTIMIZATION_SUGGESTIONS,
+    "AutonomousOptimizationSuggestionsProposal": (
+        _AUTONOMOUS_OPTIMIZATION_SUGGESTIONS
+    ),
+    "build_autonomous_optimization_suggestions": (
+        _AUTONOMOUS_OPTIMIZATION_SUGGESTIONS
+    ),
+    "autonomous_optimization_suggestions_proposal_by_id": (
+        _AUTONOMOUS_OPTIMIZATION_SUGGESTIONS
+    ),
+    "autonomous_optimization_suggestions_proposals_for_confidence": (
+        _AUTONOMOUS_OPTIMIZATION_SUGGESTIONS
+    ),
+    "autonomous_optimization_suggestions_proposals_for_status": (
+        _AUTONOMOUS_OPTIMIZATION_SUGGESTIONS
+    ),
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
