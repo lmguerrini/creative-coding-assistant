@@ -533,6 +533,9 @@ _RESEARCH_CORE_SURFACE = (
 _RESEARCH_SECONDARY_SURFACE = (
     "creative_coding_assistant.orchestration.research_secondary_surface"
 )
+_RESEARCH_GOVERNANCE = (
+    "creative_coding_assistant.orchestration.research_governance"
+)
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2611,6 +2614,11 @@ _EXPORT_MAP = {
         _RESEARCH_SECONDARY_SURFACE
     ),
     "research_secondary_surface_entries_for_status": _RESEARCH_SECONDARY_SURFACE,
+    "ResearchGovernancePlan": _RESEARCH_GOVERNANCE,
+    "ResearchGovernanceBoundary": _RESEARCH_GOVERNANCE,
+    "build_research_governance": _RESEARCH_GOVERNANCE,
+    "research_governance_boundary_by_id": _RESEARCH_GOVERNANCE,
+    "research_governance_boundaries_for_status": _RESEARCH_GOVERNANCE,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
