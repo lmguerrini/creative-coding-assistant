@@ -485,6 +485,7 @@ _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
 )
 _PAPER_RESEARCH = "creative_coding_assistant.orchestration.paper_research"
+_WEB_RESEARCH = "creative_coding_assistant.orchestration.web_research"
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2439,6 +2440,12 @@ _EXPORT_MAP = {
     "paper_research_entry_by_id": _PAPER_RESEARCH,
     "paper_research_entries_for_confidence": _PAPER_RESEARCH,
     "paper_research_entries_for_status": _PAPER_RESEARCH,
+    "WebResearchPlan": _WEB_RESEARCH,
+    "WebResearchEntry": _WEB_RESEARCH,
+    "build_web_research": _WEB_RESEARCH,
+    "web_research_entry_by_id": _WEB_RESEARCH,
+    "web_research_entries_for_confidence": _WEB_RESEARCH,
+    "web_research_entries_for_status": _WEB_RESEARCH,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
