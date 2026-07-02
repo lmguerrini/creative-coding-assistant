@@ -480,6 +480,7 @@ _ADAPTIVE_LEARNING_ENGINE = (
 _AUTOMATIC_KB_UPDATES = (
     "creative_coding_assistant.orchestration.automatic_kb_updates"
 )
+_PROMPT_EVOLUTION = "creative_coding_assistant.orchestration.prompt_evolution"
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2475,6 +2476,12 @@ _EXPORT_MAP = {
     "automatic_kb_update_candidate_by_id": _AUTOMATIC_KB_UPDATES,
     "automatic_kb_update_candidates_for_confidence": _AUTOMATIC_KB_UPDATES,
     "automatic_kb_update_candidates_for_status": _AUTOMATIC_KB_UPDATES,
+    "PromptEvolutionPlan": _PROMPT_EVOLUTION,
+    "PromptEvolutionProposal": _PROMPT_EVOLUTION,
+    "build_prompt_evolution": _PROMPT_EVOLUTION,
+    "prompt_evolution_proposal_by_id": _PROMPT_EVOLUTION,
+    "prompt_evolution_proposals_for_confidence": _PROMPT_EVOLUTION,
+    "prompt_evolution_proposals_for_status": _PROMPT_EVOLUTION,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
