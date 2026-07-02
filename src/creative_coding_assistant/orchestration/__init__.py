@@ -582,6 +582,9 @@ _META_PLANNING_LAYER = (
 _COGNITIVE_GOVERNANCE_LAYER = (
     "creative_coding_assistant.orchestration.cognitive_governance_layer"
 )
+_CREATIVE_COGNITION_LAYER = (
+    "creative_coding_assistant.orchestration.creative_cognition_layer"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2895,6 +2898,12 @@ _EXPORT_MAP = {
     "cognitive_governance_policies_for_agent": _COGNITIVE_GOVERNANCE_LAYER,
     "cognitive_governance_policies_for_layer": _COGNITIVE_GOVERNANCE_LAYER,
     "cognitive_governance_policy_by_id": _COGNITIVE_GOVERNANCE_LAYER,
+    "CreativeCognitionLayerPlan": _CREATIVE_COGNITION_LAYER,
+    "CreativeCognitionSignal": _CREATIVE_COGNITION_LAYER,
+    "build_creative_cognition_layer": _CREATIVE_COGNITION_LAYER,
+    "creative_cognition_signal_by_id": _CREATIVE_COGNITION_LAYER,
+    "creative_cognition_signals_for_agent": _CREATIVE_COGNITION_LAYER,
+    "creative_cognition_signals_for_layer": _CREATIVE_COGNITION_LAYER,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
