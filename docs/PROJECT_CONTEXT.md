@@ -136,6 +136,14 @@ inspection metadata, critique, and refinement context.
   writes, research memory writes, policy enforcement, HITL emission,
   automation, workflow control, provider execution, Runtime Evolution, or
   output mutation.
+- V6.5 Self Evolution Engine for advisory prompt, workflow, benchmark,
+  quality, cost, optimization, architecture, strategy, agent, routing, memory,
+  retrieval, self-improvement, creative, taste, reasoning, ranking,
+  cost/benefit, risk, expected-impact, rollback, core, secondary, governance,
+  and runtime failure-path audit metadata without proposal application,
+  prompt rewriting, workflow mutation, routing mutation, memory or retrieval
+  mutation, storage writes, policy enforcement, HITL emission, automation,
+  provider execution, Runtime Evolution, or output mutation.
 
 ## Supported Creative Domains
 
@@ -508,6 +516,34 @@ routing, execute providers, execute or control workflows, mutate workflow
 graphs, trigger retries or refinements, write persistent storage, mutate
 generated output, or apply Runtime Evolution.
 
+## V6.5 Self Evolution Boundary
+
+V6.5 Self Evolution Engine continues the V6 cognitive layer as advisory
+self-evolution orchestration and governance metadata over V6.1 adaptive
+learning, V6.2 creative memory, V6.3 knowledge evolution, and V6.4 autonomous
+research signals. Prompt Evolution, Workflow Evolution, Benchmark Engine,
+Quality Trends, Cost Trends, Autonomous Optimization Suggestions,
+Architecture Evolution Engine, Workflow Mutation Engine, Strategy Evolution
+Engine, Agent Evolution Policies, Routing Evolution Policies, Memory
+Evolution Policies, Retrieval Evolution Policies, Self-Improvement Proposals,
+Creative Evolution Policies, Taste Evolution Engine, Reasoning Evolution
+Engine, Improvement Ranking Engine, Cost / Benefit Analysis, Risk Analysis,
+Expected Impact Estimator, and Rollback Strategy Generator remain
+individually traceable roadmap surfaces. The core surface, secondary surface,
+governance/safety metadata, and runtime failure path audit aggregate those
+surfaces for inspection and audit without grouping away their individual
+roadmap identities.
+
+It must not apply Runtime Evolution, rewrite prompts, mutate workflows,
+change routing, mutate memory, mutate retrieval, write storage, execute
+providers, emit HITL requests, request human input, apply HITL decisions,
+enforce policy, activate automation, apply proposals, generate report
+artifacts, create rollback plans for execution, execute rollback, mutate
+generated output, or use advisory registries as active self-modification
+behavior. Every proposal remains explainable and carries impact, cost, risk,
+confidence, dependency, capability ownership, downstream impact, governance,
+and rollback feasibility metadata for review only.
+
 ## Non-Goals For Current Baseline
 
 - active multi-agent execution
@@ -544,5 +580,8 @@ generated output, or apply Runtime Evolution.
 - active adaptive runtime policy
 - active V6 learning, memory persistence, research execution, or long-horizon
   adaptation
+- active self-evolution, proposal application, or autonomous self-modification
+- prompt rewriting, workflow mutation, routing mutation, memory mutation, or
+  retrieval mutation
 - uncontrolled web access, source discovery, or paper downloads
 - KB enrichment writes or research memory writes

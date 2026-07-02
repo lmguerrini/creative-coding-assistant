@@ -474,6 +474,42 @@ generated output. More generally, it does not change provider/model routing,
 does not introduce autonomous web or paper research behavior, and does not
 modify generated output.
 
+## V6.5 Boundary Decision
+
+V6.5 Self Evolution Engine is an advisory self-evolution orchestration and
+governance metadata layer only. It may expose Prompt Evolution, Workflow
+Evolution, Benchmark Engine, Quality Trends, Cost Trends, Autonomous
+Optimization Suggestions, Architecture Evolution Engine, Workflow Mutation
+Engine, Strategy Evolution Engine, Agent Evolution Policies, Routing Evolution
+Policies, Memory Evolution Policies, Retrieval Evolution Policies,
+Self-Improvement Proposals, Creative Evolution Policies, Taste Evolution
+Engine, Reasoning Evolution Engine, Improvement Ranking Engine, Cost /
+Benefit Analysis, Risk Analysis, Expected Impact Estimator, Rollback Strategy
+Generator, core surface, secondary surface, governance/safety, and runtime
+failure-path audit coverage. The 22 contractual roadmap items must remain
+individually traceable for roadmap coverage verification, Codex Engineering
+Audit classification, and future capability-scoped fixes.
+
+It may read deterministic metadata signals from V6.1 Adaptive Learning, V6.2
+Creative Memory, V6.3 Knowledge Evolution, and V6.4 Autonomous Research,
+compare improvement opportunities across capabilities, rank proposals by
+impact, cost, risk, confidence, dependencies, and rollback feasibility,
+explain why a proposal exists, identify upstream signal sources, identify
+downstream systems that may be affected, and prepare advisory evolution
+report metadata under strict HITL governance.
+
+It must not apply Runtime Evolution, autonomously self-modify code, rewrite
+prompts, mutate workflows, mutate routing, mutate memory, mutate retrieval,
+write storage, generate report artifacts, execute rollback, enforce
+governance or safety policies, emit HITL requests, request human input, apply
+HITL decisions, activate automation, mutate cost/risk/ranking/impact policy,
+perform live pricing lookup, enforce budgets, execute providers, invoke
+agents, execute or control workflows, mutate workflow graphs, activate
+passive registries as runtime behavior, or modify generated output. More
+generally, it does not change provider/model routing, does not introduce
+hidden autonomous self-improvement behavior, and does not modify generated
+output.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -498,8 +534,9 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - advisory V6.2 creative memory metadata
 - advisory V6.3 knowledge evolution metadata
 - advisory V6.4 autonomous research metadata
+- advisory V6.5 self-evolution governance metadata
 - future active V4 Agentic Studio, live adaptive runtime control, and later
-  V6 self-evolution work
+  V6 Cognitive OS work
 
 ## Code Quality Rules
 

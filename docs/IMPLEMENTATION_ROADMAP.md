@@ -284,6 +284,31 @@ generated output. All 19 contractual V6.4 roadmap items remain individually
 traceable for roadmap coverage, audit classification, and future
 capability-scoped fixes.
 
+The V6.5 Self Evolution Engine is an in-progress advisory orchestration and
+evolution-governance metadata layer. It records Prompt Evolution, Workflow
+Evolution, Benchmark Engine, Quality Trends, Cost Trends, Autonomous
+Optimization Suggestions, Architecture Evolution Engine, Workflow Mutation
+Engine, Strategy Evolution Engine, Agent Evolution Policies, Routing
+Evolution Policies, Memory Evolution Policies, Retrieval Evolution Policies,
+Self-Improvement Proposals, Creative Evolution Policies, Taste Evolution
+Engine, Reasoning Evolution Engine, Improvement Ranking Engine, Cost /
+Benefit Analysis, Risk Analysis, Expected Impact Estimator, Rollback Strategy
+Generator, core and secondary surfaces, governance/safety, and runtime
+failure-path audit coverage.
+
+It reads V6.1 adaptive learning, V6.2 creative memory, V6.3 knowledge
+evolution, and V6.4 autonomous research signals for advisory proposal
+metadata only. It does not apply Runtime Evolution, rewrite prompts, mutate
+workflows, change routing, mutate memory or retrieval, write storage, execute
+providers, emit HITL requests, request human input, apply HITL decisions,
+enforce policy, activate automation, apply proposals, generate report
+artifacts, execute rollback, mutate generated output, or activate passive
+registries as runtime behavior. Every proposal must remain explainable and
+carry impact, cost, risk, confidence, dependency, capability ownership,
+downstream impact, governance, and rollback feasibility metadata for review
+only. All 22 contractual V6.5 roadmap items remain individually traceable for
+roadmap coverage, audit classification, and future capability-scoped fixes.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current
@@ -294,9 +319,9 @@ capability-scoped fixes.
   enforcement, telemetry emission, provider execution, live performance
   measurement, resource enforcement, and cost/performance enforcement work.
 - Later V6 Cognitive OS work remains future persistent memory, feedback
-  application, active research, self-evolution, long-horizon creative lineage,
-  active creative memory, active knowledge evolution, and system continuity
-  work beyond the current V6.4 advisory metadata boundary.
+  application, active research, active self-evolution, long-horizon creative
+  lineage, active creative memory, active knowledge evolution, and system
+  continuity work beyond the current V6.5 advisory metadata boundary.
 
 ## Documentation Contract
 
@@ -308,5 +333,5 @@ observability metadata, and V5.5 controlled adaptive execution
 policy/simulation, V5.6 production-release readiness metadata, and V6.1
 adaptive learning metadata, V6.2 advisory creative memory metadata, and V6.3
 advisory knowledge evolution metadata, and V6.4 advisory autonomous research
-metadata, but must keep the current compact LangGraph workflow as the
-execution source of truth.
+metadata, and V6.5 advisory self-evolution governance metadata, but must keep
+the current compact LangGraph workflow as the execution source of truth.

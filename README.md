@@ -148,6 +148,17 @@ reports, score sources or confidence, detect contradictions, discover gaps,
 emit HITL requests, activate automation, change provider/model routing,
 execute providers or workflows, apply Runtime Evolution, or mutate generated
 output.
+V6.5 adds Self Evolution Engine metadata for prompt, workflow, benchmark,
+quality, cost, optimization, architecture, strategy, agent, routing, memory,
+retrieval, self-improvement, creative, taste, reasoning, ranking,
+cost/benefit, risk, expected impact, rollback, core, secondary, governance,
+and failure-path audit surfaces. It remains an advisory orchestration and
+evolution-governance layer only: it reads V6.1 adaptive learning, V6.2
+creative memory, V6.3 knowledge evolution, and V6.4 autonomous research
+signals, ranks and explains proposals, and preserves HITL boundaries without
+applying Runtime Evolution, rewriting prompts, mutating workflows, changing
+routing, mutating memory or retrieval, writing storage, executing providers,
+generating report artifacts, or mutating generated output.
 
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
@@ -765,6 +776,35 @@ Autonomous Research Engine surfaces:
 - Research Governance
 - Research Runtime Failure Audit
 
+Self Evolution Engine surfaces:
+
+- Prompt Evolution
+- Workflow Evolution
+- Benchmark Engine
+- Quality Trends
+- Cost Trends
+- Autonomous Optimization Suggestions
+- Architecture Evolution Engine
+- Workflow Mutation Engine
+- Strategy Evolution Engine
+- Agent Evolution Policies
+- Routing Evolution Policies
+- Memory Evolution Policies
+- Retrieval Evolution Policies
+- Self-Improvement Proposals
+- Creative Evolution Policies
+- Taste Evolution Engine
+- Reasoning Evolution Engine
+- Improvement Ranking Engine
+- Cost / Benefit Analysis
+- Risk Analysis
+- Expected Impact Estimator
+- Rollback Strategy Generator
+- Self Evolution Core Surface
+- Self Evolution Secondary Surface
+- Self Evolution Governance
+- Self Evolution Runtime Failure Audit
+
 The architecture documents six complementary views:
 
 - the real runtime graph in
@@ -778,7 +818,7 @@ The architecture documents six complementary views:
 - the V3.5 Creative Workstation surface graph in
   [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
 - the cross-cutting engine matrix, including V4.1, V4.2, V4.3, V4.4, V4.5,
-  V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, V6.2, V6.3, and V6.4
+  V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, V6.2, V6.3, V6.4, and V6.5
   metadata layers, in
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
@@ -788,19 +828,21 @@ while V4.1, V4.2, V4.3, V4.4, V4.5, and V4.6 document passive roles,
 contracts, orchestration, hybrid workflow, hybrid studio, multimodal studio,
 and hardening metadata rather than claiming that a multi-agent runtime, Studio
 runtime, rendering execution path, or runtime hardening engine already exists.
-V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, V6.2, V6.3, and V6.4 document
-advisory execution optimization, model-routing, performance, read-only
-observability, controlled adaptive execution policy/simulation,
+V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, V6.2, V6.3, V6.4, and V6.5
+document advisory execution optimization, model-routing, performance,
+read-only observability, controlled adaptive execution policy/simulation,
 production-release readiness, adaptive learning, creative memory, knowledge
-evolution, and autonomous research metadata without claiming that provider
-execution, model switching, live telemetry emission, performance measurement,
-benchmark execution, resource enforcement, runtime workflow control, automatic
-downloads, deployment execution, release tag creation, memory storage writes,
-preference learning execution, personalization application, automatic KB
-update execution, retrieval configuration mutation, source record updates, KB
-storage writes, research execution, web browsing, paper downloads, source
-discovery, HITL emission, automation, or generated-output mutation has been
-added.
+evolution, autonomous research, and self-evolution governance metadata without
+claiming that provider execution, model switching, live telemetry emission,
+performance measurement, benchmark execution, resource enforcement, runtime
+workflow control, automatic downloads, deployment execution, release tag
+creation, memory storage writes, preference learning execution,
+personalization application, automatic KB update execution, retrieval
+configuration mutation, source record updates, KB storage writes, research
+execution, web browsing, paper downloads, source discovery, proposal
+application, prompt rewriting, workflow mutation, routing mutation, memory
+mutation, retrieval mutation, HITL emission, automation, or generated-output
+mutation has been added.
 
 ## Creative Workflow
 
@@ -937,6 +979,13 @@ inspection, and multimodal workspace inspection:
   recommendation execution, HITL request emission, automation activation,
   provider/model routing, workflow control, Runtime Evolution, or output
   mutation.
+- Self Evolution: advisory self-evolution proposal, ranking, explainability,
+  cost/benefit, risk, impact, rollback, core surface, secondary report,
+  governance, and failure-audit metadata describe orchestration evolution
+  posture without proposal application, prompt rewriting, workflow mutation,
+  routing mutation, memory or retrieval mutation, report generation, storage
+  writes, governance enforcement, HITL request emission, provider execution,
+  Runtime Evolution, or output mutation.
 - Generation: the backend resolves effective domains, assembles the prompt,
   and streams one or more creative artifacts.
 - Preview: supported artifacts mount in controlled preview runtimes with
@@ -1698,9 +1747,20 @@ current runtime.
   discovery execution, recommendation execution, policy enforcement, HITL
   emission, automation activation, workflow control, provider execution,
   Runtime Evolution, or output mutation.
+- Self Evolution: V6.5 provides advisory self-evolution orchestration over
+  V6.1 adaptive learning, V6.2 creative memory, V6.3 knowledge evolution, and
+  V6.4 autonomous research signals. It keeps prompt, workflow, benchmark,
+  quality, cost, optimization, architecture, strategy, agent, routing, memory,
+  retrieval, self-improvement, creative, taste, reasoning, ranking,
+  cost/benefit, risk, impact, rollback, core, secondary, governance, and
+  failure-audit metadata individually traceable without proposal application,
+  prompt rewriting, workflow mutation, routing mutation, memory or retrieval
+  mutation, storage writes, provider execution, Runtime Evolution, or output
+  mutation.
 - HoloGenesis Core OS: long-horizon creative lineage, persistent feedback,
-  active creative memory, active knowledge evolution, active research, and
-  system-level continuity beyond the current V6.4 metadata boundary.
+  active creative memory, active knowledge evolution, active research, active
+  self-evolution, and system-level continuity beyond the current V6.5
+  metadata boundary.
 
 ## Setup
 
