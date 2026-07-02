@@ -552,6 +552,9 @@ _UNIFIED_COGNITIVE_GRAPH = (
 _UNIFIED_MEMORY_GRAPH = (
     "creative_coding_assistant.orchestration.unified_memory_graph"
 )
+_UNIFIED_KNOWLEDGE_GRAPH = (
+    "creative_coding_assistant.orchestration.unified_knowledge_graph"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2804,6 +2807,13 @@ _EXPORT_MAP = {
     "unified_memory_graph_edge_by_id": _UNIFIED_MEMORY_GRAPH,
     "unified_memory_graph_node_by_id": _UNIFIED_MEMORY_GRAPH,
     "unified_memory_graph_nodes_for_layer": _UNIFIED_MEMORY_GRAPH,
+    "UnifiedKnowledgeGraphEdge": _UNIFIED_KNOWLEDGE_GRAPH,
+    "UnifiedKnowledgeGraphNode": _UNIFIED_KNOWLEDGE_GRAPH,
+    "UnifiedKnowledgeGraphPlan": _UNIFIED_KNOWLEDGE_GRAPH,
+    "build_unified_knowledge_graph": _UNIFIED_KNOWLEDGE_GRAPH,
+    "unified_knowledge_graph_edge_by_id": _UNIFIED_KNOWLEDGE_GRAPH,
+    "unified_knowledge_graph_node_by_id": _UNIFIED_KNOWLEDGE_GRAPH,
+    "unified_knowledge_graph_nodes_for_layer": _UNIFIED_KNOWLEDGE_GRAPH,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
