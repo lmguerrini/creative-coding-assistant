@@ -480,6 +480,7 @@ _ADAPTIVE_LEARNING_ENGINE = (
 _AUTOMATIC_KB_UPDATES = (
     "creative_coding_assistant.orchestration.automatic_kb_updates"
 )
+_RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2416,6 +2417,12 @@ _EXPORT_MAP = {
     "automatic_kb_update_candidate_by_id": _AUTOMATIC_KB_UPDATES,
     "automatic_kb_update_candidates_for_confidence": _AUTOMATIC_KB_UPDATES,
     "automatic_kb_update_candidates_for_status": _AUTOMATIC_KB_UPDATES,
+    "ResearchPlannerPlan": _RESEARCH_PLANNER,
+    "ResearchPlanningEntry": _RESEARCH_PLANNER,
+    "build_research_planner": _RESEARCH_PLANNER,
+    "research_planning_entry_by_id": _RESEARCH_PLANNER,
+    "research_planning_entries_for_confidence": _RESEARCH_PLANNER,
+    "research_planning_entries_for_status": _RESEARCH_PLANNER,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
