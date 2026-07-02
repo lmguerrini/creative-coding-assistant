@@ -524,6 +524,9 @@ _RESEARCH_HITL_POLICIES = (
 _CREATIVE_RESEARCH_ENGINE = (
     "creative_coding_assistant.orchestration.creative_research_engine"
 )
+_CROSS_DOMAIN_INSPIRATION_DISCOVERY = (
+    "creative_coding_assistant.orchestration.cross_domain_inspiration_discovery"
+)
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2576,6 +2579,18 @@ _EXPORT_MAP = {
     "creative_research_entry_by_id": _CREATIVE_RESEARCH_ENGINE,
     "creative_research_entries_for_confidence": _CREATIVE_RESEARCH_ENGINE,
     "creative_research_entries_for_status": _CREATIVE_RESEARCH_ENGINE,
+    "CrossDomainInspirationPlan": _CROSS_DOMAIN_INSPIRATION_DISCOVERY,
+    "CrossDomainInspirationEntry": _CROSS_DOMAIN_INSPIRATION_DISCOVERY,
+    "build_cross_domain_inspiration_discovery": (
+        _CROSS_DOMAIN_INSPIRATION_DISCOVERY
+    ),
+    "cross_domain_inspiration_entry_by_id": _CROSS_DOMAIN_INSPIRATION_DISCOVERY,
+    "cross_domain_inspiration_entries_for_confidence": (
+        _CROSS_DOMAIN_INSPIRATION_DISCOVERY
+    ),
+    "cross_domain_inspiration_entries_for_status": (
+        _CROSS_DOMAIN_INSPIRATION_DISCOVERY
+    ),
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
