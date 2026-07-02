@@ -482,6 +482,7 @@ _AUTOMATIC_KB_UPDATES = (
 )
 _PROMPT_EVOLUTION = "creative_coding_assistant.orchestration.prompt_evolution"
 _WORKFLOW_EVOLUTION = "creative_coding_assistant.orchestration.workflow_evolution"
+_BENCHMARK_ENGINE = "creative_coding_assistant.orchestration.benchmark_engine"
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2489,6 +2490,12 @@ _EXPORT_MAP = {
     "workflow_evolution_proposal_by_id": _WORKFLOW_EVOLUTION,
     "workflow_evolution_proposals_for_confidence": _WORKFLOW_EVOLUTION,
     "workflow_evolution_proposals_for_status": _WORKFLOW_EVOLUTION,
+    "BenchmarkEnginePlan": _BENCHMARK_ENGINE,
+    "BenchmarkEngineProposal": _BENCHMARK_ENGINE,
+    "build_benchmark_engine": _BENCHMARK_ENGINE,
+    "benchmark_engine_proposal_by_id": _BENCHMARK_ENGINE,
+    "benchmark_engine_proposals_for_confidence": _BENCHMARK_ENGINE,
+    "benchmark_engine_proposals_for_status": _BENCHMARK_ENGINE,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
