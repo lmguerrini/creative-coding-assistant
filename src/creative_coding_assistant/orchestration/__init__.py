@@ -528,6 +528,9 @@ _COST_BENEFIT_ANALYSIS = (
     "creative_coding_assistant.orchestration.cost_benefit_analysis"
 )
 _RISK_ANALYSIS = "creative_coding_assistant.orchestration.risk_analysis"
+_EXPECTED_IMPACT_ESTIMATOR = (
+    "creative_coding_assistant.orchestration.expected_impact_estimator"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2690,6 +2693,14 @@ _EXPORT_MAP = {
     "risk_analysis_proposal_by_id": _RISK_ANALYSIS,
     "risk_analysis_proposals_for_confidence": _RISK_ANALYSIS,
     "risk_analysis_proposals_for_status": _RISK_ANALYSIS,
+    "ExpectedImpactEstimatorPlan": _EXPECTED_IMPACT_ESTIMATOR,
+    "ExpectedImpactEstimatorProposal": _EXPECTED_IMPACT_ESTIMATOR,
+    "build_expected_impact_estimator": _EXPECTED_IMPACT_ESTIMATOR,
+    "expected_impact_estimator_proposal_by_id": _EXPECTED_IMPACT_ESTIMATOR,
+    "expected_impact_estimator_proposals_for_confidence": (
+        _EXPECTED_IMPACT_ESTIMATOR
+    ),
+    "expected_impact_estimator_proposals_for_status": _EXPECTED_IMPACT_ESTIMATOR,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
