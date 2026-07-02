@@ -488,6 +488,9 @@ _COST_TRENDS = "creative_coding_assistant.orchestration.cost_trends"
 _AUTONOMOUS_OPTIMIZATION_SUGGESTIONS = (
     "creative_coding_assistant.orchestration.autonomous_optimization_suggestions"
 )
+_ARCHITECTURE_EVOLUTION_ENGINE = (
+    "creative_coding_assistant.orchestration.architecture_evolution_engine"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2528,6 +2531,18 @@ _EXPORT_MAP = {
     ),
     "autonomous_optimization_suggestions_proposals_for_status": (
         _AUTONOMOUS_OPTIMIZATION_SUGGESTIONS
+    ),
+    "ArchitectureEvolutionEnginePlan": _ARCHITECTURE_EVOLUTION_ENGINE,
+    "ArchitectureEvolutionEngineProposal": _ARCHITECTURE_EVOLUTION_ENGINE,
+    "build_architecture_evolution_engine": _ARCHITECTURE_EVOLUTION_ENGINE,
+    "architecture_evolution_engine_proposal_by_id": (
+        _ARCHITECTURE_EVOLUTION_ENGINE
+    ),
+    "architecture_evolution_engine_proposals_for_confidence": (
+        _ARCHITECTURE_EVOLUTION_ENGINE
+    ),
+    "architecture_evolution_engine_proposals_for_status": (
+        _ARCHITECTURE_EVOLUTION_ENGINE
     ),
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
