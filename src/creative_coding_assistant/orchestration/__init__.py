@@ -561,6 +561,9 @@ _UNIFIED_AGENT_REGISTRY = (
 _UNIFIED_CAPABILITY_REGISTRY = (
     "creative_coding_assistant.orchestration.unified_capability_registry"
 )
+_CROSS_SYSTEM_LEARNING_LAYER = (
+    "creative_coding_assistant.orchestration.cross_system_learning_layer"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2832,6 +2835,12 @@ _EXPORT_MAP = {
     "unified_capability_registry_entries_for_agent": _UNIFIED_CAPABILITY_REGISTRY,
     "unified_capability_registry_entry_by_id": _UNIFIED_CAPABILITY_REGISTRY,
     "unified_capability_registry_entry_for_layer": _UNIFIED_CAPABILITY_REGISTRY,
+    "CrossSystemLearningLayerPlan": _CROSS_SYSTEM_LEARNING_LAYER,
+    "CrossSystemLearningSignal": _CROSS_SYSTEM_LEARNING_LAYER,
+    "build_cross_system_learning_layer": _CROSS_SYSTEM_LEARNING_LAYER,
+    "cross_system_learning_signal_by_id": _CROSS_SYSTEM_LEARNING_LAYER,
+    "cross_system_learning_signals_for_agent": _CROSS_SYSTEM_LEARNING_LAYER,
+    "cross_system_learning_signals_for_layer": _CROSS_SYSTEM_LEARNING_LAYER,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
