@@ -492,6 +492,9 @@ _CROSS_SOURCE_COMPARISON = (
 _KNOWLEDGE_DISTILLATION = (
     "creative_coding_assistant.orchestration.knowledge_distillation"
 )
+_AUTOMATIC_KB_ENRICHMENT = (
+    "creative_coding_assistant.orchestration.automatic_kb_enrichment"
+)
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2464,6 +2467,14 @@ _EXPORT_MAP = {
     "knowledge_distillation_entry_by_id": _KNOWLEDGE_DISTILLATION,
     "knowledge_distillation_entries_for_confidence": _KNOWLEDGE_DISTILLATION,
     "knowledge_distillation_entries_for_status": _KNOWLEDGE_DISTILLATION,
+    "AutomaticKbEnrichmentPlan": _AUTOMATIC_KB_ENRICHMENT,
+    "AutomaticKbEnrichmentEntry": _AUTOMATIC_KB_ENRICHMENT,
+    "build_automatic_kb_enrichment": _AUTOMATIC_KB_ENRICHMENT,
+    "automatic_kb_enrichment_entry_by_id": _AUTOMATIC_KB_ENRICHMENT,
+    "automatic_kb_enrichment_entries_for_confidence": (
+        _AUTOMATIC_KB_ENRICHMENT
+    ),
+    "automatic_kb_enrichment_entries_for_status": _AUTOMATIC_KB_ENRICHMENT,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
