@@ -521,6 +521,9 @@ _TASTE_EVOLUTION_ENGINE = (
 _REASONING_EVOLUTION_ENGINE = (
     "creative_coding_assistant.orchestration.reasoning_evolution_engine"
 )
+_IMPROVEMENT_RANKING_ENGINE = (
+    "creative_coding_assistant.orchestration.improvement_ranking_engine"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2660,6 +2663,16 @@ _EXPORT_MAP = {
     ),
     "reasoning_evolution_engine_proposals_for_status": (
         _REASONING_EVOLUTION_ENGINE
+    ),
+    "ImprovementRankingEnginePlan": _IMPROVEMENT_RANKING_ENGINE,
+    "ImprovementRankingEngineProposal": _IMPROVEMENT_RANKING_ENGINE,
+    "build_improvement_ranking_engine": _IMPROVEMENT_RANKING_ENGINE,
+    "improvement_ranking_engine_proposal_by_id": _IMPROVEMENT_RANKING_ENGINE,
+    "improvement_ranking_engine_proposals_for_confidence": (
+        _IMPROVEMENT_RANKING_ENGINE
+    ),
+    "improvement_ranking_engine_proposals_for_status": (
+        _IMPROVEMENT_RANKING_ENGINE
     ),
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
