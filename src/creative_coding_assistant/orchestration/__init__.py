@@ -531,6 +531,9 @@ _RISK_ANALYSIS = "creative_coding_assistant.orchestration.risk_analysis"
 _EXPECTED_IMPACT_ESTIMATOR = (
     "creative_coding_assistant.orchestration.expected_impact_estimator"
 )
+_ROLLBACK_STRATEGY_GENERATOR = (
+    "creative_coding_assistant.orchestration.rollback_strategy_generator"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2701,6 +2704,16 @@ _EXPORT_MAP = {
         _EXPECTED_IMPACT_ESTIMATOR
     ),
     "expected_impact_estimator_proposals_for_status": _EXPECTED_IMPACT_ESTIMATOR,
+    "RollbackStrategyGeneratorPlan": _ROLLBACK_STRATEGY_GENERATOR,
+    "RollbackStrategyGeneratorProposal": _ROLLBACK_STRATEGY_GENERATOR,
+    "build_rollback_strategy_generator": _ROLLBACK_STRATEGY_GENERATOR,
+    "rollback_strategy_generator_proposal_by_id": _ROLLBACK_STRATEGY_GENERATOR,
+    "rollback_strategy_generator_proposals_for_confidence": (
+        _ROLLBACK_STRATEGY_GENERATOR
+    ),
+    "rollback_strategy_generator_proposals_for_status": (
+        _ROLLBACK_STRATEGY_GENERATOR
+    ),
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
