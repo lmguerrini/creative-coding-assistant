@@ -481,6 +481,9 @@ _AUTOMATIC_KB_UPDATES = (
     "creative_coding_assistant.orchestration.automatic_kb_updates"
 )
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
+_RESEARCH_DECOMPOSER = (
+    "creative_coding_assistant.orchestration.research_decomposer"
+)
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2423,6 +2426,12 @@ _EXPORT_MAP = {
     "research_planning_entry_by_id": _RESEARCH_PLANNER,
     "research_planning_entries_for_confidence": _RESEARCH_PLANNER,
     "research_planning_entries_for_status": _RESEARCH_PLANNER,
+    "ResearchDecomposerPlan": _RESEARCH_DECOMPOSER,
+    "ResearchDecompositionEntry": _RESEARCH_DECOMPOSER,
+    "build_research_decomposer": _RESEARCH_DECOMPOSER,
+    "research_decomposition_entry_by_id": _RESEARCH_DECOMPOSER,
+    "research_decomposition_entries_for_confidence": _RESEARCH_DECOMPOSER,
+    "research_decomposition_entries_for_status": _RESEARCH_DECOMPOSER,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
