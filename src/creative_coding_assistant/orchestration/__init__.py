@@ -484,6 +484,7 @@ _PROMPT_EVOLUTION = "creative_coding_assistant.orchestration.prompt_evolution"
 _WORKFLOW_EVOLUTION = "creative_coding_assistant.orchestration.workflow_evolution"
 _BENCHMARK_ENGINE = "creative_coding_assistant.orchestration.benchmark_engine"
 _QUALITY_TRENDS = "creative_coding_assistant.orchestration.quality_trends"
+_COST_TRENDS = "creative_coding_assistant.orchestration.cost_trends"
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2503,6 +2504,12 @@ _EXPORT_MAP = {
     "quality_trends_proposal_by_id": _QUALITY_TRENDS,
     "quality_trends_proposals_for_confidence": _QUALITY_TRENDS,
     "quality_trends_proposals_for_status": _QUALITY_TRENDS,
+    "CostTrendsPlan": _COST_TRENDS,
+    "CostTrendsProposal": _COST_TRENDS,
+    "build_cost_trends": _COST_TRENDS,
+    "cost_trends_proposal_by_id": _COST_TRENDS,
+    "cost_trends_proposals_for_confidence": _COST_TRENDS,
+    "cost_trends_proposals_for_status": _COST_TRENDS,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
