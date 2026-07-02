@@ -603,6 +603,9 @@ _COGNITIVE_ROUTER = (
 _COGNITIVE_BLACKBOARD = (
     "creative_coding_assistant.orchestration.cognitive_blackboard"
 )
+_COGNITIVE_EXPLANATION_ENGINE = (
+    "creative_coding_assistant.orchestration.cognitive_explanation_engine"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2963,6 +2966,13 @@ _EXPORT_MAP = {
     "cognitive_blackboard_entries_for_channel": _COGNITIVE_BLACKBOARD,
     "cognitive_blackboard_entries_for_layer": _COGNITIVE_BLACKBOARD,
     "cognitive_blackboard_entries_for_posture": _COGNITIVE_BLACKBOARD,
+    "CognitiveExplanationEnginePlan": _COGNITIVE_EXPLANATION_ENGINE,
+    "CognitiveExplanationTrace": _COGNITIVE_EXPLANATION_ENGINE,
+    "build_cognitive_explanation_engine": _COGNITIVE_EXPLANATION_ENGINE,
+    "cognitive_explanation_trace_by_id": _COGNITIVE_EXPLANATION_ENGINE,
+    "cognitive_explanation_traces_for_agent": _COGNITIVE_EXPLANATION_ENGINE,
+    "cognitive_explanation_traces_for_layer": _COGNITIVE_EXPLANATION_ENGINE,
+    "cognitive_explanation_traces_for_posture": _COGNITIVE_EXPLANATION_ENGINE,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
