@@ -579,6 +579,9 @@ _META_REASONING_LAYER = (
 _META_PLANNING_LAYER = (
     "creative_coding_assistant.orchestration.meta_planning_layer"
 )
+_COGNITIVE_GOVERNANCE_LAYER = (
+    "creative_coding_assistant.orchestration.cognitive_governance_layer"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2886,6 +2889,12 @@ _EXPORT_MAP = {
     "meta_planning_projection_by_id": _META_PLANNING_LAYER,
     "meta_planning_projections_for_agent": _META_PLANNING_LAYER,
     "meta_planning_projections_for_layer": _META_PLANNING_LAYER,
+    "CognitiveGovernanceLayerPlan": _COGNITIVE_GOVERNANCE_LAYER,
+    "CognitiveGovernancePolicy": _COGNITIVE_GOVERNANCE_LAYER,
+    "build_cognitive_governance_layer": _COGNITIVE_GOVERNANCE_LAYER,
+    "cognitive_governance_policies_for_agent": _COGNITIVE_GOVERNANCE_LAYER,
+    "cognitive_governance_policies_for_layer": _COGNITIVE_GOVERNANCE_LAYER,
+    "cognitive_governance_policy_by_id": _COGNITIVE_GOVERNANCE_LAYER,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
