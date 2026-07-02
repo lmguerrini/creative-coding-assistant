@@ -573,6 +573,9 @@ _COGNITIVE_STATE_ENGINE = (
 _COGNITIVE_PROFILE_ENGINE = (
     "creative_coding_assistant.orchestration.cognitive_profile_engine"
 )
+_META_REASONING_LAYER = (
+    "creative_coding_assistant.orchestration.meta_reasoning_layer"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2868,6 +2871,12 @@ _EXPORT_MAP = {
     "cognitive_profile_by_id": _COGNITIVE_PROFILE_ENGINE,
     "cognitive_profiles_for_agent": _COGNITIVE_PROFILE_ENGINE,
     "cognitive_profiles_for_layer": _COGNITIVE_PROFILE_ENGINE,
+    "MetaReasoningAssessment": _META_REASONING_LAYER,
+    "MetaReasoningLayerPlan": _META_REASONING_LAYER,
+    "build_meta_reasoning_layer": _META_REASONING_LAYER,
+    "meta_reasoning_assessment_by_id": _META_REASONING_LAYER,
+    "meta_reasoning_assessments_for_agent": _META_REASONING_LAYER,
+    "meta_reasoning_assessments_for_layer": _META_REASONING_LAYER,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
