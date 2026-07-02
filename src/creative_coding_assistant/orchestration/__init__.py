@@ -509,6 +509,9 @@ _CONTRADICTION_DETECTION = (
 _RESEARCH_CONFIDENCE_ENGINE = (
     "creative_coding_assistant.orchestration.research_confidence_engine"
 )
+_RESEARCH_GAP_DISCOVERY = (
+    "creative_coding_assistant.orchestration.research_gap_discovery"
+)
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2525,6 +2528,12 @@ _EXPORT_MAP = {
     "research_confidence_entry_by_id": _RESEARCH_CONFIDENCE_ENGINE,
     "research_confidence_entries_for_confidence": _RESEARCH_CONFIDENCE_ENGINE,
     "research_confidence_entries_for_status": _RESEARCH_CONFIDENCE_ENGINE,
+    "ResearchGapDiscoveryPlan": _RESEARCH_GAP_DISCOVERY,
+    "ResearchGapEntry": _RESEARCH_GAP_DISCOVERY,
+    "build_research_gap_discovery": _RESEARCH_GAP_DISCOVERY,
+    "research_gap_entry_by_id": _RESEARCH_GAP_DISCOVERY,
+    "research_gap_entries_for_confidence": _RESEARCH_GAP_DISCOVERY,
+    "research_gap_entries_for_status": _RESEARCH_GAP_DISCOVERY,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
