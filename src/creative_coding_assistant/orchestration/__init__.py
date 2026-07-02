@@ -521,6 +521,9 @@ _RESEARCH_EXECUTION_POLICY = (
 _RESEARCH_HITL_POLICIES = (
     "creative_coding_assistant.orchestration.research_hitl_policies"
 )
+_CREATIVE_RESEARCH_ENGINE = (
+    "creative_coding_assistant.orchestration.creative_research_engine"
+)
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2567,6 +2570,12 @@ _EXPORT_MAP = {
     "research_hitl_policy_entry_by_id": _RESEARCH_HITL_POLICIES,
     "research_hitl_policy_entries_for_confidence": _RESEARCH_HITL_POLICIES,
     "research_hitl_policy_entries_for_status": _RESEARCH_HITL_POLICIES,
+    "CreativeResearchPlan": _CREATIVE_RESEARCH_ENGINE,
+    "CreativeResearchEntry": _CREATIVE_RESEARCH_ENGINE,
+    "build_creative_research_engine": _CREATIVE_RESEARCH_ENGINE,
+    "creative_research_entry_by_id": _CREATIVE_RESEARCH_ENGINE,
+    "creative_research_entries_for_confidence": _CREATIVE_RESEARCH_ENGINE,
+    "creative_research_entries_for_status": _CREATIVE_RESEARCH_ENGINE,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
