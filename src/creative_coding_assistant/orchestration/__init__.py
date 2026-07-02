@@ -497,6 +497,9 @@ _WORKFLOW_MUTATION_ENGINE = (
 _STRATEGY_EVOLUTION_ENGINE = (
     "creative_coding_assistant.orchestration.strategy_evolution_engine"
 )
+_AGENT_EVOLUTION_POLICIES = (
+    "creative_coding_assistant.orchestration.agent_evolution_policies"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2564,6 +2567,15 @@ _EXPORT_MAP = {
         _STRATEGY_EVOLUTION_ENGINE
     ),
     "strategy_evolution_engine_proposals_for_status": _STRATEGY_EVOLUTION_ENGINE,
+    "AgentEvolutionPoliciesPlan": _AGENT_EVOLUTION_POLICIES,
+    "AgentEvolutionPoliciesProposal": _AGENT_EVOLUTION_POLICIES,
+    "agent_invocation_is_blocked": _AGENT_EVOLUTION_POLICIES,
+    "build_agent_evolution_policies": _AGENT_EVOLUTION_POLICIES,
+    "agent_evolution_policies_proposal_by_id": _AGENT_EVOLUTION_POLICIES,
+    "agent_evolution_policies_proposals_for_confidence": (
+        _AGENT_EVOLUTION_POLICIES
+    ),
+    "agent_evolution_policies_proposals_for_status": _AGENT_EVOLUTION_POLICIES,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
