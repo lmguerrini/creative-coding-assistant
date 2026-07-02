@@ -527,6 +527,9 @@ _CREATIVE_RESEARCH_ENGINE = (
 _CROSS_DOMAIN_INSPIRATION_DISCOVERY = (
     "creative_coding_assistant.orchestration.cross_domain_inspiration_discovery"
 )
+_RESEARCH_CORE_SURFACE = (
+    "creative_coding_assistant.orchestration.research_core_surface"
+)
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2591,6 +2594,12 @@ _EXPORT_MAP = {
     "cross_domain_inspiration_entries_for_status": (
         _CROSS_DOMAIN_INSPIRATION_DISCOVERY
     ),
+    "ResearchCoreSurfacePlan": _RESEARCH_CORE_SURFACE,
+    "ResearchCoreSurfaceEntry": _RESEARCH_CORE_SURFACE,
+    "build_research_core_surface": _RESEARCH_CORE_SURFACE,
+    "research_core_surface_entry_by_id": _RESEARCH_CORE_SURFACE,
+    "research_core_surface_entries_for_confidence": _RESEARCH_CORE_SURFACE,
+    "research_core_surface_entries_for_status": _RESEARCH_CORE_SURFACE,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
