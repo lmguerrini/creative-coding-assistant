@@ -503,6 +503,9 @@ _SOURCE_VALIDATION_ENGINE = (
 _SOURCE_CREDIBILITY_ENGINE = (
     "creative_coding_assistant.orchestration.source_credibility_engine"
 )
+_CONTRADICTION_DETECTION = (
+    "creative_coding_assistant.orchestration.contradiction_detection"
+)
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2507,6 +2510,12 @@ _EXPORT_MAP = {
     "source_credibility_entry_by_id": _SOURCE_CREDIBILITY_ENGINE,
     "source_credibility_entries_for_confidence": _SOURCE_CREDIBILITY_ENGINE,
     "source_credibility_entries_for_status": _SOURCE_CREDIBILITY_ENGINE,
+    "ContradictionDetectionPlan": _CONTRADICTION_DETECTION,
+    "ContradictionDetectionEntry": _CONTRADICTION_DETECTION,
+    "build_contradiction_detection": _CONTRADICTION_DETECTION,
+    "contradiction_detection_entry_by_id": _CONTRADICTION_DETECTION,
+    "contradiction_detection_entries_for_confidence": _CONTRADICTION_DETECTION,
+    "contradiction_detection_entries_for_status": _CONTRADICTION_DETECTION,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
