@@ -515,6 +515,9 @@ _RESEARCH_GAP_DISCOVERY = (
 _RESEARCH_RECOMMENDATION_ENGINE = (
     "creative_coding_assistant.orchestration.research_recommendation_engine"
 )
+_RESEARCH_EXECUTION_POLICY = (
+    "creative_coding_assistant.orchestration.research_execution_policy"
+)
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2547,6 +2550,14 @@ _EXPORT_MAP = {
     "research_recommendation_entries_for_status": (
         _RESEARCH_RECOMMENDATION_ENGINE
     ),
+    "ResearchExecutionPolicyPlan": _RESEARCH_EXECUTION_POLICY,
+    "ResearchExecutionPolicyEntry": _RESEARCH_EXECUTION_POLICY,
+    "build_research_execution_policy": _RESEARCH_EXECUTION_POLICY,
+    "research_execution_policy_entry_by_id": _RESEARCH_EXECUTION_POLICY,
+    "research_execution_policy_entries_for_confidence": (
+        _RESEARCH_EXECUTION_POLICY
+    ),
+    "research_execution_policy_entries_for_status": _RESEARCH_EXECUTION_POLICY,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
