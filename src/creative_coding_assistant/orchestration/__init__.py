@@ -527,6 +527,7 @@ _IMPROVEMENT_RANKING_ENGINE = (
 _COST_BENEFIT_ANALYSIS = (
     "creative_coding_assistant.orchestration.cost_benefit_analysis"
 )
+_RISK_ANALYSIS = "creative_coding_assistant.orchestration.risk_analysis"
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2683,6 +2684,12 @@ _EXPORT_MAP = {
     "cost_benefit_analysis_proposal_by_id": _COST_BENEFIT_ANALYSIS,
     "cost_benefit_analysis_proposals_for_confidence": _COST_BENEFIT_ANALYSIS,
     "cost_benefit_analysis_proposals_for_status": _COST_BENEFIT_ANALYSIS,
+    "RiskAnalysisPlan": _RISK_ANALYSIS,
+    "RiskAnalysisProposal": _RISK_ANALYSIS,
+    "build_risk_analysis": _RISK_ANALYSIS,
+    "risk_analysis_proposal_by_id": _RISK_ANALYSIS,
+    "risk_analysis_proposals_for_confidence": _RISK_ANALYSIS,
+    "risk_analysis_proposals_for_status": _RISK_ANALYSIS,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
