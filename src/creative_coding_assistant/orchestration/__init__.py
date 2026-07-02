@@ -500,6 +500,9 @@ _RESEARCH_MEMORY = "creative_coding_assistant.orchestration.research_memory"
 _SOURCE_VALIDATION_ENGINE = (
     "creative_coding_assistant.orchestration.source_validation_engine"
 )
+_SOURCE_CREDIBILITY_ENGINE = (
+    "creative_coding_assistant.orchestration.source_credibility_engine"
+)
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2498,6 +2501,12 @@ _EXPORT_MAP = {
     "source_validation_entry_by_id": _SOURCE_VALIDATION_ENGINE,
     "source_validation_entries_for_confidence": _SOURCE_VALIDATION_ENGINE,
     "source_validation_entries_for_status": _SOURCE_VALIDATION_ENGINE,
+    "SourceCredibilityPlan": _SOURCE_CREDIBILITY_ENGINE,
+    "SourceCredibilityEntry": _SOURCE_CREDIBILITY_ENGINE,
+    "build_source_credibility_engine": _SOURCE_CREDIBILITY_ENGINE,
+    "source_credibility_entry_by_id": _SOURCE_CREDIBILITY_ENGINE,
+    "source_credibility_entries_for_confidence": _SOURCE_CREDIBILITY_ENGINE,
+    "source_credibility_entries_for_status": _SOURCE_CREDIBILITY_ENGINE,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
