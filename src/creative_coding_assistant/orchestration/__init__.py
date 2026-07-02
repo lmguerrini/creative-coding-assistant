@@ -495,6 +495,7 @@ _KNOWLEDGE_DISTILLATION = (
 _AUTOMATIC_KB_ENRICHMENT = (
     "creative_coding_assistant.orchestration.automatic_kb_enrichment"
 )
+_RESEARCH_REPORTS = "creative_coding_assistant.orchestration.research_reports"
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2475,6 +2476,12 @@ _EXPORT_MAP = {
         _AUTOMATIC_KB_ENRICHMENT
     ),
     "automatic_kb_enrichment_entries_for_status": _AUTOMATIC_KB_ENRICHMENT,
+    "ResearchReportPlan": _RESEARCH_REPORTS,
+    "ResearchReportEntry": _RESEARCH_REPORTS,
+    "build_research_reports": _RESEARCH_REPORTS,
+    "research_report_entry_by_id": _RESEARCH_REPORTS,
+    "research_report_entries_for_confidence": _RESEARCH_REPORTS,
+    "research_report_entries_for_status": _RESEARCH_REPORTS,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
