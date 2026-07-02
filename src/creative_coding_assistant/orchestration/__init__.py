@@ -546,6 +546,9 @@ _SELF_EVOLUTION_GOVERNANCE = (
 _SELF_EVOLUTION_FAILURE_PATH_AUDIT = (
     "creative_coding_assistant.orchestration.self_evolution_failure_path_audit"
 )
+_UNIFIED_COGNITIVE_GRAPH = (
+    "creative_coding_assistant.orchestration.unified_cognitive_graph"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2783,6 +2786,14 @@ _EXPORT_MAP = {
     "self_evolution_failure_path_audits_for_surface": (
         _SELF_EVOLUTION_FAILURE_PATH_AUDIT
     ),
+    "CognitiveGraphEdge": _UNIFIED_COGNITIVE_GRAPH,
+    "CognitiveGraphNode": _UNIFIED_COGNITIVE_GRAPH,
+    "CognitiveOSSourceSnapshot": _UNIFIED_COGNITIVE_GRAPH,
+    "UnifiedCognitiveGraphPlan": _UNIFIED_COGNITIVE_GRAPH,
+    "build_unified_cognitive_graph": _UNIFIED_COGNITIVE_GRAPH,
+    "unified_cognitive_graph_edge_by_id": _UNIFIED_COGNITIVE_GRAPH,
+    "unified_cognitive_graph_node_by_id": _UNIFIED_COGNITIVE_GRAPH,
+    "unified_cognitive_graph_nodes_for_layer": _UNIFIED_COGNITIVE_GRAPH,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
