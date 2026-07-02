@@ -530,6 +530,9 @@ _CROSS_DOMAIN_INSPIRATION_DISCOVERY = (
 _RESEARCH_CORE_SURFACE = (
     "creative_coding_assistant.orchestration.research_core_surface"
 )
+_RESEARCH_SECONDARY_SURFACE = (
+    "creative_coding_assistant.orchestration.research_secondary_surface"
+)
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2600,6 +2603,14 @@ _EXPORT_MAP = {
     "research_core_surface_entry_by_id": _RESEARCH_CORE_SURFACE,
     "research_core_surface_entries_for_confidence": _RESEARCH_CORE_SURFACE,
     "research_core_surface_entries_for_status": _RESEARCH_CORE_SURFACE,
+    "ResearchSecondarySurfacePlan": _RESEARCH_SECONDARY_SURFACE,
+    "ResearchSecondarySurfaceEntry": _RESEARCH_SECONDARY_SURFACE,
+    "build_research_secondary_surface": _RESEARCH_SECONDARY_SURFACE,
+    "research_secondary_surface_entry_by_id": _RESEARCH_SECONDARY_SURFACE,
+    "research_secondary_surface_entries_for_confidence": (
+        _RESEARCH_SECONDARY_SURFACE
+    ),
+    "research_secondary_surface_entries_for_status": _RESEARCH_SECONDARY_SURFACE,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
