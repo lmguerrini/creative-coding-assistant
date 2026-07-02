@@ -134,6 +134,20 @@ trust scores, write KB storage, update source records, mutate provenance or
 version graphs, execute snapshots or rollbacks, enforce policies, emit HITL
 requests, activate automation, change provider/model routing, execute
 providers or workflows, apply Runtime Evolution, or mutate generated output.
+V6.4 adds Autonomous Research Engine metadata for Research Planner, Research
+Decomposer, Paper Research, Web Research, Cross-source Comparison, Knowledge
+Distillation, Automatic KB Enrichment, Research Reports, Research Memory,
+Source Validation Engine, Source Credibility Engine, Contradiction Detection,
+Research Confidence Engine, Research Gap Discovery, Research Recommendation
+Engine, Research Execution Policy, Research HITL Policies, Creative Research
+Engine, and Cross-domain Inspiration Discovery, plus core, secondary,
+governance, and failure-path audit surfaces. It remains advisory research
+metadata only: it does not browse the web, fetch external sources, download
+papers, execute research, enrich the KB, write research memory, generate
+reports, score sources or confidence, detect contradictions, discover gaps,
+emit HITL requests, activate automation, change provider/model routing,
+execute providers or workflows, apply Runtime Evolution, or mutate generated
+output.
 
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
@@ -252,6 +266,18 @@ observed through live preview and runtime inspection from the same interface.
   storage writes, graph mutation, snapshot or rollback execution, policy
   enforcement, HITL emission, automation, provider/model routing mutation,
   workflow execution, Runtime Evolution, or output mutation
+- V6.4 Autonomous Research Engine helpers for advisory research planning,
+  decomposition, paper/web research posture, cross-source comparison,
+  distillation, KB enrichment posture, reports, memory, source validation,
+  credibility, contradiction, confidence, gap, recommendation, execution
+  policy, HITL policy, creative research, cross-domain inspiration, core,
+  secondary, governance, and failure audit metadata without web browsing,
+  external source fetches, paper downloads, research execution, KB enrichment
+  writes, research memory writes, report generation, source validation
+  execution, credibility scoring, contradiction detection execution,
+  confidence scoring, gap discovery execution, recommendation execution,
+  execution policy application, HITL emission, automation, provider/model
+  routing mutation, workflow execution, Runtime Evolution, or output mutation
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -713,6 +739,32 @@ Knowledge Evolution Engine surfaces:
 - Knowledge Evolution Governance
 - Knowledge Evolution Runtime Failure Audit
 
+Autonomous Research Engine surfaces:
+
+- Research Planner
+- Research Decomposer
+- Paper Research
+- Web Research
+- Cross-source Comparison
+- Knowledge Distillation
+- Automatic KB Enrichment
+- Research Reports
+- Research Memory
+- Source Validation Engine
+- Source Credibility Engine
+- Contradiction Detection
+- Research Confidence Engine
+- Research Gap Discovery
+- Research Recommendation Engine
+- Research Execution Policy
+- Research HITL Policies
+- Creative Research Engine
+- Cross-domain Inspiration Discovery
+- Research Core Surface
+- Research Secondary Surface
+- Research Governance
+- Research Runtime Failure Audit
+
 The architecture documents six complementary views:
 
 - the real runtime graph in
@@ -726,8 +778,9 @@ The architecture documents six complementary views:
 - the V3.5 Creative Workstation surface graph in
   [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
 - the cross-cutting engine matrix, including V4.1, V4.2, V4.3, V4.4, V4.5,
-  V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, V6.2, and V6.3 metadata
-  layers, in [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
+  V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, V6.2, V6.3, and V6.4
+  metadata layers, in
+  [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
 The runtime graph remains compact and truthful. The internal pipeline and
 dependency views remain blueprints for future V4 Agentic Studio decomposition,
@@ -735,17 +788,19 @@ while V4.1, V4.2, V4.3, V4.4, V4.5, and V4.6 document passive roles,
 contracts, orchestration, hybrid workflow, hybrid studio, multimodal studio,
 and hardening metadata rather than claiming that a multi-agent runtime, Studio
 runtime, rendering execution path, or runtime hardening engine already exists.
-V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, V6.2, and V6.3 document advisory
-execution optimization, model-routing, performance, read-only observability,
-controlled adaptive execution policy/simulation, production-release readiness,
-adaptive learning, creative memory, and knowledge evolution metadata without
-claiming that provider execution, model switching, live telemetry emission,
-performance measurement, benchmark execution, resource enforcement, runtime
-workflow control, automatic downloads, deployment execution, release tag
-creation, memory storage writes, preference learning execution,
-personalization application, automatic KB update execution, retrieval
-configuration mutation, source record updates, KB storage writes, automation,
-or generated-output mutation has been added.
+V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, V6.2, V6.3, and V6.4 document
+advisory execution optimization, model-routing, performance, read-only
+observability, controlled adaptive execution policy/simulation,
+production-release readiness, adaptive learning, creative memory, knowledge
+evolution, and autonomous research metadata without claiming that provider
+execution, model switching, live telemetry emission, performance measurement,
+benchmark execution, resource enforcement, runtime workflow control, automatic
+downloads, deployment execution, release tag creation, memory storage writes,
+preference learning execution, personalization application, automatic KB
+update execution, retrieval configuration mutation, source record updates, KB
+storage writes, research execution, web browsing, paper downloads, source
+discovery, HITL emission, automation, or generated-output mutation has been
+added.
 
 ## Creative Workflow
 
@@ -868,6 +923,18 @@ inspection, and multimodal workspace inspection:
   ranking mutation, quality or trust score computation, source record updates,
   KB storage writes, provenance or version graph mutation, snapshot or
   rollback execution, HITL request emission, automation activation,
+  provider/model routing, workflow control, Runtime Evolution, or output
+  mutation.
+- Autonomous Research: advisory research planning, decomposition, paper/web
+  research posture, cross-source comparison, distillation, KB enrichment
+  posture, reports, memory, validation, credibility, contradiction,
+  confidence, gap, recommendation, execution policy, HITL policy, creative
+  research, cross-domain inspiration, governance, and failure-audit metadata
+  describe research posture without web browsing, external source fetches,
+  paper downloads, research execution, KB enrichment writes, research memory
+  writes, source validation execution, credibility scoring, contradiction
+  detection execution, confidence scoring, gap discovery execution,
+  recommendation execution, HITL request emission, automation activation,
   provider/model routing, workflow control, Runtime Evolution, or output
   mutation.
 - Generation: the backend resolves effective domains, assembles the prompt,
@@ -1619,9 +1686,21 @@ current runtime.
   rollback execution, policy enforcement, HITL emission, automation
   activation, workflow control, provider execution, Runtime Evolution, or
   output mutation.
+- Autonomous Research: V6.4 provides advisory research planning,
+  decomposition, paper/web research posture, cross-source comparison,
+  distillation, KB enrichment posture, reports, memory, validation,
+  credibility, contradiction, confidence, gap, recommendation, execution
+  policy, HITL policy, creative research, cross-domain inspiration,
+  governance, and failure-audit metadata today without web browsing,
+  external source fetches, paper downloads, research execution, KB enrichment
+  writes, research memory writes, source validation execution, credibility
+  scoring, contradiction detection execution, confidence scoring, gap
+  discovery execution, recommendation execution, policy enforcement, HITL
+  emission, automation activation, workflow control, provider execution,
+  Runtime Evolution, or output mutation.
 - HoloGenesis Core OS: long-horizon creative lineage, persistent feedback,
-  active creative memory, active knowledge evolution, and system-level
-  continuity beyond the current V6.3 metadata boundary.
+  active creative memory, active knowledge evolution, active research, and
+  system-level continuity beyond the current V6.4 metadata boundary.
 
 ## Setup
 

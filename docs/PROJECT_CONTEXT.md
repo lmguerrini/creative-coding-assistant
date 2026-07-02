@@ -126,6 +126,16 @@ inspection metadata, critique, and refinement context.
   snapshot execution, rollback execution, freshness scans, policy enforcement,
   HITL request emission, automation activation, workflow control, provider
   execution, Runtime Evolution, or output mutation.
+- V6.4 Autonomous Research Engine for advisory research planning,
+  decomposition, paper/web research posture, cross-source comparison,
+  distillation, KB enrichment posture, reports, memory, source validation,
+  credibility, contradiction, confidence, gap, recommendation, execution
+  policy, HITL policy, creative research, cross-domain inspiration,
+  governance, and runtime failure-path audit metadata without web browsing,
+  external source fetches, paper downloads, research execution, KB enrichment
+  writes, research memory writes, policy enforcement, HITL emission,
+  automation, workflow control, provider execution, Runtime Evolution, or
+  output mutation.
 
 ## Supported Creative Domains
 
@@ -145,10 +155,11 @@ inspection metadata, critique, and refinement context.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
 - V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6,
-  V6.1, V6.2, and V6.3 registries and helpers are passive, advisory,
+  V6.1, V6.2, V6.3, and V6.4 registries and helpers are passive, advisory,
   read-only, controlled-policy, advisory-learning, advisory creative-memory,
-  or advisory knowledge evolution product and architecture metadata. They are
-  inspectable Python APIs and documentation surfaces.
+  advisory knowledge evolution, or advisory autonomous research product and
+  architecture metadata. They are inspectable Python APIs and documentation
+  surfaces.
 
 ## V4.3 Passive Boundary
 
@@ -466,6 +477,37 @@ routing, execute providers, execute or control workflows, mutate workflow
 graphs, trigger retries or refinements, write persistent storage, mutate
 generated output, or apply Runtime Evolution.
 
+## V6.4 Autonomous Research Boundary
+
+V6.4 Autonomous Research Engine continues the V6 cognitive layer as advisory
+research metadata over V6.3 knowledge evolution, V6.2 creative memory, V6.1
+learning, V5 decision foundations, and existing retrieval/source metadata.
+Research Planner, Research Decomposer, Paper Research, Web Research,
+Cross-source Comparison, Knowledge Distillation, Automatic KB Enrichment,
+Research Reports, Research Memory, Source Validation Engine, Source
+Credibility Engine, Contradiction Detection, Research Confidence Engine,
+Research Gap Discovery, Research Recommendation Engine, Research Execution
+Policy, Research HITL Policies, Creative Research Engine, and Cross-domain
+Inspiration Discovery remain individually traceable roadmap surfaces. The core
+surface, secondary surface, governance/safety metadata, and runtime failure
+path audit aggregate those surfaces for inspection and audit without grouping
+away their individual roadmap identities.
+
+It must not execute research plans, create research tasks, perform
+uncontrolled web access, browse the web, crawl sites, fetch external sources,
+download papers, execute paper or web research, execute cross-source
+comparison, execute knowledge distillation, execute KB enrichment, write KB
+storage, generate research reports, write research memory, execute source
+validation, score source credibility, execute contradiction detection, score
+research confidence, execute gap discovery, generate or execute research
+recommendations, apply research execution policy, emit HITL requests, request
+human input, apply HITL decisions, generate creative output, execute active
+cross-domain inspiration discovery, perform live cross-domain search, enforce
+governance or safety policies, activate automation, change provider/model
+routing, execute providers, execute or control workflows, mutate workflow
+graphs, trigger retries or refinements, write persistent storage, mutate
+generated output, or apply Runtime Evolution.
+
 ## Non-Goals For Current Baseline
 
 - active multi-agent execution
@@ -500,4 +542,7 @@ generated output, or apply Runtime Evolution.
 - storage or blackboard runtime behavior
 - provider pricing lookup or budget enforcement
 - active adaptive runtime policy
-- active V6 learning, memory persistence, or long-horizon adaptation
+- active V6 learning, memory persistence, research execution, or long-horizon
+  adaptation
+- uncontrolled web access, source discovery, or paper downloads
+- KB enrichment writes or research memory writes
