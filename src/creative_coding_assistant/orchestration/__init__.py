@@ -509,6 +509,9 @@ _MEMORY_EVOLUTION_POLICIES = (
 _RETRIEVAL_EVOLUTION_POLICIES = (
     "creative_coding_assistant.orchestration.retrieval_evolution_policies"
 )
+_SELF_IMPROVEMENT_PROPOSALS = (
+    "creative_coding_assistant.orchestration.self_improvement_proposals"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2617,6 +2620,12 @@ _EXPORT_MAP = {
     "retrieval_evolution_policies_proposals_for_status": (
         _RETRIEVAL_EVOLUTION_POLICIES
     ),
+    "SelfImprovementProposalsPlan": _SELF_IMPROVEMENT_PROPOSALS,
+    "SelfImprovementProposalsProposal": _SELF_IMPROVEMENT_PROPOSALS,
+    "build_self_improvement_proposals": _SELF_IMPROVEMENT_PROPOSALS,
+    "self_improvement_proposals_proposal_by_id": _SELF_IMPROVEMENT_PROPOSALS,
+    "self_improvement_proposals_for_confidence": _SELF_IMPROVEMENT_PROPOSALS,
+    "self_improvement_proposals_for_status": _SELF_IMPROVEMENT_PROPOSALS,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
