@@ -483,6 +483,7 @@ _AUTOMATIC_KB_UPDATES = (
 _PROMPT_EVOLUTION = "creative_coding_assistant.orchestration.prompt_evolution"
 _WORKFLOW_EVOLUTION = "creative_coding_assistant.orchestration.workflow_evolution"
 _BENCHMARK_ENGINE = "creative_coding_assistant.orchestration.benchmark_engine"
+_QUALITY_TRENDS = "creative_coding_assistant.orchestration.quality_trends"
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2496,6 +2497,12 @@ _EXPORT_MAP = {
     "benchmark_engine_proposal_by_id": _BENCHMARK_ENGINE,
     "benchmark_engine_proposals_for_confidence": _BENCHMARK_ENGINE,
     "benchmark_engine_proposals_for_status": _BENCHMARK_ENGINE,
+    "QualityTrendsPlan": _QUALITY_TRENDS,
+    "QualityTrendsProposal": _QUALITY_TRENDS,
+    "build_quality_trends": _QUALITY_TRENDS,
+    "quality_trends_proposal_by_id": _QUALITY_TRENDS,
+    "quality_trends_proposals_for_confidence": _QUALITY_TRENDS,
+    "quality_trends_proposals_for_status": _QUALITY_TRENDS,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
