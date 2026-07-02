@@ -84,7 +84,7 @@ control workflows, change provider/model routing, select runtimes, trigger
 retries, mutate storage, execute artifacts, invoke agents, or modify generated
 output.
 
-## Advisory Execution, Model Routing, Performance, Observability, Controlled Adaptive Execution, Learning, Creative Memory, Knowledge Evolution, And Autonomous Research
+## Advisory Execution, Model Routing, Performance, Observability, Controlled Adaptive Execution, Learning, Creative Memory, Knowledge Evolution, Autonomous Research, And Self Evolution
 
 The V5.1 Execution Optimization Engine is a completed advisory metadata layer.
 It records execution graph analysis, workflow cost and complexity analysis,

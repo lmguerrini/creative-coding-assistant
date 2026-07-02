@@ -163,11 +163,11 @@ inspection metadata, critique, and refinement context.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
 - V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6,
-  V6.1, V6.2, V6.3, and V6.4 registries and helpers are passive, advisory,
-  read-only, controlled-policy, advisory-learning, advisory creative-memory,
-  advisory knowledge evolution, or advisory autonomous research product and
-  architecture metadata. They are inspectable Python APIs and documentation
-  surfaces.
+  V6.1, V6.2, V6.3, V6.4, and V6.5 registries and helpers are passive,
+  advisory, read-only, controlled-policy, advisory-learning, advisory
+  creative-memory, advisory knowledge evolution, advisory autonomous research,
+  or advisory self-evolution governance product and architecture metadata.
+  They are inspectable Python APIs and documentation surfaces.
 
 ## V4.3 Passive Boundary
 

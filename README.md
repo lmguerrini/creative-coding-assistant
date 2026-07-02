@@ -289,6 +289,14 @@ observed through live preview and runtime inspection from the same interface.
   confidence scoring, gap discovery execution, recommendation execution,
   execution policy application, HITL emission, automation, provider/model
   routing mutation, workflow execution, Runtime Evolution, or output mutation
+- V6.5 Self Evolution Engine helpers for advisory prompt, workflow, benchmark,
+  quality, cost, optimization, architecture, strategy, agent, routing, memory,
+  retrieval, self-improvement, creative, taste, reasoning, ranking,
+  cost/benefit, risk, expected-impact, rollback, core, secondary, governance,
+  and failure audit metadata over V6.1 through V6.4 signals without proposal
+  application, prompt rewriting, workflow mutation, routing mutation, memory
+  or retrieval mutation, storage writes, report artifact generation, provider
+  execution, Runtime Evolution, or output mutation
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,

@@ -11,8 +11,9 @@
   helpers, V5.3 performance helpers, V5.4 production observability helpers,
   V5.5 adaptive execution policy helpers, and V5.6 production-release
   readiness helpers, V6.1 adaptive learning helpers, V6.2 creative memory
-  helpers, V6.3 knowledge evolution helpers, and V6.4 autonomous research
-  helpers are metadata surfaces, not additional runtime nodes.
+  helpers, V6.3 knowledge evolution helpers, V6.4 autonomous research
+  helpers, and V6.5 self-evolution governance helpers are metadata surfaces,
+  not additional runtime nodes.
 - Keep the Next.js workstation responsible for product inspection, preview,
   comparison, export, telemetry, workflow visibility, and operator controls.
 
@@ -22,15 +23,18 @@ Chroma remains the only persistent retrieval and memory database. Passive V4.1,
 V4.2, V4.3, V4.4, V4.5, and V4.6 registries, advisory V5.1 optimization
 helpers, advisory V5.2 model-routing helpers, advisory V5.3 performance
 helpers, read-only V5.4 production observability helpers, and controlled V5.5
-adaptive execution policy helpers, and V5.6 production-release readiness
-helpers, V6.1 adaptive learning helpers, V6.2 creative memory helpers, and
-V6.3 knowledge evolution helpers, and V6.4 autonomous research helpers do not
-create storage backends, write blackboard state, write replay storage, persist
-cache entries, persist learning memory, write creative memory storage, write
-research memory storage, write KB storage, update source records, discover
-sources, fetch external research sources, write telemetry or trace stores,
-emit monitoring events, allocate resources, create release artifacts, run
-deployment storage writes, or introduce runtime synchronization behavior.
+adaptive execution policy helpers, V5.6 production-release readiness helpers,
+V6.1 adaptive learning helpers, V6.2 creative memory helpers, V6.3 knowledge
+evolution helpers, V6.4 autonomous research helpers, and V6.5 self-evolution
+governance helpers do not create storage backends, write blackboard state,
+write replay storage, persist cache entries, persist learning memory, write
+creative memory storage, write research memory storage, write KB storage,
+update source records, discover sources, fetch external research sources,
+write telemetry or trace stores, emit monitoring events, allocate resources,
+create release artifacts, generate report artifacts, apply proposals, rewrite
+prompts, mutate workflows, mutate routing, mutate memory or retrieval,
+execute rollback, run deployment storage writes, or introduce runtime
+synchronization behavior.
 
 ## Metadata Layering
 
@@ -122,6 +126,15 @@ deployment storage writes, or introduce runtime synchronization behavior.
   and existing retrieval/source metadata without uncontrolled web access,
   external downloads, source discovery, KB writes, storage writes, provider
   execution, workflow control, HITL emission, or runtime behavior changes.
+- V6.5 Self Evolution Engine helpers describe advisory prompt, workflow,
+  benchmark, quality, cost, optimization, architecture, strategy, agent,
+  routing, memory, retrieval, self-improvement, creative, taste, reasoning,
+  ranking, cost/benefit, risk, expected-impact, rollback, core, secondary,
+  governance, and failure-path metadata over V6.1 learning, V6.2 creative
+  memory, V6.3 knowledge evolution, and V6.4 autonomous research signals
+  without proposal application, prompt rewriting, workflow mutation, routing
+  mutation, memory or retrieval mutation, storage writes, provider execution,
+  report artifact generation, Runtime Evolution, or output mutation.
 
 ## V4.3 Boundary Decision
 
