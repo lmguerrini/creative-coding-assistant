@@ -567,6 +567,9 @@ _CROSS_SYSTEM_LEARNING_LAYER = (
 _CROSS_SYSTEM_OPTIMIZATION_LAYER = (
     "creative_coding_assistant.orchestration.cross_system_optimization_layer"
 )
+_COGNITIVE_STATE_ENGINE = (
+    "creative_coding_assistant.orchestration.cognitive_state_engine"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2850,6 +2853,12 @@ _EXPORT_MAP = {
     "cross_system_optimization_signal_by_id": _CROSS_SYSTEM_OPTIMIZATION_LAYER,
     "cross_system_optimization_signals_for_agent": _CROSS_SYSTEM_OPTIMIZATION_LAYER,
     "cross_system_optimization_signals_for_layer": _CROSS_SYSTEM_OPTIMIZATION_LAYER,
+    "CognitiveStateEnginePlan": _COGNITIVE_STATE_ENGINE,
+    "CognitiveStateSnapshot": _COGNITIVE_STATE_ENGINE,
+    "build_cognitive_state_engine": _COGNITIVE_STATE_ENGINE,
+    "cognitive_state_snapshot_by_id": _COGNITIVE_STATE_ENGINE,
+    "cognitive_state_snapshots_for_agent": _COGNITIVE_STATE_ENGINE,
+    "cognitive_state_snapshots_for_layer": _COGNITIVE_STATE_ENGINE,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
