@@ -537,6 +537,9 @@ _ROLLBACK_STRATEGY_GENERATOR = (
 _SELF_EVOLUTION_CORE_SURFACE = (
     "creative_coding_assistant.orchestration.self_evolution_core_surface"
 )
+_SELF_EVOLUTION_SECONDARY_SURFACE = (
+    "creative_coding_assistant.orchestration.self_evolution_secondary_surface"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2728,6 +2731,21 @@ _EXPORT_MAP = {
     ),
     "self_evolution_core_surface_proposals_for_status": (
         _SELF_EVOLUTION_CORE_SURFACE
+    ),
+    "SelfEvolutionAdvisoryReportEntry": _SELF_EVOLUTION_SECONDARY_SURFACE,
+    "SelfEvolutionSecondarySurfacePlan": _SELF_EVOLUTION_SECONDARY_SURFACE,
+    "build_self_evolution_secondary_surface": _SELF_EVOLUTION_SECONDARY_SURFACE,
+    "self_evolution_secondary_surface_report_by_id": (
+        _SELF_EVOLUTION_SECONDARY_SURFACE
+    ),
+    "self_evolution_secondary_surface_report_by_roadmap_item": (
+        _SELF_EVOLUTION_SECONDARY_SURFACE
+    ),
+    "self_evolution_secondary_surface_reports_for_confidence": (
+        _SELF_EVOLUTION_SECONDARY_SURFACE
+    ),
+    "self_evolution_secondary_surface_reports_for_status": (
+        _SELF_EVOLUTION_SECONDARY_SURFACE
     ),
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
