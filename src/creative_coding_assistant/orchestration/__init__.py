@@ -524,6 +524,9 @@ _REASONING_EVOLUTION_ENGINE = (
 _IMPROVEMENT_RANKING_ENGINE = (
     "creative_coding_assistant.orchestration.improvement_ranking_engine"
 )
+_COST_BENEFIT_ANALYSIS = (
+    "creative_coding_assistant.orchestration.cost_benefit_analysis"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2674,6 +2677,12 @@ _EXPORT_MAP = {
     "improvement_ranking_engine_proposals_for_status": (
         _IMPROVEMENT_RANKING_ENGINE
     ),
+    "CostBenefitAnalysisPlan": _COST_BENEFIT_ANALYSIS,
+    "CostBenefitAnalysisProposal": _COST_BENEFIT_ANALYSIS,
+    "build_cost_benefit_analysis": _COST_BENEFIT_ANALYSIS,
+    "cost_benefit_analysis_proposal_by_id": _COST_BENEFIT_ANALYSIS,
+    "cost_benefit_analysis_proposals_for_confidence": _COST_BENEFIT_ANALYSIS,
+    "cost_benefit_analysis_proposals_for_status": _COST_BENEFIT_ANALYSIS,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
