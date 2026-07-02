@@ -6,7 +6,7 @@ import {
   waitFor,
   within
 } from "@testing-library/react";
-import type { ComponentProps } from "react";
+import { StrictMode, type ComponentProps } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { WorkstationShell } from "./workstation-shell";
 import {
@@ -5645,6 +5645,25 @@ describe("WorkstationShell", () => {
         })
       );
     });
+  });
+
+  it("updates persistence status after Strict Mode remounts the shell", async () => {
+    const persistenceClient: WorkspacePersistenceClient = {
+      load: vi.fn(async () => ({ error: null, record: null, source: "none" as const })),
+      save: vi.fn(async () => ({ error: null, target: "remote" as const }))
+    };
+
+    render(
+      <StrictMode>
+        <WorkstationShell
+          snapshot={getLocalWorkspaceSnapshot()}
+          persistenceClient={persistenceClient}
+        />
+      </StrictMode>
+    );
+
+    expect(await screen.findByText("Session saved")).toBeVisible();
+    expect(persistenceClient.save).toHaveBeenCalled();
   });
 
   it("falls back when persistence load and save calls hang", async () => {

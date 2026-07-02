@@ -10,12 +10,29 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 DEFAULT_LOCAL_USER_ID = "local-user"
 DEFAULT_LOCAL_SESSION_ID = "local-nextjs-session"
 DEFAULT_LOCAL_PROJECT_ID = "local-nextjs-workspace"
-WORKSPACE_SESSION_SCHEMA_VERSION = 3
+WORKSPACE_SESSION_SCHEMA_VERSION = 4
 
-InspectorTabName = Literal["Overview", "Code", "Workflow", "Artifacts", "Retrieval"]
+InspectorTabName = Literal[
+    "Overview",
+    "Preview",
+    "Runtime",
+    "Code",
+    "Workflow",
+    "Telemetry",
+    "Artifacts",
+    "Retrieval",
+]
 MessageRole = Literal["user", "assistant"]
 WorkspaceDensity = Literal["cozy", "compact"]
-WorkspaceThemePreset = Literal["aqua", "codex", "matrix"]
+WorkspaceThemePreset = Literal[
+    "aqua",
+    "codex",
+    "matrix",
+    "terminal",
+    "horizon",
+    "zen",
+    "blueprint",
+]
 WorkspacePreviewState = Literal["generating", "ready", "unavailable", "error"]
 
 
@@ -117,7 +134,7 @@ class WorkspaceSessionLayout(BaseModel):
     density: WorkspaceDensity = "cozy"
     inspector_collapsed: bool = Field(default=False, alias="inspectorCollapsed")
     inspector_width: int = Field(default=420, alias="inspectorWidth", ge=320, le=560)
-    preview_height: int = Field(default=220, alias="previewHeight", ge=160, le=360)
+    preview_height: int = Field(default=320, alias="previewHeight", ge=160, le=520)
 
 
 class WorkspaceSessionPreferences(BaseModel):
@@ -143,7 +160,7 @@ class WorkspaceSessionRecord(BaseModel):
         str_strip_whitespace=True,
     )
 
-    schema_version: Literal[1, 2, 3] = Field(
+    schema_version: Literal[1, 2, 3, 4] = Field(
         default=WORKSPACE_SESSION_SCHEMA_VERSION,
         alias="schemaVersion",
     )

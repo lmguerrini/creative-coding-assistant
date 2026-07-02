@@ -29,6 +29,21 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
         self.assertEqual(record.messages[0].content, "Keep this chat.")
         self.assertEqual(record.artifacts[0].id, "source-sketch")
 
+    def test_record_accepts_current_frontend_v4_session_shape(self) -> None:
+        record = WorkspaceSessionRecord.model_validate(
+            _session_payload(
+                schema_version=4,
+                active_inspector_tab="Preview",
+                theme="blueprint",
+                preview_height=520,
+            )
+        )
+
+        self.assertEqual(record.schema_version, 4)
+        self.assertEqual(record.active_inspector_tab, "Preview")
+        self.assertEqual(record.preferences.theme, "blueprint")
+        self.assertEqual(record.layout.preview_height, 520)
+
     def test_sqlite_repository_round_trips_session_records(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             repository = SQLiteWorkspaceSessionRepository(
@@ -55,7 +70,14 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             app = _app_for_temp_db(Path(temp_dir))
             save_status: dict[str, object] = {}
-            payload = json.dumps(_session_payload()).encode("utf-8")
+            payload = json.dumps(
+                _session_payload(
+                    schema_version=4,
+                    active_inspector_tab="Preview",
+                    theme="blueprint",
+                    preview_height=520,
+                )
+            ).encode("utf-8")
 
             save_body = b"".join(
                 app(
@@ -83,12 +105,13 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
             )
 
         self.assertEqual(save_status["status"], "200 OK")
-        self.assertEqual(json.loads(save_body)["activeInspectorTab"], "Code")
+        self.assertEqual(json.loads(save_body)["schemaVersion"], 4)
+        self.assertEqual(json.loads(save_body)["activeInspectorTab"], "Preview")
         self.assertEqual(get_status["status"], "200 OK")
         restored = json.loads(get_body)
         self.assertEqual(restored["title"], "Persisted sketch session")
-        self.assertEqual(restored["layout"]["previewHeight"], 240)
-        self.assertEqual(restored["preferences"]["theme"], "codex")
+        self.assertEqual(restored["layout"]["previewHeight"], 520)
+        self.assertEqual(restored["preferences"]["theme"], "blueprint")
         self.assertEqual(restored["messages"][0]["content"], "Keep this chat.")
 
     def test_wsgi_endpoint_returns_404_for_missing_session(self) -> None:
@@ -131,25 +154,31 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
         self.assertEqual(json.loads(body)["error"], "invalid_session")
 
 
-def _session_payload() -> dict[str, object]:
+def _session_payload(
+    *,
+    schema_version: int = 3,
+    active_inspector_tab: str = "Code",
+    theme: str = "codex",
+    preview_height: int = 240,
+) -> dict[str, object]:
     return {
-        "schemaVersion": 3,
+        "schemaVersion": schema_version,
         "userId": DEFAULT_LOCAL_USER_ID,
         "sessionId": DEFAULT_LOCAL_SESSION_ID,
         "projectId": "local-nextjs-workspace",
         "title": "Persisted sketch session",
         "activeArtifactId": "source-sketch",
-        "activeInspectorTab": "Code",
+        "activeInspectorTab": active_inspector_tab,
         "previewOpen": True,
         "previewArtifactId": "preview-manifest",
         "layout": {
             "density": "compact",
             "inspectorCollapsed": False,
             "inspectorWidth": 440,
-            "previewHeight": 240,
+            "previewHeight": preview_height,
         },
         "preferences": {
-            "theme": "codex",
+            "theme": theme,
             "autoOpenPreview": False,
             "showDebugPanels": True,
         },

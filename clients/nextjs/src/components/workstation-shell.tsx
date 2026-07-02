@@ -497,6 +497,8 @@ export function WorkstationShell({
   }
 
   useEffect(() => {
+    isShellMountedRef.current = true;
+
     return () => {
       isShellMountedRef.current = false;
       clearFeedbackTimers();
