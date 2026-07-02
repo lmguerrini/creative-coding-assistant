@@ -597,6 +597,9 @@ _COGNITIVE_SCHEDULER = (
 _COGNITIVE_PLANNER = (
     "creative_coding_assistant.orchestration.cognitive_planner"
 )
+_COGNITIVE_ROUTER = (
+    "creative_coding_assistant.orchestration.cognitive_router"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2942,6 +2945,13 @@ _EXPORT_MAP = {
     "cognitive_plan_steps_for_agent": _COGNITIVE_PLANNER,
     "cognitive_plan_steps_for_layer": _COGNITIVE_PLANNER,
     "cognitive_plan_steps_for_posture": _COGNITIVE_PLANNER,
+    "CognitiveRouterPlan": _COGNITIVE_ROUTER,
+    "CognitiveRouteDecision": _COGNITIVE_ROUTER,
+    "build_cognitive_router": _COGNITIVE_ROUTER,
+    "cognitive_route_decision_by_id": _COGNITIVE_ROUTER,
+    "cognitive_route_decisions_for_agent": _COGNITIVE_ROUTER,
+    "cognitive_route_decisions_for_layer": _COGNITIVE_ROUTER,
+    "cognitive_route_decisions_for_posture": _COGNITIVE_ROUTER,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
