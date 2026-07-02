@@ -588,6 +588,9 @@ _CREATIVE_COGNITION_LAYER = (
 _CREATIVE_IDENTITY_LAYER = (
     "creative_coding_assistant.orchestration.creative_identity_layer"
 )
+_EMERGENT_CREATIVITY_LAYER = (
+    "creative_coding_assistant.orchestration.emergent_creativity_layer"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2913,6 +2916,12 @@ _EXPORT_MAP = {
     "creative_identity_profile_by_id": _CREATIVE_IDENTITY_LAYER,
     "creative_identity_profiles_for_agent": _CREATIVE_IDENTITY_LAYER,
     "creative_identity_profiles_for_layer": _CREATIVE_IDENTITY_LAYER,
+    "EmergentCreativityLayerPlan": _EMERGENT_CREATIVITY_LAYER,
+    "EmergentCreativitySignal": _EMERGENT_CREATIVITY_LAYER,
+    "build_emergent_creativity_layer": _EMERGENT_CREATIVITY_LAYER,
+    "emergent_creativity_signal_by_id": _EMERGENT_CREATIVITY_LAYER,
+    "emergent_creativity_signals_for_agent": _EMERGENT_CREATIVITY_LAYER,
+    "emergent_creativity_signals_for_layer": _EMERGENT_CREATIVITY_LAYER,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
