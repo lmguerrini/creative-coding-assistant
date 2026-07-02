@@ -512,6 +512,9 @@ _RESEARCH_CONFIDENCE_ENGINE = (
 _RESEARCH_GAP_DISCOVERY = (
     "creative_coding_assistant.orchestration.research_gap_discovery"
 )
+_RESEARCH_RECOMMENDATION_ENGINE = (
+    "creative_coding_assistant.orchestration.research_recommendation_engine"
+)
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2534,6 +2537,16 @@ _EXPORT_MAP = {
     "research_gap_entry_by_id": _RESEARCH_GAP_DISCOVERY,
     "research_gap_entries_for_confidence": _RESEARCH_GAP_DISCOVERY,
     "research_gap_entries_for_status": _RESEARCH_GAP_DISCOVERY,
+    "ResearchRecommendationPlan": _RESEARCH_RECOMMENDATION_ENGINE,
+    "ResearchRecommendationEntry": _RESEARCH_RECOMMENDATION_ENGINE,
+    "build_research_recommendation_engine": _RESEARCH_RECOMMENDATION_ENGINE,
+    "research_recommendation_entry_by_id": _RESEARCH_RECOMMENDATION_ENGINE,
+    "research_recommendation_entries_for_confidence": (
+        _RESEARCH_RECOMMENDATION_ENGINE
+    ),
+    "research_recommendation_entries_for_status": (
+        _RESEARCH_RECOMMENDATION_ENGINE
+    ),
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
