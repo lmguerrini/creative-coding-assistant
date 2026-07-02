@@ -491,6 +491,9 @@ _AUTONOMOUS_OPTIMIZATION_SUGGESTIONS = (
 _ARCHITECTURE_EVOLUTION_ENGINE = (
     "creative_coding_assistant.orchestration.architecture_evolution_engine"
 )
+_WORKFLOW_MUTATION_ENGINE = (
+    "creative_coding_assistant.orchestration.workflow_mutation_engine"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2544,6 +2547,12 @@ _EXPORT_MAP = {
     "architecture_evolution_engine_proposals_for_status": (
         _ARCHITECTURE_EVOLUTION_ENGINE
     ),
+    "WorkflowMutationEnginePlan": _WORKFLOW_MUTATION_ENGINE,
+    "WorkflowMutationEngineProposal": _WORKFLOW_MUTATION_ENGINE,
+    "build_workflow_mutation_engine": _WORKFLOW_MUTATION_ENGINE,
+    "workflow_mutation_engine_proposal_by_id": _WORKFLOW_MUTATION_ENGINE,
+    "workflow_mutation_engine_proposals_for_confidence": _WORKFLOW_MUTATION_ENGINE,
+    "workflow_mutation_engine_proposals_for_status": _WORKFLOW_MUTATION_ENGINE,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
