@@ -534,6 +534,9 @@ _EXPECTED_IMPACT_ESTIMATOR = (
 _ROLLBACK_STRATEGY_GENERATOR = (
     "creative_coding_assistant.orchestration.rollback_strategy_generator"
 )
+_SELF_EVOLUTION_CORE_SURFACE = (
+    "creative_coding_assistant.orchestration.self_evolution_core_surface"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2713,6 +2716,18 @@ _EXPORT_MAP = {
     ),
     "rollback_strategy_generator_proposals_for_status": (
         _ROLLBACK_STRATEGY_GENERATOR
+    ),
+    "SelfEvolutionCoreSurfacePlan": _SELF_EVOLUTION_CORE_SURFACE,
+    "build_self_evolution_core_surface": _SELF_EVOLUTION_CORE_SURFACE,
+    "self_evolution_core_surface_plan_by_roadmap_item": (
+        _SELF_EVOLUTION_CORE_SURFACE
+    ),
+    "self_evolution_core_surface_proposal_by_id": _SELF_EVOLUTION_CORE_SURFACE,
+    "self_evolution_core_surface_proposals_for_confidence": (
+        _SELF_EVOLUTION_CORE_SURFACE
+    ),
+    "self_evolution_core_surface_proposals_for_status": (
+        _SELF_EVOLUTION_CORE_SURFACE
     ),
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
