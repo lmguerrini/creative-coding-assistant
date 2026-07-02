@@ -496,6 +496,7 @@ _AUTOMATIC_KB_ENRICHMENT = (
     "creative_coding_assistant.orchestration.automatic_kb_enrichment"
 )
 _RESEARCH_REPORTS = "creative_coding_assistant.orchestration.research_reports"
+_RESEARCH_MEMORY = "creative_coding_assistant.orchestration.research_memory"
 _DOCUMENTATION_INTELLIGENCE = (
     "creative_coding_assistant.orchestration.documentation_intelligence"
 )
@@ -2482,6 +2483,12 @@ _EXPORT_MAP = {
     "research_report_entry_by_id": _RESEARCH_REPORTS,
     "research_report_entries_for_confidence": _RESEARCH_REPORTS,
     "research_report_entries_for_status": _RESEARCH_REPORTS,
+    "ResearchMemoryPlan": _RESEARCH_MEMORY,
+    "ResearchMemoryEntry": _RESEARCH_MEMORY,
+    "build_research_memory": _RESEARCH_MEMORY,
+    "research_memory_entry_by_id": _RESEARCH_MEMORY,
+    "research_memory_entries_for_confidence": _RESEARCH_MEMORY,
+    "research_memory_entries_for_status": _RESEARCH_MEMORY,
     "DocumentationIntelligencePlan": _DOCUMENTATION_INTELLIGENCE,
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
