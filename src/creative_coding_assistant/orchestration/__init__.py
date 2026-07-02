@@ -555,6 +555,9 @@ _UNIFIED_MEMORY_GRAPH = (
 _UNIFIED_KNOWLEDGE_GRAPH = (
     "creative_coding_assistant.orchestration.unified_knowledge_graph"
 )
+_UNIFIED_AGENT_REGISTRY = (
+    "creative_coding_assistant.orchestration.unified_agent_registry"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2814,6 +2817,12 @@ _EXPORT_MAP = {
     "unified_knowledge_graph_edge_by_id": _UNIFIED_KNOWLEDGE_GRAPH,
     "unified_knowledge_graph_node_by_id": _UNIFIED_KNOWLEDGE_GRAPH,
     "unified_knowledge_graph_nodes_for_layer": _UNIFIED_KNOWLEDGE_GRAPH,
+    "UnifiedAgentRegistryEntry": _UNIFIED_AGENT_REGISTRY,
+    "UnifiedAgentRegistryPlan": _UNIFIED_AGENT_REGISTRY,
+    "build_unified_agent_registry": _UNIFIED_AGENT_REGISTRY,
+    "unified_agent_registry_entries_for_layer": _UNIFIED_AGENT_REGISTRY,
+    "unified_agent_registry_entries_for_role_family": _UNIFIED_AGENT_REGISTRY,
+    "unified_agent_registry_entry_by_id": _UNIFIED_AGENT_REGISTRY,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
