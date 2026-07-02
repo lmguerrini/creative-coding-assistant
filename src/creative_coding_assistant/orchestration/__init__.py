@@ -543,6 +543,9 @@ _SELF_EVOLUTION_SECONDARY_SURFACE = (
 _SELF_EVOLUTION_GOVERNANCE = (
     "creative_coding_assistant.orchestration.self_evolution_governance"
 )
+_SELF_EVOLUTION_FAILURE_PATH_AUDIT = (
+    "creative_coding_assistant.orchestration.self_evolution_failure_path_audit"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2766,6 +2769,20 @@ _EXPORT_MAP = {
     "self_evolution_governance_priority": _SELF_EVOLUTION_GOVERNANCE,
     "self_evolution_governance_score": _SELF_EVOLUTION_GOVERNANCE,
     "self_evolution_governance_status": _SELF_EVOLUTION_GOVERNANCE,
+    "SelfEvolutionFailurePathAuditRecord": _SELF_EVOLUTION_FAILURE_PATH_AUDIT,
+    "SelfEvolutionFailurePathAuditRegistry": _SELF_EVOLUTION_FAILURE_PATH_AUDIT,
+    "self_evolution_failure_path_audit_by_id": (
+        _SELF_EVOLUTION_FAILURE_PATH_AUDIT
+    ),
+    "self_evolution_failure_path_audit_registry": (
+        _SELF_EVOLUTION_FAILURE_PATH_AUDIT
+    ),
+    "self_evolution_failure_path_audits_for_check": (
+        _SELF_EVOLUTION_FAILURE_PATH_AUDIT
+    ),
+    "self_evolution_failure_path_audits_for_surface": (
+        _SELF_EVOLUTION_FAILURE_PATH_AUDIT
+    ),
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
