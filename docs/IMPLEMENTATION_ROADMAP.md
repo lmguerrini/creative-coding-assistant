@@ -84,7 +84,7 @@ control workflows, change provider/model routing, select runtimes, trigger
 retries, mutate storage, execute artifacts, invoke agents, or modify generated
 output.
 
-## Advisory Execution, Model Routing, Performance, Observability, Controlled Adaptive Execution, Learning, Creative Memory, Knowledge Evolution, Autonomous Research, And Self Evolution
+## Advisory Execution, Model Routing, Performance, Observability, Controlled Adaptive Execution, Learning, Creative Memory, Knowledge Evolution, Autonomous Research, Self Evolution, And Cognitive OS Core
 
 The V5.1 Execution Optimization Engine is a completed advisory metadata layer.
 It records execution graph analysis, workflow cost and complexity analysis,
@@ -309,6 +309,32 @@ downstream impact, governance, and rollback feasibility metadata for review
 only. All 22 contractual V6.5 roadmap items remain individually traceable for
 roadmap coverage, audit classification, and future capability-scoped fixes.
 
+The V6.6 Cognitive Operating System Core is an in-progress advisory cognitive
+OS metadata layer. It records Unified Cognitive Graph, Unified Memory Graph,
+Unified Knowledge Graph, Unified Agent Registry, Unified Capability Registry,
+Cross-System Learning Layer, Cross-System Optimization Layer, Cognitive State
+Engine, Cognitive Profile Engine, Meta-Reasoning Layer, Meta-Planning Layer,
+Cognitive Governance Layer, Creative Cognition Layer, Creative Identity Layer,
+Emergent Creativity Layer, Cognitive Scheduler, Cognitive Planner, Cognitive
+Router, Cognitive Blackboard, Cognitive Explanation Engine, Cognitive Safety
+Layer, Cognitive HITL Layer, Unified Execution Graph, Core OS Consolidation,
+core and secondary surfaces, governance/safety, and runtime failure-path audit
+coverage.
+
+It reads V5 Decision Engine, V6.1 adaptive learning, V6.2 creative memory,
+V6.3 knowledge evolution, V6.4 autonomous research, and V6.5 self-evolution
+signals for advisory Cognitive OS metadata only. It does not activate the OS,
+execute graph nodes, traverse execution edges, apply scheduling, planning, or
+routing, write blackboard state, enforce governance or safety policies, emit
+HITL requests, request human input, apply HITL decisions, activate automation,
+write storage, invoke agents, execute providers, mutate workflows, prompts,
+routing, memory, retrieval, runtime state, generated output, or apply Runtime
+Evolution. Every cognitive surface must preserve ownership, dependency
+traceability, explainability, governance, safety, and HITL metadata for review
+only. All 24 contractual V6.6 roadmap items remain individually traceable for
+roadmap coverage, audit classification, Cross-Capability Governance Audit,
+Unified Cognitive System Verification, and future capability-scoped fixes.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current
@@ -318,10 +344,11 @@ roadmap coverage, audit classification, and future capability-scoped fixes.
 - Later V5 Production Intelligence work remains future live runtime policy
   enforcement, telemetry emission, provider execution, live performance
   measurement, resource enforcement, and cost/performance enforcement work.
-- Later V6 Cognitive OS work remains future persistent memory, feedback
-  application, active research, active self-evolution, long-horizon creative
-  lineage, active creative memory, active knowledge evolution, and system
-  continuity work beyond the current V6.5 advisory metadata boundary.
+- Later HoloMind / HoloGenesis work remains future persistent memory,
+  feedback application, active research, active self-evolution,
+  long-horizon creative lineage, active creative memory, active knowledge
+  evolution, active Cognitive OS execution, and system continuity work beyond
+  the current V6.6 advisory metadata boundary.
 
 ## Documentation Contract
 
@@ -333,5 +360,6 @@ observability metadata, and V5.5 controlled adaptive execution
 policy/simulation, V5.6 production-release readiness metadata, and V6.1
 adaptive learning metadata, V6.2 advisory creative memory metadata, and V6.3
 advisory knowledge evolution metadata, and V6.4 advisory autonomous research
-metadata, and V6.5 advisory self-evolution governance metadata, but must keep
-the current compact LangGraph workflow as the execution source of truth.
+metadata, V6.5 advisory self-evolution governance metadata, and V6.6 advisory
+cognitive OS core metadata, but must keep the current compact LangGraph
+workflow as the execution source of truth.

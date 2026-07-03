@@ -144,6 +144,15 @@ inspection metadata, critique, and refinement context.
   prompt rewriting, workflow mutation, routing mutation, memory or retrieval
   mutation, storage writes, policy enforcement, HITL emission, automation,
   provider execution, Runtime Evolution, or output mutation.
+- V6.6 Cognitive Operating System Core for advisory unified cognitive, memory,
+  knowledge, execution, registry, learning, optimization, state, profile,
+  reasoning, planning, governance, creative cognition, creative identity,
+  emergence, scheduler, planner, router, blackboard, explanation, safety,
+  HITL, consolidation, core, secondary, governance, and runtime failure-path
+  audit metadata without OS activation, execution graph application,
+  scheduler/planner/router application, blackboard writes, policy
+  enforcement, HITL emission, automation, provider execution, Runtime
+  Evolution, or output mutation.
 
 ## Supported Creative Domains
 
@@ -163,11 +172,12 @@ inspection metadata, critique, and refinement context.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
 - V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6,
-  V6.1, V6.2, V6.3, V6.4, and V6.5 registries and helpers are passive,
+  V6.1, V6.2, V6.3, V6.4, V6.5, and V6.6 registries and helpers are passive,
   advisory, read-only, controlled-policy, advisory-learning, advisory
   creative-memory, advisory knowledge evolution, advisory autonomous research,
-  or advisory self-evolution governance product and architecture metadata.
-  They are inspectable Python APIs and documentation surfaces.
+  advisory self-evolution governance, or advisory cognitive OS core product
+  and architecture metadata. They are inspectable Python APIs and
+  documentation surfaces.
 
 ## V4.3 Passive Boundary
 
@@ -544,6 +554,35 @@ behavior. Every proposal remains explainable and carries impact, cost, risk,
 confidence, dependency, capability ownership, downstream impact, governance,
 and rollback feasibility metadata for review only.
 
+## V6.6 Cognitive Operating System Core Boundary
+
+V6.6 Cognitive Operating System Core continues the V6 cognitive layer as
+advisory OS coherence metadata over V5 Decision Engine, V6.1 adaptive
+learning, V6.2 creative memory, V6.3 knowledge evolution, V6.4 autonomous
+research, and V6.5 self-evolution signals. The Unified Cognitive Graph,
+Unified Memory Graph, Unified Knowledge Graph, Unified Agent Registry,
+Unified Capability Registry, Cross-System Learning Layer, Cross-System
+Optimization Layer, Cognitive State Engine, Cognitive Profile Engine,
+Meta-Reasoning Layer, Meta-Planning Layer, Cognitive Governance Layer,
+Creative Cognition Layer, Creative Identity Layer, Emergent Creativity Layer,
+Cognitive Scheduler, Cognitive Planner, Cognitive Router, Cognitive
+Blackboard, Cognitive Explanation Engine, Cognitive Safety Layer, Cognitive
+HITL Layer, Unified Execution Graph, and Core OS Consolidation remain
+individually traceable roadmap surfaces. The core surface, secondary surface,
+governance/safety metadata, and runtime failure path audit aggregate those
+surfaces for inspection and audit without grouping away their individual
+roadmap identities.
+
+It must not activate the Cognitive OS, execute graph nodes, traverse
+execution edges, apply scheduling, planning, routing, blackboard,
+explanation, governance, safety, or HITL behavior, enforce policy, emit HITL
+requests, request human input, apply HITL decisions, activate automation,
+write storage, invoke agents, execute providers, mutate workflows, prompts,
+routing, memory, retrieval, generated output, runtime state, or apply Runtime
+Evolution. Every cognitive surface remains explainable and carries ownership,
+dependency traceability, governance, safety, HITL, source-trace, and future
+extensibility metadata for review only.
+
 ## Non-Goals For Current Baseline
 
 - active multi-agent execution
@@ -581,6 +620,10 @@ and rollback feasibility metadata for review only.
 - active V6 learning, memory persistence, research execution, or long-horizon
   adaptation
 - active self-evolution, proposal application, or autonomous self-modification
+- active Cognitive OS execution, graph traversal, execution graph
+  application, scheduler/planner/router application, blackboard storage,
+  governance or safety enforcement, explanation application, HITL emission,
+  or HITL decision application
 - prompt rewriting, workflow mutation, routing mutation, memory mutation, or
   retrieval mutation
 - uncontrolled web access, source discovery, or paper downloads

@@ -12,8 +12,8 @@
   V5.5 adaptive execution policy helpers, and V5.6 production-release
   readiness helpers, V6.1 adaptive learning helpers, V6.2 creative memory
   helpers, V6.3 knowledge evolution helpers, V6.4 autonomous research
-  helpers, and V6.5 self-evolution governance helpers are metadata surfaces,
-  not additional runtime nodes.
+  helpers, V6.5 self-evolution governance helpers, and V6.6 cognitive OS
+  core helpers are metadata surfaces, not additional runtime nodes.
 - Keep the Next.js workstation responsible for product inspection, preview,
   comparison, export, telemetry, workflow visibility, and operator controls.
 
@@ -33,8 +33,10 @@ update source records, discover sources, fetch external research sources,
 write telemetry or trace stores, emit monitoring events, allocate resources,
 create release artifacts, generate report artifacts, apply proposals, rewrite
 prompts, mutate workflows, mutate routing, mutate memory or retrieval,
-execute rollback, run deployment storage writes, or introduce runtime
-synchronization behavior.
+execute rollback, activate the Cognitive OS, apply execution graphs,
+schedule, plan, route, write blackboard state, enforce governance or safety
+policies, emit HITL requests, apply HITL decisions, run deployment storage
+writes, or introduce runtime synchronization behavior.
 
 ## Metadata Layering
 
@@ -135,6 +137,17 @@ synchronization behavior.
   without proposal application, prompt rewriting, workflow mutation, routing
   mutation, memory or retrieval mutation, storage writes, provider execution,
   report artifact generation, Runtime Evolution, or output mutation.
+- V6.6 Cognitive Operating System Core helpers describe advisory unified
+  graph, registry, learning, optimization, state, profile, reasoning,
+  planning, governance, creative cognition, identity, emergence, scheduler,
+  planner, router, blackboard, explanation, safety, HITL, execution graph,
+  consolidation, core, secondary, governance/safety, and failure-path metadata
+  over V5 Decision Engine and the V6.1 learning, V6.2 memory, V6.3
+  knowledge, V6.4 research, and V6.5 self-evolution sequence without OS
+  activation, execution graph application, scheduler/planner/router
+  application, blackboard storage writes, governance or safety enforcement,
+  HITL emission, HITL decision application, provider execution, Runtime
+  Evolution, or output mutation.
 
 ## V4.3 Boundary Decision
 
@@ -523,6 +536,40 @@ generally, it does not change provider/model routing, does not introduce
 hidden autonomous self-improvement behavior, and does not modify generated
 output.
 
+## V6.6 Boundary Decision
+
+V6.6 Cognitive Operating System Core is an advisory cognitive OS metadata
+layer only. It may expose the Unified Cognitive Graph, Unified Memory Graph,
+Unified Knowledge Graph, Unified Agent Registry, Unified Capability Registry,
+Cross-System Learning Layer, Cross-System Optimization Layer, Cognitive State
+Engine, Cognitive Profile Engine, Meta-Reasoning Layer, Meta-Planning Layer,
+Cognitive Governance Layer, Creative Cognition Layer, Creative Identity
+Layer, Emergent Creativity Layer, Cognitive Scheduler, Cognitive Planner,
+Cognitive Router, Cognitive Blackboard, Cognitive Explanation Engine,
+Cognitive Safety Layer, Cognitive HITL Layer, Unified Execution Graph, Core
+OS Consolidation, core surface, secondary surface, governance/safety, and
+runtime failure-path audit coverage. The 24 contractual roadmap items must
+remain individually traceable for roadmap coverage verification, Codex
+Engineering Audit classification, Cross-Capability Governance Audit, Unified
+Cognitive System Verification, and future capability-scoped fixes.
+
+It may read deterministic metadata from V5 Decision Engine, V6.1 Adaptive
+Learning, V6.2 Creative Memory, V6.3 Knowledge Evolution, V6.4 Autonomous
+Research, and V6.5 Self Evolution, compose the Learning -> Memory ->
+Knowledge -> Research -> Self Evolution -> Cognitive Core sequence through
+the Unified Cognitive Graph, and expose ownership, dependency traceability,
+governance, explainability, safety, and HITL contracts for review.
+
+It must not activate the Cognitive OS, execute graph nodes, traverse
+execution edges, apply scheduling, planning, routing, blackboard,
+explanation, governance, safety, or HITL behavior, enforce governance or
+safety policies, emit HITL requests, request human input, apply HITL
+decisions, activate automation, write storage, invoke agents, execute
+providers, mutate workflows, prompts, routing, memory, retrieval, generated
+output, runtime state, or apply Runtime Evolution. More generally, it does
+not change provider/model routing, does not introduce hidden autonomous
+cognitive execution behavior, and does not modify generated output.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -548,8 +595,9 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - advisory V6.3 knowledge evolution metadata
 - advisory V6.4 autonomous research metadata
 - advisory V6.5 self-evolution governance metadata
+- advisory V6.6 cognitive OS core metadata
 - future active V4 Agentic Studio, live adaptive runtime control, and later
-  V6 Cognitive OS work
+  HoloMind / HoloGenesis Cognitive OS work
 
 ## Code Quality Rules
 

@@ -159,6 +159,24 @@ signals, ranks and explains proposals, and preserves HITL boundaries without
 applying Runtime Evolution, rewriting prompts, mutating workflows, changing
 routing, mutating memory or retrieval, writing storage, executing providers,
 generating report artifacts, or mutating generated output.
+V6.6 adds Cognitive Operating System Core metadata for the Unified Cognitive
+Graph, Unified Memory Graph, Unified Knowledge Graph, Unified Agent Registry,
+Unified Capability Registry, Cross-System Learning Layer, Cross-System
+Optimization Layer, Cognitive State Engine, Cognitive Profile Engine,
+Meta-Reasoning Layer, Meta-Planning Layer, Cognitive Governance Layer,
+Creative Cognition Layer, Creative Identity Layer, Emergent Creativity Layer,
+Cognitive Scheduler, Cognitive Planner, Cognitive Router, Cognitive
+Blackboard, Cognitive Explanation Engine, Cognitive Safety Layer, Cognitive
+HITL Layer, Unified Execution Graph, Core OS Consolidation, core surface,
+secondary surface, governance/safety, and failure-path audit surfaces. It
+remains advisory Cognitive OS metadata only: it composes V5 Decision Engine
+context with the V6.1 learning, V6.2 memory, V6.3 knowledge, V6.4 research,
+V6.5 self-evolution, and V6.6 cognitive-core sequence through explicit
+ownership, dependency, governance, explainability, safety, and HITL contracts
+without activating the OS, executing graphs, applying routing, enforcing
+policies, emitting HITL requests, applying HITL decisions, mutating prompts,
+workflows, memory, retrieval, storage, provider selection, runtime state,
+Runtime Evolution, or generated output.
 
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
@@ -297,6 +315,16 @@ observed through live preview and runtime inspection from the same interface.
   application, prompt rewriting, workflow mutation, routing mutation, memory
   or retrieval mutation, storage writes, report artifact generation, provider
   execution, Runtime Evolution, or output mutation
+- V6.6 Cognitive Operating System Core helpers for advisory unified cognitive,
+  memory, knowledge, execution, registry, learning, optimization, state,
+  profile, reasoning, planning, governance, creative cognition, identity,
+  emergence, scheduler, planner, router, blackboard, explanation, safety,
+  HITL, consolidation, core, secondary, governance, and failure audit metadata
+  over V5 Decision Engine and V6.1 through V6.5 signals without OS activation,
+  execution graph application, scheduler/planner/router application,
+  blackboard storage writes, governance or safety enforcement, HITL emission,
+  HITL decision application, provider execution, Runtime Evolution, or output
+  mutation
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -813,6 +841,37 @@ Self Evolution Engine surfaces:
 - Self Evolution Governance
 - Self Evolution Runtime Failure Audit
 
+Cognitive Operating System Core surfaces:
+
+- Unified Cognitive Graph
+- Unified Memory Graph
+- Unified Knowledge Graph
+- Unified Agent Registry
+- Unified Capability Registry
+- Cross-System Learning Layer
+- Cross-System Optimization Layer
+- Cognitive State Engine
+- Cognitive Profile Engine
+- Meta-Reasoning Layer
+- Meta-Planning Layer
+- Cognitive Governance Layer
+- Creative Cognition Layer
+- Creative Identity Layer
+- Emergent Creativity Layer
+- Cognitive Scheduler
+- Cognitive Planner
+- Cognitive Router
+- Cognitive Blackboard
+- Cognitive Explanation Engine
+- Cognitive Safety Layer
+- Cognitive HITL Layer
+- Unified Execution Graph
+- Core OS Consolidation
+- Cognitive OS Core Surface
+- Cognitive OS Secondary Surface
+- Cognitive OS Governance and Safety
+- Cognitive OS Runtime Failure Audit
+
 The architecture documents six complementary views:
 
 - the real runtime graph in
@@ -826,8 +885,8 @@ The architecture documents six complementary views:
 - the V3.5 Creative Workstation surface graph in
   [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
 - the cross-cutting engine matrix, including V4.1, V4.2, V4.3, V4.4, V4.5,
-  V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, V6.2, V6.3, V6.4, and V6.5
-  metadata layers, in
+  V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, V6.2, V6.3, V6.4, V6.5,
+  and V6.6 metadata layers, in
   [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
 
 The runtime graph remains compact and truthful. The internal pipeline and
@@ -836,21 +895,23 @@ while V4.1, V4.2, V4.3, V4.4, V4.5, and V4.6 document passive roles,
 contracts, orchestration, hybrid workflow, hybrid studio, multimodal studio,
 and hardening metadata rather than claiming that a multi-agent runtime, Studio
 runtime, rendering execution path, or runtime hardening engine already exists.
-V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, V6.2, V6.3, V6.4, and V6.5
+V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, V6.2, V6.3, V6.4, V6.5, and V6.6
 document advisory execution optimization, model-routing, performance,
 read-only observability, controlled adaptive execution policy/simulation,
 production-release readiness, adaptive learning, creative memory, knowledge
-evolution, autonomous research, and self-evolution governance metadata without
-claiming that provider execution, model switching, live telemetry emission,
-performance measurement, benchmark execution, resource enforcement, runtime
-workflow control, automatic downloads, deployment execution, release tag
-creation, memory storage writes, preference learning execution,
-personalization application, automatic KB update execution, retrieval
-configuration mutation, source record updates, KB storage writes, research
-execution, web browsing, paper downloads, source discovery, proposal
-application, prompt rewriting, workflow mutation, routing mutation, memory
-mutation, retrieval mutation, HITL emission, automation, or generated-output
-mutation has been added.
+evolution, autonomous research, self-evolution governance, and cognitive OS
+core metadata without claiming that provider execution, model switching, live
+telemetry emission, performance measurement, benchmark execution, resource
+enforcement, runtime workflow control, automatic downloads, deployment
+execution, release tag creation, memory storage writes, preference learning
+execution, personalization application, automatic KB update execution,
+retrieval configuration mutation, source record updates, KB storage writes,
+research execution, web browsing, paper downloads, source discovery, proposal
+application, cognitive OS activation, execution graph application, scheduler,
+planner, router, blackboard, governance, safety, or HITL runtime application,
+prompt rewriting, workflow mutation, routing mutation, memory mutation,
+retrieval mutation, HITL emission, automation, or generated-output mutation
+has been added.
 
 ## Creative Workflow
 
@@ -994,6 +1055,15 @@ inspection, and multimodal workspace inspection:
   routing mutation, memory or retrieval mutation, report generation, storage
   writes, governance enforcement, HITL request emission, provider execution,
   Runtime Evolution, or output mutation.
+- Cognitive Core: advisory Cognitive Operating System metadata connects
+  learning, memory, knowledge, research, self-evolution, and cognitive-core
+  surfaces through the Unified Cognitive Graph, registries, scheduler,
+  planner, router, blackboard, explanation, safety, HITL, execution graph,
+  consolidation, governance, and failure-audit contracts without OS
+  activation, execution graph application, scheduler/planner/router
+  application, blackboard writes, governance or safety enforcement, HITL
+  request emission, HITL decision application, provider execution, Runtime
+  Evolution, or output mutation.
 - Generation: the backend resolves effective domains, assembles the prompt,
   and streams one or more creative artifacts.
 - Preview: supported artifacts mount in controlled preview runtimes with
@@ -1765,9 +1835,20 @@ current runtime.
   prompt rewriting, workflow mutation, routing mutation, memory or retrieval
   mutation, storage writes, provider execution, Runtime Evolution, or output
   mutation.
+- Cognitive Operating System Core: V6.6 provides advisory cognitive OS
+  coherence metadata over V5 Decision Engine and the V6.1 through V6.5
+  sequence. It keeps the Unified Cognitive Graph, Unified Memory Graph,
+  Unified Knowledge Graph, registries, cross-system learning and optimization,
+  state, profile, reasoning, planning, governance, creative cognition,
+  identity, emergence, scheduler, planner, router, blackboard, explanation,
+  safety, HITL, execution graph, consolidation, core, secondary, governance,
+  and failure-audit metadata individually traceable without OS activation,
+  execution graph application, policy enforcement, HITL emission, provider
+  execution, Runtime Evolution, or output mutation.
 - HoloGenesis Core OS: long-horizon creative lineage, persistent feedback,
   active creative memory, active knowledge evolution, active research, active
-  self-evolution, and system-level continuity beyond the current V6.5
+  self-evolution, active cognitive OS execution, and system-level continuity
+  beyond the current V6.6
   metadata boundary.
 
 ## Setup
