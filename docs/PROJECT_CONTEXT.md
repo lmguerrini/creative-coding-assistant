@@ -178,6 +178,12 @@ inspection metadata, critique, and refinement context.
   advisory self-evolution governance, or advisory cognitive OS core product
   and architecture metadata. They are inspectable Python APIs and
   documentation surfaces.
+- V6.6 documentation treats Cognitive OS helpers as engineering inspection
+  surfaces for roadmap traceability, dependency awareness, governance review,
+  explainability, safety, HITL posture, failure-path audit, and future
+  capability-scoped fixes. It does not describe a user-facing OS console,
+  autonomous scheduler, active planner, active router, mutable blackboard, or
+  runtime governance controller.
 
 ## V4.3 Passive Boundary
 

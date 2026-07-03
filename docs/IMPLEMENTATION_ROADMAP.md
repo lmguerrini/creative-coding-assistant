@@ -335,6 +335,12 @@ only. All 24 contractual V6.6 roadmap items remain individually traceable for
 roadmap coverage, audit classification, Cross-Capability Governance Audit,
 Unified Cognitive System Verification, and future capability-scoped fixes.
 
+Engineering documentation for V6.6 should describe these surfaces as
+importable inspection helpers and audit inputs. It should not imply a
+user-facing Cognitive OS console, active graph executor, autonomous scheduler,
+planner, router, blackboard, governance controller, safety controller, HITL
+prompt surface, or Runtime Evolution path.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current

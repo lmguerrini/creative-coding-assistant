@@ -1561,10 +1561,18 @@ Key backend capabilities include:
 - selected-artifact refinement context threaded into request contracts, prompt
   inputs, and rendered prompts
 - advisory execution optimization, intelligent model-routing, performance,
-  read-only observability, and adaptive execution metadata exposed as
-  importable helpers without changing graph control, provider/model routing,
-  provider execution, live telemetry, budget enforcement, adaptive behavior
-  application, or generated output
+  read-only observability, adaptive execution, and production-release
+  readiness metadata exposed as importable helpers without changing graph
+  control, provider/model routing, provider execution, live telemetry, budget
+  enforcement, adaptive behavior application, release operations, or generated
+  output
+- V6 advisory adaptive learning, creative memory, knowledge evolution,
+  autonomous research, self-evolution governance, and Cognitive Operating
+  System Core metadata exposed as importable helper surfaces without learning
+  memory writes, creative memory writes, KB writes, research execution,
+  proposal application, Cognitive OS activation, execution graph application,
+  governance or safety enforcement, HITL request emission, provider
+  execution, Runtime Evolution, or generated-output mutation
 - structured terminal failure handling
 - live session recording, optional LangSmith runtime metadata, and offline
   evaluation support
@@ -2008,7 +2016,7 @@ scripts/run_eval_latest.sh 4
 
 ## Validation
 
-Accepted V5 Python release checks:
+Accepted Python release checks:
 
 ```bash
 git diff --check
