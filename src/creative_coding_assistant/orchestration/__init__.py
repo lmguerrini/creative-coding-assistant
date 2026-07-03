@@ -612,6 +612,9 @@ _COGNITIVE_SAFETY_LAYER = (
 _COGNITIVE_HITL_LAYER = (
     "creative_coding_assistant.orchestration.cognitive_hitl_layer"
 )
+_UNIFIED_EXECUTION_GRAPH = (
+    "creative_coding_assistant.orchestration.unified_execution_graph"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2993,6 +2996,16 @@ _EXPORT_MAP = {
     "cognitive_hitl_checkpoints_for_agent": _COGNITIVE_HITL_LAYER,
     "cognitive_hitl_checkpoints_for_layer": _COGNITIVE_HITL_LAYER,
     "cognitive_hitl_checkpoints_for_posture": _COGNITIVE_HITL_LAYER,
+    "UnifiedExecutionEdge": _UNIFIED_EXECUTION_GRAPH,
+    "UnifiedExecutionGraphPlan": _UNIFIED_EXECUTION_GRAPH,
+    "UnifiedExecutionNode": _UNIFIED_EXECUTION_GRAPH,
+    "build_unified_execution_graph": _UNIFIED_EXECUTION_GRAPH,
+    "unified_execution_edges_from_node": _UNIFIED_EXECUTION_GRAPH,
+    "unified_execution_edges_to_node": _UNIFIED_EXECUTION_GRAPH,
+    "unified_execution_node_by_id": _UNIFIED_EXECUTION_GRAPH,
+    "unified_execution_nodes_for_agent": _UNIFIED_EXECUTION_GRAPH,
+    "unified_execution_nodes_for_layer": _UNIFIED_EXECUTION_GRAPH,
+    "unified_execution_nodes_for_posture": _UNIFIED_EXECUTION_GRAPH,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
