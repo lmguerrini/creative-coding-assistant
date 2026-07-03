@@ -359,6 +359,24 @@ Evolution, start V7.2 failure taxonomy work, or modify generated output. All
 coverage, audit classification, HITL review, and future capability-scoped
 fixes.
 
+The V7.2 Typed Failure Taxonomy layer is an in-progress passive failure
+contract registry. It records failure type definitions, node-specific failure
+models, planning sub-helper failure models, provider/stream failure models,
+serialization failure models, workstation/client boundary failure models,
+failure event contracts, recovery invariants, regression scenarios, recovery
+strategies, explainability, severity classification, analytics contracts,
+root-cause classification, reproducibility records, ownership mapping, fix
+recommendations, and knowledge-base entries.
+
+It reads the existing compact LangGraph workflow, stream event contracts, and
+planning payload specs as static source contracts only. It does not classify
+live failures, intercept exceptions, execute recovery, trigger retries, change
+provider/model routing, execute providers, execute or control workflows, mutate
+workflow graphs, subscribe to streams, write persistent storage, apply Runtime
+Evolution, or modify generated output. All 18 contractual V7.2 roadmap items
+remain individually traceable for roadmap coverage, audit classification, HITL
+review, and future capability-scoped fixes.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current
@@ -392,4 +410,9 @@ docs may describe static contracts, validation, invariants, traces,
 visualization, diffing, determinism, and relative cost/latency profiling, but
 must not imply active graph mutation, alternate graph execution, provider/model
 routing changes, trace persistence, Runtime Evolution, or V7.2 failure
-taxonomy behavior.
+taxonomy behavior. V7.2 typed failure taxonomy docs may describe passive
+failure contracts, event payload requirements, recovery invariants, regression
+fixtures, ownership, fix recommendation, and knowledge-base records, but must
+not imply live failure classification, exception interception, recovery
+execution, retry triggering, provider execution, stream subscription, storage
+writes, or Runtime Evolution.

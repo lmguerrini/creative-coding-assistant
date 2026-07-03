@@ -252,6 +252,9 @@ _EXECUTION_GRAPH_ANALYZER = (
 _RUNTIME_GRAPH_CONSOLIDATION = (
     "creative_coding_assistant.orchestration.runtime_graph_consolidation"
 )
+_TYPED_FAILURE_TAXONOMY = (
+    "creative_coding_assistant.orchestration.typed_failure_taxonomy"
+)
 _WORKFLOW_COST_ANALYZER = (
     "creative_coding_assistant.orchestration.workflow_cost_analyzer"
 )
@@ -892,6 +895,25 @@ _EXPORT_MAP = {
     "WorkflowContractValidationReport": _RUNTIME_GRAPH_CONSOLIDATION,
     "WorkflowDeterminismAudit": _RUNTIME_GRAPH_CONSOLIDATION,
     "WorkflowStateNormalizationReport": _RUNTIME_GRAPH_CONSOLIDATION,
+    "FailureAnalyticsContract": _TYPED_FAILURE_TAXONOMY,
+    "FailureEventContract": _TYPED_FAILURE_TAXONOMY,
+    "FailureFixRecommendation": _TYPED_FAILURE_TAXONOMY,
+    "FailureKnowledgeBaseEntry": _TYPED_FAILURE_TAXONOMY,
+    "FailureOwnershipRecord": _TYPED_FAILURE_TAXONOMY,
+    "FailureRecoveryInvariant": _TYPED_FAILURE_TAXONOMY,
+    "FailureRegressionScenario": _TYPED_FAILURE_TAXONOMY,
+    "FailureReproducibilityRecord": _TYPED_FAILURE_TAXONOMY,
+    "FailureRootCauseClassification": _TYPED_FAILURE_TAXONOMY,
+    "FailureTaxonomyValidationReport": _TYPED_FAILURE_TAXONOMY,
+    "FailureTypeDefinition": _TYPED_FAILURE_TAXONOMY,
+    "NodeSpecificFailureModel": _TYPED_FAILURE_TAXONOMY,
+    "PlanningSubHelperFailureModel": _TYPED_FAILURE_TAXONOMY,
+    "ProviderStreamFailureModel": _TYPED_FAILURE_TAXONOMY,
+    "RecoveryStrategy": _TYPED_FAILURE_TAXONOMY,
+    "SerializationFailureModel": _TYPED_FAILURE_TAXONOMY,
+    "TYPED_FAILURE_TAXONOMY_ROADMAP_ITEMS": _TYPED_FAILURE_TAXONOMY,
+    "TypedFailureTaxonomyRegistry": _TYPED_FAILURE_TAXONOMY,
+    "WorkstationClientBoundaryFailureModel": _TYPED_FAILURE_TAXONOMY,
     "CreativeComplexityAnalysis": _CREATIVE_COMPLEXITY_ANALYZER,
     "CreativeComplexityFactor": _CREATIVE_COMPLEXITY_ANALYZER,
     "ContextBudgetAllocation": _CONTEXT_BUDGET_PLANNER,
@@ -2176,6 +2198,7 @@ _EXPORT_MAP = {
     "audit_runtime_graph_determinism": _RUNTIME_GRAPH_CONSOLIDATION,
     "build_assistant_workflow_graph": _WORKFLOW_GRAPH,
     "build_runtime_graph_consolidation_plan": _RUNTIME_GRAPH_CONSOLIDATION,
+    "build_typed_failure_taxonomy_registry": _TYPED_FAILURE_TAXONOMY,
     "calibrate_artifact_quality": _QUALITY_CALIBRATION,
     "artifact_quality_score": _REFINEMENT_PASSES,
     "attach_refinement_history": _REFINEMENT_PASSES,
@@ -2208,11 +2231,21 @@ _EXPORT_MAP = {
     "execution_graph_edges_to": _EXECUTION_GRAPH_ANALYZER,
     "diff_runtime_graphs": _RUNTIME_GRAPH_CONSOLIDATION,
     "explain_runtime_graph": _RUNTIME_GRAPH_CONSOLIDATION,
+    "explain_failure_type": _TYPED_FAILURE_TAXONOMY,
     "execution_graph_node_by_id": _EXECUTION_GRAPH_ANALYZER,
+    "failure_type_by_id": _TYPED_FAILURE_TAXONOMY,
+    "failure_types_for_domain": _TYPED_FAILURE_TAXONOMY,
+    "failure_types_for_owner": _TYPED_FAILURE_TAXONOMY,
+    "failure_types_for_root_cause": _TYPED_FAILURE_TAXONOMY,
+    "failure_types_for_severity": _TYPED_FAILURE_TAXONOMY,
     "normalize_runtime_workflow_state": _RUNTIME_GRAPH_CONSOLIDATION,
+    "node_failure_model_by_id": _TYPED_FAILURE_TAXONOMY,
     "profile_runtime_graph_cost": _RUNTIME_GRAPH_CONSOLIDATION,
     "profile_runtime_graph_latency": _RUNTIME_GRAPH_CONSOLIDATION,
     "profile_runtime_graph_performance": _RUNTIME_GRAPH_CONSOLIDATION,
+    "recovery_strategy_by_id": _TYPED_FAILURE_TAXONOMY,
+    "regression_scenario_by_id": _TYPED_FAILURE_TAXONOMY,
+    "validate_typed_failure_taxonomy": _TYPED_FAILURE_TAXONOMY,
     "record_runtime_graph_trace": _RUNTIME_GRAPH_CONSOLIDATION,
     "runtime_graph_node_contract_by_id": _RUNTIME_GRAPH_CONSOLIDATION,
     "runtime_graph_node_contracts_for_subgraph": (

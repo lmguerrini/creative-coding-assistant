@@ -159,6 +159,17 @@ records, or introduce runtime synchronization behavior.
   LangGraph nodes, compile alternate graphs, invoke handlers, change node
   order, change provider/model routing, execute traces, apply graph diffs,
   write storage, apply Runtime Evolution, or mutate generated output.
+- V7.2 Typed Failure Taxonomy helpers describe passive typed failure
+  definitions, node-specific models, planning sub-helper models,
+  provider/stream models, serialization models, workstation/client boundary
+  models, event contracts, recovery invariants, regression scenarios,
+  recovery strategies, explainability, severity and root-cause
+  classification, analytics, reproducibility, ownership, fix
+  recommendations, and knowledge-base metadata. They do not classify live
+  failures, intercept exceptions, execute recovery, trigger retries, route
+  providers/models, execute providers, control workflows, subscribe to
+  streams, write storage, apply Runtime Evolution, or mutate generated
+  output.
 
 ## V4.3 Boundary Decision
 
@@ -598,6 +609,27 @@ workflow order, route providers or models, enforce budgets, persist trace or
 profile storage, apply graph diffs, apply Runtime Evolution, start V7.2
 failure taxonomy work, or mutate generated output.
 
+## V7.2 Typed Failure Taxonomy Boundary
+
+V7.2 Typed Failure Taxonomy is a passive typed failure contract layer over the
+existing workflow graph, stream event contracts, planning helper payload specs,
+provider/stream boundaries, serialization surfaces, and client/workstation
+boundaries. It owns `typed_failure_taxonomy` for stable failure type ids,
+node-specific failure models, planning sub-helper failure models,
+provider/stream failure models, serialization failure models, workstation/client
+boundary failure models, event contracts, recovery invariants, regression
+scenarios, recovery strategies, explainability, severity classification,
+analytics contracts, root-cause classification, reproducibility records,
+ownership records, fix recommendations, and in-memory knowledge-base entries.
+
+It must not classify live failures, intercept exceptions, execute recovery,
+trigger retries, route providers or models, execute providers, execute or
+control workflows, mutate workflow graphs, subscribe to streams, write
+persistent storage, apply Runtime Evolution, or mutate generated output. All
+18 contractual V7.2 roadmap items remain individually traceable for roadmap
+coverage verification, Codex Engineering Audit classification, and future
+capability-scoped fixes.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -625,6 +657,7 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - advisory V6.5 self-evolution governance metadata
 - advisory V6.6 cognitive OS core metadata
 - read-only V7.1 runtime graph consolidation contracts and diagnostics
+- passive V7.2 typed failure taxonomy contracts and registries
 - future active V4 Agentic Studio, live adaptive runtime control, and later
   HoloMind / HoloGenesis Cognitive OS work
 

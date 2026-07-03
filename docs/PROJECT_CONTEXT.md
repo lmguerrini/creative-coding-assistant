@@ -161,6 +161,15 @@ inspection metadata, critique, and refinement context.
   invocation from diagnostics, workflow mutation, provider/model routing
   changes, trace persistence, graph diff application, Runtime Evolution, V7.2
   failure taxonomy work, or output mutation.
+- V7.2 Typed Failure Taxonomy for passive failure type definitions,
+  node-specific models, planning sub-helper models, provider/stream models,
+  serialization models, workstation/client boundary models, event contracts,
+  recovery invariants, regression scenarios, recovery strategies,
+  explainability, severity/root-cause classification, analytics contracts,
+  reproducibility, ownership, fix recommendation, and knowledge-base metadata
+  without live classification, exception interception, recovery execution,
+  retry triggering, provider execution, workflow control, stream
+  subscription, storage writes, Runtime Evolution, or output mutation.
 
 ## Supported Creative Domains
 
@@ -618,6 +627,26 @@ change provider/model routing, enforce budgets, persist trace/profile
 storage, apply graph diffs, apply Runtime Evolution, start V7.2 failure
 taxonomy work, or mutate generated output.
 
+## V7.2 Typed Failure Taxonomy Boundary
+
+V7.2 Typed Failure Taxonomy is an in-progress passive failure contract
+registry. It records stable failure type definitions, node-specific failure
+models, planning sub-helper failure models, provider/stream failure models,
+serialization failure models, workstation/client boundary failure models,
+failure event contracts, recovery invariants, regression scenarios, recovery
+strategies, explainability text, severity classifications, analytics
+contracts, root-cause classifications, reproducibility records, ownership
+records, fix recommendations, and knowledge-base entries.
+
+It reads existing workflow topology, stream event enums, and planning payload
+specs as static contract sources only. It does not classify live failures,
+intercept exceptions, execute recovery, trigger retries, change provider/model
+routing, execute providers, execute or control workflows, mutate workflow
+graphs, subscribe to streams, persist taxonomy or knowledge records, mutate
+generated output, or apply Runtime Evolution. All 18 contractual V7.2 roadmap
+items remain individually traceable for roadmap coverage, audit
+classification, HITL review, and future capability-scoped fixes.
+
 ## Non-Goals For Current Baseline
 
 - active multi-agent execution
@@ -662,6 +691,8 @@ taxonomy work, or mutate generated output.
 - active V7 runtime graph mutation, graph diff application, alternate graph
   compilation, trace persistence, live graph profiling, or node handler
   invocation from graph diagnostics
+- active V7 typed failure classification, exception interception, recovery
+  execution, retry triggering, stream subscription, or taxonomy persistence
 - prompt rewriting, workflow mutation, routing mutation, memory mutation, or
   retrieval mutation
 - uncontrolled web access, source discovery, or paper downloads
