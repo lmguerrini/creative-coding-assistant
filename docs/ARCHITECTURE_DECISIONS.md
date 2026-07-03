@@ -651,6 +651,24 @@ Runtime Evolution, or mutate generated output. All 24 contractual V7.3 roadmap
 items remain individually traceable for roadmap coverage verification, Codex
 Engineering Audit classification, and future capability-scoped fixes.
 
+## V7.4 E2E Quality & CI Hardening Boundary
+
+V7.4 E2E Quality & CI Hardening is a quality infrastructure layer over the
+existing backend, Next.js workstation, preview, persistence, stream, retrieval,
+and documentation surfaces. It adds Playwright configuration and browser E2E
+tests, deterministic mocked assistant and workspace-session responses, browser
+console and request gates, backend log scanning, docs/Mermaid linting,
+GitHub Actions CI orchestration, release checklist generation, performance
+budgets, and test coverage dashboard metadata.
+
+It does not change provider/model routing, execute providers, change backend
+API contracts, alter the LangGraph workflow, mutate workflow graphs, change
+preview runtime behavior, write workspace storage outside existing
+persistence contracts, change retrieval or KB ownership, apply Runtime
+Evolution, mutate generated output, start V7.5 production API/runtime work, or
+perform merge, push, or tag operations. All 23 contractual V7.4 roadmap items
+remain traceable to explicit quality gates and validation evidence.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -680,6 +698,7 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - read-only V7.1 runtime graph consolidation contracts and diagnostics
 - passive V7.2 typed failure taxonomy contracts and registries
 - passive V7.3 registry and contract consolidation metadata
+- V7.4 E2E/CI quality gates and validation infrastructure
 - future active V4 Agentic Studio, live adaptive runtime control, and later
   HoloMind / HoloGenesis Cognitive OS work
 

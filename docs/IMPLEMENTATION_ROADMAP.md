@@ -397,6 +397,25 @@ apply Runtime Evolution, or modify generated output. All 24 contractual V7.3
 roadmap items remain individually traceable for roadmap coverage, audit
 classification, HITL review, and future capability-scoped fixes.
 
+The V7.4 E2E Quality & CI Hardening layer is quality infrastructure over the
+existing backend and Next.js workstation. It adds Playwright smoke and
+resilience coverage, localhost regression, browser console and request gates,
+backend log scanning, CI smoke orchestration, docs/Mermaid linting,
+performance regression budgets, release checklist automation, expanded
+integration and behavioral tests, streaming failure and provider fallback
+coverage, complete user journey coverage, workspace persistence coverage,
+creative session, long conversation, memory stress, visual layout, prompt,
+and KB regression coverage, plus performance and coverage dashboards.
+
+It exercises existing surfaces with deterministic mocked stream and
+workspace-session responses. It does not change backend API contracts,
+provider/model routing, provider execution, workflow control, preview runtime
+behavior, retrieval or KB ownership, workspace storage ownership, generated
+output, Runtime Evolution, merge/push/tag operations, or V7.5 production
+API/runtime stabilization scope. All 23 contractual V7.4 roadmap items remain
+individually traceable for roadmap coverage, audit classification, HITL
+review, and future capability-scoped fixes.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current
@@ -435,4 +454,13 @@ failure contracts, event payload requirements, recovery invariants, regression
 fixtures, ownership, fix recommendation, and knowledge-base records, but must
 not imply live failure classification, exception interception, recovery
 execution, retry triggering, provider execution, stream subscription, storage
-writes, or Runtime Evolution.
+writes, or Runtime Evolution. V7.3 registry consolidation docs may describe
+passive inventory, schema, export, compatibility, migration, dependency,
+diff, and simplification metadata, but must not imply schema migration
+execution, import rewriting, provider/model routing, provider execution,
+workflow control, storage writes, or Runtime Evolution. V7.4 quality docs may
+describe test runners, mocked E2E fixtures, browser and backend log gates,
+CI checks, budgets, and dashboards, but must not imply backend API changes,
+provider execution, workflow control changes, retrieval ownership changes,
+storage ownership changes, generated-output mutation, V7.5 scope, or release
+operation automation.

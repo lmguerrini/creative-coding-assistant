@@ -179,6 +179,15 @@ inspection metadata, critique, and refinement context.
   schemas, applying migrations, changing import behavior, changing provider
   routing, workflow control, prompt rendering, Jinja templates, logging
   configuration, storage, Runtime Evolution, or output mutation.
+- V7.4 E2E Quality & CI Hardening for Playwright smoke and resilience tests,
+  localhost regression, browser console gates, backend log gates, CI smoke,
+  docs/Mermaid lint, performance regression budgets, release checklist
+  automation, user journey coverage, workspace persistence coverage, creative
+  session coverage, long-session and memory-stress coverage, prompt and KB
+  regression coverage, and performance/test coverage dashboards without
+  changing backend API contracts, provider/model routing, workflow control,
+  preview runtime behavior, storage ownership, Runtime Evolution, generated
+  output, merge, push, or tag operations.
 
 ## Supported Creative Domains
 
@@ -198,13 +207,14 @@ inspection metadata, critique, and refinement context.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
 - V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6,
-  V6.1, V6.2, V6.3, V6.4, V6.5, V6.6, and V7.1 registries and helpers are passive,
-  advisory, read-only, controlled-policy, advisory-learning, advisory
-  creative-memory, advisory knowledge evolution, advisory autonomous research,
-  advisory self-evolution governance, advisory cognitive OS core, or read-only
-  runtime graph consolidation product and architecture metadata. They are
-  inspectable Python APIs and
-  documentation surfaces.
+  V6.1, V6.2, V6.3, V6.4, V6.5, V6.6, V7.1, V7.2, V7.3, and V7.4 registries,
+  helpers, contracts, and quality gates are passive, advisory, read-only,
+  controlled-policy, advisory-learning, advisory creative-memory, advisory
+  knowledge evolution, advisory autonomous research, advisory self-evolution
+  governance, advisory cognitive OS core, read-only runtime graph
+  consolidation, passive failure taxonomy, passive registry consolidation, or
+  validation infrastructure. They are inspectable Python APIs, frontend test
+  gates, CI configuration, and documentation surfaces.
 - V6.6 documentation treats Cognitive OS helpers as engineering inspection
   surfaces for roadmap traceability, dependency awareness, governance review,
   explainability, safety, HITL posture, failure-path audit, and future
@@ -674,6 +684,27 @@ change logging configuration, persist consolidation records, mutate generated
 output, or apply Runtime Evolution. All 24 contractual V7.3 roadmap items
 remain individually traceable for roadmap coverage, audit classification, HITL
 review, and future capability-scoped fixes.
+
+## V7.4 E2E Quality & CI Hardening Boundary
+
+V7.4 E2E Quality & CI Hardening adds quality infrastructure for the existing
+product surface. It covers Playwright E2E smoke and resilience tests, mocked
+NDJSON stream fixtures, mocked workspace-session persistence, localhost
+regression, browser console and request failure gates, backend log scanning,
+docs/Mermaid linting, CI smoke orchestration, release checklist generation,
+performance budgets, and coverage dashboards.
+
+It validates the current workstation user journey through prompt submission,
+preview routing, code inspection, artifact inspection, retrieval source
+visibility, workspace preference persistence, stream failure handling,
+provider fallback behavior, long-session continuity, and memory-stress bounds.
+It does not change backend API contracts, provider/model routing, provider
+execution, workflow control, prompt rendering, preview runtime behavior,
+retrieval or KB ownership, workspace storage ownership, generated output,
+Runtime Evolution, V7.5 API/runtime stabilization scope, or release
+operations. All 23 contractual V7.4 roadmap items remain individually
+traceable for roadmap coverage, audit classification, HITL review, and future
+capability-scoped fixes.
 
 ## Non-Goals For Current Baseline
 
