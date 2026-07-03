@@ -606,6 +606,9 @@ _COGNITIVE_BLACKBOARD = (
 _COGNITIVE_EXPLANATION_ENGINE = (
     "creative_coding_assistant.orchestration.cognitive_explanation_engine"
 )
+_COGNITIVE_SAFETY_LAYER = (
+    "creative_coding_assistant.orchestration.cognitive_safety_layer"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -2973,6 +2976,13 @@ _EXPORT_MAP = {
     "cognitive_explanation_traces_for_agent": _COGNITIVE_EXPLANATION_ENGINE,
     "cognitive_explanation_traces_for_layer": _COGNITIVE_EXPLANATION_ENGINE,
     "cognitive_explanation_traces_for_posture": _COGNITIVE_EXPLANATION_ENGINE,
+    "CognitiveSafetyBoundary": _COGNITIVE_SAFETY_LAYER,
+    "CognitiveSafetyLayerPlan": _COGNITIVE_SAFETY_LAYER,
+    "build_cognitive_safety_layer": _COGNITIVE_SAFETY_LAYER,
+    "cognitive_safety_boundaries_for_agent": _COGNITIVE_SAFETY_LAYER,
+    "cognitive_safety_boundaries_for_layer": _COGNITIVE_SAFETY_LAYER,
+    "cognitive_safety_boundaries_for_posture": _COGNITIVE_SAFETY_LAYER,
+    "cognitive_safety_boundary_by_id": _COGNITIVE_SAFETY_LAYER,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
