@@ -624,6 +624,9 @@ _COGNITIVE_OS_CORE_SURFACE = (
 _COGNITIVE_OS_SECONDARY_SURFACE = (
     "creative_coding_assistant.orchestration.cognitive_os_secondary_surface"
 )
+_COGNITIVE_OS_GOVERNANCE_SAFETY = (
+    "creative_coding_assistant.orchestration.cognitive_os_governance_safety"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -3044,6 +3047,28 @@ _EXPORT_MAP = {
     "cognitive_os_secondary_surface_entry_by_id": (
         _COGNITIVE_OS_SECONDARY_SURFACE
     ),
+    "CognitiveOSGovernanceBoundary": _COGNITIVE_OS_GOVERNANCE_SAFETY,
+    "CognitiveOSGovernanceSafetyPlan": _COGNITIVE_OS_GOVERNANCE_SAFETY,
+    "build_cognitive_os_governance_safety": _COGNITIVE_OS_GOVERNANCE_SAFETY,
+    "cognitive_os_governance_boundaries_for_agent": (
+        _COGNITIVE_OS_GOVERNANCE_SAFETY
+    ),
+    "cognitive_os_governance_boundaries_for_layer": (
+        _COGNITIVE_OS_GOVERNANCE_SAFETY
+    ),
+    "cognitive_os_governance_boundaries_for_priority": (
+        _COGNITIVE_OS_GOVERNANCE_SAFETY
+    ),
+    "cognitive_os_governance_boundaries_for_status": (
+        _COGNITIVE_OS_GOVERNANCE_SAFETY
+    ),
+    "cognitive_os_governance_boundary_by_id": (
+        _COGNITIVE_OS_GOVERNANCE_SAFETY
+    ),
+    "cognitive_os_governance_posture": _COGNITIVE_OS_GOVERNANCE_SAFETY,
+    "cognitive_os_governance_priority": _COGNITIVE_OS_GOVERNANCE_SAFETY,
+    "cognitive_os_governance_score": _COGNITIVE_OS_GOVERNANCE_SAFETY,
+    "cognitive_os_governance_status": _COGNITIVE_OS_GOVERNANCE_SAFETY,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
