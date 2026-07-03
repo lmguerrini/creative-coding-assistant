@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from scripts.v7_quality_gates import (
+from creative_coding_assistant.quality.v7_quality_gates import (
     ROADMAP_ITEMS,
     build_quality_dashboard,
     find_backend_log_errors,
