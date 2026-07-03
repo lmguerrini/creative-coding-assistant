@@ -153,6 +153,14 @@ inspection metadata, critique, and refinement context.
   scheduler/planner/router application, blackboard writes, policy
   enforcement, HITL emission, automation, provider execution, Runtime
   Evolution, or output mutation.
+- V7.1 Runtime Graph Consolidation for read-only workflow graph contracts,
+  subgraph boundaries, handler references, module ownership, state
+  normalization, visualization, validation, invariants, static traces,
+  explainability, diffing, determinism, and relative cost/latency profiling
+  without LangGraph node additions, alternate graph execution, handler
+  invocation from diagnostics, workflow mutation, provider/model routing
+  changes, trace persistence, graph diff application, Runtime Evolution, V7.2
+  failure taxonomy work, or output mutation.
 
 ## Supported Creative Domains
 
@@ -172,11 +180,12 @@ inspection metadata, critique, and refinement context.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
 - V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6,
-  V6.1, V6.2, V6.3, V6.4, V6.5, and V6.6 registries and helpers are passive,
+  V6.1, V6.2, V6.3, V6.4, V6.5, V6.6, and V7.1 registries and helpers are passive,
   advisory, read-only, controlled-policy, advisory-learning, advisory
   creative-memory, advisory knowledge evolution, advisory autonomous research,
-  advisory self-evolution governance, or advisory cognitive OS core product
-  and architecture metadata. They are inspectable Python APIs and
+  advisory self-evolution governance, advisory cognitive OS core, or read-only
+  runtime graph consolidation product and architecture metadata. They are
+  inspectable Python APIs and
   documentation surfaces.
 - V6.6 documentation treats Cognitive OS helpers as engineering inspection
   surfaces for roadmap traceability, dependency awareness, governance review,
@@ -184,6 +193,11 @@ inspection metadata, critique, and refinement context.
   capability-scoped fixes. It does not describe a user-facing OS console,
   autonomous scheduler, active planner, active router, mutable blackboard, or
   runtime governance controller.
+- V7.1 documentation treats runtime graph consolidation helpers as engineering
+  inspection surfaces for graph modularity, deterministic topology,
+  explainability, validation, static traces, and performance visibility. It
+  does not describe active graph mutation, alternate graph execution, provider
+  or model routing changes, persisted tracing, or Runtime Evolution.
 
 ## V4.3 Passive Boundary
 
@@ -589,6 +603,21 @@ Evolution. Every cognitive surface remains explainable and carries ownership,
 dependency traceability, governance, safety, HITL, source-trace, and future
 extensibility metadata for review only.
 
+## V7.1 Runtime Graph Consolidation Boundary
+
+V7.1 Runtime Graph Consolidation is a read-only graph contract and diagnostics
+layer over the existing compact LangGraph workflow. It makes node contracts,
+subgraph boundaries, handler references, module ownership, state
+normalization, graph visualization, validation, invariant verification,
+static trace records, explainability, graph diffing, determinism, and static
+relative cost/latency profiling explicit without changing runtime behavior.
+
+It must not add LangGraph nodes, compile alternate graphs, execute or control
+workflows from diagnostics, invoke node handlers, mutate workflow order,
+change provider/model routing, enforce budgets, persist trace/profile
+storage, apply graph diffs, apply Runtime Evolution, start V7.2 failure
+taxonomy work, or mutate generated output.
+
 ## Non-Goals For Current Baseline
 
 - active multi-agent execution
@@ -630,6 +659,9 @@ extensibility metadata for review only.
   application, scheduler/planner/router application, blackboard storage,
   governance or safety enforcement, explanation application, HITL emission,
   or HITL decision application
+- active V7 runtime graph mutation, graph diff application, alternate graph
+  compilation, trace persistence, live graph profiling, or node handler
+  invocation from graph diagnostics
 - prompt rewriting, workflow mutation, routing mutation, memory mutation, or
   retrieval mutation
 - uncontrolled web access, source discovery, or paper downloads

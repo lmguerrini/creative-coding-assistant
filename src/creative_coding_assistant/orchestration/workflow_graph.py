@@ -61,6 +61,9 @@ from creative_coding_assistant.orchestration.audio_visual_scene import (
     derive_audio_visual_scene_profile,
 )
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
+from creative_coding_assistant.orchestration.consistency_validation_engine import (
+    derive_consistency_validation_profile,
+)
 from creative_coding_assistant.orchestration.creative_composition import (
     derive_creative_composition_plan,
 )
@@ -111,20 +114,17 @@ from creative_coding_assistant.orchestration.creative_technique import (
 from creative_coding_assistant.orchestration.creative_tradeoffs import (
     derive_creative_tradeoff_profile,
 )
-from creative_coding_assistant.orchestration.consistency_validation_engine import (
-    derive_consistency_validation_profile,
-)
 from creative_coding_assistant.orchestration.cross_modality import (
     derive_cross_modality_composition_profile,
 )
 from creative_coding_assistant.orchestration.emotional_consistency import (
     derive_emotional_consistency_profile,
 )
-from creative_coding_assistant.orchestration.evaluation_reports import (
-    derive_evaluation_report_profile,
-)
 from creative_coding_assistant.orchestration.evaluation_engine_contracts import (
     evaluation_engine_contracts,
+)
+from creative_coding_assistant.orchestration.evaluation_reports import (
+    derive_evaluation_report_profile,
 )
 from creative_coding_assistant.orchestration.events import (
     StreamEventBuilder,
@@ -162,11 +162,11 @@ from creative_coding_assistant.orchestration.runtime_capabilities import (
 from creative_coding_assistant.orchestration.runtime_compatibility import (
     derive_runtime_compatibility_profile,
 )
-from creative_coding_assistant.orchestration.semantic_motif import (
-    derive_semantic_motif_system,
-)
 from creative_coding_assistant.orchestration.self_evaluation_engine import (
     derive_self_evaluation_profile,
+)
+from creative_coding_assistant.orchestration.semantic_motif import (
+    derive_semantic_motif_system,
 )
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     derive_symbolic_narrative_plan,
@@ -612,7 +612,11 @@ def _linear_workflow_edge_specs_before_review() -> tuple[
     linear_nodes = ASSISTANT_WORKFLOW_NODE_ORDER[: review_index + 1]
     return tuple(
         _linear_workflow_edge_spec(current_node, next_node)
-        for current_node, next_node in zip(linear_nodes, linear_nodes[1:])
+        for current_node, next_node in zip(
+            linear_nodes,
+            linear_nodes[1:],
+            strict=False,
+        )
     )
 
 
@@ -642,6 +646,36 @@ def _linear_workflow_edge_spec(
 
 def _next_node_selector(next_node: str) -> _GraphTransitionSelector:
     return lambda state: _next_node_or_failure(state, next_node)
+
+
+def assistant_workflow_node_specs() -> tuple[_WorkflowGraphNodeSpec, ...]:
+    """Return the registered workflow nodes without compiling the graph."""
+
+    return _assistant_workflow_node_specs()
+
+
+def assistant_workflow_conditional_edge_specs() -> tuple[
+    _WorkflowGraphConditionalEdgeSpec,
+    ...
+]:
+    """Return workflow edge specs without executing transition selectors."""
+
+    return _assistant_workflow_conditional_edge_specs()
+
+
+def assistant_workflow_final_payload_keys() -> tuple[str, ...]:
+    """Return final-event model payload keys in emission order."""
+
+    return _FINAL_EVENT_MODEL_PAYLOAD_KEYS
+
+
+def assistant_workflow_model_payload_specs() -> tuple[
+    _WorkflowModelPayloadSpec,
+    ...
+]:
+    """Return workflow-state payload mappings in serialization order."""
+
+    return _WORKFLOW_RUNTIME_MODEL_PAYLOAD_SPECS
 
 
 def stream_assistant_workflow_events(

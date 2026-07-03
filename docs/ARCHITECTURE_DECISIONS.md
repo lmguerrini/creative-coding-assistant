@@ -13,7 +13,8 @@
   readiness helpers, V6.1 adaptive learning helpers, V6.2 creative memory
   helpers, V6.3 knowledge evolution helpers, V6.4 autonomous research
   helpers, V6.5 self-evolution governance helpers, and V6.6 cognitive OS
-  core helpers are metadata surfaces, not additional runtime nodes.
+  core helpers, and V7.1 runtime graph consolidation helpers are metadata
+  surfaces, not additional runtime nodes.
 - Keep the Next.js workstation responsible for product inspection, preview,
   comparison, export, telemetry, workflow visibility, and operator controls.
 
@@ -36,7 +37,8 @@ prompts, mutate workflows, mutate routing, mutate memory or retrieval,
 execute rollback, activate the Cognitive OS, apply execution graphs,
 schedule, plan, route, write blackboard state, enforce governance or safety
 policies, emit HITL requests, apply HITL decisions, run deployment storage
-writes, or introduce runtime synchronization behavior.
+writes, mutate runtime graph contracts, apply graph diffs, persist trace
+records, or introduce runtime synchronization behavior.
 
 ## Metadata Layering
 
@@ -148,6 +150,15 @@ writes, or introduce runtime synchronization behavior.
   application, blackboard storage writes, governance or safety enforcement,
   HITL emission, HITL decision application, provider execution, Runtime
   Evolution, or output mutation.
+- V7.1 Runtime Graph Consolidation helpers describe read-only graph
+  contracts, subgraph boundaries, node handler references, state
+  normalization, visualization, validation, invariant checks, trace records,
+  explainability, diffing, determinism, and static relative cost/latency
+  profiling over the existing compact LangGraph workflow. They preserve the
+  V6.6 unified execution graph as read-only metadata and do not add
+  LangGraph nodes, compile alternate graphs, invoke handlers, change node
+  order, change provider/model routing, execute traces, apply graph diffs,
+  write storage, apply Runtime Evolution, or mutate generated output.
 
 ## V4.3 Boundary Decision
 
@@ -570,6 +581,23 @@ output, runtime state, or apply Runtime Evolution. More generally, it does
 not change provider/model routing, does not introduce hidden autonomous
 cognitive execution behavior, and does not modify generated output.
 
+## V7.1 Runtime Graph Consolidation Boundary
+
+V7.1 Runtime Graph Consolidation is a read-only graph contract and
+diagnostics layer over the current assistant workflow. The live execution
+source remains `creative_coding_assistant.orchestration.workflow_graph`; the
+static topology source remains `execution_graph_analyzer`; the Cognitive OS
+projection remains `unified_execution_graph`; and V7.1 owns
+`runtime_graph_consolidation` for contracts, validation, invariants, static
+traces, explainability, diffing, determinism, visualization, and relative
+cost/latency profiles.
+
+It must not change user-visible behavior, add LangGraph nodes, compile or
+execute alternate graphs, invoke node handlers from diagnostics, mutate
+workflow order, route providers or models, enforce budgets, persist trace or
+profile storage, apply graph diffs, apply Runtime Evolution, start V7.2
+failure taxonomy work, or mutate generated output.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -596,6 +624,7 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - advisory V6.4 autonomous research metadata
 - advisory V6.5 self-evolution governance metadata
 - advisory V6.6 cognitive OS core metadata
+- read-only V7.1 runtime graph consolidation contracts and diagnostics
 - future active V4 Agentic Studio, live adaptive runtime control, and later
   HoloMind / HoloGenesis Cognitive OS work
 

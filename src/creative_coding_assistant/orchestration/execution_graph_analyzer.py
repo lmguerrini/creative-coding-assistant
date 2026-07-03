@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from creative_coding_assistant.orchestration.workflow_graph import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
     ASSISTANT_WORKFLOW_RECURSION_LIMIT,
-    _assistant_workflow_conditional_edge_specs,
+    assistant_workflow_conditional_edge_specs,
 )
 
 ExecutionGraphEdgeKind = Literal[
@@ -123,7 +123,10 @@ class ExecutionGraphAnalysis(BaseModel):
     critical_path_node_ids: tuple[str, ...] = Field(min_length=1, max_length=40)
     branch_node_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=20)
     retry_entry_node_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=8)
-    failure_entry_node_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=40)
+    failure_entry_node_ids: tuple[str, ...] = Field(
+        default_factory=tuple,
+        max_length=40,
+    )
     recursion_limit: int = Field(ge=1)
     node_count: int = Field(ge=1, le=40)
     edge_count: int = Field(ge=1, le=120)
@@ -170,7 +173,9 @@ class ExecutionGraphAnalysis(BaseModel):
             raise ValueError("analysis must include one start edge to start_node_id")
 
         terminal_targets = tuple(
-            edge.source_node_id for edge in self.edges if edge.target_node_id == str(END)
+            edge.source_node_id
+            for edge in self.edges
+            if edge.target_node_id == str(END)
         )
         if self.terminal_node_ids != terminal_targets:
             raise ValueError("terminal_node_ids must match edges to END")
@@ -227,7 +232,9 @@ def execution_graph_edges_from(
     """Return analyzed outgoing edges without running graph transitions."""
 
     source_analysis = analysis or ASSISTANT_EXECUTION_GRAPH_ANALYSIS
-    return tuple(edge for edge in source_analysis.edges if edge.source_node_id == node_id)
+    return tuple(
+        edge for edge in source_analysis.edges if edge.source_node_id == node_id
+    )
 
 
 def execution_graph_edges_to(
@@ -237,7 +244,9 @@ def execution_graph_edges_to(
     """Return analyzed incoming edges without materializing workflow state."""
 
     source_analysis = analysis or ASSISTANT_EXECUTION_GRAPH_ANALYSIS
-    return tuple(edge for edge in source_analysis.edges if edge.target_node_id == node_id)
+    return tuple(
+        edge for edge in source_analysis.edges if edge.target_node_id == node_id
+    )
 
 
 def _nodes() -> tuple[ExecutionGraphNode, ...]:
@@ -264,7 +273,7 @@ def _edges() -> tuple[ExecutionGraphEdge, ...]:
             optimization_signals=("entry_path",),
         )
     ]
-    for spec in _assistant_workflow_conditional_edge_specs():
+    for spec in assistant_workflow_conditional_edge_specs():
         for target in spec.targets.values():
             source = spec.source
             target_node = str(target)

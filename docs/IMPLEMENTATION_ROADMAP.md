@@ -341,6 +341,24 @@ user-facing Cognitive OS console, active graph executor, autonomous scheduler,
 planner, router, blackboard, governance controller, safety controller, HITL
 prompt surface, or Runtime Evolution path.
 
+The V7.1 Runtime Graph Consolidation layer is an in-progress read-only
+runtime graph contract layer. It records workflow graph audit metadata,
+LangGraph node decomposition, creative cognition, generative design, artifact
+intelligence, creative evaluation, micro error path, subgraph boundary,
+backward-compatibility, node handler, module split, unified execution graph,
+state normalization, visualization, performance, contract validation,
+invariant verification, trace, explainability, diff, determinism, cost, and
+latency surfaces over the existing compact LangGraph workflow.
+
+It does not change user-visible behavior, add LangGraph nodes, compile or
+execute alternate graphs, invoke node handlers from diagnostics, mutate
+workflow order, change provider/model routing, execute traces, persist trace
+or profile storage, enforce budgets, apply graph diffs, apply Runtime
+Evolution, start V7.2 failure taxonomy work, or modify generated output. All
+23 contractual V7.1 roadmap items remain individually traceable for roadmap
+coverage, audit classification, HITL review, and future capability-scoped
+fixes.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current
@@ -354,7 +372,8 @@ prompt surface, or Runtime Evolution path.
   feedback application, active research, active self-evolution,
   long-horizon creative lineage, active creative memory, active knowledge
   evolution, active Cognitive OS execution, and system continuity work beyond
-  the current V6.6 advisory metadata boundary.
+  the current V6.6 advisory metadata boundary and V7.1 read-only runtime graph
+  consolidation boundary.
 
 ## Documentation Contract
 
@@ -368,4 +387,9 @@ adaptive learning metadata, V6.2 advisory creative memory metadata, and V6.3
 advisory knowledge evolution metadata, and V6.4 advisory autonomous research
 metadata, V6.5 advisory self-evolution governance metadata, and V6.6 advisory
 cognitive OS core metadata, but must keep the current compact LangGraph
-workflow as the execution source of truth.
+workflow as the execution source of truth. V7.1 runtime graph consolidation
+docs may describe static contracts, validation, invariants, traces,
+visualization, diffing, determinism, and relative cost/latency profiling, but
+must not imply active graph mutation, alternate graph execution, provider/model
+routing changes, trace persistence, Runtime Evolution, or V7.2 failure
+taxonomy behavior.

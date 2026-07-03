@@ -249,6 +249,9 @@ _WORKFLOW_REVIEW = "creative_coding_assistant.orchestration.workflow_review"
 _EXECUTION_GRAPH_ANALYZER = (
     "creative_coding_assistant.orchestration.execution_graph_analyzer"
 )
+_RUNTIME_GRAPH_CONSOLIDATION = (
+    "creative_coding_assistant.orchestration.runtime_graph_consolidation"
+)
 _WORKFLOW_COST_ANALYZER = (
     "creative_coding_assistant.orchestration.workflow_cost_analyzer"
 )
@@ -871,6 +874,24 @@ _EXPORT_MAP = {
     "ExecutionGraphAnalysis": _EXECUTION_GRAPH_ANALYZER,
     "ExecutionGraphEdge": _EXECUTION_GRAPH_ANALYZER,
     "ExecutionGraphNode": _EXECUTION_GRAPH_ANALYZER,
+    "ExecutionCostProfile": _RUNTIME_GRAPH_CONSOLIDATION,
+    "ExecutionGraphExplanation": _RUNTIME_GRAPH_CONSOLIDATION,
+    "ExecutionGraphVisualization": _RUNTIME_GRAPH_CONSOLIDATION,
+    "ExecutionLatencyProfile": _RUNTIME_GRAPH_CONSOLIDATION,
+    "ExecutionTraceRecord": _RUNTIME_GRAPH_CONSOLIDATION,
+    "ExecutionTraceStep": _RUNTIME_GRAPH_CONSOLIDATION,
+    "GraphDiffReport": _RUNTIME_GRAPH_CONSOLIDATION,
+    "GraphInvariantVerificationReport": _RUNTIME_GRAPH_CONSOLIDATION,
+    "GraphPerformanceProfile": _RUNTIME_GRAPH_CONSOLIDATION,
+    "RuntimeGraphConsolidationPlan": _RUNTIME_GRAPH_CONSOLIDATION,
+    "RuntimeGraphDecompositionItem": _RUNTIME_GRAPH_CONSOLIDATION,
+    "RuntimeGraphModuleSplit": _RUNTIME_GRAPH_CONSOLIDATION,
+    "RuntimeGraphNodeContract": _RUNTIME_GRAPH_CONSOLIDATION,
+    "RuntimeGraphNodeProfile": _RUNTIME_GRAPH_CONSOLIDATION,
+    "RuntimeGraphSubgraphContract": _RUNTIME_GRAPH_CONSOLIDATION,
+    "WorkflowContractValidationReport": _RUNTIME_GRAPH_CONSOLIDATION,
+    "WorkflowDeterminismAudit": _RUNTIME_GRAPH_CONSOLIDATION,
+    "WorkflowStateNormalizationReport": _RUNTIME_GRAPH_CONSOLIDATION,
     "CreativeComplexityAnalysis": _CREATIVE_COMPLEXITY_ANALYZER,
     "CreativeComplexityFactor": _CREATIVE_COMPLEXITY_ANALYZER,
     "ContextBudgetAllocation": _CONTEXT_BUDGET_PLANNER,
@@ -2152,7 +2173,9 @@ _EXPORT_MAP = {
     "analyze_creative_complexity": _CREATIVE_COMPLEXITY_ANALYZER,
     "analyze_workflow_cost": _WORKFLOW_COST_ANALYZER,
     "analyze_workflow_complexity": _WORKFLOW_COMPLEXITY_ANALYZER,
+    "audit_runtime_graph_determinism": _RUNTIME_GRAPH_CONSOLIDATION,
     "build_assistant_workflow_graph": _WORKFLOW_GRAPH,
+    "build_runtime_graph_consolidation_plan": _RUNTIME_GRAPH_CONSOLIDATION,
     "calibrate_artifact_quality": _QUALITY_CALIBRATION,
     "artifact_quality_score": _REFINEMENT_PASSES,
     "attach_refinement_history": _REFINEMENT_PASSES,
@@ -2183,7 +2206,21 @@ _EXPORT_MAP = {
     "exploration_budget_allocations_for_topic": _EXPLORATION_BUDGET_PLANNER,
     "execution_graph_edges_from": _EXECUTION_GRAPH_ANALYZER,
     "execution_graph_edges_to": _EXECUTION_GRAPH_ANALYZER,
+    "diff_runtime_graphs": _RUNTIME_GRAPH_CONSOLIDATION,
+    "explain_runtime_graph": _RUNTIME_GRAPH_CONSOLIDATION,
     "execution_graph_node_by_id": _EXECUTION_GRAPH_ANALYZER,
+    "normalize_runtime_workflow_state": _RUNTIME_GRAPH_CONSOLIDATION,
+    "profile_runtime_graph_cost": _RUNTIME_GRAPH_CONSOLIDATION,
+    "profile_runtime_graph_latency": _RUNTIME_GRAPH_CONSOLIDATION,
+    "profile_runtime_graph_performance": _RUNTIME_GRAPH_CONSOLIDATION,
+    "record_runtime_graph_trace": _RUNTIME_GRAPH_CONSOLIDATION,
+    "runtime_graph_node_contract_by_id": _RUNTIME_GRAPH_CONSOLIDATION,
+    "runtime_graph_node_contracts_for_subgraph": (
+        _RUNTIME_GRAPH_CONSOLIDATION
+    ),
+    "validate_runtime_graph_contracts": _RUNTIME_GRAPH_CONSOLIDATION,
+    "verify_runtime_graph_invariants": _RUNTIME_GRAPH_CONSOLIDATION,
+    "visualize_runtime_graph": _RUNTIME_GRAPH_CONSOLIDATION,
     "execution_cache_entry_is_fresh": _CACHE_LAYER,
     "workflow_cost_component_by_id": _WORKFLOW_COST_ANALYZER,
     "workflow_cost_components_for_kind": _WORKFLOW_COST_ANALYZER,
