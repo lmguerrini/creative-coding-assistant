@@ -615,6 +615,9 @@ _COGNITIVE_HITL_LAYER = (
 _UNIFIED_EXECUTION_GRAPH = (
     "creative_coding_assistant.orchestration.unified_execution_graph"
 )
+_CORE_OS_CONSOLIDATION = (
+    "creative_coding_assistant.orchestration.core_os_consolidation"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -3006,6 +3009,13 @@ _EXPORT_MAP = {
     "unified_execution_nodes_for_agent": _UNIFIED_EXECUTION_GRAPH,
     "unified_execution_nodes_for_layer": _UNIFIED_EXECUTION_GRAPH,
     "unified_execution_nodes_for_posture": _UNIFIED_EXECUTION_GRAPH,
+    "CoreOSConsolidationPlan": _CORE_OS_CONSOLIDATION,
+    "CoreOSConsolidationUnit": _CORE_OS_CONSOLIDATION,
+    "build_core_os_consolidation": _CORE_OS_CONSOLIDATION,
+    "core_os_consolidation_unit_by_id": _CORE_OS_CONSOLIDATION,
+    "core_os_consolidation_units_for_agent": _CORE_OS_CONSOLIDATION,
+    "core_os_consolidation_units_for_layer": _CORE_OS_CONSOLIDATION,
+    "core_os_consolidation_units_for_posture": _CORE_OS_CONSOLIDATION,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
