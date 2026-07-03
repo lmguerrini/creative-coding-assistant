@@ -255,6 +255,9 @@ _RUNTIME_GRAPH_CONSOLIDATION = (
 _TYPED_FAILURE_TAXONOMY = (
     "creative_coding_assistant.orchestration.typed_failure_taxonomy"
 )
+_REGISTRY_CONTRACT_CONSOLIDATION = (
+    "creative_coding_assistant.orchestration.registry_contract_consolidation"
+)
 _WORKFLOW_COST_ANALYZER = (
     "creative_coding_assistant.orchestration.workflow_cost_analyzer"
 )
@@ -914,6 +917,31 @@ _EXPORT_MAP = {
     "TYPED_FAILURE_TAXONOMY_ROADMAP_ITEMS": _TYPED_FAILURE_TAXONOMY,
     "TypedFailureTaxonomyRegistry": _TYPED_FAILURE_TAXONOMY,
     "WorkstationClientBoundaryFailureModel": _TYPED_FAILURE_TAXONOMY,
+    "REGISTRY_CONTRACT_CONSOLIDATION_ROADMAP_ITEMS": (
+        _REGISTRY_CONTRACT_CONSOLIDATION
+    ),
+    "ArchitectureSimplificationReview": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "ContractCompatibilityReport": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "ContractSchemaRecord": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "ContractVersionMigration": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "PassiveBoundaryModel": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "PassiveRegistryModel": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "PublicExportAudit": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "RegistryContractConsolidationPlan": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "RegistryCoverageReport": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "RegistryDependencyEdge": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "RegistryDependencyGraph": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "RegistryDependencyNode": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "RegistryDiffReport": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "RegistryExplanation": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "RegistryFamily": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "RegistryIntegrityVerification": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "RegistryReviewFinding": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "RegistrySourceRecord": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "SchemaEvolutionPlan": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "SharedPassiveBoundaryContract": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "SharedRegistryBuilder": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "SourceRegistryInventory": _REGISTRY_CONTRACT_CONSOLIDATION,
     "CreativeComplexityAnalysis": _CREATIVE_COMPLEXITY_ANALYZER,
     "CreativeComplexityFactor": _CREATIVE_COMPLEXITY_ANALYZER,
     "ContextBudgetAllocation": _CONTEXT_BUDGET_PLANNER,
@@ -2198,6 +2226,9 @@ _EXPORT_MAP = {
     "audit_runtime_graph_determinism": _RUNTIME_GRAPH_CONSOLIDATION,
     "build_assistant_workflow_graph": _WORKFLOW_GRAPH,
     "build_runtime_graph_consolidation_plan": _RUNTIME_GRAPH_CONSOLIDATION,
+    "build_registry_contract_consolidation_plan": (
+        _REGISTRY_CONTRACT_CONSOLIDATION
+    ),
     "build_typed_failure_taxonomy_registry": _TYPED_FAILURE_TAXONOMY,
     "calibrate_artifact_quality": _QUALITY_CALIBRATION,
     "artifact_quality_score": _REFINEMENT_PASSES,
@@ -2252,6 +2283,22 @@ _EXPORT_MAP = {
         _RUNTIME_GRAPH_CONSOLIDATION
     ),
     "validate_runtime_graph_contracts": _RUNTIME_GRAPH_CONSOLIDATION,
+    "audit_registry_public_exports": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "build_contract_version_migrations": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "build_registry_coverage_report": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "build_registry_dependency_graph": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "build_schema_evolution_plan": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "check_contract_compatibility": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "diff_registry_inventories": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "explain_registry_families": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "explain_registry_source": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "generate_source_registry_inventory": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "normalize_contract_schemas": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "registry_family_by_id": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "registry_source_by_id": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "registry_sources_for_family": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "review_architecture_simplification": _REGISTRY_CONTRACT_CONSOLIDATION,
+    "verify_registry_integrity": _REGISTRY_CONTRACT_CONSOLIDATION,
     "verify_runtime_graph_invariants": _RUNTIME_GRAPH_CONSOLIDATION,
     "visualize_runtime_graph": _RUNTIME_GRAPH_CONSOLIDATION,
     "execution_cache_entry_is_fresh": _CACHE_LAYER,

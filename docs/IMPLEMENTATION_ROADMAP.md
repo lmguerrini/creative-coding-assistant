@@ -359,8 +359,8 @@ Evolution, start V7.2 failure taxonomy work, or modify generated output. All
 coverage, audit classification, HITL review, and future capability-scoped
 fixes.
 
-The V7.2 Typed Failure Taxonomy layer is an in-progress passive failure
-contract registry. It records failure type definitions, node-specific failure
+The V7.2 Typed Failure Taxonomy layer is a passive failure contract registry.
+It records failure type definitions, node-specific failure
 models, planning sub-helper failure models, provider/stream failure models,
 serialization failure models, workstation/client boundary failure models,
 failure event contracts, recovery invariants, regression scenarios, recovery
@@ -376,6 +376,26 @@ workflow graphs, subscribe to streams, write persistent storage, apply Runtime
 Evolution, or modify generated output. All 18 contractual V7.2 roadmap items
 remain individually traceable for roadmap coverage, audit classification, HITL
 review, and future capability-scoped fixes.
+
+The V7.3 Registry & Contract Consolidation layer is a passive consolidation
+contract over existing registry, schema, export, review, compatibility,
+evolution, dependency, diff, and simplification metadata. It records registry
+family splits, shared registry builders, shared passive boundary base models,
+source registry inventory, coverage reports, normalized contract schemas,
+stable import/public export audits, Pydantic/Jinja2/style/comment/logging
+reviews, registry package and contract simplification posture, metadata-to-code
+ratio posture, integrity verification, compatibility checks, schema evolution,
+version migrations, explainability, dependency graph, diff engine, and
+architecture simplification review.
+
+It reads existing V3 through V7 passive registries as source metadata only. It
+does not move mature registry modules, rewrite schemas, apply migrations,
+change import behavior, change provider/model routing, execute providers,
+execute or control workflows, mutate workflow graphs, mutate prompt rendering
+or Jinja templates, change logging configuration, persist inventory records,
+apply Runtime Evolution, or modify generated output. All 24 contractual V7.3
+roadmap items remain individually traceable for roadmap coverage, audit
+classification, HITL review, and future capability-scoped fixes.
 
 ## Future Product Directions
 

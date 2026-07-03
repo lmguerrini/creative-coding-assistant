@@ -170,6 +170,15 @@ inspection metadata, critique, and refinement context.
   without live classification, exception interception, recovery execution,
   retry triggering, provider execution, workflow control, stream
   subscription, storage writes, Runtime Evolution, or output mutation.
+- V7.3 Registry & Contract Consolidation for passive registry family split,
+  shared builders, shared passive boundary base models, inventory, coverage,
+  normalized schema, import/export, review, package consolidation,
+  simplification, metadata ratio, integrity, compatibility, schema evolution,
+  migration, explainability, dependency graph, diff, and architecture
+  simplification metadata without moving mature registry modules, rewriting
+  schemas, applying migrations, changing import behavior, changing provider
+  routing, workflow control, prompt rendering, Jinja templates, logging
+  configuration, storage, Runtime Evolution, or output mutation.
 
 ## Supported Creative Domains
 
@@ -629,8 +638,8 @@ taxonomy work, or mutate generated output.
 
 ## V7.2 Typed Failure Taxonomy Boundary
 
-V7.2 Typed Failure Taxonomy is an in-progress passive failure contract
-registry. It records stable failure type definitions, node-specific failure
+V7.2 Typed Failure Taxonomy is a passive failure contract registry. It records
+stable failure type definitions, node-specific failure
 models, planning sub-helper failure models, provider/stream failure models,
 serialization failure models, workstation/client boundary failure models,
 failure event contracts, recovery invariants, regression scenarios, recovery
@@ -646,6 +655,25 @@ graphs, subscribe to streams, persist taxonomy or knowledge records, mutate
 generated output, or apply Runtime Evolution. All 18 contractual V7.2 roadmap
 items remain individually traceable for roadmap coverage, audit
 classification, HITL review, and future capability-scoped fixes.
+
+## V7.3 Registry & Contract Consolidation Boundary
+
+V7.3 Registry & Contract Consolidation is a passive consolidation registry over
+existing registry and contract surfaces. It records source registry inventory,
+family splits, shared builder and passive-boundary models, coverage reports,
+normalized contract schemas, public export audits, review findings, integrity
+verification, compatibility checks, schema evolution posture, migration
+descriptors, explainability, dependency graph, diffing, and architecture
+simplification metadata.
+
+It reads current registry modules as static source contracts only. It does not
+move mature registries, rewrite schemas, apply migrations, change import
+behavior, change provider/model routing, execute providers, execute or control
+workflows, mutate workflow graphs, mutate prompt rendering or Jinja templates,
+change logging configuration, persist consolidation records, mutate generated
+output, or apply Runtime Evolution. All 24 contractual V7.3 roadmap items
+remain individually traceable for roadmap coverage, audit classification, HITL
+review, and future capability-scoped fixes.
 
 ## Non-Goals For Current Baseline
 

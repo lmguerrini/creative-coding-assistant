@@ -630,6 +630,27 @@ persistent storage, apply Runtime Evolution, or mutate generated output. All
 coverage verification, Codex Engineering Audit classification, and future
 capability-scoped fixes.
 
+## V7.3 Registry & Contract Consolidation Boundary
+
+V7.3 Registry & Contract Consolidation is a passive registry and schema
+consolidation layer over existing source registries. It owns
+`registry_contract_consolidation` for registry family split metadata, shared
+registry builders, shared passive boundary base models, source registry
+inventory, coverage reports, normalized schema records, public export audits,
+Pydantic/Jinja2/style/comment/logging review findings, registry package and
+contract simplification posture, metadata-to-code ratio review, integrity
+verification, compatibility checks, schema evolution planning, version
+migration descriptors, explainability records, dependency graphs, diff reports,
+and architecture simplification review.
+
+It must not move mature registry modules, rewrite schemas, apply migrations,
+change import behavior, route providers or models, execute providers, execute
+or control workflows, mutate workflow graphs, mutate prompt rendering or Jinja
+templates, change logging configuration, write persistent storage, apply
+Runtime Evolution, or mutate generated output. All 24 contractual V7.3 roadmap
+items remain individually traceable for roadmap coverage verification, Codex
+Engineering Audit classification, and future capability-scoped fixes.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -658,6 +679,7 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - advisory V6.6 cognitive OS core metadata
 - read-only V7.1 runtime graph consolidation contracts and diagnostics
 - passive V7.2 typed failure taxonomy contracts and registries
+- passive V7.3 registry and contract consolidation metadata
 - future active V4 Agentic Studio, live adaptive runtime control, and later
   HoloMind / HoloGenesis Cognitive OS work
 
