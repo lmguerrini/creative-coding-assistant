@@ -627,6 +627,9 @@ _COGNITIVE_OS_SECONDARY_SURFACE = (
 _COGNITIVE_OS_GOVERNANCE_SAFETY = (
     "creative_coding_assistant.orchestration.cognitive_os_governance_safety"
 )
+_COGNITIVE_OS_FAILURE_PATH_AUDIT = (
+    "creative_coding_assistant.orchestration.cognitive_os_failure_path_audit"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -3069,6 +3072,16 @@ _EXPORT_MAP = {
     "cognitive_os_governance_priority": _COGNITIVE_OS_GOVERNANCE_SAFETY,
     "cognitive_os_governance_score": _COGNITIVE_OS_GOVERNANCE_SAFETY,
     "cognitive_os_governance_status": _COGNITIVE_OS_GOVERNANCE_SAFETY,
+    "CognitiveOSFailurePathAuditRecord": _COGNITIVE_OS_FAILURE_PATH_AUDIT,
+    "CognitiveOSFailurePathAuditRegistry": _COGNITIVE_OS_FAILURE_PATH_AUDIT,
+    "cognitive_os_failure_path_audit_by_id": _COGNITIVE_OS_FAILURE_PATH_AUDIT,
+    "cognitive_os_failure_path_audit_registry": _COGNITIVE_OS_FAILURE_PATH_AUDIT,
+    "cognitive_os_failure_path_audits_for_check": (
+        _COGNITIVE_OS_FAILURE_PATH_AUDIT
+    ),
+    "cognitive_os_failure_path_audits_for_surface": (
+        _COGNITIVE_OS_FAILURE_PATH_AUDIT
+    ),
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
