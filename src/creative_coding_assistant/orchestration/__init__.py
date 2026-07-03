@@ -618,6 +618,9 @@ _UNIFIED_EXECUTION_GRAPH = (
 _CORE_OS_CONSOLIDATION = (
     "creative_coding_assistant.orchestration.core_os_consolidation"
 )
+_COGNITIVE_OS_CORE_SURFACE = (
+    "creative_coding_assistant.orchestration.cognitive_os_core_surface"
+)
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
 _RESEARCH_DECOMPOSER = (
     "creative_coding_assistant.orchestration.research_decomposer"
@@ -3016,6 +3019,13 @@ _EXPORT_MAP = {
     "core_os_consolidation_units_for_agent": _CORE_OS_CONSOLIDATION,
     "core_os_consolidation_units_for_layer": _CORE_OS_CONSOLIDATION,
     "core_os_consolidation_units_for_posture": _CORE_OS_CONSOLIDATION,
+    "CognitiveOSCoreSurfaceEntry": _COGNITIVE_OS_CORE_SURFACE,
+    "CognitiveOSCoreSurfacePlan": _COGNITIVE_OS_CORE_SURFACE,
+    "build_cognitive_os_core_surface": _COGNITIVE_OS_CORE_SURFACE,
+    "cognitive_os_core_surface_entries_for_agent": _COGNITIVE_OS_CORE_SURFACE,
+    "cognitive_os_core_surface_entries_for_layer": _COGNITIVE_OS_CORE_SURFACE,
+    "cognitive_os_core_surface_entries_for_status": _COGNITIVE_OS_CORE_SURFACE,
+    "cognitive_os_core_surface_entry_by_id": _COGNITIVE_OS_CORE_SURFACE,
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
