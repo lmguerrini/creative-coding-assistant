@@ -174,7 +174,9 @@ class ArchitectureConsistencyRecord(BaseModel):
     )
     passive_boundary_flags: tuple[str, ...] = Field(min_length=10, max_length=10)
     consistency_findings: tuple[str, ...] = Field(min_length=8, max_length=8)
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=20)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=20
+    )
     source_metadata_only_declared: Literal[True] = True
     architecture_consistency_status: ArchitectureConsistencyStatus = "pass"
     architecture_doc_rewrite_implemented: Literal[False] = False
@@ -523,8 +525,7 @@ def _record(
 
 
 ARCHITECTURE_CONSISTENCY_RECORDS = tuple(
-    _record(source_id, layer, provider)
-    for source_id, layer, provider in _SOURCE_SPECS
+    _record(source_id, layer, provider) for source_id, layer, provider in _SOURCE_SPECS
 )
 ARCHITECTURE_CONSISTENCY_PASS_REGISTRY = ArchitectureConsistencyPassRegistry(
     records=ARCHITECTURE_CONSISTENCY_RECORDS,

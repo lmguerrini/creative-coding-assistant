@@ -15,9 +15,7 @@ from creative_coding_assistant.orchestration.creative_diversity_audit import (
 CreativeDiversityPredictionBand = Literal["narrow", "moderate", "broad", "guarded"]
 CreativeDiversityPredictionStatus = Literal["recommended", "fallback"]
 
-CREATIVE_DIVERSITY_PREDICTION_SERIALIZATION_VERSION = (
-    "creative_diversity_prediction.v1"
-)
+CREATIVE_DIVERSITY_PREDICTION_SERIALIZATION_VERSION = "creative_diversity_prediction.v1"
 CREATIVE_DIVERSITY_PREDICTION_PLAN_SERIALIZATION_VERSION = (
     "creative_diversity_prediction_plan.v1"
 )
@@ -125,7 +123,9 @@ class CreativeDiversityPredictionPlan(BaseModel):
     recommended_prediction_id: str = Field(min_length=1, max_length=220)
     recommended_diversity_band: CreativeDiversityPredictionBand
     recommended_diversity_readiness_score: int = Field(ge=0, le=100)
-    fallback_prediction_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
+    fallback_prediction_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=12
+    )
     prediction_count: int = Field(ge=1, le=12)
     broad_prediction_count: int = Field(ge=0, le=12)
     guarded_prediction_count: int = Field(ge=0, le=12)

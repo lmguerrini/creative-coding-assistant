@@ -54,11 +54,7 @@ class AgentDependencyGraphTests(unittest.TestCase):
         self.assertEqual(graph.node_count, 30)
         self.assertEqual(len(graph.edges), graph.edge_count)
         self.assertEqual(
-            {
-                node.agent_id
-                for node in graph.nodes
-                if node.node_type == "agent"
-            },
+            {node.agent_id for node in graph.nodes if node.node_type == "agent"},
             set(contract_registry.agent_ids),
         )
         self.assertEqual(
@@ -110,13 +106,14 @@ class AgentDependencyGraphTests(unittest.TestCase):
     def test_graph_order_is_acyclic_and_blocks_self_edges(self) -> None:
         graph = agent_dependency_graph_registry()
         order_index = {
-            node_id: index
-            for index, node_id in enumerate(graph.topological_node_order)
+            node_id: index for index, node_id in enumerate(graph.topological_node_order)
         }
 
         for edge in graph.edges:
             self.assertNotEqual(edge.from_node_id, edge.to_node_id)
-            self.assertLess(order_index[edge.from_node_id], order_index[edge.to_node_id])
+            self.assertLess(
+                order_index[edge.from_node_id], order_index[edge.to_node_id]
+            )
 
         first_edge = graph.edges[0]
         cyclic_edge = first_edge.model_copy(

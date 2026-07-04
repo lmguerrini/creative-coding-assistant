@@ -31,9 +31,7 @@ class SacredGeometryTests(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(
                     expected,
-                    detect_sacred_geometry_concepts(
-                        f"Create a study using {phrase}."
-                    ),
+                    detect_sacred_geometry_concepts(f"Create a study using {phrase}."),
                 )
 
     def test_detects_bounded_concepts_without_generic_yantra_duplication(self) -> None:

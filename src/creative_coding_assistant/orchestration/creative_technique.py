@@ -270,8 +270,7 @@ def _translation_score(
         score += 5
         matched.append("audio-reactive or musical signal")
     if signal.technique in {"recursive_geometry", "fractal_recursion"} and (
-        translation.sacred_geometry is not None
-        or translation.geometric_references
+        translation.sacred_geometry is not None or translation.geometric_references
     ):
         score += 3
         matched.append("geometry guidance")
@@ -331,10 +330,7 @@ def _hierarchy_score(
     matched: list[str],
 ) -> int:
     score = 0
-    primary = {
-        priority.dimension
-        for priority in hierarchy.primary_creative_priorities
-    }
+    primary = {priority.dimension for priority in hierarchy.primary_creative_priorities}
     if signal.technique == "audio_reactive_mappings" and primary & {
         "audio",
         "rhythm",

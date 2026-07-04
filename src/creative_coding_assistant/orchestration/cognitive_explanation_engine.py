@@ -25,9 +25,7 @@ from creative_coding_assistant.orchestration.routing_intelligence import (
     TaskRoutingType,
 )
 
-COGNITIVE_EXPLANATION_ENGINE_SERIALIZATION_VERSION = (
-    "cognitive_explanation_engine.v1"
-)
+COGNITIVE_EXPLANATION_ENGINE_SERIALIZATION_VERSION = "cognitive_explanation_engine.v1"
 COGNITIVE_EXPLANATION_ENGINE_ROADMAP_ITEM = "Cognitive Explanation Engine"
 COGNITIVE_EXPLANATION_ENGINE_AUTHORITY_BOUNDARY = (
     "V6.6 Cognitive Explanation Engine projects cognitive blackboard entries "
@@ -136,9 +134,7 @@ class CognitiveExplanationEnginePlan(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["cognitive_explanation_engine"] = (
-        "cognitive_explanation_engine"
-    )
+    role: Literal["cognitive_explanation_engine"] = "cognitive_explanation_engine"
     serialization_version: Literal["cognitive_explanation_engine.v1"] = (
         COGNITIVE_EXPLANATION_ENGINE_SERIALIZATION_VERSION
     )
@@ -226,9 +222,7 @@ class CognitiveExplanationEnginePlan(BaseModel):
             raise ValueError("capabilities must match V6.1 through V6.6")
         if self.capability_count != len(self.capability_ids):
             raise ValueError("capability_count must match capability ids")
-        if self.source_blackboard_entry_count != len(
-            self.source_blackboard_entry_ids
-        ):
+        if self.source_blackboard_entry_count != len(self.source_blackboard_entry_ids):
             raise ValueError("source_blackboard_entry_count must match entries")
         if self.source_route_decision_count != len(self.source_route_decision_ids):
             raise ValueError("source_route_decision_count must match route ids")
@@ -292,9 +286,7 @@ class CognitiveExplanationEnginePlan(BaseModel):
                 raise ValueError("trace emergence_id must be declared")
             if not set(trace.linked_agent_ids).issubset(declared_agents):
                 raise ValueError("trace linked_agent_ids must be declared")
-        if self.covered_roadmap_items != (
-            COGNITIVE_EXPLANATION_ENGINE_ROADMAP_ITEM,
-        ):
+        if self.covered_roadmap_items != (COGNITIVE_EXPLANATION_ENGINE_ROADMAP_ITEM,):
             raise ValueError("covered_roadmap_items must be Task 21 only")
         if self.covered_roadmap_item_count != len(self.covered_roadmap_items):
             raise ValueError("covered_roadmap_item_count must match roadmap")
@@ -311,8 +303,7 @@ class CognitiveExplanationEnginePlan(BaseModel):
             )
         ):
             raise ValueError(
-                "explanation generation, writes, mutation, and HITL ids "
-                "must be empty",
+                "explanation generation, writes, mutation, and HITL ids must be empty",
             )
         if not all(trace.advisory_only for trace in self.explanation_traces):
             raise ValueError("all cognitive explanation traces must be advisory only")
@@ -375,9 +366,7 @@ def build_cognitive_explanation_engine(
         review_required_explanation_count=len(
             _explanation_ids_for_posture(traces, "review_required")
         ),
-        guarded_explanation_count=len(
-            _explanation_ids_for_posture(traces, "guarded")
-        ),
+        guarded_explanation_count=len(_explanation_ids_for_posture(traces, "guarded")),
         linked_agent_ids=blackboard.linked_agent_ids,
         covered_roadmap_items=(COGNITIVE_EXPLANATION_ENGINE_ROADMAP_ITEM,),
         covered_roadmap_item_count=1,
@@ -516,7 +505,5 @@ def _explanation_ids_for_posture(
     posture: CognitiveOSPosture,
 ) -> tuple[str, ...]:
     return tuple(
-        trace.explanation_id
-        for trace in traces
-        if trace.explanation_posture == posture
+        trace.explanation_id for trace in traces if trace.explanation_posture == posture
     )

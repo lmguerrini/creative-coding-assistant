@@ -31,7 +31,6 @@ from creative_coding_assistant.orchestration.routing_intelligence import (
     TaskRoutingType,
     UnavailableReasonCode,
     advisory_hybrid_routing_policy_registry,
-    provider_availability_registry,
     routing_execution_mode_registry,
     routing_provider_profile_registry,
     task_aware_routing_registry,
@@ -85,15 +84,9 @@ RuntimeResourcePosture = Literal[
     "multi_provider_cloud_required",
 ]
 
-ADAPTIVE_EXECUTION_PATH_STEP_SERIALIZATION_VERSION = (
-    "adaptive_execution_path_step.v1"
-)
-ADAPTIVE_EXECUTION_SIMULATION_SERIALIZATION_VERSION = (
-    "adaptive_execution_simulation.v1"
-)
-ADAPTIVE_EXECUTION_FALLBACK_SERIALIZATION_VERSION = (
-    "adaptive_execution_fallback.v1"
-)
+ADAPTIVE_EXECUTION_PATH_STEP_SERIALIZATION_VERSION = "adaptive_execution_path_step.v1"
+ADAPTIVE_EXECUTION_SIMULATION_SERIALIZATION_VERSION = "adaptive_execution_simulation.v1"
+ADAPTIVE_EXECUTION_FALLBACK_SERIALIZATION_VERSION = "adaptive_execution_fallback.v1"
 ADAPTIVE_EXECUTION_MANUAL_ACTION_SERIALIZATION_VERSION = (
     "adaptive_execution_manual_action.v1"
 )
@@ -143,7 +136,7 @@ _SAFETY_CONSTRAINTS = (
     "no automatic API key assumption",
     "no provider provisioning",
     "no runtime auto-installation",
-    "HITL required before unavailable, expensive, provider-changing, model-changing, high-risk, or download-requiring decisions",
+    "HITL required before unavailable, expensive, provider-changing, model-changing, high-risk, or download-requiring decisions",  # noqa: E501
     "no generated output mutation",
     "no Runtime Evolution without HITL",
 )
@@ -334,11 +327,15 @@ class AdaptiveExecutionSimulation(BaseModel):
         needs_gate = "hitl_required" in self.unavailable_reason_codes or bool(
             self.blocked_reasons
         )
-        manual_gate = "manual_provider_model_selection_required" in self.required_hitl_gates
+        manual_gate = (
+            "manual_provider_model_selection_required" in self.required_hitl_gates
+        )
         if needs_gate and not self.required_hitl_gates:
             raise ValueError("unavailable or blocked reasons require HITL gates")
         if self.required_hitl_gates and not needs_gate and not manual_gate:
-            raise ValueError("HITL gates must match manual, unavailable, or blocked reasons")
+            raise ValueError(
+                "HITL gates must match manual, unavailable, or blocked reasons"
+            )
         return self
 
 
@@ -538,8 +535,13 @@ class ControlledAdaptiveExecutionOption(BaseModel):
             or self.execution_requires_user_confirmation
             or self.required_hitl_gates
         ):
-            raise ValueError("allowed options cannot be blocked or require confirmation")
-        if self.execution_readiness_status == "ready_now" and not self.execution_allowed_now:
+            raise ValueError(
+                "allowed options cannot be blocked or require confirmation"
+            )
+        if (
+            self.execution_readiness_status == "ready_now"
+            and not self.execution_allowed_now
+        ):
             raise ValueError("ready_now options must be allowed")
         if self.execution_readiness_status == "blocked" and not self.execution_blocked:
             raise ValueError("blocked readiness must set execution_blocked")
@@ -609,9 +611,15 @@ class ControlledAdaptiveExecutionDecision(BaseModel):
             if not self.execution_requires_user_confirmation:
                 raise ValueError("manual mode requires explicit user selection")
         if self.requested_execution_mode_id == "auto_mode":
-            if self.required_hitl_gates and self.selected_execution_mode_id != "assisted_mode":
+            if (
+                self.required_hitl_gates
+                and self.selected_execution_mode_id != "assisted_mode"
+            ):
                 raise ValueError("unsafe auto decisions must downgrade to assisted")
-            if self.execution_allowed_now and self.selected_execution_mode_id != "auto_mode":
+            if (
+                self.execution_allowed_now
+                and self.selected_execution_mode_id != "auto_mode"
+            ):
                 raise ValueError("allowed auto decisions must remain auto mode")
         return self
 
@@ -726,7 +734,9 @@ class ControlledAdaptiveExecutionPlan(BaseModel):
             raise ValueError("task_types must cover required task taxonomy")
         if self.hybrid_policy_directions != _REQUIRED_HYBRID_DIRECTIONS:
             raise ValueError("hybrid policies must cover all directions")
-        if self.option_ids != tuple(option.option_id for option in self.execution_options):
+        if self.option_ids != tuple(
+            option.option_id for option in self.execution_options
+        ):
             raise ValueError("option_ids must match options")
         if self.candidate_count != len(self.execution_options):
             raise ValueError("candidate_count must match options")
@@ -1065,7 +1075,15 @@ def _option(
         blocked_reasons=blocked_reasons,
         hitl_gates=hitl,
     )
-    score = _policy_score(quality, cost, latency, confidence, risk, unavailable_reason_codes, blocked_reasons)
+    score = _policy_score(
+        quality,
+        cost,
+        latency,
+        confidence,
+        risk,
+        unavailable_reason_codes,
+        blocked_reasons,
+    )
     simulation = AdaptiveExecutionSimulation(
         simulation_id=f"adaptive_execution_simulation::{option_id.split('::')[-1]}",
         route_name=route_name,
@@ -1136,7 +1154,9 @@ def _attach_fallbacks(
     options: tuple[ControlledAdaptiveExecutionOption, ...],
 ) -> tuple[ControlledAdaptiveExecutionOption, ...]:
     ready = tuple(option for option in options if option.execution_allowed_now)
-    best_ready = max(ready, key=lambda option: option.adaptive_policy_score) if ready else None
+    best_ready = (
+        max(ready, key=lambda option: option.adaptive_policy_score) if ready else None
+    )
     fallback_id = best_ready.option_id if best_ready is not None else None
     updated: list[ControlledAdaptiveExecutionOption] = []
     for option in options:
@@ -1145,12 +1165,16 @@ def _attach_fallbacks(
         fallback = _fallback_decision(
             primary_option_id=option.option_id,
             fallback_option_id=target_id,
-            reason_code=_fallback_reason(option.unavailable_reason_codes, option.blocked_reasons),
+            reason_code=_fallback_reason(
+                option.unavailable_reason_codes, option.blocked_reasons
+            ),
             primary_path=option.provider_model_path,
             fallback_path=target.provider_model_path if target else (),
             mode=option.execution_mode_id,
         )
-        simulation = option.simulation.model_copy(update={"fallback_option_id": target_id})
+        simulation = option.simulation.model_copy(
+            update={"fallback_option_id": target_id}
+        )
         status: AdaptiveExecutionOptionStatus = (
             "selected"
             if option.execution_allowed_now and option.option_id == fallback_id
@@ -1193,7 +1217,9 @@ def _decision_from_options(
         option_for_state.required_hitl_gates,
         option_for_state.execution_blocked,
     )
-    transition = _mode_transition(requested_mode, selected_mode, selected_option, option_for_state)
+    transition = _mode_transition(
+        requested_mode, selected_mode, selected_option, option_for_state
+    )
     return ControlledAdaptiveExecutionDecision(
         decision_id=f"adaptive_execution_decision::{task_decision.task_type}",
         task_type=task_decision.task_type,
@@ -1259,13 +1285,17 @@ def _path_step(
 ) -> AdaptiveExecutionPathStep:
     category = "local" if provider_id == "local" else "cloud"
     provider_supported = provider_id in context.supported_provider_ids
-    credential_configured = provider_id == "local" or provider_id in context.configured_provider_ids
-    local_runtime_confirmed = (
-        provider_id != "local" or bool(context.confirmed_local_runtime_kinds)
+    credential_configured = (
+        provider_id == "local" or provider_id in context.configured_provider_ids
     )
-    local_model_confirmed = provider_id != "local" or bool(context.installed_local_model_labels)
+    local_runtime_confirmed = provider_id != "local" or bool(
+        context.confirmed_local_runtime_kinds
+    )
+    local_model_confirmed = provider_id != "local" or bool(
+        context.installed_local_model_labels
+    )
     capability_supported = set(requirements).issubset(
-        set(getattr(profile, "supported_capability_families"))
+        set(profile.supported_capability_families)
     )
     reasons: list[UnavailableReasonCode] = []
     if not provider_supported:
@@ -1487,7 +1517,11 @@ def _selected_option(
         return recommended
     if mode == "auto_mode":
         ready = tuple(option for option in options if option.execution_allowed_now)
-        return max(ready, key=lambda option: option.adaptive_policy_score) if ready else None
+        return (
+            max(ready, key=lambda option: option.adaptive_policy_score)
+            if ready
+            else None
+        )
     return None
 
 
@@ -1709,7 +1743,10 @@ def _fallback_reason_summary(reason_code: str) -> str:
 def _fallback_tradeoff(reason_code: str) -> str:
     if reason_code in {"missing_api_key", "provider_unsupported"}:
         return "Fallback may use a configured provider with lower quality or narrower capability."
-    if reason_code.startswith("local_") or reason_code == "insufficient_local_resources":
+    if (
+        reason_code.startswith("local_")
+        or reason_code == "insufficient_local_resources"
+    ):
         return "Cloud fallback can avoid local setup but may increase credential and cost requirements."
     if reason_code == "high_cost_policy":
         return "Lower-cost fallback may reduce quality or context capacity."
@@ -1767,7 +1804,14 @@ def _policy_score(
         0,
         min(
             500,
-            int(quality_points + cost_points + latency_points + confidence * 100 - risk_penalty - reason_penalty),
+            int(
+                quality_points
+                + cost_points
+                + latency_points
+                + confidence * 100
+                - risk_penalty
+                - reason_penalty
+            ),
         ),
     )
 
@@ -1797,9 +1841,7 @@ def _resource_posture(
 
 
 def _path_summary(path: tuple[AdaptiveExecutionPathStep, ...]) -> str:
-    return " -> ".join(
-        f"{step.provider_id}/{step.model_profile_id}" for step in path
-    )
+    return " -> ".join(f"{step.provider_id}/{step.model_profile_id}" for step in path)
 
 
 def _suggested_action(
@@ -1815,7 +1857,9 @@ def _decision_action(
     option: ControlledAdaptiveExecutionOption,
 ) -> str:
     if mode == "manual_mode":
-        return "Ask the user to choose an explicit provider/model path before execution."
+        return (
+            "Ask the user to choose an explicit provider/model path before execution."
+        )
     if option.execution_allowed_now:
         return "Execution is allowed by controlled policy; use the explicit execution contract."
     if option.execution_blocked:
@@ -1849,7 +1893,7 @@ def _when_applies(direction: HybridRoutingPolicyDirection) -> str:
     mapping = {
         "local_to_cloud": "Use when local drafting/exploration can reduce cost before cloud final quality.",
         "cloud_to_local": "Use when cloud reasoning should seed local variants or local fallback work.",
-        "cloud_to_cloud": "Use when multiple cloud providers are candidates for quality, modality, or fallback comparison.",
+        "cloud_to_cloud": "Use when multiple cloud providers are candidates for quality, modality, or fallback comparison.",  # noqa: E501
         "local_to_local": "Use when user-managed local runtimes/models can satisfy privacy or cost constraints.",
     }
     return mapping[direction]
@@ -1857,10 +1901,22 @@ def _when_applies(direction: HybridRoutingPolicyDirection) -> str:
 
 def _provider_requirements(direction: HybridRoutingPolicyDirection) -> tuple[str, ...]:
     mapping = {
-        "local_to_cloud": ("confirmed local runtime/model", "configured cloud provider credential"),
-        "cloud_to_local": ("configured cloud provider credential", "confirmed local runtime/model"),
-        "cloud_to_cloud": ("supported cloud provider adapters", "configured cloud provider credentials"),
-        "local_to_local": ("confirmed local runtimes", "confirmed installed local models"),
+        "local_to_cloud": (
+            "confirmed local runtime/model",
+            "configured cloud provider credential",
+        ),
+        "cloud_to_local": (
+            "configured cloud provider credential",
+            "confirmed local runtime/model",
+        ),
+        "cloud_to_cloud": (
+            "supported cloud provider adapters",
+            "configured cloud provider credentials",
+        ),
+        "local_to_local": (
+            "confirmed local runtimes",
+            "confirmed installed local models",
+        ),
     }
     return mapping[direction]
 

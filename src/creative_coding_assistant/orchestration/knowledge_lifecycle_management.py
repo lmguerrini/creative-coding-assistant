@@ -195,9 +195,7 @@ class KnowledgeLifecycleSignal(BaseModel):
         if self.knowledge_consolidation_signal_count != len(
             self.knowledge_consolidation_signal_ids
         ):
-            raise ValueError(
-                "knowledge_consolidation_signal_count must match signals"
-            )
+            raise ValueError("knowledge_consolidation_signal_count must match signals")
         if self.lifecycle_score != _lifecycle_score(
             lifecycle_signal_score=self.lifecycle_signal_score,
             policy_alignment_score=self.policy_alignment_score,
@@ -220,9 +218,7 @@ class KnowledgeLifecycleManagementPlan(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["knowledge_lifecycle_management"] = (
-        "knowledge_lifecycle_management"
-    )
+    role: Literal["knowledge_lifecycle_management"] = "knowledge_lifecycle_management"
     serialization_version: Literal["knowledge_lifecycle_plan.v1"] = (
         KNOWLEDGE_LIFECYCLE_PLAN_SERIALIZATION_VERSION
     )
@@ -428,9 +424,7 @@ class KnowledgeLifecycleManagementPlan(BaseModel):
             raise ValueError("signal_count must match signals")
         if self.candidate_signal_count != len(self.candidate_signal_ids):
             raise ValueError("candidate_signal_count must match signals")
-        if self.review_required_signal_count != len(
-            self.review_required_signal_ids
-        ):
+        if self.review_required_signal_count != len(self.review_required_signal_ids):
             raise ValueError("review_required_signal_count must match signals")
         if self.guarded_signal_count != len(self.guarded_signal_ids):
             raise ValueError("guarded_signal_count must match signals")
@@ -444,9 +438,7 @@ class KnowledgeLifecycleManagementPlan(BaseModel):
             raise ValueError("highest_lifecycle_score must match signals")
         if self.overall_lifecycle_score != _overall_lifecycle_score(self.signals):
             raise ValueError("overall_lifecycle_score must match signals")
-        if self.overall_lifecycle_posture != _overall_lifecycle_posture(
-            self.signals
-        ):
+        if self.overall_lifecycle_posture != _overall_lifecycle_posture(self.signals):
             raise ValueError("overall_lifecycle_posture must match signals")
         declared_consolidation_signals = set(self.knowledge_consolidation_signal_ids)
         for signal in self.signals:
@@ -534,9 +526,7 @@ def build_knowledge_lifecycle_management(
             _signal_ids_for_confidence(signals, "high", "guarded")
         ),
         hitl_required_signal_count=sum(
-            1
-            for signal in signals
-            if signal.hitl_required_before_lifecycle_management
+            1 for signal in signals if signal.hitl_required_before_lifecycle_management
         ),
         highest_lifecycle_score=max(signal.lifecycle_score for signal in signals),
         overall_lifecycle_score=_overall_lifecycle_score(signals),

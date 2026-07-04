@@ -62,9 +62,7 @@ class CreativeImprovementPlannerProfile(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["creative_improvement_planner"] = (
-        "creative_improvement_planner"
-    )
+    role: Literal["creative_improvement_planner"] = "creative_improvement_planner"
     serialization_version: Literal["v1"] = "v1"
     confidence: float = Field(ge=0, le=1)
     improvement_summary: str = Field(min_length=1, max_length=620)
@@ -74,7 +72,9 @@ class CreativeImprovementPlannerProfile(BaseModel):
     )
     highest_impact_opportunities: tuple[str, ...] = Field(min_length=1, max_length=8)
     low_risk_improvements: tuple[str, ...] = Field(min_length=1, max_length=8)
-    experimental_improvements: tuple[str, ...] = Field(default_factory=tuple, max_length=6)
+    experimental_improvements: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=6
+    )
     trade_off_recommendations: tuple[str, ...] = Field(min_length=1, max_length=8)
     improvement_rationale: tuple[str, ...] = Field(min_length=1, max_length=8)
     evidence: tuple[str, ...] = Field(min_length=1, max_length=16)
@@ -192,7 +192,9 @@ def creative_improvement_planner_prompt_lines(
         f"Highest-impact opportunity: {item}"
         for item in profile.highest_impact_opportunities
     )
-    lines.extend(f"Low-risk improvement: {item}" for item in profile.low_risk_improvements)
+    lines.extend(
+        f"Low-risk improvement: {item}" for item in profile.low_risk_improvements
+    )
     lines.extend(
         f"Experimental improvement: {item}"
         for item in profile.experimental_improvements
@@ -201,13 +203,19 @@ def creative_improvement_planner_prompt_lines(
         f"Trade-off recommendation: {item}"
         for item in profile.trade_off_recommendations
     )
-    lines.extend(f"Improvement rationale: {item}" for item in profile.improvement_rationale)
+    lines.extend(
+        f"Improvement rationale: {item}" for item in profile.improvement_rationale
+    )
     lines.extend(
         f"Future refinement candidate: {item}"
         for item in profile.future_refinement_candidates
     )
-    lines.extend(f"Improvement planner HITL question: {item}" for item in profile.hitl_questions)
-    lines.extend(f"Improvement planner guidance: {item}" for item in profile.prompt_guidance)
+    lines.extend(
+        f"Improvement planner HITL question: {item}" for item in profile.hitl_questions
+    )
+    lines.extend(
+        f"Improvement planner guidance: {item}" for item in profile.prompt_guidance
+    )
     return tuple(lines[:64])
 
 
@@ -253,7 +261,9 @@ def _improvement_priorities(
                 )
             )
     if creative_critic is not None:
-        for index, item in enumerate(creative_critic.improvement_opportunities[:2], start=1):
+        for index, item in enumerate(
+            creative_critic.improvement_opportunities[:2], start=1
+        ):
             candidates.append(
                 _priority(
                     priority_id=f"creative_critic_opportunity_{index}",
@@ -266,7 +276,9 @@ def _improvement_priorities(
                         else "high"
                     ),
                     impact="high" if index == 1 else "medium",
-                    risk="medium" if creative_critic.risk_assessment in {"high", "blocked"} else "low",
+                    risk="medium"
+                    if creative_critic.risk_assessment in {"high", "blocked"}
+                    else "low",
                     rationale="Creative Critic recommends this as advisory improvement guidance.",
                     evidence=(creative_critic.critique_summary,),
                 )
@@ -294,7 +306,9 @@ def _improvement_priorities(
                 impact="medium",
                 risk="low",
                 rationale="Generated text is available but artifact evidence is absent.",
-                evidence=(f"Generated response length: {len(generated_response)} characters.",),
+                evidence=(
+                    f"Generated response length: {len(generated_response)} characters.",
+                ),
             )
         )
     return tuple(candidates[:8]) or (
@@ -428,7 +442,10 @@ def _trade_off_recommendations(
             recommendations.append(
                 "Favor deliverable clarity over additional experimental detail."
             )
-    if creative_critic is not None and creative_critic.risk_assessment in {"high", "blocked"}:
+    if creative_critic is not None and creative_critic.risk_assessment in {
+        "high",
+        "blocked",
+    }:
         recommendations.append(
             "Treat high critic risk as a HITL-visible caveat, not an automatic retry trigger."
         )
@@ -452,11 +469,11 @@ def _improvement_rationale(
     ]
     if creative_critic is not None:
         rationale.append(
-            f"Creative Critic contributes {creative_critic.risk_assessment} risk and {creative_critic.critic_confidence:.2f} confidence."
+            f"Creative Critic contributes {creative_critic.risk_assessment} risk and {creative_critic.critic_confidence:.2f} confidence."  # noqa: E501
         )
     if self_evaluation is not None:
         rationale.append(
-            f"Self Evaluation contributes {self_evaluation.completeness_assessment} completeness and {self_evaluation.self_evaluation_confidence:.2f} confidence."
+            f"Self Evaluation contributes {self_evaluation.completeness_assessment} completeness and {self_evaluation.self_evaluation_confidence:.2f} confidence."  # noqa: E501
         )
     rationale.append("Improvement guidance remains advisory metadata only.")
     return _dedupe(rationale)[:8]
@@ -491,7 +508,9 @@ def _summary(
 ) -> str:
     top = priorities[0]
     critic_risk = (
-        creative_critic.risk_assessment if creative_critic is not None else "unavailable"
+        creative_critic.risk_assessment
+        if creative_critic is not None
+        else "unavailable"
     )
     completeness = (
         self_evaluation.completeness_assessment
@@ -525,18 +544,22 @@ def _evidence(
         evidence.append(f"Route: {route_decision.route.value}; domains {domains}.")
     if creative_critic is not None:
         evidence.append(
-            f"Creative critic: {creative_critic.risk_assessment} risk; {creative_critic.critic_confidence:.2f} confidence."
+            f"Creative critic: {creative_critic.risk_assessment} risk; {creative_critic.critic_confidence:.2f} confidence."  # noqa: E501
         )
     if self_evaluation is not None:
         evidence.append(
-            f"Self evaluation: {self_evaluation.completeness_assessment}; {self_evaluation.self_evaluation_confidence:.2f} confidence."
+            f"Self evaluation: {self_evaluation.completeness_assessment}; {self_evaluation.self_evaluation_confidence:.2f} confidence."  # noqa: E501
         )
     if generated_response is not None:
-        evidence.append(f"Generated response available: {len(generated_response)} characters.")
+        evidence.append(
+            f"Generated response available: {len(generated_response)} characters."
+        )
     if artifacts:
         evidence.append(
             "Artifacts available: "
-            + ", ".join(f"{artifact.id}:{artifact.language}" for artifact in artifacts[:5])
+            + ", ".join(
+                f"{artifact.id}:{artifact.language}" for artifact in artifacts[:5]
+            )
             + "."
         )
     evidence.append("Authority boundary verified: metadata-only improvement planning.")
@@ -569,7 +592,9 @@ def _hitl_questions(
 ) -> tuple[str, ...]:
     questions: list[str] = []
     if any(item.priority == "critical" for item in priorities):
-        questions.append("Should critical improvement priorities be resolved before scope expansion?")
+        questions.append(
+            "Should critical improvement priorities be resolved before scope expansion?"
+        )
     if creative_critic is not None:
         questions.extend(creative_critic.hitl_questions[:2])
     if self_evaluation is not None:
@@ -582,11 +607,13 @@ def _prompt_guidance(
     priorities: tuple[CreativeImprovementPriority, ...],
 ) -> tuple[str, ...]:
     guidance = [
-        "Use Creative Improvement Planner metadata as advisory guidance only, not as automatic refinement or output modification.",
+        "Use Creative Improvement Planner metadata as advisory guidance only, not as automatic refinement or output modification.",  # noqa: E501
         "Apply low-risk alignment and caveat improvements before experimental improvements.",
-        "Do not trigger retries, model calls, provider routing, runtime selection, preview changes, workflow loops, artifact edits, or V4 agents.",
+        "Do not trigger retries, model calls, provider routing, runtime selection, preview changes, workflow loops, artifact edits, or V4 agents.",  # noqa: E501
     ]
     if any(item.priority == "critical" for item in priorities):
-        guidance.append("Surface critical improvement priorities and HITL questions before expanding scope.")
+        guidance.append(
+            "Surface critical improvement priorities and HITL questions before expanding scope."
+        )
     guidance.extend(item.title for item in priorities[:3])
     return _dedupe(guidance)[:8]

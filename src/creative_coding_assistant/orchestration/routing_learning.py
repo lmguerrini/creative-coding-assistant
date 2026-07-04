@@ -527,9 +527,7 @@ def _pattern(
         routing_learning_weight=weight,
     )
     hitl_required = (
-        learning_signal.hitl_required
-        or decision.hitl_required
-        or status == "guarded"
+        learning_signal.hitl_required or decision.hitl_required or status == "guarded"
     )
     return RoutingLearningPattern(
         pattern_id=f"routing_learning::{kind}",

@@ -70,9 +70,7 @@ class ConsistencyValidationProfile(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["consistency_validation_engine"] = (
-        "consistency_validation_engine"
-    )
+    role: Literal["consistency_validation_engine"] = "consistency_validation_engine"
     serialization_version: Literal["v1"] = "v1"
     consistency_status: ConsistencyStatus
     consistency_summary: str = Field(min_length=1, max_length=720)
@@ -256,13 +254,17 @@ def consistency_validation_prompt_lines(
         _check_line("Planner consistency", profile.planner_consistency),
         _check_line("Reasoning consistency", profile.reasoning_consistency),
     ]
-    lines.extend(f"Detected consistency conflict: {item}" for item in profile.detected_conflicts)
+    lines.extend(
+        f"Detected consistency conflict: {item}" for item in profile.detected_conflicts
+    )
     lines.extend(
         f"Unsupported consistency conclusion: {item}"
         for item in profile.unsupported_conclusions
     )
     lines.extend(f"Consistency evidence: {item}" for item in profile.evidence[:6])
-    lines.extend(f"Consistency prompt guidance: {item}" for item in profile.prompt_guidance)
+    lines.extend(
+        f"Consistency prompt guidance: {item}" for item in profile.prompt_guidance
+    )
     return tuple(lines[:52])
 
 
@@ -349,19 +351,19 @@ def _confidence_consistency(
         evidence.append(
             f"Score band {creative_score.score_band}; {creative_score.overall_creative_score:.1f}/100."
         )
-        if (
-            creative_confidence.confidence_level in {"very_high", "high"}
-            and creative_score.score_band in {"weak", "critical"}
-        ):
+        if creative_confidence.confidence_level in {
+            "very_high",
+            "high",
+        } and creative_score.score_band in {"weak", "critical"}:
             conflicts.append("High confidence conflicts with weak score band.")
     if reflection_loop is not None:
         evidence.append(
-            f"Reflection priority {reflection_loop.reflection_priority}; required {reflection_loop.reflection_required}."
+            f"Reflection priority {reflection_loop.reflection_priority}; required {reflection_loop.reflection_required}."  # noqa: E501
         )
-        if (
-            creative_confidence.confidence_level in {"very_high", "high"}
-            and reflection_loop.reflection_priority in {"critical", "high"}
-        ):
+        if creative_confidence.confidence_level in {
+            "very_high",
+            "high",
+        } and reflection_loop.reflection_priority in {"critical", "high"}:
             conflicts.append("High confidence conflicts with high reflection pressure.")
 
     return _check_from_conflicts(
@@ -400,10 +402,10 @@ def _reflection_consistency(
             and reflection_loop.reflection_priority in {"critical", "high"}
         ):
             conflicts.append("High reflection requirement conflicts with strong score.")
-        if (
-            not reflection_loop.reflection_required
-            and creative_score.score_band in {"weak", "critical"}
-        ):
+        if not reflection_loop.reflection_required and creative_score.score_band in {
+            "weak",
+            "critical",
+        }:
             conflicts.append("No reflection requirement conflicts with weak score.")
     if creative_confidence is not None:
         evidence.append(f"Confidence level {creative_confidence.confidence_level}.")
@@ -411,18 +413,24 @@ def _reflection_consistency(
             reflection_loop.reflection_priority in {"critical", "high"}
             and creative_confidence.hitl_recommendation == "not_needed"
         ):
-            conflicts.append("High reflection pressure conflicts with no HITL confidence posture.")
+            conflicts.append(
+                "High reflection pressure conflicts with no HITL confidence posture."
+            )
     if creative_critic is not None and creative_critic.risk_assessment in {
         "high",
         "blocked",
     }:
         evidence.append(f"Critic risk {creative_critic.risk_assessment}.")
         if not reflection_loop.reflection_required:
-            conflicts.append("High critic risk conflicts with no reflection requirement.")
+            conflicts.append(
+                "High critic risk conflicts with no reflection requirement."
+            )
     if self_evaluation is not None and self_evaluation.underdelivery_risk == "high":
         evidence.append("Self evaluation underdelivery risk is high.")
         if not reflection_loop.reflection_required:
-            conflicts.append("High underdelivery risk conflicts with no reflection requirement.")
+            conflicts.append(
+                "High underdelivery risk conflicts with no reflection requirement."
+            )
 
     return _check_from_conflicts(
         conflicts=conflicts,
@@ -461,11 +469,16 @@ def _critic_consistency(
         self_average = _self_evaluation_average(self_evaluation)
         evidence.append(f"Self-evaluation average {self_average:.2f}.")
         if abs(critic_average - self_average) > 0.32:
-            conflicts.append("Critic and self-evaluation quality averages diverge sharply.")
+            conflicts.append(
+                "Critic and self-evaluation quality averages diverge sharply."
+            )
 
     return _check_from_conflicts(
         conflicts=conflicts,
-        watch=bool(creative_critic.unsupported_assumptions or creative_critic.missing_information),
+        watch=bool(
+            creative_critic.unsupported_assumptions
+            or creative_critic.missing_information
+        ),
         aligned_summary="Creative Critic agrees with self-evaluation and its own risk posture.",
         watch_summary="Creative Critic is plausible but includes missing or unsupported signals.",
         conflict_summary="Creative Critic conflicts with quality or self-evaluation metadata.",
@@ -503,7 +516,9 @@ def _planner_consistency(
             creative_confidence.confidence_level in {"very_high", "high"}
             and opportunity_count >= 4
         ):
-            conflicts.append("Many high-impact opportunities conflict with high confidence.")
+            conflicts.append(
+                "Many high-impact opportunities conflict with high confidence."
+            )
 
     return _check_from_conflicts(
         conflicts=conflicts,
@@ -546,10 +561,15 @@ def _reasoning_consistency(
         f"Missing evaluation inputs: {missing_evidence_count}.",
     ]
     conflicts = []
-    if unsupported and creative_score is not None and creative_score.score_band in {
-        "excellent",
-        "strong",
-    }:
+    if (
+        unsupported
+        and creative_score is not None
+        and creative_score.score_band
+        in {
+            "excellent",
+            "strong",
+        }
+    ):
         conflicts.append("Strong score is paired with unsupported conclusions.")
     if missing_evidence_count >= 3:
         conflicts.append("Reasoning support is missing multiple evaluation inputs.")
@@ -744,7 +764,10 @@ def _unsupported_conclusions(
         unsupported.extend(creative_critic.unsupported_assumptions)
     if self_evaluation is not None:
         unsupported.extend(self_evaluation.unsupported_assumptions)
-    if creative_score is not None and creative_score.score_band in {"excellent", "strong"}:
+    if creative_score is not None and creative_score.score_band in {
+        "excellent",
+        "strong",
+    }:
         unsupported.extend(
             item
             for item in creative_score.negative_contributions
@@ -768,14 +791,16 @@ def _evidence(
 ) -> tuple[str, ...]:
     evidence = [f"Request inspected for consistency: {_clip(request.query, 120)}"]
     if route_decision is not None:
-        evidence.append(f"Route {route_decision.route.value}; {len(route_decision.domains)} domain(s).")
+        evidence.append(
+            f"Route {route_decision.route.value}; {len(route_decision.domains)} domain(s)."
+        )
     if creative_critic is not None:
         evidence.append(
-            f"Creative Critic risk {creative_critic.risk_assessment}; confidence {creative_critic.critic_confidence:.2f}."
+            f"Creative Critic risk {creative_critic.risk_assessment}; confidence {creative_critic.critic_confidence:.2f}."  # noqa: E501
         )
     if self_evaluation is not None:
         evidence.append(
-            f"Self Evaluation {self_evaluation.completeness_assessment}; ambiguity {self_evaluation.ambiguity_assessment}."
+            f"Self Evaluation {self_evaluation.completeness_assessment}; ambiguity {self_evaluation.ambiguity_assessment}."  # noqa: E501
         )
     if creative_improvement_planner is not None:
         evidence.append(
@@ -799,7 +824,9 @@ def _evidence(
         + ", ".join(f"{index + 1}:{check.status}" for index, check in enumerate(checks))
         + "."
     )
-    evidence.append("Authority boundary verified: consistency validation is metadata-only.")
+    evidence.append(
+        "Authority boundary verified: consistency validation is metadata-only."
+    )
     return _dedupe(evidence, clip_limit=320)[:16]
 
 
@@ -856,9 +883,7 @@ def _consistency_summary(
 
 
 def _check_line(label: str, check: ConsistencyValidationCheck) -> str:
-    return (
-        f"{label}: {check.status}; {check.summary}"
-    )
+    return f"{label}: {check.status}; {check.summary}"
 
 
 def _critic_quality_average(profile: CreativeCriticProfile) -> float:

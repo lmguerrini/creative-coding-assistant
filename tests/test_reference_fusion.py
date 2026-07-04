@@ -32,8 +32,7 @@ class ReferenceFusionTests(unittest.TestCase):
         self.assertIn("slow drifting motion", guidance.motion_implications)
         self.assertTrue(
             any(
-                "Do not identify people" in item
-                for item in guidance.safety_constraints
+                "Do not identify people" in item for item in guidance.safety_constraints
             )
         )
 

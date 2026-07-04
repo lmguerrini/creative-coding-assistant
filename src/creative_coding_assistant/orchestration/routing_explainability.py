@@ -43,9 +43,7 @@ RoutingExplanationSource = Literal[
 RoutingExplanationStatus = Literal["primary", "supporting"]
 
 ROUTING_EXPLANATION_RECORD_SERIALIZATION_VERSION = "routing_explanation_record.v1"
-ROUTING_EXPLAINABILITY_PLAN_SERIALIZATION_VERSION = (
-    "routing_explainability_plan.v1"
-)
+ROUTING_EXPLAINABILITY_PLAN_SERIALIZATION_VERSION = "routing_explainability_plan.v1"
 ROUTING_EXPLAINABILITY_AUTHORITY_BOUNDARY = (
     "The V5.2 Routing Explainability surface converts existing advisory "
     "routing, recommendation, quality prediction, and cost prediction metadata "
@@ -313,7 +311,9 @@ def explain_routing_decision(
         ),
         primary_explanation_id=primary.explanation_id,
         explanation_count=len(explanations),
-        source_surface_count=len({explanation.source_surface for explanation in explanations}),
+        source_surface_count=len(
+            {explanation.source_surface for explanation in explanations}
+        ),
         advisory_actions=(
             "Surface advisory routing rationale for operator review.",
             "Keep provider/model routing, execution, budget enforcement, and storage disabled.",
@@ -499,8 +499,10 @@ def _assert_route(
     route: RouteName | str | None,
     route_name: RouteName,
 ) -> None:
-    explicit_route = None if route is None else (
-        route if isinstance(route, RouteName) else RouteName(str(route))
+    explicit_route = (
+        None
+        if route is None
+        else (route if isinstance(route, RouteName) else RouteName(str(route)))
     )
     if explicit_route is not None and explicit_route != route_name:
         raise ValueError("route must match routing explainability route")

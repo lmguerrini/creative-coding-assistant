@@ -96,7 +96,9 @@ class AgentDebateTests(unittest.TestCase):
                 "agent_debate_participant.v1",
             )
             self.assertTrue(participant.debate_roles)
-            self.assertIn("debate_loop_execution", participant.blocked_runtime_behaviors)
+            self.assertIn(
+                "debate_loop_execution", participant.blocked_runtime_behaviors
+            )
             self.assertFalse(participant.debate_execution_implemented)
             self.assertFalse(participant.retry_triggering_implemented)
             self.assertFalse(participant.output_mutation_implemented)
@@ -117,7 +119,9 @@ class AgentDebateTests(unittest.TestCase):
         for round_contract in debate.rounds:
             dumped = round_contract.model_dump(mode="json")
             self.assertEqual(set(dumped), REQUIRED_ROUND_FIELDS)
-            self.assertEqual(round_contract.serialization_version, "agent_debate_round.v1")
+            self.assertEqual(
+                round_contract.serialization_version, "agent_debate_round.v1"
+            )
             self.assertLessEqual(round_contract.max_exchange_count, 2)
             self.assertTrue(round_contract.evidence_surfaces)
             self.assertFalse(round_contract.debate_execution_implemented)
@@ -143,7 +147,9 @@ class AgentDebateTests(unittest.TestCase):
         self.assertEqual(claim.claimant_agent_id, "art_direction_agent")
         self.assertIn("critic_agent", round_contract.participant_agent_ids)
 
-    def test_registry_rejects_unknown_participants_and_topic_order_changes(self) -> None:
+    def test_registry_rejects_unknown_participants_and_topic_order_changes(
+        self,
+    ) -> None:
         debate = agent_debate_registry()
         bad_claim = debate.claims[0].model_copy(
             update={"claimant_agent_id": "missing_agent"}
@@ -176,7 +182,9 @@ class AgentDebateTests(unittest.TestCase):
                 source_registries=debate.source_registries,
             )
 
-    def test_debate_metadata_does_not_declare_retry_or_generation_behavior(self) -> None:
+    def test_debate_metadata_does_not_declare_retry_or_generation_behavior(
+        self,
+    ) -> None:
         debate = agent_debate_registry()
         dumped = debate.model_dump(mode="json")
         combined_text = " ".join(

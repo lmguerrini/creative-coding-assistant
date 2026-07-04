@@ -189,9 +189,7 @@ class CreativeLineageRecord(BaseModel):
             raise ValueError("creative_lineage_score must combine source scores")
         if self.status != _creative_lineage_status(self.creative_lineage_score):
             raise ValueError("status must match creative_lineage_score")
-        if self.confidence != _creative_lineage_confidence(
-            self.creative_lineage_score
-        ):
+        if self.confidence != _creative_lineage_confidence(self.creative_lineage_score):
             raise ValueError("confidence must match creative_lineage_score")
         if not self.hitl_required_before_lineage_persistence:
             raise ValueError("creative lineage persistence requires HITL posture")
@@ -377,9 +375,7 @@ class CreativeLineagePlan(BaseModel):
             raise ValueError("record_count must match records")
         if self.candidate_record_count != len(self.candidate_record_ids):
             raise ValueError("candidate_record_count must match records")
-        if self.review_required_record_count != len(
-            self.review_required_record_ids
-        ):
+        if self.review_required_record_count != len(self.review_required_record_ids):
             raise ValueError("review_required_record_count must match records")
         if self.guarded_record_count != len(self.guarded_record_ids):
             raise ValueError("guarded_record_count must match records")
@@ -747,9 +743,7 @@ def _record(
         task_type=task_type,
         execution_mode_id=execution_mode_id,
         lineage_axis=lineage_axis,
-        source_artifact_history_record_id=(
-            source_history_record.artifact_history_id
-        ),
+        source_artifact_history_record_id=(source_history_record.artifact_history_id),
         source_creative_dna_signature_id=source_dna_signature.creative_dna_id,
         source_long_term_memory_record_id=source_memory_record.record_id,
         source_artifact_lineage_profile_id=source_lineage_profile.profile_id,
@@ -887,9 +881,7 @@ def _lineage_summary(kind: CreativeLineageKind) -> str:
         "style_evolution_lineage": (
             "Models advisory creative lineage style-evolution posture."
         ),
-        "gap_review_lineage": (
-            "Models advisory creative lineage gap-review posture."
-        ),
+        "gap_review_lineage": ("Models advisory creative lineage gap-review posture."),
     }
     return summaries[kind]
 

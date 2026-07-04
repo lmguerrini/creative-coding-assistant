@@ -589,9 +589,7 @@ def _build_report_entry(
         ),
         downstream_impact_explanation=(
             "The report names downstream advisory impact surfaces without "
-            "mutating them: "
-            + ", ".join(downstream_systems)
-            + "."
+            "mutating them: " + ", ".join(downstream_systems) + "."
         ),
         cross_cutting_contracts=plan.cross_cutting_contracts,
         ownership_boundary_checks=top_proposal.ownership_boundary_checks,

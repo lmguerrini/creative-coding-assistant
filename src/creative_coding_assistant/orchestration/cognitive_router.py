@@ -296,9 +296,7 @@ class CognitiveRouterPlan(BaseModel):
             self.review_required_route_decision_ids
         ):
             raise ValueError("review_required_route_decision_count must match ids")
-        if self.guarded_route_decision_count != len(
-            self.guarded_route_decision_ids
-        ):
+        if self.guarded_route_decision_count != len(self.guarded_route_decision_ids):
             raise ValueError("guarded_route_decision_count must match ids")
         expected_max_depth = max(
             decision.dependency_depth for decision in self.route_decisions
@@ -443,9 +441,7 @@ def build_cognitive_router(
         source_state_ids=planner.source_state_ids,
         source_state_count=planner.source_state_count,
         route_decisions=decisions,
-        route_decision_ids=tuple(
-            decision.route_decision_id for decision in decisions
-        ),
+        route_decision_ids=tuple(decision.route_decision_id for decision in decisions),
         candidate_route_decision_ids=_route_ids_for_posture(
             decisions,
             "candidate",
@@ -462,12 +458,8 @@ def build_cognitive_router(
         review_required_route_decision_count=len(
             _route_ids_for_posture(decisions, "review_required")
         ),
-        guarded_route_decision_count=len(
-            _route_ids_for_posture(decisions, "guarded")
-        ),
-        max_dependency_depth=max(
-            decision.dependency_depth for decision in decisions
-        ),
+        guarded_route_decision_count=len(_route_ids_for_posture(decisions, "guarded")),
+        max_dependency_depth=max(decision.dependency_depth for decision in decisions),
         linked_agent_ids=planner.linked_agent_ids,
         covered_roadmap_items=(COGNITIVE_ROUTER_ROADMAP_ITEM,),
         covered_roadmap_item_count=1,
@@ -542,9 +534,7 @@ def _cognitive_route_decisions(
     for index, step in enumerate(planner.plan_steps):
         upstream_ids = (route_ids[index - 1],) if index else ()
         downstream_ids = (
-            (route_ids[index + 1],)
-            if index < len(planner.plan_steps) - 1
-            else ()
+            (route_ids[index + 1],) if index < len(planner.plan_steps) - 1 else ()
         )
         decisions.append(
             CognitiveRouteDecision(

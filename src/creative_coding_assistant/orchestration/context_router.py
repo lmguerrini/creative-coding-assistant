@@ -159,7 +159,9 @@ class ContextRoutingPlan(BaseModel):
 
     @model_validator(mode="after")
     def _plan_matches_decisions(self) -> Self:
-        derived_decision_ids = tuple(decision.decision_id for decision in self.decisions)
+        derived_decision_ids = tuple(
+            decision.decision_id for decision in self.decisions
+        )
         if len(set(derived_decision_ids)) != len(derived_decision_ids):
             raise ValueError("decision_ids must be unique")
         if self.decision_ids != derived_decision_ids:
@@ -217,9 +219,7 @@ def route_context_sources(
         for allocation in budget.allocations
     )
     context_decisions = tuple(
-        decision
-        for decision in decisions
-        if decision.source_kind != "response_reserve"
+        decision for decision in decisions if decision.source_kind != "response_reserve"
     )
     deferred_context_tokens = sum(
         decision.deferred_tokens for decision in context_decisions
@@ -275,7 +275,9 @@ def context_route_decisions_for_lane(
     """Return route decisions by lane without provider or model routing."""
 
     source_plan = plan or route_context_sources()
-    return tuple(decision for decision in source_plan.decisions if decision.lane == lane)
+    return tuple(
+        decision for decision in source_plan.decisions if decision.lane == lane
+    )
 
 
 def _decision_from_allocation(

@@ -130,9 +130,7 @@ class CognitiveProfileEngineTests(unittest.TestCase):
             CognitiveProfileEnginePlan(**payload)
 
         payload = engine.model_dump(mode="json")
-        payload["routed_profile_ids"] = (
-            "cognitive_profile::v6_6_cognitive_core",
-        )
+        payload["routed_profile_ids"] = ("cognitive_profile::v6_6_cognitive_core",)
 
         with self.assertRaisesRegex(
             ValueError,

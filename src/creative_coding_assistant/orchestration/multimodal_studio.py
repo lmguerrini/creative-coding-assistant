@@ -1397,9 +1397,7 @@ class MultimodalLivePreviewRegistry(BaseModel):
                 raise ValueError("preview_targets must use known targets")
             if not set(profile.live_preview_surfaces).issubset(known_surfaces):
                 raise ValueError("live_preview_surfaces must be known surfaces")
-            if not set(profile.source_reference_ids).issubset(
-                known_source_references
-            ):
+            if not set(profile.source_reference_ids).issubset(known_source_references):
                 raise ValueError(
                     "source_reference_ids must be known registry references"
                 )
@@ -1852,9 +1850,7 @@ class MultimodalMultiPreviewRegistry(BaseModel):
                 )
             if not set(profile.multi_preview_surfaces).issubset(known_surfaces):
                 raise ValueError("multi_preview_surfaces must be known surfaces")
-            if not set(profile.source_reference_ids).issubset(
-                known_source_references
-            ):
+            if not set(profile.source_reference_ids).issubset(known_source_references):
                 raise ValueError(
                     "source_reference_ids must be known registry references"
                 )
@@ -2243,15 +2239,11 @@ class MultimodalInteractiveCanvasRegistry(BaseModel):
         if self.profile_ids != derived_profile_ids:
             raise ValueError("profile_ids must match interactive_canvas_profiles")
         if self.profile_count != len(self.interactive_canvas_profiles):
-            raise ValueError(
-                "profile_count must match interactive_canvas_profiles"
-            )
+            raise ValueError("profile_count must match interactive_canvas_profiles")
         if self.route_names != tuple(RouteName):
             raise ValueError("route_names must match route enum order")
         if self.preview_targets != (PreviewTarget.BROWSER_SANDBOX,):
-            raise ValueError(
-                "preview_targets must describe the browser sandbox canvas"
-            )
+            raise ValueError("preview_targets must describe the browser sandbox canvas")
         if (
             self.live_preview_profile_ids
             != MULTIMODAL_LIVE_PREVIEW_REGISTRY.profile_ids
@@ -2268,8 +2260,7 @@ class MultimodalInteractiveCanvasRegistry(BaseModel):
             )
 
         derived_profile_kinds = _ordered_unique(
-            profile.canvas_profile_kind
-            for profile in self.interactive_canvas_profiles
+            profile.canvas_profile_kind for profile in self.interactive_canvas_profiles
         )
         if self.canvas_profile_kinds != derived_profile_kinds:
             raise ValueError(
@@ -2277,8 +2268,7 @@ class MultimodalInteractiveCanvasRegistry(BaseModel):
             )
 
         derived_surface_kinds = _ordered_unique(
-            profile.canvas_surface_kind
-            for profile in self.interactive_canvas_profiles
+            profile.canvas_surface_kind for profile in self.interactive_canvas_profiles
         )
         if self.canvas_surface_kinds != derived_surface_kinds:
             raise ValueError(
@@ -2322,24 +2312,16 @@ class MultimodalInteractiveCanvasRegistry(BaseModel):
                 raise ValueError(
                     "source_multi_preview_profile_ids must be known profiles"
                 )
-            if not set(profile.interactive_canvas_surfaces).issubset(
-                known_surfaces
-            ):
-                raise ValueError(
-                    "interactive_canvas_surfaces must be known surfaces"
-                )
-            if not set(profile.source_reference_ids).issubset(
-                known_source_references
-            ):
+            if not set(profile.interactive_canvas_surfaces).issubset(known_surfaces):
+                raise ValueError("interactive_canvas_surfaces must be known surfaces")
+            if not set(profile.source_reference_ids).issubset(known_source_references):
                 raise ValueError(
                     "source_reference_ids must be known registry references"
                 )
         return self
 
 
-def multimodal_interactive_canvas_registry() -> (
-    MultimodalInteractiveCanvasRegistry
-):
+def multimodal_interactive_canvas_registry() -> MultimodalInteractiveCanvasRegistry:
     """Return passive V4.5 Multimodal Studio Interactive Canvas metadata."""
 
     return MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY
@@ -2777,8 +2759,7 @@ class MultimodalVisualWorkspaceRegistry(BaseModel):
             )
 
         derived_profile_kinds = _ordered_unique(
-            profile.workspace_profile_kind
-            for profile in self.visual_workspace_profiles
+            profile.workspace_profile_kind for profile in self.visual_workspace_profiles
         )
         if self.workspace_profile_kinds != derived_profile_kinds:
             raise ValueError(
@@ -2786,8 +2767,7 @@ class MultimodalVisualWorkspaceRegistry(BaseModel):
             )
 
         derived_surface_kinds = _ordered_unique(
-            profile.workspace_surface_kind
-            for profile in self.visual_workspace_profiles
+            profile.workspace_surface_kind for profile in self.visual_workspace_profiles
         )
         if self.workspace_surface_kinds != derived_surface_kinds:
             raise ValueError(
@@ -2837,9 +2817,7 @@ class MultimodalVisualWorkspaceRegistry(BaseModel):
                 )
             if not set(profile.visual_workspace_surfaces).issubset(known_surfaces):
                 raise ValueError("visual_workspace_surfaces must be known surfaces")
-            if not set(profile.source_reference_ids).issubset(
-                known_source_references
-            ):
+            if not set(profile.source_reference_ids).issubset(known_source_references):
                 raise ValueError(
                     "source_reference_ids must be known registry references"
                 )
@@ -3227,19 +3205,14 @@ class MultimodalRuntimeCollaborationRegistry(BaseModel):
     @model_validator(mode="after")
     def _registry_matches_profiles(self) -> Self:
         derived_profile_ids = tuple(
-            profile.profile_id
-            for profile in self.runtime_collaboration_profiles
+            profile.profile_id for profile in self.runtime_collaboration_profiles
         )
         if len(set(derived_profile_ids)) != len(derived_profile_ids):
             raise ValueError("profile_ids must be unique")
         if self.profile_ids != derived_profile_ids:
-            raise ValueError(
-                "profile_ids must match runtime_collaboration_profiles"
-            )
+            raise ValueError("profile_ids must match runtime_collaboration_profiles")
         if self.profile_count != len(self.runtime_collaboration_profiles):
-            raise ValueError(
-                "profile_count must match runtime_collaboration_profiles"
-            )
+            raise ValueError("profile_count must match runtime_collaboration_profiles")
         if self.route_names != tuple(RouteName):
             raise ValueError("route_names must match route enum order")
         if (
@@ -3255,18 +3228,14 @@ class MultimodalRuntimeCollaborationRegistry(BaseModel):
             for profile in self.runtime_collaboration_profiles
         )
         if self.collaboration_profile_kinds != derived_profile_kinds:
-            raise ValueError(
-                "collaboration_profile_kinds must match runtime profiles"
-            )
+            raise ValueError("collaboration_profile_kinds must match runtime profiles")
 
         derived_surface_kinds = _ordered_unique(
             profile.collaboration_surface_kind
             for profile in self.runtime_collaboration_profiles
         )
         if self.collaboration_surface_kinds != derived_surface_kinds:
-            raise ValueError(
-                "collaboration_surface_kinds must match runtime profiles"
-            )
+            raise ValueError("collaboration_surface_kinds must match runtime profiles")
 
         profile_source_references = {
             source_reference
@@ -3295,15 +3264,11 @@ class MultimodalRuntimeCollaborationRegistry(BaseModel):
                 raise ValueError(
                     "source_visual_workspace_profile_ids must be known profiles"
                 )
-            if not set(profile.runtime_collaboration_surfaces).issubset(
-                known_surfaces
-            ):
+            if not set(profile.runtime_collaboration_surfaces).issubset(known_surfaces):
                 raise ValueError(
                     "runtime_collaboration_surfaces must be known surfaces"
                 )
-            if not set(profile.source_reference_ids).issubset(
-                known_source_references
-            ):
+            if not set(profile.source_reference_ids).issubset(known_source_references):
                 raise ValueError(
                     "source_reference_ids must be known registry references"
                 )
@@ -3545,29 +3510,26 @@ MULTIMODAL_RUNTIME_COLLABORATION_PROFILES = (
     ),
 )
 
-MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY = (
-    MultimodalRuntimeCollaborationRegistry(
-        runtime_collaboration_profiles=MULTIMODAL_RUNTIME_COLLABORATION_PROFILES,
-        profile_ids=tuple(
-            profile.profile_id
-            for profile in MULTIMODAL_RUNTIME_COLLABORATION_PROFILES
-        ),
-        collaboration_profile_kinds=tuple(
-            profile.collaboration_profile_kind
-            for profile in MULTIMODAL_RUNTIME_COLLABORATION_PROFILES
-        ),
-        collaboration_surface_kinds=tuple(
-            profile.collaboration_surface_kind
-            for profile in MULTIMODAL_RUNTIME_COLLABORATION_PROFILES
-        ),
-        visual_workspace_profile_ids=MULTIMODAL_VISUAL_WORKSPACE_REGISTRY.profile_ids,
-        route_names=tuple(RouteName),
-        profile_count=len(MULTIMODAL_RUNTIME_COLLABORATION_PROFILES),
-        source_registries=_RUNTIME_COLLABORATION_SOURCE_REGISTRIES,
-        source_reference_ids=_RUNTIME_COLLABORATION_SOURCE_REFERENCES,
-        runtime_collaboration_surface_refs=_RUNTIME_COLLABORATION_SURFACES,
-        observability_surfaces=_RUNTIME_COLLABORATION_OBSERVABILITY_SURFACES,
-    )
+MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY = MultimodalRuntimeCollaborationRegistry(
+    runtime_collaboration_profiles=MULTIMODAL_RUNTIME_COLLABORATION_PROFILES,
+    profile_ids=tuple(
+        profile.profile_id for profile in MULTIMODAL_RUNTIME_COLLABORATION_PROFILES
+    ),
+    collaboration_profile_kinds=tuple(
+        profile.collaboration_profile_kind
+        for profile in MULTIMODAL_RUNTIME_COLLABORATION_PROFILES
+    ),
+    collaboration_surface_kinds=tuple(
+        profile.collaboration_surface_kind
+        for profile in MULTIMODAL_RUNTIME_COLLABORATION_PROFILES
+    ),
+    visual_workspace_profile_ids=MULTIMODAL_VISUAL_WORKSPACE_REGISTRY.profile_ids,
+    route_names=tuple(RouteName),
+    profile_count=len(MULTIMODAL_RUNTIME_COLLABORATION_PROFILES),
+    source_registries=_RUNTIME_COLLABORATION_SOURCE_REGISTRIES,
+    source_reference_ids=_RUNTIME_COLLABORATION_SOURCE_REFERENCES,
+    runtime_collaboration_surface_refs=_RUNTIME_COLLABORATION_SURFACES,
+    observability_surfaces=_RUNTIME_COLLABORATION_OBSERVABILITY_SURFACES,
 )
 
 
@@ -3683,19 +3645,14 @@ class MultimodalArtifactCollaborationRegistry(BaseModel):
     @model_validator(mode="after")
     def _registry_matches_profiles(self) -> Self:
         derived_profile_ids = tuple(
-            profile.profile_id
-            for profile in self.artifact_collaboration_profiles
+            profile.profile_id for profile in self.artifact_collaboration_profiles
         )
         if len(set(derived_profile_ids)) != len(derived_profile_ids):
             raise ValueError("profile_ids must be unique")
         if self.profile_ids != derived_profile_ids:
-            raise ValueError(
-                "profile_ids must match artifact_collaboration_profiles"
-            )
+            raise ValueError("profile_ids must match artifact_collaboration_profiles")
         if self.profile_count != len(self.artifact_collaboration_profiles):
-            raise ValueError(
-                "profile_count must match artifact_collaboration_profiles"
-            )
+            raise ValueError("profile_count must match artifact_collaboration_profiles")
         if self.route_names != tuple(RouteName):
             raise ValueError("route_names must match route enum order")
         if (
@@ -3717,16 +3674,12 @@ class MultimodalArtifactCollaborationRegistry(BaseModel):
             profile.artifact_profile_kind
             for profile in self.artifact_collaboration_profiles
         ):
-            raise ValueError(
-                "artifact_profile_kinds must match collaboration profiles"
-            )
+            raise ValueError("artifact_profile_kinds must match collaboration profiles")
         if self.artifact_surface_kinds != _ordered_unique(
             profile.artifact_surface_kind
             for profile in self.artifact_collaboration_profiles
         ):
-            raise ValueError(
-                "artifact_surface_kinds must match collaboration profiles"
-            )
+            raise ValueError("artifact_surface_kinds must match collaboration profiles")
 
         profile_source_references = {
             source_reference
@@ -3766,9 +3719,7 @@ class MultimodalArtifactCollaborationRegistry(BaseModel):
                 raise ValueError(
                     "artifact_collaboration_surfaces must be known surfaces"
                 )
-            if not set(profile.source_reference_ids).issubset(
-                known_source_references
-            ):
+            if not set(profile.source_reference_ids).issubset(known_source_references):
                 raise ValueError(
                     "source_reference_ids must be known registry references"
                 )
@@ -4024,32 +3975,29 @@ MULTIMODAL_ARTIFACT_COLLABORATION_PROFILES = (
     ),
 )
 
-MULTIMODAL_ARTIFACT_COLLABORATION_REGISTRY = (
-    MultimodalArtifactCollaborationRegistry(
-        artifact_collaboration_profiles=MULTIMODAL_ARTIFACT_COLLABORATION_PROFILES,
-        profile_ids=tuple(
-            profile.profile_id
-            for profile in MULTIMODAL_ARTIFACT_COLLABORATION_PROFILES
-        ),
-        artifact_profile_kinds=tuple(
-            profile.artifact_profile_kind
-            for profile in MULTIMODAL_ARTIFACT_COLLABORATION_PROFILES
-        ),
-        artifact_surface_kinds=tuple(
-            profile.artifact_surface_kind
-            for profile in MULTIMODAL_ARTIFACT_COLLABORATION_PROFILES
-        ),
-        visual_workspace_profile_ids=MULTIMODAL_VISUAL_WORKSPACE_REGISTRY.profile_ids,
-        runtime_collaboration_profile_ids=(
-            MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY.profile_ids
-        ),
-        route_names=tuple(RouteName),
-        profile_count=len(MULTIMODAL_ARTIFACT_COLLABORATION_PROFILES),
-        source_registries=_ARTIFACT_COLLABORATION_SOURCE_REGISTRIES,
-        source_reference_ids=_ARTIFACT_COLLABORATION_SOURCE_REFERENCES,
-        artifact_collaboration_surface_refs=_ARTIFACT_COLLABORATION_SURFACES,
-        observability_surfaces=_ARTIFACT_COLLABORATION_OBSERVABILITY_SURFACES,
-    )
+MULTIMODAL_ARTIFACT_COLLABORATION_REGISTRY = MultimodalArtifactCollaborationRegistry(
+    artifact_collaboration_profiles=MULTIMODAL_ARTIFACT_COLLABORATION_PROFILES,
+    profile_ids=tuple(
+        profile.profile_id for profile in MULTIMODAL_ARTIFACT_COLLABORATION_PROFILES
+    ),
+    artifact_profile_kinds=tuple(
+        profile.artifact_profile_kind
+        for profile in MULTIMODAL_ARTIFACT_COLLABORATION_PROFILES
+    ),
+    artifact_surface_kinds=tuple(
+        profile.artifact_surface_kind
+        for profile in MULTIMODAL_ARTIFACT_COLLABORATION_PROFILES
+    ),
+    visual_workspace_profile_ids=MULTIMODAL_VISUAL_WORKSPACE_REGISTRY.profile_ids,
+    runtime_collaboration_profile_ids=(
+        MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY.profile_ids
+    ),
+    route_names=tuple(RouteName),
+    profile_count=len(MULTIMODAL_ARTIFACT_COLLABORATION_PROFILES),
+    source_registries=_ARTIFACT_COLLABORATION_SOURCE_REGISTRIES,
+    source_reference_ids=_ARTIFACT_COLLABORATION_SOURCE_REFERENCES,
+    artifact_collaboration_surface_refs=_ARTIFACT_COLLABORATION_SURFACES,
+    observability_surfaces=_ARTIFACT_COLLABORATION_OBSERVABILITY_SURFACES,
 )
 
 
@@ -4239,24 +4187,16 @@ class MultimodalArtifactProvenanceRegistry(BaseModel):
                 raise ValueError(
                     "source_runtime_collaboration_profile_ids must be known profiles"
                 )
-            if not set(profile.artifact_provenance_surfaces).issubset(
-                known_surfaces
-            ):
-                raise ValueError(
-                    "artifact_provenance_surfaces must be known surfaces"
-                )
-            if not set(profile.source_reference_ids).issubset(
-                known_source_references
-            ):
+            if not set(profile.artifact_provenance_surfaces).issubset(known_surfaces):
+                raise ValueError("artifact_provenance_surfaces must be known surfaces")
+            if not set(profile.source_reference_ids).issubset(known_source_references):
                 raise ValueError(
                     "source_reference_ids must be known registry references"
                 )
         return self
 
 
-def multimodal_artifact_provenance_registry() -> (
-    MultimodalArtifactProvenanceRegistry
-):
+def multimodal_artifact_provenance_registry() -> MultimodalArtifactProvenanceRegistry:
     """Return passive V4.5 Artifact Provenance metadata."""
 
     return MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY
@@ -4404,7 +4344,9 @@ MULTIMODAL_ARTIFACT_PROVENANCE_PROFILES = (
             "selection_artifact_collaboration",
             "inspection_artifact_collaboration",
         ),
-        source_runtime_collaboration_profile_ids=("stream_event_runtime_collaboration",),
+        source_runtime_collaboration_profile_ids=(
+            "stream_event_runtime_collaboration",
+        ),
         provenance_context_fields=(
             "artifact_sources",
             "artifact.id",
@@ -4663,13 +4605,11 @@ class MultimodalArtifactLineageRegistry(BaseModel):
                 "artifact_provenance_profile_ids must match Artifact Provenance registry"
             )
         if self.lineage_profile_kinds != _ordered_unique(
-            profile.lineage_profile_kind
-            for profile in self.artifact_lineage_profiles
+            profile.lineage_profile_kind for profile in self.artifact_lineage_profiles
         ):
             raise ValueError("lineage_profile_kinds must match profiles")
         if self.lineage_surface_kinds != _ordered_unique(
-            profile.lineage_surface_kind
-            for profile in self.artifact_lineage_profiles
+            profile.lineage_surface_kind for profile in self.artifact_lineage_profiles
         ):
             raise ValueError("lineage_surface_kinds must match profiles")
 
@@ -4702,9 +4642,7 @@ class MultimodalArtifactLineageRegistry(BaseModel):
                 )
             if not set(profile.artifact_lineage_surfaces).issubset(known_surfaces):
                 raise ValueError("artifact_lineage_surfaces must be known surfaces")
-            if not set(profile.source_reference_ids).issubset(
-                known_source_references
-            ):
+            if not set(profile.source_reference_ids).issubset(known_source_references):
                 raise ValueError(
                     "source_reference_ids must be known registry references"
                 )
@@ -4794,9 +4732,7 @@ def _artifact_lineage_profile(
         profile_name=profile_name,
         lineage_profile_kind=lineage_profile_kind,
         lineage_surface_kind=lineage_surface_kind,
-        source_artifact_provenance_profile_ids=(
-            source_artifact_provenance_profile_ids
-        ),
+        source_artifact_provenance_profile_ids=(source_artifact_provenance_profile_ids),
         lineage_context_fields=lineage_context_fields,
         source_reference_ids=source_reference_ids,
         route_applicability=route_applicability,
@@ -4953,12 +4889,10 @@ MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY = MultimodalArtifactLineageRegistry(
         profile.profile_id for profile in MULTIMODAL_ARTIFACT_LINEAGE_PROFILES
     ),
     lineage_profile_kinds=tuple(
-        profile.lineage_profile_kind
-        for profile in MULTIMODAL_ARTIFACT_LINEAGE_PROFILES
+        profile.lineage_profile_kind for profile in MULTIMODAL_ARTIFACT_LINEAGE_PROFILES
     ),
     lineage_surface_kinds=tuple(
-        profile.lineage_surface_kind
-        for profile in MULTIMODAL_ARTIFACT_LINEAGE_PROFILES
+        profile.lineage_surface_kind for profile in MULTIMODAL_ARTIFACT_LINEAGE_PROFILES
     ),
     artifact_provenance_profile_ids=(
         MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY.profile_ids
@@ -5118,7 +5052,10 @@ class MultimodalCrossAgentWorkspaceRegistry(BaseModel):
             raise ValueError("profile_count must match cross_agent_workspace_profiles")
         if self.route_names != tuple(RouteName):
             raise ValueError("route_names must match route enum order")
-        if self.agent_workspace_profile_ids != AGENT_WORKSPACE_REGISTRY.workspace_profile_ids:
+        if (
+            self.agent_workspace_profile_ids
+            != AGENT_WORKSPACE_REGISTRY.workspace_profile_ids
+        ):
             raise ValueError(
                 "agent_workspace_profile_ids must match Agent Workspace registry"
             )
@@ -5201,24 +5138,16 @@ class MultimodalCrossAgentWorkspaceRegistry(BaseModel):
             if not set(profile.source_shared_context_view_ids).issubset(
                 known_shared_context_views
             ):
-                raise ValueError(
-                    "source_shared_context_view_ids must be known views"
-                )
+                raise ValueError("source_shared_context_view_ids must be known views")
             if not set(profile.source_blackboard_channel_ids).issubset(
                 known_blackboard_channels
             ):
-                raise ValueError(
-                    "source_blackboard_channel_ids must be known channels"
-                )
-            if not set(profile.cross_agent_workspace_surfaces).issubset(
-                known_surfaces
-            ):
+                raise ValueError("source_blackboard_channel_ids must be known channels")
+            if not set(profile.cross_agent_workspace_surfaces).issubset(known_surfaces):
                 raise ValueError(
                     "cross_agent_workspace_surfaces must be known surfaces"
                 )
-            if not set(profile.source_reference_ids).issubset(
-                known_source_references
-            ):
+            if not set(profile.source_reference_ids).issubset(known_source_references):
                 raise ValueError(
                     "source_reference_ids must be known registry references"
                 )
@@ -5566,8 +5495,7 @@ MULTIMODAL_CROSS_AGENT_WORKSPACE_PROFILES = (
 MULTIMODAL_CROSS_AGENT_WORKSPACE_REGISTRY = MultimodalCrossAgentWorkspaceRegistry(
     cross_agent_workspace_profiles=MULTIMODAL_CROSS_AGENT_WORKSPACE_PROFILES,
     profile_ids=tuple(
-        profile.profile_id
-        for profile in MULTIMODAL_CROSS_AGENT_WORKSPACE_PROFILES
+        profile.profile_id for profile in MULTIMODAL_CROSS_AGENT_WORKSPACE_PROFILES
     ),
     cross_agent_workspace_kinds=tuple(
         profile.cross_agent_workspace_kind
@@ -5756,7 +5684,10 @@ class MultimodalSharedArtifactBoardRegistry(BaseModel):
             raise ValueError(
                 "artifact_collaboration_profile_ids must match Artifact Collaboration registry"
             )
-        if self.multi_preview_profile_ids != MULTIMODAL_MULTI_PREVIEW_REGISTRY.profile_ids:
+        if (
+            self.multi_preview_profile_ids
+            != MULTIMODAL_MULTI_PREVIEW_REGISTRY.profile_ids
+        ):
             raise ValueError(
                 "multi_preview_profile_ids must match Multi Preview registry"
             )
@@ -5842,15 +5773,11 @@ class MultimodalSharedArtifactBoardRegistry(BaseModel):
                 raise ValueError(
                     "source_artifact_lineage_profile_ids must be known profiles"
                 )
-            if not set(profile.shared_artifact_board_surfaces).issubset(
-                known_surfaces
-            ):
+            if not set(profile.shared_artifact_board_surfaces).issubset(known_surfaces):
                 raise ValueError(
                     "shared_artifact_board_surfaces must be known surfaces"
                 )
-            if not set(profile.source_reference_ids).issubset(
-                known_source_references
-            ):
+            if not set(profile.source_reference_ids).issubset(known_source_references):
                 raise ValueError(
                     "source_reference_ids must be known registry references"
                 )
@@ -5953,9 +5880,7 @@ def _shared_artifact_board_profile(
             source_artifact_collaboration_profile_ids
         ),
         source_multi_preview_profile_ids=source_multi_preview_profile_ids,
-        source_artifact_provenance_profile_ids=(
-            source_artifact_provenance_profile_ids
-        ),
+        source_artifact_provenance_profile_ids=(source_artifact_provenance_profile_ids),
         source_artifact_lineage_profile_ids=source_artifact_lineage_profile_ids,
         board_context_fields=board_context_fields,
         source_reference_ids=source_reference_ids,
@@ -6200,8 +6125,7 @@ MULTIMODAL_SHARED_ARTIFACT_BOARD_PROFILES = (
 MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY = MultimodalSharedArtifactBoardRegistry(
     shared_artifact_board_profiles=MULTIMODAL_SHARED_ARTIFACT_BOARD_PROFILES,
     profile_ids=tuple(
-        profile.profile_id
-        for profile in MULTIMODAL_SHARED_ARTIFACT_BOARD_PROFILES
+        profile.profile_id for profile in MULTIMODAL_SHARED_ARTIFACT_BOARD_PROFILES
     ),
     board_profile_kinds=tuple(
         profile.board_profile_kind
@@ -6410,13 +6334,11 @@ class MultimodalWorkspaceHistoryRegistry(BaseModel):
                 "session_replay_profile_ids must match Session Replay registry"
             )
         if self.history_profile_kinds != _ordered_unique(
-            profile.history_profile_kind
-            for profile in self.workspace_history_profiles
+            profile.history_profile_kind for profile in self.workspace_history_profiles
         ):
             raise ValueError("history_profile_kinds must match profiles")
         if self.history_surface_kinds != _ordered_unique(
-            profile.history_surface_kind
-            for profile in self.workspace_history_profiles
+            profile.history_surface_kind for profile in self.workspace_history_profiles
         ):
             raise ValueError("history_surface_kinds must match profiles")
 
@@ -6470,9 +6392,7 @@ class MultimodalWorkspaceHistoryRegistry(BaseModel):
                 )
             if not set(profile.workspace_history_surfaces).issubset(known_surfaces):
                 raise ValueError("workspace_history_surfaces must be known surfaces")
-            if not set(profile.source_reference_ids).issubset(
-                known_source_references
-            ):
+            if not set(profile.source_reference_ids).issubset(known_source_references):
                 raise ValueError(
                     "source_reference_ids must be known registry references"
                 )
@@ -7017,8 +6937,7 @@ class MultimodalBranchingTimelineRegistry(BaseModel):
         ):
             raise ValueError("branching_timeline_kinds must match profiles")
         if self.branch_surface_kinds != _ordered_unique(
-            profile.branch_surface_kind
-            for profile in self.branching_timeline_profiles
+            profile.branch_surface_kind for profile in self.branching_timeline_profiles
         ):
             raise ValueError("branch_surface_kinds must match profiles")
 
@@ -7077,13 +6996,9 @@ class MultimodalBranchingTimelineRegistry(BaseModel):
                 raise ValueError(
                     "source_session_replay_profile_ids must be known profiles"
                 )
-            if not set(profile.branching_timeline_surfaces).issubset(
-                known_surfaces
-            ):
+            if not set(profile.branching_timeline_surfaces).issubset(known_surfaces):
                 raise ValueError("branching_timeline_surfaces must be known surfaces")
-            if not set(profile.source_reference_ids).issubset(
-                known_source_references
-            ):
+            if not set(profile.source_reference_ids).issubset(known_source_references):
                 raise ValueError(
                     "source_reference_ids must be known registry references"
                 )
@@ -7591,8 +7506,7 @@ class MultimodalCreativeEvolutionTimelineRegistry(BaseModel):
     @model_validator(mode="after")
     def _registry_matches_profiles(self) -> Self:
         derived_profile_ids = tuple(
-            profile.profile_id
-            for profile in self.creative_evolution_timeline_profiles
+            profile.profile_id for profile in self.creative_evolution_timeline_profiles
         )
         if len(set(derived_profile_ids)) != len(derived_profile_ids):
             raise ValueError("profile_ids must be unique")
@@ -7709,9 +7623,7 @@ class MultimodalCreativeEvolutionTimelineRegistry(BaseModel):
                 )
             if not set(profile.creative_evolution_surfaces).issubset(known_surfaces):
                 raise ValueError("creative_evolution_surfaces must be known surfaces")
-            if not set(profile.source_reference_ids).issubset(
-                known_source_references
-            ):
+            if not set(profile.source_reference_ids).issubset(known_source_references):
                 raise ValueError(
                     "source_reference_ids must be known registry references"
                 )
@@ -7807,26 +7719,20 @@ def _creative_evolution_timeline_profile(
         profile_name=profile_name,
         evolution_profile_kind=evolution_profile_kind,
         evolution_surface_kind=evolution_surface_kind,
-        source_branching_timeline_profile_ids=(
-            source_branching_timeline_profile_ids
-        ),
+        source_branching_timeline_profile_ids=(source_branching_timeline_profile_ids),
         source_workspace_history_profile_ids=source_workspace_history_profile_ids,
         source_shared_artifact_board_profile_ids=(
             source_shared_artifact_board_profile_ids
         ),
         source_artifact_lineage_profile_ids=source_artifact_lineage_profile_ids,
-        source_artifact_provenance_profile_ids=(
-            source_artifact_provenance_profile_ids
-        ),
+        source_artifact_provenance_profile_ids=(source_artifact_provenance_profile_ids),
         evolution_context_fields=evolution_context_fields,
         source_reference_ids=source_reference_ids,
         route_applicability=route_applicability,
         creative_evolution_surfaces=creative_evolution_surfaces,
         advisory_outputs=advisory_outputs,
         source_registries=_CREATIVE_EVOLUTION_TIMELINE_SOURCE_REGISTRIES,
-        observability_surfaces=(
-            _CREATIVE_EVOLUTION_TIMELINE_OBSERVABILITY_SURFACES
-        ),
+        observability_surfaces=(_CREATIVE_EVOLUTION_TIMELINE_OBSERVABILITY_SURFACES),
     )
 
 
@@ -7841,9 +7747,7 @@ MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_PROFILES = (
             "session_record_workspace_history",
             "snapshot_workspace_history",
         ),
-        source_shared_artifact_board_profile_ids=(
-            "selection_shared_artifact_board",
-        ),
+        source_shared_artifact_board_profile_ids=("selection_shared_artifact_board",),
         source_artifact_lineage_profile_ids=(
             "dependency_graph_artifact_lineage",
             "source_transition_artifact_lineage",
@@ -7889,9 +7793,7 @@ MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_PROFILES = (
             "artifact_variant_branching_timeline",
             "workflow_branching_timeline",
         ),
-        source_workspace_history_profile_ids=(
-            "artifact_board_workspace_history",
-        ),
+        source_workspace_history_profile_ids=("artifact_board_workspace_history",),
         source_shared_artifact_board_profile_ids=(
             "selection_shared_artifact_board",
             "comparison_shared_artifact_board",
@@ -8076,9 +7978,7 @@ MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_REGISTRY = (
         shared_artifact_board_profile_ids=(
             MULTIMODAL_SHARED_ARTIFACT_BOARD_REGISTRY.profile_ids
         ),
-        artifact_lineage_profile_ids=(
-            MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY.profile_ids
-        ),
+        artifact_lineage_profile_ids=(MULTIMODAL_ARTIFACT_LINEAGE_REGISTRY.profile_ids),
         artifact_provenance_profile_ids=(
             MULTIMODAL_ARTIFACT_PROVENANCE_REGISTRY.profile_ids
         ),
@@ -8087,9 +7987,7 @@ MULTIMODAL_CREATIVE_EVOLUTION_TIMELINE_REGISTRY = (
         source_registries=_CREATIVE_EVOLUTION_TIMELINE_SOURCE_REGISTRIES,
         source_reference_ids=_CREATIVE_EVOLUTION_TIMELINE_SOURCE_REFERENCES,
         creative_evolution_surface_refs=_CREATIVE_EVOLUTION_TIMELINE_SURFACES,
-        observability_surfaces=(
-            _CREATIVE_EVOLUTION_TIMELINE_OBSERVABILITY_SURFACES
-        ),
+        observability_surfaces=(_CREATIVE_EVOLUTION_TIMELINE_OBSERVABILITY_SURFACES),
     )
 )
 
@@ -8249,9 +8147,7 @@ class MultimodalRealTimeWorkflowVisualizationRegistry(BaseModel):
             raise ValueError(
                 "profile_ids must match real_time_workflow_visualization_profiles"
             )
-        if self.profile_count != len(
-            self.real_time_workflow_visualization_profiles
-        ):
+        if self.profile_count != len(self.real_time_workflow_visualization_profiles):
             raise ValueError(
                 "profile_count must match real_time_workflow_visualization_profiles"
             )
@@ -8320,9 +8216,9 @@ class MultimodalRealTimeWorkflowVisualizationRegistry(BaseModel):
                 raise ValueError("observability_surfaces must match registry")
             if not set(profile.route_applicability).issubset(known_routes):
                 raise ValueError("route_applicability must use known routes")
-            if not set(
-                profile.source_creative_evolution_timeline_profile_ids
-            ).issubset(known_evolution):
+            if not set(profile.source_creative_evolution_timeline_profile_ids).issubset(
+                known_evolution
+            ):
                 raise ValueError(
                     "source_creative_evolution_timeline_profile_ids must be known profiles"
                 )
@@ -8350,9 +8246,7 @@ class MultimodalRealTimeWorkflowVisualizationRegistry(BaseModel):
                 raise ValueError(
                     "workflow_visualization_surfaces must be known surfaces"
                 )
-            if not set(profile.source_reference_ids).issubset(
-                known_source_references
-            ):
+            if not set(profile.source_reference_ids).issubset(known_source_references):
                 raise ValueError(
                     "source_reference_ids must be known registry references"
                 )
@@ -8422,8 +8316,7 @@ def multimodal_real_time_workflow_visualization_profiles_for_creative_evolution_
     return tuple(
         profile
         for profile in source_registry.real_time_workflow_visualization_profiles
-        if source_profile_id
-        in profile.source_creative_evolution_timeline_profile_ids
+        if source_profile_id in profile.source_creative_evolution_timeline_profile_ids
     )
 
 
@@ -8451,9 +8344,7 @@ def _real_time_workflow_visualization_profile(
         source_creative_evolution_timeline_profile_ids=(
             source_creative_evolution_timeline_profile_ids
         ),
-        source_branching_timeline_profile_ids=(
-            source_branching_timeline_profile_ids
-        ),
+        source_branching_timeline_profile_ids=(source_branching_timeline_profile_ids),
         source_runtime_collaboration_profile_ids=(
             source_runtime_collaboration_profile_ids
         ),
@@ -8878,11 +8769,17 @@ class MultimodalStudioIntegrationRegistry(BaseModel):
             profile.integration_kind for profile in self.integration_profiles
         ):
             raise ValueError("integration_kinds must match integration_profiles")
-        if self.live_preview_profile_ids != MULTIMODAL_LIVE_PREVIEW_REGISTRY.profile_ids:
+        if (
+            self.live_preview_profile_ids
+            != MULTIMODAL_LIVE_PREVIEW_REGISTRY.profile_ids
+        ):
             raise ValueError(
                 "live_preview_profile_ids must match Live Preview registry"
             )
-        if self.multi_preview_profile_ids != MULTIMODAL_MULTI_PREVIEW_REGISTRY.profile_ids:
+        if (
+            self.multi_preview_profile_ids
+            != MULTIMODAL_MULTI_PREVIEW_REGISTRY.profile_ids
+        ):
             raise ValueError(
                 "multi_preview_profile_ids must match Multi Preview registry"
             )
@@ -9064,9 +8961,7 @@ def _multimodal_studio_integration_profile(
         integration_surfaces=integration_surfaces,
         advisory_outputs=advisory_outputs,
         source_registries=_MULTIMODAL_STUDIO_INTEGRATION_SOURCE_REGISTRIES,
-        observability_surfaces=(
-            _MULTIMODAL_STUDIO_INTEGRATION_OBSERVABILITY_SURFACES
-        ),
+        observability_surfaces=(_MULTIMODAL_STUDIO_INTEGRATION_OBSERVABILITY_SURFACES),
     )
 
 
@@ -9235,9 +9130,7 @@ MULTIMODAL_STUDIO_INTEGRATION_REGISTRY = MultimodalStudioIntegrationRegistry(
     ),
     live_preview_profile_ids=MULTIMODAL_LIVE_PREVIEW_REGISTRY.profile_ids,
     multi_preview_profile_ids=MULTIMODAL_MULTI_PREVIEW_REGISTRY.profile_ids,
-    interactive_canvas_profile_ids=(
-        MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY.profile_ids
-    ),
+    interactive_canvas_profile_ids=(MULTIMODAL_INTERACTIVE_CANVAS_REGISTRY.profile_ids),
     visual_workspace_profile_ids=MULTIMODAL_VISUAL_WORKSPACE_REGISTRY.profile_ids,
     runtime_collaboration_profile_ids=(
         MULTIMODAL_RUNTIME_COLLABORATION_REGISTRY.profile_ids

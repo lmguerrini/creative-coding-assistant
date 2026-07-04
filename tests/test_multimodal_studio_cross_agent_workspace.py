@@ -177,7 +177,9 @@ class MultimodalStudioCrossAgentWorkspaceTests(unittest.TestCase):
         self.assertFalse(registry.retry_triggering_implemented)
         self.assertFalse(registry.generated_output_mutation_implemented)
 
-    def test_cross_agent_workspace_profiles_are_passive_and_source_aligned(self) -> None:
+    def test_cross_agent_workspace_profiles_are_passive_and_source_aligned(
+        self,
+    ) -> None:
         registry = multimodal_cross_agent_workspace_registry()
         known_routes = set(registry.route_names)
         known_agent_workspaces = set(registry.agent_workspace_profile_ids)
@@ -261,10 +263,8 @@ class MultimodalStudioCrossAgentWorkspaceTests(unittest.TestCase):
         missing_profile = multimodal_cross_agent_workspace_profile_by_id(
             "missing_profile"
         )
-        planning_profiles = (
-            multimodal_cross_agent_workspace_profiles_for_surface_kind(
-                "planning_context"
-            )
+        planning_profiles = multimodal_cross_agent_workspace_profiles_for_surface_kind(
+            "planning_context"
         )
         route_profiles = multimodal_cross_agent_workspace_profiles_for_route(
             RouteName.PREVIEW
@@ -307,11 +307,7 @@ class MultimodalStudioCrossAgentWorkspaceTests(unittest.TestCase):
             update={"profile_name": "Duplicate Cross-Agent Workspace"}
         )
         unknown_workspace_profile = first_profile.model_copy(
-            update={
-                "source_agent_workspace_profile_ids": (
-                    "unknown_agent_workspace",
-                )
-            }
+            update={"source_agent_workspace_profile_ids": ("unknown_agent_workspace",)}
         )
 
         duplicate_kwargs = _registry_kwargs(registry)
@@ -332,7 +328,9 @@ class MultimodalStudioCrossAgentWorkspaceTests(unittest.TestCase):
         ):
             MultimodalCrossAgentWorkspaceRegistry(**unknown_workspace_kwargs)
 
-    def test_cross_agent_workspace_metadata_does_not_change_provider_factory(self) -> None:
+    def test_cross_agent_workspace_metadata_does_not_change_provider_factory(
+        self,
+    ) -> None:
         settings = Settings(
             default_generation_provider=GenerationProviderName.OPENAI,
             openai_model="gpt-5",
@@ -350,9 +348,7 @@ def _registry_kwargs(
     registry: MultimodalCrossAgentWorkspaceRegistry,
 ) -> dict[str, object]:
     return {
-        "cross_agent_workspace_profiles": (
-            registry.cross_agent_workspace_profiles
-        ),
+        "cross_agent_workspace_profiles": (registry.cross_agent_workspace_profiles),
         "profile_ids": registry.profile_ids,
         "cross_agent_workspace_kinds": registry.cross_agent_workspace_kinds,
         "cross_agent_surface_kinds": registry.cross_agent_surface_kinds,

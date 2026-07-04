@@ -100,7 +100,9 @@ class WebResearchTests(unittest.TestCase):
                 entry.decomposition_entry_count,
                 len(entry.decomposition_entry_ids),
             )
-            self.assertTrue(set(entry.decomposition_entry_ids).issubset(decomposition_ids))
+            self.assertTrue(
+                set(entry.decomposition_entry_ids).issubset(decomposition_ids)
+            )
             self.assertEqual(entry.source_count, plan.source_count)
             self.assertEqual(entry.domain_count, plan.domain_count)
             self.assertEqual(

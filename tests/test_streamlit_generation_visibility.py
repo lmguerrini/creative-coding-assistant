@@ -45,16 +45,13 @@ class StreamlitGenerationVisibilityTests(unittest.TestCase):
                             {
                                 "role": "context",
                                 "name": "memory",
-                                "content": (
-                                    "Running summary: Keep the scene quiet."
-                                ),
+                                "content": ("Running summary: Keep the scene quiet."),
                             },
                             {
                                 "role": "context",
                                 "name": "retrieval",
                                 "content": (
-                                    "Fog defines linear fog for distant "
-                                    "scene depth."
+                                    "Fog defines linear fog for distant scene depth."
                                 ),
                             },
                         ],
@@ -156,9 +153,7 @@ class StreamlitGenerationVisibilityTests(unittest.TestCase):
             generation_input_empty_message(visibility_state="empty"),
             "No generation input was available for this response.",
         )
-        self.assertIsNone(
-            generation_input_empty_message(visibility_state="unknown")
-        )
+        self.assertIsNone(generation_input_empty_message(visibility_state="unknown"))
 
 
 if __name__ == "__main__":

@@ -181,9 +181,7 @@ class AdaptivePolicyExplainabilityPlan(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["adaptive_policy_explainability"] = (
-        "adaptive_policy_explainability"
-    )
+    role: Literal["adaptive_policy_explainability"] = "adaptive_policy_explainability"
     serialization_version: Literal["adaptive_policy_explainability_plan.v1"] = (
         ADAPTIVE_POLICY_EXPLAINABILITY_PLAN_SERIALIZATION_VERSION
     )
@@ -284,7 +282,9 @@ class AdaptivePolicyExplainabilityPlan(BaseModel):
 
     @model_validator(mode="after")
     def _plan_matches_explanations(self) -> Self:
-        derived_ids = tuple(explanation.explanation_id for explanation in self.explanations)
+        derived_ids = tuple(
+            explanation.explanation_id for explanation in self.explanations
+        )
         if len(set(derived_ids)) != len(derived_ids):
             raise ValueError("explanation_ids must be unique")
         if self.explanation_ids != derived_ids:
@@ -333,8 +333,7 @@ class AdaptivePolicyExplainabilityPlan(BaseModel):
         ):
             raise ValueError("hitl_required_explanation_count must match explanations")
         if self.highest_policy_explainability_score != max(
-            explanation.policy_explainability_score
-            for explanation in self.explanations
+            explanation.policy_explainability_score for explanation in self.explanations
         ):
             raise ValueError("highest_policy_explainability_score must match")
         if self.policy_explainability_pressure != _plan_pressure(self.explanations):
@@ -393,8 +392,12 @@ def explain_adaptive_policy(
         execution_mode_ids=strategy_plan.execution_mode_ids,
         hybrid_policy_directions=strategy_plan.hybrid_policy_directions,
         explanations=explanations,
-        explanation_ids=tuple(explanation.explanation_id for explanation in explanations),
-        source_surfaces=tuple(explanation.source_surface for explanation in explanations),
+        explanation_ids=tuple(
+            explanation.explanation_id for explanation in explanations
+        ),
+        source_surfaces=tuple(
+            explanation.source_surface for explanation in explanations
+        ),
         primary_explanation_id=_explanation_ids_for_status(
             explanations,
             "primary",
@@ -403,7 +406,9 @@ def explain_adaptive_policy(
             explanations,
             "supporting",
         ),
-        guardrail_explanation_ids=_explanation_ids_for_status(explanations, "guardrail"),
+        guardrail_explanation_ids=_explanation_ids_for_status(
+            explanations, "guardrail"
+        ),
         hitl_required_explanation_ids=tuple(
             explanation.explanation_id
             for explanation in explanations
@@ -411,7 +416,9 @@ def explain_adaptive_policy(
         ),
         applied_policy_explanation_ids=(),
         explanation_count=len(explanations),
-        source_surface_count=len({explanation.source_surface for explanation in explanations}),
+        source_surface_count=len(
+            {explanation.source_surface for explanation in explanations}
+        ),
         supporting_explanation_count=len(
             _explanation_ids_for_status(explanations, "supporting")
         ),

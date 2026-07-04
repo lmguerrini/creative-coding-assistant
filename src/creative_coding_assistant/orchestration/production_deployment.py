@@ -27,9 +27,7 @@ DeploymentSurfaceId = Literal[
 ]
 DeploymentReadinessStatus = Literal["ready", "guarded"]
 
-PRODUCTION_DEPLOYMENT_RECORD_SERIALIZATION_VERSION = (
-    "production_deployment_record.v1"
-)
+PRODUCTION_DEPLOYMENT_RECORD_SERIALIZATION_VERSION = "production_deployment_record.v1"
 PRODUCTION_DEPLOYMENT_PLAN_SERIALIZATION_VERSION = "production_deployment_plan.v1"
 PRODUCTION_DEPLOYMENT_AUTHORITY_BOUNDARY = (
     "V5.6 production deployment metadata reviews backend, frontend, "
@@ -263,8 +261,16 @@ def _records(
         _record(
             surface_id="backend_runtime_entrypoint",
             source_refs=("src/creative_coding_assistant/api/dev_server.py",),
-            required_items=("dev_server_module", DEFAULT_STREAM_PATH, DEFAULT_WORKSPACE_SESSION_PATH),
-            present_items=("dev_server_module", DEFAULT_STREAM_PATH, DEFAULT_WORKSPACE_SESSION_PATH),
+            required_items=(
+                "dev_server_module",
+                DEFAULT_STREAM_PATH,
+                DEFAULT_WORKSPACE_SESSION_PATH,
+            ),
+            present_items=(
+                "dev_server_module",
+                DEFAULT_STREAM_PATH,
+                DEFAULT_WORKSPACE_SESSION_PATH,
+            ),
             deployment_notes=(
                 f"Local backend bridge defaults to {DEFAULT_DEV_HOST}:{DEFAULT_DEV_PORT}.",
                 "Production hosting must explicitly choose host, port, and WSGI/ASGI wrapper.",
@@ -272,10 +278,15 @@ def _records(
         ),
         _record(
             surface_id="frontend_runtime_entrypoint",
-            source_refs=("clients/nextjs/package.json", "clients/nextjs/next.config.mjs"),
+            source_refs=(
+                "clients/nextjs/package.json",
+                "clients/nextjs/next.config.mjs",
+            ),
             required_items=_REQUIRED_FRONTEND_SCRIPTS,
             present_items=tuple(
-                script for script in _REQUIRED_FRONTEND_SCRIPTS if script in frontend_scripts
+                script
+                for script in _REQUIRED_FRONTEND_SCRIPTS
+                if script in frontend_scripts
             ),
             deployment_notes=(
                 "Next.js build and start scripts are present for operator-run deployment validation.",
@@ -285,7 +296,12 @@ def _records(
         _record(
             surface_id="environment_configuration",
             source_refs=(".env.example", packaging.role),
-            required_items=("OPENAI_API_KEY", "CCA_DEFAULT_GENERATION_PROVIDER", "CCA_CHROMA_PERSIST_DIR", "CCA_ARTIFACT_DIR"),
+            required_items=(
+                "OPENAI_API_KEY",
+                "CCA_DEFAULT_GENERATION_PROVIDER",
+                "CCA_CHROMA_PERSIST_DIR",
+                "CCA_ARTIFACT_DIR",
+            ),
             present_items=tuple(
                 key
                 for key in (
@@ -305,7 +321,9 @@ def _records(
             surface_id="runtime_data_paths",
             source_refs=_RUNTIME_DATA_PATHS,
             required_items=_RUNTIME_DATA_PATHS,
-            present_items=tuple(path for path in _RUNTIME_DATA_PATHS if (root / path).exists()),
+            present_items=tuple(
+                path for path in _RUNTIME_DATA_PATHS if (root / path).exists()
+            ),
             deployment_notes=(
                 "Chroma, artifact, and eval data directories exist as local runtime paths.",
                 "Deployment must provision durable storage explicitly when needed.",
@@ -315,7 +333,9 @@ def _records(
             surface_id="external_deployment_manifest",
             source_refs=_EXTERNAL_MANIFESTS,
             required_items=_EXTERNAL_MANIFESTS,
-            present_items=tuple(path for path in _EXTERNAL_MANIFESTS if (root / path).exists()),
+            present_items=tuple(
+                path for path in _EXTERNAL_MANIFESTS if (root / path).exists()
+            ),
             deployment_notes=(
                 "No external deployment manifest is present in the repository.",
                 "V5.6 keeps deployment assumptions explicit instead of adding automatic deployment.",
@@ -352,7 +372,9 @@ def _record_ids_for_status(
     return tuple(record.record_id for record in records if record.status == status)
 
 
-def _plan_status(records: tuple[ProductionDeploymentRecord, ...]) -> DeploymentReadinessStatus:
+def _plan_status(
+    records: tuple[ProductionDeploymentRecord, ...],
+) -> DeploymentReadinessStatus:
     if any(record.status == "guarded" for record in records):
         return "guarded"
     return "ready"

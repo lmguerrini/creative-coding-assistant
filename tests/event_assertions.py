@@ -17,9 +17,7 @@ WORKFLOW_TRUTH_EVENT_TYPES = {
 
 def legacy_events(events: Iterable[StreamEvent]) -> list[StreamEvent]:
     return [
-        event
-        for event in events
-        if event.event_type not in WORKFLOW_TRUTH_EVENT_TYPES
+        event for event in events if event.event_type not in WORKFLOW_TRUTH_EVENT_TYPES
     ]
 
 

@@ -209,7 +209,9 @@ class AgentDiversityOptimizerTests(unittest.TestCase):
                 candidate.parallelism_bonus,
                 20 if candidate.parallelizable else 6,
             )
-            self.assertEqual(candidate.hitl_penalty, 28 if candidate.hitl_required else 0)
+            self.assertEqual(
+                candidate.hitl_penalty, 28 if candidate.hitl_required else 0
+            )
             self.assertEqual(
                 candidate.agent_diversity_score,
                 min(

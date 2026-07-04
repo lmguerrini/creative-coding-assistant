@@ -5,78 +5,78 @@ from creative_coding_assistant.orchestration import (
     AdaptiveMultiAgentEscalationRegistry,
     AgentConfidenceFusionRegistry,
     AmbiguityEscalationRegistry,
-    ConfidenceThresholdRoutingRegistry,
     ConditionalMultiAgentEscalationRegistry,
+    ConfidenceThresholdRoutingRegistry,
     CostThresholdRoutingRegistry,
-    CreativeExplorationBudgetRegistry,
     CreativeEscalationPolicyRegistry,
+    CreativeExplorationBudgetRegistry,
     DecisionProvenanceRegistry,
     EscalationGateRegistry,
     EscalationTraceRegistry,
     HitlEscalationGateRegistry,
     HybridAgentDebateLoopRegistry,
-    HybridAgentVotingRegistry,
     HybridAgenticWorkflowRegistry,
+    HybridAgentVotingRegistry,
     LatencyThresholdRoutingRegistry,
     QualityEscalationRegistry,
     ReflectionEscalationRegistry,
     ResultNormalizationRegistry,
-    RiskEscalationRegistry,
     ReturnToWorkflowHandoffRegistry,
+    RiskEscalationRegistry,
     SpecialistAgentLoopRegistry,
     V3BackboneModeRegistry,
     adaptive_multi_agent_escalation_profile_by_id,
     adaptive_multi_agent_escalation_registry,
-    agent_contract_registry,
     agent_capability_registry,
     agent_confidence_fusion_profile_by_id,
     agent_confidence_fusion_registry,
+    agent_contract_registry,
+    agent_escalation_signal_registry,
     ambiguity_escalation_profile_by_id,
     ambiguity_escalation_registry,
+    conditional_multi_agent_escalation_condition_by_id,
+    conditional_multi_agent_escalation_registry,
     confidence_threshold_routing_profile_by_id,
     confidence_threshold_routing_registry,
     cost_threshold_routing_profile_by_id,
     cost_threshold_routing_registry,
-    latency_threshold_routing_profile_by_id,
-    latency_threshold_routing_registry,
-    quality_escalation_profile_by_id,
-    quality_escalation_registry,
-    agent_escalation_signal_registry,
-    conditional_multi_agent_escalation_condition_by_id,
-    conditional_multi_agent_escalation_registry,
-    creative_exploration_budget_profile_by_id,
-    creative_exploration_budget_registry,
     creative_escalation_policy_by_id,
     creative_escalation_policy_registry,
+    creative_exploration_budget_profile_by_id,
+    creative_exploration_budget_registry,
     decision_provenance_profile_by_id,
     decision_provenance_registry,
     escalation_gate_by_id,
     escalation_gate_registry,
+    escalation_policy_registry,
     escalation_trace_profile_by_id,
     escalation_trace_registry,
     hitl_escalation_gate_profile_by_id,
     hitl_escalation_gate_registry,
-    escalation_policy_registry,
     hybrid_agent_debate_loop_by_id,
     hybrid_agent_debate_loop_registry,
     hybrid_agent_voting_profile_by_id,
     hybrid_agent_voting_registry,
     hybrid_agentic_workflow_registry,
     hybrid_agentic_workflow_stage_by_id,
+    latency_threshold_routing_profile_by_id,
+    latency_threshold_routing_registry,
+    quality_escalation_profile_by_id,
+    quality_escalation_registry,
     reflection_escalation_profile_by_id,
     reflection_escalation_registry,
     result_normalization_profile_by_id,
     result_normalization_registry,
-    risk_escalation_profile_by_id,
-    risk_escalation_registry,
     return_to_workflow_handoff_profile_by_id,
     return_to_workflow_handoff_registry,
+    risk_escalation_profile_by_id,
+    risk_escalation_registry,
     specialist_agent_loop_by_id,
     specialist_agent_loop_registry,
     v3_backbone_mode_profile_by_node_id,
     v3_backbone_mode_registry,
-    workstation_engine_contracts,
     workflow_agent_handoff_registry,
+    workstation_engine_contracts,
 )
 
 EXPECTED_STAGE_IDS = (
@@ -1128,7 +1128,9 @@ class V3BackboneModeRegistryTests(unittest.TestCase):
             registry.source_registries,
             EXPECTED_BACKBONE_SOURCE_REGISTRIES,
         )
-        self.assertIn("does not change workflow graph order", registry.authority_boundary)
+        self.assertIn(
+            "does not change workflow graph order", registry.authority_boundary
+        )
         self.assertTrue(registry.backbone_runtime_active)
         self.assertFalse(registry.workflow_order_mutation_implemented)
         self.assertFalse(registry.provider_model_routing_implemented)
@@ -1304,7 +1306,9 @@ class ConditionalMultiAgentEscalationRegistryTests(unittest.TestCase):
             self.assertTrue(set(condition.source_node_ids).issubset(known_nodes))
             self.assertTrue(set(condition.capability_ids).issubset(known_capabilities))
             self.assertTrue(set(condition.policy_rule_ids).issubset(known_policy_rules))
-            self.assertTrue(set(condition.escalation_signal_ids).issubset(known_signals))
+            self.assertTrue(
+                set(condition.escalation_signal_ids).issubset(known_signals)
+            )
             self.assertTrue(condition.advisory_outputs)
             self.assertIn("condition_evaluation", condition.blocked_runtime_behaviors)
             self.assertIn("multi_agent_execution", condition.blocked_runtime_behaviors)
@@ -1442,7 +1446,9 @@ class SpecialistAgentLoopRegistryTests(unittest.TestCase):
     def test_specialist_loops_reference_known_passive_agent_contracts(self) -> None:
         registry = specialist_agent_loop_registry()
         known_agents = set(agent_contract_registry().agent_ids)
-        known_conditions = set(conditional_multi_agent_escalation_registry().condition_ids)
+        known_conditions = set(
+            conditional_multi_agent_escalation_registry().condition_ids
+        )
         known_nodes = set(v3_backbone_mode_registry().node_ids)
 
         for loop in registry.loops:
@@ -1479,9 +1485,7 @@ class SpecialistAgentLoopRegistryTests(unittest.TestCase):
         registry = specialist_agent_loop_registry()
         loop_sources = tuple(
             dict.fromkeys(
-                source
-                for loop in registry.loops
-                for source in loop.source_registries
+                source for loop in registry.loops for source in loop.source_registries
             )
         )
 
@@ -1506,9 +1510,7 @@ class SpecialistAgentLoopRegistryTests(unittest.TestCase):
 
     def test_specialist_loop_registry_rejects_mismatched_metadata(self) -> None:
         registry = specialist_agent_loop_registry()
-        mismatched_loop = registry.loops[0].model_copy(
-            update={"loop_id": "other_loop"}
-        )
+        mismatched_loop = registry.loops[0].model_copy(update={"loop_id": "other_loop"})
         unknown_agent_loop = registry.loops[0].model_copy(
             update={"specialist_agent_ids": ("missing_agent",)}
         )
@@ -1597,7 +1599,9 @@ class EscalationGateRegistryTests(unittest.TestCase):
 
     def test_gates_reference_known_conditions_and_loops(self) -> None:
         registry = escalation_gate_registry()
-        known_conditions = set(conditional_multi_agent_escalation_registry().condition_ids)
+        known_conditions = set(
+            conditional_multi_agent_escalation_registry().condition_ids
+        )
         known_loops = set(specialist_agent_loop_registry().loop_ids)
 
         for gate in registry.gates:
@@ -1627,9 +1631,7 @@ class EscalationGateRegistryTests(unittest.TestCase):
         registry = escalation_gate_registry()
         gate_sources = tuple(
             dict.fromkeys(
-                source
-                for gate in registry.gates
-                for source in gate.source_registries
+                source for gate in registry.gates for source in gate.source_registries
             )
         )
 
@@ -1647,14 +1649,14 @@ class EscalationGateRegistryTests(unittest.TestCase):
         self.assertIsNotNone(gate)
         assert gate is not None
         self.assertEqual(gate.gate_kind, "specialist_loop_boundary")
-        self.assertEqual(gate.source_loop_ids, specialist_agent_loop_registry().loop_ids)
+        self.assertEqual(
+            gate.source_loop_ids, specialist_agent_loop_registry().loop_ids
+        )
         self.assertFalse(gate.gate_evaluation_implemented)
 
     def test_gate_registry_rejects_mismatched_metadata(self) -> None:
         registry = escalation_gate_registry()
-        mismatched_gate = registry.gates[0].model_copy(
-            update={"gate_id": "other_gate"}
-        )
+        mismatched_gate = registry.gates[0].model_copy(update={"gate_id": "other_gate"})
         unknown_loop_gate = registry.gates[0].model_copy(
             update={"source_loop_ids": ("missing_loop",)}
         )
@@ -1869,7 +1871,9 @@ class ReflectionEscalationRegistryTests(unittest.TestCase):
         )
         self.assertEqual(registry.profile_ids, EXPECTED_REFLECTION_PROFILE_IDS)
         self.assertEqual(registry.postures, EXPECTED_REFLECTION_POSTURES)
-        self.assertEqual(registry.source_registries, EXPECTED_REFLECTION_SOURCE_REGISTRIES)
+        self.assertEqual(
+            registry.source_registries, EXPECTED_REFLECTION_SOURCE_REGISTRIES
+        )
         self.assertEqual(
             registry.policy_ids,
             creative_escalation_policy_registry().policy_ids,
@@ -1893,7 +1897,9 @@ class ReflectionEscalationRegistryTests(unittest.TestCase):
         for profile in registry.profiles:
             dumped = profile.model_dump(mode="json")
             self.assertEqual(set(dumped), REQUIRED_REFLECTION_PROFILE_FIELDS)
-            self.assertEqual(profile.source_registries, EXPECTED_REFLECTION_SOURCE_REGISTRIES)
+            self.assertEqual(
+                profile.source_registries, EXPECTED_REFLECTION_SOURCE_REGISTRIES
+            )
             self.assertEqual(profile.posture, profile.reflection_priority)
             self.assertTrue(set(profile.source_policy_ids).issubset(known_policies))
             self.assertTrue(set(profile.source_gate_ids).issubset(known_gates))
@@ -2047,7 +2053,9 @@ class HybridAgentDebateLoopRegistryTests(unittest.TestCase):
             dumped = loop.model_dump(mode="json")
             self.assertEqual(set(dumped), REQUIRED_HYBRID_DEBATE_LOOP_FIELDS)
             self.assertEqual(loop.topic_id, loop.source_debate_topic_id)
-            self.assertEqual(loop.source_registries, EXPECTED_HYBRID_DEBATE_SOURCE_REGISTRIES)
+            self.assertEqual(
+                loop.source_registries, EXPECTED_HYBRID_DEBATE_SOURCE_REGISTRIES
+            )
             self.assertTrue(
                 set(loop.source_reflection_profile_ids).issubset(known_reflections)
             )
@@ -2093,7 +2101,9 @@ class HybridAgentDebateLoopRegistryTests(unittest.TestCase):
         self.assertIsNotNone(loop)
         assert loop is not None
         self.assertEqual(loop.topic_id, "curation_refinement_need")
-        self.assertIn("evaluation_specialist_agent_loop", loop.source_specialist_loop_ids)
+        self.assertIn(
+            "evaluation_specialist_agent_loop", loop.source_specialist_loop_ids
+        )
         self.assertFalse(loop.debate_loop_execution_implemented)
 
     def test_hybrid_debate_registry_rejects_mismatched_metadata(self) -> None:
@@ -2166,13 +2176,17 @@ class HybridAgentVotingRegistryTests(unittest.TestCase):
             registry.serialization_version,
             "hybrid_agent_voting_registry.v1",
         )
-        self.assertEqual(registry.voting_profile_ids, EXPECTED_HYBRID_VOTING_PROFILE_IDS)
+        self.assertEqual(
+            registry.voting_profile_ids, EXPECTED_HYBRID_VOTING_PROFILE_IDS
+        )
         self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
         self.assertEqual(
             registry.source_registries,
             EXPECTED_HYBRID_VOTING_SOURCE_REGISTRIES,
         )
-        self.assertEqual(registry.debate_loop_ids, hybrid_agent_debate_loop_registry().loop_ids)
+        self.assertEqual(
+            registry.debate_loop_ids, hybrid_agent_debate_loop_registry().loop_ids
+        )
         self.assertEqual(
             registry.reflection_profile_ids,
             reflection_escalation_registry().profile_ids,
@@ -2345,9 +2359,13 @@ class AgentConfidenceFusionRegistryTests(unittest.TestCase):
             registry.reflection_profile_ids,
             reflection_escalation_registry().profile_ids,
         )
-        self.assertEqual(registry.confidence_surface_ids, ("creative_confidence_engine",))
+        self.assertEqual(
+            registry.confidence_surface_ids, ("creative_confidence_engine",)
+        )
         self.assertEqual(registry.profile_count, 4)
-        self.assertIn("does not calculate confidence scores", registry.authority_boundary)
+        self.assertIn(
+            "does not calculate confidence scores", registry.authority_boundary
+        )
         self.assertFalse(registry.confidence_fusion_implemented)
         self.assertFalse(registry.confidence_score_calculation_implemented)
         self.assertFalse(registry.vote_weighting_implemented)
@@ -2527,7 +2545,9 @@ class DecisionProvenanceRegistryTests(unittest.TestCase):
             registry.debate_loop_ids,
             hybrid_agent_debate_loop_registry().loop_ids,
         )
-        self.assertEqual(registry.backbone_node_ids, v3_backbone_mode_registry().node_ids)
+        self.assertEqual(
+            registry.backbone_node_ids, v3_backbone_mode_registry().node_ids
+        )
         self.assertEqual(
             registry.workstation_surface_ids,
             workstation_engine_contracts().surface_ids,
@@ -2629,9 +2649,7 @@ class DecisionProvenanceRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "provenance_profile_ids must match"):
             DecisionProvenanceRegistry(
-                provenance_profiles=(
-                    mismatched_profile,
-                )
+                provenance_profiles=(mismatched_profile,)
                 + registry.provenance_profiles[1:],
                 provenance_profile_ids=registry.provenance_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -2646,9 +2664,7 @@ class DecisionProvenanceRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "provenance backbone nodes"):
             DecisionProvenanceRegistry(
-                provenance_profiles=(
-                    unknown_node_profile,
-                )
+                provenance_profiles=(unknown_node_profile,)
                 + registry.provenance_profiles[1:],
                 provenance_profile_ids=registry.provenance_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -2698,7 +2714,9 @@ class EscalationTraceRegistryTests(unittest.TestCase):
             registry.serialization_version,
             "escalation_trace_registry.v1",
         )
-        self.assertEqual(registry.trace_profile_ids, EXPECTED_ESCALATION_TRACE_PROFILE_IDS)
+        self.assertEqual(
+            registry.trace_profile_ids, EXPECTED_ESCALATION_TRACE_PROFILE_IDS
+        )
         self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
         self.assertEqual(
             registry.source_registries,
@@ -2737,7 +2755,9 @@ class EscalationTraceRegistryTests(unittest.TestCase):
     def test_escalation_trace_profiles_reference_known_sources(self) -> None:
         registry = escalation_trace_registry()
         known_provenance = set(decision_provenance_registry().provenance_profile_ids)
-        known_conditions = set(conditional_multi_agent_escalation_registry().condition_ids)
+        known_conditions = set(
+            conditional_multi_agent_escalation_registry().condition_ids
+        )
         known_gates = set(escalation_gate_registry().gate_ids)
         known_signals = set(agent_escalation_signal_registry().signal_ids)
         known_reflections = set(reflection_escalation_registry().profile_ids)
@@ -2750,7 +2770,9 @@ class EscalationTraceRegistryTests(unittest.TestCase):
                 EXPECTED_ESCALATION_TRACE_SOURCE_REGISTRIES,
             )
             self.assertIn(profile.source_provenance_profile_id, known_provenance)
-            self.assertTrue(set(profile.source_condition_ids).issubset(known_conditions))
+            self.assertTrue(
+                set(profile.source_condition_ids).issubset(known_conditions)
+            )
             self.assertTrue(set(profile.source_gate_ids).issubset(known_gates))
             self.assertTrue(
                 set(profile.source_escalation_signal_ids).issubset(known_signals)
@@ -3177,9 +3199,7 @@ class ResultNormalizationRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "normalization_profile_ids"):
             ResultNormalizationRegistry(
-                normalization_profiles=(
-                    mismatched_profile,
-                )
+                normalization_profiles=(mismatched_profile,)
                 + registry.normalization_profiles[1:],
                 normalization_profile_ids=registry.normalization_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -3193,9 +3213,7 @@ class ResultNormalizationRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "normalization budgets"):
             ResultNormalizationRegistry(
-                normalization_profiles=(
-                    unknown_budget_profile,
-                )
+                normalization_profiles=(unknown_budget_profile,)
                 + registry.normalization_profiles[1:],
                 normalization_profile_ids=registry.normalization_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -3266,7 +3284,9 @@ class ReturnToWorkflowHandoffRegistryTests(unittest.TestCase):
             registry.workflow_handoff_ids,
             workflow_agent_handoff_registry().handoff_ids,
         )
-        self.assertEqual(registry.backbone_node_ids, v3_backbone_mode_registry().node_ids)
+        self.assertEqual(
+            registry.backbone_node_ids, v3_backbone_mode_registry().node_ids
+        )
         self.assertEqual(registry.profile_count, 4)
         self.assertIn("does not perform runtime handoffs", registry.authority_boundary)
         self.assertFalse(registry.return_handoff_implemented)
@@ -3281,7 +3301,9 @@ class ReturnToWorkflowHandoffRegistryTests(unittest.TestCase):
 
     def test_return_handoff_profiles_reference_known_sources(self) -> None:
         registry = return_to_workflow_handoff_registry()
-        known_normalization = set(result_normalization_registry().normalization_profile_ids)
+        known_normalization = set(
+            result_normalization_registry().normalization_profile_ids
+        )
         known_gates = set(escalation_gate_registry().gate_ids)
         known_handoffs = set(workflow_agent_handoff_registry().handoff_ids)
         known_nodes = set(v3_backbone_mode_registry().node_ids)
@@ -3307,7 +3329,9 @@ class ReturnToWorkflowHandoffRegistryTests(unittest.TestCase):
             self.assertTrue(profile.handoff_payload_surfaces)
             self.assertTrue(profile.handoff_dimensions)
             self.assertTrue(profile.advisory_outputs)
-            self.assertIn("runtime_handoff_execution", profile.blocked_runtime_behaviors)
+            self.assertIn(
+                "runtime_handoff_execution", profile.blocked_runtime_behaviors
+            )
             self.assertIn("workflow_graph_change", profile.blocked_runtime_behaviors)
             self.assertFalse(profile.return_handoff_implemented)
             self.assertFalse(profile.runtime_handoff_implemented)
@@ -3378,9 +3402,7 @@ class ReturnToWorkflowHandoffRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "return workflow handoffs"):
             ReturnToWorkflowHandoffRegistry(
-                handoff_profiles=(
-                    unknown_handoff_profile,
-                )
+                handoff_profiles=(unknown_handoff_profile,)
                 + registry.handoff_profiles[1:],
                 return_handoff_profile_ids=registry.return_handoff_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -3487,7 +3509,9 @@ class HitlEscalationGateRegistryTests(unittest.TestCase):
             self.assertTrue(
                 set(profile.source_escalation_signal_ids).issubset(known_signals)
             )
-            self.assertIn("hitl_escalation_signal", profile.source_escalation_signal_ids)
+            self.assertIn(
+                "hitl_escalation_signal", profile.source_escalation_signal_ids
+            )
             self.assertTrue(
                 set(profile.source_reflection_profile_ids).issubset(known_reflections)
             )
@@ -3552,9 +3576,7 @@ class HitlEscalationGateRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "hitl_gate_profile_ids"):
             HitlEscalationGateRegistry(
-                hitl_gate_profiles=(
-                    mismatched_profile,
-                )
+                hitl_gate_profiles=(mismatched_profile,)
                 + registry.hitl_gate_profiles[1:],
                 hitl_gate_profile_ids=registry.hitl_gate_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -3569,9 +3591,7 @@ class HitlEscalationGateRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "hitl_escalation_signal"):
             HitlEscalationGateRegistry(
-                hitl_gate_profiles=(
-                    missing_signal_profile,
-                )
+                hitl_gate_profiles=(missing_signal_profile,)
                 + registry.hitl_gate_profiles[1:],
                 hitl_gate_profile_ids=registry.hitl_gate_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -3672,7 +3692,9 @@ class ConfidenceThresholdRoutingRegistryTests(unittest.TestCase):
             self.assertTrue(
                 set(profile.source_escalation_signal_ids).issubset(known_signals)
             )
-            self.assertIn("confidence_escalation_signal", profile.source_escalation_signal_ids)
+            self.assertIn(
+                "confidence_escalation_signal", profile.source_escalation_signal_ids
+            )
             self.assertIn(profile.confidence_band, registry.confidence_bands)
             threshold_low, threshold_high = profile.advisory_threshold_range
             self.assertGreaterEqual(threshold_low, 0)
@@ -3739,9 +3761,7 @@ class ConfidenceThresholdRoutingRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "threshold_profile_ids"):
             ConfidenceThresholdRoutingRegistry(
-                threshold_profiles=(
-                    mismatched_profile,
-                )
+                threshold_profiles=(mismatched_profile,)
                 + registry.threshold_profiles[1:],
                 threshold_profile_ids=registry.threshold_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -3755,9 +3775,7 @@ class ConfidenceThresholdRoutingRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "threshold range"):
             ConfidenceThresholdRoutingRegistry(
-                threshold_profiles=(
-                    invalid_range_profile,
-                )
+                threshold_profiles=(invalid_range_profile,)
                 + registry.threshold_profiles[1:],
                 threshold_profile_ids=registry.threshold_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -3863,7 +3881,9 @@ class CostThresholdRoutingRegistryTests(unittest.TestCase):
             self.assertTrue(
                 set(profile.source_escalation_signal_ids).issubset(known_signals)
             )
-            self.assertIn("cost_escalation_signal", profile.source_escalation_signal_ids)
+            self.assertIn(
+                "cost_escalation_signal", profile.source_escalation_signal_ids
+            )
             self.assertIn(profile.cost_band, registry.cost_bands)
             cost_low, cost_high = profile.advisory_cost_range
             self.assertGreaterEqual(cost_low, 0)
@@ -3871,7 +3891,9 @@ class CostThresholdRoutingRegistryTests(unittest.TestCase):
             self.assertTrue(profile.cost_pressure_signal)
             self.assertTrue(profile.routing_dimensions)
             self.assertTrue(profile.advisory_outputs)
-            self.assertIn("cost_threshold_evaluation", profile.blocked_runtime_behaviors)
+            self.assertIn(
+                "cost_threshold_evaluation", profile.blocked_runtime_behaviors
+            )
             self.assertIn("cost_based_routing", profile.blocked_runtime_behaviors)
             self.assertIn("budget_enforcement", profile.blocked_runtime_behaviors)
             self.assertFalse(profile.threshold_evaluation_implemented)
@@ -3932,9 +3954,7 @@ class CostThresholdRoutingRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "cost_threshold_profile_ids"):
             CostThresholdRoutingRegistry(
-                cost_threshold_profiles=(
-                    mismatched_profile,
-                )
+                cost_threshold_profiles=(mismatched_profile,)
                 + registry.cost_threshold_profiles[1:],
                 cost_threshold_profile_ids=registry.cost_threshold_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -3950,9 +3970,7 @@ class CostThresholdRoutingRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "cost threshold range"):
             CostThresholdRoutingRegistry(
-                cost_threshold_profiles=(
-                    invalid_range_profile,
-                )
+                cost_threshold_profiles=(invalid_range_profile,)
                 + registry.cost_threshold_profiles[1:],
                 cost_threshold_profile_ids=registry.cost_threshold_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -3968,9 +3986,7 @@ class CostThresholdRoutingRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "cost_escalation_signal"):
             CostThresholdRoutingRegistry(
-                cost_threshold_profiles=(
-                    missing_signal_profile,
-                )
+                cost_threshold_profiles=(missing_signal_profile,)
                 + registry.cost_threshold_profiles[1:],
                 cost_threshold_profile_ids=registry.cost_threshold_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -4155,9 +4171,7 @@ class LatencyThresholdRoutingRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "latency_threshold_profile_ids"):
             LatencyThresholdRoutingRegistry(
-                latency_threshold_profiles=(
-                    mismatched_profile,
-                )
+                latency_threshold_profiles=(mismatched_profile,)
                 + registry.latency_threshold_profiles[1:],
                 latency_threshold_profile_ids=registry.latency_threshold_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -4171,9 +4185,7 @@ class LatencyThresholdRoutingRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "latency threshold range"):
             LatencyThresholdRoutingRegistry(
-                latency_threshold_profiles=(
-                    invalid_range_profile,
-                )
+                latency_threshold_profiles=(invalid_range_profile,)
                 + registry.latency_threshold_profiles[1:],
                 latency_threshold_profile_ids=registry.latency_threshold_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -4187,9 +4199,7 @@ class LatencyThresholdRoutingRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "latency signal"):
             LatencyThresholdRoutingRegistry(
-                latency_threshold_profiles=(
-                    missing_signal_profile,
-                )
+                latency_threshold_profiles=(missing_signal_profile,)
                 + registry.latency_threshold_profiles[1:],
                 latency_threshold_profile_ids=registry.latency_threshold_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -4260,7 +4270,9 @@ class AmbiguityEscalationRegistryTests(unittest.TestCase):
             registry.condition_ids,
             conditional_multi_agent_escalation_registry().condition_ids,
         )
-        self.assertEqual(registry.policy_rule_ids, escalation_policy_registry().rule_ids)
+        self.assertEqual(
+            registry.policy_rule_ids, escalation_policy_registry().rule_ids
+        )
         self.assertEqual(
             registry.escalation_signal_ids,
             agent_escalation_signal_registry().signal_ids,
@@ -4286,7 +4298,9 @@ class AmbiguityEscalationRegistryTests(unittest.TestCase):
         known_latency = set(
             latency_threshold_routing_registry().latency_threshold_profile_ids
         )
-        known_conditions = set(conditional_multi_agent_escalation_registry().condition_ids)
+        known_conditions = set(
+            conditional_multi_agent_escalation_registry().condition_ids
+        )
         known_policies = set(escalation_policy_registry().rule_ids)
         known_signals = set(agent_escalation_signal_registry().signal_ids)
         known_evidence = set(EXPECTED_AMBIGUITY_EVIDENCE_SURFACES)
@@ -4299,8 +4313,12 @@ class AmbiguityEscalationRegistryTests(unittest.TestCase):
                 EXPECTED_AMBIGUITY_ESCALATION_SOURCE_REGISTRIES,
             )
             self.assertIn(profile.source_latency_threshold_profile_id, known_latency)
-            self.assertTrue(set(profile.source_condition_ids).issubset(known_conditions))
-            self.assertTrue(set(profile.source_policy_rule_ids).issubset(known_policies))
+            self.assertTrue(
+                set(profile.source_condition_ids).issubset(known_conditions)
+            )
+            self.assertTrue(
+                set(profile.source_policy_rule_ids).issubset(known_policies)
+            )
             self.assertTrue(
                 set(profile.source_escalation_signal_ids).issubset(known_signals)
             )
@@ -4378,9 +4396,7 @@ class AmbiguityEscalationRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "ambiguity_profile_ids"):
             AmbiguityEscalationRegistry(
-                ambiguity_profiles=(
-                    mismatched_profile,
-                )
+                ambiguity_profiles=(mismatched_profile,)
                 + registry.ambiguity_profiles[1:],
                 ambiguity_profile_ids=registry.ambiguity_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -4396,9 +4412,7 @@ class AmbiguityEscalationRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "ambiguity signal"):
             AmbiguityEscalationRegistry(
-                ambiguity_profiles=(
-                    missing_signal_profile,
-                )
+                ambiguity_profiles=(missing_signal_profile,)
                 + registry.ambiguity_profiles[1:],
                 ambiguity_profile_ids=registry.ambiguity_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -4414,9 +4428,7 @@ class AmbiguityEscalationRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "ambiguity evidence"):
             AmbiguityEscalationRegistry(
-                ambiguity_profiles=(
-                    unknown_evidence_profile,
-                )
+                ambiguity_profiles=(unknown_evidence_profile,)
                 + registry.ambiguity_profiles[1:],
                 ambiguity_profile_ids=registry.ambiguity_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -4468,7 +4480,9 @@ class RiskEscalationRegistryTests(unittest.TestCase):
             registry.serialization_version,
             "risk_escalation_registry.v1",
         )
-        self.assertEqual(registry.risk_profile_ids, EXPECTED_RISK_ESCALATION_PROFILE_IDS)
+        self.assertEqual(
+            registry.risk_profile_ids, EXPECTED_RISK_ESCALATION_PROFILE_IDS
+        )
         self.assertEqual(registry.topic_ids, EXPECTED_HYBRID_DEBATE_TOPICS)
         self.assertEqual(registry.risk_levels, EXPECTED_RISK_ESCALATION_LEVELS)
         self.assertEqual(
@@ -4483,7 +4497,9 @@ class RiskEscalationRegistryTests(unittest.TestCase):
             registry.condition_ids,
             conditional_multi_agent_escalation_registry().condition_ids,
         )
-        self.assertEqual(registry.policy_rule_ids, escalation_policy_registry().rule_ids)
+        self.assertEqual(
+            registry.policy_rule_ids, escalation_policy_registry().rule_ids
+        )
         self.assertEqual(
             registry.creative_policy_ids,
             creative_escalation_policy_registry().policy_ids,
@@ -4492,7 +4508,9 @@ class RiskEscalationRegistryTests(unittest.TestCase):
             registry.escalation_signal_ids,
             agent_escalation_signal_registry().signal_ids,
         )
-        self.assertEqual(registry.risk_evidence_surfaces, EXPECTED_RISK_EVIDENCE_SURFACES)
+        self.assertEqual(
+            registry.risk_evidence_surfaces, EXPECTED_RISK_EVIDENCE_SURFACES
+        )
         self.assertEqual(registry.profile_count, 4)
         self.assertIn("does not evaluate risk", registry.authority_boundary)
         self.assertFalse(registry.risk_evaluation_implemented)
@@ -4508,7 +4526,9 @@ class RiskEscalationRegistryTests(unittest.TestCase):
     def test_risk_profiles_reference_known_sources(self) -> None:
         registry = risk_escalation_registry()
         known_ambiguity = set(ambiguity_escalation_registry().ambiguity_profile_ids)
-        known_conditions = set(conditional_multi_agent_escalation_registry().condition_ids)
+        known_conditions = set(
+            conditional_multi_agent_escalation_registry().condition_ids
+        )
         known_policies = set(escalation_policy_registry().rule_ids)
         known_creative = set(creative_escalation_policy_registry().policy_ids)
         known_signals = set(agent_escalation_signal_registry().signal_ids)
@@ -4522,16 +4542,24 @@ class RiskEscalationRegistryTests(unittest.TestCase):
                 EXPECTED_RISK_ESCALATION_SOURCE_REGISTRIES,
             )
             self.assertIn(profile.source_ambiguity_profile_id, known_ambiguity)
-            self.assertTrue(set(profile.source_condition_ids).issubset(known_conditions))
-            self.assertTrue(set(profile.source_policy_rule_ids).issubset(known_policies))
+            self.assertTrue(
+                set(profile.source_condition_ids).issubset(known_conditions)
+            )
+            self.assertTrue(
+                set(profile.source_policy_rule_ids).issubset(known_policies)
+            )
             self.assertTrue(
                 set(profile.source_creative_policy_ids).issubset(known_creative)
             )
             self.assertTrue(
                 set(profile.source_escalation_signal_ids).issubset(known_signals)
             )
-            self.assertIn("risk_escalation_signal", profile.source_escalation_signal_ids)
-            self.assertTrue(set(profile.risk_evidence_surfaces).issubset(known_evidence))
+            self.assertIn(
+                "risk_escalation_signal", profile.source_escalation_signal_ids
+            )
+            self.assertTrue(
+                set(profile.risk_evidence_surfaces).issubset(known_evidence)
+            )
             self.assertIn(profile.risk_level, registry.risk_levels)
             self.assertTrue(profile.escalation_dimensions)
             self.assertTrue(profile.advisory_outputs)
@@ -4690,7 +4718,9 @@ class QualityEscalationRegistryTests(unittest.TestCase):
             registry.source_registries,
             EXPECTED_QUALITY_ESCALATION_SOURCE_REGISTRIES,
         )
-        self.assertEqual(registry.risk_profile_ids, risk_escalation_registry().risk_profile_ids)
+        self.assertEqual(
+            registry.risk_profile_ids, risk_escalation_registry().risk_profile_ids
+        )
         self.assertEqual(
             registry.confidence_fusion_profile_ids,
             agent_confidence_fusion_registry().fusion_profile_ids,
@@ -4813,10 +4843,7 @@ class QualityEscalationRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "quality_profile_ids"):
             QualityEscalationRegistry(
-                quality_profiles=(
-                    mismatched_profile,
-                )
-                + registry.quality_profiles[1:],
+                quality_profiles=(mismatched_profile,) + registry.quality_profiles[1:],
                 quality_profile_ids=registry.quality_profile_ids,
                 topic_ids=registry.topic_ids,
                 quality_levels=registry.quality_levels,
@@ -4831,9 +4858,7 @@ class QualityEscalationRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "quality signal"):
             QualityEscalationRegistry(
-                quality_profiles=(
-                    missing_signal_profile,
-                )
+                quality_profiles=(missing_signal_profile,)
                 + registry.quality_profiles[1:],
                 quality_profile_ids=registry.quality_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -4849,9 +4874,7 @@ class QualityEscalationRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "quality evidence"):
             QualityEscalationRegistry(
-                quality_profiles=(
-                    unknown_evidence_profile,
-                )
+                quality_profiles=(unknown_evidence_profile,)
                 + registry.quality_profiles[1:],
                 quality_profile_ids=registry.quality_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -4934,7 +4957,9 @@ class AdaptiveMultiAgentEscalationRegistryTests(unittest.TestCase):
             registry.quality_profile_ids,
             quality_escalation_registry().quality_profile_ids,
         )
-        self.assertEqual(registry.risk_profile_ids, risk_escalation_registry().risk_profile_ids)
+        self.assertEqual(
+            registry.risk_profile_ids, risk_escalation_registry().risk_profile_ids
+        )
         self.assertEqual(
             registry.ambiguity_profile_ids,
             ambiguity_escalation_registry().ambiguity_profile_ids,
@@ -4967,16 +4992,16 @@ class AdaptiveMultiAgentEscalationRegistryTests(unittest.TestCase):
     def test_adaptive_profiles_reference_known_sources(self) -> None:
         registry = adaptive_multi_agent_escalation_registry()
         known_capabilities = set(agent_capability_registry().capability_ids)
-        known_conditions = set(conditional_multi_agent_escalation_registry().condition_ids)
+        known_conditions = set(
+            conditional_multi_agent_escalation_registry().condition_ids
+        )
         known_loops = set(specialist_agent_loop_registry().loop_ids)
         known_quality = set(quality_escalation_registry().quality_profile_ids)
         known_risk = set(risk_escalation_registry().risk_profile_ids)
         known_ambiguity = set(ambiguity_escalation_registry().ambiguity_profile_ids)
         known_hitl = set(hitl_escalation_gate_registry().hitl_gate_profile_ids)
         known_signals = set(agent_escalation_signal_registry().signal_ids)
-        known_evidence = set(
-            EXPECTED_ADAPTIVE_MULTI_AGENT_ESCALATION_EVIDENCE_SURFACES
-        )
+        known_evidence = set(EXPECTED_ADAPTIVE_MULTI_AGENT_ESCALATION_EVIDENCE_SURFACES)
 
         for profile in registry.adaptive_profiles:
             dumped = profile.model_dump(mode="json")
@@ -4989,7 +5014,9 @@ class AdaptiveMultiAgentEscalationRegistryTests(unittest.TestCase):
                 EXPECTED_ADAPTIVE_MULTI_AGENT_ESCALATION_SOURCE_REGISTRIES,
             )
             self.assertIn(profile.source_capability_id, known_capabilities)
-            self.assertTrue(set(profile.source_condition_ids).issubset(known_conditions))
+            self.assertTrue(
+                set(profile.source_condition_ids).issubset(known_conditions)
+            )
             self.assertTrue(
                 set(profile.source_specialist_loop_ids).issubset(known_loops)
             )
@@ -5051,9 +5078,9 @@ class AdaptiveMultiAgentEscalationRegistryTests(unittest.TestCase):
         )
 
         self.assertEqual(profile_sources, registry.source_registries)
-        for source_registry in (
-            EXPECTED_ADAPTIVE_MULTI_AGENT_ESCALATION_SOURCE_REGISTRIES
-        ):
+        for (
+            source_registry
+        ) in EXPECTED_ADAPTIVE_MULTI_AGENT_ESCALATION_SOURCE_REGISTRIES:
             self.assertIn(source_registry, profile_sources)
         for profile in registry.adaptive_profiles:
             self.assertEqual(set(profile.source_registries), set(profile_sources))
@@ -5086,9 +5113,7 @@ class AdaptiveMultiAgentEscalationRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "adaptive_profile_ids"):
             AdaptiveMultiAgentEscalationRegistry(
-                adaptive_profiles=(
-                    mismatched_profile,
-                )
+                adaptive_profiles=(mismatched_profile,)
                 + registry.adaptive_profiles[1:],
                 adaptive_profile_ids=registry.adaptive_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -5108,9 +5133,7 @@ class AdaptiveMultiAgentEscalationRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "specialist loops"):
             AdaptiveMultiAgentEscalationRegistry(
-                adaptive_profiles=(
-                    unknown_loop_profile,
-                )
+                adaptive_profiles=(unknown_loop_profile,)
                 + registry.adaptive_profiles[1:],
                 adaptive_profile_ids=registry.adaptive_profile_ids,
                 topic_ids=registry.topic_ids,
@@ -5130,9 +5153,7 @@ class AdaptiveMultiAgentEscalationRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "quality signal"):
             AdaptiveMultiAgentEscalationRegistry(
-                adaptive_profiles=(
-                    missing_signal_profile,
-                )
+                adaptive_profiles=(missing_signal_profile,)
                 + registry.adaptive_profiles[1:],
                 adaptive_profile_ids=registry.adaptive_profile_ids,
                 topic_ids=registry.topic_ids,

@@ -298,8 +298,7 @@ class UnifiedCognitiveGraphPlan(BaseModel):
             if edge.to_node_id not in declared_nodes:
                 raise ValueError("edge to_node_id must be declared")
         graph_edge_ids = tuple(
-            f"{source}->{target}"
-            for source, target, _ in _GRAPH_EDGE_DEFINITIONS
+            f"{source}->{target}" for source, target, _ in _GRAPH_EDGE_DEFINITIONS
         )
         if self.edge_ids != graph_edge_ids:
             raise ValueError("edge_ids must match V6.6 graph backbone")

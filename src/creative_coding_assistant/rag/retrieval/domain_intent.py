@@ -230,9 +230,7 @@ _STABLE_DIFFUSION_WORKFLOWS_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = 
     (re.compile(r"\bsdxl\b"), 3),
     (re.compile(r"\bsd\s*1\.5\b"), 2),
     (
-        re.compile(
-            r"\bdiffusers\s+(?:stable\s+diffusion|pipeline|workflow)\b"
-        ),
+        re.compile(r"\bdiffusers\s+(?:stable\s+diffusion|pipeline|workflow)\b"),
         3,
     ),
     (re.compile(r"\bcontrolnet\b"), 2),

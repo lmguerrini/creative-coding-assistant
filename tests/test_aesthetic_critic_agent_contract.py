@@ -13,9 +13,7 @@ class AestheticCriticAgentContractTests(unittest.TestCase):
         registry = agent_contract_registry()
         contract = agent_contract_by_id("aesthetic_critic_agent")
         identity = agent_identity_by_id("aesthetic_critic_agent")
-        memory_contract = agent_memory_contract_by_agent_id(
-            "aesthetic_critic_agent"
-        )
+        memory_contract = agent_memory_contract_by_agent_id("aesthetic_critic_agent")
 
         self.assertIsNotNone(contract)
         self.assertIsNotNone(identity)

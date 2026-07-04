@@ -189,9 +189,9 @@ class CreativeExplorationOptimizationCandidate(BaseModel):
     persistent_storage_write_implemented: Literal[False] = False
     generated_output_mutation_implemented: Literal[False] = False
     runtime_evolution_implemented: Literal[False] = False
-    serialization_version: Literal[
-        "creative_exploration_optimization_candidate.v1"
-    ] = CREATIVE_EXPLORATION_OPTIMIZATION_CANDIDATE_SERIALIZATION_VERSION
+    serialization_version: Literal["creative_exploration_optimization_candidate.v1"] = (
+        CREATIVE_EXPLORATION_OPTIMIZATION_CANDIDATE_SERIALIZATION_VERSION
+    )
     advisory_only: Literal[True] = True
 
     @model_validator(mode="after")
@@ -202,10 +202,7 @@ class CreativeExplorationOptimizationCandidate(BaseModel):
             raise ValueError("model_profile_sequence must match provider_sequence")
         if self.recommended_advisory_variants > self.planned_variants:
             raise ValueError("recommended variants must fit planned variants")
-        if (
-            self.recommended_advisory_refinement_passes
-            > self.planned_refinement_passes
-        ):
+        if self.recommended_advisory_refinement_passes > self.planned_refinement_passes:
             raise ValueError("recommended refinement must fit planned refinement")
         if self.applied_variant_count or self.applied_refinement_pass_count:
             raise ValueError("applied exploration counts must remain zero")
@@ -276,9 +273,13 @@ class CreativeExplorationOptimizationPlan(BaseModel):
         max_length=4,
     )
     candidate_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
-    recommended_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=4)
+    recommended_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=4
+    )
     bounded_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=4)
-    guardrail_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=4)
+    guardrail_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=4
+    )
     hitl_required_candidate_ids: tuple[str, ...] = Field(
         default_factory=tuple,
         max_length=4,
@@ -379,15 +380,14 @@ class CreativeExplorationOptimizationPlan(BaseModel):
             raise ValueError("recommended_candidate_count must match candidates")
         if self.guardrail_candidate_count != len(self.guardrail_candidate_ids):
             raise ValueError("guardrail_candidate_count must match candidates")
-        if self.hitl_required_candidate_count != len(
-            self.hitl_required_candidate_ids
-        ):
+        if self.hitl_required_candidate_count != len(self.hitl_required_candidate_ids):
             raise ValueError("hitl_required_candidate_count must match candidates")
         if self.total_recommended_advisory_variants != sum(
-            candidate.recommended_advisory_variants
-            for candidate in self.candidates
+            candidate.recommended_advisory_variants for candidate in self.candidates
         ):
-            raise ValueError("total_recommended_advisory_variants must match candidates")
+            raise ValueError(
+                "total_recommended_advisory_variants must match candidates"
+            )
         if self.total_recommended_advisory_refinement_passes != sum(
             candidate.recommended_advisory_refinement_passes
             for candidate in self.candidates
@@ -461,7 +461,9 @@ def optimize_creative_exploration(
         bounded_candidate_ids=_candidate_ids_for_status(candidates, "bounded"),
         guardrail_candidate_ids=_candidate_ids_for_status(candidates, "guardrail"),
         hitl_required_candidate_ids=tuple(
-            candidate.candidate_id for candidate in candidates if candidate.hitl_required
+            candidate.candidate_id
+            for candidate in candidates
+            if candidate.hitl_required
         ),
         applied_exploration_candidate_ids=(),
         candidate_count=len(candidates),
@@ -478,8 +480,7 @@ def optimize_creative_exploration(
             candidate.recommended_advisory_variants for candidate in candidates
         ),
         total_recommended_advisory_refinement_passes=sum(
-            candidate.recommended_advisory_refinement_passes
-            for candidate in candidates
+            candidate.recommended_advisory_refinement_passes for candidate in candidates
         ),
         total_applied_variant_count=0,
         total_applied_refinement_pass_count=0,
@@ -510,7 +511,9 @@ def creative_exploration_candidates_for_status(
     """Return creative exploration candidates by advisory status."""
 
     source_plan = plan or optimize_creative_exploration()
-    return tuple(candidate for candidate in source_plan.candidates if candidate.status == status)
+    return tuple(
+        candidate for candidate in source_plan.candidates if candidate.status == status
+    )
 
 
 def _candidates(
@@ -739,7 +742,9 @@ def _candidate_ids_for_status(
     candidates: tuple[CreativeExplorationOptimizationCandidate, ...],
     status: CreativeExplorationOptimizationStatus,
 ) -> tuple[str, ...]:
-    return tuple(candidate.candidate_id for candidate in candidates if candidate.status == status)
+    return tuple(
+        candidate.candidate_id for candidate in candidates if candidate.status == status
+    )
 
 
 def _priority_weight(priority: ExplorationBudgetPriority) -> int:
@@ -805,7 +810,7 @@ def _candidate_actions(
 ) -> tuple[str, ...]:
     return (
         f"Surface {status} creative exploration recommendation as metadata.",
-        "Keep variant generation, variant selection, refinement, routing, agents, workflow, storage, and output behavior disabled.",
+        "Keep variant generation, variant selection, refinement, routing, agents, workflow, storage, and output behavior disabled.",  # noqa: E501
     )
 
 

@@ -437,9 +437,7 @@ class SelfEvolutionGovernancePlan(BaseModel):
             boundary.boundary_id for boundary in self.governance_boundaries
         ):
             raise ValueError("governance_boundary_ids must match boundaries")
-        if len(set(self.governance_boundary_ids)) != len(
-            self.governance_boundary_ids
-        ):
+        if len(set(self.governance_boundary_ids)) != len(self.governance_boundary_ids):
             raise ValueError("governance_boundary_ids must be unique")
         if self.governance_boundary_count != len(self.governance_boundaries):
             raise ValueError("governance_boundary_count must match boundaries")
@@ -461,9 +459,7 @@ class SelfEvolutionGovernancePlan(BaseModel):
             raise ValueError("proposal_ids must be unique")
         if self.proposal_count != len(self.proposal_ids):
             raise ValueError("proposal_count must match proposal_ids")
-        if self.hitl_required_proposal_count != len(
-            self.hitl_required_proposal_ids
-        ):
+        if self.hitl_required_proposal_count != len(self.hitl_required_proposal_ids):
             raise ValueError("hitl_required_proposal_count must match proposals")
         if self.guarded_boundary_ids != tuple(
             boundary.boundary_id
@@ -575,9 +571,7 @@ def build_self_evolution_governance(
         upstream_signal_source_ids=surface.upstream_signal_source_ids,
         upstream_signal_source_count=surface.upstream_signal_source_count,
         governance_boundaries=boundaries,
-        governance_boundary_ids=tuple(
-            boundary.boundary_id for boundary in boundaries
-        ),
+        governance_boundary_ids=tuple(boundary.boundary_id for boundary in boundaries),
         governance_boundary_count=len(boundaries),
         guarded_boundary_ids=tuple(
             boundary.boundary_id

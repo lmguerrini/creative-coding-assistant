@@ -6,13 +6,13 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from creative_coding_assistant.orchestration.agent_activation_optimizer import (
-    AgentActivationOptimizationPlan,
-    optimize_agent_activation,
-)
 from creative_coding_assistant.orchestration.adaptive_hybrid_workflow_optimizer import (
     HybridWorkflowOptimizationPlan,
     optimize_hybrid_workflow,
+)
+from creative_coding_assistant.orchestration.agent_activation_optimizer import (
+    AgentActivationOptimizationPlan,
+    optimize_agent_activation,
 )
 from creative_coding_assistant.orchestration.latency_optimizer import (
     LatencyOptimizationBand,
@@ -43,9 +43,7 @@ AdaptiveLatencyPosture = Literal[
     "guarded_latency",
 ]
 
-ADAPTIVE_LATENCY_CANDIDATE_SERIALIZATION_VERSION = (
-    "adaptive_latency_candidate.v1"
-)
+ADAPTIVE_LATENCY_CANDIDATE_SERIALIZATION_VERSION = "adaptive_latency_candidate.v1"
 ADAPTIVE_LATENCY_PLAN_SERIALIZATION_VERSION = "adaptive_latency_plan.v1"
 ADAPTIVE_LATENCY_AUTHORITY_BOUNDARY = (
     "V5.5 adaptive latency optimization combines advisory latency optimizer, "
@@ -202,8 +200,12 @@ class AdaptiveLatencyPlan(BaseModel):
     )
     candidate_ids: tuple[str, ...] = Field(min_length=1, max_length=20)
     recommended_candidate_id: str = Field(min_length=1, max_length=180)
-    fallback_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=20)
-    guardrail_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=20)
+    fallback_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=20
+    )
+    guardrail_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=20
+    )
     recommended_adaptive_latency_posture: AdaptiveLatencyPosture
     candidate_count: int = Field(ge=1, le=20)
     recommended_adaptive_latency_score: int = Field(ge=0, le=240)
@@ -238,7 +240,9 @@ class AdaptiveLatencyPlan(BaseModel):
 
     @model_validator(mode="after")
     def _plan_matches_candidates(self) -> Self:
-        derived_candidate_ids = tuple(candidate.candidate_id for candidate in self.candidates)
+        derived_candidate_ids = tuple(
+            candidate.candidate_id for candidate in self.candidates
+        )
         if len(set(derived_candidate_ids)) != len(derived_candidate_ids):
             raise ValueError("candidate_ids must be unique")
         if self.candidate_ids != derived_candidate_ids:
@@ -246,7 +250,9 @@ class AdaptiveLatencyPlan(BaseModel):
         if self.candidate_count != len(self.candidates):
             raise ValueError("candidate_count must match candidates")
         recommended = tuple(
-            candidate for candidate in self.candidates if candidate.status == "recommended"
+            candidate
+            for candidate in self.candidates
+            if candidate.status == "recommended"
         )
         if len(recommended) != 1:
             raise ValueError("exactly one recommended candidate is required")
@@ -257,7 +263,9 @@ class AdaptiveLatencyPlan(BaseModel):
             self.recommended_adaptive_latency_posture
             != recommended_candidate.adaptive_latency_posture
         ):
-            raise ValueError("recommended_adaptive_latency_posture must match candidate")
+            raise ValueError(
+                "recommended_adaptive_latency_posture must match candidate"
+            )
         if (
             self.recommended_adaptive_latency_score
             != recommended_candidate.adaptive_latency_score
@@ -324,7 +332,9 @@ def optimize_adaptive_latency(
         )
         for candidate in latency_plan.candidates
     )
-    recommended = max(candidates, key=lambda candidate: candidate.adaptive_latency_score)
+    recommended = max(
+        candidates, key=lambda candidate: candidate.adaptive_latency_score
+    )
     candidates = tuple(
         candidate.model_copy(
             update={
@@ -333,7 +343,9 @@ def optimize_adaptive_latency(
         )
         for candidate in candidates
     )
-    recommended = next(candidate for candidate in candidates if candidate.status == "recommended")
+    recommended = next(
+        candidate for candidate in candidates if candidate.status == "recommended"
+    )
     return AdaptiveLatencyPlan(
         route_name=route_name,
         task_type=hybrid_plan.task_type,
@@ -347,10 +359,14 @@ def optimize_adaptive_latency(
         candidate_ids=tuple(candidate.candidate_id for candidate in candidates),
         recommended_candidate_id=recommended.candidate_id,
         fallback_candidate_ids=tuple(
-            candidate.candidate_id for candidate in candidates if candidate.status == "fallback"
+            candidate.candidate_id
+            for candidate in candidates
+            if candidate.status == "fallback"
         ),
         guardrail_candidate_ids=tuple(
-            candidate.candidate_id for candidate in candidates if candidate.status == "guardrail"
+            candidate.candidate_id
+            for candidate in candidates
+            if candidate.status == "guardrail"
         ),
         recommended_adaptive_latency_posture=recommended.adaptive_latency_posture,
         candidate_count=len(candidates),
@@ -408,43 +424,46 @@ def _candidate_from_latency(
         if candidate.candidate_id == hybrid_workflow.recommended_candidate_id
     ).estimated_latency
     hybrid_weight = _hybrid_latency_weight(hybrid_latency)
-    performance_weight = min(120, performance_midpoint + getattr(source, "advisory_latency_savings_score") // 10)
+    performance_weight = min(
+        120,
+        performance_midpoint + source.advisory_latency_savings_score // 10,
+    )
     score = min(
         240,
         performance_weight
         + resource_weight
         + hybrid_weight
-        + getattr(source, "advisory_latency_savings_score") // 10
-        - getattr(source, "advisory_latency_pressure_score") // 100,
+        + source.advisory_latency_savings_score // 10
+        - source.advisory_latency_pressure_score // 100,
     )
     return AdaptiveLatencyCandidate(
-        candidate_id=f"adaptive_latency::{getattr(source, 'stage_id')}",
-        source_latency_candidate_id=getattr(source, "candidate_id"),
+        candidate_id=f"adaptive_latency::{source.stage_id}",
+        source_latency_candidate_id=source.candidate_id,
         source_hybrid_workflow_candidate_id=hybrid_workflow.recommended_candidate_id,
-        stage_id=getattr(source, "stage_id"),
+        stage_id=source.stage_id,
         route_name=route_name,
         task_type=task_type,
         execution_mode_id=execution_mode_id,
-        source_latency_band=getattr(source, "latency_band"),
+        source_latency_band=source.latency_band,
         hybrid_estimated_latency=hybrid_latency,
         resource_utilization_pressure=resources.resource_utilization_pressure,
         predicted_performance_midpoint=performance_midpoint,
         agent_activation_candidate_count=agent_activation.candidate_count,
-        latency_savings_score=getattr(source, "advisory_latency_savings_score"),
-        latency_pressure_score=getattr(source, "advisory_latency_pressure_score"),
+        latency_savings_score=source.advisory_latency_savings_score,
+        latency_pressure_score=source.advisory_latency_pressure_score,
         performance_weight=performance_weight,
         resource_weight=resource_weight,
         hybrid_latency_weight=hybrid_weight,
         adaptive_latency_score=score,
         adaptive_latency_posture=_latency_posture(
-            getattr(source, "latency_band"),
+            source.latency_band,
             hybrid_latency,
             score,
         ),
         status="fallback",
         hitl_required=bool(agent_activation.hitl_required_candidate_ids),
         evidence=(
-            f"source_latency:{getattr(source, 'candidate_id')}",
+            f"source_latency:{source.candidate_id}",
             f"performance_midpoint:{performance_midpoint}",
             f"resource_pressure:{resources.resource_utilization_pressure}",
             f"hybrid_latency:{hybrid_latency}",
@@ -503,7 +522,7 @@ def _plan_actions(
     return (
         f"Present {recommended.adaptive_latency_posture} as advisory adaptive latency posture.",
         "Use relative latency, performance, resource, hybrid, and agent metadata only.",
-        "Preserve measurement, routing, parallel execution, workflow timing, workflow execution, storage, and output boundaries.",
+        "Preserve measurement, routing, parallel execution, workflow timing, workflow execution, storage, and output boundaries.",  # noqa: E501
     )
 
 

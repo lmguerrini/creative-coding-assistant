@@ -142,8 +142,7 @@ class AgentMemoryContractTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "agent_ids must be unique"):
             AgentMemoryContractRegistry(
-                contracts=(first_contract, duplicate_contract)
-                + registry.contracts[2:],
+                contracts=(first_contract, duplicate_contract) + registry.contracts[2:],
                 agent_ids=registry.agent_ids,
                 contract_count=12,
             )

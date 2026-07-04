@@ -25,9 +25,7 @@ ProductionTelemetryChannelKind = Literal[
 ]
 ProductionTelemetryStatus = Literal["ready", "guarded"]
 
-PRODUCTION_TELEMETRY_CHANNEL_SERIALIZATION_VERSION = (
-    "production_telemetry_channel.v1"
-)
+PRODUCTION_TELEMETRY_CHANNEL_SERIALIZATION_VERSION = "production_telemetry_channel.v1"
 PRODUCTION_TELEMETRY_SERIALIZATION_VERSION = "production_telemetry.v1"
 TELEMETRY_EMISSION_BOUNDARY_SERIALIZATION_VERSION = "telemetry_emission_boundary.v1"
 PRODUCTION_TELEMETRY_AUTHORITY_BOUNDARY = (
@@ -289,9 +287,7 @@ def build_production_telemetry(
         telemetry_signal_count=sum(
             channel.telemetry_signal_count for channel in channels
         ),
-        guarded_signal_count=sum(
-            channel.guarded_signal_count for channel in channels
-        ),
+        guarded_signal_count=sum(channel.guarded_signal_count for channel in channels),
         production_telemetry_status=_surface_status(channels),
         advisory_actions=_surface_actions(channels),
     )
@@ -317,7 +313,9 @@ def production_telemetry_channels_for_status(
     """Return production telemetry channels by status without collection."""
 
     source_telemetry = telemetry or build_production_telemetry()
-    return tuple(channel for channel in source_telemetry.channels if channel.status == status)
+    return tuple(
+        channel for channel in source_telemetry.channels if channel.status == status
+    )
 
 
 def _agent_foundation_channel(

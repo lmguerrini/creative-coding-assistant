@@ -151,8 +151,7 @@ _CAPSTONE_RETRIEVAL_DEMO_SCENARIOS = (
             "or post-processing passes?"
         ),
         operational_goal=(
-            "Connect shader references with concrete browser render-pipeline "
-            "guidance."
+            "Connect shader references with concrete browser render-pipeline guidance."
         ),
         domains=(
             CreativeCodingDomain.THREE_JS,

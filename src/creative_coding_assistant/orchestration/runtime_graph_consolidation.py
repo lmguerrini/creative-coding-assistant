@@ -22,34 +22,20 @@ from creative_coding_assistant.orchestration.workflow_graph import (
     assistant_workflow_node_specs,
 )
 
-RUNTIME_GRAPH_CONSOLIDATION_SERIALIZATION_VERSION = (
-    "runtime_graph_consolidation.v1"
-)
-WORKFLOW_CONTRACT_VALIDATION_SERIALIZATION_VERSION = (
-    "workflow_contract_validation.v1"
-)
-GRAPH_INVARIANT_VERIFICATION_SERIALIZATION_VERSION = (
-    "graph_invariant_verification.v1"
-)
+RUNTIME_GRAPH_CONSOLIDATION_SERIALIZATION_VERSION = "runtime_graph_consolidation.v1"
+WORKFLOW_CONTRACT_VALIDATION_SERIALIZATION_VERSION = "workflow_contract_validation.v1"
+GRAPH_INVARIANT_VERIFICATION_SERIALIZATION_VERSION = "graph_invariant_verification.v1"
 EXECUTION_TRACE_RECORDER_SERIALIZATION_VERSION = "execution_trace_record.v1"
 EXECUTION_GRAPH_EXPLAINABILITY_SERIALIZATION_VERSION = (
     "execution_graph_explainability.v1"
 )
 GRAPH_DIFF_ENGINE_SERIALIZATION_VERSION = "graph_diff_engine.v1"
-WORKFLOW_DETERMINISM_AUDIT_SERIALIZATION_VERSION = (
-    "workflow_determinism_audit.v1"
-)
-GRAPH_PERFORMANCE_PROFILE_SERIALIZATION_VERSION = (
-    "graph_performance_profile.v1"
-)
+WORKFLOW_DETERMINISM_AUDIT_SERIALIZATION_VERSION = "workflow_determinism_audit.v1"
+GRAPH_PERFORMANCE_PROFILE_SERIALIZATION_VERSION = "graph_performance_profile.v1"
 EXECUTION_COST_PROFILE_SERIALIZATION_VERSION = "execution_cost_profile.v1"
 EXECUTION_LATENCY_PROFILE_SERIALIZATION_VERSION = "execution_latency_profile.v1"
-WORKFLOW_STATE_NORMALIZATION_SERIALIZATION_VERSION = (
-    "workflow_state_normalization.v1"
-)
-EXECUTION_GRAPH_VISUALIZATION_SERIALIZATION_VERSION = (
-    "execution_graph_visualization.v1"
-)
+WORKFLOW_STATE_NORMALIZATION_SERIALIZATION_VERSION = "workflow_state_normalization.v1"
+EXECUTION_GRAPH_VISUALIZATION_SERIALIZATION_VERSION = "execution_graph_visualization.v1"
 
 RUNTIME_GRAPH_CONSOLIDATION_ROADMAP_ITEMS = (
     "Workflow Graph Audit",
@@ -290,9 +276,7 @@ class RuntimeGraphNodeContract(BaseModel):
         max_length=12,
     )
     failure_transition_target: Literal["failure"] = "failure"
-    handler_extraction_status: Literal["contract_extracted"] = (
-        "contract_extracted"
-    )
+    handler_extraction_status: Literal["contract_extracted"] = "contract_extracted"
     deterministic_state_update: bool = True
     provider_model_routing_change_implemented: Literal[False] = False
     workflow_graph_mutation_implemented: Literal[False] = False
@@ -550,9 +534,7 @@ class ExecutionGraphExplanation(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["execution_graph_explainability"] = (
-        "execution_graph_explainability"
-    )
+    role: Literal["execution_graph_explainability"] = "execution_graph_explainability"
     serialization_version: Literal["execution_graph_explainability.v1"] = (
         EXECUTION_GRAPH_EXPLAINABILITY_SERIALIZATION_VERSION
     )
@@ -1030,9 +1012,7 @@ def profile_runtime_graph_performance(
             profile.relative_latency_units for profile in node_profiles
         ),
         branch_count=analysis.branch_count,
-        retry_edge_count=sum(
-            1 for edge in analysis.edges if edge.edge_kind == "retry"
-        ),
+        retry_edge_count=sum(1 for edge in analysis.edges if edge.edge_kind == "retry"),
         failure_edge_count=analysis.failure_edge_count,
         critical_path_node_count=len(analysis.critical_path_node_ids),
     )
@@ -1299,8 +1279,7 @@ def _module_split() -> tuple[RuntimeGraphModuleSplit, ...]:
         ),
         RuntimeGraphModuleSplit(
             module_name=(
-                "creative_coding_assistant.orchestration."
-                "runtime_graph_consolidation"
+                "creative_coding_assistant.orchestration.runtime_graph_consolidation"
             ),
             module_role="v7_consolidation_contracts",
             responsibility=(
@@ -1368,8 +1347,7 @@ def _subgraph_boundary_summary(
             "derivation boundary inside planning."
         ),
         "artifact_intelligence": (
-            "Artifact planning, dependency, extraction, preview, and critique "
-            "boundary."
+            "Artifact planning, dependency, extraction, preview, and critique boundary."
         ),
         "creative_evaluation": (
             "Creative critique, self-evaluation, review, and bounded refinement "

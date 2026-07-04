@@ -24,9 +24,7 @@ from creative_coding_assistant.orchestration.workflow_review import (
 TYPED_FAILURE_TAXONOMY_SERIALIZATION_VERSION = "typed_failure_taxonomy.v1"
 FAILURE_TYPE_DEFINITION_SERIALIZATION_VERSION = "failure_type_definition.v1"
 FAILURE_EVENT_CONTRACT_SERIALIZATION_VERSION = "failure_event_contract.v1"
-FAILURE_TAXONOMY_VALIDATION_SERIALIZATION_VERSION = (
-    "failure_taxonomy_validation.v1"
-)
+FAILURE_TAXONOMY_VALIDATION_SERIALIZATION_VERSION = "failure_taxonomy_validation.v1"
 
 TYPED_FAILURE_TAXONOMY_ROADMAP_ITEMS = (
     "Failure Type Registry",
@@ -214,10 +212,7 @@ class FailureTypeDefinition(BaseModel):
             raise ValueError("stream_event_types must reference known event types")
         if self.domain == "serialization" and not self.serialization_surfaces:
             raise ValueError("serialization failures require serialization_surfaces")
-        if (
-            self.domain == "workstation_client"
-            and not self.client_boundary_surfaces
-        ):
+        if self.domain == "workstation_client" and not self.client_boundary_surfaces:
             raise ValueError(
                 "workstation client failures require client_boundary_surfaces"
             )
@@ -711,10 +706,7 @@ class TypedFailureTaxonomyRegistry(BaseModel):
             raise ValueError("roadmap_item_count must match covered roadmap")
         if self.node_failure_model_count != len(self.node_failure_models):
             raise ValueError("node_failure_model_count must match node models")
-        if (
-            self.planning_sub_helper_model_count
-            != len(self.planning_sub_helper_models)
-        ):
+        if self.planning_sub_helper_model_count != len(self.planning_sub_helper_models):
             raise ValueError("planning_sub_helper_model_count must match helpers")
         if self.event_contract_count != len(self.event_contracts):
             raise ValueError("event_contract_count must match event contracts")
@@ -745,9 +737,7 @@ class TypedFailureTaxonomyRegistry(BaseModel):
         }
         self._validate_unique_registry_ids()
         node_ids = tuple(model.node_id for model in self.node_failure_models)
-        helper_ids = tuple(
-            model.helper_id for model in self.planning_sub_helper_models
-        )
+        helper_ids = tuple(model.helper_id for model in self.planning_sub_helper_models)
 
         if node_ids != ASSISTANT_WORKFLOW_NODE_ORDER:
             raise ValueError("node_failure_models must follow workflow order")
@@ -776,9 +766,7 @@ class TypedFailureTaxonomyRegistry(BaseModel):
             if unknown:
                 raise ValueError("invariant enforced_failure_type_ids must be known")
         for strategy in self.recovery_strategies:
-            unknown_invariants = set(strategy.invariant_ids).difference(
-                invariant_ids
-            )
+            unknown_invariants = set(strategy.invariant_ids).difference(invariant_ids)
             if unknown_invariants:
                 raise ValueError("strategy invariant ids must be known")
 
@@ -790,9 +778,7 @@ class TypedFailureTaxonomyRegistry(BaseModel):
             self.workstation_client_boundary_models,
         ):
             for model in collection:
-                unknown = set(model.supported_failure_type_ids).difference(
-                    failure_ids
-                )
+                unknown = set(model.supported_failure_type_ids).difference(failure_ids)
                 if unknown:
                     raise ValueError("model supported_failure_type_ids must be known")
 
@@ -853,9 +839,7 @@ class TypedFailureTaxonomyRegistry(BaseModel):
             if entry.failure_type_id not in failure_ids:
                 raise ValueError("knowledge failure_type_id must be known")
             if entry.linked_fix_recommendation_id not in fix_ids:
-                raise ValueError(
-                    "knowledge linked_fix_recommendation_id must be known"
-                )
+                raise ValueError("knowledge linked_fix_recommendation_id must be known")
 
     def _validate_unique_registry_ids(self) -> None:
         failure_by_id = {
@@ -1086,15 +1070,18 @@ def validate_typed_failure_taxonomy(
         if item not in source_registry.covered_roadmap_items
     )
     orphaned_failure_type_ids = tuple(
-        failure_id for failure_id in source_registry.failure_type_ids
+        failure_id
+        for failure_id in source_registry.failure_type_ids
         if failure_id not in referenced_failure_ids
     )
     orphaned_strategy_ids = tuple(
-        strategy_id for strategy_id in strategy_ids
+        strategy_id
+        for strategy_id in strategy_ids
         if strategy_id not in referenced_strategy_ids
     )
     orphaned_event_contract_ids = tuple(
-        event_id for event_id in event_contract_ids
+        event_id
+        for event_id in event_contract_ids
         if event_id not in referenced_event_contract_ids
     )
     failures = (
@@ -1906,9 +1893,7 @@ def _root_cause_classifications(
         FailureRootCauseClassification(
             root_cause_id=f"failure_root_cause::{root_cause}",
             root_cause=root_cause,
-            failure_type_ids=tuple(
-                failure.failure_type_id for failure in failures
-            ),
+            failure_type_ids=tuple(failure.failure_type_id for failure in failures),
             evidence_keys=("failure_code", "source_surface", "event_codes"),
             default_owner=failures[0].owner,
         )
@@ -1921,9 +1906,7 @@ def _reproducibility_records(
 ) -> tuple[FailureReproducibilityRecord, ...]:
     return tuple(
         FailureReproducibilityRecord(
-            reproducibility_id=(
-                f"failure_reproducibility::{failure.failure_type_id}"
-            ),
+            reproducibility_id=(f"failure_reproducibility::{failure.failure_type_id}"),
             failure_type_id=failure.failure_type_id,
             reproducibility_mode=failure.reproducibility_mode,
             fixture_key=f"fixture::{failure.failure_code}",
@@ -1954,9 +1937,7 @@ def _ownership_records(
         FailureOwnershipRecord(
             ownership_id=f"failure_ownership::{owner}",
             owner=owner,
-            failure_type_ids=tuple(
-                failure.failure_type_id for failure in failures
-            ),
+            failure_type_ids=tuple(failure.failure_type_id for failure in failures),
             owning_module=_owner_module(owner),
             escalation_policy=(
                 "Owner reviews typed failure evidence; Product Bug, HITL, "

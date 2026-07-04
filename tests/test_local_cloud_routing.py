@@ -90,7 +90,9 @@ class LocalCloudRoutingTests(unittest.TestCase):
         self.assertEqual(plan.cloud_candidate_count, 0)
         self.assertEqual(plan.balanced_candidate_count, 2)
         self.assertEqual(plan.routing_confidence, "low")
-        self.assertIn("does not discover installed local models", plan.authority_boundary)
+        self.assertIn(
+            "does not discover installed local models", plan.authority_boundary
+        )
         self.assertTrue(plan.local_cloud_routing_implemented)
         self.assertFalse(plan.local_model_discovery_implemented)
         self.assertFalse(plan.local_provider_execution_implemented)
@@ -182,7 +184,9 @@ class LocalCloudRoutingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "routing_confidence must match"):
             LocalCloudRoutingPlan(**payload)
 
-    def test_local_cloud_router_does_not_change_request_routing_or_provider_factory(self) -> None:
+    def test_local_cloud_router_does_not_change_request_routing_or_provider_factory(
+        self,
+    ) -> None:
         request = AssistantRequest(
             query="Review this Three.js shader for performance.",
             mode=AssistantMode.REVIEW,
@@ -205,7 +209,9 @@ class LocalCloudRoutingTests(unittest.TestCase):
         self.assertEqual(provider._model, "gpt-5")
         self.assertEqual(provider._settings.default_generation_provider, "openai")
 
-    def test_local_cloud_router_does_not_declare_runtime_application_terms(self) -> None:
+    def test_local_cloud_router_does_not_declare_runtime_application_terms(
+        self,
+    ) -> None:
         plan = route_local_vs_cloud(route=RouteName.PREVIEW)
         combined_text = " ".join(
             (

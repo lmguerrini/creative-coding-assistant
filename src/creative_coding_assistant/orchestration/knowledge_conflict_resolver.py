@@ -201,9 +201,7 @@ class KnowledgeConflictResolverPlan(BaseModel):
     route_name: RouteName
     task_type: TaskRoutingType
     checked_at: datetime
-    knowledge_gap_role: Literal["knowledge_gap_detection"] = (
-        "knowledge_gap_detection"
-    )
+    knowledge_gap_role: Literal["knowledge_gap_detection"] = "knowledge_gap_detection"
     knowledge_gap_serialization_version: Literal["knowledge_gap_plan.v1"]
     knowledge_gap_signal_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
     knowledge_gap_signal_count: int = Field(ge=5, le=5)
@@ -360,9 +358,7 @@ class KnowledgeConflictResolverPlan(BaseModel):
             raise ValueError("signal_count must match signals")
         if self.candidate_signal_count != len(self.candidate_signal_ids):
             raise ValueError("candidate_signal_count must match signals")
-        if self.review_required_signal_count != len(
-            self.review_required_signal_ids
-        ):
+        if self.review_required_signal_count != len(self.review_required_signal_ids):
             raise ValueError("review_required_signal_count must match signals")
         if self.guarded_signal_count != len(self.guarded_signal_ids):
             raise ValueError("guarded_signal_count must match signals")
@@ -386,9 +382,7 @@ class KnowledgeConflictResolverPlan(BaseModel):
                 raise ValueError("signal source_count must match plan")
             if signal.domain_count != self.domain_count:
                 raise ValueError("signal domain_count must match plan")
-            if not set(signal.knowledge_gap_signal_ids).issubset(
-                declared_gap_signals
-            ):
+            if not set(signal.knowledge_gap_signal_ids).issubset(declared_gap_signals):
                 raise ValueError("signal knowledge_gap_signal_ids must be known")
         return self
 
@@ -460,9 +454,7 @@ def build_knowledge_conflict_resolver(
             _signal_ids_for_confidence(signals, "high", "guarded")
         ),
         hitl_required_signal_count=sum(
-            1
-            for signal in signals
-            if signal.hitl_required_before_conflict_resolution
+            1 for signal in signals if signal.hitl_required_before_conflict_resolution
         ),
         highest_conflict_score=max(signal.conflict_score for signal in signals),
         overall_conflict_score=_overall_conflict_score(signals),

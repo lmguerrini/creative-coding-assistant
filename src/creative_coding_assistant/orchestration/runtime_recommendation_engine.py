@@ -27,9 +27,7 @@ RuntimeRecommendationStatus = Literal["recommended", "fallback"]
 RUNTIME_RECOMMENDATION_DECISION_SERIALIZATION_VERSION = (
     "runtime_recommendation_decision.v1"
 )
-RUNTIME_RECOMMENDATION_PLAN_SERIALIZATION_VERSION = (
-    "runtime_recommendation_plan.v1"
-)
+RUNTIME_RECOMMENDATION_PLAN_SERIALIZATION_VERSION = "runtime_recommendation_plan.v1"
 RUNTIME_RECOMMENDATION_AUTHORITY_BOUNDARY = (
     "The V5.2 Runtime Recommendation Engine summarizes advisory runtime "
     "posture from HITL budget gate metadata only; it does not apply runtime "
@@ -172,8 +170,7 @@ class RuntimeRecommendationPlan(BaseModel):
     @model_validator(mode="after")
     def _plan_matches_recommendations(self) -> Self:
         derived_recommendation_ids = tuple(
-            recommendation.recommendation_id
-            for recommendation in self.recommendations
+            recommendation.recommendation_id for recommendation in self.recommendations
         )
         if len(set(derived_recommendation_ids)) != len(derived_recommendation_ids):
             raise ValueError("recommendation_ids must be unique")
@@ -193,12 +190,11 @@ class RuntimeRecommendationPlan(BaseModel):
             if recommendation.status == "recommended"
         )
         if len(recommended) != 1:
-            raise ValueError("exactly one recommended runtime recommendation is required")
+            raise ValueError(
+                "exactly one recommended runtime recommendation is required"
+            )
         recommended_decision = recommended[0]
-        if (
-            self.recommended_recommendation_id
-            != recommended_decision.recommendation_id
-        ):
+        if self.recommended_recommendation_id != recommended_decision.recommendation_id:
             raise ValueError("recommended_recommendation_id must match decision")
         if self.recommended_runtime_posture != recommended_decision.runtime_posture:
             raise ValueError("recommended_runtime_posture must match decision")
@@ -256,8 +252,7 @@ def recommend_runtime_execution(
         ),
         recommendations=recommendations,
         recommendation_ids=tuple(
-            recommendation.recommendation_id
-            for recommendation in recommendations
+            recommendation.recommendation_id for recommendation in recommendations
         ),
         recommended_recommendation_id=recommended.recommendation_id,
         recommended_runtime_posture=recommended.runtime_posture,
@@ -346,7 +341,9 @@ def _runtime_posture(
 
 def _recommendation_summary(posture: RuntimeRecommendationPosture) -> str:
     if posture == "operator_review_required":
-        return "Surface operator review as required before any future runtime application."
+        return (
+            "Surface operator review as required before any future runtime application."
+        )
     if posture == "guarded_runtime_review":
         return "Surface guarded runtime review before any future runtime application."
     return "Surface standard runtime posture with no budget review escalation."

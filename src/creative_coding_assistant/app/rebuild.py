@@ -269,9 +269,7 @@ def _candidate_reasons(
     ):
         reasons.append(RebuildReason.SYNC_FAILED)
     elif (
-        include_refresh_recommended
-        and snapshot.refresh_recommended
-        and not stale_only
+        include_refresh_recommended and snapshot.refresh_recommended and not stale_only
     ):
         reasons.append(RebuildReason.REFRESH_RECOMMENDED)
 

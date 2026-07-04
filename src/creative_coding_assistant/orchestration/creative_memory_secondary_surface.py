@@ -392,9 +392,7 @@ class CreativeMemorySecondarySurfacePlan(BaseModel):
         if self.source_item_count != len(self.source_item_ids):
             raise ValueError("source_item_count must match source_item_ids")
         if self.covered_roadmap_items != _ROADMAP_ITEMS:
-            raise ValueError(
-                "covered_roadmap_items must match V6.2 secondary roadmap"
-            )
+            raise ValueError("covered_roadmap_items must match V6.2 secondary roadmap")
         flattened_items = tuple(
             item for entry in self.entries for item in entry.roadmap_items
         )

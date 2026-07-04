@@ -338,8 +338,9 @@ class ModelRoutingArchitectureConsistencyRegistry(BaseModel):
         return self
 
 
-def model_routing_architecture_consistency_registry(
-) -> ModelRoutingArchitectureConsistencyRegistry:
+def model_routing_architecture_consistency_registry() -> (
+    ModelRoutingArchitectureConsistencyRegistry
+):
     """Return passive V5.2 model-routing architecture consistency metadata."""
 
     records = tuple(
@@ -385,8 +386,7 @@ def model_routing_architecture_consistency_records_for_layer(
     )
 
 
-def _source_specs(
-) -> tuple[tuple[str, ModelRoutingArchitectureLayer, Any], ...]:
+def _source_specs() -> tuple[tuple[str, ModelRoutingArchitectureLayer, Any], ...]:
     sources = _source_objects()
     return tuple(
         (surface_id, layer, sources[surface_id])

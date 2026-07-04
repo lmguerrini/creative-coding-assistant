@@ -167,8 +167,7 @@ class AudioVisualSceneSystemTests(unittest.TestCase):
         self.assertIn("Scene pattern:", system)
         self.assertTrue(
             any(
-                "Audio-visual scene:" in item
-                for item in stack.director.planning_focus
+                "Audio-visual scene:" in item for item in stack.director.planning_focus
             ),
             stack.director.planning_focus,
         )

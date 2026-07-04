@@ -396,9 +396,7 @@ def build_cognitive_planner(
         guarded_plan_ids=_plan_ids_for_posture(steps, "guarded"),
         plan_count=len(steps),
         candidate_plan_count=len(_plan_ids_for_posture(steps, "candidate")),
-        review_required_plan_count=len(
-            _plan_ids_for_posture(steps, "review_required")
-        ),
+        review_required_plan_count=len(_plan_ids_for_posture(steps, "review_required")),
         guarded_plan_count=len(_plan_ids_for_posture(steps, "guarded")),
         max_dependency_depth=max(step.dependency_depth for step in steps),
         linked_agent_ids=scheduler.linked_agent_ids,
@@ -457,9 +455,7 @@ def cognitive_plan_steps_for_posture(
 
     source_planner = planner or build_cognitive_planner()
     return tuple(
-        step
-        for step in source_planner.plan_steps
-        if step.planning_posture == posture
+        step for step in source_planner.plan_steps if step.planning_posture == posture
     )
 
 
@@ -473,9 +469,7 @@ def _cognitive_plan_steps(
     for index, slot in enumerate(scheduler.schedule_slots):
         upstream_ids = (plan_ids[index - 1],) if index else ()
         downstream_ids = (
-            (plan_ids[index + 1],)
-            if index < len(scheduler.schedule_slots) - 1
-            else ()
+            (plan_ids[index + 1],) if index < len(scheduler.schedule_slots) - 1 else ()
         )
         steps.append(
             CognitivePlanStep(

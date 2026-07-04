@@ -27,9 +27,7 @@ from creative_coding_assistant.orchestration.routing import RouteDecision, Route
 
 ModelRecommendationStatus = ModelRouteCandidateStatus
 
-MODEL_RECOMMENDATION_DECISION_SERIALIZATION_VERSION = (
-    "model_recommendation_decision.v1"
-)
+MODEL_RECOMMENDATION_DECISION_SERIALIZATION_VERSION = "model_recommendation_decision.v1"
 MODEL_RECOMMENDATION_PLAN_SERIALIZATION_VERSION = "model_recommendation_plan.v1"
 MODEL_RECOMMENDATION_AUTHORITY_BOUNDARY = (
     "The V5.2 Model Recommendation Engine combines advisory model route "
@@ -191,8 +189,7 @@ class ModelRecommendationPlan(BaseModel):
     @model_validator(mode="after")
     def _plan_matches_recommendations(self) -> Self:
         derived_recommendation_ids = tuple(
-            recommendation.recommendation_id
-            for recommendation in self.recommendations
+            recommendation.recommendation_id for recommendation in self.recommendations
         )
         if len(set(derived_recommendation_ids)) != len(derived_recommendation_ids):
             raise ValueError("recommendation_ids must be unique")
@@ -219,10 +216,7 @@ class ModelRecommendationPlan(BaseModel):
         if len(recommended) != 1:
             raise ValueError("exactly one recommended model recommendation is required")
         recommended_decision = recommended[0]
-        if (
-            self.recommended_recommendation_id
-            != recommended_decision.recommendation_id
-        ):
+        if self.recommended_recommendation_id != recommended_decision.recommendation_id:
             raise ValueError("recommended_recommendation_id must match decision")
         if (
             self.recommended_model_profile_id
@@ -307,8 +301,7 @@ def recommend_model_profile(
         ),
         recommendations=recommendations,
         recommendation_ids=tuple(
-            recommendation.recommendation_id
-            for recommendation in recommendations
+            recommendation.recommendation_id for recommendation in recommendations
         ),
         recommended_recommendation_id=recommended.recommendation_id,
         recommended_model_profile_id=recommended.source_model_profile_id,

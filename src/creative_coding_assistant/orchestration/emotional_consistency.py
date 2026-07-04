@@ -434,18 +434,15 @@ def emotional_consistency_prompt_lines(
         for item in profile.emotional_to_motif_mapping[:5]
     )
     lines.extend(
-        "Emotional composition mapping: "
-        f"{item.tone}; {item.composition_guidance}"
+        f"Emotional composition mapping: {item.tone}; {item.composition_guidance}"
         for item in profile.emotional_to_composition_mapping[:5]
     )
     lines.extend(
-        "Emotional structure mapping: "
-        f"{item.tone}; {item.structural_guidance}"
+        f"Emotional structure mapping: {item.tone}; {item.structural_guidance}"
         for item in profile.emotional_to_structure_mapping[:5]
     )
     lines.extend(
-        "Emotional parameter mapping: "
-        f"{item.tone}; {', '.join(item.parameter_names)}"
+        f"Emotional parameter mapping: {item.tone}; {', '.join(item.parameter_names)}"
         for item in profile.emotional_to_parameter_mapping[:5]
     )
     lines.extend(
@@ -462,7 +459,9 @@ def emotional_consistency_prompt_lines(
     )
     lines.extend(f"Emotional tension: {item}" for item in profile.emotional_tensions)
     lines.extend(f"Emotional mismatch risk: {item}" for item in profile.mismatch_risks)
-    lines.extend(f"Emotional flattening risk: {item}" for item in profile.flattening_risks)
+    lines.extend(
+        f"Emotional flattening risk: {item}" for item in profile.flattening_risks
+    )
     lines.extend(
         f"Emotional over-intensity risk: {item}"
         for item in profile.over_intensity_risks
@@ -480,9 +479,7 @@ def emotional_consistency_prompt_lines(
         f"Unresolved emotional gap: {item}"
         for item in profile.unresolved_emotional_gaps
     )
-    lines.extend(
-        f"HITL emotional question: {item}" for item in profile.hitl_questions
-    )
+    lines.extend(f"HITL emotional question: {item}" for item in profile.hitl_questions)
     lines.extend(
         f"Emotional prompt guidance: {item}" for item in profile.prompt_guidance
     )
@@ -582,7 +579,9 @@ def _context(
         parts.append(generative_structure.temporal_evolution)
         parts.extend(module.kind for module in generative_structure.procedural_modules)
         parts.extend(rule.phase for rule in generative_structure.evolution_rules)
-        parts.extend(parameter.name for parameter in generative_structure.parameter_schema)
+        parts.extend(
+            parameter.name for parameter in generative_structure.parameter_schema
+        )
     if semantic_motif is not None:
         parts.append(semantic_motif.motif_system_name)
         parts.extend(motif.motif_id for motif in semantic_motif.primary_motifs)
@@ -613,9 +612,7 @@ def _context(
         semantic_motif=semantic_motif,
         creative_reasoning=creative_reasoning,
         text=text,
-        request_tokens=frozenset(
-            _TOKEN_PATTERN.findall(_normalize(request.query))
-        ),
+        request_tokens=frozenset(_TOKEN_PATTERN.findall(_normalize(request.query))),
         tokens=frozenset(_TOKEN_PATTERN.findall(text)),
     )
 
@@ -666,7 +663,9 @@ def _score_tones(
     if context.generative_structure is not None:
         for module in context.generative_structure.procedural_modules:
             for tone in _MODULE_TONES.get(module.kind, ()):
-                _add_score(scores, evidence, tone, 2, f"Generative module: {module.kind}.")
+                _add_score(
+                    scores, evidence, tone, 2, f"Generative module: {module.kind}."
+                )
         for parameter in context.generative_structure.parameter_schema:
             for tone in _PARAMETER_TONES.get(parameter.name, ()):
                 _add_score(
@@ -679,10 +678,14 @@ def _score_tones(
     if context.semantic_motif is not None:
         for motif in context.semantic_motif.primary_motifs:
             for tone in _MOTIF_TONES.get(motif.motif_id, ()):
-                _add_score(scores, evidence, tone, 4, f"Primary motif: {motif.motif_id}.")
+                _add_score(
+                    scores, evidence, tone, 4, f"Primary motif: {motif.motif_id}."
+                )
         for motif in context.semantic_motif.secondary_motifs:
             for tone in _MOTIF_TONES.get(motif.motif_id, ()):
-                _add_score(scores, evidence, tone, 2, f"Secondary motif: {motif.motif_id}.")
+                _add_score(
+                    scores, evidence, tone, 2, f"Secondary motif: {motif.motif_id}."
+                )
     return {tone: (scores[tone], tuple(evidence[tone][:8])) for tone in _TONE_ORDER}
 
 
@@ -702,21 +705,18 @@ def _primary_tone(
     selected: tuple[EmotionalTone, ...],
     context: _EmotionalContext,
 ) -> EmotionalTone:
-    if (
-        "transformation" in selected
-        and (
-            context.request_tokens.intersection(
-                {"phoenix", "rebirth", "transform", "transformation"}
-            )
-            or (
-                context.symbolic_narrative is not None
-                and context.symbolic_narrative.narrative_archetype
-                in {
-                    "death_and_rebirth",
-                    "dissolution_and_reintegration",
-                    "spiral_transformation",
-                }
-            )
+    if "transformation" in selected and (
+        context.request_tokens.intersection(
+            {"phoenix", "rebirth", "transform", "transformation"}
+        )
+        or (
+            context.symbolic_narrative is not None
+            and context.symbolic_narrative.narrative_archetype
+            in {
+                "death_and_rebirth",
+                "dissolution_and_reintegration",
+                "spiral_transformation",
+            }
         )
     ):
         return "transformation"
@@ -812,7 +812,9 @@ def _narrative_mappings(
                 f"{context.symbolic_narrative.narrative_archetype} without "
                 "claiming universal emotional meaning."
             )
-            evidence = (f"Narrative archetype: {context.symbolic_narrative.narrative_archetype}.",)
+            evidence = (
+                f"Narrative archetype: {context.symbolic_narrative.narrative_archetype}.",
+            )
         else:
             function = f"Use {tone} as an inferred emotional beat."
             evidence = ("No Symbolic Narrative Planner metadata attached.",)
@@ -833,7 +835,10 @@ def _motif_mappings(
 ) -> tuple[EmotionalMotifMapping, ...]:
     mappings: list[EmotionalMotifMapping] = []
     available = (
-        (*context.semantic_motif.primary_motifs, *context.semantic_motif.secondary_motifs)
+        (
+            *context.semantic_motif.primary_motifs,
+            *context.semantic_motif.secondary_motifs,
+        )
         if context.semantic_motif is not None
         else ()
     )
@@ -859,14 +864,16 @@ def _motif_mappings(
                     320,
                 ),
                 evidence=(
-                    ((
-                        f"Semantic Motif Engine primary motifs: "
-                        + ", ".join(
-                            motif.motif_id
-                            for motif in context.semantic_motif.primary_motifs
-                        )
-                        + "."
-                    ),)
+                    (
+                        (
+                            "Semantic Motif Engine primary motifs: "
+                            + ", ".join(
+                                motif.motif_id
+                                for motif in context.semantic_motif.primary_motifs
+                            )
+                            + "."
+                        ),
+                    )
                     if context.semantic_motif is not None
                     else ("No Semantic Motif Engine metadata attached.",)
                 ),
@@ -956,7 +963,10 @@ def _parameter_mapping(
 ) -> EmotionalParameterMapping:
     names: list[str] = []
     if context.generative_structure is not None:
-        available = {parameter.name for parameter in context.generative_structure.parameter_schema}
+        available = {
+            parameter.name
+            for parameter in context.generative_structure.parameter_schema
+        }
         for name, tones in _PARAMETER_TONES.items():
             if tone in tones and name in available:
                 names.append(name)
@@ -985,12 +995,17 @@ def _color_light_guidance(
     secondary: tuple[EmotionalTone, ...],
     context: _EmotionalContext,
 ) -> tuple[str, ...]:
-    guidance = [_COLOR_LIGHT_BY_TONE.get(primary, _COLOR_LIGHT_DEFAULT).format(tone=primary)]
+    guidance = [
+        _COLOR_LIGHT_BY_TONE.get(primary, _COLOR_LIGHT_DEFAULT).format(tone=primary)
+    ]
     guidance.extend(
         _COLOR_LIGHT_BY_TONE.get(tone, _COLOR_LIGHT_DEFAULT).format(tone=tone)
         for tone in secondary[:2]
     )
-    if context.creative_translation is not None and context.creative_translation.color_material_direction:
+    if (
+        context.creative_translation is not None
+        and context.creative_translation.color_material_direction
+    ):
         guidance.append(
             "Preserve requested color/material direction: "
             + ", ".join(context.creative_translation.color_material_direction[:3])
@@ -1027,16 +1042,20 @@ def _audiovisual_guidance(
     guidance = [
         f"Use audio or audiovisual changes to reinforce {primary}, not to add a separate emotional arc."
     ]
-    if context.symbolic_narrative is not None and context.symbolic_narrative.audio_progression:
+    if (
+        context.symbolic_narrative is not None
+        and context.symbolic_narrative.audio_progression
+    ):
         guidance.append(
             "Align audio with narrative audio progression: "
             + " -> ".join(context.symbolic_narrative.audio_progression[:4])
             + "."
         )
-    if context.generative_structure is not None and context.generative_structure.audiovisual_hooks:
-        guidance.append(
-            "Keep audiovisual hooks bounded to existing blueprint hooks."
-        )
+    if (
+        context.generative_structure is not None
+        and context.generative_structure.audiovisual_hooks
+    ):
+        guidance.append("Keep audiovisual hooks bounded to existing blueprint hooks.")
     if secondary:
         guidance.append(f"Use {secondary[0]} as the secondary audio/rhythm color.")
     return tuple(_dedupe(guidance))[:8]
@@ -1087,7 +1106,10 @@ def _emotional_tensions(
         tensions.append(
             "Playful curiosity and solemn or dark tones need explicit phase separation."
         )
-    if context.creative_tradeoffs is not None and context.creative_tradeoffs.hitl_advisable:
+    if (
+        context.creative_tradeoffs is not None
+        and context.creative_tradeoffs.hitl_advisable
+    ):
         tensions.append("Creative trade-offs may alter the intended emotional weight.")
     return tuple(_dedupe(tensions))[:8]
 
@@ -1102,10 +1124,12 @@ def _mismatch_risks(
     if "playful" in context.tokens and tones.intersection(
         {"ritual solemnity", "grief", "dread", "transformation"}
     ):
-        risks.append("Playful motion may weaken solemn transformation or ritual weight.")
-    if context.tokens.intersection({"bouncy", "cartoon", "cute"}) and tones.intersection(
-        {"dread", "grief", "ritual solemnity"}
-    ):
+        risks.append(
+            "Playful motion may weaken solemn transformation or ritual weight."
+        )
+    if context.tokens.intersection(
+        {"bouncy", "cartoon", "cute"}
+    ) and tones.intersection({"dread", "grief", "ritual solemnity"}):
         risks.append("Cute or bouncy styling may contradict the darker emotional tone.")
     if "serenity" in tones and context.tokens.intersection(_HIGH_INTENSITY_TOKENS):
         risks.append("High-intensity visual behavior may contradict serenity.")
@@ -1124,8 +1148,13 @@ def _flattening_risks(
     ]
     if len(secondary) > 4:
         risks.append("Too many secondary tones may blur the emotional hierarchy.")
-    if context.semantic_motif is not None and len(context.semantic_motif.primary_motifs) > 1:
-        risks.append("Motif recurrence should evolve emotionally, not repeat unchanged.")
+    if (
+        context.semantic_motif is not None
+        and len(context.semantic_motif.primary_motifs) > 1
+    ):
+        risks.append(
+            "Motif recurrence should evolve emotionally, not repeat unchanged."
+        )
     return tuple(_dedupe(risks))[:8]
 
 
@@ -1203,7 +1232,9 @@ def _unresolved_gaps(
         gaps.append("No Symbolic Narrative Planner metadata is attached.")
     if context.semantic_motif is None:
         gaps.append("No Semantic Motif Engine metadata is attached.")
-    if _audio_relevant(context) and not _audiovisual_guidance(primary, secondary, context):
+    if _audio_relevant(context) and not _audiovisual_guidance(
+        primary, secondary, context
+    ):
         gaps.append("Audio is relevant but emotional audio guidance is underspecified.")
     return tuple(_dedupe(gaps))[:8]
 
@@ -1276,7 +1307,9 @@ def _evidence(
     if context.semantic_motif is not None:
         evidence.append(
             "Motif source: "
-            + ", ".join(motif.motif_id for motif in context.semantic_motif.primary_motifs)
+            + ", ".join(
+                motif.motif_id for motif in context.semantic_motif.primary_motifs
+            )
             + "."
         )
     evidence.extend(scored[primary][1][:3])
@@ -1344,7 +1377,11 @@ def _phase_intensity(
     primary: EmotionalTone,
 ) -> EmotionalIntensity:
     if phase in {"climax", "threshold"}:
-        return "high" if primary in {"rupture", "ecstasy", "dread", "transformation"} else "medium"
+        return (
+            "high"
+            if primary in {"rupture", "ecstasy", "dread", "transformation"}
+            else "medium"
+        )
     if phase == "resolution":
         return "low" if primary in {"serenity", "clarity"} else "medium"
     return "medium"
@@ -1694,7 +1731,9 @@ _ARC_BY_PRIMARY: dict[EmotionalTone, tuple[str, ...]] = {
     ),
 }
 
-_PHASE_TONES_BY_PRIMARY: dict[EmotionalTone, dict[NarrativePhaseName, EmotionalTone]] = {
+_PHASE_TONES_BY_PRIMARY: dict[
+    EmotionalTone, dict[NarrativePhaseName, EmotionalTone]
+] = {
     "transformation": {
         "opening": "tension",
         "development": "rupture",
@@ -1718,9 +1757,11 @@ _PHASE_TONES_BY_PRIMARY: dict[EmotionalTone, dict[NarrativePhaseName, EmotionalT
     },
 }
 
-_COLOR_LIGHT_DEFAULT = "Use color and light to make {tone} legible without overexplaining it."
+_COLOR_LIGHT_DEFAULT = (
+    "Use color and light to make {tone} legible without overexplaining it."
+)
 _COLOR_LIGHT_BY_TONE: dict[EmotionalTone, str] = {
-    "transformation": "Begin muted, pass through low-contrast threshold light, then use luminous reintegration for transformation.",
+    "transformation": "Begin muted, pass through low-contrast threshold light, then use luminous reintegration for transformation.",  # noqa: E501
     "rupture": "Use sharp contrast, broken highlights, and fractured color only at rupture beats.",
     "dissolution": "Use softened edges, fading contrast, and dissolving palette shifts for dissolution.",
     "suspension": "Use low-contrast still light and restrained saturation for suspension.",
@@ -1732,7 +1773,9 @@ _COLOR_LIGHT_BY_TONE: dict[EmotionalTone, str] = {
     "dread": "Use limited light, compressed contrast, and careful shadow density for dread.",
     "awe": "Use scale-revealing light, spacious contrast, and luminous depth for awe.",
 }
-_MOTION_DEFAULT = "Use motion and rhythm to support {tone} without creating a separate mood."
+_MOTION_DEFAULT = (
+    "Use motion and rhythm to support {tone} without creating a separate mood."
+)
 _MOTION_BY_TONE: dict[EmotionalTone, str] = {
     "transformation": "Stage motion as contraction, scatter, pause, acceleration, then calm expansion.",
     "rupture": "Use short chaotic bursts for rupture, separated by readable rests.",

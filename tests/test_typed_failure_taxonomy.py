@@ -323,9 +323,7 @@ class TypedFailureTaxonomyTests(unittest.TestCase):
             TypedFailureTaxonomyRegistry(**payload)
 
         payload = registry.model_dump(mode="json")
-        payload["knowledge_base_entries"][0][
-            "linked_fix_recommendation_id"
-        ] = "missing"
+        payload["knowledge_base_entries"][0]["linked_fix_recommendation_id"] = "missing"
 
         with self.assertRaisesRegex(
             ValueError,

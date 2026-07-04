@@ -115,7 +115,9 @@ class AdaptiveExecutionArchitectureConsistencyTests(unittest.TestCase):
         self.assertTrue(registry.runtime_evolution_not_applied)
         self.assertIn("runtime_evolution_not_applied", registry.validated_version_rules)
         self.assertIn("provider_or_model_routing", registry.blocked_runtime_behaviors)
-        self.assertIn("controlled adaptive policy application", registry.authority_boundary)
+        self.assertIn(
+            "controlled adaptive policy application", registry.authority_boundary
+        )
         self.assertTrue(registry.policy_application_implemented)
         self.assertTrue(registry.execution_policy_application_implemented)
         self.assertFalse(registry.strategy_application_implemented)
@@ -226,9 +228,11 @@ class AdaptiveExecutionArchitectureConsistencyTests(unittest.TestCase):
             "agent_resource_boundary",
             registry,
         )
-        creative_records = adaptive_execution_architecture_consistency_records_for_layer(
-            "creative_adaptation_boundary",
-            registry,
+        creative_records = (
+            adaptive_execution_architecture_consistency_records_for_layer(
+                "creative_adaptation_boundary",
+                registry,
+            )
         )
 
         self.assertIsNone(missing)
@@ -260,7 +264,9 @@ class AdaptiveExecutionArchitectureConsistencyTests(unittest.TestCase):
             update={"missing_coverage_items": ("serialization_version_missing",)}
         )
         active_record = first_record.model_copy(
-            update={"source_active_runtime_flags": ("strategy_application_implemented",)}
+            update={
+                "source_active_runtime_flags": ("strategy_application_implemented",)
+            }
         )
 
         with self.assertRaisesRegex(ValueError, "surface_ids must be unique"):
@@ -348,12 +354,10 @@ class AdaptiveExecutionArchitectureConsistencyTests(unittest.TestCase):
             record_count=len(records),
             architecture_layers=EXPECTED_ARCHITECTURE_LAYERS,
             validated_version_rules=(
-                adaptive_execution_architecture_consistency_registry()
-                .validated_version_rules
+                adaptive_execution_architecture_consistency_registry().validated_version_rules
             ),
             passive_boundary_flags=(
-                adaptive_execution_architecture_consistency_registry()
-                .passive_boundary_flags
+                adaptive_execution_architecture_consistency_registry().passive_boundary_flags
             ),
         )
 

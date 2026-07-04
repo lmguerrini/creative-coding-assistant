@@ -220,11 +220,15 @@ def evaluate_budget_policies(
         recommended_policy_id=recommended.policy_id,
         recommended_budget_posture=recommended.budget_posture,
         fallback_policy_ids=tuple(
-            decision.policy_id for decision in decisions if decision.status == "fallback"
+            decision.policy_id
+            for decision in decisions
+            if decision.status == "fallback"
         ),
         policy_count=len(decisions),
         review_recommended_count=sum(
-            1 for decision in decisions if decision.budget_posture == "review_recommended"
+            1
+            for decision in decisions
+            if decision.budget_posture == "review_recommended"
         ),
         over_budget_count=sum(
             1 for decision in decisions if decision.budget_posture == "over_budget"

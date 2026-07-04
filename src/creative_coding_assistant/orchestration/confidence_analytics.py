@@ -308,9 +308,7 @@ def build_confidence_analytics(
         ready_panel_ids=_panel_ids_for_status(panels, "ready"),
         guarded_panel_ids=_panel_ids_for_status(panels, "guarded"),
         panel_count=len(panels),
-        confidence_signal_count=sum(
-            panel.confidence_signal_count for panel in panels
-        ),
+        confidence_signal_count=sum(panel.confidence_signal_count for panel in panels),
         guardrail_signal_count=sum(panel.guardrail_signal_count for panel in panels),
         confidence_analytics_status=_analytics_status(panels),
         advisory_actions=_analytics_actions(panels),
@@ -353,7 +351,10 @@ def _confidence_profile_panel(
         "confidence_profile",
         "creative_confidence_profile",
         source.serialization_version,
-        tuple(f"confidence_component::{item.source}" for item in source.confidence_components),
+        tuple(
+            f"confidence_component::{item.source}"
+            for item in source.confidence_components
+        ),
         (
             len(source.confidence_components)
             + len(source.confidence_rationale)

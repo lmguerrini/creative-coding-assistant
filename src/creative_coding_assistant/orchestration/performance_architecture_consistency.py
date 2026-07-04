@@ -237,9 +237,9 @@ class PerformanceArchitectureConsistencyRecord(BaseModel):
     persistent_storage_write_implemented: Literal[False] = False
     generated_output_mutation_implemented: Literal[False] = False
     runtime_evolution_implemented: Literal[False] = False
-    serialization_version: Literal[
-        "performance_architecture_consistency_record.v1"
-    ] = PERFORMANCE_ARCHITECTURE_CONSISTENCY_RECORD_SERIALIZATION_VERSION
+    serialization_version: Literal["performance_architecture_consistency_record.v1"] = (
+        PERFORMANCE_ARCHITECTURE_CONSISTENCY_RECORD_SERIALIZATION_VERSION
+    )
     advisory_only: Literal[True] = True
 
 
@@ -329,8 +329,9 @@ class PerformanceArchitectureConsistencyRegistry(BaseModel):
         return self
 
 
-def performance_architecture_consistency_registry(
-) -> PerformanceArchitectureConsistencyRegistry:
+def performance_architecture_consistency_registry() -> (
+    PerformanceArchitectureConsistencyRegistry
+):
     """Return passive V5.3 performance architecture consistency metadata."""
 
     records = tuple(
@@ -376,8 +377,7 @@ def performance_architecture_consistency_records_for_layer(
     )
 
 
-def _source_specs(
-) -> tuple[tuple[str, PerformanceArchitectureLayer, Any], ...]:
+def _source_specs() -> tuple[tuple[str, PerformanceArchitectureLayer, Any], ...]:
     sources = _source_objects()
     return tuple(
         (surface_id, layer, sources[surface_id])

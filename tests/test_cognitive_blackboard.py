@@ -169,17 +169,15 @@ class CognitiveBlackboardTests(unittest.TestCase):
     def test_cognitive_blackboard_rejects_runtime_state_and_drift(self) -> None:
         blackboard = build_cognitive_blackboard()
         payload = blackboard.model_dump(mode="json")
-        payload["blackboard_entry_ids"] = (
-            "missing",
-        ) + tuple(payload["blackboard_entry_ids"][1:])
+        payload["blackboard_entry_ids"] = ("missing",) + tuple(
+            payload["blackboard_entry_ids"][1:]
+        )
 
         with self.assertRaisesRegex(ValueError, "blackboard_entry_ids must match"):
             CognitiveBlackboardPlan(**payload)
 
         payload = blackboard.model_dump(mode="json")
-        payload["read_blackboard_channel_ids"] = (
-            "planner_agent_blackboard_channel",
-        )
+        payload["read_blackboard_channel_ids"] = ("planner_agent_blackboard_channel",)
 
         with self.assertRaisesRegex(
             ValueError,

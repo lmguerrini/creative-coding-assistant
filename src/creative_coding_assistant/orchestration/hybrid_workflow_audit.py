@@ -94,7 +94,9 @@ class HybridWorkflowAuditRecord(BaseModel):
     validated_stage_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
     passive_boundary_flags: tuple[str, ...] = Field(min_length=7, max_length=7)
     audit_findings: tuple[str, ...] = Field(min_length=6, max_length=6)
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=16)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=16
+    )
     stage_blocked_runtime_behaviors: tuple[str, ...] = Field(
         min_length=1,
         max_length=12,
@@ -124,9 +126,7 @@ class HybridWorkflowAuditRegistry(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["hybrid_workflow_audit_registry"] = (
-        "hybrid_workflow_audit_registry"
-    )
+    role: Literal["hybrid_workflow_audit_registry"] = "hybrid_workflow_audit_registry"
     serialization_version: Literal["hybrid_workflow_audit_registry.v1"] = (
         HYBRID_WORKFLOW_AUDIT_REGISTRY_SERIALIZATION_VERSION
     )

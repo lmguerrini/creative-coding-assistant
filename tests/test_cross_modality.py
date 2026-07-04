@@ -75,7 +75,11 @@ class CrossModalityComposerTests(unittest.TestCase):
         self.assertTrue(profile.motif_to_modality_mapping)
         self.assertTrue(profile.emotional_to_modality_mapping)
         self.assertTrue(
-            any("pulse" in cue for mapping in profile.audio_to_motion_mapping for cue in mapping.cues),
+            any(
+                "pulse" in cue
+                for mapping in profile.audio_to_motion_mapping
+                for cue in mapping.cues
+            ),
             profile.audio_to_motion_mapping,
         )
         self.assertTrue(

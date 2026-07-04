@@ -66,9 +66,7 @@ class GenerativeStructureEngineTests(unittest.TestCase):
             parameter_names,
         )
         self.assertTrue(
-            {"fragmentation", "reassembly", "stabilization"}.issubset(
-                evolution_phases
-            ),
+            {"fragmentation", "reassembly", "stabilization"}.issubset(evolution_phases),
             evolution_phases,
         )
         self.assertTrue(generative_structure_prompt_lines(blueprint))
@@ -81,9 +79,7 @@ class GenerativeStructureEngineTests(unittest.TestCase):
         blueprint = stack.generative_structure
         guidance = " ".join(blueprint.runtime_implementation_guidance).lower()
         safeguards = " ".join(blueprint.performance_safeguards).lower()
-        reductions = " ".join(
-            blueprint.fallback_blueprint.parameter_reductions
-        ).lower()
+        reductions = " ".join(blueprint.fallback_blueprint.parameter_reductions).lower()
 
         self.assertIn("feasibility guidance only", guidance)
         self.assertIn("p5", guidance)

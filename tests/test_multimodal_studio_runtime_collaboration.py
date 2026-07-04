@@ -210,7 +210,9 @@ class MultimodalStudioRuntimeCollaborationTests(unittest.TestCase):
         self.assertIsNone(missing_profile)
         self.assertIsNotNone(profile)
         assert profile is not None
-        self.assertEqual(profile.collaboration_profile_kind, "stream_event_collaboration")
+        self.assertEqual(
+            profile.collaboration_profile_kind, "stream_event_collaboration"
+        )
         self.assertIn("event_type", profile.runtime_context_fields)
         self.assertIn("no_real_time_networking_notice", profile.advisory_outputs)
         self.assertEqual(

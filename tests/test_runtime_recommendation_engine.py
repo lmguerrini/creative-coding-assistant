@@ -146,9 +146,9 @@ class RuntimeRecommendationEngineTests(unittest.TestCase):
     def test_plan_rejects_mismatched_recommendations_or_summary(self) -> None:
         plan = recommend_runtime_execution(route=RouteName.GENERATE)
         payload = plan.model_dump(mode="json")
-        payload["recommendation_ids"] = (
-            "missing",
-        ) + tuple(payload["recommendation_ids"][1:])
+        payload["recommendation_ids"] = ("missing",) + tuple(
+            payload["recommendation_ids"][1:]
+        )
 
         with self.assertRaisesRegex(ValueError, "recommendation_ids must match"):
             RuntimeRecommendationPlan(**payload)
@@ -171,7 +171,9 @@ class RuntimeRecommendationEngineTests(unittest.TestCase):
         ):
             RuntimeRecommendationPlan(**payload)
 
-    def test_runtime_recommendations_do_not_change_routing_or_provider_factory(self) -> None:
+    def test_runtime_recommendations_do_not_change_routing_or_provider_factory(
+        self,
+    ) -> None:
         request = AssistantRequest(
             query="Review a high-cost shader workflow.",
             mode=AssistantMode.REVIEW,

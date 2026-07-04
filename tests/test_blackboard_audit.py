@@ -93,7 +93,9 @@ class BlackboardAuditTests(unittest.TestCase):
                 record.validated_blackboard_surfaces,
                 registry.validated_blackboard_surfaces,
             )
-            self.assertEqual(record.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                record.passive_boundary_flags, registry.passive_boundary_flags
+            )
             self.assertFalse(record.missing_coverage_items)
             self.assertEqual(record.writable_channel_ids, (record.channel_id,))
             self.assertEqual(record.readable_channel_ids, registry.channel_ids)

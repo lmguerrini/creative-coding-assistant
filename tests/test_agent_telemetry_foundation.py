@@ -92,7 +92,9 @@ class AgentTelemetryFoundationTests(unittest.TestCase):
             registry.telemetry_source_registries,
             EXPECTED_SOURCE_REGISTRIES,
         )
-        self.assertEqual(registry.observability_surfaces, metadata.observability_surfaces)
+        self.assertEqual(
+            registry.observability_surfaces, metadata.observability_surfaces
+        )
         self.assertEqual(registry.auditability_surfaces, metadata.auditability_surfaces)
         self.assertEqual(
             registry.telemetry_event_types,
@@ -138,17 +140,29 @@ class AgentTelemetryFoundationTests(unittest.TestCase):
             self.assertEqual(profile.foundation_status, "pass")
             self.assertEqual(profile.telemetry_stage, registry.telemetry_stage)
             self.assertIn(profile.lifecycle_profile_id, known_lifecycle_profiles)
-            self.assertEqual(profile.observability_surfaces, registry.observability_surfaces)
-            self.assertEqual(profile.auditability_surfaces, registry.auditability_surfaces)
-            self.assertEqual(profile.telemetry_event_types, registry.telemetry_event_types)
-            self.assertEqual(profile.provenance_profile_ids, registry.provenance_profile_ids)
+            self.assertEqual(
+                profile.observability_surfaces, registry.observability_surfaces
+            )
+            self.assertEqual(
+                profile.auditability_surfaces, registry.auditability_surfaces
+            )
+            self.assertEqual(
+                profile.telemetry_event_types, registry.telemetry_event_types
+            )
+            self.assertEqual(
+                profile.provenance_profile_ids, registry.provenance_profile_ids
+            )
             self.assertEqual(profile.trace_profile_ids, registry.trace_profile_ids)
-            self.assertEqual(profile.telemetry_dimensions, registry.telemetry_dimensions)
+            self.assertEqual(
+                profile.telemetry_dimensions, registry.telemetry_dimensions
+            )
             self.assertEqual(
                 profile.telemetry_source_registries,
                 registry.telemetry_source_registries,
             )
-            self.assertEqual(profile.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                profile.passive_boundary_flags, registry.passive_boundary_flags
+            )
             self.assertFalse(profile.missing_coverage_items)
             self.assertIn("agent_execution", profile.metadata_blocked_runtime_behaviors)
             self.assertIn(
@@ -200,7 +214,9 @@ class AgentTelemetryFoundationTests(unittest.TestCase):
             planner_profile.lifecycle_profile_id,
             "planner_agent_lifecycle_profile",
         )
-        self.assertIn(StreamEventType.FINAL.value, planner_profile.telemetry_event_types)
+        self.assertIn(
+            StreamEventType.FINAL.value, planner_profile.telemetry_event_types
+        )
         self.assertEqual(len(node_started_profiles), registry.profile_count)
         self.assertEqual(len(trace_dimension_profiles), registry.profile_count)
         self.assertEqual(missing_dimension_profiles, ())
@@ -209,7 +225,9 @@ class AgentTelemetryFoundationTests(unittest.TestCase):
             agent_telemetry_profile_by_agent_id("planner_agent", registry),
         )
 
-    def test_foundation_registry_rejects_mismatched_or_incomplete_profiles(self) -> None:
+    def test_foundation_registry_rejects_mismatched_or_incomplete_profiles(
+        self,
+    ) -> None:
         registry = agent_telemetry_foundation_registry()
         first_profile = registry.profiles[0]
         duplicate_profile = first_profile.model_copy(update={"role_id": "duplicate"})
@@ -233,8 +251,7 @@ class AgentTelemetryFoundationTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "agent_ids must be unique"):
             AgentTelemetryFoundationRegistry(
-                profiles=(first_profile, duplicate_profile)
-                + registry.profiles[2:],
+                profiles=(first_profile, duplicate_profile) + registry.profiles[2:],
                 agent_ids=registry.agent_ids,
                 profile_count=registry.profile_count,
                 telemetry_source_registries=registry.telemetry_source_registries,

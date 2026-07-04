@@ -321,12 +321,8 @@ class ProductionObservabilityFailurePathAuditTests(unittest.TestCase):
         production_observability_failure_path_audit_by_id(
             "production_observability_failure::telemetry_observability_failures"
         )
-        production_observability_failure_path_audits_for_check(
-            "serialization_failures"
-        )
-        production_observability_failure_path_audits_for_surface(
-            "runtime_timeline"
-        )
+        production_observability_failure_path_audits_for_check("serialization_failures")
+        production_observability_failure_path_audits_for_surface("runtime_timeline")
         next_decision = route_request(request)
 
         self.assertEqual(next_decision, baseline_decision)

@@ -197,15 +197,11 @@ class ProviderCapabilityMatrix(BaseModel):
         if self.provider_selection_profile_count != len(
             self.provider_selection_profile_ids
         ):
-            raise ValueError(
-                "provider_selection_profile_count must match profile ids"
-            )
+            raise ValueError("provider_selection_profile_count must match profile ids")
         if self.provider_selection_posture_count != len(
             self.provider_selection_postures
         ):
-            raise ValueError(
-                "provider_selection_posture_count must match postures"
-            )
+            raise ValueError("provider_selection_posture_count must match postures")
         if self.provider_candidate_count != len(self.provider_candidate_ids):
             raise ValueError("provider_candidate_count must match providers")
         if self.route_names != tuple(RouteName):

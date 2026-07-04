@@ -25,9 +25,7 @@ from creative_coding_assistant.orchestration.routing_intelligence import (
     TaskRoutingType,
 )
 
-COGNITIVE_GOVERNANCE_LAYER_SERIALIZATION_VERSION = (
-    "cognitive_governance_layer.v1"
-)
+COGNITIVE_GOVERNANCE_LAYER_SERIALIZATION_VERSION = "cognitive_governance_layer.v1"
 COGNITIVE_GOVERNANCE_LAYER_ROADMAP_ITEM = "Cognitive Governance Layer"
 COGNITIVE_GOVERNANCE_LAYER_AUTHORITY_BOUNDARY = (
     "V6.6 Cognitive Governance Layer projects meta-planning metadata into "
@@ -238,9 +236,7 @@ class CognitiveGovernanceLayerPlan(BaseModel):
                 raise ValueError("policy learning signal must be declared")
             if not set(policy.linked_agent_ids).issubset(declared_agents):
                 raise ValueError("policy linked_agent_ids must be declared")
-        if self.covered_roadmap_items != (
-            COGNITIVE_GOVERNANCE_LAYER_ROADMAP_ITEM,
-        ):
+        if self.covered_roadmap_items != (COGNITIVE_GOVERNANCE_LAYER_ROADMAP_ITEM,):
             raise ValueError("covered_roadmap_items must be Task 13 only")
         if self.covered_roadmap_item_count != len(self.covered_roadmap_items):
             raise ValueError("covered_roadmap_item_count must match roadmap")
@@ -371,9 +367,7 @@ def _governance_policies(
             capability_id=projection.capability_id,
             capability_name=projection.capability_name,
             cognitive_layer=projection.cognitive_layer,
-            source_optimization_signal_id=(
-                projection.source_optimization_signal_id
-            ),
+            source_optimization_signal_id=(projection.source_optimization_signal_id),
             source_learning_signal_id=projection.source_learning_signal_id,
             linked_agent_ids=projection.linked_agent_ids,
             governance_controls=COGNITIVE_GOVERNANCE_CONTROLS,

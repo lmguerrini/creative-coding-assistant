@@ -243,7 +243,9 @@ def hitl_budget_gates_for_status(
 
     source_plan = plan or evaluate_hitl_budget_gate()
     return tuple(
-        decision for decision in source_plan.decisions if decision.gate_status == gate_status
+        decision
+        for decision in source_plan.decisions
+        if decision.gate_status == gate_status
     )
 
 

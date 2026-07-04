@@ -290,10 +290,7 @@ def _hierarchy_score(
     matched: list[str],
 ) -> int:
     score = 0
-    primary = {
-        priority.dimension
-        for priority in hierarchy.primary_creative_priorities
-    }
+    primary = {priority.dimension for priority in hierarchy.primary_creative_priorities}
     if signal.strategy == "sacred_geometry" and primary & {
         "symbolism",
         "geometry",
@@ -338,9 +335,7 @@ def _primary_rationale(scored: _ScoredStrategy) -> str:
 
 def _alternative_rationale(scored: _ScoredStrategy) -> str:
     if scored.matched_signals:
-        return (
-            f"Also relevant because of {', '.join(scored.matched_signals[:3])}."
-        )
+        return f"Also relevant because of {', '.join(scored.matched_signals[:3])}."
     return scored.rationale
 
 

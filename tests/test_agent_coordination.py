@@ -67,12 +67,15 @@ class AgentCoordinationTests(unittest.TestCase):
         self.assertEqual(coordination.serialization_version, "coordination_registry.v1")
         self.assertEqual(len(coordination.responsibilities), scheduling.group_count)
         self.assertEqual(len(coordination.handoff_channels), scheduling.group_count - 1)
-        self.assertEqual(coordination.event_types, (
-            "coordination_checkpoint_declared",
-            "handoff_metadata_available",
-            "coordination_risk_flagged",
-            "human_review_signal_declared",
-        ))
+        self.assertEqual(
+            coordination.event_types,
+            (
+                "coordination_checkpoint_declared",
+                "handoff_metadata_available",
+                "coordination_risk_flagged",
+                "human_review_signal_declared",
+            ),
+        )
         self.assertEqual(
             coordination.source_registries,
             ("parallel_scheduling_registry", "agent_dependency_graph_registry"),
@@ -150,10 +153,13 @@ class AgentCoordinationTests(unittest.TestCase):
                 "target_group_id": first_channel.source_group_id,
             }
         )
-        with self.assertRaisesRegex(ValueError, "handoff channels must move downstream"):
+        with self.assertRaisesRegex(
+            ValueError, "handoff channels must move downstream"
+        ):
             AgentCoordinationRegistry(
                 responsibilities=coordination.responsibilities,
-                handoff_channels=(reversed_channel,) + coordination.handoff_channels[1:],
+                handoff_channels=(reversed_channel,)
+                + coordination.handoff_channels[1:],
                 event_contracts=coordination.event_contracts,
                 coordinator_ids=coordination.coordinator_ids,
                 handoff_channel_ids=coordination.handoff_channel_ids,

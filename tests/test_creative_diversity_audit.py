@@ -83,7 +83,9 @@ class CreativeDiversityAuditTests(unittest.TestCase):
             audit_registry.source_creative_exploration_registry,
             "creative_exploration_budget_registry",
         )
-        self.assertEqual(audit_registry.source_registries, budget_registry.source_registries)
+        self.assertEqual(
+            audit_registry.source_registries, budget_registry.source_registries
+        )
         self.assertEqual(
             audit_registry.trace_profile_ids,
             escalation_trace_registry().trace_profile_ids,
@@ -130,19 +132,27 @@ class CreativeDiversityAuditTests(unittest.TestCase):
                 record.validated_diversity_surfaces,
                 registry.validated_diversity_surfaces,
             )
-            self.assertEqual(record.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                record.passive_boundary_flags, registry.passive_boundary_flags
+            )
             self.assertFalse(record.missing_coverage_items)
             self.assertIn(record.source_trace_profile_id, known_traces)
             self.assertIn(record.source_provenance_profile_id, known_provenance)
-            self.assertTrue(set(record.source_escalation_signal_ids).issubset(known_signals))
+            self.assertTrue(
+                set(record.source_escalation_signal_ids).issubset(known_signals)
+            )
             self.assertGreaterEqual(record.max_advisory_variants, 0)
             self.assertLessEqual(record.max_advisory_variants, 3)
             self.assertGreaterEqual(record.max_advisory_refinement_passes, 0)
             self.assertLessEqual(record.max_advisory_refinement_passes, 3)
             self.assertTrue(record.budget_dimensions)
             self.assertTrue(record.advisory_outputs)
-            self.assertIn("budget_enforcement", record.profile_blocked_runtime_behaviors)
-            self.assertIn("variant_generation", record.profile_blocked_runtime_behaviors)
+            self.assertIn(
+                "budget_enforcement", record.profile_blocked_runtime_behaviors
+            )
+            self.assertIn(
+                "variant_generation", record.profile_blocked_runtime_behaviors
+            )
             self.assertIn(
                 "generated_output_modification",
                 record.profile_blocked_runtime_behaviors,
@@ -182,9 +192,10 @@ class CreativeDiversityAuditTests(unittest.TestCase):
             "style_budget_posture_placeholder",
             style_audit.advisory_outputs,
         )
-        self.assertEqual(tuple(record.budget_profile_id for record in broad_audits), (
-            "creative_exploration_budget::style_aesthetic_alignment",
-        ))
+        self.assertEqual(
+            tuple(record.budget_profile_id for record in broad_audits),
+            ("creative_exploration_budget::style_aesthetic_alignment",),
+        )
         self.assertEqual(len(tradeoff_source_audits), registry.audit_count)
         self.assertEqual(missing_source_audits, ())
         self.assertIs(

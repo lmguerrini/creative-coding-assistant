@@ -307,7 +307,9 @@ class AgentPerformanceTrackingFoundationTests(unittest.TestCase):
                 registry.passive_boundary_flags,
             )
             self.assertFalse(profile.missing_coverage_items)
-            self.assertIn("runtime_selection", profile.contract_blocked_runtime_behaviors)
+            self.assertIn(
+                "runtime_selection", profile.contract_blocked_runtime_behaviors
+            )
             self.assertIn(
                 "cost_or_latency_routing",
                 profile.metadata_blocked_runtime_behaviors,
@@ -378,8 +380,8 @@ class AgentPerformanceTrackingFoundationTests(unittest.TestCase):
         low_latency_profiles = agent_performance_tracking_profiles_for_latency_class(
             "low"
         )
-        missing_latency_profiles = agent_performance_tracking_profiles_for_latency_class(
-            "medium"
+        missing_latency_profiles = (
+            agent_performance_tracking_profiles_for_latency_class("medium")
         )
         planning_threshold_profiles = (
             agent_performance_tracking_profiles_for_latency_threshold(
@@ -442,9 +444,7 @@ class AgentPerformanceTrackingFoundationTests(unittest.TestCase):
             )
 
         with self.assertRaisesRegex(ValueError, "missing coverage"):
-            self._registry_with_profiles(
-                (incomplete_profile,) + registry.profiles[1:]
-            )
+            self._registry_with_profiles((incomplete_profile,) + registry.profiles[1:])
 
         with self.assertRaisesRegex(ValueError, "profiles must remain passive"):
             self._registry_with_profiles((active_profile,) + registry.profiles[1:])

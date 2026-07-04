@@ -173,8 +173,7 @@ class ReflectionBudgetOptimizerTests(unittest.TestCase):
             self.assertEqual(candidate.status, expected_status)
             if candidate.status == "recommended":
                 expected_tokens = (
-                    candidate.source_reasoning_tokens // 2
-                    + candidate.depth_weight * 5
+                    candidate.source_reasoning_tokens // 2 + candidate.depth_weight * 5
                 )
             else:
                 expected_tokens = 0
@@ -182,8 +181,7 @@ class ReflectionBudgetOptimizerTests(unittest.TestCase):
                 expected_reserve = 0
             elif candidate.status == "reserve_guardrail":
                 expected_reserve = (
-                    candidate.source_reserve_tokens // 2
-                    + candidate.depth_weight * 5
+                    candidate.source_reserve_tokens // 2 + candidate.depth_weight * 5
                 )
             else:
                 expected_reserve = candidate.source_reserve_tokens // 3
@@ -280,8 +278,7 @@ class ReflectionBudgetOptimizerTests(unittest.TestCase):
         self.assertEqual(len(review), 1)
         self.assertTrue(
             all(
-                candidate.recommended_reflection_pass_count == 0
-                for candidate in review
+                candidate.recommended_reflection_pass_count == 0 for candidate in review
             )
         )
 

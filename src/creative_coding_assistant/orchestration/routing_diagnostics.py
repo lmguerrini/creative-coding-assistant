@@ -379,9 +379,8 @@ def _availability_panel(
         status=_status_for_guardrails(guardrails),
         source_id="provider_availability_registry",
         source_serialization_version=registry.serialization_version,
-        source_item_ids=tuple(registry.provider_ids) + tuple(
-            registry.unavailable_reason_codes
-        ),
+        source_item_ids=tuple(registry.provider_ids)
+        + tuple(registry.unavailable_reason_codes),
         routing_signal_count=registry.decision_count,
         guardrail_signal_count=guardrails,
         evidence=(

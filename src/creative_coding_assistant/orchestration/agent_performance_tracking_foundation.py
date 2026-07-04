@@ -175,7 +175,9 @@ class AgentPerformanceTrackingFoundationProfile(BaseModel):
     performance_dimensions: tuple[str, ...] = Field(min_length=14, max_length=14)
     passive_boundary_flags: tuple[str, ...] = Field(min_length=11, max_length=11)
     foundation_findings: tuple[str, ...] = Field(min_length=9, max_length=9)
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=24)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=24
+    )
     contract_blocked_runtime_behaviors: tuple[str, ...] = Field(
         min_length=1,
         max_length=16,
@@ -416,9 +418,7 @@ class AgentPerformanceTrackingFoundationRegistry(BaseModel):
             if profile.execution_simulation_profile_ids != (
                 self.execution_simulation_profile_ids
             ):
-                raise ValueError(
-                    "execution_simulation_profile_ids must match registry"
-                )
+                raise ValueError("execution_simulation_profile_ids must match registry")
             if profile.simulation_scopes != self.simulation_scopes:
                 raise ValueError("simulation_scopes must match registry")
             if profile.local_latency_postures != self.local_latency_postures:
@@ -594,10 +594,7 @@ def _missing_coverage_items(
         missing.append("local_provider_execution_block_missing")
     if "cloud_provider_execution" not in cloud_models.blocked_runtime_behaviors:
         missing.append("cloud_provider_execution_block_missing")
-    if (
-        "pricing_or_latency_optimization"
-        not in cloud_models.blocked_runtime_behaviors
-    ):
+    if "pricing_or_latency_optimization" not in cloud_models.blocked_runtime_behaviors:
         missing.append("cloud_latency_optimization_block_missing")
     if "parallel_task_execution" not in scheduling.blocked_runtime_behaviors:
         missing.append("parallel_execution_block_missing")
@@ -669,9 +666,7 @@ def _profile(agent_id: str) -> AgentPerformanceTrackingFoundationProfile:
         latency_metadata_sources=latency.latency_metadata_sources,
         model_profile_ids=models.model_profile_ids,
         model_profile_kinds=tuple(str(kind) for kind in models.model_profile_kinds),
-        execution_simulation_profile_ids=(
-            simulator.execution_simulation_profile_ids
-        ),
+        execution_simulation_profile_ids=(simulator.execution_simulation_profile_ids),
         simulation_scopes=tuple(str(scope) for scope in simulator.simulation_scopes),
         local_latency_postures=tuple(
             str(surface.latency_posture) for surface in local_models.model_surfaces
@@ -693,9 +688,7 @@ def _profile(agent_id: str) -> AgentPerformanceTrackingFoundationProfile:
         metadata_blocked_runtime_behaviors=(
             metadata_registry.blocked_runtime_behaviors
         ),
-        latency_threshold_blocked_runtime_behaviors=(
-            latency.blocked_runtime_behaviors
-        ),
+        latency_threshold_blocked_runtime_behaviors=(latency.blocked_runtime_behaviors),
         model_profile_blocked_runtime_behaviors=models.blocked_runtime_behaviors,
         execution_simulator_blocked_runtime_behaviors=(
             simulator.blocked_runtime_behaviors

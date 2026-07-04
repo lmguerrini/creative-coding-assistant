@@ -200,9 +200,7 @@ class MultimodalStudioBranchingTimelineTests(unittest.TestCase):
                 )
             )
             self.assertTrue(
-                set(profile.source_artifact_lineage_profile_ids).issubset(
-                    known_lineage
-                )
+                set(profile.source_artifact_lineage_profile_ids).issubset(known_lineage)
             )
             self.assertTrue(
                 set(profile.source_shared_artifact_board_profile_ids).issubset(
@@ -215,9 +213,7 @@ class MultimodalStudioBranchingTimelineTests(unittest.TestCase):
                 )
             )
             self.assertTrue(
-                set(profile.source_session_replay_profile_ids).issubset(
-                    known_replays
-                )
+                set(profile.source_session_replay_profile_ids).issubset(known_replays)
             )
             self.assertTrue(
                 set(profile.branching_timeline_surfaces).issubset(known_surfaces)
@@ -250,9 +246,7 @@ class MultimodalStudioBranchingTimelineTests(unittest.TestCase):
         profile = multimodal_branching_timeline_profile_by_id(
             "workflow_branching_timeline"
         )
-        missing_profile = multimodal_branching_timeline_profile_by_id(
-            "missing_profile"
-        )
+        missing_profile = multimodal_branching_timeline_profile_by_id("missing_profile")
         workflow_profiles = multimodal_branching_timeline_profiles_for_surface_kind(
             "workflow_branch"
         )
@@ -302,9 +296,7 @@ class MultimodalStudioBranchingTimelineTests(unittest.TestCase):
         )
         unknown_history_profile = first_profile.model_copy(
             update={
-                "source_workspace_history_profile_ids": (
-                    "unknown_workspace_history",
-                )
+                "source_workspace_history_profile_ids": ("unknown_workspace_history",)
             }
         )
 
@@ -361,9 +353,7 @@ def _registry_kwargs(
         "profile_count": registry.profile_count,
         "source_registries": registry.source_registries,
         "source_reference_ids": registry.source_reference_ids,
-        "branching_timeline_surface_refs": (
-            registry.branching_timeline_surface_refs
-        ),
+        "branching_timeline_surface_refs": (registry.branching_timeline_surface_refs),
         "observability_surfaces": registry.observability_surfaces,
     }
 

@@ -67,7 +67,9 @@ class ContextBudgetPlannerTests(unittest.TestCase):
         self.assertEqual(plan.response_reserve_tokens, 3_000)
         self.assertEqual(plan.available_context_tokens, 13_000)
         self.assertGreater(plan.requested_context_tokens, 0)
-        self.assertLessEqual(plan.allocated_context_tokens, plan.available_context_tokens)
+        self.assertLessEqual(
+            plan.allocated_context_tokens, plan.available_context_tokens
+        )
         self.assertEqual(plan.over_budget_tokens, 0)
         self.assertEqual(plan.budget_pressure, "low")
         self.assertIn("does not trim context", plan.authority_boundary)
@@ -117,7 +119,9 @@ class ContextBudgetPlannerTests(unittest.TestCase):
                 allocation.serialization_version,
                 "context_budget_allocation.v1",
             )
-            self.assertLessEqual(allocation.allocated_tokens, allocation.requested_tokens)
+            self.assertLessEqual(
+                allocation.allocated_tokens, allocation.requested_tokens
+            )
             self.assertLessEqual(allocation.allocated_tokens, allocation.max_tokens)
             self.assertIn("context_trimming", allocation.blocked_runtime_behaviors)
             self.assertFalse(allocation.context_trimming_implemented)
@@ -157,7 +161,9 @@ class ContextBudgetPlannerTests(unittest.TestCase):
         self.assertEqual(plan.available_context_tokens, 800)
         self.assertGreater(plan.over_budget_tokens, 0)
         self.assertEqual(plan.budget_pressure, "high")
-        self.assertLessEqual(plan.allocated_context_tokens, plan.available_context_tokens)
+        self.assertLessEqual(
+            plan.allocated_context_tokens, plan.available_context_tokens
+        )
         self.assertTrue(
             any(allocation.pressure == "high" for allocation in plan.allocations)
         )

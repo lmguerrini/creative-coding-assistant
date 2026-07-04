@@ -56,7 +56,6 @@ from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
 )
 from creative_coding_assistant.orchestration.procedural_structure import (
-    ProceduralFamily,
     ProceduralStructurePlan,
 )
 from creative_coding_assistant.orchestration.routing import RouteDecision
@@ -68,7 +67,6 @@ from creative_coding_assistant.orchestration.semantic_motif import (
     SemanticMotifSystem,
 )
 from creative_coding_assistant.orchestration.symbolic_narrative import (
-    NarrativeArchetype,
     NarrativePhaseName,
     SymbolicNarrativePlan,
 )
@@ -507,7 +505,9 @@ def audio_visual_scene_prompt_lines(
     lines.extend(f"Camera timing: {item}" for item in profile.camera_timing_plan)
     lines.extend(f"Motif timing: {item}" for item in profile.motif_timing_plan)
     lines.extend(f"Emotional timing: {item}" for item in profile.emotional_timing_plan)
-    lines.extend(f"Procedural timing: {item}" for item in profile.procedural_timing_plan)
+    lines.extend(
+        f"Procedural timing: {item}" for item in profile.procedural_timing_plan
+    )
     lines.extend(
         f"Synchronization checkpoint: {item}"
         for item in profile.synchronization_checkpoints
@@ -522,9 +522,13 @@ def audio_visual_scene_prompt_lines(
         f"{profile.fallback_scene_strategy.fallback_pattern}; "
         f"{profile.fallback_scene_strategy.simplification_strategy}"
     )
-    lines.extend(f"Unresolved scene gap: {item}" for item in profile.unresolved_scene_gaps)
+    lines.extend(
+        f"Unresolved scene gap: {item}" for item in profile.unresolved_scene_gaps
+    )
     lines.extend(f"HITL scene question: {item}" for item in profile.hitl_questions)
-    lines.extend(f"Audio-visual scene guidance: {item}" for item in profile.prompt_guidance)
+    lines.extend(
+        f"Audio-visual scene guidance: {item}" for item in profile.prompt_guidance
+    )
     return tuple(lines[:58])
 
 
@@ -572,9 +576,13 @@ def _context(
             item.dimension for item in creative_hierarchy.primary_creative_priorities
         )
     if creative_plan is not None:
-        parts.extend([creative_plan.output_modality.value, creative_plan.generation_strategy])
+        parts.extend(
+            [creative_plan.output_modality.value, creative_plan.generation_strategy]
+        )
     if symbolic_narrative is not None:
-        parts.extend([symbolic_narrative.narrative_archetype, symbolic_narrative.symbolic_arc])
+        parts.extend(
+            [symbolic_narrative.narrative_archetype, symbolic_narrative.symbolic_arc]
+        )
         parts.extend(phase.title for phase in symbolic_narrative.phases)
         parts.extend(symbolic_narrative.visual_progression)
         parts.extend(symbolic_narrative.motion_progression)
@@ -660,10 +668,14 @@ def _audio_relevant(context: _AudioVisualSceneContext) -> bool:
     if (
         context.creative_translation is not None
         and context.creative_translation.output_modality is not None
-        and context.creative_translation.output_modality.value in {"audio", "audiovisual"}
+        and context.creative_translation.output_modality.value
+        in {"audio", "audiovisual"}
     ):
         return True
-    if context.symbolic_narrative is not None and context.symbolic_narrative.audio_progression:
+    if (
+        context.symbolic_narrative is not None
+        and context.symbolic_narrative.audio_progression
+    ):
         return True
     if context.cross_modality is not None:
         return bool(
@@ -702,7 +714,11 @@ def _scene_pattern(context: _AudioVisualSceneContext) -> AudioVisualScenePattern
         if context.cross_modality is not None
         else None
     )
-    if archetype in {"death_and_rebirth", "dissolution_and_reintegration", "fragmentation_and_recomposition"}:
+    if archetype in {
+        "death_and_rebirth",
+        "dissolution_and_reintegration",
+        "fragmentation_and_recomposition",
+    }:
         return "fragmentation_to_reintegration"
     if archetype == "threshold_crossing":
         return "threshold_crossing"
@@ -714,13 +730,19 @@ def _scene_pattern(context: _AudioVisualSceneContext) -> AudioVisualScenePattern
         return "seed_to_expansion"
     if archetype == "emergence_from_chaos":
         return "chaos_to_order"
-    if context.request_tokens & _FRAGMENTATION_TOKENS and context.request_tokens & _REINTEGRATION_TOKENS:
+    if (
+        context.request_tokens & _FRAGMENTATION_TOKENS
+        and context.request_tokens & _REINTEGRATION_TOKENS
+    ):
         return "fragmentation_to_reintegration"
     if context.request_tokens & _RITUAL_TOKENS:
         return "ritual_opening_to_climax"
     if context.request_tokens & _WAVE_TOKENS:
         return "wave_build_and_collapse"
-    if context.request_tokens & _PULSE_TOKENS or cross_pattern == "audio_reactive_composition":
+    if (
+        context.request_tokens & _PULSE_TOKENS
+        or cross_pattern == "audio_reactive_composition"
+    ):
         return "pulse_escalation"
     if cross_pattern == "fragmentation_reassembly_visual_motion_layers":
         return "fragmentation_to_reintegration"
@@ -774,14 +796,10 @@ def _scene_phases(
             else template[1]
         )
         visual_state = (
-            narrative_phase.visual_state
-            if narrative_phase is not None
-            else template[2]
+            narrative_phase.visual_state if narrative_phase is not None else template[2]
         )
         motion_state = (
-            narrative_phase.motion_state
-            if narrative_phase is not None
-            else template[3]
+            narrative_phase.motion_state if narrative_phase is not None else template[3]
         )
         audio_state = (
             _audio_state(context, phase_name, narrative_phase, template[4])
@@ -824,7 +842,9 @@ def _audio_state(
         if phase == "threshold":
             return "Reduce audio density or use silence as a threshold cue."
         if phase == "climax":
-            return "Use pulse acceleration or brighter sonic emphasis as design guidance."
+            return (
+                "Use pulse acceleration or brighter sonic emphasis as design guidance."
+            )
         return _clip(context.cross_modality.audio_role, 320)
     return fallback
 
@@ -840,7 +860,9 @@ def _rhythm_state(
     if phase == "climax":
         return _clip(f"Intensify rhythm while preserving rests: {rhythm}", 320)
     if phase == "resolution":
-        return _clip(f"Relax rhythm into a readable loop or stable cadence: {rhythm}", 320)
+        return _clip(
+            f"Relax rhythm into a readable loop or stable cadence: {rhythm}", 320
+        )
     return _clip(rhythm, 320)
 
 
@@ -860,7 +882,7 @@ def _camera_state(
     )
     if phase in {"threshold", "climax"}:
         return _clip(
-            f"Reserve active camera/viewpoint emphasis for {phase}: {base or 'shift viewpoint only at the scene hinge.'}",
+            f"Reserve active camera/viewpoint emphasis for {phase}: {base or 'shift viewpoint only at the scene hinge.'}",  # noqa: E501
             300,
         )
     return _clip(base or "Keep camera/viewpoint stable for scene continuity.", 300)
@@ -964,7 +986,9 @@ def _transition_out(
     phase: NarrativePhaseName,
 ) -> str:
     if phase == "resolution":
-        return "Hold a stable ending or seamless loop without adding new scene material."
+        return (
+            "Hold a stable ending or seamless loop without adding new scene material."
+        )
     return _TRANSITION_OUT[pattern][phase]
 
 
@@ -974,11 +998,15 @@ def _phase_evidence(
 ) -> tuple[str, ...]:
     evidence = [f"Scene phase: {phase}."]
     if context.symbolic_narrative is not None:
-        evidence.append(f"Narrative archetype: {context.symbolic_narrative.narrative_archetype}.")
+        evidence.append(
+            f"Narrative archetype: {context.symbolic_narrative.narrative_archetype}."
+        )
     if context.cross_modality is not None:
         evidence.append(f"Cross-modality: {context.cross_modality.modality_pattern}.")
     if context.emotional_consistency is not None:
-        evidence.append(f"Emotion: {context.emotional_consistency.primary_emotional_tone}.")
+        evidence.append(
+            f"Emotion: {context.emotional_consistency.primary_emotional_tone}."
+        )
     return tuple(evidence[:8])
 
 
@@ -1031,7 +1059,8 @@ def _cue_plan(
                     cue_id=f"{phase.phase}_camera",
                     phase=phase.phase,
                     cue_type="camera",
-                    description=phase.camera_state or "Use viewpoint only at the scene hinge.",
+                    description=phase.camera_state
+                    or "Use viewpoint only at the scene hinge.",
                     timing=f"Reserve camera/viewpoint change for {phase.phase}.",
                     modalities=("camera", "visual_structure", "motion"),
                     evidence=("Camera relevance detected.",),
@@ -1055,7 +1084,10 @@ def _sync_description(
     context: _AudioVisualSceneContext,
     phase: AudioVisualScenePhase,
 ) -> str:
-    if context.cross_modality is not None and context.cross_modality.modality_synchronization_plan:
+    if (
+        context.cross_modality is not None
+        and context.cross_modality.modality_synchronization_plan
+    ):
         return _clip(context.cross_modality.modality_synchronization_plan[0], 340)
     return f"Align visual, motion, rhythm, motif, and emotional cues for {phase.phase}."
 
@@ -1086,7 +1118,7 @@ def _transition_plan(
     context: _AudioVisualSceneContext,
 ) -> tuple[AudioVisualSceneTransition, ...]:
     transitions: list[AudioVisualSceneTransition] = []
-    for current, following in zip(phases, phases[1:]):
+    for current, following in zip(phases, phases[1:], strict=False):
         transitions.append(
             AudioVisualSceneTransition(
                 from_phase=current.phase,
@@ -1132,7 +1164,10 @@ def _climax_strategy(
         if audio_relevant
         else ""
     )
-    if context.cross_modality is not None and context.cross_modality.audio_to_motion_mapping:
+    if (
+        context.cross_modality is not None
+        and context.cross_modality.audio_to_motion_mapping
+    ):
         audio = " " + context.cross_modality.audio_to_motion_mapping[0].mapping
     return _clip(
         (
@@ -1161,17 +1196,13 @@ def _resolution_strategy(
 def _visual_timing_plan(
     phases: tuple[AudioVisualScenePhase, ...],
 ) -> tuple[str, ...]:
-    return tuple(
-        f"{phase.phase}: {phase.visual_state}" for phase in phases
-    )[:8]
+    return tuple(f"{phase.phase}: {phase.visual_state}" for phase in phases)[:8]
 
 
 def _motion_timing_plan(
     phases: tuple[AudioVisualScenePhase, ...],
 ) -> tuple[str, ...]:
-    return tuple(
-        f"{phase.phase}: {phase.motion_state}" for phase in phases
-    )[:8]
+    return tuple(f"{phase.phase}: {phase.motion_state}" for phase in phases)[:8]
 
 
 def _audio_timing_plan(
@@ -1187,9 +1218,7 @@ def _audio_timing_plan(
 def _rhythm_timing_plan(
     phases: tuple[AudioVisualScenePhase, ...],
 ) -> tuple[str, ...]:
-    return tuple(
-        f"{phase.phase}: {phase.rhythm_state}" for phase in phases
-    )[:8]
+    return tuple(f"{phase.phase}: {phase.rhythm_state}" for phase in phases)[:8]
 
 
 def _camera_timing_plan(
@@ -1205,25 +1234,19 @@ def _camera_timing_plan(
 def _motif_timing_plan(
     phases: tuple[AudioVisualScenePhase, ...],
 ) -> tuple[str, ...]:
-    return tuple(
-        f"{phase.phase}: {phase.motif_state}" for phase in phases
-    )[:8]
+    return tuple(f"{phase.phase}: {phase.motif_state}" for phase in phases)[:8]
 
 
 def _emotional_timing_plan(
     phases: tuple[AudioVisualScenePhase, ...],
 ) -> tuple[str, ...]:
-    return tuple(
-        f"{phase.phase}: {phase.emotional_state}" for phase in phases
-    )[:8]
+    return tuple(f"{phase.phase}: {phase.emotional_state}" for phase in phases)[:8]
 
 
 def _procedural_timing_plan(
     phases: tuple[AudioVisualScenePhase, ...],
 ) -> tuple[str, ...]:
-    return tuple(
-        f"{phase.phase}: {phase.procedural_state}" for phase in phases
-    )[:8]
+    return tuple(f"{phase.phase}: {phase.procedural_state}" for phase in phases)[:8]
 
 
 def _synchronization_checkpoints(
@@ -1261,11 +1284,15 @@ def _scene_contrast_plan(
         "Make climax the only maximum-density scene.",
     ]
     if audio_relevant:
-        plan.append("Contrast audio or rhythm density against visual density instead of maximizing both constantly.")
+        plan.append(
+            "Contrast audio or rhythm density against visual density instead of maximizing both constantly."
+        )
     if camera_relevant:
         plan.append("Use camera/viewpoint contrast only at threshold or climax.")
     if context.emotional_consistency is not None:
-        plan.append("Use emotional phase intensity to decide when scenes should soften.")
+        plan.append(
+            "Use emotional phase intensity to decide when scenes should soften."
+        )
     return tuple(plan[:8])
 
 
@@ -1295,11 +1322,18 @@ def _scene_risks(
 ) -> tuple[str, ...]:
     risks: list[str] = []
     if context.request_tokens & _AMBIGUOUS_SCENE_TOKENS:
-        risks.append("Scene structure is broad; the lead phase emphasis may need HITL confirmation.")
+        risks.append(
+            "Scene structure is broad; the lead phase emphasis may need HITL confirmation."
+        )
     if context.symbolic_narrative is None:
         risks.append("No symbolic narrative metadata is available to order scenes.")
-    if pattern in {"ritual_opening_to_climax", "threshold_crossing"} and "playful" in context.request_tokens:
-        risks.append("Playful cues may weaken solemn scene pacing unless separated by phase.")
+    if (
+        pattern in {"ritual_opening_to_climax", "threshold_crossing"}
+        and "playful" in context.request_tokens
+    ):
+        risks.append(
+            "Playful cues may weaken solemn scene pacing unless separated by phase."
+        )
     if context.cross_modality is not None:
         risks.extend(context.cross_modality.modality_conflicts[:2])
     return tuple(risks[:8])
@@ -1313,12 +1347,21 @@ def _pacing_risks(
 ) -> tuple[str, ...]:
     risks: list[str] = []
     if context.request_tokens & _DENSE_TOKENS:
-        risks.append("Dense or intense cues can collapse development, threshold, and climax into one flat peak.")
+        risks.append(
+            "Dense or intense cues can collapse development, threshold, and climax into one flat peak."
+        )
     if audio_relevant and context.request_tokens & {"loud", "intense"}:
-        risks.append("Loud audio timing can overpower threshold stillness or resolution calm.")
+        risks.append(
+            "Loud audio timing can overpower threshold stillness or resolution calm."
+        )
     if camera_relevant:
-        risks.append("Camera movement can make pacing feel busy if used outside threshold or climax.")
-    if context.emotional_consistency is not None and context.emotional_consistency.flattening_risks:
+        risks.append(
+            "Camera movement can make pacing feel busy if used outside threshold or climax."
+        )
+    if (
+        context.emotional_consistency is not None
+        and context.emotional_consistency.flattening_risks
+    ):
         risks.extend(context.emotional_consistency.flattening_risks[:1])
     return tuple(risks[:8])
 
@@ -1347,14 +1390,22 @@ def _unresolved_gaps(
 ) -> tuple[str, ...]:
     gaps: list[str] = []
     if context.request_tokens & _AMBIGUOUS_SCENE_TOKENS:
-        gaps.append("Scene language is broad; confirm desired pacing if precision matters.")
-    if audio_relevant and context.cross_modality is not None and not context.cross_modality.audio_to_motion_mapping:
+        gaps.append(
+            "Scene language is broad; confirm desired pacing if precision matters."
+        )
+    if (
+        audio_relevant
+        and context.cross_modality is not None
+        and not context.cross_modality.audio_to_motion_mapping
+    ):
         gaps.append("Audio is relevant, but audio-to-motion timing is unspecified.")
     if camera_relevant and (
         context.cross_modality is None
         or context.cross_modality.camera_viewpoint_role is None
     ):
-        gaps.append("Camera/viewpoint timing is relevant, but no camera role is specified.")
+        gaps.append(
+            "Camera/viewpoint timing is relevant, but no camera role is specified."
+        )
     if context.symbolic_narrative is None:
         gaps.append("Scene phases lack a symbolic narrative source.")
     return tuple(gaps[:8])
@@ -1405,13 +1456,21 @@ def _hitl_questions(
 ) -> tuple[str, ...]:
     questions: list[str] = []
     if unresolved or scene_risks:
-        questions.append("Should the scene arc prioritize narrative clarity, audiovisual intensity, or symbolic ambiguity?")
+        questions.append(
+            "Should the scene arc prioritize narrative clarity, audiovisual intensity, or symbolic ambiguity?"
+        )
     if audio_relevant:
-        questions.append("Should audio timing drive scene transitions, or only support visual rhythm?")
+        questions.append(
+            "Should audio timing drive scene transitions, or only support visual rhythm?"
+        )
     if camera_relevant:
-        questions.append("Should camera/viewpoint shifts happen only at threshold and climax?")
+        questions.append(
+            "Should camera/viewpoint shifts happen only at threshold and climax?"
+        )
     if pacing_risks or overload_risks:
-        questions.append("Should the climax maximize density, or preserve readability with a quieter threshold?")
+        questions.append(
+            "Should the climax maximize density, or preserve readability with a quieter threshold?"
+        )
     return tuple(questions[:6])
 
 
@@ -1428,10 +1487,16 @@ def _prompt_guidance(
         "Make climax the strongest synchronized scene and resolution the stabilizing scene.",
     ]
     if audio_relevant:
-        guidance.append("Include audio timing only as prompt guidance unless the final artifact explicitly implements audio.")
+        guidance.append(
+            "Include audio timing only as prompt guidance unless the final artifact explicitly implements audio."
+        )
     if camera_relevant:
-        guidance.append("Use camera/viewpoint timing only when the selected output scope supports it.")
-    guidance.append("Do not auto-select runtimes, route providers, change preview behavior, or add runtime repair.")
+        guidance.append(
+            "Use camera/viewpoint timing only when the selected output scope supports it."
+        )
+    guidance.append(
+        "Do not auto-select runtimes, route providers, change preview behavior, or add runtime repair."
+    )
     return tuple(guidance[:8])
 
 
@@ -1450,15 +1515,23 @@ def _evidence(
     if context.symbolic_narrative is not None:
         evidence.append(f"Narrative: {context.symbolic_narrative.narrative_archetype}.")
     if context.creative_composition is not None:
-        evidence.append(f"Composition: {context.creative_composition.composition_pattern}.")
+        evidence.append(
+            f"Composition: {context.creative_composition.composition_pattern}."
+        )
     if context.procedural_structure is not None:
-        evidence.append(f"Procedural structure: {context.procedural_structure.primary_structure.family}.")
+        evidence.append(
+            f"Procedural structure: {context.procedural_structure.primary_structure.family}."
+        )
     if context.generative_structure is not None:
-        evidence.append(f"Generative architecture: {context.generative_structure.generative_architecture}.")
+        evidence.append(
+            f"Generative architecture: {context.generative_structure.generative_architecture}."
+        )
     if context.semantic_motif is not None:
         evidence.append(f"Motifs: {', '.join(_primary_motifs(context))}.")
     if context.emotional_consistency is not None:
-        evidence.append(f"Emotion: {context.emotional_consistency.primary_emotional_tone}.")
+        evidence.append(
+            f"Emotion: {context.emotional_consistency.primary_emotional_tone}."
+        )
     if context.cross_modality is not None:
         evidence.append(f"Cross-modality: {context.cross_modality.modality_pattern}.")
     return tuple(evidence[:14])
@@ -1477,7 +1550,9 @@ def _module_kinds(
 ) -> tuple[GenerativeModuleKind, ...]:
     if context.generative_structure is None:
         return ()
-    return tuple(module.kind for module in context.generative_structure.procedural_modules)
+    return tuple(
+        module.kind for module in context.generative_structure.procedural_modules
+    )
 
 
 def _tone(context: _AudioVisualSceneContext) -> EmotionalTone | None:
@@ -1502,20 +1577,20 @@ _PHASE_ORDER: tuple[NarrativePhaseName, ...] = (
 )
 
 _SCENE_ARCS: dict[AudioVisualScenePattern, str] = {
-    "seed_to_expansion": "Begin from a single seed, expand structure and motion, cross a threshold of scale, peak in full form, then resolve into stable breadth.",
-    "descent_to_return": "Descend into darker or denser material, cross a low threshold, return through a peak reveal, and resolve with restored order.",
-    "fragmentation_to_reintegration": "Open with a coherent form, fragment into turbulent pieces, hold sparse threshold stillness, reassemble at climax, and resolve as integrated geometry.",
-    "threshold_crossing": "Approach a boundary, complicate the crossing, pause at the liminal hinge, reveal the changed state, and stabilize after crossing.",
-    "spiral_ascent": "Open with a small spiral, expand upward through layered rotations, cross a vertical threshold, peak in ascent, and resolve as elevated order.",
-    "chaos_to_order": "Begin in unstable noise, develop turbulence, identify a threshold rule, crystallize order at climax, and resolve into coherent structure.",
-    "void_to_emergence": "Open in sparse void, introduce faint signals, cross from absence to form, peak in emergence, and resolve as quiet presence.",
-    "contraction_to_release": "Contract visual and motion energy, increase pressure, pause at compression, release at climax, and resolve into calm expansion.",
-    "ritual_opening_to_climax": "Open ceremonially, layer repeated cues, cross a solemn threshold, peak in synchronized ritual intensity, and resolve with measured calm.",
-    "wave_build_and_collapse": "Open with a small wave, build amplitude, hold crest tension, collapse at climax, and resolve through receding rhythm.",
-    "constellation_activation": "Open with isolated points, activate relations, cross into network coherence, peak as a constellation, and resolve as stable connected light.",
-    "mirror_inversion": "Open with symmetry, destabilize reflection, cross an inversion threshold, peak in mirrored reversal, and resolve into balanced duality.",
-    "pulse_escalation": "Open with a restrained pulse, increase cue density, hold a syncopated threshold, peak in pulse acceleration, and resolve into slower cadence.",
-    "calm_expansion_after_rupture": "Open after rupture, contain scattered motion, cross into calmer alignment, peak in gentle expansion, and resolve as quiet integration.",
+    "seed_to_expansion": "Begin from a single seed, expand structure and motion, cross a threshold of scale, peak in full form, then resolve into stable breadth.",  # noqa: E501
+    "descent_to_return": "Descend into darker or denser material, cross a low threshold, return through a peak reveal, and resolve with restored order.",  # noqa: E501
+    "fragmentation_to_reintegration": "Open with a coherent form, fragment into turbulent pieces, hold sparse threshold stillness, reassemble at climax, and resolve as integrated geometry.",  # noqa: E501
+    "threshold_crossing": "Approach a boundary, complicate the crossing, pause at the liminal hinge, reveal the changed state, and stabilize after crossing.",  # noqa: E501
+    "spiral_ascent": "Open with a small spiral, expand upward through layered rotations, cross a vertical threshold, peak in ascent, and resolve as elevated order.",  # noqa: E501
+    "chaos_to_order": "Begin in unstable noise, develop turbulence, identify a threshold rule, crystallize order at climax, and resolve into coherent structure.",  # noqa: E501
+    "void_to_emergence": "Open in sparse void, introduce faint signals, cross from absence to form, peak in emergence, and resolve as quiet presence.",  # noqa: E501
+    "contraction_to_release": "Contract visual and motion energy, increase pressure, pause at compression, release at climax, and resolve into calm expansion.",  # noqa: E501
+    "ritual_opening_to_climax": "Open ceremonially, layer repeated cues, cross a solemn threshold, peak in synchronized ritual intensity, and resolve with measured calm.",  # noqa: E501
+    "wave_build_and_collapse": "Open with a small wave, build amplitude, hold crest tension, collapse at climax, and resolve through receding rhythm.",  # noqa: E501
+    "constellation_activation": "Open with isolated points, activate relations, cross into network coherence, peak as a constellation, and resolve as stable connected light.",  # noqa: E501
+    "mirror_inversion": "Open with symmetry, destabilize reflection, cross an inversion threshold, peak in mirrored reversal, and resolve into balanced duality.",  # noqa: E501
+    "pulse_escalation": "Open with a restrained pulse, increase cue density, hold a syncopated threshold, peak in pulse acceleration, and resolve into slower cadence.",  # noqa: E501
+    "calm_expansion_after_rupture": "Open after rupture, contain scattered motion, cross into calmer alignment, peak in gentle expansion, and resolve as quiet integration.",  # noqa: E501
 }
 
 _PHASE_TEMPLATES: dict[
@@ -1523,39 +1598,189 @@ _PHASE_TEMPLATES: dict[
     dict[NarrativePhaseName, tuple[str, str, str, str, str]],
 ] = {
     "seed_to_expansion": {
-        "opening": ("Seed", "Establish the origin point.", "Low-density seed point or small geometry.", "Minimal drift or breathing motion.", "Near silence or a sparse pulse."),
-        "development": ("Expansion", "Grow the visible system.", "Increasing rings, branches, or fields.", "Outward expansion with controlled acceleration.", "Pulse density gradually increases."),
-        "threshold": ("Scale Shift", "Mark the change from local to full scale.", "A sparse gap or scale jump.", "Brief pause before expansion resumes.", "Reduce audio density before the scale shift."),
-        "climax": ("Full Form", "Reveal the expanded system.", "Maximum legible breadth and luminosity.", "Largest coherent motion range.", "Pulse reaches strongest emphasis."),
-        "resolution": ("Stable Breadth", "Settle into readable scale.", "Balanced full-field geometry.", "Calmer loop or slow expansion.", "Return to slower cadence."),
+        "opening": (
+            "Seed",
+            "Establish the origin point.",
+            "Low-density seed point or small geometry.",
+            "Minimal drift or breathing motion.",
+            "Near silence or a sparse pulse.",
+        ),
+        "development": (
+            "Expansion",
+            "Grow the visible system.",
+            "Increasing rings, branches, or fields.",
+            "Outward expansion with controlled acceleration.",
+            "Pulse density gradually increases.",
+        ),
+        "threshold": (
+            "Scale Shift",
+            "Mark the change from local to full scale.",
+            "A sparse gap or scale jump.",
+            "Brief pause before expansion resumes.",
+            "Reduce audio density before the scale shift.",
+        ),
+        "climax": (
+            "Full Form",
+            "Reveal the expanded system.",
+            "Maximum legible breadth and luminosity.",
+            "Largest coherent motion range.",
+            "Pulse reaches strongest emphasis.",
+        ),
+        "resolution": (
+            "Stable Breadth",
+            "Settle into readable scale.",
+            "Balanced full-field geometry.",
+            "Calmer loop or slow expansion.",
+            "Return to slower cadence.",
+        ),
     },
     "fragmentation_to_reintegration": {
-        "opening": ("Whole Form", "Show the form before rupture.", "Coherent luminous form in low-to-medium density.", "Slow contraction or orbit.", "Restrained low pulse or drone."),
-        "development": ("Fragmentation", "Break the form into active fragments.", "Particles, shards, or broken contours spread outward.", "Turbulent scatter with readable trajectories.", "Pulse or noise density rises."),
-        "threshold": ("Sparse Stillness", "Create a liminal pause before reassembly.", "Low-density field with visible fragments suspended.", "Motion slows or briefly freezes.", "Audio drops to silence, drone, or thin pulse."),
-        "climax": ("Reassembly", "Synchronize return into a transformed form.", "Fragments spiral or converge into integrated geometry.", "Rapid but readable reassembly acceleration.", "Pulse acceleration supports the convergence."),
-        "resolution": ("Integrated Geometry", "Stabilize the transformed whole.", "Luminous coherent geometry with reduced density.", "Calm expansion or orbit.", "Cadence relaxes after reassembly."),
+        "opening": (
+            "Whole Form",
+            "Show the form before rupture.",
+            "Coherent luminous form in low-to-medium density.",
+            "Slow contraction or orbit.",
+            "Restrained low pulse or drone.",
+        ),
+        "development": (
+            "Fragmentation",
+            "Break the form into active fragments.",
+            "Particles, shards, or broken contours spread outward.",
+            "Turbulent scatter with readable trajectories.",
+            "Pulse or noise density rises.",
+        ),
+        "threshold": (
+            "Sparse Stillness",
+            "Create a liminal pause before reassembly.",
+            "Low-density field with visible fragments suspended.",
+            "Motion slows or briefly freezes.",
+            "Audio drops to silence, drone, or thin pulse.",
+        ),
+        "climax": (
+            "Reassembly",
+            "Synchronize return into a transformed form.",
+            "Fragments spiral or converge into integrated geometry.",
+            "Rapid but readable reassembly acceleration.",
+            "Pulse acceleration supports the convergence.",
+        ),
+        "resolution": (
+            "Integrated Geometry",
+            "Stabilize the transformed whole.",
+            "Luminous coherent geometry with reduced density.",
+            "Calm expansion or orbit.",
+            "Cadence relaxes after reassembly.",
+        ),
     },
     "threshold_crossing": {
-        "opening": ("Approach", "Establish the boundary.", "A visible gate, edge, or central threshold.", "Slow approach or orbit toward the boundary.", "Sparse pulse marks approach."),
-        "development": ("Pressure", "Complicate the crossing.", "Layered density around the boundary.", "Motion compresses toward the hinge.", "Pulse thickens or syncopates."),
-        "threshold": ("Crossing", "Hold the liminal hinge.", "Minimal field, clear boundary, reduced detail.", "Brief stillness or slowed crossing.", "Silence or restrained tone marks the hinge."),
-        "climax": ("Reveal", "Show the changed state after crossing.", "Bright reveal or reorganized structure.", "Motion opens beyond the boundary.", "Pulse returns with stronger clarity."),
-        "resolution": ("Afterimage", "Stabilize the new state.", "Resolved boundary transformed into stable form.", "Motion eases into loop or rest.", "Cadence lowers after reveal."),
+        "opening": (
+            "Approach",
+            "Establish the boundary.",
+            "A visible gate, edge, or central threshold.",
+            "Slow approach or orbit toward the boundary.",
+            "Sparse pulse marks approach.",
+        ),
+        "development": (
+            "Pressure",
+            "Complicate the crossing.",
+            "Layered density around the boundary.",
+            "Motion compresses toward the hinge.",
+            "Pulse thickens or syncopates.",
+        ),
+        "threshold": (
+            "Crossing",
+            "Hold the liminal hinge.",
+            "Minimal field, clear boundary, reduced detail.",
+            "Brief stillness or slowed crossing.",
+            "Silence or restrained tone marks the hinge.",
+        ),
+        "climax": (
+            "Reveal",
+            "Show the changed state after crossing.",
+            "Bright reveal or reorganized structure.",
+            "Motion opens beyond the boundary.",
+            "Pulse returns with stronger clarity.",
+        ),
+        "resolution": (
+            "Afterimage",
+            "Stabilize the new state.",
+            "Resolved boundary transformed into stable form.",
+            "Motion eases into loop or rest.",
+            "Cadence lowers after reveal.",
+        ),
     },
     "ritual_opening_to_climax": {
-        "opening": ("Invocation", "Introduce ceremonial order.", "Symmetric or radial anchor with restrained light.", "Measured repetition begins.", "Low ceremonial pulse or drone."),
-        "development": ("Layering", "Accumulate repeated ritual cues.", "More rings, motifs, or repeated figures.", "Pulsed expansion with deliberate rests.", "Pulse layers increase without clutter."),
-        "threshold": ("Pause", "Create solemn stillness before the peak.", "Sparse radial field or dimmed mandala.", "Motion nearly stops.", "Audio thins or pauses."),
-        "climax": ("Ritual Peak", "Synchronize motif, rhythm, and light.", "Bright radial or mandala peak.", "Measured expansion reaches maximum intensity.", "Pulse reaches strongest synchronized emphasis."),
-        "resolution": ("Closing", "Return to ceremonial calm.", "Simplified stable geometry.", "Slow symmetrical settling.", "Cadence returns to low pulse."),
+        "opening": (
+            "Invocation",
+            "Introduce ceremonial order.",
+            "Symmetric or radial anchor with restrained light.",
+            "Measured repetition begins.",
+            "Low ceremonial pulse or drone.",
+        ),
+        "development": (
+            "Layering",
+            "Accumulate repeated ritual cues.",
+            "More rings, motifs, or repeated figures.",
+            "Pulsed expansion with deliberate rests.",
+            "Pulse layers increase without clutter.",
+        ),
+        "threshold": (
+            "Pause",
+            "Create solemn stillness before the peak.",
+            "Sparse radial field or dimmed mandala.",
+            "Motion nearly stops.",
+            "Audio thins or pauses.",
+        ),
+        "climax": (
+            "Ritual Peak",
+            "Synchronize motif, rhythm, and light.",
+            "Bright radial or mandala peak.",
+            "Measured expansion reaches maximum intensity.",
+            "Pulse reaches strongest synchronized emphasis.",
+        ),
+        "resolution": (
+            "Closing",
+            "Return to ceremonial calm.",
+            "Simplified stable geometry.",
+            "Slow symmetrical settling.",
+            "Cadence returns to low pulse.",
+        ),
     },
     "pulse_escalation": {
-        "opening": ("Pulse Seed", "Establish the timing source.", "Small repeated visual pulse.", "Low-amplitude oscillation.", "Sparse pulse."),
-        "development": ("Pulse Build", "Increase timing density.", "Growing repeated forms.", "Motion follows pulse acceleration.", "Pulse rate or density increases."),
-        "threshold": ("Sync Break", "Create a rhythmic gap.", "Reduced visual density.", "Motion pauses or desynchronizes briefly.", "Silence or off-beat cue."),
-        "climax": ("Pulse Peak", "Synchronize strongest pulse with visual event.", "Maximum pulse-linked brightness or density.", "Fastest readable motion.", "Strongest pulse emphasis."),
-        "resolution": ("Cadence Release", "Relax timing after peak.", "Lower-density repeated forms.", "Motion eases to slower cadence.", "Pulse slows or softens."),
+        "opening": (
+            "Pulse Seed",
+            "Establish the timing source.",
+            "Small repeated visual pulse.",
+            "Low-amplitude oscillation.",
+            "Sparse pulse.",
+        ),
+        "development": (
+            "Pulse Build",
+            "Increase timing density.",
+            "Growing repeated forms.",
+            "Motion follows pulse acceleration.",
+            "Pulse rate or density increases.",
+        ),
+        "threshold": (
+            "Sync Break",
+            "Create a rhythmic gap.",
+            "Reduced visual density.",
+            "Motion pauses or desynchronizes briefly.",
+            "Silence or off-beat cue.",
+        ),
+        "climax": (
+            "Pulse Peak",
+            "Synchronize strongest pulse with visual event.",
+            "Maximum pulse-linked brightness or density.",
+            "Fastest readable motion.",
+            "Strongest pulse emphasis.",
+        ),
+        "resolution": (
+            "Cadence Release",
+            "Relax timing after peak.",
+            "Lower-density repeated forms.",
+            "Motion eases to slower cadence.",
+            "Pulse slows or softens.",
+        ),
     },
 }
 

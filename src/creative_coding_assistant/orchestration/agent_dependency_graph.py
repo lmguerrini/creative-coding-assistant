@@ -133,9 +133,7 @@ class AgentDependencyGraphRegistry(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["agent_dependency_graph_registry"] = (
-        "agent_dependency_graph_registry"
-    )
+    role: Literal["agent_dependency_graph_registry"] = "agent_dependency_graph_registry"
     serialization_version: Literal["agent_dependency_graph.v1"] = (
         AGENT_DEPENDENCY_GRAPH_SERIALIZATION_VERSION
     )
@@ -342,7 +340,9 @@ _NODE_ORDER = _node_order()
 
 def _node(node_id: str) -> AgentDependencyNode:
     upstream = tuple(edge.from_node_id for edge in _EDGES if edge.to_node_id == node_id)
-    downstream = tuple(edge.to_node_id for edge in _EDGES if edge.from_node_id == node_id)
+    downstream = tuple(
+        edge.to_node_id for edge in _EDGES if edge.from_node_id == node_id
+    )
     if node_id.startswith("stage::"):
         stage_id = node_id.removeprefix("stage::")
         return AgentDependencyNode(
@@ -368,7 +368,9 @@ def _node(node_id: str) -> AgentDependencyNode:
             source_registries=("shared_context_view_registry",),
         )
     agent_id = node_id.removeprefix("agent::")
-    contract = next(contract for contract in AGENT_CONTRACTS if contract.agent_id == agent_id)
+    contract = next(
+        contract for contract in AGENT_CONTRACTS if contract.agent_id == agent_id
+    )
     return AgentDependencyNode(
         node_id=node_id,
         node_type="agent",

@@ -370,9 +370,7 @@ class RegistryReviewFinding(PassiveBoundaryModel):
 class RegistryIntegrityVerification(PassiveRegistryModel):
     """Integrity verification for registry ids, families, schemas, and exports."""
 
-    role: Literal["registry_integrity_verification"] = (
-        "registry_integrity_verification"
-    )
+    role: Literal["registry_integrity_verification"] = "registry_integrity_verification"
     serialization_version: Literal["registry_integrity_verification.v1"] = (
         REGISTRY_INTEGRITY_VERIFICATION_SERIALIZATION_VERSION
     )
@@ -508,8 +506,7 @@ class RegistryDependencyEdge(PassiveBoundaryModel):
     @model_validator(mode="after")
     def _edge_id_matches_source_target(self) -> Self:
         expected = (
-            "registry_dependency::"
-            f"{self.source_registry_id}->{self.target_registry_id}"
+            f"registry_dependency::{self.source_registry_id}->{self.target_registry_id}"
         )
         if self.edge_id != expected:
             raise ValueError("edge_id must match source and target")
@@ -599,9 +596,7 @@ class ArchitectureSimplificationReview(PassiveRegistryModel):
 class RegistryContractConsolidationPlan(PassiveRegistryModel):
     """Aggregate V7.3 registry and contract consolidation plan."""
 
-    role: Literal["registry_contract_consolidation"] = (
-        "registry_contract_consolidation"
-    )
+    role: Literal["registry_contract_consolidation"] = "registry_contract_consolidation"
     serialization_version: Literal["registry_contract_consolidation.v1"] = (
         REGISTRY_CONTRACT_CONSOLIDATION_SERIALIZATION_VERSION
     )
@@ -1006,8 +1001,7 @@ def build_registry_dependency_graph(
     edges = tuple(
         RegistryDependencyEdge(
             edge_id=(
-                "registry_dependency::"
-                f"{source.source_registry_id}->{dependency_id}"
+                f"registry_dependency::{source.source_registry_id}->{dependency_id}"
             ),
             source_registry_id=source.source_registry_id,
             target_registry_id=dependency_id,
@@ -1230,9 +1224,7 @@ def _source_registry_records() -> tuple[RegistrySourceRecord, ...]:
                 "FailureTypeDefinition",
                 "FailureEventContract",
             ),
-            dependency_registry_ids=(
-                "workflow_runtime::runtime_graph_consolidation",
-            ),
+            dependency_registry_ids=("workflow_runtime::runtime_graph_consolidation",),
         ),
         _source_spec(
             source_registry_id="agent_contracts::agent_contract_registry",

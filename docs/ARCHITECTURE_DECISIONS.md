@@ -13,8 +13,10 @@
   readiness helpers, V6.1 adaptive learning helpers, V6.2 creative memory
   helpers, V6.3 knowledge evolution helpers, V6.4 autonomous research
   helpers, V6.5 self-evolution governance helpers, and V6.6 cognitive OS
-  core helpers, and V7.1 runtime graph consolidation helpers are metadata
-  surfaces, not additional runtime nodes.
+  core helpers, V7.1 runtime graph consolidation helpers, V7.2 typed failure
+  contracts, V7.3 registry consolidation helpers, V7.4 quality gates, and
+  V7.5 production API/runtime contracts are metadata, validation, or bridge
+  stabilization surfaces, not additional runtime nodes.
 - Keep the Next.js workstation responsible for product inspection, preview,
   comparison, export, telemetry, workflow visibility, and operator controls.
 
@@ -39,6 +41,10 @@ schedule, plan, route, write blackboard state, enforce governance or safety
 policies, emit HITL requests, apply HITL decisions, run deployment storage
 writes, mutate runtime graph contracts, apply graph diffs, persist trace
 records, or introduce runtime synchronization behavior.
+V7.5 production API/runtime contracts reuse the existing Chroma retrieval
+database and workspace-session persistence boundary. They do not create new
+storage backends, write telemetry stores, persist traces, mutate retrieval
+ownership, or change workspace storage ownership.
 
 ## Metadata Layering
 
@@ -170,6 +176,26 @@ records, or introduce runtime synchronization behavior.
   providers/models, execute providers, control workflows, subscribe to
   streams, write storage, apply Runtime Evolution, or mutate generated
   output.
+- V7.3 Registry & Contract Consolidation helpers describe passive registry
+  family split, shared builders, shared passive boundary base models,
+  inventory, coverage, normalized schema, import/export, review,
+  compatibility, migration, explainability, dependency graph, diff, and
+  simplification metadata without applying migrations, rewriting imports,
+  changing provider routing, controlling workflows, writing storage, or
+  mutating generated output.
+- V7.4 E2E Quality & CI Hardening describes Playwright, Vitest, backend log,
+  docs, dashboard, CI, release-checklist, performance-budget, and workstation
+  regression gates over existing surfaces without changing backend API
+  contracts, provider/model routing, workflow control, storage ownership,
+  Runtime Evolution, generated output, or release operations.
+- V7.5 Production API & Runtime Stabilization describes versioned API, error,
+  stream, workspace-session, and health contracts; route manifest hardening;
+  production configuration validation; Chroma dependency health reporting;
+  health/live/ready endpoints; telemetry-ready API events; structured logging
+  configuration; configuration migration aliases; and release checklist
+  generation over the existing backend bridge. It preserves provider/model
+  routing, LangGraph workflow order, prompt/Jinja rendering, retrieval
+  ownership, workspace storage ownership, and generated output semantics.
 
 ## V4.3 Boundary Decision
 
@@ -669,6 +695,28 @@ Evolution, mutate generated output, start V7.5 production API/runtime work, or
 perform merge, push, or tag operations. All 23 contractual V7.4 roadmap items
 remain traceable to explicit quality gates and validation evidence.
 
+## V7.5 Production API & Runtime Stabilization Boundary
+
+V7.5 Production API & Runtime Stabilization is a bridge-runtime hardening layer
+over the existing Python backend WSGI surfaces. It owns shared versioned API
+contracts, error response contracts, assistant stream contract headers,
+workspace-session contract headers, health/live/ready endpoint contracts,
+route manifest stabilization, production configuration validation, dependency
+health reports, telemetry-ready API events, structured logging configuration,
+configuration migration aliases, and V7.5 release checklist generation.
+
+It may normalize browser-facing API errors, preserve legacy top-level error
+fields for compatibility, expose deterministic liveness/readiness payloads,
+guard the local wsgiref bridge from accidental production use, and report
+dependency/configuration readiness without importing external services. It
+must not change provider/model routing, execute providers differently, change
+LangGraph workflow order, mutate workflow graphs, alter prompt or Jinja
+rendering, change retrieval or KB ownership, change workspace storage
+ownership, emit external telemetry, deploy services, apply Runtime Evolution,
+mutate generated output, or perform merge, push, or tag operations. All 22
+contractual V7.5 roadmap items remain traceable to explicit API/runtime
+contracts and validation evidence.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -699,6 +747,7 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - passive V7.2 typed failure taxonomy contracts and registries
 - passive V7.3 registry and contract consolidation metadata
 - V7.4 E2E/CI quality gates and validation infrastructure
+- V7.5 production API/runtime contracts and bridge stabilization
 - future active V4 Agentic Studio, live adaptive runtime control, and later
   HoloMind / HoloGenesis Cognitive OS work
 

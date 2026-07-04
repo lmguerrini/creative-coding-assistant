@@ -59,7 +59,11 @@ _CLAIMS: dict[DebateTopicId, tuple[str, tuple[str, ...], tuple[str, ...]]] = {
     "curation_refinement_need": (
         "creative_curator_agent",
         ("critic_agent", "refiner_agent"),
-        ("curation_context_notes", "quality_review_signals", "revision_candidate_notes"),
+        (
+            "curation_context_notes",
+            "quality_review_signals",
+            "revision_candidate_notes",
+        ),
     ),
     "final_synthesis_readiness": (
         "final_synthesizer_agent",
@@ -187,8 +191,12 @@ class AgentDebateRegistry(BaseModel):
             participant.agent_id for participant in self.participants
         )
         derived_claim_ids = tuple(claim.claim_id for claim in self.claims)
-        derived_round_ids = tuple(round_contract.round_id for round_contract in self.rounds)
-        derived_topic_ids = tuple(round_contract.topic_id for round_contract in self.rounds)
+        derived_round_ids = tuple(
+            round_contract.round_id for round_contract in self.rounds
+        )
+        derived_topic_ids = tuple(
+            round_contract.topic_id for round_contract in self.rounds
+        )
         if self.participant_agent_ids != derived_participant_ids:
             raise ValueError("participant_agent_ids must match participants")
         if self.claim_ids != derived_claim_ids:
@@ -208,7 +216,9 @@ class AgentDebateRegistry(BaseModel):
                 raise ValueError("counterclaim_agent_ids must be known participants")
         for round_contract in self.rounds:
             if not set(round_contract.participant_agent_ids).issubset(known_agents):
-                raise ValueError("round participant_agent_ids must be known participants")
+                raise ValueError(
+                    "round participant_agent_ids must be known participants"
+                )
             if not set(round_contract.claim_ids).issubset(known_claims):
                 raise ValueError("round claim_ids must be known claims")
         return self
@@ -323,7 +333,9 @@ AGENT_DEBATE_REGISTRY = AgentDebateRegistry(
     participants=DEBATE_PARTICIPANTS,
     claims=DEBATE_CLAIMS,
     rounds=DEBATE_ROUNDS,
-    participant_agent_ids=tuple(participant.agent_id for participant in DEBATE_PARTICIPANTS),
+    participant_agent_ids=tuple(
+        participant.agent_id for participant in DEBATE_PARTICIPANTS
+    ),
     claim_ids=tuple(claim.claim_id for claim in DEBATE_CLAIMS),
     round_ids=tuple(round_contract.round_id for round_contract in DEBATE_ROUNDS),
     topic_ids=tuple(round_contract.topic_id for round_contract in DEBATE_ROUNDS),

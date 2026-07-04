@@ -67,8 +67,7 @@ class CreativeConstraintSolverTests(unittest.TestCase):
         )
         self.assertTrue(
             any(
-                item.source_axis == "complexity"
-                and item.target_axis == "performance"
+                item.source_axis == "complexity" and item.target_axis == "performance"
                 for item in solution.tradeoffs
             ),
             solution.tradeoffs,

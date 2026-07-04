@@ -37,12 +37,8 @@ ProductionReadinessArea = Literal[
 ]
 ProductionReadinessStatus = Literal["ready", "guarded", "blocked"]
 
-PRODUCTION_READINESS_RECORD_SERIALIZATION_VERSION = (
-    "production_readiness_record.v1"
-)
-PRODUCTION_READINESS_REVIEW_SERIALIZATION_VERSION = (
-    "production_readiness_review.v1"
-)
+PRODUCTION_READINESS_RECORD_SERIALIZATION_VERSION = "production_readiness_record.v1"
+PRODUCTION_READINESS_REVIEW_SERIALIZATION_VERSION = "production_readiness_review.v1"
 PRODUCTION_READINESS_REVIEW_AUTHORITY_BOUNDARY = (
     "V5.6 production readiness review metadata aggregates configuration, "
     "safety, UX explainability, deployment, deterministic failure, and MVP demo "

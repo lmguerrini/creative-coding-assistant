@@ -276,9 +276,9 @@ class KnowledgeEvolutionSecondarySurfaceEntry(BaseModel):
     workflow_execution_implemented: Literal[False] = False
     generated_output_mutation_implemented: Literal[False] = False
     runtime_evolution_implemented: Literal[False] = False
-    serialization_version: Literal[
-        "knowledge_evolution_secondary_surface_entry.v1"
-    ] = KNOWLEDGE_EVOLUTION_SECONDARY_ENTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["knowledge_evolution_secondary_surface_entry.v1"] = (
+        KNOWLEDGE_EVOLUTION_SECONDARY_ENTRY_SERIALIZATION_VERSION
+    )
     advisory_only: Literal[True] = True
 
     @model_validator(mode="after")
@@ -318,9 +318,9 @@ class KnowledgeEvolutionSecondarySurfacePlan(BaseModel):
     role: Literal["knowledge_evolution_secondary_surface"] = (
         "knowledge_evolution_secondary_surface"
     )
-    serialization_version: Literal[
-        "knowledge_evolution_secondary_surface_plan.v1"
-    ] = KNOWLEDGE_EVOLUTION_SECONDARY_PLAN_SERIALIZATION_VERSION
+    serialization_version: Literal["knowledge_evolution_secondary_surface_plan.v1"] = (
+        KNOWLEDGE_EVOLUTION_SECONDARY_PLAN_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=KNOWLEDGE_EVOLUTION_SECONDARY_AUTHORITY_BOUNDARY,
         max_length=3000,
@@ -481,9 +481,7 @@ class KnowledgeEvolutionSecondarySurfacePlan(BaseModel):
             raise ValueError("entry_count must match entries")
         if self.candidate_entry_count != len(self.candidate_entry_ids):
             raise ValueError("candidate_entry_count must match entries")
-        if self.review_required_entry_count != len(
-            self.review_required_entry_ids
-        ):
+        if self.review_required_entry_count != len(self.review_required_entry_ids):
             raise ValueError("review_required_entry_count must match entries")
         if self.guarded_entry_count != len(self.guarded_entry_ids):
             raise ValueError("guarded_entry_count must match entries")

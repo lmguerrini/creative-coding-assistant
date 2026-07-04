@@ -32,9 +32,7 @@ ExplorationBudgetPosture = Literal["narrow", "moderate", "broad", "guarded"]
 ExplorationBudgetPriority = Literal["critical", "high", "medium", "low"]
 ExplorationBudgetPressure = Literal["low", "medium", "high"]
 
-EXPLORATION_BUDGET_ALLOCATION_SERIALIZATION_VERSION = (
-    "exploration_budget_allocation.v1"
-)
+EXPLORATION_BUDGET_ALLOCATION_SERIALIZATION_VERSION = "exploration_budget_allocation.v1"
 EXPLORATION_BUDGET_PLAN_SERIALIZATION_VERSION = "exploration_budget_plan.v1"
 EXPLORATION_BUDGET_PLANNER_AUTHORITY_BOUNDARY = (
     "Exploration budget planning derives advisory variant and refinement-pass "
@@ -139,10 +137,7 @@ class ExplorationBudgetAllocation(BaseModel):
             raise ValueError(
                 "planned_refinement_passes must not exceed requested_refinement_passes"
             )
-        if (
-            self.planned_refinement_passes
-            > self.max_advisory_refinement_passes
-        ):
+        if self.planned_refinement_passes > self.max_advisory_refinement_passes:
             raise ValueError(
                 "planned_refinement_passes must not exceed "
                 "max_advisory_refinement_passes"
@@ -213,7 +208,9 @@ class ExplorationBudgetPlan(BaseModel):
             raise ValueError("allocation_ids must be unique")
         if self.allocation_ids != derived_allocation_ids:
             raise ValueError("allocation_ids must match allocations")
-        if self.topic_ids != tuple(allocation.topic_id for allocation in self.allocations):
+        if self.topic_ids != tuple(
+            allocation.topic_id for allocation in self.allocations
+        ):
             raise ValueError("topic_ids must match allocations")
         if self.source_budget_profile_ids != tuple(
             allocation.source_budget_profile_id for allocation in self.allocations
@@ -237,17 +234,14 @@ class ExplorationBudgetPlan(BaseModel):
         if self.total_planned_variants != planned_variants:
             raise ValueError("total_planned_variants must match allocations")
         if self.total_requested_refinement_passes != requested_refinement:
-            raise ValueError(
-                "total_requested_refinement_passes must match allocations"
-            )
+            raise ValueError("total_requested_refinement_passes must match allocations")
         if self.total_planned_refinement_passes != planned_refinement:
             raise ValueError("total_planned_refinement_passes must match allocations")
         if self.total_planned_variants > self.max_total_variants:
             raise ValueError("total_planned_variants must fit max_total_variants")
         if self.total_planned_refinement_passes > self.max_total_refinement_passes:
             raise ValueError(
-                "total_planned_refinement_passes must fit "
-                "max_total_refinement_passes"
+                "total_planned_refinement_passes must fit max_total_refinement_passes"
             )
         limited = (
             planned_variants < requested_variants
@@ -283,7 +277,9 @@ def plan_exploration_budget(
     workflow_pressure = (
         workflow_cost.estimated_cost_pressure if workflow_cost is not None else None
     )
-    context_pressure = context_budget.budget_pressure if context_budget is not None else None
+    context_pressure = (
+        context_budget.budget_pressure if context_budget is not None else None
+    )
     context_over_budget = (
         context_budget.over_budget_tokens if context_budget is not None else 0
     )
@@ -499,7 +495,11 @@ def _variant_capacity(
     context_over_budget: int,
 ) -> int:
     capacity = max_total_variants
-    if creative_level == "low" and workflow_pressure is None and context_pressure is None:
+    if (
+        creative_level == "low"
+        and workflow_pressure is None
+        and context_pressure is None
+    ):
         capacity = min(capacity, 4)
     if workflow_pressure == "high":
         capacity -= 2
@@ -536,7 +536,10 @@ def _allocation_pressure(
     requested_refinement: int,
     planned_refinement: int,
 ) -> ExplorationBudgetPressure:
-    if planned_variants < requested_variants or planned_refinement < requested_refinement:
+    if (
+        planned_variants < requested_variants
+        or planned_refinement < requested_refinement
+    ):
         return "high"
     if requested_variants + requested_refinement >= 3:
         return "medium"
@@ -584,7 +587,9 @@ def _plan_actions(budget_limited: bool) -> tuple[str, ...]:
         "Preserve workflow, provider, context, and output mutation boundaries.",
     ]
     if budget_limited:
-        actions.append("Flag reduced exploration capacity for later strategy selection.")
+        actions.append(
+            "Flag reduced exploration capacity for later strategy selection."
+        )
     else:
         actions.append("Keep registry exploration capacities available to planners.")
     return tuple(actions)

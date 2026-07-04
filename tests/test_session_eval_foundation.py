@@ -560,12 +560,8 @@ def _trace_events_with_assembled_context(*, answer: str) -> tuple[StreamEvent, .
                                 "domain": "react_three_fiber",
                                 "source_type": "guide",
                                 "publisher": "pmndrs",
-                                "registry_title": (
-                                    "Introduction - React Three Fiber"
-                                ),
-                                "document_title": (
-                                    "Introduction - React Three Fiber"
-                                ),
+                                "registry_title": ("Introduction - React Three Fiber"),
+                                "document_title": ("Introduction - React Three Fiber"),
                                 "source_url": (
                                     "https://r3f.docs.pmnd.rs/getting-started/"
                                     "introduction"

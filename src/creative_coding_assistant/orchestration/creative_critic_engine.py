@@ -369,8 +369,12 @@ def creative_critic_prompt_lines(profile: CreativeCriticProfile) -> tuple[str, .
             f"feasibility {profile.feasibility_quality:.2f}."
         ),
     ]
-    lines.extend(f"Creative critic strength: {item}" for item in profile.creative_strengths)
-    lines.extend(f"Creative critic weakness: {item}" for item in profile.creative_weaknesses)
+    lines.extend(
+        f"Creative critic strength: {item}" for item in profile.creative_strengths
+    )
+    lines.extend(
+        f"Creative critic weakness: {item}" for item in profile.creative_weaknesses
+    )
     lines.extend(
         f"Creative critic missing information: {item}"
         for item in profile.missing_information
@@ -383,8 +387,12 @@ def creative_critic_prompt_lines(profile: CreativeCriticProfile) -> tuple[str, .
         f"Creative critic improvement opportunity: {item}"
         for item in profile.improvement_opportunities
     )
-    lines.extend(f"Creative critic HITL question: {item}" for item in profile.hitl_questions)
-    lines.extend(f"Creative critic guidance: {item}" for item in profile.prompt_guidance)
+    lines.extend(
+        f"Creative critic HITL question: {item}" for item in profile.hitl_questions
+    )
+    lines.extend(
+        f"Creative critic guidance: {item}" for item in profile.prompt_guidance
+    )
     return tuple(lines[:64])
 
 
@@ -425,14 +433,20 @@ def _quality_scores(
     artifacts: Sequence[WorkflowArtifact],
 ) -> dict[str, float]:
     query = request.query.lower()
-    artifact_scores = [item.quality_score for item in artifacts if item.quality_score is not None]
-    artifact_average = sum(artifact_scores) / len(artifact_scores) if artifact_scores else None
+    artifact_scores = [
+        item.quality_score for item in artifacts if item.quality_score is not None
+    ]
+    artifact_average = (
+        sum(artifact_scores) / len(artifact_scores) if artifact_scores else None
+    )
     readiness = (
         creative_quality_prediction.readiness_score / 100
         if creative_quality_prediction is not None
         else None
     )
-    artifact_risk = artifact_critic.risk_assessment if artifact_critic is not None else None
+    artifact_risk = (
+        artifact_critic.risk_assessment if artifact_critic is not None else None
+    )
 
     concept = _score(
         0.34,
@@ -446,7 +460,9 @@ def _quality_scores(
             creative_composition,
         ),
         bonus=(readiness or 0) * 0.12,
-        penalties=(0.08 if _contains_any(query, ("vague", "anything", "whatever")) else 0),
+        penalties=(
+            0.08 if _contains_any(query, ("vague", "anything", "whatever")) else 0
+        ),
     )
     execution = _score(
         0.32,
@@ -508,10 +524,18 @@ def _quality_scores(
             artifact_capability_matrix,
             creative_plan,
         ),
-        bonus=0.08 if artifacts and any(item.preview_eligible for item in artifacts) else 0,
+        bonus=0.08
+        if artifacts and any(item.preview_eligible for item in artifacts)
+        else 0,
         penalties=(
-            _sequence_penalty(getattr(runtime_compatibility, "unsupported_runtimes", ())) * 0.45
-            + _sequence_penalty(getattr(runtime_compatibility, "implementation_risks", ())) * 0.6
+            _sequence_penalty(
+                getattr(runtime_compatibility, "unsupported_runtimes", ())
+            )
+            * 0.45
+            + _sequence_penalty(
+                getattr(runtime_compatibility, "implementation_risks", ())
+            )
+            * 0.6
             + _sequence_penalty(getattr(artifact_critic, "runtime_concerns", ())) * 0.6
         ),
     )
@@ -527,7 +551,9 @@ def _quality_scores(
             cross_modality,
             audio_visual_scene,
         ),
-        bonus=0.05 if _contains_any(query, ("novel", "surprising", "unusual", "experimental")) else 0,
+        bonus=0.05
+        if _contains_any(query, ("novel", "surprising", "unusual", "experimental"))
+        else 0,
         penalties=0.08 if _contains_any(query, ("simple", "basic", "minimal")) else 0,
     )
     clarity = _score(
@@ -565,7 +591,10 @@ def _quality_scores(
         penalties=(
             _risk_penalty(creative_quality_prediction)
             + _artifact_risk_penalty(artifact_risk)
-            + _sequence_penalty(getattr(runtime_compatibility, "implementation_risks", ())) * 0.6
+            + _sequence_penalty(
+                getattr(runtime_compatibility, "implementation_risks", ())
+            )
+            * 0.6
         ),
     )
     return {
@@ -675,11 +704,14 @@ def _unsupported_assumptions(
     artifacts: Sequence[WorkflowArtifact],
 ) -> tuple[str, ...]:
     assumptions: list[str] = [
-        "Creative Critic findings are advisory metadata and must not modify, reject, refine, retry, route, preview, or execute anything."
+        "Creative Critic findings are advisory metadata and must not modify, reject, refine, retry, route, preview, or execute anything."  # noqa: E501
     ]
     if creative_plan is not None and not creative_plan.runtime_available:
         assumptions.append("Live runtime availability is not guaranteed by the plan.")
-    if creative_constraints is not None and creative_constraints.runtime_fit != "supported":
+    if (
+        creative_constraints is not None
+        and creative_constraints.runtime_fit != "supported"
+    ):
         assumptions.append(
             f"Runtime fit is {creative_constraints.runtime_fit}; generation should not assume full runtime support."
         )
@@ -692,7 +724,9 @@ def _unsupported_assumptions(
             for item in runtime_compatibility.unsupported_runtimes[:3]
         )
     if artifact_capability_matrix is not None:
-        assumptions.extend(artifact_capability_matrix.unsupported_or_risky_capabilities[:3])
+        assumptions.extend(
+            artifact_capability_matrix.unsupported_or_risky_capabilities[:3]
+        )
     if artifact_critic is not None:
         assumptions.extend(artifact_critic.unsupported_assumptions[:3])
     for artifact in artifacts[:3]:
@@ -717,12 +751,15 @@ def _creative_strengths(
 ) -> tuple[str, ...]:
     strengths: list[str] = []
     if creative_intent is not None:
-        strengths.append(f"Intent is decomposed around {creative_intent.primary_expression}.")
+        strengths.append(
+            f"Intent is decomposed around {creative_intent.primary_expression}."
+        )
     if creative_hierarchy is not None:
         strengths.append(
             "Hierarchy gives critic-visible priorities: "
             + ", ".join(
-                item.dimension for item in creative_hierarchy.primary_creative_priorities[:3]
+                item.dimension
+                for item in creative_hierarchy.primary_creative_priorities[:3]
             )
             + "."
         )
@@ -732,11 +769,14 @@ def _creative_strengths(
         )
     if creative_techniques is not None:
         strengths.append(
-            f"Technique {creative_techniques.primary_technique} has {creative_techniques.compatibility} strategy compatibility."
+            f"Technique {creative_techniques.primary_technique} has {creative_techniques.compatibility} strategy compatibility."  # noqa: E501
         )
-    if creative_quality_prediction is not None and creative_quality_prediction.readiness_score >= 70:
+    if (
+        creative_quality_prediction is not None
+        and creative_quality_prediction.readiness_score >= 70
+    ):
         strengths.append(
-            f"Quality predictor estimates {creative_quality_prediction.predicted_quality_level} readiness at {creative_quality_prediction.readiness_score}/100."
+            f"Quality predictor estimates {creative_quality_prediction.predicted_quality_level} readiness at {creative_quality_prediction.readiness_score}/100."  # noqa: E501
         )
     if artifact_plan is not None:
         strengths.append(
@@ -745,10 +785,14 @@ def _creative_strengths(
     if artifact_critic is not None and artifact_critic.strengths:
         strengths.append(f"Artifact critic strength: {artifact_critic.strengths[0]}")
     if artifacts:
-        strengths.append(f"Artifact-aware critique can inspect {len(artifacts)} generated artifact(s).")
+        strengths.append(
+            f"Artifact-aware critique can inspect {len(artifacts)} generated artifact(s)."
+        )
     for label, score in qualities.items():
         if score >= 0.78:
-            strengths.append(f"{label.replace('_', ' ').title()} quality is strong ({score:.2f}).")
+            strengths.append(
+                f"{label.replace('_', ' ').title()} quality is strong ({score:.2f})."
+            )
     return _dedupe(strengths)[:10] or (
         "Creative Critic has enough request context for bounded metadata-only assessment.",
     )
@@ -765,9 +809,13 @@ def _creative_weaknesses(
     weaknesses: list[str] = []
     for label, score in qualities.items():
         if score < 0.58:
-            weaknesses.append(f"{label.replace('_', ' ').title()} quality is weak ({score:.2f}).")
+            weaknesses.append(
+                f"{label.replace('_', ' ').title()} quality is weak ({score:.2f})."
+            )
     if missing_information:
-        weaknesses.append(f"Critique is constrained by {len(missing_information)} missing information signal(s).")
+        weaknesses.append(
+            f"Critique is constrained by {len(missing_information)} missing information signal(s)."
+        )
     if unsupported_assumptions:
         weaknesses.append(
             f"Critique depends on {len(unsupported_assumptions)} unsupported-assumption guardrail(s)."
@@ -809,7 +857,9 @@ def _risk_assessment(
         )
         for item in missing_information
     )
-    if (core_missing and len(missing_information) >= 4) or min(qualities.values()) < 0.20:
+    if (core_missing and len(missing_information) >= 4) or min(
+        qualities.values()
+    ) < 0.20:
         return "blocked"
     if artifact_critic is not None and artifact_critic.risk_assessment == "blocked":
         return "blocked"
@@ -849,9 +899,13 @@ def _improvement_opportunities(
             f"Improve {label.replace('_', ' ')} clarity before expanding scope ({score:.2f})."
         )
     if missing_information:
-        opportunities.append(f"Resolve or caveat missing critic input: {missing_information[0]}")
+        opportunities.append(
+            f"Resolve or caveat missing critic input: {missing_information[0]}"
+        )
     if unsupported_assumptions:
-        opportunities.append(f"Preserve unsupported-assumption caveat: {unsupported_assumptions[0]}")
+        opportunities.append(
+            f"Preserve unsupported-assumption caveat: {unsupported_assumptions[0]}"
+        )
     if creative_quality_prediction is not None:
         opportunities.extend(creative_quality_prediction.prompt_guidance[:2])
     if artifact_critic is not None:
@@ -859,7 +913,9 @@ def _improvement_opportunities(
     if artifact_refiner is not None:
         opportunities.extend(artifact_refiner.priority_improvements[:1])
     if artifact_intelligence_synthesis is not None:
-        opportunities.append(artifact_intelligence_synthesis.recommended_strategy_summary)
+        opportunities.append(
+            artifact_intelligence_synthesis.recommended_strategy_summary
+        )
     if risk in {"high", "blocked"}:
         opportunities.append(
             "Keep the critique visible as advisory guidance and ask HITL before scope expansion."
@@ -879,7 +935,9 @@ def _hitl_questions(
     if risk in {"high", "blocked"}:
         questions.append(f"Should generation proceed with Creative Critic risk {risk}?")
     if missing_information:
-        questions.append(f"Should this missing critic input be resolved: {missing_information[0]}")
+        questions.append(
+            f"Should this missing critic input be resolved: {missing_information[0]}"
+        )
     if unsupported_assumptions:
         questions.append(
             f"Should this unsupported assumption be treated as a caveat: {unsupported_assumptions[0]}"
@@ -905,7 +963,9 @@ def _prompt_guidance(
         ),
     ]
     if risk in {"high", "blocked"}:
-        guidance.append("Surface critic risk and HITL questions before expanding implementation scope.")
+        guidance.append(
+            "Surface critic risk and HITL questions before expanding implementation scope."
+        )
     guidance.extend(opportunities[:3])
     return _dedupe(guidance)[:8]
 
@@ -988,20 +1048,26 @@ def _evidence(
         )
     if creative_quality_prediction is not None:
         evidence.append(
-            f"Quality predictor: {creative_quality_prediction.predicted_quality_level}; readiness {creative_quality_prediction.readiness_score}/100."
+            f"Quality predictor: {creative_quality_prediction.predicted_quality_level}; readiness {creative_quality_prediction.readiness_score}/100."  # noqa: E501
         )
     if artifact_plan is not None:
-        evidence.append(f"Artifact plan: {artifact_plan.artifact_type}; {artifact_plan.artifact_family}.")
+        evidence.append(
+            f"Artifact plan: {artifact_plan.artifact_type}; {artifact_plan.artifact_family}."
+        )
     if artifact_critic is not None:
         evidence.append(
-            f"Artifact critic: {artifact_critic.risk_assessment} risk; {artifact_critic.critique_confidence:.2f} confidence."
+            f"Artifact critic: {artifact_critic.risk_assessment} risk; {artifact_critic.critique_confidence:.2f} confidence."  # noqa: E501
         )
     if generated_response is not None:
-        evidence.append(f"Generated response available: {len(generated_response)} characters.")
+        evidence.append(
+            f"Generated response available: {len(generated_response)} characters."
+        )
     if artifacts:
         evidence.append(
             "Artifacts available: "
-            + ", ".join(f"{artifact.id}:{artifact.language}" for artifact in artifacts[:5])
+            + ", ".join(
+                f"{artifact.id}:{artifact.language}" for artifact in artifacts[:5]
+            )
             + "."
         )
     evidence.append("Authority boundary verified: metadata-only critique.")

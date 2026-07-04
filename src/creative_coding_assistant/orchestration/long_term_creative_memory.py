@@ -275,15 +275,11 @@ class LongTermCreativeMemoryPlan(BaseModel):
             raise ValueError("record_count must match records")
         if self.candidate_record_count != len(self.candidate_record_ids):
             raise ValueError("candidate_record_count must match records")
-        if self.review_required_record_count != len(
-            self.review_required_record_ids
-        ):
+        if self.review_required_record_count != len(self.review_required_record_ids):
             raise ValueError("review_required_record_count must match records")
         if self.guarded_record_count != len(self.guarded_record_ids):
             raise ValueError("guarded_record_count must match records")
-        if self.high_sensitivity_record_count != len(
-            self.high_sensitivity_record_ids
-        ):
+        if self.high_sensitivity_record_count != len(self.high_sensitivity_record_ids):
             raise ValueError("high_sensitivity_record_count must match records")
         if self.hitl_required_record_count != len(self.hitl_required_record_ids):
             raise ValueError("hitl_required_record_count must match records")
@@ -599,9 +595,7 @@ def _record_ids_for_sensitivity(
     *sensitivities: LongTermCreativeMemorySensitivity,
 ) -> tuple[str, ...]:
     return tuple(
-        record.record_id
-        for record in records
-        if record.sensitivity in sensitivities
+        record.record_id for record in records if record.sensitivity in sensitivities
     )
 
 

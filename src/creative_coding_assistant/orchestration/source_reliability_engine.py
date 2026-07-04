@@ -433,9 +433,7 @@ class SourceReliabilityEnginePlan(BaseModel):
             raise ValueError("signal_count must match signals")
         if self.candidate_signal_count != len(self.candidate_signal_ids):
             raise ValueError("candidate_signal_count must match signals")
-        if self.review_required_signal_count != len(
-            self.review_required_signal_ids
-        ):
+        if self.review_required_signal_count != len(self.review_required_signal_ids):
             raise ValueError("review_required_signal_count must match signals")
         if self.guarded_signal_count != len(self.guarded_signal_ids):
             raise ValueError("guarded_signal_count must match signals")
@@ -447,9 +445,7 @@ class SourceReliabilityEnginePlan(BaseModel):
             signal.reliability_score for signal in self.signals
         ):
             raise ValueError("highest_reliability_score must match signals")
-        if self.overall_reliability_score != _overall_reliability_score(
-            self.signals
-        ):
+        if self.overall_reliability_score != _overall_reliability_score(self.signals):
             raise ValueError("overall_reliability_score must match signals")
         if self.overall_reliability_posture != _overall_reliability_posture(
             self.signals
@@ -537,13 +533,9 @@ def build_source_reliability_engine(
             _signal_ids_for_confidence(signals, "high", "guarded")
         ),
         hitl_required_signal_count=sum(
-            1
-            for signal in signals
-            if signal.hitl_required_before_source_reliability
+            1 for signal in signals if signal.hitl_required_before_source_reliability
         ),
-        highest_reliability_score=max(
-            signal.reliability_score for signal in signals
-        ),
+        highest_reliability_score=max(signal.reliability_score for signal in signals),
         overall_reliability_score=_overall_reliability_score(signals),
         overall_reliability_posture=_overall_reliability_posture(signals),
         advisory_actions=_plan_actions(signals),
@@ -631,8 +623,7 @@ def _signals(
             execution_mode_id=execution_mode_id,
             axis="drift_alignment_review",
             drift_signal_ids=(
-                "knowledge_drift_detection::"
-                "knowledge_drift_conflict_alignment_review",
+                "knowledge_drift_detection::knowledge_drift_conflict_alignment_review",
                 "knowledge_drift_detection::knowledge_drift_governance_gate",
             ),
             drift_plan=drift_plan,

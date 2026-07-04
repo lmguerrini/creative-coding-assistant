@@ -211,12 +211,8 @@ class MultimodalStudioVisualWorkspaceTests(unittest.TestCase):
         self.assertEqual(covered_source_references, known_source_references)
 
     def test_visual_workspace_lookup_helpers_are_stable(self) -> None:
-        profile = multimodal_visual_workspace_profile_by_id(
-            "shell_visual_workspace"
-        )
-        missing_profile = multimodal_visual_workspace_profile_by_id(
-            "missing_profile"
-        )
+        profile = multimodal_visual_workspace_profile_by_id("shell_visual_workspace")
+        missing_profile = multimodal_visual_workspace_profile_by_id("missing_profile")
         preview_profiles = multimodal_visual_workspace_profiles_for_surface_kind(
             "preview"
         )
@@ -260,9 +256,7 @@ class MultimodalStudioVisualWorkspaceTests(unittest.TestCase):
         )
         unknown_canvas_profile = first_profile.model_copy(
             update={
-                "source_interactive_canvas_profile_ids": (
-                    "unknown_interactive_canvas",
-                )
+                "source_interactive_canvas_profile_ids": ("unknown_interactive_canvas",)
             }
         )
 

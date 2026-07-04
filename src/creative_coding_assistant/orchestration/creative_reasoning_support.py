@@ -29,6 +29,9 @@ from creative_coding_assistant.orchestration.artifact_refiner import (
 from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
 )
+from creative_coding_assistant.orchestration.consistency_validation_engine import (
+    ConsistencyValidationProfile,
+)
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
 )
@@ -62,15 +65,15 @@ from creative_coding_assistant.orchestration.creative_planning import (
 from creative_coding_assistant.orchestration.creative_quality_prediction import (
     CreativeQualityPrediction,
 )
-from creative_coding_assistant.orchestration.creative_score_engine import (
-    CreativeScoreProfile,
-)
 from creative_coding_assistant.orchestration.creative_reasoning_contracts import (
     CreativeRejectedAlternative,
 )
 from creative_coding_assistant.orchestration.creative_reasoning_signals import (
     _top_runtime,
     _tradeoff_summary,
+)
+from creative_coding_assistant.orchestration.creative_score_engine import (
+    CreativeScoreProfile,
 )
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
@@ -80,9 +83,6 @@ from creative_coding_assistant.orchestration.creative_technique import (
 )
 from creative_coding_assistant.orchestration.creative_tradeoffs import (
     CreativeTradeoffProfile,
-)
-from creative_coding_assistant.orchestration.consistency_validation_engine import (
-    ConsistencyValidationProfile,
 )
 from creative_coding_assistant.orchestration.cross_modality import (
     CrossModalityCompositionProfile,
@@ -111,10 +111,10 @@ from creative_coding_assistant.orchestration.runtime_capabilities import (
 from creative_coding_assistant.orchestration.runtime_compatibility import (
     RuntimeCompatibilityProfile,
 )
-from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.self_evaluation_engine import (
     SelfEvaluationProfile,
 )
+from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -584,9 +584,7 @@ def build_unresolved_decisions(
         unresolved.extend(self_evaluation.unsupported_assumptions[:1])
     if creative_improvement_planner is not None:
         unresolved.extend(creative_improvement_planner.hitl_questions[:3])
-        unresolved.extend(
-            creative_improvement_planner.future_refinement_candidates[:2]
-        )
+        unresolved.extend(creative_improvement_planner.future_refinement_candidates[:2])
     if reflection_loop is not None:
         unresolved.extend(reflection_loop.unresolved_questions[:3])
         if reflection_loop.reflection_required:
@@ -863,9 +861,7 @@ def build_implementation_guidance(
         )
     if creative_improvement_planner is not None:
         guidance.extend(creative_improvement_planner.prompt_guidance[:2])
-        guidance.extend(
-            creative_improvement_planner.highest_impact_opportunities[:2]
-        )
+        guidance.extend(creative_improvement_planner.highest_impact_opportunities[:2])
         guidance.append(
             "Preserve Creative Improvement Planner metadata as advisory "
             "improvement guidance only, not artifact edits, retries, provider "

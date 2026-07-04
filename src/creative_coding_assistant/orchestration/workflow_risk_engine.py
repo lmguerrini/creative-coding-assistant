@@ -277,7 +277,9 @@ class WorkflowRiskPlan(BaseModel):
     low_risk_factor_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=6)
     medium_risk_factor_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=6)
     high_risk_factor_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=6)
-    guarded_risk_factor_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=6)
+    guarded_risk_factor_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=6
+    )
     hitl_required_factor_ids: tuple[str, ...] = Field(
         default_factory=tuple,
         max_length=6,
@@ -393,10 +395,13 @@ class WorkflowRiskPlan(BaseModel):
             factor.workflow_risk_score for factor in self.factors
         ):
             raise ValueError("highest_workflow_risk_score must match factors")
-        if self.highest_risk_factor_id != max(
-            self.factors,
-            key=lambda factor: factor.workflow_risk_score,
-        ).factor_id:
+        if (
+            self.highest_risk_factor_id
+            != max(
+                self.factors,
+                key=lambda factor: factor.workflow_risk_score,
+            ).factor_id
+        ):
             raise ValueError("highest_risk_factor_id must match factors")
         if self.overall_workflow_risk_score != _overall_workflow_risk_score(
             self.factors,
@@ -432,7 +437,9 @@ def evaluate_workflow_risk(
         task_type=normalized_task_type,
         execution_mode_id=execution_mode_id,
     )
-    normalized_mode = str(execution_mode_id or confidence_plan.signals[0].execution_mode_id)
+    normalized_mode = str(
+        execution_mode_id or confidence_plan.signals[0].execution_mode_id
+    )
     execution_modes = routing_execution_mode_registry()
     if normalized_mode not in execution_modes.execution_mode_ids:
         raise ValueError("execution_mode_id must be a known execution mode")
@@ -537,7 +544,9 @@ def workflow_risk_factors_for_severity(
     """Return workflow risk factors by advisory severity."""
 
     source_plan = plan or evaluate_workflow_risk()
-    return tuple(factor for factor in source_plan.factors if factor.severity == severity)
+    return tuple(
+        factor for factor in source_plan.factors if factor.severity == severity
+    )
 
 
 def _factors(
@@ -686,7 +695,9 @@ def _factor(
     risk_weight: int,
 ) -> WorkflowRiskFactor:
     confidence = _required_confidence_signal(confidence_signal_id, execution_confidence)
-    escalation_decision = _required_escalation_decision(escalation_decision_id, escalation)
+    escalation_decision = _required_escalation_decision(
+        escalation_decision_id, escalation
+    )
     resource = _required_resource_allocation(
         resource_allocation_id,
         dynamic_resource_allocation,
@@ -935,7 +946,9 @@ def _mitigation_summary(
     if kind == "escalation_posture_risk":
         return "Review escalation posture without emitting HITL or blocking execution."
     if kind == "resource_capacity_risk":
-        return "Review resource capacity risk without allocation or capacity enforcement."
+        return (
+            "Review resource capacity risk without allocation or capacity enforcement."
+        )
     if kind == "self_tuning_policy_risk":
         return "Review self-tuning policy risk without workflow control."
     return "Review performance regression risk without live detection or alerts."
@@ -967,7 +980,7 @@ def _fallback_summary(kind: WorkflowRiskFactorKind) -> str:
 def _factor_actions(kind: WorkflowRiskFactorKind) -> tuple[str, ...]:
     return (
         f"Surface {kind} as advisory workflow risk metadata.",
-        "Keep risk mitigation, workflow blocking, routing, execution, agents, resources, self-tuning, HITL emission, storage, and output behavior disabled.",
+        "Keep risk mitigation, workflow blocking, routing, execution, agents, resources, self-tuning, HITL emission, storage, and output behavior disabled.",  # noqa: E501
     )
 
 
@@ -977,7 +990,7 @@ def _plan_actions(
     actions = [
         "Expose workflow risk posture as advisory metadata only.",
         "Keep applied mitigation ids empty until explicit runtime authority exists.",
-        "Preserve risk mitigation, workflow blocking, thresholds, alerts, escalation, routing, execution, agents, resources, storage, and output boundaries.",
+        "Preserve risk mitigation, workflow blocking, thresholds, alerts, escalation, routing, execution, agents, resources, storage, and output boundaries.",  # noqa: E501
     ]
     if any(factor.hitl_required for factor in factors):
         actions.append("Require review before any future workflow risk behavior.")

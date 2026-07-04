@@ -123,9 +123,7 @@ class EmergentCreativityLayerPlan(BaseModel):
     task_type: TaskRoutingType
     execution_mode_ids: tuple[ExecutionModeId, ...] = Field(min_length=3, max_length=3)
     creative_identity_layer_role: Literal["creative_identity_layer"]
-    creative_identity_layer_serialization_version: Literal[
-        "creative_identity_layer.v1"
-    ]
+    creative_identity_layer_serialization_version: Literal["creative_identity_layer.v1"]
     creative_cognition_layer_role: Literal["creative_cognition_layer"]
     cognitive_governance_layer_role: Literal["cognitive_governance_layer"]
     layer_order: tuple[CognitiveOSLayer, ...] = Field(min_length=6, max_length=6)
@@ -256,12 +254,9 @@ class EmergentCreativityLayerPlan(BaseModel):
             )
         ):
             raise ValueError(
-                "emergent generation, execution, mutation, and HITL ids "
-                "must be empty",
+                "emergent generation, execution, mutation, and HITL ids must be empty",
             )
-        if not all(
-            signal.advisory_only for signal in self.emergent_creativity_signals
-        ):
+        if not all(signal.advisory_only for signal in self.emergent_creativity_signals):
             raise ValueError("all emergent creativity signals must be advisory only")
         return self
 

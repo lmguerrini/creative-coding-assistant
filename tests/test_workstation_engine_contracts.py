@@ -99,9 +99,7 @@ class WorkstationEngineContractTests(unittest.TestCase):
 
     def test_contract_lookup_and_future_hooks_are_stable(self) -> None:
         timeline_contract = workstation_engine_contract_by_id("creative_timeline")
-        dashboard_contract = workstation_engine_contract_by_id(
-            "workstation_dashboard"
-        )
+        dashboard_contract = workstation_engine_contract_by_id("workstation_dashboard")
         missing_contract = workstation_engine_contract_by_id("missing")
 
         self.assertIsNone(missing_contract)

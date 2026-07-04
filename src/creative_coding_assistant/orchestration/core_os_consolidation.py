@@ -82,9 +82,7 @@ class CoreOSConsolidationUnit(BaseModel):
     )
     execution_posture: CognitiveOSPosture
     consolidation_posture: CognitiveOSPosture
-    core_os_status: Literal["consolidated_metadata_only"] = (
-        "consolidated_metadata_only"
-    )
+    core_os_status: Literal["consolidated_metadata_only"] = "consolidated_metadata_only"
     runtime_activation_authorized: Literal[False] = False
     execution_authorized: Literal[False] = False
     source_trace_ids: tuple[str, ...] = Field(min_length=12, max_length=16)
@@ -154,9 +152,7 @@ class CoreOSConsolidationPlan(BaseModel):
     task_type: TaskRoutingType
     execution_mode_ids: tuple[ExecutionModeId, ...] = Field(min_length=3, max_length=3)
     unified_execution_graph_role: Literal["unified_execution_graph"]
-    unified_execution_graph_serialization_version: Literal[
-        "unified_execution_graph.v1"
-    ]
+    unified_execution_graph_serialization_version: Literal["unified_execution_graph.v1"]
     cognitive_hitl_layer_role: Literal["cognitive_hitl_layer"]
     cognitive_safety_layer_role: Literal["cognitive_safety_layer"]
     cognitive_explanation_engine_role: Literal["cognitive_explanation_engine"]
@@ -265,9 +261,7 @@ class CoreOSConsolidationPlan(BaseModel):
             raise ValueError("source_safety_count must match safety ids")
         if self.source_explanation_count != len(self.source_explanation_ids):
             raise ValueError("source_explanation_count must match explanation ids")
-        if self.source_blackboard_entry_count != len(
-            self.source_blackboard_entry_ids
-        ):
+        if self.source_blackboard_entry_count != len(self.source_blackboard_entry_ids):
             raise ValueError("source_blackboard_entry_count must match entries")
         if self.source_route_decision_count != len(self.source_route_decision_ids):
             raise ValueError("source_route_decision_count must match route ids")
@@ -283,9 +277,7 @@ class CoreOSConsolidationPlan(BaseModel):
             raise ValueError("consolidation_unit_ids must match units")
         if self.consolidation_unit_count != len(self.consolidation_units):
             raise ValueError("consolidation_unit_count must match units")
-        if len(set(self.consolidation_unit_ids)) != len(
-            self.consolidation_unit_ids
-        ):
+        if len(set(self.consolidation_unit_ids)) != len(self.consolidation_unit_ids):
             raise ValueError("consolidation_unit_ids must be unique")
         if self.core_os_entry_unit_id != self.consolidation_unit_ids[0]:
             raise ValueError("core_os_entry_unit_id must be first unit")
@@ -333,25 +325,17 @@ class CoreOSConsolidationPlan(BaseModel):
                 raise ValueError("unit emergence_id must be declared")
             if not set(unit.linked_agent_ids).issubset(declared_agents):
                 raise ValueError("unit linked_agent_ids must be declared")
-            if not set(unit.upstream_consolidation_unit_ids).issubset(
-                declared_units
-            ):
+            if not set(unit.upstream_consolidation_unit_ids).issubset(declared_units):
                 raise ValueError("unit upstream ids must be declared")
-            if not set(unit.downstream_consolidation_unit_ids).issubset(
-                declared_units
-            ):
+            if not set(unit.downstream_consolidation_unit_ids).issubset(declared_units):
                 raise ValueError("unit downstream ids must be declared")
-        if self.covered_roadmap_items != (
-            CORE_OS_CONSOLIDATION_ROADMAP_ITEM,
-        ):
+        if self.covered_roadmap_items != (CORE_OS_CONSOLIDATION_ROADMAP_ITEM,):
             raise ValueError("covered_roadmap_items must be Task 25 only")
         if self.covered_roadmap_item_count != len(self.covered_roadmap_items):
             raise ValueError("covered_roadmap_item_count must match roadmap")
         if self.consolidated_roadmap_items != COGNITIVE_OS_ROADMAP_ITEMS:
             raise ValueError("consolidated_roadmap_items must match V6.6 roadmap")
-        if self.consolidated_roadmap_item_count != len(
-            self.consolidated_roadmap_items
-        ):
+        if self.consolidated_roadmap_item_count != len(self.consolidated_roadmap_items):
             raise ValueError("consolidated_roadmap_item_count must match roadmap")
         if self.cross_cutting_contracts != COGNITIVE_OS_CONTRACTS:
             raise ValueError("cross_cutting_contracts must match V6.6 contracts")
@@ -386,13 +370,10 @@ def build_core_os_consolidation(
 ) -> CoreOSConsolidationPlan:
     """Build the read-only V6.6 Core OS consolidation surface."""
 
-    execution_graph = (
-        unified_execution_graph
-        or build_unified_execution_graph(
-            route=route,
-            task_type=task_type,
-            execution_mode_id=execution_mode_id,
-        )
+    execution_graph = unified_execution_graph or build_unified_execution_graph(
+        route=route,
+        task_type=task_type,
+        execution_mode_id=execution_mode_id,
     )
     units = _core_os_consolidation_units(execution_graph)
     unit_ids = tuple(unit.consolidation_unit_id for unit in units)
@@ -427,12 +408,8 @@ def build_core_os_consolidation(
         source_safety_count=execution_graph.source_safety_count,
         source_explanation_ids=execution_graph.source_explanation_ids,
         source_explanation_count=execution_graph.source_explanation_count,
-        source_blackboard_entry_ids=(
-            execution_graph.source_blackboard_entry_ids
-        ),
-        source_blackboard_entry_count=(
-            execution_graph.source_blackboard_entry_count
-        ),
+        source_blackboard_entry_ids=(execution_graph.source_blackboard_entry_ids),
+        source_blackboard_entry_count=(execution_graph.source_blackboard_entry_count),
         source_route_decision_ids=execution_graph.source_route_decision_ids,
         source_route_decision_count=execution_graph.source_route_decision_count,
         source_plan_ids=execution_graph.source_plan_ids,

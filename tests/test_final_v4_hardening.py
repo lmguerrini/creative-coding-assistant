@@ -124,7 +124,9 @@ class FinalV4HardeningTests(unittest.TestCase):
             registry.langgraph_error_path_surface_ids,
             EXPECTED_LANGGRAPH_ERROR_SURFACE_IDS,
         )
-        self.assertEqual(registry.architecture_doc_refs, architecture.architecture_doc_refs)
+        self.assertEqual(
+            registry.architecture_doc_refs, architecture.architecture_doc_refs
+        )
         self.assertTrue(registry.all_domains_covered)
         self.assertTrue(registry.architecture_consistency_covered)
         self.assertTrue(registry.no_active_runtime_flags)
@@ -169,12 +171,16 @@ class FinalV4HardeningTests(unittest.TestCase):
                     architecture_sources
                 )
             )
-            self.assertEqual(record.architecture_doc_refs, registry.architecture_doc_refs)
+            self.assertEqual(
+                record.architecture_doc_refs, registry.architecture_doc_refs
+            )
             self.assertEqual(
                 record.validated_hardening_surfaces,
                 registry.validated_hardening_surfaces,
             )
-            self.assertEqual(record.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                record.passive_boundary_flags, registry.passive_boundary_flags
+            )
             self.assertFalse(record.source_active_runtime_flags)
             self.assertFalse(record.missing_coverage_items)
             self.assertTrue(record.source_metadata_only_declared)
@@ -248,13 +254,20 @@ class FinalV4HardeningTests(unittest.TestCase):
             update={"domain_name": "Duplicate Domain"}
         )
         mismatched_sources_record = first_record.model_copy(
-            update={"source_registry_ids": ("missing_registry", "agent_registry_audit_registry")}
+            update={
+                "source_registry_ids": (
+                    "missing_registry",
+                    "agent_registry_audit_registry",
+                )
+            }
         )
         incomplete_record = first_record.model_copy(
             update={"missing_coverage_items": ("source_registry_missing",)}
         )
         active_record = first_record.model_copy(
-            update={"source_active_runtime_flags": ("workflow_graph_mutation_implemented",)}
+            update={
+                "source_active_runtime_flags": ("workflow_graph_mutation_implemented",)
+            }
         )
 
         with self.assertRaisesRegex(ValueError, "domain_ids must be unique"):
@@ -268,9 +281,7 @@ class FinalV4HardeningTests(unittest.TestCase):
             )
 
         with self.assertRaisesRegex(ValueError, "missing coverage"):
-            self._registry_with_records(
-                (incomplete_record,) + registry.records[1:]
-            )
+            self._registry_with_records((incomplete_record,) + registry.records[1:])
 
         with self.assertRaisesRegex(ValueError, "active runtime flags"):
             self._registry_with_records((active_record,) + registry.records[1:])
@@ -449,9 +460,7 @@ class FinalV4HardeningTests(unittest.TestCase):
         )
 
         with self.assertRaisesRegex(ValueError, "missing coverage"):
-            self._langgraph_audit_with_records(
-                (missing_record,) + audit.records[1:]
-            )
+            self._langgraph_audit_with_records((missing_record,) + audit.records[1:])
 
         with self.assertRaisesRegex(ValueError, "must remain passive"):
             self._langgraph_audit_with_records((active_record,) + audit.records[1:])

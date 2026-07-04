@@ -576,9 +576,7 @@ def _recommendation_actions(status: ReasoningBudgetStatus) -> tuple[str, ...]:
         return (
             "Keep benchmark reasoning reserve advisory until execution is approved.",
         )
-    return (
-        "Preserve budget policy review without enforcement or HITL emission.",
-    )
+    return ("Preserve budget policy review without enforcement or HITL emission.",)
 
 
 def _plan_actions(

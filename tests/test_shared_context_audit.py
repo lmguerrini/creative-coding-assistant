@@ -107,7 +107,9 @@ class SharedContextAuditTests(unittest.TestCase):
                 record.validated_context_surfaces,
                 registry.validated_context_surfaces,
             )
-            self.assertEqual(record.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                record.passive_boundary_flags, registry.passive_boundary_flags
+            )
             self.assertFalse(record.missing_coverage_items)
             self.assertEqual(record.access_mode, "scoped_metadata_view")
             self.assertTrue(record.visible_memory_surfaces)

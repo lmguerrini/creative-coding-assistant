@@ -168,9 +168,7 @@ class DocumentationIntelligenceTests(unittest.TestCase):
                 len(signal.source_update_candidate_ids),
             )
             self.assertTrue(
-                set(signal.source_update_candidate_ids).issubset(
-                    source_candidate_ids
-                )
+                set(signal.source_update_candidate_ids).issubset(source_candidate_ids)
             )
             self.assertEqual(
                 signal.intelligence_score,

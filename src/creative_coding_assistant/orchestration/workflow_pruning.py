@@ -131,8 +131,12 @@ class WorkflowPruningPlan(BaseModel):
         max_length=80,
     )
     candidate_ids: tuple[str, ...] = Field(min_length=1, max_length=80)
-    prunable_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=80)
-    retained_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=80)
+    prunable_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=80
+    )
+    retained_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=80
+    )
     review_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=80)
     candidate_count: int = Field(ge=1, le=80)
     prunable_candidate_count: int = Field(ge=0, le=80)
@@ -165,7 +169,9 @@ class WorkflowPruningPlan(BaseModel):
 
     @model_validator(mode="after")
     def _plan_matches_candidates(self) -> Self:
-        derived_candidate_ids = tuple(candidate.candidate_id for candidate in self.candidates)
+        derived_candidate_ids = tuple(
+            candidate.candidate_id for candidate in self.candidates
+        )
         if len(set(derived_candidate_ids)) != len(derived_candidate_ids):
             raise ValueError("candidate_ids must be unique")
         if self.candidate_ids != derived_candidate_ids:
@@ -189,7 +195,9 @@ class WorkflowPruningPlan(BaseModel):
         if self.review_candidate_count != len(review_ids):
             raise ValueError("review_candidate_count must match candidates")
 
-        savings = sum(candidate.estimated_token_savings for candidate in self.candidates)
+        savings = sum(
+            candidate.estimated_token_savings for candidate in self.candidates
+        )
         retained = sum(candidate.retained_token_cost for candidate in self.candidates)
         if self.estimated_token_savings != savings:
             raise ValueError("estimated_token_savings must match candidates")
@@ -274,7 +282,9 @@ def workflow_pruning_candidates_for_status(
     """Return pruning candidates by status without applying pruning."""
 
     source_plan = plan or plan_workflow_pruning()
-    return tuple(candidate for candidate in source_plan.candidates if candidate.status == status)
+    return tuple(
+        candidate for candidate in source_plan.candidates if candidate.status == status
+    )
 
 
 def _candidates(
@@ -406,9 +416,7 @@ def _complexity_candidate(
             f"level:{factor.level}",
             *factor.evidence[:5],
         ),
-        advisory_actions=(
-            "Use complexity pressure as pruning review metadata only.",
-        ),
+        advisory_actions=("Use complexity pressure as pruning review metadata only.",),
     )
 
 

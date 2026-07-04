@@ -209,9 +209,7 @@ class RetryPolicyPlan(BaseModel):
             "review_only",
         ):
             raise ValueError("review_only_candidate_ids must match candidates")
-        if self.bounded_retry_candidate_count != len(
-            self.bounded_retry_candidate_ids
-        ):
+        if self.bounded_retry_candidate_count != len(self.bounded_retry_candidate_ids):
             raise ValueError("bounded_retry_candidate_count must match candidates")
         if self.guardrail_candidate_count != len(self.guardrail_candidate_ids):
             raise ValueError("guardrail_candidate_count must match candidates")
@@ -330,9 +328,7 @@ def retry_policy_candidates_for_status(
 
     source_plan = plan or plan_retry_policies()
     return tuple(
-        candidate
-        for candidate in source_plan.candidates
-        if candidate.status == status
+        candidate for candidate in source_plan.candidates if candidate.status == status
     )
 
 
@@ -434,9 +430,7 @@ def _candidate_ids_for_status(
     status: RetryPolicyStatus,
 ) -> tuple[str, ...]:
     return tuple(
-        candidate.candidate_id
-        for candidate in candidates
-        if candidate.status == status
+        candidate.candidate_id for candidate in candidates if candidate.status == status
     )
 
 
@@ -471,12 +465,8 @@ def _candidate_actions(status: RetryPolicyStatus) -> tuple[str, ...]:
             "Require explicit workflow authority before retry triggering.",
         )
     if status == "review_only":
-        return (
-            "Expose retry reserve for review without applying retry behavior.",
-        )
-    return (
-        "Retain retry guardrail metadata without retry activation.",
-    )
+        return ("Expose retry reserve for review without applying retry behavior.",)
+    return ("Retain retry guardrail metadata without retry activation.",)
 
 
 def _plan_actions(max_attempts: int) -> tuple[str, ...]:

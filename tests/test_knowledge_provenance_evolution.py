@@ -233,7 +233,9 @@ class KnowledgeProvenanceEvolutionTests(unittest.TestCase):
             self.assertFalse(signal.provenance_record_write_implemented)
             self.assertFalse(signal.lineage_reconstruction_execution_implemented)
             self.assertFalse(signal.source_relinking_execution_implemented)
-            self.assertFalse(signal.knowledge_lifecycle_management_execution_implemented)
+            self.assertFalse(
+                signal.knowledge_lifecycle_management_execution_implemented
+            )
             self.assertFalse(signal.lifecycle_stage_transition_implemented)
             self.assertFalse(signal.lifecycle_policy_mutation_implemented)
             self.assertFalse(signal.retention_policy_mutation_implemented)

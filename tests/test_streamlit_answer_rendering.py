@@ -42,7 +42,7 @@ class StreamlitAnswerRenderingTests(unittest.TestCase):
             "<!DOCTYPE html>\n"
             "<html>\n"
             "<body>\n"
-            "<script type=\"module\">\n"
+            '<script type="module">\n'
             "const scene = new THREE.Scene();\n"
             "</script>\n"
             "</body>\n"

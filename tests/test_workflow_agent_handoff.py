@@ -114,7 +114,9 @@ class WorkflowAgentHandoffTests(unittest.TestCase):
             self.assertEqual(handoff.payload_exposure, "metadata_reference_only")
             self.assertTrue(set(handoff.source_workflow_steps).issubset(known_steps))
             self.assertTrue(set(handoff.target_agent_ids).issubset(known_agents))
-            self.assertEqual(len(handoff.target_agent_ids), len(handoff.target_role_ids))
+            self.assertEqual(
+                len(handoff.target_agent_ids), len(handoff.target_role_ids)
+            )
             self.assertTrue(handoff.source_state_fields)
             self.assertIn("workflow_graph_change", handoff.blocked_runtime_behaviors)
             self.assertFalse(handoff.workflow_graph_change_implemented)
@@ -133,7 +135,9 @@ class WorkflowAgentHandoffTests(unittest.TestCase):
             self.assertTrue(set(profile.accepted_handoff_ids).issubset(known_handoffs))
             self.assertTrue(profile.accepted_surfaces)
             self.assertTrue(profile.accepted_state_fields)
-            self.assertTrue(profile.source_context_view_id.endswith("_shared_context_view"))
+            self.assertTrue(
+                profile.source_context_view_id.endswith("_shared_context_view")
+            )
             self.assertFalse(profile.workflow_graph_change_implemented)
             self.assertFalse(profile.prompt_alteration_implemented)
             self.assertFalse(profile.agent_execution_implemented)

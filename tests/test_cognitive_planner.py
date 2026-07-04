@@ -159,9 +159,7 @@ class CognitivePlannerTests(unittest.TestCase):
             CognitivePlannerPlan(**payload)
 
         payload = planner.model_dump(mode="json")
-        payload["executed_plan_ids"] = (
-            "cognitive_planner::v6_6_cognitive_core",
-        )
+        payload["executed_plan_ids"] = ("cognitive_planner::v6_6_cognitive_core",)
 
         with self.assertRaisesRegex(
             ValueError,

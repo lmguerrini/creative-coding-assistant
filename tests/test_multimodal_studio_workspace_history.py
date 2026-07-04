@@ -203,9 +203,7 @@ class MultimodalStudioWorkspaceHistoryTests(unittest.TestCase):
                 )
             )
             self.assertTrue(
-                set(profile.source_session_replay_profile_ids).issubset(
-                    known_replays
-                )
+                set(profile.source_session_replay_profile_ids).issubset(known_replays)
             )
             self.assertTrue(
                 set(profile.workspace_history_surfaces).issubset(known_surfaces)
@@ -238,9 +236,7 @@ class MultimodalStudioWorkspaceHistoryTests(unittest.TestCase):
         profile = multimodal_workspace_history_profile_by_id(
             "session_record_workspace_history"
         )
-        missing_profile = multimodal_workspace_history_profile_by_id(
-            "missing_profile"
-        )
+        missing_profile = multimodal_workspace_history_profile_by_id("missing_profile")
         session_profiles = multimodal_workspace_history_profiles_for_surface_kind(
             "session_record"
         )
@@ -263,7 +259,9 @@ class MultimodalStudioWorkspaceHistoryTests(unittest.TestCase):
             tuple(item.profile_id for item in session_profiles),
             ("session_record_workspace_history",),
         )
-        self.assertEqual(tuple(item.profile_id for item in route_profiles), EXPECTED_PROFILE_IDS)
+        self.assertEqual(
+            tuple(item.profile_id for item in route_profiles), EXPECTED_PROFILE_IDS
+        )
         self.assertEqual(
             tuple(item.profile_id for item in review_snapshot_profiles),
             (
@@ -281,9 +279,7 @@ class MultimodalStudioWorkspaceHistoryTests(unittest.TestCase):
         )
         unknown_snapshot_profile = first_profile.model_copy(
             update={
-                "source_workspace_snapshot_profile_ids": (
-                    "unknown_workspace_snapshot",
-                )
+                "source_workspace_snapshot_profile_ids": ("unknown_workspace_snapshot",)
             }
         )
 

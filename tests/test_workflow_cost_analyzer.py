@@ -221,7 +221,9 @@ class WorkflowCostAnalyzerTests(unittest.TestCase):
             workflow_cost_component_by_id("workflow_node::retrieval", analysis),
             retrieval,
         )
-        self.assertEqual(workflow_cost_components_for_kind("creative_plan", analysis), ())
+        self.assertEqual(
+            workflow_cost_components_for_kind("creative_plan", analysis), ()
+        )
 
     def test_analysis_rejects_mismatched_components_or_totals(self) -> None:
         analysis = analyze_workflow_cost()

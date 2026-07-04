@@ -14,9 +14,7 @@ from creative_coding_assistant.orchestration.hybrid_studio import (
 )
 from creative_coding_assistant.orchestration.routing import RouteName
 
-MODEL_CAPABILITY_MATRIX_ROW_SERIALIZATION_VERSION = (
-    "model_capability_matrix_row.v1"
-)
+MODEL_CAPABILITY_MATRIX_ROW_SERIALIZATION_VERSION = "model_capability_matrix_row.v1"
 MODEL_CAPABILITY_MATRIX_SERIALIZATION_VERSION = "model_capability_matrix.v1"
 MODEL_CAPABILITY_MATRIX_AUTHORITY_BOUNDARY = (
     "The V5.2 Model Capability Matrix projects existing passive model profile "
@@ -178,15 +176,11 @@ class ModelCapabilityMatrix(BaseModel):
         if self.route_count != len(self.route_names):
             raise ValueError("route_count must match route_names")
         if self.capability_dimensions != _dedupe(
-            dimension
-            for row in self.rows
-            for dimension in row.capability_dimensions
+            dimension for row in self.rows for dimension in row.capability_dimensions
         ):
             raise ValueError("capability_dimensions must match rows")
         if self.provider_candidate_ids != _dedupe(
-            provider
-            for row in self.rows
-            for provider in row.provider_candidate_ids
+            provider for row in self.rows for provider in row.provider_candidate_ids
         ):
             raise ValueError("provider_candidate_ids must match rows")
         if self.capability_dimension_count != len(self.capability_dimensions):

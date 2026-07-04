@@ -95,12 +95,16 @@ class AgentContractAuditTests(unittest.TestCase):
             self.assertEqual(record.serialization_version, "agent_contract_audit.v1")
             self.assertEqual(record.audit_status, "pass")
             self.assertEqual(record.audit_stage, registry.audit_stage)
-            self.assertEqual(record.audited_registry_refs, registry.audited_registry_refs)
+            self.assertEqual(
+                record.audited_registry_refs, registry.audited_registry_refs
+            )
             self.assertEqual(
                 record.validated_contract_surfaces,
                 registry.validated_contract_surfaces,
             )
-            self.assertEqual(record.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                record.passive_boundary_flags, registry.passive_boundary_flags
+            )
             self.assertFalse(record.missing_coverage_items)
             self.assertTrue(record.contract_source_registry_refs)
             self.assertIn(

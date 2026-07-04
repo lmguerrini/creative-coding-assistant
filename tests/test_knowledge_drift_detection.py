@@ -188,9 +188,7 @@ class KnowledgeDriftDetectionTests(unittest.TestCase):
                 len(signal.knowledge_conflict_signal_ids),
             )
             self.assertTrue(
-                set(signal.knowledge_conflict_signal_ids).issubset(
-                    conflict_signal_ids
-                )
+                set(signal.knowledge_conflict_signal_ids).issubset(conflict_signal_ids)
             )
             self.assertEqual(
                 signal.drift_score,

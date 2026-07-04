@@ -216,8 +216,7 @@ def compress_retrieval_chunks(
         original_total=original_total,
     )
     compressed_chunks = tuple(
-        _compress_chunk(chunk, chunk_budgets[_chunk_id(chunk)])
-        for chunk in chunks
+        _compress_chunk(chunk, chunk_budgets[_chunk_id(chunk)]) for chunk in chunks
     )
     compressed_total = sum(
         chunk.compressed_token_estimate for chunk in compressed_chunks
@@ -322,11 +321,11 @@ def _compress_chunk(
 
 def _compress_text_to_budget(text: str, target_tokens: int) -> str:
     normalized_lines = tuple(
-        " ".join(line.strip().split())
-        for line in text.splitlines()
-        if line.strip()
+        " ".join(line.strip().split()) for line in text.splitlines() if line.strip()
     )
-    normalized = "\n".join(normalized_lines) if normalized_lines else " ".join(text.split())
+    normalized = (
+        "\n".join(normalized_lines) if normalized_lines else " ".join(text.split())
+    )
     if _estimate_tokens(normalized) <= target_tokens:
         return normalized
 
@@ -370,7 +369,9 @@ def _chunk_token_budgets(
         if index == len(chunks) - 1:
             budget = max(1, remaining)
         else:
-            proportional = max(1, target_token_budget * original_tokens // original_total)
+            proportional = max(
+                1, target_token_budget * original_tokens // original_total
+            )
             budget = min(original_tokens, proportional)
         budgets[_chunk_id(chunk)] = max(1, budget)
         remaining = max(0, remaining - budgets[_chunk_id(chunk)])

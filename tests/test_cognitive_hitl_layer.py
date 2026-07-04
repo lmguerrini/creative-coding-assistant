@@ -178,9 +178,7 @@ class CognitiveHITLLayerTests(unittest.TestCase):
             CognitiveHITLLayerPlan(**payload)
 
         payload = hitl.model_dump(mode="json")
-        payload["emitted_hitl_request_ids"] = (
-            "cognitive_hitl::v6_6_cognitive_core",
-        )
+        payload["emitted_hitl_request_ids"] = ("cognitive_hitl::v6_6_cognitive_core",)
 
         with self.assertRaisesRegex(
             ValueError,

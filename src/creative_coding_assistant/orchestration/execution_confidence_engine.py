@@ -55,12 +55,8 @@ ExecutionConfidenceSignalKind = Literal[
 ExecutionConfidenceStatus = Literal["ready", "review_required", "guardrail"]
 ExecutionConfidenceBand = Literal["high", "moderate", "low", "guarded"]
 
-EXECUTION_CONFIDENCE_SIGNAL_SERIALIZATION_VERSION = (
-    "execution_confidence_signal.v1"
-)
-EXECUTION_CONFIDENCE_PLAN_SERIALIZATION_VERSION = (
-    "execution_confidence_plan.v1"
-)
+EXECUTION_CONFIDENCE_SIGNAL_SERIALIZATION_VERSION = "execution_confidence_signal.v1"
+EXECUTION_CONFIDENCE_PLAN_SERIALIZATION_VERSION = "execution_confidence_plan.v1"
 EXECUTION_CONFIDENCE_AUTHORITY_BOUNDARY = (
     "V5.5 execution confidence combines advisory dynamic execution strategy, "
     "dynamic agent allocation, dynamic resource allocation, workflow "
@@ -526,7 +522,9 @@ def execution_confidence_signals_for_band(
     """Return execution confidence signals by advisory confidence band."""
 
     source_plan = plan or evaluate_execution_confidence()
-    return tuple(signal for signal in source_plan.signals if signal.confidence_band == band)
+    return tuple(
+        signal for signal in source_plan.signals if signal.confidence_band == band
+    )
 
 
 def _signals(
@@ -810,7 +808,9 @@ def _signal_ids_for_band(
     signals: tuple[ExecutionConfidenceSignal, ...],
     band: ExecutionConfidenceBand,
 ) -> tuple[str, ...]:
-    return tuple(signal.signal_id for signal in signals if signal.confidence_band == band)
+    return tuple(
+        signal.signal_id for signal in signals if signal.confidence_band == band
+    )
 
 
 def _signal_ids_for_status(
@@ -823,7 +823,9 @@ def _signal_ids_for_status(
 def _source_agent_ids(
     agent_allocation: DynamicAgentAllocationPlan,
 ) -> tuple[str, ...]:
-    return agent_allocation.primary_allocation_ids or agent_allocation.allocation_ids[:3]
+    return (
+        agent_allocation.primary_allocation_ids or agent_allocation.allocation_ids[:3]
+    )
 
 
 def _required_resource_allocation(
@@ -842,7 +844,9 @@ def _required_self_tuning_policy(
 ) -> WorkflowSelfTuningPolicy:
     policy = workflow_self_tuning_policy_by_id(policy_id, plan)
     if policy is None:
-        raise ValueError("required execution confidence self-tuning metadata is missing")
+        raise ValueError(
+            "required execution confidence self-tuning metadata is missing"
+        )
     return policy
 
 
@@ -858,13 +862,15 @@ def _fallback_safety_summary(
         return "Keep agent confidence detached from agent instantiation or invocation."
     if kind == "resource_capacity_confidence":
         return "Keep resource confidence detached from allocation and capacity enforcement."
-    return "Keep self-tuning confidence detached from workflow control and retry behavior."
+    return (
+        "Keep self-tuning confidence detached from workflow control and retry behavior."
+    )
 
 
 def _signal_actions(kind: ExecutionConfidenceSignalKind) -> tuple[str, ...]:
     return (
         f"Surface {kind} as advisory execution confidence metadata.",
-        "Keep confidence application, provider routing, execution, agents, resources, workflow control, HITL emission, storage, and output behavior disabled.",
+        "Keep confidence application, provider routing, execution, agents, resources, workflow control, HITL emission, storage, and output behavior disabled.",  # noqa: E501
     )
 
 
@@ -877,7 +883,9 @@ def _plan_actions(
         "Preserve provider, model, runtime, agent, resource, workflow, HITL, storage, and output boundaries.",
     ]
     if any(signal.hitl_required for signal in signals):
-        actions.append("Require review before any future execution confidence behavior.")
+        actions.append(
+            "Require review before any future execution confidence behavior."
+        )
     return tuple(actions)
 
 

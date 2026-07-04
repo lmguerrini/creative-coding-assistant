@@ -42,9 +42,7 @@ ReflectionBudgetStatus = Literal[
 REFLECTION_BUDGET_CANDIDATE_SERIALIZATION_VERSION = (
     "reflection_budget_optimization_candidate.v1"
 )
-REFLECTION_BUDGET_PLAN_SERIALIZATION_VERSION = (
-    "reflection_budget_optimization_plan.v1"
-)
+REFLECTION_BUDGET_PLAN_SERIALIZATION_VERSION = "reflection_budget_optimization_plan.v1"
 REFLECTION_BUDGET_OPTIMIZER_AUTHORITY_BOUNDARY = (
     "V5.5 reflection budget optimization combines advisory reasoning budget, "
     "reflection loop, and workflow risk metadata into inspectable reflection "
@@ -190,12 +188,8 @@ class ReflectionBudgetOptimizationCandidate(BaseModel):
             raise ValueError("depth_weight must match reflection depth")
         if self.quality_gain_weight != _estimate_weight(self.expected_quality_gain):
             raise ValueError("quality_gain_weight must match expected quality gain")
-        if self.risk_reduction_weight != _estimate_weight(
-            self.expected_risk_reduction
-        ):
-            raise ValueError(
-                "risk_reduction_weight must match expected risk reduction"
-            )
+        if self.risk_reduction_weight != _estimate_weight(self.expected_risk_reduction):
+            raise ValueError("risk_reduction_weight must match expected risk reduction")
         if self.workflow_risk_weight != _workflow_risk_weight(
             self.source_workflow_risk_score
         ):
@@ -256,7 +250,9 @@ class ReflectionBudgetOptimizationPlan(BaseModel):
         max_length=8,
     )
     candidate_ids: tuple[str, ...] = Field(min_length=1, max_length=8)
-    recommended_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=8)
+    recommended_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=8
+    )
     reserve_guardrail_candidate_ids: tuple[str, ...] = Field(
         default_factory=tuple,
         max_length=8,
@@ -380,8 +376,7 @@ class ReflectionBudgetOptimizationPlan(BaseModel):
                 "total_advisory_reflection_reserve_tokens must match candidates"
             )
         if self.total_recommended_reflection_pass_count != sum(
-            candidate.recommended_reflection_pass_count
-            for candidate in self.candidates
+            candidate.recommended_reflection_pass_count for candidate in self.candidates
         ):
             raise ValueError(
                 "total_recommended_reflection_pass_count must match candidates"
@@ -432,7 +427,9 @@ def optimize_reflection_budget(
             "review_guardrail",
         ),
         hitl_required_candidate_ids=tuple(
-            candidate.candidate_id for candidate in candidates if candidate.hitl_required
+            candidate.candidate_id
+            for candidate in candidates
+            if candidate.hitl_required
         ),
         applied_reflection_budget_candidate_ids=(),
         candidate_count=len(candidates),
@@ -452,8 +449,7 @@ def optimize_reflection_budget(
             candidate.advisory_reflection_tokens for candidate in candidates
         ),
         total_advisory_reflection_reserve_tokens=sum(
-            candidate.advisory_reflection_reserve_tokens
-            for candidate in candidates
+            candidate.advisory_reflection_reserve_tokens for candidate in candidates
         ),
         total_recommended_reflection_pass_count=sum(
             candidate.recommended_reflection_pass_count for candidate in candidates
@@ -487,7 +483,9 @@ def reflection_budget_candidates_for_status(
     """Return reflection budget candidates by advisory status."""
 
     source_plan = plan or optimize_reflection_budget()
-    return tuple(candidate for candidate in source_plan.candidates if candidate.status == status)
+    return tuple(
+        candidate for candidate in source_plan.candidates if candidate.status == status
+    )
 
 
 def _candidates(
@@ -743,7 +741,9 @@ def _candidate_ids_for_status(
     candidates: tuple[ReflectionBudgetOptimizationCandidate, ...],
     status: ReflectionBudgetStatus,
 ) -> tuple[str, ...]:
-    return tuple(candidate.candidate_id for candidate in candidates if candidate.status == status)
+    return tuple(
+        candidate.candidate_id for candidate in candidates if candidate.status == status
+    )
 
 
 def _plan_pressure(
@@ -781,7 +781,7 @@ def _fallback_summary(status: ReflectionBudgetStatus) -> str:
 def _candidate_actions(status: ReflectionBudgetStatus) -> tuple[str, ...]:
     return (
         f"Surface {status} reflection budget posture as advisory metadata.",
-        "Keep reflection execution, token allocation, budget enforcement, refinement, routing, workflow, storage, and output behavior disabled.",
+        "Keep reflection execution, token allocation, budget enforcement, refinement, routing, workflow, storage, and output behavior disabled.",  # noqa: E501
     )
 
 
@@ -791,7 +791,7 @@ def _plan_actions(
     actions = [
         "Expose reflection budget optimization as advisory metadata only.",
         "Keep applied reflection budget candidate ids empty and applied pass count at zero.",
-        "Preserve reflection execution, token allocation, budget enforcement, refinement, routing, workflow, storage, and output boundaries.",
+        "Preserve reflection execution, token allocation, budget enforcement, refinement, routing, workflow, storage, and output boundaries.",  # noqa: E501
     ]
     if _candidate_ids_for_status(candidates, "review_guardrail"):
         actions.append("Keep reflection budget review guardrails non-blocking.")

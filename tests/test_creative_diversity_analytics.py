@@ -128,7 +128,9 @@ class CreativeDiversityAnalyticsTests(unittest.TestCase):
         self.assertIsNone(analytics.generated_variant_count)
         self.assertIsNone(analytics.enforced_budget_count)
         self.assertEqual(analytics.creative_diversity_analytics_status, "guarded")
-        self.assertIn("does not collect diversity metrics", analytics.authority_boundary)
+        self.assertIn(
+            "does not collect diversity metrics", analytics.authority_boundary
+        )
         self.assertTrue(analytics.creative_diversity_analytics_implemented)
         self.assertFalse(analytics.diversity_metric_collection_implemented)
         self.assertFalse(analytics.budget_enforcement_implemented)
@@ -168,7 +170,9 @@ class CreativeDiversityAnalyticsTests(unittest.TestCase):
             self.assertIsNone(panel.observed_diversity_event_count)
             self.assertIsNone(panel.generated_variant_count)
             self.assertIsNone(panel.enforced_budget_count)
-            self.assertIn("diversity_metric_collection", panel.blocked_runtime_behaviors)
+            self.assertIn(
+                "diversity_metric_collection", panel.blocked_runtime_behaviors
+            )
             self.assertIn("variant_generation", panel.blocked_runtime_behaviors)
             self.assertTrue(panel.creative_diversity_analytics_panel_implemented)
             self.assertFalse(panel.diversity_metric_collection_implemented)

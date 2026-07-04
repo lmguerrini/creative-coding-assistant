@@ -125,7 +125,9 @@ class AgentReliabilityAuditRecord(BaseModel):
     )
     passive_boundary_flags: tuple[str, ...] = Field(min_length=8, max_length=8)
     audit_findings: tuple[str, ...] = Field(min_length=7, max_length=7)
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=16)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=16
+    )
     lifecycle_blocked_runtime_behaviors: tuple[str, ...] = Field(
         min_length=1,
         max_length=12,
@@ -195,9 +197,9 @@ class AgentReliabilityAuditRegistry(BaseModel):
     source_state_synchronization_registry: Literal[
         "agent_state_synchronization_registry"
     ] = "agent_state_synchronization_registry"
-    source_escalation_signal_registry: Literal[
+    source_escalation_signal_registry: Literal["agent_escalation_signal_registry"] = (
         "agent_escalation_signal_registry"
-    ] = "agent_escalation_signal_registry"
+    )
     source_engine_contract_consistency_registry: Literal[
         "engine_contract_consistency_registry"
     ] = "engine_contract_consistency_registry"

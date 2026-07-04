@@ -43,9 +43,7 @@ ConflictSurfaceCategory = Literal[
 STATE_SYNC_CHECKPOINT_SERIALIZATION_VERSION = "agent_state_sync_checkpoint.v1"
 STATE_SYNC_CONSTRAINT_SERIALIZATION_VERSION = "agent_state_sync_constraint.v1"
 STATE_SYNC_STALE_WARNING_SERIALIZATION_VERSION = "agent_state_stale_warning.v1"
-STATE_SYNC_CONFLICT_SURFACE_SERIALIZATION_VERSION = (
-    "agent_state_conflict_surface.v1"
-)
+STATE_SYNC_CONFLICT_SURFACE_SERIALIZATION_VERSION = "agent_state_conflict_surface.v1"
 STATE_SYNC_PROFILE_SERIALIZATION_VERSION = "agent_state_sync_profile.v1"
 STATE_SYNC_REGISTRY_SERIALIZATION_VERSION = "agent_state_sync_registry.v1"
 STATE_SYNC_REGISTRY_AUTHORITY_BOUNDARY = (
@@ -392,7 +390,9 @@ class AgentStateSynchronizationRegistry(BaseModel):
     @model_validator(mode="after")
     def _registry_matches_sync_metadata(self) -> Self:
         derived_agent_ids = tuple(profile.agent_id for profile in self.profiles)
-        derived_profile_ids = tuple(profile.sync_profile_id for profile in self.profiles)
+        derived_profile_ids = tuple(
+            profile.sync_profile_id for profile in self.profiles
+        )
         derived_checkpoint_ids = tuple(
             checkpoint.checkpoint_id for checkpoint in self.checkpoints
         )
@@ -425,20 +425,14 @@ class AgentStateSynchronizationRegistry(BaseModel):
         stale_warning_ids = set(self.stale_warning_ids)
         conflict_surface_ids = set(self.conflict_surface_ids)
         for checkpoint in self.checkpoints:
-            if not set(checkpoint.consistency_constraint_ids).issubset(
-                constraint_ids
-            ):
+            if not set(checkpoint.consistency_constraint_ids).issubset(constraint_ids):
                 raise ValueError("checkpoint constraints must be known constraints")
         if self.source_registries != _STATE_SYNC_SOURCE_REGISTRIES:
-            raise ValueError(
-                "source_registries must match conflict surface sources"
-            )
+            raise ValueError("source_registries must match conflict surface sources")
         source_registries = set(self.source_registries)
         for surface in self.conflict_surfaces:
             if not set(surface.source_registry_ids).issubset(source_registries):
-                raise ValueError(
-                    "conflict surface sources must be represented"
-                )
+                raise ValueError("conflict surface sources must be represented")
         for profile in self.profiles:
             if not set(profile.sync_checkpoint_ids).issubset(checkpoint_ids):
                 raise ValueError("profile checkpoints must be known checkpoints")
@@ -578,8 +572,12 @@ STATE_SYNC_STALE_WARNINGS = tuple(_stale_warning(spec) for spec in _STALE_WARNIN
 STATE_SYNC_CONFLICT_SURFACES = tuple(
     _conflict_surface(spec) for spec in _CONFLICT_SURFACE_SPECS
 )
-_CHECKPOINT_IDS = tuple(checkpoint.checkpoint_id for checkpoint in STATE_SYNC_CHECKPOINTS)
-_CONSTRAINT_IDS = tuple(constraint.constraint_id for constraint in STATE_SYNC_CONSTRAINTS)
+_CHECKPOINT_IDS = tuple(
+    checkpoint.checkpoint_id for checkpoint in STATE_SYNC_CHECKPOINTS
+)
+_CONSTRAINT_IDS = tuple(
+    constraint.constraint_id for constraint in STATE_SYNC_CONSTRAINTS
+)
 _STALE_WARNING_IDS = tuple(warning.warning_id for warning in STATE_SYNC_STALE_WARNINGS)
 _CONFLICT_SURFACE_IDS = tuple(
     surface.conflict_surface_id for surface in STATE_SYNC_CONFLICT_SURFACES
@@ -593,9 +591,7 @@ def _profile(agent_id: str) -> AgentStateSyncProfile:
         if profile.agent_id == agent_id
     )
     context_view = next(
-        view
-        for view in SHARED_CONTEXT_VIEW_REGISTRY.views
-        if view.agent_id == agent_id
+        view for view in SHARED_CONTEXT_VIEW_REGISTRY.views if view.agent_id == agent_id
     )
     return AgentStateSyncProfile(
         agent_id=agent_id,
@@ -626,9 +622,7 @@ AGENT_STATE_SYNCHRONIZATION_REGISTRY = AgentStateSynchronizationRegistry(
     stale_warnings=STATE_SYNC_STALE_WARNINGS,
     conflict_surfaces=STATE_SYNC_CONFLICT_SURFACES,
     agent_ids=tuple(profile.agent_id for profile in AGENT_STATE_SYNC_PROFILES),
-    profile_ids=tuple(
-        profile.sync_profile_id for profile in AGENT_STATE_SYNC_PROFILES
-    ),
+    profile_ids=tuple(profile.sync_profile_id for profile in AGENT_STATE_SYNC_PROFILES),
     checkpoint_ids=_CHECKPOINT_IDS,
     constraint_ids=_CONSTRAINT_IDS,
     stale_warning_ids=_STALE_WARNING_IDS,

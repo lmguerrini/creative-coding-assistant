@@ -19,9 +19,7 @@ AgentMemoryReadAccess = Literal["none", "metadata_only"]
 AgentMemoryWriteAccess = Literal["none", "future_metadata_only"]
 AgentMemoryReferenceAccess = Literal["none", "metadata_only"]
 
-AGENT_MEMORY_SURFACE_CONTRACT_SERIALIZATION_VERSION = (
-    "agent_memory_surface_contract.v1"
-)
+AGENT_MEMORY_SURFACE_CONTRACT_SERIALIZATION_VERSION = "agent_memory_surface_contract.v1"
 AGENT_MEMORY_CONTRACT_SERIALIZATION_VERSION = "agent_memory_contract.v1"
 AGENT_MEMORY_CONTRACT_REGISTRY_SERIALIZATION_VERSION = (
     "agent_memory_contract_registry.v1"
@@ -240,9 +238,7 @@ class AgentMemoryContractRegistry(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["agent_memory_contract_registry"] = (
-        "agent_memory_contract_registry"
-    )
+    role: Literal["agent_memory_contract_registry"] = "agent_memory_contract_registry"
     serialization_version: Literal["agent_memory_contract_registry.v1"] = (
         AGENT_MEMORY_CONTRACT_REGISTRY_SERIALIZATION_VERSION
     )

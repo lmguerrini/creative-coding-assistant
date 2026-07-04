@@ -40,12 +40,8 @@ CrossSourceComparisonAxis = Literal[
     "governance_gate",
 ]
 
-CROSS_SOURCE_COMPARISON_ENTRY_SERIALIZATION_VERSION = (
-    "cross_source_comparison_entry.v1"
-)
-CROSS_SOURCE_COMPARISON_PLAN_SERIALIZATION_VERSION = (
-    "cross_source_comparison_plan.v1"
-)
+CROSS_SOURCE_COMPARISON_ENTRY_SERIALIZATION_VERSION = "cross_source_comparison_entry.v1"
+CROSS_SOURCE_COMPARISON_PLAN_SERIALIZATION_VERSION = "cross_source_comparison_plan.v1"
 PAPER_RESEARCH_PLAN_SERIALIZATION_VERSION = "paper_research_plan.v1"
 WEB_RESEARCH_PLAN_SERIALIZATION_VERSION = "web_research_plan.v1"
 
@@ -374,9 +370,7 @@ class CrossSourceComparisonPlan(BaseModel):
             raise ValueError("highest_comparison_score must match entries")
         if self.overall_comparison_score != _overall_comparison_score(self.entries):
             raise ValueError("overall_comparison_score must match entries")
-        if self.overall_comparison_posture != _overall_comparison_posture(
-            self.entries
-        ):
+        if self.overall_comparison_posture != _overall_comparison_posture(self.entries):
             raise ValueError("overall_comparison_posture must match entries")
         paper_ids = set(self.paper_research_entry_ids)
         web_ids = set(self.web_research_entry_ids)
@@ -755,9 +749,7 @@ def _entry_ids_for_confidence(
     entries: tuple[CrossSourceComparisonEntry, ...],
     *confidences: CrossSourceComparisonConfidence,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(

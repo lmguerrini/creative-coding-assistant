@@ -242,7 +242,9 @@ class ProductionArchitectureFreeze(BaseModel):
             raise ValueError("architecture_doc_refs must match freeze docs")
         if self.record_ids != tuple(record.record_id for record in self.records):
             raise ValueError("record_ids must match records")
-        if self.freeze_domains != tuple(record.freeze_domain for record in self.records):
+        if self.freeze_domains != tuple(
+            record.freeze_domain for record in self.records
+        ):
             raise ValueError("freeze_domains must match records")
         if self.freeze_domains != _REQUIRED_DOMAINS:
             raise ValueError("freeze_domains must cover required domains")
@@ -344,7 +346,9 @@ def build_production_architecture_freeze(
         guarded_assumption_count=sum(
             len(record.guarded_assumptions) for record in records
         ),
-        prohibited_change_count=sum(len(record.prohibited_changes) for record in records),
+        prohibited_change_count=sum(
+            len(record.prohibited_changes) for record in records
+        ),
         architecture_freeze_status="frozen",
     )
 
@@ -370,7 +374,9 @@ def production_architecture_freeze_records_for_status(
     """Return architecture freeze records by status."""
 
     source_freeze = freeze or build_production_architecture_freeze()
-    return tuple(record for record in source_freeze.records if record.freeze_status == status)
+    return tuple(
+        record for record in source_freeze.records if record.freeze_status == status
+    )
 
 
 def _records(
@@ -438,7 +444,11 @@ def _records(
         ),
         _record(
             domain="provider_model_routing_freeze",
-            source_ids=(final_source.role, candidate_source.role, readiness_source.role),
+            source_ids=(
+                final_source.role,
+                candidate_source.role,
+                readiness_source.role,
+            ),
             source_versions=(
                 final_source.serialization_version,
                 candidate_source.serialization_version,
@@ -470,7 +480,11 @@ def _records(
         ),
         _record(
             domain="deployment_release_operations_freeze",
-            source_ids=(packaging_source.role, deployment_source.role, candidate_source.role),
+            source_ids=(
+                packaging_source.role,
+                deployment_source.role,
+                candidate_source.role,
+            ),
             source_versions=(
                 packaging_source.serialization_version,
                 deployment_source.serialization_version,
@@ -526,7 +540,11 @@ def _records(
         ),
         _record(
             domain="runtime_evolution_gate_freeze",
-            source_ids=(candidate_source.role, readiness_source.role, creative_source.role),
+            source_ids=(
+                candidate_source.role,
+                readiness_source.role,
+                creative_source.role,
+            ),
             source_versions=(
                 candidate_source.serialization_version,
                 readiness_source.serialization_version,

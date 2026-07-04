@@ -171,9 +171,7 @@ class EmbeddingRefreshTests(unittest.TestCase):
                 len(signal.documentation_signal_ids),
             )
             self.assertTrue(
-                set(signal.documentation_signal_ids).issubset(
-                    documentation_signal_ids
-                )
+                set(signal.documentation_signal_ids).issubset(documentation_signal_ids)
             )
             self.assertEqual(
                 signal.refresh_score,

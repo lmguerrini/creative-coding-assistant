@@ -56,8 +56,7 @@ class CreativeTranslationTests(unittest.TestCase):
         self.assertIn(
             "amplitude",
             tuple(
-                mapping.source.value
-                for mapping in translation.audio_reactive.mappings
+                mapping.source.value for mapping in translation.audio_reactive.mappings
             ),
         )
 
@@ -101,9 +100,7 @@ class CreativeTranslationTests(unittest.TestCase):
         self.assertTrue(
             any("do not invent unsupported symbolic meaning" in line for line in lines)
         )
-        self.assertTrue(
-            any("supplied image references" in line for line in lines)
-        )
+        self.assertTrue(any("supplied image references" in line for line in lines))
         self.assertFalse(
             any(line.startswith("Sacred geometry concepts:") for line in lines)
         )
@@ -156,9 +153,7 @@ class CreativeTranslationTests(unittest.TestCase):
         self.assertTrue(
             any(line.startswith("Reference fusion summary:") for line in lines)
         )
-        self.assertTrue(
-            any("Do not identify people" in line for line in lines)
-        )
+        self.assertTrue(any("Do not identify people" in line for line in lines))
 
     def test_derives_shader_presets_from_translation_metadata(self) -> None:
         translation = derive_creative_translation(

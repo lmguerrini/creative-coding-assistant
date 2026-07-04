@@ -28,7 +28,9 @@ from creative_coding_assistant.orchestration.agent_parallel_scheduling import (
     parallel_scheduling_group_for_agent,
     parallel_scheduling_registry,
 )
-from creative_coding_assistant.orchestration.agent_routing import AgentRoutingPriorityBand
+from creative_coding_assistant.orchestration.agent_routing import (
+    AgentRoutingPriorityBand,
+)
 from creative_coding_assistant.orchestration.routing import RouteName
 from creative_coding_assistant.orchestration.routing_intelligence import (
     ExecutionModeId,
@@ -50,9 +52,7 @@ DynamicAgentAllocationStatus = Literal[
 DYNAMIC_AGENT_ALLOCATION_CANDIDATE_SERIALIZATION_VERSION = (
     "dynamic_agent_allocation_candidate.v1"
 )
-DYNAMIC_AGENT_ALLOCATION_PLAN_SERIALIZATION_VERSION = (
-    "dynamic_agent_allocation_plan.v1"
-)
+DYNAMIC_AGENT_ALLOCATION_PLAN_SERIALIZATION_VERSION = "dynamic_agent_allocation_plan.v1"
 DYNAMIC_AGENT_ALLOCATION_AUTHORITY_BOUNDARY = (
     "V5.5 dynamic agent allocation combines advisory agent activation, "
     "dynamic execution strategy selection, passive parallel scheduling, and "
@@ -230,14 +230,22 @@ class DynamicAgentAllocationPlan(BaseModel):
         max_length=12,
     )
     allocation_ids: tuple[str, ...] = Field(min_length=1, max_length=12)
-    primary_allocation_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
-    support_allocation_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
-    standby_allocation_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
+    primary_allocation_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=12
+    )
+    support_allocation_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=12
+    )
+    standby_allocation_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=12
+    )
     hitl_required_allocation_ids: tuple[str, ...] = Field(
         default_factory=tuple,
         max_length=12,
     )
-    applied_allocation_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
+    applied_allocation_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=12
+    )
     allocation_count: int = Field(ge=1, le=12)
     primary_allocation_count: int = Field(ge=0, le=12)
     hitl_required_allocation_count: int = Field(ge=0, le=12)
@@ -311,7 +319,9 @@ class DynamicAgentAllocationPlan(BaseModel):
             raise ValueError("applied_allocation_ids must remain empty")
         if self.primary_allocation_count != len(self.primary_allocation_ids):
             raise ValueError("primary_allocation_count must match allocations")
-        if self.hitl_required_allocation_count != len(self.hitl_required_allocation_ids):
+        if self.hitl_required_allocation_count != len(
+            self.hitl_required_allocation_ids
+        ):
             raise ValueError("hitl_required_allocation_count must match allocations")
         if self.highest_allocation_score != max(
             allocation.allocation_score for allocation in self.allocations
@@ -320,7 +330,10 @@ class DynamicAgentAllocationPlan(BaseModel):
         for allocation in self.allocations:
             if allocation.route_name != self.route_name:
                 raise ValueError("allocation route_name must match plan")
-            if allocation.source_dynamic_strategy_id != self.selected_dynamic_strategy_id:
+            if (
+                allocation.source_dynamic_strategy_id
+                != self.selected_dynamic_strategy_id
+            ):
                 raise ValueError("allocation strategy id must match plan")
         return self
 
@@ -344,9 +357,7 @@ def allocate_dynamic_agents(
         task_type=normalized_task_type,
         execution_mode_id=execution_mode_id,
     )
-    normalized_mode = str(
-        execution_mode_id or strategy_plan.selected_execution_mode_id
-    )
+    normalized_mode = str(execution_mode_id or strategy_plan.selected_execution_mode_id)
     execution_modes = routing_execution_mode_registry()
     if normalized_mode not in execution_modes.execution_mode_ids:
         raise ValueError("execution_mode_id must be a known execution mode")
@@ -386,11 +397,17 @@ def allocate_dynamic_agents(
         selected_dynamic_strategy_kind=strategy_plan.selected_strategy_kind,
         allocations=allocations,
         allocation_ids=tuple(allocation.allocation_id for allocation in allocations),
-        primary_allocation_ids=_allocation_ids_for_lane(allocations, "strategy_primary"),
-        support_allocation_ids=_allocation_ids_for_lane(allocations, "strategy_support"),
+        primary_allocation_ids=_allocation_ids_for_lane(
+            allocations, "strategy_primary"
+        ),
+        support_allocation_ids=_allocation_ids_for_lane(
+            allocations, "strategy_support"
+        ),
         standby_allocation_ids=_allocation_ids_for_lane(allocations, "standby_pool"),
         hitl_required_allocation_ids=tuple(
-            allocation.allocation_id for allocation in allocations if allocation.hitl_required
+            allocation.allocation_id
+            for allocation in allocations
+            if allocation.hitl_required
         ),
         applied_allocation_ids=(),
         allocation_count=len(allocations),
@@ -428,7 +445,9 @@ def dynamic_agent_allocations_for_lane(
 
     source_plan = plan or allocate_dynamic_agents()
     return tuple(
-        allocation for allocation in source_plan.allocations if allocation.allocation_lane == lane
+        allocation
+        for allocation in source_plan.allocations
+        if allocation.allocation_lane == lane
     )
 
 
@@ -442,7 +461,9 @@ def _allocation_candidate(
     scheduling: ParallelSchedulingRegistry,
     dependency_graph: AgentDependencyGraphRegistry,
 ) -> DynamicAgentAllocationCandidate:
-    group = parallel_scheduling_group_for_agent(activation_candidate.agent_id, scheduling)
+    group = parallel_scheduling_group_for_agent(
+        activation_candidate.agent_id, scheduling
+    )
     node = agent_dependency_node_by_id(
         f"agent::{activation_candidate.agent_id}",
         dependency_graph,
@@ -593,7 +614,7 @@ def _candidate_actions(
 ) -> tuple[str, ...]:
     return (
         f"Surface {lane} agent allocation as advisory metadata only.",
-        "Keep runtime allocation, activation, invocation, scheduling, workflow, provider, memory, storage, and output behavior disabled.",
+        "Keep runtime allocation, activation, invocation, scheduling, workflow, provider, memory, storage, and output behavior disabled.",  # noqa: E501
     )
 
 
@@ -603,7 +624,7 @@ def _plan_actions(
     actions = [
         "Expose dynamic agent allocation lanes as advisory metadata only.",
         "Keep applied_allocation_ids empty until an explicit runtime contract exists.",
-        "Preserve agent activation, invocation, scheduling, workflow, provider, memory, storage, and output boundaries.",
+        "Preserve agent activation, invocation, scheduling, workflow, provider, memory, storage, and output boundaries.",  # noqa: E501
     ]
     if strategy_plan.selected_strategy_hitl_required:
         actions.append("Require HITL before any future runtime allocation behavior.")

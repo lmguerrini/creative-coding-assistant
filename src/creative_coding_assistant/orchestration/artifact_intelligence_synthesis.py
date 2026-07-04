@@ -56,9 +56,7 @@ class ArtifactIntelligenceSynthesisProfile(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["artifact_intelligence_synthesis"] = (
-        "artifact_intelligence_synthesis"
-    )
+    role: Literal["artifact_intelligence_synthesis"] = "artifact_intelligence_synthesis"
     synthesis_confidence: float = Field(ge=0, le=1)
     synthesis_summary: str = Field(min_length=1, max_length=520)
     recommended_artifact_path: str = Field(min_length=1, max_length=420)
@@ -259,9 +257,7 @@ def artifact_intelligence_synthesis_prompt_lines(
         f"Major synthesis weakness: {item}" for item in profile.major_weaknesses
     )
     lines.extend(f"Major synthesis risk: {item}" for item in profile.major_risks)
-    lines.extend(
-        f"HITL synthesis question: {item}" for item in profile.hitl_questions
-    )
+    lines.extend(f"HITL synthesis question: {item}" for item in profile.hitl_questions)
     lines.extend(
         f"Artifact intelligence synthesis guidance: {item}"
         for item in profile.prompt_guidance
@@ -439,8 +435,7 @@ def _capability_overview(
 ) -> str:
     if matrix is None:
         return (
-            "Capability matrix metadata is unavailable; avoid target capability "
-            "claims."
+            "Capability matrix metadata is unavailable; avoid target capability claims."
         )
     strongest = ", ".join(matrix.strongest_targets) or "none"
     weakest = ", ".join(matrix.weakest_targets) or "none"
@@ -456,13 +451,10 @@ def _refinement_overview(
 ) -> str:
     if profile is None:
         return (
-            "Artifact Refiner metadata is unavailable; do not prioritize "
-            "refinements."
+            "Artifact Refiner metadata is unavailable; do not prioritize refinements."
         )
     priority = (
-        profile.priority_improvements[0]
-        if profile.priority_improvements
-        else "none"
+        profile.priority_improvements[0] if profile.priority_improvements else "none"
     )
     return (
         f"Refiner confidence {profile.refinement_confidence:.2f}; "
@@ -544,13 +536,11 @@ def _recommended_runtime_direction(
         compatible = ", ".join(runtime_compatibility.compatible_runtimes[:4])
         if preferred:
             parts.append(
-                "Document preferred runtime metadata as advisory only: "
-                f"{preferred}"
+                f"Document preferred runtime metadata as advisory only: {preferred}"
             )
         elif compatible:
             parts.append(
-                "Document compatible runtime metadata as advisory only: "
-                f"{compatible}"
+                f"Document compatible runtime metadata as advisory only: {compatible}"
             )
         if runtime_compatibility.unsupported_runtimes:
             parts.append(

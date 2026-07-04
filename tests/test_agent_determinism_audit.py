@@ -101,10 +101,14 @@ class AgentDeterminismAuditTests(unittest.TestCase):
             "v4_6_agent_determinism_hardening",
         )
         self.assertEqual(registry.agent_ids, contracts.agent_ids)
-        self.assertEqual(registry.determinism_source_registries, EXPECTED_SOURCE_REGISTRIES)
+        self.assertEqual(
+            registry.determinism_source_registries, EXPECTED_SOURCE_REGISTRIES
+        )
         self.assertEqual(
             registry.cacheability_modes,
-            tuple(dict.fromkeys(contract.cacheability for contract in contracts.contracts)),
+            tuple(
+                dict.fromkeys(contract.cacheability for contract in contracts.contracts)
+            ),
         )
         self.assertEqual(registry.dependency_stage_order, dependency_graph.stage_order)
         self.assertEqual(
@@ -156,7 +160,9 @@ class AgentDeterminismAuditTests(unittest.TestCase):
             self.assertIn(record.dependency_node_id, known_nodes)
             self.assertTrue(set(record.route_candidates).issubset(known_routes))
             self.assertIn(record.scheduling_group_id, known_groups)
-            self.assertEqual(record.consistency_family_ids, registry.consistency_family_ids)
+            self.assertEqual(
+                record.consistency_family_ids, registry.consistency_family_ids
+            )
             self.assertEqual(
                 record.determinism_source_registries,
                 registry.determinism_source_registries,
@@ -165,7 +171,9 @@ class AgentDeterminismAuditTests(unittest.TestCase):
                 record.validated_determinism_surfaces,
                 registry.validated_determinism_surfaces,
             )
-            self.assertEqual(record.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                record.passive_boundary_flags, registry.passive_boundary_flags
+            )
             self.assertFalse(record.missing_coverage_items)
             self.assertTrue(record.contract_output_order)
             self.assertIn("agent_invocation", record.contract_blocked_runtime_behaviors)
@@ -203,7 +211,9 @@ class AgentDeterminismAuditTests(unittest.TestCase):
             self.assertFalse(record.prompt_rendering_change_implemented)
             self.assertFalse(record.generated_output_mutation_implemented)
 
-    def test_audit_lookup_cacheability_band_and_group_filtering_are_stable(self) -> None:
+    def test_audit_lookup_cacheability_band_and_group_filtering_are_stable(
+        self,
+    ) -> None:
         registry = agent_determinism_audit_registry()
         planner_audit = agent_determinism_audit_by_agent_id("planner_agent")
         missing_audit = agent_determinism_audit_by_agent_id("missing_agent")
@@ -297,8 +307,7 @@ class AgentDeterminismAuditTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "passive_boundary_flags"):
             AgentDeterminismAuditRegistry(
-                audit_records=(mismatched_flags_record,)
-                + registry.audit_records[1:],
+                audit_records=(mismatched_flags_record,) + registry.audit_records[1:],
                 agent_ids=registry.agent_ids,
                 audit_count=registry.audit_count,
                 determinism_source_registries=registry.determinism_source_registries,

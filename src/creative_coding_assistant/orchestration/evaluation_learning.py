@@ -314,9 +314,8 @@ class EvaluationLearningPlan(BaseModel):
             pattern.evaluation_learning_score for pattern in self.patterns
         ):
             raise ValueError("highest_evaluation_learning_score must match patterns")
-        if (
-            self.overall_evaluation_learning_score
-            != _overall_evaluation_learning_score(self.patterns)
+        if self.overall_evaluation_learning_score != _overall_evaluation_learning_score(
+            self.patterns
         ):
             raise ValueError("overall_evaluation_learning_score must match patterns")
         if self.overall_evaluation_learning_posture != _overall_evaluation_posture(

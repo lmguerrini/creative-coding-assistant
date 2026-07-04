@@ -151,8 +151,7 @@ class OfficialSourceFetcher:
         ):
             return SourceContentFormat.HTML
         if all(
-            content_type == "text/plain"
-            for content_type in normalized_content_types
+            content_type == "text/plain" for content_type in normalized_content_types
         ):
             return SourceContentFormat.TEXT
         values = ", ".join(content_types)

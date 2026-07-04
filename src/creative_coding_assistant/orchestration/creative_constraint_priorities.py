@@ -116,9 +116,7 @@ class CreativeConstraintPrioritization(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["creative_constraint_prioritizer"] = (
-        "creative_constraint_prioritizer"
-    )
+    role: Literal["creative_constraint_prioritizer"] = "creative_constraint_prioritizer"
     non_negotiable_constraints: tuple[CreativeConstraintPriority, ...] = Field(
         default_factory=tuple,
         max_length=6,
@@ -255,8 +253,7 @@ def creative_constraint_priorities_prompt_lines(
             f"{conflict.negotiation_note}"
         )
     lines.extend(
-        f"HITL constraint question: {item}"
-        for item in prioritization.hitl_questions
+        f"HITL constraint question: {item}" for item in prioritization.hitl_questions
     )
     lines.extend(
         f"Constraint priority guidance: {item}"
@@ -630,10 +627,7 @@ def _rank_priorities(
         key=lambda item: (item.score, -_CATEGORY_INDEX[item.category]),
         reverse=True,
     )
-    levels = {
-        item.category: _priority_level(item)
-        for item in ranked_scores
-    }
+    levels = {item.category: _priority_level(item) for item in ranked_scores}
     _ensure_sacrificial_level(ranked_scores, levels)
     return tuple(
         _priority(item, level=levels[item.category], rank=index + 1)

@@ -105,9 +105,7 @@ class StreamlitChatGenerationTests(unittest.TestCase):
         self.assertNotIn("raw details", message)
 
     def test_user_safe_error_message_handles_unknown_failures(self) -> None:
-        message = user_safe_assistant_error_message(
-            ValueError("sk-secret-never-show")
-        )
+        message = user_safe_assistant_error_message(ValueError("sk-secret-never-show"))
 
         self.assertEqual(
             message,

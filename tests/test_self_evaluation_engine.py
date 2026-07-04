@@ -127,7 +127,9 @@ class SelfEvaluationEngineTests(unittest.TestCase):
         )
 
         self.assertGreaterEqual(evaluation.artifact_alignment, 0.6)
-        self.assertTrue(any("Artifacts available:" in item for item in evaluation.evidence))
+        self.assertTrue(
+            any("Artifacts available:" in item for item in evaluation.evidence)
+        )
 
     def test_supports_critic_aware_self_evaluation(self) -> None:
         stack = _stack("Generate a p5.js artifact with critic-aware evaluation.")
@@ -239,9 +241,7 @@ class SelfEvaluationEngineTests(unittest.TestCase):
         final_evaluation = final_event.payload["self_evaluation"]
 
         self.assertEqual(planning_evaluation["role"], "self_evaluation_engine")
-        self.assertTrue(
-            planning_event.payload["workflow"]["self_evaluation_available"]
-        )
+        self.assertTrue(planning_event.payload["workflow"]["self_evaluation_available"])
         self.assertEqual(
             planning_event.payload["workflow"]["self_evaluation"],
             planning_evaluation,

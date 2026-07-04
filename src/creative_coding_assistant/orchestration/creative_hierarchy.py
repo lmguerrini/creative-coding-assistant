@@ -343,9 +343,7 @@ def _non_negotiable_dimensions(
 ) -> tuple[HierarchyDimension, ...]:
     emphasized = _NON_NEGOTIABLE_PATTERN.search(text) is not None
     values = [
-        item.dimension
-        for item in primary
-        if item.priority_score >= 7 or emphasized
+        item.dimension for item in primary if item.priority_score >= 7 or emphasized
     ]
     if not values and scored[0].score >= 6:
         values.append(scored[0].dimension)
@@ -366,9 +364,7 @@ def _priority_rationale(
     primary: tuple[CreativeHierarchyPriority, ...],
     secondary: tuple[CreativeHierarchyPriority, ...],
 ) -> tuple[str, ...]:
-    rationale = [
-        f"Primary hierarchy: {', '.join(item.dimension for item in primary)}."
-    ]
+    rationale = [f"Primary hierarchy: {', '.join(item.dimension for item in primary)}."]
     if secondary:
         rationale.append(
             f"Secondary support: {', '.join(item.dimension for item in secondary[:4])}."
@@ -406,9 +402,7 @@ def _hitl_questions(
 ) -> tuple[str, ...]:
     questions: list[str] = []
     if len(scored) > 1 and scored[0].score == scored[1].score:
-        questions.append(
-            f"Should {scored[0].dimension} or {scored[1].dimension} lead?"
-        )
+        questions.append(f"Should {scored[0].dimension} or {scored[1].dimension} lead?")
     if creative_intent is not None:
         questions.extend(creative_intent.hitl_questions[:2])
     for conflict in conflicts:

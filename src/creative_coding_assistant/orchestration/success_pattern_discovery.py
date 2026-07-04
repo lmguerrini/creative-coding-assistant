@@ -466,9 +466,7 @@ def _patterns(
         _pattern(
             kind="routing_success_pattern",
             indicator_id="workflow_success::routing_safety_success",
-            improvement_signal_id=(
-                "continuous_improvement::failure_prevention_signal"
-            ),
+            improvement_signal_id=("continuous_improvement::failure_prevention_signal"),
             learning_signal_id="adaptive_learning::routing_boundary_learning",
             status="guarded",
             weight=220,

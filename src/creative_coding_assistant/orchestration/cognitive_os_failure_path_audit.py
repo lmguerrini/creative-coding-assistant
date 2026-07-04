@@ -625,9 +625,7 @@ def _audit_record(
             "enforce, request HITL, mutate runtime state, or apply Runtime "
             "Evolution."
         ),
-        blocked_runtime_behaviors=(
-            COGNITIVE_OS_FAILURE_PATH_BLOCKED_RUNTIME_BEHAVIORS
-        ),
+        blocked_runtime_behaviors=(COGNITIVE_OS_FAILURE_PATH_BLOCKED_RUNTIME_BEHAVIORS),
     )
 
 

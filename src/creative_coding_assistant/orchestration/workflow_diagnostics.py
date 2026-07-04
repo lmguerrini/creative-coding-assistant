@@ -275,9 +275,7 @@ def build_workflow_diagnostics(
         ready_panel_ids=_panel_ids_for_status(panels, "ready"),
         guarded_panel_ids=_panel_ids_for_status(panels, "guarded"),
         panel_count=len(panels),
-        diagnostic_signal_count=sum(
-            panel.diagnostic_signal_count for panel in panels
-        ),
+        diagnostic_signal_count=sum(panel.diagnostic_signal_count for panel in panels),
         guardrail_signal_count=sum(panel.guardrail_signal_count for panel in panels),
         workflow_diagnostics_status=_diagnostics_status(panels),
         advisory_actions=_diagnostics_actions(panels),

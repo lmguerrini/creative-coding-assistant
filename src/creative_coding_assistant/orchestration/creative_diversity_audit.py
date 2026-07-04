@@ -90,9 +90,7 @@ class CreativeDiversityAuditRecord(BaseModel):
 
     budget_profile_id: str = Field(min_length=1, max_length=150)
     topic_id: str = Field(min_length=1, max_length=120)
-    audit_stage: CreativeDiversityAuditStage = (
-        "v4_6_creative_diversity_hardening"
-    )
+    audit_stage: CreativeDiversityAuditStage = "v4_6_creative_diversity_hardening"
     budget_serialization_version: str = Field(min_length=1, max_length=120)
     budget_posture: str = Field(min_length=1, max_length=80)
     max_advisory_variants: int = Field(ge=0, le=3)
@@ -107,7 +105,9 @@ class CreativeDiversityAuditRecord(BaseModel):
     validated_diversity_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
     passive_boundary_flags: tuple[str, ...] = Field(min_length=7, max_length=7)
     audit_findings: tuple[str, ...] = Field(min_length=6, max_length=6)
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=16)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=16
+    )
     profile_blocked_runtime_behaviors: tuple[str, ...] = Field(
         min_length=1,
         max_length=12,
@@ -149,9 +149,7 @@ class CreativeDiversityAuditRegistry(BaseModel):
         default=CREATIVE_DIVERSITY_AUDIT_REGISTRY_AUTHORITY_BOUNDARY,
         max_length=1000,
     )
-    audit_stage: CreativeDiversityAuditStage = (
-        "v4_6_creative_diversity_hardening"
-    )
+    audit_stage: CreativeDiversityAuditStage = "v4_6_creative_diversity_hardening"
     audit_records: tuple[CreativeDiversityAuditRecord, ...] = Field(
         min_length=4,
         max_length=4,
@@ -192,9 +190,7 @@ class CreativeDiversityAuditRegistry(BaseModel):
             record.budget_profile_id for record in self.audit_records
         )
         derived_topic_ids = tuple(record.topic_id for record in self.audit_records)
-        derived_postures = tuple(
-            record.budget_posture for record in self.audit_records
-        )
+        derived_postures = tuple(record.budget_posture for record in self.audit_records)
         if len(set(derived_profile_ids)) != len(derived_profile_ids):
             raise ValueError("budget_profile_ids must be unique")
         if self.budget_profile_ids != derived_profile_ids:

@@ -28,6 +28,9 @@ from creative_coding_assistant.orchestration.artifact_refiner import (
 from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
 )
+from creative_coding_assistant.orchestration.consistency_validation_engine import (
+    ConsistencyValidationProfile,
+)
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
 )
@@ -61,14 +64,14 @@ from creative_coding_assistant.orchestration.creative_planning import (
 from creative_coding_assistant.orchestration.creative_quality_prediction import (
     CreativeQualityPrediction,
 )
-from creative_coding_assistant.orchestration.creative_score_engine import (
-    CreativeScoreProfile,
-)
 from creative_coding_assistant.orchestration.creative_reasoning_contracts import (
     CreativeReasoningEvidence,
 )
 from creative_coding_assistant.orchestration.creative_reasoning_signals import (
     _tradeoff_summary,
+)
+from creative_coding_assistant.orchestration.creative_score_engine import (
+    CreativeScoreProfile,
 )
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
@@ -78,9 +81,6 @@ from creative_coding_assistant.orchestration.creative_technique import (
 )
 from creative_coding_assistant.orchestration.creative_tradeoffs import (
     CreativeTradeoffProfile,
-)
-from creative_coding_assistant.orchestration.consistency_validation_engine import (
-    ConsistencyValidationProfile,
 )
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
@@ -113,10 +113,10 @@ from creative_coding_assistant.orchestration.runtime_capabilities import (
 from creative_coding_assistant.orchestration.runtime_compatibility import (
     RuntimeCompatibilityProfile,
 )
-from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.self_evaluation_engine import (
     SelfEvaluationProfile,
 )
+from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -351,8 +351,7 @@ def build_evidence_chain(
                     (
                         f"{semantic_motif.motif_system_name}: "
                         + ", ".join(
-                            motif.motif_id
-                            for motif in semantic_motif.primary_motifs
+                            motif.motif_id for motif in semantic_motif.primary_motifs
                         )
                     ),
                     240,
@@ -372,9 +371,7 @@ def build_evidence_chain(
                     (
                         f"{emotional_consistency.primary_emotional_tone} "
                         f"({emotional_consistency.emotional_coherence_score}/100): "
-                        + ", ".join(
-                            emotional_consistency.secondary_emotional_tones[:4]
-                        )
+                        + ", ".join(emotional_consistency.secondary_emotional_tones[:4])
                     ),
                     240,
                 ),
@@ -852,9 +849,7 @@ def build_evidence_chain(
             )
         )
     if artifact_export_intelligence is not None and len(evidence) > 30:
-        evidence = [
-            item for item in evidence if item.source != "quality_predictor"
-        ]
+        evidence = [item for item in evidence if item.source != "quality_predictor"]
     return tuple(evidence[:30])
 
 
@@ -883,8 +878,7 @@ def _append_technique_evidence(
         CreativeReasoningEvidence(
             source="creative_technique",
             signal=(
-                f"{profile.primary_technique} "
-                f"compatibility {profile.compatibility}."
+                f"{profile.primary_technique} compatibility {profile.compatibility}."
             ),
             interpretation="Technique shows how strategy becomes behavior.",
         )

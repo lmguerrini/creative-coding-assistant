@@ -55,7 +55,9 @@ class ProductionReadinessReviewTests(unittest.TestCase):
         self.assertEqual(review.blocked_record_ids, ())
         self.assertEqual(review.blocking_finding_count, 0)
         self.assertGreaterEqual(review.guarded_finding_count, 1)
-        self.assertIn("Ready for capstone/portfolio demo", review.mvp_readiness_statement)
+        self.assertIn(
+            "Ready for capstone/portfolio demo", review.mvp_readiness_statement
+        )
         self.assertIn("does not change configuration", review.authority_boundary)
         self.assertTrue(review.production_readiness_review_implemented)
         self.assertTrue(review.configuration_review_implemented)
@@ -78,7 +80,9 @@ class ProductionReadinessReviewTests(unittest.TestCase):
         self.assertFalse(review.runtime_evolution_implemented)
         self.assertTrue(review.metadata_only)
 
-    def test_records_surface_guarded_configuration_and_deployment_assumptions(self) -> None:
+    def test_records_surface_guarded_configuration_and_deployment_assumptions(
+        self,
+    ) -> None:
         review = build_production_readiness_review()
         configuration = production_readiness_record_by_area(
             "configuration_readiness",

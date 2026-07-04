@@ -6,13 +6,9 @@ from importlib import import_module
 
 _CTX = "creative_coding_assistant.orchestration.context"
 _CACHE_LAYER = "creative_coding_assistant.orchestration.cache_layer"
-_CREATIVE_TRANSLATION = (
-    "creative_coding_assistant.orchestration.creative_translation"
-)
+_CREATIVE_TRANSLATION = "creative_coding_assistant.orchestration.creative_translation"
 _CREATIVE_PLANNING = "creative_coding_assistant.orchestration.creative_planning"
-_CREATIVE_CONSTRAINTS = (
-    "creative_coding_assistant.orchestration.creative_constraints"
-)
+_CREATIVE_CONSTRAINTS = "creative_coding_assistant.orchestration.creative_constraints"
 _CREATIVE_CONSTRAINT_PRIORITIES = (
     "creative_coding_assistant.orchestration.creative_constraint_priorities"
 )
@@ -48,9 +44,7 @@ _CREATIVE_CONFIDENCE_ENGINE = (
 _CREATIVE_COMPLEXITY_ANALYZER = (
     "creative_coding_assistant.orchestration.creative_complexity_analyzer"
 )
-_CREATIVE_SCORE_ENGINE = (
-    "creative_coding_assistant.orchestration.creative_score_engine"
-)
+_CREATIVE_SCORE_ENGINE = "creative_coding_assistant.orchestration.creative_score_engine"
 _CONSISTENCY_VALIDATION_ENGINE = (
     "creative_coding_assistant.orchestration.consistency_validation_engine"
 )
@@ -62,12 +56,8 @@ _WORKSTATION_ENGINE_CONTRACTS = (
     "creative_coding_assistant.orchestration.workstation_contracts"
 )
 _AGENT_CONTRACTS = "creative_coding_assistant.orchestration.agent_contracts"
-_AGENT_CONTRACT_AUDIT = (
-    "creative_coding_assistant.orchestration.agent_contract_audit"
-)
-_AGENT_REGISTRY_AUDIT = (
-    "creative_coding_assistant.orchestration.agent_registry_audit"
-)
+_AGENT_CONTRACT_AUDIT = "creative_coding_assistant.orchestration.agent_contract_audit"
+_AGENT_REGISTRY_AUDIT = "creative_coding_assistant.orchestration.agent_registry_audit"
 _AGENT_IDENTITIES = "creative_coding_assistant.orchestration.agent_identities"
 _AGENT_MEMORY_CONTRACTS = (
     "creative_coding_assistant.orchestration.agent_memory_contracts"
@@ -78,12 +68,8 @@ _AGENT_METADATA = "creative_coding_assistant.orchestration.agent_metadata"
 _AGENT_ROUTING = "creative_coding_assistant.orchestration.agent_routing"
 _BLACKBOARD_MEMORY = "creative_coding_assistant.orchestration.blackboard_memory"
 _BLACKBOARD_AUDIT = "creative_coding_assistant.orchestration.blackboard_audit"
-_SHARED_CONTEXT_VIEWS = (
-    "creative_coding_assistant.orchestration.shared_context_views"
-)
-_SHARED_CONTEXT_AUDIT = (
-    "creative_coding_assistant.orchestration.shared_context_audit"
-)
+_SHARED_CONTEXT_VIEWS = "creative_coding_assistant.orchestration.shared_context_views"
+_SHARED_CONTEXT_AUDIT = "creative_coding_assistant.orchestration.shared_context_audit"
 _AGENT_DEPENDENCY_GRAPH = (
     "creative_coding_assistant.orchestration.agent_dependency_graph"
 )
@@ -115,18 +101,14 @@ _ORCHESTRATION_CONTRACT_INTEGRATION = (
 _AGENT_CAPABILITY_REGISTRY = (
     "creative_coding_assistant.orchestration.agent_capabilities"
 )
-_ESCALATION_POLICY = (
-    "creative_coding_assistant.orchestration.escalation_policy"
-)
+_ESCALATION_POLICY = "creative_coding_assistant.orchestration.escalation_policy"
 _ESCALATION_POLICY_AUDIT = (
     "creative_coding_assistant.orchestration.escalation_policy_audit"
 )
 _HYBRID_AGENTIC_WORKFLOW = (
     "creative_coding_assistant.orchestration.hybrid_agentic_workflow"
 )
-_HYBRID_WORKFLOW_AUDIT = (
-    "creative_coding_assistant.orchestration.hybrid_workflow_audit"
-)
+_HYBRID_WORKFLOW_AUDIT = "creative_coding_assistant.orchestration.hybrid_workflow_audit"
 _CREATIVE_DIVERSITY_AUDIT = (
     "creative_coding_assistant.orchestration.creative_diversity_audit"
 )
@@ -146,15 +128,12 @@ _AGENT_COST_TRACKING_FOUNDATION = (
     "creative_coding_assistant.orchestration.agent_cost_tracking_foundation"
 )
 _AGENT_PERFORMANCE_TRACKING_FOUNDATION = (
-    "creative_coding_assistant.orchestration."
-    "agent_performance_tracking_foundation"
+    "creative_coding_assistant.orchestration.agent_performance_tracking_foundation"
 )
 _ARCHITECTURE_CONSISTENCY_PASS = (
     "creative_coding_assistant.orchestration.architecture_consistency_pass"
 )
-_FINAL_V4_HARDENING = (
-    "creative_coding_assistant.orchestration.final_v4_hardening"
-)
+_FINAL_V4_HARDENING = "creative_coding_assistant.orchestration.final_v4_hardening"
 _HYBRID_STUDIO = "creative_coding_assistant.orchestration.hybrid_studio"
 _MULTIMODAL_STUDIO = "creative_coding_assistant.orchestration.multimodal_studio"
 _ENGINE_CONTRACT_CONSISTENCY = (
@@ -167,9 +146,7 @@ _ARTIFACT_DEPENDENCY_GRAPH = (
 _ARTIFACT_ENGINE_CONTRACTS = (
     "creative_coding_assistant.orchestration.artifact_engine_contracts"
 )
-_RUNTIME_COMPATIBILITY = (
-    "creative_coding_assistant.orchestration.runtime_compatibility"
-)
+_RUNTIME_COMPATIBILITY = "creative_coding_assistant.orchestration.runtime_compatibility"
 _ARTIFACT_CAPABILITY_MATRIX = (
     "creative_coding_assistant.orchestration.artifact_capability_matrix"
 )
@@ -190,33 +167,19 @@ _ARTIFACT_EXPORT_INTELLIGENCE = (
 _CREATIVE_QUALITY_PREDICTION = (
     "creative_coding_assistant.orchestration.creative_quality_prediction"
 )
-_CREATIVE_COMPOSITION = (
-    "creative_coding_assistant.orchestration.creative_composition"
-)
-_PROCEDURAL_STRUCTURE = (
-    "creative_coding_assistant.orchestration.procedural_structure"
-)
-_GENERATIVE_STRUCTURE = (
-    "creative_coding_assistant.orchestration.generative_structure"
-)
+_CREATIVE_COMPOSITION = "creative_coding_assistant.orchestration.creative_composition"
+_PROCEDURAL_STRUCTURE = "creative_coding_assistant.orchestration.procedural_structure"
+_GENERATIVE_STRUCTURE = "creative_coding_assistant.orchestration.generative_structure"
 _SEMANTIC_MOTIF = "creative_coding_assistant.orchestration.semantic_motif"
-_EMOTIONAL_CONSISTENCY = (
-    "creative_coding_assistant.orchestration.emotional_consistency"
-)
+_EMOTIONAL_CONSISTENCY = "creative_coding_assistant.orchestration.emotional_consistency"
 _CROSS_MODALITY = "creative_coding_assistant.orchestration.cross_modality"
-_AUDIO_VISUAL_SCENE = (
-    "creative_coding_assistant.orchestration.audio_visual_scene"
-)
+_AUDIO_VISUAL_SCENE = "creative_coding_assistant.orchestration.audio_visual_scene"
 _SYMBOLIC_NARRATIVE = "creative_coding_assistant.orchestration.symbolic_narrative"
-_RUNTIME_CAPABILITIES = (
-    "creative_coding_assistant.orchestration.runtime_capabilities"
-)
+_RUNTIME_CAPABILITIES = "creative_coding_assistant.orchestration.runtime_capabilities"
 _CREATIVE_DIRECTOR = "creative_coding_assistant.orchestration.creative_director"
 _AUDIO_REACTIVE = "creative_coding_assistant.orchestration.audio_reactive"
 _CREATIVE_QUALITY = "creative_coding_assistant.orchestration.creative_quality"
-_SACRED_CONSISTENCY = (
-    "creative_coding_assistant.orchestration.sacred_consistency"
-)
+_SACRED_CONSISTENCY = "creative_coding_assistant.orchestration.sacred_consistency"
 _SACRED_GEOMETRY = "creative_coding_assistant.orchestration.sacred_geometry"
 _SHADER_PRESETS = "creative_coding_assistant.orchestration.shader_presets"
 _VISUAL_STYLES = "creative_coding_assistant.orchestration.visual_styles"
@@ -226,21 +189,15 @@ _CLARIFICATION = "creative_coding_assistant.orchestration.clarification"
 _EVENTS = "creative_coding_assistant.orchestration.events"
 _GEN = "creative_coding_assistant.orchestration.generation"
 _MEM = "creative_coding_assistant.orchestration.memory"
-_MEMORY_SUMMARIZATION = (
-    "creative_coding_assistant.orchestration.memory_summarization"
-)
+_MEMORY_SUMMARIZATION = "creative_coding_assistant.orchestration.memory_summarization"
 _PROMPT_INPUTS = "creative_coding_assistant.orchestration.prompt_inputs"
 _PROMPT_COMPRESSION = "creative_coding_assistant.orchestration.prompt_compression"
 _PROMPT_TEMPLATES = "creative_coding_assistant.orchestration.prompt_templates"
-_QUALITY_CALIBRATION = (
-    "creative_coding_assistant.orchestration.quality_calibration"
-)
+_QUALITY_CALIBRATION = "creative_coding_assistant.orchestration.quality_calibration"
 _REFINEMENT_PASSES = "creative_coding_assistant.orchestration.refinement_passes"
 _REFERENCE_FUSION = "creative_coding_assistant.orchestration.reference_fusion"
 _RETRIEVAL = "creative_coding_assistant.orchestration.retrieval"
-_RETRIEVAL_COMPRESSION = (
-    "creative_coding_assistant.orchestration.retrieval_compression"
-)
+_RETRIEVAL_COMPRESSION = "creative_coding_assistant.orchestration.retrieval_compression"
 _ROUTING = "creative_coding_assistant.orchestration.routing"
 _SERVICE = "creative_coding_assistant.orchestration.service"
 _WORKFLOW = "creative_coding_assistant.orchestration.workflow"
@@ -274,39 +231,21 @@ _EXECUTION_PATH_OPTIMIZATION = (
 _EXECUTION_STRATEGY_SELECTION = (
     "creative_coding_assistant.orchestration.execution_strategy_selection"
 )
-_PARALLEL_SCHEDULER = (
-    "creative_coding_assistant.orchestration.parallel_scheduler"
-)
-_LATENCY_OPTIMIZER = (
-    "creative_coding_assistant.orchestration.latency_optimizer"
-)
-_ASYNC_EXECUTION = (
-    "creative_coding_assistant.orchestration.async_execution"
-)
-_STREAMING_OPTIMIZER = (
-    "creative_coding_assistant.orchestration.streaming_optimizer"
-)
-_RETRY_POLICIES = (
-    "creative_coding_assistant.orchestration.retry_policies"
-)
-_LOAD_BALANCER = (
-    "creative_coding_assistant.orchestration.load_balancer"
-)
-_EXECUTION_PROFILING = (
-    "creative_coding_assistant.orchestration.execution_profiling"
-)
+_PARALLEL_SCHEDULER = "creative_coding_assistant.orchestration.parallel_scheduler"
+_LATENCY_OPTIMIZER = "creative_coding_assistant.orchestration.latency_optimizer"
+_ASYNC_EXECUTION = "creative_coding_assistant.orchestration.async_execution"
+_STREAMING_OPTIMIZER = "creative_coding_assistant.orchestration.streaming_optimizer"
+_RETRY_POLICIES = "creative_coding_assistant.orchestration.retry_policies"
+_LOAD_BALANCER = "creative_coding_assistant.orchestration.load_balancer"
+_EXECUTION_PROFILING = "creative_coding_assistant.orchestration.execution_profiling"
 _WORKFLOW_REPLAY_ENGINE = (
     "creative_coding_assistant.orchestration.workflow_replay_engine"
 )
 _EXECUTION_REPLAY_ENGINE = (
     "creative_coding_assistant.orchestration.execution_replay_engine"
 )
-_BOTTLENECK_DETECTION = (
-    "creative_coding_assistant.orchestration.bottleneck_detection"
-)
-_THROUGHPUT_OPTIMIZER = (
-    "creative_coding_assistant.orchestration.throughput_optimizer"
-)
+_BOTTLENECK_DETECTION = "creative_coding_assistant.orchestration.bottleneck_detection"
+_THROUGHPUT_OPTIMIZER = "creative_coding_assistant.orchestration.throughput_optimizer"
 _PERFORMANCE_PREDICTION = (
     "creative_coding_assistant.orchestration.performance_prediction"
 )
@@ -331,21 +270,11 @@ _PERFORMANCE_FAILURE_PATH_AUDIT = (
 _TOKEN_DASHBOARD = "creative_coding_assistant.orchestration.token_dashboard"
 _COST_DASHBOARD = "creative_coding_assistant.orchestration.cost_dashboard"
 _QUALITY_DASHBOARD = "creative_coding_assistant.orchestration.quality_dashboard"
-_PERFORMANCE_DASHBOARD = (
-    "creative_coding_assistant.orchestration.performance_dashboard"
-)
-_PRODUCTION_TELEMETRY = (
-    "creative_coding_assistant.orchestration.production_telemetry"
-)
-_WORKFLOW_DIAGNOSTICS = (
-    "creative_coding_assistant.orchestration.workflow_diagnostics"
-)
-_AGENT_DIAGNOSTICS = (
-    "creative_coding_assistant.orchestration.agent_diagnostics"
-)
-_ROUTING_DIAGNOSTICS = (
-    "creative_coding_assistant.orchestration.routing_diagnostics"
-)
+_PERFORMANCE_DASHBOARD = "creative_coding_assistant.orchestration.performance_dashboard"
+_PRODUCTION_TELEMETRY = "creative_coding_assistant.orchestration.production_telemetry"
+_WORKFLOW_DIAGNOSTICS = "creative_coding_assistant.orchestration.workflow_diagnostics"
+_AGENT_DIAGNOSTICS = "creative_coding_assistant.orchestration.agent_diagnostics"
+_ROUTING_DIAGNOSTICS = "creative_coding_assistant.orchestration.routing_diagnostics"
 _ESCALATION_DIAGNOSTICS = (
     "creative_coding_assistant.orchestration.escalation_diagnostics"
 )
@@ -358,9 +287,7 @@ _SYSTEM_HEALTH_MONITORING = (
     "creative_coding_assistant.orchestration.system_health_monitoring"
 )
 _CREATIVE_ANALYTICS = "creative_coding_assistant.orchestration.creative_analytics"
-_CONFIDENCE_ANALYTICS = (
-    "creative_coding_assistant.orchestration.confidence_analytics"
-)
+_CONFIDENCE_ANALYTICS = "creative_coding_assistant.orchestration.confidence_analytics"
 _CREATIVE_DIVERSITY_ANALYTICS = (
     "creative_coding_assistant.orchestration.creative_diversity_analytics"
 )
@@ -380,9 +307,7 @@ _EXECUTION_OPTIMIZATION_FAILURE_AUDIT = (
     "creative_coding_assistant.orchestration.execution_optimization_failure_audit"
 )
 _MODEL_ROUTER = "creative_coding_assistant.orchestration.model_router"
-_LOCAL_CLOUD_ROUTING = (
-    "creative_coding_assistant.orchestration.local_cloud_routing"
-)
+_LOCAL_CLOUD_ROUTING = "creative_coding_assistant.orchestration.local_cloud_routing"
 _HYBRID_ROUTING = "creative_coding_assistant.orchestration.hybrid_routing"
 _QUALITY_COST_OPTIMIZER = (
     "creative_coding_assistant.orchestration.quality_cost_optimizer"
@@ -421,18 +346,14 @@ _ROUTING_EXPLAINABILITY = (
     "creative_coding_assistant.orchestration.routing_explainability"
 )
 _MODEL_ROUTING_ARCHITECTURE_CONSISTENCY = (
-    "creative_coding_assistant.orchestration."
-    "model_routing_architecture_consistency"
+    "creative_coding_assistant.orchestration.model_routing_architecture_consistency"
 )
 _MODEL_ROUTING_FAILURE_PATH_AUDIT = (
     "creative_coding_assistant.orchestration.model_routing_failure_path_audit"
 )
-_ROUTING_INTELLIGENCE = (
-    "creative_coding_assistant.orchestration.routing_intelligence"
-)
+_ROUTING_INTELLIGENCE = "creative_coding_assistant.orchestration.routing_intelligence"
 _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER = (
-    "creative_coding_assistant.orchestration."
-    "adaptive_hybrid_workflow_optimizer"
+    "creative_coding_assistant.orchestration.adaptive_hybrid_workflow_optimizer"
 )
 _ADAPTIVE_ESCALATION_OPTIMIZER = (
     "creative_coding_assistant.orchestration.adaptive_escalation_optimizer"
@@ -447,12 +368,10 @@ _ADAPTIVE_LATENCY_OPTIMIZER = (
     "creative_coding_assistant.orchestration.adaptive_latency_optimizer"
 )
 _ADAPTIVE_EXECUTION_STRATEGY_SELECTION = (
-    "creative_coding_assistant.orchestration."
-    "adaptive_execution_strategy_selection"
+    "creative_coding_assistant.orchestration.adaptive_execution_strategy_selection"
 )
 _ADAPTIVE_EXECUTION_POLICY_ENGINE = (
-    "creative_coding_assistant.orchestration."
-    "adaptive_execution_policy_engine"
+    "creative_coding_assistant.orchestration.adaptive_execution_policy_engine"
 )
 _DYNAMIC_AGENT_ALLOCATION = (
     "creative_coding_assistant.orchestration.dynamic_agent_allocation"
@@ -471,8 +390,7 @@ _ADAPTIVE_EXECUTION_ARCHITECTURE_CONSISTENCY = (
     "adaptive_execution_architecture_consistency"
 )
 _ADAPTIVE_EXECUTION_FAILURE_PATH_AUDIT = (
-    "creative_coding_assistant.orchestration."
-    "adaptive_execution_failure_path_audit"
+    "creative_coding_assistant.orchestration.adaptive_execution_failure_path_audit"
 )
 _DYNAMIC_RESOURCE_ALLOCATION = (
     "creative_coding_assistant.orchestration.dynamic_resource_allocation"
@@ -486,9 +404,7 @@ _EXECUTION_CONFIDENCE_ENGINE = (
 _ADAPTIVE_LEARNING_ENGINE = (
     "creative_coding_assistant.orchestration.adaptive_learning_engine"
 )
-_AUTOMATIC_KB_UPDATES = (
-    "creative_coding_assistant.orchestration.automatic_kb_updates"
-)
+_AUTOMATIC_KB_UPDATES = "creative_coding_assistant.orchestration.automatic_kb_updates"
 _PROMPT_EVOLUTION = "creative_coding_assistant.orchestration.prompt_evolution"
 _WORKFLOW_EVOLUTION = "creative_coding_assistant.orchestration.workflow_evolution"
 _BENCHMARK_ENGINE = "creative_coding_assistant.orchestration.benchmark_engine"
@@ -533,9 +449,7 @@ _REASONING_EVOLUTION_ENGINE = (
 _IMPROVEMENT_RANKING_ENGINE = (
     "creative_coding_assistant.orchestration.improvement_ranking_engine"
 )
-_COST_BENEFIT_ANALYSIS = (
-    "creative_coding_assistant.orchestration.cost_benefit_analysis"
-)
+_COST_BENEFIT_ANALYSIS = "creative_coding_assistant.orchestration.cost_benefit_analysis"
 _RISK_ANALYSIS = "creative_coding_assistant.orchestration.risk_analysis"
 _EXPECTED_IMPACT_ESTIMATOR = (
     "creative_coding_assistant.orchestration.expected_impact_estimator"
@@ -558,9 +472,7 @@ _SELF_EVOLUTION_FAILURE_PATH_AUDIT = (
 _UNIFIED_COGNITIVE_GRAPH = (
     "creative_coding_assistant.orchestration.unified_cognitive_graph"
 )
-_UNIFIED_MEMORY_GRAPH = (
-    "creative_coding_assistant.orchestration.unified_memory_graph"
-)
+_UNIFIED_MEMORY_GRAPH = "creative_coding_assistant.orchestration.unified_memory_graph"
 _UNIFIED_KNOWLEDGE_GRAPH = (
     "creative_coding_assistant.orchestration.unified_knowledge_graph"
 )
@@ -582,12 +494,8 @@ _COGNITIVE_STATE_ENGINE = (
 _COGNITIVE_PROFILE_ENGINE = (
     "creative_coding_assistant.orchestration.cognitive_profile_engine"
 )
-_META_REASONING_LAYER = (
-    "creative_coding_assistant.orchestration.meta_reasoning_layer"
-)
-_META_PLANNING_LAYER = (
-    "creative_coding_assistant.orchestration.meta_planning_layer"
-)
+_META_REASONING_LAYER = "creative_coding_assistant.orchestration.meta_reasoning_layer"
+_META_PLANNING_LAYER = "creative_coding_assistant.orchestration.meta_planning_layer"
 _COGNITIVE_GOVERNANCE_LAYER = (
     "creative_coding_assistant.orchestration.cognitive_governance_layer"
 )
@@ -600,33 +508,21 @@ _CREATIVE_IDENTITY_LAYER = (
 _EMERGENT_CREATIVITY_LAYER = (
     "creative_coding_assistant.orchestration.emergent_creativity_layer"
 )
-_COGNITIVE_SCHEDULER = (
-    "creative_coding_assistant.orchestration.cognitive_scheduler"
-)
-_COGNITIVE_PLANNER = (
-    "creative_coding_assistant.orchestration.cognitive_planner"
-)
-_COGNITIVE_ROUTER = (
-    "creative_coding_assistant.orchestration.cognitive_router"
-)
-_COGNITIVE_BLACKBOARD = (
-    "creative_coding_assistant.orchestration.cognitive_blackboard"
-)
+_COGNITIVE_SCHEDULER = "creative_coding_assistant.orchestration.cognitive_scheduler"
+_COGNITIVE_PLANNER = "creative_coding_assistant.orchestration.cognitive_planner"
+_COGNITIVE_ROUTER = "creative_coding_assistant.orchestration.cognitive_router"
+_COGNITIVE_BLACKBOARD = "creative_coding_assistant.orchestration.cognitive_blackboard"
 _COGNITIVE_EXPLANATION_ENGINE = (
     "creative_coding_assistant.orchestration.cognitive_explanation_engine"
 )
 _COGNITIVE_SAFETY_LAYER = (
     "creative_coding_assistant.orchestration.cognitive_safety_layer"
 )
-_COGNITIVE_HITL_LAYER = (
-    "creative_coding_assistant.orchestration.cognitive_hitl_layer"
-)
+_COGNITIVE_HITL_LAYER = "creative_coding_assistant.orchestration.cognitive_hitl_layer"
 _UNIFIED_EXECUTION_GRAPH = (
     "creative_coding_assistant.orchestration.unified_execution_graph"
 )
-_CORE_OS_CONSOLIDATION = (
-    "creative_coding_assistant.orchestration.core_os_consolidation"
-)
+_CORE_OS_CONSOLIDATION = "creative_coding_assistant.orchestration.core_os_consolidation"
 _COGNITIVE_OS_CORE_SURFACE = (
     "creative_coding_assistant.orchestration.cognitive_os_core_surface"
 )
@@ -640,9 +536,7 @@ _COGNITIVE_OS_FAILURE_PATH_AUDIT = (
     "creative_coding_assistant.orchestration.cognitive_os_failure_path_audit"
 )
 _RESEARCH_PLANNER = "creative_coding_assistant.orchestration.research_planner"
-_RESEARCH_DECOMPOSER = (
-    "creative_coding_assistant.orchestration.research_decomposer"
-)
+_RESEARCH_DECOMPOSER = "creative_coding_assistant.orchestration.research_decomposer"
 _PAPER_RESEARCH = "creative_coding_assistant.orchestration.paper_research"
 _WEB_RESEARCH = "creative_coding_assistant.orchestration.web_research"
 _CROSS_SOURCE_COMPARISON = (
@@ -686,15 +580,11 @@ _CREATIVE_RESEARCH_ENGINE = (
 _CROSS_DOMAIN_INSPIRATION_DISCOVERY = (
     "creative_coding_assistant.orchestration.cross_domain_inspiration_discovery"
 )
-_RESEARCH_CORE_SURFACE = (
-    "creative_coding_assistant.orchestration.research_core_surface"
-)
+_RESEARCH_CORE_SURFACE = "creative_coding_assistant.orchestration.research_core_surface"
 _RESEARCH_SECONDARY_SURFACE = (
     "creative_coding_assistant.orchestration.research_secondary_surface"
 )
-_RESEARCH_GOVERNANCE = (
-    "creative_coding_assistant.orchestration.research_governance"
-)
+_RESEARCH_GOVERNANCE = "creative_coding_assistant.orchestration.research_governance"
 _RESEARCH_FAILURE_PATH_AUDIT = (
     "creative_coding_assistant.orchestration.research_failure_path_audit"
 )
@@ -703,9 +593,7 @@ _DOCUMENTATION_INTELLIGENCE = (
 )
 _EMBEDDING_REFRESH = "creative_coding_assistant.orchestration.embedding_refresh"
 _RETRIEVAL_EVOLUTION = "creative_coding_assistant.orchestration.retrieval_evolution"
-_RANKING_OPTIMIZATION = (
-    "creative_coding_assistant.orchestration.ranking_optimization"
-)
+_RANKING_OPTIMIZATION = "creative_coding_assistant.orchestration.ranking_optimization"
 _KNOWLEDGE_HEALTH_MONITORING = (
     "creative_coding_assistant.orchestration.knowledge_health_monitoring"
 )
@@ -742,9 +630,7 @@ _KNOWLEDGE_CONSOLIDATION = (
 _KNOWLEDGE_FRESHNESS_TRACKING = (
     "creative_coding_assistant.orchestration.knowledge_freshness_tracking"
 )
-_KNOWLEDGE_TRUST_SCORE = (
-    "creative_coding_assistant.orchestration.knowledge_trust_score"
-)
+_KNOWLEDGE_TRUST_SCORE = "creative_coding_assistant.orchestration.knowledge_trust_score"
 _KNOWLEDGE_LIFECYCLE_MANAGEMENT = (
     "creative_coding_assistant.orchestration.knowledge_lifecycle_management"
 )
@@ -755,9 +641,7 @@ _KNOWLEDGE_ROLLBACK = "creative_coding_assistant.orchestration.knowledge_rollbac
 _KNOWLEDGE_SNAPSHOT_ENGINE = (
     "creative_coding_assistant.orchestration.knowledge_snapshot_engine"
 )
-_KNOWLEDGE_VERSIONING = (
-    "creative_coding_assistant.orchestration.knowledge_versioning"
-)
+_KNOWLEDGE_VERSIONING = "creative_coding_assistant.orchestration.knowledge_versioning"
 _LONG_TERM_CREATIVE_MEMORY = (
     "creative_coding_assistant.orchestration.long_term_creative_memory"
 )
@@ -819,21 +703,15 @@ _CREATIVE_FAILURE_LEARNING = (
     "creative_coding_assistant.orchestration.creative_failure_learning"
 )
 _ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT = (
-    "creative_coding_assistant.orchestration."
-    "adaptive_learning_failure_path_audit"
+    "creative_coding_assistant.orchestration.adaptive_learning_failure_path_audit"
 )
-_WORKFLOW_RISK_ENGINE = (
-    "creative_coding_assistant.orchestration.workflow_risk_engine"
-)
+_WORKFLOW_RISK_ENGINE = "creative_coding_assistant.orchestration.workflow_risk_engine"
 _CREATIVE_EXPLORATION_OPTIMIZER = (
     "creative_coding_assistant.orchestration.creative_exploration_optimizer"
 )
-_EMERGENCE_OPTIMIZER = (
-    "creative_coding_assistant.orchestration.emergence_optimizer"
-)
+_EMERGENCE_OPTIMIZER = "creative_coding_assistant.orchestration.emergence_optimizer"
 _PRODUCTION_RELEASE_FINAL_OPTIMIZATION = (
-    "creative_coding_assistant.orchestration."
-    "production_release_final_optimization"
+    "creative_coding_assistant.orchestration.production_release_final_optimization"
 )
 _PRODUCTION_RELEASE_PACKAGING = (
     "creative_coding_assistant.orchestration.production_release_packaging"
@@ -844,9 +722,7 @@ _PRODUCTION_RELEASE_CANDIDATE = (
 _PRODUCTION_DEMO_ASSETS = (
     "creative_coding_assistant.orchestration.production_demo_assets"
 )
-_PRODUCTION_DEPLOYMENT = (
-    "creative_coding_assistant.orchestration.production_deployment"
-)
+_PRODUCTION_DEPLOYMENT = "creative_coding_assistant.orchestration.production_deployment"
 _PRODUCTION_READINESS_REVIEW = (
     "creative_coding_assistant.orchestration.production_readiness_review"
 )
@@ -917,9 +793,7 @@ _EXPORT_MAP = {
     "TYPED_FAILURE_TAXONOMY_ROADMAP_ITEMS": _TYPED_FAILURE_TAXONOMY,
     "TypedFailureTaxonomyRegistry": _TYPED_FAILURE_TAXONOMY,
     "WorkstationClientBoundaryFailureModel": _TYPED_FAILURE_TAXONOMY,
-    "REGISTRY_CONTRACT_CONSOLIDATION_ROADMAP_ITEMS": (
-        _REGISTRY_CONTRACT_CONSOLIDATION
-    ),
+    "REGISTRY_CONTRACT_CONSOLIDATION_ROADMAP_ITEMS": (_REGISTRY_CONTRACT_CONSOLIDATION),
     "ArchitectureSimplificationReview": _REGISTRY_CONTRACT_CONSOLIDATION,
     "ContractCompatibilityReport": _REGISTRY_CONTRACT_CONSOLIDATION,
     "ContractSchemaRecord": _REGISTRY_CONTRACT_CONSOLIDATION,
@@ -996,9 +870,7 @@ _EXPORT_MAP = {
     "PerformanceRegressionSignal": _PERFORMANCE_REGRESSION_DETECTION,
     "ResourceUtilizationOptimizationPlan": _RESOURCE_UTILIZATION_OPTIMIZER,
     "ResourceUtilizationRecommendation": _RESOURCE_UTILIZATION_OPTIMIZER,
-    "PerformanceArchitectureConsistencyRecord": (
-        _PERFORMANCE_ARCHITECTURE_CONSISTENCY
-    ),
+    "PerformanceArchitectureConsistencyRecord": (_PERFORMANCE_ARCHITECTURE_CONSISTENCY),
     "PerformanceArchitectureConsistencyRegistry": (
         _PERFORMANCE_ARCHITECTURE_CONSISTENCY
     ),
@@ -1052,9 +924,7 @@ _EXPORT_MAP = {
     "ProductionObservabilityFailurePathAuditRegistry": (
         _PRODUCTION_OBSERVABILITY_FAILURE_PATH_AUDIT
     ),
-    "ExecutionOptimizationFailureAuditRecord": (
-        _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
-    ),
+    "ExecutionOptimizationFailureAuditRecord": (_EXECUTION_OPTIMIZATION_FAILURE_AUDIT),
     "ExecutionOptimizationFailureAuditRegistry": (
         _EXECUTION_OPTIMIZATION_FAILURE_AUDIT
     ),
@@ -1120,13 +990,9 @@ _EXPORT_MAP = {
     "TaskAwareRoutingDecision": _ROUTING_INTELLIGENCE,
     "TaskAwareRoutingRegistry": _ROUTING_INTELLIGENCE,
     "HybridWorkflowFallback": _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER,
-    "HybridWorkflowOptimizationCandidate": (
-        _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER
-    ),
+    "HybridWorkflowOptimizationCandidate": (_ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER),
     "HybridWorkflowOptimizationPlan": _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER,
-    "HybridWorkflowSimulationEstimate": (
-        _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER
-    ),
+    "HybridWorkflowSimulationEstimate": (_ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER),
     "EscalationOptimizationDecision": _ADAPTIVE_ESCALATION_OPTIMIZER,
     "EscalationOptimizationPlan": _ADAPTIVE_ESCALATION_OPTIMIZER,
     "AgentActivationOptimizationCandidate": _AGENT_ACTIVATION_OPTIMIZER,
@@ -1135,12 +1001,8 @@ _EXPORT_MAP = {
     "AdaptiveCostQualityPlan": _ADAPTIVE_COST_QUALITY_OPTIMIZER,
     "AdaptiveLatencyCandidate": _ADAPTIVE_LATENCY_OPTIMIZER,
     "AdaptiveLatencyPlan": _ADAPTIVE_LATENCY_OPTIMIZER,
-    "AdaptiveExecutionStrategyCandidate": (
-        _ADAPTIVE_EXECUTION_STRATEGY_SELECTION
-    ),
-    "AdaptiveExecutionStrategySelectionPlan": (
-        _ADAPTIVE_EXECUTION_STRATEGY_SELECTION
-    ),
+    "AdaptiveExecutionStrategyCandidate": (_ADAPTIVE_EXECUTION_STRATEGY_SELECTION),
+    "AdaptiveExecutionStrategySelectionPlan": (_ADAPTIVE_EXECUTION_STRATEGY_SELECTION),
     "AdaptiveExecutionAvailabilityContext": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
     "AdaptiveExecutionEscalationRule": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
     "AdaptiveExecutionFallbackDecision": _ADAPTIVE_EXECUTION_POLICY_ENGINE,
@@ -1165,9 +1027,7 @@ _EXPORT_MAP = {
     "AdaptiveExecutionArchitectureConsistencyRegistry": (
         _ADAPTIVE_EXECUTION_ARCHITECTURE_CONSISTENCY
     ),
-    "AdaptiveExecutionFailurePathAuditRecord": (
-        _ADAPTIVE_EXECUTION_FAILURE_PATH_AUDIT
-    ),
+    "AdaptiveExecutionFailurePathAuditRecord": (_ADAPTIVE_EXECUTION_FAILURE_PATH_AUDIT),
     "AdaptiveExecutionFailurePathAuditRegistry": (
         _ADAPTIVE_EXECUTION_FAILURE_PATH_AUDIT
     ),
@@ -1239,12 +1099,8 @@ _EXPORT_MAP = {
     "CreativeSuccessLearningPlan": _CREATIVE_SUCCESS_LEARNING,
     "CreativeFailurePattern": _CREATIVE_FAILURE_LEARNING,
     "CreativeFailureLearningPlan": _CREATIVE_FAILURE_LEARNING,
-    "AdaptiveLearningFailurePathAuditRecord": (
-        _ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT
-    ),
-    "AdaptiveLearningFailurePathAuditRegistry": (
-        _ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT
-    ),
+    "AdaptiveLearningFailurePathAuditRecord": (_ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT),
+    "AdaptiveLearningFailurePathAuditRegistry": (_ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT),
     "WorkflowRiskFactor": _WORKFLOW_RISK_ENGINE,
     "WorkflowRiskPlan": _WORKFLOW_RISK_ENGINE,
     "CreativeExplorationOptimizationCandidate": _CREATIVE_EXPLORATION_OPTIMIZER,
@@ -1252,9 +1108,7 @@ _EXPORT_MAP = {
     "EmergenceOptimizationCandidate": _EMERGENCE_OPTIMIZER,
     "EmergenceOptimizationPlan": _EMERGENCE_OPTIMIZER,
     "ProductionOptimizationRecord": _PRODUCTION_RELEASE_FINAL_OPTIMIZATION,
-    "ProductionReleaseFinalOptimizationPlan": (
-        _PRODUCTION_RELEASE_FINAL_OPTIMIZATION
-    ),
+    "ProductionReleaseFinalOptimizationPlan": (_PRODUCTION_RELEASE_FINAL_OPTIMIZATION),
     "ProductionPackagingPlan": _PRODUCTION_RELEASE_PACKAGING,
     "ProductionPackagingRecord": _PRODUCTION_RELEASE_PACKAGING,
     "ProductionReleaseCandidatePlan": _PRODUCTION_RELEASE_CANDIDATE,
@@ -1273,15 +1127,9 @@ _EXPORT_MAP = {
     "ProductionReleaseAuditRecord": _PRODUCTION_RELEASE_AUDIT,
     "ProductionFinalHardening": _PRODUCTION_FINAL_HARDENING,
     "ProductionHardeningRecord": _PRODUCTION_FINAL_HARDENING,
-    "ProductionArchitectureConsistencyRecord": (
-        _PRODUCTION_ARCHITECTURE_CONSISTENCY
-    ),
-    "ProductionArchitectureConsistencyRegistry": (
-        _PRODUCTION_ARCHITECTURE_CONSISTENCY
-    ),
-    "ProductionReleaseFailurePathAuditRecord": (
-        _PRODUCTION_RELEASE_FAILURE_PATH_AUDIT
-    ),
+    "ProductionArchitectureConsistencyRecord": (_PRODUCTION_ARCHITECTURE_CONSISTENCY),
+    "ProductionArchitectureConsistencyRegistry": (_PRODUCTION_ARCHITECTURE_CONSISTENCY),
+    "ProductionReleaseFailurePathAuditRecord": (_PRODUCTION_RELEASE_FAILURE_PATH_AUDIT),
     "ProductionReleaseFailurePathAuditRegistry": (
         _PRODUCTION_RELEASE_FAILURE_PATH_AUDIT
     ),
@@ -1416,9 +1264,7 @@ _EXPORT_MAP = {
     "AgentCollaborationAuditRegistry": _AGENT_COLLABORATION_AUDIT,
     "agent_collaboration_audit_by_registry_id": _AGENT_COLLABORATION_AUDIT,
     "agent_collaboration_audit_registry": _AGENT_COLLABORATION_AUDIT,
-    "agent_collaboration_audits_for_source_registry": (
-        _AGENT_COLLABORATION_AUDIT
-    ),
+    "agent_collaboration_audits_for_source_registry": (_AGENT_COLLABORATION_AUDIT),
     "agent_collaboration_audits_for_surface": _AGENT_COLLABORATION_AUDIT,
     "AgentCapabilityAlignmentProfile": _AGENT_CAPABILITY_ALIGNMENT,
     "AgentCapabilityAlignmentRegistry": _AGENT_CAPABILITY_ALIGNMENT,
@@ -1451,15 +1297,9 @@ _EXPORT_MAP = {
     "workflow_agent_handoff_profile_by_agent_id": _WORKFLOW_AGENT_HANDOFF,
     "workflow_agent_handoff_registry": _WORKFLOW_AGENT_HANDOFF,
     "workflow_agent_handoffs_for_surface": _WORKFLOW_AGENT_HANDOFF,
-    "IntegratedOrchestrationRegistryContract": (
-        _ORCHESTRATION_CONTRACT_INTEGRATION
-    ),
-    "OrchestrationContractIntegrationRegistry": (
-        _ORCHESTRATION_CONTRACT_INTEGRATION
-    ),
-    "integrated_orchestration_registry_by_id": (
-        _ORCHESTRATION_CONTRACT_INTEGRATION
-    ),
+    "IntegratedOrchestrationRegistryContract": (_ORCHESTRATION_CONTRACT_INTEGRATION),
+    "OrchestrationContractIntegrationRegistry": (_ORCHESTRATION_CONTRACT_INTEGRATION),
+    "integrated_orchestration_registry_by_id": (_ORCHESTRATION_CONTRACT_INTEGRATION),
     "orchestration_contract_integration_registry": (
         _ORCHESTRATION_CONTRACT_INTEGRATION
     ),
@@ -1490,9 +1330,7 @@ _EXPORT_MAP = {
     "EscalationPolicyAuditRegistry": _ESCALATION_POLICY_AUDIT,
     "escalation_policy_audit_by_rule_id": _ESCALATION_POLICY_AUDIT,
     "escalation_policy_audit_registry": _ESCALATION_POLICY_AUDIT,
-    "escalation_policy_audits_for_downstream_registry": (
-        _ESCALATION_POLICY_AUDIT
-    ),
+    "escalation_policy_audits_for_downstream_registry": (_ESCALATION_POLICY_AUDIT),
     "ConditionalMultiAgentEscalationCondition": _HYBRID_AGENTIC_WORKFLOW,
     "ConditionalMultiAgentEscalationRegistry": _HYBRID_AGENTIC_WORKFLOW,
     "CreativeExplorationBudgetProfile": _HYBRID_AGENTIC_WORKFLOW,
@@ -1679,9 +1517,7 @@ _EXPORT_MAP = {
     "provider_selection_profile_by_id": _HYBRID_STUDIO,
     "provider_selection_profiles_for_route": _HYBRID_STUDIO,
     "provider_selection_registry": _HYBRID_STUDIO,
-    "conditional_multi_agent_escalation_condition_by_id": (
-        _HYBRID_AGENTIC_WORKFLOW
-    ),
+    "conditional_multi_agent_escalation_condition_by_id": (_HYBRID_AGENTIC_WORKFLOW),
     "conditional_multi_agent_escalation_registry": _HYBRID_AGENTIC_WORKFLOW,
     "cloud_model_registry": _HYBRID_STUDIO,
     "cloud_model_surface_by_id": _HYBRID_STUDIO,
@@ -1723,42 +1559,26 @@ _EXPORT_MAP = {
     "creative_diversity_audit_by_profile_id": _CREATIVE_DIVERSITY_AUDIT,
     "creative_diversity_audit_registry": _CREATIVE_DIVERSITY_AUDIT,
     "creative_diversity_audits_for_posture": _CREATIVE_DIVERSITY_AUDIT,
-    "creative_diversity_audits_for_source_registry": (
-        _CREATIVE_DIVERSITY_AUDIT
-    ),
+    "creative_diversity_audits_for_source_registry": (_CREATIVE_DIVERSITY_AUDIT),
     "AgentExplainabilityAuditRecord": _AGENT_EXPLAINABILITY_AUDIT,
     "AgentExplainabilityAuditRegistry": _AGENT_EXPLAINABILITY_AUDIT,
     "agent_explainability_audit_by_agent_id": _AGENT_EXPLAINABILITY_AUDIT,
     "agent_explainability_audit_registry": _AGENT_EXPLAINABILITY_AUDIT,
-    "agent_explainability_audits_for_memory_source": (
-        _AGENT_EXPLAINABILITY_AUDIT
-    ),
-    "agent_explainability_audits_for_source_registry": (
-        _AGENT_EXPLAINABILITY_AUDIT
-    ),
+    "agent_explainability_audits_for_memory_source": (_AGENT_EXPLAINABILITY_AUDIT),
+    "agent_explainability_audits_for_source_registry": (_AGENT_EXPLAINABILITY_AUDIT),
     "AgentReliabilityAuditRecord": _AGENT_RELIABILITY_AUDIT,
     "AgentReliabilityAuditRegistry": _AGENT_RELIABILITY_AUDIT,
     "agent_reliability_audit_by_agent_id": _AGENT_RELIABILITY_AUDIT,
     "agent_reliability_audit_registry": _AGENT_RELIABILITY_AUDIT,
-    "agent_reliability_audits_for_consistency_family": (
-        _AGENT_RELIABILITY_AUDIT
-    ),
-    "agent_reliability_audits_for_escalation_category": (
-        _AGENT_RELIABILITY_AUDIT
-    ),
+    "agent_reliability_audits_for_consistency_family": (_AGENT_RELIABILITY_AUDIT),
+    "agent_reliability_audits_for_escalation_category": (_AGENT_RELIABILITY_AUDIT),
     "AgentDeterminismAuditRecord": _AGENT_DETERMINISM_AUDIT,
     "AgentDeterminismAuditRegistry": _AGENT_DETERMINISM_AUDIT,
     "agent_determinism_audit_by_agent_id": _AGENT_DETERMINISM_AUDIT,
     "agent_determinism_audit_registry": _AGENT_DETERMINISM_AUDIT,
-    "agent_determinism_audits_for_cacheability": (
-        _AGENT_DETERMINISM_AUDIT
-    ),
-    "agent_determinism_audits_for_routing_priority_band": (
-        _AGENT_DETERMINISM_AUDIT
-    ),
-    "agent_determinism_audits_for_scheduling_group": (
-        _AGENT_DETERMINISM_AUDIT
-    ),
+    "agent_determinism_audits_for_cacheability": (_AGENT_DETERMINISM_AUDIT),
+    "agent_determinism_audits_for_routing_priority_band": (_AGENT_DETERMINISM_AUDIT),
+    "agent_determinism_audits_for_scheduling_group": (_AGENT_DETERMINISM_AUDIT),
     "AgentTelemetryFoundationProfile": _AGENT_TELEMETRY_FOUNDATION,
     "AgentTelemetryFoundationRegistry": _AGENT_TELEMETRY_FOUNDATION,
     "agent_telemetry_foundation_registry": _AGENT_TELEMETRY_FOUNDATION,
@@ -1767,16 +1587,10 @@ _EXPORT_MAP = {
     "agent_telemetry_profiles_for_event_type": _AGENT_TELEMETRY_FOUNDATION,
     "AgentCostTrackingFoundationProfile": _AGENT_COST_TRACKING_FOUNDATION,
     "AgentCostTrackingFoundationRegistry": _AGENT_COST_TRACKING_FOUNDATION,
-    "agent_cost_tracking_foundation_registry": (
-        _AGENT_COST_TRACKING_FOUNDATION
-    ),
+    "agent_cost_tracking_foundation_registry": (_AGENT_COST_TRACKING_FOUNDATION),
     "agent_cost_tracking_profile_by_agent_id": _AGENT_COST_TRACKING_FOUNDATION,
-    "agent_cost_tracking_profiles_for_cost_class": (
-        _AGENT_COST_TRACKING_FOUNDATION
-    ),
-    "agent_cost_tracking_profiles_for_cost_profile": (
-        _AGENT_COST_TRACKING_FOUNDATION
-    ),
+    "agent_cost_tracking_profiles_for_cost_class": (_AGENT_COST_TRACKING_FOUNDATION),
+    "agent_cost_tracking_profiles_for_cost_profile": (_AGENT_COST_TRACKING_FOUNDATION),
     "AgentPerformanceTrackingFoundationProfile": (
         _AGENT_PERFORMANCE_TRACKING_FOUNDATION
     ),
@@ -1801,9 +1615,7 @@ _EXPORT_MAP = {
     "architecture_consistency_record_by_source_registry": (
         _ARCHITECTURE_CONSISTENCY_PASS
     ),
-    "architecture_consistency_records_for_layer": (
-        _ARCHITECTURE_CONSISTENCY_PASS
-    ),
+    "architecture_consistency_records_for_layer": (_ARCHITECTURE_CONSISTENCY_PASS),
     "FinalV4HardeningRecord": _FINAL_V4_HARDENING,
     "FinalV4HardeningRegistry": _FINAL_V4_HARDENING,
     "LangGraphErrorPathAuditRecord": _FINAL_V4_HARDENING,
@@ -1832,9 +1644,7 @@ _EXPORT_MAP = {
     "model_profiles_for_route": _HYBRID_STUDIO,
     "multimodal_artifact_collaboration_profile_by_id": _MULTIMODAL_STUDIO,
     "multimodal_artifact_collaboration_profiles_for_route": _MULTIMODAL_STUDIO,
-    "multimodal_artifact_collaboration_profiles_for_surface_kind": (
-        _MULTIMODAL_STUDIO
-    ),
+    "multimodal_artifact_collaboration_profiles_for_surface_kind": (_MULTIMODAL_STUDIO),
     "multimodal_artifact_collaboration_profiles_for_workspace_profile": (
         _MULTIMODAL_STUDIO
     ),
@@ -1844,37 +1654,27 @@ _EXPORT_MAP = {
         _MULTIMODAL_STUDIO
     ),
     "multimodal_artifact_lineage_profiles_for_route": _MULTIMODAL_STUDIO,
-    "multimodal_artifact_lineage_profiles_for_surface_kind": (
-        _MULTIMODAL_STUDIO
-    ),
+    "multimodal_artifact_lineage_profiles_for_surface_kind": (_MULTIMODAL_STUDIO),
     "multimodal_artifact_lineage_registry": _MULTIMODAL_STUDIO,
     "multimodal_artifact_provenance_profile_by_id": _MULTIMODAL_STUDIO,
     "multimodal_artifact_provenance_profiles_for_artifact_collaboration_profile": (
         _MULTIMODAL_STUDIO
     ),
     "multimodal_artifact_provenance_profiles_for_route": _MULTIMODAL_STUDIO,
-    "multimodal_artifact_provenance_profiles_for_surface_kind": (
-        _MULTIMODAL_STUDIO
-    ),
+    "multimodal_artifact_provenance_profiles_for_surface_kind": (_MULTIMODAL_STUDIO),
     "multimodal_artifact_provenance_registry": _MULTIMODAL_STUDIO,
     "multimodal_branching_timeline_profile_by_id": _MULTIMODAL_STUDIO,
     "multimodal_branching_timeline_profiles_for_route": _MULTIMODAL_STUDIO,
-    "multimodal_branching_timeline_profiles_for_surface_kind": (
-        _MULTIMODAL_STUDIO
-    ),
+    "multimodal_branching_timeline_profiles_for_surface_kind": (_MULTIMODAL_STUDIO),
     "multimodal_branching_timeline_profiles_for_workspace_history_profile": (
         _MULTIMODAL_STUDIO
     ),
     "multimodal_branching_timeline_registry": _MULTIMODAL_STUDIO,
-    "multimodal_creative_evolution_timeline_profile_by_id": (
-        _MULTIMODAL_STUDIO
-    ),
+    "multimodal_creative_evolution_timeline_profile_by_id": (_MULTIMODAL_STUDIO),
     "multimodal_creative_evolution_timeline_profiles_for_branching_timeline_profile": (
         _MULTIMODAL_STUDIO
     ),
-    "multimodal_creative_evolution_timeline_profiles_for_route": (
-        _MULTIMODAL_STUDIO
-    ),
+    "multimodal_creative_evolution_timeline_profiles_for_route": (_MULTIMODAL_STUDIO),
     "multimodal_creative_evolution_timeline_profiles_for_surface_kind": (
         _MULTIMODAL_STUDIO
     ),
@@ -1884,9 +1684,7 @@ _EXPORT_MAP = {
         _MULTIMODAL_STUDIO
     ),
     "multimodal_cross_agent_workspace_profiles_for_route": _MULTIMODAL_STUDIO,
-    "multimodal_cross_agent_workspace_profiles_for_surface_kind": (
-        _MULTIMODAL_STUDIO
-    ),
+    "multimodal_cross_agent_workspace_profiles_for_surface_kind": (_MULTIMODAL_STUDIO),
     "multimodal_cross_agent_workspace_registry": _MULTIMODAL_STUDIO,
     "multimodal_interactive_canvas_profile_by_id": _MULTIMODAL_STUDIO,
     "multimodal_interactive_canvas_profiles_for_live_preview_profile": (
@@ -1896,42 +1694,30 @@ _EXPORT_MAP = {
         _MULTIMODAL_STUDIO
     ),
     "multimodal_interactive_canvas_profiles_for_route": _MULTIMODAL_STUDIO,
-    "multimodal_interactive_canvas_profiles_for_surface_kind": (
-        _MULTIMODAL_STUDIO
-    ),
+    "multimodal_interactive_canvas_profiles_for_surface_kind": (_MULTIMODAL_STUDIO),
     "multimodal_interactive_canvas_registry": _MULTIMODAL_STUDIO,
     "multimodal_live_preview_profile_by_id": _MULTIMODAL_STUDIO,
     "multimodal_live_preview_profiles_for_route": _MULTIMODAL_STUDIO,
-    "multimodal_live_preview_profiles_for_source_reference": (
-        _MULTIMODAL_STUDIO
-    ),
+    "multimodal_live_preview_profiles_for_source_reference": (_MULTIMODAL_STUDIO),
     "multimodal_live_preview_profiles_for_target": _MULTIMODAL_STUDIO,
     "multimodal_live_preview_registry": _MULTIMODAL_STUDIO,
     "multimodal_multi_preview_profile_by_id": _MULTIMODAL_STUDIO,
     "multimodal_multi_preview_profiles_for_layout": _MULTIMODAL_STUDIO,
-    "multimodal_multi_preview_profiles_for_live_preview_profile": (
-        _MULTIMODAL_STUDIO
-    ),
+    "multimodal_multi_preview_profiles_for_live_preview_profile": (_MULTIMODAL_STUDIO),
     "multimodal_multi_preview_profiles_for_route": _MULTIMODAL_STUDIO,
     "multimodal_multi_preview_registry": _MULTIMODAL_STUDIO,
     "multimodal_runtime_collaboration_profile_by_id": _MULTIMODAL_STUDIO,
     "multimodal_runtime_collaboration_profiles_for_route": _MULTIMODAL_STUDIO,
-    "multimodal_runtime_collaboration_profiles_for_surface_kind": (
-        _MULTIMODAL_STUDIO
-    ),
+    "multimodal_runtime_collaboration_profiles_for_surface_kind": (_MULTIMODAL_STUDIO),
     "multimodal_runtime_collaboration_profiles_for_visual_workspace_profile": (
         _MULTIMODAL_STUDIO
     ),
     "multimodal_runtime_collaboration_registry": _MULTIMODAL_STUDIO,
-    "multimodal_real_time_workflow_visualization_profile_by_id": (
-        _MULTIMODAL_STUDIO
-    ),
+    "multimodal_real_time_workflow_visualization_profile_by_id": (_MULTIMODAL_STUDIO),
     (
         "multimodal_real_time_workflow_visualization_profiles_for_"
         "creative_evolution_timeline_profile"
-    ): (
-        _MULTIMODAL_STUDIO
-    ),
+    ): (_MULTIMODAL_STUDIO),
     "multimodal_real_time_workflow_visualization_profiles_for_route": (
         _MULTIMODAL_STUDIO
     ),
@@ -1944,15 +1730,11 @@ _EXPORT_MAP = {
         _MULTIMODAL_STUDIO
     ),
     "multimodal_shared_artifact_board_profiles_for_route": _MULTIMODAL_STUDIO,
-    "multimodal_shared_artifact_board_profiles_for_surface_kind": (
-        _MULTIMODAL_STUDIO
-    ),
+    "multimodal_shared_artifact_board_profiles_for_surface_kind": (_MULTIMODAL_STUDIO),
     "multimodal_shared_artifact_board_registry": _MULTIMODAL_STUDIO,
     "multimodal_studio_integration_profile_by_id": _MULTIMODAL_STUDIO,
     "multimodal_studio_integration_profiles_for_route": _MULTIMODAL_STUDIO,
-    "multimodal_studio_integration_profiles_for_source_registry": (
-        _MULTIMODAL_STUDIO
-    ),
+    "multimodal_studio_integration_profiles_for_source_registry": (_MULTIMODAL_STUDIO),
     "multimodal_studio_integration_registry": _MULTIMODAL_STUDIO,
     "multimodal_visual_workspace_profile_by_id": _MULTIMODAL_STUDIO,
     "multimodal_visual_workspace_profiles_for_interactive_canvas_profile": (
@@ -1996,9 +1778,7 @@ _EXPORT_MAP = {
     "EngineContractConsistencyRegistry": _ENGINE_CONTRACT_CONSISTENCY,
     "EngineContractFamilyConsistencyProfile": _ENGINE_CONTRACT_CONSISTENCY,
     "engine_contract_consistency_registry": _ENGINE_CONTRACT_CONSISTENCY,
-    "engine_contract_family_consistency_by_id": (
-        _ENGINE_CONTRACT_CONSISTENCY
-    ),
+    "engine_contract_family_consistency_by_id": (_ENGINE_CONTRACT_CONSISTENCY),
     "ArtifactCapabilityConfidence": _ARTIFACT_CAPABILITY_MATRIX,
     "ArtifactCapabilityFit": _ARTIFACT_CAPABILITY_MATRIX,
     "ArtifactCapabilityMatrix": _ARTIFACT_CAPABILITY_MATRIX,
@@ -2226,9 +2006,7 @@ _EXPORT_MAP = {
     "audit_runtime_graph_determinism": _RUNTIME_GRAPH_CONSOLIDATION,
     "build_assistant_workflow_graph": _WORKFLOW_GRAPH,
     "build_runtime_graph_consolidation_plan": _RUNTIME_GRAPH_CONSOLIDATION,
-    "build_registry_contract_consolidation_plan": (
-        _REGISTRY_CONTRACT_CONSOLIDATION
-    ),
+    "build_registry_contract_consolidation_plan": (_REGISTRY_CONTRACT_CONSOLIDATION),
     "build_typed_failure_taxonomy_registry": _TYPED_FAILURE_TAXONOMY,
     "calibrate_artifact_quality": _QUALITY_CALIBRATION,
     "artifact_quality_score": _REFINEMENT_PASSES,
@@ -2279,9 +2057,7 @@ _EXPORT_MAP = {
     "validate_typed_failure_taxonomy": _TYPED_FAILURE_TAXONOMY,
     "record_runtime_graph_trace": _RUNTIME_GRAPH_CONSOLIDATION,
     "runtime_graph_node_contract_by_id": _RUNTIME_GRAPH_CONSOLIDATION,
-    "runtime_graph_node_contracts_for_subgraph": (
-        _RUNTIME_GRAPH_CONSOLIDATION
-    ),
+    "runtime_graph_node_contracts_for_subgraph": (_RUNTIME_GRAPH_CONSOLIDATION),
     "validate_runtime_graph_contracts": _RUNTIME_GRAPH_CONSOLIDATION,
     "audit_registry_public_exports": _REGISTRY_CONTRACT_CONSOLIDATION,
     "build_contract_version_migrations": _REGISTRY_CONTRACT_CONSOLIDATION,
@@ -2356,20 +2132,14 @@ _EXPORT_MAP = {
     "derive_artifact_critic_profile": _ARTIFACT_CRITIC,
     "artifact_refiner_prompt_lines": _ARTIFACT_REFINER,
     "derive_artifact_refiner_profile": _ARTIFACT_REFINER,
-    "artifact_intelligence_synthesis_prompt_lines": (
-        _ARTIFACT_INTELLIGENCE_SYNTHESIS
-    ),
+    "artifact_intelligence_synthesis_prompt_lines": (_ARTIFACT_INTELLIGENCE_SYNTHESIS),
     "derive_artifact_intelligence_synthesis_profile": (
         _ARTIFACT_INTELLIGENCE_SYNTHESIS
     ),
     "artifact_merge_planner_prompt_lines": _ARTIFACT_MERGE_PLANNER,
     "derive_artifact_merge_planner_profile": _ARTIFACT_MERGE_PLANNER,
-    "artifact_export_intelligence_prompt_lines": (
-        _ARTIFACT_EXPORT_INTELLIGENCE
-    ),
-    "derive_artifact_export_intelligence_profile": (
-        _ARTIFACT_EXPORT_INTELLIGENCE
-    ),
+    "artifact_export_intelligence_prompt_lines": (_ARTIFACT_EXPORT_INTELLIGENCE),
+    "derive_artifact_export_intelligence_profile": (_ARTIFACT_EXPORT_INTELLIGENCE),
     "artifact_plan_prompt_lines": _ARTIFACT_PLANNER,
     "derive_artifact_plan": _ARTIFACT_PLANNER,
     "derive_symbolic_narrative_plan": _SYMBOLIC_NARRATIVE,
@@ -2380,12 +2150,8 @@ _EXPORT_MAP = {
     "creative_critic_prompt_lines": _CREATIVE_CRITIC_ENGINE,
     "derive_self_evaluation_profile": _SELF_EVALUATION_ENGINE,
     "self_evaluation_prompt_lines": _SELF_EVALUATION_ENGINE,
-    "derive_creative_improvement_planner_profile": (
-        _CREATIVE_IMPROVEMENT_PLANNER
-    ),
-    "creative_improvement_planner_prompt_lines": (
-        _CREATIVE_IMPROVEMENT_PLANNER
-    ),
+    "derive_creative_improvement_planner_profile": (_CREATIVE_IMPROVEMENT_PLANNER),
+    "creative_improvement_planner_prompt_lines": (_CREATIVE_IMPROVEMENT_PLANNER),
     "derive_reflection_loop_profile": _REFLECTION_LOOP_ENGINE,
     "reflection_loop_prompt_lines": _REFLECTION_LOOP_ENGINE,
     "derive_creative_confidence_profile": _CREATIVE_CONFIDENCE_ENGINE,
@@ -2468,12 +2234,8 @@ _EXPORT_MAP = {
     "reasoning_budget_recommendation_by_id": _REASONING_BUDGET_OPTIMIZER,
     "reasoning_budget_recommendations_for_status": _REASONING_BUDGET_OPTIMIZER,
     "performance_regression_signal_by_id": _PERFORMANCE_REGRESSION_DETECTION,
-    "performance_regression_signals_for_status": (
-        _PERFORMANCE_REGRESSION_DETECTION
-    ),
-    "resource_utilization_recommendation_by_id": (
-        _RESOURCE_UTILIZATION_OPTIMIZER
-    ),
+    "performance_regression_signals_for_status": (_PERFORMANCE_REGRESSION_DETECTION),
+    "resource_utilization_recommendation_by_id": (_RESOURCE_UTILIZATION_OPTIMIZER),
     "resource_utilization_recommendations_for_status": (
         _RESOURCE_UTILIZATION_OPTIMIZER
     ),
@@ -2509,12 +2271,8 @@ _EXPORT_MAP = {
     ),
     "performance_failure_path_audit_registry": _PERFORMANCE_FAILURE_PATH_AUDIT,
     "performance_failure_path_audit_by_id": _PERFORMANCE_FAILURE_PATH_AUDIT,
-    "performance_failure_path_audits_for_check": (
-        _PERFORMANCE_FAILURE_PATH_AUDIT
-    ),
-    "performance_failure_path_audits_for_surface": (
-        _PERFORMANCE_FAILURE_PATH_AUDIT
-    ),
+    "performance_failure_path_audits_for_check": (_PERFORMANCE_FAILURE_PATH_AUDIT),
+    "performance_failure_path_audits_for_surface": (_PERFORMANCE_FAILURE_PATH_AUDIT),
     "execution_strategy_by_id": _EXECUTION_STRATEGY_SELECTION,
     "execution_strategies_for_status": _EXECUTION_STRATEGY_SELECTION,
     "execution_optimization_failure_audit_by_id": (
@@ -2567,15 +2325,9 @@ _EXPORT_MAP = {
     "model_routing_architecture_consistency_records_for_layer": (
         _MODEL_ROUTING_ARCHITECTURE_CONSISTENCY
     ),
-    "model_routing_failure_path_audit_by_id": (
-        _MODEL_ROUTING_FAILURE_PATH_AUDIT
-    ),
-    "model_routing_failure_path_audit_registry": (
-        _MODEL_ROUTING_FAILURE_PATH_AUDIT
-    ),
-    "model_routing_failure_path_audits_for_check": (
-        _MODEL_ROUTING_FAILURE_PATH_AUDIT
-    ),
+    "model_routing_failure_path_audit_by_id": (_MODEL_ROUTING_FAILURE_PATH_AUDIT),
+    "model_routing_failure_path_audit_registry": (_MODEL_ROUTING_FAILURE_PATH_AUDIT),
+    "model_routing_failure_path_audits_for_check": (_MODEL_ROUTING_FAILURE_PATH_AUDIT),
     "model_routing_failure_path_audits_for_surface": (
         _MODEL_ROUTING_FAILURE_PATH_AUDIT
     ),
@@ -2616,9 +2368,7 @@ _EXPORT_MAP = {
     "build_confidence_analytics": _CONFIDENCE_ANALYTICS,
     "build_creative_diversity_analytics": _CREATIVE_DIVERSITY_ANALYTICS,
     "build_runtime_timeline": _RUNTIME_TIMELINE,
-    "build_workflow_explainability_dashboard": (
-        _WORKFLOW_EXPLAINABILITY_DASHBOARD
-    ),
+    "build_workflow_explainability_dashboard": (_WORKFLOW_EXPLAINABILITY_DASHBOARD),
     "memory_summary_segment_by_id": _MEMORY_SUMMARIZATION,
     "memory_summary_segments_for_kind": _MEMORY_SUMMARIZATION,
     "next_workflow_step": _WORKFLOW,
@@ -2657,31 +2407,21 @@ _EXPORT_MAP = {
     "route_request": _ROUTING,
     "optimize_hybrid_workflow": _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER,
     "hybrid_workflow_candidate_by_id": _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER,
-    "hybrid_workflow_candidates_requiring_hitl": (
-        _ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER
-    ),
+    "hybrid_workflow_candidates_requiring_hitl": (_ADAPTIVE_HYBRID_WORKFLOW_OPTIMIZER),
     "optimize_escalation_policy": _ADAPTIVE_ESCALATION_OPTIMIZER,
-    "escalation_optimization_decision_by_id": (
-        _ADAPTIVE_ESCALATION_OPTIMIZER
-    ),
-    "escalation_optimization_decisions_for_posture": (
-        _ADAPTIVE_ESCALATION_OPTIMIZER
-    ),
+    "escalation_optimization_decision_by_id": (_ADAPTIVE_ESCALATION_OPTIMIZER),
+    "escalation_optimization_decisions_for_posture": (_ADAPTIVE_ESCALATION_OPTIMIZER),
     "optimize_agent_activation": _AGENT_ACTIVATION_OPTIMIZER,
     "agent_activation_candidate_by_agent_id": _AGENT_ACTIVATION_OPTIMIZER,
     "agent_activation_candidates_for_status": _AGENT_ACTIVATION_OPTIMIZER,
     "optimize_adaptive_cost_quality": _ADAPTIVE_COST_QUALITY_OPTIMIZER,
     "adaptive_cost_quality_candidate_by_id": _ADAPTIVE_COST_QUALITY_OPTIMIZER,
-    "adaptive_cost_quality_candidates_for_posture": (
-        _ADAPTIVE_COST_QUALITY_OPTIMIZER
-    ),
+    "adaptive_cost_quality_candidates_for_posture": (_ADAPTIVE_COST_QUALITY_OPTIMIZER),
     "optimize_adaptive_latency": _ADAPTIVE_LATENCY_OPTIMIZER,
     "adaptive_latency_candidate_by_id": _ADAPTIVE_LATENCY_OPTIMIZER,
     "adaptive_latency_candidates_for_posture": _ADAPTIVE_LATENCY_OPTIMIZER,
     "select_dynamic_execution_strategy": _ADAPTIVE_EXECUTION_STRATEGY_SELECTION,
-    "adaptive_execution_strategy_by_id": (
-        _ADAPTIVE_EXECUTION_STRATEGY_SELECTION
-    ),
+    "adaptive_execution_strategy_by_id": (_ADAPTIVE_EXECUTION_STRATEGY_SELECTION),
     "adaptive_execution_strategies_for_status": (
         _ADAPTIVE_EXECUTION_STRATEGY_SELECTION
     ),
@@ -2773,12 +2513,8 @@ _EXPORT_MAP = {
     "cost_trends_proposals_for_confidence": _COST_TRENDS,
     "cost_trends_proposals_for_status": _COST_TRENDS,
     "AutonomousOptimizationSuggestionsPlan": _AUTONOMOUS_OPTIMIZATION_SUGGESTIONS,
-    "AutonomousOptimizationSuggestionsProposal": (
-        _AUTONOMOUS_OPTIMIZATION_SUGGESTIONS
-    ),
-    "build_autonomous_optimization_suggestions": (
-        _AUTONOMOUS_OPTIMIZATION_SUGGESTIONS
-    ),
+    "AutonomousOptimizationSuggestionsProposal": (_AUTONOMOUS_OPTIMIZATION_SUGGESTIONS),
+    "build_autonomous_optimization_suggestions": (_AUTONOMOUS_OPTIMIZATION_SUGGESTIONS),
     "autonomous_optimization_suggestions_proposal_by_id": (
         _AUTONOMOUS_OPTIMIZATION_SUGGESTIONS
     ),
@@ -2791,9 +2527,7 @@ _EXPORT_MAP = {
     "ArchitectureEvolutionEnginePlan": _ARCHITECTURE_EVOLUTION_ENGINE,
     "ArchitectureEvolutionEngineProposal": _ARCHITECTURE_EVOLUTION_ENGINE,
     "build_architecture_evolution_engine": _ARCHITECTURE_EVOLUTION_ENGINE,
-    "architecture_evolution_engine_proposal_by_id": (
-        _ARCHITECTURE_EVOLUTION_ENGINE
-    ),
+    "architecture_evolution_engine_proposal_by_id": (_ARCHITECTURE_EVOLUTION_ENGINE),
     "architecture_evolution_engine_proposals_for_confidence": (
         _ARCHITECTURE_EVOLUTION_ENGINE
     ),
@@ -2810,18 +2544,14 @@ _EXPORT_MAP = {
     "StrategyEvolutionEngineProposal": _STRATEGY_EVOLUTION_ENGINE,
     "build_strategy_evolution_engine": _STRATEGY_EVOLUTION_ENGINE,
     "strategy_evolution_engine_proposal_by_id": _STRATEGY_EVOLUTION_ENGINE,
-    "strategy_evolution_engine_proposals_for_confidence": (
-        _STRATEGY_EVOLUTION_ENGINE
-    ),
+    "strategy_evolution_engine_proposals_for_confidence": (_STRATEGY_EVOLUTION_ENGINE),
     "strategy_evolution_engine_proposals_for_status": _STRATEGY_EVOLUTION_ENGINE,
     "AgentEvolutionPoliciesPlan": _AGENT_EVOLUTION_POLICIES,
     "AgentEvolutionPoliciesProposal": _AGENT_EVOLUTION_POLICIES,
     "agent_invocation_is_blocked": _AGENT_EVOLUTION_POLICIES,
     "build_agent_evolution_policies": _AGENT_EVOLUTION_POLICIES,
     "agent_evolution_policies_proposal_by_id": _AGENT_EVOLUTION_POLICIES,
-    "agent_evolution_policies_proposals_for_confidence": (
-        _AGENT_EVOLUTION_POLICIES
-    ),
+    "agent_evolution_policies_proposals_for_confidence": (_AGENT_EVOLUTION_POLICIES),
     "agent_evolution_policies_proposals_for_status": _AGENT_EVOLUTION_POLICIES,
     "RoutingEvolutionPoliciesPlan": _ROUTING_EVOLUTION_POLICIES,
     "RoutingEvolutionPoliciesProposal": _ROUTING_EVOLUTION_POLICIES,
@@ -2830,25 +2560,17 @@ _EXPORT_MAP = {
     "routing_evolution_policies_proposals_for_confidence": (
         _ROUTING_EVOLUTION_POLICIES
     ),
-    "routing_evolution_policies_proposals_for_status": (
-        _ROUTING_EVOLUTION_POLICIES
-    ),
+    "routing_evolution_policies_proposals_for_status": (_ROUTING_EVOLUTION_POLICIES),
     "MemoryEvolutionPoliciesPlan": _MEMORY_EVOLUTION_POLICIES,
     "MemoryEvolutionPoliciesProposal": _MEMORY_EVOLUTION_POLICIES,
     "build_memory_evolution_policies": _MEMORY_EVOLUTION_POLICIES,
     "memory_evolution_policies_proposal_by_id": _MEMORY_EVOLUTION_POLICIES,
-    "memory_evolution_policies_proposals_for_confidence": (
-        _MEMORY_EVOLUTION_POLICIES
-    ),
-    "memory_evolution_policies_proposals_for_status": (
-        _MEMORY_EVOLUTION_POLICIES
-    ),
+    "memory_evolution_policies_proposals_for_confidence": (_MEMORY_EVOLUTION_POLICIES),
+    "memory_evolution_policies_proposals_for_status": (_MEMORY_EVOLUTION_POLICIES),
     "RetrievalEvolutionPoliciesPlan": _RETRIEVAL_EVOLUTION_POLICIES,
     "RetrievalEvolutionPoliciesProposal": _RETRIEVAL_EVOLUTION_POLICIES,
     "build_retrieval_evolution_policies": _RETRIEVAL_EVOLUTION_POLICIES,
-    "retrieval_evolution_policies_proposal_by_id": (
-        _RETRIEVAL_EVOLUTION_POLICIES
-    ),
+    "retrieval_evolution_policies_proposal_by_id": (_RETRIEVAL_EVOLUTION_POLICIES),
     "retrieval_evolution_policies_proposals_for_confidence": (
         _RETRIEVAL_EVOLUTION_POLICIES
     ),
@@ -2868,9 +2590,7 @@ _EXPORT_MAP = {
     "creative_evolution_policies_proposals_for_confidence": (
         _CREATIVE_EVOLUTION_POLICIES
     ),
-    "creative_evolution_policies_proposals_for_status": (
-        _CREATIVE_EVOLUTION_POLICIES
-    ),
+    "creative_evolution_policies_proposals_for_status": (_CREATIVE_EVOLUTION_POLICIES),
     "TasteEvolutionEnginePlan": _TASTE_EVOLUTION_ENGINE,
     "TasteEvolutionEngineProposal": _TASTE_EVOLUTION_ENGINE,
     "build_taste_evolution_engine": _TASTE_EVOLUTION_ENGINE,
@@ -2884,9 +2604,7 @@ _EXPORT_MAP = {
     "reasoning_evolution_engine_proposals_for_confidence": (
         _REASONING_EVOLUTION_ENGINE
     ),
-    "reasoning_evolution_engine_proposals_for_status": (
-        _REASONING_EVOLUTION_ENGINE
-    ),
+    "reasoning_evolution_engine_proposals_for_status": (_REASONING_EVOLUTION_ENGINE),
     "ImprovementRankingEnginePlan": _IMPROVEMENT_RANKING_ENGINE,
     "ImprovementRankingEngineProposal": _IMPROVEMENT_RANKING_ENGINE,
     "build_improvement_ranking_engine": _IMPROVEMENT_RANKING_ENGINE,
@@ -2894,9 +2612,7 @@ _EXPORT_MAP = {
     "improvement_ranking_engine_proposals_for_confidence": (
         _IMPROVEMENT_RANKING_ENGINE
     ),
-    "improvement_ranking_engine_proposals_for_status": (
-        _IMPROVEMENT_RANKING_ENGINE
-    ),
+    "improvement_ranking_engine_proposals_for_status": (_IMPROVEMENT_RANKING_ENGINE),
     "CostBenefitAnalysisPlan": _COST_BENEFIT_ANALYSIS,
     "CostBenefitAnalysisProposal": _COST_BENEFIT_ANALYSIS,
     "build_cost_benefit_analysis": _COST_BENEFIT_ANALYSIS,
@@ -2913,9 +2629,7 @@ _EXPORT_MAP = {
     "ExpectedImpactEstimatorProposal": _EXPECTED_IMPACT_ESTIMATOR,
     "build_expected_impact_estimator": _EXPECTED_IMPACT_ESTIMATOR,
     "expected_impact_estimator_proposal_by_id": _EXPECTED_IMPACT_ESTIMATOR,
-    "expected_impact_estimator_proposals_for_confidence": (
-        _EXPECTED_IMPACT_ESTIMATOR
-    ),
+    "expected_impact_estimator_proposals_for_confidence": (_EXPECTED_IMPACT_ESTIMATOR),
     "expected_impact_estimator_proposals_for_status": _EXPECTED_IMPACT_ESTIMATOR,
     "RollbackStrategyGeneratorPlan": _ROLLBACK_STRATEGY_GENERATOR,
     "RollbackStrategyGeneratorProposal": _ROLLBACK_STRATEGY_GENERATOR,
@@ -2924,21 +2638,15 @@ _EXPORT_MAP = {
     "rollback_strategy_generator_proposals_for_confidence": (
         _ROLLBACK_STRATEGY_GENERATOR
     ),
-    "rollback_strategy_generator_proposals_for_status": (
-        _ROLLBACK_STRATEGY_GENERATOR
-    ),
+    "rollback_strategy_generator_proposals_for_status": (_ROLLBACK_STRATEGY_GENERATOR),
     "SelfEvolutionCoreSurfacePlan": _SELF_EVOLUTION_CORE_SURFACE,
     "build_self_evolution_core_surface": _SELF_EVOLUTION_CORE_SURFACE,
-    "self_evolution_core_surface_plan_by_roadmap_item": (
-        _SELF_EVOLUTION_CORE_SURFACE
-    ),
+    "self_evolution_core_surface_plan_by_roadmap_item": (_SELF_EVOLUTION_CORE_SURFACE),
     "self_evolution_core_surface_proposal_by_id": _SELF_EVOLUTION_CORE_SURFACE,
     "self_evolution_core_surface_proposals_for_confidence": (
         _SELF_EVOLUTION_CORE_SURFACE
     ),
-    "self_evolution_core_surface_proposals_for_status": (
-        _SELF_EVOLUTION_CORE_SURFACE
-    ),
+    "self_evolution_core_surface_proposals_for_status": (_SELF_EVOLUTION_CORE_SURFACE),
     "SelfEvolutionAdvisoryReportEntry": _SELF_EVOLUTION_SECONDARY_SURFACE,
     "SelfEvolutionSecondarySurfacePlan": _SELF_EVOLUTION_SECONDARY_SURFACE,
     "build_self_evolution_secondary_surface": _SELF_EVOLUTION_SECONDARY_SURFACE,
@@ -2957,27 +2665,17 @@ _EXPORT_MAP = {
     "SelfEvolutionGovernanceBoundary": _SELF_EVOLUTION_GOVERNANCE,
     "SelfEvolutionGovernancePlan": _SELF_EVOLUTION_GOVERNANCE,
     "build_self_evolution_governance": _SELF_EVOLUTION_GOVERNANCE,
-    "self_evolution_governance_boundaries_for_priority": (
-        _SELF_EVOLUTION_GOVERNANCE
-    ),
-    "self_evolution_governance_boundaries_for_status": (
-        _SELF_EVOLUTION_GOVERNANCE
-    ),
+    "self_evolution_governance_boundaries_for_priority": (_SELF_EVOLUTION_GOVERNANCE),
+    "self_evolution_governance_boundaries_for_status": (_SELF_EVOLUTION_GOVERNANCE),
     "self_evolution_governance_boundary_by_id": _SELF_EVOLUTION_GOVERNANCE,
-    "self_evolution_governance_boundary_by_roadmap_item": (
-        _SELF_EVOLUTION_GOVERNANCE
-    ),
+    "self_evolution_governance_boundary_by_roadmap_item": (_SELF_EVOLUTION_GOVERNANCE),
     "self_evolution_governance_priority": _SELF_EVOLUTION_GOVERNANCE,
     "self_evolution_governance_score": _SELF_EVOLUTION_GOVERNANCE,
     "self_evolution_governance_status": _SELF_EVOLUTION_GOVERNANCE,
     "SelfEvolutionFailurePathAuditRecord": _SELF_EVOLUTION_FAILURE_PATH_AUDIT,
     "SelfEvolutionFailurePathAuditRegistry": _SELF_EVOLUTION_FAILURE_PATH_AUDIT,
-    "self_evolution_failure_path_audit_by_id": (
-        _SELF_EVOLUTION_FAILURE_PATH_AUDIT
-    ),
-    "self_evolution_failure_path_audit_registry": (
-        _SELF_EVOLUTION_FAILURE_PATH_AUDIT
-    ),
+    "self_evolution_failure_path_audit_by_id": (_SELF_EVOLUTION_FAILURE_PATH_AUDIT),
+    "self_evolution_failure_path_audit_registry": (_SELF_EVOLUTION_FAILURE_PATH_AUDIT),
     "self_evolution_failure_path_audits_for_check": (
         _SELF_EVOLUTION_FAILURE_PATH_AUDIT
     ),
@@ -3164,27 +2862,17 @@ _EXPORT_MAP = {
     "cognitive_os_secondary_surface_entries_for_status": (
         _COGNITIVE_OS_SECONDARY_SURFACE
     ),
-    "cognitive_os_secondary_surface_entry_by_id": (
-        _COGNITIVE_OS_SECONDARY_SURFACE
-    ),
+    "cognitive_os_secondary_surface_entry_by_id": (_COGNITIVE_OS_SECONDARY_SURFACE),
     "CognitiveOSGovernanceBoundary": _COGNITIVE_OS_GOVERNANCE_SAFETY,
     "CognitiveOSGovernanceSafetyPlan": _COGNITIVE_OS_GOVERNANCE_SAFETY,
     "build_cognitive_os_governance_safety": _COGNITIVE_OS_GOVERNANCE_SAFETY,
-    "cognitive_os_governance_boundaries_for_agent": (
-        _COGNITIVE_OS_GOVERNANCE_SAFETY
-    ),
-    "cognitive_os_governance_boundaries_for_layer": (
-        _COGNITIVE_OS_GOVERNANCE_SAFETY
-    ),
+    "cognitive_os_governance_boundaries_for_agent": (_COGNITIVE_OS_GOVERNANCE_SAFETY),
+    "cognitive_os_governance_boundaries_for_layer": (_COGNITIVE_OS_GOVERNANCE_SAFETY),
     "cognitive_os_governance_boundaries_for_priority": (
         _COGNITIVE_OS_GOVERNANCE_SAFETY
     ),
-    "cognitive_os_governance_boundaries_for_status": (
-        _COGNITIVE_OS_GOVERNANCE_SAFETY
-    ),
-    "cognitive_os_governance_boundary_by_id": (
-        _COGNITIVE_OS_GOVERNANCE_SAFETY
-    ),
+    "cognitive_os_governance_boundaries_for_status": (_COGNITIVE_OS_GOVERNANCE_SAFETY),
+    "cognitive_os_governance_boundary_by_id": (_COGNITIVE_OS_GOVERNANCE_SAFETY),
     "cognitive_os_governance_posture": _COGNITIVE_OS_GOVERNANCE_SAFETY,
     "cognitive_os_governance_priority": _COGNITIVE_OS_GOVERNANCE_SAFETY,
     "cognitive_os_governance_score": _COGNITIVE_OS_GOVERNANCE_SAFETY,
@@ -3193,12 +2881,8 @@ _EXPORT_MAP = {
     "CognitiveOSFailurePathAuditRegistry": _COGNITIVE_OS_FAILURE_PATH_AUDIT,
     "cognitive_os_failure_path_audit_by_id": _COGNITIVE_OS_FAILURE_PATH_AUDIT,
     "cognitive_os_failure_path_audit_registry": _COGNITIVE_OS_FAILURE_PATH_AUDIT,
-    "cognitive_os_failure_path_audits_for_check": (
-        _COGNITIVE_OS_FAILURE_PATH_AUDIT
-    ),
-    "cognitive_os_failure_path_audits_for_surface": (
-        _COGNITIVE_OS_FAILURE_PATH_AUDIT
-    ),
+    "cognitive_os_failure_path_audits_for_check": (_COGNITIVE_OS_FAILURE_PATH_AUDIT),
+    "cognitive_os_failure_path_audits_for_surface": (_COGNITIVE_OS_FAILURE_PATH_AUDIT),
     "ResearchPlannerPlan": _RESEARCH_PLANNER,
     "ResearchPlanningEntry": _RESEARCH_PLANNER,
     "build_research_planner": _RESEARCH_PLANNER,
@@ -3239,9 +2923,7 @@ _EXPORT_MAP = {
     "AutomaticKbEnrichmentEntry": _AUTOMATIC_KB_ENRICHMENT,
     "build_automatic_kb_enrichment": _AUTOMATIC_KB_ENRICHMENT,
     "automatic_kb_enrichment_entry_by_id": _AUTOMATIC_KB_ENRICHMENT,
-    "automatic_kb_enrichment_entries_for_confidence": (
-        _AUTOMATIC_KB_ENRICHMENT
-    ),
+    "automatic_kb_enrichment_entries_for_confidence": (_AUTOMATIC_KB_ENRICHMENT),
     "automatic_kb_enrichment_entries_for_status": _AUTOMATIC_KB_ENRICHMENT,
     "ResearchReportPlan": _RESEARCH_REPORTS,
     "ResearchReportEntry": _RESEARCH_REPORTS,
@@ -3289,19 +2971,13 @@ _EXPORT_MAP = {
     "ResearchRecommendationEntry": _RESEARCH_RECOMMENDATION_ENGINE,
     "build_research_recommendation_engine": _RESEARCH_RECOMMENDATION_ENGINE,
     "research_recommendation_entry_by_id": _RESEARCH_RECOMMENDATION_ENGINE,
-    "research_recommendation_entries_for_confidence": (
-        _RESEARCH_RECOMMENDATION_ENGINE
-    ),
-    "research_recommendation_entries_for_status": (
-        _RESEARCH_RECOMMENDATION_ENGINE
-    ),
+    "research_recommendation_entries_for_confidence": (_RESEARCH_RECOMMENDATION_ENGINE),
+    "research_recommendation_entries_for_status": (_RESEARCH_RECOMMENDATION_ENGINE),
     "ResearchExecutionPolicyPlan": _RESEARCH_EXECUTION_POLICY,
     "ResearchExecutionPolicyEntry": _RESEARCH_EXECUTION_POLICY,
     "build_research_execution_policy": _RESEARCH_EXECUTION_POLICY,
     "research_execution_policy_entry_by_id": _RESEARCH_EXECUTION_POLICY,
-    "research_execution_policy_entries_for_confidence": (
-        _RESEARCH_EXECUTION_POLICY
-    ),
+    "research_execution_policy_entries_for_confidence": (_RESEARCH_EXECUTION_POLICY),
     "research_execution_policy_entries_for_status": _RESEARCH_EXECUTION_POLICY,
     "ResearchHITLPoliciesPlan": _RESEARCH_HITL_POLICIES,
     "ResearchHITLPolicyEntry": _RESEARCH_HITL_POLICIES,
@@ -3317,9 +2993,7 @@ _EXPORT_MAP = {
     "creative_research_entries_for_status": _CREATIVE_RESEARCH_ENGINE,
     "CrossDomainInspirationPlan": _CROSS_DOMAIN_INSPIRATION_DISCOVERY,
     "CrossDomainInspirationEntry": _CROSS_DOMAIN_INSPIRATION_DISCOVERY,
-    "build_cross_domain_inspiration_discovery": (
-        _CROSS_DOMAIN_INSPIRATION_DISCOVERY
-    ),
+    "build_cross_domain_inspiration_discovery": (_CROSS_DOMAIN_INSPIRATION_DISCOVERY),
     "cross_domain_inspiration_entry_by_id": _CROSS_DOMAIN_INSPIRATION_DISCOVERY,
     "cross_domain_inspiration_entries_for_confidence": (
         _CROSS_DOMAIN_INSPIRATION_DISCOVERY
@@ -3337,9 +3011,7 @@ _EXPORT_MAP = {
     "ResearchSecondarySurfaceEntry": _RESEARCH_SECONDARY_SURFACE,
     "build_research_secondary_surface": _RESEARCH_SECONDARY_SURFACE,
     "research_secondary_surface_entry_by_id": _RESEARCH_SECONDARY_SURFACE,
-    "research_secondary_surface_entries_for_confidence": (
-        _RESEARCH_SECONDARY_SURFACE
-    ),
+    "research_secondary_surface_entries_for_confidence": (_RESEARCH_SECONDARY_SURFACE),
     "research_secondary_surface_entries_for_status": _RESEARCH_SECONDARY_SURFACE,
     "ResearchGovernancePlan": _RESEARCH_GOVERNANCE,
     "ResearchGovernanceBoundary": _RESEARCH_GOVERNANCE,
@@ -3356,9 +3028,7 @@ _EXPORT_MAP = {
     "DocumentationIntelligenceSignal": _DOCUMENTATION_INTELLIGENCE,
     "build_documentation_intelligence": _DOCUMENTATION_INTELLIGENCE,
     "documentation_intelligence_signal_by_id": _DOCUMENTATION_INTELLIGENCE,
-    "documentation_intelligence_signals_for_confidence": (
-        _DOCUMENTATION_INTELLIGENCE
-    ),
+    "documentation_intelligence_signals_for_confidence": (_DOCUMENTATION_INTELLIGENCE),
     "documentation_intelligence_signals_for_status": _DOCUMENTATION_INTELLIGENCE,
     "EmbeddingRefreshPlan": _EMBEDDING_REFRESH,
     "EmbeddingRefreshSignal": _EMBEDDING_REFRESH,
@@ -3417,15 +3087,9 @@ _EXPORT_MAP = {
     "knowledge_evolution_core_surface_entries_for_status": (
         _KNOWLEDGE_EVOLUTION_CORE_SURFACE
     ),
-    "knowledge_evolution_core_surface_entry_by_id": (
-        _KNOWLEDGE_EVOLUTION_CORE_SURFACE
-    ),
-    "KnowledgeEvolutionSecondarySurfaceEntry": (
-        _KNOWLEDGE_EVOLUTION_SECONDARY_SURFACE
-    ),
-    "KnowledgeEvolutionSecondarySurfacePlan": (
-        _KNOWLEDGE_EVOLUTION_SECONDARY_SURFACE
-    ),
+    "knowledge_evolution_core_surface_entry_by_id": (_KNOWLEDGE_EVOLUTION_CORE_SURFACE),
+    "KnowledgeEvolutionSecondarySurfaceEntry": (_KNOWLEDGE_EVOLUTION_SECONDARY_SURFACE),
+    "KnowledgeEvolutionSecondarySurfacePlan": (_KNOWLEDGE_EVOLUTION_SECONDARY_SURFACE),
     "build_knowledge_evolution_secondary_surface": (
         _KNOWLEDGE_EVOLUTION_SECONDARY_SURFACE
     ),
@@ -3444,9 +3108,7 @@ _EXPORT_MAP = {
     "knowledge_evolution_governance_boundaries_for_status": (
         _KNOWLEDGE_EVOLUTION_GOVERNANCE
     ),
-    "knowledge_evolution_governance_boundary_by_id": (
-        _KNOWLEDGE_EVOLUTION_GOVERNANCE
-    ),
+    "knowledge_evolution_governance_boundary_by_id": (_KNOWLEDGE_EVOLUTION_GOVERNANCE),
     "KnowledgeEvolutionFailurePathAuditRecord": (
         _KNOWLEDGE_EVOLUTION_FAILURE_PATH_AUDIT
     ),
@@ -3499,9 +3161,7 @@ _EXPORT_MAP = {
     "KnowledgeProvenanceSignal": _KNOWLEDGE_PROVENANCE_EVOLUTION,
     "build_knowledge_provenance_evolution": _KNOWLEDGE_PROVENANCE_EVOLUTION,
     "knowledge_provenance_signal_by_id": _KNOWLEDGE_PROVENANCE_EVOLUTION,
-    "knowledge_provenance_signals_for_confidence": (
-        _KNOWLEDGE_PROVENANCE_EVOLUTION
-    ),
+    "knowledge_provenance_signals_for_confidence": (_KNOWLEDGE_PROVENANCE_EVOLUTION),
     "knowledge_provenance_signals_for_status": _KNOWLEDGE_PROVENANCE_EVOLUTION,
     "KnowledgeRollbackPlan": _KNOWLEDGE_ROLLBACK,
     "KnowledgeRollbackSignal": _KNOWLEDGE_ROLLBACK,
@@ -3523,9 +3183,7 @@ _EXPORT_MAP = {
     "knowledge_versioning_signals_for_status": _KNOWLEDGE_VERSIONING,
     "build_long_term_creative_memory": _LONG_TERM_CREATIVE_MEMORY,
     "long_term_creative_memory_record_by_id": _LONG_TERM_CREATIVE_MEMORY,
-    "long_term_creative_memory_records_for_sensitivity": (
-        _LONG_TERM_CREATIVE_MEMORY
-    ),
+    "long_term_creative_memory_records_for_sensitivity": (_LONG_TERM_CREATIVE_MEMORY),
     "long_term_creative_memory_records_for_status": _LONG_TERM_CREATIVE_MEMORY,
     "build_user_preferences": _USER_PREFERENCES,
     "user_preference_by_id": _USER_PREFERENCES,
@@ -3549,9 +3207,7 @@ _EXPORT_MAP = {
     "personalization_recommendations_for_status": _PERSONALIZATION_ENGINE,
     "build_session_memory_evolution": _SESSION_MEMORY_EVOLUTION,
     "session_memory_evolution_signal_by_id": _SESSION_MEMORY_EVOLUTION,
-    "session_memory_evolution_signals_for_confidence": (
-        _SESSION_MEMORY_EVOLUTION
-    ),
+    "session_memory_evolution_signals_for_confidence": (_SESSION_MEMORY_EVOLUTION),
     "session_memory_evolution_signals_for_status": _SESSION_MEMORY_EVOLUTION,
     "build_artifact_history": _ARTIFACT_HISTORY,
     "artifact_history_record_by_id": _ARTIFACT_HISTORY,
@@ -3570,9 +3226,7 @@ _EXPORT_MAP = {
     "creative_memory_core_surface_entries_for_confidence": (
         _CREATIVE_MEMORY_CORE_SURFACE
     ),
-    "creative_memory_core_surface_entries_for_status": (
-        _CREATIVE_MEMORY_CORE_SURFACE
-    ),
+    "creative_memory_core_surface_entries_for_status": (_CREATIVE_MEMORY_CORE_SURFACE),
     "build_creative_memory_secondary_surface": _CREATIVE_MEMORY_SECONDARY_SURFACE,
     "creative_memory_secondary_surface_entry_by_id": (
         _CREATIVE_MEMORY_SECONDARY_SURFACE
@@ -3586,9 +3240,7 @@ _EXPORT_MAP = {
     "build_creative_memory_governance": _CREATIVE_MEMORY_GOVERNANCE,
     "creative_memory_governance_boundary_by_id": _CREATIVE_MEMORY_GOVERNANCE,
     "creative_memory_governance_boundaries_for_status": _CREATIVE_MEMORY_GOVERNANCE,
-    "creative_memory_failure_path_audit_by_id": (
-        _CREATIVE_MEMORY_FAILURE_PATH_AUDIT
-    ),
+    "creative_memory_failure_path_audit_by_id": (_CREATIVE_MEMORY_FAILURE_PATH_AUDIT),
     "creative_memory_failure_path_audit_registry": (
         _CREATIVE_MEMORY_FAILURE_PATH_AUDIT
     ),
@@ -3632,12 +3284,8 @@ _EXPORT_MAP = {
     "evaluation_learning_patterns_for_status": _EVALUATION_LEARNING,
     "derive_continuous_improvement_signals": _CONTINUOUS_IMPROVEMENT_SIGNALS,
     "continuous_improvement_signal_by_id": _CONTINUOUS_IMPROVEMENT_SIGNALS,
-    "continuous_improvement_signals_for_priority": (
-        _CONTINUOUS_IMPROVEMENT_SIGNALS
-    ),
-    "continuous_improvement_signals_for_status": (
-        _CONTINUOUS_IMPROVEMENT_SIGNALS
-    ),
+    "continuous_improvement_signals_for_priority": (_CONTINUOUS_IMPROVEMENT_SIGNALS),
+    "continuous_improvement_signals_for_status": (_CONTINUOUS_IMPROVEMENT_SIGNALS),
     "discover_success_patterns": _SUCCESS_PATTERN_DISCOVERY,
     "success_pattern_by_id": _SUCCESS_PATTERN_DISCOVERY,
     "success_patterns_for_priority": _SUCCESS_PATTERN_DISCOVERY,
@@ -3653,17 +3301,11 @@ _EXPORT_MAP = {
     "learning_replay_scenario_by_id": _LEARNING_REPLAY_ENGINE,
     "learning_replay_scenarios_for_confidence": _LEARNING_REPLAY_ENGINE,
     "calibrate_learning_confidence": _LEARNING_CONFIDENCE_CALIBRATION,
-    "learning_confidence_calibration_by_id": (
-        _LEARNING_CONFIDENCE_CALIBRATION
-    ),
-    "learning_confidence_calibrations_for_band": (
-        _LEARNING_CONFIDENCE_CALIBRATION
-    ),
+    "learning_confidence_calibration_by_id": (_LEARNING_CONFIDENCE_CALIBRATION),
+    "learning_confidence_calibrations_for_band": (_LEARNING_CONFIDENCE_CALIBRATION),
     "learn_creative_success": _CREATIVE_SUCCESS_LEARNING,
     "creative_success_pattern_by_id": _CREATIVE_SUCCESS_LEARNING,
-    "creative_success_patterns_for_quality_signal": (
-        _CREATIVE_SUCCESS_LEARNING
-    ),
+    "creative_success_patterns_for_quality_signal": (_CREATIVE_SUCCESS_LEARNING),
     "learn_creative_failures": _CREATIVE_FAILURE_LEARNING,
     "creative_failure_pattern_by_id": _CREATIVE_FAILURE_LEARNING,
     "creative_failure_patterns_for_mode": _CREATIVE_FAILURE_LEARNING,
@@ -3684,9 +3326,7 @@ _EXPORT_MAP = {
     "workflow_risk_factors_for_severity": _WORKFLOW_RISK_ENGINE,
     "optimize_creative_exploration": _CREATIVE_EXPLORATION_OPTIMIZER,
     "creative_exploration_candidate_by_id": _CREATIVE_EXPLORATION_OPTIMIZER,
-    "creative_exploration_candidates_for_status": (
-        _CREATIVE_EXPLORATION_OPTIMIZER
-    ),
+    "creative_exploration_candidates_for_status": (_CREATIVE_EXPLORATION_OPTIMIZER),
     "optimize_emergence": _EMERGENCE_OPTIMIZER,
     "emergence_candidate_by_id": _EMERGENCE_OPTIMIZER,
     "emergence_candidates_for_status": _EMERGENCE_OPTIMIZER,
@@ -3797,15 +3437,11 @@ _EXPORT_MAP = {
     "confidence_analytics_panel_by_id": _CONFIDENCE_ANALYTICS,
     "confidence_analytics_panels_for_status": _CONFIDENCE_ANALYTICS,
     "creative_diversity_analytics_panel_by_id": _CREATIVE_DIVERSITY_ANALYTICS,
-    "creative_diversity_analytics_panels_for_status": (
-        _CREATIVE_DIVERSITY_ANALYTICS
-    ),
+    "creative_diversity_analytics_panels_for_status": (_CREATIVE_DIVERSITY_ANALYTICS),
     "runtime_timeline_panel_by_id": _RUNTIME_TIMELINE,
     "runtime_timeline_panels_for_status": _RUNTIME_TIMELINE,
     "workflow_explainability_panel_by_id": _WORKFLOW_EXPLAINABILITY_DASHBOARD,
-    "workflow_explainability_panels_for_status": (
-        _WORKFLOW_EXPLAINABILITY_DASHBOARD
-    ),
+    "workflow_explainability_panels_for_status": (_WORKFLOW_EXPLAINABILITY_DASHBOARD),
     "workflow_diagnostic_panel_by_id": _WORKFLOW_DIAGNOSTICS,
     "workflow_diagnostic_panels_for_status": _WORKFLOW_DIAGNOSTICS,
 }
@@ -3816,9 +3452,7 @@ __all__ = list(_EXPORT_MAP)
 def __getattr__(name: str) -> object:
     module_name = _EXPORT_MAP.get(name)
     if module_name is None:
-        raise AttributeError(
-            f"module {__name__!r} has no attribute {name!r}"
-        )
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     module = import_module(module_name)
     value = getattr(module, name)
     globals()[name] = value

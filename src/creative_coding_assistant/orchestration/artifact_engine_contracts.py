@@ -92,9 +92,9 @@ class ArtifactIntelligenceEngineContractRegistry(BaseModel):
         "artifact_intelligence_engine_contract_registry"
     )
     engine_category: ArtifactEngineCategory = "artifact_intelligence"
-    serialization_version: Literal[
-        "artifact_engine_contract_registry.v1"
-    ] = ARTIFACT_ENGINE_CONTRACT_REGISTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["artifact_engine_contract_registry.v1"] = (
+        ARTIFACT_ENGINE_CONTRACT_REGISTRY_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=ARTIFACT_ENGINE_CONTRACT_REGISTRY_AUTHORITY_BOUNDARY,
         max_length=900,

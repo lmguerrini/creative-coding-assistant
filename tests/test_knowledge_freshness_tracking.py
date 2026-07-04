@@ -197,9 +197,7 @@ class KnowledgeFreshnessTrackingTests(unittest.TestCase):
                 len(signal.knowledge_rollback_signal_ids),
             )
             self.assertTrue(
-                set(signal.knowledge_rollback_signal_ids).issubset(
-                    rollback_signal_ids
-                )
+                set(signal.knowledge_rollback_signal_ids).issubset(rollback_signal_ids)
             )
             self.assertEqual(
                 signal.freshness_score,

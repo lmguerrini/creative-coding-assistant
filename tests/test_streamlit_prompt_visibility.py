@@ -46,8 +46,7 @@ class StreamlitPromptVisibilityTests(unittest.TestCase):
                             ],
                             "running_summary": {
                                 "content": (
-                                    "The scene uses minimal lighting and "
-                                    "slow motion."
+                                    "The scene uses minimal lighting and slow motion."
                                 )
                             },
                             "project_memories": [

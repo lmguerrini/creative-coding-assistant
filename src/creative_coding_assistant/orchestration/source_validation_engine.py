@@ -359,9 +359,7 @@ class SourceValidationPlan(BaseModel):
             raise ValueError("highest_validation_score must match entries")
         if self.overall_validation_score != _overall_validation_score(self.entries):
             raise ValueError("overall_validation_score must match entries")
-        if self.overall_validation_posture != _overall_validation_posture(
-            self.entries
-        ):
+        if self.overall_validation_posture != _overall_validation_posture(self.entries):
             raise ValueError("overall_validation_posture must match entries")
         memory_ids = set(self.memory_entry_ids)
         for entry in self.entries:
@@ -708,9 +706,7 @@ def _entry_ids_for_confidence(
     entries: tuple[SourceValidationEntry, ...],
     *confidences: SourceValidationConfidence,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(entries: tuple[SourceValidationEntry, ...]) -> tuple[str, ...]:

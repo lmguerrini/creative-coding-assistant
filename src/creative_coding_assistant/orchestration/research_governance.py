@@ -52,9 +52,7 @@ ResearchGovernanceArea = Literal[
     "creative_inspiration_no_automation",
 ]
 
-RESEARCH_GOVERNANCE_BOUNDARY_SERIALIZATION_VERSION = (
-    "research_governance_boundary.v1"
-)
+RESEARCH_GOVERNANCE_BOUNDARY_SERIALIZATION_VERSION = "research_governance_boundary.v1"
 RESEARCH_GOVERNANCE_PLAN_SERIALIZATION_VERSION = "research_governance_plan.v1"
 RESEARCH_GOVERNANCE_AUTHORITY_BOUNDARY = (
     "V6.4 Research Governance and Safety describes governance, safety, HITL, "
@@ -496,9 +494,7 @@ class ResearchGovernancePlan(BaseModel):
             boundary.governance_score for boundary in self.boundaries
         ):
             raise ValueError("highest_governance_score must match boundaries")
-        if self.overall_governance_score != _overall_governance_score(
-            self.boundaries
-        ):
+        if self.overall_governance_score != _overall_governance_score(self.boundaries):
             raise ValueError("overall_governance_score must match boundaries")
         if self.overall_governance_posture != _overall_governance_posture(
             self.boundaries
@@ -931,9 +927,7 @@ def _surface_summary(kind: ResearchGovernanceBoundaryKind) -> str:
 
 
 def _review_requirement(kind: ResearchGovernanceBoundaryKind) -> str:
-    return (
-        f"Manual review is required before applying {kind} to runtime behavior."
-    )
+    return f"Manual review is required before applying {kind} to runtime behavior."
 
 
 def _explainability_requirement(kind: ResearchGovernanceBoundaryKind) -> str:

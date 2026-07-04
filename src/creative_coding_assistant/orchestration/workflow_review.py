@@ -7,10 +7,10 @@ from enum import StrEnum
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantMode, AssistantRequest
+from creative_coding_assistant.orchestration._metadata_utils import _token_set
 from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
-from creative_coding_assistant.orchestration._metadata_utils import _token_set
 from creative_coding_assistant.orchestration.refinement_passes import (
     DEFAULT_REFINEMENT_PASS_LIMIT,
 )
@@ -149,15 +149,13 @@ def _collect_answer_quality_reasons(
     if _request_explicitly_asks_for_code(request) and "```" not in answer:
         reasons.append("missing_code_block")
 
-    if (
-        request.mode is AssistantMode.EXPLAIN
-        and not answer_tokens.intersection(_EXPLANATION_MARKERS)
+    if request.mode is AssistantMode.EXPLAIN and not answer_tokens.intersection(
+        _EXPLANATION_MARKERS
     ):
         reasons.append("missing_explanation")
 
-    if (
-        request.mode is AssistantMode.DEBUG
-        and not answer_tokens.intersection(_DEBUG_MARKERS)
+    if request.mode is AssistantMode.DEBUG and not answer_tokens.intersection(
+        _DEBUG_MARKERS
     ):
         reasons.append("missing_debug_guidance")
 

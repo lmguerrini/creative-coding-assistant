@@ -400,8 +400,7 @@ def generative_structure_prompt_lines(
     ]
     for module in blueprint.procedural_modules[:6]:
         lines.append(
-            "Generative module: "
-            f"{module.module_id}; {module.kind}; {module.purpose}"
+            f"Generative module: {module.module_id}; {module.kind}; {module.purpose}"
         )
         if module.parameters:
             lines.append(
@@ -437,8 +436,7 @@ def generative_structure_prompt_lines(
         for item in blueprint.runtime_implementation_guidance
     )
     lines.extend(
-        f"Performance safeguard: {item}"
-        for item in blueprint.performance_safeguards
+        f"Performance safeguard: {item}" for item in blueprint.performance_safeguards
     )
     lines.append(
         "Fallback blueprint: "
@@ -937,7 +935,9 @@ def _runtime_guidance(
             f"implementation complexity and {top.performance_pressure} "
             "performance pressure."
         )
-    elif context.creative_plan is not None and context.creative_plan.recommended_runtime:
+    elif (
+        context.creative_plan is not None and context.creative_plan.recommended_runtime
+    ):
         guidance.append(
             "Existing creative plan names "
             f"{context.creative_plan.recommended_runtime}; do not treat this "
@@ -1487,7 +1487,9 @@ _MODULE_NOTES: dict[GenerativeModuleKind, tuple[str, ...]] = {
     "graph_network_layer": ("Avoid dense all-to-all links by default.",),
     "cellular_grid_layer": ("Separate state update from visual mapping.",),
     "wave_oscillator": ("Use named amplitude, frequency, phase, and damping.",),
-    "geometry_reassembly_layer": ("Keep fragment identity or target mapping explicit.",),
+    "geometry_reassembly_layer": (
+        "Keep fragment identity or target mapping explicit.",
+    ),
     "color_modulation_layer": ("Map color changes to state or phase.",),
     "audio_reactive_modulation_layer": ("Smooth audio input before mapping.",),
     "camera_motion_path_hook": ("Keep camera/path behavior optional.",),

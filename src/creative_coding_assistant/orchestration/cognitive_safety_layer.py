@@ -239,9 +239,7 @@ class CognitiveSafetyLayerPlan(BaseModel):
             raise ValueError("capability_count must match capability ids")
         if self.source_explanation_count != len(self.source_explanation_ids):
             raise ValueError("source_explanation_count must match explanation ids")
-        if self.source_blackboard_entry_count != len(
-            self.source_blackboard_entry_ids
-        ):
+        if self.source_blackboard_entry_count != len(self.source_blackboard_entry_ids):
             raise ValueError("source_blackboard_entry_count must match entries")
         if self.source_route_decision_count != len(self.source_route_decision_ids):
             raise ValueError("source_route_decision_count must match route ids")
@@ -276,9 +274,7 @@ class CognitiveSafetyLayerPlan(BaseModel):
             raise ValueError("guarded_safety_ids must match boundaries")
         if self.candidate_safety_count != len(self.candidate_safety_ids):
             raise ValueError("candidate_safety_count must match ids")
-        if self.review_required_safety_count != len(
-            self.review_required_safety_ids
-        ):
+        if self.review_required_safety_count != len(self.review_required_safety_ids):
             raise ValueError("review_required_safety_count must match ids")
         if self.guarded_safety_count != len(self.guarded_safety_ids):
             raise ValueError("guarded_safety_count must match ids")
@@ -308,9 +304,7 @@ class CognitiveSafetyLayerPlan(BaseModel):
                 raise ValueError("boundary emergence_id must be declared")
             if not set(boundary.linked_agent_ids).issubset(declared_agents):
                 raise ValueError("boundary linked_agent_ids must be declared")
-        if self.covered_roadmap_items != (
-            COGNITIVE_SAFETY_LAYER_ROADMAP_ITEM,
-        ):
+        if self.covered_roadmap_items != (COGNITIVE_SAFETY_LAYER_ROADMAP_ITEM,):
             raise ValueError("covered_roadmap_items must be Task 22 only")
         if self.covered_roadmap_item_count != len(self.covered_roadmap_items):
             raise ValueError("covered_roadmap_item_count must match roadmap")
@@ -375,16 +369,12 @@ def build_cognitive_safety_layer(
         capability_count=explanation_engine.capability_count,
         source_explanation_ids=explanation_engine.explanation_ids,
         source_explanation_count=explanation_engine.explanation_count,
-        source_blackboard_entry_ids=(
-            explanation_engine.source_blackboard_entry_ids
-        ),
+        source_blackboard_entry_ids=(explanation_engine.source_blackboard_entry_ids),
         source_blackboard_entry_count=(
             explanation_engine.source_blackboard_entry_count
         ),
         source_route_decision_ids=explanation_engine.source_route_decision_ids,
-        source_route_decision_count=(
-            explanation_engine.source_route_decision_count
-        ),
+        source_route_decision_count=(explanation_engine.source_route_decision_count),
         source_plan_ids=explanation_engine.source_plan_ids,
         source_plan_count=explanation_engine.source_plan_count,
         source_schedule_ids=explanation_engine.source_schedule_ids,

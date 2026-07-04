@@ -7,7 +7,10 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from creative_coding_assistant.eval import RetrievalDemoPack, build_capstone_retrieval_demo_pack
+from creative_coding_assistant.eval import (
+    RetrievalDemoPack,
+    build_capstone_retrieval_demo_pack,
+)
 from creative_coding_assistant.orchestration.production_release_candidate import (
     ProductionReleaseCandidatePlan,
     build_production_release_candidate,
@@ -22,9 +25,7 @@ DemoAssetKind = Literal[
 ]
 DemoAssetStatus = Literal["ready", "guarded"]
 
-PRODUCTION_DEMO_ASSET_RECORD_SERIALIZATION_VERSION = (
-    "production_demo_asset_record.v1"
-)
+PRODUCTION_DEMO_ASSET_RECORD_SERIALIZATION_VERSION = "production_demo_asset_record.v1"
 PRODUCTION_DEMO_ASSET_PLAN_SERIALIZATION_VERSION = "production_demo_asset_plan.v1"
 PRODUCTION_DEMO_ASSET_AUTHORITY_BOUNDARY = (
     "V5.6 production demo asset metadata inventories existing preview media, "
@@ -286,7 +287,9 @@ def _records(
             asset_kind="preview_media",
             source_refs=_PREVIEW_MEDIA_PATHS,
             required_items=_PREVIEW_MEDIA_PATHS,
-            present_items=tuple(path for path in _PREVIEW_MEDIA_PATHS if (root / path).exists()),
+            present_items=tuple(
+                path for path in _PREVIEW_MEDIA_PATHS if (root / path).exists()
+            ),
             operator_notes=(
                 "Use existing workstation preview screenshots as visual context.",
                 "Do not regenerate preview media during the demo asset check.",
@@ -295,8 +298,16 @@ def _records(
         _record(
             asset_kind="demo_prompt",
             source_refs=("v5_6_demo_prompt",),
-            required_items=("capstone_prompt", "provider_explanation", "fallback_explanation"),
-            present_items=("capstone_prompt", "provider_explanation", "fallback_explanation"),
+            required_items=(
+                "capstone_prompt",
+                "provider_explanation",
+                "fallback_explanation",
+            ),
+            present_items=(
+                "capstone_prompt",
+                "provider_explanation",
+                "fallback_explanation",
+            ),
             operator_notes=(
                 "Start from the prepared capstone creative-coding prompt.",
                 "Keep provider, model, mode, estimate, fallback, and escalation explanation visible.",

@@ -54,9 +54,7 @@ SessionMemoryEvolutionScope = Literal[
 SESSION_MEMORY_EVOLUTION_SIGNAL_SERIALIZATION_VERSION = (
     "session_memory_evolution_signal.v1"
 )
-SESSION_MEMORY_EVOLUTION_PLAN_SERIALIZATION_VERSION = (
-    "session_memory_evolution_plan.v1"
-)
+SESSION_MEMORY_EVOLUTION_PLAN_SERIALIZATION_VERSION = "session_memory_evolution_plan.v1"
 SESSION_MEMORY_EVOLUTION_AUTHORITY_BOUNDARY = (
     "V6.2 Session Memory Evolution models session-to-memory change posture as "
     "inspectable advisory metadata only; it does not write session memory "
@@ -506,9 +504,7 @@ def build_session_memory_evolution(
             signal.session_evolution_score for signal in signals
         ),
         overall_session_evolution_score=_overall_session_evolution_score(signals),
-        overall_session_evolution_posture=_overall_session_evolution_posture(
-            signals
-        ),
+        overall_session_evolution_posture=_overall_session_evolution_posture(signals),
         advisory_actions=_plan_actions(signals),
     )
 

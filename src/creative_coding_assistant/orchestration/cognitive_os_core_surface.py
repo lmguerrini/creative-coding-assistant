@@ -325,13 +325,10 @@ def build_cognitive_os_core_surface(
 ) -> CognitiveOSCoreSurfacePlan:
     """Build read-only Cognitive OS core surface metadata."""
 
-    consolidation = (
-        core_os_consolidation
-        or build_core_os_consolidation(
-            route=route,
-            task_type=task_type,
-            execution_mode_id=execution_mode_id,
-        )
+    consolidation = core_os_consolidation or build_core_os_consolidation(
+        route=route,
+        task_type=task_type,
+        execution_mode_id=execution_mode_id,
     )
     entries = _core_surface_entries(consolidation)
     core_surface_ids = tuple(entry.core_surface_id for entry in entries)

@@ -350,9 +350,7 @@ def _meta_planning_projections(
             capability_id=assessment.capability_id,
             capability_name=assessment.capability_name,
             cognitive_layer=assessment.cognitive_layer,
-            source_optimization_signal_id=(
-                assessment.source_optimization_signal_id
-            ),
+            source_optimization_signal_id=(assessment.source_optimization_signal_id),
             source_learning_signal_id=assessment.source_learning_signal_id,
             linked_agent_ids=assessment.linked_agent_ids,
             planning_focuses=META_PLANNING_FOCUSES,

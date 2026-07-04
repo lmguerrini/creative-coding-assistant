@@ -68,9 +68,7 @@ def _normalize_texts(texts: Sequence[str]) -> tuple[str, ...]:
     for index, text in enumerate(texts):
         cleaned = str(text).strip()
         if not cleaned:
-            raise ValueError(
-                f"Embedding text at index {index} must not be empty."
-            )
+            raise ValueError(f"Embedding text at index {index} must not be empty.")
         normalized.append(cleaned)
     return tuple(normalized)
 

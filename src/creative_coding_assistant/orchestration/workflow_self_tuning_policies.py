@@ -25,8 +25,8 @@ from creative_coding_assistant.orchestration.load_balancer import (
 from creative_coding_assistant.orchestration.retry_policies import (
     RetryPolicyPlan,
     RetryPolicyPressure,
-    retry_policy_candidate_by_id,
     plan_retry_policies,
+    retry_policy_candidate_by_id,
 )
 from creative_coding_assistant.orchestration.routing import RouteName
 from creative_coding_assistant.orchestration.routing_intelligence import (
@@ -47,9 +47,7 @@ WorkflowSelfTuningPolicyStatus = Literal[
     "guardrail",
 ]
 
-WORKFLOW_SELF_TUNING_POLICY_SERIALIZATION_VERSION = (
-    "workflow_self_tuning_policy.v1"
-)
+WORKFLOW_SELF_TUNING_POLICY_SERIALIZATION_VERSION = "workflow_self_tuning_policy.v1"
 WORKFLOW_SELF_TUNING_POLICY_PLAN_SERIALIZATION_VERSION = (
     "workflow_self_tuning_policy_plan.v1"
 )
@@ -216,9 +214,13 @@ class WorkflowSelfTuningPolicyPlan(BaseModel):
     )
     policy_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
     recommended_policy_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=4)
-    review_required_policy_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=4)
+    review_required_policy_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=4
+    )
     guardrail_policy_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=4)
-    hitl_required_policy_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=4)
+    hitl_required_policy_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=4
+    )
     applied_policy_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=4)
     policy_count: int = Field(ge=4, le=4)
     recommended_policy_count: int = Field(ge=0, le=4)
@@ -366,7 +368,9 @@ def plan_workflow_self_tuning_policies(
         applied_policy_ids=(),
         policy_count=len(policies),
         recommended_policy_count=len(_policy_ids_for_status(policies, "recommended")),
-        hitl_required_policy_count=sum(1 for policy in policies if policy.hitl_required),
+        hitl_required_policy_count=sum(
+            1 for policy in policies if policy.hitl_required
+        ),
         highest_self_tuning_score=max(policy.self_tuning_score for policy in policies),
         advisory_actions=_plan_actions(strategy_plan),
     )
@@ -602,7 +606,7 @@ def _fallback_summary(status: WorkflowSelfTuningPolicyStatus) -> str:
 def _policy_actions(kind: WorkflowSelfTuningPolicyKind) -> tuple[str, ...]:
     return (
         f"Surface {kind} as advisory workflow self-tuning policy metadata.",
-        "Keep tuning application, workflow control, retries, load balancing, resources, providers, agents, storage, and output behavior disabled.",
+        "Keep tuning application, workflow control, retries, load balancing, resources, providers, agents, storage, and output behavior disabled.",  # noqa: E501
     )
 
 

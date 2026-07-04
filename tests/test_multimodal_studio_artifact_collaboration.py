@@ -196,8 +196,8 @@ class MultimodalStudioArtifactCollaborationTests(unittest.TestCase):
         missing_profile = multimodal_artifact_collaboration_profile_by_id(
             "missing_profile"
         )
-        comparison_profiles = multimodal_artifact_collaboration_profiles_for_surface_kind(
-            "comparison"
+        comparison_profiles = (
+            multimodal_artifact_collaboration_profiles_for_surface_kind("comparison")
         )
         route_profiles = multimodal_artifact_collaboration_profiles_for_route(
             RouteName.PREVIEW
@@ -211,7 +211,9 @@ class MultimodalStudioArtifactCollaborationTests(unittest.TestCase):
         self.assertIsNone(missing_profile)
         self.assertIsNotNone(profile)
         assert profile is not None
-        self.assertEqual(profile.artifact_profile_kind, "artifact_comparison_collaboration")
+        self.assertEqual(
+            profile.artifact_profile_kind, "artifact_comparison_collaboration"
+        )
         self.assertIn("comparisonRows", profile.artifact_context_fields)
         self.assertIn("no_generated_output_mutation_notice", profile.advisory_outputs)
         self.assertEqual(

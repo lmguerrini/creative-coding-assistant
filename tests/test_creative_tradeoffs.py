@@ -116,10 +116,7 @@ class CreativeTradeoffExplorerTests(unittest.TestCase):
         self.assertIn("Creative Trade-off Explorer:", system)
         self.assertIn("Primary trade-off:", system)
         self.assertTrue(
-            any(
-                "Trade-off discussion:" in item
-                for item in director.planning_focus
-            ),
+            any("Trade-off discussion:" in item for item in director.planning_focus),
             director.planning_focus,
         )
         self.assertNotIn("Artifact selection", system)

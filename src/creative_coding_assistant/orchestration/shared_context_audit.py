@@ -21,9 +21,7 @@ SharedContextAuditStage = Literal["v4_6_shared_context_hardening"]
 SharedContextAuditStatus = Literal["pass"]
 
 SHARED_CONTEXT_AUDIT_RECORD_SERIALIZATION_VERSION = "shared_context_audit_record.v1"
-SHARED_CONTEXT_AUDIT_REGISTRY_SERIALIZATION_VERSION = (
-    "shared_context_audit_registry.v1"
-)
+SHARED_CONTEXT_AUDIT_REGISTRY_SERIALIZATION_VERSION = "shared_context_audit_registry.v1"
 SHARED_CONTEXT_AUDIT_REGISTRY_AUTHORITY_BOUNDARY = (
     "V4.6 shared context audit metadata checks passive per-agent shared "
     "context view coverage, source memory contract alignment, blackboard "
@@ -98,7 +96,9 @@ class SharedContextAuditRecord(BaseModel):
     validated_context_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
     passive_boundary_flags: tuple[str, ...] = Field(min_length=7, max_length=7)
     audit_findings: tuple[str, ...] = Field(min_length=6, max_length=6)
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=16)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=16
+    )
     view_blocked_runtime_behaviors: tuple[str, ...] = Field(
         min_length=1,
         max_length=16,

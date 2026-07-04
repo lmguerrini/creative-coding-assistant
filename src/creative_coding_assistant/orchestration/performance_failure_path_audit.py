@@ -172,9 +172,9 @@ class PerformanceFailurePathAuditRecord(BaseModel):
     persistent_storage_write_implemented: Literal[False] = False
     generated_output_mutation_implemented: Literal[False] = False
     runtime_evolution_implemented: Literal[False] = False
-    serialization_version: Literal[
-        "performance_failure_path_audit_record.v1"
-    ] = PERFORMANCE_FAILURE_PATH_AUDIT_RECORD_SERIALIZATION_VERSION
+    serialization_version: Literal["performance_failure_path_audit_record.v1"] = (
+        PERFORMANCE_FAILURE_PATH_AUDIT_RECORD_SERIALIZATION_VERSION
+    )
     metadata_only: Literal[True] = True
 
     @model_validator(mode="after")
@@ -197,9 +197,9 @@ class PerformanceFailurePathAuditRegistry(BaseModel):
     role: Literal["performance_failure_path_audit_registry"] = (
         "performance_failure_path_audit_registry"
     )
-    serialization_version: Literal[
-        "performance_failure_path_audit_registry.v1"
-    ] = PERFORMANCE_FAILURE_PATH_AUDIT_REGISTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["performance_failure_path_audit_registry.v1"] = (
+        PERFORMANCE_FAILURE_PATH_AUDIT_REGISTRY_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=PERFORMANCE_FAILURE_PATH_AUDIT_AUTHORITY_BOUNDARY,
         max_length=1800,
@@ -295,8 +295,7 @@ class PerformanceFailurePathAuditRegistry(BaseModel):
         return self
 
 
-def performance_failure_path_audit_registry(
-) -> PerformanceFailurePathAuditRegistry:
+def performance_failure_path_audit_registry() -> PerformanceFailurePathAuditRegistry:
     """Return V5.3 runtime failure path audit metadata without runtime actions."""
 
     architecture_registry = performance_architecture_consistency_registry()

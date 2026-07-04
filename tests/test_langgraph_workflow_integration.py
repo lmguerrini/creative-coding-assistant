@@ -236,9 +236,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         techniques = planning_event.payload["creative_techniques"]
         plan = planning_event.payload["creative_plan"]
         constraints = planning_event.payload["creative_constraints"]
-        constraint_priorities = planning_event.payload[
-            "creative_constraint_priorities"
-        ]
+        constraint_priorities = planning_event.payload["creative_constraint_priorities"]
         runtime_capabilities = planning_event.payload["runtime_capabilities"]
         tradeoffs = planning_event.payload["creative_tradeoffs"]
         quality_prediction = planning_event.payload["creative_quality_prediction"]
@@ -253,9 +251,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             "audio_visual_scene": "audio_visual_scene_system",
         }
         artifact_plan = planning_event.payload["artifact_plan"]
-        artifact_dependency_graph = planning_event.payload[
-            "artifact_dependency_graph"
-        ]
+        artifact_dependency_graph = planning_event.payload["artifact_dependency_graph"]
         runtime_compatibility = planning_event.payload["runtime_compatibility"]
         artifact_capability_matrix = planning_event.payload[
             "artifact_capability_matrix"
@@ -270,9 +266,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         artifact_export_intelligence = planning_event.payload[
             "artifact_export_intelligence"
         ]
-        artifact_engine_contracts = planning_event.payload[
-            "artifact_engine_contracts"
-        ]
+        artifact_engine_contracts = planning_event.payload["artifact_engine_contracts"]
         director = director_event.payload["creative_director"]
         reasoning = reasoning_event.payload["creative_reasoning"]
 
@@ -305,9 +299,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             "creative_constraint_prioritizer",
         )
         self.assertTrue(
-            planning_event.payload["workflow"][
-                "constraint_prioritizer_available"
-            ]
+            planning_event.payload["workflow"]["constraint_prioritizer_available"]
         )
         self.assertEqual(
             runtime_capabilities["role"],
@@ -315,9 +307,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         )
         self.assertEqual(runtime_capabilities["likely_candidates"][0], "p5_js")
         self.assertTrue(
-            planning_event.payload["workflow"][
-                "runtime_capability_reasoner_available"
-            ]
+            planning_event.payload["workflow"]["runtime_capability_reasoner_available"]
         )
         self.assertEqual(tradeoffs["role"], "creative_tradeoff_explorer")
         self.assertTrue(tradeoffs["primary_tradeoffs"])
@@ -429,9 +419,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertTrue(artifact_dependency_graph["artifact_nodes"])
         self.assertTrue(artifact_dependency_graph["dependency_edges"])
         self.assertTrue(
-            planning_event.payload["workflow"][
-                "artifact_dependency_graph_available"
-            ]
+            planning_event.payload["workflow"]["artifact_dependency_graph_available"]
         )
         self.assertEqual(
             runtime_compatibility["role"],
@@ -449,9 +437,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertIn("p5_js", artifact_capability_matrix["strongest_targets"])
         self.assertTrue(artifact_capability_matrix["capability_profiles"])
         self.assertTrue(
-            planning_event.payload["workflow"][
-                "artifact_capability_matrix_available"
-            ]
+            planning_event.payload["workflow"]["artifact_capability_matrix_available"]
         )
         self.assertEqual(
             multi_artifact_strategy["role"],
@@ -471,9 +457,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             artifact_critic["risk_assessment"],
             {"low", "medium", "high", "blocked"},
         )
-        self.assertTrue(
-            planning_event.payload["workflow"]["artifact_critic_available"]
-        )
+        self.assertTrue(planning_event.payload["workflow"]["artifact_critic_available"])
         self.assertEqual(artifact_refiner["role"], "artifact_refiner")
         self.assertGreaterEqual(artifact_refiner["refinement_confidence"], 0)
         self.assertTrue(artifact_refiner["recommended_improvements"])
@@ -487,9 +471,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertGreaterEqual(
             artifact_intelligence_synthesis["synthesis_confidence"], 0
         )
-        self.assertTrue(
-            artifact_intelligence_synthesis["recommended_artifact_path"]
-        )
+        self.assertTrue(artifact_intelligence_synthesis["recommended_artifact_path"])
         self.assertTrue(
             planning_event.payload["workflow"][
                 "artifact_intelligence_synthesis_available"
@@ -509,13 +491,9 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             artifact_export_intelligence["export_confidence"],
             0,
         )
+        self.assertTrue(artifact_export_intelligence["preferred_export_target"])
         self.assertTrue(
-            artifact_export_intelligence["preferred_export_target"]
-        )
-        self.assertTrue(
-            planning_event.payload["workflow"][
-                "artifact_export_intelligence_available"
-            ]
+            planning_event.payload["workflow"]["artifact_export_intelligence_available"]
         )
         self.assertEqual(
             artifact_engine_contracts["role"],
@@ -527,9 +505,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             artifact_engine_contracts["engine_ids"],
         )
         self.assertTrue(
-            planning_event.payload["workflow"][
-                "artifact_engine_contracts_available"
-            ]
+            planning_event.payload["workflow"]["artifact_engine_contracts_available"]
         )
         self.assertEqual(
             planning_event.payload["workflow"]["artifact_engine_contracts"],
@@ -791,9 +767,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 _request(query="Write code for a Three.js scene.")
             ),
             config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
-            context={
-                "runtime": _runtime(stream_generation=generation.stream)
-            },
+            context={"runtime": _runtime(stream_generation=generation.stream)},
         )
 
         workflow_state = final_state["workflow_state"]
@@ -843,9 +817,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             )
         )
         final_state = graph.invoke(
-            build_initial_workflow_graph_state(
-                _request(query="Write a p5.js sketch.")
-            ),
+            build_initial_workflow_graph_state(_request(query="Write a p5.js sketch.")),
             config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
             context={"runtime": _runtime(stream_generation=_single_generation(answer))},
         )
@@ -883,9 +855,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         )
         self.assertTrue(workflow_state.artifacts[0].is_recommended)
         self.assertIsNotNone(workflow_state.artifacts[0].critique)
-        self.assertIsNotNone(
-            workflow_state.artifacts[0].critique.creative_evaluation
-        )
+        self.assertIsNotNone(workflow_state.artifacts[0].critique.creative_evaluation)
         self.assertGreaterEqual(workflow_state.artifacts[0].quality_score, 0.68)
         critique_events = tuple(
             event
@@ -1074,9 +1044,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 _request(query="Write code for a Three.js scene.")
             ),
             config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
-            context={
-                "runtime": _runtime(stream_generation=generation.stream)
-            },
+            context={"runtime": _runtime(stream_generation=generation.stream)},
         )
 
         workflow_state = final_state["workflow_state"]
@@ -1501,9 +1469,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 ):
                     final_state = graph.invoke(
                         build_initial_workflow_graph_state(request),
-                        config={
-                            "recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT
-                        },
+                        config={"recursion_limit": ASSISTANT_WORKFLOW_RECURSION_LIMIT},
                         context={
                             "runtime": _runtime(
                                 stream_generation=_single_generation(answer)

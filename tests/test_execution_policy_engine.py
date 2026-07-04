@@ -159,9 +159,7 @@ class ExecutionPolicyEngineTests(unittest.TestCase):
             ExecutionPolicyPlan(**payload)
 
         payload = plan.model_dump(mode="json")
-        payload["recommended_execution_policy_posture"] = (
-            "standard_execution_policy"
-        )
+        payload["recommended_execution_policy_posture"] = "standard_execution_policy"
 
         with self.assertRaisesRegex(
             ValueError,

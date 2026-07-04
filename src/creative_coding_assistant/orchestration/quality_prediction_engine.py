@@ -139,7 +139,9 @@ class QualityPredictionPlan(BaseModel):
     recommended_prediction_id: str = Field(min_length=1, max_length=180)
     recommended_quality_level: QualityProfileLevel
     recommended_quality_midpoint: int = Field(ge=0, le=100)
-    fallback_prediction_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
+    fallback_prediction_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=12
+    )
     prediction_count: int = Field(ge=1, le=12)
     high_or_critical_prediction_count: int = Field(ge=0, le=12)
     critical_prediction_count: int = Field(ge=0, le=12)
@@ -212,9 +214,7 @@ class QualityPredictionPlan(BaseModel):
             for prediction in self.predictions
             if prediction.predicted_quality_level in {"high", "critical"}
         ):
-            raise ValueError(
-                "high_or_critical_prediction_count must match predictions"
-            )
+            raise ValueError("high_or_critical_prediction_count must match predictions")
         if self.critical_prediction_count != sum(
             1
             for prediction in self.predictions
@@ -322,8 +322,10 @@ def _resolve_route(
     route_decision: RouteDecision | None,
     route: RouteName | str | None,
 ) -> RouteName:
-    explicit_route = None if route is None else (
-        route if isinstance(route, RouteName) else RouteName(str(route))
+    explicit_route = (
+        None
+        if route is None
+        else (route if isinstance(route, RouteName) else RouteName(str(route)))
     )
     if route_decision is None:
         return explicit_route or RouteName.GENERATE

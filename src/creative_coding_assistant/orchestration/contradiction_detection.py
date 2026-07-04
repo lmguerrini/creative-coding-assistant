@@ -37,12 +37,8 @@ ContradictionDetectionAxis = Literal[
     "governance_gate",
 ]
 
-CONTRADICTION_DETECTION_ENTRY_SERIALIZATION_VERSION = (
-    "contradiction_detection_entry.v1"
-)
-CONTRADICTION_DETECTION_PLAN_SERIALIZATION_VERSION = (
-    "contradiction_detection_plan.v1"
-)
+CONTRADICTION_DETECTION_ENTRY_SERIALIZATION_VERSION = "contradiction_detection_entry.v1"
+CONTRADICTION_DETECTION_PLAN_SERIALIZATION_VERSION = "contradiction_detection_plan.v1"
 
 CONTRADICTION_DETECTION_AUTHORITY_BOUNDARY = (
     "V6.4 Contradiction Detection exposes claim alignment, evidence-conflict "
@@ -341,9 +337,7 @@ class ContradictionDetectionPlan(BaseModel):
         if self.resolved_contradiction_ids:
             raise ValueError("resolved_contradiction_ids must remain empty")
         if self.emitted_contradiction_escalation_ids:
-            raise ValueError(
-                "emitted_contradiction_escalation_ids must remain empty"
-            )
+            raise ValueError("emitted_contradiction_escalation_ids must remain empty")
         if self.written_contradiction_record_ids:
             raise ValueError("written_contradiction_record_ids must remain empty")
         if self.credibility_entry_count != len(self.credibility_entry_ids):
@@ -455,13 +449,9 @@ def build_contradiction_detection(
             _entry_ids_for_confidence(entries, "high", "guarded")
         ),
         hitl_required_entry_count=sum(
-            1
-            for entry in entries
-            if entry.hitl_required_before_contradiction_detection
+            1 for entry in entries if entry.hitl_required_before_contradiction_detection
         ),
-        highest_contradiction_score=max(
-            entry.contradiction_score for entry in entries
-        ),
+        highest_contradiction_score=max(entry.contradiction_score for entry in entries),
         overall_contradiction_score=_overall_contradiction_score(entries),
         overall_contradiction_posture=_overall_contradiction_posture(entries),
         advisory_actions=_plan_actions(entries),
@@ -727,9 +717,7 @@ def _entry_ids_for_confidence(
     entries: tuple[ContradictionDetectionEntry, ...],
     *confidences: ContradictionDetectionConfidence,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(

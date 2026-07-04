@@ -248,9 +248,7 @@ class KnowledgeVersioningPlan(BaseModel):
     knowledge_provenance_role: Literal["knowledge_provenance_evolution"] = (
         "knowledge_provenance_evolution"
     )
-    knowledge_provenance_serialization_version: Literal[
-        "knowledge_provenance_plan.v1"
-    ]
+    knowledge_provenance_serialization_version: Literal["knowledge_provenance_plan.v1"]
     knowledge_provenance_signal_ids: tuple[str, ...] = Field(
         min_length=5,
         max_length=5,
@@ -429,9 +427,7 @@ class KnowledgeVersioningPlan(BaseModel):
             raise ValueError("signal_count must match signals")
         if self.candidate_signal_count != len(self.candidate_signal_ids):
             raise ValueError("candidate_signal_count must match signals")
-        if self.review_required_signal_count != len(
-            self.review_required_signal_ids
-        ):
+        if self.review_required_signal_count != len(self.review_required_signal_ids):
             raise ValueError("review_required_signal_count must match signals")
         if self.guarded_signal_count != len(self.guarded_signal_ids):
             raise ValueError("guarded_signal_count must match signals")
@@ -445,9 +441,7 @@ class KnowledgeVersioningPlan(BaseModel):
             raise ValueError("highest_versioning_score must match signals")
         if self.overall_versioning_score != _overall_versioning_score(self.signals):
             raise ValueError("overall_versioning_score must match signals")
-        if self.overall_versioning_posture != _overall_versioning_posture(
-            self.signals
-        ):
+        if self.overall_versioning_posture != _overall_versioning_posture(self.signals):
             raise ValueError("overall_versioning_posture must match signals")
         declared_provenance_signals = set(self.knowledge_provenance_signal_ids)
         for signal in self.signals:
@@ -460,9 +454,7 @@ class KnowledgeVersioningPlan(BaseModel):
             if not set(signal.knowledge_provenance_signal_ids).issubset(
                 declared_provenance_signals
             ):
-                raise ValueError(
-                    "signal knowledge_provenance_signal_ids must be known"
-                )
+                raise ValueError("signal knowledge_provenance_signal_ids must be known")
         return self
 
 
@@ -608,10 +600,8 @@ def _signals(
             execution_mode_id=execution_mode_id,
             axis="lineage_alignment",
             provenance_signal_ids=(
-                "knowledge_provenance_evolution::"
-                "knowledge_provenance_inventory_review",
-                "knowledge_provenance_evolution::"
-                "knowledge_provenance_lineage_review",
+                "knowledge_provenance_evolution::knowledge_provenance_inventory_review",
+                "knowledge_provenance_evolution::knowledge_provenance_lineage_review",
             ),
             provenance_plan=provenance_plan,
             version_signal_score=80,
@@ -629,8 +619,7 @@ def _signals(
             provenance_signal_ids=(
                 "knowledge_provenance_evolution::"
                 "knowledge_provenance_lifecycle_alignment_review",
-                "knowledge_provenance_evolution::"
-                "knowledge_provenance_governance_gate",
+                "knowledge_provenance_evolution::knowledge_provenance_governance_gate",
             ),
             provenance_plan=provenance_plan,
             version_signal_score=76,
@@ -648,8 +637,7 @@ def _signals(
             provenance_signal_ids=(
                 "knowledge_provenance_evolution::"
                 "knowledge_provenance_evolution_readiness",
-                "knowledge_provenance_evolution::"
-                "knowledge_provenance_governance_gate",
+                "knowledge_provenance_evolution::knowledge_provenance_governance_gate",
             ),
             provenance_plan=provenance_plan,
             version_signal_score=66,

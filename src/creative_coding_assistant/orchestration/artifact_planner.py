@@ -275,16 +275,14 @@ def artifact_plan_prompt_lines(plan: ArtifactPlan) -> tuple[str, ...]:
         f"Artifact family: {plan.artifact_family}.",
     ]
     lines.extend(
-        f"Required artifact component: {item}"
-        for item in plan.required_components
+        f"Required artifact component: {item}" for item in plan.required_components
     )
     lines.extend(
         f"Runtime-facing artifact requirement: {item}"
         for item in plan.runtime_requirements
     )
     lines.extend(
-        f"Creative artifact dependency: {item}"
-        for item in plan.creative_dependencies
+        f"Creative artifact dependency: {item}" for item in plan.creative_dependencies
     )
     lines.extend(
         f"Generative artifact dependency: {item}"
@@ -295,12 +293,10 @@ def artifact_plan_prompt_lines(plan: ArtifactPlan) -> tuple[str, ...]:
         for item in plan.expected_output_structure
     )
     lines.extend(
-        f"Artifact implementation risk: {item}"
-        for item in plan.implementation_risks
+        f"Artifact implementation risk: {item}" for item in plan.implementation_risks
     )
     lines.extend(
-        f"Missing artifact information: {item}"
-        for item in plan.missing_information
+        f"Missing artifact information: {item}" for item in plan.missing_information
     )
     lines.extend(f"HITL artifact question: {item}" for item in plan.hitl_questions)
     lines.extend(f"Artifact planner guidance: {item}" for item in plan.prompt_guidance)
@@ -439,9 +435,7 @@ def _required_components(
         )
     if procedural_structure is not None:
         family_name = procedural_structure.primary_structure.family
-        components.append(
-            f"Primary procedural family: {family_name}."
-        )
+        components.append(f"Primary procedural family: {family_name}.")
     if generative_structure is not None:
         components.append(
             f"Named generative module set: {generative_structure.blueprint_name}."
@@ -500,9 +494,7 @@ def _runtime_requirements(
             )
         if creative_plan.recommended_renderer_id is not None:
             renderer_id = creative_plan.recommended_renderer_id
-            requirements.append(
-                f"Keep renderer compatibility with {renderer_id}."
-            )
+            requirements.append(f"Keep renderer compatibility with {renderer_id}.")
         if creative_plan.recommended_preview_target is not None:
             preview_target = creative_plan.recommended_preview_target
             requirements.append(
@@ -579,13 +571,9 @@ def _creative_dependencies(
             f"({creative_quality_prediction.readiness_score}/100)."
         )
     if symbolic_narrative is not None:
-        dependencies.append(
-            f"Narrative arc: {symbolic_narrative.narrative_archetype}."
-        )
+        dependencies.append(f"Narrative arc: {symbolic_narrative.narrative_archetype}.")
     if creative_composition is not None:
-        dependencies.append(
-            f"Composition: {creative_composition.composition_pattern}."
-        )
+        dependencies.append(f"Composition: {creative_composition.composition_pattern}.")
     return _dedupe(dependencies)[:10]
 
 
@@ -614,17 +602,11 @@ def _generative_dependencies(
             + "."
         )
     if emotional_consistency is not None:
-        dependencies.append(
-            f"Emotion: {emotional_consistency.primary_emotional_tone}."
-        )
+        dependencies.append(f"Emotion: {emotional_consistency.primary_emotional_tone}.")
     if cross_modality is not None:
-        dependencies.append(
-            f"Cross-modality: {cross_modality.modality_pattern}."
-        )
+        dependencies.append(f"Cross-modality: {cross_modality.modality_pattern}.")
     if audio_visual_scene is not None:
-        dependencies.append(
-            f"Audio-visual scene: {audio_visual_scene.scene_pattern}."
-        )
+        dependencies.append(f"Audio-visual scene: {audio_visual_scene.scene_pattern}.")
     return _dedupe(dependencies)[:10]
 
 
@@ -813,8 +795,7 @@ def _prompt_guidance(
         )
     if creative_plan is not None and creative_plan.export_readiness != "ready":
         guidance.append(
-            "Mention export or runtime limitations instead of implying full "
-            "readiness."
+            "Mention export or runtime limitations instead of implying full readiness."
         )
     return tuple(guidance[:8])
 

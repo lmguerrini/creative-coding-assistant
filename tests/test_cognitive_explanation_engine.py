@@ -167,9 +167,9 @@ class CognitiveExplanationEngineTests(unittest.TestCase):
     def test_cognitive_explanation_engine_rejects_generation_and_drift(self) -> None:
         engine = build_cognitive_explanation_engine()
         payload = engine.model_dump(mode="json")
-        payload["explanation_ids"] = (
-            "missing",
-        ) + tuple(payload["explanation_ids"][1:])
+        payload["explanation_ids"] = ("missing",) + tuple(
+            payload["explanation_ids"][1:]
+        )
 
         with self.assertRaisesRegex(ValueError, "explanation_ids must match"):
             CognitiveExplanationEnginePlan(**payload)

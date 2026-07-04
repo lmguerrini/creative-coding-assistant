@@ -175,9 +175,7 @@ class CognitiveSchedulerTests(unittest.TestCase):
             CognitiveSchedulerPlan(**payload)
 
         payload = scheduler.model_dump(mode="json")
-        payload["executed_schedule_ids"] = (
-            "cognitive_scheduler::v6_6_cognitive_core",
-        )
+        payload["executed_schedule_ids"] = ("cognitive_scheduler::v6_6_cognitive_core",)
 
         with self.assertRaisesRegex(
             ValueError,

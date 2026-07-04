@@ -25,9 +25,7 @@ PerformancePredictionBand = Literal["low", "medium", "high", "guarded"]
 PerformancePredictionConfidence = Literal["low", "medium", "high"]
 
 PERFORMANCE_PREDICTION_SERIALIZATION_VERSION = "performance_prediction.v1"
-PERFORMANCE_PREDICTION_PLAN_SERIALIZATION_VERSION = (
-    "performance_prediction_plan.v1"
-)
+PERFORMANCE_PREDICTION_PLAN_SERIALIZATION_VERSION = "performance_prediction_plan.v1"
 PERFORMANCE_PREDICTION_AUTHORITY_BOUNDARY = (
     "Performance prediction planning converts advisory throughput, latency, "
     "bottleneck, and execution profiling metadata into bounded relative "
@@ -283,16 +281,14 @@ class PerformancePredictionPlan(BaseModel):
         ):
             raise ValueError("guarded_prediction_count must match predictions")
         lowest_midpoint = min(
-            prediction.predicted_performance_midpoint
-            for prediction in self.predictions
+            prediction.predicted_performance_midpoint for prediction in self.predictions
         )
         if self.lowest_predicted_performance_midpoint != lowest_midpoint:
             raise ValueError(
                 "lowest_predicted_performance_midpoint must match predictions"
             )
         highest_midpoint = max(
-            prediction.predicted_performance_midpoint
-            for prediction in self.predictions
+            prediction.predicted_performance_midpoint for prediction in self.predictions
         )
         if self.highest_predicted_performance_midpoint != highest_midpoint:
             raise ValueError(
@@ -456,8 +452,7 @@ def _predictions(
             source_candidate_ids=bottlenecks.candidate_ids,
             source_signal_score=bottlenecks.total_advisory_severity_score,
             source_guardrail_count=(
-                bottlenecks.boundary_guardrail_count
-                + bottlenecks.review_only_count
+                bottlenecks.boundary_guardrail_count + bottlenecks.review_only_count
             ),
             evidence=(
                 f"bottleneck_severity:{bottlenecks.bottleneck_detection_severity}",
@@ -495,9 +490,7 @@ def _prediction(
         source_guardrail_count=source_guardrail_count,
         predicted_performance_band=band,
         predicted_performance_range=performance_range,
-        predicted_performance_midpoint=(
-            performance_range[0] + performance_range[1]
-        )
+        predicted_performance_midpoint=(performance_range[0] + performance_range[1])
         // 2,
         prediction_confidence=_confidence(
             band=band,
@@ -570,9 +563,7 @@ def _prediction_actions(
             "Keep bottleneck risk prediction guarded and review-only.",
             "Preserve measurement, routing, workflow, and output boundaries.",
         )
-    return (
-        "Present performance prediction as fallback advisory evidence.",
-    )
+    return ("Present performance prediction as fallback advisory evidence.",)
 
 
 def _plan_actions(
@@ -584,8 +575,7 @@ def _plan_actions(
         "output boundaries.",
     ]
     if any(
-        prediction.predicted_performance_band == "guarded"
-        for prediction in predictions
+        prediction.predicted_performance_band == "guarded" for prediction in predictions
     ):
         actions.append("Require human review before any runtime performance change.")
     return tuple(actions)

@@ -73,9 +73,7 @@ class ToolMetadata(BaseModel):
     display_name: str = Field(min_length=1)
     description: str | None = None
     version: str | None = None
-    required_capabilities: tuple[RouteCapability, ...] = (
-        RouteCapability.TOOL_USE,
-    )
+    required_capabilities: tuple[RouteCapability, ...] = (RouteCapability.TOOL_USE,)
     tags: tuple[str, ...] = ()
 
     @property
@@ -247,8 +245,7 @@ def validate_tool_status_transition(
 ) -> None:
     if not can_transition_tool_status(current, next_status):
         raise ValueError(
-            f"Invalid tool status transition: {current.value} -> "
-            f"{next_status.value}."
+            f"Invalid tool status transition: {current.value} -> {next_status.value}."
         )
 
 
@@ -280,9 +277,7 @@ class ToolRegistry:
     def register(self, tool: AssistantTool) -> None:
         name = tool.metadata.name
         if name in self._tools:
-            raise DuplicateToolRegistrationError(
-                f"Tool already registered: {name}"
-            )
+            raise DuplicateToolRegistrationError(f"Tool already registered: {name}")
         self._tools[name] = tool
 
     def is_registered(self, tool: ToolIdentity | str) -> bool:

@@ -10,7 +10,6 @@ from creative_coding_assistant.orchestration.agent_boundaries import (
     AGENT_BOUNDARY_REGISTRY,
 )
 from creative_coding_assistant.orchestration.agent_contracts import (
-    AGENT_CONTRACT_REGISTRY,
     AGENT_CONTRACTS,
     AgentContract,
 )
@@ -26,9 +25,7 @@ AgentContractAuditStage = Literal["v4_6_agent_contract_hardening"]
 AgentContractAuditStatus = Literal["pass"]
 
 AGENT_CONTRACT_AUDIT_SERIALIZATION_VERSION = "agent_contract_audit.v1"
-AGENT_CONTRACT_AUDIT_REGISTRY_SERIALIZATION_VERSION = (
-    "agent_contract_audit_registry.v1"
-)
+AGENT_CONTRACT_AUDIT_REGISTRY_SERIALIZATION_VERSION = "agent_contract_audit_registry.v1"
 AGENT_CONTRACT_AUDIT_REGISTRY_AUTHORITY_BOUNDARY = (
     "V4.6 agent contract audit metadata checks passive V4.1 agent contract "
     "coverage, source registry alignment, authority boundaries, memory "
@@ -107,7 +104,9 @@ class AgentContractAuditRecord(BaseModel):
     )
     passive_boundary_flags: tuple[str, ...] = Field(min_length=8, max_length=8)
     audit_findings: tuple[str, ...] = Field(min_length=7, max_length=7)
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=16)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=16
+    )
     contract_blocked_runtime_behaviors: tuple[str, ...] = Field(
         min_length=1,
         max_length=16,

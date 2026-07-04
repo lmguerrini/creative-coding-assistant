@@ -241,7 +241,9 @@ class ProductionReleaseFinalOptimizationPlan(BaseModel):
     recommended_option_id: str = Field(min_length=1, max_length=180)
     fallback_option_id: str | None = Field(default=None, max_length=180)
     required_hitl_gates: tuple[str, ...] = Field(default_factory=tuple, max_length=24)
-    unavailable_reason_codes: tuple[str, ...] = Field(default_factory=tuple, max_length=24)
+    unavailable_reason_codes: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=24
+    )
     blocked_runtime_behaviors: tuple[str, ...] = Field(
         default=_BLOCKED_RUNTIME_BEHAVIORS,
         min_length=1,
@@ -441,9 +443,7 @@ def _records(
         }
     )
     safety_reasons = _unique(
-        reason
-        for reason in guarded_reasons
-        if reason not in configuration_reasons
+        reason for reason in guarded_reasons if reason not in configuration_reasons
     )
     demo_reasons = _unique(
         (*decision.required_hitl_gates, *decision.unavailable_reason_codes)

@@ -186,8 +186,12 @@ class AgentStateSynchronizationTests(unittest.TestCase):
         assert planner is not None
         assert checkpoint is not None
         assert conflict_surface is not None
-        self.assertEqual(planner.source_lifecycle_profile_id, "planner_agent_lifecycle_profile")
-        self.assertEqual(planner.source_context_view_id, "planner_agent_shared_context_view")
+        self.assertEqual(
+            planner.source_lifecycle_profile_id, "planner_agent_lifecycle_profile"
+        )
+        self.assertEqual(
+            planner.source_context_view_id, "planner_agent_shared_context_view"
+        )
         self.assertEqual(checkpoint.checkpoint_stage, "pre_activation")
         self.assertEqual(conflict_surface.category, "lifecycle_context")
         self.assertFalse(conflict_surface.conflict_resolution_implemented)
@@ -200,8 +204,8 @@ class AgentStateSynchronizationTests(unittest.TestCase):
         unknown_constraint_checkpoint = registry.checkpoints[0].model_copy(
             update={"consistency_constraint_ids": ("missing_constraint",)}
         )
-        missing_source_registries = (
-            registry.source_registries[:-1] + ("missing_registry",)
+        missing_source_registries = registry.source_registries[:-1] + (
+            "missing_registry",
         )
 
         with self.assertRaisesRegex(ValueError, "profile checkpoints must be known"):

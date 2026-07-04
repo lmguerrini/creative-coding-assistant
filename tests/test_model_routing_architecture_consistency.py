@@ -131,18 +131,21 @@ class ModelRoutingArchitectureConsistencyTests(unittest.TestCase):
             )
             self.assertEqual(record.architecture_stage, registry.architecture_stage)
             self.assertTrue(record.source_serialization_version.endswith(".v1"))
-            self.assertIn(record.source_count_field, {
-                "candidate_count",
-                "decision_count",
-                "scenario_count",
-                "policy_count",
-                "gate_count",
-                "recommendation_count",
-                "row_count",
-                "prediction_count",
-                "explanation_count",
-                "quality_signal_count",
-            })
+            self.assertIn(
+                record.source_count_field,
+                {
+                    "candidate_count",
+                    "decision_count",
+                    "scenario_count",
+                    "policy_count",
+                    "gate_count",
+                    "recommendation_count",
+                    "row_count",
+                    "prediction_count",
+                    "explanation_count",
+                    "quality_signal_count",
+                },
+            )
             self.assertGreaterEqual(record.source_count, 1)
             if record.source_route_name is not None:
                 self.assertEqual(record.source_route_name, registry.route_name)
@@ -219,9 +222,7 @@ class ModelRoutingArchitectureConsistencyTests(unittest.TestCase):
         )
         active_record = first_record.model_copy(
             update={
-                "source_active_runtime_flags": (
-                    "provider_model_routing_implemented",
-                )
+                "source_active_runtime_flags": ("provider_model_routing_implemented",)
             }
         )
 

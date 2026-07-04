@@ -184,7 +184,9 @@ class QualityPredictionEngineTests(unittest.TestCase):
         ):
             QualityPredictionPlan(**payload)
 
-    def test_quality_prediction_does_not_change_routing_or_provider_factory(self) -> None:
+    def test_quality_prediction_does_not_change_routing_or_provider_factory(
+        self,
+    ) -> None:
         request = AssistantRequest(
             query="Predict review quality for a shader design.",
             mode=AssistantMode.REVIEW,

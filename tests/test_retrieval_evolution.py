@@ -174,9 +174,7 @@ class RetrievalEvolutionTests(unittest.TestCase):
                 len(signal.embedding_refresh_signal_ids),
             )
             self.assertTrue(
-                set(signal.embedding_refresh_signal_ids).issubset(
-                    embedding_signal_ids
-                )
+                set(signal.embedding_refresh_signal_ids).issubset(embedding_signal_ids)
             )
             self.assertEqual(
                 signal.evolution_score,

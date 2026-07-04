@@ -509,17 +509,16 @@ class ResearchCoreSurfacePlan(BaseModel):
             entry.core_surface_score for entry in self.entries
         ):
             raise ValueError("highest_core_surface_score must match entries")
-        if self.overall_core_surface_score != _overall_core_surface_score(
-            self.entries
-        ):
+        if self.overall_core_surface_score != _overall_core_surface_score(self.entries):
             raise ValueError("overall_core_surface_score must match entries")
         if self.overall_core_surface_posture != _overall_core_surface_posture(
             self.entries
         ):
             raise ValueError("overall_core_surface_posture must match entries")
-        if tuple(
-            item for entry in self.entries for item in entry.roadmap_items
-        ) != self.covered_roadmap_items:
+        if (
+            tuple(item for entry in self.entries for item in entry.roadmap_items)
+            != self.covered_roadmap_items
+        ):
             raise ValueError("entry roadmap_items must preserve roadmap order")
         source_items = set(self.source_item_ids)
         source_roles = set(self.source_plan_roles)

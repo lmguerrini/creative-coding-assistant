@@ -187,9 +187,7 @@ class WebResearchPlan(BaseModel):
     route_name: RouteName
     task_type: TaskRoutingType
     checked_at: datetime
-    research_decomposer_role: Literal["research_decomposer"] = (
-        "research_decomposer"
-    )
+    research_decomposer_role: Literal["research_decomposer"] = "research_decomposer"
     research_decomposer_serialization_version: Literal["research_decomposer_plan.v1"]
     decomposition_entry_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
     decomposition_entry_count: int = Field(ge=5, le=5)
@@ -352,9 +350,7 @@ class WebResearchPlan(BaseModel):
             entry.web_research_score for entry in self.entries
         ):
             raise ValueError("highest_web_research_score must match entries")
-        if self.overall_web_research_score != _overall_web_research_score(
-            self.entries
-        ):
+        if self.overall_web_research_score != _overall_web_research_score(self.entries):
             raise ValueError("overall_web_research_score must match entries")
         if self.overall_web_research_posture != _overall_web_research_posture(
             self.entries
@@ -693,9 +689,7 @@ def _entry_ids_for_confidence(
     entries: tuple[WebResearchEntry, ...],
     *confidences: WebResearchConfidence,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(entries: tuple[WebResearchEntry, ...]) -> tuple[str, ...]:

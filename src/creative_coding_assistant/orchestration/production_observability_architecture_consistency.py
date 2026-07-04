@@ -353,8 +353,9 @@ class ProductionObservabilityArchitectureRegistry(BaseModel):
         return self
 
 
-def production_observability_architecture_registry(
-) -> ProductionObservabilityArchitectureRegistry:
+def production_observability_architecture_registry() -> (
+    ProductionObservabilityArchitectureRegistry
+):
     """Return passive V5.4 production observability architecture metadata."""
 
     records = tuple(
@@ -400,8 +401,7 @@ def production_observability_architecture_records_for_layer(
     )
 
 
-def _source_specs(
-) -> tuple[tuple[str, ObservabilityArchitectureLayer, Any], ...]:
+def _source_specs() -> tuple[tuple[str, ObservabilityArchitectureLayer, Any], ...]:
     sources = _source_objects()
     return tuple(
         (surface_id, layer, sources[surface_id])

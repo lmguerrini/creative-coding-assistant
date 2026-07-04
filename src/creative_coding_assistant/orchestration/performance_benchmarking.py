@@ -27,9 +27,7 @@ PerformanceBenchmarkReadiness = Literal["low", "medium", "high", "guarded"]
 PERFORMANCE_BENCHMARK_SCENARIO_SERIALIZATION_VERSION = (
     "performance_benchmark_scenario.v1"
 )
-PERFORMANCE_BENCHMARKING_PLAN_SERIALIZATION_VERSION = (
-    "performance_benchmarking_plan.v1"
-)
+PERFORMANCE_BENCHMARKING_PLAN_SERIALIZATION_VERSION = "performance_benchmarking_plan.v1"
 PERFORMANCE_BENCHMARKING_AUTHORITY_BOUNDARY = (
     "Performance benchmarking planning derives advisory benchmark scenarios "
     "from performance prediction, throughput optimization, latency "
@@ -145,9 +143,7 @@ class PerformanceBenchmarkingPlan(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["performance_benchmark_planner"] = (
-        "performance_benchmark_planner"
-    )
+    role: Literal["performance_benchmark_planner"] = "performance_benchmark_planner"
     serialization_version: Literal["performance_benchmarking_plan.v1"] = (
         PERFORMANCE_BENCHMARKING_PLAN_SERIALIZATION_VERSION
     )
@@ -558,12 +554,8 @@ def _scenario_actions(
             "Require explicit runtime authority before executing benchmark work.",
         )
     if status == "baseline_candidate":
-        return (
-            "Keep prediction baseline available for benchmark planning only.",
-        )
-    return (
-        "Preserve profiler, timer, trace, workflow, and output boundaries.",
-    )
+        return ("Keep prediction baseline available for benchmark planning only.",)
+    return ("Preserve profiler, timer, trace, workflow, and output boundaries.",)
 
 
 def _plan_actions(

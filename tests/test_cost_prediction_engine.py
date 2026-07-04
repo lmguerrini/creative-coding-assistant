@@ -111,7 +111,10 @@ class CostPredictionEngineTests(unittest.TestCase):
             self.assertEqual(prediction.route_name, RouteName.REVIEW)
             self.assertEqual(
                 prediction.predicted_cost_midpoint,
-                (prediction.predicted_cost_range[0] + prediction.predicted_cost_range[1])
+                (
+                    prediction.predicted_cost_range[0]
+                    + prediction.predicted_cost_range[1]
+                )
                 // 2,
             )
             self.assertIn(

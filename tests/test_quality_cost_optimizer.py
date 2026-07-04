@@ -125,7 +125,9 @@ class QualityCostOptimizerTests(unittest.TestCase):
             self.assertTrue(
                 set(candidate.source_quality_profile_ids).issubset(known_quality_ids)
             )
-            self.assertTrue(set(candidate.source_cost_profile_ids).issubset(known_cost_ids))
+            self.assertTrue(
+                set(candidate.source_cost_profile_ids).issubset(known_cost_ids)
+            )
             self.assertEqual(
                 candidate.optimization_score,
                 candidate.quality_score + candidate.cost_score + candidate.hybrid_bonus,
@@ -189,7 +191,9 @@ class QualityCostOptimizerTests(unittest.TestCase):
         ):
             QualityCostOptimizationPlan(**payload)
 
-    def test_optimizer_does_not_change_request_routing_or_provider_factory(self) -> None:
+    def test_optimizer_does_not_change_request_routing_or_provider_factory(
+        self,
+    ) -> None:
         request = AssistantRequest(
             query="Design a refined p5.js study.",
             mode=AssistantMode.DESIGN,

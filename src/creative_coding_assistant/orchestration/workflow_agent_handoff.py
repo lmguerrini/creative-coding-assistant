@@ -280,9 +280,7 @@ class WorkflowAgentHandoffRegistry(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["workflow_agent_handoff_registry"] = (
-        "workflow_agent_handoff_registry"
-    )
+    role: Literal["workflow_agent_handoff_registry"] = "workflow_agent_handoff_registry"
     serialization_version: Literal["workflow_agent_handoff_registry.v1"] = (
         WORKFLOW_AGENT_HANDOFF_REGISTRY_SERIALIZATION_VERSION
     )
@@ -391,7 +389,9 @@ def workflow_agent_handoffs_for_surface(
     """Return handoff metadata for one V3 surface without changing workflows."""
 
     source_registry = registry or WORKFLOW_AGENT_HANDOFF_REGISTRY
-    return tuple(handoff for handoff in source_registry.handoffs if handoff.surface == surface)
+    return tuple(
+        handoff for handoff in source_registry.handoffs if handoff.surface == surface
+    )
 
 
 def _role_ids_for_agent_ids(agent_ids: tuple[str, ...]) -> tuple[str, ...]:
@@ -434,9 +434,7 @@ WORKFLOW_AGENT_HANDOFFS = tuple(_handoff(spec) for spec in _HANDOFF_SPECS)
 def _profile(agent_id: str) -> WorkflowAgentHandoffProfile:
     role = next(role for role in AGENT_ROLE_REGISTRY.roles if role.agent_id == agent_id)
     context_view = next(
-        view
-        for view in SHARED_CONTEXT_VIEW_REGISTRY.views
-        if view.agent_id == agent_id
+        view for view in SHARED_CONTEXT_VIEW_REGISTRY.views if view.agent_id == agent_id
     )
     accepted_handoffs = tuple(
         handoff

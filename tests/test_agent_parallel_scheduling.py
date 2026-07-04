@@ -137,7 +137,9 @@ class AgentParallelSchedulingTests(unittest.TestCase):
             update={"blocking_group_ids": ("parallel_group::execution_context",)}
         )
 
-        with self.assertRaisesRegex(ValueError, "blocking relationships must be acyclic"):
+        with self.assertRaisesRegex(
+            ValueError, "blocking relationships must be acyclic"
+        ):
             ParallelSchedulingRegistry(
                 groups=(scheduling.groups[0], second_group) + scheduling.groups[2:],
                 group_ids=scheduling.group_ids,

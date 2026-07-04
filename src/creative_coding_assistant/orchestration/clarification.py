@@ -354,9 +354,8 @@ def _has_high_cost_multi_candidate_gap(
         or creative_translation.sacred_geometry is not None
     )
     multi_runtime = len(route_decision.domains) > 1
-    return (
-        bool(_MULTI_CANDIDATE_SIGNAL.search(query))
-        and (lacks_direction or multi_runtime or estimated_costly)
+    return bool(_MULTI_CANDIDATE_SIGNAL.search(query)) and (
+        lacks_direction or multi_runtime or estimated_costly
     )
 
 

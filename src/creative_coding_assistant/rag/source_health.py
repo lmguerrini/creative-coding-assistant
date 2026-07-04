@@ -188,9 +188,7 @@ class OfficialSourceHealthSnapshot(BaseModel):
 def build_official_source_health_metadata(
     source: OfficialSource | str,
 ) -> OfficialSourceHealthMetadata:
-    resolved_source = (
-        get_official_source(source) if isinstance(source, str) else source
-    )
+    resolved_source = get_official_source(source) if isinstance(source, str) else source
     approved_url_count = 1 + len(resolved_source.additional_urls)
     return OfficialSourceHealthMetadata(
         source_id=resolved_source.source_id,
@@ -246,9 +244,7 @@ def evaluate_official_source_health(
         sync=sync_metadata,
         checked_at=checked_at,
         freshness_status=(
-            SourceFreshnessStatus.STALE
-            if is_stale
-            else SourceFreshnessStatus.FRESH
+            SourceFreshnessStatus.STALE if is_stale else SourceFreshnessStatus.FRESH
         ),
         health_status=(
             SourceHealthStatus.STALE if is_stale else SourceHealthStatus.HEALTHY

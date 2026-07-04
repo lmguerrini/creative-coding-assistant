@@ -257,17 +257,13 @@ class MultimodalStudioIntegrationTests(unittest.TestCase):
         profile = multimodal_studio_integration_profile_by_id(
             "timeline_visualization_multimodal_studio_integration"
         )
-        missing_profile = multimodal_studio_integration_profile_by_id(
-            "missing_profile"
-        )
+        missing_profile = multimodal_studio_integration_profile_by_id("missing_profile")
         preview_profiles = multimodal_studio_integration_profiles_for_route(
             RouteName.PREVIEW
         )
         review_profiles = multimodal_studio_integration_profiles_for_route("review")
-        realtime_profiles = (
-            multimodal_studio_integration_profiles_for_source_registry(
-                "multimodal_real_time_workflow_visualization_registry"
-            )
+        realtime_profiles = multimodal_studio_integration_profiles_for_source_registry(
+            "multimodal_real_time_workflow_visualization_registry"
         )
 
         self.assertIsNone(missing_profile)

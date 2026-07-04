@@ -188,10 +188,7 @@ class CreativeResearchEntry(BaseModel):
 
     @model_validator(mode="after")
     def _entry_matches_contract(self) -> Self:
-        if (
-            self.entry_id
-            != f"creative_research_engine::{self.creative_research_kind}"
-        ):
+        if self.entry_id != f"creative_research_engine::{self.creative_research_kind}":
             raise ValueError("entry_id must match creative_research_kind")
         if self.hitl_policy_entry_count != len(self.hitl_policy_entry_ids):
             raise ValueError("hitl_policy_entry_count must match HITL policy ids")
@@ -206,9 +203,7 @@ class CreativeResearchEntry(BaseModel):
             governance_weight=self.governance_weight,
         ):
             raise ValueError("creative_research_score must combine source scores")
-        if self.status != _creative_research_status(
-            self.creative_research_score
-        ):
+        if self.status != _creative_research_status(self.creative_research_score):
             raise ValueError("status must match creative_research_score")
         if self.confidence != _creative_research_confidence(
             self.creative_research_score
@@ -238,9 +233,7 @@ class CreativeResearchPlan(BaseModel):
     research_hitl_policy_role: Literal["research_hitl_policies"] = (
         "research_hitl_policies"
     )
-    research_hitl_policy_serialization_version: Literal[
-        "research_hitl_policy_plan.v1"
-    ]
+    research_hitl_policy_serialization_version: Literal["research_hitl_policy_plan.v1"]
     hitl_policy_entry_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
     hitl_policy_entry_count: int = Field(ge=5, le=5)
     covered_roadmap_items: tuple[str, ...] = Field(min_length=1, max_length=1)
@@ -425,9 +418,8 @@ class CreativeResearchPlan(BaseModel):
             self.entries
         ):
             raise ValueError("overall_creative_research_score must match entries")
-        if (
-            self.overall_creative_research_posture
-            != _overall_creative_research_posture(self.entries)
+        if self.overall_creative_research_posture != _overall_creative_research_posture(
+            self.entries
         ):
             raise ValueError("overall_creative_research_posture must match entries")
         hitl_policy_ids = set(self.hitl_policy_entry_ids)
@@ -517,9 +509,7 @@ def build_creative_research_engine(
             entry.creative_research_score for entry in entries
         ),
         overall_creative_research_score=_overall_creative_research_score(entries),
-        overall_creative_research_posture=_overall_creative_research_posture(
-            entries
-        ),
+        overall_creative_research_posture=_overall_creative_research_posture(entries),
         advisory_actions=_plan_actions(entries),
     )
 
@@ -807,9 +797,7 @@ def _entry_ids_for_confidence(
     entries: tuple[CreativeResearchEntry, ...],
     *confidences: CreativeResearchConfidence,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(entries: tuple[CreativeResearchEntry, ...]) -> tuple[str, ...]:

@@ -406,5 +406,7 @@ def _dashboard_actions(
         "routing, workflow, storage, and output boundaries.",
     ]
     if _panel_ids_for_status(panels, "guarded"):
-        actions.append("Keep guarded token panels non-enforcing until explicitly scoped.")
+        actions.append(
+            "Keep guarded token panels non-enforcing until explicitly scoped."
+        )
     return tuple(actions)

@@ -28,9 +28,7 @@ ThroughputOptimizationPressure = Literal["low", "medium", "high", "guarded"]
 THROUGHPUT_OPTIMIZATION_CANDIDATE_SERIALIZATION_VERSION = (
     "throughput_optimization_candidate.v1"
 )
-THROUGHPUT_OPTIMIZATION_PLAN_SERIALIZATION_VERSION = (
-    "throughput_optimization_plan.v1"
-)
+THROUGHPUT_OPTIMIZATION_PLAN_SERIALIZATION_VERSION = "throughput_optimization_plan.v1"
 THROUGHPUT_OPTIMIZER_AUTHORITY_BOUNDARY = (
     "Throughput optimization planning derives advisory throughput candidates "
     "from async execution, streaming optimization, load balancer, and "
@@ -310,9 +308,7 @@ def optimize_throughput(
     """Plan advisory throughput optimization without runtime throughput changes."""
 
     async_plan = async_execution or plan_async_execution()
-    streaming = streaming_optimization or optimize_streaming(
-        async_execution=async_plan
-    )
+    streaming = streaming_optimization or optimize_streaming(async_execution=async_plan)
     load = load_balancer or plan_load_balancer(async_execution=async_plan)
     bottlenecks = bottleneck_detection or detect_bottlenecks(load_balancer=load)
     candidates = _candidates(
@@ -321,9 +317,7 @@ def optimize_throughput(
         load=load,
         bottlenecks=bottlenecks,
     )
-    highest_score = max(
-        candidate.advisory_throughput_score for candidate in candidates
-    )
+    highest_score = max(candidate.advisory_throughput_score for candidate in candidates)
 
     return ThroughputOptimizationPlan(
         source_async_execution_serialization_version=async_plan.serialization_version,
@@ -400,9 +394,7 @@ def throughput_optimization_candidates_for_status(
 
     source_plan = plan or optimize_throughput()
     return tuple(
-        candidate
-        for candidate in source_plan.candidates
-        if candidate.status == status
+        candidate for candidate in source_plan.candidates if candidate.status == status
     )
 
 
@@ -537,9 +529,7 @@ def _candidate_ids_for_status(
     status: ThroughputOptimizationStatus,
 ) -> tuple[str, ...]:
     return tuple(
-        candidate.candidate_id
-        for candidate in candidates
-        if candidate.status == status
+        candidate.candidate_id for candidate in candidates if candidate.status == status
     )
 
 
@@ -602,9 +592,7 @@ def _candidate_actions(
             "Keep backpressure metadata advisory until capacity policy exists.",
             "Preserve load, routing, workflow, and output boundaries.",
         )
-    return (
-        "Preserve provider, model, request distribution, and routing boundaries.",
-    )
+    return ("Preserve provider, model, request distribution, and routing boundaries.",)
 
 
 def _plan_actions(

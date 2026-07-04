@@ -260,9 +260,8 @@ def build_creative_analytics(
     quality_source = quality_dashboard or build_quality_dashboard()
     diversity_source = diversity_prediction or predict_creative_diversity()
     quality_prediction = _quality_prediction()
-    consistency_source = (
-        consistency_prediction
-        or predict_creative_consistency(creative_quality_prediction=quality_prediction)
+    consistency_source = consistency_prediction or predict_creative_consistency(
+        creative_quality_prediction=quality_prediction
     )
     complexity_source = complexity_analysis or analyze_creative_complexity()
     score_source = score_profile or _score_profile()
@@ -468,7 +467,7 @@ def _panel(
         evidence=evidence,
         advisory_actions=(
             primary_action,
-            "Keep metric collection, output evaluation, variant generation, routing, storage, and output mutation disabled.",
+            "Keep metric collection, output evaluation, variant generation, routing, storage, and output mutation disabled.",  # noqa: E501
         ),
     )
 

@@ -189,9 +189,7 @@ class CognitiveOSSecondarySurfacePlan(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["cognitive_os_secondary_surface"] = (
-        "cognitive_os_secondary_surface"
-    )
+    role: Literal["cognitive_os_secondary_surface"] = "cognitive_os_secondary_surface"
     serialization_version: Literal["cognitive_os_secondary_surface.v1"] = (
         COGNITIVE_OS_SECONDARY_SURFACE_SERIALIZATION_VERSION
     )
@@ -315,13 +313,10 @@ class CognitiveOSSecondarySurfacePlan(BaseModel):
         if self.source_core_surface_count != len(self.source_core_surface_ids):
             raise ValueError("source_core_surface_count must match ids")
         if self.source_core_surface_scores != tuple(
-            entry.source_core_surface_score
-            for entry in self.secondary_surface_entries
+            entry.source_core_surface_score for entry in self.secondary_surface_entries
         ):
             raise ValueError("source_core_surface_scores must match entries")
-        if self.source_core_surface_score_count != len(
-            self.source_core_surface_scores
-        ):
+        if self.source_core_surface_score_count != len(self.source_core_surface_scores):
             raise ValueError("source_core_surface_score_count must match scores")
         count_fields = (
             (self.source_consolidation_unit_count, self.source_consolidation_unit_ids),
@@ -479,9 +474,7 @@ def build_cognitive_os_secondary_surface(
         task_type=core_surface.task_type,
         execution_mode_ids=core_surface.execution_mode_ids,
         source_core_surface_role=core_surface.role,
-        source_core_surface_serialization_version=(
-            core_surface.serialization_version
-        ),
+        source_core_surface_serialization_version=(core_surface.serialization_version),
         layer_order=core_surface.layer_order,
         capabilities=core_surface.capabilities,
         capability_ids=core_surface.capability_ids,
@@ -493,14 +486,11 @@ def build_cognitive_os_secondary_surface(
         ),
         source_core_surface_count=core_surface.core_surface_count,
         source_core_surface_scores=tuple(
-            entry.surface_readiness_score
-            for entry in core_surface.core_surface_entries
+            entry.surface_readiness_score for entry in core_surface.core_surface_entries
         ),
         source_core_surface_score_count=core_surface.core_surface_count,
         source_consolidation_unit_ids=core_surface.source_consolidation_unit_ids,
-        source_consolidation_unit_count=(
-            core_surface.source_consolidation_unit_count
-        ),
+        source_consolidation_unit_count=(core_surface.source_consolidation_unit_count),
         source_execution_node_ids=core_surface.source_execution_node_ids,
         source_execution_node_count=core_surface.source_execution_node_count,
         source_hitl_ids=core_surface.source_hitl_ids,

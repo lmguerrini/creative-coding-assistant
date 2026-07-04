@@ -89,7 +89,9 @@ class ProductionReleaseFinalOptimizationTests(unittest.TestCase):
         self.assertEqual(plan.route_name, RouteName.GENERATE)
         self.assertEqual(plan.task_type, "creative_coding")
         self.assertEqual(plan.provider_ids, ("openai", "anthropic", "gemini", "local"))
-        self.assertEqual(plan.execution_mode_ids, ("manual_mode", "assisted_mode", "auto_mode"))
+        self.assertEqual(
+            plan.execution_mode_ids, ("manual_mode", "assisted_mode", "auto_mode")
+        )
         self.assertEqual(plan.explanation_fields, REQUIRED_EXPLANATION_FIELDS)
         self.assertEqual(plan.demo_workflow_steps, REQUIRED_DEMO_STEPS)
         self.assertEqual(plan.domain_ids, REQUIRED_DOMAINS)
@@ -127,7 +129,9 @@ class ProductionReleaseFinalOptimizationTests(unittest.TestCase):
             "provider_configuration_review",
             plan,
         )
-        safety = production_optimization_record_by_domain("execution_safety_review", plan)
+        safety = production_optimization_record_by_domain(
+            "execution_safety_review", plan
+        )
         explainability = production_optimization_record_by_domain(
             "decision_explainability_review",
             plan,

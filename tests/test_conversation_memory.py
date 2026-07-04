@@ -152,9 +152,7 @@ def _project_memory(
 
 
 def _time(offset_minutes: int) -> datetime:
-    return datetime(2026, 1, 1, 12, 0, tzinfo=UTC) + timedelta(
-        minutes=offset_minutes
-    )
+    return datetime(2026, 1, 1, 12, 0, tzinfo=UTC) + timedelta(minutes=offset_minutes)
 
 
 class _memory_client:

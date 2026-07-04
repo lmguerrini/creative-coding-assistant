@@ -106,66 +106,42 @@ CREATIVE_ESCALATION_POLICY_RULE_SERIALIZATION_VERSION = (
 CREATIVE_ESCALATION_POLICY_REGISTRY_SERIALIZATION_VERSION = (
     "creative_escalation_policy_registry.v1"
 )
-REFLECTION_ESCALATION_PROFILE_SERIALIZATION_VERSION = (
-    "reflection_escalation_profile.v1"
-)
+REFLECTION_ESCALATION_PROFILE_SERIALIZATION_VERSION = "reflection_escalation_profile.v1"
 REFLECTION_ESCALATION_REGISTRY_SERIALIZATION_VERSION = (
     "reflection_escalation_registry.v1"
 )
-HYBRID_DEBATE_LOOP_PROFILE_SERIALIZATION_VERSION = (
-    "hybrid_agent_debate_loop_profile.v1"
-)
+HYBRID_DEBATE_LOOP_PROFILE_SERIALIZATION_VERSION = "hybrid_agent_debate_loop_profile.v1"
 HYBRID_DEBATE_LOOP_REGISTRY_SERIALIZATION_VERSION = (
     "hybrid_agent_debate_loop_registry.v1"
 )
-HYBRID_AGENT_VOTING_PROFILE_SERIALIZATION_VERSION = (
-    "hybrid_agent_voting_profile.v1"
-)
-HYBRID_AGENT_VOTING_REGISTRY_SERIALIZATION_VERSION = (
-    "hybrid_agent_voting_registry.v1"
-)
+HYBRID_AGENT_VOTING_PROFILE_SERIALIZATION_VERSION = "hybrid_agent_voting_profile.v1"
+HYBRID_AGENT_VOTING_REGISTRY_SERIALIZATION_VERSION = "hybrid_agent_voting_registry.v1"
 AGENT_CONFIDENCE_FUSION_PROFILE_SERIALIZATION_VERSION = (
     "agent_confidence_fusion_profile.v1"
 )
 AGENT_CONFIDENCE_FUSION_REGISTRY_SERIALIZATION_VERSION = (
     "agent_confidence_fusion_registry.v1"
 )
-DECISION_PROVENANCE_PROFILE_SERIALIZATION_VERSION = (
-    "decision_provenance_profile.v1"
-)
-DECISION_PROVENANCE_REGISTRY_SERIALIZATION_VERSION = (
-    "decision_provenance_registry.v1"
-)
-ESCALATION_TRACE_PROFILE_SERIALIZATION_VERSION = (
-    "escalation_trace_profile.v1"
-)
-ESCALATION_TRACE_REGISTRY_SERIALIZATION_VERSION = (
-    "escalation_trace_registry.v1"
-)
+DECISION_PROVENANCE_PROFILE_SERIALIZATION_VERSION = "decision_provenance_profile.v1"
+DECISION_PROVENANCE_REGISTRY_SERIALIZATION_VERSION = "decision_provenance_registry.v1"
+ESCALATION_TRACE_PROFILE_SERIALIZATION_VERSION = "escalation_trace_profile.v1"
+ESCALATION_TRACE_REGISTRY_SERIALIZATION_VERSION = "escalation_trace_registry.v1"
 CREATIVE_EXPLORATION_BUDGET_PROFILE_SERIALIZATION_VERSION = (
     "creative_exploration_budget_profile.v1"
 )
 CREATIVE_EXPLORATION_BUDGET_REGISTRY_SERIALIZATION_VERSION = (
     "creative_exploration_budget_registry.v1"
 )
-RESULT_NORMALIZATION_PROFILE_SERIALIZATION_VERSION = (
-    "result_normalization_profile.v1"
-)
-RESULT_NORMALIZATION_REGISTRY_SERIALIZATION_VERSION = (
-    "result_normalization_registry.v1"
-)
+RESULT_NORMALIZATION_PROFILE_SERIALIZATION_VERSION = "result_normalization_profile.v1"
+RESULT_NORMALIZATION_REGISTRY_SERIALIZATION_VERSION = "result_normalization_registry.v1"
 RETURN_TO_WORKFLOW_HANDOFF_PROFILE_SERIALIZATION_VERSION = (
     "return_to_workflow_handoff_profile.v1"
 )
 RETURN_TO_WORKFLOW_HANDOFF_REGISTRY_SERIALIZATION_VERSION = (
     "return_to_workflow_handoff_registry.v1"
 )
-HITL_ESCALATION_GATE_PROFILE_SERIALIZATION_VERSION = (
-    "hitl_escalation_gate_profile.v1"
-)
-HITL_ESCALATION_GATE_REGISTRY_SERIALIZATION_VERSION = (
-    "hitl_escalation_gate_registry.v1"
-)
+HITL_ESCALATION_GATE_PROFILE_SERIALIZATION_VERSION = "hitl_escalation_gate_profile.v1"
+HITL_ESCALATION_GATE_REGISTRY_SERIALIZATION_VERSION = "hitl_escalation_gate_registry.v1"
 CONFIDENCE_THRESHOLD_ROUTING_PROFILE_SERIALIZATION_VERSION = (
     "confidence_threshold_routing_profile.v1"
 )
@@ -184,12 +160,8 @@ LATENCY_THRESHOLD_ROUTING_PROFILE_SERIALIZATION_VERSION = (
 LATENCY_THRESHOLD_ROUTING_REGISTRY_SERIALIZATION_VERSION = (
     "latency_threshold_routing_registry.v1"
 )
-AMBIGUITY_ESCALATION_PROFILE_SERIALIZATION_VERSION = (
-    "ambiguity_escalation_profile.v1"
-)
-AMBIGUITY_ESCALATION_REGISTRY_SERIALIZATION_VERSION = (
-    "ambiguity_escalation_registry.v1"
-)
+AMBIGUITY_ESCALATION_PROFILE_SERIALIZATION_VERSION = "ambiguity_escalation_profile.v1"
+AMBIGUITY_ESCALATION_REGISTRY_SERIALIZATION_VERSION = "ambiguity_escalation_registry.v1"
 RISK_ESCALATION_PROFILE_SERIALIZATION_VERSION = "risk_escalation_profile.v1"
 RISK_ESCALATION_REGISTRY_SERIALIZATION_VERSION = "risk_escalation_registry.v1"
 QUALITY_ESCALATION_PROFILE_SERIALIZATION_VERSION = "quality_escalation_profile.v1"
@@ -815,9 +787,7 @@ _ESCALATION_GATE_KINDS: tuple[EscalationGateKind, ...] = (
     "human_review_visibility",
     "return_handoff",
 )
-_CREATIVE_ESCALATION_POLICY_CATEGORIES: tuple[
-    CreativeEscalationPolicyCategory, ...
-] = (
+_CREATIVE_ESCALATION_POLICY_CATEGORIES: tuple[CreativeEscalationPolicyCategory, ...] = (
     "concept",
     "aesthetic",
     "runtime",
@@ -867,9 +837,7 @@ _CREATIVE_EXPLORATION_BUDGET_TOPICS: tuple[CreativeExplorationBudgetTopic, ...] 
     "curation_refinement_need",
     "final_synthesis_readiness",
 )
-_CREATIVE_EXPLORATION_BUDGET_POSTURES: tuple[
-    CreativeExplorationBudgetPosture, ...
-] = (
+_CREATIVE_EXPLORATION_BUDGET_POSTURES: tuple[CreativeExplorationBudgetPosture, ...] = (
     "moderate",
     "broad",
     "guarded",
@@ -906,9 +874,7 @@ _HITL_ESCALATION_POSTURES: tuple[HitlEscalationPosture, ...] = (
     "recommended",
     "required",
 )
-_CONFIDENCE_THRESHOLD_ROUTING_TOPICS: tuple[
-    ConfidenceThresholdRoutingTopic, ...
-] = (
+_CONFIDENCE_THRESHOLD_ROUTING_TOPICS: tuple[ConfidenceThresholdRoutingTopic, ...] = (
     "planning_execution_fit",
     "style_aesthetic_alignment",
     "curation_refinement_need",
@@ -1030,9 +996,7 @@ _ADAPTIVE_MULTI_AGENT_ESCALATION_EVIDENCE_SURFACES = (
     "risk_context",
     "quality_uncertainty_summary",
 )
-_ADAPTIVE_MULTI_AGENT_ESCALATION_CAPABILITY_IDS = (
-    "adaptive_multi_agent_escalation",
-)
+_ADAPTIVE_MULTI_AGENT_ESCALATION_CAPABILITY_IDS = ("adaptive_multi_agent_escalation",)
 _HYBRID_WORKFLOW_INTEGRATION_SOURCE_REGISTRIES = (
     "assistant_workflow_node_order",
     "workflow_step_order",
@@ -1278,9 +1242,9 @@ class ConditionalMultiAgentEscalationRegistry(BaseModel):
     role: Literal["conditional_multi_agent_escalation_registry"] = (
         "conditional_multi_agent_escalation_registry"
     )
-    serialization_version: Literal[
-        "conditional_multi_agent_escalation_registry.v1"
-    ] = CONDITIONAL_ESCALATION_REGISTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["conditional_multi_agent_escalation_registry.v1"] = (
+        CONDITIONAL_ESCALATION_REGISTRY_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=CONDITIONAL_ESCALATION_AUTHORITY_BOUNDARY,
         max_length=1000,
@@ -1416,9 +1380,7 @@ class SpecialistAgentLoopRegistry(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["specialist_agent_loop_registry"] = (
-        "specialist_agent_loop_registry"
-    )
+    role: Literal["specialist_agent_loop_registry"] = "specialist_agent_loop_registry"
     serialization_version: Literal["specialist_agent_loop_registry.v1"] = (
         SPECIALIST_AGENT_LOOP_REGISTRY_SERIALIZATION_VERSION
     )
@@ -1801,9 +1763,7 @@ class ReflectionEscalationRegistry(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["reflection_escalation_registry"] = (
-        "reflection_escalation_registry"
-    )
+    role: Literal["reflection_escalation_registry"] = "reflection_escalation_registry"
     serialization_version: Literal["reflection_escalation_registry.v1"] = (
         REFLECTION_ESCALATION_REGISTRY_SERIALIZATION_VERSION
     )
@@ -2121,7 +2081,9 @@ class HybridAgentVotingRegistry(BaseModel):
                 raise ValueError("voting sources must match registry sources")
             if profile.source_debate_loop_id not in known_debates:
                 raise ValueError("voting debate loops must be known metadata")
-            if not set(profile.source_reflection_profile_ids).issubset(known_reflections):
+            if not set(profile.source_reflection_profile_ids).issubset(
+                known_reflections
+            ):
                 raise ValueError("voting reflections must be known metadata")
             if not set(profile.source_policy_ids).issubset(known_policies):
                 raise ValueError("voting policies must be known metadata")
@@ -2416,7 +2378,9 @@ class DecisionProvenanceRegistry(BaseModel):
             if not set(profile.source_backbone_node_ids).issubset(known_nodes):
                 raise ValueError("provenance backbone nodes must be known metadata")
             if profile.source_workstation_surface_id not in known_surfaces:
-                raise ValueError("provenance workstation surfaces must be known metadata")
+                raise ValueError(
+                    "provenance workstation surfaces must be known metadata"
+                )
             if profile.provenance_recording_implemented:
                 raise ValueError("decision provenance must not record provenance")
         return self
@@ -2818,8 +2782,7 @@ class ResultNormalizationRegistry(BaseModel):
     @model_validator(mode="after")
     def _registry_matches_result_normalization_metadata(self) -> Self:
         derived_profile_ids = tuple(
-            profile.normalization_profile_id
-            for profile in self.normalization_profiles
+            profile.normalization_profile_id for profile in self.normalization_profiles
         )
         derived_topic_ids = tuple(
             profile.topic_id for profile in self.normalization_profiles
@@ -3301,7 +3264,9 @@ class ConfidenceThresholdRoutingRegistry(BaseModel):
             for source_registry in profile.source_registries
         }
         if set(self.source_registries) != profile_sources:
-            raise ValueError("source_registries must match confidence threshold sources")
+            raise ValueError(
+                "source_registries must match confidence threshold sources"
+            )
 
         known_hitl = set(self.hitl_gate_profile_ids)
         known_fusion = set(self.confidence_fusion_profile_ids)
@@ -3386,9 +3351,7 @@ class CostThresholdRoutingRegistry(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["cost_threshold_routing_registry"] = (
-        "cost_threshold_routing_registry"
-    )
+    role: Literal["cost_threshold_routing_registry"] = "cost_threshold_routing_registry"
     serialization_version: Literal["cost_threshold_routing_registry.v1"] = (
         COST_THRESHOLD_ROUTING_REGISTRY_SERIALIZATION_VERSION
     )
@@ -3802,7 +3765,10 @@ class AmbiguityEscalationRegistry(BaseModel):
                 raise ValueError("ambiguity policies must be known")
             if not set(profile.source_escalation_signal_ids).issubset(known_signals):
                 raise ValueError("ambiguity signals must be known")
-            if "ambiguity_escalation_signal" not in profile.source_escalation_signal_ids:
+            if (
+                "ambiguity_escalation_signal"
+                not in profile.source_escalation_signal_ids
+            ):
                 raise ValueError("ambiguity profiles must reference ambiguity signal")
             if not set(profile.ambiguity_evidence_surfaces).issubset(known_evidence):
                 raise ValueError("ambiguity evidence surfaces must be known")
@@ -4080,7 +4046,9 @@ class QualityEscalationRegistry(BaseModel):
             profile.quality_profile_id for profile in self.quality_profiles
         )
         derived_topic_ids = tuple(profile.topic_id for profile in self.quality_profiles)
-        derived_levels = tuple(profile.quality_level for profile in self.quality_profiles)
+        derived_levels = tuple(
+            profile.quality_level for profile in self.quality_profiles
+        )
         if self.quality_profile_ids != derived_profile_ids:
             raise ValueError("quality_profile_ids must match profiles")
         if self.topic_ids != derived_topic_ids:
@@ -4201,9 +4169,9 @@ class AdaptiveMultiAgentEscalationRegistry(BaseModel):
     role: Literal["adaptive_multi_agent_escalation_registry"] = (
         "adaptive_multi_agent_escalation_registry"
     )
-    serialization_version: Literal[
-        "adaptive_multi_agent_escalation_registry.v1"
-    ] = ADAPTIVE_MULTI_AGENT_ESCALATION_REGISTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["adaptive_multi_agent_escalation_registry.v1"] = (
+        ADAPTIVE_MULTI_AGENT_ESCALATION_REGISTRY_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=ADAPTIVE_MULTI_AGENT_ESCALATION_AUTHORITY_BOUNDARY,
         max_length=1100,
@@ -4267,10 +4235,7 @@ class AdaptiveMultiAgentEscalationRegistry(BaseModel):
             raise ValueError("topic_ids must preserve adaptive topic order")
         if self.adaptive_postures != derived_postures:
             raise ValueError("adaptive_postures must match profiles")
-        if (
-            self.adaptive_postures
-            != _ADAPTIVE_MULTI_AGENT_ESCALATION_POSTURES
-        ):
+        if self.adaptive_postures != _ADAPTIVE_MULTI_AGENT_ESCALATION_POSTURES:
             raise ValueError("adaptive_postures must preserve adaptive order")
         if self.profile_count != len(self.adaptive_profiles):
             raise ValueError("profile_count must match adaptive profiles")
@@ -4324,9 +4289,7 @@ class AdaptiveMultiAgentEscalationRegistry(BaseModel):
         return self
 
 
-def adaptive_multi_agent_escalation_registry() -> (
-    AdaptiveMultiAgentEscalationRegistry
-):
+def adaptive_multi_agent_escalation_registry() -> AdaptiveMultiAgentEscalationRegistry:
     """Return passive V4.3 adaptive multi-agent escalation metadata."""
 
     return ADAPTIVE_MULTI_AGENT_ESCALATION_REGISTRY
@@ -5451,21 +5414,19 @@ CONDITIONAL_MULTI_AGENT_ESCALATION_CONDITIONS = (
         ),
     ),
 )
-CONDITIONAL_MULTI_AGENT_ESCALATION_REGISTRY = (
-    ConditionalMultiAgentEscalationRegistry(
-        conditions=CONDITIONAL_MULTI_AGENT_ESCALATION_CONDITIONS,
-        condition_ids=tuple(
-            condition.condition_id
-            for condition in CONDITIONAL_MULTI_AGENT_ESCALATION_CONDITIONS
-        ),
-        categories=tuple(
-            condition.category
-            for condition in CONDITIONAL_MULTI_AGENT_ESCALATION_CONDITIONS
-        ),
-        source_registries=_CONDITIONAL_ESCALATION_SOURCE_REGISTRIES,
-        backbone_node_ids=V3_BACKBONE_MODE_REGISTRY.node_ids,
-        condition_count=len(CONDITIONAL_MULTI_AGENT_ESCALATION_CONDITIONS),
-    )
+CONDITIONAL_MULTI_AGENT_ESCALATION_REGISTRY = ConditionalMultiAgentEscalationRegistry(
+    conditions=CONDITIONAL_MULTI_AGENT_ESCALATION_CONDITIONS,
+    condition_ids=tuple(
+        condition.condition_id
+        for condition in CONDITIONAL_MULTI_AGENT_ESCALATION_CONDITIONS
+    ),
+    categories=tuple(
+        condition.category
+        for condition in CONDITIONAL_MULTI_AGENT_ESCALATION_CONDITIONS
+    ),
+    source_registries=_CONDITIONAL_ESCALATION_SOURCE_REGISTRIES,
+    backbone_node_ids=V3_BACKBONE_MODE_REGISTRY.node_ids,
+    condition_count=len(CONDITIONAL_MULTI_AGENT_ESCALATION_CONDITIONS),
 )
 SPECIALIST_AGENT_LOOPS = (
     _specialist_agent_loop(
@@ -6196,9 +6157,7 @@ ESCALATION_TRACE_PROFILES = (
     _escalation_trace_profile(
         trace_profile_id="escalation_trace::style_aesthetic_alignment",
         topic_id="style_aesthetic_alignment",
-        source_provenance_profile_id=(
-            "decision_provenance::style_aesthetic_alignment"
-        ),
+        source_provenance_profile_id=("decision_provenance::style_aesthetic_alignment"),
         source_condition_ids=("artifact_risk_multi_agent_candidate",),
         source_gate_ids=("specialist_loop_boundary_gate",),
         source_escalation_signal_ids=(
@@ -6290,9 +6249,7 @@ CREATIVE_EXPLORATION_BUDGET_PROFILES = (
         budget_profile_id="creative_exploration_budget::style_aesthetic_alignment",
         topic_id="style_aesthetic_alignment",
         source_trace_profile_id="escalation_trace::style_aesthetic_alignment",
-        source_provenance_profile_id=(
-            "decision_provenance::style_aesthetic_alignment"
-        ),
+        source_provenance_profile_id=("decision_provenance::style_aesthetic_alignment"),
         source_escalation_signal_ids=(
             "risk_escalation_signal",
             "quality_escalation_signal",
@@ -6390,9 +6347,7 @@ RESULT_NORMALIZATION_PROFILES = (
         source_confidence_fusion_profile_id=(
             "agent_confidence_fusion::style_aesthetic_alignment"
         ),
-        source_provenance_profile_id=(
-            "decision_provenance::style_aesthetic_alignment"
-        ),
+        source_provenance_profile_id=("decision_provenance::style_aesthetic_alignment"),
         source_trace_profile_id="escalation_trace::style_aesthetic_alignment",
         normalized_result_surfaces=(
             "aesthetic_advisory_packet",
@@ -6551,7 +6506,9 @@ RETURN_TO_WORKFLOW_HANDOFF_REGISTRY = ReturnToWorkflowHandoffRegistry(
         profile.return_handoff_profile_id
         for profile in RETURN_TO_WORKFLOW_HANDOFF_PROFILES
     ),
-    topic_ids=tuple(profile.topic_id for profile in RETURN_TO_WORKFLOW_HANDOFF_PROFILES),
+    topic_ids=tuple(
+        profile.topic_id for profile in RETURN_TO_WORKFLOW_HANDOFF_PROFILES
+    ),
     target_workflow_surfaces=tuple(
         profile.target_workflow_surface
         for profile in RETURN_TO_WORKFLOW_HANDOFF_PROFILES
@@ -6938,9 +6895,7 @@ LATENCY_THRESHOLD_ROUTING_REGISTRY = LatencyThresholdRoutingRegistry(
         profile.latency_threshold_profile_id
         for profile in LATENCY_THRESHOLD_ROUTING_PROFILES
     ),
-    topic_ids=tuple(
-        profile.topic_id for profile in LATENCY_THRESHOLD_ROUTING_PROFILES
-    ),
+    topic_ids=tuple(profile.topic_id for profile in LATENCY_THRESHOLD_ROUTING_PROFILES),
     latency_bands=tuple(
         profile.latency_band for profile in LATENCY_THRESHOLD_ROUTING_PROFILES
     ),
@@ -7037,9 +6992,7 @@ AMBIGUITY_ESCALATION_PROFILES = (
         source_latency_threshold_profile_id=(
             "latency_threshold_routing::final_synthesis_readiness"
         ),
-        source_condition_ids=(
-            "terminal_guardrail_multi_agent_candidate",
-        ),
+        source_condition_ids=("terminal_guardrail_multi_agent_candidate",),
         source_policy_rule_ids=(
             "missing_information_review",
             "future_agent_escalation_readiness",
@@ -7112,9 +7065,7 @@ RISK_ESCALATION_PROFILES = (
     _risk_escalation_profile(
         risk_profile_id="risk_escalation::style_aesthetic_alignment",
         topic_id="style_aesthetic_alignment",
-        source_ambiguity_profile_id=(
-            "ambiguity_escalation::style_aesthetic_alignment"
-        ),
+        source_ambiguity_profile_id=("ambiguity_escalation::style_aesthetic_alignment"),
         source_condition_ids=("artifact_risk_multi_agent_candidate",),
         source_policy_rule_ids=("artifact_risk_review",),
         source_creative_policy_ids=("aesthetic_risk_creative_escalation_policy",),
@@ -7361,12 +7312,8 @@ ADAPTIVE_MULTI_AGENT_ESCALATION_PROFILES = (
         source_specialist_loop_ids=("artifact_specialist_agent_loop",),
         source_quality_profile_id="quality_escalation::style_aesthetic_alignment",
         source_risk_profile_id="risk_escalation::style_aesthetic_alignment",
-        source_ambiguity_profile_id=(
-            "ambiguity_escalation::style_aesthetic_alignment"
-        ),
-        source_hitl_gate_profile_id=(
-            "hitl_escalation_gate::style_aesthetic_alignment"
-        ),
+        source_ambiguity_profile_id=("ambiguity_escalation::style_aesthetic_alignment"),
+        source_hitl_gate_profile_id=("hitl_escalation_gate::style_aesthetic_alignment"),
         source_escalation_signal_ids=(
             "quality_escalation_signal",
             "risk_escalation_signal",
@@ -7396,9 +7343,7 @@ ADAPTIVE_MULTI_AGENT_ESCALATION_PROFILES = (
         source_quality_profile_id="quality_escalation::curation_refinement_need",
         source_risk_profile_id="risk_escalation::curation_refinement_need",
         source_ambiguity_profile_id="ambiguity_escalation::curation_refinement_need",
-        source_hitl_gate_profile_id=(
-            "hitl_escalation_gate::curation_refinement_need"
-        ),
+        source_hitl_gate_profile_id=("hitl_escalation_gate::curation_refinement_need"),
         source_escalation_signal_ids=(
             "quality_escalation_signal",
             "confidence_escalation_signal",
@@ -7427,9 +7372,7 @@ ADAPTIVE_MULTI_AGENT_ESCALATION_PROFILES = (
         source_quality_profile_id="quality_escalation::final_synthesis_readiness",
         source_risk_profile_id="risk_escalation::final_synthesis_readiness",
         source_ambiguity_profile_id="ambiguity_escalation::final_synthesis_readiness",
-        source_hitl_gate_profile_id=(
-            "hitl_escalation_gate::final_synthesis_readiness"
-        ),
+        source_hitl_gate_profile_id=("hitl_escalation_gate::final_synthesis_readiness"),
         source_escalation_signal_ids=(
             "quality_escalation_signal",
             "hitl_escalation_signal",
@@ -7457,8 +7400,7 @@ ADAPTIVE_MULTI_AGENT_ESCALATION_REGISTRY = AdaptiveMultiAgentEscalationRegistry(
         profile.topic_id for profile in ADAPTIVE_MULTI_AGENT_ESCALATION_PROFILES
     ),
     adaptive_postures=tuple(
-        profile.adaptive_posture
-        for profile in ADAPTIVE_MULTI_AGENT_ESCALATION_PROFILES
+        profile.adaptive_posture for profile in ADAPTIVE_MULTI_AGENT_ESCALATION_PROFILES
     ),
     source_registries=_ADAPTIVE_MULTI_AGENT_ESCALATION_SOURCE_REGISTRIES,
     capability_ids=_ADAPTIVE_MULTI_AGENT_ESCALATION_CAPABILITY_IDS,

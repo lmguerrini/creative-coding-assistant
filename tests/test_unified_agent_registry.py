@@ -108,9 +108,9 @@ class UnifiedAgentRegistryTests(unittest.TestCase):
             "research",
             registry,
         )
-        self.assertEqual(tuple(entry.agent_id for entry in research_entries), (
-            "research_agent",
-        ))
+        self.assertEqual(
+            tuple(entry.agent_id for entry in research_entries), ("research_agent",)
+        )
 
         critique_entries = unified_agent_registry_entries_for_role_family(
             "critique",

@@ -36,12 +36,8 @@ KnowledgeConsolidationAxis = Literal[
     "governance_gate",
 ]
 
-KNOWLEDGE_CONSOLIDATION_ENTRY_SERIALIZATION_VERSION = (
-    "knowledge_consolidation_entry.v1"
-)
-KNOWLEDGE_CONSOLIDATION_PLAN_SERIALIZATION_VERSION = (
-    "knowledge_consolidation_plan.v1"
-)
+KNOWLEDGE_CONSOLIDATION_ENTRY_SERIALIZATION_VERSION = "knowledge_consolidation_entry.v1"
+KNOWLEDGE_CONSOLIDATION_PLAN_SERIALIZATION_VERSION = "knowledge_consolidation_plan.v1"
 KNOWLEDGE_CONSOLIDATION_AUTHORITY_BOUNDARY = (
     "V6.3 Knowledge Consolidation exposes source reliability, consolidation "
     "inventory, candidate, source alignment, readiness, and governance posture "
@@ -420,9 +416,7 @@ class KnowledgeConsolidationPlan(BaseModel):
         if self.planned_consolidation_ids:
             raise ValueError("planned_consolidation_ids must remain empty")
         if self.generated_consolidation_candidate_ids:
-            raise ValueError(
-                "generated_consolidation_candidate_ids must remain empty"
-            )
+            raise ValueError("generated_consolidation_candidate_ids must remain empty")
         if self.merged_knowledge_record_ids:
             raise ValueError("merged_knowledge_record_ids must remain empty")
         if self.deduplicated_knowledge_record_ids:
@@ -447,9 +441,7 @@ class KnowledgeConsolidationPlan(BaseModel):
             raise ValueError("signal_count must match signals")
         if self.candidate_signal_count != len(self.candidate_signal_ids):
             raise ValueError("candidate_signal_count must match signals")
-        if self.review_required_signal_count != len(
-            self.review_required_signal_ids
-        ):
+        if self.review_required_signal_count != len(self.review_required_signal_ids):
             raise ValueError("review_required_signal_count must match signals")
         if self.guarded_signal_count != len(self.guarded_signal_ids):
             raise ValueError("guarded_signal_count must match signals")
@@ -480,9 +472,7 @@ class KnowledgeConsolidationPlan(BaseModel):
             if not set(signal.source_reliability_signal_ids).issubset(
                 declared_reliability_signals
             ):
-                raise ValueError(
-                    "signal source_reliability_signal_ids must be known"
-                )
+                raise ValueError("signal source_reliability_signal_ids must be known")
         return self
 
 
@@ -631,8 +621,7 @@ def _signals(
             axis="candidate_review",
             reliability_signal_ids=(
                 "source_reliability_engine::source_reliability_inventory_review",
-                "source_reliability_engine::"
-                "source_reliability_health_signal_review",
+                "source_reliability_engine::source_reliability_health_signal_review",
             ),
             reliability_plan=reliability_plan,
             consolidation_signal_score=78,
@@ -648,8 +637,7 @@ def _signals(
             execution_mode_id=execution_mode_id,
             axis="source_alignment_review",
             reliability_signal_ids=(
-                "source_reliability_engine::"
-                "source_reliability_drift_alignment_review",
+                "source_reliability_engine::source_reliability_drift_alignment_review",
                 "source_reliability_engine::source_reliability_governance_gate",
             ),
             reliability_plan=reliability_plan,

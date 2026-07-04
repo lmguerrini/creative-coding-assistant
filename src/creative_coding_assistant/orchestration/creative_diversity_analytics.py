@@ -38,9 +38,7 @@ CreativeDiversityAnalyticsStatus = Literal["ready", "guarded"]
 CREATIVE_DIVERSITY_ANALYTICS_PANEL_SERIALIZATION_VERSION = (
     "creative_diversity_analytics_panel.v1"
 )
-CREATIVE_DIVERSITY_ANALYTICS_SERIALIZATION_VERSION = (
-    "creative_diversity_analytics.v1"
-)
+CREATIVE_DIVERSITY_ANALYTICS_SERIALIZATION_VERSION = "creative_diversity_analytics.v1"
 CREATIVE_DIVERSITY_ANALYTICS_AUTHORITY_BOUNDARY = (
     "The V5.4 Creative Diversity Analytics surface summarizes creative "
     "diversity prediction metadata, creative diversity audit metadata, "
@@ -510,7 +508,7 @@ def _panel(
         evidence=evidence,
         advisory_actions=(
             primary_action,
-            "Keep diversity metric collection, budget enforcement, variant generation, routing, storage, and output mutation disabled.",
+            "Keep diversity metric collection, budget enforcement, variant generation, routing, storage, and output mutation disabled.",  # noqa: E501
         ),
     )
 

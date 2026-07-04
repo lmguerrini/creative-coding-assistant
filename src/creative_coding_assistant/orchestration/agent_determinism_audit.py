@@ -154,7 +154,9 @@ class AgentDeterminismAuditRecord(BaseModel):
     )
     passive_boundary_flags: tuple[str, ...] = Field(min_length=8, max_length=8)
     audit_findings: tuple[str, ...] = Field(min_length=7, max_length=7)
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=16)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=16
+    )
     contract_blocked_runtime_behaviors: tuple[str, ...] = Field(
         min_length=1,
         max_length=16,
@@ -398,7 +400,7 @@ def _missing_coverage_items(
     scheduling_group: ParallelSchedulingGroup,
 ) -> tuple[str, ...]:
     dependency_graph = agent_dependency_graph_registry()
-    routing = agent_routing_registry()
+    agent_routing_registry()
     scheduling = parallel_scheduling_registry()
     consistency = engine_contract_consistency_registry()
     missing: list[str] = []
@@ -491,7 +493,9 @@ def _audit_record(agent_id: str) -> AgentDeterminismAuditRecord:
         dependency_upstream_node_ids=dependency_node.upstream_node_ids,
         dependency_downstream_node_ids=dependency_node.downstream_node_ids,
         routing_priority_band=routing_profile.priority_band,
-        route_candidates=tuple(route.value for route in routing_profile.route_candidates),
+        route_candidates=tuple(
+            route.value for route in routing_profile.route_candidates
+        ),
         scheduling_group_id=scheduling_group.group_id,
         scheduling_group_agent_ids=scheduling_group.agent_ids,
         scheduling_blocking_group_ids=scheduling_group.blocking_group_ids,

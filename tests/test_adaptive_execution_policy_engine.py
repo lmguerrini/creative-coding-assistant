@@ -7,7 +7,6 @@ from creative_coding_assistant.contracts import (
 )
 from creative_coding_assistant.core import Settings
 from creative_coding_assistant.orchestration import (
-    ControlledAdaptiveExecutionPlan,
     adaptive_execution_availability_context,
     adaptive_execution_option_by_id,
     adaptive_execution_options_for_readiness,
@@ -53,7 +52,9 @@ class AdaptiveExecutionPolicyEngineTests(unittest.TestCase):
         )
 
         self.assertEqual(plan.role, "adaptive_execution_policy_engine")
-        self.assertEqual(plan.serialization_version, "adaptive_execution_policy_plan.v1")
+        self.assertEqual(
+            plan.serialization_version, "adaptive_execution_policy_plan.v1"
+        )
         self.assertEqual(plan.route_name, RouteName.GENERATE)
         self.assertEqual(plan.task_type, "creative_coding")
         self.assertEqual(plan.candidate_count, 5)
@@ -247,11 +248,21 @@ class AdaptiveExecutionPolicyEngineTests(unittest.TestCase):
         self.assertIsNotNone(local_option)
         assert local_option is not None
         self.assertTrue(local_option.execution_blocked)
-        self.assertIn("local_runtime_unavailable", local_option.unavailable_reason_codes)
-        self.assertIn("local_model_not_installed", local_option.unavailable_reason_codes)
-        self.assertIn("insufficient_local_resources", local_option.unavailable_reason_codes)
-        self.assertIn("hitl_before_runtime_installation", local_option.required_hitl_gates)
-        self.assertIn("hitl_before_local_model_download", local_option.required_hitl_gates)
+        self.assertIn(
+            "local_runtime_unavailable", local_option.unavailable_reason_codes
+        )
+        self.assertIn(
+            "local_model_not_installed", local_option.unavailable_reason_codes
+        )
+        self.assertIn(
+            "insufficient_local_resources", local_option.unavailable_reason_codes
+        )
+        self.assertIn(
+            "hitl_before_runtime_installation", local_option.required_hitl_gates
+        )
+        self.assertIn(
+            "hitl_before_local_model_download", local_option.required_hitl_gates
+        )
         for step in local_option.provider_model_path:
             if step.provider_id == "local":
                 self.assertFalse(step.local_runtime_confirmed)
@@ -301,9 +312,7 @@ class AdaptiveExecutionPolicyEngineTests(unittest.TestCase):
         self.assertIn("cloud_reasoning_to_local_variants", strategies)
         self.assertIn("cloud_provider_a_to_cloud_provider_b_fallback", strategies)
         self.assertIn("local_model_a_to_local_model_b_fallback", strategies)
-        self.assertTrue(
-            adaptive_execution_options_for_readiness("ready_now", plan)
-        )
+        self.assertTrue(adaptive_execution_options_for_readiness("ready_now", plan))
 
     def test_task_aware_execution_covers_required_taxonomy(self) -> None:
         context = adaptive_execution_availability_context(
@@ -365,7 +374,9 @@ class AdaptiveExecutionPolicyEngineTests(unittest.TestCase):
             self.assertFalse(fallback.provider_execution_implemented)
             self.assertFalse(fallback.workflow_execution_implemented)
 
-    def test_provider_routing_output_and_workflow_boundaries_are_preserved(self) -> None:
+    def test_provider_routing_output_and_workflow_boundaries_are_preserved(
+        self,
+    ) -> None:
         request = AssistantRequest(
             query="Build a p5.js sketch with a safe adaptive execution plan.",
             mode=AssistantMode.GENERATE,

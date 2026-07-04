@@ -121,7 +121,11 @@ class LiveSessionMemoryBehaviorTests(unittest.TestCase):
                 if event.event_type is StreamEventType.PROMPT_INPUT
             )
             self.assertEqual(
-                len(prompt_input_event.payload["prompt_input"]["memory_input"]["recent_turns"]),
+                len(
+                    prompt_input_event.payload["prompt_input"]["memory_input"][
+                        "recent_turns"
+                    ]
+                ),
                 2,
             )
 
@@ -170,10 +174,7 @@ class _CompletedGenerationProvider:
 
 class _FakeTextEmbedder:
     def embed_texts(self, texts):
-        return tuple(
-            [float(index + 1), 0.0, 0.0]
-            for index, _ in enumerate(texts)
-        )
+        return tuple([float(index + 1), 0.0, 0.0] for index, _ in enumerate(texts))
 
 
 class _memory_client:

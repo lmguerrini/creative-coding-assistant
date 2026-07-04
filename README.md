@@ -177,6 +177,15 @@ without activating the OS, executing graphs, applying routing, enforcing
 policies, emitting HITL requests, applying HITL decisions, mutating prompts,
 workflows, memory, retrieval, storage, provider selection, runtime state,
 Runtime Evolution, or generated output.
+V7.1 through V7.4 add read-only runtime graph contracts, passive typed failure
+taxonomy contracts, passive registry/contract consolidation metadata, and
+E2E/CI quality gates. V7.5 hardens the browser-facing API/runtime boundary
+with versioned API/error/stream/workspace-session contracts, health/live/ready
+endpoints, production configuration validation, Chroma dependency health
+posture, telemetry-ready logging contracts, configuration migration aliases,
+and release checklist generation without changing provider/model routing,
+workflow execution, prompt rendering, retrieval ownership, workspace storage
+ownership, or generated output semantics.
 
 The product scope is a creative coding platform rather than a generic chat
 assistant. Requests can be translated from intent, symbols, geometry, style,
@@ -325,6 +334,14 @@ observed through live preview and runtime inspection from the same interface.
   blackboard storage writes, governance or safety enforcement, HITL emission,
   HITL decision application, provider execution, Runtime Evolution, or output
   mutation
+- V7 runtime hardening for read-only graph contracts, typed failure contracts,
+  passive registry consolidation, E2E/CI gates, and production API/runtime
+  stabilization. V7.5 exposes stable request IDs, contract-version headers,
+  health/readiness endpoints, production configuration and dependency health
+  reports, telemetry-ready API events, structured logging configuration, and a
+  release checklist while preserving provider routing, workflow order,
+  retrieval ownership, workspace persistence ownership, and generated output
+  semantics
 - Multi-artifact generation, multi-preview comparison, dynamic parameter
   control, and HITL candidate selection inside one continuous workstation flow
 - Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
@@ -1889,7 +1906,9 @@ Useful optional Python settings:
 CCA_OPENAI_API_KEY=
 CCA_OPENAI_MODEL=gpt-5-mini
 CCA_OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+CCA_ENVIRONMENT=local
 CCA_LOG_LEVEL=INFO
+CCA_LOG_FORMAT=text
 CCA_CHROMA_PERSIST_DIR=data/chroma
 CCA_EVAL_DATA_PATH=data/eval/live_sessions.jsonl
 CCA_WORKSPACE_SESSION_DB_PATH=data/workspace_sessions.sqlite3
@@ -1932,10 +1951,12 @@ Then open:
 http://localhost:3000
 ```
 
-The frontend expects two backend bridge endpoints by default:
+The frontend expects these backend bridge endpoints by default:
 
 - `POST /api/assistant/stream` for assistant NDJSON streaming
 - `GET/POST /api/workspace/session` for workspace save/restore
+- `GET /api/health`, `GET /api/health/live`, and `GET /api/health/ready` for
+  liveness and readiness probes
 
 These bridges are exposed as importable WSGI applications in
 `creative_coding_assistant.api`:
@@ -1943,6 +1964,7 @@ These bridges are exposed as importable WSGI applications in
 - `create_backend_dev_app`
 - `create_assistant_streaming_app`
 - `create_workspace_session_app`
+- `create_health_check_app`
 - `run_backend_dev_server`
 
 Frontend defaults:
@@ -1950,7 +1972,14 @@ Frontend defaults:
 ```text
 http://localhost:8000/api/assistant/stream
 http://localhost:8000/api/workspace/session
+http://localhost:8000/api/health
 ```
+
+The backend bridge emits `X-Request-Id` plus stable contract-version headers
+for API, error, stream, workspace-session, and health responses. The local
+`creative_coding_assistant.api.dev_server` module is a development bridge; in
+`CCA_ENVIRONMENT=production` it refuses to start unless the operator passes
+the explicit production override flag.
 
 ### Streamlit Reference Client
 

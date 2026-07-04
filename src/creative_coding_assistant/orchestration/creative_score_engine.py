@@ -347,8 +347,7 @@ def creative_score_prompt_lines(profile: CreativeScoreProfile) -> tuple[str, ...
         for item in profile.negative_contributions
     )
     lines.extend(
-        f"Score calibration note: {item}"
-        for item in profile.score_calibration_notes
+        f"Score calibration note: {item}" for item in profile.score_calibration_notes
     )
     lines.extend(f"Score strength: {item}" for item in profile.strengths)
     lines.extend(f"Score weakness: {item}" for item in profile.weaknesses)
@@ -406,7 +405,9 @@ def _dimension_scores(
         ),
         "coherence": _weighted_average(
             (
-                _critic_average(creative_critic, "coherence_quality", "clarity_quality"),
+                _critic_average(
+                    creative_critic, "coherence_quality", "clarity_quality"
+                ),
                 _self_average(
                     self_evaluation,
                     "request_alignment",
@@ -484,10 +485,7 @@ def _dimension_scores(
             fallback=planning_score,
         ),
     }
-    return {
-        dimension: _bounded_percent(score)
-        for dimension, score in scores.items()
-    }
+    return {dimension: _bounded_percent(score) for dimension, score in scores.items()}
 
 
 def _score_breakdown(
@@ -769,10 +767,7 @@ def _negative_contributions(
 ) -> tuple[str, ...]:
     contributions: list[str] = []
     contributions.extend(
-        (
-            f"{item.dimension} dimension constrains the score at "
-            f"{item.score:.1f}/100."
-        )
+        (f"{item.dimension} dimension constrains the score at {item.score:.1f}/100.")
         for item in sorted(breakdown, key=lambda value: value.score)[:2]
         if item.score < 75
     )
@@ -1059,7 +1054,8 @@ def _score_weaknesses(
         weaknesses.extend(self_evaluation.missing_information[:1])
     if creative_improvement_planner is not None:
         weaknesses.extend(
-            item.title for item in creative_improvement_planner.improvement_priorities[:2]
+            item.title
+            for item in creative_improvement_planner.improvement_priorities[:2]
         )
     if reflection_loop is not None and reflection_loop.reflection_required:
         weaknesses.extend(reflection_loop.refinement_candidates[:2])
@@ -1078,14 +1074,8 @@ def _score_rationale(
     top = max(breakdown, key=lambda item: item.score)
     low = min(breakdown, key=lambda item: item.score)
     return (
-        (
-            f"{top.dimension} is the strongest dimension at "
-            f"{top.score:.1f}/100."
-        ),
-        (
-            f"{low.dimension} is the lowest dimension at "
-            f"{low.score:.1f}/100."
-        ),
+        (f"{top.dimension} is the strongest dimension at {top.score:.1f}/100."),
+        (f"{low.dimension} is the lowest dimension at {low.score:.1f}/100."),
         f"Confidence weight applied as {confidence_weight:.2f}.",
         f"Uncertainty penalty applied as {uncertainty_penalty:.1f}.",
         f"Risk penalty applied as {risk_penalty:.1f}.",
@@ -1199,11 +1189,15 @@ def _dimension_evidence(
     if reflection_loop is not None:
         evidence.append("Reflection Loop advisory pressure is included.")
     if planning_metadata:
-        evidence.append(f"{len(planning_metadata)} planning metadata object(s) included.")
+        evidence.append(
+            f"{len(planning_metadata)} planning metadata object(s) included."
+        )
     return tuple(_dedupe(evidence)[:4])
 
 
-def _critic_average(profile: CreativeCriticProfile | None, *fields: str) -> float | None:
+def _critic_average(
+    profile: CreativeCriticProfile | None, *fields: str
+) -> float | None:
     if profile is None:
         return None
     values = [
@@ -1242,18 +1236,21 @@ def _metadata_average(metadata: PlanningMetadata, *fields: str) -> float | None:
 
 
 def _planning_metadata_score(planning_metadata: PlanningMetadata) -> float:
-    return _metadata_average(
-        planning_metadata,
-        "confidence",
-        "hierarchy_confidence",
-        "readiness_score",
-        "synthesis_confidence",
-        "merge_confidence",
-        "export_confidence",
-        "refinement_confidence",
-        "critique_confidence",
-        "capability_confidence",
-    ) or 58.0
+    return (
+        _metadata_average(
+            planning_metadata,
+            "confidence",
+            "hierarchy_confidence",
+            "readiness_score",
+            "synthesis_confidence",
+            "merge_confidence",
+            "export_confidence",
+            "refinement_confidence",
+            "critique_confidence",
+            "capability_confidence",
+        )
+        or 58.0
+    )
 
 
 def _improvement_readiness_score(

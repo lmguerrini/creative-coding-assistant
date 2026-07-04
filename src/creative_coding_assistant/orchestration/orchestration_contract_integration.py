@@ -318,15 +318,13 @@ def _integrated_registry_contract(
 INTEGRATED_ORCHESTRATION_REGISTRIES = tuple(
     _integrated_registry_contract(*spec) for spec in _REGISTRY_SPECS
 )
-ORCHESTRATION_CONTRACT_INTEGRATION_REGISTRY = (
-    OrchestrationContractIntegrationRegistry(
-        integrated_registries=INTEGRATED_ORCHESTRATION_REGISTRIES,
-        registry_ids=tuple(
-            entry.registry_id for entry in INTEGRATED_ORCHESTRATION_REGISTRIES
-        ),
-        agent_ids=AGENT_CONTRACT_REGISTRY.agent_ids,
-        source_v4_1_registries=_SOURCE_V4_1_REGISTRIES,
-        registry_count=len(INTEGRATED_ORCHESTRATION_REGISTRIES),
-        contract_count=AGENT_CONTRACT_REGISTRY.contract_count,
-    )
+ORCHESTRATION_CONTRACT_INTEGRATION_REGISTRY = OrchestrationContractIntegrationRegistry(
+    integrated_registries=INTEGRATED_ORCHESTRATION_REGISTRIES,
+    registry_ids=tuple(
+        entry.registry_id for entry in INTEGRATED_ORCHESTRATION_REGISTRIES
+    ),
+    agent_ids=AGENT_CONTRACT_REGISTRY.agent_ids,
+    source_v4_1_registries=_SOURCE_V4_1_REGISTRIES,
+    registry_count=len(INTEGRATED_ORCHESTRATION_REGISTRIES),
+    contract_count=AGENT_CONTRACT_REGISTRY.contract_count,
 )

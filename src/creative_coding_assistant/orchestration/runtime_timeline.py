@@ -295,8 +295,7 @@ def build_runtime_timeline(
     )
     branching_source = branching_timeline or multimodal_branching_timeline_registry()
     evolution_source = (
-        creative_evolution_timeline
-        or multimodal_creative_evolution_timeline_registry()
+        creative_evolution_timeline or multimodal_creative_evolution_timeline_registry()
     )
     panels = (
         _workflow_diagnostics_panel(diagnostics_source),
@@ -366,7 +365,9 @@ def _workflow_diagnostics_panel(source: WorkflowDiagnostics) -> RuntimeTimelineP
         "workflow_diagnostics",
         source.serialization_version,
         source.panel_ids,
-        source.diagnostic_signal_count + source.panel_count + len(source.guarded_panel_ids),
+        source.diagnostic_signal_count
+        + source.panel_count
+        + len(source.guarded_panel_ids),
         len(source.blocked_runtime_behaviors),
         (
             f"workflow_diagnostic_panels:{source.panel_count}",
@@ -528,7 +529,7 @@ def _panel(
         evidence=evidence,
         advisory_actions=(
             primary_action,
-            "Keep reconstruction, runtime event capture, replay, telemetry emission, storage, routing, and workflow execution disabled.",
+            "Keep reconstruction, runtime event capture, replay, telemetry emission, storage, routing, and workflow execution disabled.",  # noqa: E501
         ),
     )
 

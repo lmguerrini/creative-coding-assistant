@@ -283,9 +283,7 @@ class EvaluationEngineContractTests(unittest.TestCase):
         self.assertEqual(registry["engine_ids"], list(EXPECTED_ENGINE_IDS))
         self.assertEqual(registry["contract_count"], 8)
         self.assertTrue(
-            planning_event.payload["workflow"][
-                "evaluation_engine_contracts_available"
-            ]
+            planning_event.payload["workflow"]["evaluation_engine_contracts_available"]
         )
         self.assertEqual(
             planning_event.payload["workflow"]["evaluation_engine_contracts"],
@@ -297,9 +295,7 @@ class EvaluationEngineContractTests(unittest.TestCase):
             registry,
         )
         self.assertEqual(
-            director_event.payload["creative_director"][
-                "evaluation_engine_contracts"
-            ],
+            director_event.payload["creative_director"]["evaluation_engine_contracts"],
             registry,
         )
         self.assertEqual(

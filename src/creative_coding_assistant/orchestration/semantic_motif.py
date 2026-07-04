@@ -415,12 +415,10 @@ def semantic_motif_prompt_lines(system: SemanticMotifSystem) -> tuple[str, ...]:
         f"Motif recurrence: {item}" for item in system.motif_recurrence_plan[:6]
     )
     lines.extend(
-        f"Motif transformation: {item}"
-        for item in system.motif_transformation_plan[:6]
+        f"Motif transformation: {item}" for item in system.motif_transformation_plan[:6]
     )
     lines.extend(
-        "Motif structure mapping: "
-        f"{item.motif_id}; {item.structural_behavior}"
+        f"Motif structure mapping: {item.motif_id}; {item.structural_behavior}"
         for item in system.motif_to_structure_mapping[:6]
     )
     lines.extend(
@@ -435,8 +433,7 @@ def semantic_motif_prompt_lines(system: SemanticMotifSystem) -> tuple[str, ...]:
         for item in system.motif_to_narrative_mapping[:6]
     )
     lines.extend(
-        "Motif parameter mapping: "
-        f"{item.motif_id}; {', '.join(item.parameter_names)}"
+        f"Motif parameter mapping: {item.motif_id}; {', '.join(item.parameter_names)}"
         for item in system.motif_to_parameter_mapping[:6]
     )
     lines.extend(f"Motif coherence risk: {item}" for item in system.coherence_risks)
@@ -451,7 +448,9 @@ def semantic_motif_prompt_lines(system: SemanticMotifSystem) -> tuple[str, ...]:
         f"{system.motif_fallback_plan.fallback_primary_motif}; "
         f"{system.motif_fallback_plan.simplification_strategy}"
     )
-    lines.extend(f"Unresolved motif gap: {item}" for item in system.unresolved_motif_gaps)
+    lines.extend(
+        f"Unresolved motif gap: {item}" for item in system.unresolved_motif_gaps
+    )
     lines.extend(f"HITL motif question: {item}" for item in system.hitl_questions)
     lines.extend(f"Motif prompt guidance: {item}" for item in system.prompt_guidance)
     return tuple(lines[:48])
@@ -528,7 +527,9 @@ def _context(
         parts.append(generative_structure.spatial_evolution)
         parts.append(generative_structure.temporal_evolution)
         parts.extend(module.kind for module in generative_structure.procedural_modules)
-        parts.extend(parameter.name for parameter in generative_structure.parameter_schema)
+        parts.extend(
+            parameter.name for parameter in generative_structure.parameter_schema
+        )
     if creative_reasoning is not None:
         parts.append(creative_reasoning.recommended_creative_direction)
     text = _normalize(" ".join(parts))
@@ -560,7 +561,9 @@ def _score_motifs(
 ) -> dict[SemanticMotifId, tuple[int, tuple[str, ...]]]:
     scores: dict[SemanticMotifId, int] = {motif: 0 for motif in _MOTIF_ORDER}
     evidence: dict[SemanticMotifId, list[str]] = {motif: [] for motif in _MOTIF_ORDER}
-    request_tokens = frozenset(_TOKEN_PATTERN.findall(_normalize(context.request.query)))
+    request_tokens = frozenset(
+        _TOKEN_PATTERN.findall(_normalize(context.request.query))
+    )
     for motif in _MOTIF_ORDER:
         if motif in request_tokens:
             _add_score(scores, evidence, motif, 6, f"Explicit request token: {motif}.")
@@ -643,8 +646,7 @@ def _score_motifs(
                     f"Generative parameter: {parameter.name}.",
                 )
     return {
-        motif: (scores[motif], tuple(evidence[motif][:8]))
-        for motif in _MOTIF_ORDER
+        motif: (scores[motif], tuple(evidence[motif][:8])) for motif in _MOTIF_ORDER
     }
 
 
@@ -805,7 +807,9 @@ def _composition_mapping(
         )
         anchor = context.creative_composition.primary_focal_point
         rhythm = context.creative_composition.rhythm_plan
-        evidence = (f"Composition pattern: {context.creative_composition.composition_pattern}.",)
+        evidence = (
+            f"Composition pattern: {context.creative_composition.composition_pattern}.",
+        )
     else:
         role = f"Use {motif.motif_id} as a visible compositional cue."
         anchor = _default_spatial_anchor(motif.motif_id)
@@ -838,7 +842,9 @@ def _narrative_mapping(
             f"{context.symbolic_narrative.narrative_archetype} without "
             "asserting external doctrine."
         )
-        evidence = (f"Narrative archetype: {context.symbolic_narrative.narrative_archetype}.",)
+        evidence = (
+            f"Narrative archetype: {context.symbolic_narrative.narrative_archetype}.",
+        )
     else:
         function = f"Use {motif.motif_id} as a recurring visual metaphor."
         evidence = ("No Symbolic Narrative Planner metadata attached.",)
@@ -1160,7 +1166,9 @@ def _parameters_for_motif(
 ) -> tuple[str, ...]:
     names: list[str] = []
     if context.generative_structure is not None:
-        available = {item.name for item in context.generative_structure.parameter_schema}
+        available = {
+            item.name for item in context.generative_structure.parameter_schema
+        }
         for name, motifs in _PARAMETER_MOTIFS.items():
             if motif in motifs and name in available:
                 names.append(name)
@@ -1255,7 +1263,9 @@ def _normalize(value: str) -> str:
     return " ".join(value.lower().replace("-", " ").replace("_", " ").split())
 
 
-def _dedupe(values: list[str] | list[SemanticMotifId] | list[ProceduralFamily]) -> tuple:
+def _dedupe(
+    values: list[str] | list[SemanticMotifId] | list[ProceduralFamily],
+) -> tuple:
     deduped: list[object] = []
     for value in values:
         cleaned = " ".join(str(value).strip().split())

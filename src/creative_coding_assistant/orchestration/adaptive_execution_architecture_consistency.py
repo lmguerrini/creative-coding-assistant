@@ -12,11 +12,11 @@ from creative_coding_assistant.orchestration.adaptive_cost_quality_optimizer imp
 from creative_coding_assistant.orchestration.adaptive_escalation_optimizer import (
     optimize_escalation_policy,
 )
-from creative_coding_assistant.orchestration.adaptive_execution_strategy_selection import (
-    select_dynamic_execution_strategy,
-)
 from creative_coding_assistant.orchestration.adaptive_execution_policy_engine import (
     evaluate_adaptive_execution_policy,
+)
+from creative_coding_assistant.orchestration.adaptive_execution_strategy_selection import (
+    select_dynamic_execution_strategy,
 )
 from creative_coding_assistant.orchestration.adaptive_hybrid_workflow_optimizer import (
     optimize_hybrid_workflow,
@@ -375,14 +375,17 @@ class AdaptiveExecutionArchitectureConsistencyRegistry(BaseModel):
             ):
                 raise ValueError("source_route_name must match registry route")
             if record.source_active_runtime_flags and not _active_flags_allowed(record):
-                raise ValueError("records must not contain uncontrolled active runtime flags")
+                raise ValueError(
+                    "records must not contain uncontrolled active runtime flags"
+                )
             if record.missing_coverage_items:
                 raise ValueError("records must not contain missing coverage")
         return self
 
 
-def adaptive_execution_architecture_consistency_registry(
-) -> AdaptiveExecutionArchitectureConsistencyRegistry:
+def adaptive_execution_architecture_consistency_registry() -> (
+    AdaptiveExecutionArchitectureConsistencyRegistry
+):
     """Return passive V5.5 adaptive execution architecture consistency metadata."""
 
     records = tuple(
@@ -428,10 +431,11 @@ def adaptive_execution_architecture_consistency_records_for_layer(
     )
 
 
-def _source_specs(
-) -> tuple[tuple[str, AdaptiveExecutionArchitectureLayer, Any], ...]:
+def _source_specs() -> tuple[tuple[str, AdaptiveExecutionArchitectureLayer, Any], ...]:
     sources = {
-        "adaptive_hybrid_workflow_optimizer": optimize_hybrid_workflow(route=_ROUTE_NAME),
+        "adaptive_hybrid_workflow_optimizer": optimize_hybrid_workflow(
+            route=_ROUTE_NAME
+        ),
         "adaptive_escalation_optimizer": optimize_escalation_policy(route=_ROUTE_NAME),
         "agent_activation_optimizer": optimize_agent_activation(route=_ROUTE_NAME),
         "adaptive_cost_quality_optimizer": optimize_adaptive_cost_quality(
@@ -548,12 +552,9 @@ def _missing_coverage(
 def _active_flags_allowed(
     record: AdaptiveExecutionArchitectureConsistencyRecord,
 ) -> bool:
-    return (
-        record.surface_id == "adaptive_execution_policy_engine"
-        and set(record.source_active_runtime_flags).issubset(
-            set(_ALLOWED_CONTROLLED_ACTIVE_FLAGS)
-        )
-    )
+    return record.surface_id == "adaptive_execution_policy_engine" and set(
+        record.source_active_runtime_flags
+    ).issubset(set(_ALLOWED_CONTROLLED_ACTIVE_FLAGS))
 
 
 def _surface_ids() -> tuple[str, ...]:

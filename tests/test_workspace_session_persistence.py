@@ -49,9 +49,9 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
             repository = SQLiteWorkspaceSessionRepository(
                 Path(temp_dir) / "workspace.sqlite3"
             )
-            saved = repository.upsert(WorkspaceSessionRecord.model_validate(
-                _session_payload()
-            ))
+            saved = repository.upsert(
+                WorkspaceSessionRecord.model_validate(_session_payload())
+            )
 
             restored = repository.get(
                 user_id=DEFAULT_LOCAL_USER_ID,

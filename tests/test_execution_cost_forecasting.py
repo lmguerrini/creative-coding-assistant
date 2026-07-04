@@ -158,7 +158,9 @@ class ExecutionCostForecastingTests(unittest.TestCase):
         self.assertEqual(len(single_retry), 1)
         self.assertIs(
             single_retry[0],
-            execution_cost_forecast_scenario_by_id(single_retry[0].scenario_id, forecast),
+            execution_cost_forecast_scenario_by_id(
+                single_retry[0].scenario_id, forecast
+            ),
         )
 
     def test_forecast_rejects_mismatched_scenarios_or_totals(self) -> None:

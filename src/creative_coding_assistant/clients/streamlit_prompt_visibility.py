@@ -116,9 +116,7 @@ def _prompt_input_summary(
 ) -> PromptVisibilitySummary | None:
     raw_request = raw_prompt_input.get("request")
     route = (
-        _clean_text(raw_request.get("route"))
-        if isinstance(raw_request, dict)
-        else None
+        _clean_text(raw_request.get("route")) if isinstance(raw_request, dict) else None
     )
 
     raw_user_input = raw_prompt_input.get("user_input")
@@ -158,9 +156,7 @@ def _rendered_prompt_summary(
 ) -> PromptVisibilitySummary | None:
     raw_request = raw_rendered_prompt.get("request")
     route = (
-        _clean_text(raw_request.get("route"))
-        if isinstance(raw_request, dict)
-        else None
+        _clean_text(raw_request.get("route")) if isinstance(raw_request, dict) else None
     )
     mode = None
     if isinstance(raw_request, dict):

@@ -2,13 +2,24 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Callable, Iterable
+from http import HTTPStatus
 from typing import Any
 from urllib.parse import parse_qs
 
 from pydantic import ValidationError
 
+from creative_coding_assistant.api.contracts import (
+    WORKSPACE_SESSION_CONTRACT_HEADER,
+    WORKSPACE_SESSION_CONTRACT_VERSION,
+    ApiRequestBodyError,
+    StartResponse,
+    empty_response,
+    error_response,
+    json_response,
+    read_json_body,
+    request_id_from_environ,
+)
 from creative_coding_assistant.workspace import (
     DEFAULT_LOCAL_SESSION_ID,
     DEFAULT_LOCAL_USER_ID,
@@ -17,13 +28,9 @@ from creative_coding_assistant.workspace import (
     build_workspace_session_persistence_service,
 )
 
-StartResponse = Callable[
-    [str, list[tuple[str, str]], Any | None],
-    Callable[[bytes], object] | None,
-]
-
 DEFAULT_WORKSPACE_SESSION_PATH = "/api/workspace/session"
 MAX_REQUEST_BYTES = 256 * 1024
+WORKSPACE_SESSION_METHODS = "GET, POST, PUT, OPTIONS"
 
 
 class WorkspaceSessionApplication:
@@ -47,36 +54,64 @@ class WorkspaceSessionApplication:
         environ: dict[str, Any],
         start_response: StartResponse,
     ) -> Iterable[bytes]:
+        request_id = request_id_from_environ(environ)
         path = str(environ.get("PATH_INFO", ""))
         method = str(environ.get("REQUEST_METHOD", "GET")).upper()
 
         if path != self._path:
-            return _json_response(
+            return error_response(
                 start_response,
-                "404 Not Found",
-                {"error": "not_found"},
+                HTTPStatus.NOT_FOUND,
+                error="not_found",
+                message="Workspace session route was not found.",
+                request_id=request_id,
+                allow_methods=WORKSPACE_SESSION_METHODS,
+                details={"available_paths": [self._path]},
             )
 
         if method == "OPTIONS":
-            return _empty_response(start_response, "204 No Content")
+            return empty_response(
+                start_response,
+                HTTPStatus.NO_CONTENT,
+                request_id=request_id,
+                allow_methods=WORKSPACE_SESSION_METHODS,
+                extra_headers=[
+                    (
+                        WORKSPACE_SESSION_CONTRACT_HEADER,
+                        WORKSPACE_SESSION_CONTRACT_VERSION,
+                    )
+                ],
+            )
 
         if method == "GET":
-            return self._handle_get(environ, start_response)
+            return self._handle_get(environ, start_response, request_id=request_id)
 
         if method in {"POST", "PUT"}:
-            return self._handle_save(environ, start_response)
+            return self._handle_save(environ, start_response, request_id=request_id)
 
-        return _json_response(
+        return error_response(
             start_response,
-            "405 Method Not Allowed",
-            {"error": "method_not_allowed"},
-            extra_headers=[("Allow", "GET, POST, PUT, OPTIONS")],
+            HTTPStatus.METHOD_NOT_ALLOWED,
+            error="method_not_allowed",
+            message="Workspace session accepts GET, POST, PUT, and OPTIONS.",
+            request_id=request_id,
+            allow_methods=WORKSPACE_SESSION_METHODS,
+            details={"allowed_methods": ["GET", "POST", "PUT", "OPTIONS"]},
+            extra_headers=[
+                ("Allow", WORKSPACE_SESSION_METHODS),
+                (
+                    WORKSPACE_SESSION_CONTRACT_HEADER,
+                    WORKSPACE_SESSION_CONTRACT_VERSION,
+                ),
+            ],
         )
 
     def _handle_get(
         self,
         environ: dict[str, Any],
         start_response: StartResponse,
+        *,
+        request_id: str,
     ) -> Iterable[bytes]:
         query = parse_qs(str(environ.get("QUERY_STRING", "")))
         user_id = _first_query_value(query, "userId", DEFAULT_LOCAL_USER_ID)
@@ -85,51 +120,109 @@ class WorkspaceSessionApplication:
             "sessionId",
             DEFAULT_LOCAL_SESSION_ID,
         )
-        record = self._service_instance().get_session(
-            user_id=user_id,
-            session_id=session_id,
-        )
-
-        if record is None:
-            return _json_response(
+        try:
+            record = self._service_instance().get_session(
+                user_id=user_id,
+                session_id=session_id,
+            )
+        except Exception:
+            return _workspace_unavailable_response(
                 start_response,
-                "404 Not Found",
-                {
-                    "error": "session_not_found",
-                    "userId": user_id,
-                    "sessionId": session_id,
-                },
+                request_id=request_id,
             )
 
-        return _json_response(
+        if record is None:
+            return error_response(
+                start_response,
+                HTTPStatus.NOT_FOUND,
+                error="session_not_found",
+                message="Workspace session was not found.",
+                request_id=request_id,
+                allow_methods=WORKSPACE_SESSION_METHODS,
+                details={"userId": user_id, "sessionId": session_id},
+                extra_headers=[
+                    (
+                        WORKSPACE_SESSION_CONTRACT_HEADER,
+                        WORKSPACE_SESSION_CONTRACT_VERSION,
+                    )
+                ],
+            )
+
+        return json_response(
             start_response,
-            "200 OK",
+            HTTPStatus.OK,
             record.model_dump(mode="json", by_alias=True),
+            request_id=request_id,
+            allow_methods=WORKSPACE_SESSION_METHODS,
+            extra_headers=[
+                (
+                    WORKSPACE_SESSION_CONTRACT_HEADER,
+                    WORKSPACE_SESSION_CONTRACT_VERSION,
+                )
+            ],
         )
 
     def _handle_save(
         self,
         environ: dict[str, Any],
         start_response: StartResponse,
+        *,
+        request_id: str,
     ) -> Iterable[bytes]:
         try:
-            payload = _read_json_body(environ)
+            payload = read_json_body(environ, max_bytes=MAX_REQUEST_BYTES)
             record = WorkspaceSessionRecord.model_validate(payload)
-        except (ValueError, ValidationError) as exc:
-            return _json_response(
+        except ApiRequestBodyError as exc:
+            return error_response(
                 start_response,
-                "400 Bad Request",
-                {
-                    "error": "invalid_session",
-                    "message": str(exc),
-                },
+                exc.status,
+                error=exc.code,
+                message=exc.message,
+                request_id=request_id,
+                allow_methods=WORKSPACE_SESSION_METHODS,
+                extra_headers=[
+                    (
+                        WORKSPACE_SESSION_CONTRACT_HEADER,
+                        WORKSPACE_SESSION_CONTRACT_VERSION,
+                    )
+                ],
+            )
+        except ValidationError as exc:
+            return error_response(
+                start_response,
+                HTTPStatus.BAD_REQUEST,
+                error="invalid_session",
+                message=str(exc),
+                request_id=request_id,
+                allow_methods=WORKSPACE_SESSION_METHODS,
+                extra_headers=[
+                    (
+                        WORKSPACE_SESSION_CONTRACT_HEADER,
+                        WORKSPACE_SESSION_CONTRACT_VERSION,
+                    )
+                ],
             )
 
-        saved = self._service_instance().save_session(record)
-        return _json_response(
+        try:
+            saved = self._service_instance().save_session(record)
+        except Exception:
+            return _workspace_unavailable_response(
+                start_response,
+                request_id=request_id,
+            )
+
+        return json_response(
             start_response,
-            "200 OK",
+            HTTPStatus.OK,
             saved.model_dump(mode="json", by_alias=True),
+            request_id=request_id,
+            allow_methods=WORKSPACE_SESSION_METHODS,
+            extra_headers=[
+                (
+                    WORKSPACE_SESSION_CONTRACT_HEADER,
+                    WORKSPACE_SESSION_CONTRACT_VERSION,
+                )
+            ],
         )
 
     def _service_instance(self) -> WorkspaceSessionPersistenceService:
@@ -162,65 +255,22 @@ def _first_query_value(
     return value or fallback
 
 
-def _read_json_body(environ: dict[str, Any]) -> dict[str, Any]:
-    raw_length = str(environ.get("CONTENT_LENGTH", "") or "0")
-    try:
-        content_length = int(raw_length)
-    except ValueError as exc:
-        raise ValueError("Invalid Content-Length header.") from exc
-
-    if content_length <= 0:
-        raise ValueError("Request body is required.")
-
-    if content_length > MAX_REQUEST_BYTES:
-        raise ValueError("Request body is too large.")
-
-    body = environ["wsgi.input"].read(content_length)
-    payload = json.loads(body.decode("utf-8"))
-    if not isinstance(payload, dict):
-        raise ValueError("Request body must be a JSON object.")
-    return payload
-
-
-def _json_response(
+def _workspace_unavailable_response(
     start_response: StartResponse,
-    status: str,
-    payload: dict[str, Any],
     *,
-    extra_headers: list[tuple[str, str]] | None = None,
+    request_id: str,
 ) -> Iterable[bytes]:
-    body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
-    start_response(
-        status,
-        [
-            ("Content-Type", "application/json; charset=utf-8"),
-            ("Content-Length", str(len(body))),
-            *_cors_headers(),
-            *(extra_headers or []),
+    return error_response(
+        start_response,
+        HTTPStatus.SERVICE_UNAVAILABLE,
+        error="workspace_session_unavailable",
+        message="Workspace session persistence is temporarily unavailable.",
+        request_id=request_id,
+        allow_methods=WORKSPACE_SESSION_METHODS,
+        extra_headers=[
+            (
+                WORKSPACE_SESSION_CONTRACT_HEADER,
+                WORKSPACE_SESSION_CONTRACT_VERSION,
+            )
         ],
-        None,
     )
-    return (body,)
-
-
-def _empty_response(
-    start_response: StartResponse,
-    status: str,
-) -> Iterable[bytes]:
-    start_response(
-        status,
-        [
-            ("Content-Length", "0"),
-            *_cors_headers(),
-        ],
-        None,
-    )
-    return ()
-
-
-def _cors_headers() -> list[tuple[str, str]]:
-    return [
-        ("Access-Control-Allow-Origin", "*"),
-        ("Access-Control-Allow-Headers", "Content-Type"),
-        ("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS"),
-    ]

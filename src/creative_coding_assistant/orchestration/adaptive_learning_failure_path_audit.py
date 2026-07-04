@@ -249,9 +249,9 @@ class AdaptiveLearningFailurePathAuditRecord(BaseModel):
     success_metric_persistence_implemented: Literal[False] = False
     generated_output_mutation_implemented: Literal[False] = False
     runtime_evolution_implemented: Literal[False] = False
-    serialization_version: Literal[
-        "adaptive_learning_failure_path_audit_record.v1"
-    ] = ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT_RECORD_SERIALIZATION_VERSION
+    serialization_version: Literal["adaptive_learning_failure_path_audit_record.v1"] = (
+        ADAPTIVE_LEARNING_FAILURE_PATH_AUDIT_RECORD_SERIALIZATION_VERSION
+    )
     metadata_only: Literal[True] = True
 
     @model_validator(mode="after")
@@ -405,8 +405,9 @@ class AdaptiveLearningFailurePathAuditRegistry(BaseModel):
         return self
 
 
-def adaptive_learning_failure_path_audit_registry(
-) -> AdaptiveLearningFailurePathAuditRegistry:
+def adaptive_learning_failure_path_audit_registry() -> (
+    AdaptiveLearningFailurePathAuditRegistry
+):
     """Return V6.1 runtime failure path audit metadata without runtime actions."""
 
     records = _records()

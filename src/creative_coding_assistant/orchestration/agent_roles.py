@@ -58,9 +58,7 @@ class AgentRoleMetadata(BaseModel):
         min_length=1,
         max_length=16,
     )
-    serialization_version: Literal["agent_role.v1"] = (
-        AGENT_ROLE_SERIALIZATION_VERSION
-    )
+    serialization_version: Literal["agent_role.v1"] = AGENT_ROLE_SERIALIZATION_VERSION
     metadata_only: Literal[True] = True
 
 

@@ -188,6 +188,17 @@ inspection metadata, critique, and refinement context.
   changing backend API contracts, provider/model routing, workflow control,
   preview runtime behavior, storage ownership, Runtime Evolution, generated
   output, merge, push, or tag operations.
+- V7.5 Production API & Runtime Stabilization for versioned API/error/stream
+  and workspace-session contracts, route stabilization, dev/prod server
+  boundary guards, deployment configuration validation, production readiness
+  smoke coverage, full-project Ruff remediation, workspace 404/400
+  compatibility, Chroma dependency health, API backward compatibility,
+  graceful failure recovery, health/live/ready endpoints, telemetry-ready API
+  event models, observability/logging contracts, configuration migration
+  aliases, and release checklist generation without changing provider/model
+  routing, workflow control, prompt rendering, retrieval ownership, workspace
+  storage ownership, Runtime Evolution, generated output, merge, push, or tag
+  operations.
 
 ## Supported Creative Domains
 
@@ -207,14 +218,16 @@ inspection metadata, critique, and refinement context.
 - V3 metadata enriches workflow state and stream hydration without expanding
   the runtime graph into every internal helper.
 - V4.1, V4.2, V4.3, V4.4, V4.5, V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6,
-  V6.1, V6.2, V6.3, V6.4, V6.5, V6.6, V7.1, V7.2, V7.3, and V7.4 registries,
-  helpers, contracts, and quality gates are passive, advisory, read-only,
-  controlled-policy, advisory-learning, advisory creative-memory, advisory
-  knowledge evolution, advisory autonomous research, advisory self-evolution
-  governance, advisory cognitive OS core, read-only runtime graph
-  consolidation, passive failure taxonomy, passive registry consolidation, or
-  validation infrastructure. They are inspectable Python APIs, frontend test
-  gates, CI configuration, and documentation surfaces.
+  V6.1, V6.2, V6.3, V6.4, V6.5, V6.6, V7.1, V7.2, V7.3, V7.4, and V7.5
+  registries, helpers, contracts, quality gates, and API/runtime hardening
+  surfaces are passive, advisory, read-only, controlled-policy,
+  advisory-learning, advisory creative-memory, advisory knowledge evolution,
+  advisory autonomous research, advisory self-evolution governance, advisory
+  cognitive OS core, read-only runtime graph consolidation, passive failure
+  taxonomy, passive registry consolidation, validation infrastructure, or
+  bridge-runtime stabilization. They are inspectable Python APIs, frontend
+  test gates, CI configuration, runtime contract helpers, and documentation
+  surfaces.
 - V6.6 documentation treats Cognitive OS helpers as engineering inspection
   surfaces for roadmap traceability, dependency awareness, governance review,
   explainability, safety, HITL posture, failure-path audit, and future
@@ -706,6 +719,24 @@ operations. All 23 contractual V7.4 roadmap items remain individually
 traceable for roadmap coverage, audit classification, HITL review, and future
 capability-scoped fixes.
 
+## V7.5 Production API & Runtime Stabilization Boundary
+
+V7.5 Production API & Runtime Stabilization hardens the existing backend bridge
+and production-readiness surface. It records shared API contract versions,
+versioned error payloads, assistant stream and workspace-session contract
+headers, health/live/ready endpoints, route manifest stabilization,
+configuration validation, dependency health posture, telemetry-ready API
+events, structured logging configuration, configuration migration aliases, and
+release checklist coverage.
+
+It preserves the existing LangGraph workflow, provider/model routing, prompt
+rendering, retrieval ownership, workspace persistence ownership, and generated
+output semantics. It does not deploy services, emit external telemetry, create
+new storage backends, apply Runtime Evolution, accept HITL decisions, merge,
+push, or tag. All 22 contractual V7.5 roadmap items remain individually
+traceable for roadmap coverage, audit classification, HITL review, and future
+capability-scoped fixes.
+
 ## Non-Goals For Current Baseline
 
 - active multi-agent execution
@@ -752,6 +783,9 @@ capability-scoped fixes.
   invocation from graph diagnostics
 - active V7 typed failure classification, exception interception, recovery
   execution, retry triggering, stream subscription, or taxonomy persistence
+- V7.5 external telemetry emission, deployment execution, storage ownership
+  changes, provider/model routing changes, workflow execution changes, HITL
+  acceptance, merge, push, or tag automation
 - prompt rewriting, workflow mutation, routing mutation, memory mutation, or
   retrieval mutation
 - uncontrolled web access, source discovery, or paper downloads

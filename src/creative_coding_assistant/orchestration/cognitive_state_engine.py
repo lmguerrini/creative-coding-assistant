@@ -326,9 +326,7 @@ def _state_snapshots(
             source_optimization_signal_id=signal.optimization_signal_id,
             source_learning_signal_id=signal.learning_signal_id,
             linked_agent_ids=signal.linked_agent_ids,
-            source_optimization_proposal_ids=(
-                signal.source_optimization_proposal_ids
-            ),
+            source_optimization_proposal_ids=(signal.source_optimization_proposal_ids),
             source_optimization_proposal_count=(
                 signal.source_optimization_proposal_count
             ),

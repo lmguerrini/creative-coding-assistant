@@ -37,10 +37,7 @@ def build_ragas_eval_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output-path",
         type=Path,
-        help=(
-            "JSONL result output path. Defaults to "
-            "CCA_EVAL_RAGAS_RESULTS_PATH."
-        ),
+        help=("JSONL result output path. Defaults to CCA_EVAL_RAGAS_RESULTS_PATH."),
     )
     parser.add_argument(
         "--limit",
@@ -50,10 +47,7 @@ def build_ragas_eval_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--latest",
         type=_positive_int,
-        help=(
-            "Evaluate the newest N eligible samples. "
-            "Takes precedence over --limit."
-        ),
+        help=("Evaluate the newest N eligible samples. Takes precedence over --limit."),
     )
     parser.add_argument(
         "--metric",

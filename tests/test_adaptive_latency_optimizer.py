@@ -157,7 +157,9 @@ class AdaptiveLatencyOptimizerTests(unittest.TestCase):
             self.assertFalse(candidate.generated_output_mutation_implemented)
             self.assertTrue(candidate.advisory_only)
 
-        recommended = adaptive_latency_candidate_by_id(plan.recommended_candidate_id, plan)
+        recommended = adaptive_latency_candidate_by_id(
+            plan.recommended_candidate_id, plan
+        )
         balanced = adaptive_latency_candidates_for_posture("balanced_latency", plan)
         guarded = adaptive_latency_candidates_for_posture("guarded_latency", plan)
         self.assertIsNotNone(recommended)

@@ -161,7 +161,9 @@ class PromptCompressionTests(unittest.TestCase):
         self.assertIs(system, compressed[0])
 
     def test_result_rejects_mismatched_sections_or_totals(self) -> None:
-        result = compress_prompt_text(_repeated("Prompt detail.", 120), target_token_budget=50)
+        result = compress_prompt_text(
+            _repeated("Prompt detail.", 120), target_token_budget=50
+        )
         payload = result.model_dump(mode="json")
         payload["section_ids"] = ("missing",)
 
@@ -184,7 +186,9 @@ class PromptCompressionTests(unittest.TestCase):
             PromptCompressionSection(**section_payload)
 
     def test_result_does_not_declare_provider_or_output_mutation_terms(self) -> None:
-        result = compress_prompt_text(_repeated("Prompt detail.", 120), target_token_budget=50)
+        result = compress_prompt_text(
+            _repeated("Prompt detail.", 120), target_token_budget=50
+        )
         combined_text = " ".join(
             (
                 result.authority_boundary,

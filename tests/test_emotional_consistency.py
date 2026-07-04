@@ -85,12 +85,16 @@ class EmotionalConsistencyEngineTests(unittest.TestCase):
             set(structure_by_tone["rupture"].generative_module_kinds),
         )
         self.assertIn("integration", parameter_by_tone)
-        self.assertIn("reassembly_speed", parameter_by_tone["integration"].parameter_names)
+        self.assertIn(
+            "reassembly_speed", parameter_by_tone["integration"].parameter_names
+        )
         self.assertIn("rupture", parameter_by_tone)
         self.assertTrue(
-            {"fragmentation_amount", "particle_count", "max_particle_count"}.intersection(
-                parameter_by_tone["rupture"].parameter_names
-            ),
+            {
+                "fragmentation_amount",
+                "particle_count",
+                "max_particle_count",
+            }.intersection(parameter_by_tone["rupture"].parameter_names),
             parameter_by_tone["rupture"].parameter_names,
         )
         self.assertIn("integration", motif_by_tone)

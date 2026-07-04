@@ -31,9 +31,7 @@ ExecutionProfileStatus = Literal[
 ]
 ExecutionProfilePressure = Literal["low", "medium", "high", "guarded"]
 
-EXECUTION_PROFILE_CANDIDATE_SERIALIZATION_VERSION = (
-    "execution_profile_candidate.v1"
-)
+EXECUTION_PROFILE_CANDIDATE_SERIALIZATION_VERSION = "execution_profile_candidate.v1"
 EXECUTION_PROFILING_PLAN_SERIALIZATION_VERSION = "execution_profiling_plan.v1"
 EXECUTION_PROFILING_AUTHORITY_BOUNDARY = (
     "Execution profiling planning derives advisory profile candidates from "
@@ -396,9 +394,7 @@ def execution_profile_candidates_for_status(
 
     source_plan = plan or plan_execution_profiling()
     return tuple(
-        candidate
-        for candidate in source_plan.candidates
-        if candidate.status == status
+        candidate for candidate in source_plan.candidates if candidate.status == status
     )
 
 
@@ -533,9 +529,7 @@ def _candidate_ids_for_status(
     status: ExecutionProfileStatus,
 ) -> tuple[str, ...]:
     return tuple(
-        candidate.candidate_id
-        for candidate in candidates
-        if candidate.status == status
+        candidate.candidate_id for candidate in candidates if candidate.status == status
     )
 
 
@@ -549,9 +543,7 @@ def _profile_score(
     if status == "measurement_guardrail":
         return 0
     score = (
-        profiled_node_count * 35
-        + profiled_agent_count * 40
-        + blocking_input_count * 60
+        profiled_node_count * 35 + profiled_agent_count * 40 + blocking_input_count * 60
     )
     if status == "failure_guardrail":
         score += 100
@@ -593,12 +585,8 @@ def _candidate_actions(status: ExecutionProfileStatus) -> tuple[str, ...]:
             "Require explicit runtime authority before profiling execution.",
         )
     if status == "failure_guardrail":
-        return (
-            "Preserve failure path visibility without executing failure paths.",
-        )
-    return (
-        "Keep timing measurement and runtime trace collection disabled.",
-    )
+        return ("Preserve failure path visibility without executing failure paths.",)
+    return ("Keep timing measurement and runtime trace collection disabled.",)
 
 
 def _plan_actions(

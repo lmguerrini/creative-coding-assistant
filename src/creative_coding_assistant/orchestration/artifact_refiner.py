@@ -368,9 +368,7 @@ def _runtime_improvements(
 ) -> tuple[str, ...]:
     improvements: list[str] = []
     if runtime_compatibility is None:
-        improvements.append(
-            "Attach runtime compatibility metadata before refinement."
-        )
+        improvements.append("Attach runtime compatibility metadata before refinement.")
     else:
         if runtime_compatibility.unsupported_runtimes:
             improvements.append(
@@ -506,9 +504,7 @@ def _risk_reductions(
     runtime_improvements: tuple[str, ...],
     missing: tuple[str, ...],
 ) -> tuple[str, ...]:
-    reductions = [
-        "Preserve refinement advice as metadata-only guidance, not an edit."
-    ]
+    reductions = ["Preserve refinement advice as metadata-only guidance, not an edit."]
     if artifact_critic is None:
         reductions.append("Wait for critic metadata before prioritizing risk.")
     else:

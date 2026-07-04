@@ -154,9 +154,7 @@ def agent_identities_by_role_family(
     """Return identities in one family without changing runtime behavior."""
 
     return tuple(
-        identity
-        for identity in AGENT_IDENTITIES
-        if identity.role_family == role_family
+        identity for identity in AGENT_IDENTITIES if identity.role_family == role_family
     )
 
 

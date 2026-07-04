@@ -63,7 +63,10 @@ class AgentLifecycleTests(unittest.TestCase):
         self.assertEqual(lifecycle.agent_ids, contracts.agent_ids)
         self.assertEqual(lifecycle.profile_count, 12)
         self.assertEqual(len(lifecycle.transitions), 10)
-        self.assertIn("does not implement a runtime lifecycle engine", lifecycle.authority_boundary)
+        self.assertIn(
+            "does not implement a runtime lifecycle engine",
+            lifecycle.authority_boundary,
+        )
         self.assertFalse(lifecycle.transition_execution_implemented)
         self.assertFalse(lifecycle.workflow_state_change_implemented)
         self.assertFalse(lifecycle.runtime_lifecycle_engine_implemented)
@@ -90,7 +93,9 @@ class AgentLifecycleTests(unittest.TestCase):
                 transition.serialization_version,
                 "agent_lifecycle_transition.v1",
             )
-            self.assertIn("state_transition_execution", transition.blocked_runtime_behaviors)
+            self.assertIn(
+                "state_transition_execution", transition.blocked_runtime_behaviors
+            )
             self.assertFalse(transition.transition_execution_implemented)
             self.assertFalse(transition.workflow_state_change_implemented)
             self.assertFalse(transition.runtime_lifecycle_engine_implemented)
@@ -106,7 +111,9 @@ class AgentLifecycleTests(unittest.TestCase):
         self.assertIsNotNone(transition)
         assert profile is not None
         assert transition is not None
-        self.assertEqual(profile.lifecycle_profile_id, "planner_agent_lifecycle_profile")
+        self.assertEqual(
+            profile.lifecycle_profile_id, "planner_agent_lifecycle_profile"
+        )
         self.assertEqual(transition.from_state, "planned")
         self.assertEqual(transition.to_state, "active")
 

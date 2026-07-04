@@ -60,14 +60,19 @@ class ProductionReleaseCandidateTests(unittest.TestCase):
         plan = build_production_release_candidate()
 
         self.assertEqual(plan.role, "production_release_candidate")
-        self.assertEqual(plan.serialization_version, "production_release_candidate_plan.v1")
+        self.assertEqual(
+            plan.serialization_version, "production_release_candidate_plan.v1"
+        )
         self.assertEqual(plan.version, "V5.6.0")
         self.assertEqual(plan.release_candidate_id, "v5.6.0-rc.1")
         self.assertEqual(plan.target_branch, "feature/production-release")
         self.assertEqual(plan.target_tag, "v5.6.0")
         self.assertEqual(plan.route_name, RouteName.GENERATE)
         self.assertEqual(plan.task_type, "creative_coding")
-        self.assertEqual(plan.completed_capability_versions, ("V5.1.0", "V5.2.0", "V5.3.0", "V5.4.0", "V5.5.0"))
+        self.assertEqual(
+            plan.completed_capability_versions,
+            ("V5.1.0", "V5.2.0", "V5.3.0", "V5.4.0", "V5.5.0"),
+        )
         self.assertEqual(plan.required_pre_release_checks, REQUIRED_CHECKS)
         self.assertEqual(plan.surface_ids, REQUIRED_SURFACES)
         self.assertEqual(plan.record_count, 5)
@@ -101,7 +106,9 @@ class ProductionReleaseCandidateTests(unittest.TestCase):
             "final_optimization_readiness",
             plan,
         )
-        controls = release_candidate_record_by_surface("release_operation_controls", plan)
+        controls = release_candidate_record_by_surface(
+            "release_operation_controls", plan
+        )
         guarded = release_candidate_records_for_status("guarded", plan)
 
         self.assertIsNotNone(optimization)
@@ -164,9 +171,9 @@ class ProductionReleaseCandidateTests(unittest.TestCase):
             ProductionReleaseCandidatePlan(**payload)
 
         payload = plan.model_dump(mode="json")
-        payload["required_pre_release_checks"] = tuple(payload["required_pre_release_checks"][1:]) + (
-            payload["required_pre_release_checks"][0],
-        )
+        payload["required_pre_release_checks"] = tuple(
+            payload["required_pre_release_checks"][1:]
+        ) + (payload["required_pre_release_checks"][0],)
 
         with self.assertRaisesRegex(ValueError, "required_pre_release_checks"):
             ProductionReleaseCandidatePlan(**payload)

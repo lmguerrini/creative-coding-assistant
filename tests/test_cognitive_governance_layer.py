@@ -139,9 +139,7 @@ class CognitiveGovernanceLayerTests(unittest.TestCase):
     def test_governance_layer_rejects_enforcement_and_drift(self) -> None:
         layer = build_cognitive_governance_layer()
         payload = layer.model_dump(mode="json")
-        payload["governance_ids"] = (
-            "missing",
-        ) + tuple(payload["governance_ids"][1:])
+        payload["governance_ids"] = ("missing",) + tuple(payload["governance_ids"][1:])
 
         with self.assertRaisesRegex(ValueError, "governance_ids must match"):
             CognitiveGovernanceLayerPlan(**payload)

@@ -90,7 +90,9 @@ class ConsistencyValidationEngineTests(unittest.TestCase):
         self.assertEqual(consistency.confidence_consistency.status, "conflict")
         self.assertIn(consistency.contradiction_level, {"medium", "high"})
         self.assertTrue(
-            any("confidence" in item.lower() for item in consistency.detected_conflicts),
+            any(
+                "confidence" in item.lower() for item in consistency.detected_conflicts
+            ),
             consistency.detected_conflicts,
         )
 
@@ -123,8 +125,7 @@ class ConsistencyValidationEngineTests(unittest.TestCase):
         self.assertEqual(consistency.reflection_consistency.status, "conflict")
         self.assertTrue(
             any(
-                "reflection" in item.lower()
-                for item in consistency.detected_conflicts
+                "reflection" in item.lower() for item in consistency.detected_conflicts
             ),
             consistency.detected_conflicts,
         )

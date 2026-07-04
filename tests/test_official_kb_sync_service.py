@@ -39,9 +39,7 @@ class OfficialKBSyncServiceTests(unittest.TestCase):
         )
 
     def test_resolve_sync_source_ids_dedupes_selected_sources(self) -> None:
-        resolved = resolve_sync_source_ids(
-            ["three_docs", "p5_reference", "three_docs"]
-        )
+        resolved = resolve_sync_source_ids(["three_docs", "p5_reference", "three_docs"])
 
         self.assertEqual(resolved, ("three_docs", "p5_reference"))
 

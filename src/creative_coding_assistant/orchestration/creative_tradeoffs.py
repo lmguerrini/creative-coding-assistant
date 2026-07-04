@@ -374,8 +374,7 @@ def _primary_tradeoffs(
                     "Some visual or conceptual ambition may need to be deferred."
                 ),
                 runtime_implication=(
-                    "Keep runtime guidance conservative and avoid unsupported "
-                    "claims."
+                    "Keep runtime guidance conservative and avoid unsupported claims."
                 ),
                 mitigation=(
                     "Surface the constraint explicitly and ask for HITL input "
@@ -540,25 +539,18 @@ def _fidelity_risks(
         creative_techniques is not None
         and creative_techniques.compatibility != "strong"
     ):
-        risks.append(
-            "Technique compatibility is not strong; verify concept alignment."
-        )
+        risks.append("Technique compatibility is not strong; verify concept alignment.")
     if runtime_capabilities is not None:
         top = runtime_capabilities.candidate_runtimes[0]
         if top.output_goal_fit != "strong" or top.suitability != "strong":
-            risks.append(
-                f"{top.label} may not fully preserve the output goal."
-            )
+            risks.append(f"{top.label} may not fully preserve the output goal.")
     return _dedupe_text(risks)[:8]
 
 
 def _safety_concerns(
     creative_constraints: CreativeConstraintSolution | None,
 ) -> tuple[str, ...]:
-    if (
-        creative_constraints is None
-        or creative_constraints.safety_pressure == "low"
-    ):
+    if creative_constraints is None or creative_constraints.safety_pressure == "low":
         return ()
     return tuple(
         item.summary
@@ -649,9 +641,7 @@ def _evidence(
     if creative_strategy is not None:
         evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
     if creative_techniques is not None:
-        evidence.append(
-            f"Creative technique: {creative_techniques.primary_technique}."
-        )
+        evidence.append(f"Creative technique: {creative_techniques.primary_technique}.")
     if creative_plan is not None:
         evidence.append(f"Output goal: {creative_plan.generation_strategy}")
         evidence.append(f"Plan complexity: {creative_plan.expected_complexity}.")
@@ -720,8 +710,7 @@ def _complexity_cost(
         parts.append(f"technique complexity {creative_techniques.complexity_pressure}")
     if top_runtime is not None:
         parts.append(
-            f"{top_runtime.label} complexity "
-            f"{top_runtime.implementation_complexity}"
+            f"{top_runtime.label} complexity {top_runtime.implementation_complexity}"
         )
     if not parts:
         return "Complexity cost is low but still requires readable structure."

@@ -252,24 +252,21 @@ class LatencyOptimizationPlan(BaseModel):
             raise ValueError("serial_guardrail_count must match candidates")
 
         expected_highest_savings = max(
-            candidate.advisory_latency_savings_score
-            for candidate in self.candidates
+            candidate.advisory_latency_savings_score for candidate in self.candidates
         )
         if self.highest_advisory_latency_savings_score != expected_highest_savings:
             raise ValueError(
                 "highest_advisory_latency_savings_score must match candidates"
             )
         expected_total_savings = sum(
-            candidate.advisory_latency_savings_score
-            for candidate in self.candidates
+            candidate.advisory_latency_savings_score for candidate in self.candidates
         )
         if self.total_advisory_latency_savings_score != expected_total_savings:
             raise ValueError(
                 "total_advisory_latency_savings_score must match candidates"
             )
         expected_highest_pressure = max(
-            candidate.advisory_latency_pressure_score
-            for candidate in self.candidates
+            candidate.advisory_latency_pressure_score for candidate in self.candidates
         )
         if self.highest_advisory_latency_pressure_score != expected_highest_pressure:
             raise ValueError(
@@ -451,9 +448,7 @@ def _candidate_ids_for_status(
     status: LatencyOptimizationStatus,
 ) -> tuple[str, ...]:
     return tuple(
-        candidate.candidate_id
-        for candidate in candidates
-        if candidate.status == status
+        candidate.candidate_id for candidate in candidates if candidate.status == status
     )
 
 

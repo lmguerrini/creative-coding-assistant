@@ -196,7 +196,9 @@ def reflection_loop_prompt_lines(profile: ReflectionLoopProfile) -> tuple[str, .
         f"Confidence after reflection: {profile.confidence_after_reflection:.2f}.",
         f"Reflection summary: {profile.reflection_summary}",
     ]
-    lines.extend(f"Reflection rationale: {item}" for item in profile.reflection_rationale)
+    lines.extend(
+        f"Reflection rationale: {item}" for item in profile.reflection_rationale
+    )
     lines.extend(
         f"Reflection unresolved question: {item}"
         for item in profile.unresolved_questions
@@ -205,9 +207,13 @@ def reflection_loop_prompt_lines(profile: ReflectionLoopProfile) -> tuple[str, .
         f"Reflection refinement candidate: {item}"
         for item in profile.refinement_candidates
     )
-    lines.extend(f"Reflection stop condition: {item}" for item in profile.stop_conditions)
+    lines.extend(
+        f"Reflection stop condition: {item}" for item in profile.stop_conditions
+    )
     lines.append(f"Reflection HITL recommendation: {profile.hitl_recommendation}.")
-    lines.extend(f"Reflection prompt guidance: {item}" for item in profile.prompt_guidance)
+    lines.extend(
+        f"Reflection prompt guidance: {item}" for item in profile.prompt_guidance
+    )
     return tuple(lines[:48])
 
 
@@ -270,15 +276,9 @@ def _risk_score(
         score += {"low": 0, "medium": 1, "high": 3}[
             self_evaluation.ambiguity_assessment
         ]
-        score += {"low": 0, "medium": 1, "high": 3}[
-            self_evaluation.hallucination_risk
-        ]
-        score += {"low": 0, "medium": 1, "high": 2}[
-            self_evaluation.overreach_risk
-        ]
-        score += {"low": 0, "medium": 1, "high": 2}[
-            self_evaluation.underdelivery_risk
-        ]
+        score += {"low": 0, "medium": 1, "high": 3}[self_evaluation.hallucination_risk]
+        score += {"low": 0, "medium": 1, "high": 2}[self_evaluation.overreach_risk]
+        score += {"low": 0, "medium": 1, "high": 2}[self_evaluation.underdelivery_risk]
         score += min(3, len(self_evaluation.quality_gaps))
     if creative_improvement_planner is not None:
         priority_score = {
@@ -305,20 +305,16 @@ def _reflection_priority(
     self_evaluation: SelfEvaluationProfile | None,
     creative_improvement_planner: CreativeImprovementPlannerProfile | None,
 ) -> ReflectionPriority:
-    has_critical_priority = (
-        creative_improvement_planner is not None
-        and any(
-            item.priority == "critical"
-            for item in creative_improvement_planner.improvement_priorities
-        )
+    has_critical_priority = creative_improvement_planner is not None and any(
+        item.priority == "critical"
+        for item in creative_improvement_planner.improvement_priorities
     )
     if (
         has_critical_priority
         or risk_score >= 10
         or quality_score < 0.55
         or (
-            creative_critic is not None
-            and creative_critic.risk_assessment == "blocked"
+            creative_critic is not None and creative_critic.risk_assessment == "blocked"
         )
         or (
             self_evaluation is not None
@@ -399,9 +395,7 @@ def _confidence_after_reflection(
     risk_reduction: ReflectionEstimate,
 ) -> float:
     gain = {"none": 0.0, "low": 0.04, "medium": 0.09, "high": 0.14}[quality_gain]
-    risk = {"none": 0.0, "low": 0.02, "medium": 0.05, "high": 0.08}[
-        risk_reduction
-    ]
+    risk = {"none": 0.0, "low": 0.02, "medium": 0.05, "high": 0.08}[risk_reduction]
     return round(min(0.98, max(0.05, quality_score + gain + risk)), 2)
 
 
@@ -569,7 +563,7 @@ def _prompt_guidance(
 ) -> tuple[str, ...]:
     guidance = [
         "Use Reflection Loop metadata only to explain theoretical improvement value.",
-        "Do not perform refinement, retry generation, call providers, change runtime, route providers, modify previews, or invoke V4 agents.",
+        "Do not perform refinement, retry generation, call providers, change runtime, route providers, modify previews, or invoke V4 agents.",  # noqa: E501
     ]
     if required:
         guidance.append(
@@ -601,11 +595,11 @@ def _evidence(
     evidence.append(f"Aggregate reflection risk score: {risk_score}.")
     if creative_critic is not None:
         evidence.append(
-            f"Creative critic: {creative_critic.risk_assessment} risk; {creative_critic.critic_confidence:.2f} confidence."
+            f"Creative critic: {creative_critic.risk_assessment} risk; {creative_critic.critic_confidence:.2f} confidence."  # noqa: E501
         )
     if self_evaluation is not None:
         evidence.append(
-            f"Self evaluation: {self_evaluation.completeness_assessment}; {self_evaluation.self_evaluation_confidence:.2f} confidence."
+            f"Self evaluation: {self_evaluation.completeness_assessment}; {self_evaluation.self_evaluation_confidence:.2f} confidence."  # noqa: E501
         )
     if creative_improvement_planner is not None:
         evidence.append(

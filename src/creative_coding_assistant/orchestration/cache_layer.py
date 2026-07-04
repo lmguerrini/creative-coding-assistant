@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from datetime import UTC, datetime, timedelta
-from typing import Any, Literal, Self
+from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -122,7 +122,9 @@ class ExecutionCacheLookup(BaseModel):
             raise ValueError("hit lookup requires entry")
         if self.status == "hit" and self.stale_entry is not None:
             raise ValueError("hit lookup must not include stale_entry")
-        if self.status == "miss" and (self.entry is not None or self.stale_entry is not None):
+        if self.status == "miss" and (
+            self.entry is not None or self.stale_entry is not None
+        ):
             raise ValueError("miss lookup must not include entries")
         if self.status == "stale" and self.stale_entry is None:
             raise ValueError("stale lookup requires stale_entry")
@@ -177,7 +179,9 @@ class InMemoryExecutionCache:
         now: datetime | None = None,
     ) -> ExecutionCacheLookup:
         looked_up_at = now or _now()
-        cache_key = build_execution_cache_key(namespace=namespace, components=components)
+        cache_key = build_execution_cache_key(
+            namespace=namespace, components=components
+        )
         entry = self._entries.get(cache_key)
         if entry is None:
             return _lookup(
@@ -208,7 +212,9 @@ class InMemoryExecutionCache:
         namespace: ExecutionCacheNamespace,
         components: ExecutionCachePayload,
     ) -> bool:
-        cache_key = build_execution_cache_key(namespace=namespace, components=components)
+        cache_key = build_execution_cache_key(
+            namespace=namespace, components=components
+        )
         return self._entries.pop(cache_key, None) is not None
 
     def snapshot(self) -> tuple[ExecutionCacheEntry, ...]:

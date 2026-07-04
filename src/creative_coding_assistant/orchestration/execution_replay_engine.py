@@ -25,9 +25,7 @@ ExecutionReplayCandidateStatus = Literal[
 ]
 ExecutionReplayPressure = Literal["low", "medium", "high", "guarded"]
 
-EXECUTION_REPLAY_CANDIDATE_SERIALIZATION_VERSION = (
-    "execution_replay_candidate.v1"
-)
+EXECUTION_REPLAY_CANDIDATE_SERIALIZATION_VERSION = "execution_replay_candidate.v1"
 EXECUTION_REPLAY_PLAN_SERIALIZATION_VERSION = "execution_replay_plan.v1"
 EXECUTION_REPLAY_ENGINE_AUTHORITY_BOUNDARY = (
     "Execution replay planning derives advisory execution replay candidates "
@@ -124,9 +122,7 @@ class ExecutionReplayCandidate(BaseModel):
             status=self.status,
             execution_replay_profile_count=self.execution_replay_profile_count,
             workflow_replay_candidate_count=self.workflow_replay_candidate_count,
-            execution_profile_candidate_count=(
-                self.execution_profile_candidate_count
-            ),
+            execution_profile_candidate_count=(self.execution_profile_candidate_count),
             route_count=self.route_count,
             replay_context_count=self.replay_context_count,
         )
@@ -277,24 +273,21 @@ class ExecutionReplayPlan(BaseModel):
             raise ValueError("storage_guardrail_count must match candidates")
 
         expected_execution_count = sum(
-            candidate.execution_replay_profile_count
-            for candidate in self.candidates
+            candidate.execution_replay_profile_count for candidate in self.candidates
         )
         if self.total_execution_replay_profile_count != expected_execution_count:
             raise ValueError(
                 "total_execution_replay_profile_count must match candidates"
             )
         expected_workflow_count = sum(
-            candidate.workflow_replay_candidate_count
-            for candidate in self.candidates
+            candidate.workflow_replay_candidate_count for candidate in self.candidates
         )
         if self.total_workflow_replay_candidate_count != expected_workflow_count:
             raise ValueError(
                 "total_workflow_replay_candidate_count must match candidates"
             )
         expected_profile_count = sum(
-            candidate.execution_profile_candidate_count
-            for candidate in self.candidates
+            candidate.execution_profile_candidate_count for candidate in self.candidates
         )
         if self.total_execution_profile_candidate_count != expected_profile_count:
             raise ValueError(
@@ -433,9 +426,7 @@ def execution_replay_candidates_for_status(
 
     source_plan = plan or plan_execution_replay()
     return tuple(
-        candidate
-        for candidate in source_plan.candidates
-        if candidate.status == status
+        candidate for candidate in source_plan.candidates if candidate.status == status
     )
 
 
@@ -588,9 +579,7 @@ def _candidate_ids_for_status(
     status: ExecutionReplayCandidateStatus,
 ) -> tuple[str, ...]:
     return tuple(
-        candidate.candidate_id
-        for candidate in candidates
-        if candidate.status == status
+        candidate.candidate_id for candidate in candidates if candidate.status == status
     )
 
 
@@ -654,16 +643,10 @@ def _candidate_actions(
             "Require explicit runtime authority before replay execution.",
         )
     if status == "provider_guardrail":
-        return (
-            "Preserve provider execution and routing boundaries.",
-        )
+        return ("Preserve provider execution and routing boundaries.",)
     if status == "scoring_guardrail":
-        return (
-            "Keep cost scoring, quality scoring, and evaluation disabled.",
-        )
-    return (
-        "Keep replay persistence and replay storage disabled.",
-    )
+        return ("Keep cost scoring, quality scoring, and evaluation disabled.",)
+    return ("Keep replay persistence and replay storage disabled.",)
 
 
 def _plan_actions(

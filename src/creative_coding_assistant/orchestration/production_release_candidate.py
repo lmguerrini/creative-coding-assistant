@@ -268,7 +268,9 @@ def build_production_release_candidate(
             record.record_id for record in records if record.release_blocker
         ),
         record_count=len(records),
-        release_candidate_status="guarded" if guarded_reasons else _plan_status(records),
+        release_candidate_status="guarded"
+        if guarded_reasons
+        else _plan_status(records),
     )
 
 
@@ -346,9 +348,7 @@ def _records(
                 f"packaging_guarded:{len(packaging_source.guarded_record_ids)}",
             ),
             guarded_reason_codes=tuple(packaging_source.guarded_record_ids),
-            required_followups=(
-                "resolve_missing_packaging_metadata",
-            )
+            required_followups=("resolve_missing_packaging_metadata",)
             if packaging_source.guarded_record_ids
             else (),
             release_blocker=bool(packaging_source.guarded_record_ids),

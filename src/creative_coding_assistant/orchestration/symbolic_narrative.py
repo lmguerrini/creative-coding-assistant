@@ -319,17 +319,14 @@ def symbolic_narrative_prompt_lines(
         f"Experiential goal: {plan.experiential_goal}",
     ]
     for phase in plan.phases:
-        lines.append(
-            f"{phase.phase} phase: {phase.title}; {phase.symbolic_function}"
-        )
+        lines.append(f"{phase.phase} phase: {phase.title}; {phase.symbolic_function}")
         lines.append(f"{phase.phase} visual: {phase.visual_state}")
         lines.append(f"{phase.phase} motion: {phase.motion_state}")
         if phase.audio_state:
             lines.append(f"{phase.phase} audio: {phase.audio_state}")
     lines.extend(f"Symbolic transition: {item}" for item in plan.symbolic_transitions)
     lines.extend(
-        f"Unresolved narrative gap: {item}"
-        for item in plan.unresolved_narrative_gaps
+        f"Unresolved narrative gap: {item}" for item in plan.unresolved_narrative_gaps
     )
     lines.extend(f"HITL narrative question: {item}" for item in plan.hitl_questions)
     lines.extend(f"Narrative guidance: {item}" for item in plan.prompt_guidance)
@@ -619,9 +616,7 @@ def _intent_bonus(context: _NarrativeContext, spec: _ArchetypeSpec) -> int:
 
 def _strategy_bonus(context: _NarrativeContext, spec: _ArchetypeSpec) -> int:
     strategy = (
-        context.creative_strategy.primary_strategy
-        if context.creative_strategy
-        else ""
+        context.creative_strategy.primary_strategy if context.creative_strategy else ""
     )
     if strategy == "sacred_geometry" and spec.archetype in {
         "initiation",

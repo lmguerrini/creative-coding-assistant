@@ -322,8 +322,7 @@ def prepare_workflow_preview_results(
                 request=preview_request,
                 preview_artifact_id=artifact.id,
                 summary=(
-                    f"{renderer_label} runtime metadata prepared for "
-                    f"{artifact.title}."
+                    f"{renderer_label} runtime metadata prepared for {artifact.title}."
                 ),
                 completed_at=completed_at,
                 details={
@@ -711,9 +710,7 @@ def _format_language_label(language: str, runtime: str | None, title: str) -> st
         )
     if runtime == "p5":
         return (
-            "JavaScript + p5.js"
-            if language == "javascript"
-            else "TypeScript + p5.js"
+            "JavaScript + p5.js" if language == "javascript" else "TypeScript + p5.js"
         )
     if runtime == "glsl":
         return "GLSL"

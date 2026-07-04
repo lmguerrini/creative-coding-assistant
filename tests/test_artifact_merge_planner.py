@@ -145,8 +145,7 @@ class ArtifactMergePlannerTests(unittest.TestCase):
         self.assertTrue(merge.artifact_separation_points)
         self.assertTrue(
             any(
-                "separate" in item.lower()
-                for item in merge.artifact_separation_points
+                "separate" in item.lower() for item in merge.artifact_separation_points
             ),
             merge.artifact_separation_points,
         )

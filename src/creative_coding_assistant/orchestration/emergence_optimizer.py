@@ -49,9 +49,7 @@ EmergenceOptimizationStatus = CreativeExplorationOptimizationStatus
 EMERGENCE_OPTIMIZATION_CANDIDATE_SERIALIZATION_VERSION = (
     "emergence_optimization_candidate.v1"
 )
-EMERGENCE_OPTIMIZATION_PLAN_SERIALIZATION_VERSION = (
-    "emergence_optimization_plan.v1"
-)
+EMERGENCE_OPTIMIZATION_PLAN_SERIALIZATION_VERSION = "emergence_optimization_plan.v1"
 EMERGENCE_OPTIMIZER_AUTHORITY_BOUNDARY = (
     "V5.5 emergence optimization combines advisory creative exploration "
     "optimization and creative analytics metadata into inspectable emergence "
@@ -263,9 +261,13 @@ class EmergenceOptimizationPlan(BaseModel):
         max_length=4,
     )
     candidate_ids: tuple[str, ...] = Field(min_length=4, max_length=4)
-    recommended_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=4)
+    recommended_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=4
+    )
     bounded_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=4)
-    guardrail_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=4)
+    guardrail_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=4
+    )
     hitl_required_candidate_ids: tuple[str, ...] = Field(
         default_factory=tuple,
         max_length=4,
@@ -369,10 +371,11 @@ class EmergenceOptimizationPlan(BaseModel):
         if self.hitl_required_candidate_count != len(self.hitl_required_candidate_ids):
             raise ValueError("hitl_required_candidate_count must match candidates")
         if self.total_recommended_emergence_path_count != sum(
-            candidate.recommended_emergence_path_count
-            for candidate in self.candidates
+            candidate.recommended_emergence_path_count for candidate in self.candidates
         ):
-            raise ValueError("total_recommended_emergence_path_count must match candidates")
+            raise ValueError(
+                "total_recommended_emergence_path_count must match candidates"
+            )
         if self.total_applied_emergence_path_count != 0:
             raise ValueError("total_applied_emergence_path_count must remain zero")
         if self.highest_emergence_potential_score != max(
@@ -402,7 +405,9 @@ def optimize_emergence(
         task_type=normalized_task_type,
         execution_mode_id=execution_mode_id,
     )
-    normalized_mode = str(execution_mode_id or exploration_plan.candidates[0].execution_mode_id)
+    normalized_mode = str(
+        execution_mode_id or exploration_plan.candidates[0].execution_mode_id
+    )
     execution_modes = routing_execution_mode_registry()
     if normalized_mode not in execution_modes.execution_mode_ids:
         raise ValueError("execution_mode_id must be a known execution mode")
@@ -430,14 +435,18 @@ def optimize_emergence(
         bounded_candidate_ids=_candidate_ids_for_status(candidates, "bounded"),
         guardrail_candidate_ids=_candidate_ids_for_status(candidates, "guardrail"),
         hitl_required_candidate_ids=tuple(
-            candidate.candidate_id for candidate in candidates if candidate.hitl_required
+            candidate.candidate_id
+            for candidate in candidates
+            if candidate.hitl_required
         ),
         applied_emergence_candidate_ids=(),
         candidate_count=len(candidates),
         recommended_candidate_count=len(
             _candidate_ids_for_status(candidates, "recommended")
         ),
-        guardrail_candidate_count=len(_candidate_ids_for_status(candidates, "guardrail")),
+        guardrail_candidate_count=len(
+            _candidate_ids_for_status(candidates, "guardrail")
+        ),
         hitl_required_candidate_count=sum(
             1 for candidate in candidates if candidate.hitl_required
         ),
@@ -472,7 +481,9 @@ def emergence_candidates_for_status(
     """Return emergence candidates by advisory status."""
 
     source_plan = plan or optimize_emergence()
-    return tuple(candidate for candidate in source_plan.candidates if candidate.status == status)
+    return tuple(
+        candidate for candidate in source_plan.candidates if candidate.status == status
+    )
 
 
 def _candidates(
@@ -689,7 +700,9 @@ def _candidate_ids_for_status(
     candidates: tuple[EmergenceOptimizationCandidate, ...],
     status: EmergenceOptimizationStatus,
 ) -> tuple[str, ...]:
-    return tuple(candidate.candidate_id for candidate in candidates if candidate.status == status)
+    return tuple(
+        candidate.candidate_id for candidate in candidates if candidate.status == status
+    )
 
 
 def _required_exploration_candidate(
@@ -736,7 +749,7 @@ def _candidate_actions(
 ) -> tuple[str, ...]:
     return (
         f"Surface {status} emergence potential as advisory metadata.",
-        "Keep emergence behavior, variants, artifact selection, evaluation, metrics, routing, workflow, storage, and output behavior disabled.",
+        "Keep emergence behavior, variants, artifact selection, evaluation, metrics, routing, workflow, storage, and output behavior disabled.",  # noqa: E501
     )
 
 
@@ -746,7 +759,7 @@ def _plan_actions(
     actions = [
         "Expose emergence optimization as advisory metadata only.",
         "Keep applied emergence candidate ids empty and applied path count at zero.",
-        "Preserve emergence behavior, variant generation, evaluation, routing, workflow, storage, and output boundaries.",
+        "Preserve emergence behavior, variant generation, evaluation, routing, workflow, storage, and output boundaries.",  # noqa: E501
     ]
     if _candidate_ids_for_status(candidates, "guardrail"):
         actions.append("Require review before any future emergence behavior.")

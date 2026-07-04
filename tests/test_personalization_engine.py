@@ -209,18 +209,10 @@ class PersonalizationEngineTests(unittest.TestCase):
             self.assertTrue(recommendation.user_preferences_source_used)
             self.assertTrue(recommendation.style_profile_source_used)
             self.assertTrue(recommendation.project_memory_source_used)
-            self.assertFalse(
-                recommendation.personalization_storage_write_implemented
-            )
-            self.assertFalse(
-                recommendation.personalization_rule_creation_implemented
-            )
-            self.assertFalse(
-                recommendation.personalization_rule_update_implemented
-            )
-            self.assertFalse(
-                recommendation.personalization_rule_deletion_implemented
-            )
+            self.assertFalse(recommendation.personalization_storage_write_implemented)
+            self.assertFalse(recommendation.personalization_rule_creation_implemented)
+            self.assertFalse(recommendation.personalization_rule_update_implemented)
+            self.assertFalse(recommendation.personalization_rule_deletion_implemented)
             self.assertFalse(
                 recommendation.automatic_personalization_learning_implemented
             )
@@ -262,9 +254,9 @@ class PersonalizationEngineTests(unittest.TestCase):
     def test_plan_rejects_mismatched_personalization_metadata(self) -> None:
         plan = build_personalization_engine()
         payload = plan.model_dump(mode="json")
-        payload["recommendation_ids"] = (
-            "missing",
-        ) + tuple(payload["recommendation_ids"][1:])
+        payload["recommendation_ids"] = ("missing",) + tuple(
+            payload["recommendation_ids"][1:]
+        )
 
         with self.assertRaisesRegex(ValueError, "recommendation_ids must match"):
             PersonalizationEnginePlan(**payload)

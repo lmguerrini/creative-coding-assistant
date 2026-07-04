@@ -184,7 +184,9 @@ class QualityCostOptimizationPlan(BaseModel):
     candidate_ids: tuple[str, ...] = Field(min_length=1, max_length=12)
     recommended_candidate_id: str = Field(min_length=1, max_length=180)
     recommended_tradeoff_posture: QualityCostTradeoffPosture
-    fallback_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
+    fallback_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=12
+    )
     candidate_count: int = Field(ge=1, le=12)
     recommended_optimization_score: int = Field(ge=0, le=220)
     advisory_actions: tuple[str, ...] = Field(min_length=1, max_length=12)
@@ -212,7 +214,9 @@ class QualityCostOptimizationPlan(BaseModel):
 
     @model_validator(mode="after")
     def _plan_matches_candidates(self) -> Self:
-        derived_candidate_ids = tuple(candidate.candidate_id for candidate in self.candidates)
+        derived_candidate_ids = tuple(
+            candidate.candidate_id for candidate in self.candidates
+        )
         if len(set(derived_candidate_ids)) != len(derived_candidate_ids):
             raise ValueError("candidate_ids must be unique")
         if self.candidate_ids != derived_candidate_ids:
@@ -225,7 +229,9 @@ class QualityCostOptimizationPlan(BaseModel):
             raise ValueError("source_hybrid_decision_ids must match candidates")
 
         recommended = tuple(
-            candidate for candidate in self.candidates if candidate.status == "recommended"
+            candidate
+            for candidate in self.candidates
+            if candidate.status == "recommended"
         )
         if len(recommended) != 1:
             raise ValueError("exactly one recommended candidate is required")

@@ -326,9 +326,7 @@ def _detect_sources(
     tone_metadata: str | None,
 ) -> tuple[AudioReactiveSource, ...]:
     sources = [
-        source
-        for source, pattern in _SOURCE_PATTERNS
-        if pattern.search(evidence_text)
+        source for source, pattern in _SOURCE_PATTERNS if pattern.search(evidence_text)
     ]
     for source, pattern in _TONE_HINT_PATTERNS:
         if tone_metadata and pattern.search(tone_metadata) and source not in sources:

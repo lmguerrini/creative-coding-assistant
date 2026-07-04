@@ -69,8 +69,7 @@ class QualityCalibrationTests(unittest.TestCase):
         self.assertEqual(evaluation.decision_band, "high_risk")
         self.assertTrue(
             any(
-                "legacy critique" in adjustment
-                for adjustment in evaluation.adjustments
+                "legacy critique" in adjustment for adjustment in evaluation.adjustments
             )
         )
         self.assertTrue(
@@ -103,8 +102,7 @@ class QualityCalibrationTests(unittest.TestCase):
         self.assertEqual(evaluation.decision_band, "needs_refinement")
         self.assertTrue(
             any(
-                "unsupported symbolic claims" in item
-                for item in evaluation.adjustments
+                "unsupported symbolic claims" in item for item in evaluation.adjustments
             )
         )
 

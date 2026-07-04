@@ -493,9 +493,7 @@ class KnowledgeEvolutionCoreSurfacePlan(BaseModel):
             raise ValueError("entry_count must match entries")
         if self.candidate_entry_count != len(self.candidate_entry_ids):
             raise ValueError("candidate_entry_count must match entries")
-        if self.review_required_entry_count != len(
-            self.review_required_entry_ids
-        ):
+        if self.review_required_entry_count != len(self.review_required_entry_ids):
             raise ValueError("review_required_entry_count must match entries")
         if self.guarded_entry_count != len(self.guarded_entry_ids):
             raise ValueError("guarded_entry_count must match entries")
@@ -507,9 +505,7 @@ class KnowledgeEvolutionCoreSurfacePlan(BaseModel):
             entry.core_surface_score for entry in self.entries
         ):
             raise ValueError("highest_core_surface_score must match entries")
-        if self.overall_core_surface_score != _overall_core_surface_score(
-            self.entries
-        ):
+        if self.overall_core_surface_score != _overall_core_surface_score(self.entries):
             raise ValueError("overall_core_surface_score must match entries")
         if self.overall_core_surface_posture != _overall_core_surface_posture(
             self.entries

@@ -121,7 +121,10 @@ class EvaluationReportsTests(unittest.TestCase):
         self.assertTrue(any("Evaluation provenance:" in item for item in lines))
         self.assertTrue(any("Evaluation dependency:" in item for item in lines))
         self.assertTrue(
-            any("evaluation pipeline" in item.lower() for item in report.evaluation_explainability),
+            any(
+                "evaluation pipeline" in item.lower()
+                for item in report.evaluation_explainability
+            ),
             report.evaluation_explainability,
         )
 
@@ -224,7 +227,10 @@ class EvaluationReportsTests(unittest.TestCase):
             {item.source for item in reasoning.evidence_chain},
         )
         self.assertTrue(
-            any("Evaluation Reports" in item for item in reasoning.implementation_guidance),
+            any(
+                "Evaluation Reports" in item
+                for item in reasoning.implementation_guidance
+            ),
             reasoning.implementation_guidance,
         )
         self.assertEqual(
@@ -263,7 +269,9 @@ class EvaluationReportsTests(unittest.TestCase):
         self.assertIn("evaluation_provenance", planning_report)
         self.assertIn("evaluation_dependencies", planning_report)
         self.assertIn("evidence_chain", planning_report)
-        self.assertTrue(planning_event.payload["workflow"]["evaluation_report_available"])
+        self.assertTrue(
+            planning_event.payload["workflow"]["evaluation_report_available"]
+        )
         self.assertEqual(
             planning_event.payload["workflow"]["evaluation_report"],
             planning_report,

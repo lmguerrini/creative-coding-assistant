@@ -38,12 +38,8 @@ ProductionHardeningArea = Literal[
 ]
 ProductionHardeningStatus = Literal["ready", "guarded", "blocked"]
 
-PRODUCTION_HARDENING_RECORD_SERIALIZATION_VERSION = (
-    "production_hardening_record.v1"
-)
-PRODUCTION_FINAL_HARDENING_SERIALIZATION_VERSION = (
-    "production_final_hardening.v1"
-)
+PRODUCTION_HARDENING_RECORD_SERIALIZATION_VERSION = "production_hardening_record.v1"
+PRODUCTION_FINAL_HARDENING_SERIALIZATION_VERSION = "production_final_hardening.v1"
 PRODUCTION_FINAL_HARDENING_AUTHORITY_BOUNDARY = (
     "V5.6 final production hardening metadata records release-hardening "
     "actions for guarded assumptions and remaining gates only; it does not "
@@ -364,7 +360,9 @@ def production_hardening_records_for_status(
 
     source_hardening = hardening or build_production_final_hardening()
     return tuple(
-        record for record in source_hardening.records if record.hardening_status == status
+        record
+        for record in source_hardening.records
+        if record.hardening_status == status
     )
 
 
@@ -430,7 +428,7 @@ def _records(
                 f"release_blockers:{audit_source.release_blocker_count}",
             ),
             actions=(
-                "Preserve pending engineering audit, failure audit, validation, smoke, acceptance, metrics, history, Runtime Evolution, and release gates.",
+                "Preserve pending engineering audit, failure audit, validation, smoke, acceptance, metrics, history, Runtime Evolution, and release gates.",  # noqa: E501
                 "Do not merge, push, tag, or emit HITL during hardening metadata.",
             ),
             guarded=audit_source.pending_release_gate_ids,
@@ -481,7 +479,7 @@ def _records(
                 "failure_paths:deterministic_metadata",
             ),
             actions=(
-                "Carry provider unavailable, API-key missing, deployment assumption, and pending-gate paths into failure audit.",
+                "Carry provider unavailable, API-key missing, deployment assumption, and pending-gate paths into failure audit.",  # noqa: E501
                 "Keep failure hardening deterministic and metadata-only.",
             ),
             guarded=_unique(
@@ -546,7 +544,9 @@ def _hardening_ids_for_status(
     records: tuple[ProductionHardeningRecord, ...],
     status: ProductionHardeningStatus,
 ) -> tuple[str, ...]:
-    return tuple(record.hardening_id for record in records if record.hardening_status == status)
+    return tuple(
+        record.hardening_id for record in records if record.hardening_status == status
+    )
 
 
 def _hardening_status(

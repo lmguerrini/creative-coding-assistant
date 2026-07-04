@@ -21,9 +21,7 @@ AsyncExecutionStatus = Literal["async_ready_candidate", "serial_guardrail"]
 AsyncExecutionMode = Literal["bounded_parallel_group", "ordered_serial_stage"]
 AsyncExecutionPressure = Literal["low", "medium", "high"]
 
-ASYNC_EXECUTION_CANDIDATE_SERIALIZATION_VERSION = (
-    "async_execution_candidate.v1"
-)
+ASYNC_EXECUTION_CANDIDATE_SERIALIZATION_VERSION = "async_execution_candidate.v1"
 ASYNC_EXECUTION_PLAN_SERIALIZATION_VERSION = "async_execution_plan.v1"
 ASYNC_EXECUTION_AUTHORITY_BOUNDARY = (
     "Async execution planning derives advisory async-ready candidates from "
@@ -117,9 +115,7 @@ class AsyncExecutionCandidate(BaseModel):
         if self.max_parallel_agents != len(self.agent_ids):
             raise ValueError("max_parallel_agents must match agent count")
         if self.advisory_async_slot_count != self.max_parallel_agents:
-            raise ValueError(
-                "advisory_async_slot_count must match max_parallel_agents"
-            )
+            raise ValueError("advisory_async_slot_count must match max_parallel_agents")
         expected_score = _async_readiness_score(self.max_parallel_agents)
         if self.advisory_async_readiness_score != expected_score:
             raise ValueError(
@@ -241,16 +237,14 @@ class AsyncExecutionPlan(BaseModel):
         if self.total_advisory_async_slots != expected_slots:
             raise ValueError("total_advisory_async_slots must match candidates")
         expected_highest_score = max(
-            candidate.advisory_async_readiness_score
-            for candidate in self.candidates
+            candidate.advisory_async_readiness_score for candidate in self.candidates
         )
         if self.highest_advisory_async_readiness_score != expected_highest_score:
             raise ValueError(
                 "highest_advisory_async_readiness_score must match candidates"
             )
         expected_total_score = sum(
-            candidate.advisory_async_readiness_score
-            for candidate in self.candidates
+            candidate.advisory_async_readiness_score for candidate in self.candidates
         )
         if self.total_advisory_async_readiness_score != expected_total_score:
             raise ValueError(
@@ -389,9 +383,7 @@ def _candidate_ids_for_status(
     status: AsyncExecutionStatus,
 ) -> tuple[str, ...]:
     return tuple(
-        candidate.candidate_id
-        for candidate in candidates
-        if candidate.status == status
+        candidate.candidate_id for candidate in candidates if candidate.status == status
     )
 
 

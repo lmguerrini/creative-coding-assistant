@@ -269,9 +269,7 @@ class UnifiedExecutionGraphPlan(BaseModel):
             raise ValueError("source_safety_count must match safety ids")
         if self.source_explanation_count != len(self.source_explanation_ids):
             raise ValueError("source_explanation_count must match explanation ids")
-        if self.source_blackboard_entry_count != len(
-            self.source_blackboard_entry_ids
-        ):
+        if self.source_blackboard_entry_count != len(self.source_blackboard_entry_ids):
             raise ValueError("source_blackboard_entry_count must match entries")
         if self.source_route_decision_count != len(self.source_route_decision_ids):
             raise ValueError("source_route_decision_count must match route ids")
@@ -353,9 +351,7 @@ class UnifiedExecutionGraphPlan(BaseModel):
             UNIFIED_EXECUTION_RELATIONSHIPS
         ):
             raise ValueError("execution edge relationships must match OS order")
-        if self.covered_roadmap_items != (
-            UNIFIED_EXECUTION_GRAPH_ROADMAP_ITEM,
-        ):
+        if self.covered_roadmap_items != (UNIFIED_EXECUTION_GRAPH_ROADMAP_ITEM,):
             raise ValueError("covered_roadmap_items must be Task 24 only")
         if self.covered_roadmap_item_count != len(self.covered_roadmap_items):
             raise ValueError("covered_roadmap_item_count must match roadmap")
@@ -374,8 +370,7 @@ class UnifiedExecutionGraphPlan(BaseModel):
             )
         ):
             raise ValueError(
-                "execution, traversal, routing, HITL, and mutation ids "
-                "must be empty",
+                "execution, traversal, routing, HITL, and mutation ids must be empty",
             )
         if not all(node.advisory_only for node in self.execution_nodes):
             raise ValueError("all unified execution nodes must be advisory only")
@@ -393,13 +388,10 @@ def build_unified_execution_graph(
 ) -> UnifiedExecutionGraphPlan:
     """Build the read-only V6.6 unified execution graph."""
 
-    hitl_layer = (
-        cognitive_hitl_layer
-        or build_cognitive_hitl_layer(
-            route=route,
-            task_type=task_type,
-            execution_mode_id=execution_mode_id,
-        )
+    hitl_layer = cognitive_hitl_layer or build_cognitive_hitl_layer(
+        route=route,
+        task_type=task_type,
+        execution_mode_id=execution_mode_id,
     )
     nodes = _unified_execution_nodes(hitl_layer)
     edges = _unified_execution_edges(nodes)
@@ -408,9 +400,7 @@ def build_unified_execution_graph(
         task_type=hitl_layer.task_type,
         execution_mode_ids=hitl_layer.execution_mode_ids,
         cognitive_hitl_layer_role=hitl_layer.role,
-        cognitive_hitl_layer_serialization_version=(
-            hitl_layer.serialization_version
-        ),
+        cognitive_hitl_layer_serialization_version=(hitl_layer.serialization_version),
         cognitive_safety_layer_role=hitl_layer.cognitive_safety_layer_role,
         cognitive_explanation_engine_role=(
             hitl_layer.cognitive_explanation_engine_role
@@ -447,9 +437,7 @@ def build_unified_execution_graph(
         execution_edge_count=len(edges),
         execution_entry_node_id=nodes[0].execution_node_id,
         execution_terminal_node_id=nodes[-1].execution_node_id,
-        blocked_pending_hitl_node_ids=tuple(
-            node.execution_node_id for node in nodes
-        ),
+        blocked_pending_hitl_node_ids=tuple(node.execution_node_id for node in nodes),
         blocked_pending_hitl_node_count=len(nodes),
         linked_agent_ids=hitl_layer.linked_agent_ids,
         covered_roadmap_items=(UNIFIED_EXECUTION_GRAPH_ROADMAP_ITEM,),
@@ -567,9 +555,7 @@ def _unified_execution_nodes(
             linked_agent_ids=checkpoint.linked_agent_ids,
             execution_order=index + 1,
             dependency_depth=checkpoint.dependency_depth,
-            upstream_execution_node_ids=(
-                (node_ids[index - 1],) if index > 0 else ()
-            ),
+            upstream_execution_node_ids=((node_ids[index - 1],) if index > 0 else ()),
             downstream_execution_node_ids=(
                 (node_ids[index + 1],) if index + 1 < len(node_ids) else ()
             ),

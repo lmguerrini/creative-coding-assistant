@@ -104,7 +104,9 @@ class ProductionReleaseFailurePathAuditTests(unittest.TestCase):
             registry.serialization_version,
             "production_release_failure_path_audit_registry.v1",
         )
-        self.assertEqual(registry.checklist_source, "runtime/RUNTIME_FAILURE_PATH_AUDIT.md")
+        self.assertEqual(
+            registry.checklist_source, "runtime/RUNTIME_FAILURE_PATH_AUDIT.md"
+        )
         self.assertEqual(
             registry.architecture_registry_serialization_version,
             "production_architecture_consistency_registry.v1",
@@ -112,7 +114,9 @@ class ProductionReleaseFailurePathAuditTests(unittest.TestCase):
         self.assertEqual(registry.architecture_registry_record_count, 10)
         self.assertEqual(registry.source_surface_ids, EXPECTED_SURFACE_IDS)
         self.assertEqual(registry.required_checks, EXPECTED_REQUIRED_CHECKS)
-        self.assertEqual(registry.applicable_required_checks, EXPECTED_APPLICABLE_CHECKS)
+        self.assertEqual(
+            registry.applicable_required_checks, EXPECTED_APPLICABLE_CHECKS
+        )
         self.assertEqual(
             registry.not_applicable_required_checks,
             EXPECTED_NOT_APPLICABLE_CHECKS,
@@ -129,7 +133,9 @@ class ProductionReleaseFailurePathAuditTests(unittest.TestCase):
         self.assertTrue(registry.generated_output_mutation_boundary_preserved)
         self.assertTrue(registry.passive_registry_activation_boundary_preserved)
         self.assertTrue(registry.runtime_evolution_not_applied)
-        self.assertIn("runtime/RUNTIME_FAILURE_PATH_AUDIT.md", registry.authority_boundary)
+        self.assertIn(
+            "runtime/RUNTIME_FAILURE_PATH_AUDIT.md", registry.authority_boundary
+        )
         self.assertFalse(registry.runtime_failure_handler_creation_implemented)
         self.assertFalse(registry.terminal_failure_routing_mutation_implemented)
         self.assertFalse(registry.provider_model_routing_implemented)
@@ -223,7 +229,10 @@ class ProductionReleaseFailurePathAuditTests(unittest.TestCase):
         self.assertEqual(len(output_records), 1)
         self.assertGreaterEqual(len(deployment_records), 1)
         self.assertTrue(
-            all("production_deployment" in record.source_surface_ids for record in deployment_records)
+            all(
+                "production_deployment" in record.source_surface_ids
+                for record in deployment_records
+            )
         )
 
     def test_registry_rejects_mismatched_records_or_checks(self) -> None:

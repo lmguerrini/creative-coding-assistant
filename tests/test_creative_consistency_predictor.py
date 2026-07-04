@@ -19,7 +19,6 @@ from creative_coding_assistant.orchestration import (
     predict_creative_consistency,
     route_request,
 )
-from creative_coding_assistant.orchestration.routing import RouteName
 
 REQUIRED_CREATIVE_CONSISTENCY_PREDICTION_FIELDS = {
     "prediction_id",

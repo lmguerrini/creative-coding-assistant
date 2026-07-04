@@ -207,9 +207,7 @@ class MultimodalStudioInteractiveCanvasTests(unittest.TestCase):
         profile = multimodal_interactive_canvas_profile_by_id(
             "input_boundary_interactive_canvas"
         )
-        missing_profile = multimodal_interactive_canvas_profile_by_id(
-            "missing_profile"
-        )
+        missing_profile = multimodal_interactive_canvas_profile_by_id("missing_profile")
         canvas_profiles = multimodal_interactive_canvas_profiles_for_surface_kind(
             "canvas_2d"
         )

@@ -216,9 +216,7 @@ class MultimodalStudioCreativeEvolutionTimelineTests(unittest.TestCase):
                 )
             )
             self.assertTrue(
-                set(profile.source_artifact_lineage_profile_ids).issubset(
-                    known_lineage
-                )
+                set(profile.source_artifact_lineage_profile_ids).issubset(known_lineage)
             )
             self.assertTrue(
                 set(profile.source_artifact_provenance_profile_ids).issubset(
@@ -266,10 +264,8 @@ class MultimodalStudioCreativeEvolutionTimelineTests(unittest.TestCase):
         route_profiles = multimodal_creative_evolution_timeline_profiles_for_route(
             RouteName.PREVIEW
         )
-        workflow_branch_profiles = (
-            multimodal_creative_evolution_timeline_profiles_for_branching_timeline_profile(
-                "workflow_branching_timeline"
-            )
+        workflow_branch_profiles = multimodal_creative_evolution_timeline_profiles_for_branching_timeline_profile(
+            "workflow_branching_timeline"
         )
 
         self.assertIsNone(missing_profile)
@@ -308,9 +304,7 @@ class MultimodalStudioCreativeEvolutionTimelineTests(unittest.TestCase):
         )
         unknown_branching_profile = first_profile.model_copy(
             update={
-                "source_branching_timeline_profile_ids": (
-                    "unknown_branching_timeline",
-                )
+                "source_branching_timeline_profile_ids": ("unknown_branching_timeline",)
             }
         )
 
@@ -364,16 +358,12 @@ def _registry_kwargs(
             registry.shared_artifact_board_profile_ids
         ),
         "artifact_lineage_profile_ids": registry.artifact_lineage_profile_ids,
-        "artifact_provenance_profile_ids": (
-            registry.artifact_provenance_profile_ids
-        ),
+        "artifact_provenance_profile_ids": (registry.artifact_provenance_profile_ids),
         "route_names": registry.route_names,
         "profile_count": registry.profile_count,
         "source_registries": registry.source_registries,
         "source_reference_ids": registry.source_reference_ids,
-        "creative_evolution_surface_refs": (
-            registry.creative_evolution_surface_refs
-        ),
+        "creative_evolution_surface_refs": (registry.creative_evolution_surface_refs),
         "observability_surfaces": registry.observability_surfaces,
     }
 

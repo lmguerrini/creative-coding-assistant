@@ -144,14 +144,10 @@ class UserPreferenceSignal(BaseModel):
             conflict_risk_score=self.conflict_risk_score,
             sensitivity_weight=self.sensitivity_weight,
         ):
-            raise ValueError(
-                "preference_governance_score must combine source scores"
-            )
+            raise ValueError("preference_governance_score must combine source scores")
         if self.status != _preference_status(self.preference_governance_score):
             raise ValueError("status must match preference_governance_score")
-        if self.confidence != _preference_confidence(
-            self.preference_governance_score
-        ):
+        if self.confidence != _preference_confidence(self.preference_governance_score):
             raise ValueError("confidence must match preference_governance_score")
         if not self.hitl_required_before_mutation:
             raise ValueError("preference mutation requires HITL posture")
@@ -314,8 +310,7 @@ class UserPreferencesPlan(BaseModel):
         ):
             raise ValueError("hitl_required_preference_count must match preferences")
         if self.highest_preference_governance_score != max(
-            preference.preference_governance_score
-            for preference in self.preferences
+            preference.preference_governance_score for preference in self.preferences
         ):
             raise ValueError("highest_preference_governance_score must match")
         if self.overall_preference_governance_score != (
@@ -684,9 +679,7 @@ def _preference_ids_for_confidence(
 def _plan_actions(
     preferences: tuple[UserPreferenceSignal, ...],
 ) -> tuple[str, ...]:
-    guarded_preference_count = len(
-        _preference_ids_for_status(preferences, "guarded")
-    )
+    guarded_preference_count = len(_preference_ids_for_status(preferences, "guarded"))
     return (
         "inspect_user_preference_candidates",
         "require_hitl_before_preference_mutation",

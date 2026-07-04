@@ -40,9 +40,7 @@ AgentDiversityStatus = Literal["recommended", "standby", "guardrail"]
 AGENT_DIVERSITY_CANDIDATE_SERIALIZATION_VERSION = (
     "agent_diversity_optimization_candidate.v1"
 )
-AGENT_DIVERSITY_PLAN_SERIALIZATION_VERSION = (
-    "agent_diversity_optimization_plan.v1"
-)
+AGENT_DIVERSITY_PLAN_SERIALIZATION_VERSION = "agent_diversity_optimization_plan.v1"
 AGENT_DIVERSITY_OPTIMIZER_AUTHORITY_BOUNDARY = (
     "V5.5 agent diversity optimization combines advisory dynamic agent "
     "allocation, passive agent role, and passive capability alignment metadata "
@@ -219,6 +217,7 @@ class AgentDiversityOptimizationCandidate(BaseModel):
             raise ValueError("requires_hitl allocation must carry HITL posture")
         return self
 
+
 class AgentDiversityOptimizationPlan(BaseModel):
     """Bounded V5.5 advisory agent diversity optimization plan."""
 
@@ -255,9 +254,13 @@ class AgentDiversityOptimizationPlan(BaseModel):
         max_length=12,
     )
     candidate_ids: tuple[str, ...] = Field(min_length=1, max_length=12)
-    recommended_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
+    recommended_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=12
+    )
     standby_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
-    guardrail_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
+    guardrail_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=12
+    )
     hitl_required_candidate_ids: tuple[str, ...] = Field(
         default_factory=tuple,
         max_length=12,
@@ -354,8 +357,7 @@ class AgentDiversityOptimizationPlan(BaseModel):
         if self.hitl_required_candidate_count != len(self.hitl_required_candidate_ids):
             raise ValueError("hitl_required_candidate_count must match candidates")
         if self.total_recommended_diversity_path_count != sum(
-            candidate.recommended_diversity_path_count
-            for candidate in self.candidates
+            candidate.recommended_diversity_path_count for candidate in self.candidates
         ):
             raise ValueError(
                 "total_recommended_diversity_path_count must match candidates"
@@ -432,14 +434,18 @@ def optimize_agent_diversity(
         standby_candidate_ids=_candidate_ids_for_status(candidates, "standby"),
         guardrail_candidate_ids=_candidate_ids_for_status(candidates, "guardrail"),
         hitl_required_candidate_ids=tuple(
-            candidate.candidate_id for candidate in candidates if candidate.hitl_required
+            candidate.candidate_id
+            for candidate in candidates
+            if candidate.hitl_required
         ),
         applied_diversity_candidate_ids=(),
         candidate_count=len(candidates),
         recommended_candidate_count=len(
             _candidate_ids_for_status(candidates, "recommended")
         ),
-        guardrail_candidate_count=len(_candidate_ids_for_status(candidates, "guardrail")),
+        guardrail_candidate_count=len(
+            _candidate_ids_for_status(candidates, "guardrail")
+        ),
         hitl_required_candidate_count=sum(
             1 for candidate in candidates if candidate.hitl_required
         ),
@@ -474,7 +480,9 @@ def agent_diversity_candidates_for_status(
     """Return agent diversity candidates for one advisory status."""
 
     source_plan = plan or optimize_agent_diversity()
-    return tuple(candidate for candidate in source_plan.candidates if candidate.status == status)
+    return tuple(
+        candidate for candidate in source_plan.candidates if candidate.status == status
+    )
 
 
 def _candidate(
@@ -620,7 +628,9 @@ def _candidate_ids_for_status(
     candidates: tuple[AgentDiversityOptimizationCandidate, ...],
     status: AgentDiversityStatus,
 ) -> tuple[str, ...]:
-    return tuple(candidate.candidate_id for candidate in candidates if candidate.status == status)
+    return tuple(
+        candidate.candidate_id for candidate in candidates if candidate.status == status
+    )
 
 
 def _diversity_summary(status: AgentDiversityStatus, role_family: str) -> str:
@@ -635,14 +645,16 @@ def _fallback_summary(status: AgentDiversityStatus) -> str:
     if status == "recommended":
         return "Fallback to standby diversity metadata if HITL or routing risk rises."
     if status == "standby":
-        return "Fallback to guardrail posture before any runtime agent selection exists."
+        return (
+            "Fallback to guardrail posture before any runtime agent selection exists."
+        )
     return "Preserve guardrail posture without applying agent diversity behavior."
 
 
 def _candidate_actions(status: AgentDiversityStatus) -> tuple[str, ...]:
     return (
         f"Surface {status} agent diversity posture as advisory metadata.",
-        "Keep agent selection, rebalancing, capability activation, routing, scheduling, workflow, provider, memory, storage, and output behavior disabled.",
+        "Keep agent selection, rebalancing, capability activation, routing, scheduling, workflow, provider, memory, storage, and output behavior disabled.",  # noqa: E501
     )
 
 
@@ -652,7 +664,7 @@ def _plan_actions(
     actions = [
         "Expose agent diversity optimization as advisory metadata only.",
         "Keep applied diversity candidate ids empty and applied path count at zero.",
-        "Preserve agent selection, rebalancing, capability, routing, scheduling, workflow, provider, memory, storage, and output boundaries.",
+        "Preserve agent selection, rebalancing, capability, routing, scheduling, workflow, provider, memory, storage, and output boundaries.",  # noqa: E501
     ]
     if _candidate_ids_for_status(candidates, "guardrail"):
         actions.append("Require review before any future agent diversity behavior.")

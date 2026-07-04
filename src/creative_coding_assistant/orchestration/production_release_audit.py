@@ -369,7 +369,9 @@ def production_release_audit_records_for_status(
     """Return release audit records by status."""
 
     source_audit = audit or build_production_release_audit()
-    return tuple(record for record in source_audit.records if record.audit_status == status)
+    return tuple(
+        record for record in source_audit.records if record.audit_status == status
+    )
 
 
 def _records(

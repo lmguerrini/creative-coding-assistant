@@ -120,9 +120,7 @@ class ResearchRecommendationEngineTests(unittest.TestCase):
             )
             self.assertIn("recommendation_execution", entry.blocked_runtime_behaviors)
             self.assertTrue(entry.hitl_required_before_recommendation_generation)
-            self.assertTrue(
-                entry.research_recommendation_engine_capability_implemented
-            )
+            self.assertTrue(entry.research_recommendation_engine_capability_implemented)
             self.assertTrue(entry.research_recommendation_engine_metadata_implemented)
             self.assertTrue(entry.research_gap_metadata_used)
             self.assertFalse(entry.research_recommendation_generation_implemented)

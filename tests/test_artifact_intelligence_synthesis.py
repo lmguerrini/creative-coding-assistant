@@ -44,9 +44,7 @@ class ArtifactIntelligenceSynthesisTests(unittest.TestCase):
                     "Dense particle counts can pressure frame rate.",
                     "Complex scope can reduce inspectability.",
                 ),
-                "complexity_concerns": (
-                    "Complex scope can reduce inspectability.",
-                ),
+                "complexity_concerns": ("Complex scope can reduce inspectability.",),
                 "hitl_questions": (
                     "Should generation wait for the high-risk artifact scope?",
                 ),
@@ -124,9 +122,7 @@ class ArtifactIntelligenceSynthesisTests(unittest.TestCase):
         self.assertIn(synthesis.implementation_priority, {"critical", "high"})
 
     def test_flags_blocked_high_risk_plans(self) -> None:
-        stack = _stack(
-            "Generate an artifact with blocked dependency and runtime risk."
-        )
+        stack = _stack("Generate an artifact with blocked dependency and runtime risk.")
         blocked_critic = stack.refiner_stack.critic_stack.artifact_critic.model_copy(
             update={
                 "risk_assessment": "blocked",

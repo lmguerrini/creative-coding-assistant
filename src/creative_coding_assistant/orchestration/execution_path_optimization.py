@@ -112,7 +112,10 @@ class ExecutionPathCandidate(BaseModel):
     def _candidate_matches_status(self) -> Self:
         if self.status == "optimization_candidate" and self.optimization_score <= 0:
             raise ValueError("optimization candidates require a positive score")
-        if self.candidate_kind == "failure_normalization_path" and self.status != "retain":
+        if (
+            self.candidate_kind == "failure_normalization_path"
+            and self.status != "retain"
+        ):
             raise ValueError("failure normalization path must be retained")
         return self
 
@@ -139,12 +142,16 @@ class ExecutionPathOptimizationPlan(BaseModel):
         max_length=20,
     )
     candidate_ids: tuple[str, ...] = Field(min_length=1, max_length=20)
-    baseline_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=20)
+    baseline_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=20
+    )
     optimization_candidate_ids: tuple[str, ...] = Field(
         default_factory=tuple,
         max_length=20,
     )
-    retained_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=20)
+    retained_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=20
+    )
     review_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=20)
     candidate_count: int = Field(ge=1, le=20)
     highest_advisory_score: int = Field(ge=0, le=2400)
@@ -173,7 +180,9 @@ class ExecutionPathOptimizationPlan(BaseModel):
 
     @model_validator(mode="after")
     def _plan_matches_candidates(self) -> Self:
-        derived_candidate_ids = tuple(candidate.candidate_id for candidate in self.candidates)
+        derived_candidate_ids = tuple(
+            candidate.candidate_id for candidate in self.candidates
+        )
         if len(set(derived_candidate_ids)) != len(derived_candidate_ids):
             raise ValueError("candidate_ids must be unique")
         if self.candidate_ids != derived_candidate_ids:
@@ -202,7 +211,9 @@ class ExecutionPathOptimizationPlan(BaseModel):
         ):
             raise ValueError("review_candidate_ids must match candidates")
 
-        expected_score = max(candidate.optimization_score for candidate in self.candidates)
+        expected_score = max(
+            candidate.optimization_score for candidate in self.candidates
+        )
         if self.highest_advisory_score != expected_score:
             raise ValueError("highest_advisory_score must match candidates")
         expected_savings = max(
@@ -239,7 +250,9 @@ def plan_execution_path_optimization(
         pruning_plan=pruning,
     )
     candidates = _candidates(graph=graph, costs=costs, forecast=forecast)
-    savings = max(max(0, -candidate.token_delta_from_worst_case) for candidate in candidates)
+    savings = max(
+        max(0, -candidate.token_delta_from_worst_case) for candidate in candidates
+    )
     score = max(candidate.optimization_score for candidate in candidates)
 
     return ExecutionPathOptimizationPlan(
@@ -287,7 +300,9 @@ def execution_path_candidates_for_status(
     """Return path candidates by status without workflow control."""
 
     source_plan = plan or plan_execution_path_optimization()
-    return tuple(candidate for candidate in source_plan.candidates if candidate.status == status)
+    return tuple(
+        candidate for candidate in source_plan.candidates if candidate.status == status
+    )
 
 
 def _candidates(

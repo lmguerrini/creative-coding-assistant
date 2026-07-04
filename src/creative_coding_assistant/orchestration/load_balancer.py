@@ -251,9 +251,7 @@ class LoadBalancerPlan(BaseModel):
             raise ValueError("routing_guardrail_candidate_ids must match candidates")
         if self.balancing_candidate_count != len(self.balancing_candidate_ids):
             raise ValueError("balancing_candidate_count must match candidates")
-        if self.capacity_guardrail_count != len(
-            self.capacity_guardrail_candidate_ids
-        ):
+        if self.capacity_guardrail_count != len(self.capacity_guardrail_candidate_ids):
             raise ValueError("capacity_guardrail_count must match candidates")
         if self.routing_guardrail_count != len(self.routing_guardrail_candidate_ids):
             raise ValueError("routing_guardrail_count must match candidates")
@@ -381,9 +379,7 @@ def load_balance_candidates_for_status(
 
     source_plan = plan or plan_load_balancer()
     return tuple(
-        candidate
-        for candidate in source_plan.candidates
-        if candidate.status == status
+        candidate for candidate in source_plan.candidates if candidate.status == status
     )
 
 
@@ -500,9 +496,7 @@ def _candidate_ids_for_status(
     status: LoadBalanceStatus,
 ) -> tuple[str, ...]:
     return tuple(
-        candidate.candidate_id
-        for candidate in candidates
-        if candidate.status == status
+        candidate.candidate_id for candidate in candidates if candidate.status == status
     )
 
 
@@ -554,12 +548,8 @@ def _candidate_actions(status: LoadBalanceStatus) -> tuple[str, ...]:
             "Require explicit runtime authority before distributing requests.",
         )
     if status == "capacity_guardrail":
-        return (
-            "Expose capacity reserve metadata without enforcing capacity.",
-        )
-    return (
-        "Preserve provider visibility without routing or selection.",
-    )
+        return ("Expose capacity reserve metadata without enforcing capacity.",)
+    return ("Preserve provider visibility without routing or selection.",)
 
 
 def _plan_actions(

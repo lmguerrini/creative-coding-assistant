@@ -370,9 +370,7 @@ class CreativeDNAPlan(BaseModel):
             self.high_confidence_signature_ids
         ):
             raise ValueError("high_confidence_signature_count must match signatures")
-        if self.hitl_required_signature_count != len(
-            self.hitl_required_signature_ids
-        ):
+        if self.hitl_required_signature_count != len(self.hitl_required_signature_ids):
             raise ValueError("hitl_required_signature_count must match signatures")
         if self.highest_creative_dna_score != max(
             signature.creative_dna_score for signature in self.signatures

@@ -108,8 +108,7 @@ class ArchitectureEvolutionEngineTests(unittest.TestCase):
             self.assertFalse(proposal.runtime_evolution_implemented)
 
         dependency = architecture_evolution_engine_proposal_by_id(
-            "architecture_evolution_engine::"
-            "architecture_dependency_graph_signal",
+            "architecture_evolution_engine::architecture_dependency_graph_signal",
             plan,
         )
         self.assertIsNotNone(dependency)

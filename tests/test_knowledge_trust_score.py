@@ -218,9 +218,7 @@ class KnowledgeTrustScoreTests(unittest.TestCase):
             self.assertFalse(signal.trust_threshold_enforcement_implemented)
             self.assertFalse(signal.source_trust_mutation_implemented)
             self.assertFalse(signal.source_reliability_score_mutation_implemented)
-            self.assertFalse(
-                signal.knowledge_freshness_tracking_execution_implemented
-            )
+            self.assertFalse(signal.knowledge_freshness_tracking_execution_implemented)
             self.assertFalse(signal.freshness_scan_execution_implemented)
             self.assertFalse(signal.freshness_score_computation_implemented)
             self.assertFalse(signal.freshness_record_write_implemented)

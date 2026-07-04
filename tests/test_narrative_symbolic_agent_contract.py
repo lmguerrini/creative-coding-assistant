@@ -13,9 +13,7 @@ class NarrativeSymbolicAgentContractTests(unittest.TestCase):
         registry = agent_contract_registry()
         contract = agent_contract_by_id("narrative_symbolic_agent")
         identity = agent_identity_by_id("narrative_symbolic_agent")
-        memory_contract = agent_memory_contract_by_agent_id(
-            "narrative_symbolic_agent"
-        )
+        memory_contract = agent_memory_contract_by_agent_id("narrative_symbolic_agent")
 
         self.assertIsNotNone(contract)
         self.assertIsNotNone(identity)

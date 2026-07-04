@@ -151,7 +151,9 @@ class ExecutionCostForecast(BaseModel):
 
     @model_validator(mode="after")
     def _forecast_matches_scenarios(self) -> Self:
-        derived_scenario_ids = tuple(scenario.scenario_id for scenario in self.scenarios)
+        derived_scenario_ids = tuple(
+            scenario.scenario_id for scenario in self.scenarios
+        )
         if len(set(derived_scenario_ids)) != len(derived_scenario_ids):
             raise ValueError("scenario_ids must be unique")
         if self.scenario_ids != derived_scenario_ids:

@@ -29,9 +29,7 @@ PerformanceRegressionStatus = Literal[
 ]
 PerformanceRegressionSeverity = Literal["low", "medium", "high", "guarded"]
 
-PERFORMANCE_REGRESSION_SIGNAL_SERIALIZATION_VERSION = (
-    "performance_regression_signal.v1"
-)
+PERFORMANCE_REGRESSION_SIGNAL_SERIALIZATION_VERSION = "performance_regression_signal.v1"
 PERFORMANCE_REGRESSION_DETECTION_PLAN_SERIALIZATION_VERSION = (
     "performance_regression_detection_plan.v1"
 )
@@ -142,9 +140,7 @@ class PerformanceRegressionDetectionPlan(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["performance_regression_detector"] = (
-        "performance_regression_detector"
-    )
+    role: Literal["performance_regression_detector"] = "performance_regression_detector"
     serialization_version: Literal["performance_regression_detection_plan.v1"] = (
         PERFORMANCE_REGRESSION_DETECTION_PLAN_SERIALIZATION_VERSION
     )
@@ -511,12 +507,8 @@ def _signal_actions(status: PerformanceRegressionStatus) -> tuple[str, ...]:
             "Require explicit runtime authority before measuring regressions.",
         )
     if status == "review_only":
-        return (
-            "Keep reasoning-budget regression pressure review-only.",
-        )
-    return (
-        "Preserve measurement, threshold, alert, workflow, and output boundaries.",
-    )
+        return ("Keep reasoning-budget regression pressure review-only.",)
+    return ("Preserve measurement, threshold, alert, workflow, and output boundaries.",)
 
 
 def _plan_actions(

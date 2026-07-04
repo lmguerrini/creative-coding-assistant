@@ -212,9 +212,7 @@ class KnowledgeProvenanceEvolutionPlan(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["knowledge_provenance_evolution"] = (
-        "knowledge_provenance_evolution"
-    )
+    role: Literal["knowledge_provenance_evolution"] = "knowledge_provenance_evolution"
     serialization_version: Literal["knowledge_provenance_plan.v1"] = (
         KNOWLEDGE_PROVENANCE_PLAN_SERIALIZATION_VERSION
     )
@@ -395,9 +393,7 @@ class KnowledgeProvenanceEvolutionPlan(BaseModel):
             raise ValueError("signal_count must match signals")
         if self.candidate_signal_count != len(self.candidate_signal_ids):
             raise ValueError("candidate_signal_count must match signals")
-        if self.review_required_signal_count != len(
-            self.review_required_signal_ids
-        ):
+        if self.review_required_signal_count != len(self.review_required_signal_ids):
             raise ValueError("review_required_signal_count must match signals")
         if self.guarded_signal_count != len(self.guarded_signal_ids):
             raise ValueError("guarded_signal_count must match signals")
@@ -411,9 +407,7 @@ class KnowledgeProvenanceEvolutionPlan(BaseModel):
             raise ValueError("highest_provenance_score must match signals")
         if self.overall_provenance_score != _overall_provenance_score(self.signals):
             raise ValueError("overall_provenance_score must match signals")
-        if self.overall_provenance_posture != _overall_provenance_posture(
-            self.signals
-        ):
+        if self.overall_provenance_posture != _overall_provenance_posture(self.signals):
             raise ValueError("overall_provenance_posture must match signals")
         declared_lifecycle_signals = set(self.knowledge_lifecycle_signal_ids)
         for signal in self.signals:
@@ -426,9 +420,7 @@ class KnowledgeProvenanceEvolutionPlan(BaseModel):
             if not set(signal.knowledge_lifecycle_signal_ids).issubset(
                 declared_lifecycle_signals
             ):
-                raise ValueError(
-                    "signal knowledge_lifecycle_signal_ids must be known"
-                )
+                raise ValueError("signal knowledge_lifecycle_signal_ids must be known")
         return self
 
 
@@ -501,9 +493,7 @@ def build_knowledge_provenance_evolution(
             _signal_ids_for_confidence(signals, "high", "guarded")
         ),
         hitl_required_signal_count=sum(
-            1
-            for signal in signals
-            if signal.hitl_required_before_provenance_evolution
+            1 for signal in signals if signal.hitl_required_before_provenance_evolution
         ),
         highest_provenance_score=max(signal.provenance_score for signal in signals),
         overall_provenance_score=_overall_provenance_score(signals),
@@ -576,8 +566,7 @@ def _signals(
             execution_mode_id=execution_mode_id,
             axis="lineage_review",
             lifecycle_signal_ids=(
-                "knowledge_lifecycle_management::"
-                "knowledge_lifecycle_inventory_review",
+                "knowledge_lifecycle_management::knowledge_lifecycle_inventory_review",
                 "knowledge_lifecycle_management::"
                 "knowledge_lifecycle_stage_policy_review",
             ),

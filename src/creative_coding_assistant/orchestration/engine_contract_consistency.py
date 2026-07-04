@@ -114,9 +114,9 @@ class EngineContractConsistencyRegistry(BaseModel):
     role: Literal["engine_contract_consistency_registry"] = (
         "engine_contract_consistency_registry"
     )
-    serialization_version: Literal[
-        "engine_contract_consistency_registry.v1"
-    ] = ENGINE_CONTRACT_CONSISTENCY_REGISTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["engine_contract_consistency_registry.v1"] = (
+        ENGINE_CONTRACT_CONSISTENCY_REGISTRY_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=ENGINE_CONTRACT_CONSISTENCY_REGISTRY_AUTHORITY_BOUNDARY,
         max_length=900,

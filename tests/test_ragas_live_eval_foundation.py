@@ -207,10 +207,12 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
             input_path.write_text(
                 "\n".join(
                     (
-                        _sample(sample_id="sample-1", with_context=True)
-                        .model_dump_json(),
-                        _sample(sample_id="sample-2", with_context=False)
-                        .model_dump_json(),
+                        _sample(
+                            sample_id="sample-1", with_context=True
+                        ).model_dump_json(),
+                        _sample(
+                            sample_id="sample-2", with_context=False
+                        ).model_dump_json(),
                     )
                 ),
                 encoding="utf-8",
@@ -305,14 +307,18 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
             input_path.write_text(
                 "\n".join(
                     (
-                        _sample(sample_id="sample-1", with_context=True)
-                        .model_dump_json(),
-                        _sample(sample_id="sample-2", with_context=False)
-                        .model_dump_json(),
-                        _sample(sample_id="sample-3", with_context=True)
-                        .model_dump_json(),
-                        _sample(sample_id="sample-4", with_context=True)
-                        .model_dump_json(),
+                        _sample(
+                            sample_id="sample-1", with_context=True
+                        ).model_dump_json(),
+                        _sample(
+                            sample_id="sample-2", with_context=False
+                        ).model_dump_json(),
+                        _sample(
+                            sample_id="sample-3", with_context=True
+                        ).model_dump_json(),
+                        _sample(
+                            sample_id="sample-4", with_context=True
+                        ).model_dump_json(),
                     )
                 ),
                 encoding="utf-8",

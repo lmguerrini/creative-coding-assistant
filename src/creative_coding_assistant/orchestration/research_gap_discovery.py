@@ -210,9 +210,7 @@ class ResearchGapDiscoveryPlan(BaseModel):
     research_confidence_role: Literal["research_confidence_engine"] = (
         "research_confidence_engine"
     )
-    research_confidence_serialization_version: Literal[
-        "research_confidence_plan.v1"
-    ]
+    research_confidence_serialization_version: Literal["research_confidence_plan.v1"]
     confidence_entry_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
     confidence_entry_count: int = Field(ge=5, le=5)
     covered_roadmap_items: tuple[str, ...] = Field(min_length=1, max_length=1)
@@ -468,9 +466,7 @@ def build_research_gap_discovery(
         hitl_required_entry_count=sum(
             1 for entry in entries if entry.hitl_required_before_gap_discovery
         ),
-        highest_gap_discovery_score=max(
-            entry.gap_discovery_score for entry in entries
-        ),
+        highest_gap_discovery_score=max(entry.gap_discovery_score for entry in entries),
         overall_gap_discovery_score=_overall_gap_score(entries),
         overall_gap_discovery_posture=_overall_gap_posture(entries),
         advisory_actions=_plan_actions(entries),
@@ -744,9 +740,7 @@ def _entry_ids_for_confidence(
     entries: tuple[ResearchGapEntry, ...],
     *confidences: ResearchGapConfidence,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(entries: tuple[ResearchGapEntry, ...]) -> tuple[str, ...]:

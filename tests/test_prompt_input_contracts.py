@@ -149,9 +149,7 @@ class PromptInputContractsTests(unittest.TestCase):
                     "shader_presets": {
                         "presets": ["glow"],
                         "color_behavior": ["Use a bright core color."],
-                        "light_material_behavior": [
-                            "Use bounded emission layers."
-                        ],
+                        "light_material_behavior": ["Use bounded emission layers."],
                         "motion_behavior": ["Pulse intensity slowly."],
                         "shader_structure": ["Separate an emission mask."],
                         "runtime_suitability": [
@@ -169,9 +167,7 @@ class PromptInputContractsTests(unittest.TestCase):
                         "contrast_behavior": [
                             "Create hierarchy through spacing and value."
                         ],
-                        "composition_tendencies": [
-                            "Use deliberate negative space."
-                        ],
+                        "composition_tendencies": ["Use deliberate negative space."],
                         "motion_tendencies": ["Use slow, readable transitions."],
                         "texture_tendencies": ["Keep surfaces clean."],
                         "spatial_organization": ["Favor a stable focal point."],
@@ -254,10 +250,7 @@ class PromptInputContractsTests(unittest.TestCase):
                 artifactId="reactive-field",
                 title="reactive-field.p5.js",
                 language="p5.js",
-                content=(
-                    "const fft = new Tone.FFT(); "
-                    "Tone.Transport.bpm.value = 96;"
-                ),
+                content=("const fft = new Tone.FFT(); Tone.Transport.bpm.value = 96;"),
                 instruction=(
                     "Rotation speed: 1.2 x\n"
                     "Bloom intensity: 1.4 x\n"
@@ -836,9 +829,7 @@ def _assembled_context(
 ) -> AssembledContextResponse:
     memory_context = _memory_context() if memory_context is None else memory_context
     retrieval_context = (
-        _retrieval_context()
-        if retrieval_context is _UNSET
-        else retrieval_context
+        _retrieval_context() if retrieval_context is _UNSET else retrieval_context
     )
     request = build_assembled_context_request(
         route_decision=RouteDecision(
@@ -870,9 +861,7 @@ def _assembled_context(
                 else 0
             ),
             retrieval_chunk_count=(
-                len(retrieval_context.chunks)
-                if retrieval_context is not None
-                else 0
+                len(retrieval_context.chunks) if retrieval_context is not None else 0
             ),
         ),
         memory_context=memory_context,

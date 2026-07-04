@@ -32,9 +32,7 @@ WorkflowExplainabilityPanelKind = Literal[
 ]
 WorkflowExplainabilityStatus = Literal["ready", "guarded"]
 
-WORKFLOW_EXPLAINABILITY_PANEL_SERIALIZATION_VERSION = (
-    "workflow_explainability_panel.v1"
-)
+WORKFLOW_EXPLAINABILITY_PANEL_SERIALIZATION_VERSION = "workflow_explainability_panel.v1"
 WORKFLOW_EXPLAINABILITY_DASHBOARD_SERIALIZATION_VERSION = (
     "workflow_explainability_dashboard.v1"
 )
@@ -374,7 +372,9 @@ def _workflow_panel(source: WorkflowDiagnostics) -> WorkflowExplainabilityPanel:
         "workflow_diagnostics",
         source.serialization_version,
         source.panel_ids,
-        source.diagnostic_signal_count + source.panel_count + len(source.guarded_panel_ids),
+        source.diagnostic_signal_count
+        + source.panel_count
+        + len(source.guarded_panel_ids),
         len(source.blocked_runtime_behaviors),
         (
             f"workflow_panels:{source.panel_count}",
@@ -463,7 +463,9 @@ def _timeline_panel(source: RuntimeTimeline) -> WorkflowExplainabilityPanel:
         "runtime_timeline",
         source.serialization_version,
         source.panel_ids,
-        source.timeline_signal_count + source.panel_count + len(source.guarded_panel_ids),
+        source.timeline_signal_count
+        + source.panel_count
+        + len(source.guarded_panel_ids),
         len(source.blocked_runtime_behaviors),
         (
             f"timeline_panels:{source.panel_count}",
@@ -513,7 +515,7 @@ def _panel(
         evidence=evidence,
         advisory_actions=(
             primary_action,
-            "Keep explanation generation, provenance recording, trace capture, routing, workflow execution, storage, and output mutation disabled.",
+            "Keep explanation generation, provenance recording, trace capture, routing, workflow execution, storage, and output mutation disabled.",  # noqa: E501
         ),
     )
 

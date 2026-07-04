@@ -78,7 +78,10 @@ class CreativeScoreEngineTests(unittest.TestCase):
         self.assertTrue(score.positive_contributions)
         self.assertTrue(score.score_calibration_notes)
         self.assertTrue(
-            any("confidence weight" in item.lower() for item in score.score_calibration_notes)
+            any(
+                "confidence weight" in item.lower()
+                for item in score.score_calibration_notes
+            )
         )
         self.assertIn("uncertainty penalty", score.score_explainability)
 
@@ -103,7 +106,9 @@ class CreativeScoreEngineTests(unittest.TestCase):
                 ),
             }
         )
-        evaluation = _self_evaluation(stack, generated_response="Incomplete.").model_copy(
+        evaluation = _self_evaluation(
+            stack, generated_response="Incomplete."
+        ).model_copy(
             update={
                 "request_alignment": 0.34,
                 "intent_alignment": 0.35,
@@ -138,7 +143,9 @@ class CreativeScoreEngineTests(unittest.TestCase):
     ) -> None:
         stack = _stack("Generate a p5.js sketch with mixed scoring signals.")
         critic = _high_quality_critic(stack)
-        evaluation = _self_evaluation(stack, generated_response="Incomplete.").model_copy(
+        evaluation = _self_evaluation(
+            stack, generated_response="Incomplete."
+        ).model_copy(
             update={
                 "request_alignment": 0.36,
                 "intent_alignment": 0.35,
@@ -176,9 +183,7 @@ class CreativeScoreEngineTests(unittest.TestCase):
                     "Runtime expectations need confirmation.",
                     "Final artifact evaluation target is ambiguous.",
                 ),
-                "hitl_questions": (
-                    "Should score criteria be confirmed by a human?",
-                ),
+                "hitl_questions": ("Should score criteria be confirmed by a human?",),
                 "ambiguity_assessment": "high",
             }
         )
@@ -190,7 +195,10 @@ class CreativeScoreEngineTests(unittest.TestCase):
         self.assertGreaterEqual(score.uncertainty_penalty, 8)
         self.assertTrue(score.negative_contributions)
         self.assertTrue(
-            any("uncertainty penalty" in item.lower() for item in score.negative_contributions),
+            any(
+                "uncertainty penalty" in item.lower()
+                for item in score.negative_contributions
+            ),
             score.negative_contributions,
         )
         self.assertIn(
@@ -304,7 +312,9 @@ class CreativeScoreEngineTests(unittest.TestCase):
             any("Creative score:" in item for item in director.planning_focus),
             director.planning_focus,
         )
-        self.assertIn("creative_score", {item.source for item in reasoning.evidence_chain})
+        self.assertIn(
+            "creative_score", {item.source for item in reasoning.evidence_chain}
+        )
         self.assertEqual(
             score.model_dump(mode="json")["role"],
             "creative_score_engine",

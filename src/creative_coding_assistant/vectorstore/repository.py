@@ -84,10 +84,9 @@ class ChromaRepository:
             metadata=metadatas[0] if metadatas else {},
         )
 
-    def list(self, where: dict[str, object] | None = None) -> tuple[
-        StoredVectorRecord,
-        ...
-    ]:
+    def list(
+        self, where: dict[str, object] | None = None
+    ) -> tuple[StoredVectorRecord, ...]:
         result = self.collection.get(
             where=where,
             include=["documents", "metadatas"],

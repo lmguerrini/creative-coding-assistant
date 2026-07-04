@@ -647,15 +647,12 @@ def _evidence(
         evidence.append(f"Intent decomposition: {creative_intent.primary_expression}.")
     if creative_hierarchy is not None:
         evidence.append(
-            "Hierarchy confidence: "
-            f"{creative_hierarchy.hierarchy_confidence:.2f}."
+            f"Hierarchy confidence: {creative_hierarchy.hierarchy_confidence:.2f}."
         )
     if creative_strategy is not None:
         evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
     if creative_techniques is not None:
-        evidence.append(
-            f"Creative technique: {creative_techniques.primary_technique}."
-        )
+        evidence.append(f"Creative technique: {creative_techniques.primary_technique}.")
     if support is not None:
         evidence.append(f"Runtime support: {support.label}.")
     if retrieval_chunk_count:

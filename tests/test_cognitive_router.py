@@ -159,9 +159,9 @@ class CognitiveRouterTests(unittest.TestCase):
     def test_cognitive_router_rejects_application_and_drift(self) -> None:
         router = build_cognitive_router()
         payload = router.model_dump(mode="json")
-        payload["route_decision_ids"] = (
-            "missing",
-        ) + tuple(payload["route_decision_ids"][1:])
+        payload["route_decision_ids"] = ("missing",) + tuple(
+            payload["route_decision_ids"][1:]
+        )
 
         with self.assertRaisesRegex(ValueError, "route_decision_ids must match"):
             CognitiveRouterPlan(**payload)

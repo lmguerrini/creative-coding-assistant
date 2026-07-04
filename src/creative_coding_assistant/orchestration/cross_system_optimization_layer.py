@@ -92,9 +92,7 @@ class CrossSystemOptimizationLayerPlan(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["cross_system_optimization_layer"] = (
-        "cross_system_optimization_layer"
-    )
+    role: Literal["cross_system_optimization_layer"] = "cross_system_optimization_layer"
     serialization_version: Literal["cross_system_optimization_layer.v1"] = (
         CROSS_SYSTEM_OPTIMIZATION_LAYER_SERIALIZATION_VERSION
     )
@@ -184,9 +182,7 @@ class CrossSystemOptimizationLayerPlan(BaseModel):
             raise ValueError("optimization_signal_ids must match signals")
         if self.optimization_signal_count != len(self.optimization_signals):
             raise ValueError("optimization_signal_count must match signals")
-        if len(set(self.optimization_signal_ids)) != len(
-            self.optimization_signal_ids
-        ):
+        if len(set(self.optimization_signal_ids)) != len(self.optimization_signal_ids):
             raise ValueError("optimization_signal_ids must be unique")
         declared_capabilities = set(self.capability_ids)
         declared_learning_signals = set(self.source_learning_signal_ids)

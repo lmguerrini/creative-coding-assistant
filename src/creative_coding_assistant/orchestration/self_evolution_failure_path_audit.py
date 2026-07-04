@@ -280,9 +280,9 @@ class SelfEvolutionFailurePathAuditRegistry(BaseModel):
     role: Literal["self_evolution_failure_path_audit_registry"] = (
         "self_evolution_failure_path_audit_registry"
     )
-    serialization_version: Literal[
-        "self_evolution_failure_path_audit_registry.v1"
-    ] = SELF_EVOLUTION_FAILURE_PATH_AUDIT_REGISTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["self_evolution_failure_path_audit_registry.v1"] = (
+        SELF_EVOLUTION_FAILURE_PATH_AUDIT_REGISTRY_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=SELF_EVOLUTION_FAILURE_PATH_AUDIT_AUTHORITY_BOUNDARY,
         max_length=3200,

@@ -231,7 +231,9 @@ def analyze_workflow_cost(
 
     graph = execution_graph or analyze_assistant_execution_graph()
     agent_costs = agent_cost_registry or agent_cost_tracking_foundation_registry()
-    artifact_engines = artifact_engine_registry or artifact_intelligence_engine_contracts()
+    artifact_engines = (
+        artifact_engine_registry or artifact_intelligence_engine_contracts()
+    )
     components = _components(
         graph=graph,
         creative_plan=creative_plan,
@@ -313,8 +315,7 @@ def _components(
     artifact_engines: ArtifactIntelligenceEngineContractRegistry,
 ) -> tuple[WorkflowCostComponent, ...]:
     components = [
-        _workflow_node_component(node_id, creative_plan)
-        for node_id in graph.node_order
+        _workflow_node_component(node_id, creative_plan) for node_id in graph.node_order
     ]
     components.append(_retry_reserve_component(creative_plan))
     components.append(_failure_reserve_component())
@@ -350,8 +351,7 @@ def _retry_reserve_component(
 ) -> WorkflowCostComponent:
     retry_count = _retry_iteration_count(creative_plan)
     iteration_estimate = sum(
-        _node_token_estimate(node_id, creative_plan)
-        for node_id in _RETRY_PATH_NODE_IDS
+        _node_token_estimate(node_id, creative_plan) for node_id in _RETRY_PATH_NODE_IDS
     )
     return WorkflowCostComponent(
         component_id="reserve::retry_path",

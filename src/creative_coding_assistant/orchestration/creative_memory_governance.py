@@ -340,9 +340,7 @@ class CreativeMemoryGovernancePlan(BaseModel):
             boundary.governance_score for boundary in self.boundaries
         ):
             raise ValueError("highest_governance_score must match boundaries")
-        if self.overall_governance_score != _overall_governance_score(
-            self.boundaries
-        ):
+        if self.overall_governance_score != _overall_governance_score(self.boundaries):
             raise ValueError("overall_governance_score must match boundaries")
         if self.overall_governance_posture != _overall_governance_posture(
             self.boundaries
@@ -768,9 +766,7 @@ def _surface_summary(kind: CreativeMemoryGovernanceBoundaryKind) -> str:
 
 
 def _review_requirement(kind: CreativeMemoryGovernanceBoundaryKind) -> str:
-    return (
-        f"Manual review is required before applying {kind} to runtime behavior."
-    )
+    return f"Manual review is required before applying {kind} to runtime behavior."
 
 
 def _explainability_requirement(kind: CreativeMemoryGovernanceBoundaryKind) -> str:

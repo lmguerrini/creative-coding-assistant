@@ -182,10 +182,7 @@ class CreativeCriticEngineTests(unittest.TestCase):
         self.assertIn("Creative Critic Engine:", system)
         self.assertIn("Creative critic risk assessment:", system)
         self.assertTrue(
-            any(
-                "Creative critic:" in item
-                for item in stack.director.planning_focus
-            ),
+            any("Creative critic:" in item for item in stack.director.planning_focus),
             stack.director.planning_focus,
         )
         self.assertIn(
@@ -247,9 +244,7 @@ class _DerivedStack:
 
 def _stack(query: str) -> _DerivedStack:
     export_stack = _export_stack(query)
-    raw_artifact_critic = (
-        export_stack.merge_stack.synthesis_stack.refiner_stack.critic_stack.artifact_critic
-    )
+    raw_artifact_critic = export_stack.merge_stack.synthesis_stack.refiner_stack.critic_stack.artifact_critic
     artifact_critic = raw_artifact_critic.model_copy(
         update={
             "risk_assessment": "medium",
@@ -290,9 +285,7 @@ def _stack(query: str) -> _DerivedStack:
         multi_artifact_strategy=export_stack.multi_artifact_strategy,
         artifact_critic=artifact_critic,
         artifact_refiner=artifact_refiner,
-        artifact_intelligence_synthesis=(
-            export_stack.artifact_intelligence_synthesis
-        ),
+        artifact_intelligence_synthesis=(export_stack.artifact_intelligence_synthesis),
         artifact_merge_planner=export_stack.artifact_merge_planner,
         artifact_export_intelligence=export_stack.artifact_export_intelligence,
         creative_critic=creative_critic,
@@ -323,9 +316,7 @@ def _stack(query: str) -> _DerivedStack:
         multi_artifact_strategy=export_stack.multi_artifact_strategy,
         artifact_critic=artifact_critic,
         artifact_refiner=artifact_refiner,
-        artifact_intelligence_synthesis=(
-            export_stack.artifact_intelligence_synthesis
-        ),
+        artifact_intelligence_synthesis=(export_stack.artifact_intelligence_synthesis),
         artifact_merge_planner=export_stack.artifact_merge_planner,
         artifact_export_intelligence=export_stack.artifact_export_intelligence,
         creative_critic=creative_critic,

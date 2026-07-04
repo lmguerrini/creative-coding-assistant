@@ -191,9 +191,7 @@ class CognitiveSafetyLayerTests(unittest.TestCase):
             CognitiveSafetyLayerPlan(**payload)
 
         payload = safety.model_dump(mode="json")
-        payload["enforced_safety_ids"] = (
-            "cognitive_safety::v6_6_cognitive_core",
-        )
+        payload["enforced_safety_ids"] = ("cognitive_safety::v6_6_cognitive_core",)
 
         with self.assertRaisesRegex(
             ValueError,

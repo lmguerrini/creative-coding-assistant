@@ -6,12 +6,12 @@ import re
 from collections.abc import Callable
 from statistics import mean
 
+from creative_coding_assistant.orchestration._metadata_utils import _token_set
 from creative_coding_assistant.orchestration.artifacts import (
     CreativeQualityEvaluation,
     CreativeQualityObservation,
     WorkflowArtifact,
 )
-from creative_coding_assistant.orchestration._metadata_utils import _token_set
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
@@ -123,8 +123,7 @@ _REFINEMENT_OPPORTUNITIES = {
         "decisions reinforce one concept."
     ),
     "aesthetic_consistency": (
-        "Define a consistent palette, material, or contrast system across the "
-        "artifact."
+        "Define a consistent palette, material, or contrast system across the artifact."
     ),
     "expressiveness": (
         "Strengthen motion, variation, or interaction so the concept develops "
@@ -177,10 +176,7 @@ def evaluate_artifact_creative_quality(
     }
     overall = round(mean(item.score for item in observations.values()), 3)
     strengths = tuple(
-        (
-            f"{_DIMENSION_LABELS[name]}: "
-            f"{observation.observation.rstrip('.')}."
-        )
+        (f"{_DIMENSION_LABELS[name]}: {observation.observation.rstrip('.')}.")
         for name, observation in observations.items()
         if observation.score >= 0.72
     )[:3]
@@ -287,9 +283,7 @@ def _score_originality(
             metadata_count,
             "concept metadata",
             extra=(
-                f"{numeric_variation} numeric choices"
-                if numeric_variation
-                else None
+                f"{numeric_variation} numeric choices" if numeric_variation else None
             ),
         ),
     )
@@ -405,10 +399,7 @@ def _score_expressiveness(
         lambda translation: (
             *translation.movement_language,
             *(
-                (
-                    mapping.behavior
-                    for mapping in translation.audio_reactive.mappings
-                )
+                (mapping.behavior for mapping in translation.audio_reactive.mappings)
                 if translation.audio_reactive
                 else ()
             ),
@@ -447,13 +438,7 @@ def _observation(
     evidence: tuple[str, ...],
 ) -> CreativeQualityObservation:
     bounded = round(min(max(score, 0.0), 1.0), 3)
-    level = (
-        "strong"
-        if bounded >= 0.78
-        else "developing"
-        if bounded >= 0.55
-        else "weak"
-    )
+    level = "strong" if bounded >= 0.78 else "developing" if bounded >= 0.55 else "weak"
     return CreativeQualityObservation(
         score=bounded,
         level=level,

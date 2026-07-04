@@ -182,10 +182,7 @@ class PreviewRendererCapability(BaseModel):
     def normalize_supported_domains(
         cls,
         value: (
-            Sequence[CreativeCodingDomain | str]
-            | CreativeCodingDomain
-            | str
-            | None
+            Sequence[CreativeCodingDomain | str] | CreativeCodingDomain | str | None
         ),
     ) -> tuple[CreativeCodingDomain, ...]:
         return _normalize_enum_sequence(value, CreativeCodingDomain)
@@ -412,8 +409,7 @@ class PreviewResult(BaseModel):
 
         if self.error is not None:
             raise ValueError(
-                "Successful or skipped preview results cannot include an error "
-                "payload."
+                "Successful or skipped preview results cannot include an error payload."
             )
 
         if (

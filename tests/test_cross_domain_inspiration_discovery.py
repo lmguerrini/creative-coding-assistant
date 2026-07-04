@@ -63,12 +63,8 @@ class CrossDomainInspirationDiscoveryTests(unittest.TestCase):
         self.assertEqual(plan.overall_inspiration_posture, "guarded")
         self.assertIn("does not execute inspiration discovery", plan.authority_boundary)
         self.assertIn("perform live cross-domain search", plan.authority_boundary)
-        self.assertTrue(
-            plan.cross_domain_inspiration_discovery_capability_implemented
-        )
-        self.assertTrue(
-            plan.cross_domain_inspiration_discovery_metadata_implemented
-        )
+        self.assertTrue(plan.cross_domain_inspiration_discovery_capability_implemented)
+        self.assertTrue(plan.cross_domain_inspiration_discovery_metadata_implemented)
         self.assertTrue(plan.roadmap_item_covered)
         self.assertTrue(plan.creative_research_metadata_used)
         self.assertFalse(plan.inspiration_discovery_execution_implemented)
@@ -103,9 +99,7 @@ class CrossDomainInspirationDiscoveryTests(unittest.TestCase):
                 f"cross_domain_inspiration::{entry.inspiration_kind}",
             )
             self.assertTrue(
-                set(entry.creative_research_entry_ids).issubset(
-                    creative_research_ids
-                )
+                set(entry.creative_research_entry_ids).issubset(creative_research_ids)
             )
             self.assertEqual(entry.source_count, plan.source_count)
             self.assertEqual(entry.domain_count, plan.domain_count)
@@ -135,9 +129,7 @@ class CrossDomainInspirationDiscoveryTests(unittest.TestCase):
                 entry.blocked_runtime_behaviors,
             )
             self.assertIn("live_cross_domain_search", entry.blocked_runtime_behaviors)
-            self.assertTrue(
-                entry.hitl_required_before_inspiration_discovery_execution
-            )
+            self.assertTrue(entry.hitl_required_before_inspiration_discovery_execution)
             self.assertTrue(
                 entry.cross_domain_inspiration_discovery_capability_implemented
             )

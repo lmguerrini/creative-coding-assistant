@@ -39,9 +39,7 @@ CognitiveOSGovernancePosture = Literal["blocked", "review_required", "guarded"]
 COGNITIVE_OS_GOVERNANCE_BOUNDARY_SERIALIZATION_VERSION = (
     "cognitive_os_governance_boundary.v1"
 )
-COGNITIVE_OS_GOVERNANCE_PLAN_SERIALIZATION_VERSION = (
-    "cognitive_os_governance_safety.v1"
-)
+COGNITIVE_OS_GOVERNANCE_PLAN_SERIALIZATION_VERSION = "cognitive_os_governance_safety.v1"
 COGNITIVE_OS_GOVERNANCE_TASK_ITEM = "Governance and Safety"
 COGNITIVE_OS_GOVERNANCE_SOURCE_ROLES = (
     "cognitive_os_core_surface",
@@ -313,9 +311,7 @@ class CognitiveOSGovernanceSafetyPlan(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["cognitive_os_governance_safety"] = (
-        "cognitive_os_governance_safety"
-    )
+    role: Literal["cognitive_os_governance_safety"] = "cognitive_os_governance_safety"
     serialization_version: Literal["cognitive_os_governance_safety.v1"] = (
         COGNITIVE_OS_GOVERNANCE_PLAN_SERIALIZATION_VERSION
     )
@@ -440,8 +436,7 @@ class CognitiveOSGovernanceSafetyPlan(BaseModel):
         if self.governed_roadmap_item_count != len(self.governed_roadmap_items):
             raise ValueError("governed_roadmap_item_count must match roadmap")
         if self.source_core_surface_ids != tuple(
-            boundary.source_core_surface_id
-            for boundary in self.governance_boundaries
+            boundary.source_core_surface_id for boundary in self.governance_boundaries
         ):
             raise ValueError("source_core_surface_ids must match boundaries")
         if self.source_secondary_surface_ids != tuple(
@@ -480,9 +475,7 @@ class CognitiveOSGovernanceSafetyPlan(BaseModel):
             raise ValueError("hitl_required_boundary_ids must match boundaries")
         if self.guarded_boundary_count != len(self.guarded_boundary_ids):
             raise ValueError("guarded_boundary_count must match ids")
-        if self.hitl_required_boundary_count != len(
-            self.hitl_required_boundary_ids
-        ):
+        if self.hitl_required_boundary_count != len(self.hitl_required_boundary_ids):
             raise ValueError("hitl_required_boundary_count must match ids")
         if self.highest_governance_score != max(
             boundary.governance_score for boundary in self.governance_boundaries
@@ -619,8 +612,7 @@ def build_cognitive_os_governance_safety(
             boundary.governance_score for boundary in boundaries
         ),
         overall_governance_score=round(
-            sum(boundary.governance_score for boundary in boundaries)
-            / len(boundaries)
+            sum(boundary.governance_score for boundary in boundaries) / len(boundaries)
         ),
         overall_governance_posture=cognitive_os_governance_posture(boundaries),
         linked_agent_ids=secondary_surface.linked_agent_ids,
@@ -891,7 +883,5 @@ def _governance_boundary(
             f"governed_roadmap_item_count:{len(COGNITIVE_OS_ROADMAP_ITEMS)}",
         ),
         cross_cutting_contracts=COGNITIVE_OS_CONTRACTS,
-        blocked_runtime_behaviors=(
-            COGNITIVE_OS_GOVERNANCE_BLOCKED_RUNTIME_BEHAVIORS
-        ),
+        blocked_runtime_behaviors=(COGNITIVE_OS_GOVERNANCE_BLOCKED_RUNTIME_BEHAVIORS),
     )

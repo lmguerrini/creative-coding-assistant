@@ -16,9 +16,7 @@ SchedulingHint = Literal[
 ]
 
 PARALLEL_SCHEDULING_GROUP_SERIALIZATION_VERSION = "parallel_scheduling_group.v1"
-PARALLEL_SCHEDULING_REGISTRY_SERIALIZATION_VERSION = (
-    "parallel_scheduling_registry.v1"
-)
+PARALLEL_SCHEDULING_REGISTRY_SERIALIZATION_VERSION = "parallel_scheduling_registry.v1"
 PARALLEL_SCHEDULING_REGISTRY_AUTHORITY_BOUNDARY = (
     "Parallel scheduling metadata describes future concurrency groups, "
     "blocking relationships, scheduling hints, and safety flags only; it does "
@@ -194,7 +192,9 @@ def _group_id(stage_id: str) -> str:
     return f"parallel_group::{stage_id}"
 
 
-def _source_dependency_nodes(agent_ids: tuple[str, ...], stage_id: str) -> tuple[str, ...]:
+def _source_dependency_nodes(
+    agent_ids: tuple[str, ...], stage_id: str
+) -> tuple[str, ...]:
     return (
         f"stage::{stage_id}",
         *(f"context_view::{agent_id}" for agent_id in agent_ids),

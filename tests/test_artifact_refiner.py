@@ -55,9 +55,7 @@ class ArtifactRefinerTests(unittest.TestCase):
                 "scalability_concerns": (
                     "Dense particle counts can pressure frame rate.",
                 ),
-                "complexity_concerns": (
-                    "Complex scope can reduce inspectability.",
-                ),
+                "complexity_concerns": ("Complex scope can reduce inspectability.",),
             }
         )
         refiner = derive_artifact_refiner_profile(

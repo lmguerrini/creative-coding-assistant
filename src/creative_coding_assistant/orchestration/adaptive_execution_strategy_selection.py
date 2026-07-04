@@ -310,7 +310,9 @@ class AdaptiveExecutionStrategySelectionPlan(BaseModel):
 
     @model_validator(mode="after")
     def _plan_matches_strategies(self) -> Self:
-        derived_strategy_ids = tuple(strategy.strategy_id for strategy in self.strategies)
+        derived_strategy_ids = tuple(
+            strategy.strategy_id for strategy in self.strategies
+        )
         if len(set(derived_strategy_ids)) != len(derived_strategy_ids):
             raise ValueError("strategy_ids must be unique")
         if self.strategy_ids != derived_strategy_ids:
@@ -336,13 +338,17 @@ class AdaptiveExecutionStrategySelectionPlan(BaseModel):
         if self.selected_model_profile_sequence != (
             selected_strategy.model_profile_sequence
         ):
-            raise ValueError("selected_model_profile_sequence must match selected strategy")
+            raise ValueError(
+                "selected_model_profile_sequence must match selected strategy"
+            )
         if self.selected_strategy_count != 1:
             raise ValueError("selected_strategy_count must be one")
         if self.selected_strategy_score != selected_strategy.dynamic_strategy_score:
             raise ValueError("selected_strategy_score must match selected strategy")
         if self.selected_strategy_hitl_required != selected_strategy.hitl_required:
-            raise ValueError("selected_strategy_hitl_required must match selected strategy")
+            raise ValueError(
+                "selected_strategy_hitl_required must match selected strategy"
+            )
         if self.applied_strategy_id is not None:
             raise ValueError("applied_strategy_id must remain unset")
         if self.fallback_strategy_ids != _strategy_ids_for_status(
@@ -356,7 +362,9 @@ class AdaptiveExecutionStrategySelectionPlan(BaseModel):
         ):
             raise ValueError("guardrail_strategy_ids must match strategies")
         if self.hitl_required_strategy_ids != tuple(
-            strategy.strategy_id for strategy in self.strategies if strategy.hitl_required
+            strategy.strategy_id
+            for strategy in self.strategies
+            if strategy.hitl_required
         ):
             raise ValueError("hitl_required_strategy_ids must match strategies")
         return self
@@ -383,7 +391,9 @@ def select_dynamic_execution_strategy(
         task_type=normalized_task_type,
         execution_mode_id=execution_mode_id,
     )
-    normalized_mode = str(execution_mode_id or hybrid_plan.candidates[0].execution_mode_id)
+    normalized_mode = str(
+        execution_mode_id or hybrid_plan.candidates[0].execution_mode_id
+    )
     execution_modes = routing_execution_mode_registry()
     if normalized_mode not in execution_modes.execution_mode_ids:
         raise ValueError("execution_mode_id must be a known execution mode")
@@ -440,7 +450,9 @@ def select_dynamic_execution_strategy(
         )
         for candidate in candidates
     )
-    selected = next(strategy for strategy in strategies if strategy.status == "selected")
+    selected = next(
+        strategy for strategy in strategies if strategy.status == "selected"
+    )
 
     return AdaptiveExecutionStrategySelectionPlan(
         route_name=route_name,
@@ -502,7 +514,9 @@ def adaptive_execution_strategies_for_status(
     """Return dynamic execution strategy candidates by advisory status."""
 
     source_plan = plan or select_dynamic_execution_strategy()
-    return tuple(strategy for strategy in source_plan.strategies if strategy.status == status)
+    return tuple(
+        strategy for strategy in source_plan.strategies if strategy.status == status
+    )
 
 
 def _strategy_candidates(
@@ -739,7 +753,9 @@ def _strategy_ids_for_status(
     strategies: tuple[AdaptiveExecutionStrategyCandidate, ...],
     status: DynamicExecutionStrategyStatus,
 ) -> tuple[str, ...]:
-    return tuple(strategy.strategy_id for strategy in strategies if strategy.status == status)
+    return tuple(
+        strategy.strategy_id for strategy in strategies if strategy.status == status
+    )
 
 
 def _candidate_actions(

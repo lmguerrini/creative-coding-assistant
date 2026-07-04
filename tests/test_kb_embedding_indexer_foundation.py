@@ -130,12 +130,7 @@ class _FakeEmbeddingsApi:
 
     def create(self, *, model: str, input: list[str]) -> dict[str, object]:
         self._calls.append({"model": model, "input": input})
-        return {
-            "data": [
-                {"embedding": embedding}
-                for embedding in self._embeddings
-            ]
-        }
+        return {"data": [{"embedding": embedding} for embedding in self._embeddings]}
 
 
 class _FakeOpenAIClient:

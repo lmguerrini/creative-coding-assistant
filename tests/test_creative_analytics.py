@@ -1,5 +1,6 @@
 import unittest
 
+from creative_coding_assistant.contracts import AssistantRequest
 from creative_coding_assistant.orchestration import (
     CreativeAnalytics,
     analyze_creative_complexity,
@@ -10,7 +11,6 @@ from creative_coding_assistant.orchestration import (
     creative_analytics_panels_for_status,
     predict_creative_diversity,
 )
-from creative_coding_assistant.contracts import AssistantRequest
 from creative_coding_assistant.orchestration.creative_analytics import (
     _quality_prediction,
 )
@@ -140,7 +140,9 @@ class CreativeAnalyticsTests(unittest.TestCase):
         self.assertIsNone(analytics.observed_creative_event_count)
         self.assertIsNone(analytics.evaluated_output_count)
         self.assertEqual(analytics.creative_analytics_status, "guarded")
-        self.assertIn("does not collect live creative metrics", analytics.authority_boundary)
+        self.assertIn(
+            "does not collect live creative metrics", analytics.authority_boundary
+        )
         self.assertTrue(analytics.creative_analytics_implemented)
         self.assertFalse(analytics.creative_metric_collection_implemented)
         self.assertFalse(analytics.generated_output_evaluation_implemented)

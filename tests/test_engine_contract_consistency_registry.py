@@ -170,7 +170,9 @@ class EngineContractConsistencyRegistryTests(unittest.TestCase):
             self.assertTrue(
                 any(field.endswith("_category") for field in family.identity_fields)
             )
-            self.assertEqual(family.input_fields, ("required_inputs", "optional_inputs"))
+            self.assertEqual(
+                family.input_fields, ("required_inputs", "optional_inputs")
+            )
             self.assertIn("authority_boundary", family.execution_boundary_fields)
             self.assertIn("cacheability", family.performance_fields)
             self.assertIn("estimated_cost_metadata", family.performance_fields)

@@ -123,9 +123,7 @@ class WorkflowReplayCandidate(BaseModel):
             status=self.status,
             workflow_node_count=self.workflow_node_count,
             session_replay_profile_count=self.session_replay_profile_count,
-            execution_profile_candidate_count=(
-                self.execution_profile_candidate_count
-            ),
+            execution_profile_candidate_count=(self.execution_profile_candidate_count),
             replay_context_count=self.replay_context_count,
         )
         if self.advisory_replay_score != expected_score:
@@ -271,8 +269,7 @@ class WorkflowReplayPlan(BaseModel):
         if self.total_session_replay_profile_count != expected_session_count:
             raise ValueError("total_session_replay_profile_count must match candidates")
         expected_profile_count = sum(
-            candidate.execution_profile_candidate_count
-            for candidate in self.candidates
+            candidate.execution_profile_candidate_count for candidate in self.candidates
         )
         if self.total_execution_profile_candidate_count != expected_profile_count:
             raise ValueError(
@@ -311,9 +308,7 @@ def plan_workflow_replay(
 
     graph = execution_graph or analyze_assistant_execution_graph()
     session = session_replay or session_replay_registry()
-    profiling = execution_profiling or plan_execution_profiling(
-        execution_graph=graph
-    )
+    profiling = execution_profiling or plan_execution_profiling(execution_graph=graph)
     candidates = _candidates(graph=graph, session=session, profiling=profiling)
     highest_score = max(candidate.advisory_replay_score for candidate in candidates)
 
@@ -358,8 +353,7 @@ def plan_workflow_replay(
             candidate.session_replay_profile_count for candidate in candidates
         ),
         total_execution_profile_candidate_count=sum(
-            candidate.execution_profile_candidate_count
-            for candidate in candidates
+            candidate.execution_profile_candidate_count for candidate in candidates
         ),
         total_replay_context_count=sum(
             candidate.replay_context_count for candidate in candidates
@@ -397,9 +391,7 @@ def workflow_replay_candidates_for_status(
 
     source_plan = plan or plan_workflow_replay()
     return tuple(
-        candidate
-        for candidate in source_plan.candidates
-        if candidate.status == status
+        candidate for candidate in source_plan.candidates if candidate.status == status
     )
 
 
@@ -538,9 +530,7 @@ def _candidate_ids_for_status(
     status: WorkflowReplayStatus,
 ) -> tuple[str, ...]:
     return tuple(
-        candidate.candidate_id
-        for candidate in candidates
-        if candidate.status == status
+        candidate.candidate_id for candidate in candidates if candidate.status == status
     )
 
 
@@ -600,12 +590,8 @@ def _candidate_actions(status: WorkflowReplayStatus) -> tuple[str, ...]:
             "Require explicit runtime authority before replay execution.",
         )
     if status == "failure_guardrail":
-        return (
-            "Preserve failure path visibility without replaying failure paths.",
-        )
-    return (
-        "Keep replay persistence and replay storage disabled.",
-    )
+        return ("Preserve failure path visibility without replaying failure paths.",)
+    return ("Keep replay persistence and replay storage disabled.",)
 
 
 def _plan_actions(

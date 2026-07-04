@@ -252,7 +252,9 @@ class RoutingDiagnosticsTests(unittest.TestCase):
             RoutingDiagnostics(**payload)
 
         payload = diagnostics.model_dump(mode="json")
-        payload["source_surfaces"] = ("missing",) + tuple(payload["source_surfaces"][1:])
+        payload["source_surfaces"] = ("missing",) + tuple(
+            payload["source_surfaces"][1:]
+        )
 
         with self.assertRaisesRegex(
             ValueError,

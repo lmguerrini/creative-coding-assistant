@@ -229,7 +229,9 @@ def execution_optimization_failure_audits_for_check(
     """Return failure audit records by check kind without runtime activation."""
 
     source_registry = registry or execution_optimization_failure_audit_registry()
-    return tuple(record for record in source_registry.records if record.check_kind == check_kind)
+    return tuple(
+        record for record in source_registry.records if record.check_kind == check_kind
+    )
 
 
 def _records() -> tuple[ExecutionOptimizationFailureAuditRecord, ...]:

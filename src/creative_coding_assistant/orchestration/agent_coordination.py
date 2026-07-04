@@ -17,12 +17,8 @@ CoordinationEventType = Literal[
     "human_review_signal_declared",
 ]
 
-COORDINATION_RESPONSIBILITY_SERIALIZATION_VERSION = (
-    "coordination_responsibility.v1"
-)
-COORDINATION_HANDOFF_CHANNEL_SERIALIZATION_VERSION = (
-    "coordination_handoff_channel.v1"
-)
+COORDINATION_RESPONSIBILITY_SERIALIZATION_VERSION = "coordination_responsibility.v1"
+COORDINATION_HANDOFF_CHANNEL_SERIALIZATION_VERSION = "coordination_handoff_channel.v1"
 COORDINATION_EVENT_SERIALIZATION_VERSION = "coordination_event.v1"
 COORDINATION_REGISTRY_SERIALIZATION_VERSION = "coordination_registry.v1"
 COORDINATION_REGISTRY_AUTHORITY_BOUNDARY = (
@@ -184,8 +180,7 @@ class AgentCoordinationRegistry(BaseModel):
     @model_validator(mode="after")
     def _registry_matches_contracts(self) -> Self:
         derived_coordinator_ids = tuple(
-            responsibility.coordinator_id
-            for responsibility in self.responsibilities
+            responsibility.coordinator_id for responsibility in self.responsibilities
         )
         derived_channel_ids = tuple(
             channel.handoff_channel_id for channel in self.handoff_channels
@@ -210,7 +205,10 @@ class AgentCoordinationRegistry(BaseModel):
                 raise ValueError("source_group_id must be a known scheduling group")
             if channel.target_group_id not in group_index:
                 raise ValueError("target_group_id must be a known scheduling group")
-            if group_index[channel.source_group_id] >= group_index[channel.target_group_id]:
+            if (
+                group_index[channel.source_group_id]
+                >= group_index[channel.target_group_id]
+            ):
                 raise ValueError("handoff channels must move downstream")
         return self
 
@@ -336,7 +334,9 @@ def _handoff_channels() -> tuple[CoordinationHandoffChannelContract, ...]:
 def _event_contracts(
     handoff_channels: tuple[CoordinationHandoffChannelContract, ...],
 ) -> tuple[CoordinationEventContract, ...]:
-    handoff_channel_ids = tuple(channel.handoff_channel_id for channel in handoff_channels)
+    handoff_channel_ids = tuple(
+        channel.handoff_channel_id for channel in handoff_channels
+    )
     return tuple(
         CoordinationEventContract(
             event_type=event_type,

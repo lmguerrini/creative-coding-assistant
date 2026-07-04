@@ -424,9 +424,7 @@ def _patterns(
         _pattern(
             kind="langgraph_failure_pattern",
             indicator_id="failure_tracking::langgraph_failure_tracking",
-            improvement_signal_id=(
-                "continuous_improvement::failure_prevention_signal"
-            ),
+            improvement_signal_id=("continuous_improvement::failure_prevention_signal"),
             learning_signal_id="adaptive_learning::workflow_pattern_learning",
             weight=200,
             route_name=route_name,
@@ -439,9 +437,7 @@ def _patterns(
         _pattern(
             kind="routing_failure_pattern",
             indicator_id="failure_tracking::routing_failure_tracking",
-            improvement_signal_id=(
-                "continuous_improvement::failure_prevention_signal"
-            ),
+            improvement_signal_id=("continuous_improvement::failure_prevention_signal"),
             learning_signal_id="adaptive_learning::routing_boundary_learning",
             weight=230,
             route_name=route_name,

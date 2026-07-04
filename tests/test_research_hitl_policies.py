@@ -96,9 +96,7 @@ class ResearchHITLPoliciesTests(unittest.TestCase):
                 f"research_hitl_policies::{entry.hitl_policy_kind}",
             )
             self.assertTrue(
-                set(entry.execution_policy_entry_ids).issubset(
-                    execution_policy_ids
-                )
+                set(entry.execution_policy_entry_ids).issubset(execution_policy_ids)
             )
             self.assertEqual(entry.source_count, plan.source_count)
             self.assertEqual(entry.domain_count, plan.domain_count)

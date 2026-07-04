@@ -93,7 +93,9 @@ class AgentCollaborationAuditTests(unittest.TestCase):
             audit_registry.source_collaboration_registries,
             EXPECTED_REGISTRY_IDS,
         )
-        self.assertEqual(audit_registry.source_registry_refs, EXPECTED_SOURCE_REGISTRY_REFS)
+        self.assertEqual(
+            audit_registry.source_registry_refs, EXPECTED_SOURCE_REGISTRY_REFS
+        )
         self.assertEqual(audit_registry.agent_ids, contract_registry.agent_ids)
         self.assertEqual(audit_registry.audit_count, 4)
         self.assertTrue(audit_registry.all_collaboration_registries_covered)
@@ -135,7 +137,9 @@ class AgentCollaborationAuditTests(unittest.TestCase):
                 record.validated_collaboration_surfaces,
                 registry.validated_collaboration_surfaces,
             )
-            self.assertEqual(record.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                record.passive_boundary_flags, registry.passive_boundary_flags
+            )
             self.assertFalse(record.missing_coverage_items)
             self.assertEqual(record.registry_id, record.registry_role)
             self.assertTrue(record.source_registry_refs)

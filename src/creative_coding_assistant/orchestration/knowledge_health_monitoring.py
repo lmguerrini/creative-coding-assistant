@@ -205,12 +205,8 @@ class KnowledgeHealthMonitoringPlan(BaseModel):
     route_name: RouteName
     task_type: TaskRoutingType
     checked_at: datetime
-    ranking_optimization_role: Literal["ranking_optimization"] = (
-        "ranking_optimization"
-    )
-    ranking_optimization_serialization_version: Literal[
-        "ranking_optimization_plan.v1"
-    ]
+    ranking_optimization_role: Literal["ranking_optimization"] = "ranking_optimization"
+    ranking_optimization_serialization_version: Literal["ranking_optimization_plan.v1"]
     ranking_optimization_signal_ids: tuple[str, ...] = Field(
         min_length=5,
         max_length=5,
@@ -380,9 +376,7 @@ class KnowledgeHealthMonitoringPlan(BaseModel):
             raise ValueError("signal_count must match signals")
         if self.candidate_signal_count != len(self.candidate_signal_ids):
             raise ValueError("candidate_signal_count must match signals")
-        if self.review_required_signal_count != len(
-            self.review_required_signal_ids
-        ):
+        if self.review_required_signal_count != len(self.review_required_signal_ids):
             raise ValueError("review_required_signal_count must match signals")
         if self.guarded_signal_count != len(self.guarded_signal_ids):
             raise ValueError("guarded_signal_count must match signals")
@@ -409,9 +403,7 @@ class KnowledgeHealthMonitoringPlan(BaseModel):
             if not set(signal.ranking_optimization_signal_ids).issubset(
                 declared_ranking_signals
             ):
-                raise ValueError(
-                    "signal ranking_optimization_signal_ids must be known"
-                )
+                raise ValueError("signal ranking_optimization_signal_ids must be known")
         return self
 
 
@@ -482,9 +474,7 @@ def build_knowledge_health_monitoring(
             _signal_ids_for_confidence(signals, "high", "guarded")
         ),
         hitl_required_signal_count=sum(
-            1
-            for signal in signals
-            if signal.hitl_required_before_health_monitoring
+            1 for signal in signals if signal.hitl_required_before_health_monitoring
         ),
         highest_health_score=max(signal.health_score for signal in signals),
         overall_health_score=_overall_health_score(signals),

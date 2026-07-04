@@ -146,7 +146,9 @@ class MultimodalStudioSharedArtifactBoardTests(unittest.TestCase):
             registry.shared_artifact_board_surface_refs,
             EXPECTED_BOARD_SURFACES,
         )
-        self.assertIn("does not create collaborative board state", registry.authority_boundary)
+        self.assertIn(
+            "does not create collaborative board state", registry.authority_boundary
+        )
         self.assertIn("change artifact selection", registry.authority_boundary)
         self.assertIn("board_state_creation", registry.blocked_runtime_behaviors)
         self.assertIn(
@@ -168,7 +170,9 @@ class MultimodalStudioSharedArtifactBoardTests(unittest.TestCase):
         self.assertFalse(registry.retry_triggering_implemented)
         self.assertFalse(registry.networking_implemented)
 
-    def test_shared_artifact_board_profiles_are_passive_and_source_aligned(self) -> None:
+    def test_shared_artifact_board_profiles_are_passive_and_source_aligned(
+        self,
+    ) -> None:
         registry = multimodal_shared_artifact_board_registry()
         known_routes = set(registry.route_names)
         known_cross_agent_workspaces = set(registry.cross_agent_workspace_profile_ids)
@@ -214,9 +218,7 @@ class MultimodalStudioSharedArtifactBoardTests(unittest.TestCase):
                 )
             )
             self.assertTrue(
-                set(profile.source_artifact_lineage_profile_ids).issubset(
-                    known_lineage
-                )
+                set(profile.source_artifact_lineage_profile_ids).issubset(known_lineage)
             )
             self.assertTrue(
                 set(profile.shared_artifact_board_surfaces).issubset(known_surfaces)
@@ -324,7 +326,9 @@ class MultimodalStudioSharedArtifactBoardTests(unittest.TestCase):
         ):
             MultimodalSharedArtifactBoardRegistry(**unknown_workspace_kwargs)
 
-    def test_shared_artifact_board_metadata_does_not_change_provider_factory(self) -> None:
+    def test_shared_artifact_board_metadata_does_not_change_provider_factory(
+        self,
+    ) -> None:
         settings = Settings(
             default_generation_provider=GenerationProviderName.OPENAI,
             openai_model="gpt-5",
@@ -353,9 +357,7 @@ def _registry_kwargs(
             registry.artifact_collaboration_profile_ids
         ),
         "multi_preview_profile_ids": registry.multi_preview_profile_ids,
-        "artifact_provenance_profile_ids": (
-            registry.artifact_provenance_profile_ids
-        ),
+        "artifact_provenance_profile_ids": (registry.artifact_provenance_profile_ids),
         "artifact_lineage_profile_ids": registry.artifact_lineage_profile_ids,
         "route_names": registry.route_names,
         "profile_count": registry.profile_count,

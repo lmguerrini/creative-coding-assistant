@@ -133,7 +133,9 @@ class ConfidenceAnalyticsTests(unittest.TestCase):
         self.assertIsNone(analytics.evaluated_threshold_count)
         self.assertIsNone(analytics.routed_confidence_decision_count)
         self.assertEqual(analytics.confidence_analytics_status, "guarded")
-        self.assertIn("does not calculate confidence scores", analytics.authority_boundary)
+        self.assertIn(
+            "does not calculate confidence scores", analytics.authority_boundary
+        )
         self.assertTrue(analytics.confidence_analytics_implemented)
         self.assertFalse(analytics.confidence_score_calculation_implemented)
         self.assertFalse(analytics.confidence_threshold_evaluation_implemented)
@@ -161,11 +163,15 @@ class ConfidenceAnalyticsTests(unittest.TestCase):
         for panel in analytics.panels:
             dumped = panel.model_dump(mode="json")
             self.assertEqual(set(dumped), REQUIRED_CONFIDENCE_ANALYTICS_PANEL_FIELDS)
-            self.assertEqual(panel.serialization_version, "confidence_analytics_panel.v1")
+            self.assertEqual(
+                panel.serialization_version, "confidence_analytics_panel.v1"
+            )
             self.assertIsNone(panel.calculated_confidence_score)
             self.assertIsNone(panel.evaluated_threshold_count)
             self.assertIsNone(panel.routed_confidence_decision_count)
-            self.assertIn("confidence_score_calculation", panel.blocked_runtime_behaviors)
+            self.assertIn(
+                "confidence_score_calculation", panel.blocked_runtime_behaviors
+            )
             self.assertIn(
                 "confidence_threshold_evaluation",
                 panel.blocked_runtime_behaviors,
@@ -238,7 +244,9 @@ class ConfidenceAnalyticsTests(unittest.TestCase):
         payload = analytics.model_dump(mode="json")
         payload["confidence_analytics_status"] = "ready"
 
-        with self.assertRaisesRegex(ValueError, "confidence_analytics_status must match"):
+        with self.assertRaisesRegex(
+            ValueError, "confidence_analytics_status must match"
+        ):
             ConfidenceAnalytics(**payload)
 
         payload = analytics.model_dump(mode="json")

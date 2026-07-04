@@ -279,11 +279,15 @@ class KnowledgeEvolutionGovernanceTests(unittest.TestCase):
             self.assertFalse(boundary.knowledge_health_monitoring_execution_implemented)
             self.assertFalse(boundary.quality_score_computation_implemented)
             self.assertFalse(boundary.knowledge_gap_detection_execution_implemented)
-            self.assertFalse(boundary.knowledge_conflict_resolution_execution_implemented)
+            self.assertFalse(
+                boundary.knowledge_conflict_resolution_execution_implemented
+            )
             self.assertFalse(boundary.knowledge_drift_detection_execution_implemented)
             self.assertFalse(boundary.source_reliability_scoring_execution_implemented)
             self.assertFalse(boundary.knowledge_consolidation_execution_implemented)
-            self.assertFalse(boundary.knowledge_lifecycle_management_execution_implemented)
+            self.assertFalse(
+                boundary.knowledge_lifecycle_management_execution_implemented
+            )
             self.assertFalse(boundary.provenance_graph_mutation_implemented)
             self.assertFalse(boundary.version_graph_mutation_implemented)
             self.assertFalse(boundary.knowledge_snapshot_engine_execution_implemented)
@@ -304,8 +308,7 @@ class KnowledgeEvolutionGovernanceTests(unittest.TestCase):
             self.assertTrue(boundary.advisory_only)
 
         no_automation = knowledge_evolution_governance_boundary_by_id(
-            "knowledge_evolution_governance::"
-            "recovery_trust_no_automation_governance",
+            "knowledge_evolution_governance::recovery_trust_no_automation_governance",
             plan,
         )
         self.assertIsNotNone(no_automation)

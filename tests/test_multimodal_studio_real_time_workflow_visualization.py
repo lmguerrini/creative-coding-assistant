@@ -202,9 +202,9 @@ class MultimodalStudioRealTimeWorkflowVisualizationTests(unittest.TestCase):
             )
             self.assertTrue(set(profile.route_applicability).issubset(known_routes))
             self.assertTrue(
-                set(
-                    profile.source_creative_evolution_timeline_profile_ids
-                ).issubset(known_evolution)
+                set(profile.source_creative_evolution_timeline_profile_ids).issubset(
+                    known_evolution
+                )
             )
             self.assertTrue(
                 set(profile.source_branching_timeline_profile_ids).issubset(
@@ -222,9 +222,7 @@ class MultimodalStudioRealTimeWorkflowVisualizationTests(unittest.TestCase):
                 )
             )
             self.assertTrue(
-                set(profile.workflow_visualization_surfaces).issubset(
-                    known_surfaces
-                )
+                set(profile.workflow_visualization_surfaces).issubset(known_surfaces)
             )
             self.assertTrue(
                 set(profile.source_reference_ids).issubset(known_source_references)
@@ -268,10 +266,8 @@ class MultimodalStudioRealTimeWorkflowVisualizationTests(unittest.TestCase):
         debug_profiles = multimodal_real_time_workflow_visualization_profiles_for_route(
             RouteName.DEBUG
         )
-        quality_evolution_profiles = (
-            multimodal_real_time_workflow_visualization_profiles_for_creative_evolution_timeline_profile(
-                "quality_refinement_creative_evolution_timeline"
-            )
+        quality_evolution_profiles = multimodal_real_time_workflow_visualization_profiles_for_creative_evolution_timeline_profile(  # noqa: E501
+            "quality_refinement_creative_evolution_timeline"
         )
 
         self.assertIsNone(missing_profile)
@@ -338,9 +334,7 @@ class MultimodalStudioRealTimeWorkflowVisualizationTests(unittest.TestCase):
             ValueError,
             "source_creative_evolution_timeline_profile_ids",
         ):
-            MultimodalRealTimeWorkflowVisualizationRegistry(
-                **unknown_evolution_kwargs
-            )
+            MultimodalRealTimeWorkflowVisualizationRegistry(**unknown_evolution_kwargs)
 
     def test_workflow_visualization_metadata_does_not_change_provider_factory(
         self,

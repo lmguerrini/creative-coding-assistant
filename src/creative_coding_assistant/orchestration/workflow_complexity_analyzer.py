@@ -28,12 +28,8 @@ WorkflowComplexityFactorKind = Literal[
 ]
 WorkflowComplexityLevel = Literal["low", "medium", "high"]
 
-WORKFLOW_COMPLEXITY_FACTOR_SERIALIZATION_VERSION = (
-    "workflow_complexity_factor.v1"
-)
-WORKFLOW_COMPLEXITY_ANALYSIS_SERIALIZATION_VERSION = (
-    "workflow_complexity_analysis.v1"
-)
+WORKFLOW_COMPLEXITY_FACTOR_SERIALIZATION_VERSION = "workflow_complexity_factor.v1"
+WORKFLOW_COMPLEXITY_ANALYSIS_SERIALIZATION_VERSION = "workflow_complexity_analysis.v1"
 WORKFLOW_COMPLEXITY_ANALYZER_AUTHORITY_BOUNDARY = (
     "Workflow complexity analysis derives structural advisory signals from "
     "workflow graph topology, retry and failure surfaces, cost pressure, and "
@@ -215,7 +211,9 @@ def workflow_complexity_factors_for_kind(
 
     source_analysis = analysis or analyze_workflow_complexity()
     return tuple(
-        factor for factor in source_analysis.factors if factor.factor_kind == factor_kind
+        factor
+        for factor in source_analysis.factors
+        if factor.factor_kind == factor_kind
     )
 
 
@@ -250,9 +248,7 @@ def _topology_factor(graph: ExecutionGraphAnalysis) -> WorkflowComplexityFactor:
             f"edges:{graph.edge_count}",
             f"critical_path:{len(graph.critical_path_node_ids)}",
         ),
-        advisory_actions=(
-            "Keep topology size visible for later pruning decisions.",
-        ),
+        advisory_actions=("Keep topology size visible for later pruning decisions.",),
     )
 
 
@@ -342,9 +338,7 @@ def _plan_shape_factor(plan: CreativeExecutionPlan) -> WorkflowComplexityFactor:
             f"refinement_budget:{plan.refinement_budget}",
             f"expected_complexity:{plan.expected_complexity}",
         ),
-        advisory_actions=(
-            "Use plan shape only as workflow structure pressure.",
-        ),
+        advisory_actions=("Use plan shape only as workflow structure pressure.",),
     )
 
 

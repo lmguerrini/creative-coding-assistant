@@ -124,9 +124,7 @@ class MetaReasoningLayerTests(unittest.TestCase):
             MetaReasoningLayerPlan(**payload)
 
         payload = layer.model_dump(mode="json")
-        payload["executed_reasoning_ids"] = (
-            "meta_reasoning::v6_6_cognitive_core",
-        )
+        payload["executed_reasoning_ids"] = ("meta_reasoning::v6_6_cognitive_core",)
 
         with self.assertRaisesRegex(
             ValueError,

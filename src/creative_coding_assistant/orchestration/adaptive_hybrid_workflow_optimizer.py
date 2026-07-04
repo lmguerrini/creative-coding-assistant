@@ -46,9 +46,7 @@ HYBRID_WORKFLOW_SIMULATION_SERIALIZATION_VERSION = (
 HYBRID_WORKFLOW_CANDIDATE_SERIALIZATION_VERSION = (
     "adaptive_hybrid_workflow_candidate.v1"
 )
-HYBRID_WORKFLOW_FALLBACK_SERIALIZATION_VERSION = (
-    "adaptive_hybrid_workflow_fallback.v1"
-)
+HYBRID_WORKFLOW_FALLBACK_SERIALIZATION_VERSION = "adaptive_hybrid_workflow_fallback.v1"
 HYBRID_WORKFLOW_OPTIMIZATION_PLAN_SERIALIZATION_VERSION = (
     "adaptive_hybrid_workflow_optimization_plan.v1"
 )
@@ -207,7 +205,10 @@ class HybridWorkflowOptimizationCandidate(BaseModel):
             raise ValueError("simulation provider_sequence must match candidate")
         if self.simulation.model_profile_sequence != self.model_profile_sequence:
             raise ValueError("simulation model_profile_sequence must match candidate")
-        if self.simulation.workflow_path_candidate_id != self.workflow_path_candidate_id:
+        if (
+            self.simulation.workflow_path_candidate_id
+            != self.workflow_path_candidate_id
+        ):
             raise ValueError("simulation workflow path must match candidate")
         if bool(self.unavailable_reason_codes) and not self.hitl_required:
             raise ValueError("unavailable reasons require HITL")
@@ -261,9 +262,9 @@ class HybridWorkflowOptimizationPlan(BaseModel):
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
     role: Literal["hybrid_workflow_optimizer"] = "hybrid_workflow_optimizer"
-    serialization_version: Literal[
-        "adaptive_hybrid_workflow_optimization_plan.v1"
-    ] = HYBRID_WORKFLOW_OPTIMIZATION_PLAN_SERIALIZATION_VERSION
+    serialization_version: Literal["adaptive_hybrid_workflow_optimization_plan.v1"] = (
+        HYBRID_WORKFLOW_OPTIMIZATION_PLAN_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=HYBRID_WORKFLOW_OPTIMIZER_AUTHORITY_BOUNDARY,
         max_length=1600,
@@ -325,7 +326,9 @@ class HybridWorkflowOptimizationPlan(BaseModel):
 
     @model_validator(mode="after")
     def _plan_matches_candidates(self) -> Self:
-        derived_candidate_ids = tuple(candidate.candidate_id for candidate in self.candidates)
+        derived_candidate_ids = tuple(
+            candidate.candidate_id for candidate in self.candidates
+        )
         if len(set(derived_candidate_ids)) != len(derived_candidate_ids):
             raise ValueError("candidate_ids must be unique")
         if self.candidate_ids != derived_candidate_ids:
@@ -337,7 +340,9 @@ class HybridWorkflowOptimizationPlan(BaseModel):
         ):
             raise ValueError("hybrid_policy_directions must match candidates")
         recommended = tuple(
-            candidate for candidate in self.candidates if candidate.status == "recommended"
+            candidate
+            for candidate in self.candidates
+            if candidate.status == "recommended"
         )
         if len(recommended) != 1:
             raise ValueError("exactly one recommended candidate is required")
@@ -452,7 +457,9 @@ def optimize_hybrid_workflow(
         ),
         provider_ids=routing_intelligence.provider_ids,
         execution_mode_ids=execution_modes.execution_mode_ids,
-        hybrid_policy_directions=tuple(candidate.policy_direction for candidate in candidates),
+        hybrid_policy_directions=tuple(
+            candidate.policy_direction for candidate in candidates
+        ),
         candidates=candidates,
         candidate_ids=tuple(candidate.candidate_id for candidate in candidates),
         recommended_candidate_id=recommended.candidate_id,
@@ -466,7 +473,9 @@ def optimize_hybrid_workflow(
         hitl_required_candidate_count=sum(
             1 for candidate in candidates if candidate.hitl_required
         ),
-        highest_adaptive_score=max(candidate.adaptive_score for candidate in candidates),
+        highest_adaptive_score=max(
+            candidate.adaptive_score for candidate in candidates
+        ),
     )
 
 
@@ -489,7 +498,9 @@ def hybrid_workflow_candidates_requiring_hitl(
     """Return candidates that would require HITL before future application."""
 
     source_plan = plan or optimize_hybrid_workflow()
-    return tuple(candidate for candidate in source_plan.candidates if candidate.hitl_required)
+    return tuple(
+        candidate for candidate in source_plan.candidates if candidate.hitl_required
+    )
 
 
 def _candidate_from_policy(
@@ -535,7 +546,9 @@ def _candidate_from_policy(
     risk = _risk_for_policy(policy_direction, task_risk, unavailable)
     confidence = _confidence_for_policy(policy_direction, task_confidence, unavailable)
     score = _adaptive_score(quality, cost, latency, confidence, risk, unavailable)
-    hitl_required = bool(unavailable) or risk == "high" or execution_mode_id == "manual_mode"
+    hitl_required = (
+        bool(unavailable) or risk == "high" or execution_mode_id == "manual_mode"
+    )
     status: HybridWorkflowCandidateStatus = "fallback"
     if policy_direction == "local_to_cloud":
         status = "recommended"
@@ -624,7 +637,7 @@ def _unavailable_reasons_for_sequence(
     task_unavailable_reasons: tuple[UnavailableReasonCode, ...],
 ) -> tuple[UnavailableReasonCode, ...]:
     reason_codes: list[UnavailableReasonCode] = list(task_unavailable_reasons)
-    provider_availability = getattr(availability, "provider_availability")
+    provider_availability = availability.provider_availability
     for provider in provider_sequence:
         for item in provider_availability:
             if item.provider_id == provider:
@@ -690,7 +703,10 @@ def _confidence_for_policy(
         "local_to_local": -0.1,
     }[direction]
     availability_penalty = min(0.3, 0.04 * len(unavailable))
-    return round(max(0.0, min(1.0, task_confidence + policy_adjustment - availability_penalty)), 2)
+    return round(
+        max(0.0, min(1.0, task_confidence + policy_adjustment - availability_penalty)),
+        2,
+    )
 
 
 def _adaptive_score(
@@ -733,7 +749,9 @@ def _fallback_candidate(
     recommended: HybridWorkflowOptimizationCandidate,
 ) -> HybridWorkflowOptimizationCandidate:
     fallbacks = tuple(
-        candidate for candidate in candidates if candidate.candidate_id != recommended.candidate_id
+        candidate
+        for candidate in candidates
+        if candidate.candidate_id != recommended.candidate_id
     )
     return max(fallbacks, key=lambda candidate: candidate.adaptive_score)
 

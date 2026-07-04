@@ -78,9 +78,7 @@ CreativeMemoryCoreSurfaceAxis = Literal[
 CREATIVE_MEMORY_CORE_ENTRY_SERIALIZATION_VERSION = (
     "creative_memory_core_surface_entry.v1"
 )
-CREATIVE_MEMORY_CORE_PLAN_SERIALIZATION_VERSION = (
-    "creative_memory_core_surface_plan.v1"
-)
+CREATIVE_MEMORY_CORE_PLAN_SERIALIZATION_VERSION = "creative_memory_core_surface_plan.v1"
 CREATIVE_MEMORY_CORE_AUTHORITY_BOUNDARY = (
     "V6.2 Creative Memory Core Surface exposes the validated creative memory "
     "metadata surfaces as inspectable advisory metadata only; it does not "
@@ -400,9 +398,7 @@ class CreativeMemoryCoreSurfacePlan(BaseModel):
             entry.core_surface_score for entry in self.entries
         ):
             raise ValueError("highest_core_surface_score must match entries")
-        if self.overall_core_surface_score != _overall_core_surface_score(
-            self.entries
-        ):
+        if self.overall_core_surface_score != _overall_core_surface_score(self.entries):
             raise ValueError("overall_core_surface_score must match entries")
         if self.overall_core_surface_posture != _overall_core_surface_posture(
             self.entries
@@ -905,9 +901,7 @@ def _entry_ids_for_confidence(
     *confidences: CreativeMemoryCoreSurfaceConfidence,
 ) -> tuple[str, ...]:
     return tuple(
-        entry.core_surface_id
-        for entry in entries
-        if entry.confidence in confidences
+        entry.core_surface_id for entry in entries if entry.confidence in confidences
     )
 
 

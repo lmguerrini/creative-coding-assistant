@@ -54,9 +54,7 @@ PersonalizationScope = Literal[
 PERSONALIZATION_RECOMMENDATION_SERIALIZATION_VERSION = (
     "personalization_recommendation.v1"
 )
-PERSONALIZATION_ENGINE_PLAN_SERIALIZATION_VERSION = (
-    "personalization_engine_plan.v1"
-)
+PERSONALIZATION_ENGINE_PLAN_SERIALIZATION_VERSION = "personalization_engine_plan.v1"
 PERSONALIZATION_ENGINE_AUTHORITY_BOUNDARY = (
     "V6.2 Personalization Engine models governed personalization posture as "
     "inspectable advisory metadata only; it does not write personalization "
@@ -184,9 +182,7 @@ class PersonalizationRecommendation(BaseModel):
             raise ValueError("personalization_score must combine source scores")
         if self.status != _personalization_status(self.personalization_score):
             raise ValueError("status must match personalization_score")
-        if self.confidence != _personalization_confidence(
-            self.personalization_score
-        ):
+        if self.confidence != _personalization_confidence(self.personalization_score):
             raise ValueError("confidence must match personalization_score")
         if not self.hitl_required_before_application:
             raise ValueError("personalization application requires HITL posture")
@@ -322,8 +318,7 @@ class PersonalizationEnginePlan(BaseModel):
     @model_validator(mode="after")
     def _plan_matches_recommendations(self) -> Self:
         derived_recommendation_ids = tuple(
-            recommendation.personalization_id
-            for recommendation in self.recommendations
+            recommendation.personalization_id for recommendation in self.recommendations
         )
         if len(set(derived_recommendation_ids)) != len(derived_recommendation_ids):
             raise ValueError("recommendation_ids must be unique")
@@ -376,9 +371,7 @@ class PersonalizationEnginePlan(BaseModel):
             self.review_required_recommendation_ids
         ):
             raise ValueError("review_required_recommendation_count must match")
-        if self.guarded_recommendation_count != len(
-            self.guarded_recommendation_ids
-        ):
+        if self.guarded_recommendation_count != len(self.guarded_recommendation_ids):
             raise ValueError("guarded_recommendation_count must match")
         if self.high_confidence_recommendation_count != len(
             self.high_confidence_recommendation_ids
@@ -496,8 +489,7 @@ def build_personalization_engine(
         execution_mode_ids=execution_modes.execution_mode_ids,
         recommendations=recommendations,
         recommendation_ids=tuple(
-            recommendation.personalization_id
-            for recommendation in recommendations
+            recommendation.personalization_id for recommendation in recommendations
         ),
         candidate_recommendation_ids=_recommendation_ids_for_status(
             recommendations,
@@ -544,12 +536,9 @@ def build_personalization_engine(
             if recommendation.hitl_required_before_application
         ),
         highest_personalization_score=max(
-            recommendation.personalization_score
-            for recommendation in recommendations
+            recommendation.personalization_score for recommendation in recommendations
         ),
-        overall_personalization_score=_overall_personalization_score(
-            recommendations
-        ),
+        overall_personalization_score=_overall_personalization_score(recommendations),
         overall_personalization_posture=_overall_personalization_posture(
             recommendations
         ),
@@ -845,8 +834,7 @@ def _overall_personalization_score(
     recommendations: tuple[PersonalizationRecommendation, ...],
 ) -> int:
     base = sum(
-        recommendation.personalization_score
-        for recommendation in recommendations
+        recommendation.personalization_score for recommendation in recommendations
     ) // len(recommendations)
     guarded_count = len(_recommendation_ids_for_status(recommendations, "guarded"))
     review_count = len(
@@ -861,8 +849,7 @@ def _overall_personalization_posture(
     if any(recommendation.status == "guarded" for recommendation in recommendations):
         return "guarded"
     if any(
-        recommendation.status == "review_required"
-        for recommendation in recommendations
+        recommendation.status == "review_required" for recommendation in recommendations
     ):
         return "review_required"
     return "candidate"

@@ -63,7 +63,9 @@ class ExecutionOptimizationFailureAuditTests(unittest.TestCase):
             "execution_optimization_failure_audit.v1",
         )
         self.assertEqual(registry.source_surface_ids, EXPECTED_SOURCE_SURFACES)
-        self.assertEqual(registry.applicable_required_checks, EXPECTED_APPLICABLE_CHECKS)
+        self.assertEqual(
+            registry.applicable_required_checks, EXPECTED_APPLICABLE_CHECKS
+        )
         self.assertEqual(
             registry.not_applicable_required_checks,
             (
@@ -94,7 +96,9 @@ class ExecutionOptimizationFailureAuditTests(unittest.TestCase):
         registry = execution_optimization_failure_audit_registry()
 
         for record in registry.records:
-            self.assertTrue(record.audit_id.startswith("execution_optimization_failure::"))
+            self.assertTrue(
+                record.audit_id.startswith("execution_optimization_failure::")
+            )
             self.assertEqual(
                 record.serialization_version,
                 "execution_optimization_failure_audit_record.v1",

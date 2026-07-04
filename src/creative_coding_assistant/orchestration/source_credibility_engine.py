@@ -360,9 +360,7 @@ class SourceCredibilityPlan(BaseModel):
             entry.credibility_score for entry in self.entries
         ):
             raise ValueError("highest_credibility_score must match entries")
-        if self.overall_credibility_score != _overall_credibility_score(
-            self.entries
-        ):
+        if self.overall_credibility_score != _overall_credibility_score(self.entries):
             raise ValueError("overall_credibility_score must match entries")
         if self.overall_credibility_posture != _overall_credibility_posture(
             self.entries
@@ -713,9 +711,7 @@ def _entry_ids_for_confidence(
     entries: tuple[SourceCredibilityEntry, ...],
     *confidences: SourceCredibilityConfidence,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(entries: tuple[SourceCredibilityEntry, ...]) -> tuple[str, ...]:

@@ -348,8 +348,9 @@ class AdaptiveExecutionFailurePathAuditRegistry(BaseModel):
         return self
 
 
-def adaptive_execution_failure_path_audit_registry(
-) -> AdaptiveExecutionFailurePathAuditRegistry:
+def adaptive_execution_failure_path_audit_registry() -> (
+    AdaptiveExecutionFailurePathAuditRegistry
+):
     """Return V5.5 runtime failure path audit metadata without runtime actions."""
 
     architecture_registry = adaptive_execution_architecture_consistency_registry()

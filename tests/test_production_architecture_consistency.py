@@ -120,7 +120,10 @@ class ProductionArchitectureConsistencyTests(unittest.TestCase):
             "provider_or_model_routing_mutation",
             registry.blocked_runtime_behaviors,
         )
-        self.assertIn("V5.6 production release architecture consistency", registry.authority_boundary)
+        self.assertIn(
+            "V5.6 production release architecture consistency",
+            registry.authority_boundary,
+        )
         self.assertFalse(registry.architecture_expansion_implemented)
         self.assertFalse(registry.workflow_graph_mutation_implemented)
         self.assertFalse(registry.workflow_execution_implemented)
@@ -159,7 +162,9 @@ class ProductionArchitectureConsistencyTests(unittest.TestCase):
             )
             self.assertGreaterEqual(record.source_count, 0)
             self.assertEqual(record.validated_version_rules, REQUIRED_VERSION_RULES)
-            self.assertEqual(record.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                record.passive_boundary_flags, registry.passive_boundary_flags
+            )
             self.assertTrue(record.source_blocked_runtime_behaviors)
             self.assertFalse(record.source_active_runtime_flags)
             self.assertFalse(record.missing_coverage_items)
@@ -226,9 +231,9 @@ class ProductionArchitectureConsistencyTests(unittest.TestCase):
             ProductionArchitectureConsistencyRegistry(**payload)
 
         payload = registry.model_dump(mode="json")
-        payload["validated_version_rules"] = tuple(payload["validated_version_rules"][1:]) + (
-            payload["validated_version_rules"][0],
-        )
+        payload["validated_version_rules"] = tuple(
+            payload["validated_version_rules"][1:]
+        ) + (payload["validated_version_rules"][0],)
 
         with self.assertRaisesRegex(ValueError, "validated_version_rules"):
             ProductionArchitectureConsistencyRegistry(**payload)

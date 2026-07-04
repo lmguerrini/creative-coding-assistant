@@ -102,10 +102,7 @@ class CostEstimatorTests(unittest.TestCase):
             self.assertEqual(scenario.route_name, RouteName.REVIEW)
             self.assertEqual(
                 scenario.estimated_midpoint_cost_units,
-                (
-                    scenario.estimated_min_cost_units
-                    + scenario.estimated_max_cost_units
-                )
+                (scenario.estimated_min_cost_units + scenario.estimated_max_cost_units)
                 // 2,
             )
             self.assertIn(
@@ -165,7 +162,9 @@ class CostEstimatorTests(unittest.TestCase):
         ):
             CostEstimationPlan(**payload)
 
-    def test_cost_estimator_does_not_change_request_routing_or_provider_factory(self) -> None:
+    def test_cost_estimator_does_not_change_request_routing_or_provider_factory(
+        self,
+    ) -> None:
         request = AssistantRequest(
             query="Explain a shader architecture.",
             mode=AssistantMode.EXPLAIN,

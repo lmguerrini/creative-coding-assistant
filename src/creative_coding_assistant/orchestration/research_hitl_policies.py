@@ -366,9 +366,7 @@ class ResearchHITLPoliciesPlan(BaseModel):
             raise ValueError("authorized_research_execution_ids must remain empty")
         if self.mutated_workflow_ids:
             raise ValueError("mutated_workflow_ids must remain empty")
-        if self.execution_policy_entry_count != len(
-            self.execution_policy_entry_ids
-        ):
+        if self.execution_policy_entry_count != len(self.execution_policy_entry_ids):
             raise ValueError(
                 "execution_policy_entry_count must match execution policy ids"
             )
@@ -392,9 +390,7 @@ class ResearchHITLPoliciesPlan(BaseModel):
             entry.hitl_policy_score for entry in self.entries
         ):
             raise ValueError("highest_hitl_policy_score must match entries")
-        if self.overall_hitl_policy_score != _overall_hitl_policy_score(
-            self.entries
-        ):
+        if self.overall_hitl_policy_score != _overall_hitl_policy_score(self.entries):
             raise ValueError("overall_hitl_policy_score must match entries")
         if self.overall_hitl_policy_posture != _overall_hitl_policy_posture(
             self.entries
@@ -408,9 +404,7 @@ class ResearchHITLPoliciesPlan(BaseModel):
                 raise ValueError("entry source_count must match plan")
             if entry.domain_count != self.domain_count:
                 raise ValueError("entry domain_count must match plan")
-            if not set(entry.execution_policy_entry_ids).issubset(
-                execution_policy_ids
-            ):
+            if not set(entry.execution_policy_entry_ids).issubset(execution_policy_ids):
                 raise ValueError("entry execution policy ids must be declared")
         return self
 
@@ -762,9 +756,7 @@ def _entry_ids_for_confidence(
     entries: tuple[ResearchHITLPolicyEntry, ...],
     *confidences: ResearchHITLPolicyConfidence,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(entries: tuple[ResearchHITLPolicyEntry, ...]) -> tuple[str, ...]:

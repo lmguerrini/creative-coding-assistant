@@ -161,9 +161,7 @@ class DocumentationIntelligenceSignal(BaseModel):
     def _signal_matches_contract(self) -> Self:
         if self.signal_id != f"documentation_intelligence::{self.signal_kind}":
             raise ValueError("signal_id must match signal_kind")
-        if self.source_update_candidate_count != len(
-            self.source_update_candidate_ids
-        ):
+        if self.source_update_candidate_count != len(self.source_update_candidate_ids):
             raise ValueError("source_update_candidate_count must match candidates")
         if self.intelligence_score != _intelligence_score(
             documentation_mapping_score=self.documentation_mapping_score,
@@ -344,9 +342,7 @@ class DocumentationIntelligencePlan(BaseModel):
             raise ValueError("enriched_kb_record_ids must remain empty")
         if self.mutated_retrieval_source_ids:
             raise ValueError("mutated_retrieval_source_ids must remain empty")
-        if self.source_update_candidate_count != len(
-            self.source_update_candidate_ids
-        ):
+        if self.source_update_candidate_count != len(self.source_update_candidate_ids):
             raise ValueError("source_update_candidate_count must match source")
         if self.covered_roadmap_items != _ROADMAP_ITEMS:
             raise ValueError("covered_roadmap_items must match V6.3 Task 3 roadmap")
@@ -356,9 +352,7 @@ class DocumentationIntelligencePlan(BaseModel):
             raise ValueError("signal_count must match signals")
         if self.candidate_signal_count != len(self.candidate_signal_ids):
             raise ValueError("candidate_signal_count must match signals")
-        if self.review_required_signal_count != len(
-            self.review_required_signal_ids
-        ):
+        if self.review_required_signal_count != len(self.review_required_signal_ids):
             raise ValueError("review_required_signal_count must match signals")
         if self.guarded_signal_count != len(self.guarded_signal_ids):
             raise ValueError("guarded_signal_count must match signals")
@@ -370,9 +364,7 @@ class DocumentationIntelligencePlan(BaseModel):
             signal.intelligence_score for signal in self.signals
         ):
             raise ValueError("highest_intelligence_score must match signals")
-        if self.overall_intelligence_score != _overall_intelligence_score(
-            self.signals
-        ):
+        if self.overall_intelligence_score != _overall_intelligence_score(self.signals):
             raise ValueError("overall_intelligence_score must match signals")
         if self.overall_intelligence_posture != _overall_intelligence_posture(
             self.signals
@@ -456,9 +448,7 @@ def build_documentation_intelligence(
             _signal_ids_for_confidence(signals, "high", "guarded")
         ),
         hitl_required_signal_count=sum(
-            1
-            for signal in signals
-            if signal.hitl_required_before_documentation_action
+            1 for signal in signals if signal.hitl_required_before_documentation_action
         ),
         highest_intelligence_score=max(signal.intelligence_score for signal in signals),
         overall_intelligence_score=_overall_intelligence_score(signals),

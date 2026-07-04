@@ -147,9 +147,7 @@ class ProceduralStructurePlan(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["procedural_structure_planner"] = (
-        "procedural_structure_planner"
-    )
+    role: Literal["procedural_structure_planner"] = "procedural_structure_planner"
     recommended_families: tuple[ProceduralFamily, ...] = Field(
         min_length=1,
         max_length=5,
@@ -331,22 +329,16 @@ def procedural_structure_prompt_lines(
         for item in plan.secondary_structures
     )
     lines.extend(
-        f"Runtime suitability note: {item}"
-        for item in plan.runtime_suitability_notes
+        f"Runtime suitability note: {item}" for item in plan.runtime_suitability_notes
     )
     lines.extend(f"Performance risk: {item}" for item in plan.performance_risks)
+    lines.extend(f"Implementation risk: {item}" for item in plan.implementation_risks)
     lines.extend(
-        f"Implementation risk: {item}"
-        for item in plan.implementation_risks
-    )
-    lines.extend(
-        "Fallback procedural structure: "
-        f"{item.label} ({item.family}). {item.rationale}"
+        f"Fallback procedural structure: {item.label} ({item.family}). {item.rationale}"
         for item in plan.fallback_structure_options
     )
     lines.extend(
-        f"Unresolved procedural gap: {item}"
-        for item in plan.unresolved_procedural_gaps
+        f"Unresolved procedural gap: {item}" for item in plan.unresolved_procedural_gaps
     )
     lines.extend(f"HITL procedural question: {item}" for item in plan.hitl_questions)
     lines.extend(f"Procedural guidance: {item}" for item in plan.prompt_guidance)
@@ -707,8 +699,7 @@ def _runtime_suitability_notes(
             f"{top.preview_support} preview support for bounded generation."
         )
     elif (
-        context.creative_plan is not None
-        and context.creative_plan.recommended_runtime
+        context.creative_plan is not None and context.creative_plan.recommended_runtime
     ):
         notes.append(
             "Existing execution plan names "
@@ -833,9 +824,7 @@ def _hitl_questions(gaps: tuple[str, ...]) -> tuple[str, ...]:
         elif "visual" in lowered or "motif" in lowered:
             questions.append("What visible motif should the procedure preserve?")
         elif "motion" in lowered:
-            questions.append(
-                "Should motion emerge, loop, pulse, flow, or stabilize?"
-            )
+            questions.append("Should motion emerge, loop, pulse, flow, or stabilize?")
     return _dedupe(questions)[:6]
 
 

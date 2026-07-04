@@ -277,7 +277,9 @@ class CreativeExplorationOptimizerTests(unittest.TestCase):
         self.assertEqual(recommended.recommended_advisory_variants, 3)
         self.assertEqual(len(guardrails), 2)
         self.assertTrue(
-            all(candidate.recommended_advisory_variants == 0 for candidate in guardrails)
+            all(
+                candidate.recommended_advisory_variants == 0 for candidate in guardrails
+            )
         )
 
     def test_plan_rejects_mismatched_exploration_metadata(self) -> None:

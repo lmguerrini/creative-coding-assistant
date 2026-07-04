@@ -102,7 +102,9 @@ class AutomaticKbEnrichmentTests(unittest.TestCase):
                 entry.entry_id,
                 f"automatic_kb_enrichment::{entry.enrichment_kind}",
             )
-            self.assertTrue(set(entry.distillation_entry_ids).issubset(distillation_ids))
+            self.assertTrue(
+                set(entry.distillation_entry_ids).issubset(distillation_ids)
+            )
             self.assertEqual(entry.source_count, plan.source_count)
             self.assertEqual(entry.domain_count, plan.domain_count)
             self.assertEqual(

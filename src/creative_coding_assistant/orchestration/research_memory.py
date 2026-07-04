@@ -729,9 +729,7 @@ def _entry_ids_for_confidence(
     entries: tuple[ResearchMemoryEntry, ...],
     *confidences: ResearchMemoryConfidence,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(entries: tuple[ResearchMemoryEntry, ...]) -> tuple[str, ...]:

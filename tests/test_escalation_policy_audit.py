@@ -111,12 +111,16 @@ class EscalationPolicyAuditTests(unittest.TestCase):
             self.assertEqual(record.serialization_version, "escalation_policy_audit.v1")
             self.assertEqual(record.audit_status, "pass")
             self.assertEqual(record.audit_stage, registry.audit_stage)
-            self.assertEqual(record.audited_registry_refs, registry.audited_registry_refs)
+            self.assertEqual(
+                record.audited_registry_refs, registry.audited_registry_refs
+            )
             self.assertEqual(
                 record.validated_policy_surfaces,
                 registry.validated_policy_surfaces,
             )
-            self.assertEqual(record.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                record.passive_boundary_flags, registry.passive_boundary_flags
+            )
             self.assertFalse(record.missing_coverage_items)
             self.assertTrue(record.rule_source_contract_registries)
             self.assertTrue(record.downstream_registry_refs)
@@ -175,9 +179,7 @@ class EscalationPolicyAuditTests(unittest.TestCase):
     def test_audit_registry_rejects_mismatched_or_incomplete_records(self) -> None:
         registry = escalation_policy_audit_registry()
         first_record = registry.audit_records[0]
-        duplicate_record = first_record.model_copy(
-            update={"policy_stage": "duplicate"}
-        )
+        duplicate_record = first_record.model_copy(update={"policy_stage": "duplicate"})
         mismatched_surface_record = first_record.model_copy(
             update={
                 "validated_policy_surfaces": (

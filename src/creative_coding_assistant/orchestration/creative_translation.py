@@ -320,9 +320,7 @@ def derive_creative_translation(
         query,
         output_modality=modality.value if modality is not None else None,
         base_guidance=(
-            base_translation.sacred_geometry
-            if base_translation is not None
-            else None
+            base_translation.sacred_geometry if base_translation is not None else None
         ),
     )
     shader_presets = derive_shader_preset_guidance(
@@ -334,9 +332,7 @@ def derive_creative_translation(
         selected_runtime=selected_runtime,
         sacred_geometry=sacred_geometry,
         base_guidance=(
-            base_translation.shader_presets
-            if base_translation is not None
-            else None
+            base_translation.shader_presets if base_translation is not None else None
         ),
     )
     visual_style = derive_visual_style_guidance(
@@ -349,9 +345,7 @@ def derive_creative_translation(
         sacred_geometry=sacred_geometry,
         shader_presets=shader_presets,
         base_guidance=(
-            base_translation.visual_style
-            if base_translation is not None
-            else None
+            base_translation.visual_style if base_translation is not None else None
         ),
     )
     effective_modality = (
@@ -382,9 +376,7 @@ def derive_creative_translation(
         tone_metadata=artifact_content,
         dynamic_parameter_guidance=refinement_instruction,
         base_guidance=(
-            base_translation.audio_reactive
-            if base_translation is not None
-            else None
+            base_translation.audio_reactive if base_translation is not None else None
         ),
     )
     current = CreativeTranslation(
@@ -612,11 +604,7 @@ def _structure_direction(
         direction.append(
             "Build audio or timing structure from: " + ", ".join(musical) + "."
         )
-    if (
-        modality is CreativeOutputModality.AUDIOVISUAL
-        and geometric
-        and musical
-    ):
+    if modality is CreativeOutputModality.AUDIOVISUAL and geometric and musical:
         direction.append(
             "Coordinate visual changes with the requested musical structure."
         )

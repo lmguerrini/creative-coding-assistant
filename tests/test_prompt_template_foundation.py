@@ -995,7 +995,9 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         service = AssistantService(
             route_fn=_route_generate_with_memory_and_docs,
             memory_gateway=_FakeMemoryGateway(response=_empty_memory_context()),
-            retrieval_gateway=_FakeRetrievalGateway(response=_empty_retrieval_context()),
+            retrieval_gateway=_FakeRetrievalGateway(
+                response=_empty_retrieval_context()
+            ),
             context_assembler=OrchestrationContextAssembler(),
             prompt_input_builder=StructuredPromptInputBuilder(),
             prompt_renderer=JinjaPromptRenderer(),
@@ -1079,9 +1081,7 @@ def _assembled_context(
 ) -> AssembledContextResponse:
     memory_context = _memory_context() if memory_context is None else memory_context
     retrieval_context = (
-        _retrieval_context()
-        if retrieval_context is _UNSET
-        else retrieval_context
+        _retrieval_context() if retrieval_context is _UNSET else retrieval_context
     )
     request = build_assembled_context_request(
         route_decision=RouteDecision(
@@ -1113,9 +1113,7 @@ def _assembled_context(
                 else 0
             ),
             retrieval_chunk_count=(
-                len(retrieval_context.chunks)
-                if retrieval_context is not None
-                else 0
+                len(retrieval_context.chunks) if retrieval_context is not None else 0
             ),
         ),
         memory_context=memory_context,

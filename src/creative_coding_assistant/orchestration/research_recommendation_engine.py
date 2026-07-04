@@ -37,12 +37,8 @@ ResearchRecommendationAxis = Literal[
     "governance_gate",
 ]
 
-RESEARCH_RECOMMENDATION_ENTRY_SERIALIZATION_VERSION = (
-    "research_recommendation_entry.v1"
-)
-RESEARCH_RECOMMENDATION_PLAN_SERIALIZATION_VERSION = (
-    "research_recommendation_plan.v1"
-)
+RESEARCH_RECOMMENDATION_ENTRY_SERIALIZATION_VERSION = "research_recommendation_entry.v1"
+RESEARCH_RECOMMENDATION_PLAN_SERIALIZATION_VERSION = "research_recommendation_plan.v1"
 
 RESEARCH_RECOMMENDATION_AUTHORITY_BOUNDARY = (
     "V6.4 Research Recommendation Engine exposes gap-prioritization posture, "
@@ -194,9 +190,7 @@ class ResearchRecommendationEntry(BaseModel):
             raise ValueError("recommendation_score must combine source scores")
         if self.status != _recommendation_status(self.recommendation_score):
             raise ValueError("status must match recommendation_score")
-        if self.confidence != _recommendation_confidence(
-            self.recommendation_score
-        ):
+        if self.confidence != _recommendation_confidence(self.recommendation_score):
             raise ValueError("confidence must match recommendation_score")
         if not self.hitl_required_before_recommendation_generation:
             raise ValueError("research recommendation generation requires HITL")
@@ -208,9 +202,7 @@ class ResearchRecommendationPlan(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["research_recommendation_engine"] = (
-        "research_recommendation_engine"
-    )
+    role: Literal["research_recommendation_engine"] = "research_recommendation_engine"
     serialization_version: Literal["research_recommendation_plan.v1"] = (
         RESEARCH_RECOMMENDATION_PLAN_SERIALIZATION_VERSION
     )
@@ -764,9 +756,7 @@ def _entry_ids_for_confidence(
     entries: tuple[ResearchRecommendationEntry, ...],
     *confidences: ResearchRecommendationConfidence,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(

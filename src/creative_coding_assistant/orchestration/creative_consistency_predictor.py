@@ -129,9 +129,7 @@ class CreativeConsistencyPrediction(BaseModel):
             self.source_quality_signal_score
         ):
             raise ValueError("predicted_consistency_band must match signal score")
-        if self.prediction_confidence != _confidence(
-            self.source_quality_signal_score
-        ):
+        if self.prediction_confidence != _confidence(self.source_quality_signal_score):
             raise ValueError("prediction_confidence must match signal score")
         return self
 
@@ -141,9 +139,7 @@ class CreativeConsistencyPredictionPlan(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["creative_consistency_predictor"] = (
-        "creative_consistency_predictor"
-    )
+    role: Literal["creative_consistency_predictor"] = "creative_consistency_predictor"
     serialization_version: Literal["creative_consistency_prediction_plan.v1"] = (
         CREATIVE_CONSISTENCY_PREDICTION_PLAN_SERIALIZATION_VERSION
     )
@@ -168,7 +164,9 @@ class CreativeConsistencyPredictionPlan(BaseModel):
     recommended_prediction_id: str = Field(min_length=1, max_length=180)
     recommended_consistency_band: CreativeConsistencyBand
     recommended_consistency_midpoint: int = Field(ge=0, le=100)
-    fallback_prediction_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=8)
+    fallback_prediction_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=8
+    )
     prediction_count: int = Field(ge=1, le=8)
     strong_or_stable_prediction_count: int = Field(ge=0, le=8)
     watch_or_fragile_prediction_count: int = Field(ge=0, le=8)
@@ -247,17 +245,13 @@ class CreativeConsistencyPredictionPlan(BaseModel):
             for prediction in self.predictions
             if prediction.predicted_consistency_band in {"strong", "stable"}
         ):
-            raise ValueError(
-                "strong_or_stable_prediction_count must match predictions"
-            )
+            raise ValueError("strong_or_stable_prediction_count must match predictions")
         if self.watch_or_fragile_prediction_count != sum(
             1
             for prediction in self.predictions
             if prediction.predicted_consistency_band in {"watch", "fragile"}
         ):
-            raise ValueError(
-                "watch_or_fragile_prediction_count must match predictions"
-            )
+            raise ValueError("watch_or_fragile_prediction_count must match predictions")
         if self.fragile_prediction_count != sum(
             1
             for prediction in self.predictions

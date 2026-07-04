@@ -252,12 +252,8 @@ class KnowledgeSnapshotEnginePlan(BaseModel):
     route_name: RouteName
     task_type: TaskRoutingType
     checked_at: datetime
-    knowledge_versioning_role: Literal["knowledge_versioning"] = (
-        "knowledge_versioning"
-    )
-    knowledge_versioning_serialization_version: Literal[
-        "knowledge_versioning_plan.v1"
-    ]
+    knowledge_versioning_role: Literal["knowledge_versioning"] = "knowledge_versioning"
+    knowledge_versioning_serialization_version: Literal["knowledge_versioning_plan.v1"]
     knowledge_versioning_signal_ids: tuple[str, ...] = Field(
         min_length=5,
         max_length=5,
@@ -451,9 +447,7 @@ class KnowledgeSnapshotEnginePlan(BaseModel):
             raise ValueError("signal_count must match signals")
         if self.candidate_signal_count != len(self.candidate_signal_ids):
             raise ValueError("candidate_signal_count must match signals")
-        if self.review_required_signal_count != len(
-            self.review_required_signal_ids
-        ):
+        if self.review_required_signal_count != len(self.review_required_signal_ids):
             raise ValueError("review_required_signal_count must match signals")
         if self.guarded_signal_count != len(self.guarded_signal_ids):
             raise ValueError("guarded_signal_count must match signals")
@@ -480,9 +474,7 @@ class KnowledgeSnapshotEnginePlan(BaseModel):
             if not set(signal.knowledge_versioning_signal_ids).issubset(
                 declared_versioning_signals
             ):
-                raise ValueError(
-                    "signal knowledge_versioning_signal_ids must be known"
-                )
+                raise ValueError("signal knowledge_versioning_signal_ids must be known")
         return self
 
 

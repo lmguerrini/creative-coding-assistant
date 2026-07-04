@@ -136,14 +136,21 @@ class ArchitectureConsistencyPassTests(unittest.TestCase):
             self.assertEqual(record.architecture_stage, registry.architecture_stage)
             self.assertEqual(record.source_role, record.source_registry_id)
             self.assertTrue(record.source_serialization_version.endswith(".v1"))
-            self.assertIn(record.source_count_field, ("audit_count", "profile_count", "family_count"))
+            self.assertIn(
+                record.source_count_field,
+                ("audit_count", "profile_count", "family_count"),
+            )
             self.assertGreaterEqual(record.source_count, 1)
-            self.assertEqual(record.architecture_doc_refs, registry.architecture_doc_refs)
+            self.assertEqual(
+                record.architecture_doc_refs, registry.architecture_doc_refs
+            )
             self.assertEqual(
                 record.validated_architecture_surfaces,
                 registry.validated_architecture_surfaces,
             )
-            self.assertEqual(record.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                record.passive_boundary_flags, registry.passive_boundary_flags
+            )
             self.assertFalse(record.source_active_runtime_flags)
             self.assertFalse(record.missing_coverage_items)
             self.assertTrue(record.source_blocked_runtime_behaviors)
@@ -234,7 +241,9 @@ class ArchitectureConsistencyPassTests(unittest.TestCase):
             update={"missing_coverage_items": ("architecture_doc_ref_missing",)}
         )
         active_record = first_record.model_copy(
-            update={"source_active_runtime_flags": ("provider_model_routing_implemented",)}
+            update={
+                "source_active_runtime_flags": ("provider_model_routing_implemented",)
+            }
         )
 
         with self.assertRaisesRegex(ValueError, "source_registry_ids must be unique"):
@@ -248,14 +257,14 @@ class ArchitectureConsistencyPassTests(unittest.TestCase):
             )
 
         with self.assertRaisesRegex(ValueError, "missing coverage"):
-            self._registry_with_records(
-                (incomplete_record,) + registry.records[1:]
-            )
+            self._registry_with_records((incomplete_record,) + registry.records[1:])
 
         with self.assertRaisesRegex(ValueError, "active runtime flags"):
             self._registry_with_records((active_record,) + registry.records[1:])
 
-    def test_architecture_consistency_pass_does_not_change_request_routing(self) -> None:
+    def test_architecture_consistency_pass_does_not_change_request_routing(
+        self,
+    ) -> None:
         request = AssistantRequest(
             query="Generate architecture consistency metadata for a sketch.",
             mode=AssistantMode.GENERATE,

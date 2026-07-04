@@ -172,9 +172,7 @@ class ResourceUtilizationOptimizationPlan(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["resource_utilization_optimizer"] = (
-        "resource_utilization_optimizer"
-    )
+    role: Literal["resource_utilization_optimizer"] = "resource_utilization_optimizer"
     serialization_version: Literal["resource_utilization_optimization_plan.v1"] = (
         RESOURCE_UTILIZATION_OPTIMIZATION_PLAN_SERIALIZATION_VERSION
     )
@@ -267,8 +265,7 @@ class ResourceUtilizationOptimizationPlan(BaseModel):
     @model_validator(mode="after")
     def _plan_matches_recommendations(self) -> Self:
         derived_ids = tuple(
-            recommendation.recommendation_id
-            for recommendation in self.recommendations
+            recommendation.recommendation_id for recommendation in self.recommendations
         )
         if len(set(derived_ids)) != len(derived_ids):
             raise ValueError("recommendation_ids must be unique")
@@ -339,9 +336,7 @@ class ResourceUtilizationOptimizationPlan(BaseModel):
             recommendations=self.recommendations,
             highest_score=self.highest_advisory_utilization_score,
         ):
-            raise ValueError(
-                "resource_utilization_pressure must match recommendations"
-            )
+            raise ValueError("resource_utilization_pressure must match recommendations")
         return self
 
 
@@ -376,8 +371,7 @@ def optimize_resource_utilization(
         regression=regression,
     )
     highest_score = max(
-        recommendation.advisory_utilization_score
-        for recommendation in recommendations
+        recommendation.advisory_utilization_score for recommendation in recommendations
     )
 
     return ResourceUtilizationOptimizationPlan(
@@ -394,8 +388,7 @@ def optimize_resource_utilization(
         ),
         recommendations=recommendations,
         recommendation_ids=tuple(
-            recommendation.recommendation_id
-            for recommendation in recommendations
+            recommendation.recommendation_id for recommendation in recommendations
         ),
         optimization_candidate_ids=_recommendation_ids_for_status(
             recommendations,
@@ -427,16 +420,13 @@ def optimize_resource_utilization(
             _recommendation_ids_for_status(recommendations, "boundary_guardrail")
         ),
         total_advisory_resource_units=sum(
-            recommendation.advisory_resource_units
-            for recommendation in recommendations
+            recommendation.advisory_resource_units for recommendation in recommendations
         ),
         total_advisory_reserve_units=sum(
-            recommendation.advisory_reserve_units
-            for recommendation in recommendations
+            recommendation.advisory_reserve_units for recommendation in recommendations
         ),
         total_advisory_pressure_units=sum(
-            recommendation.advisory_pressure_units
-            for recommendation in recommendations
+            recommendation.advisory_pressure_units for recommendation in recommendations
         ),
         highest_advisory_utilization_score=highest_score,
         total_advisory_utilization_score=sum(

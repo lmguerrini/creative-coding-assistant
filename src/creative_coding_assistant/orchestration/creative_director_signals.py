@@ -32,6 +32,9 @@ from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
 )
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
+from creative_coding_assistant.orchestration.consistency_validation_engine import (
+    ConsistencyValidationProfile,
+)
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
 )
@@ -77,9 +80,6 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
-from creative_coding_assistant.orchestration.consistency_validation_engine import (
-    ConsistencyValidationProfile,
-)
 from creative_coding_assistant.orchestration.cross_modality import (
     CrossModalityCompositionProfile,
 )
@@ -111,10 +111,10 @@ from creative_coding_assistant.orchestration.runtime_capabilities import (
 from creative_coding_assistant.orchestration.runtime_compatibility import (
     RuntimeCompatibilityProfile,
 )
-from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.self_evaluation_engine import (
     SelfEvaluationProfile,
 )
+from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -803,11 +803,8 @@ def _planning_focus(
         if self_evaluation is not None:
             runtime_focus += " " + _self_evaluation_focus(self_evaluation)
         if creative_improvement_planner is not None:
-            runtime_focus += (
-                " "
-                + _creative_improvement_planner_focus(
-                    creative_improvement_planner
-                )
+            runtime_focus += " " + _creative_improvement_planner_focus(
+                creative_improvement_planner
             )
         if reflection_loop is not None:
             runtime_focus += " " + _reflection_loop_focus(reflection_loop)
@@ -816,9 +813,7 @@ def _planning_focus(
         if creative_score is not None:
             runtime_focus += " " + _creative_score_focus(creative_score)
         if consistency_validation is not None:
-            runtime_focus += " " + _consistency_validation_focus(
-                consistency_validation
-            )
+            runtime_focus += " " + _consistency_validation_focus(consistency_validation)
         focus.append(runtime_focus)
         if (
             artifact_capability_matrix is None
@@ -868,11 +863,8 @@ def _planning_focus(
         if self_evaluation is not None:
             capability_focus += " " + _self_evaluation_focus(self_evaluation)
         if creative_improvement_planner is not None:
-            capability_focus += (
-                " "
-                + _creative_improvement_planner_focus(
-                    creative_improvement_planner
-                )
+            capability_focus += " " + _creative_improvement_planner_focus(
+                creative_improvement_planner
             )
         if reflection_loop is not None:
             capability_focus += " " + _reflection_loop_focus(reflection_loop)
@@ -1637,10 +1629,10 @@ def _next_actions(
         return (creative_improvement_planner.hitl_questions[0],)
     if reflection_loop is not None and reflection_loop.unresolved_questions:
         return (reflection_loop.unresolved_questions[0],)
-    if (
-        creative_confidence is not None
-        and creative_confidence.hitl_recommendation in {"recommended", "required"}
-    ):
+    if creative_confidence is not None and creative_confidence.hitl_recommendation in {
+        "recommended",
+        "required",
+    }:
         return (
             "Surface Creative Confidence human review guidance before treating confidence as settled.",
         )
@@ -1658,10 +1650,10 @@ def _next_actions(
         return (
             "Surface Consistency Validation human review guidance before treating evaluation metadata as settled.",
         )
-    if (
-        evaluation_report is not None
-        and evaluation_report.hitl_recommendation in {"recommended", "required"}
-    ):
+    if evaluation_report is not None and evaluation_report.hitl_recommendation in {
+        "recommended",
+        "required",
+    }:
         return (
             "Surface Evaluation Report human review guidance before treating evaluation metadata as settled.",
         )
@@ -1787,23 +1779,19 @@ def _evidence(
         )
     if symbolic_narrative is not None:
         evidence.append(
-            "Symbolic narrative: "
-            f"{symbolic_narrative.narrative_archetype}."
+            f"Symbolic narrative: {symbolic_narrative.narrative_archetype}."
         )
     if creative_composition is not None:
         evidence.append(
-            "Creative composition: "
-            f"{creative_composition.composition_pattern}."
+            f"Creative composition: {creative_composition.composition_pattern}."
         )
     if procedural_structure is not None:
         evidence.append(
-            "Procedural structure: "
-            f"{procedural_structure.primary_structure.family}."
+            f"Procedural structure: {procedural_structure.primary_structure.family}."
         )
     if generative_structure is not None:
         evidence.append(
-            "Generative structure: "
-            f"{generative_structure.generative_architecture}."
+            f"Generative structure: {generative_structure.generative_architecture}."
         )
     if semantic_motif is not None:
         evidence.append(

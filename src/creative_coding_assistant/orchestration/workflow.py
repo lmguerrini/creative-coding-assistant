@@ -43,6 +43,9 @@ from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
 )
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
+from creative_coding_assistant.orchestration.consistency_validation_engine import (
+    ConsistencyValidationProfile,
+)
 from creative_coding_assistant.orchestration.context import AssembledContextResponse
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
@@ -92,20 +95,17 @@ from creative_coding_assistant.orchestration.creative_technique import (
 from creative_coding_assistant.orchestration.creative_tradeoffs import (
     CreativeTradeoffProfile,
 )
-from creative_coding_assistant.orchestration.consistency_validation_engine import (
-    ConsistencyValidationProfile,
-)
 from creative_coding_assistant.orchestration.cross_modality import (
     CrossModalityCompositionProfile,
 )
 from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
 )
-from creative_coding_assistant.orchestration.evaluation_reports import (
-    EvaluationReportProfile,
-)
 from creative_coding_assistant.orchestration.evaluation_engine_contracts import (
     EvaluationEngineContractRegistry,
+)
+from creative_coding_assistant.orchestration.evaluation_reports import (
+    EvaluationReportProfile,
 )
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
@@ -121,10 +121,10 @@ from creative_coding_assistant.orchestration.prompt_inputs import PromptInputRes
 from creative_coding_assistant.orchestration.prompt_templates import (
     RenderedPromptResponse,
 )
-from creative_coding_assistant.orchestration.retrieval import RetrievalContextResponse
 from creative_coding_assistant.orchestration.reflection_loop_engine import (
     ReflectionLoopProfile,
 )
+from creative_coding_assistant.orchestration.retrieval import RetrievalContextResponse
 from creative_coding_assistant.orchestration.routing import RouteDecision
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
@@ -132,10 +132,10 @@ from creative_coding_assistant.orchestration.runtime_capabilities import (
 from creative_coding_assistant.orchestration.runtime_compatibility import (
     RuntimeCompatibilityProfile,
 )
-from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.self_evaluation_engine import (
     SelfEvaluationProfile,
 )
+from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -259,9 +259,7 @@ class AssistantWorkflowState(BaseModel):
     multi_artifact_strategy: MultiArtifactStrategy | None = None
     artifact_critic: ArtifactCriticProfile | None = None
     artifact_refiner: ArtifactRefinerProfile | None = None
-    artifact_intelligence_synthesis: (
-        ArtifactIntelligenceSynthesisProfile | None
-    ) = None
+    artifact_intelligence_synthesis: ArtifactIntelligenceSynthesisProfile | None = None
     artifact_merge_planner: ArtifactMergePlannerProfile | None = None
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None = None
     artifact_engine_contracts: ArtifactIntelligenceEngineContractRegistry | None = None

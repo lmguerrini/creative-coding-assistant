@@ -176,7 +176,9 @@ class KnowledgeConflictResolverTests(unittest.TestCase):
                 signal.knowledge_gap_signal_count,
                 len(signal.knowledge_gap_signal_ids),
             )
-            self.assertTrue(set(signal.knowledge_gap_signal_ids).issubset(gap_signal_ids))
+            self.assertTrue(
+                set(signal.knowledge_gap_signal_ids).issubset(gap_signal_ids)
+            )
             self.assertEqual(
                 signal.conflict_score,
                 min(
@@ -287,9 +289,7 @@ class KnowledgeConflictResolverTests(unittest.TestCase):
         self.assertEqual(plan.domain_count, gap_plan.domain_count)
         for signal in plan.signals:
             self.assertTrue(
-                set(signal.knowledge_gap_signal_ids).issubset(
-                    set(gap_plan.signal_ids)
-                )
+                set(signal.knowledge_gap_signal_ids).issubset(set(gap_plan.signal_ids))
             )
             self.assertFalse(signal.conflict_detection_execution_implemented)
             self.assertFalse(signal.conflict_resolution_execution_implemented)

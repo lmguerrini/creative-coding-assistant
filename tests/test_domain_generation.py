@@ -40,8 +40,7 @@ class DomainGenerationTests(unittest.TestCase):
         decision = route_request(
             AssistantRequest(
                 query=(
-                    "Create multiple visual candidates for an animated "
-                    "particle field."
+                    "Create multiple visual candidates for an animated particle field."
                 ),
                 mode=AssistantMode.GENERATE,
             )
@@ -120,11 +119,14 @@ class DomainGenerationTests(unittest.TestCase):
             route_decision=decision,
         )
 
-        self.assertEqual([artifact.domain for artifact in artifacts], [
-            CreativeCodingDomain.P5_JS.value,
-            CreativeCodingDomain.GLSL.value,
-            CreativeCodingDomain.THREE_JS.value,
-        ])
+        self.assertEqual(
+            [artifact.domain for artifact in artifacts],
+            [
+                CreativeCodingDomain.P5_JS.value,
+                CreativeCodingDomain.GLSL.value,
+                CreativeCodingDomain.THREE_JS.value,
+            ],
+        )
         self.assertEqual(
             [artifact.runtime for artifact in artifacts],
             ["p5", "glsl", "three"],
@@ -133,9 +135,7 @@ class DomainGenerationTests(unittest.TestCase):
 
     def test_artifacts_preserve_creative_translation_metadata(self) -> None:
         request = AssistantRequest(
-            query=(
-                "Create a meditative glowing spiral with drifting cyan particles."
-            ),
+            query=("Create a meditative glowing spiral with drifting cyan particles."),
             domains=(CreativeCodingDomain.P5_JS,),
             mode=AssistantMode.GENERATE,
         )
@@ -177,17 +177,13 @@ class DomainGenerationTests(unittest.TestCase):
             artifacts[0].creative_translation.movement_language,
             ("drift", "slow drifting motion"),
         )
-        self.assertIsNotNone(
-            artifacts[0].creative_translation.sacred_geometry
-        )
+        self.assertIsNotNone(artifacts[0].creative_translation.sacred_geometry)
         assert artifacts[0].creative_translation.sacred_geometry is not None
         self.assertEqual(
             artifacts[0].creative_translation.sacred_geometry.concepts,
             ("spiral",),
         )
-        self.assertIsNotNone(
-            artifacts[0].creative_translation.shader_presets
-        )
+        self.assertIsNotNone(artifacts[0].creative_translation.shader_presets)
         shader_presets = artifacts[0].creative_translation.shader_presets
         assert shader_presets is not None
         self.assertEqual(

@@ -48,6 +48,10 @@ from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
     audio_visual_scene_prompt_lines,
 )
+from creative_coding_assistant.orchestration.consistency_validation_engine import (
+    ConsistencyValidationProfile,
+    consistency_validation_prompt_lines,
+)
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
     creative_composition_prompt_lines,
@@ -116,10 +120,6 @@ from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
     creative_translation_prompt_lines,
 )
-from creative_coding_assistant.orchestration.consistency_validation_engine import (
-    ConsistencyValidationProfile,
-    consistency_validation_prompt_lines,
-)
 from creative_coding_assistant.orchestration.cross_modality import (
     CrossModalityCompositionProfile,
     cross_modality_prompt_lines,
@@ -147,14 +147,14 @@ from creative_coding_assistant.orchestration.procedural_structure import (
     ProceduralStructurePlan,
     procedural_structure_prompt_lines,
 )
-from creative_coding_assistant.orchestration.reflection_loop_engine import (
-    ReflectionLoopProfile,
-    reflection_loop_prompt_lines,
-)
 from creative_coding_assistant.orchestration.prompt_inputs import (
     PromptImageReferenceInput,
     PromptInputResponse,
     PromptUserInput,
+)
+from creative_coding_assistant.orchestration.reflection_loop_engine import (
+    ReflectionLoopProfile,
+    reflection_loop_prompt_lines,
 )
 from creative_coding_assistant.orchestration.routing import (
     DomainSelectionShape,
@@ -169,13 +169,13 @@ from creative_coding_assistant.orchestration.runtime_compatibility import (
     RuntimeCompatibilityProfile,
     runtime_compatibility_prompt_lines,
 )
-from creative_coding_assistant.orchestration.semantic_motif import (
-    SemanticMotifSystem,
-    semantic_motif_prompt_lines,
-)
 from creative_coding_assistant.orchestration.self_evaluation_engine import (
     SelfEvaluationProfile,
     self_evaluation_prompt_lines,
+)
+from creative_coding_assistant.orchestration.semantic_motif import (
+    SemanticMotifSystem,
+    semantic_motif_prompt_lines,
 )
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
@@ -754,14 +754,10 @@ class JinjaPromptRenderer:
                 _artifact_intelligence_synthesis_lines
             ),
             artifact_merge_planner_lines=_artifact_merge_planner_lines,
-            artifact_export_intelligence_lines=(
-                _artifact_export_intelligence_lines
-            ),
+            artifact_export_intelligence_lines=(_artifact_export_intelligence_lines),
             creative_critic_lines=_creative_critic_lines,
             self_evaluation_lines=_self_evaluation_lines,
-            creative_improvement_planner_lines=(
-                _creative_improvement_planner_lines
-            ),
+            creative_improvement_planner_lines=(_creative_improvement_planner_lines),
             reflection_loop_lines=_reflection_loop_lines,
             creative_confidence_lines=_creative_confidence_lines,
             creative_score_lines=_creative_score_lines,
@@ -1223,10 +1219,7 @@ def _generation_runtime_guidance_lines(
 
 
 def _image_reference_line(image: PromptImageReferenceInput) -> str:
-    return (
-        f"{image.name} ({image.mime_type}, {image.size_bytes} bytes, "
-        f"id: {image.id})"
-    )
+    return f"{image.name} ({image.mime_type}, {image.size_bytes} bytes, id: {image.id})"
 
 
 def _effective_domain_scope_label(user_input: PromptUserInput) -> str:

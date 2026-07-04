@@ -340,7 +340,9 @@ def _records(
 ) -> tuple[ProductionCreativeReadinessRecord, ...]:
     preview = _demo_asset("preview_media", demo_source)
     retrieval = _demo_asset("retrieval_scenario_pack", demo_source)
-    quality = _analytics_panel("creative_analytics::quality_readiness", analytics_source)
+    quality = _analytics_panel(
+        "creative_analytics::quality_readiness", analytics_source
+    )
     diversity = _analytics_panel(
         "creative_analytics::diversity_readiness",
         analytics_source,

@@ -17,9 +17,7 @@ SharedContextViewStage = Literal["v4_2_shared_context_view"]
 SharedContextViewAccessMode = Literal["scoped_metadata_view"]
 
 SHARED_CONTEXT_VIEW_SERIALIZATION_VERSION = "shared_context_view.v1"
-SHARED_CONTEXT_VIEW_REGISTRY_SERIALIZATION_VERSION = (
-    "shared_context_view_registry.v1"
-)
+SHARED_CONTEXT_VIEW_REGISTRY_SERIALIZATION_VERSION = "shared_context_view_registry.v1"
 SHARED_CONTEXT_VIEW_REGISTRY_AUTHORITY_BOUNDARY = (
     "Shared context view metadata describes per-agent scoped visibility over "
     "existing memory contract surfaces and planned blackboard channels only; "

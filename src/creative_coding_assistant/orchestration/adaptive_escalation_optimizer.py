@@ -185,7 +185,9 @@ class EscalationOptimizationPlan(BaseModel):
     decision_ids: tuple[str, ...] = Field(min_length=6, max_length=6)
     required_decision_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=6)
     review_decision_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=6)
-    not_required_decision_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=6)
+    not_required_decision_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=6
+    )
     highest_priority_decision_id: str = Field(min_length=1, max_length=180)
     optimized_escalation_posture: EscalationOptimizationPosture
     decision_count: int = Field(ge=6, le=6)
@@ -222,7 +224,9 @@ class EscalationOptimizationPlan(BaseModel):
 
     @model_validator(mode="after")
     def _plan_matches_decisions(self) -> Self:
-        derived_decision_ids = tuple(decision.decision_id for decision in self.decisions)
+        derived_decision_ids = tuple(
+            decision.decision_id for decision in self.decisions
+        )
         if len(set(derived_decision_ids)) != len(derived_decision_ids):
             raise ValueError("decision_ids must be unique")
         if self.decision_ids != derived_decision_ids:
@@ -252,10 +256,13 @@ class EscalationOptimizationPlan(BaseModel):
             decision.escalation_score for decision in self.decisions
         ):
             raise ValueError("highest_escalation_score must match decisions")
-        if self.highest_priority_decision_id != min(
-            self.decisions,
-            key=lambda decision: decision.priority_rank,
-        ).decision_id:
+        if (
+            self.highest_priority_decision_id
+            != min(
+                self.decisions,
+                key=lambda decision: decision.priority_rank,
+            ).decision_id
+        ):
             raise ValueError("highest_priority_decision_id must match decisions")
         if self.optimized_escalation_posture != _plan_posture(self.decisions):
             raise ValueError("optimized_escalation_posture must match decisions")
@@ -279,7 +286,9 @@ def optimize_escalation_policy(
         route=route,
         execution_mode_id=execution_mode_id,
     )
-    normalized_mode = str(execution_mode_id or hybrid_plan.candidates[0].execution_mode_id)
+    normalized_mode = str(
+        execution_mode_id or hybrid_plan.candidates[0].execution_mode_id
+    )
     diagnostics_source = diagnostics or build_escalation_diagnostics()
     budget_plan = hitl_budget or evaluate_hitl_budget_gate(route=route)
     execution_modes = routing_execution_mode_registry()
@@ -305,7 +314,9 @@ def optimize_escalation_policy(
         decision_ids=tuple(decision.decision_id for decision in decisions),
         required_decision_ids=_decision_ids_for_posture(decisions, "requires_hitl"),
         review_decision_ids=_decision_ids_for_posture(decisions, "review_recommended"),
-        not_required_decision_ids=_decision_ids_for_posture(decisions, "no_review_required"),
+        not_required_decision_ids=_decision_ids_for_posture(
+            decisions, "no_review_required"
+        ),
         highest_priority_decision_id=min(
             decisions,
             key=lambda decision: decision.priority_rank,
@@ -315,7 +326,9 @@ def optimize_escalation_policy(
         hitl_required_decision_count=sum(
             1 for decision in decisions if decision.hitl_required
         ),
-        highest_escalation_score=max(decision.escalation_score for decision in decisions),
+        highest_escalation_score=max(
+            decision.escalation_score for decision in decisions
+        ),
         advisory_actions=_plan_actions(decisions),
     )
 
@@ -340,7 +353,9 @@ def escalation_optimization_decisions_for_posture(
     """Return escalation optimization decisions for one advisory posture."""
 
     source_plan = plan or optimize_escalation_policy()
-    return tuple(decision for decision in source_plan.decisions if decision.posture == posture)
+    return tuple(
+        decision for decision in source_plan.decisions if decision.posture == posture
+    )
 
 
 def _decisions(
@@ -470,14 +485,14 @@ def _budget_decision(
     budget_decision: object,
     priority_rank: int,
 ) -> EscalationOptimizationDecision:
-    gate_status = getattr(budget_decision, "gate_status")
+    gate_status = budget_decision.gate_status
     posture = _posture_for_gate(gate_status)
     hitl_required = posture == "requires_hitl" or gate_status == "review_recommended"
     return EscalationOptimizationDecision(
         decision_id="escalation_optimizer::budget_review",
         decision_kind="budget_review",
-        source_surface_id=getattr(budget_decision, "gate_id"),
-        source_serialization_version=getattr(budget_decision, "serialization_version"),
+        source_surface_id=budget_decision.gate_id,
+        source_serialization_version=budget_decision.serialization_version,
         task_type=task_type,
         execution_mode_id=execution_mode_id,
         posture=posture,
@@ -487,11 +502,11 @@ def _budget_decision(
         hitl_required=hitl_required,
         budget_gate_status=gate_status,
         risk_band="medium" if gate_status != "not_required" else "low",
-        reason_summary=getattr(budget_decision, "operator_review_reason"),
+        reason_summary=budget_decision.operator_review_reason,
         suggested_action="Surface budget posture for review without blocking execution.",
         fallback_summary="Use non-budget escalation metadata if budget review is not required.",
         evidence=(
-            f"budget_gate:{getattr(budget_decision, 'gate_id')}",
+            f"budget_gate:{budget_decision.gate_id}",
             f"gate_status:{gate_status}",
             "budget gate does not emit HITL",
         ),
@@ -508,7 +523,9 @@ def _hybrid_decision(
     priority_rank: int,
 ) -> EscalationOptimizationDecision:
     posture: EscalationOptimizationPosture = (
-        "requires_hitl" if unavailable_reason_codes or risk_band == "high" else "review_recommended"
+        "requires_hitl"
+        if unavailable_reason_codes or risk_band == "high"
+        else "review_recommended"
     )
     return EscalationOptimizationDecision(
         decision_id="escalation_optimizer::hybrid_availability",
@@ -577,7 +594,9 @@ def _execution_mode_decision(
     )
 
 
-def _posture_for_gate(gate_status: HitlBudgetGateStatus) -> EscalationOptimizationPosture:
+def _posture_for_gate(
+    gate_status: HitlBudgetGateStatus,
+) -> EscalationOptimizationPosture:
     if gate_status == "required":
         return "requires_hitl"
     if gate_status == "review_recommended":
@@ -601,7 +620,9 @@ def _decision_ids_for_posture(
     decisions: tuple[EscalationOptimizationDecision, ...],
     posture: EscalationOptimizationPosture,
 ) -> tuple[str, ...]:
-    return tuple(decision.decision_id for decision in decisions if decision.posture == posture)
+    return tuple(
+        decision.decision_id for decision in decisions if decision.posture == posture
+    )
 
 
 def _plan_posture(
@@ -619,8 +640,10 @@ def _plan_actions(
 ) -> tuple[str, ...]:
     actions = [
         "Expose escalation optimization posture as advisory metadata only.",
-        "Preserve HITL request emission, budget enforcement, execution blocking, routing, workflow, agent, trace, storage, and output boundaries.",
+        "Preserve HITL request emission, budget enforcement, execution blocking, routing, workflow, agent, trace, storage, and output boundaries.",  # noqa: E501
     ]
     if _decision_ids_for_posture(decisions, "requires_hitl"):
-        actions.append("Require human approval before any future application of required escalation posture.")
+        actions.append(
+            "Require human approval before any future application of required escalation posture."
+        )
     return tuple(actions)

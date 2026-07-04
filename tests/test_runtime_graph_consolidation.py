@@ -67,8 +67,7 @@ class RuntimeGraphConsolidationTests(unittest.TestCase):
         )
         self.assertEqual(
             tuple(
-                spec.payload_key
-                for spec in assistant_workflow_model_payload_specs()
+                spec.payload_key for spec in assistant_workflow_model_payload_specs()
             ),
             build_runtime_graph_consolidation_plan().runtime_payload_keys,
         )

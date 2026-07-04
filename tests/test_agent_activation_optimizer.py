@@ -98,7 +98,9 @@ class AgentActivationOptimizerTests(unittest.TestCase):
         self.assertEqual(plan.execution_mode_ids, REQUIRED_EXECUTION_MODES)
         self.assertEqual(plan.candidate_count, 12)
         self.assertEqual(plan.candidates[0].agent_id, "planner_agent")
-        self.assertEqual(plan.highest_activation_score, plan.candidates[0].activation_score)
+        self.assertEqual(
+            plan.highest_activation_score, plan.candidates[0].activation_score
+        )
         self.assertEqual(plan.activation_recommendation_count, 3)
         self.assertIn("does not instantiate agents", plan.authority_boundary)
         self.assertTrue(plan.agent_activation_optimizer_implemented)
@@ -117,7 +119,9 @@ class AgentActivationOptimizerTests(unittest.TestCase):
         self.assertFalse(plan.generated_output_mutation_implemented)
         self.assertTrue(plan.advisory_only)
 
-    def test_candidates_include_capability_lifecycle_and_escalation_posture(self) -> None:
+    def test_candidates_include_capability_lifecycle_and_escalation_posture(
+        self,
+    ) -> None:
         plan = optimize_agent_activation(route="generate")
 
         for candidate in plan.candidates:

@@ -167,7 +167,9 @@ class ModelRoutingPlan(BaseModel):
     candidate_ids: tuple[str, ...] = Field(min_length=1, max_length=12)
     recommended_candidate_id: str = Field(min_length=1, max_length=180)
     recommended_model_profile_id: str = Field(min_length=1, max_length=120)
-    fallback_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
+    fallback_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=12
+    )
     candidate_count: int = Field(ge=1, le=12)
     recommendation_confidence: ModelRouteConfidence
     advisory_actions: tuple[str, ...] = Field(min_length=1, max_length=12)
@@ -198,7 +200,9 @@ class ModelRoutingPlan(BaseModel):
 
     @model_validator(mode="after")
     def _plan_matches_candidates(self) -> Self:
-        derived_candidate_ids = tuple(candidate.candidate_id for candidate in self.candidates)
+        derived_candidate_ids = tuple(
+            candidate.candidate_id for candidate in self.candidates
+        )
         if len(set(derived_candidate_ids)) != len(derived_candidate_ids):
             raise ValueError("candidate_ids must be unique")
         if self.candidate_ids != derived_candidate_ids:
@@ -211,13 +215,17 @@ class ModelRoutingPlan(BaseModel):
             raise ValueError("source_model_profile_ids must match candidates")
 
         recommended = tuple(
-            candidate for candidate in self.candidates if candidate.status == "recommended"
+            candidate
+            for candidate in self.candidates
+            if candidate.status == "recommended"
         )
         if len(recommended) != 1:
             raise ValueError("exactly one recommended candidate is required")
         recommended_candidate = recommended[0]
         if self.recommended_candidate_id != recommended_candidate.candidate_id:
-            raise ValueError("recommended_candidate_id must match recommended candidate")
+            raise ValueError(
+                "recommended_candidate_id must match recommended candidate"
+            )
         if (
             self.recommended_model_profile_id
             != recommended_candidate.source_model_profile_id
@@ -229,7 +237,9 @@ class ModelRoutingPlan(BaseModel):
             if candidate.status == "fallback"
         ):
             raise ValueError("fallback_candidate_ids must match candidates")
-        if self.recommendation_confidence != _confidence(recommended_candidate.fit_score):
+        if self.recommendation_confidence != _confidence(
+            recommended_candidate.fit_score
+        ):
             raise ValueError("recommendation_confidence must match candidate score")
 
         known_providers = set(self.source_provider_candidate_ids)
@@ -303,7 +313,9 @@ def model_route_candidates_for_status(
     """Return advisory model route candidates for a recommendation status."""
 
     source_plan = plan or route_model_request()
-    return tuple(candidate for candidate in source_plan.candidates if candidate.status == status)
+    return tuple(
+        candidate for candidate in source_plan.candidates if candidate.status == status
+    )
 
 
 def _resolve_route(
@@ -311,8 +323,10 @@ def _resolve_route(
     route_decision: RouteDecision | None,
     route: RouteName | str | None,
 ) -> RouteName:
-    explicit_route = None if route is None else (
-        route if isinstance(route, RouteName) else RouteName(str(route))
+    explicit_route = (
+        None
+        if route is None
+        else (route if isinstance(route, RouteName) else RouteName(str(route)))
     )
     if route_decision is None:
         return explicit_route or RouteName.GENERATE

@@ -417,9 +417,7 @@ def reduce_stream_event(
 
     if event.event_type is StreamEventType.FINAL:
         answer = _payload_text(event, key="answer") or state.answer_text
-        return state.model_copy(
-            update={"final_answer": answer, "status_message": None}
-        )
+        return state.model_copy(update={"final_answer": answer, "status_message": None})
 
     return state
 
@@ -604,9 +602,7 @@ def _trace_domain_updates(event: StreamEvent) -> dict[str, object]:
         query = _clean_text(raw_request.get("query")) or ""
         raw_filters = raw_request.get("filters")
         retrieval_domains = (
-            _domains_from_payload(raw_filters)
-            if isinstance(raw_filters, dict)
-            else ()
+            _domains_from_payload(raw_filters) if isinstance(raw_filters, dict) else ()
         )
         return {
             "detected_domains": detect_explicit_query_domains(query),

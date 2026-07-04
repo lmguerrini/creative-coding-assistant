@@ -37,9 +37,7 @@ from creative_coding_assistant.orchestration.unified_agent_registry import (
     build_unified_agent_registry,
 )
 
-UNIFIED_CAPABILITY_REGISTRY_SERIALIZATION_VERSION = (
-    "unified_capability_registry.v1"
-)
+UNIFIED_CAPABILITY_REGISTRY_SERIALIZATION_VERSION = "unified_capability_registry.v1"
 UNIFIED_CAPABILITY_REGISTRY_ROADMAP_ITEM = "Unified Capability Registry"
 UNIFIED_CAPABILITY_REGISTRY_AUTHORITY_BOUNDARY = (
     "V6.6 Unified Capability Registry composes Cognitive OS capability "
@@ -232,10 +230,7 @@ class UnifiedCapabilityRegistryPlan(BaseModel):
                 raise ValueError("entry knowledge_node_id must be declared")
             if not set(entry.linked_agent_ids).issubset(declared_agents):
                 raise ValueError("entry linked_agent_ids must be declared")
-            if (
-                entry.agent_capability_profile_ids
-                != self.agent_capability_profile_ids
-            ):
+            if entry.agent_capability_profile_ids != self.agent_capability_profile_ids:
                 raise ValueError("entry agent capability profiles must match")
         if self.covered_roadmap_items != (UNIFIED_CAPABILITY_REGISTRY_ROADMAP_ITEM,):
             raise ValueError("covered_roadmap_items must be Task 6 only")

@@ -322,8 +322,9 @@ class ProductionObservabilityFailurePathAuditRegistry(BaseModel):
         return self
 
 
-def production_observability_failure_path_audit_registry(
-) -> ProductionObservabilityFailurePathAuditRegistry:
+def production_observability_failure_path_audit_registry() -> (
+    ProductionObservabilityFailurePathAuditRegistry
+):
     """Return V5.4 runtime failure path audit metadata without runtime actions."""
 
     architecture_registry = production_observability_architecture_registry()

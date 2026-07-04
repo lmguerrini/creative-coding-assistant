@@ -46,8 +46,7 @@ class StreamlitContextVisibilityTests(unittest.TestCase):
                                 "memory_kind": "style_preference",
                                 "source": "project-notes",
                                 "content": (
-                                    "Prefer slow camera motion and "
-                                    "restrained bloom."
+                                    "Prefer slow camera motion and restrained bloom."
                                 ),
                             }
                         ],
@@ -97,8 +96,7 @@ class StreamlitContextVisibilityTests(unittest.TestCase):
                             "recent_turns": [],
                             "running_summary": {
                                 "content": (
-                                    "The sketch should stay quiet, minimal, "
-                                    "and slow."
+                                    "The sketch should stay quiet, minimal, and slow."
                                 )
                             },
                             "project_memories": [],

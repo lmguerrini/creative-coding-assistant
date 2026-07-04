@@ -402,7 +402,8 @@ def _workflow_error_panel(diagnostics: WorkflowDiagnostics) -> ErrorIntelligence
         source_id="workflow_diagnostics",
         source_serialization_version=diagnostics.serialization_version,
         source_item_ids=diagnostics.panel_ids,
-        error_signal_count=diagnostics.diagnostic_signal_count + diagnostics.panel_count,
+        error_signal_count=diagnostics.diagnostic_signal_count
+        + diagnostics.panel_count,
         guardrail_signal_count=guardrails,
         evidence=(
             f"diagnostic_panels:{diagnostics.panel_count}",

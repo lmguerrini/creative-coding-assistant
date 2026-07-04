@@ -107,7 +107,9 @@ class AgentRegistryAuditTests(unittest.TestCase):
             self.assertEqual(entry.export_symbol, entry.registry_id)
             self.assertEqual(set(entry.linked_agent_ids), known_agents)
             self.assertEqual(entry.coverage_surfaces, registry.coverage_surfaces)
-            self.assertEqual(entry.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                entry.passive_boundary_flags, registry.passive_boundary_flags
+            )
             self.assertFalse(entry.missing_coverage_items)
             self.assertTrue(
                 {
@@ -142,7 +144,9 @@ class AgentRegistryAuditTests(unittest.TestCase):
         self.assertIsNotNone(contract_entry)
         assert contract_entry is not None
         self.assertEqual(contract_entry.registry_kind, "v4_1_foundation")
-        self.assertEqual(contract_entry.registry_serialization_version, "agent_contract_registry.v1")
+        self.assertEqual(
+            contract_entry.registry_serialization_version, "agent_contract_registry.v1"
+        )
         self.assertEqual(len(foundation_entries), 6)
         self.assertGreaterEqual(len(v4_2_entries), 10)
         self.assertEqual(missing_kind_entries, ())

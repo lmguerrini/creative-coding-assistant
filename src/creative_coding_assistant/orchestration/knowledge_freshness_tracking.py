@@ -439,9 +439,7 @@ class KnowledgeFreshnessTrackingPlan(BaseModel):
             raise ValueError("signal_count must match signals")
         if self.candidate_signal_count != len(self.candidate_signal_ids):
             raise ValueError("candidate_signal_count must match signals")
-        if self.review_required_signal_count != len(
-            self.review_required_signal_ids
-        ):
+        if self.review_required_signal_count != len(self.review_required_signal_ids):
             raise ValueError("review_required_signal_count must match signals")
         if self.guarded_signal_count != len(self.guarded_signal_ids):
             raise ValueError("guarded_signal_count must match signals")
@@ -455,9 +453,7 @@ class KnowledgeFreshnessTrackingPlan(BaseModel):
             raise ValueError("highest_freshness_score must match signals")
         if self.overall_freshness_score != _overall_freshness_score(self.signals):
             raise ValueError("overall_freshness_score must match signals")
-        if self.overall_freshness_posture != _overall_freshness_posture(
-            self.signals
-        ):
+        if self.overall_freshness_posture != _overall_freshness_posture(self.signals):
             raise ValueError("overall_freshness_posture must match signals")
         declared_rollback_signals = set(self.knowledge_rollback_signal_ids)
         for signal in self.signals:

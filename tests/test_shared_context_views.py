@@ -44,7 +44,9 @@ class SharedContextViewTests(unittest.TestCase):
             "shared_context_view_registry.v1",
         )
         self.assertEqual(view_registry.agent_ids, memory_registry.agent_ids)
-        self.assertEqual(view_registry.blackboard_channel_ids, blackboard_registry.channel_ids)
+        self.assertEqual(
+            view_registry.blackboard_channel_ids, blackboard_registry.channel_ids
+        )
         self.assertEqual(view_registry.view_count, 12)
         self.assertEqual(
             view_registry.source_registries,

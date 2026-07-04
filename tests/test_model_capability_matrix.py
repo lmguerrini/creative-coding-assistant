@@ -160,9 +160,9 @@ class ModelCapabilityMatrixTests(unittest.TestCase):
             ModelCapabilityMatrix(**payload)
 
         payload = matrix.model_dump(mode="json")
-        payload["model_profile_ids"] = (
-            "missing",
-        ) + tuple(payload["model_profile_ids"][1:])
+        payload["model_profile_ids"] = ("missing",) + tuple(
+            payload["model_profile_ids"][1:]
+        )
 
         with self.assertRaisesRegex(ValueError, "model_profile_ids must match"):
             ModelCapabilityMatrix(**payload)

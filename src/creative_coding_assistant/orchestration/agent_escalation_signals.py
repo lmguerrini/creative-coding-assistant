@@ -18,9 +18,7 @@ EscalationSignalCategory = Literal[
 EscalationThresholdDirection = Literal["below", "above", "present"]
 
 ESCALATION_SIGNAL_SERIALIZATION_VERSION = "agent_escalation_signal.v1"
-ESCALATION_SIGNAL_REGISTRY_SERIALIZATION_VERSION = (
-    "agent_escalation_signal_registry.v1"
-)
+ESCALATION_SIGNAL_REGISTRY_SERIALIZATION_VERSION = "agent_escalation_signal_registry.v1"
 ESCALATION_SIGNAL_REGISTRY_AUTHORITY_BOUNDARY = (
     "Escalation signal metadata describes advisory confidence, risk, "
     "ambiguity, cost, latency, quality, and HITL thresholds as passive "

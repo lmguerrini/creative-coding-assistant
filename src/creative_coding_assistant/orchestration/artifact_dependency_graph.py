@@ -309,8 +309,7 @@ def artifact_dependency_graph_prompt_lines(
         for item in graph.optional_upstream_metadata
     )
     lines.extend(
-        f"Blocking artifact dependency: {item}"
-        for item in graph.blocking_dependencies
+        f"Blocking artifact dependency: {item}" for item in graph.blocking_dependencies
     )
     lines.extend(
         f"Soft artifact dependency: {item}" for item in graph.soft_dependencies
@@ -332,12 +331,10 @@ def artifact_dependency_graph_prompt_lines(
         for item in graph.missing_dependency_risks
     )
     lines.extend(
-        f"Artifact dependency conflict: {item}"
-        for item in graph.dependency_conflicts
+        f"Artifact dependency conflict: {item}" for item in graph.dependency_conflicts
     )
     lines.extend(
-        f"HITL artifact dependency question: {item}"
-        for item in graph.hitl_questions
+        f"HITL artifact dependency question: {item}" for item in graph.hitl_questions
     )
     lines.extend(
         f"Artifact dependency guidance: {item}" for item in graph.prompt_guidance
@@ -675,9 +672,8 @@ def _dependency_conflicts(
             for item in creative_tradeoffs.primary_tradeoffs[:3]
         )
     if artifact_plan is not None:
-        if (
-            artifact_plan.artifact_family == "audiovisual_scene"
-            and not any("audio" in item.lower() for item in artifact_plan.evidence)
+        if artifact_plan.artifact_family == "audiovisual_scene" and not any(
+            "audio" in item.lower() for item in artifact_plan.evidence
         ):
             conflicts.append(
                 "Audio-visual artifact dependency may exceed visual-only "
@@ -742,9 +738,7 @@ def _prompt_guidance(
         ),
     ]
     if blocking_dependencies:
-        guidance.append(
-            "Surface blocking dependency questions before expanding scope."
-        )
+        guidance.append("Surface blocking dependency questions before expanding scope.")
     return tuple(guidance[:8])
 
 

@@ -4,10 +4,21 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable, Iterable, Iterator
+from http import HTTPStatus
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
+from creative_coding_assistant.api.contracts import (
+    STREAM_CONTRACT_HEADER,
+    STREAM_CONTRACT_VERSION,
+    ApiRequestBodyError,
+    StartResponse,
+    empty_response,
+    error_response,
+    read_json_body,
+    request_id_from_environ,
+)
 from creative_coding_assistant.app import build_assistant_service
 from creative_coding_assistant.contracts import (
     MAX_IMAGE_REFERENCE_COUNT,
@@ -21,16 +32,12 @@ from creative_coding_assistant.contracts import (
 )
 from creative_coding_assistant.orchestration import AssistantService
 
-StartResponse = Callable[
-    [str, list[tuple[str, str]], Any | None],
-    Callable[[bytes], object] | None,
-]
-
 DEFAULT_STREAM_PATH = "/api/assistant/stream"
 DEFAULT_CONVERSATION_ID = "local-nextjs-session"
 DEFAULT_PROJECT_ID = "local-nextjs-workspace"
 MAX_REQUEST_BYTES = 8 * 1024 * 1024
 _JSON_SEPARATORS = (",", ":")
+STREAM_METHODS = "POST, OPTIONS"
 
 
 class AssistantStreamRequest(BaseModel):
@@ -132,38 +139,67 @@ class AssistantStreamingApplication:
         environ: dict[str, Any],
         start_response: StartResponse,
     ) -> Iterable[bytes]:
+        request_id = request_id_from_environ(environ)
         path = str(environ.get("PATH_INFO", ""))
         method = str(environ.get("REQUEST_METHOD", "GET")).upper()
 
         if path != self._path:
-            return _json_response(
+            return error_response(
                 start_response,
-                "404 Not Found",
-                {"error": "not_found"},
+                HTTPStatus.NOT_FOUND,
+                error="not_found",
+                message="Assistant stream route was not found.",
+                request_id=request_id,
+                allow_methods=STREAM_METHODS,
+                details={"available_paths": [self._path]},
             )
 
         if method == "OPTIONS":
-            return _empty_response(start_response, "204 No Content")
+            return empty_response(
+                start_response,
+                HTTPStatus.NO_CONTENT,
+                request_id=request_id,
+                allow_methods=STREAM_METHODS,
+                extra_headers=[(STREAM_CONTRACT_HEADER, STREAM_CONTRACT_VERSION)],
+            )
 
         if method != "POST":
-            return _json_response(
+            return error_response(
                 start_response,
-                "405 Method Not Allowed",
-                {"error": "method_not_allowed"},
-                extra_headers=[("Allow", "POST, OPTIONS")],
+                HTTPStatus.METHOD_NOT_ALLOWED,
+                error="method_not_allowed",
+                message="Assistant stream accepts POST and OPTIONS.",
+                request_id=request_id,
+                allow_methods=STREAM_METHODS,
+                details={"allowed_methods": ["POST", "OPTIONS"]},
+                extra_headers=[
+                    ("Allow", STREAM_METHODS),
+                    (STREAM_CONTRACT_HEADER, STREAM_CONTRACT_VERSION),
+                ],
             )
 
         try:
-            payload = _read_json_body(environ)
+            payload = read_json_body(environ, max_bytes=MAX_REQUEST_BYTES)
             request = AssistantStreamRequest.model_validate(payload)
-        except (ValueError, ValidationError) as exc:
-            return _json_response(
+        except ApiRequestBodyError as exc:
+            return error_response(
                 start_response,
-                "400 Bad Request",
-                {
-                    "error": "invalid_request",
-                    "message": str(exc),
-                },
+                exc.status,
+                error=exc.code,
+                message=exc.message,
+                request_id=request_id,
+                allow_methods=STREAM_METHODS,
+                extra_headers=[(STREAM_CONTRACT_HEADER, STREAM_CONTRACT_VERSION)],
+            )
+        except ValidationError as exc:
+            return error_response(
+                start_response,
+                HTTPStatus.BAD_REQUEST,
+                error="invalid_request",
+                message=str(exc),
+                request_id=request_id,
+                allow_methods=STREAM_METHODS,
+                extra_headers=[(STREAM_CONTRACT_HEADER, STREAM_CONTRACT_VERSION)],
             )
 
         start_response(
@@ -172,19 +208,16 @@ class AssistantStreamingApplication:
                 ("Content-Type", "application/x-ndjson; charset=utf-8"),
                 ("Cache-Control", "no-cache, no-transform"),
                 ("X-Accel-Buffering", "no"),
+                ("X-Request-Id", request_id),
+                (STREAM_CONTRACT_HEADER, STREAM_CONTRACT_VERSION),
                 *_cors_headers(),
             ],
             None,
         )
-        service = (
-            self._service if self._service is not None else self._service_factory()
-        )
-        return (
-            line.encode("utf-8")
-            for line in iter_assistant_stream_ndjson(
-                request=request,
-                service=service,
-            )
+        return _stream_response_bytes(
+            request=request,
+            service=self._service,
+            service_factory=self._service_factory,
         )
 
 
@@ -201,68 +234,11 @@ def create_assistant_streaming_app(
     )
 
 
-def _read_json_body(environ: dict[str, Any]) -> dict[str, Any]:
-    raw_length = str(environ.get("CONTENT_LENGTH", "") or "0")
-    try:
-        content_length = int(raw_length)
-    except ValueError as exc:
-        raise ValueError("Invalid Content-Length header.") from exc
-
-    if content_length <= 0:
-        raise ValueError("Request body is required.")
-
-    if content_length > MAX_REQUEST_BYTES:
-        raise ValueError("Request body is too large.")
-
-    body = environ["wsgi.input"].read(content_length)
-    decoded = body.decode("utf-8")
-    payload = json.loads(decoded)
-    if not isinstance(payload, dict):
-        raise ValueError("Request body must be a JSON object.")
-    return payload
-
-
-def _json_response(
-    start_response: StartResponse,
-    status: str,
-    payload: dict[str, Any],
-    *,
-    extra_headers: list[tuple[str, str]] | None = None,
-) -> Iterable[bytes]:
-    body = json.dumps(payload, separators=_JSON_SEPARATORS).encode("utf-8")
-    start_response(
-        status,
-        [
-            ("Content-Type", "application/json; charset=utf-8"),
-            ("Content-Length", str(len(body))),
-            *_cors_headers(),
-            *(extra_headers or []),
-        ],
-        None,
-    )
-    return (body,)
-
-
-def _empty_response(
-    start_response: StartResponse,
-    status: str,
-) -> Iterable[bytes]:
-    start_response(
-        status,
-        [
-            ("Content-Length", "0"),
-            *_cors_headers(),
-        ],
-        None,
-    )
-    return ()
-
-
 def _cors_headers() -> list[tuple[str, str]]:
     return [
         ("Access-Control-Allow-Origin", "*"),
-        ("Access-Control-Allow-Headers", "Content-Type"),
-        ("Access-Control-Allow-Methods", "POST, OPTIONS"),
+        ("Access-Control-Allow-Headers", "Content-Type, X-Request-Id"),
+        ("Access-Control-Allow-Methods", STREAM_METHODS),
     ]
 
 
@@ -282,5 +258,25 @@ def _assistant_stream_failed_event(*, sequence: int) -> StreamEvent:
             "recoverable": True,
             "suggested_action": "Retry the request from the client.",
             "retry_label": "Send prompt again",
+            "contract_version": STREAM_CONTRACT_VERSION,
         },
     )
+
+
+def _stream_response_bytes(
+    *,
+    request: AssistantStreamRequest,
+    service: AssistantService | None,
+    service_factory: Callable[[], AssistantService],
+) -> Iterable[bytes]:
+    try:
+        resolved_service = service if service is not None else service_factory()
+        for line in iter_assistant_stream_ndjson(
+            request=request,
+            service=resolved_service,
+        ):
+            yield line.encode("utf-8")
+    except Exception:
+        yield serialize_stream_event(_assistant_stream_failed_event(sequence=0)).encode(
+            "utf-8"
+        )

@@ -99,9 +99,7 @@ class AgentTelemetryFoundationProfile(BaseModel):
 
     agent_id: str = Field(min_length=1, max_length=80)
     role_id: str = Field(min_length=1, max_length=80)
-    telemetry_stage: AgentTelemetryFoundationStage = (
-        "v4_6_agent_telemetry_foundation"
-    )
+    telemetry_stage: AgentTelemetryFoundationStage = "v4_6_agent_telemetry_foundation"
     metadata_serialization_version: str = Field(min_length=1, max_length=80)
     lifecycle_profile_id: str = Field(min_length=1, max_length=140)
     observability_surfaces: tuple[str, ...] = Field(min_length=5, max_length=5)
@@ -113,7 +111,9 @@ class AgentTelemetryFoundationProfile(BaseModel):
     telemetry_source_registries: tuple[str, ...] = Field(min_length=5, max_length=5)
     passive_boundary_flags: tuple[str, ...] = Field(min_length=8, max_length=8)
     foundation_findings: tuple[str, ...] = Field(min_length=7, max_length=7)
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=16)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=16
+    )
     metadata_blocked_runtime_behaviors: tuple[str, ...] = Field(
         min_length=1,
         max_length=16,
@@ -172,9 +172,7 @@ class AgentTelemetryFoundationRegistry(BaseModel):
         default=AGENT_TELEMETRY_FOUNDATION_REGISTRY_AUTHORITY_BOUNDARY,
         max_length=1200,
     )
-    telemetry_stage: AgentTelemetryFoundationStage = (
-        "v4_6_agent_telemetry_foundation"
-    )
+    telemetry_stage: AgentTelemetryFoundationStage = "v4_6_agent_telemetry_foundation"
     profiles: tuple[AgentTelemetryFoundationProfile, ...] = Field(
         min_length=12,
         max_length=12,
@@ -421,7 +419,9 @@ AGENT_TELEMETRY_FOUNDATION_PROFILES = tuple(
 )
 AGENT_TELEMETRY_FOUNDATION_REGISTRY = AgentTelemetryFoundationRegistry(
     profiles=AGENT_TELEMETRY_FOUNDATION_PROFILES,
-    agent_ids=tuple(profile.agent_id for profile in AGENT_TELEMETRY_FOUNDATION_PROFILES),
+    agent_ids=tuple(
+        profile.agent_id for profile in AGENT_TELEMETRY_FOUNDATION_PROFILES
+    ),
     profile_count=len(AGENT_TELEMETRY_FOUNDATION_PROFILES),
     telemetry_source_registries=_SOURCE_TELEMETRY_REGISTRIES,
     observability_surfaces=agent_metadata_registry().observability_surfaces,

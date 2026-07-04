@@ -140,8 +140,7 @@ class _FakeChunkEmbedder:
         chunk_texts = tuple(chunk.text for chunk in chunks)
         self.calls.append(chunk_texts)
         return tuple(
-            [float(index + 1), 0.0, 0.0]
-            for index, _chunk in enumerate(chunks)
+            [float(index + 1), 0.0, 0.0] for index, _chunk in enumerate(chunks)
         )
 
 

@@ -17,9 +17,7 @@ WorkstationContractHydrationMode = Literal[
     "composite_metadata_projection",
 ]
 
-WORKSTATION_ENGINE_CONTRACT_SERIALIZATION_VERSION = (
-    "workstation_engine_contract.v1"
-)
+WORKSTATION_ENGINE_CONTRACT_SERIALIZATION_VERSION = "workstation_engine_contract.v1"
 WORKSTATION_ENGINE_CONTRACT_REGISTRY_SERIALIZATION_VERSION = (
     "workstation_engine_contract_registry.v1"
 )
@@ -96,9 +94,9 @@ class WorkstationEngineContractRegistry(BaseModel):
         "workstation_engine_contract_registry"
     )
     surface_category: WorkstationContractCategory = "creative_workstation"
-    serialization_version: Literal[
-        "workstation_engine_contract_registry.v1"
-    ] = WORKSTATION_ENGINE_CONTRACT_REGISTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["workstation_engine_contract_registry.v1"] = (
+        WORKSTATION_ENGINE_CONTRACT_REGISTRY_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=WORKSTATION_ENGINE_CONTRACT_REGISTRY_AUTHORITY_BOUNDARY,
         max_length=900,

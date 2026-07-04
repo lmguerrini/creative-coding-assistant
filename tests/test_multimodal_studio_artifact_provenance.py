@@ -224,7 +224,9 @@ class MultimodalStudioArtifactProvenanceTests(unittest.TestCase):
             tuple(item.profile_id for item in evidence_profiles),
             ("evidence_artifact_provenance",),
         )
-        self.assertEqual(tuple(item.profile_id for item in route_profiles), EXPECTED_PROFILE_IDS)
+        self.assertEqual(
+            tuple(item.profile_id for item in route_profiles), EXPECTED_PROFILE_IDS
+        )
         self.assertEqual(
             tuple(item.profile_id for item in inspection_profiles),
             (
@@ -266,7 +268,9 @@ class MultimodalStudioArtifactProvenanceTests(unittest.TestCase):
         ):
             MultimodalArtifactProvenanceRegistry(**unknown_artifact_kwargs)
 
-    def test_artifact_provenance_metadata_does_not_change_provider_factory(self) -> None:
+    def test_artifact_provenance_metadata_does_not_change_provider_factory(
+        self,
+    ) -> None:
         settings = Settings(
             default_generation_provider=GenerationProviderName.OPENAI,
             openai_model="gpt-5",
@@ -298,9 +302,7 @@ def _registry_kwargs(
         "profile_count": registry.profile_count,
         "source_registries": registry.source_registries,
         "source_reference_ids": registry.source_reference_ids,
-        "artifact_provenance_surface_refs": (
-            registry.artifact_provenance_surface_refs
-        ),
+        "artifact_provenance_surface_refs": (registry.artifact_provenance_surface_refs),
         "observability_surfaces": registry.observability_surfaces,
     }
 

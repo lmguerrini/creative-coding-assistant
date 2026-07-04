@@ -175,7 +175,9 @@ class HybridRoutingPlan(BaseModel):
 
     @model_validator(mode="after")
     def _plan_matches_decisions(self) -> Self:
-        derived_decision_ids = tuple(decision.decision_id for decision in self.decisions)
+        derived_decision_ids = tuple(
+            decision.decision_id for decision in self.decisions
+        )
         if len(set(derived_decision_ids)) != len(derived_decision_ids):
             raise ValueError("decision_ids must be unique")
         if self.decision_ids != derived_decision_ids:

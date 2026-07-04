@@ -70,9 +70,7 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
                         "shaderPresets": {
                             "presets": ["glow"],
                             "colorBehavior": ["Use a bright core color."],
-                            "lightMaterialBehavior": [
-                                "Use bounded emission layers."
-                            ],
+                            "lightMaterialBehavior": ["Use bounded emission layers."],
                             "motionBehavior": ["Pulse intensity slowly."],
                             "shaderStructure": ["Separate an emission mask."],
                             "runtimeSuitability": [
@@ -90,9 +88,7 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
                             "contrastBehavior": [
                                 "Create hierarchy through spacing and value."
                             ],
-                            "compositionTendencies": [
-                                "Use deliberate negative space."
-                            ],
+                            "compositionTendencies": ["Use deliberate negative space."],
                             "motionTendencies": ["Use slow, readable transitions."],
                             "textureTendencies": ["Keep surfaces clean."],
                             "spatialOrganization": ["Favor a stable focal point."],
@@ -132,15 +128,15 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
             ["mandala"],
         )
         self.assertEqual(
-            assistant_request.artifact_refinement.creative_translation[
-                "shaderPresets"
-            ]["presets"],
+            assistant_request.artifact_refinement.creative_translation["shaderPresets"][
+                "presets"
+            ],
             ["glow"],
         )
         self.assertEqual(
-            assistant_request.artifact_refinement.creative_translation[
-                "visualStyle"
-            ]["styles"],
+            assistant_request.artifact_refinement.creative_translation["visualStyle"][
+                "styles"
+            ],
             ["minimal"],
         )
         self.assertEqual(assistant_request.project_id, "workspace-a")
@@ -216,9 +212,7 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
         )
         request = AssistantStreamRequest(query="Explain particles.")
 
-        lines = tuple(
-            iter_assistant_stream_ndjson(request=request, service=service)
-        )
+        lines = tuple(iter_assistant_stream_ndjson(request=request, service=service))
 
         self.assertEqual(len(lines), 1)
         self.assertEqual(json.loads(lines[0])["payload"]["code"], "request_received")
@@ -228,9 +222,7 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
         service = _FailingService()
         request = AssistantStreamRequest(query="Generate.")
 
-        lines = tuple(
-            iter_assistant_stream_ndjson(request=request, service=service)
-        )
+        lines = tuple(iter_assistant_stream_ndjson(request=request, service=service))
 
         self.assertEqual(len(lines), 1)
         event = json.loads(lines[0])
@@ -252,9 +244,7 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
         )
         request = AssistantStreamRequest(query="Generate.")
 
-        lines = tuple(
-            iter_assistant_stream_ndjson(request=request, service=service)
-        )
+        lines = tuple(iter_assistant_stream_ndjson(request=request, service=service))
 
         self.assertEqual(len(lines), 1)
         event = json.loads(lines[0])
@@ -366,7 +356,13 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
         self.assertEqual(missing_status["status"], "404 Not Found")
         self.assertEqual(
             json.loads(missing_body)["available_paths"],
-            ["/api/assistant/stream", "/api/workspace/session"],
+            [
+                "/api/assistant/stream",
+                "/api/workspace/session",
+                "/api/health",
+                "/api/health/live",
+                "/api/health/ready",
+            ],
         )
 
 

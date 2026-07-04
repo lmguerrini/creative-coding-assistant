@@ -127,7 +127,9 @@ class ExecutionStrategySelectionTests(unittest.TestCase):
             "execution_strategy::retry_guarded_quality",
             selection,
         )
-        failure = execution_strategy_by_id("execution_strategy::failure_safe", selection)
+        failure = execution_strategy_by_id(
+            "execution_strategy::failure_safe", selection
+        )
 
         self.assertIsNotNone(selected)
         self.assertIsNotNone(baseline)

@@ -96,4 +96,3 @@ CognitiveOSCapability = Literal[
 ]
 
 CognitiveOSPosture = Literal["candidate", "review_required", "guarded"]
-

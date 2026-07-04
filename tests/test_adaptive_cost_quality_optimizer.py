@@ -183,7 +183,9 @@ class AdaptiveCostQualityOptimizerTests(unittest.TestCase):
         payload = plan.model_dump(mode="json")
         payload["recommended_adaptive_score"] += 1
 
-        with self.assertRaisesRegex(ValueError, "recommended_adaptive_score must match"):
+        with self.assertRaisesRegex(
+            ValueError, "recommended_adaptive_score must match"
+        ):
             AdaptiveCostQualityPlan(**payload)
 
     def test_optimizer_does_not_change_routing_or_provider_factory(self) -> None:

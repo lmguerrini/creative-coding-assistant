@@ -89,8 +89,7 @@ def looks_like_follow_up_query(query: str) -> bool:
     if _FOLLOW_UP_COMMAND_PATTERN.search(normalized):
         return True
     return any(
-        pattern.search(normalized) is not None
-        for pattern in _FOLLOW_UP_PHRASE_PATTERNS
+        pattern.search(normalized) is not None for pattern in _FOLLOW_UP_PHRASE_PATTERNS
     )
 
 
@@ -219,7 +218,7 @@ def _truncate_code_excerpt(code: str) -> str:
         return code
 
     head = code[:_CODE_BLOCK_HEAD_CHARS].rstrip()
-    tail = code[-_CODE_BLOCK_TAIL_CHARS :].lstrip()
+    tail = code[-_CODE_BLOCK_TAIL_CHARS:].lstrip()
     return f"{head}\n...\n{tail}"
 
 

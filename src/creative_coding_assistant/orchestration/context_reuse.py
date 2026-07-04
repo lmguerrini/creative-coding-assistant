@@ -78,7 +78,10 @@ class ContextReuseCandidate(BaseModel):
         expected_status = "reusable" if self.reusable_tokens > 0 else "not_reusable"
         if self.status != expected_status:
             raise ValueError("status must match reusable_tokens")
-        if self.status == "reusable" and self.previous_source_id != self.current_source_id:
+        if (
+            self.status == "reusable"
+            and self.previous_source_id != self.current_source_id
+        ):
             raise ValueError("reusable candidates require matching source ids")
         return self
 
@@ -96,8 +99,12 @@ class ContextReusePlan(BaseModel):
         default=CONTEXT_REUSE_AUTHORITY_BOUNDARY,
         max_length=1200,
     )
-    previous_context_budget_serialization_version: str = Field(min_length=1, max_length=80)
-    current_context_budget_serialization_version: str = Field(min_length=1, max_length=80)
+    previous_context_budget_serialization_version: str = Field(
+        min_length=1, max_length=80
+    )
+    current_context_budget_serialization_version: str = Field(
+        min_length=1, max_length=80
+    )
     candidates: tuple[ContextReuseCandidate, ...] = Field(min_length=1, max_length=16)
     candidate_ids: tuple[str, ...] = Field(min_length=1, max_length=16)
     reusable_source_kinds: tuple[ContextBudgetSourceKind, ...] = Field(
@@ -126,7 +133,9 @@ class ContextReusePlan(BaseModel):
 
     @model_validator(mode="after")
     def _plan_matches_candidates(self) -> Self:
-        derived_candidate_ids = tuple(candidate.candidate_id for candidate in self.candidates)
+        derived_candidate_ids = tuple(
+            candidate.candidate_id for candidate in self.candidates
+        )
         if len(set(derived_candidate_ids)) != len(derived_candidate_ids):
             raise ValueError("candidate_ids must be unique")
         if self.candidate_ids != derived_candidate_ids:
@@ -176,7 +185,9 @@ def plan_context_reuse(
         candidates=candidates,
         candidate_ids=tuple(candidate.candidate_id for candidate in candidates),
         reusable_source_kinds=tuple(
-            candidate.source_kind for candidate in candidates if candidate.status == "reusable"
+            candidate.source_kind
+            for candidate in candidates
+            if candidate.status == "reusable"
         ),
         total_requested_tokens=requested,
         total_reusable_tokens=reusable,
@@ -206,7 +217,9 @@ def context_reuse_candidates_for_status(
     """Return reuse candidates by status without cache writes."""
 
     source_plan = plan or plan_context_reuse()
-    return tuple(candidate for candidate in source_plan.candidates if candidate.status == status)
+    return tuple(
+        candidate for candidate in source_plan.candidates if candidate.status == status
+    )
 
 
 def _candidate(

@@ -203,9 +203,7 @@ class UserPreferencesTests(unittest.TestCase):
     def test_plan_rejects_mismatched_preference_metadata(self) -> None:
         plan = build_user_preferences()
         payload = plan.model_dump(mode="json")
-        payload["preference_ids"] = (
-            "missing",
-        ) + tuple(payload["preference_ids"][1:])
+        payload["preference_ids"] = ("missing",) + tuple(payload["preference_ids"][1:])
 
         with self.assertRaisesRegex(ValueError, "preference_ids must match"):
             UserPreferencesPlan(**payload)

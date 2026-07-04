@@ -632,8 +632,7 @@ def _handoff_points(
     for step in sequence:
         if step.depends_on:
             handoffs.append(
-                f"{', '.join(step.depends_on)} -> {step.artifact_id}: "
-                f"{step.rationale}"
+                f"{', '.join(step.depends_on)} -> {step.artifact_id}: {step.rationale}"
             )
     if not handoffs:
         handoffs.append("No supporting artifact handoff is required.")

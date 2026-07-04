@@ -171,9 +171,7 @@ class KnowledgeHealthMonitoringTests(unittest.TestCase):
                 len(signal.ranking_optimization_signal_ids),
             )
             self.assertTrue(
-                set(signal.ranking_optimization_signal_ids).issubset(
-                    ranking_signal_ids
-                )
+                set(signal.ranking_optimization_signal_ids).issubset(ranking_signal_ids)
             )
             self.assertEqual(
                 signal.health_score,

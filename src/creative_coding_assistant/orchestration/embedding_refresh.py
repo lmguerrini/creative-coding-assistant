@@ -357,9 +357,7 @@ class EmbeddingRefreshPlan(BaseModel):
             raise ValueError("signal_count must match signals")
         if self.candidate_signal_count != len(self.candidate_signal_ids):
             raise ValueError("candidate_signal_count must match signals")
-        if self.review_required_signal_count != len(
-            self.review_required_signal_ids
-        ):
+        if self.review_required_signal_count != len(self.review_required_signal_ids):
             raise ValueError("review_required_signal_count must match signals")
         if self.guarded_signal_count != len(self.guarded_signal_ids):
             raise ValueError("guarded_signal_count must match signals")
@@ -459,9 +457,7 @@ def build_embedding_refresh(
             _signal_ids_for_confidence(signals, "high", "guarded")
         ),
         hitl_required_signal_count=sum(
-            1
-            for signal in signals
-            if signal.hitl_required_before_embedding_refresh
+            1 for signal in signals if signal.hitl_required_before_embedding_refresh
         ),
         highest_refresh_score=max(signal.refresh_score for signal in signals),
         overall_refresh_score=_overall_refresh_score(signals),

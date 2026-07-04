@@ -286,9 +286,7 @@ def detect_bottlenecks(
         latency_optimization=latency,
         load_balancer=load,
     )
-    replay = execution_replay or plan_execution_replay(
-        execution_profiling=profiling
-    )
+    replay = execution_replay or plan_execution_replay(execution_profiling=profiling)
     candidates = _candidates(
         latency=latency,
         load=load,
@@ -362,9 +360,7 @@ def bottleneck_candidates_for_status(
 
     source_plan = plan or detect_bottlenecks()
     return tuple(
-        candidate
-        for candidate in source_plan.candidates
-        if candidate.status == status
+        candidate for candidate in source_plan.candidates if candidate.status == status
     )
 
 
@@ -488,9 +484,7 @@ def _candidate_ids_for_status(
     status: BottleneckStatus,
 ) -> tuple[str, ...]:
     return tuple(
-        candidate.candidate_id
-        for candidate in candidates
-        if candidate.status == status
+        candidate.candidate_id for candidate in candidates if candidate.status == status
     )
 
 
@@ -543,12 +537,8 @@ def _candidate_actions(status: BottleneckStatus) -> tuple[str, ...]:
             "Require explicit runtime authority before measuring bottlenecks.",
         )
     if status == "boundary_guardrail":
-        return (
-            "Preserve replay, profiling, workflow, and trace boundaries.",
-        )
-    return (
-        "Keep routing-related bottleneck signals review-only.",
-    )
+        return ("Preserve replay, profiling, workflow, and trace boundaries.",)
+    return ("Keep routing-related bottleneck signals review-only.",)
 
 
 def _plan_actions(

@@ -344,9 +344,7 @@ class AdaptiveExecutionFailurePathAuditTests(unittest.TestCase):
         adaptive_execution_failure_path_audit_by_id(
             "adaptive_execution_failure::telemetry_observability_failures"
         )
-        adaptive_execution_failure_path_audits_for_check(
-            "serialization_failures"
-        )
+        adaptive_execution_failure_path_audits_for_check("serialization_failures")
         adaptive_execution_failure_path_audits_for_surface(
             "adaptive_policy_explainability"
         )

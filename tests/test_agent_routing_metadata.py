@@ -6,7 +6,10 @@ from creative_coding_assistant.contracts import (
     CreativeCodingDomain,
 )
 from creative_coding_assistant.core import GenerationProviderName, Settings
-from creative_coding_assistant.llm import OpenAIGenerationProvider, build_generation_provider
+from creative_coding_assistant.llm import (
+    OpenAIGenerationProvider,
+    build_generation_provider,
+)
 from creative_coding_assistant.orchestration import (
     AgentRoutingRegistry,
     agent_contract_registry,
@@ -95,7 +98,9 @@ class AgentRoutingMetadataTests(unittest.TestCase):
             self.assertTrue(profile.decision_signals)
             self.assertTrue(profile.required_metadata_inputs)
             self.assertTrue(profile.produced_metadata_outputs)
-            self.assertIn("provider_or_model_routing", profile.blocked_runtime_behaviors)
+            self.assertIn(
+                "provider_or_model_routing", profile.blocked_runtime_behaviors
+            )
             self.assertIn("workflow_routing_change", profile.blocked_runtime_behaviors)
             self.assertIn("must not instantiate agents", profile.decision_boundary)
             self.assertTrue(profile.metadata_only)
@@ -173,7 +178,9 @@ class AgentRoutingMetadataTests(unittest.TestCase):
         self.assertEqual(next_decision.mode, AssistantMode.GENERATE)
         self.assertNotIn("agent_routing_registry", next_decision.model_dump_json())
 
-    def test_agent_routing_metadata_does_not_change_provider_model_selection(self) -> None:
+    def test_agent_routing_metadata_does_not_change_provider_model_selection(
+        self,
+    ) -> None:
         settings = Settings(
             default_generation_provider=GenerationProviderName.OPENAI,
             openai_model="gpt-5",

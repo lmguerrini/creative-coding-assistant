@@ -24,9 +24,7 @@ V42CapabilityId = Literal[
     "orchestration_contract_integration",
 ]
 
-CAPABILITY_ALIGNMENT_PROFILE_SERIALIZATION_VERSION = (
-    "agent_capability_alignment.v1"
-)
+CAPABILITY_ALIGNMENT_PROFILE_SERIALIZATION_VERSION = "agent_capability_alignment.v1"
 CAPABILITY_ALIGNMENT_REGISTRY_SERIALIZATION_VERSION = (
     "agent_capability_alignment_registry.v1"
 )
@@ -250,9 +248,7 @@ def _alignment(agent_id: str) -> AgentCapabilityAlignmentProfile:
     )
 
 
-AGENT_CAPABILITY_ALIGNMENTS = tuple(
-    _alignment(role.agent_id) for role in AGENT_ROLES
-)
+AGENT_CAPABILITY_ALIGNMENTS = tuple(_alignment(role.agent_id) for role in AGENT_ROLES)
 AGENT_CAPABILITY_ALIGNMENT_REGISTRY = AgentCapabilityAlignmentRegistry(
     alignments=AGENT_CAPABILITY_ALIGNMENTS,
     agent_ids=tuple(alignment.agent_id for alignment in AGENT_CAPABILITY_ALIGNMENTS),

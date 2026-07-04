@@ -179,13 +179,9 @@ class CognitiveOSGovernanceSafetyTests(unittest.TestCase):
                 boundary.governance_score,
                 cognitive_os_governance_score(
                     source_item_count=boundary.source_item_count,
-                    governed_roadmap_item_count=(
-                        boundary.governed_roadmap_item_count
-                    ),
+                    governed_roadmap_item_count=(boundary.governed_roadmap_item_count),
                     hitl_requirement_count=boundary.hitl_requirement_count,
-                    explainability_signal_count=(
-                        boundary.explainability_signal_count
-                    ),
+                    explainability_signal_count=(boundary.explainability_signal_count),
                     no_automation_weight=boundary.no_automation_weight,
                     safety_weight=boundary.safety_weight,
                 ),

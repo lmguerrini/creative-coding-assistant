@@ -62,7 +62,9 @@ class ReflectionLoopEngineTests(unittest.TestCase):
                 ),
             }
         )
-        evaluation = _self_evaluation(stack, generated_response="Incomplete.").model_copy(
+        evaluation = _self_evaluation(
+            stack, generated_response="Incomplete."
+        ).model_copy(
             update={
                 "request_alignment": 0.45,
                 "intent_alignment": 0.48,
@@ -74,9 +76,7 @@ class ReflectionLoopEngineTests(unittest.TestCase):
                 "ambiguity_assessment": "high",
                 "hallucination_risk": "high",
                 "underdelivery_risk": "high",
-                "quality_gaps": (
-                    "Unsupported runtime claims need explicit caveats.",
-                ),
+                "quality_gaps": ("Unsupported runtime claims need explicit caveats.",),
                 "improvement_opportunities": (
                     "Resolve runtime caveats before adding visual complexity.",
                 ),

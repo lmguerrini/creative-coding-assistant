@@ -244,9 +244,9 @@ class CreativeMemoryFailurePathAuditRecord(BaseModel):
     persistent_storage_write_implemented: Literal[False] = False
     generated_output_mutation_implemented: Literal[False] = False
     runtime_evolution_implemented: Literal[False] = False
-    serialization_version: Literal[
-        "creative_memory_failure_path_audit_record.v1"
-    ] = CREATIVE_MEMORY_FAILURE_PATH_AUDIT_RECORD_SERIALIZATION_VERSION
+    serialization_version: Literal["creative_memory_failure_path_audit_record.v1"] = (
+        CREATIVE_MEMORY_FAILURE_PATH_AUDIT_RECORD_SERIALIZATION_VERSION
+    )
     metadata_only: Literal[True] = True
 
     @model_validator(mode="after")
@@ -271,9 +271,9 @@ class CreativeMemoryFailurePathAuditRegistry(BaseModel):
     role: Literal["creative_memory_failure_path_audit_registry"] = (
         "creative_memory_failure_path_audit_registry"
     )
-    serialization_version: Literal[
-        "creative_memory_failure_path_audit_registry.v1"
-    ] = CREATIVE_MEMORY_FAILURE_PATH_AUDIT_REGISTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["creative_memory_failure_path_audit_registry.v1"] = (
+        CREATIVE_MEMORY_FAILURE_PATH_AUDIT_REGISTRY_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=CREATIVE_MEMORY_FAILURE_PATH_AUDIT_AUTHORITY_BOUNDARY,
         max_length=2600,
@@ -405,8 +405,9 @@ class CreativeMemoryFailurePathAuditRegistry(BaseModel):
         return self
 
 
-def creative_memory_failure_path_audit_registry(
-) -> CreativeMemoryFailurePathAuditRegistry:
+def creative_memory_failure_path_audit_registry() -> (
+    CreativeMemoryFailurePathAuditRegistry
+):
     """Return V6.2 runtime failure path audit metadata without runtime actions."""
 
     records = _records()

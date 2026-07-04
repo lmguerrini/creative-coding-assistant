@@ -30,6 +30,9 @@ from creative_coding_assistant.orchestration.artifact_refiner import (
 from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
 )
+from creative_coding_assistant.orchestration.consistency_validation_engine import (
+    ConsistencyValidationProfile,
+)
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
 )
@@ -63,9 +66,6 @@ from creative_coding_assistant.orchestration.creative_planning import (
 from creative_coding_assistant.orchestration.creative_quality_prediction import (
     CreativeQualityPrediction,
 )
-from creative_coding_assistant.orchestration.creative_score_engine import (
-    CreativeScoreProfile,
-)
 from creative_coding_assistant.orchestration.creative_reasoning_contracts import (
     CREATIVE_REASONING_AUTHORITY_BOUNDARY,
     CreativeReasoningEvidence,
@@ -89,6 +89,9 @@ from creative_coding_assistant.orchestration.creative_reasoning_support import (
     build_unresolved_decisions,
     normalize_future_knowledge_context,
 )
+from creative_coding_assistant.orchestration.creative_score_engine import (
+    CreativeScoreProfile,
+)
 from creative_coding_assistant.orchestration.creative_strategy import (
     CreativeStrategyProfile,
 )
@@ -101,20 +104,17 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
-from creative_coding_assistant.orchestration.consistency_validation_engine import (
-    ConsistencyValidationProfile,
-)
 from creative_coding_assistant.orchestration.cross_modality import (
     CrossModalityCompositionProfile,
 )
 from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
 )
-from creative_coding_assistant.orchestration.evaluation_reports import (
-    EvaluationReportProfile,
-)
 from creative_coding_assistant.orchestration.evaluation_engine_contracts import (
     EvaluationEngineContractRegistry,
+)
+from creative_coding_assistant.orchestration.evaluation_reports import (
+    EvaluationReportProfile,
 )
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
@@ -135,10 +135,10 @@ from creative_coding_assistant.orchestration.runtime_capabilities import (
 from creative_coding_assistant.orchestration.runtime_compatibility import (
     RuntimeCompatibilityProfile,
 )
-from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.self_evaluation_engine import (
     SelfEvaluationProfile,
 )
+from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -182,9 +182,7 @@ def derive_creative_reasoning_result(
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None = None,
     creative_critic: CreativeCriticProfile | None = None,
     self_evaluation: SelfEvaluationProfile | None = None,
-    creative_improvement_planner: (
-        CreativeImprovementPlannerProfile | None
-    ) = None,
+    creative_improvement_planner: (CreativeImprovementPlannerProfile | None) = None,
     reflection_loop: ReflectionLoopProfile | None = None,
     creative_confidence: CreativeConfidenceProfile | None = None,
     creative_score: CreativeScoreProfile | None = None,
@@ -446,8 +444,7 @@ def creative_reasoning_prompt_lines(
         )
         lines.extend(f"Reasoning implication: {item}" for item in step.implications[:2])
     lines.extend(
-        f"Supporting signal: {item}"
-        for item in result.strongest_supporting_signals[:5]
+        f"Supporting signal: {item}" for item in result.strongest_supporting_signals[:5]
     )
     lines.extend(
         f"Rejected alternative: {item.alternative}; {item.reason}"

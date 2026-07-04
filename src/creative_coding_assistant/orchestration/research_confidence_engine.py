@@ -182,13 +182,9 @@ class ResearchConfidenceEntry(BaseModel):
             governance_weight=self.governance_weight,
         ):
             raise ValueError("research_confidence_score must combine source scores")
-        if self.status != _research_confidence_status(
-            self.research_confidence_score
-        ):
+        if self.status != _research_confidence_status(self.research_confidence_score):
             raise ValueError("status must match research_confidence_score")
-        if self.confidence != _research_confidence_band(
-            self.research_confidence_score
-        ):
+        if self.confidence != _research_confidence_band(self.research_confidence_score):
             raise ValueError("confidence must match research_confidence_score")
         if not self.hitl_required_before_confidence_scoring:
             raise ValueError("research confidence scoring requires HITL posture")
@@ -753,9 +749,7 @@ def _entry_ids_for_confidence(
     entries: tuple[ResearchConfidenceEntry, ...],
     *confidences: ResearchConfidenceBand,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(

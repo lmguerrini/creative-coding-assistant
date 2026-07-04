@@ -89,7 +89,9 @@ class V51ExecutionOptimizationArchitectureConsistencyTests(unittest.TestCase):
     def test_v5_1_surfaces_preserve_architecture_boundaries(self) -> None:
         surfaces = _v5_1_surface_artifacts()
 
-        self.assertEqual(tuple(surface_id for surface_id, _ in surfaces), EXPECTED_V5_1_SURFACES)
+        self.assertEqual(
+            tuple(surface_id for surface_id, _ in surfaces), EXPECTED_V5_1_SURFACES
+        )
         for surface_id, artifact in surfaces:
             self.assertTrue(
                 artifact.serialization_version.endswith(".v1"),
@@ -97,11 +99,15 @@ class V51ExecutionOptimizationArchitectureConsistencyTests(unittest.TestCase):
             )
             self.assertTrue(getattr(artifact, "role", surface_id), surface_id)
             self.assertTrue(getattr(artifact, "authority_boundary", ""), surface_id)
-            self.assertTrue(getattr(artifact, "blocked_runtime_behaviors", ()), surface_id)
+            self.assertTrue(
+                getattr(artifact, "blocked_runtime_behaviors", ()), surface_id
+            )
 
             for flag_name in RUNTIME_FLAGS_THAT_MUST_REMAIN_DISABLED:
                 if hasattr(artifact, flag_name):
-                    self.assertFalse(getattr(artifact, flag_name), (surface_id, flag_name))
+                    self.assertFalse(
+                        getattr(artifact, flag_name), (surface_id, flag_name)
+                    )
 
             combined_text = _combined_surface_text(artifact)
             for forbidden_term in FORBIDDEN_RUNTIME_TERMS:

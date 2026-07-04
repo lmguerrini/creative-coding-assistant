@@ -37,12 +37,8 @@ AutomaticKbEnrichmentAxis = Literal[
     "governance_gate",
 ]
 
-AUTOMATIC_KB_ENRICHMENT_ENTRY_SERIALIZATION_VERSION = (
-    "automatic_kb_enrichment_entry.v1"
-)
-AUTOMATIC_KB_ENRICHMENT_PLAN_SERIALIZATION_VERSION = (
-    "automatic_kb_enrichment_plan.v1"
-)
+AUTOMATIC_KB_ENRICHMENT_ENTRY_SERIALIZATION_VERSION = "automatic_kb_enrichment_entry.v1"
+AUTOMATIC_KB_ENRICHMENT_PLAN_SERIALIZATION_VERSION = "automatic_kb_enrichment_plan.v1"
 
 AUTOMATIC_KB_ENRICHMENT_AUTHORITY_BOUNDARY = (
     "V6.4 Automatic KB Enrichment exposes enrichment candidate selection, "
@@ -402,9 +398,7 @@ class AutomaticKbEnrichmentPlan(BaseModel):
             raise ValueError("highest_enrichment_score must match entries")
         if self.overall_enrichment_score != _overall_enrichment_score(self.entries):
             raise ValueError("overall_enrichment_score must match entries")
-        if self.overall_enrichment_posture != _overall_enrichment_posture(
-            self.entries
-        ):
+        if self.overall_enrichment_posture != _overall_enrichment_posture(self.entries):
             raise ValueError("overall_enrichment_posture must match entries")
         distillation_ids = set(self.distillation_entry_ids)
         for entry in self.entries:
@@ -472,9 +466,7 @@ def build_automatic_kb_enrichment(
             "guarded",
         ),
         hitl_required_entry_ids=tuple(
-            entry.entry_id
-            for entry in entries
-            if entry.hitl_required_before_enrichment
+            entry.entry_id for entry in entries if entry.hitl_required_before_enrichment
         ),
         candidate_entry_count=len(_entry_ids_for_status(entries, "candidate")),
         review_required_entry_count=len(
@@ -753,9 +745,7 @@ def _entry_ids_for_confidence(
     entries: tuple[AutomaticKbEnrichmentEntry, ...],
     *confidences: AutomaticKbEnrichmentConfidence,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(

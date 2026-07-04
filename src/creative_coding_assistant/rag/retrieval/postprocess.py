@@ -44,9 +44,7 @@ _HARD_FILTERED_SOURCE_IDS = frozenset(
 )
 _DEDUP_TEXT_PREFIX_LENGTH = 280
 _DEDUP_SIMILARITY_THRESHOLD = 0.80
-_INLINE_TYPE_ANNOTATION_PATTERN = re.compile(
-    r"\b[a-z_][a-z0-9_]*\s*:\s*[^,)=\]}]+"
-)
+_INLINE_TYPE_ANNOTATION_PATTERN = re.compile(r"\b[a-z_][a-z0-9_]*\s*:\s*[^,)=\]}]+")
 _ANGLE_BRACKET_PATTERN = re.compile(r"<[^>]+>")
 _NON_ALPHANUMERIC_PATTERN = re.compile(r"[^a-z0-9]+")
 
@@ -112,8 +110,7 @@ def _deduplicate_results(
         preview = _normalized_preview(result.text)
         seen_previews = previews.get(result.source_id, [])
         if any(
-            _is_near_duplicate(preview, seen_preview)
-            for seen_preview in seen_previews
+            _is_near_duplicate(preview, seen_preview) for seen_preview in seen_previews
         ):
             continue
 

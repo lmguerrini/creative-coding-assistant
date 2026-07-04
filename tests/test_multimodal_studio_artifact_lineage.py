@@ -195,9 +195,7 @@ class MultimodalStudioArtifactLineageTests(unittest.TestCase):
         profile = multimodal_artifact_lineage_profile_by_id(
             "dependency_graph_artifact_lineage"
         )
-        missing_profile = multimodal_artifact_lineage_profile_by_id(
-            "missing_profile"
-        )
+        missing_profile = multimodal_artifact_lineage_profile_by_id("missing_profile")
         dependency_profiles = multimodal_artifact_lineage_profiles_for_surface_kind(
             "dependency_graph"
         )
@@ -223,7 +221,9 @@ class MultimodalStudioArtifactLineageTests(unittest.TestCase):
             tuple(item.profile_id for item in dependency_profiles),
             ("dependency_graph_artifact_lineage",),
         )
-        self.assertEqual(tuple(item.profile_id for item in route_profiles), EXPECTED_PROFILE_IDS)
+        self.assertEqual(
+            tuple(item.profile_id for item in route_profiles), EXPECTED_PROFILE_IDS
+        )
         self.assertEqual(
             tuple(item.profile_id for item in payload_profiles),
             (
@@ -286,9 +286,7 @@ def _registry_kwargs(
         "profile_ids": registry.profile_ids,
         "lineage_profile_kinds": registry.lineage_profile_kinds,
         "lineage_surface_kinds": registry.lineage_surface_kinds,
-        "artifact_provenance_profile_ids": (
-            registry.artifact_provenance_profile_ids
-        ),
+        "artifact_provenance_profile_ids": (registry.artifact_provenance_profile_ids),
         "route_names": registry.route_names,
         "profile_count": registry.profile_count,
         "source_registries": registry.source_registries,

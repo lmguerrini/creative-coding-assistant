@@ -165,9 +165,7 @@ class MultimodalStudioLivePreviewTests(unittest.TestCase):
         self.assertEqual(covered_source_references, known_source_references)
 
     def test_live_preview_lookup_helpers_are_stable(self) -> None:
-        profile = multimodal_live_preview_profile_by_id(
-            "browser_sandbox_live_preview"
-        )
+        profile = multimodal_live_preview_profile_by_id("browser_sandbox_live_preview")
         missing_profile = multimodal_live_preview_profile_by_id("missing_profile")
         browser_profiles = multimodal_live_preview_profiles_for_target(
             PreviewTarget.BROWSER_SANDBOX
@@ -175,10 +173,8 @@ class MultimodalStudioLivePreviewTests(unittest.TestCase):
         preview_route_profiles = multimodal_live_preview_profiles_for_route(
             RouteName.PREVIEW
         )
-        runtime_status_profiles = (
-            multimodal_live_preview_profiles_for_source_reference(
-                "clients.nextjs.preview_runtime_adapters.PreviewRuntimeStatus"
-            )
+        runtime_status_profiles = multimodal_live_preview_profiles_for_source_reference(
+            "clients.nextjs.preview_runtime_adapters.PreviewRuntimeStatus"
         )
 
         self.assertIsNone(missing_profile)

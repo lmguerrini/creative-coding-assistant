@@ -68,9 +68,7 @@ class CreativeImprovementPlannerTests(unittest.TestCase):
         self.assertTrue(planner.future_refinement_candidates)
 
     def test_derives_low_risk_and_experimental_improvements(self) -> None:
-        stack = _stack(
-            "Generate an experimental p5.js mandala with clear caveats."
-        )
+        stack = _stack("Generate an experimental p5.js mandala with clear caveats.")
         self_evaluation = _self_evaluation(
             stack,
             generated_response="Here is an experimental p5.js mandala with caveats.",
@@ -80,7 +78,9 @@ class CreativeImprovementPlannerTests(unittest.TestCase):
         self.assertTrue(planner.low_risk_improvements)
         self.assertTrue(planner.experimental_improvements)
         self.assertTrue(
-            any("optional" in item.lower() for item in planner.experimental_improvements),
+            any(
+                "optional" in item.lower() for item in planner.experimental_improvements
+            ),
             planner.experimental_improvements,
         )
 
@@ -189,9 +189,7 @@ class CreativeImprovementPlannerTests(unittest.TestCase):
 
         self.assertEqual(planning_planner["role"], "creative_improvement_planner")
         self.assertTrue(
-            planning_event.payload["workflow"][
-                "creative_improvement_planner_available"
-            ]
+            planning_event.payload["workflow"]["creative_improvement_planner_available"]
         )
         self.assertEqual(
             planning_event.payload["workflow"]["creative_improvement_planner"],

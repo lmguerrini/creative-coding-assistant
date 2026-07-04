@@ -19,9 +19,7 @@ from creative_coding_assistant.orchestration.execution_graph_analyzer import (
 ParallelScheduleStatus = Literal["parallel_candidate", "serial_guardrail"]
 ParallelSchedulerPressure = Literal["low", "medium", "high"]
 
-PARALLEL_SCHEDULE_CANDIDATE_SERIALIZATION_VERSION = (
-    "parallel_schedule_candidate.v1"
-)
+PARALLEL_SCHEDULE_CANDIDATE_SERIALIZATION_VERSION = "parallel_schedule_candidate.v1"
 PARALLEL_SCHEDULER_PLAN_SERIALIZATION_VERSION = "parallel_scheduler_plan.v1"
 PARALLEL_SCHEDULER_AUTHORITY_BOUNDARY = (
     "Parallel scheduler planning derives advisory concurrency candidates from "
@@ -337,8 +335,7 @@ def _candidates(
 ) -> tuple[ParallelScheduleCandidate, ...]:
     candidates: list[ParallelScheduleCandidate] = []
     group_to_candidate_id = {
-        group.group_id: f"parallel_scheduler::{group.stage_id}"
-        for group in groups
+        group.group_id: f"parallel_scheduler::{group.stage_id}" for group in groups
     }
     for index, group in enumerate(groups):
         candidates.append(
@@ -380,9 +377,7 @@ def _candidate_ids_for_status(
     status: ParallelScheduleStatus,
 ) -> tuple[str, ...]:
     return tuple(
-        candidate.candidate_id
-        for candidate in candidates
-        if candidate.status == status
+        candidate.candidate_id for candidate in candidates if candidate.status == status
     )
 
 

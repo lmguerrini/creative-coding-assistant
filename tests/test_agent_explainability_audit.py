@@ -131,8 +131,12 @@ class AgentExplainabilityAuditTests(unittest.TestCase):
             )
             self.assertEqual(record.audit_status, "pass")
             self.assertEqual(record.audit_stage, registry.audit_stage)
-            self.assertTrue(set(record.contract_source_registry_refs).issubset(known_sources))
-            self.assertTrue(set(record.memory_reference_sources).issubset(known_memory_sources))
+            self.assertTrue(
+                set(record.contract_source_registry_refs).issubset(known_sources)
+            )
+            self.assertTrue(
+                set(record.memory_reference_sources).issubset(known_memory_sources)
+            )
             self.assertEqual(
                 record.decision_provenance_profile_ids,
                 registry.decision_provenance_profile_ids,
@@ -145,7 +149,9 @@ class AgentExplainabilityAuditTests(unittest.TestCase):
                 record.validated_explainability_surfaces,
                 registry.validated_explainability_surfaces,
             )
-            self.assertEqual(record.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                record.passive_boundary_flags, registry.passive_boundary_flags
+            )
             self.assertFalse(record.missing_coverage_items)
             self.assertTrue(record.explanation_metadata_keys)
             self.assertTrue(record.explanation_signal_keys)
@@ -189,7 +195,9 @@ class AgentExplainabilityAuditTests(unittest.TestCase):
         self.assertIsNotNone(research_audit)
         assert research_audit is not None
         self.assertEqual(research_audit.role_id, "research")
-        self.assertIn("evidence_summary_metadata", research_audit.explanation_metadata_keys)
+        self.assertIn(
+            "evidence_summary_metadata", research_audit.explanation_metadata_keys
+        )
         self.assertIn("evidence_density", research_audit.explanation_signal_keys)
         self.assertEqual(len(memory_contract_audits), registry.audit_count)
         self.assertEqual(len(provenance_memory_audits), registry.audit_count)
@@ -239,8 +247,7 @@ class AgentExplainabilityAuditTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "validated_explainability_surfaces"):
             AgentExplainabilityAuditRegistry(
-                audit_records=(mismatched_surface_record,)
-                + registry.audit_records[1:],
+                audit_records=(mismatched_surface_record,) + registry.audit_records[1:],
                 agent_ids=registry.agent_ids,
                 audit_count=registry.audit_count,
                 source_registry_refs=registry.source_registry_refs,

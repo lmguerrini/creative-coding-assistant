@@ -176,9 +176,7 @@ class ResearchExecutionPolicyEntry(BaseModel):
         if self.entry_id != f"research_execution_policy::{self.policy_kind}":
             raise ValueError("entry_id must match policy_kind")
         if self.recommendation_entry_count != len(self.recommendation_entry_ids):
-            raise ValueError(
-                "recommendation_entry_count must match recommendation ids"
-            )
+            raise ValueError("recommendation_entry_count must match recommendation ids")
         if self.execution_policy_score != _execution_policy_score(
             execution_scope_score=self.execution_scope_score,
             source_access_score=self.source_access_score,
@@ -373,9 +371,7 @@ class ResearchExecutionPolicyPlan(BaseModel):
         if self.mutated_research_plan_ids:
             raise ValueError("mutated_research_plan_ids must remain empty")
         if self.recommendation_entry_count != len(self.recommendation_entry_ids):
-            raise ValueError(
-                "recommendation_entry_count must match recommendation ids"
-            )
+            raise ValueError("recommendation_entry_count must match recommendation ids")
         if self.covered_roadmap_items != _ROADMAP_ITEMS:
             raise ValueError("covered_roadmap_items must match V6.4 Task 17 roadmap")
         if self.covered_roadmap_item_count != len(self.covered_roadmap_items):
@@ -396,9 +392,7 @@ class ResearchExecutionPolicyPlan(BaseModel):
             entry.execution_policy_score for entry in self.entries
         ):
             raise ValueError("highest_execution_policy_score must match entries")
-        if self.overall_execution_policy_score != _overall_policy_score(
-            self.entries
-        ):
+        if self.overall_execution_policy_score != _overall_policy_score(self.entries):
             raise ValueError("overall_execution_policy_score must match entries")
         if self.overall_execution_policy_posture != _overall_policy_posture(
             self.entries
@@ -766,9 +760,7 @@ def _entry_ids_for_confidence(
     entries: tuple[ResearchExecutionPolicyEntry, ...],
     *confidences: ResearchExecutionPolicyConfidence,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(

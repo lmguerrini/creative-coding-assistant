@@ -151,9 +151,9 @@ def infer_likely_generation_domains(query: str) -> tuple[CreativeCodingDomain, .
 
     if _GLSL_INFERENCE_PATTERN.search(normalized):
         inferred.append(CreativeCodingDomain.GLSL)
-    if _R3F_INFERENCE_PATTERN.search(
+    if _R3F_INFERENCE_PATTERN.search(normalized) and _THREE_INFERENCE_PATTERN.search(
         normalized
-    ) and _THREE_INFERENCE_PATTERN.search(normalized):
+    ):
         inferred.append(CreativeCodingDomain.REACT_THREE_FIBER)
     elif _THREE_INFERENCE_PATTERN.search(normalized):
         inferred.append(CreativeCodingDomain.THREE_JS)

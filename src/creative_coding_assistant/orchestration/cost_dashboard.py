@@ -510,5 +510,7 @@ def _dashboard_actions(
         "workflow, storage, and output boundaries.",
     ]
     if _panel_ids_for_status(panels, "guarded"):
-        actions.append("Keep guarded cost panels non-enforcing until explicitly scoped.")
+        actions.append(
+            "Keep guarded cost panels non-enforcing until explicitly scoped."
+        )
     return tuple(actions)

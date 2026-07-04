@@ -158,9 +158,7 @@ class CognitiveHITLLayerPlan(BaseModel):
     task_type: TaskRoutingType
     execution_mode_ids: tuple[ExecutionModeId, ...] = Field(min_length=3, max_length=3)
     cognitive_safety_layer_role: Literal["cognitive_safety_layer"]
-    cognitive_safety_layer_serialization_version: Literal[
-        "cognitive_safety_layer.v1"
-    ]
+    cognitive_safety_layer_serialization_version: Literal["cognitive_safety_layer.v1"]
     cognitive_explanation_engine_role: Literal["cognitive_explanation_engine"]
     cognitive_blackboard_role: Literal["cognitive_blackboard"]
     cognitive_router_role: Literal["cognitive_router"]
@@ -253,9 +251,7 @@ class CognitiveHITLLayerPlan(BaseModel):
             raise ValueError("source_safety_count must match safety ids")
         if self.source_explanation_count != len(self.source_explanation_ids):
             raise ValueError("source_explanation_count must match explanation ids")
-        if self.source_blackboard_entry_count != len(
-            self.source_blackboard_entry_ids
-        ):
+        if self.source_blackboard_entry_count != len(self.source_blackboard_entry_ids):
             raise ValueError("source_blackboard_entry_count must match entries")
         if self.source_route_decision_count != len(self.source_route_decision_ids):
             raise ValueError("source_route_decision_count must match route ids")
@@ -331,9 +327,7 @@ class CognitiveHITLLayerPlan(BaseModel):
                 raise ValueError("checkpoint emergence_id must be declared")
             if not set(checkpoint.linked_agent_ids).issubset(declared_agents):
                 raise ValueError("checkpoint linked_agent_ids must be declared")
-        if self.covered_roadmap_items != (
-            COGNITIVE_HITL_LAYER_ROADMAP_ITEM,
-        ):
+        if self.covered_roadmap_items != (COGNITIVE_HITL_LAYER_ROADMAP_ITEM,):
             raise ValueError("covered_roadmap_items must be Task 23 only")
         if self.covered_roadmap_item_count != len(self.covered_roadmap_items):
             raise ValueError("covered_roadmap_item_count must match roadmap")
@@ -368,13 +362,10 @@ def build_cognitive_hitl_layer(
 ) -> CognitiveHITLLayerPlan:
     """Build read-only cognitive HITL metadata."""
 
-    safety_layer = (
-        cognitive_safety_layer
-        or build_cognitive_safety_layer(
-            route=route,
-            task_type=task_type,
-            execution_mode_id=execution_mode_id,
-        )
+    safety_layer = cognitive_safety_layer or build_cognitive_safety_layer(
+        route=route,
+        task_type=task_type,
+        execution_mode_id=execution_mode_id,
     )
     checkpoints = _cognitive_hitl_checkpoints(safety_layer)
     candidate_ids = _hitl_ids_for_posture(checkpoints, "candidate")

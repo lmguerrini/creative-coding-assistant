@@ -134,7 +134,9 @@ class ExecutionStrategySelection(BaseModel):
     selected_path_candidate_id: str = Field(min_length=1, max_length=180)
     fallback_strategy_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
     deferred_strategy_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
-    guardrail_strategy_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
+    guardrail_strategy_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=12
+    )
     strategy_count: int = Field(ge=1, le=12)
     selected_strategy_count: int = Field(ge=1, le=1)
     selected_strategy_score: int = Field(ge=0, le=2500)
@@ -165,7 +167,9 @@ class ExecutionStrategySelection(BaseModel):
 
     @model_validator(mode="after")
     def _selection_matches_strategies(self) -> Self:
-        derived_strategy_ids = tuple(strategy.strategy_id for strategy in self.strategies)
+        derived_strategy_ids = tuple(
+            strategy.strategy_id for strategy in self.strategies
+        )
         if len(set(derived_strategy_ids)) != len(derived_strategy_ids):
             raise ValueError("strategy_ids must be unique")
         if self.strategy_ids != derived_strategy_ids:
@@ -181,7 +185,10 @@ class ExecutionStrategySelection(BaseModel):
         selected_strategy = selected[0]
         if self.selected_strategy_id != selected_strategy.strategy_id:
             raise ValueError("selected_strategy_id must match selected strategy")
-        if self.selected_path_candidate_id != selected_strategy.source_path_candidate_id:
+        if (
+            self.selected_path_candidate_id
+            != selected_strategy.source_path_candidate_id
+        ):
             raise ValueError("selected_path_candidate_id must match selected strategy")
         if self.selected_strategy_count != 1:
             raise ValueError("selected_strategy_count must be one")
@@ -269,16 +276,24 @@ def execution_strategies_for_status(
     """Return strategy candidates by status without workflow control."""
 
     source_selection = selection or select_execution_strategy()
-    return tuple(strategy for strategy in source_selection.strategies if strategy.status == status)
+    return tuple(
+        strategy
+        for strategy in source_selection.strategies
+        if strategy.status == status
+    )
 
 
 def _strategies(
     path_plan: ExecutionPathOptimizationPlan,
 ) -> tuple[ExecutionStrategyCandidate, ...]:
-    cost_guarded_path = _path_candidate(path_plan, "execution_path::pruning_adjusted_path")
+    cost_guarded_path = _path_candidate(
+        path_plan, "execution_path::pruning_adjusted_path"
+    )
     baseline_path = _path_candidate(path_plan, "execution_path::minimum_success_path")
     retry_path = _path_candidate(path_plan, "execution_path::single_retry_path")
-    failure_path = _path_candidate(path_plan, "execution_path::failure_normalization_path")
+    failure_path = _path_candidate(
+        path_plan, "execution_path::failure_normalization_path"
+    )
     select_cost_guarded = bool(path_plan.optimization_candidate_ids)
 
     return (
@@ -351,7 +366,9 @@ def _strategy(
 def _selected_strategy(
     strategies: tuple[ExecutionStrategyCandidate, ...],
 ) -> ExecutionStrategyCandidate:
-    selected = tuple(strategy for strategy in strategies if strategy.status == "selected")
+    selected = tuple(
+        strategy for strategy in strategies if strategy.status == "selected"
+    )
     if len(selected) != 1:
         raise ValueError("exactly one selected strategy is required")
     return selected[0]
@@ -371,7 +388,9 @@ def _strategy_ids_for_status(
     strategies: tuple[ExecutionStrategyCandidate, ...],
     status: ExecutionStrategyStatus,
 ) -> tuple[str, ...]:
-    return tuple(strategy.strategy_id for strategy in strategies if strategy.status == status)
+    return tuple(
+        strategy.strategy_id for strategy in strategies if strategy.status == status
+    )
 
 
 def _confidence(

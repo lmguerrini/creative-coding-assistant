@@ -202,7 +202,9 @@ class LocalCloudRoutingPlan(BaseModel):
 
     @model_validator(mode="after")
     def _plan_matches_decisions(self) -> Self:
-        derived_decision_ids = tuple(decision.decision_id for decision in self.decisions)
+        derived_decision_ids = tuple(
+            decision.decision_id for decision in self.decisions
+        )
         if len(set(derived_decision_ids)) != len(derived_decision_ids):
             raise ValueError("decision_ids must be unique")
         if self.decision_ids != derived_decision_ids:
@@ -249,7 +251,9 @@ class LocalCloudRoutingPlan(BaseModel):
             "balanced_candidate",
         ):
             raise ValueError("balanced_candidate_count must match decisions")
-        if self.routing_confidence != _confidence(recommended_decision.comparison_delta):
+        if self.routing_confidence != _confidence(
+            recommended_decision.comparison_delta
+        ):
             raise ValueError("routing_confidence must match decision delta")
 
         known_local_ids = set(self.source_local_surface_ids)
@@ -289,8 +293,7 @@ def route_local_vs_cloud(
     local_registry = local_models or local_model_registry()
     cloud_registry = cloud_models or cloud_model_registry()
     profiles_by_id = {
-        profile.model_profile_id: profile
-        for profile in model_registry.model_profiles
+        profile.model_profile_id: profile for profile in model_registry.model_profiles
     }
     decisions = tuple(
         _decision_from_candidate(
@@ -367,8 +370,10 @@ def _resolve_route(
     route_decision: RouteDecision | None,
     route: RouteName | str | None,
 ) -> RouteName:
-    explicit_route = None if route is None else (
-        route if isinstance(route, RouteName) else RouteName(str(route))
+    explicit_route = (
+        None
+        if route is None
+        else (route if isinstance(route, RouteName) else RouteName(str(route)))
     )
     if model_routing is not None:
         if explicit_route is not None and explicit_route != model_routing.route_name:

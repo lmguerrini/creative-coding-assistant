@@ -285,9 +285,7 @@ class CognitiveBlackboardPlan(BaseModel):
             self.blackboard_entries,
             "review_required",
         ):
-            raise ValueError(
-                "review_required_blackboard_entry_ids must match entries"
-            )
+            raise ValueError("review_required_blackboard_entry_ids must match entries")
         if self.guarded_blackboard_entry_ids != _blackboard_ids_for_posture(
             self.blackboard_entries,
             "guarded",
@@ -351,8 +349,7 @@ class CognitiveBlackboardPlan(BaseModel):
             )
         ):
             raise ValueError(
-                "blackboard materialization, reads, writes, and HITL ids "
-                "must be empty",
+                "blackboard materialization, reads, writes, and HITL ids must be empty",
             )
         if not all(entry.advisory_only for entry in self.blackboard_entries):
             raise ValueError("all cognitive blackboard entries must be advisory only")

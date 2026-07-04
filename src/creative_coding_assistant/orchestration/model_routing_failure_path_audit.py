@@ -160,9 +160,9 @@ class ModelRoutingFailurePathAuditRecord(BaseModel):
     persistent_storage_write_implemented: Literal[False] = False
     generated_output_mutation_implemented: Literal[False] = False
     runtime_evolution_implemented: Literal[False] = False
-    serialization_version: Literal[
-        "model_routing_failure_path_audit_record.v1"
-    ] = MODEL_ROUTING_FAILURE_PATH_AUDIT_RECORD_SERIALIZATION_VERSION
+    serialization_version: Literal["model_routing_failure_path_audit_record.v1"] = (
+        MODEL_ROUTING_FAILURE_PATH_AUDIT_RECORD_SERIALIZATION_VERSION
+    )
     metadata_only: Literal[True] = True
 
     @model_validator(mode="after")
@@ -185,9 +185,9 @@ class ModelRoutingFailurePathAuditRegistry(BaseModel):
     role: Literal["model_routing_failure_path_audit_registry"] = (
         "model_routing_failure_path_audit_registry"
     )
-    serialization_version: Literal[
-        "model_routing_failure_path_audit_registry.v1"
-    ] = MODEL_ROUTING_FAILURE_PATH_AUDIT_REGISTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["model_routing_failure_path_audit_registry.v1"] = (
+        MODEL_ROUTING_FAILURE_PATH_AUDIT_REGISTRY_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=MODEL_ROUTING_FAILURE_PATH_AUDIT_AUTHORITY_BOUNDARY,
         max_length=1600,
@@ -278,8 +278,7 @@ class ModelRoutingFailurePathAuditRegistry(BaseModel):
         return self
 
 
-def model_routing_failure_path_audit_registry(
-) -> ModelRoutingFailurePathAuditRegistry:
+def model_routing_failure_path_audit_registry() -> ModelRoutingFailurePathAuditRegistry:
     """Return V5.2 runtime failure path audit metadata without runtime actions."""
 
     architecture_registry = model_routing_architecture_consistency_registry()

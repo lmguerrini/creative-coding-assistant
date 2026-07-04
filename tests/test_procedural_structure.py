@@ -49,9 +49,7 @@ class ProceduralStructurePlannerTests(unittest.TestCase):
             {
                 "polar_radial_systems",
                 "sacred_geometry_pattern_systems",
-            }.intersection(
-                {item.family for item in procedural.secondary_structures}
-            ),
+            }.intersection({item.family for item in procedural.secondary_structures}),
             procedural.secondary_structures,
         )
         self.assertIn("spine", procedural.combination_strategy.lower())

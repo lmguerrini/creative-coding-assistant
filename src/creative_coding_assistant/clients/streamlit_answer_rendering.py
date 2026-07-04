@@ -218,7 +218,7 @@ def _looks_like_codeish_line(line: str) -> bool:
             "gl_FragColor",
             "gl_Position",
             "from '@react-three/fiber'",
-            "from \"@react-three/fiber\"",
+            'from "@react-three/fiber"',
             "useFrame(",
             "useRef(",
             "<Canvas",
@@ -229,10 +229,7 @@ def _looks_like_codeish_line(line: str) -> bool:
 
 
 def _looks_like_list_or_heading(line: str) -> bool:
-    return bool(
-        re.match(r"^([-*]|\d+\.)\s", line)
-        or line.startswith("#")
-    )
+    return bool(re.match(r"^([-*]|\d+\.)\s", line) or line.startswith("#"))
 
 
 def _next_non_empty_line(lines: list[str], start_index: int) -> str | None:
@@ -256,12 +253,9 @@ def _looks_like_html_document(content: str) -> bool:
 
 
 def _looks_like_glsl_block(content: str) -> bool:
-    return (
-        "void main" in content
-        and any(
-            marker in content
-            for marker in ("gl_FragColor", "gl_Position", "precision ", "uniform ")
-        )
+    return "void main" in content and any(
+        marker in content
+        for marker in ("gl_FragColor", "gl_Position", "precision ", "uniform ")
     )
 
 
@@ -426,20 +420,14 @@ def _query_filename_override(
 
     normalized_query = query.strip().lower()
 
-    if (
-        "fragment shader" in normalized_query
-        and normalized_language in {"glsl", ""}
-    ):
+    if "fragment shader" in normalized_query and normalized_language in {"glsl", ""}:
         return ("fragment", "glsl")
     if "vertex shader" in normalized_query and normalized_language in {"glsl", ""}:
         return ("vertex", "glsl")
-    if (
-        any(
-            marker in normalized_query
-            for marker in ("react three fiber", "@react-three/fiber", "r3f")
-        )
-        and normalized_language in {"jsx", "javascript", ""}
-    ):
+    if any(
+        marker in normalized_query
+        for marker in ("react three fiber", "@react-three/fiber", "r3f")
+    ) and normalized_language in {"jsx", "javascript", ""}:
         return ("App", "jsx")
     if any(
         marker in normalized_query
@@ -464,13 +452,11 @@ def _query_filename_override(
         if normalized_language == "javascript":
             return ("main", "js")
     if any(
-        marker in normalized_query
-        for marker in ("shader", "glsl")
+        marker in normalized_query for marker in ("shader", "glsl")
     ) and normalized_language in {"glsl", ""}:
         return ("shader", "glsl")
     if any(
-        marker in normalized_query
-        for marker in ("three.js", "threejs", "three js")
+        marker in normalized_query for marker in ("three.js", "threejs", "three js")
     ) and normalized_language in {"html", "javascript", ""}:
         return ("index", "html")
 

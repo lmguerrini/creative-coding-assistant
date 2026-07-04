@@ -244,9 +244,7 @@ class CreativeCognitionLayerPlan(BaseModel):
                 "creative generation, exploration, mutation, and HITL ids "
                 "must be empty",
             )
-        if not all(
-            signal.advisory_only for signal in self.creative_cognition_signals
-        ):
+        if not all(signal.advisory_only for signal in self.creative_cognition_signals):
             raise ValueError("all creative cognition signals must be advisory only")
         return self
 
@@ -260,13 +258,10 @@ def build_creative_cognition_layer(
 ) -> CreativeCognitionLayerPlan:
     """Build read-only creative cognition metadata."""
 
-    governance = (
-        cognitive_governance_layer
-        or build_cognitive_governance_layer(
-            route=route,
-            task_type=task_type,
-            execution_mode_id=execution_mode_id,
-        )
+    governance = cognitive_governance_layer or build_cognitive_governance_layer(
+        route=route,
+        task_type=task_type,
+        execution_mode_id=execution_mode_id,
     )
     signals = _creative_cognition_signals(governance)
     return CreativeCognitionLayerPlan(

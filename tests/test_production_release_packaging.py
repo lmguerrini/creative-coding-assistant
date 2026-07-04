@@ -68,10 +68,15 @@ class ProductionReleasePackagingTests(unittest.TestCase):
         )
         self.assertEqual(plan.python_package_name, "creative-coding-assistant")
         self.assertEqual(plan.python_package_version, "0.1.0")
-        self.assertEqual(plan.frontend_package_name, "@creative-coding-assistant/nextjs-client")
+        self.assertEqual(
+            plan.frontend_package_name, "@creative-coding-assistant/nextjs-client"
+        )
         self.assertEqual(plan.frontend_package_version, "0.1.0")
         self.assertTrue(plan.frontend_private_package)
-        self.assertEqual(plan.packaging_commands, ("python -m build", "npm --prefix clients/nextjs run build"))
+        self.assertEqual(
+            plan.packaging_commands,
+            ("python -m build", "npm --prefix clients/nextjs run build"),
+        )
         self.assertEqual(plan.surface_ids, REQUIRED_SURFACES)
         self.assertEqual(plan.record_count, 5)
         self.assertEqual(plan.guarded_record_ids, ())

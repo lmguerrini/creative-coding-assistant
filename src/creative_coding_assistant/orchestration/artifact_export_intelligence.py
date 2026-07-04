@@ -294,16 +294,14 @@ def artifact_export_intelligence_prompt_lines(
     )
     lines.extend(f"Portability note: {item}" for item in profile.portability_notes)
     lines.extend(
-        f"Interoperability note: {item}"
-        for item in profile.interoperability_notes
+        f"Interoperability note: {item}" for item in profile.interoperability_notes
     )
     lines.extend(
         f"Documentation requirement: {item}"
         for item in profile.documentation_requirements
     )
     lines.extend(
-        f"Downstream tool handoff: {item}"
-        for item in profile.downstream_tool_handoffs
+        f"Downstream tool handoff: {item}" for item in profile.downstream_tool_handoffs
     )
     lines.extend(
         f"Rejected export path: {item}" for item in profile.rejected_export_paths
@@ -444,7 +442,9 @@ def _export_format_recommendations(
             f"portability fit {artifact_capability_matrix.portability_fit}."
         )
     if multi_artifact_strategy is not None:
-        recommendations.extend(multi_artifact_strategy.artifact_combination_strategy[:2])
+        recommendations.extend(
+            multi_artifact_strategy.artifact_combination_strategy[:2]
+        )
     if artifact_merge_planner is not None:
         recommendations.append(artifact_merge_planner.recommended_merge_path)
     if not recommendations:
@@ -487,7 +487,9 @@ def _export_constraints(
         "Future exporters must preserve artifact boundaries and user-visible caveats.",
     ]
     if artifact_capability_matrix is not None:
-        constraints.extend(artifact_capability_matrix.unsupported_or_risky_capabilities[:3])
+        constraints.extend(
+            artifact_capability_matrix.unsupported_or_risky_capabilities[:3]
+        )
     if artifact_merge_planner is not None:
         constraints.extend(artifact_merge_planner.artifact_separation_points[:3])
     if missing:
@@ -917,9 +919,7 @@ def _evidence(
             f"{len(multi_artifact_strategy.supporting_artifacts)}."
         )
     if artifact_critic is not None:
-        evidence.append(
-            f"Artifact critic risk: {artifact_critic.risk_assessment}."
-        )
+        evidence.append(f"Artifact critic risk: {artifact_critic.risk_assessment}.")
     if artifact_refiner is not None:
         evidence.append(
             f"Artifact refiner confidence: "

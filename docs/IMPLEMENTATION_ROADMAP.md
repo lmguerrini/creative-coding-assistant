@@ -416,6 +416,26 @@ API/runtime stabilization scope. All 23 contractual V7.4 roadmap items remain
 individually traceable for roadmap coverage, audit classification, HITL
 review, and future capability-scoped fixes.
 
+The V7.5 Production API & Runtime Stabilization layer hardens the existing
+backend bridge and production-readiness boundary. It adds shared API contract
+versions, versioned error payloads, assistant stream and workspace-session
+contract headers, route manifest stabilization, dev/prod server boundary
+guards, deployment configuration validation, production readiness smoke
+coverage, full-project Ruff remediation, workspace 404/400 compatibility,
+Chroma dependency health posture, backward-compatible API shapes, graceful
+failure recovery, health/live/ready endpoints, telemetry-ready API event
+models, observability/logging contracts, configuration migration aliases, and
+release checklist generation.
+
+It preserves the existing LangGraph workflow, provider/model routing, prompt
+rendering, retrieval ownership, workspace persistence ownership, and generated
+output semantics. It does not deploy services, emit external telemetry, create
+new storage backends, change provider/model routing, execute providers
+differently, mutate workflow graphs, apply Runtime Evolution, accept HITL
+decisions, merge, push, or tag. All 22 contractual V7.5 roadmap items remain
+individually traceable for roadmap coverage, audit classification, HITL
+review, and future capability-scoped fixes.
+
 ## Future Product Directions
 
 - V4 Agentic Studio remains future active collaboration work. The current
@@ -429,8 +449,8 @@ review, and future capability-scoped fixes.
   feedback application, active research, active self-evolution,
   long-horizon creative lineage, active creative memory, active knowledge
   evolution, active Cognitive OS execution, and system continuity work beyond
-  the current V6.6 advisory metadata boundary and V7.1 read-only runtime graph
-  consolidation boundary.
+  the current V6.6 advisory metadata boundary, V7.1 read-only runtime graph
+  consolidation boundary, and V7.5 backend bridge stabilization boundary.
 
 ## Documentation Contract
 
@@ -463,4 +483,11 @@ describe test runners, mocked E2E fixtures, browser and backend log gates,
 CI checks, budgets, and dashboards, but must not imply backend API changes,
 provider execution, workflow control changes, retrieval ownership changes,
 storage ownership changes, generated-output mutation, V7.5 scope, or release
-operation automation.
+operation automation. V7.5 production API/runtime docs may describe versioned
+browser-facing contracts, health/readiness probes, production configuration
+checks, Chroma dependency health, telemetry-ready event models, structured
+logging configuration, configuration aliases, and release checklist generation,
+but must not imply provider/model routing changes, workflow execution changes,
+deployment execution, external telemetry emission, storage ownership changes,
+HITL acceptance, generated-output mutation, Runtime Evolution, merge, push, or
+tag automation.

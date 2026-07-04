@@ -135,9 +135,7 @@ class CreativeIdentityLayerTests(unittest.TestCase):
             CreativeIdentityLayerPlan(**payload)
 
         payload = layer.model_dump(mode="json")
-        payload["persisted_identity_ids"] = (
-            "creative_identity::v6_6_cognitive_core",
-        )
+        payload["persisted_identity_ids"] = ("creative_identity::v6_6_cognitive_core",)
 
         with self.assertRaisesRegex(
             ValueError,

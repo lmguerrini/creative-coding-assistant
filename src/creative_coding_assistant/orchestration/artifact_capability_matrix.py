@@ -215,9 +215,7 @@ def derive_artifact_capability_matrix(
         profiles=profiles,
     )
     strongest = tuple(
-        profile.target
-        for profile in profiles
-        if profile.artifact_fit != "unsupported"
+        profile.target for profile in profiles if profile.artifact_fit != "unsupported"
     )[:3]
     weakest = tuple(profile.target for profile in reversed(profiles))[:3]
     top = profiles[0]
@@ -554,8 +552,7 @@ def _matrix_targets(
         )
     if runtime_capabilities is not None:
         targets.extend(
-            candidate.runtime
-            for candidate in runtime_capabilities.candidate_runtimes
+            candidate.runtime for candidate in runtime_capabilities.candidate_runtimes
         )
     if not targets:
         targets.extend(_TARGET_CAPABILITIES)
@@ -803,8 +800,7 @@ def _capability_reasons(
         reasons.extend(compatibility.compatibility_reasons[:2])
     if candidate is not None:
         reasons.append(
-            "Runtime Capability Reasoner suitability is "
-            f"{candidate.suitability}."
+            f"Runtime Capability Reasoner suitability is {candidate.suitability}."
         )
     if artifact_dependency_graph is not None:
         reasons.extend(artifact_dependency_graph.runtime_facing_dependencies[:2])
@@ -1059,8 +1055,7 @@ def _matrix_evidence(
         evidence.append(f"Route selected: {route_decision.route.value}.")
     if artifact_plan is not None:
         evidence.append(
-            "Artifact: "
-            f"{artifact_plan.artifact_type}; {artifact_plan.artifact_family}."
+            f"Artifact: {artifact_plan.artifact_type}; {artifact_plan.artifact_family}."
         )
     if runtime_capabilities is not None:
         evidence.append(
@@ -1100,9 +1095,7 @@ def _target_weaknesses(
 ) -> tuple[str, ...]:
     weaknesses: list[str] = []
     for profile in profiles[:4]:
-        weaknesses.extend(
-            f"{profile.label}: {item}" for item in profile.weaknesses[:2]
-        )
+        weaknesses.extend(f"{profile.label}: {item}" for item in profile.weaknesses[:2])
     return _dedupe(weaknesses)[:10]
 
 

@@ -95,7 +95,9 @@ class MemorySummarizationTests(unittest.TestCase):
         self.assertLessEqual(result.summary_total_tokens, result.target_token_budget)
         self.assertTrue(result.within_budget)
         self.assertEqual(result.summarization_pressure, "medium")
-        self.assertIn("[memory:recent_turns:memory_context.recent_turns]", result.summary_text)
+        self.assertIn(
+            "[memory:recent_turns:memory_context.recent_turns]", result.summary_text
+        )
         self.assertIn(
             "Use summary artifact only when explicitly selected.",
             result.advisory_actions,
@@ -132,7 +134,9 @@ class MemorySummarizationTests(unittest.TestCase):
             self.assertTrue(segment.summarization_only)
 
     def test_lookup_helpers_are_stable_and_read_only(self) -> None:
-        result = summarize_memory_context(_memory_context(short=False), target_token_budget=120)
+        result = summarize_memory_context(
+            _memory_context(short=False), target_token_budget=120
+        )
         recent = memory_summary_segment_by_id("memory_summary::recent_turns", result)
         project = memory_summary_segments_for_kind("project_memory", result)
         missing = memory_summary_segment_by_id("missing", result)
@@ -142,10 +146,14 @@ class MemorySummarizationTests(unittest.TestCase):
         assert recent is not None
         self.assertEqual(recent.source_kind, "recent_turns")
         self.assertEqual(len(project), 1)
-        self.assertEqual(project[0].project_memory_kind, ProjectMemoryKind.PREFERENCE.value)
+        self.assertEqual(
+            project[0].project_memory_kind, ProjectMemoryKind.PREFERENCE.value
+        )
 
     def test_result_rejects_mismatched_segments_or_totals(self) -> None:
-        result = summarize_memory_context(_memory_context(short=False), target_token_budget=120)
+        result = summarize_memory_context(
+            _memory_context(short=False), target_token_budget=120
+        )
         payload = result.model_dump(mode="json")
         payload["segment_ids"] = ("missing",) + tuple(payload["segment_ids"][1:])
 
@@ -165,7 +173,9 @@ class MemorySummarizationTests(unittest.TestCase):
             MemorySummarySegment(**segment_payload)
 
     def test_result_does_not_declare_storage_or_provider_mutation_terms(self) -> None:
-        result = summarize_memory_context(_memory_context(short=False), target_token_budget=120)
+        result = summarize_memory_context(
+            _memory_context(short=False), target_token_budget=120
+        )
         combined_text = " ".join(
             (
                 result.authority_boundary,
@@ -221,7 +231,9 @@ def _memory_context(*, short: bool) -> MemoryContextResponse:
         RecentConversationTurn(
             turn_index=1,
             role=ConversationRole.USER,
-            content=_repeated("The sketch should use gentle motion and blue light.", 80),
+            content=_repeated(
+                "The sketch should use gentle motion and blue light.", 80
+            ),
             created_at=_now(),
             mode=AssistantMode.GENERATE,
         ),

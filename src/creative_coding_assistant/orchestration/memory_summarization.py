@@ -154,7 +154,9 @@ class MemorySummarizationResult(BaseModel):
             raise ValueError("segment_ids must be unique")
         if self.segment_ids != derived_segment_ids:
             raise ValueError("segment_ids must match segments")
-        original_total = sum(segment.original_token_estimate for segment in self.segments)
+        original_total = sum(
+            segment.original_token_estimate for segment in self.segments
+        )
         summary_total = sum(segment.summary_token_estimate for segment in self.segments)
         saved_total = sum(segment.saved_tokens for segment in self.segments)
         if self.original_total_tokens != original_total:
@@ -167,7 +169,9 @@ class MemorySummarizationResult(BaseModel):
             self.original_total_tokens - self.summary_total_tokens
         ):
             raise ValueError("saved_total_tokens must match token delta")
-        if self.within_budget != (self.summary_total_tokens <= self.target_token_budget):
+        if self.within_budget != (
+            self.summary_total_tokens <= self.target_token_budget
+        ):
             raise ValueError("within_budget must match summary token total")
         if self.summary_text != _join_summary_segments(self.segments):
             raise ValueError("summary_text must match segments")
@@ -187,15 +191,16 @@ def summarize_memory_context(
     if not segments:
         raise ValueError("memory summarization requires at least one memory source")
 
-    original_total = sum(_estimate_tokens(segment.original_text) for segment in segments)
+    original_total = sum(
+        _estimate_tokens(segment.original_text) for segment in segments
+    )
     budgets = _segment_token_budgets(
         segments,
         target_token_budget=target_token_budget,
         original_total=original_total,
     )
     summarized_segments = tuple(
-        _summarize_segment(segment, budgets[segment.segment_id])
-        for segment in segments
+        _summarize_segment(segment, budgets[segment.segment_id]) for segment in segments
     )
     summary_total = sum(
         segment.summary_token_estimate for segment in summarized_segments
@@ -245,7 +250,9 @@ def memory_summary_segments_for_kind(
 
     source_result = result or summarize_memory_context(_placeholder_memory_context())
     return tuple(
-        segment for segment in source_result.segments if segment.source_kind == source_kind
+        segment
+        for segment in source_result.segments
+        if segment.source_kind == source_kind
     )
 
 
@@ -353,11 +360,11 @@ def _summarize_segment(
 
 def _summarize_text_to_budget(text: str, target_tokens: int) -> str:
     normalized_lines = tuple(
-        " ".join(line.strip().split())
-        for line in text.splitlines()
-        if line.strip()
+        " ".join(line.strip().split()) for line in text.splitlines() if line.strip()
     )
-    normalized = "\n".join(normalized_lines) if normalized_lines else " ".join(text.split())
+    normalized = (
+        "\n".join(normalized_lines) if normalized_lines else " ".join(text.split())
+    )
     if _estimate_tokens(normalized) <= target_tokens:
         return normalized
 
@@ -404,7 +411,9 @@ def _segment_token_budgets(
         if index == len(segments) - 1:
             budget = max(1, remaining)
         else:
-            proportional = max(1, target_token_budget * original_tokens // original_total)
+            proportional = max(
+                1, target_token_budget * original_tokens // original_total
+            )
             budget = min(original_tokens, proportional)
         budgets[segment.segment_id] = max(1, budget)
         remaining = max(0, remaining - budgets[segment.segment_id])

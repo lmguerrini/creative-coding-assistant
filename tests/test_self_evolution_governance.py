@@ -155,9 +155,7 @@ class SelfEvolutionGovernanceTests(unittest.TestCase):
                 self_evolution_governance_score(
                     source_item_count=boundary.source_item_count,
                     hitl_requirement_count=boundary.hitl_requirement_count,
-                    explainability_signal_count=(
-                        boundary.explainability_signal_count
-                    ),
+                    explainability_signal_count=(boundary.explainability_signal_count),
                     ownership_boundary_check_count=(
                         boundary.ownership_boundary_check_count
                     ),

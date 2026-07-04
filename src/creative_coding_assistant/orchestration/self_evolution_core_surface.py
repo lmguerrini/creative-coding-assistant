@@ -278,8 +278,7 @@ class SelfEvolutionCoreSurfacePlan(BaseModel):
         if self.upstream_signal_source_count != len(self.upstream_signal_source_ids):
             raise ValueError("upstream_signal_source_count must match sources")
         if any(
-            plan.upstream_signal_ids != self.upstream_signal_ids
-            for plan in self.plans
+            plan.upstream_signal_ids != self.upstream_signal_ids for plan in self.plans
         ):
             raise ValueError("upstream_signal_ids must match plan signals")
         if self.upstream_signal_id_count != len(self.upstream_signal_ids):
@@ -357,9 +356,7 @@ class SelfEvolutionCoreSurfacePlan(BaseModel):
             self.proposals
         ):
             raise ValueError("overall_proposal_rank_score must match proposals")
-        if self.overall_evolution_posture != overall_evolution_posture(
-            self.proposals
-        ):
+        if self.overall_evolution_posture != overall_evolution_posture(self.proposals):
             raise ValueError("overall_evolution_posture must match proposals")
         if self.cross_cutting_contracts != CROSS_CUTTING_CONTRACTS:
             raise ValueError("cross_cutting_contracts must match V6.5 contracts")
@@ -391,9 +388,7 @@ def build_self_evolution_core_surface(
         plans=plans,
         plan_count=len(plans),
         plan_roles=tuple(plan.role for plan in plans),
-        plan_serialization_versions=tuple(
-            plan.serialization_version for plan in plans
-        ),
+        plan_serialization_versions=tuple(plan.serialization_version for plan in plans),
         covered_roadmap_items=tuple(
             roadmap_item
             for plan in plans

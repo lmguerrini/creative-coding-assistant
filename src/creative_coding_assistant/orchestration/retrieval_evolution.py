@@ -373,9 +373,7 @@ class RetrievalEvolutionPlan(BaseModel):
             raise ValueError("signal_count must match signals")
         if self.candidate_signal_count != len(self.candidate_signal_ids):
             raise ValueError("candidate_signal_count must match signals")
-        if self.review_required_signal_count != len(
-            self.review_required_signal_ids
-        ):
+        if self.review_required_signal_count != len(self.review_required_signal_ids):
             raise ValueError("review_required_signal_count must match signals")
         if self.guarded_signal_count != len(self.guarded_signal_ids):
             raise ValueError("guarded_signal_count must match signals")
@@ -389,9 +387,7 @@ class RetrievalEvolutionPlan(BaseModel):
             raise ValueError("highest_evolution_score must match signals")
         if self.overall_evolution_score != _overall_evolution_score(self.signals):
             raise ValueError("overall_evolution_score must match signals")
-        if self.overall_evolution_posture != _overall_evolution_posture(
-            self.signals
-        ):
+        if self.overall_evolution_posture != _overall_evolution_posture(self.signals):
             raise ValueError("overall_evolution_posture must match signals")
         declared_embedding_signals = set(self.embedding_refresh_signal_ids)
         for signal in self.signals:
@@ -475,9 +471,7 @@ def build_retrieval_evolution(
             _signal_ids_for_confidence(signals, "high", "guarded")
         ),
         hitl_required_signal_count=sum(
-            1
-            for signal in signals
-            if signal.hitl_required_before_retrieval_evolution
+            1 for signal in signals if signal.hitl_required_before_retrieval_evolution
         ),
         highest_evolution_score=max(signal.evolution_score for signal in signals),
         overall_evolution_score=_overall_evolution_score(signals),

@@ -418,13 +418,19 @@ def self_evaluation_prompt_lines(
         f"Self evaluation unsupported assumption: {item}"
         for item in profile.unsupported_assumptions
     )
-    lines.extend(f"Self evaluation quality gap: {item}" for item in profile.quality_gaps)
+    lines.extend(
+        f"Self evaluation quality gap: {item}" for item in profile.quality_gaps
+    )
     lines.extend(
         f"Self evaluation improvement opportunity: {item}"
         for item in profile.improvement_opportunities
     )
-    lines.extend(f"Self evaluation HITL question: {item}" for item in profile.hitl_questions)
-    lines.extend(f"Self evaluation guidance: {item}" for item in profile.prompt_guidance)
+    lines.extend(
+        f"Self evaluation HITL question: {item}" for item in profile.hitl_questions
+    )
+    lines.extend(
+        f"Self evaluation guidance: {item}" for item in profile.prompt_guidance
+    )
     return tuple(lines[:64])
 
 
@@ -473,14 +479,23 @@ def _alignment_scores(
     )
     critic_average = _critic_average(creative_critic)
     artifact_scores = [
-        artifact.quality_score for artifact in artifacts if artifact.quality_score is not None
+        artifact.quality_score
+        for artifact in artifacts
+        if artifact.quality_score is not None
     ]
-    artifact_average = sum(artifact_scores) / len(artifact_scores) if artifact_scores else 0
+    artifact_average = (
+        sum(artifact_scores) / len(artifact_scores) if artifact_scores else 0
+    )
     critic_risk_penalty = _critic_risk_penalty(creative_critic)
 
     request_alignment = _score(
         0.34,
-        positives=(route_decision, creative_translation, creative_plan, creative_critic),
+        positives=(
+            route_decision,
+            creative_translation,
+            creative_plan,
+            creative_critic,
+        ),
         bonus=response_coverage * 0.28 + readiness * 0.06,
         penalties=critic_risk_penalty,
     )
@@ -540,8 +555,12 @@ def _alignment_scores(
         ),
         bonus=0.08 if any(artifact.preview_eligible for artifact in artifacts) else 0,
         penalties=(
-            _sequence_penalty(getattr(runtime_compatibility, "unsupported_runtimes", ()))
-            + _sequence_penalty(getattr(runtime_compatibility, "implementation_risks", ()))
+            _sequence_penalty(
+                getattr(runtime_compatibility, "unsupported_runtimes", ())
+            )
+            + _sequence_penalty(
+                getattr(runtime_compatibility, "implementation_risks", ())
+            )
         ),
     )
     creative_coherence = _score(
@@ -673,9 +692,7 @@ def _keywords(value: str) -> tuple[str, ...]:
     }
     cleaned = "".join(char.lower() if char.isalnum() else " " for char in value)
     terms = [
-        term
-        for term in cleaned.split()
-        if len(term) >= 4 and term not in stopwords
+        term for term in cleaned.split() if len(term) >= 4 and term not in stopwords
     ]
     return _dedupe(terms, clip_limit=None)[:12]
 
@@ -725,7 +742,9 @@ def _missing_information(
     else:
         missing.extend(creative_critic.missing_information[:3])
     if generated_response is None:
-        missing.append("Generated response text is not available for response alignment.")
+        missing.append(
+            "Generated response text is not available for response alignment."
+        )
     if generated_response is not None and not generated_response.strip():
         missing.append("Generated response text is empty.")
     if generated_response is not None and _contains_any(
@@ -733,8 +752,14 @@ def _missing_information(
         ("[todo]", "placeholder", "lorem ipsum"),
     ):
         missing.append("Generated response appears to contain placeholder content.")
-    if not artifacts and generated_response is not None and _query_requests_artifact_context(generated_response):
-        missing.append("Generated response references artifacts but no artifacts are available.")
+    if (
+        not artifacts
+        and generated_response is not None
+        and _query_requests_artifact_context(generated_response)
+    ):
+        missing.append(
+            "Generated response references artifacts but no artifacts are available."
+        )
     return _dedupe(missing)[:10]
 
 
@@ -754,11 +779,14 @@ def _unsupported_assumptions(
     artifacts: Sequence[WorkflowArtifact],
 ) -> tuple[str, ...]:
     assumptions: list[str] = [
-        "Self Evaluation findings are advisory metadata and must not modify, reject, refine, retry, route, preview, execute, or select anything."
+        "Self Evaluation findings are advisory metadata and must not modify, reject, refine, retry, route, preview, execute, or select anything."  # noqa: E501
     ]
     if creative_plan is not None and not creative_plan.runtime_available:
         assumptions.append("Runtime availability remains unverified by the plan.")
-    if creative_constraints is not None and creative_constraints.runtime_fit != "supported":
+    if (
+        creative_constraints is not None
+        and creative_constraints.runtime_fit != "supported"
+    ):
         assumptions.append(
             f"Runtime fit is {creative_constraints.runtime_fit}; response should not imply full runtime support."
         )
@@ -768,7 +796,9 @@ def _unsupported_assumptions(
             for item in runtime_compatibility.unsupported_runtimes[:3]
         )
     if artifact_capability_matrix is not None:
-        assumptions.extend(artifact_capability_matrix.unsupported_or_risky_capabilities[:3])
+        assumptions.extend(
+            artifact_capability_matrix.unsupported_or_risky_capabilities[:3]
+        )
     if artifact_critic is not None:
         assumptions.extend(artifact_critic.unsupported_assumptions[:3])
     if creative_critic is not None:
@@ -800,9 +830,13 @@ def _quality_gaps(
     gaps: list[str] = []
     for label, score in scores.items():
         if score < 0.58:
-            gaps.append(f"{label.replace('_', ' ').title()} is below evaluation threshold ({score:.2f}).")
+            gaps.append(
+                f"{label.replace('_', ' ').title()} is below evaluation threshold ({score:.2f})."
+            )
     if missing_information:
-        gaps.append(f"Self evaluation is constrained by {len(missing_information)} missing information signal(s).")
+        gaps.append(
+            f"Self evaluation is constrained by {len(missing_information)} missing information signal(s)."
+        )
     if unsupported_assumptions:
         gaps.append(
             f"Self evaluation found {len(unsupported_assumptions)} unsupported-assumption guardrail(s)."
@@ -838,7 +872,11 @@ def _completeness_assessment(
     )
     if core_missing and len(missing_information) >= 5:
         return "blocked"
-    if average >= 0.78 and generated_response and (artifacts or len(generated_response) > 240):
+    if (
+        average >= 0.78
+        and generated_response
+        and (artifacts or len(generated_response) > 240)
+    ):
         return "complete"
     if average >= 0.60 and generated_response:
         return "mostly_complete"
@@ -891,14 +929,13 @@ def _hallucination_risk(
             "no caveats",
         ),
     )
-    unsupported_runtime = (
-        runtime_compatibility is not None
-        and bool(runtime_compatibility.unsupported_runtimes)
+    unsupported_runtime = runtime_compatibility is not None and bool(
+        runtime_compatibility.unsupported_runtimes
     )
-    critic_risky = (
-        creative_critic is not None
-        and creative_critic.risk_assessment in {"high", "blocked"}
-    )
+    critic_risky = creative_critic is not None and creative_critic.risk_assessment in {
+        "high",
+        "blocked",
+    }
     if certainty_claim and (unsupported_runtime or len(unsupported_assumptions) >= 3):
         return "high"
     if certainty_claim or critic_risky or len(unsupported_assumptions) >= 4:
@@ -928,10 +965,10 @@ def _overreach_risk(
         ),
     )
     simple_request = _contains_any(request.query, ("simple", "minimal", "explain"))
-    critic_risky = (
-        creative_critic is not None
-        and creative_critic.risk_assessment in {"high", "blocked"}
-    )
+    critic_risky = creative_critic is not None and creative_critic.risk_assessment in {
+        "high",
+        "blocked",
+    }
     if scope_expansion and (simple_request or critic_risky):
         return "high"
     if scope_expansion or len(artifacts) > 4:
@@ -978,13 +1015,21 @@ def _improvement_opportunities(
             f"Improve {label.replace('_', ' ')} evidence before expanding scope ({score:.2f})."
         )
     if completeness in {"partial", "blocked"} and missing_information:
-        opportunities.append(f"Resolve or caveat missing self-evaluation input: {missing_information[0]}")
+        opportunities.append(
+            f"Resolve or caveat missing self-evaluation input: {missing_information[0]}"
+        )
     if hallucination_risk != "low" and unsupported_assumptions:
-        opportunities.append(f"Reduce certainty around unsupported assumption: {unsupported_assumptions[0]}")
+        opportunities.append(
+            f"Reduce certainty around unsupported assumption: {unsupported_assumptions[0]}"
+        )
     if overreach_risk != "low":
-        opportunities.append("Trim unsupported scope expansion and keep output aligned to the request.")
+        opportunities.append(
+            "Trim unsupported scope expansion and keep output aligned to the request."
+        )
     if underdelivery_risk != "low":
-        opportunities.append("Make the expected deliverable explicit or ask for HITL clarification.")
+        opportunities.append(
+            "Make the expected deliverable explicit or ask for HITL clarification."
+        )
     if creative_critic is not None:
         opportunities.extend(creative_critic.improvement_opportunities[:2])
     opportunities.extend(quality_gaps[:2])
@@ -1004,11 +1049,15 @@ def _hitl_questions(
 ) -> tuple[str, ...]:
     questions: list[str] = []
     if completeness in {"partial", "blocked"}:
-        questions.append(f"Should missing self-evaluation inputs be resolved before relying on {completeness} output?")
+        questions.append(
+            f"Should missing self-evaluation inputs be resolved before relying on {completeness} output?"
+        )
     if ambiguity_assessment == "high" and missing_information:
         questions.append(f"Should this ambiguity be resolved: {missing_information[0]}")
     if hallucination_risk == "high" and unsupported_assumptions:
-        questions.append(f"Should this unsupported assumption be softened: {unsupported_assumptions[0]}")
+        questions.append(
+            f"Should this unsupported assumption be softened: {unsupported_assumptions[0]}"
+        )
     if overreach_risk == "high":
         questions.append("Should scope be narrowed to avoid overreach?")
     if underdelivery_risk == "high":
@@ -1027,18 +1076,24 @@ def _prompt_guidance(
     opportunities: tuple[str, ...],
 ) -> tuple[str, ...]:
     guidance = [
-        "Use Self Evaluation output as metadata-only assessment, not as output modification, rejection, retry, refinement, routing, preview, or execution behavior.",
+        "Use Self Evaluation output as metadata-only assessment, not as output modification, rejection, retry, refinement, routing, preview, or execution behavior.",  # noqa: E501
         "Preserve the user's request and existing planning metadata before applying evaluation caveats.",
-        "Do not implement reflection loops, automatic improvement, runtime repair, provider routing, Studio Mode, HoloMind, V4 agents, or V5 optimization.",
+        "Do not implement reflection loops, automatic improvement, runtime repair, provider routing, Studio Mode, HoloMind, V4 agents, or V5 optimization.",  # noqa: E501
     ]
     if completeness in {"partial", "blocked"}:
-        guidance.append("Surface missing evaluation inputs as caveats rather than silently filling gaps.")
+        guidance.append(
+            "Surface missing evaluation inputs as caveats rather than silently filling gaps."
+        )
     if hallucination_risk != "low":
-        guidance.append("Avoid certainty claims that are unsupported by workflow evidence.")
+        guidance.append(
+            "Avoid certainty claims that are unsupported by workflow evidence."
+        )
     if overreach_risk != "low":
         guidance.append("Keep scope bounded to the requested deliverable.")
     if underdelivery_risk != "low":
-        guidance.append("Make any incomplete deliverable explicit and ask HITL if needed.")
+        guidance.append(
+            "Make any incomplete deliverable explicit and ask HITL if needed."
+        )
     guidance.extend(opportunities[:3])
     return _dedupe(guidance)[:8]
 
@@ -1113,24 +1168,30 @@ def _evidence(
         evidence.append(f"Plan: {_clip(creative_plan.generation_strategy, 220)}")
     if creative_quality_prediction is not None:
         evidence.append(
-            f"Quality predictor: {creative_quality_prediction.predicted_quality_level}; readiness {creative_quality_prediction.readiness_score}/100."
+            f"Quality predictor: {creative_quality_prediction.predicted_quality_level}; readiness {creative_quality_prediction.readiness_score}/100."  # noqa: E501
         )
     if artifact_plan is not None:
-        evidence.append(f"Artifact plan: {artifact_plan.artifact_type}; {artifact_plan.artifact_family}.")
+        evidence.append(
+            f"Artifact plan: {artifact_plan.artifact_type}; {artifact_plan.artifact_family}."
+        )
     if artifact_critic is not None:
         evidence.append(
-            f"Artifact critic: {artifact_critic.risk_assessment} risk; {artifact_critic.critique_confidence:.2f} confidence."
+            f"Artifact critic: {artifact_critic.risk_assessment} risk; {artifact_critic.critique_confidence:.2f} confidence."  # noqa: E501
         )
     if creative_critic is not None:
         evidence.append(
-            f"Creative critic: {creative_critic.risk_assessment} risk; {creative_critic.critic_confidence:.2f} confidence."
+            f"Creative critic: {creative_critic.risk_assessment} risk; {creative_critic.critic_confidence:.2f} confidence."  # noqa: E501
         )
     if generated_response is not None:
-        evidence.append(f"Generated response available: {len(generated_response)} characters.")
+        evidence.append(
+            f"Generated response available: {len(generated_response)} characters."
+        )
     if artifacts:
         evidence.append(
             "Artifacts available: "
-            + ", ".join(f"{artifact.id}:{artifact.language}" for artifact in artifacts[:5])
+            + ", ".join(
+                f"{artifact.id}:{artifact.language}" for artifact in artifacts[:5]
+            )
             + "."
         )
     evidence.append("Authority boundary verified: metadata-only self evaluation.")

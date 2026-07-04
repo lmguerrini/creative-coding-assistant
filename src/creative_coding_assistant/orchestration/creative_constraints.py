@@ -497,10 +497,7 @@ def _active_constraints(
             CreativeConstraint(
                 axis="intent",
                 severity="info",
-                summary=(
-                    "Creative strategy: "
-                    f"{creative_strategy.primary_strategy}."
-                ),
+                summary=(f"Creative strategy: {creative_strategy.primary_strategy}."),
                 recommendation=(
                     "Use strategy as artistic direction only, not runtime or "
                     "technique selection."
@@ -516,8 +513,7 @@ def _active_constraints(
                     creative_techniques.complexity_pressure
                 ),
                 summary=(
-                    "Creative technique: "
-                    f"{creative_techniques.primary_technique}."
+                    f"Creative technique: {creative_techniques.primary_technique}."
                 ),
                 recommendation=(
                     "Use technique guidance only where it supports the selected "
@@ -690,9 +686,7 @@ def _prompt_guidance(
 ) -> tuple[str, ...]:
     guidance = ["Preserve the user's creative intent while making constraints visible."]
     if creative_intent is not None:
-        guidance.append(
-            "Treat decomposed intent dimensions as separate constraints."
-        )
+        guidance.append("Treat decomposed intent dimensions as separate constraints.")
     if creative_hierarchy is not None:
         guidance.append("Preserve non-negotiable hierarchy dimensions first.")
     if creative_strategy is not None:
@@ -747,15 +741,12 @@ def _evidence(
         evidence.append(f"Intent gaps: {len(creative_intent.unresolved_intent_gaps)}.")
     if creative_hierarchy is not None:
         evidence.append(
-            "Hierarchy confidence: "
-            f"{creative_hierarchy.hierarchy_confidence:.2f}."
+            f"Hierarchy confidence: {creative_hierarchy.hierarchy_confidence:.2f}."
         )
     if creative_strategy is not None:
         evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
     if creative_techniques is not None:
-        evidence.append(
-            f"Creative technique: {creative_techniques.primary_technique}."
-        )
+        evidence.append(f"Creative technique: {creative_techniques.primary_technique}.")
     if creative_plan is not None:
         evidence.append(f"Runtime available: {creative_plan.runtime_available}.")
         evidence.append(f"Complexity: {creative_plan.expected_complexity}.")
@@ -856,9 +847,7 @@ def _intent_recommendation(
 ) -> str:
     if creative_strategy is None:
         return "Treat the translated intent as the source of truth."
-    return (
-        "Treat the translated intent and high-level strategy as source of truth."
-    )
+    return "Treat the translated intent and high-level strategy as source of truth."
 
 
 def _safety_evidence(

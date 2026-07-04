@@ -37,12 +37,8 @@ KnowledgeDistillationAxis = Literal[
     "governance_gate",
 ]
 
-KNOWLEDGE_DISTILLATION_ENTRY_SERIALIZATION_VERSION = (
-    "knowledge_distillation_entry.v1"
-)
-KNOWLEDGE_DISTILLATION_PLAN_SERIALIZATION_VERSION = (
-    "knowledge_distillation_plan.v1"
-)
+KNOWLEDGE_DISTILLATION_ENTRY_SERIALIZATION_VERSION = "knowledge_distillation_entry.v1"
+KNOWLEDGE_DISTILLATION_PLAN_SERIALIZATION_VERSION = "knowledge_distillation_plan.v1"
 
 KNOWLEDGE_DISTILLATION_AUTHORITY_BOUNDARY = (
     "V6.4 Knowledge Distillation exposes claim distillation readiness, "
@@ -385,9 +381,7 @@ class KnowledgeDistillationPlan(BaseModel):
             entry.distillation_score for entry in self.entries
         ):
             raise ValueError("highest_distillation_score must match entries")
-        if self.overall_distillation_score != _overall_distillation_score(
-            self.entries
-        ):
+        if self.overall_distillation_score != _overall_distillation_score(self.entries):
             raise ValueError("overall_distillation_score must match entries")
         if self.overall_distillation_posture != _overall_distillation_posture(
             self.entries
@@ -740,9 +734,7 @@ def _entry_ids_for_confidence(
     entries: tuple[KnowledgeDistillationEntry, ...],
     *confidences: KnowledgeDistillationConfidence,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(

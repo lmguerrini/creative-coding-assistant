@@ -10,7 +10,10 @@ from creative_coding_assistant.contracts import (
     StreamEventType,
 )
 from creative_coding_assistant.core import GenerationProviderName, Settings
-from creative_coding_assistant.llm import OpenAIGenerationProvider, build_generation_provider
+from creative_coding_assistant.llm import (
+    OpenAIGenerationProvider,
+    build_generation_provider,
+)
 from creative_coding_assistant.orchestration import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
     JinjaPromptRenderer,
@@ -30,10 +33,10 @@ from creative_coding_assistant.vectorstore import (
     get_collection_definition,
 )
 from test_langgraph_workflow_integration import (
-    _SequentialGeneration,
     _request,
     _route_generate,
     _runtime,
+    _SequentialGeneration,
     _single_generation,
     _stream_prompt_inputs_with_builder,
 )

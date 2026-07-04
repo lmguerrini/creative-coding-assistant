@@ -45,9 +45,7 @@ class CreativeIntentDecomposerTests(unittest.TestCase):
         self.assertEqual(decomposition.symbolic_intent.explicitness, "explicit")
         self.assertTrue(decomposition.symbolic_intent.signals)
         self.assertEqual(decomposition.emotional_intent.explicitness, "explicit")
-        self.assertTrue(
-            {"calm", "awe"} & set(decomposition.emotional_intent.signals)
-        )
+        self.assertTrue({"calm", "awe"} & set(decomposition.emotional_intent.signals))
         self.assertEqual(decomposition.geometric_intent.explicitness, "explicit")
         self.assertTrue(decomposition.motion_intent.signals)
         self.assertEqual(decomposition.rhythm_intent.explicitness, "explicit")

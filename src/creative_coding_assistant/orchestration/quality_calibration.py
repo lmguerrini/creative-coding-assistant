@@ -194,9 +194,7 @@ def _apply_conservative_caps(
         and dimensions["preview_readiness"].score < 0.5
     ):
         capped = min(capped, 0.7)
-        adjustments.append(
-            "Capped because runtime and preview signals are both weak."
-        )
+        adjustments.append("Capped because runtime and preview signals are both weak.")
 
     return round(min(max(capped, 0.0), 1.0), 3), tuple(adjustments[:5])
 

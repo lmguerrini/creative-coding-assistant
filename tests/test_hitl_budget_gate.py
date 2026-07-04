@@ -149,7 +149,9 @@ class HitlBudgetGateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "recommended_gate_status must match"):
             HitlBudgetGatePlan(**payload)
 
-    def test_hitl_budget_gate_does_not_change_request_routing_or_provider_factory(self) -> None:
+    def test_hitl_budget_gate_does_not_change_request_routing_or_provider_factory(
+        self,
+    ) -> None:
         request = AssistantRequest(
             query="Generate a costly-looking fluid sketch.",
             mode=AssistantMode.GENERATE,

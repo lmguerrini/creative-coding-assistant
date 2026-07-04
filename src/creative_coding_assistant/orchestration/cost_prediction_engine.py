@@ -132,7 +132,9 @@ class CostPredictionPlan(BaseModel):
     recommended_prediction_id: str = Field(min_length=1, max_length=180)
     recommended_cost_band: CostProfileBand
     recommended_cost_midpoint: int = Field(ge=0, le=100)
-    fallback_prediction_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
+    fallback_prediction_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=12
+    )
     prediction_count: int = Field(ge=1, le=12)
     high_or_guarded_prediction_count: int = Field(ge=0, le=12)
     low_cost_prediction_count: int = Field(ge=0, le=12)
@@ -203,9 +205,7 @@ class CostPredictionPlan(BaseModel):
             for prediction in self.predictions
             if prediction.predicted_cost_band in {"high", "guarded"}
         ):
-            raise ValueError(
-                "high_or_guarded_prediction_count must match predictions"
-            )
+            raise ValueError("high_or_guarded_prediction_count must match predictions")
         if self.low_cost_prediction_count != sum(
             1
             for prediction in self.predictions
@@ -273,9 +273,7 @@ def predict_cost_for_route(
             if prediction.predicted_cost_band in {"high", "guarded"}
         ),
         low_cost_prediction_count=sum(
-            1
-            for prediction in predictions
-            if prediction.predicted_cost_band == "low"
+            1 for prediction in predictions if prediction.predicted_cost_band == "low"
         ),
         advisory_actions=_plan_actions(route_name, recommended),
     )
@@ -313,8 +311,10 @@ def _resolve_route(
     route_decision: RouteDecision | None,
     route: RouteName | str | None,
 ) -> RouteName:
-    explicit_route = None if route is None else (
-        route if isinstance(route, RouteName) else RouteName(str(route))
+    explicit_route = (
+        None
+        if route is None
+        else (route if isinstance(route, RouteName) else RouteName(str(route)))
     )
     if route_decision is None:
         return explicit_route or RouteName.GENERATE

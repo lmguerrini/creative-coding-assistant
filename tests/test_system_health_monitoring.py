@@ -213,7 +213,9 @@ class SystemHealthMonitoringTests(unittest.TestCase):
 
     def test_lookup_helpers_are_stable_and_non_monitoring(self) -> None:
         monitoring = build_system_health_monitoring()
-        agent = system_health_panel_by_id("system_health::agent_system_health", monitoring)
+        agent = system_health_panel_by_id(
+            "system_health::agent_system_health", monitoring
+        )
         guarded = system_health_panels_for_status("guarded", monitoring)
         ready = system_health_panels_for_status("ready", monitoring)
         missing = system_health_panel_by_id("missing", monitoring)

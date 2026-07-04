@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 from pathlib import Path
+from typing import Literal
 
 from pydantic import AliasChoices, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -17,17 +18,27 @@ class Settings(BaseSettings):
     """Runtime settings loaded from environment variables."""
 
     app_name: str = Field(default="Creative Coding Assistant")
-    environment: str = Field(default="local")
+    environment: str = Field(
+        default="local",
+        validation_alias=AliasChoices(
+            "CCA_ENVIRONMENT",
+            "CCA_API_ENVIRONMENT",
+            "CCA_RUNTIME_ENVIRONMENT",
+        ),
+    )
     log_level: str = Field(default="INFO")
+    log_format: Literal["text", "json"] = Field(default="text")
     chroma_persist_dir: Path = Field(default=Path("data/chroma"))
     artifact_dir: Path = Field(default=Path("data/artifacts"))
     workspace_session_db_path: Path = Field(
-        default=Path("data/workspace_sessions.sqlite3")
+        default=Path("data/workspace_sessions.sqlite3"),
+        validation_alias=AliasChoices(
+            "CCA_WORKSPACE_SESSION_DB_PATH",
+            "CCA_WORKSPACE_DB_PATH",
+        ),
     )
     eval_data_path: Path = Field(default=Path("data/eval/live_sessions.jsonl"))
-    eval_ragas_results_path: Path = Field(
-        default=Path("data/eval/ragas_results.jsonl")
-    )
+    eval_ragas_results_path: Path = Field(default=Path("data/eval/ragas_results.jsonl"))
     eval_ragas_model: str = Field(default="gpt-4o-mini", min_length=1)
     eval_ragas_timeout_seconds: int = Field(default=180, ge=1)
     eval_ragas_max_retries: int = Field(default=2, ge=0)
@@ -96,6 +107,20 @@ class Settings(BaseSettings):
     def normalize_log_level(cls, value: str) -> str:
         return value.strip().upper()
 
+    @field_validator("environment")
+    @classmethod
+    def normalize_environment(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        return normalized or "local"
+
+    @field_validator("log_format")
+    @classmethod
+    def normalize_log_format(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if normalized not in {"text", "json"}:
+            raise ValueError("CCA_LOG_FORMAT must be text or json.")
+        return normalized
+
     @field_validator("openai_model")
     @classmethod
     def normalize_openai_model(cls, value: str) -> str:
@@ -134,9 +159,7 @@ class Settings(BaseSettings):
             return None
 
         raw_value = (
-            value.get_secret_value()
-            if isinstance(value, SecretStr)
-            else str(value)
+            value.get_secret_value() if isinstance(value, SecretStr) else str(value)
         ).strip()
         return raw_value or None
 
@@ -157,6 +180,10 @@ class Settings(BaseSettings):
     @property
     def has_langsmith_api_key(self) -> bool:
         return self.get_langsmith_api_key() is not None
+
+    @property
+    def structured_logging(self) -> bool:
+        return self.log_format == "json"
 
     def get_langsmith_api_key(self) -> str | None:
         if self.langsmith_api_key is None:

@@ -496,9 +496,7 @@ class KnowledgeEvolutionGovernancePlan(BaseModel):
             boundary.governance_score for boundary in self.boundaries
         ):
             raise ValueError("highest_governance_score must match boundaries")
-        if self.overall_governance_score != _overall_governance_score(
-            self.boundaries
-        ):
+        if self.overall_governance_score != _overall_governance_score(self.boundaries):
             raise ValueError("overall_governance_score must match boundaries")
         if self.overall_governance_posture != _overall_governance_posture(
             self.boundaries
@@ -540,13 +538,10 @@ def build_knowledge_evolution_governance(
         execution_mode_id or execution_modes.execution_mode_ids[0],
         execution_modes.execution_mode_ids,
     )
-    secondary_plan = (
-        secondary_surface
-        or build_knowledge_evolution_secondary_surface(
-            route=route_name,
-            task_type=normalized_task_type,
-            execution_mode_id=normalized_mode,
-        )
+    secondary_plan = secondary_surface or build_knowledge_evolution_secondary_surface(
+        route=route_name,
+        task_type=normalized_task_type,
+        execution_mode_id=normalized_mode,
     )
     learning_plan = learning_governance or build_learning_governance(
         route=route_name,
@@ -913,16 +908,13 @@ def _plan_actions(
 def _surface_summary(kind: KnowledgeEvolutionGovernanceBoundaryKind) -> str:
     summaries: dict[KnowledgeEvolutionGovernanceBoundaryKind, str] = {
         "knowledge_update_governance": (
-            "Summarizes KB update, documentation, and embedding governance "
-            "boundaries."
+            "Summarizes KB update, documentation, and embedding governance boundaries."
         ),
         "retrieval_quality_governance": (
-            "Summarizes retrieval, ranking, health, and quality safety "
-            "boundaries."
+            "Summarizes retrieval, ranking, health, and quality safety boundaries."
         ),
         "knowledge_integrity_safety_governance": (
-            "Summarizes gap, conflict, drift, and source reliability safety "
-            "boundaries."
+            "Summarizes gap, conflict, drift, and source reliability safety boundaries."
         ),
         "provenance_lifecycle_hitl_governance": (
             "Summarizes consolidation, lifecycle, provenance, and versioning "
@@ -937,9 +929,7 @@ def _surface_summary(kind: KnowledgeEvolutionGovernanceBoundaryKind) -> str:
 
 
 def _review_requirement(kind: KnowledgeEvolutionGovernanceBoundaryKind) -> str:
-    return (
-        f"Manual review is required before applying {kind} to runtime behavior."
-    )
+    return f"Manual review is required before applying {kind} to runtime behavior."
 
 
 def _explainability_requirement(

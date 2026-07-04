@@ -116,7 +116,9 @@ class MultimodalStudioMultiPreviewTests(unittest.TestCase):
         )
         self.assertIn("does not execute rendering", registry.authority_boundary)
         self.assertIn("select artifacts", registry.authority_boundary)
-        self.assertIn("candidate_selection_execution", registry.blocked_runtime_behaviors)
+        self.assertIn(
+            "candidate_selection_execution", registry.blocked_runtime_behaviors
+        )
         self.assertIn("artifact_selection_mutation", registry.blocked_runtime_behaviors)
         self.assertTrue(registry.metadata_only)
         self.assertFalse(registry.rendering_execution_implemented)

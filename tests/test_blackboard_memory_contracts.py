@@ -99,12 +99,16 @@ class BlackboardMemoryContractTests(unittest.TestCase):
         for channel in registry.channels:
             dumped = channel.model_dump(mode="json")
             self.assertEqual(set(dumped), REQUIRED_CHANNEL_FIELDS)
-            self.assertEqual(channel.serialization_version, "blackboard_memory_channel.v1")
+            self.assertEqual(
+                channel.serialization_version, "blackboard_memory_channel.v1"
+            )
             self.assertEqual(channel.persistence_mode, "not_persisted")
             self.assertEqual(channel.storage_boundary, "no_storage_backend")
             self.assertEqual(channel.permitted_reader_agent_ids, registry.agent_ids)
             self.assertEqual(channel.permitted_reference_agent_ids, registry.agent_ids)
-            self.assertEqual(channel.permitted_writer_agent_ids, (channel.owner_agent_id,))
+            self.assertEqual(
+                channel.permitted_writer_agent_ids, (channel.owner_agent_id,)
+            )
             self.assertTrue(channel.metadata_keys)
             self.assertIn(
                 "storage_backend_creation",

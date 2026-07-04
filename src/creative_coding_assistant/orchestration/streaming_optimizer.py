@@ -26,9 +26,7 @@ StreamingOptimizationPressure = Literal["low", "medium", "high"]
 STREAMING_OPTIMIZATION_CANDIDATE_SERIALIZATION_VERSION = (
     "streaming_optimization_candidate.v1"
 )
-STREAMING_OPTIMIZATION_PLAN_SERIALIZATION_VERSION = (
-    "streaming_optimization_plan.v1"
-)
+STREAMING_OPTIMIZATION_PLAN_SERIALIZATION_VERSION = "streaming_optimization_plan.v1"
 STREAMING_OPTIMIZER_AUTHORITY_BOUNDARY = (
     "Streaming optimization derives advisory stream phase candidates from the "
     "static stream event contract and async execution readiness metadata only; "
@@ -224,16 +222,14 @@ class StreamingOptimizationPlan(BaseModel):
         if self.stream_event_type_count != len(event_types):
             raise ValueError("stream_event_type_count must match stream_event_types")
         expected_highest = max(
-            candidate.advisory_stream_readiness_score
-            for candidate in self.candidates
+            candidate.advisory_stream_readiness_score for candidate in self.candidates
         )
         if self.highest_advisory_stream_readiness_score != expected_highest:
             raise ValueError(
                 "highest_advisory_stream_readiness_score must match candidates"
             )
         expected_total = sum(
-            candidate.advisory_stream_readiness_score
-            for candidate in self.candidates
+            candidate.advisory_stream_readiness_score for candidate in self.candidates
         )
         if self.total_advisory_stream_readiness_score != expected_total:
             raise ValueError(
@@ -421,9 +417,7 @@ def _candidate_ids_for_status(
     status: StreamingOptimizationStatus,
 ) -> tuple[str, ...]:
     return tuple(
-        candidate.candidate_id
-        for candidate in candidates
-        if candidate.status == status
+        candidate.candidate_id for candidate in candidates if candidate.status == status
     )
 
 

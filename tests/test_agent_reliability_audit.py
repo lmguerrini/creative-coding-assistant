@@ -158,12 +158,16 @@ class AgentReliabilityAuditTests(unittest.TestCase):
             )
             self.assertEqual(record.stale_warning_ids, registry.stale_warning_ids)
             self.assertEqual(record.conflict_surface_ids, registry.conflict_surface_ids)
-            self.assertEqual(record.escalation_signal_ids, registry.escalation_signal_ids)
+            self.assertEqual(
+                record.escalation_signal_ids, registry.escalation_signal_ids
+            )
             self.assertEqual(
                 record.escalation_signal_categories,
                 registry.escalation_signal_categories,
             )
-            self.assertEqual(record.consistency_family_ids, registry.consistency_family_ids)
+            self.assertEqual(
+                record.consistency_family_ids, registry.consistency_family_ids
+            )
             self.assertEqual(
                 record.reliability_source_registries,
                 registry.reliability_source_registries,
@@ -172,7 +176,9 @@ class AgentReliabilityAuditTests(unittest.TestCase):
                 record.validated_reliability_surfaces,
                 registry.validated_reliability_surfaces,
             )
-            self.assertEqual(record.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                record.passive_boundary_flags, registry.passive_boundary_flags
+            )
             self.assertFalse(record.missing_coverage_items)
             self.assertIn(
                 "runtime_lifecycle_engine",
@@ -233,8 +239,12 @@ class AgentReliabilityAuditTests(unittest.TestCase):
         self.assertIsNone(missing_audit)
         self.assertIsNotNone(planner_audit)
         assert planner_audit is not None
-        self.assertEqual(planner_audit.lifecycle_profile_id, "planner_agent_lifecycle_profile")
-        self.assertEqual(planner_audit.state_sync_profile_id, "planner_agent_state_sync_profile")
+        self.assertEqual(
+            planner_audit.lifecycle_profile_id, "planner_agent_lifecycle_profile"
+        )
+        self.assertEqual(
+            planner_audit.state_sync_profile_id, "planner_agent_state_sync_profile"
+        )
         self.assertIn("quality", planner_audit.escalation_signal_categories)
         self.assertIn("creative_workstation", planner_audit.consistency_family_ids)
         self.assertEqual(len(confidence_audits), registry.audit_count)
@@ -293,8 +303,7 @@ class AgentReliabilityAuditTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "passive_boundary_flags"):
             AgentReliabilityAuditRegistry(
-                audit_records=(mismatched_flags_record,)
-                + registry.audit_records[1:],
+                audit_records=(mismatched_flags_record,) + registry.audit_records[1:],
                 agent_ids=registry.agent_ids,
                 audit_count=registry.audit_count,
                 lifecycle_profile_ids=registry.lifecycle_profile_ids,

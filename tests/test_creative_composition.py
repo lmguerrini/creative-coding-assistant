@@ -113,8 +113,7 @@ class CreativeCompositionPlannerTests(unittest.TestCase):
         self.assertIn("Composition pattern:", system)
         self.assertTrue(
             any(
-                "Composition pattern:" in item
-                for item in stack.director.planning_focus
+                "Composition pattern:" in item for item in stack.director.planning_focus
             ),
             stack.director.planning_focus,
         )

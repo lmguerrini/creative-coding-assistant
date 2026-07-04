@@ -148,7 +148,9 @@ class AgentCollaborationAuditRecord(BaseModel):
     )
     passive_boundary_flags: tuple[str, ...] = Field(min_length=7, max_length=7)
     audit_findings: tuple[str, ...] = Field(min_length=6, max_length=6)
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=16)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=16
+    )
     registry_blocked_runtime_behaviors: tuple[str, ...] = Field(
         min_length=1,
         max_length=16,
@@ -158,9 +160,7 @@ class AgentCollaborationAuditRecord(BaseModel):
         min_length=1,
         max_length=12,
     )
-    audit_stage: AgentCollaborationAuditStage = (
-        "v4_6_agent_collaboration_hardening"
-    )
+    audit_stage: AgentCollaborationAuditStage = "v4_6_agent_collaboration_hardening"
     audit_status: AgentCollaborationAuditStatus = "pass"
     metadata_only_declared: Literal[True] = True
     live_coordination_implemented: Literal[False] = False
@@ -193,9 +193,7 @@ class AgentCollaborationAuditRegistry(BaseModel):
         default=AGENT_COLLABORATION_AUDIT_REGISTRY_AUTHORITY_BOUNDARY,
         max_length=1000,
     )
-    audit_stage: AgentCollaborationAuditStage = (
-        "v4_6_agent_collaboration_hardening"
-    )
+    audit_stage: AgentCollaborationAuditStage = "v4_6_agent_collaboration_hardening"
     audit_records: tuple[AgentCollaborationAuditRecord, ...] = Field(
         min_length=4,
         max_length=4,
@@ -236,7 +234,9 @@ class AgentCollaborationAuditRegistry(BaseModel):
 
     @model_validator(mode="after")
     def _registry_matches_audit_records(self) -> Self:
-        derived_registry_ids = tuple(record.registry_id for record in self.audit_records)
+        derived_registry_ids = tuple(
+            record.registry_id for record in self.audit_records
+        )
         derived_surfaces = tuple(
             record.collaboration_surface for record in self.audit_records
         )
@@ -499,7 +499,9 @@ AGENT_COLLABORATION_AUDIT_RECORDS = tuple(
 )
 AGENT_COLLABORATION_AUDIT_REGISTRY = AgentCollaborationAuditRegistry(
     audit_records=AGENT_COLLABORATION_AUDIT_RECORDS,
-    registry_ids=tuple(record.registry_id for record in AGENT_COLLABORATION_AUDIT_RECORDS),
+    registry_ids=tuple(
+        record.registry_id for record in AGENT_COLLABORATION_AUDIT_RECORDS
+    ),
     collaboration_surfaces=tuple(
         record.collaboration_surface for record in AGENT_COLLABORATION_AUDIT_RECORDS
     ),

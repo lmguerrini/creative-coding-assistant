@@ -199,17 +199,15 @@ class UnifiedExecutionGraphTests(unittest.TestCase):
     def test_unified_execution_graph_rejects_execution_and_drift(self) -> None:
         graph = build_unified_execution_graph()
         payload = graph.model_dump(mode="json")
-        payload["execution_node_ids"] = (
-            "missing",
-        ) + tuple(payload["execution_node_ids"][1:])
+        payload["execution_node_ids"] = ("missing",) + tuple(
+            payload["execution_node_ids"][1:]
+        )
 
         with self.assertRaisesRegex(ValueError, "execution_node_ids must match"):
             UnifiedExecutionGraphPlan(**payload)
 
         payload = graph.model_dump(mode="json")
-        payload["executed_node_ids"] = (
-            "unified_execution::v6_6_cognitive_core",
-        )
+        payload["executed_node_ids"] = ("unified_execution::v6_6_cognitive_core",)
 
         with self.assertRaisesRegex(
             ValueError,

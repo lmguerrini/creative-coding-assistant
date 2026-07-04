@@ -169,9 +169,9 @@ class ProviderCapabilityMatrixTests(unittest.TestCase):
             ProviderCapabilityMatrix(**payload)
 
         payload = matrix.model_dump(mode="json")
-        payload["provider_selection_profile_ids"] = (
-            "missing",
-        ) + tuple(payload["provider_selection_profile_ids"][1:])
+        payload["provider_selection_profile_ids"] = ("missing",) + tuple(
+            payload["provider_selection_profile_ids"][1:]
+        )
 
         with self.assertRaisesRegex(
             ValueError,

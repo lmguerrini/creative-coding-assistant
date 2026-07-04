@@ -435,9 +435,7 @@ def build_research_decomposer(
         hitl_required_entry_count=sum(
             1 for entry in entries if entry.hitl_required_before_decomposition_execution
         ),
-        highest_decomposition_score=max(
-            entry.decomposition_score for entry in entries
-        ),
+        highest_decomposition_score=max(entry.decomposition_score for entry in entries),
         overall_decomposition_score=_overall_decomposition_score(entries),
         overall_decomposition_posture=_overall_decomposition_posture(entries),
         advisory_actions=_plan_actions(entries),
@@ -693,9 +691,7 @@ def _entry_ids_for_confidence(
     entries: tuple[ResearchDecompositionEntry, ...],
     *confidences: ResearchDecompositionConfidence,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(entries: tuple[ResearchDecompositionEntry, ...]) -> tuple[str, ...]:

@@ -46,9 +46,7 @@ ProductionArchitectureConsistencyLayer = Literal[
     "architecture_release_control_boundary",
     "hardening_boundary",
 ]
-ProductionArchitectureConsistencyStage = Literal[
-    "v5_6_architecture_consistency_pass"
-]
+ProductionArchitectureConsistencyStage = Literal["v5_6_architecture_consistency_pass"]
 ProductionArchitectureConsistencyStatus = Literal["pass"]
 
 PRODUCTION_ARCHITECTURE_CONSISTENCY_RECORD_SERIALIZATION_VERSION = (
@@ -192,7 +190,9 @@ class ProductionArchitectureConsistencyRecord(BaseModel):
         default_factory=tuple,
         max_length=32,
     )
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=16)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=16
+    )
     source_metadata_only_declared: bool = True
     v5_architecture_consistency_confirmed: Literal[True] = True
     v4_boundary_compatibility_confirmed: Literal[True] = True
@@ -425,7 +425,9 @@ def production_architecture_consistency_records_for_layer(
     normalized = str(layer).strip()
     source_registry = registry or production_architecture_consistency_registry()
     return tuple(
-        record for record in source_registry.records if record.architecture_layer == normalized
+        record
+        for record in source_registry.records
+        if record.architecture_layer == normalized
     )
 
 
@@ -447,8 +449,8 @@ def _record(
     return ProductionArchitectureConsistencyRecord(
         surface_id=surface_id,
         architecture_layer=layer,
-        source_role=str(getattr(source, "role")),
-        source_serialization_version=str(getattr(source, "serialization_version")),
+        source_role=str(source.role),
+        source_serialization_version=str(source.serialization_version),
         source_count_field=count_field,
         source_count=count,
         validated_version_rules=_VALIDATED_VERSION_RULES,

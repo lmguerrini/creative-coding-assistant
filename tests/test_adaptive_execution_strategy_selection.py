@@ -220,7 +220,9 @@ class AdaptiveExecutionStrategySelectionTests(unittest.TestCase):
         assert selected is not None
         self.assertEqual(selected.status, "selected")
         self.assertEqual(selected.provider_sequence, plan.selected_provider_sequence)
-        self.assertEqual(selected.model_profile_sequence, plan.selected_model_profile_sequence)
+        self.assertEqual(
+            selected.model_profile_sequence, plan.selected_model_profile_sequence
+        )
         self.assertTrue(selected.hitl_required)
         self.assertEqual(len(guardrails), 1)
         self.assertTrue(fallbacks)
@@ -249,7 +251,9 @@ class AdaptiveExecutionStrategySelectionTests(unittest.TestCase):
         payload = plan.model_dump(mode="json")
         payload["applied_strategy_id"] = plan.selected_strategy_id
 
-        with self.assertRaisesRegex(ValueError, "applied_strategy_id must remain unset"):
+        with self.assertRaisesRegex(
+            ValueError, "applied_strategy_id must remain unset"
+        ):
             AdaptiveExecutionStrategySelectionPlan(**payload)
 
     def test_selector_does_not_change_routing_or_provider_factory(self) -> None:

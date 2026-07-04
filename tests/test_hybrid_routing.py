@@ -112,8 +112,12 @@ class HybridRoutingTests(unittest.TestCase):
             self.assertEqual(decision.serialization_version, "hybrid_route_decision.v1")
             self.assertEqual(decision.route_name, RouteName.PREVIEW)
             self.assertIn(decision.source_local_cloud_decision_id, source_decision_ids)
-            self.assertEqual(decision.hybrid_score, decision.local_score + decision.cloud_score)
-            self.assertIn("provider_or_model_routing", decision.blocked_runtime_behaviors)
+            self.assertEqual(
+                decision.hybrid_score, decision.local_score + decision.cloud_score
+            )
+            self.assertIn(
+                "provider_or_model_routing", decision.blocked_runtime_behaviors
+            )
             self.assertTrue(decision.hybrid_routing_implemented)
             self.assertFalse(decision.hybrid_routing_application_implemented)
             self.assertFalse(decision.hybrid_workflow_execution_implemented)
@@ -168,7 +172,9 @@ class HybridRoutingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "recommended_hybrid_mode must match"):
             HybridRoutingPlan(**payload)
 
-    def test_hybrid_router_does_not_change_request_routing_or_provider_factory(self) -> None:
+    def test_hybrid_router_does_not_change_request_routing_or_provider_factory(
+        self,
+    ) -> None:
         request = AssistantRequest(
             query="Preview this generated WebGL scene.",
             mode=AssistantMode.PREVIEW,

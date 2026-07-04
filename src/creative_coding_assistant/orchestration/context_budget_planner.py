@@ -168,8 +168,12 @@ class ContextBudgetPlan(BaseModel):
             for allocation in self.allocations
             if allocation.source_kind != "response_reserve"
         )
-        requested = sum(allocation.requested_tokens for allocation in context_allocations)
-        allocated = sum(allocation.allocated_tokens for allocation in context_allocations)
+        requested = sum(
+            allocation.requested_tokens for allocation in context_allocations
+        )
+        allocated = sum(
+            allocation.allocated_tokens for allocation in context_allocations
+        )
         if self.available_context_tokens != (
             self.total_budget_tokens - self.response_reserve_tokens
         ):
@@ -493,7 +497,9 @@ def _recent_turn_tokens(assembled_context: AssembledContextResponse | None) -> i
     )
     if memory_context is None:
         return 0
-    return sum(_estimate_text_tokens(turn.content) for turn in memory_context.recent_turns)
+    return sum(
+        _estimate_text_tokens(turn.content) for turn in memory_context.recent_turns
+    )
 
 
 def _summary_tokens(assembled_context: AssembledContextResponse | None) -> int:
@@ -523,7 +529,9 @@ def _retrieval_tokens(assembled_context: AssembledContextResponse | None) -> int
     )
     if retrieval_context is None:
         return 0
-    return sum(_estimate_text_tokens(chunk.excerpt) for chunk in retrieval_context.chunks)
+    return sum(
+        _estimate_text_tokens(chunk.excerpt) for chunk in retrieval_context.chunks
+    )
 
 
 def _creative_metadata_tokens(

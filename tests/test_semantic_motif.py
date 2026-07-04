@@ -88,7 +88,9 @@ class SemanticMotifEngineTests(unittest.TestCase):
             parameter_by_id["fragmentation"].parameter_names,
         )
         self.assertIn("reintegration", parameter_by_id)
-        self.assertIn("reassembly_speed", parameter_by_id["reintegration"].parameter_names)
+        self.assertIn(
+            "reassembly_speed", parameter_by_id["reintegration"].parameter_names
+        )
         self.assertIn("reintegration", narrative_by_id)
         self.assertTrue(narrative_by_id["reintegration"].phase_alignment)
         self.assertTrue(motif.motif_to_composition_mapping)
@@ -107,7 +109,9 @@ class SemanticMotifEngineTests(unittest.TestCase):
         self.assertTrue({"eye", "mandala"}.intersection(motif_ids))
         self.assertTrue(motif.unsupported_symbolic_claims)
         self.assertTrue(
-            any("doctrine" in item.lower() for item in motif.unsupported_symbolic_claims),
+            any(
+                "doctrine" in item.lower() for item in motif.unsupported_symbolic_claims
+            ),
             motif.unsupported_symbolic_claims,
         )
         self.assertTrue(motif.overuse_risks)

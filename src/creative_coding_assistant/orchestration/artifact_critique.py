@@ -7,6 +7,7 @@ from statistics import mean
 from pydantic import BaseModel, ConfigDict, Field
 
 from creative_coding_assistant.contracts import AssistantRequest, CreativeCodingDomain
+from creative_coding_assistant.orchestration._metadata_utils import _token_set
 from creative_coding_assistant.orchestration.artifacts import (
     ArtifactCritiqueDimension,
     CreativeQualityEvaluation,
@@ -14,7 +15,6 @@ from creative_coding_assistant.orchestration.artifacts import (
     WorkflowArtifact,
     WorkflowArtifactCritique,
 )
-from creative_coding_assistant.orchestration._metadata_utils import _token_set
 from creative_coding_assistant.orchestration.creative_quality import (
     evaluate_artifact_creative_quality,
 )
@@ -47,6 +47,8 @@ _CODE_MARKERS = frozenset(
         "void",
     }
 )
+
+
 class ArtifactCritiqueSummary(BaseModel):
     """Run-level summary for artifact critique results."""
 
@@ -420,11 +422,7 @@ def _critique_reasons(
     *,
     sacred_consistency: SacredConsistencyEvaluation | None = None,
 ) -> tuple[str, ...]:
-    reasons = [
-        name
-        for name, dimension in dimensions.items()
-        if dimension.score < 0.5
-    ]
+    reasons = [name for name, dimension in dimensions.items() if dimension.score < 0.5]
     if overall < ARTIFACT_CRITIQUE_PASS_THRESHOLD:
         reasons.append("overall_quality_below_threshold")
     if sacred_consistency is not None:
@@ -472,24 +470,14 @@ def _refinement_guidance(
 ) -> str | None:
     if not reasons:
         return None
-    creative_focus = " ".join(
-        creative_evaluation.refinement_opportunities[:3]
-    )
-    creative_guidance = (
-        f" Creative focus: {creative_focus}"
-        if creative_focus
-        else ""
-    )
+    creative_focus = " ".join(creative_evaluation.refinement_opportunities[:3])
+    creative_guidance = f" Creative focus: {creative_focus}" if creative_focus else ""
     sacred_focus = (
         " ".join(sacred_consistency.refinement_opportunities[:3])
         if sacred_consistency is not None
         else ""
     )
-    sacred_guidance = (
-        f" Sacred focus: {sacred_focus}"
-        if sacred_focus
-        else ""
-    )
+    sacred_guidance = f" Sacred focus: {sacred_focus}" if sacred_focus else ""
     return (
         f"Revise {artifact.title}: address {', '.join(reasons)}, preserve the "
         "original brief, and return a complete runnable artifact when applicable."

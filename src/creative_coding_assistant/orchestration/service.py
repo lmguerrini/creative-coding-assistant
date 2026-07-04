@@ -152,7 +152,7 @@ class AssistantService:
                 events=tuple(streamed_events),
                 started_at=started_at,
                 completed_at=completed_at,
-        )
+            )
 
     def _stream_events(
         self,
@@ -645,9 +645,7 @@ def _stream_provider_generation(
                     category="stream",
                     subsystem="generation_provider",
                     recoverable=True,
-                    suggested_action=(
-                        "Retry the request after the provider recovers."
-                    ),
+                    suggested_action=("Retry the request after the provider recovers."),
                     retry_label="Send prompt again",
                     telemetry=error_telemetry,
                 )

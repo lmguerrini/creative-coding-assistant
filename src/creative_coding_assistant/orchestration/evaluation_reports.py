@@ -295,12 +295,11 @@ def evaluation_report_prompt_lines(
     lines.extend(f"Evaluation strength: {item}" for item in profile.strengths)
     lines.extend(f"Evaluation weakness: {item}" for item in profile.weaknesses)
     lines.extend(f"Evaluation risk: {item}" for item in profile.risks)
-    lines.extend(f"Evaluation recommendation: {item}" for item in profile.recommendations)
     lines.extend(
-        (
-            "Evaluation trace: "
-            f"{item.step}. {item.source}; {item.contribution}"
-        )
+        f"Evaluation recommendation: {item}" for item in profile.recommendations
+    )
+    lines.extend(
+        (f"Evaluation trace: {item.step}. {item.source}; {item.contribution}")
         for item in profile.evaluation_trace
     )
     lines.extend(
@@ -312,17 +311,16 @@ def evaluation_report_prompt_lines(
         for item in profile.evaluation_explainability
     )
     lines.extend(
-        (
-            "Evaluation dependency: "
-            f"{item.source}; {item.status}; {item.note}"
-        )
+        (f"Evaluation dependency: {item.source}; {item.status}; {item.note}")
         for item in profile.evaluation_dependencies
     )
     lines.extend(
         f"Evaluation evidence: {item.source}; {item.claim}"
         for item in profile.evidence_chain[:8]
     )
-    lines.extend(f"Evaluation prompt guidance: {item}" for item in profile.prompt_guidance)
+    lines.extend(
+        f"Evaluation prompt guidance: {item}" for item in profile.prompt_guidance
+    )
     return tuple(lines[:72])
 
 
@@ -418,7 +416,9 @@ def _improvement_summary(
 
 def _score_summary(creative_score: CreativeScoreProfile | None) -> str:
     if creative_score is None:
-        return "Score summary is unavailable because Creative Score metadata is missing."
+        return (
+            "Score summary is unavailable because Creative Score metadata is missing."
+        )
     return _clip(creative_score.score_summary, 620)
 
 
@@ -474,15 +474,23 @@ def _risks(
 ) -> tuple[str, ...]:
     risks: list[str] = []
     if creative_critic is not None:
-        risks.append(f"Creative Critic risk assessment is {creative_critic.risk_assessment}.")
+        risks.append(
+            f"Creative Critic risk assessment is {creative_critic.risk_assessment}."
+        )
         risks.extend(creative_critic.unsupported_assumptions[:2])
         risks.extend(creative_critic.missing_information[:2])
     if self_evaluation is not None:
-        risks.append(f"Self-evaluation hallucination risk is {self_evaluation.hallucination_risk}.")
-        risks.append(f"Self-evaluation underdelivery risk is {self_evaluation.underdelivery_risk}.")
+        risks.append(
+            f"Self-evaluation hallucination risk is {self_evaluation.hallucination_risk}."
+        )
+        risks.append(
+            f"Self-evaluation underdelivery risk is {self_evaluation.underdelivery_risk}."
+        )
         risks.extend(self_evaluation.unsupported_assumptions[:2])
     if reflection_loop is not None and reflection_loop.reflection_required:
-        risks.append(f"Reflection Loop reports {reflection_loop.reflection_priority} reflection pressure.")
+        risks.append(
+            f"Reflection Loop reports {reflection_loop.reflection_priority} reflection pressure."
+        )
     if creative_confidence is not None:
         risks.extend(creative_confidence.confidence_uncertainties[:3])
     if creative_score is not None:
@@ -525,7 +533,7 @@ def _recommendations(
             f"Surface {hitl} human review before treating evaluation conclusions as settled."
         )
     recommendations.append(
-        "Keep Evaluation Reports metadata advisory; do not trigger retries, refinement, routing, runtime changes, previews, or future agents."
+        "Keep Evaluation Reports metadata advisory; do not trigger retries, refinement, routing, runtime changes, previews, or future agents."  # noqa: E501
     )
     return _dedupe(recommendations, clip_limit=360)[:10]
 
@@ -733,7 +741,9 @@ def _evaluation_explainability(
         ),
     ]
     if creative_score is not None:
-        explanations.append(f"Score explainability: {creative_score.score_explainability}")
+        explanations.append(
+            f"Score explainability: {creative_score.score_explainability}"
+        )
     if creative_confidence is not None:
         explanations.append(
             f"Confidence contribution uses {len(creative_confidence.confidence_components)} component(s)."
@@ -745,7 +755,9 @@ def _evaluation_explainability(
             f"and {consistency_validation.evaluation_integrity} integrity."
         )
     if any(item.status == "missing" for item in dependencies):
-        explanations.append("Missing dependencies lower report completeness but do not trigger workflow changes.")
+        explanations.append(
+            "Missing dependencies lower report completeness but do not trigger workflow changes."
+        )
     explanations.append(f"Final report HITL posture is {hitl}.")
     return _dedupe(explanations, clip_limit=520)[:10]
 
@@ -887,7 +899,10 @@ def _hitl_recommendation(
         values.append("recommended")
     if self_evaluation is not None and self_evaluation.hitl_questions:
         values.append("recommended")
-    if creative_improvement_planner is not None and creative_improvement_planner.hitl_questions:
+    if (
+        creative_improvement_planner is not None
+        and creative_improvement_planner.hitl_questions
+    ):
         values.append("optional")
     if reflection_loop is not None:
         values.append(reflection_loop.hitl_recommendation)

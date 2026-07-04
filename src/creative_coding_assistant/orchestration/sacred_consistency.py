@@ -220,10 +220,7 @@ def evaluate_artifact_sacred_consistency(
     }
     overall = round(mean(observation.score for observation in observations.values()), 3)
     strengths = tuple(
-        (
-            f"{_DIMENSION_LABELS[name]}: "
-            f"{observation.observation.rstrip('.')}."
-        )
+        (f"{_DIMENSION_LABELS[name]}: {observation.observation.rstrip('.')}.")
         for name, observation in observations.items()
         if observation.score >= 0.78
     )[:3]

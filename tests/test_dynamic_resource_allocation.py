@@ -94,7 +94,9 @@ class DynamicResourceAllocationTests(unittest.TestCase):
         plan = allocate_dynamic_resources(route=RouteName.GENERATE)
 
         self.assertEqual(plan.role, "dynamic_resource_allocator")
-        self.assertEqual(plan.serialization_version, "dynamic_resource_allocation_plan.v1")
+        self.assertEqual(
+            plan.serialization_version, "dynamic_resource_allocation_plan.v1"
+        )
         self.assertEqual(plan.route_name, RouteName.GENERATE)
         self.assertEqual(plan.task_type, "creative_coding")
         self.assertEqual(

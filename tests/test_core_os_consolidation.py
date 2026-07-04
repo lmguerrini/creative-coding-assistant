@@ -239,17 +239,15 @@ class CoreOSConsolidationTests(unittest.TestCase):
     def test_core_os_consolidation_rejects_activation_and_drift(self) -> None:
         consolidation = build_core_os_consolidation()
         payload = consolidation.model_dump(mode="json")
-        payload["consolidation_unit_ids"] = (
-            "missing",
-        ) + tuple(payload["consolidation_unit_ids"][1:])
+        payload["consolidation_unit_ids"] = ("missing",) + tuple(
+            payload["consolidation_unit_ids"][1:]
+        )
 
         with self.assertRaisesRegex(ValueError, "consolidation_unit_ids must match"):
             CoreOSConsolidationPlan(**payload)
 
         payload = consolidation.model_dump(mode="json")
-        payload["activated_core_os_unit_ids"] = (
-            "core_os::v6_6_cognitive_core",
-        )
+        payload["activated_core_os_unit_ids"] = ("core_os::v6_6_cognitive_core",)
 
         with self.assertRaisesRegex(
             ValueError,

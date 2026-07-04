@@ -40,9 +40,7 @@ CrossDomainInspirationAxis = Literal[
 CROSS_DOMAIN_INSPIRATION_ENTRY_SERIALIZATION_VERSION = (
     "cross_domain_inspiration_entry.v1"
 )
-CROSS_DOMAIN_INSPIRATION_PLAN_SERIALIZATION_VERSION = (
-    "cross_domain_inspiration_plan.v1"
-)
+CROSS_DOMAIN_INSPIRATION_PLAN_SERIALIZATION_VERSION = "cross_domain_inspiration_plan.v1"
 
 CROSS_DOMAIN_INSPIRATION_AUTHORITY_BOUNDARY = (
     "V6.4 Cross-domain Inspiration Discovery exposes domain analogy mapping, "
@@ -188,9 +186,7 @@ class CrossDomainInspirationEntry(BaseModel):
     def _entry_matches_contract(self) -> Self:
         if self.entry_id != f"cross_domain_inspiration::{self.inspiration_kind}":
             raise ValueError("entry_id must match inspiration_kind")
-        if self.creative_research_entry_count != len(
-            self.creative_research_entry_ids
-        ):
+        if self.creative_research_entry_count != len(self.creative_research_entry_ids):
             raise ValueError(
                 "creative_research_entry_count must match creative research ids"
             )
@@ -398,9 +394,7 @@ class CrossDomainInspirationPlan(BaseModel):
             raise ValueError("executed_research_ids must remain empty")
         if self.emitted_hitl_request_ids:
             raise ValueError("emitted_hitl_request_ids must remain empty")
-        if self.creative_research_entry_count != len(
-            self.creative_research_entry_ids
-        ):
+        if self.creative_research_entry_count != len(self.creative_research_entry_ids):
             raise ValueError(
                 "creative_research_entry_count must match creative research ids"
             )
@@ -424,9 +418,7 @@ class CrossDomainInspirationPlan(BaseModel):
             entry.inspiration_score for entry in self.entries
         ):
             raise ValueError("highest_inspiration_score must match entries")
-        if self.overall_inspiration_score != _overall_inspiration_score(
-            self.entries
-        ):
+        if self.overall_inspiration_score != _overall_inspiration_score(self.entries):
             raise ValueError("overall_inspiration_score must match entries")
         if self.overall_inspiration_posture != _overall_inspiration_posture(
             self.entries
@@ -807,9 +799,7 @@ def _entry_ids_for_confidence(
     entries: tuple[CrossDomainInspirationEntry, ...],
     *confidences: CrossDomainInspirationConfidence,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(

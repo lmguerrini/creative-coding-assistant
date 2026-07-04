@@ -202,9 +202,7 @@ class KnowledgeRollbackTests(unittest.TestCase):
                 len(signal.knowledge_snapshot_signal_ids),
             )
             self.assertTrue(
-                set(signal.knowledge_snapshot_signal_ids).issubset(
-                    snapshot_signal_ids
-                )
+                set(signal.knowledge_snapshot_signal_ids).issubset(snapshot_signal_ids)
             )
             self.assertEqual(
                 signal.rollback_score,
@@ -257,7 +255,9 @@ class KnowledgeRollbackTests(unittest.TestCase):
             self.assertFalse(signal.version_history_write_implemented)
             self.assertFalse(signal.provenance_graph_mutation_implemented)
             self.assertFalse(signal.provenance_record_write_implemented)
-            self.assertFalse(signal.knowledge_lifecycle_management_execution_implemented)
+            self.assertFalse(
+                signal.knowledge_lifecycle_management_execution_implemented
+            )
             self.assertFalse(signal.lifecycle_policy_mutation_implemented)
             self.assertFalse(signal.retention_policy_mutation_implemented)
             self.assertFalse(signal.lifecycle_record_write_implemented)

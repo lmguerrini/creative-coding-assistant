@@ -156,7 +156,9 @@ class FailureAnalysisTests(unittest.TestCase):
             self.assertEqual(panel.serialization_version, "failure_analysis_panel.v1")
             self.assertIsNone(panel.observed_failure_count)
             self.assertIsNone(panel.handled_failure_count)
-            self.assertIn("runtime_failure_observation", panel.blocked_runtime_behaviors)
+            self.assertIn(
+                "runtime_failure_observation", panel.blocked_runtime_behaviors
+            )
             self.assertTrue(panel.failure_analysis_panel_implemented)
             self.assertFalse(panel.runtime_failure_observation_implemented)
             self.assertFalse(panel.live_error_classification_implemented)

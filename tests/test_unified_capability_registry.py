@@ -127,9 +127,7 @@ class UnifiedCapabilityRegistryTests(unittest.TestCase):
     def test_unified_capability_registry_rejects_activation_and_drift(self) -> None:
         registry = build_unified_capability_registry()
         payload = registry.model_dump(mode="json")
-        payload["capability_ids"] = ("missing",) + tuple(
-            payload["capability_ids"][1:]
-        )
+        payload["capability_ids"] = ("missing",) + tuple(payload["capability_ids"][1:])
 
         with self.assertRaisesRegex(ValueError, "capability_ids must match"):
             UnifiedCapabilityRegistryPlan(**payload)

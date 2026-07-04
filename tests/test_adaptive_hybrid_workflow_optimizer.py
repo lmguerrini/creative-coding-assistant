@@ -101,7 +101,9 @@ class AdaptiveHybridWorkflowOptimizerTests(unittest.TestCase):
         self.assertEqual(plan.hybrid_policy_directions, REQUIRED_HYBRID_DIRECTIONS)
         self.assertEqual(plan.task_type, "creative_coding")
         self.assertEqual(plan.decision_count, 4)
-        self.assertEqual(plan.recommended_candidate_id, "hybrid_workflow::local_to_cloud")
+        self.assertEqual(
+            plan.recommended_candidate_id, "hybrid_workflow::local_to_cloud"
+        )
         self.assertIsNone(plan.selected_candidate_id)
         self.assertIn("does not execute workflows", plan.authority_boundary)
         self.assertTrue(plan.hybrid_workflow_optimizer_implemented)
@@ -144,7 +146,10 @@ class AdaptiveHybridWorkflowOptimizerTests(unittest.TestCase):
                 len(candidate.model_profile_sequence),
                 len(candidate.provider_sequence),
             )
-            self.assertIn("provider_or_model_routing_application", candidate.blocked_runtime_behaviors)
+            self.assertIn(
+                "provider_or_model_routing_application",
+                candidate.blocked_runtime_behaviors,
+            )
             self.assertTrue(candidate.hybrid_workflow_optimizer_implemented)
             self.assertTrue(candidate.adaptive_execution_intelligence_implemented)
             self.assertTrue(candidate.strategy_recommendation_implemented)
@@ -177,15 +182,23 @@ class AdaptiveHybridWorkflowOptimizerTests(unittest.TestCase):
         assert cloud_to_cloud is not None
         self.assertEqual(local_to_cloud.provider_sequence, ("local", "openai"))
         self.assertIn("missing_api_key", local_to_cloud.unavailable_reason_codes)
-        self.assertIn("local_runtime_unavailable", local_to_cloud.unavailable_reason_codes)
-        self.assertEqual(cloud_to_cloud.provider_sequence, ("openai", "anthropic", "gemini"))
+        self.assertIn(
+            "local_runtime_unavailable", local_to_cloud.unavailable_reason_codes
+        )
+        self.assertEqual(
+            cloud_to_cloud.provider_sequence, ("openai", "anthropic", "gemini")
+        )
         self.assertIn("provider_unsupported", cloud_to_cloud.unavailable_reason_codes)
         self.assertTrue(local_to_cloud.hitl_required)
         self.assertTrue(cloud_to_cloud.hitl_required)
 
     def test_simulation_and_fallback_are_pre_run_estimates(self) -> None:
-        plan = optimize_hybrid_workflow(task_type="fast_draft", execution_mode_id="auto_mode")
-        recommended = hybrid_workflow_candidate_by_id(plan.recommended_candidate_id, plan)
+        plan = optimize_hybrid_workflow(
+            task_type="fast_draft", execution_mode_id="auto_mode"
+        )
+        recommended = hybrid_workflow_candidate_by_id(
+            plan.recommended_candidate_id, plan
+        )
         hitl_candidates = hybrid_workflow_candidates_requiring_hitl(plan)
 
         self.assertIsNotNone(recommended)
@@ -224,7 +237,9 @@ class AdaptiveHybridWorkflowOptimizerTests(unittest.TestCase):
             plan.fallback.serialization_version,
             "adaptive_hybrid_workflow_fallback.v1",
         )
-        self.assertEqual(plan.fallback.preferred_candidate_id, plan.recommended_candidate_id)
+        self.assertEqual(
+            plan.fallback.preferred_candidate_id, plan.recommended_candidate_id
+        )
         self.assertIn(plan.fallback.fallback_candidate_id, plan.fallback_candidate_ids)
         self.assertTrue(plan.fallback.reason_summary)
         self.assertTrue(plan.fallback.suggested_action)

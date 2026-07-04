@@ -36,6 +36,9 @@ from creative_coding_assistant.orchestration.audio_visual_scene import (
     AudioVisualSceneProfile,
 )
 from creative_coding_assistant.orchestration.clarification import ClarificationRequest
+from creative_coding_assistant.orchestration.consistency_validation_engine import (
+    ConsistencyValidationProfile,
+)
 from creative_coding_assistant.orchestration.creative_composition import (
     CreativeCompositionPlan,
 )
@@ -84,20 +87,17 @@ from creative_coding_assistant.orchestration.creative_tradeoffs import (
 from creative_coding_assistant.orchestration.creative_translation import (
     CreativeTranslation,
 )
-from creative_coding_assistant.orchestration.consistency_validation_engine import (
-    ConsistencyValidationProfile,
-)
 from creative_coding_assistant.orchestration.cross_modality import (
     CrossModalityCompositionProfile,
 )
 from creative_coding_assistant.orchestration.emotional_consistency import (
     EmotionalConsistencyProfile,
 )
-from creative_coding_assistant.orchestration.evaluation_reports import (
-    EvaluationReportProfile,
-)
 from creative_coding_assistant.orchestration.evaluation_engine_contracts import (
     EvaluationEngineContractRegistry,
+)
+from creative_coding_assistant.orchestration.evaluation_reports import (
+    EvaluationReportProfile,
 )
 from creative_coding_assistant.orchestration.generative_structure import (
     GenerativeStructureBlueprint,
@@ -118,10 +118,10 @@ from creative_coding_assistant.orchestration.runtime_capabilities import (
 from creative_coding_assistant.orchestration.runtime_compatibility import (
     RuntimeCompatibilityProfile,
 )
-from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.self_evaluation_engine import (
     SelfEvaluationProfile,
 )
+from creative_coding_assistant.orchestration.semantic_motif import SemanticMotifSystem
 from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
@@ -197,9 +197,7 @@ def derive_creative_assistant_director_brief(
     artifact_export_intelligence: ArtifactExportIntelligenceProfile | None = None,
     creative_critic: CreativeCriticProfile | None = None,
     self_evaluation: SelfEvaluationProfile | None = None,
-    creative_improvement_planner: (
-        CreativeImprovementPlannerProfile | None
-    ) = None,
+    creative_improvement_planner: (CreativeImprovementPlannerProfile | None) = None,
     reflection_loop: ReflectionLoopProfile | None = None,
     creative_confidence: CreativeConfidenceProfile | None = None,
     creative_score: CreativeScoreProfile | None = None,

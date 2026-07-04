@@ -147,7 +147,9 @@ class ModelRecommendationEngineTests(unittest.TestCase):
             self.assertFalse(recommendation.generated_output_mutation_implemented)
             self.assertTrue(recommendation.advisory_only)
 
-    def test_lookup_helpers_return_recommendations_without_model_selection(self) -> None:
+    def test_lookup_helpers_return_recommendations_without_model_selection(
+        self,
+    ) -> None:
         plan = recommend_model_profile(route=RouteName.GENERATE)
         recommended = model_recommendation_by_id(
             "model_recommendation::creative_reasoning_model_profile",
@@ -169,9 +171,9 @@ class ModelRecommendationEngineTests(unittest.TestCase):
     def test_plan_rejects_mismatched_recommendations_or_recommendation(self) -> None:
         plan = recommend_model_profile(route=RouteName.GENERATE)
         payload = plan.model_dump(mode="json")
-        payload["recommendation_ids"] = (
-            "missing",
-        ) + tuple(payload["recommendation_ids"][1:])
+        payload["recommendation_ids"] = ("missing",) + tuple(
+            payload["recommendation_ids"][1:]
+        )
 
         with self.assertRaisesRegex(ValueError, "recommendation_ids must match"):
             ModelRecommendationPlan(**payload)
@@ -194,7 +196,9 @@ class ModelRecommendationEngineTests(unittest.TestCase):
         ):
             ModelRecommendationPlan(**payload)
 
-    def test_model_recommendations_do_not_change_routing_or_provider_factory(self) -> None:
+    def test_model_recommendations_do_not_change_routing_or_provider_factory(
+        self,
+    ) -> None:
         request = AssistantRequest(
             query="Generate a model recommendation for a sketch.",
             mode=AssistantMode.GENERATE,

@@ -384,16 +384,19 @@ def _translation_score(
         if any(token in normalized for token in signal.tokens):
             score += 1
             matched.append(value)
-    if (
-        translation.audio_reactive is not None
-        and signal.runtime in {"tone_js", "hydra", "p5_js"}
-    ):
+    if translation.audio_reactive is not None and signal.runtime in {
+        "tone_js",
+        "hydra",
+        "p5_js",
+    }:
         score += 2
         matched.append("audio-reactive output")
-    if (
-        translation.sacred_geometry is not None
-        and signal.runtime in {"p5_js", "svg", "canvas", "glsl"}
-    ):
+    if translation.sacred_geometry is not None and signal.runtime in {
+        "p5_js",
+        "svg",
+        "canvas",
+        "glsl",
+    }:
         score += 2
         matched.append("sacred geometry output")
     return score
@@ -439,12 +442,9 @@ def _output_goal_fit(
         return "moderate"
     if modality in signal.modality_affinities:
         return "strong"
-    if (
-        modality is CreativeOutputModality.AUDIOVISUAL
-        and (
-            CreativeOutputModality.VISUAL in signal.modality_affinities
-            or CreativeOutputModality.AUDIO in signal.modality_affinities
-        )
+    if modality is CreativeOutputModality.AUDIOVISUAL and (
+        CreativeOutputModality.VISUAL in signal.modality_affinities
+        or CreativeOutputModality.AUDIO in signal.modality_affinities
     ):
         return "moderate"
     return "weak"
@@ -662,9 +662,7 @@ def _profile_evidence(
     if creative_strategy is not None:
         evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
     if creative_techniques is not None:
-        evidence.append(
-            f"Creative technique: {creative_techniques.primary_technique}."
-        )
+        evidence.append(f"Creative technique: {creative_techniques.primary_technique}.")
     if creative_plan is not None:
         evidence.append(
             f"Planning runtime signal: {creative_plan.recommended_runtime}."
@@ -1111,8 +1109,7 @@ _RUNTIME_SIGNALS: tuple[_RuntimeSignal, ...] = (
             "Limited for dense simulation, shader effects, and arbitrary scripting.",
         ),
         risks=(
-            "Unsafe SVG markup, external assets, or event handlers must be "
-            "avoided.",
+            "Unsafe SVG markup, external assets, or event handlers must be avoided.",
         ),
         prompt_guidance=(
             "Use SVG capability for self-contained vector output only when the "

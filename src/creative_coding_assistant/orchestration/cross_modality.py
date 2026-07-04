@@ -164,9 +164,7 @@ _FRAGMENTATION_TOKENS = frozenset(
 _REASSEMBLY_TOKENS = frozenset(
     {"phoenix", "reassemble", "reassembly", "reform", "reforms", "reintegration"}
 )
-_RITUAL_TOKENS = frozenset(
-    {"mandala", "pulse", "ritual", "sacred", "solemn", "temple"}
-)
+_RITUAL_TOKENS = frozenset({"mandala", "pulse", "ritual", "sacred", "solemn", "temple"})
 
 
 class CrossModalityRole(BaseModel):
@@ -533,8 +531,12 @@ def cross_modality_prompt_lines(
         f"Synchronization plan: {item}"
         for item in profile.modality_synchronization_plan
     )
-    lines.extend(_mapping_lines("Visual-to-audio mapping", profile.visual_to_audio_mapping))
-    lines.extend(_mapping_lines("Audio-to-motion mapping", profile.audio_to_motion_mapping))
+    lines.extend(
+        _mapping_lines("Visual-to-audio mapping", profile.visual_to_audio_mapping)
+    )
+    lines.extend(
+        _mapping_lines("Audio-to-motion mapping", profile.audio_to_motion_mapping)
+    )
     lines.extend(
         _mapping_lines(
             "Motion-to-structure mapping",
@@ -567,7 +569,9 @@ def cross_modality_prompt_lines(
         f"{profile.fallback_multimodal_strategy.fallback_pattern}; "
         f"{profile.fallback_multimodal_strategy.simplification_strategy}"
     )
-    lines.extend(f"Unresolved modality gap: {item}" for item in profile.unresolved_modality_gaps)
+    lines.extend(
+        f"Unresolved modality gap: {item}" for item in profile.unresolved_modality_gaps
+    )
     lines.extend(f"HITL modality question: {item}" for item in profile.hitl_questions)
     lines.extend(f"Cross-modality guidance: {item}" for item in profile.prompt_guidance)
     return tuple(lines[:52])
@@ -626,7 +630,9 @@ def _context(
             item.dimension for item in creative_hierarchy.primary_creative_priorities
         )
     if creative_plan is not None:
-        parts.extend([creative_plan.output_modality.value, creative_plan.generation_strategy])
+        parts.extend(
+            [creative_plan.output_modality.value, creative_plan.generation_strategy]
+        )
     if creative_composition is not None:
         parts.extend(
             [
@@ -702,15 +708,23 @@ def _audio_relevant(context: _CrossModalityContext) -> bool:
     if (
         context.creative_translation is not None
         and context.creative_translation.output_modality is not None
-        and context.creative_translation.output_modality.value in {"audio", "audiovisual"}
+        and context.creative_translation.output_modality.value
+        in {"audio", "audiovisual"}
     ):
         return True
-    if context.creative_plan is not None and context.creative_plan.output_modality.value in {
-        "audio",
-        "audiovisual",
-    }:
+    if (
+        context.creative_plan is not None
+        and context.creative_plan.output_modality.value
+        in {
+            "audio",
+            "audiovisual",
+        }
+    ):
         return True
-    if context.symbolic_narrative is not None and context.symbolic_narrative.audio_progression:
+    if (
+        context.symbolic_narrative is not None
+        and context.symbolic_narrative.audio_progression
+    ):
         return True
     if (
         context.creative_composition is not None
@@ -780,7 +794,10 @@ def _modality_pattern(
         in {"dissolution", "transformation", "rupture", "integration"}
     ):
         return "motion_led_transformation"
-    if context.semantic_motif is not None and len(context.semantic_motif.primary_motifs) >= 2:
+    if (
+        context.semantic_motif is not None
+        and len(context.semantic_motif.primary_motifs) >= 2
+    ):
         return "motif_led_symbolic_recurrence"
     if context.generative_structure is not None:
         return "structure_led_procedural_evolution"
@@ -861,7 +878,10 @@ def _motion_role(context: _CrossModalityContext) -> str:
         and context.emotional_consistency.motion_rhythm_guidance
     ):
         return context.emotional_consistency.motion_rhythm_guidance[0]
-    if context.symbolic_narrative is not None and context.symbolic_narrative.motion_progression:
+    if (
+        context.symbolic_narrative is not None
+        and context.symbolic_narrative.motion_progression
+    ):
         return context.symbolic_narrative.motion_progression[0]
     return "Translate the composition into readable phase changes, not constant motion."
 
@@ -878,7 +898,10 @@ def _audio_role(
         and context.emotional_consistency.audiovisual_guidance
     ):
         return context.emotional_consistency.audiovisual_guidance[0]
-    if context.symbolic_narrative is not None and context.symbolic_narrative.audio_progression:
+    if (
+        context.symbolic_narrative is not None
+        and context.symbolic_narrative.audio_progression
+    ):
         return context.symbolic_narrative.audio_progression[0]
     return (
         "Use audio as a design cue for pulse, density, and thresholds; do not "
@@ -1029,9 +1052,13 @@ def _synchronization_plan(
         "Let structure and motif changes create visible cue points for motion.",
     ]
     if audio_relevant:
-        plan.append("Map audio pulse or silence to visual density and motion acceleration as prompt guidance only.")
+        plan.append(
+            "Map audio pulse or silence to visual density and motion acceleration as prompt guidance only."
+        )
     if camera_relevant:
-        plan.append("Trigger camera/viewpoint changes only at major narrative or structural thresholds.")
+        plan.append(
+            "Trigger camera/viewpoint changes only at major narrative or structural thresholds."
+        )
     if (
         context.emotional_consistency is not None
         and context.emotional_consistency.emotional_phase_mapping
@@ -1073,7 +1100,9 @@ def _audio_to_motion_mappings(
         return ()
     cues = ["pulse", "drone", "silence", "attack"]
     if context.generative_structure is not None:
-        cues.extend(hook.signal for hook in context.generative_structure.audiovisual_hooks[:2])
+        cues.extend(
+            hook.signal for hook in context.generative_structure.audiovisual_hooks[:2]
+        )
     return (
         CrossModalityMapping(
             source_modality="audio",
@@ -1116,7 +1145,9 @@ def _motif_to_modality_mappings(
     motifs = _primary_motifs(context) or ("center",)
     mappings: list[CrossModalityMapping] = []
     for motif in motifs[:4]:
-        target: CrossModalityChannel = "audio" if audio_relevant and motif == "pulse" else "visual_structure"
+        target: CrossModalityChannel = (
+            "audio" if audio_relevant and motif == "pulse" else "visual_structure"
+        )
         if motif in {"fragmentation", "reintegration", "orbit", "wave"}:
             target = "motion"
         mappings.append(
@@ -1251,11 +1282,17 @@ def _contrast_balance_plan(
     if pattern == "dense_visual_restrained_audio":
         plan.append("Restrain sonic cues when visual density is high.")
     elif audio_relevant:
-        plan.append("Balance audio pulse against visual density so neither overwhelms the other.")
+        plan.append(
+            "Balance audio pulse against visual density so neither overwhelms the other."
+        )
     if camera_relevant:
-        plan.append("Do not combine rapid camera movement with dense particle motion unless explicitly requested.")
+        plan.append(
+            "Do not combine rapid camera movement with dense particle motion unless explicitly requested."
+        )
     if context.emotional_consistency is not None:
-        plan.append("Use emotional tone hierarchy to decide which modality should soften first.")
+        plan.append(
+            "Use emotional tone hierarchy to decide which modality should soften first."
+        )
     return tuple(plan[:8])
 
 
@@ -1270,12 +1307,27 @@ def _modality_conflicts(
         conflicts.append(
             "Audio is requested or inferred, but current metadata only supports audio as design guidance."
         )
-    if camera_relevant and context.creative_plan is not None and context.creative_plan.output_modality.value == "audio":
-        conflicts.append("Camera/viewpoint cues conflict with an audio-led output goal.")
-    if (context.request_tokens & _DENSE_TOKENS) and (context.request_tokens & _LOUD_AUDIO_TOKENS):
-        conflicts.append("Dense visuals and loud/intense audio may compete for attention.")
-    if "playful" in context.request_tokens and _tone(context) in {"dread", "ritual solemnity"}:
-        conflicts.append("Playful cues may conflict with solemn or dark emotional direction.")
+    if (
+        camera_relevant
+        and context.creative_plan is not None
+        and context.creative_plan.output_modality.value == "audio"
+    ):
+        conflicts.append(
+            "Camera/viewpoint cues conflict with an audio-led output goal."
+        )
+    if (context.request_tokens & _DENSE_TOKENS) and (
+        context.request_tokens & _LOUD_AUDIO_TOKENS
+    ):
+        conflicts.append(
+            "Dense visuals and loud/intense audio may compete for attention."
+        )
+    if "playful" in context.request_tokens and _tone(context) in {
+        "dread",
+        "ritual solemnity",
+    }:
+        conflicts.append(
+            "Playful cues may conflict with solemn or dark emotional direction."
+        )
     return tuple(conflicts[:8])
 
 
@@ -1302,13 +1354,25 @@ def _overload_risks(
 ) -> tuple[str, ...]:
     risks: list[str] = []
     if context.request_tokens & _DENSE_TOKENS:
-        risks.append("Dense visual systems can overload motion, rhythm, and motif readability.")
+        risks.append(
+            "Dense visual systems can overload motion, rhythm, and motif readability."
+        )
     if audio_relevant and context.request_tokens & _LOUD_AUDIO_TOKENS:
-        risks.append("Intense audio cues can overpower emotional pacing and visual hierarchy.")
+        risks.append(
+            "Intense audio cues can overpower emotional pacing and visual hierarchy."
+        )
     if camera_relevant and (context.request_tokens & _DENSE_TOKENS):
-        risks.append("Camera movement plus dense particle motion can reduce legibility.")
-    if _module_kinds(context) & {"particle_emitter", "noise_modulation_layer", "wave_oscillator"}:
-        risks.append("Multiple modulation layers should expose controls and rests to avoid constant activity.")
+        risks.append(
+            "Camera movement plus dense particle motion can reduce legibility."
+        )
+    if _module_kinds(context) & {
+        "particle_emitter",
+        "noise_modulation_layer",
+        "wave_oscillator",
+    }:
+        risks.append(
+            "Multiple modulation layers should expose controls and rests to avoid constant activity."
+        )
     return tuple(risks[:8])
 
 
@@ -1322,16 +1386,24 @@ def _underuse_risks(
     if not audio_relevant and "rhythm" in context.request_tokens:
         risks.append("Rhythm is requested but no explicit audio modality is active.")
     if audio_relevant and not _has_audio_structure(context):
-        risks.append("Audio may remain shallow unless mapped to motion or density as design guidance.")
+        risks.append(
+            "Audio may remain shallow unless mapped to motion or density as design guidance."
+        )
     if camera_relevant and not (
         context.creative_composition is not None
         and context.creative_composition.camera_viewpoint_guidance
     ):
-        risks.append("Camera/viewpoint may remain generic without explicit phase triggers.")
+        risks.append(
+            "Camera/viewpoint may remain generic without explicit phase triggers."
+        )
     if context.semantic_motif is None:
-        risks.append("Motif coherence may be underused if no recurring motif metadata is available.")
+        risks.append(
+            "Motif coherence may be underused if no recurring motif metadata is available."
+        )
     if context.request_tokens & _AMBIGUOUS_MODALITY_TOKENS:
-        risks.append("Broad multimodal phrasing can underuse one modality unless the lead/support hierarchy is explicit.")
+        risks.append(
+            "Broad multimodal phrasing can underuse one modality unless the lead/support hierarchy is explicit."
+        )
     return tuple(risks[:8])
 
 
@@ -1343,16 +1415,24 @@ def _unresolved_gaps(
 ) -> tuple[str, ...]:
     gaps: list[str] = []
     if context.request_tokens & _AMBIGUOUS_MODALITY_TOKENS:
-        gaps.append("Multimodal intent is broad; confirm which modality should lead if precision matters.")
+        gaps.append(
+            "Multimodal intent is broad; confirm which modality should lead if precision matters."
+        )
     if audio_relevant and not _has_audio_structure(context):
-        gaps.append("Audio is relevant, but implementation-level audio behavior remains unspecified.")
+        gaps.append(
+            "Audio is relevant, but implementation-level audio behavior remains unspecified."
+        )
     if camera_relevant and (
         context.creative_composition is None
         or context.creative_composition.camera_viewpoint_guidance is None
     ):
-        gaps.append("Camera/viewpoint is relevant, but camera behavior is not specified.")
+        gaps.append(
+            "Camera/viewpoint is relevant, but camera behavior is not specified."
+        )
     if context.emotional_consistency is None:
-        gaps.append("Emotional-to-modality mapping lacks an Emotional Consistency profile.")
+        gaps.append(
+            "Emotional-to-modality mapping lacks an Emotional Consistency profile."
+        )
     return tuple(gaps[:8])
 
 
@@ -1376,14 +1456,19 @@ def _fallback_strategy(
                 "visual_structure",
                 "motion",
                 "rhythm",
-                *(item for item in supporting if item in {"structure", "motif", "emotion"}),
+                *(
+                    item
+                    for item in supporting
+                    if item in {"structure", "motif", "emotion"}
+                ),
             ]
         )
     )[:6]
     return CrossModalityFallbackStrategy(
         fallback_pattern=(
             "visual_led_composition"
-            if pattern not in {"visual_led_composition", "structure_led_procedural_evolution"}
+            if pattern
+            not in {"visual_led_composition", "structure_led_procedural_evolution"}
             else "structure_led_procedural_evolution"
         ),
         preserved_modalities=preserved,
@@ -1411,13 +1496,21 @@ def _hitl_questions(
 ) -> tuple[str, ...]:
     questions: list[str] = []
     if unresolved or conflicts:
-        questions.append("Which modality should lead if visual, motion, audio, and emotion compete?")
+        questions.append(
+            "Which modality should lead if visual, motion, audio, and emotion compete?"
+        )
     if audio_relevant:
-        questions.append("Should audio drive motion directly, or only support rhythm and mood?")
+        questions.append(
+            "Should audio drive motion directly, or only support rhythm and mood?"
+        )
     if camera_relevant:
-        questions.append("Should camera/viewpoint shifts be active, or should the composition stay stable?")
+        questions.append(
+            "Should camera/viewpoint shifts be active, or should the composition stay stable?"
+        )
     if overload:
-        questions.append("Should the design prioritize density or readability when modalities become crowded?")
+        questions.append(
+            "Should the design prioritize density or readability when modalities become crowded?"
+        )
     return tuple(questions[:6])
 
 
@@ -1435,10 +1528,16 @@ def _prompt_guidance(
         "Preserve readable visual-motion structure before adding secondary modality density.",
     ]
     if audio_relevant:
-        guidance.append("If code is generated, implement only supported audio behavior explicitly requested by the user.")
+        guidance.append(
+            "If code is generated, implement only supported audio behavior explicitly requested by the user."
+        )
     if camera_relevant:
-        guidance.append("Keep camera/viewpoint guidance bounded to composition planning unless the target runtime supports it.")
-    guidance.append("Do not auto-select runtimes, route providers, repair runtime behavior, or change preview behavior.")
+        guidance.append(
+            "Keep camera/viewpoint guidance bounded to composition planning unless the target runtime supports it."
+        )
+    guidance.append(
+        "Do not auto-select runtimes, route providers, repair runtime behavior, or change preview behavior."
+    )
     return tuple(guidance[:8])
 
 
@@ -1459,24 +1558,40 @@ def _evidence(
         f"Camera relevance: {camera_relevant}.",
     ]
     if context.creative_composition is not None:
-        evidence.append(f"Composition: {context.creative_composition.composition_pattern}.")
+        evidence.append(
+            f"Composition: {context.creative_composition.composition_pattern}."
+        )
     if context.procedural_structure is not None:
-        evidence.append(f"Procedural structure: {context.procedural_structure.primary_structure.family}.")
+        evidence.append(
+            f"Procedural structure: {context.procedural_structure.primary_structure.family}."
+        )
     if context.generative_structure is not None:
-        evidence.append(f"Generative modules: {', '.join(_module_kind_labels(context)[:5])}.")
+        evidence.append(
+            f"Generative modules: {', '.join(_module_kind_labels(context)[:5])}."
+        )
     if context.semantic_motif is not None:
         evidence.append(f"Motifs: {', '.join(_primary_motifs(context))}.")
     if context.emotional_consistency is not None:
-        evidence.append(f"Emotion: {context.emotional_consistency.primary_emotional_tone}.")
+        evidence.append(
+            f"Emotion: {context.emotional_consistency.primary_emotional_tone}."
+        )
     return tuple(evidence[:14])
 
 
 def _module_kind_labels(context: _CrossModalityContext) -> tuple[str, ...]:
-    return tuple(module.kind for module in context.generative_structure.procedural_modules) if context.generative_structure is not None else ()
+    return (
+        tuple(module.kind for module in context.generative_structure.procedural_modules)
+        if context.generative_structure is not None
+        else ()
+    )
 
 
 def _evolution_phase_labels(context: _CrossModalityContext) -> tuple[str, ...]:
-    return tuple(rule.phase for rule in context.generative_structure.evolution_rules) if context.generative_structure is not None else ()
+    return (
+        tuple(rule.phase for rule in context.generative_structure.evolution_rules)
+        if context.generative_structure is not None
+        else ()
+    )
 
 
 def _tone(context: _CrossModalityContext) -> EmotionalTone | None:

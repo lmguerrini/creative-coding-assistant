@@ -344,7 +344,9 @@ class DynamicResourceAllocationPlan(BaseModel):
             raise ValueError("applied_resource_allocation_ids must remain empty")
         if self.recommended_allocation_count != len(self.recommended_allocation_ids):
             raise ValueError("recommended_allocation_count must match allocations")
-        if self.hitl_required_allocation_count != len(self.hitl_required_allocation_ids):
+        if self.hitl_required_allocation_count != len(
+            self.hitl_required_allocation_ids
+        ):
             raise ValueError("hitl_required_allocation_count must match allocations")
         if self.total_advisory_resource_units != sum(
             allocation.advisory_resource_units for allocation in self.allocations
@@ -390,7 +392,9 @@ def allocate_dynamic_resources(
         task_type=normalized_task_type,
         execution_mode_id=execution_mode_id,
     )
-    normalized_mode = str(execution_mode_id or agent_plan.allocations[0].execution_mode_id)
+    normalized_mode = str(
+        execution_mode_id or agent_plan.allocations[0].execution_mode_id
+    )
     execution_modes = routing_execution_mode_registry()
     if normalized_mode not in execution_modes.execution_mode_ids:
         raise ValueError("execution_mode_id must be a known execution mode")
@@ -458,7 +462,9 @@ def allocate_dynamic_resources(
             "boundary_guardrail",
         ),
         hitl_required_allocation_ids=tuple(
-            allocation.allocation_id for allocation in allocations if allocation.hitl_required
+            allocation.allocation_id
+            for allocation in allocations
+            if allocation.hitl_required
         ),
         applied_resource_allocation_ids=(),
         allocation_count=len(allocations),
@@ -506,7 +512,9 @@ def dynamic_resource_allocations_for_status(
 
     source_plan = plan or allocate_dynamic_resources()
     return tuple(
-        allocation for allocation in source_plan.allocations if allocation.allocation_status == status
+        allocation
+        for allocation in source_plan.allocations
+        if allocation.allocation_status == status
     )
 
 
@@ -614,10 +622,19 @@ def _source_agent_allocation_ids(
     agent_allocation: DynamicAgentAllocationPlan,
 ) -> tuple[str, ...]:
     if source.status == "optimization_candidate":
-        return agent_allocation.primary_allocation_ids or agent_allocation.allocation_ids[:3]
+        return (
+            agent_allocation.primary_allocation_ids
+            or agent_allocation.allocation_ids[:3]
+        )
     if source.status == "boundary_guardrail":
-        return agent_allocation.primary_allocation_ids or agent_allocation.allocation_ids[:1]
-    return agent_allocation.standby_allocation_ids[:3] or agent_allocation.allocation_ids[:3]
+        return (
+            agent_allocation.primary_allocation_ids
+            or agent_allocation.allocation_ids[:1]
+        )
+    return (
+        agent_allocation.standby_allocation_ids[:3]
+        or agent_allocation.allocation_ids[:3]
+    )
 
 
 def _allocation_status(
@@ -669,7 +686,9 @@ def _fallback_summary(
     source_status: ResourceUtilizationStatus,
 ) -> str:
     if source_status == "optimization_candidate":
-        return "Keep resource allocation metadata advisory until runtime authority exists."
+        return (
+            "Keep resource allocation metadata advisory until runtime authority exists."
+        )
     if source_status == "capacity_guardrail":
         return "Keep capacity-sensitive resources detached from enforcement."
     if source_status == "review_guardrail":
@@ -682,7 +701,7 @@ def _candidate_actions(
 ) -> tuple[str, ...]:
     return (
         f"Surface {source_status} resource posture as advisory allocation metadata.",
-        "Keep resource allocation, measurement, capacity enforcement, workflow, provider, agent, storage, and output behavior disabled.",
+        "Keep resource allocation, measurement, capacity enforcement, workflow, provider, agent, storage, and output behavior disabled.",  # noqa: E501
     )
 
 

@@ -65,7 +65,9 @@ class AgentMetadataLayerTests(unittest.TestCase):
         self.assertFalse(metadata_registry.caching_implemented)
         self.assertFalse(metadata_registry.parallel_execution_implemented)
         self.assertFalse(metadata_registry.cost_latency_routing_implemented)
-        self.assertIn("does not implement caching", metadata_registry.authority_boundary)
+        self.assertIn(
+            "does not implement caching", metadata_registry.authority_boundary
+        )
 
     def test_metadata_fields_are_consistent_for_every_agent(self) -> None:
         registry = agent_metadata_registry()
@@ -74,9 +76,13 @@ class AgentMetadataLayerTests(unittest.TestCase):
             dumped = item.model_dump(mode="json")
             self.assertEqual(set(dumped), REQUIRED_METADATA_FIELDS)
             self.assertEqual(item.serialization_version, "agent_metadata.v1")
-            self.assertEqual(item.observability_surfaces, registry.observability_surfaces)
+            self.assertEqual(
+                item.observability_surfaces, registry.observability_surfaces
+            )
             self.assertEqual(item.auditability_surfaces, registry.auditability_surfaces)
-            self.assertEqual(item.parallelization_support, "parallel_after_required_inputs")
+            self.assertEqual(
+                item.parallelization_support, "parallel_after_required_inputs"
+            )
             self.assertEqual(
                 item.future_orchestration_readiness,
                 "future_orchestration_metadata_ready",

@@ -185,14 +185,12 @@ def build_recommended_direction(
         else ""
     )
     artifact_critic_clause = (
-        "Artifact critic as "
-        f"{_clip(_artifact_critic_label(artifact_critic), 90)}. "
+        f"Artifact critic as {_clip(_artifact_critic_label(artifact_critic), 90)}. "
         if artifact_critic is not None
         else ""
     )
     artifact_refiner_clause = (
-        "Artifact refiner as "
-        f"{_clip(_artifact_refiner_label(artifact_refiner), 90)}. "
+        f"Artifact refiner as {_clip(_artifact_refiner_label(artifact_refiner), 90)}. "
         if artifact_refiner is not None
         else ""
     )
@@ -338,8 +336,7 @@ def build_reasoning_path(
         CreativeReasoningStep(
             stage="tradeoff",
             claim=(
-                "Manage the main consequence: "
-                f"{_tradeoff_summary(creative_tradeoffs)}"
+                f"Manage the main consequence: {_tradeoff_summary(creative_tradeoffs)}"
             ),
             because=_clip(
                 _tradeoff_reason(
@@ -497,8 +494,7 @@ def _quality_label(profile: CreativeQualityPrediction | None) -> str:
     if profile is None:
         return "quality readiness not predicted"
     return (
-        f"{profile.predicted_quality_level} "
-        f"({profile.readiness_score}/100 readiness)"
+        f"{profile.predicted_quality_level} ({profile.readiness_score}/100 readiness)"
     )
 
 
@@ -541,10 +537,7 @@ def _motif_label(profile: SemanticMotifSystem | None) -> str:
 def _emotional_label(profile: EmotionalConsistencyProfile | None) -> str:
     if profile is None:
         return "no emotional consistency profile"
-    return (
-        f"{profile.primary_emotional_tone} "
-        f"({profile.emotional_coherence_score}/100)"
-    )
+    return f"{profile.primary_emotional_tone} ({profile.emotional_coherence_score}/100)"
 
 
 def _modality_label(profile: CrossModalityCompositionProfile | None) -> str:
@@ -721,12 +714,9 @@ def _strategy_reason(
         )
     if creative_hierarchy is not None:
         details.append(
-            "Hierarchy priorities: "
-            f"{_clip(_hierarchy_label(creative_hierarchy), 120)}."
+            f"Hierarchy priorities: {_clip(_hierarchy_label(creative_hierarchy), 120)}."
         )
-    return (
-        " ".join(details)
-    )
+    return " ".join(details)
 
 
 def _runtime_reason(

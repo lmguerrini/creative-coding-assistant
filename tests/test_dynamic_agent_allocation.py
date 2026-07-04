@@ -89,7 +89,9 @@ REQUIRED_CANDIDATE_FIELDS = {
 
 
 class DynamicAgentAllocationTests(unittest.TestCase):
-    def test_plan_combines_activation_strategy_scheduling_and_dependencies(self) -> None:
+    def test_plan_combines_activation_strategy_scheduling_and_dependencies(
+        self,
+    ) -> None:
         plan = allocate_dynamic_agents(route=RouteName.GENERATE)
 
         self.assertEqual(plan.role, "dynamic_agent_allocator")
@@ -179,7 +181,9 @@ class DynamicAgentAllocationTests(unittest.TestCase):
                     ),
                 ),
             )
-            self.assertIn("runtime_agent_allocation", allocation.blocked_runtime_behaviors)
+            self.assertIn(
+                "runtime_agent_allocation", allocation.blocked_runtime_behaviors
+            )
             self.assertTrue(allocation.dynamic_agent_allocation_implemented)
             self.assertTrue(allocation.dynamic_execution_strategy_metadata_used)
             self.assertTrue(allocation.activation_metadata_used)
@@ -243,7 +247,9 @@ class DynamicAgentAllocationTests(unittest.TestCase):
         payload = plan.model_dump(mode="json")
         payload["applied_allocation_ids"] = (plan.allocation_ids[0],)
 
-        with self.assertRaisesRegex(ValueError, "applied_allocation_ids must remain empty"):
+        with self.assertRaisesRegex(
+            ValueError, "applied_allocation_ids must remain empty"
+        ):
             DynamicAgentAllocationPlan(**payload)
 
     def test_allocator_does_not_change_routing_or_provider_factory(self) -> None:

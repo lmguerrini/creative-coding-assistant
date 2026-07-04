@@ -368,7 +368,6 @@ def _looks_like_weak_p5_reference_chunk(text: str) -> bool:
     if len(compact_text) <= _P5_VERY_SHORT_REFERENCE_CHARS:
         return True
 
-    return (
-        len(compact_text) <= _P5_HEADING_LIKE_REFERENCE_CHARS
-        and not any(marker in compact_text for marker in _P5_HEADING_DETAIL_MARKERS)
+    return len(compact_text) <= _P5_HEADING_LIKE_REFERENCE_CHARS and not any(
+        marker in compact_text for marker in _P5_HEADING_DETAIL_MARKERS
     )

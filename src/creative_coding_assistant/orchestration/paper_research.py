@@ -163,9 +163,7 @@ class PaperResearchEntry(BaseModel):
             raise ValueError("paper_research_score must combine source scores")
         if self.status != _paper_research_status(self.paper_research_score):
             raise ValueError("status must match paper_research_score")
-        if self.confidence != _paper_research_confidence(
-            self.paper_research_score
-        ):
+        if self.confidence != _paper_research_confidence(self.paper_research_score):
             raise ValueError("confidence must match paper_research_score")
         if not self.hitl_required_before_paper_research:
             raise ValueError("paper research execution requires HITL posture")
@@ -188,9 +186,7 @@ class PaperResearchPlan(BaseModel):
     route_name: RouteName
     task_type: TaskRoutingType
     checked_at: datetime
-    research_decomposer_role: Literal["research_decomposer"] = (
-        "research_decomposer"
-    )
+    research_decomposer_role: Literal["research_decomposer"] = "research_decomposer"
     research_decomposer_serialization_version: Literal["research_decomposer_plan.v1"]
     decomposition_entry_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
     decomposition_entry_count: int = Field(ge=5, le=5)
@@ -692,9 +688,7 @@ def _entry_ids_for_confidence(
     entries: tuple[PaperResearchEntry, ...],
     *confidences: PaperResearchConfidence,
 ) -> tuple[str, ...]:
-    return tuple(
-        entry.entry_id for entry in entries if entry.confidence in confidences
-    )
+    return tuple(entry.entry_id for entry in entries if entry.confidence in confidences)
 
 
 def _plan_actions(entries: tuple[PaperResearchEntry, ...]) -> tuple[str, ...]:

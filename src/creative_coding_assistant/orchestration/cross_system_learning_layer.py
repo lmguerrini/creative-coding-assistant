@@ -29,9 +29,7 @@ from creative_coding_assistant.orchestration.unified_capability_registry import 
     build_unified_capability_registry,
 )
 
-CROSS_SYSTEM_LEARNING_LAYER_SERIALIZATION_VERSION = (
-    "cross_system_learning_layer.v1"
-)
+CROSS_SYSTEM_LEARNING_LAYER_SERIALIZATION_VERSION = "cross_system_learning_layer.v1"
 CROSS_SYSTEM_LEARNING_LAYER_ROADMAP_ITEM = "Cross-System Learning Layer"
 CROSS_SYSTEM_LEARNING_LAYER_AUTHORITY_BOUNDARY = (
     "V6.6 Cross-System Learning Layer projects V6.1 adaptive learning "

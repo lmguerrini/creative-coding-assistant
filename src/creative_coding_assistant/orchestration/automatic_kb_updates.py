@@ -391,9 +391,7 @@ class AutomaticKBUpdatePlan(BaseModel):
             self.high_confidence_candidate_ids
         ):
             raise ValueError("high_confidence_candidate_count must match candidates")
-        if self.hitl_required_candidate_count != len(
-            self.hitl_required_candidate_ids
-        ):
+        if self.hitl_required_candidate_count != len(self.hitl_required_candidate_ids):
             raise ValueError("hitl_required_candidate_count must match candidates")
         if self.highest_update_score != max(
             candidate.update_score for candidate in self.candidates
@@ -709,11 +707,7 @@ def _first_source_per_domain(
     source_by_domain = {
         domain: tuple(
             sorted(
-                (
-                    source
-                    for source in sources
-                    if source.domain == domain
-                ),
+                (source for source in sources if source.domain == domain),
                 key=lambda source: (source.priority, source.source_id),
             )
         )

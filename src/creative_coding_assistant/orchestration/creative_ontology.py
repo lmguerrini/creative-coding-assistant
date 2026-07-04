@@ -392,15 +392,11 @@ class CreativeOntologyPlan(BaseModel):
             raise ValueError("concept_count must match concepts")
         if self.candidate_concept_count != len(self.candidate_concept_ids):
             raise ValueError("candidate_concept_count must match concepts")
-        if self.review_required_concept_count != len(
-            self.review_required_concept_ids
-        ):
+        if self.review_required_concept_count != len(self.review_required_concept_ids):
             raise ValueError("review_required_concept_count must match concepts")
         if self.guarded_concept_count != len(self.guarded_concept_ids):
             raise ValueError("guarded_concept_count must match concepts")
-        if self.high_confidence_concept_count != len(
-            self.high_confidence_concept_ids
-        ):
+        if self.high_confidence_concept_count != len(self.high_confidence_concept_ids):
             raise ValueError("high_confidence_concept_count must match concepts")
         if self.hitl_required_concept_count != len(self.hitl_required_concept_ids):
             raise ValueError("hitl_required_concept_count must match concepts")
@@ -412,9 +408,8 @@ class CreativeOntologyPlan(BaseModel):
             self.concepts
         ):
             raise ValueError("overall_creative_ontology_score must match concepts")
-        if (
-            self.overall_creative_ontology_posture
-            != _overall_creative_ontology_posture(self.concepts)
+        if self.overall_creative_ontology_posture != _overall_creative_ontology_posture(
+            self.concepts
         ):
             raise ValueError("overall_creative_ontology_posture must match concepts")
         for concept in self.concepts:
@@ -540,9 +535,7 @@ def build_creative_ontology(
             concept.creative_ontology_score for concept in concepts
         ),
         overall_creative_ontology_score=_overall_creative_ontology_score(concepts),
-        overall_creative_ontology_posture=_overall_creative_ontology_posture(
-            concepts
-        ),
+        overall_creative_ontology_posture=_overall_creative_ontology_posture(concepts),
         advisory_actions=_plan_actions(concepts),
     )
 
@@ -752,9 +745,7 @@ def _concept(
         task_type=task_type,
         execution_mode_id=execution_mode_id,
         ontology_axis=ontology_axis,
-        source_creative_lineage_record_id=(
-            source_lineage_record.creative_lineage_id
-        ),
+        source_creative_lineage_record_id=(source_lineage_record.creative_lineage_id),
         source_creative_dna_signature_id=source_dna_signature.creative_dna_id,
         source_long_term_memory_record_id=source_memory_record.record_id,
         source_domain_category=source_domain_category,
@@ -835,9 +826,7 @@ def _creative_ontology_confidence(score: int) -> CreativeOntologyConfidence:
 def _overall_creative_ontology_score(
     concepts: tuple[CreativeOntologyConcept, ...],
 ) -> int:
-    base = sum(concept.creative_ontology_score for concept in concepts) // len(
-        concepts
-    )
+    base = sum(concept.creative_ontology_score for concept in concepts) // len(concepts)
     guarded_count = len(_concept_ids_for_status(concepts, "guarded"))
     review_count = len(_concept_ids_for_status(concepts, "review_required"))
     return min(1_000, base + guarded_count * 20 + review_count * 10)

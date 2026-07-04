@@ -328,9 +328,7 @@ def performance_dashboard_panels_for_pressure(
 def _performance_prediction_panel(
     prediction: PerformancePredictionPlan,
 ) -> PerformanceDashboardPanel:
-    units = sum(
-        item.predicted_performance_midpoint for item in prediction.predictions
-    )
+    units = sum(item.predicted_performance_midpoint for item in prediction.predictions)
     pressure = _pressure_from_performance_band(
         prediction.recommended_performance_band,
     )

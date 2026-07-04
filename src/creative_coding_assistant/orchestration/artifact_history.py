@@ -179,9 +179,7 @@ class ArtifactHistoryRecord(BaseModel):
             raise ValueError("artifact_history_score must combine source scores")
         if self.status != _artifact_history_status(self.artifact_history_score):
             raise ValueError("status must match artifact_history_score")
-        if self.confidence != _artifact_history_confidence(
-            self.artifact_history_score
-        ):
+        if self.confidence != _artifact_history_confidence(self.artifact_history_score):
             raise ValueError("confidence must match artifact_history_score")
         if not self.hitl_required_before_history_persistence:
             raise ValueError("artifact history persistence requires HITL posture")
@@ -359,9 +357,7 @@ class ArtifactHistoryPlan(BaseModel):
             raise ValueError("record_count must match records")
         if self.candidate_record_count != len(self.candidate_record_ids):
             raise ValueError("candidate_record_count must match records")
-        if self.review_required_record_count != len(
-            self.review_required_record_ids
-        ):
+        if self.review_required_record_count != len(self.review_required_record_ids):
             raise ValueError("review_required_record_count must match records")
         if self.guarded_record_count != len(self.guarded_record_ids):
             raise ValueError("guarded_record_count must match records")

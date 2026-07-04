@@ -50,12 +50,17 @@ class ProductionDeploymentTests(unittest.TestCase):
         self.assertEqual(plan.serialization_version, "production_deployment_plan.v1")
         self.assertEqual(plan.backend_host, "127.0.0.1")
         self.assertEqual(plan.backend_port, 8000)
-        self.assertEqual(plan.backend_paths, ("/api/assistant/stream", "/api/workspace/session"))
+        self.assertEqual(
+            plan.backend_paths, ("/api/assistant/stream", "/api/workspace/session")
+        )
         self.assertEqual(plan.frontend_scripts, ("build", "start"))
         self.assertEqual(plan.surface_ids, REQUIRED_SURFACES)
         self.assertEqual(plan.record_count, 5)
         self.assertEqual(plan.deployment_status, "guarded")
-        self.assertIn("production_deployment::external_deployment_manifest", plan.guarded_record_ids)
+        self.assertIn(
+            "production_deployment::external_deployment_manifest",
+            plan.guarded_record_ids,
+        )
         self.assertIn("does not deploy services", plan.authority_boundary)
         self.assertTrue(plan.deployment_metadata_implemented)
         self.assertTrue(plan.local_backend_entrypoint_documented)
@@ -77,7 +82,9 @@ class ProductionDeploymentTests(unittest.TestCase):
         self.assertFalse(plan.runtime_evolution_implemented)
         self.assertTrue(plan.metadata_only)
 
-    def test_records_are_metadata_only_and_guard_external_manifest_absence(self) -> None:
+    def test_records_are_metadata_only_and_guard_external_manifest_absence(
+        self,
+    ) -> None:
         plan = build_production_deployment_plan()
         manifest = production_deployment_record_by_surface(
             "external_deployment_manifest",

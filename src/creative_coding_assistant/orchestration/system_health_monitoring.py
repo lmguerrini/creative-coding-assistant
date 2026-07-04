@@ -369,7 +369,9 @@ def _telemetry_panel(source: ProductionTelemetrySurface) -> SystemHealthPanel:
         "production_telemetry",
         source.serialization_version,
         source.channel_ids,
-        source.telemetry_signal_count + source.guarded_signal_count + source.channel_count,
+        source.telemetry_signal_count
+        + source.guarded_signal_count
+        + source.channel_count,
         len(source.blocked_runtime_behaviors),
         (
             f"telemetry_channels:{source.channel_count}",
@@ -386,7 +388,9 @@ def _token_panel(source: TokenDashboard) -> SystemHealthPanel:
         "token_dashboard",
         source.serialization_version,
         source.panel_ids,
-        source.panel_count + len(source.guarded_panel_ids) + len(source.review_panel_ids),
+        source.panel_count
+        + len(source.guarded_panel_ids)
+        + len(source.review_panel_ids),
         len(source.blocked_runtime_behaviors),
         (
             f"token_panels:{source.panel_count}",

@@ -225,8 +225,7 @@ class MetaReasoningLayerPlan(BaseModel):
             )
         ):
             raise ValueError(
-                "reasoning execution, mutation, decisions, and HITL ids "
-                "must be empty",
+                "reasoning execution, mutation, decisions, and HITL ids must be empty",
             )
         if not all(
             assessment.advisory_only for assessment in self.reasoning_assessments
@@ -270,9 +269,7 @@ def build_meta_reasoning_layer(
         source_learning_signal_ids=profiles.source_learning_signal_ids,
         source_learning_signal_count=profiles.source_learning_signal_count,
         reasoning_assessments=assessments,
-        reasoning_ids=tuple(
-            assessment.reasoning_id for assessment in assessments
-        ),
+        reasoning_ids=tuple(assessment.reasoning_id for assessment in assessments),
         reasoning_count=len(assessments),
         linked_agent_ids=profiles.linked_agent_ids,
         covered_roadmap_items=(META_REASONING_LAYER_ROADMAP_ITEM,),

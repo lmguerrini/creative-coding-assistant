@@ -118,7 +118,9 @@ class ModelRouterTests(unittest.TestCase):
         for candidate in plan.candidates:
             dumped = candidate.model_dump(mode="json")
             self.assertEqual(set(dumped), REQUIRED_CANDIDATE_FIELDS)
-            self.assertEqual(candidate.serialization_version, "model_route_candidate.v1")
+            self.assertEqual(
+                candidate.serialization_version, "model_route_candidate.v1"
+            )
             self.assertEqual(candidate.route_name, RouteName.GENERATE)
             self.assertIn(RouteName.GENERATE, candidate.route_applicability)
             self.assertTrue(
@@ -145,7 +147,9 @@ class ModelRouterTests(unittest.TestCase):
             self.assertFalse(candidate.generated_output_mutation_implemented)
             self.assertTrue(candidate.recommendation_only)
 
-    def test_review_route_prioritizes_evaluation_profile_and_lookup_helpers(self) -> None:
+    def test_review_route_prioritizes_evaluation_profile_and_lookup_helpers(
+        self,
+    ) -> None:
         plan = route_model_request(route="review")
         recommended = model_route_candidate_by_id(
             "model_route::evaluation_review_model_profile",
@@ -188,7 +192,9 @@ class ModelRouterTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "recommendation_confidence must match"):
             ModelRoutingPlan(**payload)
 
-    def test_model_router_does_not_change_request_routing_or_provider_factory(self) -> None:
+    def test_model_router_does_not_change_request_routing_or_provider_factory(
+        self,
+    ) -> None:
         request = AssistantRequest(
             query="Generate a p5.js particle field.",
             mode=AssistantMode.GENERATE,

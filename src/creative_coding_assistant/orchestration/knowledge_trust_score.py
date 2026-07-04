@@ -218,9 +218,7 @@ class KnowledgeTrustScorePlan(BaseModel):
     knowledge_freshness_role: Literal["knowledge_freshness_tracking"] = (
         "knowledge_freshness_tracking"
     )
-    knowledge_freshness_serialization_version: Literal[
-        "knowledge_freshness_plan.v1"
-    ]
+    knowledge_freshness_serialization_version: Literal["knowledge_freshness_plan.v1"]
     knowledge_freshness_signal_ids: tuple[str, ...] = Field(
         min_length=5,
         max_length=5,
@@ -381,9 +379,7 @@ class KnowledgeTrustScorePlan(BaseModel):
         if self.mutated_source_trust_ids:
             raise ValueError("mutated_source_trust_ids must remain empty")
         if self.mutated_source_reliability_score_ids:
-            raise ValueError(
-                "mutated_source_reliability_score_ids must remain empty"
-            )
+            raise ValueError("mutated_source_reliability_score_ids must remain empty")
         if self.executed_freshness_scan_ids:
             raise ValueError("executed_freshness_scan_ids must remain empty")
         if self.fetched_source_ids:
@@ -402,9 +398,7 @@ class KnowledgeTrustScorePlan(BaseModel):
             raise ValueError("signal_count must match signals")
         if self.candidate_signal_count != len(self.candidate_signal_ids):
             raise ValueError("candidate_signal_count must match signals")
-        if self.review_required_signal_count != len(
-            self.review_required_signal_ids
-        ):
+        if self.review_required_signal_count != len(self.review_required_signal_ids):
             raise ValueError("review_required_signal_count must match signals")
         if self.guarded_signal_count != len(self.guarded_signal_ids):
             raise ValueError("guarded_signal_count must match signals")
@@ -578,10 +572,8 @@ def _signals(
             execution_mode_id=execution_mode_id,
             axis="source_reliability",
             freshness_signal_ids=(
-                "knowledge_freshness_tracking::"
-                "knowledge_freshness_inventory_review",
-                "knowledge_freshness_tracking::"
-                "knowledge_freshness_source_age_review",
+                "knowledge_freshness_tracking::knowledge_freshness_inventory_review",
+                "knowledge_freshness_tracking::knowledge_freshness_source_age_review",
             ),
             freshness_plan=freshness_plan,
             trust_signal_score=78,
@@ -598,10 +590,8 @@ def _signals(
             execution_mode_id=execution_mode_id,
             axis="freshness_alignment",
             freshness_signal_ids=(
-                "knowledge_freshness_tracking::"
-                "knowledge_freshness_source_age_review",
-                "knowledge_freshness_tracking::"
-                "knowledge_freshness_staleness_readiness",
+                "knowledge_freshness_tracking::knowledge_freshness_source_age_review",
+                "knowledge_freshness_tracking::knowledge_freshness_staleness_readiness",
                 "knowledge_freshness_tracking::"
                 "knowledge_freshness_rollback_alignment_review",
             ),
@@ -620,10 +610,8 @@ def _signals(
             execution_mode_id=execution_mode_id,
             axis="trust_score_readiness",
             freshness_signal_ids=(
-                "knowledge_freshness_tracking::"
-                "knowledge_freshness_staleness_readiness",
-                "knowledge_freshness_tracking::"
-                "knowledge_freshness_governance_gate",
+                "knowledge_freshness_tracking::knowledge_freshness_staleness_readiness",
+                "knowledge_freshness_tracking::knowledge_freshness_governance_gate",
             ),
             freshness_plan=freshness_plan,
             trust_signal_score=64,

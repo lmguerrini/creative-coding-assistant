@@ -204,9 +204,7 @@ class RankingOptimizationPlan(BaseModel):
     route_name: RouteName
     task_type: TaskRoutingType
     checked_at: datetime
-    retrieval_evolution_role: Literal["retrieval_evolution"] = (
-        "retrieval_evolution"
-    )
+    retrieval_evolution_role: Literal["retrieval_evolution"] = "retrieval_evolution"
     retrieval_evolution_serialization_version: Literal["retrieval_evolution_plan.v1"]
     retrieval_evolution_signal_ids: tuple[str, ...] = Field(min_length=5, max_length=5)
     retrieval_evolution_signal_count: int = Field(ge=5, le=5)
@@ -378,9 +376,7 @@ class RankingOptimizationPlan(BaseModel):
             raise ValueError("signal_count must match signals")
         if self.candidate_signal_count != len(self.candidate_signal_ids):
             raise ValueError("candidate_signal_count must match signals")
-        if self.review_required_signal_count != len(
-            self.review_required_signal_ids
-        ):
+        if self.review_required_signal_count != len(self.review_required_signal_ids):
             raise ValueError("review_required_signal_count must match signals")
         if self.guarded_signal_count != len(self.guarded_signal_ids):
             raise ValueError("guarded_signal_count must match signals")
@@ -392,9 +388,7 @@ class RankingOptimizationPlan(BaseModel):
             signal.optimization_score for signal in self.signals
         ):
             raise ValueError("highest_optimization_score must match signals")
-        if self.overall_optimization_score != _overall_optimization_score(
-            self.signals
-        ):
+        if self.overall_optimization_score != _overall_optimization_score(self.signals):
             raise ValueError("overall_optimization_score must match signals")
         if self.overall_optimization_posture != _overall_optimization_posture(
             self.signals
@@ -482,13 +476,9 @@ def build_ranking_optimization(
             _signal_ids_for_confidence(signals, "high", "guarded")
         ),
         hitl_required_signal_count=sum(
-            1
-            for signal in signals
-            if signal.hitl_required_before_ranking_optimization
+            1 for signal in signals if signal.hitl_required_before_ranking_optimization
         ),
-        highest_optimization_score=max(
-            signal.optimization_score for signal in signals
-        ),
+        highest_optimization_score=max(signal.optimization_score for signal in signals),
         overall_optimization_score=_overall_optimization_score(signals),
         overall_optimization_posture=_overall_optimization_posture(signals),
         advisory_actions=_plan_actions(signals),

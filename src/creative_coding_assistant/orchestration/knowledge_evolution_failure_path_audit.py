@@ -456,8 +456,9 @@ class KnowledgeEvolutionFailurePathAuditRegistry(BaseModel):
         return self
 
 
-def knowledge_evolution_failure_path_audit_registry(
-) -> KnowledgeEvolutionFailurePathAuditRegistry:
+def knowledge_evolution_failure_path_audit_registry() -> (
+    KnowledgeEvolutionFailurePathAuditRegistry
+):
     """Return V6.3 runtime failure path audit metadata without runtime actions."""
 
     records = _records()

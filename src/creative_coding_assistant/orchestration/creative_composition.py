@@ -350,9 +350,11 @@ def _select_pattern(
     scored.sort(key=lambda item: (item[0], item[1].pattern), reverse=True)
     score, spec, matches = scored[0]
     if score <= 1:
-        return _PATTERN_BY_ID["minimal_void_and_form_composition"], (
-            "fallback minimal composition",
-        ), score
+        return (
+            _PATTERN_BY_ID["minimal_void_and_form_composition"],
+            ("fallback minimal composition",),
+            score,
+        )
     return spec, matches or (f"inferred:{spec.pattern}",), score
 
 

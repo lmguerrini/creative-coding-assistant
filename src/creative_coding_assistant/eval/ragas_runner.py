@@ -60,9 +60,7 @@ class RagasEvaluatorConfig(BaseModel):
         if value is None:
             return None
         raw_value = (
-            value.get_secret_value()
-            if isinstance(value, SecretStr)
-            else str(value)
+            value.get_secret_value() if isinstance(value, SecretStr) else str(value)
         ).strip()
         return raw_value or None
 
@@ -511,9 +509,7 @@ def _scores_from_ragas_result(
 
     if isinstance(result, Mapping):
         scores = {
-            name: _coerce_score(
-                _lookup_score(result, name, _RAGAS_RESULT_KEY_ALIASES)
-            )
+            name: _coerce_score(_lookup_score(result, name, _RAGAS_RESULT_KEY_ALIASES))
             for name in metric_names
         }
         return tuple(scores for _ in range(row_count))

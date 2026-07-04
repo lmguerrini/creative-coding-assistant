@@ -89,7 +89,9 @@ class HybridWorkflowAuditTests(unittest.TestCase):
         self.assertFalse(audit_registry.agent_execution_implemented)
         self.assertFalse(audit_registry.provider_model_routing_implemented)
         self.assertFalse(audit_registry.generated_output_mutation_implemented)
-        self.assertIn("does not change workflow graph", audit_registry.authority_boundary)
+        self.assertIn(
+            "does not change workflow graph", audit_registry.authority_boundary
+        )
 
     def test_audit_records_are_passive_and_stage_aligned(self) -> None:
         registry = hybrid_workflow_audit_registry()
@@ -108,7 +110,9 @@ class HybridWorkflowAuditTests(unittest.TestCase):
                 record.validated_stage_surfaces,
                 registry.validated_stage_surfaces,
             )
-            self.assertEqual(record.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                record.passive_boundary_flags, registry.passive_boundary_flags
+            )
             self.assertFalse(record.missing_coverage_items)
             self.assertTrue(record.v3_workflow_nodes)
             self.assertTrue(record.future_capability_ids)
@@ -170,9 +174,7 @@ class HybridWorkflowAuditTests(unittest.TestCase):
         duplicate_record = first_record.model_copy(update={"stage_name": "Duplicate"})
         mismatched_source_record = first_record.model_copy(
             update={
-                "source_metadata_registries": (
-                    "other_registry",
-                )
+                "source_metadata_registries": ("other_registry",)
                 + first_record.source_metadata_registries[1:]
             }
         )

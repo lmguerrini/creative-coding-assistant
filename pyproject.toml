@@ -9,7 +9,7 @@ description = "Python-first Creative Coding Assistant with Streamlit V1 client."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-  "chromadb>=0.5",
+  "chromadb>=0.6.3,<1.0.0",
   "jinja2>=3.1",
   "langgraph>=1.1",
   "loguru>=0.7",
@@ -41,7 +41,7 @@ norecursedirs = [
 ]
 
 [tool.ruff]
-line-length = 88
+line-length = 120
 target-version = "py311"
 src = ["src", "tests", "clients", "scripts"]
 exclude = [

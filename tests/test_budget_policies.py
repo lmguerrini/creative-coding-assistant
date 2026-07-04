@@ -91,7 +91,9 @@ class BudgetPolicyTests(unittest.TestCase):
         for decision in plan.decisions:
             dumped = decision.model_dump(mode="json")
             self.assertEqual(set(dumped), REQUIRED_BUDGET_POLICY_FIELDS)
-            self.assertEqual(decision.serialization_version, "budget_policy_decision.v1")
+            self.assertEqual(
+                decision.serialization_version, "budget_policy_decision.v1"
+            )
             self.assertEqual(decision.route_name, RouteName.REVIEW)
             self.assertEqual(
                 decision.budget_margin_units,
@@ -149,7 +151,9 @@ class BudgetPolicyTests(unittest.TestCase):
         ):
             BudgetPolicyPlan(**payload)
 
-    def test_budget_policies_do_not_change_request_routing_or_provider_factory(self) -> None:
+    def test_budget_policies_do_not_change_request_routing_or_provider_factory(
+        self,
+    ) -> None:
         request = AssistantRequest(
             query="Generate an intricate particle sketch.",
             mode=AssistantMode.GENERATE,

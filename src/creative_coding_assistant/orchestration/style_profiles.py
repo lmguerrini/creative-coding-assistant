@@ -279,9 +279,7 @@ class StyleProfilePlan(BaseModel):
             raise ValueError("profile_count must match profiles")
         if self.candidate_profile_count != len(self.candidate_profile_ids):
             raise ValueError("candidate_profile_count must match profiles")
-        if self.review_required_profile_count != len(
-            self.review_required_profile_ids
-        ):
+        if self.review_required_profile_count != len(self.review_required_profile_ids):
             raise ValueError("review_required_profile_count must match profiles")
         if self.guarded_profile_count != len(self.guarded_profile_ids):
             raise ValueError("guarded_profile_count must match profiles")

@@ -136,7 +136,9 @@ class AgentCostTrackingFoundationProfile(BaseModel):
     cost_dimensions: tuple[str, ...] = Field(min_length=11, max_length=11)
     passive_boundary_flags: tuple[str, ...] = Field(min_length=10, max_length=10)
     foundation_findings: tuple[str, ...] = Field(min_length=7, max_length=7)
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=20)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=20
+    )
     contract_blocked_runtime_behaviors: tuple[str, ...] = Field(
         min_length=1,
         max_length=16,
@@ -356,9 +358,7 @@ class AgentCostTrackingFoundationRegistry(BaseModel):
         return self
 
 
-def agent_cost_tracking_foundation_registry() -> (
-    AgentCostTrackingFoundationRegistry
-):
+def agent_cost_tracking_foundation_registry() -> AgentCostTrackingFoundationRegistry:
     """Return passive V4.6 agent cost tracking foundation metadata."""
 
     return AGENT_COST_TRACKING_FOUNDATION_REGISTRY
@@ -507,9 +507,7 @@ def _profile(agent_id: str) -> AgentCostTrackingFoundationProfile:
         metadata_cost_class=metadata.estimated_cost_class,
         contract_cost_basis=contract.estimated_cost_metadata.cost_basis,
         metadata_cost_basis=metadata.estimated_cost_basis,
-        contract_cache_sensitivity=(
-            contract.estimated_cost_metadata.cache_sensitivity
-        ),
+        contract_cache_sensitivity=(contract.estimated_cost_metadata.cache_sensitivity),
         external_provider_calls_declared=(
             contract.estimated_cost_metadata.external_provider_calls
         ),

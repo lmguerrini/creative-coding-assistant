@@ -316,20 +316,16 @@ def runtime_compatibility_prompt_lines(
     lines.extend(
         f"Runtime requirement: {item}" for item in profile.runtime_requirements
     )
+    lines.extend(f"Runtime limitation: {item}" for item in profile.runtime_limitations)
     lines.extend(
-        f"Runtime limitation: {item}" for item in profile.runtime_limitations
-    )
-    lines.extend(
-        f"Dependency compatibility: {item}"
-        for item in profile.dependency_compatibility
+        f"Dependency compatibility: {item}" for item in profile.dependency_compatibility
     )
     lines.extend(
         f"Missing runtime information: {item}"
         for item in profile.missing_runtime_information
     )
     lines.extend(
-        f"Runtime implementation risk: {item}"
-        for item in profile.implementation_risks
+        f"Runtime implementation risk: {item}" for item in profile.implementation_risks
     )
     lines.extend(f"HITL runtime question: {item}" for item in profile.hitl_questions)
     lines.extend(
@@ -458,9 +454,7 @@ def _compatibility_level(
                 else "unsupported"
             )
         return (
-            "partially_compatible"
-            if runtime in {"p5_js", "canvas"}
-            else "unsupported"
+            "partially_compatible" if runtime in {"p5_js", "canvas"} else "unsupported"
         )
     if _generic_artifact_family(artifact_plan.artifact_family):
         if isinstance(candidate, RuntimeCapabilityCandidate):
@@ -820,8 +814,7 @@ def _profile_evidence(
             )
     if artifact_plan is not None:
         evidence.append(
-            "Artifact: "
-            f"{artifact_plan.artifact_type}; {artifact_plan.artifact_family}."
+            f"Artifact: {artifact_plan.artifact_type}; {artifact_plan.artifact_family}."
         )
     if runtime_capabilities is not None:
         evidence.append(

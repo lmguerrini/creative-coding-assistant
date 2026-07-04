@@ -53,9 +53,7 @@ LANGGRAPH_ERROR_PATH_AUDIT_REGISTRY_SERIALIZATION_VERSION = (
 )
 LANGGRAPH_ERROR_PATH_AUDIT_REGISTRY_ID = "langgraph_error_path_audit"
 FINAL_V4_HARDENING_RECORD_SERIALIZATION_VERSION = "final_v4_hardening_record.v1"
-FINAL_V4_HARDENING_REGISTRY_SERIALIZATION_VERSION = (
-    "final_v4_hardening_registry.v1"
-)
+FINAL_V4_HARDENING_REGISTRY_SERIALIZATION_VERSION = "final_v4_hardening_registry.v1"
 FINAL_V4_HARDENING_REGISTRY_AUTHORITY_BOUNDARY = (
     "V4.6 final V4 hardening metadata closes passive hardening coverage over "
     "contract, registry, context, collaboration, workflow, reliability, "
@@ -132,9 +130,7 @@ _HARDENING_FINDINGS = (
     "routing_preservation_confirmed",
     "langgraph_error_paths_confirmed",
 )
-_LOCAL_FINAL_HARDENING_SOURCE_REGISTRY_IDS = (
-    LANGGRAPH_ERROR_PATH_AUDIT_REGISTRY_ID,
-)
+_LOCAL_FINAL_HARDENING_SOURCE_REGISTRY_IDS = (LANGGRAPH_ERROR_PATH_AUDIT_REGISTRY_ID,)
 _LANGGRAPH_ERROR_PATH_SURFACE_SPECS: tuple[
     tuple[
         LangGraphErrorPathAuditSurface,
@@ -316,8 +312,7 @@ _LANGGRAPH_ERROR_PATH_SURFACE_SPECS: tuple[
         (),
         "documented",
         (
-            "src/creative_coding_assistant/orchestration/__init__.py::"
-            "__getattr__",
+            "src/creative_coding_assistant/orchestration/__init__.py::__getattr__",
             "tests/test_final_v4_hardening.py::"
             "test_langgraph_error_path_audit_covers_required_surfaces",
         ),
@@ -328,8 +323,7 @@ _LANGGRAPH_ERROR_PATH_SURFACE_SPECS: tuple[
         (),
         "documented",
         (
-            "src/creative_coding_assistant/orchestration/__init__.py::"
-            "__getattr__",
+            "src/creative_coding_assistant/orchestration/__init__.py::__getattr__",
             "tests/test_final_v4_hardening.py::"
             "test_langgraph_error_path_audit_is_passive",
         ),
@@ -448,9 +442,7 @@ class LangGraphErrorPathAuditRegistry(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["langgraph_error_path_audit"] = (
-        LANGGRAPH_ERROR_PATH_AUDIT_REGISTRY_ID
-    )
+    role: Literal["langgraph_error_path_audit"] = LANGGRAPH_ERROR_PATH_AUDIT_REGISTRY_ID
     serialization_version: Literal["langgraph_error_path_audit.v1"] = (
         LANGGRAPH_ERROR_PATH_AUDIT_REGISTRY_SERIALIZATION_VERSION
     )
@@ -572,7 +564,9 @@ class FinalV4HardeningRecord(BaseModel):
         default_factory=tuple,
         max_length=24,
     )
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=20)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=20
+    )
     source_metadata_only_declared: Literal[True] = True
     architecture_consistency_confirmed: Literal[True] = True
     final_hardening_status: FinalV4HardeningStatus = "pass"
@@ -883,7 +877,9 @@ def _record(
     source_registry_ids: tuple[str, ...],
 ) -> FinalV4HardeningRecord:
     architecture = architecture_consistency_pass_registry()
-    architecture_record_ids = _architecture_record_ids(source_registry_ids, architecture)
+    architecture_record_ids = _architecture_record_ids(
+        source_registry_ids, architecture
+    )
     active_flags = _source_active_runtime_flags(source_registry_ids, architecture)
     return FinalV4HardeningRecord(
         domain_id=domain_id,
@@ -932,7 +928,9 @@ LANGGRAPH_ERROR_PATH_AUDIT_REGISTRY = LangGraphErrorPathAuditRegistry(
     runtime_node_ids=ASSISTANT_WORKFLOW_NODE_ORDER,
     source_runtime_node_ids=_LANGGRAPH_ERROR_PATH_SOURCE_NODE_IDS,
     records=LANGGRAPH_ERROR_PATH_AUDIT_RECORDS,
-    surface_ids=tuple(record.surface_id for record in LANGGRAPH_ERROR_PATH_AUDIT_RECORDS),
+    surface_ids=tuple(
+        record.surface_id for record in LANGGRAPH_ERROR_PATH_AUDIT_RECORDS
+    ),
     record_count=len(LANGGRAPH_ERROR_PATH_AUDIT_RECORDS),
     failure_invariants=_LANGGRAPH_ERROR_PATH_INVARIANTS,
 )

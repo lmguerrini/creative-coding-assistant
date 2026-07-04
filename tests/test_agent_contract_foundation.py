@@ -92,9 +92,7 @@ def _sample_agent_contract() -> AgentContract:
         estimated_cost_metadata=AgentContractCostMetadata(
             relative_cost="none",
             cost_basis="Static contract metadata; no provider calls.",
-            cache_sensitivity=(
-                "Stable until passive role contract metadata changes."
-            ),
+            cache_sensitivity=("Stable until passive role contract metadata changes."),
         ),
         estimated_latency_metadata=AgentContractLatencyMetadata(
             relative_latency="none",

@@ -132,7 +132,9 @@ class WorkflowExplainabilityDashboardTests(unittest.TestCase):
         self.assertIsNone(dashboard.recorded_provenance_count)
         self.assertIsNone(dashboard.captured_trace_count)
         self.assertEqual(dashboard.workflow_explainability_status, "guarded")
-        self.assertIn("does not generate live explanations", dashboard.authority_boundary)
+        self.assertIn(
+            "does not generate live explanations", dashboard.authority_boundary
+        )
         self.assertTrue(dashboard.workflow_explainability_dashboard_implemented)
         self.assertFalse(dashboard.explanation_generation_implemented)
         self.assertFalse(dashboard.live_reasoning_generation_implemented)
@@ -177,7 +179,9 @@ class WorkflowExplainabilityDashboardTests(unittest.TestCase):
             self.assertIsNone(panel.recorded_provenance_count)
             self.assertIsNone(panel.captured_trace_count)
             self.assertIn("explanation_generation", panel.blocked_runtime_behaviors)
-            self.assertIn("decision_provenance_recording", panel.blocked_runtime_behaviors)
+            self.assertIn(
+                "decision_provenance_recording", panel.blocked_runtime_behaviors
+            )
             self.assertTrue(panel.workflow_explainability_panel_implemented)
             self.assertFalse(panel.explanation_generation_implemented)
             self.assertFalse(panel.live_reasoning_generation_implemented)

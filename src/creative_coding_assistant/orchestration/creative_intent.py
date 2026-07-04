@@ -221,16 +221,14 @@ def creative_intent_decomposition_prompt_lines(
         if dimension.explicitness == "absent":
             continue
         lines.append(
-            f"{dimension.name} intent ({dimension.explicitness}): "
-            f"{dimension.summary}"
+            f"{dimension.name} intent ({dimension.explicitness}): {dimension.summary}"
         )
     lines.extend(
         f"Unresolved intent gap: {item}"
         for item in decomposition.unresolved_intent_gaps[:4]
     )
     lines.extend(
-        f"HITL intent question: {item}"
-        for item in decomposition.hitl_questions
+        f"HITL intent question: {item}" for item in decomposition.hitl_questions
     )
     lines.extend(f"Intent guidance: {item}" for item in decomposition.prompt_guidance)
     return tuple(lines[:28])

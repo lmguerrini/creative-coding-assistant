@@ -97,7 +97,9 @@ class BlackboardAuditRecord(BaseModel):
     )
     passive_boundary_flags: tuple[str, ...] = Field(min_length=7, max_length=7)
     audit_findings: tuple[str, ...] = Field(min_length=6, max_length=6)
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=16)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=16
+    )
     channel_blocked_runtime_behaviors: tuple[str, ...] = Field(
         min_length=1,
         max_length=16,
@@ -189,7 +191,10 @@ class BlackboardAuditRegistry(BaseModel):
         for record in self.audit_records:
             if record.source_registries != self.source_registries:
                 raise ValueError("source_registries must match registry")
-            if record.validated_blackboard_surfaces != self.validated_blackboard_surfaces:
+            if (
+                record.validated_blackboard_surfaces
+                != self.validated_blackboard_surfaces
+            ):
                 raise ValueError("validated_blackboard_surfaces must match registry")
             if record.passive_boundary_flags != self.passive_boundary_flags:
                 raise ValueError("passive_boundary_flags must match registry")

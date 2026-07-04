@@ -29,6 +29,12 @@ from creative_coding_assistant.eval.ragas_runner import (
     ragas_run_manifest_path,
     run_ragas_live_eval,
 )
+from creative_coding_assistant.eval.recorder import (
+    JsonlLiveSessionRecorder,
+    LiveSessionRecorder,
+    build_live_session_eval_recorder,
+    build_live_session_sample,
+)
 from creative_coding_assistant.eval.retrieval_demo_pack import (
     CCA_OPERATIONAL_KB_SCOPE,
     FUTURE_HOLOMIND_BOUNDARY,
@@ -37,12 +43,6 @@ from creative_coding_assistant.eval.retrieval_demo_pack import (
     build_capstone_retrieval_demo_pack,
     build_capstone_retrieval_demo_requests,
     capstone_retrieval_demo_source_ids,
-)
-from creative_coding_assistant.eval.recorder import (
-    JsonlLiveSessionRecorder,
-    LiveSessionRecorder,
-    build_live_session_eval_recorder,
-    build_live_session_sample,
 )
 
 __all__ = [

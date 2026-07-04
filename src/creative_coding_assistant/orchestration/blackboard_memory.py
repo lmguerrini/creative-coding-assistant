@@ -21,9 +21,7 @@ BlackboardPersistenceMode = Literal["not_persisted"]
 BlackboardStorageBoundary = Literal["no_storage_backend"]
 
 BLACKBOARD_MEMORY_CHANNEL_SERIALIZATION_VERSION = "blackboard_memory_channel.v1"
-BLACKBOARD_AGENT_PERMISSION_SERIALIZATION_VERSION = (
-    "blackboard_agent_permission.v1"
-)
+BLACKBOARD_AGENT_PERMISSION_SERIALIZATION_VERSION = "blackboard_agent_permission.v1"
 BLACKBOARD_MEMORY_REGISTRY_SERIALIZATION_VERSION = "blackboard_memory_registry.v1"
 BLACKBOARD_MEMORY_REGISTRY_AUTHORITY_BOUNDARY = (
     "Blackboard memory contracts describe planned shared-context metadata "
@@ -189,7 +187,9 @@ class BlackboardMemoryRegistry(BaseModel):
     @model_validator(mode="after")
     def _registry_matches_channels_and_permissions(self) -> Self:
         derived_channel_ids = tuple(channel.channel_id for channel in self.channels)
-        derived_agent_ids = tuple(permission.agent_id for permission in self.permissions)
+        derived_agent_ids = tuple(
+            permission.agent_id for permission in self.permissions
+        )
         if len(set(derived_channel_ids)) != len(derived_channel_ids):
             raise ValueError("channel_ids must be unique")
         if len(set(derived_agent_ids)) != len(derived_agent_ids):
@@ -204,12 +204,16 @@ class BlackboardMemoryRegistry(BaseModel):
             raise ValueError("permission_count must match permissions")
 
         known_channels = set(self.channel_ids)
-        channel_by_owner = {channel.owner_agent_id: channel for channel in self.channels}
+        channel_by_owner = {
+            channel.owner_agent_id: channel for channel in self.channels
+        }
         for permission in self.permissions:
             if tuple(permission.readable_channel_ids) != self.channel_ids:
                 raise ValueError("readable_channel_ids must match registry channels")
             if tuple(permission.referenceable_channel_ids) != self.channel_ids:
-                raise ValueError("referenceable_channel_ids must match registry channels")
+                raise ValueError(
+                    "referenceable_channel_ids must match registry channels"
+                )
             if not set(permission.writable_channel_ids).issubset(known_channels):
                 raise ValueError("writable_channel_ids must be known channels")
             owner_channel = channel_by_owner.get(permission.agent_id)
@@ -264,7 +268,9 @@ def blackboard_channels_for_agent(
     if permission is None:
         return ()
     source_registry = registry or BLACKBOARD_MEMORY_REGISTRY
-    channel_by_id = {channel.channel_id: channel for channel in source_registry.channels}
+    channel_by_id = {
+        channel.channel_id: channel for channel in source_registry.channels
+    }
     return tuple(
         channel_by_id[channel_id]
         for channel_id in permission.referenceable_channel_ids

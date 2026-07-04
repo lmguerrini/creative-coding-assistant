@@ -118,7 +118,9 @@ class EscalationPolicyAuditRecord(BaseModel):
     validated_policy_surfaces: tuple[str, ...] = Field(min_length=7, max_length=7)
     passive_boundary_flags: tuple[str, ...] = Field(min_length=7, max_length=7)
     audit_findings: tuple[str, ...] = Field(min_length=6, max_length=6)
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=16)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=16
+    )
     rule_blocked_runtime_behaviors: tuple[str, ...] = Field(
         min_length=1,
         max_length=12,

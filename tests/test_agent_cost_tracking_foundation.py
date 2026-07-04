@@ -190,18 +190,34 @@ class AgentCostTrackingFoundationTests(unittest.TestCase):
                 profile.cost_threshold_profile_ids,
                 registry.cost_threshold_profile_ids,
             )
-            self.assertEqual(profile.cost_threshold_bands, registry.cost_threshold_bands)
+            self.assertEqual(
+                profile.cost_threshold_bands, registry.cost_threshold_bands
+            )
             self.assertEqual(profile.cost_profile_ids, registry.cost_profile_ids)
             self.assertEqual(profile.studio_cost_bands, registry.studio_cost_bands)
-            self.assertEqual(profile.consistency_family_ids, registry.consistency_family_ids)
-            self.assertEqual(profile.cost_source_registries, registry.cost_source_registries)
+            self.assertEqual(
+                profile.consistency_family_ids, registry.consistency_family_ids
+            )
+            self.assertEqual(
+                profile.cost_source_registries, registry.cost_source_registries
+            )
             self.assertEqual(profile.cost_dimensions, registry.cost_dimensions)
-            self.assertEqual(profile.passive_boundary_flags, registry.passive_boundary_flags)
+            self.assertEqual(
+                profile.passive_boundary_flags, registry.passive_boundary_flags
+            )
             self.assertFalse(profile.missing_coverage_items)
-            self.assertIn("provider_or_model_routing", profile.contract_blocked_runtime_behaviors)
-            self.assertIn("cost_or_latency_routing", profile.metadata_blocked_runtime_behaviors)
-            self.assertIn("budget_enforcement", profile.budget_blocked_runtime_behaviors)
-            self.assertIn("cost_based_routing", profile.threshold_blocked_runtime_behaviors)
+            self.assertIn(
+                "provider_or_model_routing", profile.contract_blocked_runtime_behaviors
+            )
+            self.assertIn(
+                "cost_or_latency_routing", profile.metadata_blocked_runtime_behaviors
+            )
+            self.assertIn(
+                "budget_enforcement", profile.budget_blocked_runtime_behaviors
+            )
+            self.assertIn(
+                "cost_based_routing", profile.threshold_blocked_runtime_behaviors
+            )
             self.assertIn("cost_scoring", profile.profile_blocked_runtime_behaviors)
             self.assertIn(
                 "provider_or_model_routing",
@@ -285,14 +301,14 @@ class AgentCostTrackingFoundationTests(unittest.TestCase):
             )
 
         with self.assertRaisesRegex(ValueError, "missing coverage"):
-            self._registry_with_profiles(
-                (incomplete_profile,) + registry.profiles[1:]
-            )
+            self._registry_with_profiles((incomplete_profile,) + registry.profiles[1:])
 
         with self.assertRaisesRegex(ValueError, "profiles must remain passive"):
             self._registry_with_profiles((active_profile,) + registry.profiles[1:])
 
-    def test_agent_cost_tracking_foundation_does_not_change_request_routing(self) -> None:
+    def test_agent_cost_tracking_foundation_does_not_change_request_routing(
+        self,
+    ) -> None:
         request = AssistantRequest(
             query="Generate cost metadata for a sketch.",
             mode=AssistantMode.GENERATE,

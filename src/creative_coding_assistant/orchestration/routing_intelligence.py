@@ -98,9 +98,7 @@ EstimatedCostBand = Literal["low", "medium", "high"]
 EstimatedLatencyBand = Literal["fast", "moderate", "slow"]
 
 PROVIDER_PROFILE_SERIALIZATION_VERSION = "routing_provider_profile.v1"
-PROVIDER_PROFILE_REGISTRY_SERIALIZATION_VERSION = (
-    "routing_provider_profile_registry.v1"
-)
+PROVIDER_PROFILE_REGISTRY_SERIALIZATION_VERSION = "routing_provider_profile_registry.v1"
 PROVIDER_AVAILABILITY_SERIALIZATION_VERSION = "provider_availability_metadata.v1"
 PROVIDER_AVAILABILITY_REGISTRY_SERIALIZATION_VERSION = (
     "provider_availability_registry.v1"
@@ -225,9 +223,9 @@ class RoutingProviderProfile(BaseModel):
     automatic_model_download_implemented: Literal[False] = False
     automatic_api_key_assumption_implemented: Literal[False] = False
     generated_output_mutation_implemented: Literal[False] = False
-    serialization_version: Literal[
-        "routing_provider_profile.v1"
-    ] = PROVIDER_PROFILE_SERIALIZATION_VERSION
+    serialization_version: Literal["routing_provider_profile.v1"] = (
+        PROVIDER_PROFILE_SERIALIZATION_VERSION
+    )
     metadata_only: Literal[True] = True
 
     @model_validator(mode="after")
@@ -251,9 +249,9 @@ class RoutingProviderProfileRegistry(BaseModel):
     role: Literal["routing_provider_profile_registry"] = (
         "routing_provider_profile_registry"
     )
-    serialization_version: Literal[
-        "routing_provider_profile_registry.v1"
-    ] = PROVIDER_PROFILE_REGISTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["routing_provider_profile_registry.v1"] = (
+        PROVIDER_PROFILE_REGISTRY_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=(
             "V5.2 provider profiles expose advisory provider capability metadata "
@@ -326,9 +324,9 @@ class RoutingUnavailableReason(BaseModel):
     automatic_model_download_implemented: Literal[False] = False
     provider_execution_implemented: Literal[False] = False
     generated_output_mutation_implemented: Literal[False] = False
-    serialization_version: Literal[
-        "routing_unavailable_reason.v1"
-    ] = UNAVAILABLE_REASON_SERIALIZATION_VERSION
+    serialization_version: Literal["routing_unavailable_reason.v1"] = (
+        UNAVAILABLE_REASON_SERIALIZATION_VERSION
+    )
     metadata_only: Literal[True] = True
 
 
@@ -465,9 +463,9 @@ class ProviderAvailabilityRegistry(BaseModel):
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
     role: Literal["provider_availability_registry"] = "provider_availability_registry"
-    serialization_version: Literal[
-        "provider_availability_registry.v1"
-    ] = PROVIDER_AVAILABILITY_REGISTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["provider_availability_registry.v1"] = (
+        PROVIDER_AVAILABILITY_REGISTRY_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=(
             "V5.2 provider availability metadata models credential boundaries, "
@@ -583,9 +581,9 @@ class RoutingExecutionModeProfile(BaseModel):
     automatic_api_key_assumption_implemented: Literal[False] = False
     provider_execution_implemented: Literal[False] = False
     generated_output_mutation_implemented: Literal[False] = False
-    serialization_version: Literal[
-        "routing_execution_mode_profile.v1"
-    ] = EXECUTION_MODE_PROFILE_SERIALIZATION_VERSION
+    serialization_version: Literal["routing_execution_mode_profile.v1"] = (
+        EXECUTION_MODE_PROFILE_SERIALIZATION_VERSION
+    )
     metadata_only: Literal[True] = True
 
 
@@ -594,12 +592,10 @@ class RoutingExecutionModeRegistry(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["routing_execution_mode_registry"] = (
-        "routing_execution_mode_registry"
+    role: Literal["routing_execution_mode_registry"] = "routing_execution_mode_registry"
+    serialization_version: Literal["routing_execution_mode_registry.v1"] = (
+        EXECUTION_MODE_REGISTRY_SERIALIZATION_VERSION
     )
-    serialization_version: Literal[
-        "routing_execution_mode_registry.v1"
-    ] = EXECUTION_MODE_REGISTRY_SERIALIZATION_VERSION
     authority_boundary: str = Field(
         default=(
             "V5.2 execution mode metadata describes Manual, Assisted, and Auto "
@@ -684,9 +680,9 @@ class TaskAwareRoutingDecision(BaseModel):
     automatic_api_key_assumption_implemented: Literal[False] = False
     provider_execution_implemented: Literal[False] = False
     generated_output_mutation_implemented: Literal[False] = False
-    serialization_version: Literal[
-        "task_aware_routing_decision.v1"
-    ] = TASK_ROUTING_DECISION_SERIALIZATION_VERSION
+    serialization_version: Literal["task_aware_routing_decision.v1"] = (
+        TASK_ROUTING_DECISION_SERIALIZATION_VERSION
+    )
     advisory_only: Literal[True] = True
 
     @model_validator(mode="after")
@@ -724,9 +720,9 @@ class TaskAwareRoutingRegistry(BaseModel):
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
     role: Literal["task_aware_routing_registry"] = "task_aware_routing_registry"
-    serialization_version: Literal[
-        "task_aware_routing_registry.v1"
-    ] = TASK_ROUTING_REGISTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["task_aware_routing_registry.v1"] = (
+        TASK_ROUTING_REGISTRY_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=(
             "V5.2 task-aware routing maps task type to capability requirements, "
@@ -814,9 +810,9 @@ class AdvisoryHybridRoutingPolicy(BaseModel):
     automatic_model_download_implemented: Literal[False] = False
     provider_execution_implemented: Literal[False] = False
     generated_output_mutation_implemented: Literal[False] = False
-    serialization_version: Literal[
-        "advisory_hybrid_routing_policy.v1"
-    ] = HYBRID_ROUTING_POLICY_SERIALIZATION_VERSION
+    serialization_version: Literal["advisory_hybrid_routing_policy.v1"] = (
+        HYBRID_ROUTING_POLICY_SERIALIZATION_VERSION
+    )
     advisory_only: Literal[True] = True
 
     @model_validator(mode="after")
@@ -834,9 +830,9 @@ class AdvisoryHybridRoutingPolicyRegistry(BaseModel):
     role: Literal["advisory_hybrid_routing_policy_registry"] = (
         "advisory_hybrid_routing_policy_registry"
     )
-    serialization_version: Literal[
-        "advisory_hybrid_routing_policy_registry.v1"
-    ] = HYBRID_ROUTING_POLICY_REGISTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["advisory_hybrid_routing_policy_registry.v1"] = (
+        HYBRID_ROUTING_POLICY_REGISTRY_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=(
             "V5.2 hybrid routing policy metadata describes Local to Cloud, Cloud "
@@ -905,9 +901,9 @@ class RoutingSafetyContract(BaseModel):
     provider_execution_implemented: Literal[False] = False
     hitl_request_emitted: Literal[False] = False
     generated_output_mutation_implemented: Literal[False] = False
-    serialization_version: Literal[
-        "routing_safety_contract.v1"
-    ] = ROUTING_SAFETY_CONTRACT_SERIALIZATION_VERSION
+    serialization_version: Literal["routing_safety_contract.v1"] = (
+        ROUTING_SAFETY_CONTRACT_SERIALIZATION_VERSION
+    )
     metadata_only: Literal[True] = True
 
 
@@ -919,9 +915,9 @@ class RoutingSafetyContractRegistry(BaseModel):
     role: Literal["routing_safety_contract_registry"] = (
         "routing_safety_contract_registry"
     )
-    serialization_version: Literal[
-        "routing_safety_contract_registry.v1"
-    ] = ROUTING_SAFETY_CONTRACT_REGISTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["routing_safety_contract_registry.v1"] = (
+        ROUTING_SAFETY_CONTRACT_REGISTRY_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=(
             "V5.2 routing safety contracts describe provider selection, "
@@ -975,9 +971,9 @@ class ModelRoutingIntelligenceRegistry(BaseModel):
     role: Literal["model_routing_intelligence_registry"] = (
         "model_routing_intelligence_registry"
     )
-    serialization_version: Literal[
-        "model_routing_intelligence_registry.v1"
-    ] = MODEL_ROUTING_INTELLIGENCE_REGISTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["model_routing_intelligence_registry.v1"] = (
+        MODEL_ROUTING_INTELLIGENCE_REGISTRY_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=(
             "V5.2 model-routing intelligence metadata aggregates provider "

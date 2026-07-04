@@ -76,7 +76,9 @@ class WorkflowComplexityAnalyzerTests(unittest.TestCase):
             sum(factor.score for factor in analysis.factors),
         )
         self.assertEqual(analysis.complexity_level, "high")
-        self.assertIn("does not evaluate creative semantics", analysis.authority_boundary)
+        self.assertIn(
+            "does not evaluate creative semantics", analysis.authority_boundary
+        )
         self.assertTrue(analysis.complexity_analysis_implemented)
         self.assertFalse(analysis.creative_semantic_scoring_implemented)
         self.assertFalse(analysis.workflow_pruning_implemented)
@@ -104,7 +106,9 @@ class WorkflowComplexityAnalyzerTests(unittest.TestCase):
             ),
         )
         for factor in analysis.factors:
-            self.assertEqual(set(factor.model_dump(mode="json")), REQUIRED_FACTOR_FIELDS)
+            self.assertEqual(
+                set(factor.model_dump(mode="json")), REQUIRED_FACTOR_FIELDS
+            )
             self.assertEqual(
                 factor.serialization_version,
                 "workflow_complexity_factor.v1",

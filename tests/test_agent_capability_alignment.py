@@ -141,8 +141,8 @@ class AgentCapabilityAlignmentTests(unittest.TestCase):
                 )
             }
         )
-        missing_registry_source = (
-            registry.source_registries[:-1] + ("missing_registry",)
+        missing_registry_source = registry.source_registries[:-1] + (
+            "missing_registry",
         )
 
         with self.assertRaisesRegex(ValueError, "base orchestration capabilities"):

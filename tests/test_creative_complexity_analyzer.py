@@ -108,7 +108,9 @@ class CreativeComplexityAnalyzerTests(unittest.TestCase):
         )
 
         for factor in analysis.factors:
-            self.assertEqual(set(factor.model_dump(mode="json")), REQUIRED_FACTOR_FIELDS)
+            self.assertEqual(
+                set(factor.model_dump(mode="json")), REQUIRED_FACTOR_FIELDS
+            )
             self.assertEqual(
                 factor.serialization_version,
                 "creative_complexity_factor.v1",

@@ -92,9 +92,7 @@ class AgentExplainabilityAuditRecord(BaseModel):
 
     agent_id: str = Field(min_length=1, max_length=80)
     role_id: str = Field(min_length=1, max_length=80)
-    audit_stage: AgentExplainabilityAuditStage = (
-        "v4_6_agent_explainability_hardening"
-    )
+    audit_stage: AgentExplainabilityAuditStage = "v4_6_agent_explainability_hardening"
     contract_serialization_version: str = Field(min_length=1, max_length=80)
     contract_source_registry_refs: tuple[str, ...] = Field(min_length=1, max_length=24)
     memory_reference_sources: tuple[str, ...] = Field(min_length=1, max_length=12)
@@ -109,7 +107,9 @@ class AgentExplainabilityAuditRecord(BaseModel):
     )
     passive_boundary_flags: tuple[str, ...] = Field(min_length=8, max_length=8)
     audit_findings: tuple[str, ...] = Field(min_length=7, max_length=7)
-    missing_coverage_items: tuple[str, ...] = Field(default_factory=tuple, max_length=16)
+    missing_coverage_items: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=16
+    )
     contract_blocked_runtime_behaviors: tuple[str, ...] = Field(
         min_length=1,
         max_length=16,
@@ -151,9 +151,7 @@ class AgentExplainabilityAuditRegistry(BaseModel):
         default=AGENT_EXPLAINABILITY_AUDIT_REGISTRY_AUTHORITY_BOUNDARY,
         max_length=1000,
     )
-    audit_stage: AgentExplainabilityAuditStage = (
-        "v4_6_agent_explainability_hardening"
-    )
+    audit_stage: AgentExplainabilityAuditStage = "v4_6_agent_explainability_hardening"
     audit_records: tuple[AgentExplainabilityAuditRecord, ...] = Field(
         min_length=12,
         max_length=12,

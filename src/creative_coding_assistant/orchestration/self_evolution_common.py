@@ -387,9 +387,7 @@ class SelfEvolutionPlan(BaseModel):
             self.proposals
         ):
             raise ValueError("overall_proposal_rank_score must match proposals")
-        if self.overall_evolution_posture != overall_evolution_posture(
-            self.proposals
-        ):
+        if self.overall_evolution_posture != overall_evolution_posture(self.proposals):
             raise ValueError("overall_evolution_posture must match proposals")
         for proposal in self.proposals:
             if proposal.route_name != self.route_name:

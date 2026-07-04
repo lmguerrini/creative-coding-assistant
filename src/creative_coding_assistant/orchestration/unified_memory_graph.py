@@ -162,9 +162,7 @@ class UnifiedMemoryGraphPlan(BaseModel):
             raise ValueError("memory_node_ids must match memory_nodes")
         if len(set(self.memory_node_ids)) != len(self.memory_node_ids):
             raise ValueError("memory_node_ids must be unique")
-        if self.memory_edge_ids != tuple(
-            edge.edge_id for edge in self.memory_edges
-        ):
+        if self.memory_edge_ids != tuple(edge.edge_id for edge in self.memory_edges):
             raise ValueError("memory_edge_ids must match memory_edges")
         if len(set(self.memory_edge_ids)) != len(self.memory_edge_ids):
             raise ValueError("memory_edge_ids must be unique")
@@ -245,13 +243,9 @@ def build_unified_memory_graph(
         covered_roadmap_items=(UNIFIED_MEMORY_GRAPH_ROADMAP_ITEM,),
         covered_roadmap_item_count=1,
         source_signal_ids=tuple(
-            signal_id
-            for node in memory_nodes
-            for signal_id in node.source_signal_ids
+            signal_id for node in memory_nodes for signal_id in node.source_signal_ids
         ),
-        source_signal_id_count=sum(
-            node.source_signal_count for node in memory_nodes
-        ),
+        source_signal_id_count=sum(node.source_signal_count for node in memory_nodes),
         cross_cutting_contracts=COGNITIVE_OS_CONTRACTS,
         blocked_runtime_behaviors=COGNITIVE_OS_BLOCKED_RUNTIME_BEHAVIORS,
         graph_posture="guarded",

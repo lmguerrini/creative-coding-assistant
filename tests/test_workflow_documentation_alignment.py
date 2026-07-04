@@ -447,15 +447,15 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             self.assertNotIn(internal_marker, readme)
 
     def test_project_docs_cover_current_v4_3_passive_scope(self) -> None:
-        project_context = (
-            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
-        ).read_text(encoding="utf-8")
-        roadmap = (
-            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
-        ).read_text(encoding="utf-8")
-        decisions = (
-            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
-        ).read_text(encoding="utf-8")
+        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
+            encoding="utf-8"
+        )
+        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
+            encoding="utf-8"
+        )
+        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
+            encoding="utf-8"
+        )
         combined = "\n".join((project_context, roadmap, decisions))
         normalized_project_context = re.sub(r"\s+", " ", project_context)
         normalized_combined = re.sub(r"\s+", " ", combined)
@@ -478,15 +478,15 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("compact LangGraph workflow", normalized_combined)
 
     def test_project_docs_cover_current_v4_4_passive_scope(self) -> None:
-        project_context = (
-            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
-        ).read_text(encoding="utf-8")
-        roadmap = (
-            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
-        ).read_text(encoding="utf-8")
-        decisions = (
-            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
-        ).read_text(encoding="utf-8")
+        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
+            encoding="utf-8"
+        )
+        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
+            encoding="utf-8"
+        )
+        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
+            encoding="utf-8"
+        )
         combined = "\n".join((project_context, roadmap, decisions))
         normalized_project_context = re.sub(r"\s+", " ", project_context)
         normalized_combined = re.sub(r"\s+", " ", combined)
@@ -508,15 +508,15 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("compact LangGraph workflow", normalized_combined)
 
     def test_project_docs_cover_current_v4_5_passive_scope(self) -> None:
-        project_context = (
-            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
-        ).read_text(encoding="utf-8")
-        roadmap = (
-            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
-        ).read_text(encoding="utf-8")
-        decisions = (
-            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
-        ).read_text(encoding="utf-8")
+        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
+            encoding="utf-8"
+        )
+        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
+            encoding="utf-8"
+        )
+        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
+            encoding="utf-8"
+        )
         combined = "\n".join((project_context, roadmap, decisions))
         normalized_project_context = re.sub(r"\s+", " ", project_context)
         normalized_combined = re.sub(r"\s+", " ", combined)
@@ -538,15 +538,15 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("compact LangGraph workflow", normalized_combined)
 
     def test_project_docs_cover_current_v4_6_passive_scope(self) -> None:
-        project_context = (
-            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
-        ).read_text(encoding="utf-8")
-        roadmap = (
-            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
-        ).read_text(encoding="utf-8")
-        decisions = (
-            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
-        ).read_text(encoding="utf-8")
+        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
+            encoding="utf-8"
+        )
+        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
+            encoding="utf-8"
+        )
+        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
+            encoding="utf-8"
+        )
         combined = "\n".join((project_context, roadmap, decisions))
         normalized_project_context = re.sub(r"\s+", " ", project_context)
         normalized_combined = re.sub(r"\s+", " ", combined)
@@ -573,15 +573,15 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         )
 
     def test_project_docs_cover_current_v5_2_advisory_scope(self) -> None:
-        project_context = (
-            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
-        ).read_text(encoding="utf-8")
-        decisions = (
-            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
-        ).read_text(encoding="utf-8")
-        roadmap = (
-            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
-        ).read_text(encoding="utf-8")
+        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
+            encoding="utf-8"
+        )
+        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
+            encoding="utf-8"
+        )
+        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
+            encoding="utf-8"
+        )
         combined = "\n".join((project_context, roadmap, decisions))
         normalized_combined = re.sub(r"\s+", " ", combined)
 
@@ -601,15 +601,15 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("modify generated output", normalized_combined)
 
     def test_project_docs_cover_current_v5_4_read_only_scope(self) -> None:
-        project_context = (
-            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
-        ).read_text(encoding="utf-8")
-        decisions = (
-            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
-        ).read_text(encoding="utf-8")
-        roadmap = (
-            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
-        ).read_text(encoding="utf-8")
+        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
+            encoding="utf-8"
+        )
+        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
+            encoding="utf-8"
+        )
+        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
+            encoding="utf-8"
+        )
         combined = "\n".join((project_context, decisions, roadmap))
         normalized_combined = re.sub(r"\s+", " ", combined)
 
@@ -630,15 +630,15 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("modify generated output", normalized_combined)
 
     def test_project_docs_cover_current_v5_5_controlled_scope(self) -> None:
-        project_context = (
-            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
-        ).read_text(encoding="utf-8")
-        decisions = (
-            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
-        ).read_text(encoding="utf-8")
-        roadmap = (
-            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
-        ).read_text(encoding="utf-8")
+        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
+            encoding="utf-8"
+        )
+        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
+            encoding="utf-8"
+        )
+        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
+            encoding="utf-8"
+        )
         combined = "\n".join((project_context, decisions, roadmap))
         normalized_combined = re.sub(r"\s+", " ", combined)
 
@@ -666,15 +666,15 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("modify generated output", normalized_combined)
 
     def test_project_docs_cover_current_v5_6_production_release_scope(self) -> None:
-        project_context = (
-            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
-        ).read_text(encoding="utf-8")
-        decisions = (
-            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
-        ).read_text(encoding="utf-8")
-        roadmap = (
-            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
-        ).read_text(encoding="utf-8")
+        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
+            encoding="utf-8"
+        )
+        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
+            encoding="utf-8"
+        )
+        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
+            encoding="utf-8"
+        )
         combined = "\n".join((project_context, decisions, roadmap))
         normalized_combined = re.sub(r"\s+", " ", combined)
 
@@ -710,15 +710,15 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("modify generated output", normalized_combined)
 
     def test_project_docs_cover_current_v6_1_adaptive_learning_scope(self) -> None:
-        project_context = (
-            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
-        ).read_text(encoding="utf-8")
-        decisions = (
-            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
-        ).read_text(encoding="utf-8")
-        roadmap = (
-            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
-        ).read_text(encoding="utf-8")
+        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
+            encoding="utf-8"
+        )
+        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
+            encoding="utf-8"
+        )
+        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
+            encoding="utf-8"
+        )
         combined = "\n".join((project_context, decisions, roadmap))
         normalized_combined = re.sub(r"\s+", " ", combined)
 
@@ -754,15 +754,15 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("modify generated output", normalized_combined)
 
     def test_project_docs_cover_current_v6_2_creative_memory_scope(self) -> None:
-        project_context = (
-            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
-        ).read_text(encoding="utf-8")
-        decisions = (
-            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
-        ).read_text(encoding="utf-8")
-        roadmap = (
-            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
-        ).read_text(encoding="utf-8")
+        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
+            encoding="utf-8"
+        )
+        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
+            encoding="utf-8"
+        )
+        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
+            encoding="utf-8"
+        )
         combined = "\n".join((project_context, decisions, roadmap))
         normalized_combined = re.sub(r"\s+", " ", combined)
 
@@ -813,15 +813,15 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
     def test_project_docs_cover_current_v6_3_knowledge_evolution_scope(
         self,
     ) -> None:
-        project_context = (
-            REPO_ROOT / "docs" / "PROJECT_CONTEXT.md"
-        ).read_text(encoding="utf-8")
-        decisions = (
-            REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md"
-        ).read_text(encoding="utf-8")
-        roadmap = (
-            REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md"
-        ).read_text(encoding="utf-8")
+        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
+            encoding="utf-8"
+        )
+        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
+            encoding="utf-8"
+        )
+        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
+            encoding="utf-8"
+        )
         combined = "\n".join((project_context, decisions, roadmap))
         normalized_combined = re.sub(r"\s+", " ", combined)
 
@@ -839,8 +839,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("governance/safety", normalized_combined)
         self.assertIn("runtime failure-path audit coverage", normalized_combined)
         self.assertIn(
-            "All 19 contractual V6.3 roadmap items remain individually "
-            "traceable",
+            "All 19 contractual V6.3 roadmap items remain individually traceable",
             normalized_combined,
         )
         self.assertIn("execute automatic KB updates", normalized_combined)
@@ -867,12 +866,11 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("modify generated output", normalized_combined)
 
     def test_architecture_doc_node_order_matches_backend_node_order(self) -> None:
-        architecture_doc = (
-            REPO_ROOT / "architecture" / "workflow_graph.md"
-        ).read_text(encoding="utf-8")
+        architecture_doc = (REPO_ROOT / "architecture" / "workflow_graph.md").read_text(
+            encoding="utf-8"
+        )
         marker = (
-            "`ASSISTANT_WORKFLOW_NODE_ORDER` is the source of truth for node "
-            "ordering:"
+            "`ASSISTANT_WORKFLOW_NODE_ORDER` is the source of truth for node ordering:"
         )
         section = architecture_doc.split(marker, maxsplit=1)[1].split(
             "Current transition rules:",
@@ -894,9 +892,9 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
     def test_mermaid_source_keeps_reasoning_between_director_and_prompt_rendering(
         self,
     ) -> None:
-        mermaid = (
-            REPO_ROOT / "architecture" / "workflow_graph.mmd"
-        ).read_text(encoding="utf-8")
+        mermaid = (REPO_ROOT / "architecture" / "workflow_graph.mmd").read_text(
+            encoding="utf-8"
+        )
 
         self.assertIn(
             "prompt_input --> planning --> director --> reasoning --> prompt_rendering",
@@ -920,9 +918,9 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
     def test_workflow_doc_distinguishes_runtime_pipeline_and_dependency_views(
         self,
     ) -> None:
-        architecture_doc = (
-            REPO_ROOT / "architecture" / "workflow_graph.md"
-        ).read_text(encoding="utf-8")
+        architecture_doc = (REPO_ROOT / "architecture" / "workflow_graph.md").read_text(
+            encoding="utf-8"
+        )
         normalized_architecture_doc = re.sub(r"\s+", " ", architecture_doc)
 
         self.assertIn(
@@ -1094,9 +1092,9 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         self.assertIn("director --> reasoning --> prompt_rendering", mermaid)
 
     def test_engine_matrix_covers_cross_cutting_layers_and_versions(self) -> None:
-        engine_matrix = (
-            REPO_ROOT / "architecture" / "engine_matrix.md"
-        ).read_text(encoding="utf-8")
+        engine_matrix = (REPO_ROOT / "architecture" / "engine_matrix.md").read_text(
+            encoding="utf-8"
+        )
         normalized_engine_matrix = re.sub(r"\s+", " ", engine_matrix)
 
         self.assertIn("Versions are chronological delivery increments.", engine_matrix)

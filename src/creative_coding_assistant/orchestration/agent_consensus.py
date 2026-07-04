@@ -134,7 +134,9 @@ class ConsensusBuilderRegistry(BaseModel):
     @model_validator(mode="after")
     def _registry_matches_consensus_contracts(self) -> Self:
         derived_input_ids = tuple(item.voting_input_id for item in self.voting_inputs)
-        derived_surface_ids = tuple(surface.surface_id for surface in self.agreement_surfaces)
+        derived_surface_ids = tuple(
+            surface.surface_id for surface in self.agreement_surfaces
+        )
         derived_topic_ids = tuple(item.topic_id for item in self.voting_inputs)
         if self.voting_input_ids != derived_input_ids:
             raise ValueError("voting_input_ids must match voting_inputs")
@@ -142,7 +144,10 @@ class ConsensusBuilderRegistry(BaseModel):
             raise ValueError("agreement_surface_ids must match agreement_surfaces")
         if self.topic_ids != derived_topic_ids:
             raise ValueError("topic_ids must match voting_inputs")
-        if tuple(surface.topic_id for surface in self.agreement_surfaces) != self.topic_ids:
+        if (
+            tuple(surface.topic_id for surface in self.agreement_surfaces)
+            != self.topic_ids
+        ):
             raise ValueError("agreement_surfaces must match voting input topics")
         for item in self.voting_inputs:
             if item.aggregation_mode != self.aggregation_mode:
@@ -236,7 +241,9 @@ CONSENSUS_BUILDER_REGISTRY = ConsensusBuilderRegistry(
     voting_inputs=CONSENSUS_VOTING_INPUTS,
     agreement_surfaces=CONSENSUS_AGREEMENT_SURFACES,
     voting_input_ids=tuple(item.voting_input_id for item in CONSENSUS_VOTING_INPUTS),
-    agreement_surface_ids=tuple(surface.surface_id for surface in CONSENSUS_AGREEMENT_SURFACES),
+    agreement_surface_ids=tuple(
+        surface.surface_id for surface in CONSENSUS_AGREEMENT_SURFACES
+    ),
     topic_ids=tuple(item.topic_id for item in CONSENSUS_VOTING_INPUTS),
     source_registries=("agent_debate_registry",),
 )

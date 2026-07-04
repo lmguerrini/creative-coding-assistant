@@ -224,23 +224,17 @@ def artifact_critic_prompt_lines(
     lines.extend(f"Artifact critic strength: {item}" for item in profile.strengths)
     lines.extend(f"Artifact critic weakness: {item}" for item in profile.weaknesses)
     lines.extend(f"Capability gap: {item}" for item in profile.capability_gaps)
-    lines.extend(
-        f"Dependency concern: {item}" for item in profile.dependency_concerns
-    )
+    lines.extend(f"Dependency concern: {item}" for item in profile.dependency_concerns)
     lines.extend(f"Runtime concern: {item}" for item in profile.runtime_concerns)
     lines.extend(
         f"Scalability concern: {item}" for item in profile.scalability_concerns
     )
     lines.extend(
-        f"Maintainability concern: {item}"
-        for item in profile.maintainability_concerns
+        f"Maintainability concern: {item}" for item in profile.maintainability_concerns
     )
+    lines.extend(f"Complexity concern: {item}" for item in profile.complexity_concerns)
     lines.extend(
-        f"Complexity concern: {item}" for item in profile.complexity_concerns
-    )
-    lines.extend(
-        f"Unsupported assumption: {item}"
-        for item in profile.unsupported_assumptions
+        f"Unsupported assumption: {item}" for item in profile.unsupported_assumptions
     )
     lines.extend(
         f"Missing critic information: {item}" for item in profile.missing_information
@@ -248,8 +242,7 @@ def artifact_critic_prompt_lines(
     lines.extend(f"Open critic question: {item}" for item in profile.open_questions)
     lines.extend(f"HITL critic question: {item}" for item in profile.hitl_questions)
     lines.extend(
-        f"Improvement opportunity: {item}"
-        for item in profile.improvement_opportunities
+        f"Improvement opportunity: {item}" for item in profile.improvement_opportunities
     )
     lines.extend(
         f"Artifact critic guidance: {item}" for item in profile.prompt_guidance
@@ -392,9 +385,7 @@ def _maintainability_concerns(
         artifact_dependency_graph is not None
         and len(artifact_dependency_graph.artifact_nodes) > 10
     ):
-        concerns.append(
-            "Many dependency nodes may require clearer metadata grouping."
-        )
+        concerns.append("Many dependency nodes may require clearer metadata grouping.")
     if (
         multi_artifact_strategy is not None
         and len(multi_artifact_strategy.supporting_artifacts) > 3

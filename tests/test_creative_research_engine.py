@@ -99,9 +99,7 @@ class CreativeResearchEngineTests(unittest.TestCase):
                 entry.entry_id,
                 f"creative_research_engine::{entry.creative_research_kind}",
             )
-            self.assertTrue(
-                set(entry.hitl_policy_entry_ids).issubset(hitl_policy_ids)
-            )
+            self.assertTrue(set(entry.hitl_policy_entry_ids).issubset(hitl_policy_ids))
             self.assertEqual(entry.source_count, plan.source_count)
             self.assertEqual(entry.domain_count, plan.domain_count)
             self.assertEqual(

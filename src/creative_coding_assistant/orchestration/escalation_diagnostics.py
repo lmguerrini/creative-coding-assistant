@@ -37,9 +37,7 @@ EscalationDiagnosticPanelKind = Literal[
 ]
 EscalationDiagnosticStatus = Literal["ready", "guarded"]
 
-ESCALATION_DIAGNOSTIC_PANEL_SERIALIZATION_VERSION = (
-    "escalation_diagnostic_panel.v1"
-)
+ESCALATION_DIAGNOSTIC_PANEL_SERIALIZATION_VERSION = "escalation_diagnostic_panel.v1"
 ESCALATION_DIAGNOSTICS_SERIALIZATION_VERSION = "escalation_diagnostics.v1"
 ESCALATION_DIAGNOSTICS_AUTHORITY_BOUNDARY = (
     "The V5.4 Escalation Diagnostics surface converts existing escalation "
@@ -139,9 +137,7 @@ class EscalationDiagnosticPanel(BaseModel):
         if self.hitl_request_count is not None:
             raise ValueError("hitl_request_count must remain unset")
         if self.guardrail_signal_count > self.escalation_signal_count:
-            raise ValueError(
-                "guardrail_signal_count must fit escalation_signal_count"
-            )
+            raise ValueError("guardrail_signal_count must fit escalation_signal_count")
         if self.status != _status_for_guardrails(self.guardrail_signal_count):
             raise ValueError("status must match guardrail_signal_count")
         return self
@@ -252,9 +248,7 @@ class EscalationDiagnostics(BaseModel):
         if self.escalation_diagnostics_status != _diagnostics_status(self.panels):
             raise ValueError("escalation_diagnostics_status must match panels")
         if self.source_surfaces != _SOURCE_SURFACES:
-            raise ValueError(
-                "source_surfaces must match escalation diagnostic sources"
-            )
+            raise ValueError("source_surfaces must match escalation diagnostic sources")
         return self
 
 
@@ -301,9 +295,7 @@ def build_escalation_diagnostics(
         ready_panel_ids=_panel_ids_for_status(panels, "ready"),
         guarded_panel_ids=_panel_ids_for_status(panels, "guarded"),
         panel_count=len(panels),
-        escalation_signal_count=sum(
-            panel.escalation_signal_count for panel in panels
-        ),
+        escalation_signal_count=sum(panel.escalation_signal_count for panel in panels),
         guardrail_signal_count=sum(panel.guardrail_signal_count for panel in panels),
         escalation_diagnostics_status=_diagnostics_status(panels),
         advisory_actions=_diagnostics_actions(panels),
@@ -341,7 +333,9 @@ def _policy_panel(registry: EscalationPolicyRegistry) -> EscalationDiagnosticPan
             for behavior in rule.blocked_runtime_behaviors
         )
     )
-    signal_count = registry.rule_count + sum(len(rule.trigger_signals) for rule in registry.rules)
+    signal_count = registry.rule_count + sum(
+        len(rule.trigger_signals) for rule in registry.rules
+    )
     signal_count += sum(len(rule.evidence_sources) for rule in registry.rules)
     return EscalationDiagnosticPanel(
         panel_id="escalation_diagnostics::policy_rules",
@@ -376,7 +370,9 @@ def _signals_panel(
         source_id="agent_escalation_signal_registry",
         source_serialization_version=registry.serialization_version,
         source_item_ids=registry.signal_ids,
-        escalation_signal_count=len(registry.signal_ids) + len(registry.categories) + signal_links,
+        escalation_signal_count=len(registry.signal_ids)
+        + len(registry.categories)
+        + signal_links,
         guardrail_signal_count=guardrails,
         evidence=(
             f"signals:{len(registry.signal_ids)}",

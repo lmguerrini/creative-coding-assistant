@@ -655,8 +655,7 @@ def assistant_workflow_node_specs() -> tuple[_WorkflowGraphNodeSpec, ...]:
 
 
 def assistant_workflow_conditional_edge_specs() -> tuple[
-    _WorkflowGraphConditionalEdgeSpec,
-    ...
+    _WorkflowGraphConditionalEdgeSpec, ...
 ]:
     """Return workflow edge specs without executing transition selectors."""
 
@@ -669,10 +668,7 @@ def assistant_workflow_final_payload_keys() -> tuple[str, ...]:
     return _FINAL_EVENT_MODEL_PAYLOAD_KEYS
 
 
-def assistant_workflow_model_payload_specs() -> tuple[
-    _WorkflowModelPayloadSpec,
-    ...
-]:
+def assistant_workflow_model_payload_specs() -> tuple[_WorkflowModelPayloadSpec, ...]:
     """Return workflow-state payload mappings in serialization order."""
 
     return _WORKFLOW_RUNTIME_MODEL_PAYLOAD_SPECS
@@ -1468,13 +1464,11 @@ def _planning_node(
             artifact_export_intelligence=artifact_export_intelligence,
             creative_critic=creative_critic,
         )
-        creative_improvement_planner = (
-            derive_creative_improvement_planner_profile(
-                request=workflow_state.request,
-                route_decision=workflow_state.route_decision,
-                creative_critic=creative_critic,
-                self_evaluation=self_evaluation,
-            )
+        creative_improvement_planner = derive_creative_improvement_planner_profile(
+            request=workflow_state.request,
+            route_decision=workflow_state.route_decision,
+            creative_critic=creative_critic,
+            self_evaluation=self_evaluation,
         )
         planning_metadata = _evaluation_planning_metadata(
             creative_intent,
@@ -1583,15 +1577,11 @@ def _planning_node(
                 "multi_artifact_strategy": multi_artifact_strategy,
                 "artifact_critic": artifact_critic,
                 "artifact_refiner": artifact_refiner,
-                "artifact_intelligence_synthesis": (
-                    artifact_intelligence_synthesis
-                ),
+                "artifact_intelligence_synthesis": (artifact_intelligence_synthesis),
                 "artifact_merge_planner": artifact_merge_planner,
                 "artifact_export_intelligence": artifact_export_intelligence,
                 "artifact_engine_contracts": artifact_engine_contracts,
-                "evaluation_engine_contracts": (
-                    evaluation_engine_contracts_registry
-                ),
+                "evaluation_engine_contracts": (evaluation_engine_contracts_registry),
                 "creative_critic": creative_critic,
                 "self_evaluation": self_evaluation,
                 "creative_improvement_planner": creative_improvement_planner,
@@ -1629,20 +1619,14 @@ def _planning_node(
                 "multi_artifact_strategy": multi_artifact_strategy,
                 "artifact_critic": artifact_critic,
                 "artifact_refiner": artifact_refiner,
-                "artifact_intelligence_synthesis": (
-                    artifact_intelligence_synthesis
-                ),
+                "artifact_intelligence_synthesis": (artifact_intelligence_synthesis),
                 "artifact_merge_planner": artifact_merge_planner,
                 "artifact_export_intelligence": artifact_export_intelligence,
                 "artifact_engine_contracts": artifact_engine_contracts,
-                "evaluation_engine_contracts": (
-                    evaluation_engine_contracts_registry
-                ),
+                "evaluation_engine_contracts": (evaluation_engine_contracts_registry),
                 "creative_critic": creative_critic,
                 "self_evaluation": self_evaluation,
-                "creative_improvement_planner": (
-                    creative_improvement_planner
-                ),
+                "creative_improvement_planner": (creative_improvement_planner),
                 "reflection_loop": reflection_loop,
                 "creative_confidence": creative_confidence,
                 "creative_score": creative_score,
@@ -1666,9 +1650,7 @@ def _planning_node(
                 ),
                 runtime_capabilities=runtime_capabilities.model_dump(mode="json"),
                 creative_tradeoffs=tradeoffs.model_dump(mode="json"),
-                creative_quality_prediction=quality_prediction.model_dump(
-                    mode="json"
-                ),
+                creative_quality_prediction=quality_prediction.model_dump(mode="json"),
                 symbolic_narrative=symbolic_narrative.model_dump(mode="json"),
                 creative_composition=creative_composition.model_dump(mode="json"),
                 procedural_structure=procedural_structure.model_dump(mode="json"),
@@ -1685,17 +1667,13 @@ def _planning_node(
                 artifact_capability_matrix=artifact_capability_matrix.model_dump(
                     mode="json"
                 ),
-                multi_artifact_strategy=multi_artifact_strategy.model_dump(
-                    mode="json"
-                ),
+                multi_artifact_strategy=multi_artifact_strategy.model_dump(mode="json"),
                 artifact_critic=artifact_critic.model_dump(mode="json"),
                 artifact_refiner=artifact_refiner.model_dump(mode="json"),
                 artifact_intelligence_synthesis=(
                     artifact_intelligence_synthesis.model_dump(mode="json")
                 ),
-                artifact_merge_planner=artifact_merge_planner.model_dump(
-                    mode="json"
-                ),
+                artifact_merge_planner=artifact_merge_planner.model_dump(mode="json"),
                 artifact_export_intelligence=(
                     artifact_export_intelligence.model_dump(mode="json")
                 ),
@@ -1713,9 +1691,7 @@ def _planning_node(
                 reflection_loop=reflection_loop.model_dump(mode="json"),
                 creative_confidence=creative_confidence.model_dump(mode="json"),
                 creative_score=creative_score.model_dump(mode="json"),
-                consistency_validation=consistency_validation.model_dump(
-                    mode="json"
-                ),
+                consistency_validation=consistency_validation.model_dump(mode="json"),
                 evaluation_report=evaluation_report.model_dump(mode="json"),
             ),
             workflow_state=planned_state,
@@ -2358,27 +2334,19 @@ def _finalization_node(
         evaluation_state = workflow_state.model_copy(
             update={"self_evaluation": self_evaluation}
         )
-        creative_improvement_planner = (
-            _derive_creative_improvement_planner_result(
-                evaluation_state,
-                generated_response=answer,
-            )
+        creative_improvement_planner = _derive_creative_improvement_planner_result(
+            evaluation_state,
+            generated_response=answer,
         )
         reflection_loop = _derive_reflection_loop_result(
             evaluation_state.model_copy(
-                update={
-                    "creative_improvement_planner": (
-                        creative_improvement_planner
-                    )
-                }
+                update={"creative_improvement_planner": (creative_improvement_planner)}
             )
         )
         creative_confidence = _derive_creative_confidence_result(
             evaluation_state.model_copy(
                 update={
-                    "creative_improvement_planner": (
-                        creative_improvement_planner
-                    ),
+                    "creative_improvement_planner": (creative_improvement_planner),
                     "reflection_loop": reflection_loop,
                 }
             )
@@ -2386,9 +2354,7 @@ def _finalization_node(
         creative_score = _derive_creative_score_result(
             evaluation_state.model_copy(
                 update={
-                    "creative_improvement_planner": (
-                        creative_improvement_planner
-                    ),
+                    "creative_improvement_planner": (creative_improvement_planner),
                     "reflection_loop": reflection_loop,
                     "creative_confidence": creative_confidence,
                 }
@@ -2397,9 +2363,7 @@ def _finalization_node(
         consistency_validation = _derive_consistency_validation_result(
             evaluation_state.model_copy(
                 update={
-                    "creative_improvement_planner": (
-                        creative_improvement_planner
-                    ),
+                    "creative_improvement_planner": (creative_improvement_planner),
                     "reflection_loop": reflection_loop,
                     "creative_confidence": creative_confidence,
                     "creative_score": creative_score,
@@ -2409,9 +2373,7 @@ def _finalization_node(
         evaluation_report = _derive_evaluation_report_result(
             evaluation_state.model_copy(
                 update={
-                    "creative_improvement_planner": (
-                        creative_improvement_planner
-                    ),
+                    "creative_improvement_planner": (creative_improvement_planner),
                     "reflection_loop": reflection_loop,
                     "creative_confidence": creative_confidence,
                     "creative_score": creative_score,
@@ -2423,9 +2385,7 @@ def _finalization_node(
             workflow_state.prompt_input.model_copy(
                 update={
                     "self_evaluation": self_evaluation,
-                    "creative_improvement_planner": (
-                        creative_improvement_planner
-                    ),
+                    "creative_improvement_planner": (creative_improvement_planner),
                     "reflection_loop": reflection_loop,
                     "creative_confidence": creative_confidence,
                     "creative_score": creative_score,
@@ -2439,9 +2399,7 @@ def _finalization_node(
         evaluated_state = workflow_state.model_copy(
             update={
                 "self_evaluation": self_evaluation,
-                "creative_improvement_planner": (
-                    creative_improvement_planner
-                ),
+                "creative_improvement_planner": (creative_improvement_planner),
                 "reflection_loop": reflection_loop,
                 "creative_confidence": creative_confidence,
                 "creative_score": creative_score,
@@ -2848,8 +2806,7 @@ def _emit_artifact_scored(
         runtime.event_builder.artifact_critique(
             code="artifact_scored",
             message=(
-                f"Scored {critique.artifact_title} at "
-                f"{critique.overall_score:.2f}."
+                f"Scored {critique.artifact_title} at {critique.overall_score:.2f}."
             ),
             artifact_id=critique.artifact_id,
             artifact_title=critique.artifact_title,
@@ -3105,9 +3062,7 @@ def _derive_director_brief(
         artifact_export_intelligence=workflow_state.artifact_export_intelligence,
         creative_critic=workflow_state.creative_critic,
         self_evaluation=workflow_state.self_evaluation,
-        creative_improvement_planner=(
-            workflow_state.creative_improvement_planner
-        ),
+        creative_improvement_planner=(workflow_state.creative_improvement_planner),
         reflection_loop=workflow_state.reflection_loop,
         creative_confidence=workflow_state.creative_confidence,
         creative_score=workflow_state.creative_score,
@@ -3169,9 +3124,7 @@ def _derive_reasoning_result(
         artifact_export_intelligence=workflow_state.artifact_export_intelligence,
         creative_critic=workflow_state.creative_critic,
         self_evaluation=workflow_state.self_evaluation,
-        creative_improvement_planner=(
-            workflow_state.creative_improvement_planner
-        ),
+        creative_improvement_planner=(workflow_state.creative_improvement_planner),
         reflection_loop=workflow_state.reflection_loop,
         creative_confidence=workflow_state.creative_confidence,
         creative_score=workflow_state.creative_score,
@@ -3375,13 +3328,11 @@ def _append_refinement_guidance(
     artifact_guidance = (
         "\n- Artifact critique guidance: "
         f"{artifact_critique_summary.refinement_guidance}"
-        if artifact_critique_summary
-        and artifact_critique_summary.refinement_guidance
+        if artifact_critique_summary and artifact_critique_summary.refinement_guidance
         else ""
     )
     pass_source = (
-        refinement_pass.source_artifact_title
-        or refinement_pass.source_artifact_id
+        refinement_pass.source_artifact_title or refinement_pass.source_artifact_id
         if refinement_pass is not None
         else None
     )
@@ -3655,9 +3606,7 @@ def _format_clarification_answer(clarification: ClarificationRequest) -> str:
         for option in question.suggested_options:
             lines.append(f"- {option}")
         if question.default_recommendation:
-            lines.append(
-                f"Default recommendation: {question.default_recommendation}"
-            )
+            lines.append(f"Default recommendation: {question.default_recommendation}")
         lines.append("")
     lines.append("Reply with your choice and I will continue generation.")
     return "\n".join(lines).strip()

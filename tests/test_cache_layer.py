@@ -81,9 +81,15 @@ class CacheLayerTests(unittest.TestCase):
         self.assertEqual(stale.status, "stale")
         self.assertIsNone(stale.entry)
         self.assertEqual(stale.stale_entry, entry)
-        self.assertFalse(execution_cache_entry_is_fresh(entry, now=now + timedelta(seconds=6)))
-        self.assertTrue(cache.invalidate(namespace="retrieval", components={"query": "p5"}))
-        self.assertFalse(cache.invalidate(namespace="retrieval", components={"query": "p5"}))
+        self.assertFalse(
+            execution_cache_entry_is_fresh(entry, now=now + timedelta(seconds=6))
+        )
+        self.assertTrue(
+            cache.invalidate(namespace="retrieval", components={"query": "p5"})
+        )
+        self.assertFalse(
+            cache.invalidate(namespace="retrieval", components={"query": "p5"})
+        )
         self.assertEqual(cache.snapshot(), ())
 
     def test_models_reject_mismatched_payloads_and_statuses(self) -> None:
@@ -112,7 +118,9 @@ class CacheLayerTests(unittest.TestCase):
 
     def test_lookup_does_not_declare_persistent_or_routing_terms(self) -> None:
         cache = InMemoryExecutionCache()
-        lookup = cache.get(namespace="workflow", components={"node": "planning"}, now=_now())
+        lookup = cache.get(
+            namespace="workflow", components={"node": "planning"}, now=_now()
+        )
         combined_text = " ".join(
             (
                 lookup.authority_boundary,

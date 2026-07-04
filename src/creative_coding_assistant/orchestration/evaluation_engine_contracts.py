@@ -78,7 +78,9 @@ class EvaluationEngineContract(BaseModel):
     confidence_signals: tuple[str, ...] = Field(min_length=1, max_length=12)
     ambiguity_signals: tuple[str, ...] = Field(min_length=1, max_length=12)
     risk_signals: tuple[str, ...] = Field(min_length=1, max_length=12)
-    downstream_dependencies: tuple[str, ...] = Field(default_factory=tuple, max_length=16)
+    downstream_dependencies: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=16
+    )
     upstream_dependencies: tuple[str, ...] = Field(default_factory=tuple, max_length=16)
     evidence_contract: EvaluationEngineEvidenceContract
     cacheability: EvaluationEngineCacheability
@@ -101,9 +103,9 @@ class EvaluationEngineContractRegistry(BaseModel):
         "evaluation_engine_contract_registry"
     )
     engine_category: EvaluationEngineCategory = "creative_evaluation"
-    serialization_version: Literal[
-        "evaluation_engine_contract_registry.v1"
-    ] = EVALUATION_ENGINE_CONTRACT_REGISTRY_SERIALIZATION_VERSION
+    serialization_version: Literal["evaluation_engine_contract_registry.v1"] = (
+        EVALUATION_ENGINE_CONTRACT_REGISTRY_SERIALIZATION_VERSION
+    )
     authority_boundary: str = Field(
         default=EVALUATION_ENGINE_CONTRACT_REGISTRY_AUTHORITY_BOUNDARY,
         max_length=900,
@@ -229,7 +231,10 @@ CREATIVE_CRITIC_ENGINE_CONTRACT = _contract(
         "retry, refine, or invoke future agents."
     ),
     required_inputs=("assistant_request", "route_decision"),
-    optional_inputs=("creative_intelligence_metadata", "artifact_intelligence_metadata"),
+    optional_inputs=(
+        "creative_intelligence_metadata",
+        "artifact_intelligence_metadata",
+    ),
     produced_metadata=("CreativeCriticProfile",),
     produced_signals=(
         "critique_summary",
@@ -252,9 +257,16 @@ CREATIVE_CRITIC_ENGINE_CONTRACT = _contract(
         "consistency_validation",
         "evaluation_reports",
     ),
-    upstream_dependencies=("creative_intelligence_metadata", "artifact_intelligence_metadata"),
+    upstream_dependencies=(
+        "creative_intelligence_metadata",
+        "artifact_intelligence_metadata",
+    ),
     evidence_sources=("assistant_request", "route_decision", "planning_metadata"),
-    evidence_payload_fields=("evidence", "missing_information", "unsupported_assumptions"),
+    evidence_payload_fields=(
+        "evidence",
+        "missing_information",
+        "unsupported_assumptions",
+    ),
     evidence_quality_signals=("critic_confidence", "quality_scores", "risk_assessment"),
     missing_evidence_behavior=(
         "Surface missing information and unsupported assumptions as advisory "
@@ -288,7 +300,11 @@ SELF_EVALUATION_ENGINE_CONTRACT = _contract(
     ),
     confidence_signals=("self_evaluation_confidence", "evidence"),
     ambiguity_signals=("ambiguity_assessment", "missing_information", "hitl_questions"),
-    risk_signals=("hallucination_risk", "underdelivery_risk", "unsupported_assumptions"),
+    risk_signals=(
+        "hallucination_risk",
+        "underdelivery_risk",
+        "unsupported_assumptions",
+    ),
     downstream_dependencies=(
         "creative_improvement_planner",
         "reflection_loop",
@@ -317,7 +333,12 @@ CREATIVE_IMPROVEMENT_PLANNER_ENGINE_CONTRACT = _contract(
         "it does not edit artifacts, retry, route, preview, select runtimes, "
         "or trigger workflow loops."
     ),
-    required_inputs=("assistant_request", "route_decision", "creative_critic", "self_evaluation"),
+    required_inputs=(
+        "assistant_request",
+        "route_decision",
+        "creative_critic",
+        "self_evaluation",
+    ),
     optional_inputs=("generated_response", "artifacts"),
     produced_metadata=("CreativeImprovementPlannerProfile",),
     produced_signals=(
@@ -394,8 +415,16 @@ REFLECTION_LOOP_ENGINE_CONTRACT = _contract(
         "self_evaluation",
         "creative_improvement_planner",
     ),
-    evidence_sources=("creative_critic", "self_evaluation", "creative_improvement_planner"),
-    evidence_payload_fields=("evidence", "unresolved_questions", "refinement_candidates"),
+    evidence_sources=(
+        "creative_critic",
+        "self_evaluation",
+        "creative_improvement_planner",
+    ),
+    evidence_payload_fields=(
+        "evidence",
+        "unresolved_questions",
+        "refinement_candidates",
+    ),
     evidence_quality_signals=("reflection_confidence", "reflection_priority"),
     missing_evidence_behavior=(
         "Lower reflection certainty and expose unresolved questions without "
@@ -435,10 +464,18 @@ CREATIVE_CONFIDENCE_ENGINE_CONTRACT = _contract(
         "hitl_recommendation",
         "prompt_guidance",
     ),
-    confidence_signals=("confidence_score", "confidence_components", "confidence_evidence"),
+    confidence_signals=(
+        "confidence_score",
+        "confidence_components",
+        "confidence_evidence",
+    ),
     ambiguity_signals=("confidence_uncertainties", "hitl_recommendation"),
     risk_signals=("confidence_limitations", "expected_output_reliability"),
-    downstream_dependencies=("creative_score", "consistency_validation", "evaluation_reports"),
+    downstream_dependencies=(
+        "creative_score",
+        "consistency_validation",
+        "evaluation_reports",
+    ),
     upstream_dependencies=(
         "creative_critic",
         "self_evaluation",
@@ -553,7 +590,11 @@ CONSISTENCY_VALIDATION_ENGINE_CONTRACT = _contract(
         "prompt_guidance",
     ),
     confidence_signals=("evaluation_integrity", "evidence"),
-    ambiguity_signals=("ambiguity_level", "unsupported_conclusions", "hitl_recommendation"),
+    ambiguity_signals=(
+        "ambiguity_level",
+        "unsupported_conclusions",
+        "hitl_recommendation",
+    ),
     risk_signals=("detected_conflicts", "contradiction_level"),
     downstream_dependencies=("evaluation_reports",),
     upstream_dependencies=(
@@ -572,7 +613,11 @@ CONSISTENCY_VALIDATION_ENGINE_CONTRACT = _contract(
         "creative_confidence",
         "creative_score",
     ),
-    evidence_payload_fields=("evidence", "detected_conflicts", "unsupported_conclusions"),
+    evidence_payload_fields=(
+        "evidence",
+        "detected_conflicts",
+        "unsupported_conclusions",
+    ),
     evidence_quality_signals=("evaluation_integrity", "contradiction_level"),
     missing_evidence_behavior=(
         "Mark checks as missing or fragile advisory metadata without triggering "
@@ -638,7 +683,11 @@ EVALUATION_REPORTS_ENGINE_CONTRACT = _contract(
         "creative_score",
         "consistency_validation",
     ),
-    evidence_payload_fields=("evaluation_trace", "evaluation_provenance", "evidence_chain"),
+    evidence_payload_fields=(
+        "evaluation_trace",
+        "evaluation_provenance",
+        "evidence_chain",
+    ),
     evidence_quality_signals=("evaluation_dependencies", "evaluation_explainability"),
     missing_evidence_behavior=(
         "Record missing dependencies and lower report completeness as advisory "

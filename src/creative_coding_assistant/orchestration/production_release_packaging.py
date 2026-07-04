@@ -21,9 +21,7 @@ PackagingSurfaceStatus = Literal["ready", "guarded"]
 PRODUCTION_PACKAGING_RECORD_SERIALIZATION_VERSION = (
     "production_release_packaging_record.v1"
 )
-PRODUCTION_PACKAGING_PLAN_SERIALIZATION_VERSION = (
-    "production_release_packaging_plan.v1"
-)
+PRODUCTION_PACKAGING_PLAN_SERIALIZATION_VERSION = "production_release_packaging_plan.v1"
 PRODUCTION_PACKAGING_AUTHORITY_BOUNDARY = (
     "V5.6 production release packaging metadata validates package, frontend, "
     "environment, runtime placeholder, and script readiness from repository "
@@ -304,7 +302,10 @@ def _records(
             present_items=_present_items(
                 (
                     ("build-system.requires", _has_key(build_system, "requires")),
-                    ("build-system.build-backend", _has_key(build_system, "build-backend")),
+                    (
+                        "build-system.build-backend",
+                        _has_key(build_system, "build-backend"),
+                    ),
                     ("project.name", _has_key(project, "name")),
                     ("project.version", _has_key(project, "version")),
                     ("project.dependencies", _has_key(project, "dependencies")),
@@ -363,7 +364,9 @@ def _records(
             source_paths=_REQUIRED_RUNTIME_PLACEHOLDERS,
             required_items=_REQUIRED_RUNTIME_PLACEHOLDERS,
             present_items=tuple(
-                path for path in _REQUIRED_RUNTIME_PLACEHOLDERS if (root / path).exists()
+                path
+                for path in _REQUIRED_RUNTIME_PLACEHOLDERS
+                if (root / path).exists()
             ),
             evidence=(
                 "chroma_placeholder:data/chroma/.gitkeep",

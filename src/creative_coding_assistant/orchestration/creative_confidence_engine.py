@@ -107,7 +107,9 @@ class CreativeConfidenceProfile(BaseModel):
         max_length=8,
     )
     confidence_limitations: tuple[str, ...] = Field(default_factory=tuple, max_length=8)
-    confidence_uncertainties: tuple[str, ...] = Field(default_factory=tuple, max_length=8)
+    confidence_uncertainties: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=8
+    )
     confidence_strengths: tuple[str, ...] = Field(default_factory=tuple, max_length=8)
     confidence_weaknesses: tuple[str, ...] = Field(default_factory=tuple, max_length=8)
     expected_output_reliability: ExpectedOutputReliability
@@ -259,14 +261,24 @@ def creative_confidence_prompt_lines(
         )
         for item in profile.confidence_components
     )
-    lines.extend(f"Confidence rationale: {item}" for item in profile.confidence_rationale)
-    lines.extend(f"Confidence limitation: {item}" for item in profile.confidence_limitations)
+    lines.extend(
+        f"Confidence rationale: {item}" for item in profile.confidence_rationale
+    )
+    lines.extend(
+        f"Confidence limitation: {item}" for item in profile.confidence_limitations
+    )
     lines.extend(
         f"Confidence uncertainty: {item}" for item in profile.confidence_uncertainties
     )
-    lines.extend(f"Confidence strength: {item}" for item in profile.confidence_strengths)
-    lines.extend(f"Confidence weakness: {item}" for item in profile.confidence_weaknesses)
-    lines.extend(f"Confidence prompt guidance: {item}" for item in profile.prompt_guidance)
+    lines.extend(
+        f"Confidence strength: {item}" for item in profile.confidence_strengths
+    )
+    lines.extend(
+        f"Confidence weakness: {item}" for item in profile.confidence_weaknesses
+    )
+    lines.extend(
+        f"Confidence prompt guidance: {item}" for item in profile.prompt_guidance
+    )
     return tuple(lines[:64])
 
 
@@ -391,12 +403,8 @@ def _self_evaluation_score(profile: SelfEvaluationProfile) -> float:
         "partial": 0.16,
         "blocked": 0.34,
     }[profile.completeness_assessment]
-    score -= {"low": 0.0, "medium": 0.05, "high": 0.12}[
-        profile.ambiguity_assessment
-    ]
-    score -= {"low": 0.0, "medium": 0.06, "high": 0.14}[
-        profile.hallucination_risk
-    ]
+    score -= {"low": 0.0, "medium": 0.05, "high": 0.12}[profile.ambiguity_assessment]
+    score -= {"low": 0.0, "medium": 0.06, "high": 0.14}[profile.hallucination_risk]
     score -= {"low": 0.0, "medium": 0.04, "high": 0.1}[profile.underdelivery_risk]
     return _bounded_score(score)
 
@@ -477,8 +485,7 @@ def _confidence_level(
     if (
         confidence_score < 0.35
         or (
-            creative_critic is not None
-            and creative_critic.risk_assessment == "blocked"
+            creative_critic is not None and creative_critic.risk_assessment == "blocked"
         )
         or (
             self_evaluation is not None
@@ -488,12 +495,9 @@ def _confidence_level(
         return "critical"
     if confidence_score < 0.55:
         return "low"
-    if (
-        confidence_score < 0.72
-        or (
-            reflection_loop is not None
-            and reflection_loop.reflection_priority in {"high", "critical"}
-        )
+    if confidence_score < 0.72 or (
+        reflection_loop is not None
+        and reflection_loop.reflection_priority in {"high", "critical"}
     ):
         return "medium"
     if confidence_score < 0.86:
@@ -533,11 +537,11 @@ def _confidence_rationale(
     ]
     if creative_critic is not None:
         rationale.append(
-            f"Creative Critic risk is {creative_critic.risk_assessment} with {creative_critic.critic_confidence:.2f} confidence."
+            f"Creative Critic risk is {creative_critic.risk_assessment} with {creative_critic.critic_confidence:.2f} confidence."  # noqa: E501
         )
     if self_evaluation is not None:
         rationale.append(
-            f"Self Evaluation completeness is {self_evaluation.completeness_assessment} with {self_evaluation.self_evaluation_confidence:.2f} confidence."
+            f"Self Evaluation completeness is {self_evaluation.completeness_assessment} with {self_evaluation.self_evaluation_confidence:.2f} confidence."  # noqa: E501
         )
     if creative_improvement_planner is not None:
         rationale.append(
@@ -615,7 +619,7 @@ def _confidence_strengths(
         strengths.extend(creative_critic.creative_strengths[:3])
     if self_evaluation is not None:
         strengths.append(
-            f"Request alignment {self_evaluation.request_alignment:.2f}; creative coherence {self_evaluation.creative_coherence:.2f}."
+            f"Request alignment {self_evaluation.request_alignment:.2f}; creative coherence {self_evaluation.creative_coherence:.2f}."  # noqa: E501
         )
     if creative_improvement_planner is not None:
         strengths.extend(creative_improvement_planner.low_risk_improvements[:2])
@@ -667,12 +671,8 @@ def _expected_execution_readiness(
         return "blocked"
     if hitl == "required":
         return "needs_hitl"
-    if (
-        level in {"low", "medium"}
-        or (
-            reflection_loop is not None
-            and reflection_loop.reflection_required
-        )
+    if level in {"low", "medium"} or (
+        reflection_loop is not None and reflection_loop.reflection_required
     ):
         return "needs_caveats"
     return "ready"
@@ -695,8 +695,7 @@ def _human_review_need(
             and creative_critic.risk_assessment in {"high", "blocked"}
         )
         or (
-            self_evaluation is not None
-            and self_evaluation.hallucination_risk == "high"
+            self_evaluation is not None and self_evaluation.hallucination_risk == "high"
         )
         or (
             reflection_loop is not None
@@ -726,12 +725,9 @@ def _escalation_recommendation(
 ) -> EscalationRecommendation:
     if level == "critical" or hitl == "required":
         return "hitl_review"
-    if (
-        level == "low"
-        or (
-            reflection_loop is not None
-            and reflection_loop.reflection_priority in {"high", "critical"}
-        )
+    if level == "low" or (
+        reflection_loop is not None
+        and reflection_loop.reflection_priority in {"high", "critical"}
     ):
         return "future_escalation"
     if hitl in {"optional", "recommended"}:
@@ -781,11 +777,11 @@ def _confidence_evidence(
     )
     if creative_critic is not None:
         evidence.append(
-            f"Creative critic: {creative_critic.risk_assessment} risk; {creative_critic.critic_confidence:.2f} confidence."
+            f"Creative critic: {creative_critic.risk_assessment} risk; {creative_critic.critic_confidence:.2f} confidence."  # noqa: E501
         )
     if self_evaluation is not None:
         evidence.append(
-            f"Self evaluation: {self_evaluation.completeness_assessment}; {self_evaluation.self_evaluation_confidence:.2f} confidence."
+            f"Self evaluation: {self_evaluation.completeness_assessment}; {self_evaluation.self_evaluation_confidence:.2f} confidence."  # noqa: E501
         )
     if creative_improvement_planner is not None:
         evidence.append(
@@ -814,21 +810,22 @@ def _prompt_guidance(
 ) -> tuple[str, ...]:
     guidance = [
         "Use Creative Confidence metadata as advisory confidence and uncertainty context only.",
-        "Do not change outputs, modify artifacts, trigger refinement, trigger retries, change routing, select runtimes, call providers, alter previews, or invoke V4 agents.",
+        "Do not change outputs, modify artifacts, trigger refinement, trigger retries, change routing, select runtimes, call providers, alter previews, or invoke V4 agents.",  # noqa: E501
     ]
     if hitl in {"recommended", "required"}:
         guidance.append(
             f"Surface {hitl} human review need before presenting confidence as settled."
         )
     if level in {"low", "critical"}:
-        guidance.append("Preserve caveats around low confidence and unresolved evaluation signals.")
+        guidance.append(
+            "Preserve caveats around low confidence and unresolved evaluation signals."
+        )
     return _dedupe(guidance)[:8]
 
 
 def _planning_metadata_evidence(planning_metadata: PlanningMetadata) -> str:
     labels = ", ".join(_metadata_label(item) for item in planning_metadata[:8])
     return f"{len(planning_metadata)} planning profile(s): {labels}."
-
 
 
 def _bounded_score(value: float) -> float:

@@ -96,7 +96,9 @@ class ProductionArchitectureFreezeTests(unittest.TestCase):
         self.assertTrue(freeze.release_audit_can_proceed)
         self.assertTrue(freeze.runtime_evolution_hitl_required)
         self.assertTrue(freeze.no_architecture_expansion_required)
-        self.assertIn("does not introduce new core architecture", freeze.authority_boundary)
+        self.assertIn(
+            "does not introduce new core architecture", freeze.authority_boundary
+        )
         self.assertTrue(freeze.architecture_freeze_implemented)
         self.assertTrue(freeze.source_surfaces_frozen)
         self.assertTrue(freeze.architecture_docs_referenced)

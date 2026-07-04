@@ -45,12 +45,8 @@ CreativeComplexityFactorKind = Literal[
 ]
 CreativeComplexityLevel = Literal["low", "medium", "high"]
 
-CREATIVE_COMPLEXITY_FACTOR_SERIALIZATION_VERSION = (
-    "creative_complexity_factor.v1"
-)
-CREATIVE_COMPLEXITY_ANALYSIS_SERIALIZATION_VERSION = (
-    "creative_complexity_analysis.v1"
-)
+CREATIVE_COMPLEXITY_FACTOR_SERIALIZATION_VERSION = "creative_complexity_factor.v1"
+CREATIVE_COMPLEXITY_ANALYSIS_SERIALIZATION_VERSION = "creative_complexity_analysis.v1"
 CREATIVE_COMPLEXITY_ANALYZER_AUTHORITY_BOUNDARY = (
     "Creative complexity analysis derives advisory creative pressure signals "
     "from existing translation, intent, hierarchy, plan, technique, constraint, "
@@ -268,7 +264,9 @@ def creative_complexity_factors_for_kind(
 
     source_analysis = analysis or analyze_creative_complexity()
     return tuple(
-        factor for factor in source_analysis.factors if factor.factor_kind == factor_kind
+        factor
+        for factor in source_analysis.factors
+        if factor.factor_kind == factor_kind
     )
 
 

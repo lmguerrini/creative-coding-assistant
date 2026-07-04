@@ -8,7 +8,7 @@ import sys
 from loguru import logger
 
 
-def configure_logging(level: str = "INFO") -> None:
+def configure_logging(level: str = "INFO", *, structured: bool = False) -> None:
     """Configure Loguru while keeping stdlib log records visible."""
 
     normalized_level = level.upper()
@@ -18,4 +18,5 @@ def configure_logging(level: str = "INFO") -> None:
         sys.stderr,
         level=normalized_level,
         format="{time:YYYY-MM-DD HH:mm:ss} {level} {name} {message}",
+        serialize=structured,
     )

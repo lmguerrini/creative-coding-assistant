@@ -41,9 +41,7 @@ AgentActivationStatus = Literal["recommended", "standby", "requires_hitl"]
 AGENT_ACTIVATION_CANDIDATE_SERIALIZATION_VERSION = (
     "agent_activation_optimization_candidate.v1"
 )
-AGENT_ACTIVATION_PLAN_SERIALIZATION_VERSION = (
-    "agent_activation_optimization_plan.v1"
-)
+AGENT_ACTIVATION_PLAN_SERIALIZATION_VERSION = "agent_activation_optimization_plan.v1"
 AGENT_ACTIVATION_OPTIMIZER_AUTHORITY_BOUNDARY = (
     "V5.5 agent activation optimization ranks existing passive agent routing, "
     "metadata, capability, lifecycle, and escalation posture into inspectable "
@@ -180,9 +178,13 @@ class AgentActivationOptimizationPlan(BaseModel):
         max_length=12,
     )
     candidate_ids: tuple[str, ...] = Field(min_length=1, max_length=12)
-    recommended_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
+    recommended_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=12
+    )
     standby_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
-    hitl_required_candidate_ids: tuple[str, ...] = Field(default_factory=tuple, max_length=12)
+    hitl_required_candidate_ids: tuple[str, ...] = Field(
+        default_factory=tuple, max_length=12
+    )
     candidate_count: int = Field(ge=1, le=12)
     highest_activation_score: int = Field(ge=0, le=240)
     activation_recommendation_count: int = Field(ge=0, le=12)
@@ -211,7 +213,9 @@ class AgentActivationOptimizationPlan(BaseModel):
 
     @model_validator(mode="after")
     def _plan_matches_candidates(self) -> Self:
-        derived_candidate_ids = tuple(candidate.candidate_id for candidate in self.candidates)
+        derived_candidate_ids = tuple(
+            candidate.candidate_id for candidate in self.candidates
+        )
         if len(set(derived_candidate_ids)) != len(derived_candidate_ids):
             raise ValueError("candidate_ids must be unique")
         if self.candidate_ids != derived_candidate_ids:
@@ -264,7 +268,9 @@ def optimize_agent_activation(
         route=route_name,
         execution_mode_id=execution_mode_id,
     )
-    normalized_mode = str(execution_mode_id or escalation_plan.decisions[0].execution_mode_id)
+    normalized_mode = str(
+        execution_mode_id or escalation_plan.decisions[0].execution_mode_id
+    )
     execution_modes = routing_execution_mode_registry()
     if normalized_mode not in execution_modes.execution_mode_ids:
         raise ValueError("execution_mode_id must be a known execution mode")
@@ -299,9 +305,13 @@ def optimize_agent_activation(
         candidate_ids=tuple(candidate.candidate_id for candidate in candidates),
         recommended_candidate_ids=_candidate_ids_for_status(candidates, "recommended"),
         standby_candidate_ids=_candidate_ids_for_status(candidates, "standby"),
-        hitl_required_candidate_ids=_candidate_ids_for_status(candidates, "requires_hitl"),
+        hitl_required_candidate_ids=_candidate_ids_for_status(
+            candidates, "requires_hitl"
+        ),
         candidate_count=len(candidates),
-        highest_activation_score=max(candidate.activation_score for candidate in candidates),
+        highest_activation_score=max(
+            candidate.activation_score for candidate in candidates
+        ),
         activation_recommendation_count=sum(
             1 for candidate in candidates if candidate.status != "standby"
         ),
@@ -329,7 +339,9 @@ def agent_activation_candidates_for_status(
     """Return candidates for one advisory activation status."""
 
     source_plan = plan or optimize_agent_activation()
-    return tuple(candidate for candidate in source_plan.candidates if candidate.status == status)
+    return tuple(
+        candidate for candidate in source_plan.candidates if candidate.status == status
+    )
 
 
 def _ranked_candidates(
@@ -383,10 +395,18 @@ def _candidate(
     execution_mode_id: ExecutionModeId,
     escalation_plan: EscalationOptimizationPlan,
 ) -> AgentActivationOptimizationCandidate:
-    metadata = next(item for item in metadata_registry.metadata if item.agent_id == profile.agent_id)
-    lifecycle = next(item for item in lifecycle_registry.profiles if item.agent_id == profile.agent_id)
+    metadata = next(
+        item for item in metadata_registry.metadata if item.agent_id == profile.agent_id
+    )
+    lifecycle = next(
+        item
+        for item in lifecycle_registry.profiles
+        if item.agent_id == profile.agent_id
+    )
     capability_ids = _capability_ids_for_profile(profile, capability_registry)
-    score = _activation_score(profile, metadata.estimated_cost_class, metadata.estimated_latency_class)
+    score = _activation_score(
+        profile, metadata.estimated_cost_class, metadata.estimated_latency_class
+    )
     return AgentActivationOptimizationCandidate(
         candidate_id=f"agent_activation::{profile.agent_id}",
         agent_id=profile.agent_id,
@@ -489,7 +509,9 @@ def _candidate_ids_for_status(
     candidates: tuple[AgentActivationOptimizationCandidate, ...],
     status: AgentActivationStatus,
 ) -> tuple[str, ...]:
-    return tuple(candidate.candidate_id for candidate in candidates if candidate.status == status)
+    return tuple(
+        candidate.candidate_id for candidate in candidates if candidate.status == status
+    )
 
 
 def _plan_actions(
@@ -497,7 +519,7 @@ def _plan_actions(
 ) -> tuple[str, ...]:
     actions = [
         "Expose agent activation recommendations as advisory metadata only.",
-        "Preserve agent instantiation, invocation, lifecycle, routing, workflow, provider, memory, storage, and output boundaries.",
+        "Preserve agent instantiation, invocation, lifecycle, routing, workflow, provider, memory, storage, and output boundaries.",  # noqa: E501
     ]
     if escalation_plan.optimized_escalation_posture == "requires_hitl":
         actions.append("Require HITL before any future agent activation behavior.")

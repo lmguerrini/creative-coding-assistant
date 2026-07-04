@@ -944,9 +944,7 @@ class RetrievalFoundationTests(unittest.TestCase):
                 source_type=OfficialSourceType.API_REFERENCE,
                 registry_title="Hooks - React Three Fiber",
                 document_title="Hooks - React Three Fiber",
-                text=(
-                    "This hook allows you to execute code on every rendered frame."
-                ),
+                text=("This hook allows you to execute code on every rendered frame."),
                 score=0.8,
                 distance=0.2,
             ),
@@ -967,9 +965,7 @@ class RetrievalFoundationTests(unittest.TestCase):
                 source_type=OfficialSourceType.API_REFERENCE,
                 registry_title="Hooks - React Three Fiber",
                 document_title="Hooks - React Three Fiber",
-                text=(
-                    "This hook allows you to execute code on every rendered frame."
-                ),
+                text=("This hook allows you to execute code on every rendered frame."),
                 score=0.9,
                 distance=0.1,
             ),
@@ -1044,9 +1040,7 @@ class RetrievalFoundationTests(unittest.TestCase):
                 source_type=OfficialSourceType.API_REFERENCE,
                 registry_title="Hooks - React Three Fiber",
                 document_title="Hooks - React Three Fiber",
-                text=(
-                    "This hook allows you to execute code on every rendered frame."
-                ),
+                text=("This hook allows you to execute code on every rendered frame."),
                 score=0.8,
                 distance=0.2,
             ),
@@ -1190,8 +1184,7 @@ void main() {
             self.assertGreaterEqual(len(response.results), 1)
             self.assertTrue(
                 any(
-                    "gl_fragcolor" in result.text.lower()
-                    for result in response.results
+                    "gl_fragcolor" in result.text.lower() for result in response.results
                 )
             )
             self.assertTrue(
@@ -1278,8 +1271,7 @@ def _seed_low_value_kb_records(client) -> None:
             document_title="three.js examples three.js examples",
             source_url="https://threejs.org/examples/",
             text=(
-                "three.js examples three.js examples "
-                "Select an example from the sidebar"
+                "three.js examples three.js examples Select an example from the sidebar"
             ),
         ),
         _chunk(
@@ -1302,9 +1294,7 @@ def _seed_low_value_kb_records(client) -> None:
             publisher="three.js",
             registry_title="BoxGeometry - three.js docs",
             document_title="BoxGeometry",
-            source_url=(
-                "https://threejs.org/docs/#api/en/geometries/BoxGeometry"
-            ),
+            source_url=("https://threejs.org/docs/#api/en/geometries/BoxGeometry"),
             text=(
                 "BoxGeometry is a geometry class for a rectangular cuboid with "
                 "width, height, and depth parameters."

@@ -120,9 +120,7 @@ class LearningConfidenceCalibrationPlan(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["learning_confidence_calibration"] = (
-        "learning_confidence_calibration"
-    )
+    role: Literal["learning_confidence_calibration"] = "learning_confidence_calibration"
     serialization_version: Literal["learning_confidence_calibration_plan.v1"] = (
         LEARNING_CONFIDENCE_CALIBRATION_PLAN_SERIALIZATION_VERSION
     )

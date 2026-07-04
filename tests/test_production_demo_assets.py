@@ -78,7 +78,11 @@ class ProductionDemoAssetsTests(unittest.TestCase):
         self.assertEqual(plan.explanation_talking_points, REQUIRED_TALKING_POINTS)
         self.assertEqual(
             plan.preview_media_paths,
-            ("assets/preview_current.png", "assets/preview_v1.png", "assets/preview_v2.png"),
+            (
+                "assets/preview_current.png",
+                "assets/preview_v1.png",
+                "assets/preview_v2.png",
+            ),
         )
         self.assertGreaterEqual(len(plan.retrieval_scenario_ids), 7)
         self.assertEqual(plan.asset_kinds, REQUIRED_ASSET_KINDS)

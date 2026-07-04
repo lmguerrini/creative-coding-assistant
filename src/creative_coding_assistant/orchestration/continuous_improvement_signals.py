@@ -44,9 +44,7 @@ ContinuousImprovementStatus = Literal["candidate", "review_required", "guarded"]
 ContinuousImprovementPriority = Literal["standard", "elevated", "critical", "guarded"]
 ContinuousImprovementPosture = Literal["candidate", "review_required", "guarded"]
 
-CONTINUOUS_IMPROVEMENT_SIGNAL_SERIALIZATION_VERSION = (
-    "continuous_improvement_signal.v1"
-)
+CONTINUOUS_IMPROVEMENT_SIGNAL_SERIALIZATION_VERSION = "continuous_improvement_signal.v1"
 CONTINUOUS_IMPROVEMENT_PLAN_SERIALIZATION_VERSION = (
     "continuous_improvement_signal_plan.v1"
 )
@@ -175,9 +173,7 @@ class ContinuousImprovementSignalPlan(BaseModel):
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
-    role: Literal["continuous_improvement_signals"] = (
-        "continuous_improvement_signals"
-    )
+    role: Literal["continuous_improvement_signals"] = "continuous_improvement_signals"
     serialization_version: Literal["continuous_improvement_signal_plan.v1"] = (
         CONTINUOUS_IMPROVEMENT_PLAN_SERIALIZATION_VERSION
     )
@@ -365,25 +361,29 @@ def derive_continuous_improvement_signals(
         task_type=learning_plan.task_type,
         execution_mode_id=normalized_mode,  # type: ignore[arg-type]
         adaptive_learning=learning_plan,
-        workflow_success=workflow_success or track_workflow_success(
+        workflow_success=workflow_success
+        or track_workflow_success(
             route=route_name,
             task_type=learning_plan.task_type,
             execution_mode_id=execution_mode_id,
             adaptive_learning=learning_plan,
         ),
-        failure_tracking=failure_tracking or track_failures(
+        failure_tracking=failure_tracking
+        or track_failures(
             route=route_name,
             task_type=learning_plan.task_type,
             execution_mode_id=execution_mode_id,
             adaptive_learning=learning_plan,
         ),
-        artifact_learning=artifact_learning or learn_artifacts(
+        artifact_learning=artifact_learning
+        or learn_artifacts(
             route=route_name,
             task_type=learning_plan.task_type,
             execution_mode_id=execution_mode_id,
             adaptive_learning=learning_plan,
         ),
-        evaluation_learning=evaluation_learning or learn_evaluations(
+        evaluation_learning=evaluation_learning
+        or learn_evaluations(
             route=route_name,
             task_type=learning_plan.task_type,
             execution_mode_id=execution_mode_id,
@@ -419,9 +419,7 @@ def derive_continuous_improvement_signals(
             _signal_ids_for_status(signals, "review_required")
         ),
         guarded_signal_count=len(_signal_ids_for_status(signals, "guarded")),
-        hitl_required_signal_count=sum(
-            1 for signal in signals if signal.hitl_required
-        ),
+        hitl_required_signal_count=sum(1 for signal in signals if signal.hitl_required),
         highest_improvement_score=max(signal.improvement_score for signal in signals),
         overall_improvement_score=_overall_improvement_score(signals),
         overall_improvement_posture=_overall_improvement_posture(signals),

@@ -66,7 +66,9 @@ class CreativeConfidenceEngineTests(unittest.TestCase):
                 ),
             }
         )
-        evaluation = _self_evaluation(stack, generated_response="Incomplete.").model_copy(
+        evaluation = _self_evaluation(
+            stack, generated_response="Incomplete."
+        ).model_copy(
             update={
                 "request_alignment": 0.38,
                 "intent_alignment": 0.4,
@@ -101,7 +103,9 @@ class CreativeConfidenceEngineTests(unittest.TestCase):
     def test_detects_conflicting_evidence(self) -> None:
         stack = _stack("Generate a p5.js sketch with mixed confidence signals.")
         critic = _high_quality_critic(stack)
-        evaluation = _self_evaluation(stack, generated_response="Incomplete.").model_copy(
+        evaluation = _self_evaluation(
+            stack, generated_response="Incomplete."
+        ).model_copy(
             update={
                 "request_alignment": 0.36,
                 "intent_alignment": 0.35,
@@ -122,13 +126,21 @@ class CreativeConfidenceEngineTests(unittest.TestCase):
 
         self.assertEqual(confidence.confidence_trend, "conflicting")
         self.assertTrue(
-            any(item.source == "creative_critic" for item in confidence.confidence_components)
+            any(
+                item.source == "creative_critic"
+                for item in confidence.confidence_components
+            )
         )
         self.assertTrue(
-            any(item.source == "self_evaluation" for item in confidence.confidence_components)
+            any(
+                item.source == "self_evaluation"
+                for item in confidence.confidence_components
+            )
         )
 
-    def test_uncertain_evaluation_recommends_hitl_without_execution_changes(self) -> None:
+    def test_uncertain_evaluation_recommends_hitl_without_execution_changes(
+        self,
+    ) -> None:
         stack = _stack("Generate a clean sketch with unresolved success criteria.")
         critic = _high_quality_critic(stack)
         evaluation = _high_quality_evaluation(stack, critic=critic).model_copy(
@@ -137,9 +149,7 @@ class CreativeConfidenceEngineTests(unittest.TestCase):
                     "Success criteria are not fully specified.",
                     "Final runtime expectations need confirmation.",
                 ),
-                "hitl_questions": (
-                    "Should runtime caveats be reviewed by a human?",
-                ),
+                "hitl_questions": ("Should runtime caveats be reviewed by a human?",),
                 "ambiguity_assessment": "medium",
             }
         )

@@ -344,11 +344,11 @@ def _compress_section(
 
 def _compress_text_to_budget(text: str, target_tokens: int) -> str:
     normalized_lines = tuple(
-        " ".join(line.strip().split())
-        for line in text.splitlines()
-        if line.strip()
+        " ".join(line.strip().split()) for line in text.splitlines() if line.strip()
     )
-    normalized = "\n".join(normalized_lines) if normalized_lines else " ".join(text.split())
+    normalized = (
+        "\n".join(normalized_lines) if normalized_lines else " ".join(text.split())
+    )
     if _estimate_tokens(normalized) <= target_tokens:
         return normalized
 
@@ -395,7 +395,9 @@ def _section_token_budgets(
         if index == len(sections) - 1:
             budget = max(1, remaining)
         else:
-            proportional = max(1, target_token_budget * original_tokens // original_total)
+            proportional = max(
+                1, target_token_budget * original_tokens // original_total
+            )
             budget = min(original_tokens, proportional)
         budgets[section.section_id] = max(1, budget)
         remaining = max(0, remaining - budgets[section.section_id])
