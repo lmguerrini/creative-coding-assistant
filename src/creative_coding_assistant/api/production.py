@@ -16,6 +16,10 @@ from creative_coding_assistant.api.contracts import (
     STREAM_CONTRACT_VERSION,
     WORKSPACE_SESSION_CONTRACT_VERSION,
 )
+from creative_coding_assistant.api.cors import (
+    CorsPolicyReport,
+    build_cors_policy_report,
+)
 from creative_coding_assistant.core.config import Settings, load_settings
 
 ProductionReadinessStatus = Literal["ready", "guarded"]
@@ -56,6 +60,21 @@ V7_5_ROADMAP_ITEMS = (
     "Production Logging Contracts",
     "Configuration Migration",
     "Release Checklist Generator",
+)
+
+V7_7_DEPLOYMENT_READINESS_ITEMS = (
+    "Dockerfile",
+    "Optional docker-compose",
+    "Production WSGI server command",
+    "Environment-aware CORS policy",
+    "Production deployment documentation",
+    "Health-check deployment guidance",
+    "Basic production runtime checklist",
+    "CI coverage reporting",
+    "CI security and dependency scan",
+    "Chroma dependency posture verification",
+    "Production configuration validation",
+    "Release and deployment readiness checklist",
 )
 
 
@@ -154,6 +173,53 @@ class ReleaseChecklist(BaseModel):
         return self
 
 
+class DeploymentReadinessChecklistItem(BaseModel):
+    """One V7.7 deployment-readiness checklist entry."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    deployment_item: str = Field(min_length=1)
+    evidence: str = Field(min_length=1)
+    required: bool = True
+    status: ProductionReadinessStatus
+
+
+class DeploymentReadinessChecklist(BaseModel):
+    """Generated V7.7 release/deployment readiness checklist."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    version: Literal["v7.7"] = "v7.7"
+    deployment_item_count: int = Field(ge=12, le=12)
+    checklist_item_count: int = Field(ge=12, le=12)
+    deployment_coverage_complete: bool
+    creative_behavior_changed: Literal[False] = False
+    provider_routing_changed: Literal[False] = False
+    items: tuple[DeploymentReadinessChecklistItem, ...] = Field(
+        min_length=12,
+        max_length=12,
+    )
+    guarded_items: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def _checklist_covers_deployment_items(self) -> DeploymentReadinessChecklist:
+        item_names = tuple(item.deployment_item for item in self.items)
+        if item_names != V7_7_DEPLOYMENT_READINESS_ITEMS:
+            raise ValueError("items must match V7.7 deployment readiness order")
+        if self.deployment_item_count != len(V7_7_DEPLOYMENT_READINESS_ITEMS):
+            raise ValueError("deployment_item_count must match V7.7 items")
+        if self.checklist_item_count != len(self.items):
+            raise ValueError("checklist_item_count must match items")
+        guarded = tuple(
+            item.deployment_item for item in self.items if item.status == "guarded"
+        )
+        if self.guarded_items != guarded:
+            raise ValueError("guarded_items must match item statuses")
+        if self.deployment_coverage_complete is not True:
+            raise ValueError("deployment_coverage_complete must be true")
+        return self
+
+
 @dataclass(frozen=True)
 class ConfigurationMigration:
     """Mapping from a legacy environment alias to the current setting name."""
@@ -186,6 +252,7 @@ def validate_production_configuration(
     required_keys = (
         "CCA_ENVIRONMENT",
         "CCA_LOG_LEVEL",
+        "CCA_CORS_ALLOWED_ORIGINS",
         "CCA_CHROMA_PERSIST_DIR",
         "CCA_ARTIFACT_DIR",
         "CCA_WORKSPACE_SESSION_DB_PATH",
@@ -195,6 +262,7 @@ def validate_production_configuration(
         for key, value in (
             ("CCA_ENVIRONMENT", resolved.environment),
             ("CCA_LOG_LEVEL", resolved.log_level),
+            ("CCA_CORS_ALLOWED_ORIGINS", ",".join(resolved.cors_allowed_origins)),
             ("CCA_CHROMA_PERSIST_DIR", str(resolved.chroma_persist_dir)),
             ("CCA_ARTIFACT_DIR", str(resolved.artifact_dir)),
             (
@@ -333,6 +401,43 @@ def build_release_checklist(
     )
 
 
+def build_deployment_readiness_checklist(
+    *,
+    configuration: ProductionConfigurationReport | None = None,
+    dependency_health: DependencyHealthReport | None = None,
+    cors_policy: CorsPolicyReport | None = None,
+) -> DeploymentReadinessChecklist:
+    """Generate the V7.7 deployment readiness checklist."""
+
+    config = configuration or validate_production_configuration()
+    dependencies = dependency_health or build_dependency_health_report()
+    cors = cors_policy or build_cors_policy_report()
+    guarded_inputs = {
+        "Environment-aware CORS policy": cors.status,
+        "Chroma dependency posture verification": dependencies.status,
+        "Production configuration validation": config.status,
+    }
+    items = tuple(
+        DeploymentReadinessChecklistItem(
+            deployment_item=item,
+            evidence=_deployment_readiness_evidence(item),
+            status="guarded"
+            if guarded_inputs.get(item) in {"guarded", "missing"}
+            else "ready",
+        )
+        for item in V7_7_DEPLOYMENT_READINESS_ITEMS
+    )
+    return DeploymentReadinessChecklist(
+        deployment_item_count=len(V7_7_DEPLOYMENT_READINESS_ITEMS),
+        checklist_item_count=len(items),
+        deployment_coverage_complete=True,
+        items=items,
+        guarded_items=tuple(
+            item.deployment_item for item in items if item.status == "guarded"
+        ),
+    )
+
+
 def _configuration_warnings(settings: Settings) -> tuple[str, ...]:
     warnings: list[str] = []
     environment = settings.environment.strip().lower()
@@ -342,6 +447,7 @@ def _configuration_warnings(settings: Settings) -> tuple[str, ...]:
         )
     if settings.log_level not in {"TRACE", "DEBUG", "INFO", "WARNING", "ERROR"}:
         warnings.append("CCA_LOG_LEVEL must be a standard Loguru level.")
+    warnings.extend(build_cors_policy_report(settings=settings).warnings)
     return tuple(warnings)
 
 
@@ -385,5 +491,45 @@ def _release_checklist_evidence(item: str) -> str:
         "Production Logging Contracts": "configurable structured logging.",
         "Configuration Migration": "CONFIGURATION_MIGRATIONS aliases.",
         "Release Checklist Generator": "build_release_checklist coverage tests.",
+    }
+    return evidence[item]
+
+
+def _deployment_readiness_evidence(item: str) -> str:
+    evidence = {
+        "Dockerfile": "Root Dockerfile builds the backend WSGI runtime image.",
+        "Optional docker-compose": (
+            "docker-compose.yml runs the backend with a data volume."
+        ),
+        "Production WSGI server command": (
+            "Gunicorn serves creative_coding_assistant.api.wsgi:application."
+        ),
+        "Environment-aware CORS policy": (
+            "CORS resolves from CCA_ENVIRONMENT and CCA_CORS_ALLOWED_ORIGINS."
+        ),
+        "Production deployment documentation": (
+            "docs/PRODUCTION_DEPLOYMENT.md documents local and production execution."
+        ),
+        "Health-check deployment guidance": (
+            "Docker and docs use /api/health/live and /api/health/ready."
+        ),
+        "Basic production runtime checklist": (
+            "Runtime checklist covers env, storage, logs, probes, and rollback."
+        ),
+        "CI coverage reporting": (
+            "CI runs pytest with coverage XML and terminal reporting."
+        ),
+        "CI security and dependency scan": (
+            "CI runs pip-audit against installed backend dependencies."
+        ),
+        "Chroma dependency posture verification": (
+            "Chroma remains constrained to the safe pre-1.0 line."
+        ),
+        "Production configuration validation": (
+            "validate_production_configuration reports guarded production gaps."
+        ),
+        "Release and deployment readiness checklist": (
+            "build_deployment_readiness_checklist covers all V7.7 items."
+        ),
     }
     return evidence[item]

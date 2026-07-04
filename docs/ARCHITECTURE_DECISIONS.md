@@ -717,6 +717,35 @@ mutate generated output, or perform merge, push, or tag operations. All 22
 contractual V7.5 roadmap items remain traceable to explicit API/runtime
 contracts and validation evidence.
 
+## V7.6 Orchestration Package Decomposition Boundary
+
+V7.6 Orchestration Package Decomposition separates the flat orchestration
+package into canonical runtime, metadata, governance, audit, contract, and
+advisory boundary packages. Legacy root module imports remain compatibility
+shims, and root package exports remain stable for existing callers.
+
+It must not change provider/model routing, LangGraph workflow order, prompt
+rendering, generated output semantics, persistence ownership, retry behavior,
+stream subscriptions, telemetry emission, frontend behavior, merge, push, tag,
+freeze, or V8 start state.
+
+## V7.7 Production Deployment Foundation Boundary
+
+V7.7 Production Deployment Foundation is deployment infrastructure around the
+existing browser-facing WSGI backend bridge. It owns the production WSGI
+entrypoint, Gunicorn recommendation, Dockerfile, optional docker-compose,
+environment-aware CORS policy, deployment documentation, health-check/runtime
+checklist guidance, CI coverage reporting, CI dependency security scanning,
+Chroma posture verification, production configuration validation, and
+release/deployment readiness checklist reporting.
+
+It may tighten production CORS behavior, report guarded production
+configuration, expose a Gunicorn import target, and add deployment artifacts.
+It must not change creative generation behavior, provider/model routing,
+LangGraph workflow order, prompt rendering, generated output semantics,
+workspace persistence semantics, frontend UI behavior, auth/rate-limit
+enforcement, merge, push, tag, freeze, or V8 start state.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -748,6 +777,8 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - passive V7.3 registry and contract consolidation metadata
 - V7.4 E2E/CI quality gates and validation infrastructure
 - V7.5 production API/runtime contracts and bridge stabilization
+- V7.6 orchestration package boundaries and compatibility shims
+- V7.7 production deployment foundation and CORS/deployment readiness gates
 - future active V4 Agentic Studio, live adaptive runtime control, and later
   HoloMind / HoloGenesis Cognitive OS work
 

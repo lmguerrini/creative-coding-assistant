@@ -20,6 +20,8 @@ from creative_coding_assistant.api.contracts import (
     read_json_body,
     request_id_from_environ,
 )
+from creative_coding_assistant.api.cors import resolve_cors_allow_origin
+from creative_coding_assistant.core.config import Settings, load_settings
 from creative_coding_assistant.workspace import (
     DEFAULT_LOCAL_SESSION_ID,
     DEFAULT_LOCAL_USER_ID,
@@ -43,10 +45,12 @@ class WorkspaceSessionApplication:
         service_factory: Callable[
             [], WorkspaceSessionPersistenceService
         ] = build_workspace_session_persistence_service,
+        settings_factory: Callable[[], Settings] = load_settings,
         path: str = DEFAULT_WORKSPACE_SESSION_PATH,
     ) -> None:
         self._service = service
         self._service_factory = service_factory
+        self._settings_factory = settings_factory
         self._path = path
 
     def __call__(
@@ -57,6 +61,10 @@ class WorkspaceSessionApplication:
         request_id = request_id_from_environ(environ)
         path = str(environ.get("PATH_INFO", ""))
         method = str(environ.get("REQUEST_METHOD", "GET")).upper()
+        allow_origin = resolve_cors_allow_origin(
+            environ,
+            settings=self._settings_factory(),
+        )
 
         if path != self._path:
             return error_response(
@@ -66,6 +74,7 @@ class WorkspaceSessionApplication:
                 message="Workspace session route was not found.",
                 request_id=request_id,
                 allow_methods=WORKSPACE_SESSION_METHODS,
+                allow_origin=allow_origin,
                 details={"available_paths": [self._path]},
             )
 
@@ -75,6 +84,7 @@ class WorkspaceSessionApplication:
                 HTTPStatus.NO_CONTENT,
                 request_id=request_id,
                 allow_methods=WORKSPACE_SESSION_METHODS,
+                allow_origin=allow_origin,
                 extra_headers=[
                     (
                         WORKSPACE_SESSION_CONTRACT_HEADER,
@@ -84,10 +94,20 @@ class WorkspaceSessionApplication:
             )
 
         if method == "GET":
-            return self._handle_get(environ, start_response, request_id=request_id)
+            return self._handle_get(
+                environ,
+                start_response,
+                request_id=request_id,
+                allow_origin=allow_origin,
+            )
 
         if method in {"POST", "PUT"}:
-            return self._handle_save(environ, start_response, request_id=request_id)
+            return self._handle_save(
+                environ,
+                start_response,
+                request_id=request_id,
+                allow_origin=allow_origin,
+            )
 
         return error_response(
             start_response,
@@ -96,6 +116,7 @@ class WorkspaceSessionApplication:
             message="Workspace session accepts GET, POST, PUT, and OPTIONS.",
             request_id=request_id,
             allow_methods=WORKSPACE_SESSION_METHODS,
+            allow_origin=allow_origin,
             details={"allowed_methods": ["GET", "POST", "PUT", "OPTIONS"]},
             extra_headers=[
                 ("Allow", WORKSPACE_SESSION_METHODS),
@@ -112,6 +133,7 @@ class WorkspaceSessionApplication:
         start_response: StartResponse,
         *,
         request_id: str,
+        allow_origin: str | None,
     ) -> Iterable[bytes]:
         query = parse_qs(str(environ.get("QUERY_STRING", "")))
         user_id = _first_query_value(query, "userId", DEFAULT_LOCAL_USER_ID)
@@ -129,6 +151,7 @@ class WorkspaceSessionApplication:
             return _workspace_unavailable_response(
                 start_response,
                 request_id=request_id,
+                allow_origin=allow_origin,
             )
 
         if record is None:
@@ -139,6 +162,7 @@ class WorkspaceSessionApplication:
                 message="Workspace session was not found.",
                 request_id=request_id,
                 allow_methods=WORKSPACE_SESSION_METHODS,
+                allow_origin=allow_origin,
                 details={"userId": user_id, "sessionId": session_id},
                 extra_headers=[
                     (
@@ -154,6 +178,7 @@ class WorkspaceSessionApplication:
             record.model_dump(mode="json", by_alias=True),
             request_id=request_id,
             allow_methods=WORKSPACE_SESSION_METHODS,
+            allow_origin=allow_origin,
             extra_headers=[
                 (
                     WORKSPACE_SESSION_CONTRACT_HEADER,
@@ -168,6 +193,7 @@ class WorkspaceSessionApplication:
         start_response: StartResponse,
         *,
         request_id: str,
+        allow_origin: str | None,
     ) -> Iterable[bytes]:
         try:
             payload = read_json_body(environ, max_bytes=MAX_REQUEST_BYTES)
@@ -180,6 +206,7 @@ class WorkspaceSessionApplication:
                 message=exc.message,
                 request_id=request_id,
                 allow_methods=WORKSPACE_SESSION_METHODS,
+                allow_origin=allow_origin,
                 extra_headers=[
                     (
                         WORKSPACE_SESSION_CONTRACT_HEADER,
@@ -195,6 +222,7 @@ class WorkspaceSessionApplication:
                 message=str(exc),
                 request_id=request_id,
                 allow_methods=WORKSPACE_SESSION_METHODS,
+                allow_origin=allow_origin,
                 extra_headers=[
                     (
                         WORKSPACE_SESSION_CONTRACT_HEADER,
@@ -209,6 +237,7 @@ class WorkspaceSessionApplication:
             return _workspace_unavailable_response(
                 start_response,
                 request_id=request_id,
+                allow_origin=allow_origin,
             )
 
         return json_response(
@@ -217,6 +246,7 @@ class WorkspaceSessionApplication:
             saved.model_dump(mode="json", by_alias=True),
             request_id=request_id,
             allow_methods=WORKSPACE_SESSION_METHODS,
+            allow_origin=allow_origin,
             extra_headers=[
                 (
                     WORKSPACE_SESSION_CONTRACT_HEADER,
@@ -237,12 +267,14 @@ def create_workspace_session_app(
     service_factory: Callable[
         [], WorkspaceSessionPersistenceService
     ] = build_workspace_session_persistence_service,
+    settings_factory: Callable[[], Settings] = load_settings,
 ) -> WorkspaceSessionApplication:
     """Create the WSGI application used by the Next.js persistence bridge."""
 
     return WorkspaceSessionApplication(
         service=service,
         service_factory=service_factory,
+        settings_factory=settings_factory,
     )
 
 
@@ -259,6 +291,7 @@ def _workspace_unavailable_response(
     start_response: StartResponse,
     *,
     request_id: str,
+    allow_origin: str | None,
 ) -> Iterable[bytes]:
     return error_response(
         start_response,
@@ -267,6 +300,7 @@ def _workspace_unavailable_response(
         message="Workspace session persistence is temporarily unavailable.",
         request_id=request_id,
         allow_methods=WORKSPACE_SESSION_METHODS,
+        allow_origin=allow_origin,
         extra_headers=[
             (
                 WORKSPACE_SESSION_CONTRACT_HEADER,

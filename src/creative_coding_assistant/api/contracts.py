@@ -71,15 +71,19 @@ def request_id_from_environ(environ: dict[str, Any]) -> str:
 def cors_headers(
     *,
     allow_methods: str,
-    allow_origin: str = DEFAULT_CORS_ALLOW_ORIGIN,
+    allow_origin: str | None = DEFAULT_CORS_ALLOW_ORIGIN,
 ) -> list[tuple[str, str]]:
     """Return CORS headers shared by all browser-facing WSGI apps."""
 
-    return [
-        ("Access-Control-Allow-Origin", allow_origin),
+    headers = [
         ("Access-Control-Allow-Headers", "Content-Type, X-Request-Id"),
         ("Access-Control-Allow-Methods", allow_methods),
     ]
+    if allow_origin is not None:
+        headers.insert(0, ("Access-Control-Allow-Origin", allow_origin))
+        if allow_origin != DEFAULT_CORS_ALLOW_ORIGIN:
+            headers.append(("Vary", "Origin"))
+    return headers
 
 
 def json_response(
@@ -89,7 +93,7 @@ def json_response(
     *,
     request_id: str,
     allow_methods: str,
-    allow_origin: str = DEFAULT_CORS_ALLOW_ORIGIN,
+    allow_origin: str | None = DEFAULT_CORS_ALLOW_ORIGIN,
     extra_headers: list[tuple[str, str]] | None = None,
 ) -> Iterable[bytes]:
     """Emit a compact JSON response with stable API headers."""
@@ -116,7 +120,7 @@ def empty_response(
     *,
     request_id: str,
     allow_methods: str,
-    allow_origin: str = DEFAULT_CORS_ALLOW_ORIGIN,
+    allow_origin: str | None = DEFAULT_CORS_ALLOW_ORIGIN,
     extra_headers: list[tuple[str, str]] | None = None,
 ) -> Iterable[bytes]:
     """Emit an empty response with stable API headers."""
@@ -143,7 +147,7 @@ def error_response(
     message: str,
     request_id: str,
     allow_methods: str,
-    allow_origin: str = DEFAULT_CORS_ALLOW_ORIGIN,
+    allow_origin: str | None = DEFAULT_CORS_ALLOW_ORIGIN,
     recoverable: bool = True,
     details: dict[str, Any] | None = None,
     extra_headers: list[tuple[str, str]] | None = None,

@@ -337,7 +337,7 @@ def _records(
                 path for path in _EXTERNAL_MANIFESTS if (root / path).exists()
             ),
             deployment_notes=(
-                "No external deployment manifest is present in the repository.",
+                "Backend container deployment manifests are present in the repository.",
                 "V5.6 keeps deployment assumptions explicit instead of adding automatic deployment.",
             ),
         ),

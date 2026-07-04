@@ -1,0 +1,14 @@
+.git
+.github
+.mypy_cache
+.pytest_cache
+.ruff_cache
+.venv
+__pycache__
+clients/nextjs/.next
+clients/nextjs/node_modules
+codex_starter_pack
+coverage.xml
+data
+htmlcov
+test-results

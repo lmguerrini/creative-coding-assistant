@@ -102,7 +102,8 @@ class ProductionDeploymentTests(unittest.TestCase):
         assert backend is not None
         self.assertEqual(len(guarded), 1)
         self.assertEqual(manifest.status, "guarded")
-        self.assertIn("Dockerfile", manifest.missing_items)
+        self.assertIn("Dockerfile", manifest.present_items)
+        self.assertIn("docker-compose.yml", manifest.present_items)
         self.assertIn("vercel.json", manifest.missing_items)
         self.assertEqual(backend.status, "ready")
 

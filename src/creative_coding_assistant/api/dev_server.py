@@ -14,6 +14,7 @@ from creative_coding_assistant.api.contracts import (
     error_response,
     request_id_from_environ,
 )
+from creative_coding_assistant.api.cors import resolve_cors_allow_origin
 from creative_coding_assistant.api.health import (
     DEFAULT_HEALTH_PATH,
     DEFAULT_LIVENESS_PATH,
@@ -47,8 +48,14 @@ class MountedWsgiApp:
 class BackendDevApplication:
     """Exact-path dispatcher for the local Next.js bridge WSGI apps."""
 
-    def __init__(self, mounts: tuple[MountedWsgiApp, ...]) -> None:
+    def __init__(
+        self,
+        mounts: tuple[MountedWsgiApp, ...],
+        *,
+        settings_factory: Callable[[], Settings] = load_settings,
+    ) -> None:
         self._mounts = mounts
+        self._settings_factory = settings_factory
 
     def __call__(
         self,
@@ -66,6 +73,10 @@ class BackendDevApplication:
             message="Backend bridge route was not found.",
             request_id=request_id_from_environ(environ),
             allow_methods=DEFAULT_BACKEND_ROUTE_METHODS,
+            allow_origin=resolve_cors_allow_origin(
+                environ,
+                settings=self._settings_factory(),
+            ),
             details={"available_paths": [mount.path for mount in self._mounts]},
         )
 
@@ -80,6 +91,7 @@ def create_backend_dev_app(
     *,
     stream_app: WsgiApplication | None = None,
     workspace_app: WsgiApplication | None = None,
+    settings_factory: Callable[[], Settings] = load_settings,
 ) -> BackendDevApplication:
     """Create the local dispatcher for the assistant and workspace WSGI apps."""
 
@@ -87,16 +99,28 @@ def create_backend_dev_app(
         mounts=(
             MountedWsgiApp(
                 path=DEFAULT_STREAM_PATH,
-                app=stream_app or create_assistant_streaming_app(),
+                app=stream_app
+                or create_assistant_streaming_app(settings_factory=settings_factory),
             ),
             MountedWsgiApp(
                 path=DEFAULT_WORKSPACE_SESSION_PATH,
-                app=workspace_app or create_workspace_session_app(),
+                app=workspace_app
+                or create_workspace_session_app(settings_factory=settings_factory),
             ),
-            MountedWsgiApp(path=DEFAULT_HEALTH_PATH, app=create_health_check_app()),
-            MountedWsgiApp(path=DEFAULT_LIVENESS_PATH, app=create_health_check_app()),
-            MountedWsgiApp(path=DEFAULT_READINESS_PATH, app=create_health_check_app()),
-        )
+            MountedWsgiApp(
+                path=DEFAULT_HEALTH_PATH,
+                app=create_health_check_app(settings_factory=settings_factory),
+            ),
+            MountedWsgiApp(
+                path=DEFAULT_LIVENESS_PATH,
+                app=create_health_check_app(settings_factory=settings_factory),
+            ),
+            MountedWsgiApp(
+                path=DEFAULT_READINESS_PATH,
+                app=create_health_check_app(settings_factory=settings_factory),
+            ),
+        ),
+        settings_factory=settings_factory,
     )
 
 
@@ -115,7 +139,7 @@ def run_backend_dev_server(
         resolved_settings,
         allow_production_dev_server=allow_production_dev_server,
     )
-    dev_app = app or create_backend_dev_app()
+    dev_app = app or create_backend_dev_app(settings_factory=lambda: resolved_settings)
     with make_server(host, port, dev_app) as server:
         print(f"Creative Coding Assistant backend bridge listening on {host}:{port}")
         server.serve_forever()

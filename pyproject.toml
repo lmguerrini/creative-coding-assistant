@@ -21,8 +21,13 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+  "pip-audit>=2.7",
   "pytest>=8.3",
+  "pytest-cov>=6.0",
   "ruff>=0.8",
+]
+server = [
+  "gunicorn>=22,<24",
 ]
 
 [tool.setuptools.packages.find]

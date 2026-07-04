@@ -1981,6 +1981,11 @@ for API, error, stream, workspace-session, and health responses. The local
 `CCA_ENVIRONMENT=production` it refuses to start unless the operator passes
 the explicit production override flag.
 
+Production deployments should use Gunicorn with
+`creative_coding_assistant.api.wsgi:application`, explicit
+`CCA_CORS_ALLOWED_ORIGINS`, and the health/readiness probes documented in
+[`docs/PRODUCTION_DEPLOYMENT.md`](docs/PRODUCTION_DEPLOYMENT.md).
+
 ### Streamlit Reference Client
 
 An earlier Streamlit client is still included as a lightweight reference

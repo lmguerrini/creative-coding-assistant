@@ -16,6 +16,7 @@ from creative_coding_assistant.api.contracts import (
     json_response,
     request_id_from_environ,
 )
+from creative_coding_assistant.api.cors import resolve_cors_allow_origin
 from creative_coding_assistant.api.production import (
     ProductionConfigurationReport,
     validate_production_configuration,
@@ -52,6 +53,8 @@ class HealthCheckApplication:
         request_id = request_id_from_environ(environ)
         path = str(environ.get("PATH_INFO", ""))
         method = str(environ.get("REQUEST_METHOD", "GET")).upper()
+        settings = self._settings_factory()
+        allow_origin = resolve_cors_allow_origin(environ, settings=settings)
 
         if path not in self._paths:
             return error_response(
@@ -61,6 +64,7 @@ class HealthCheckApplication:
                 message="Health route was not found.",
                 request_id=request_id,
                 allow_methods=HEALTH_METHODS,
+                allow_origin=allow_origin,
                 details={"available_paths": list(self._paths)},
             )
 
@@ -72,6 +76,7 @@ class HealthCheckApplication:
                 HTTPStatus.NO_CONTENT,
                 request_id=request_id,
                 allow_methods=HEALTH_METHODS,
+                allow_origin=allow_origin,
             )
 
         if method != "GET":
@@ -82,11 +87,11 @@ class HealthCheckApplication:
                 message="Health endpoints accept GET and OPTIONS.",
                 request_id=request_id,
                 allow_methods=HEALTH_METHODS,
+                allow_origin=allow_origin,
                 details={"allowed_methods": ["GET", "OPTIONS"]},
                 extra_headers=[("Allow", HEALTH_METHODS)],
             )
 
-        settings = self._settings_factory()
         config_report = validate_production_configuration(settings=settings)
         payload = build_health_payload(
             path=path,
@@ -104,6 +109,7 @@ class HealthCheckApplication:
             payload,
             request_id=request_id,
             allow_methods=HEALTH_METHODS,
+            allow_origin=allow_origin,
             extra_headers=[(HEALTH_CONTRACT_HEADER, HEALTH_CONTRACT_VERSION)],
         )
 

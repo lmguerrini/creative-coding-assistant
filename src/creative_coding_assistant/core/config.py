@@ -28,6 +28,14 @@ class Settings(BaseSettings):
     )
     log_level: str = Field(default="INFO")
     log_format: Literal["text", "json"] = Field(default="text")
+    cors_allowed_origins: tuple[str, ...] = Field(
+        default=("*",),
+        validation_alias=AliasChoices(
+            "CCA_CORS_ALLOWED_ORIGINS",
+            "CCA_CORS_ALLOW_ORIGINS",
+            "CCA_ALLOWED_ORIGINS",
+        ),
+    )
     chroma_persist_dir: Path = Field(default=Path("data/chroma"))
     artifact_dir: Path = Field(default=Path("data/artifacts"))
     workspace_session_db_path: Path = Field(
@@ -120,6 +128,21 @@ class Settings(BaseSettings):
         if normalized not in {"text", "json"}:
             raise ValueError("CCA_LOG_FORMAT must be text or json.")
         return normalized
+
+    @field_validator("cors_allowed_origins", mode="before")
+    @classmethod
+    def normalize_cors_allowed_origins(
+        cls,
+        value: str | tuple[str, ...] | list[str] | None,
+    ) -> tuple[str, ...]:
+        if value is None:
+            return ("*",)
+        if isinstance(value, str):
+            origins = tuple(origin.strip() for origin in value.split(","))
+        else:
+            origins = tuple(str(origin).strip() for origin in value)
+        normalized = tuple(origin for origin in origins if origin)
+        return normalized or ("*",)
 
     @field_validator("openai_model")
     @classmethod

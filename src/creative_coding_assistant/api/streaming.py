@@ -14,11 +14,13 @@ from creative_coding_assistant.api.contracts import (
     STREAM_CONTRACT_VERSION,
     ApiRequestBodyError,
     StartResponse,
+    cors_headers,
     empty_response,
     error_response,
     read_json_body,
     request_id_from_environ,
 )
+from creative_coding_assistant.api.cors import resolve_cors_allow_origin
 from creative_coding_assistant.app import build_assistant_service
 from creative_coding_assistant.contracts import (
     MAX_IMAGE_REFERENCE_COUNT,
@@ -30,6 +32,7 @@ from creative_coding_assistant.contracts import (
     StreamEvent,
     StreamEventType,
 )
+from creative_coding_assistant.core.config import Settings, load_settings
 from creative_coding_assistant.orchestration import AssistantService
 
 DEFAULT_STREAM_PATH = "/api/assistant/stream"
@@ -128,10 +131,12 @@ class AssistantStreamingApplication:
         *,
         service: AssistantService | None = None,
         service_factory: Callable[[], AssistantService] = build_assistant_service,
+        settings_factory: Callable[[], Settings] = load_settings,
         path: str = DEFAULT_STREAM_PATH,
     ) -> None:
         self._service = service
         self._service_factory = service_factory
+        self._settings_factory = settings_factory
         self._path = path
 
     def __call__(
@@ -142,6 +147,10 @@ class AssistantStreamingApplication:
         request_id = request_id_from_environ(environ)
         path = str(environ.get("PATH_INFO", ""))
         method = str(environ.get("REQUEST_METHOD", "GET")).upper()
+        allow_origin = resolve_cors_allow_origin(
+            environ,
+            settings=self._settings_factory(),
+        )
 
         if path != self._path:
             return error_response(
@@ -151,6 +160,7 @@ class AssistantStreamingApplication:
                 message="Assistant stream route was not found.",
                 request_id=request_id,
                 allow_methods=STREAM_METHODS,
+                allow_origin=allow_origin,
                 details={"available_paths": [self._path]},
             )
 
@@ -160,6 +170,7 @@ class AssistantStreamingApplication:
                 HTTPStatus.NO_CONTENT,
                 request_id=request_id,
                 allow_methods=STREAM_METHODS,
+                allow_origin=allow_origin,
                 extra_headers=[(STREAM_CONTRACT_HEADER, STREAM_CONTRACT_VERSION)],
             )
 
@@ -171,6 +182,7 @@ class AssistantStreamingApplication:
                 message="Assistant stream accepts POST and OPTIONS.",
                 request_id=request_id,
                 allow_methods=STREAM_METHODS,
+                allow_origin=allow_origin,
                 details={"allowed_methods": ["POST", "OPTIONS"]},
                 extra_headers=[
                     ("Allow", STREAM_METHODS),
@@ -189,6 +201,7 @@ class AssistantStreamingApplication:
                 message=exc.message,
                 request_id=request_id,
                 allow_methods=STREAM_METHODS,
+                allow_origin=allow_origin,
                 extra_headers=[(STREAM_CONTRACT_HEADER, STREAM_CONTRACT_VERSION)],
             )
         except ValidationError as exc:
@@ -199,6 +212,7 @@ class AssistantStreamingApplication:
                 message=str(exc),
                 request_id=request_id,
                 allow_methods=STREAM_METHODS,
+                allow_origin=allow_origin,
                 extra_headers=[(STREAM_CONTRACT_HEADER, STREAM_CONTRACT_VERSION)],
             )
 
@@ -210,7 +224,10 @@ class AssistantStreamingApplication:
                 ("X-Accel-Buffering", "no"),
                 ("X-Request-Id", request_id),
                 (STREAM_CONTRACT_HEADER, STREAM_CONTRACT_VERSION),
-                *_cors_headers(),
+                *cors_headers(
+                    allow_methods=STREAM_METHODS,
+                    allow_origin=allow_origin,
+                ),
             ],
             None,
         )
@@ -225,21 +242,15 @@ def create_assistant_streaming_app(
     *,
     service: AssistantService | None = None,
     service_factory: Callable[[], AssistantService] = build_assistant_service,
+    settings_factory: Callable[[], Settings] = load_settings,
 ) -> AssistantStreamingApplication:
     """Create the WSGI application used by the first Next.js bridge."""
 
     return AssistantStreamingApplication(
         service=service,
         service_factory=service_factory,
+        settings_factory=settings_factory,
     )
-
-
-def _cors_headers() -> list[tuple[str, str]]:
-    return [
-        ("Access-Control-Allow-Origin", "*"),
-        ("Access-Control-Allow-Headers", "Content-Type, X-Request-Id"),
-        ("Access-Control-Allow-Methods", STREAM_METHODS),
-    ]
 
 
 def _serialize_ndjson_payload(payload: dict[str, Any]) -> str:
