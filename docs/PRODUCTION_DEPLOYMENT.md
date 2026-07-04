@@ -113,7 +113,12 @@ python -c "from creative_coding_assistant.api.production import build_dependency
 
 ## CI Deployment Gates
 
-CI now reports backend coverage through `pytest --cov` and uploads
-`coverage.xml`. It also runs a dependency security audit with `pip-audit` and
-checks the Chroma posture report against the installed production dependency
-set.
+Push CI runs fast backend static gates, focused deployment/API pytest coverage,
+runtime quality checks, frontend validation, and a dependency security audit.
+The `pip-audit` job builds a frozen third-party requirements file that excludes
+the unpublished local project package before auditing, so the gate still checks
+installed dependencies without failing on the local package name.
+
+Full backend pytest with coverage is a release verification gate for manual,
+nightly, and version-tag workflows. This keeps normal push CI usable while
+preserving full-suite validation before release decisions.
