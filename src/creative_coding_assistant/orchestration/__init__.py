@@ -1,4 +1,9 @@
-"""Assistant orchestration and explicit routing."""
+"""Assistant orchestration and explicit routing.
+
+Root module imports are retained as backward-compatible shims. Canonical module
+ownership lives under runtime, metadata, governance, audit, contracts, and
+advisory boundary packages.
+"""
 
 from __future__ import annotations
 
