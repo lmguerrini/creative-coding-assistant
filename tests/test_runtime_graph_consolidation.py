@@ -75,6 +75,33 @@ class RuntimeGraphConsolidationTests(unittest.TestCase):
         self.assertIn("review", tuple(spec.source for spec in edge_specs))
         self.assertIn("finalization", tuple(spec.source for spec in edge_specs))
 
+    def test_module_split_tracks_decomposed_workflow_runtime_boundaries(self) -> None:
+        plan = build_runtime_graph_consolidation_plan()
+        modules_by_role = {module.module_role: module for module in plan.module_split}
+
+        self.assertIn("compatibility_shim", modules_by_role)
+        self.assertIn("langgraph_builder", modules_by_role)
+        self.assertIn("node_registration", modules_by_role)
+        self.assertIn("state_transitions", modules_by_role)
+        self.assertIn("node_handlers", modules_by_role)
+        self.assertEqual(
+            modules_by_role["langgraph_builder"].module_name,
+            "creative_coding_assistant.orchestration.runtime.graph_builder",
+        )
+        self.assertEqual(
+            modules_by_role["node_registration"].module_name,
+            "creative_coding_assistant.orchestration.runtime.nodes.registry",
+        )
+        self.assertEqual(
+            modules_by_role["state_transitions"].module_name,
+            "creative_coding_assistant.orchestration.runtime.nodes.transitions",
+        )
+        self.assertEqual(
+            modules_by_role["node_handlers"].module_name,
+            "creative_coding_assistant.orchestration.runtime.nodes.handlers",
+        )
+        self.assertTrue(modules_by_role["node_handlers"].owns_live_execution)
+
     def test_node_and_subgraph_contracts_extract_runtime_boundaries(self) -> None:
         plan = build_runtime_graph_consolidation_plan()
         planning = runtime_graph_node_contract_by_id("planning", plan)

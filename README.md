@@ -1554,8 +1554,11 @@ bridge.
 ### Backend Runtime
 
 The Python backend lives under `src/creative_coding_assistant/` and centers on
-an implemented LangGraph workflow in
-`src/creative_coding_assistant/orchestration/workflow_graph.py`.
+an implemented LangGraph workflow exposed through
+`src/creative_coding_assistant/orchestration/workflow_graph.py`. The live V7.8
+runtime implementation is split across `orchestration/runtime/graph_builder.py`
+and `orchestration/runtime/nodes/`, including node handlers, registration, and
+transition selectors.
 
 Workflow node order:
 

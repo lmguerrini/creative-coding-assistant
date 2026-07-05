@@ -84,6 +84,11 @@ RuntimeGraphSubgraphId = Literal[
 ]
 RuntimeGraphModuleRole = Literal[
     "langgraph_adapter",
+    "compatibility_shim",
+    "langgraph_builder",
+    "node_registration",
+    "node_handlers",
+    "state_transitions",
     "static_topology_analysis",
     "cognitive_execution_projection",
     "v7_consolidation_contracts",
@@ -388,8 +393,8 @@ class RuntimeGraphConsolidationPlan(BaseModel):
         max_length=12,
     )
     module_split: tuple[RuntimeGraphModuleSplit, ...] = Field(
-        min_length=5,
-        max_length=5,
+        min_length=9,
+        max_length=9,
     )
     normalized_state_keys: tuple[str, ...] = Field(min_length=1, max_length=120)
     final_payload_keys: tuple[str, ...] = Field(min_length=1, max_length=80)
@@ -1150,7 +1155,10 @@ def _subgraph_contracts() -> tuple[RuntimeGraphSubgraphContract, ...]:
                 accepts_state_keys=inputs,
                 emits_state_keys=outputs,
                 boundary_summary=_subgraph_boundary_summary(subgraph_id, members),
-                owner_module="creative_coding_assistant.orchestration.workflow_graph",
+                owner_module=(
+                    "creative_coding_assistant.orchestration."
+                    "runtime.nodes.handlers"
+                ),
             )
         )
     return tuple(contracts)
@@ -1255,10 +1263,53 @@ def _module_split() -> tuple[RuntimeGraphModuleSplit, ...]:
     return (
         RuntimeGraphModuleSplit(
             module_name="creative_coding_assistant.orchestration.workflow_graph",
-            module_role="langgraph_adapter",
+            module_role="compatibility_shim",
             responsibility=(
-                "Owns live LangGraph construction, node handlers, transition "
-                "selectors, and streaming integration."
+                "Preserves legacy root workflow_graph imports by aliasing the "
+                "canonical runtime handler module."
+            ),
+            owns_live_execution=True,
+        ),
+        RuntimeGraphModuleSplit(
+            module_name=(
+                "creative_coding_assistant.orchestration.runtime.graph_builder"
+            ),
+            module_role="langgraph_builder",
+            responsibility=(
+                "Owns live LangGraph construction, node registration application, "
+                "edge wiring, recursion limit configuration, and stream entrypoint."
+            ),
+            owns_live_execution=True,
+        ),
+        RuntimeGraphModuleSplit(
+            module_name=(
+                "creative_coding_assistant.orchestration.runtime.nodes.registry"
+            ),
+            module_role="node_registration",
+            responsibility=(
+                "Owns registered node handlers, conditional transition specs, "
+                "and payload registration surfaces."
+            ),
+            owns_live_execution=True,
+        ),
+        RuntimeGraphModuleSplit(
+            module_name=(
+                "creative_coding_assistant.orchestration.runtime.nodes.transitions"
+            ),
+            module_role="state_transitions",
+            responsibility=(
+                "Owns transition selector exports used by registered graph edges."
+            ),
+            owns_live_execution=True,
+        ),
+        RuntimeGraphModuleSplit(
+            module_name=(
+                "creative_coding_assistant.orchestration.runtime.nodes.handlers"
+            ),
+            module_role="node_handlers",
+            responsibility=(
+                "Owns live node execution, transition selectors, streaming "
+                "emission helpers, finalization, and terminal failure handling."
             ),
             owns_live_execution=True,
         ),

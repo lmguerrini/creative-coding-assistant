@@ -16,7 +16,10 @@
   core helpers, V7.1 runtime graph consolidation helpers, V7.2 typed failure
   contracts, V7.3 registry consolidation helpers, V7.4 quality gates, and
   V7.5 production API/runtime contracts are metadata, validation, or bridge
-  stabilization surfaces, not additional runtime nodes.
+  stabilization surfaces, not additional runtime nodes. V7.8 decomposes the
+  workflow runtime implementation into builder, registry, and node handler
+  modules plus isolated transition selector exports while preserving the same
+  compact node set.
 - Keep the Next.js workstation responsible for product inspection, preview,
   comparison, export, telemetry, workflow visibility, and operator controls.
 
@@ -196,6 +199,13 @@ ownership, or change workspace storage ownership.
   generation over the existing backend bridge. It preserves provider/model
   routing, LangGraph workflow order, prompt/Jinja rendering, retrieval
   ownership, workspace storage ownership, and generated output semantics.
+- V7.8 Workflow Runtime Decomposition describes the internal module split for
+  the live workflow runtime: `runtime.graph_builder` owns LangGraph
+  construction, `runtime.nodes.registry` owns node/edge registrations, and
+  `runtime.nodes.transitions` owns transition selector exports, and
+  `runtime.nodes.handlers` owns node execution. It preserves the same graph
+  topology, node ordering, state transitions, provider routing, streaming
+  payloads, workspace behavior, compatibility imports, and generated outputs.
 
 ## V4.3 Boundary Decision
 
@@ -746,6 +756,23 @@ LangGraph workflow order, prompt rendering, generated output semantics,
 workspace persistence semantics, frontend UI behavior, auth/rate-limit
 enforcement, merge, push, tag, freeze, or V8 start state.
 
+## V7.8 Workflow Runtime Decomposition Boundary
+
+V7.8 Workflow Runtime Decomposition is an internal runtime maintainability
+refactor over the existing assistant LangGraph workflow. It owns the split from
+the former monolithic runtime workflow graph module into a compatibility shim,
+graph builder, node registration layer, transition selector module, and node
+handler module.
+
+It may move node execution code into `runtime.nodes.handlers`, move LangGraph
+construction into `runtime.graph_builder`, expose registration helpers through
+`runtime.nodes.registry`, expose transition selector helpers through
+`runtime.nodes.transitions`, and leave compatibility shims for existing root
+and runtime imports. It must not change graph topology, node order, transition
+selector behavior, retry policy, failure routing, provider/model routing,
+prompt rendering, stream event payloads, workspace behavior, generated output
+semantics, storage ownership, merge, push, tag, freeze, or V8 start state.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -763,6 +790,7 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - advisory V5.1 execution optimization metadata
 - advisory V5.2 model-routing metadata
 - advisory V5.3 performance metadata
+- V7.8 workflow runtime builder, registry, transition, and node handler boundaries
 - read-only V5.4 production observability metadata
 - controlled V5.5 adaptive execution policy/simulation
 - V5.6 production release readiness metadata
