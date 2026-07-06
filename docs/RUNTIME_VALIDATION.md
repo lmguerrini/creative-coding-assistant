@@ -53,8 +53,14 @@ Existing supporting runtime coverage remains in:
 
 - `tests/test_langgraph_workflow_integration.py`
 - `tests/test_workflow_runtime_decomposition.py`
+- `tests/test_planning_runtime_decomposition.py`
 - `tests/test_nextjs_streaming_bridge.py`
 - `tests/test_v7_5_production_api_runtime_stabilization.py`
+
+V7.11 planning runtime decomposition coverage verifies that planning, Director,
+and reasoning handlers are registered from focused modules, the legacy
+`runtime.nodes.planning` facade remains compatible, and planning state/event
+payload field order remains stable.
 
 ## Coverage Threshold
 

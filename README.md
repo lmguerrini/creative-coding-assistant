@@ -1558,7 +1558,9 @@ an implemented LangGraph workflow exposed through
 `src/creative_coding_assistant/orchestration/workflow_graph.py`. The live V7.8
 runtime implementation is split across `orchestration/runtime/graph_builder.py`
 and `orchestration/runtime/nodes/`, including node handlers, registration, and
-transition selectors.
+transition selectors. V7.11 further splits the planning runtime into focused
+planning, Director, reasoning, state, and contract modules while preserving the
+legacy planning import facade.
 
 Workflow node order:
 

@@ -24,6 +24,7 @@ from creative_coding_assistant.orchestration.runtime.nodes.contracts import (
     _WorkflowGraphNodeSpec,
     _WorkflowModelPayloadSpec,
 )
+from creative_coding_assistant.orchestration.runtime.nodes.director import _director_node
 from creative_coding_assistant.orchestration.runtime.nodes.finalization import (
     _failure_node,
     _finalization_node,
@@ -34,9 +35,10 @@ from creative_coding_assistant.orchestration.runtime.nodes.generation import (
 )
 from creative_coding_assistant.orchestration.runtime.nodes.intake import _intake_node
 from creative_coding_assistant.orchestration.runtime.nodes.memory import _memory_node
-from creative_coding_assistant.orchestration.runtime.nodes.planning import (
-    _director_node,
+from creative_coding_assistant.orchestration.runtime.nodes.planning_node import (
     _planning_node,
+)
+from creative_coding_assistant.orchestration.runtime.nodes.reasoning import (
     _reasoning_node,
 )
 from creative_coding_assistant.orchestration.runtime.nodes.refinement import (

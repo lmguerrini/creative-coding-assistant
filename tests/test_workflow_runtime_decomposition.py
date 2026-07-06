@@ -50,9 +50,11 @@ class WorkflowRuntimeDecompositionTests(unittest.TestCase):
             "prompt_input": (
                 "creative_coding_assistant.orchestration.runtime.nodes.context"
             ),
-            "planning": "creative_coding_assistant.orchestration.runtime.nodes.planning",
-            "director": "creative_coding_assistant.orchestration.runtime.nodes.planning",
-            "reasoning": "creative_coding_assistant.orchestration.runtime.nodes.planning",
+            "planning": (
+                "creative_coding_assistant.orchestration.runtime.nodes.planning_node"
+            ),
+            "director": "creative_coding_assistant.orchestration.runtime.nodes.director",
+            "reasoning": "creative_coding_assistant.orchestration.runtime.nodes.reasoning",
             "prompt_rendering": (
                 "creative_coding_assistant.orchestration.runtime.nodes.generation"
             ),
@@ -99,8 +101,17 @@ class WorkflowRuntimeDecompositionTests(unittest.TestCase):
         handler_module = importlib.import_module(
             "creative_coding_assistant.orchestration.runtime.nodes.handlers"
         )
-        planning_module = importlib.import_module(
+        planning_facade_module = importlib.import_module(
             "creative_coding_assistant.orchestration.runtime.nodes.planning"
+        )
+        planning_module = importlib.import_module(
+            "creative_coding_assistant.orchestration.runtime.nodes.planning_node"
+        )
+        director_module = importlib.import_module(
+            "creative_coding_assistant.orchestration.runtime.nodes.director"
+        )
+        reasoning_module = importlib.import_module(
+            "creative_coding_assistant.orchestration.runtime.nodes.reasoning"
         )
         artifact_module = importlib.import_module(
             "creative_coding_assistant.orchestration.runtime.nodes.artifacts"
@@ -110,6 +121,14 @@ class WorkflowRuntimeDecompositionTests(unittest.TestCase):
         )
 
         self.assertIs(handler_module._planning_node, planning_module._planning_node)
+        self.assertIs(planning_facade_module._planning_node, planning_module._planning_node)
+        self.assertIs(handler_module._director_node, director_module._director_node)
+        self.assertIs(planning_facade_module._director_node, director_module._director_node)
+        self.assertIs(handler_module._reasoning_node, reasoning_module._reasoning_node)
+        self.assertIs(
+            planning_facade_module._reasoning_node,
+            reasoning_module._reasoning_node,
+        )
         self.assertIs(
             handler_module._artifact_critique_node,
             artifact_module._artifact_critique_node,

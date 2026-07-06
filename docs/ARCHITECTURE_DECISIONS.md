@@ -793,6 +793,22 @@ provider/model routing, prompt rendering, stream event payloads, workspace
 behavior, generated output semantics, storage ownership, merge, push, tag,
 freeze, or V8 start state.
 
+## V7.11 Planning Runtime Decomposition Boundary
+
+V7.11 Planning Runtime Decomposition is the final approved V7 internal runtime
+maintainability refactor before freeze review. It owns the split of the
+planning hotspot into a compatibility facade, planning handler, planning
+derivation pipeline, shared planning contracts, planning state/payload helpers,
+Director handler, and reasoning handler.
+
+It may update node registration to point at the focused planning, Director, and
+reasoning modules directly, keep `runtime.nodes.planning` as a compatibility
+facade, and align focused tests and architecture documentation with the new
+ownership. It must not change graph topology, node order, state transition
+outcomes, failure routing, provider/model routing, prompt rendering, stream
+event payload keys or order, workspace/session behavior, generated output
+semantics, storage ownership, merge, push, tag, freeze, or V8 start state.
+
 ## Documentation Decision
 
 Documentation should make passive metadata visible without implying active
@@ -827,6 +843,7 @@ runtime behavior. Product and architecture docs should continue to distinguish:
 - V7.5 production API/runtime contracts and bridge stabilization
 - V7.6 orchestration package boundaries and compatibility shims
 - V7.7 production deployment foundation and CORS/deployment readiness gates
+- V7.11 planning runtime module boundaries and compatibility facade
 - future active V4 Agentic Studio, live adaptive runtime control, and later
   HoloMind / HoloGenesis Cognitive OS work
 

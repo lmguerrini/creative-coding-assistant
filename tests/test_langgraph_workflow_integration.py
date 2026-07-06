@@ -3,7 +3,7 @@ from collections.abc import Callable, Iterator, Sequence
 from unittest.mock import patch
 
 import creative_coding_assistant.orchestration.runtime.nodes.artifacts as workflow_artifact_nodes
-import creative_coding_assistant.orchestration.runtime.nodes.planning as workflow_planning_nodes
+import creative_coding_assistant.orchestration.runtime.nodes.planning_derivation as workflow_planning_derivation
 import creative_coding_assistant.orchestration.runtime.nodes.refinement as workflow_refinement_nodes
 import creative_coding_assistant.orchestration.runtime.nodes.review as workflow_review_nodes
 import creative_coding_assistant.orchestration.workflow_graph as workflow_graph_module
@@ -1372,7 +1372,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         )
 
         with patch.object(
-            workflow_planning_nodes,
+            workflow_planning_derivation,
             "derive_creative_strategy_profile",
             side_effect=RuntimeError("planning helper failed"),
         ):
