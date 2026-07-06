@@ -43,6 +43,7 @@ jobs:
           pytest \
             tests/test_v7_7_production_deployment_foundation.py \
             tests/test_v7_5_production_api_runtime_stabilization.py \
+            tests/test_v7_9_runtime_validation_integration.py \
             tests/test_nextjs_streaming_bridge.py \
             tests/test_workspace_session_persistence.py \
             --cov=creative_coding_assistant \

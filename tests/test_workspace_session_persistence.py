@@ -114,6 +114,69 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
         self.assertEqual(restored["preferences"]["theme"], "blueprint")
         self.assertEqual(restored["messages"][0]["content"], "Keep this chat.")
 
+    def test_wsgi_endpoint_updates_existing_session_with_put(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            app = _app_for_temp_db(Path(temp_dir))
+            create_status: dict[str, object] = {}
+            update_status: dict[str, object] = {}
+            get_status: dict[str, object] = {}
+            create_payload = json.dumps(_session_payload()).encode("utf-8")
+            update_payload = json.dumps(
+                _session_payload(
+                    schema_version=4,
+                    active_inspector_tab="Preview",
+                    theme="blueprint",
+                    preview_height=520,
+                )
+                | {"title": "Updated sketch session"}
+            ).encode("utf-8")
+
+            b"".join(
+                app(
+                    {
+                        "PATH_INFO": "/api/workspace/session",
+                        "REQUEST_METHOD": "POST",
+                        "CONTENT_LENGTH": str(len(create_payload)),
+                        "wsgi.input": io.BytesIO(create_payload),
+                    },
+                    _capture_start_response(create_status),
+                )
+            )
+            update_body = b"".join(
+                app(
+                    {
+                        "PATH_INFO": "/api/workspace/session",
+                        "REQUEST_METHOD": "PUT",
+                        "CONTENT_LENGTH": str(len(update_payload)),
+                        "wsgi.input": io.BytesIO(update_payload),
+                    },
+                    _capture_start_response(update_status),
+                )
+            )
+            get_body = b"".join(
+                app(
+                    {
+                        "PATH_INFO": "/api/workspace/session",
+                        "QUERY_STRING": (
+                            "userId=local-user&sessionId=local-nextjs-session"
+                        ),
+                        "REQUEST_METHOD": "GET",
+                    },
+                    _capture_start_response(get_status),
+                )
+            )
+
+        updated = json.loads(update_body)
+        restored = json.loads(get_body)
+        self.assertEqual(create_status["status"], "200 OK")
+        self.assertEqual(update_status["status"], "200 OK")
+        self.assertEqual(get_status["status"], "200 OK")
+        self.assertEqual(updated["title"], "Updated sketch session")
+        self.assertEqual(updated["schemaVersion"], 4)
+        self.assertEqual(restored["title"], "Updated sketch session")
+        self.assertEqual(restored["layout"]["previewHeight"], 520)
+        self.assertEqual(restored["preferences"]["theme"], "blueprint")
+
     def test_wsgi_endpoint_returns_404_for_missing_session(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             app = _app_for_temp_db(Path(temp_dir))
