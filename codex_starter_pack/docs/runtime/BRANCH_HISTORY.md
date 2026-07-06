@@ -9,12 +9,11 @@
 | `feature/planning-runtime-decomposition` | `016fe56f930112afb1085b7a1ec12dceb78d2947` |
 | `v7.11.0` | `016fe56f930112afb1085b7a1ec12dceb78d2947` |
 
-## Current Reconciliation Branch
+## Current Freeze Branch
 
 `version-review/v7-final-3` contains the local Version-Scoped Runtime Pack
-Reconciliation above the `v7.11.0` release baseline. This branch is the current
-Codex Engineering Audit HITL branch and has not been merged, pushed, or tagged
-by this reconciliation.
+Reconciliation and V7 Freeze above the `v7.11.0` release baseline. This branch
+has not been merged, pushed, or tagged by the freeze workflow.
 
 ## Historical Capability Branches
 

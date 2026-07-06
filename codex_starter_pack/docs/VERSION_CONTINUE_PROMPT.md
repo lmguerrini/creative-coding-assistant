@@ -6,6 +6,13 @@ Read this file first. Then continue the active V7 runtime exactly.
 
 Use the Runtime Pack as source of truth. Do not rely on chat memory when Runtime Pack, Git, tags, tests, or ledgers provide stronger evidence.
 
+## Freeze State
+
+V7 is frozen. Do not add V7 capabilities, modify product behavior, start V8,
+create a V8 roadmap, merge, push, or tag from this Runtime Pack without a new
+explicit HITL instruction. Use `runtime/GENERATION_V7_CONTEXT_PACK.md` only as
+future context for an explicitly authorized V8 planning thread.
+
 ## Phase -1 Runtime Hygiene
 
 Before Phase 0, validate the local engineering state:

@@ -1,5 +1,8 @@
 # V7 Engineering Metrics
 
+## Freeze Snapshot
+FROZEN_LIGHTWEIGHT_VALIDATION_ONLY
+
 ## Final Lightweight Validation Set
 
 - `runtime-hygiene`
@@ -22,3 +25,9 @@
 
 `34 passed, 1 warning, 37 subtests passed` for planning/runtime/LangGraph/V7.9
 focused tests. The warning is the carried Chroma/Python deprecation warning.
+
+## Freeze Validation Policy
+No expensive validation is rerun for freeze because final Codex and Junie audits
+reported no V7 blockers and the freeze changes Runtime Pack state only. Fresh
+freeze validation is limited to lightweight Runtime Pack consistency,
+formatting, docs, dashboard, Ruff, and compile sanity checks.

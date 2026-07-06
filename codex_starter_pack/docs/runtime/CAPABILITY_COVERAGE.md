@@ -24,3 +24,7 @@ V7.11 plus the V7 Grand Engineering Audit.
 V7.9 implementation evidence existed in Git, tests, tags, and CI before this
 reconciliation; this pass restores its Runtime Pack capability evidence so the
 directory structure matches the released repository evidence.
+
+## Freeze State
+Capability coverage is frozen complete for V7.1 through V7.11. No V8
+capability directory exists or is approved by this Runtime Pack.

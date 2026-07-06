@@ -11,9 +11,24 @@
 
 - V7.1 through V7.11 are represented in capability ledgers and runtime ledgers.
 - Release state, Git tags, GitHub CI evidence, branch history, roadmap coverage, and capability coverage are recorded in `runtime/`.
-- The Runtime Pack stops at Codex Engineering Audit HITL and does not record a V7 freeze, V8 start, merge, push, or tag operation.
+- The Runtime Pack records V7 Freeze after final Codex and Junie audits reported
+  no V7 blockers.
 - `architecture/engine_matrix.md` reflects V7.1 through V7.11 implementation boundaries.
 - `scripts/v7_quality_gates.py runtime-hygiene` is the canonical lightweight Runtime Pack consistency helper.
+
+## Freeze Artifacts
+
+- `runtime/FINAL_VERSION_SUMMARY.md`
+- `runtime/GENERATION_V7_CONTEXT_PACK.md`
+- `runtime/RUNTIME_LEDGER_INTEGRITY_FINAL_VERIFICATION.md`
+- `runtime/FINAL_RELEASE_RECONCILIATION.md`
+- `runtime/FINAL_ARCHITECTURE_SNAPSHOT.md`
+- `runtime/ENGINEERING_WORKFLOW_SNAPSHOT.md`
+- `runtime/RUNTIME_PACK_EVOLUTION_REPORT.md`
+- `runtime/ENGINEERING_WORKFLOW_EVOLUTION_REPORT.md`
+
+V8 has not started. The freeze does not merge, push, tag, or create V8
+capabilities.
 
 ## Design Goal
 

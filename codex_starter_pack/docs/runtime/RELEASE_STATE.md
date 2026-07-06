@@ -1,12 +1,12 @@
 # V7 Release State
 
 ## Current State
-V7 release state is released through `v7.11.0` at
+V7 is frozen. The final released capability baseline is `v7.11.0` at
 `016fe56f930112afb1085b7a1ec12dceb78d2947`.
 
-The Version-Scoped Runtime Pack Reconciliation is a local audit/reconciliation
-commit above the release baseline. It is not a V7 capability release, freeze,
-merge, push, or tag operation.
+The Runtime Pack final reconciliation and V7 Freeze commits are local
+version-review commits above the release baseline. They are not new V7
+capability releases and do not perform merge, push, or tag operations.
 
 ## Release Baseline Refs
 
@@ -15,11 +15,11 @@ merge, push, or tag operation.
 - `feature/planning-runtime-decomposition` points at `016fe56f930112afb1085b7a1ec12dceb78d2947`.
 - Tag `v7.11.0` points at `016fe56f930112afb1085b7a1ec12dceb78d2947`.
 
-## Reconciliation Branch
+## Freeze Branch
 
-- `version-review/v7-final-3` carries this local Runtime Pack reconciliation
-  above the `v7.11.0` release baseline and stops at Codex Engineering Audit
-  HITL.
+- `version-review/v7-final-3` carries the local Runtime Pack reconciliation and
+  V7 Freeze state above the `v7.11.0` release baseline.
+- No Git tag is created by the Runtime Pack freeze workflow.
 
 ## Release Tags
 
@@ -40,6 +40,6 @@ merge, push, or tag operation.
 | `v7.10.0` | `de093b7d5b375e54cd9032246c06a28f11581f60` | released |
 | `v7.11.0` | `016fe56f930112afb1085b7a1ec12dceb78d2947` | released |
 
-## Next Gate
-Codex Engineering Audit HITL for this Runtime Pack reconciliation. The next
-external review after accepted reconciliation is the final Junie audit.
+## Freeze Gate
+Closed. Final Codex Audit and Final Junie Audit reported no V7 blockers. V7 is
+ready for future V8 planning, but V8 has not started in this repository state.

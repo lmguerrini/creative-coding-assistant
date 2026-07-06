@@ -15,7 +15,7 @@
   browser logs, and session restore/save completion.
 
 ## Reuse Policy
-The Final V7 Runtime Pack Reconciliation did not rerun local app smoke because
-it changes Runtime Pack documentation and quality-gate tooling only. No product
-runtime behavior, API behavior, frontend behavior, provider routing, or workflow
-execution behavior changed.
+The Final V7 Freeze did not rerun local app smoke because it changes Runtime
+Pack documentation, freeze snapshots, context-pack artifacts, and lightweight
+quality-gate coverage only. No product runtime behavior, API behavior,
+frontend behavior, provider routing, or workflow execution behavior changed.

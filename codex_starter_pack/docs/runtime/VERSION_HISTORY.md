@@ -4,8 +4,8 @@ V7 is implemented through the `v7.11.0` release baseline. The released
 repository history is linear from `v7.1.0` through `v7.11.0`, with `main`,
 `origin/main`, `feature/planning-runtime-decomposition`, and tag `v7.11.0`
 pointing at `016fe56f930112afb1085b7a1ec12dceb78d2947`. The current review
-branch carries this local Runtime Pack reconciliation above that release
-baseline for Codex Engineering Audit HITL.
+branch carries local Runtime Pack reconciliation and V7 Freeze commits above
+that release baseline.
 
 ## Release Sequence
 
@@ -27,5 +27,6 @@ baseline for Codex Engineering Audit HITL.
 ## Current Audit History
 The Final V7 Grand Engineering Audit identified Runtime Pack consistency
 findings. HITL accepted them as one Version-Scoped Runtime Pack Reconciliation.
-No product runtime, API behavior, V8 work, freeze, merge, push, or tag operation
-is part of this reconciliation.
+The final Codex and Junie audits then reported no V7 blockers, and explicit
+HITL instruction authorized the Runtime Pack V7 Freeze. No product runtime, API
+behavior, V8 work, merge, push, or tag operation is part of the freeze.

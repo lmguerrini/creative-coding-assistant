@@ -15,3 +15,9 @@ Remote GitHub Actions CI evidence was verified through the GitHub Actions API.
 
 Earlier V7.1 through V7.3 releases predate the V7.4 split CI workflow and are
 covered by local validation records in their capability progress files.
+
+## Freeze Note
+The V7 Freeze is a local Runtime Pack ledger state above `v7.11.0`. It does not
+create a release tag or trigger GitHub release CI. Final freeze validation uses
+lightweight local consistency checks and reuses the recorded release CI
+evidence above.

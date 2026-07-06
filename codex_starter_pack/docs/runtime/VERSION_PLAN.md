@@ -17,3 +17,8 @@
 | V7.11 Planning Runtime Decomposition | Split planning runtime into focused modules | Released as `v7.11.0` |
 
 No additional V7 capabilities are approved. V8 has not started.
+
+## Freeze State
+V7 is frozen after final Codex and Junie audits reported no V7 blockers. The
+freeze does not authorize or create any additional V7 capability, V8 roadmap,
+V8 capability, merge, push, or tag operation.

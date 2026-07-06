@@ -22,7 +22,8 @@ E2E Quality & CI Hardening capability.
 - `python scripts/v7_quality_gates.py dashboard` validates the V7.4 roadmap,
   performance budgets, release checklist, and coverage dashboard.
 - `python scripts/v7_quality_gates.py runtime-hygiene` validates Runtime Pack
-  structure, stale release wording, duplicate artifacts, and local Git hygiene.
+  structure, final freeze artifacts, stale release wording, duplicate
+  artifacts, and local Git hygiene.
 - `python scripts/v7_quality_gates.py backend-log <log-path>` fails on
   backend log errors, tracebacks, and critical exceptions while allowing the
   controlled shutdown tracebacks produced by timeout-based smoke tests.

@@ -18,3 +18,7 @@ capability-progress evidence.
 | V7.11 Planning Runtime Decomposition | `capabilities/v7_11_planning_runtime_decomposition` | `tests/test_planning_runtime_decomposition.py` |
 
 No V7 roadmap item is missing. No V8 scope is included.
+
+## Freeze State
+Roadmap coverage is frozen complete. No additional V7 roadmap items are
+approved, and V8 planning has not started.

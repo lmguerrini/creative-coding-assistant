@@ -1,5 +1,8 @@
 # V7 Technical Debt Ledger
 
+## Freeze Snapshot
+FROZEN_FINAL_SNAPSHOT
+
 ## Open Non-Blocking Debt
 
 1. Keep improving Runtime Pack automation beyond Markdown-ledger checks.
@@ -17,3 +20,8 @@
   and GitHub CI evidence.
 - Added the canonical `runtime-hygiene` quality-gate entry point required by
   the V7 continuation prompt.
+
+## Freeze Boundary
+No open debt is a V7 freeze blocker. Remaining items are future engineering or
+product evolution candidates and must be explicitly approved in a future
+version or post-freeze correction.
