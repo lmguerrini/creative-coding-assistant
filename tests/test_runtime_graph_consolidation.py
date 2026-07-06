@@ -84,6 +84,9 @@ class RuntimeGraphConsolidationTests(unittest.TestCase):
         self.assertIn("node_registration", modules_by_role)
         self.assertIn("state_transitions", modules_by_role)
         self.assertIn("node_handlers", modules_by_role)
+        self.assertIn("node_state_helpers", modules_by_role)
+        self.assertIn("node_emission_helpers", modules_by_role)
+        self.assertIn("node_compatibility_facade", modules_by_role)
         self.assertEqual(
             modules_by_role["langgraph_builder"].module_name,
             "creative_coding_assistant.orchestration.runtime.graph_builder",
@@ -98,9 +101,24 @@ class RuntimeGraphConsolidationTests(unittest.TestCase):
         )
         self.assertEqual(
             modules_by_role["node_handlers"].module_name,
+            "creative_coding_assistant.orchestration.runtime.nodes",
+        )
+        self.assertEqual(
+            modules_by_role["node_state_helpers"].module_name,
+            "creative_coding_assistant.orchestration.runtime.nodes.state",
+        )
+        self.assertEqual(
+            modules_by_role["node_emission_helpers"].module_name,
+            "creative_coding_assistant.orchestration.runtime.nodes.emissions",
+        )
+        self.assertEqual(
+            modules_by_role["node_compatibility_facade"].module_name,
             "creative_coding_assistant.orchestration.runtime.nodes.handlers",
         )
         self.assertTrue(modules_by_role["node_handlers"].owns_live_execution)
+        self.assertFalse(
+            modules_by_role["node_compatibility_facade"].owns_live_execution
+        )
 
     def test_node_and_subgraph_contracts_extract_runtime_boundaries(self) -> None:
         plan = build_runtime_graph_consolidation_plan()

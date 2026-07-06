@@ -2,6 +2,10 @@ import unittest
 from collections.abc import Callable, Iterator, Sequence
 from unittest.mock import patch
 
+import creative_coding_assistant.orchestration.runtime.nodes.artifacts as workflow_artifact_nodes
+import creative_coding_assistant.orchestration.runtime.nodes.planning as workflow_planning_nodes
+import creative_coding_assistant.orchestration.runtime.nodes.refinement as workflow_refinement_nodes
+import creative_coding_assistant.orchestration.runtime.nodes.review as workflow_review_nodes
 import creative_coding_assistant.orchestration.workflow_graph as workflow_graph_module
 from creative_coding_assistant.analytics import build_langsmith_observability
 from creative_coding_assistant.contracts import (
@@ -1368,7 +1372,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         )
 
         with patch.object(
-            workflow_graph_module,
+            workflow_planning_nodes,
             "derive_creative_strategy_profile",
             side_effect=RuntimeError("planning helper failed"),
         ):
@@ -1437,6 +1441,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         extracted_content = _code_generation_content()
         cases = (
             (
+                workflow_artifact_nodes,
                 "extract_workflow_artifacts",
                 WorkflowStep.ARTIFACT_EXTRACTION,
                 "artifact extraction failed",
@@ -1444,6 +1449,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 0,
             ),
             (
+                workflow_artifact_nodes,
                 "prepare_workflow_preview_results",
                 WorkflowStep.PREVIEW_PREPARATION,
                 "preview preparation failed",
@@ -1451,6 +1457,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                 0,
             ),
             (
+                workflow_artifact_nodes,
                 "critique_workflow_artifacts",
                 WorkflowStep.ARTIFACT_CRITIQUE,
                 "artifact critique failed",
@@ -1459,11 +1466,11 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             ),
         )
 
-        for function_name, step, message, artifact_count, preview_count in cases:
+        for module, function_name, step, message, artifact_count, preview_count in cases:
             with self.subTest(step=step.value):
                 request = _request(query="Write a p5.js sketch.")
                 with patch.object(
-                    workflow_graph_module,
+                    module,
                     function_name,
                     side_effect=RuntimeError(message),
                 ):
@@ -1499,7 +1506,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         request = _request(query="Write code for a Three.js scene.")
 
         with patch.object(
-            workflow_graph_module,
+            workflow_review_nodes,
             "review_assistant_answer",
             side_effect=RuntimeError("review failed"),
         ):
@@ -1525,7 +1532,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
 
         generation = _SequentialGeneration("Still no fenced code.")
         with patch.object(
-            workflow_graph_module,
+            workflow_refinement_nodes,
             "_append_refinement_guidance",
             side_effect=RuntimeError("refinement failed"),
         ):

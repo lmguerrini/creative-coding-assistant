@@ -8,9 +8,11 @@ from typing import Any
 from langgraph.graph import END, START, StateGraph
 
 from creative_coding_assistant.contracts import AssistantRequest, StreamEvent
-from creative_coding_assistant.orchestration.runtime.nodes.handlers import (
+from creative_coding_assistant.orchestration.runtime.nodes.constants import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
     ASSISTANT_WORKFLOW_RECURSION_LIMIT,
+)
+from creative_coding_assistant.orchestration.runtime.nodes.contracts import (
     AssistantWorkflowGraphContext,
     AssistantWorkflowGraphState,
     AssistantWorkflowRuntime,

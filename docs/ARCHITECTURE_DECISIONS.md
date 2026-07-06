@@ -202,10 +202,13 @@ ownership, or change workspace storage ownership.
 - V7.8 Workflow Runtime Decomposition describes the internal module split for
   the live workflow runtime: `runtime.graph_builder` owns LangGraph
   construction, `runtime.nodes.registry` owns node/edge registrations, and
-  `runtime.nodes.transitions` owns transition selector exports, and
-  `runtime.nodes.handlers` owns node execution. It preserves the same graph
-  topology, node ordering, state transitions, provider routing, streaming
-  payloads, workspace behavior, compatibility imports, and generated outputs.
+  `runtime.nodes.transitions` owns transition selector logic. V7.10 preserves
+  that runtime shape while moving grouped node execution, shared state helpers,
+  and stream emission helpers into focused `runtime.nodes` modules, with
+  `runtime.nodes.handlers` retained as a compatibility facade. It preserves the
+  same graph topology, node ordering, state transitions, provider routing,
+  streaming payloads, workspace behavior, compatibility imports, and generated
+  outputs.
 
 ## V4.3 Boundary Decision
 
@@ -772,6 +775,23 @@ and runtime imports. It must not change graph topology, node order, transition
 selector behavior, retry policy, failure routing, provider/model routing,
 prompt rendering, stream event payloads, workspace behavior, generated output
 semantics, storage ownership, merge, push, tag, freeze, or V8 start state.
+
+## V7.10 Workflow Node Handler Decomposition Boundary
+
+V7.10 Workflow Node Handler Decomposition is a behavior-preserving internal
+runtime refactor over the V7.8 workflow runtime split. It owns the extraction of
+live node handlers from `runtime.nodes.handlers` into focused modules for
+intake, routing, memory, retrieval, context assembly, planning, generation,
+artifacts, review, refinement, finalization, shared workflow state helpers,
+stream emission helpers, and transition logic.
+
+It may update node registration to point at the focused modules, keep
+`runtime.nodes.handlers` as a compatibility facade, and align tests and
+architecture documentation with the new ownership. It must not change graph
+topology, node order, state transition outcomes, retry policy, failure routing,
+provider/model routing, prompt rendering, stream event payloads, workspace
+behavior, generated output semantics, storage ownership, merge, push, tag,
+freeze, or V8 start state.
 
 ## Documentation Decision
 

@@ -88,6 +88,9 @@ RuntimeGraphModuleRole = Literal[
     "langgraph_builder",
     "node_registration",
     "node_handlers",
+    "node_state_helpers",
+    "node_emission_helpers",
+    "node_compatibility_facade",
     "state_transitions",
     "static_topology_analysis",
     "cognitive_execution_projection",
@@ -394,7 +397,7 @@ class RuntimeGraphConsolidationPlan(BaseModel):
     )
     module_split: tuple[RuntimeGraphModuleSplit, ...] = Field(
         min_length=9,
-        max_length=9,
+        max_length=12,
     )
     normalized_state_keys: tuple[str, ...] = Field(min_length=1, max_length=120)
     final_payload_keys: tuple[str, ...] = Field(min_length=1, max_length=80)
@@ -1155,10 +1158,7 @@ def _subgraph_contracts() -> tuple[RuntimeGraphSubgraphContract, ...]:
                 accepts_state_keys=inputs,
                 emits_state_keys=outputs,
                 boundary_summary=_subgraph_boundary_summary(subgraph_id, members),
-                owner_module=(
-                    "creative_coding_assistant.orchestration."
-                    "runtime.nodes.handlers"
-                ),
+                owner_module="creative_coding_assistant.orchestration.runtime.nodes",
             )
         )
     return tuple(contracts)
@@ -1266,7 +1266,7 @@ def _module_split() -> tuple[RuntimeGraphModuleSplit, ...]:
             module_role="compatibility_shim",
             responsibility=(
                 "Preserves legacy root workflow_graph imports by aliasing the "
-                "canonical runtime handler module."
+                "canonical runtime compatibility facade."
             ),
             owns_live_execution=True,
         ),
@@ -1298,7 +1298,41 @@ def _module_split() -> tuple[RuntimeGraphModuleSplit, ...]:
             ),
             module_role="state_transitions",
             responsibility=(
-                "Owns transition selector exports used by registered graph edges."
+                "Owns transition selector logic used by registered graph edges."
+            ),
+            owns_live_execution=True,
+        ),
+        RuntimeGraphModuleSplit(
+            module_name="creative_coding_assistant.orchestration.runtime.nodes",
+            module_role="node_handlers",
+            responsibility=(
+                "Owns focused live node execution groups for intake, routing, "
+                "memory, retrieval, context, planning, generation, artifacts, "
+                "review, refinement, finalization, and terminal failure handling."
+            ),
+            owns_live_execution=True,
+        ),
+        RuntimeGraphModuleSplit(
+            module_name=(
+                "creative_coding_assistant.orchestration.runtime.nodes.state"
+            ),
+            module_role="node_state_helpers",
+            responsibility=(
+                "Owns shared workflow state access, step lifecycle mutation, "
+                "failure handling, review answer selection, and refinement "
+                "prompt helpers used by focused node modules."
+            ),
+            owns_live_execution=True,
+        ),
+        RuntimeGraphModuleSplit(
+            module_name=(
+                "creative_coding_assistant.orchestration.runtime.nodes.emissions"
+            ),
+            module_role="node_emission_helpers",
+            responsibility=(
+                "Owns stream event emission, node lifecycle event payloads, "
+                "artifact/review/refinement event helpers, and serialized "
+                "workflow runtime metadata payloads."
             ),
             owns_live_execution=True,
         ),
@@ -1306,12 +1340,12 @@ def _module_split() -> tuple[RuntimeGraphModuleSplit, ...]:
             module_name=(
                 "creative_coding_assistant.orchestration.runtime.nodes.handlers"
             ),
-            module_role="node_handlers",
+            module_role="node_compatibility_facade",
             responsibility=(
-                "Owns live node execution, transition selectors, streaming "
-                "emission helpers, finalization, and terminal failure handling."
+                "Preserves legacy handler imports by re-exporting focused node "
+                "handlers, helper contracts, transition aliases, and graph entrypoints."
             ),
-            owns_live_execution=True,
+            owns_live_execution=False,
         ),
         RuntimeGraphModuleSplit(
             module_name="creative_coding_assistant.orchestration.execution_graph_analyzer",

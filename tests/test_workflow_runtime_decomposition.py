@@ -37,20 +37,86 @@ class WorkflowRuntimeDecompositionTests(unittest.TestCase):
         self,
     ) -> None:
         node_specs = registered_workflow_node_specs()
+        expected_modules = {
+            "intake": "creative_coding_assistant.orchestration.runtime.nodes.intake",
+            "routing": "creative_coding_assistant.orchestration.runtime.nodes.routing",
+            "memory": "creative_coding_assistant.orchestration.runtime.nodes.memory",
+            "retrieval": (
+                "creative_coding_assistant.orchestration.runtime.nodes.retrieval"
+            ),
+            "context_assembly": (
+                "creative_coding_assistant.orchestration.runtime.nodes.context"
+            ),
+            "prompt_input": (
+                "creative_coding_assistant.orchestration.runtime.nodes.context"
+            ),
+            "planning": "creative_coding_assistant.orchestration.runtime.nodes.planning",
+            "director": "creative_coding_assistant.orchestration.runtime.nodes.planning",
+            "reasoning": "creative_coding_assistant.orchestration.runtime.nodes.planning",
+            "prompt_rendering": (
+                "creative_coding_assistant.orchestration.runtime.nodes.generation"
+            ),
+            "generation": (
+                "creative_coding_assistant.orchestration.runtime.nodes.generation"
+            ),
+            "artifact_extraction": (
+                "creative_coding_assistant.orchestration.runtime.nodes.artifacts"
+            ),
+            "preview_preparation": (
+                "creative_coding_assistant.orchestration.runtime.nodes.artifacts"
+            ),
+            "artifact_critique": (
+                "creative_coding_assistant.orchestration.runtime.nodes.artifacts"
+            ),
+            "review": "creative_coding_assistant.orchestration.runtime.nodes.review",
+            "refinement": (
+                "creative_coding_assistant.orchestration.runtime.nodes.refinement"
+            ),
+            "finalization": (
+                "creative_coding_assistant.orchestration.runtime.nodes.finalization"
+            ),
+            "failure": (
+                "creative_coding_assistant.orchestration.runtime.nodes.finalization"
+            ),
+        }
 
         self.assertEqual(
             tuple(spec.name for spec in node_specs),
             ASSISTANT_WORKFLOW_NODE_ORDER,
         )
-        self.assertTrue(
-            all(
-                spec.handler.__module__.endswith(".runtime.nodes.handlers")
-                for spec in node_specs
-            )
+        self.assertEqual(
+            tuple(spec.handler.__module__ for spec in node_specs),
+            tuple(expected_modules[node] for node in ASSISTANT_WORKFLOW_NODE_ORDER),
         )
         self.assertEqual(
             tuple(spec.handler.__name__ for spec in node_specs),
             tuple(f"_{node}_node" for node in ASSISTANT_WORKFLOW_NODE_ORDER),
+        )
+
+    def test_representative_node_handlers_import_from_canonical_modules(
+        self,
+    ) -> None:
+        handler_module = importlib.import_module(
+            "creative_coding_assistant.orchestration.runtime.nodes.handlers"
+        )
+        planning_module = importlib.import_module(
+            "creative_coding_assistant.orchestration.runtime.nodes.planning"
+        )
+        artifact_module = importlib.import_module(
+            "creative_coding_assistant.orchestration.runtime.nodes.artifacts"
+        )
+        finalization_module = importlib.import_module(
+            "creative_coding_assistant.orchestration.runtime.nodes.finalization"
+        )
+
+        self.assertIs(handler_module._planning_node, planning_module._planning_node)
+        self.assertIs(
+            handler_module._artifact_critique_node,
+            artifact_module._artifact_critique_node,
+        )
+        self.assertIs(
+            handler_module._finalization_node,
+            finalization_module._finalization_node,
         )
 
     def test_registered_edges_preserve_failure_targets_and_topology(self) -> None:

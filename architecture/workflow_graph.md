@@ -5,9 +5,9 @@ This document describes the real LangGraph workflow currently executed by the ba
 - `src/creative_coding_assistant/orchestration/workflow_graph.py`
 - `src/creative_coding_assistant/orchestration/runtime/workflow_graph.py`
 - `src/creative_coding_assistant/orchestration/runtime/graph_builder.py`
-- `src/creative_coding_assistant/orchestration/runtime/nodes/handlers.py`
 - `src/creative_coding_assistant/orchestration/runtime/nodes/registry.py`
 - `src/creative_coding_assistant/orchestration/runtime/nodes/transitions.py`
+- `src/creative_coding_assistant/orchestration/runtime/nodes/*.py`
 - `src/creative_coding_assistant/orchestration/workflow.py`
 - `src/creative_coding_assistant/orchestration/service.py`
 - `src/creative_coding_assistant/orchestration/events.py`
@@ -151,15 +151,17 @@ services, create release artifacts, generate assets, execute retrieval,
 execute providers, mutate configured provider/model routing, emit HITL
 requests, compile graphs, execute or control workflows, mutate workflow
 graphs, apply Runtime Evolution, merge, push, tag, or modify generated output.
-V7.8 Workflow Runtime Decomposition keeps the same LangGraph runtime node set,
-topology, state transitions, provider routing, streaming behavior, workspace
-behavior, and generated outputs while splitting runtime implementation
-ownership. `runtime.workflow_graph` and the root `orchestration.workflow_graph`
-remain compatibility shims; `runtime.graph_builder` owns LangGraph
-construction; `runtime.nodes.registry` owns node and transition registration;
-`runtime.nodes.transitions` owns transition selector exports; and
-`runtime.nodes.handlers` owns live node execution handlers. This is an internal
-maintainability decomposition, not a runtime behavior change.
+V7.8 and V7.10 Workflow Runtime Decomposition keep the same LangGraph runtime
+node set, topology, state transitions, provider routing, streaming behavior,
+workspace behavior, and generated outputs while splitting runtime
+implementation ownership. `runtime.workflow_graph` and the root
+`orchestration.workflow_graph` remain compatibility shims; `runtime.graph_builder`
+owns LangGraph construction; `runtime.nodes.registry` owns node and transition
+registration; `runtime.nodes.transitions` owns transition selector logic;
+focused modules under `runtime.nodes` own grouped node handlers, shared state
+helpers, and stream emission helpers; and `runtime.nodes.handlers` remains a
+compatibility facade. This is an internal maintainability decomposition, not a
+runtime behavior change.
 `_planning_node()` deterministically derives and stores the V3.1 Creative
 Cognition metadata, the V3.2 Generative Design metadata, the V3.3 Artifact
 Intelligence metadata, and the V3.4 Creative Evaluation metadata:
@@ -232,9 +234,15 @@ This separation is intentional:
 - LangGraph owns execution order, retries, lifecycle events, and failure routing
 - `runtime.graph_builder` owns LangGraph construction and graph compilation
 - `runtime.nodes.registry` owns node/edge registration order and transition specs
-- `runtime.nodes.transitions` owns transition selector exports
-- `runtime.nodes.handlers` owns node execution, stream emission, finalization,
-  and terminal failure handling
+- `runtime.nodes.transitions` owns transition selector logic
+- `runtime.nodes.intake`, `routing`, `memory`, `retrieval`, `context`,
+  `planning`, `generation`, `artifacts`, `review`, `refinement`, and
+  `finalization` own focused node execution groups
+- `runtime.nodes.state` owns shared workflow state helpers
+- `runtime.nodes.emissions` owns stream emission and workflow runtime payload
+  helpers
+- `runtime.nodes.handlers` preserves compatibility imports for legacy workflow
+  graph consumers
 - The internal Creative Intelligence, Generative Design, Artifact Intelligence,
   and Creative Evaluation layers own bounded, inspectable metadata derivation
 - The V3.5 Workstation layer owns client-side inspection, provenance, timeline,
