@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
@@ -205,6 +206,7 @@ COVERAGE_DASHBOARD = {
     },
     "runtime_pack_quality": {
         "commands": [
+            "python scripts/v7_quality_gates.py runtime-hygiene",
             "python scripts/v7_quality_gates.py docs-mermaid",
             "python scripts/v7_quality_gates.py dashboard",
         ],
@@ -238,6 +240,67 @@ BLOCKING_LOG_PATTERNS = (
 LOG_ALLOWLIST_PATTERNS = (
     re.compile(r"Vite CJS Node API deprecation", re.IGNORECASE),
     re.compile(r"DeprecationWarning", re.IGNORECASE),
+)
+
+STRANGE_FILE_PATTERNS = (
+    re.compile(r"(^|/).* 2\.(py|md|yml|yaml|toml)$"),
+    re.compile(r"(^|/).*\.(orig|rej|bak|tmp|swp)$"),
+    re.compile(r"(^|/).*~$"),
+    re.compile(r"(^|/)#.*#$"),
+)
+
+REQUIRED_RUNTIME_FILES = (
+    "VERSION_PROGRESS.md",
+    "VERSION_HISTORY.md",
+    "VERSION_PLAN.md",
+    "VERSION_SPEC.md",
+    "RELEASE_STATE.md",
+    "ROADMAP_COVERAGE.md",
+    "CAPABILITY_COVERAGE.md",
+    "GITHUB_CI_EVIDENCE.md",
+    "BRANCH_HISTORY.md",
+    "LOCAL_APP_SMOKE_TEST.md",
+    "PRODUCT_BUG_LEDGER.md",
+    "RUNTIME_EVOLUTION_REVIEW.md",
+    "RUNTIME_FAILURE_PATH_AUDIT.md",
+    "TECHNICAL_DEBT_LEDGER.md",
+    "ENGINEERING_METRICS.md",
+    "ARCHITECTURAL_DRIFT_REPORT.md",
+    "COMPLEXITY_BUDGET_REPORT.md",
+    "ENGINEERING_AUDIT.md",
+    "JUNIE_HANDOFF_SUMMARY.md",
+    "RUNTIME_PACK_CONSISTENCY.md",
+)
+
+REQUIRED_V7_CAPABILITY_DIRS = (
+    "v7_1_runtime_graph_consolidation",
+    "v7_2_typed_failure_taxonomy",
+    "v7_3_registry_contract_consolidation",
+    "v7_4_e2e_ci_hardening",
+    "v7_5_production_api_runtime_stabilization",
+    "v7_6_orchestration_package_decomposition",
+    "v7_7_production_deployment_foundation",
+    "v7_8_workflow_runtime_decomposition",
+    "v7_9_runtime_validation_integration",
+    "v7_10_workflow_node_handler_decomposition",
+    "v7_11_planning_runtime_decomposition",
+    "v7_grand_engineering_audit",
+)
+
+STALE_RUNTIME_PACK_PATTERNS = (
+    re.compile(r"pending after v7\.7\.1", re.IGNORECASE),
+    re.compile(r"ACCEPTED_PENDING_HUMAN_MERGE_PUSH_TAG"),
+    re.compile(r"READY_FOR_MERGE_PUSH_TAG_GATE"),
+    re.compile(r"READY_FOR_HUMAN_CONTROLLED_MERGE_PUSH_TAG_GATE_NOT_RELEASED"),
+    re.compile(r"NOT_RELEASED_READY_FOR_HUMAN_MERGE_PUSH_TAG"),
+    re.compile(r"ACCEPTED_HUMAN_RELEASE_GATE"),
+    re.compile(r"ACCEPTED_HUMAN_CONTROLLED_RELEASE_GATE"),
+    re.compile(r"HUMAN_CONTROLLED_MERGE_PUSH_TAG_GATE"),
+    re.compile(r"no remote branch contains HEAD", re.IGNORECASE),
+    re.compile(r"HEAD not contained in any remote branch", re.IGNORECASE),
+    re.compile(r"Codex stopped at the final human-controlled merge / push / tag gate", re.IGNORECASE),
+    re.compile(r"Codex did not merge, push, tag", re.IGNORECASE),
+    re.compile(r"start V7\.9", re.IGNORECASE),
 )
 
 
@@ -284,6 +347,162 @@ def validate_quality_dashboard() -> list[str]:
         if not commands:
             errors.append(f"coverage dashboard surface has no commands: {surface}")
     return errors
+
+
+def find_runtime_hygiene_errors(*, fix: bool = False) -> list[str]:
+    """Validate V7 Runtime Pack and local Git hygiene."""
+
+    errors: list[str] = []
+    errors.extend(_commit_hygiene_errors())
+    errors.extend(_worktree_hygiene_errors())
+    errors.extend(_duplicate_strange_file_errors(fix=fix))
+    errors.extend(_runtime_pack_structure_errors())
+    errors.extend(_runtime_pack_stale_wording_errors())
+    return errors
+
+
+def _commit_hygiene_errors() -> list[str]:
+    errors: list[str] = []
+    commit = _git("rev-parse", "--verify", "HEAD")
+    if commit.returncode != 0:
+        return ["git commit hygiene: HEAD commit is missing"]
+
+    message = _git("log", "-1", "--format=%B")
+    dates = _git("log", "-1", "--format=%aI%n%cI")
+    branches = _git("branch", "-r", "--contains", "HEAD")
+    if message.returncode != 0 or dates.returncode != 0 or branches.returncode != 0:
+        return ["git commit hygiene: unable to inspect latest commit"]
+
+    lines = message.stdout.rstrip("\n").splitlines()
+    if not lines or not lines[0].strip():
+        errors.append("git commit hygiene: commit title is missing")
+    if len(lines) < 5 or lines[1] != "":
+        errors.append("git commit hygiene: title must be followed by one blank line")
+    bullet_lines = lines[2:5] if len(lines) >= 5 else []
+    if len(bullet_lines) != 3 or any(not line.startswith("- ") for line in bullet_lines):
+        errors.append("git commit hygiene: commit message must have exactly three bullets")
+    if len(lines) > 5 and any(line.strip() for line in lines[5:]):
+        errors.append("git commit hygiene: commit message has extra paragraphs")
+    author_date, committer_date = dates.stdout.splitlines()[:2]
+    if author_date != committer_date:
+        errors.append("git commit hygiene: AuthorDate and CommitDate differ")
+    remote_branches = [
+        line.strip()
+        for line in branches.stdout.splitlines()
+        if line.strip() and "origin/HEAD" not in line
+    ]
+    if remote_branches:
+        errors.append(
+            "git commit hygiene: HEAD is already contained in remote branch(es): "
+            f"{', '.join(remote_branches)}"
+        )
+
+    return errors
+
+
+def _worktree_hygiene_errors() -> list[str]:
+    status = _git("status", "--short")
+    if status.returncode != 0:
+        return ["git worktree hygiene: unable to inspect status"]
+    tracked_changes = [
+        line
+        for line in status.stdout.splitlines()
+        if line and not line.startswith("?? ")
+    ]
+    if tracked_changes:
+        return ["git worktree hygiene: tracked worktree is not clean"]
+    return []
+
+
+def _duplicate_strange_file_errors(*, fix: bool) -> list[str]:
+    errors: list[str] = []
+    tracked = _git("ls-files")
+    if tracked.returncode != 0:
+        errors.append("duplicate/strange-file gate: unable to inspect tracked files")
+    else:
+        for path in tracked.stdout.splitlines():
+            if _is_strange_file(path):
+                errors.append(f"tracked strange artifact: {path}")
+
+    for git_index_name in ("index 2", "index 3", "index 4", "index 5"):
+        path = Path(".git") / git_index_name
+        if path.exists():
+            if fix:
+                path.unlink()
+            else:
+                errors.append(f"git index duplicate artifact: {path}")
+
+    status = _git("status", "--short", "--untracked-files=all")
+    if status.returncode != 0:
+        errors.append("duplicate/strange-file gate: unable to inspect untracked files")
+        return errors
+
+    for line in status.stdout.splitlines():
+        if not line.startswith("?? "):
+            continue
+        raw_path = line[3:]
+        if not _is_strange_file(raw_path):
+            continue
+        path = Path(raw_path)
+        if fix and path.exists() and path.is_file():
+            path.unlink()
+        else:
+            errors.append(f"untracked strange artifact: {raw_path}")
+
+    return errors
+
+
+def _runtime_pack_structure_errors() -> list[str]:
+    errors: list[str] = []
+    runtime_dir = Path("codex_starter_pack/docs/runtime")
+    if not runtime_dir.is_dir():
+        errors.append("runtime pack structure: codex_starter_pack/docs/runtime is missing")
+    else:
+        for filename in REQUIRED_RUNTIME_FILES:
+            if not (runtime_dir / filename).is_file():
+                errors.append(f"runtime pack structure: missing runtime/{filename}")
+
+    capabilities_dir = Path("codex_starter_pack/docs/capabilities")
+    for dirname in REQUIRED_V7_CAPABILITY_DIRS:
+        capability_dir = capabilities_dir / dirname
+        if not capability_dir.is_dir():
+            errors.append(f"runtime pack structure: missing capabilities/{dirname}")
+        elif dirname != "v7_grand_engineering_audit" and not (
+            capability_dir / "CAPABILITY_PROGRESS.md"
+        ).is_file():
+            errors.append(
+                f"runtime pack structure: missing {dirname}/CAPABILITY_PROGRESS.md"
+            )
+    return errors
+
+
+def _runtime_pack_stale_wording_errors() -> list[str]:
+    errors: list[str] = []
+    paths = [
+        path
+        for path in Path("codex_starter_pack/docs").rglob("*.md")
+        if "/archive/" not in path.as_posix()
+    ]
+    for path in paths:
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for line_number, line in enumerate(lines, 1):
+            if any(pattern.search(line) for pattern in STALE_RUNTIME_PACK_PATTERNS):
+                errors.append(f"stale runtime wording: {path}:{line_number}: {line}")
+    return errors
+
+
+def _is_strange_file(path: str) -> bool:
+    normalized = path.replace("\\", "/")
+    return any(pattern.search(normalized) for pattern in STRANGE_FILE_PATTERNS)
+
+
+def _git(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ("git", *args),
+        capture_output=True,
+        check=False,
+        text=True,
+    )
 
 
 def find_backend_log_errors(
@@ -419,6 +638,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         default=[Path("README.md"), Path("architecture"), Path("docs")],
     )
 
+    runtime_hygiene = subparsers.add_parser(
+        "runtime-hygiene",
+        help="Validate V7 Runtime Pack, Git, and duplicate-artifact hygiene",
+    )
+    runtime_hygiene.add_argument("--fix", action="store_true")
+
     return parser.parse_args(argv)
 
 
@@ -448,6 +673,14 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "docs-mermaid":
         errors = find_docs_mermaid_errors(args.paths)
+        if errors:
+            for error in errors:
+                print(error, file=sys.stderr)
+            return 1
+        return 0
+
+    if args.command == "runtime-hygiene":
+        errors = find_runtime_hygiene_errors(fix=args.fix)
         if errors:
             for error in errors:
                 print(error, file=sys.stderr)
