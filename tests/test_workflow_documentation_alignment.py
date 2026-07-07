@@ -286,6 +286,28 @@ PUBLIC_README_INTERNAL_MARKERS = (
     "Engineering Validation",
     "close `v3.3.0`",
 )
+PRIVATE_RUNTIME_PACK_PUBLIC_DOC_MARKERS = (
+    "_project_context",
+    "codex_starter_pack",
+    "VERSION_PROGRESS",
+    "RELEASE_STATE",
+    "VERSION_HISTORY",
+    "FINAL_VERSION_SUMMARY",
+    "FINAL_ARCHITECTURE_SNAPSHOT",
+    "GENERATION_V7_CONTEXT_PACK",
+    "Runtime Pack ledger",
+    "V4.3 Hybrid Agentic Workflow",
+    "V4.4 Hybrid Studio",
+    "V4.5 Multimodal Studio",
+    "V4.6 Agentic Studio Hardening",
+    "V5.2 Intelligent Model Routing Engine",
+    "V5.4 Production Observability",
+    "V5.5 Adaptive Execution Intelligence",
+    "V5.6 Production Release",
+    "V6.1 Adaptive Learning Engine",
+    "V6.2 Creative Memory Engine",
+    "V6.3 Knowledge Evolution Engine",
+)
 
 
 class WorkflowDocumentationAlignmentTests(unittest.TestCase):
@@ -446,7 +468,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         for internal_marker in PUBLIC_README_INTERNAL_MARKERS:
             self.assertNotIn(internal_marker, readme)
 
-    def test_project_docs_cover_current_v4_3_passive_scope(self) -> None:
+    def test_project_docs_cover_public_repository_scope(self) -> None:
         project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
             encoding="utf-8"
         )
@@ -457,360 +479,38 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             encoding="utf-8"
         )
         combined = "\n".join((project_context, roadmap, decisions))
-        normalized_project_context = re.sub(r"\s+", " ", project_context)
         normalized_combined = re.sub(r"\s+", " ", combined)
 
-        self.assertIn("V4.3 Hybrid Agentic Workflow", combined)
-        self.assertIn("Adaptive Multi-Agent Escalation Registry", project_context)
         self.assertIn(
-            "Hybrid Workflow Integration source coverage",
-            normalized_project_context,
+            "Creative Coding Assistant is a creative coding workstation",
+            project_context,
         )
-        self.assertIn("completed passive metadata layer", roadmap)
-        self.assertIn("V4 Agentic Studio remains future", roadmap)
-        self.assertIn("V4.3 Boundary Decision", decisions)
-        self.assertIn("passive hybrid workflow metadata", normalized_combined)
-        self.assertIn("does not execute agents", normalized_combined)
-        self.assertIn("does not execute escalation", normalized_combined)
-        self.assertIn("change provider/model routing", normalized_combined)
-        self.assertIn("select runtimes", normalized_combined)
-        self.assertIn("modify generated output", normalized_combined)
-        self.assertIn("compact LangGraph workflow", normalized_combined)
-
-    def test_project_docs_cover_current_v4_4_passive_scope(self) -> None:
-        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
-            encoding="utf-8"
-        )
-        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
-            encoding="utf-8"
-        )
-        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
-            encoding="utf-8"
-        )
-        combined = "\n".join((project_context, roadmap, decisions))
-        normalized_project_context = re.sub(r"\s+", " ", project_context)
-        normalized_combined = re.sub(r"\s+", " ", combined)
-
-        self.assertIn("V4.4 Hybrid Studio", combined)
-        self.assertIn("Hybrid Studio Integration Registry", project_context)
+        self.assertIn("Python backend", project_context)
+        self.assertIn("Next.js workstation", project_context)
+        self.assertIn("Streamlit client", project_context)
         self.assertIn(
-            "Hybrid Studio Integration source coverage",
-            normalized_project_context,
+            "Chroma-backed local retrieval and memory storage",
+            project_context,
         )
-        self.assertIn("V4.4 layer is a completed passive metadata layer", roadmap)
-        self.assertIn("V4.4 Boundary Decision", decisions)
-        self.assertIn("passive hybrid studio metadata", normalized_combined)
-        self.assertIn("does not execute providers", normalized_combined)
-        self.assertIn("does not activate Studio runtime", normalized_combined)
-        self.assertIn("change provider/model routing", normalized_combined)
-        self.assertIn("select runtimes", normalized_combined)
-        self.assertIn("modify generated output", normalized_combined)
-        self.assertIn("compact LangGraph workflow", normalized_combined)
-
-    def test_project_docs_cover_current_v4_5_passive_scope(self) -> None:
-        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
-            encoding="utf-8"
-        )
-        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
-            encoding="utf-8"
-        )
-        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
-            encoding="utf-8"
-        )
-        combined = "\n".join((project_context, roadmap, decisions))
-        normalized_project_context = re.sub(r"\s+", " ", project_context)
-        normalized_combined = re.sub(r"\s+", " ", combined)
-
-        self.assertIn("V4.5 Multimodal Studio", combined)
-        self.assertIn("Multimodal Studio Integration Registry", project_context)
         self.assertIn(
-            "Multimodal Studio Integration source coverage",
-            normalized_project_context,
-        )
-        self.assertIn("V4.5 layer is a completed passive metadata layer", roadmap)
-        self.assertIn("V4.5 Boundary Decision", decisions)
-        self.assertIn("passive multimodal studio metadata", normalized_combined)
-        self.assertIn("does not execute rendering", normalized_combined)
-        self.assertIn("does not activate Studio runtime", normalized_combined)
-        self.assertIn("change provider/model routing", normalized_combined)
-        self.assertIn("select runtimes", normalized_combined)
-        self.assertIn("modify generated output", normalized_combined)
-        self.assertIn("compact LangGraph workflow", normalized_combined)
-
-    def test_project_docs_cover_current_v4_6_passive_scope(self) -> None:
-        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
-            encoding="utf-8"
-        )
-        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
-            encoding="utf-8"
-        )
-        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
-            encoding="utf-8"
-        )
-        combined = "\n".join((project_context, roadmap, decisions))
-        normalized_project_context = re.sub(r"\s+", " ", project_context)
-        normalized_combined = re.sub(r"\s+", " ", combined)
-
-        self.assertIn("V4.6 Agentic Studio Hardening", combined)
-        self.assertIn("LangGraph Error Path Audit", project_context)
-        self.assertIn("Final V4 Hardening Registry", project_context)
-        self.assertIn(
-            "passive agentic studio hardening metadata",
-            normalized_combined,
-        )
-        self.assertIn("V4.6 layer is a completed passive metadata layer", roadmap)
-        self.assertIn("V4.6 Boundary Decision", decisions)
-        self.assertIn("does not execute hardening checks", normalized_combined)
-        self.assertIn("add LangGraph nodes", normalized_combined)
-        self.assertIn("bypass failure normalization", normalized_combined)
-        self.assertIn("activate passive registries", normalized_combined)
-        self.assertIn("change provider/model routing", normalized_combined)
-        self.assertIn("select runtimes", normalized_combined)
-        self.assertIn("modify generated output", normalized_combined)
-        self.assertIn(
-            "terminal failure coverage",
-            normalized_project_context,
-        )
-
-    def test_project_docs_cover_current_v5_2_advisory_scope(self) -> None:
-        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
-            encoding="utf-8"
-        )
-        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
-            encoding="utf-8"
-        )
-        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
-            encoding="utf-8"
-        )
-        combined = "\n".join((project_context, roadmap, decisions))
-        normalized_combined = re.sub(r"\s+", " ", combined)
-
-        self.assertIn("V5.2 Intelligent Model Routing Engine", combined)
-        self.assertIn("V5.2 Advisory Boundary", project_context)
-        self.assertIn("V5.2 Boundary Decision", decisions)
-        self.assertIn("completed advisory metadata layer", roadmap)
-        self.assertIn("advisory model-routing metadata", normalized_combined)
-        self.assertIn("routing explainability", normalized_combined)
-        self.assertIn("runtime failure-path audit coverage", normalized_combined)
-        self.assertIn("does not apply routing", normalized_combined)
-        self.assertIn("switch providers or models", normalized_combined)
-        self.assertIn("execute providers", normalized_combined)
-        self.assertIn("emit HITL requests", normalized_combined)
-        self.assertIn("enforce budgets", normalized_combined)
-        self.assertIn("apply Runtime Evolution", normalized_combined)
-        self.assertIn("modify generated output", normalized_combined)
-
-    def test_project_docs_cover_current_v5_4_read_only_scope(self) -> None:
-        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
-            encoding="utf-8"
-        )
-        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
-            encoding="utf-8"
-        )
-        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
-            encoding="utf-8"
-        )
-        combined = "\n".join((project_context, decisions, roadmap))
-        normalized_combined = re.sub(r"\s+", " ", combined)
-
-        self.assertIn("V5.4 Production Observability", combined)
-        self.assertIn("V5.4 Read-Only Observability Boundary", project_context)
-        self.assertIn("V5.4 Boundary Decision", decisions)
-        self.assertIn("completed read-only metadata layer", normalized_combined)
-        self.assertIn("read-only observability metadata", normalized_combined)
-        self.assertIn("runtime failure-path audit coverage", normalized_combined)
-        self.assertIn("collect live metrics", normalized_combined)
-        self.assertIn("emit telemetry or alerts", normalized_combined)
-        self.assertIn("capture traces", normalized_combined)
-        self.assertIn("execute health checks", normalized_combined)
-        self.assertIn("classify live errors", normalized_combined)
-        self.assertIn("remediate failures", normalized_combined)
-        self.assertIn("change provider/model routing", normalized_combined)
-        self.assertIn("apply Runtime Evolution", normalized_combined)
-        self.assertIn("modify generated output", normalized_combined)
-
-    def test_project_docs_cover_current_v5_5_controlled_scope(self) -> None:
-        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
-            encoding="utf-8"
-        )
-        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
-            encoding="utf-8"
-        )
-        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
-            encoding="utf-8"
-        )
-        combined = "\n".join((project_context, decisions, roadmap))
-        normalized_combined = re.sub(r"\s+", " ", combined)
-
-        self.assertIn("V5.5 Adaptive Execution Intelligence", combined)
-        self.assertIn("V5.5 Controlled Adaptive Execution Boundary", project_context)
-        self.assertIn("V5.5 Boundary Decision", decisions)
-        self.assertIn(
-            "completed controlled policy and simulation layer",
+            "public repository contains runnable product code",
             normalized_combined,
         )
         self.assertIn(
-            "controlled adaptive execution policy",
+            "tests, CI, deployment guidance, architecture diagrams",
             normalized_combined,
         )
-        self.assertIn("allow/confirm/block decisions", normalized_combined)
-        self.assertIn("runtime failure-path audit coverage", normalized_combined)
-        self.assertIn("mutate configured provider/model routing", normalized_combined)
-        self.assertIn("switch providers or models", normalized_combined)
-        self.assertIn("execute providers", normalized_combined)
-        self.assertIn("invoke agents", normalized_combined)
-        self.assertIn("allocate agents or resources", normalized_combined)
-        self.assertIn("emit HITL requests", normalized_combined)
-        self.assertIn("mutate workflow graphs", normalized_combined)
-        self.assertIn("apply Runtime Evolution", normalized_combined)
-        self.assertIn("modify generated output", normalized_combined)
+        self.assertIn(
+            "Product documentation should describe observable behavior",
+            normalized_combined,
+        )
+        self.assertIn(
+            "Future capabilities should be described in public docs only "
+            "after they are approved for product work",
+            normalized_combined,
+        )
 
-    def test_project_docs_cover_current_v5_6_production_release_scope(self) -> None:
-        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
-            encoding="utf-8"
-        )
-        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
-            encoding="utf-8"
-        )
-        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
-            encoding="utf-8"
-        )
-        combined = "\n".join((project_context, decisions, roadmap))
-        normalized_combined = re.sub(r"\s+", " ", combined)
-
-        self.assertIn("V5.6 Production Release", combined)
-        self.assertIn("V5.6 Production Release Boundary", project_context)
-        self.assertIn("V5.6 Boundary Decision", decisions)
-        self.assertIn("production-readiness metadata", normalized_combined)
-        self.assertIn("final optimization", normalized_combined)
-        self.assertIn("packaging readiness", normalized_combined)
-        self.assertIn("release-candidate posture", normalized_combined)
-        self.assertIn("demo asset readiness", normalized_combined)
-        self.assertIn("deployment assumptions", normalized_combined)
-        self.assertIn("configuration diagnostics", normalized_combined)
-        self.assertIn("explainability expectations", normalized_combined)
-        self.assertIn("deterministic failure posture", normalized_combined)
-        self.assertIn("production readiness review", normalized_combined)
-        self.assertIn("creative readiness review", normalized_combined)
-        self.assertIn("architecture freeze", normalized_combined)
-        self.assertIn("release audit", normalized_combined)
-        self.assertIn("final hardening", normalized_combined)
-        self.assertIn("architecture consistency coverage", normalized_combined)
-        self.assertIn("runtime failure-path audit coverage", normalized_combined)
-        self.assertIn("introduce new core architecture", normalized_combined)
-        self.assertIn("run package builds", normalized_combined)
-        self.assertIn("install dependencies", normalized_combined)
-        self.assertIn("deploy services", normalized_combined)
-        self.assertIn("create release artifacts", normalized_combined)
-        self.assertIn("execute hardening actions", normalized_combined)
-        self.assertIn("create runtime failure handlers", normalized_combined)
-        self.assertIn("mutate terminal routing", normalized_combined)
-        self.assertIn("merge, push, tag", normalized_combined)
-        self.assertIn("apply Runtime Evolution", normalized_combined)
-        self.assertIn("modify generated output", normalized_combined)
-
-    def test_project_docs_cover_current_v6_1_adaptive_learning_scope(self) -> None:
-        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
-            encoding="utf-8"
-        )
-        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
-            encoding="utf-8"
-        )
-        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
-            encoding="utf-8"
-        )
-        combined = "\n".join((project_context, decisions, roadmap))
-        normalized_combined = re.sub(r"\s+", " ", combined)
-
-        self.assertIn("V6.1 Adaptive Learning Engine", combined)
-        self.assertIn("V6.1 Adaptive Learning Boundary", project_context)
-        self.assertIn("V6.1 Boundary Decision", decisions)
-        self.assertIn("advisory learning metadata layer", normalized_combined)
-        self.assertIn("adaptive learning signals", normalized_combined)
-        self.assertIn("workflow success tracking", normalized_combined)
-        self.assertIn("failure tracking", normalized_combined)
-        self.assertIn("strategy learning", normalized_combined)
-        self.assertIn("technique learning", normalized_combined)
-        self.assertIn("runtime learning", normalized_combined)
-        self.assertIn("routing learning", normalized_combined)
-        self.assertIn("artifact learning", normalized_combined)
-        self.assertIn("evaluation learning", normalized_combined)
-        self.assertIn("continuous improvement signals", normalized_combined)
-        self.assertIn("success pattern discovery", normalized_combined)
-        self.assertIn("failure pattern discovery", normalized_combined)
-        self.assertIn("learning governance", normalized_combined)
-        self.assertIn("runtime failure-path audit", normalized_combined)
-        self.assertIn("learning memory", normalized_combined)
-        self.assertIn("feedback application", normalized_combined)
-        self.assertIn("policy mutation", normalized_combined)
-        self.assertIn("observe live success", normalized_combined)
-        self.assertIn("observe live failures", normalized_combined)
-        self.assertIn("classify live errors", normalized_combined)
-        self.assertIn("route terminal failures", normalized_combined)
-        self.assertIn("execute providers", normalized_combined)
-        self.assertIn("execute or control workflows", normalized_combined)
-        self.assertIn("write persistent storage", normalized_combined)
-        self.assertIn("apply Runtime Evolution", normalized_combined)
-        self.assertIn("modify generated output", normalized_combined)
-
-    def test_project_docs_cover_current_v6_2_creative_memory_scope(self) -> None:
-        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
-            encoding="utf-8"
-        )
-        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
-            encoding="utf-8"
-        )
-        roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
-            encoding="utf-8"
-        )
-        combined = "\n".join((project_context, decisions, roadmap))
-        normalized_combined = re.sub(r"\s+", " ", combined)
-
-        self.assertIn("V6.2 Creative Memory Engine", combined)
-        self.assertIn("V6.2 Creative Memory Boundary", project_context)
-        self.assertIn("V6.2 Boundary Decision", decisions)
-        self.assertIn("advisory creative-memory metadata layer", normalized_combined)
-        self.assertIn("long-term creative memory", normalized_combined)
-        self.assertIn("user preferences", normalized_combined)
-        self.assertIn("style profiles", normalized_combined)
-        self.assertIn("project memory", normalized_combined)
-        self.assertIn("Creative DNA", normalized_combined)
-        self.assertIn("personalization posture", normalized_combined)
-        self.assertIn("session memory evolution", normalized_combined)
-        self.assertIn("artifact history", normalized_combined)
-        self.assertIn("creative lineage", normalized_combined)
-        self.assertIn("creative ontology", normalized_combined)
-        self.assertIn("preference learning posture", normalized_combined)
-        self.assertIn("user modeling", normalized_combined)
-        self.assertIn("memory consolidation posture", normalized_combined)
-        self.assertIn("memory retrieval intelligence", normalized_combined)
-        self.assertIn("memory retrieval planning", normalized_combined)
-        self.assertIn("memory conflict resolution", normalized_combined)
-        self.assertIn("memory explainability", normalized_combined)
-        self.assertIn("memory safety policy posture", normalized_combined)
-        self.assertIn("creative taste modeling", normalized_combined)
-        self.assertIn("creative preference evolution", normalized_combined)
-        self.assertIn("creative memory governance", normalized_combined)
-        self.assertIn("runtime failure-path audit coverage", normalized_combined)
-        self.assertIn("write creative memory storage", normalized_combined)
-        self.assertIn("execute memory retrieval", normalized_combined)
-        self.assertIn("execute memory consolidation", normalized_combined)
-        self.assertIn("execute preference learning", normalized_combined)
-        self.assertIn("mutate preferences", normalized_combined)
-        self.assertIn("apply personalization", normalized_combined)
-        self.assertIn("apply Creative DNA", normalized_combined)
-        self.assertIn("infer creative lineage", normalized_combined)
-        self.assertIn("infer ontology relationships", normalized_combined)
-        self.assertIn("enforce governance or safety policies", normalized_combined)
-        self.assertIn("emit HITL requests", normalized_combined)
-        self.assertIn("activate automation", normalized_combined)
-        self.assertIn("change provider/model routing", normalized_combined)
-        self.assertIn("execute providers", normalized_combined)
-        self.assertIn("execute or control workflows", normalized_combined)
-        self.assertIn("apply Runtime Evolution", normalized_combined)
-        self.assertIn("modify generated output", normalized_combined)
-
-    def test_project_docs_cover_current_v6_3_knowledge_evolution_scope(
+    def test_project_docs_cover_runtime_deployment_validation_boundaries(
         self,
     ) -> None:
         project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
@@ -819,51 +519,67 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
             encoding="utf-8"
         )
+        deployment = (REPO_ROOT / "docs" / "PRODUCTION_DEPLOYMENT.md").read_text(
+            encoding="utf-8"
+        )
+        validation = (REPO_ROOT / "docs" / "RUNTIME_VALIDATION.md").read_text(
+            encoding="utf-8"
+        )
+        sync = (REPO_ROOT / "docs" / "sync.md").read_text(encoding="utf-8")
+        evaluation = (REPO_ROOT / "docs" / "eval.md").read_text(encoding="utf-8")
+        combined = "\n".join(
+            (project_context, decisions, deployment, validation, sync, evaluation)
+        )
+        normalized_combined = re.sub(r"\s+", " ", combined)
+
+        self.assertIn("bounded LangGraph workflow", project_context)
+        self.assertIn("hidden workflow execution paths", decisions)
+        self.assertIn("provider routing", decisions)
+        self.assertIn("The production API surface is WSGI", deployment)
+        self.assertIn("Gunicorn", deployment)
+        self.assertIn("production CORS", deployment)
+        self.assertIn(
+            "Runtime integration validation executes the compiled "
+            "LangGraph workflow",
+            normalized_combined,
+        )
+        self.assertIn("Release validation remains the broader release gate", validation)
+        self.assertIn("official knowledge-base sync pipeline", sync)
+        self.assertIn("approved official sources", sync)
+        self.assertIn("Runtime result files under `data/eval/` remain local", evaluation)
+        for local_path in (
+            "data/chroma/",
+            "data/artifacts/",
+            "data/eval/",
+            "data/workspace_sessions.sqlite3",
+        ):
+            self.assertIn(local_path, combined)
+
+    def test_project_docs_preserve_private_runtime_pack_boundary(self) -> None:
+        project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
+            encoding="utf-8"
+        )
         roadmap = (REPO_ROOT / "docs" / "IMPLEMENTATION_ROADMAP.md").read_text(
             encoding="utf-8"
         )
-        combined = "\n".join((project_context, decisions, roadmap))
+        decisions = (REPO_ROOT / "docs" / "ARCHITECTURE_DECISIONS.md").read_text(
+            encoding="utf-8"
+        )
+        combined = "\n".join((project_context, roadmap, decisions))
         normalized_combined = re.sub(r"\s+", " ", combined)
 
-        self.assertIn("V6.3 Knowledge Evolution Engine", combined)
-        self.assertIn("V6.3 Knowledge Evolution Boundary", project_context)
-        self.assertIn("V6.3 Boundary Decision", decisions)
+        self.assertIn(".runtime_pack/", combined)
+        self.assertIn("local ignored `.runtime_pack/` directory", project_context)
+        self.assertIn("must remain ignored by Git", decisions)
+        self.assertIn("private engineering records", normalized_combined)
+        self.assertIn("Private planning, audits, prompts", normalized_combined)
         self.assertIn(
-            "advisory knowledge evolution metadata layer",
+            "without depending on private engineering ledgers",
             normalized_combined,
         )
-        for surface in V63_KNOWLEDGE_EVOLUTION_SURFACES[:19]:
-            self.assertIn(surface, combined)
-        self.assertIn("core surface", normalized_combined)
-        self.assertIn("secondary surface", normalized_combined)
-        self.assertIn("governance/safety", normalized_combined)
-        self.assertIn("runtime failure-path audit coverage", normalized_combined)
-        self.assertIn(
-            "All 19 contractual V6.3 roadmap items remain individually traceable",
-            normalized_combined,
-        )
-        self.assertIn("execute automatic KB updates", normalized_combined)
-        self.assertIn("fetch documentation", normalized_combined)
-        self.assertIn("refresh embeddings", normalized_combined)
-        self.assertIn("execute retrieval", normalized_combined)
-        self.assertIn("mutate retrieval configuration", normalized_combined)
-        self.assertIn("mutate ranking", normalized_combined)
-        self.assertIn("compute quality or trust scores", normalized_combined)
-        self.assertIn("write KB storage", normalized_combined)
-        self.assertIn("update source records", normalized_combined)
-        self.assertIn("mutate provenance graphs", normalized_combined)
-        self.assertIn("mutate version graphs", normalized_combined)
-        self.assertIn("execute snapshots", normalized_combined)
-        self.assertIn("execute rollback", normalized_combined)
-        self.assertIn("run freshness scans", normalized_combined)
-        self.assertIn("enforce governance or safety policies", normalized_combined)
-        self.assertIn("emit HITL requests", normalized_combined)
-        self.assertIn("activate automation", normalized_combined)
-        self.assertIn("change provider/model routing", normalized_combined)
-        self.assertIn("execute providers", normalized_combined)
-        self.assertIn("execute or control workflows", normalized_combined)
-        self.assertIn("apply Runtime Evolution", normalized_combined)
-        self.assertIn("modify generated output", normalized_combined)
+
+        for private_marker in PRIVATE_RUNTIME_PACK_PUBLIC_DOC_MARKERS:
+            self.assertNotIn(private_marker, combined)
 
     def test_architecture_doc_node_order_matches_backend_node_order(self) -> None:
         architecture_doc = (REPO_ROOT / "architecture" / "workflow_graph.md").read_text(
