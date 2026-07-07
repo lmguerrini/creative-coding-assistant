@@ -2,18 +2,10 @@ name: Backend Release Verification
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "17 3 * * *"
   push:
     branches:
       - "version-review/**"
       - "version-freeze/**"
-      - "release/**"
-    tags:
-      - "v*"
-  release:
-    types:
-      - published
 
 jobs:
   backend-release-verification:
