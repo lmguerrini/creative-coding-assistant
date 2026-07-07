@@ -12,8 +12,9 @@ __pycache__/
 .coverage
 htmlcov/
 
-# Private engineering Runtime Pack and historical review material stay local.
+# Private engineering Runtime Pack, ChatGPT/Codex context, and historical review material stay local.
 .runtime_pack/
+.chatgpt_context/
 codex_starter_pack/
 _project_context/
 version_reviews/
