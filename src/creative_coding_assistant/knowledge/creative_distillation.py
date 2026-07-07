@@ -65,6 +65,12 @@ class KnowledgeDomainCoverageStatus(StrEnum):
     MISSING = "missing"
 
 
+class DemoKBSyncFeasibility(StrEnum):
+    COMPLETE = "complete"
+    FOCUSED_SYNC_AVAILABLE = "focused_sync_available"
+    BLOCKED_BY_SYNC_PROBE = "blocked_by_sync_probe"
+
+
 class IndexedKnowledgeBaseInventory(BaseModel):
     """Read-only inventory of local Chroma state relevant to V8.1."""
 
@@ -329,6 +335,52 @@ class KnowledgeHardeningAction(BaseModel):
     summary: str = Field(min_length=1, max_length=420)
     source_ids: tuple[str, ...] = Field(default_factory=tuple)
     execution_boundary: str = Field(min_length=1, max_length=420)
+
+
+class DemoKnowledgeBaseHardeningManifest(BaseModel):
+    """Report-only manifest for V8.1 demo KB hardening follow-up."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    manifest_id: Literal["v8_1_demo_kb_hardening_manifest"] = (
+        "v8_1_demo_kb_hardening_manifest"
+    )
+    kb_manifest_path: str | None = None
+    kb_manifest_path_standardized: bool = False
+    registry_source_count: int = Field(ge=0)
+    registry_domain_count: int = Field(ge=0)
+    indexed_source_count: int = Field(ge=0)
+    indexed_domain_count: int = Field(ge=0)
+    indexed_chunk_count: int = Field(ge=0)
+    demo_required_source_ids: tuple[str, ...] = Field(default_factory=tuple)
+    indexed_demo_source_ids: tuple[str, ...] = Field(default_factory=tuple)
+    missing_demo_source_ids: tuple[str, ...] = Field(default_factory=tuple)
+    focused_sync_source_ids: tuple[str, ...] = Field(default_factory=tuple)
+    focused_sync_command: str = Field(min_length=1)
+    sync_feasibility: DemoKBSyncFeasibility
+    sync_probe_error: str | None = None
+    coverage_improved: Literal[False] = False
+    report_only: Literal[True] = True
+    external_fetch_implemented: Literal[False] = False
+    chroma_write_implemented: Literal[False] = False
+    source_registry_mutation_implemented: Literal[False] = False
+    retrieval_configuration_mutation_implemented: Literal[False] = False
+
+    @model_validator(mode="after")
+    def _manifest_matches_demo_gap(self) -> Self:
+        if self.kb_manifest_path is None and self.kb_manifest_path_standardized:
+            raise ValueError("standardized manifest paths must declare kb_manifest_path")
+        if self.focused_sync_source_ids != self.missing_demo_source_ids:
+            raise ValueError("focused sync source ids must match missing demo sources")
+        if self.sync_feasibility is DemoKBSyncFeasibility.COMPLETE:
+            if self.missing_demo_source_ids:
+                raise ValueError("complete demo KB coverage cannot have missing sources")
+            if self.sync_probe_error is not None:
+                raise ValueError("complete demo KB coverage cannot carry a sync error")
+        if self.sync_feasibility is DemoKBSyncFeasibility.BLOCKED_BY_SYNC_PROBE:
+            if not self.sync_probe_error:
+                raise ValueError("blocked sync feasibility requires sync_probe_error")
+        return self
 
 
 class CreativeKnowledgeDistillationReport(BaseModel):
@@ -693,6 +745,45 @@ def build_v8_1_creative_knowledge_distillation(
     )
 
 
+def build_demo_kb_hardening_manifest(
+    *,
+    indexed_chunk_counts_by_source: Mapping[str, int] | None = None,
+    sync_probe_error: str | None = None,
+    kb_manifest_path: str | None = None,
+) -> DemoKnowledgeBaseHardeningManifest:
+    """Build a report-only demo KB hardening manifest from indexed reality."""
+
+    snapshot = build_kb_reality_snapshot(
+        indexed_chunk_counts_by_source=indexed_chunk_counts_by_source,
+    )
+    indexed_demo_source_ids = tuple(
+        source_id
+        for source_id in snapshot.demo_required_source_ids
+        if source_id not in snapshot.unindexed_demo_source_ids
+    )
+    missing_demo_source_ids = snapshot.unindexed_demo_source_ids
+    feasibility = _sync_feasibility(
+        missing_demo_source_ids=missing_demo_source_ids,
+        sync_probe_error=sync_probe_error,
+    )
+    return DemoKnowledgeBaseHardeningManifest(
+        kb_manifest_path=kb_manifest_path,
+        kb_manifest_path_standardized=kb_manifest_path is not None,
+        registry_source_count=snapshot.registry_source_count,
+        registry_domain_count=snapshot.registry_domain_count,
+        indexed_source_count=snapshot.indexed_source_count,
+        indexed_domain_count=snapshot.indexed_domain_count,
+        indexed_chunk_count=snapshot.indexed_chunk_count,
+        demo_required_source_ids=snapshot.demo_required_source_ids,
+        indexed_demo_source_ids=indexed_demo_source_ids,
+        missing_demo_source_ids=missing_demo_source_ids,
+        focused_sync_source_ids=missing_demo_source_ids,
+        focused_sync_command=_focused_sync_command(missing_demo_source_ids),
+        sync_feasibility=feasibility,
+        sync_probe_error=sync_probe_error,
+    )
+
+
 def _query_collection_counts(connection: sqlite3.Connection) -> dict[str, int]:
     rows = connection.execute(
         """
@@ -1051,6 +1142,28 @@ def _build_hardening_actions(snapshot: KnowledgeBaseRealitySnapshot) -> tuple[Kn
         )
     )
     return tuple(actions)
+
+
+def _sync_feasibility(
+    *,
+    missing_demo_source_ids: Sequence[str],
+    sync_probe_error: str | None,
+) -> DemoKBSyncFeasibility:
+    if not missing_demo_source_ids:
+        return DemoKBSyncFeasibility.COMPLETE
+    if sync_probe_error:
+        return DemoKBSyncFeasibility.BLOCKED_BY_SYNC_PROBE
+    return DemoKBSyncFeasibility.FOCUSED_SYNC_AVAILABLE
+
+
+def _focused_sync_command(source_ids: Sequence[str]) -> str:
+    if not source_ids:
+        return "No focused sync needed; all demo-required sources are indexed."
+    source_args = " ".join(f"--source-id {source_id}" for source_id in source_ids)
+    return (
+        "PYTHONPATH=src python3 scripts/sync_official_kb.py "
+        f"{source_args} --continue-on-error --summary-format json"
+    )
 
 
 def _slug(value: str) -> str:

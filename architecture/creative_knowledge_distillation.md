@@ -24,6 +24,8 @@ The implementation lives in
 
 - Creative technique, workflow, pattern, taxonomy, and best-practice records.
 - KB reality snapshots for registry-vs-indexed coverage.
+- Demo KB hardening manifests for focused sync readiness and blocked sync
+  evidence.
 - Repository/documentation relationship graph support.
 - Creative knowledge relationships across shared sources and domains.
 - Demo-domain hardening recommendations for focused sync and evaluation.
@@ -35,3 +37,5 @@ The implementation lives in
 - Demo KB expansion and domain sync remain recommendations unless a focused
   sync/reindex action is explicitly authorized.
 - Registry entries are not treated as indexed KB evidence.
+- No repository-standard `kb_manifest.json` path exists yet, so V8.1 records
+  manifest state through typed code instead of writing ignored local data.
