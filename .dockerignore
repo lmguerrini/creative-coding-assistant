@@ -7,7 +7,11 @@
 __pycache__
 clients/nextjs/.next
 clients/nextjs/node_modules
+.runtime_pack
 codex_starter_pack
+_project_context
+version_reviews
+engineering_reviews
 coverage.xml
 data
 htmlcov

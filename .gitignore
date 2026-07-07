@@ -12,12 +12,14 @@ __pycache__/
 .coverage
 htmlcov/
 
-# Starter/reference material stays local and out of the new app surface.
+# Private engineering Runtime Pack and historical review material stay local.
+.runtime_pack/
 codex_starter_pack/
-
-# Internal planning and Codex/development notes stay local.
-docs/
 _project_context/
+version_reviews/
+engineering_reviews/
+*.runtime-pack.zip
+*_context_pack.zip
 
 # Runtime data is persisted locally; keep only directory placeholders.
 data/chroma/

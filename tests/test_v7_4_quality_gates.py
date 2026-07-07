@@ -24,7 +24,7 @@ def test_v7_4_quality_dashboard_exposes_performance_and_coverage_gates():
     assert dashboard["performance_budgets"]["nextjs_localhost_ready_ms"] > 0
     assert dashboard["performance_budgets"]["workspace_local_storage_bytes"] == 200_000
     assert "frontend_e2e_quality" in dashboard["coverage_dashboard"]
-    assert "runtime_pack_quality" in dashboard["coverage_dashboard"]
+    assert "product_documentation_quality" in dashboard["coverage_dashboard"]
 
 
 def test_backend_log_gate_flags_blocking_errors(tmp_path: Path):

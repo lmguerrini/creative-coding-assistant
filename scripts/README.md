@@ -12,18 +12,15 @@ Evaluation helpers are local/manual by design:
 Use `eval_live_sessions.py --dry-run` to prepare the dataset manifest without
 calling evaluator LLM or embedding providers.
 
-## V7.4 quality gates
+## Product quality gates
 
-`v7_quality_gates.py` provides deterministic local and CI checks for the V7.4
-E2E Quality & CI Hardening capability.
+`v7_quality_gates.py` provides deterministic local and CI checks for public
+product quality surfaces.
 
 - `python scripts/v7_quality_gates.py docs-mermaid` validates standalone
   Mermaid files and Markdown Mermaid fences.
-- `python scripts/v7_quality_gates.py dashboard` validates the V7.4 roadmap,
-  performance budgets, release checklist, and coverage dashboard.
-- `python scripts/v7_quality_gates.py runtime-hygiene` validates Runtime Pack
-  structure, final freeze artifacts, stale release wording, duplicate
-  artifacts, and local Git hygiene.
+- `python scripts/v7_quality_gates.py dashboard` validates product quality
+  gates, performance budgets, release checklist, and coverage dashboard.
 - `python scripts/v7_quality_gates.py backend-log <log-path>` fails on
   backend log errors, tracebacks, and critical exceptions while allowing the
   controlled shutdown tracebacks produced by timeout-based smoke tests.

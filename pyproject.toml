@@ -40,8 +40,8 @@ pythonpath = ["src"]
 norecursedirs = [
   ".git",
   ".idea",
+  ".runtime_pack",
   ".venv",
-  "codex_starter_pack",
   "data",
 ]
 
@@ -52,8 +52,8 @@ src = ["src", "tests", "clients", "scripts"]
 exclude = [
   ".git",
   ".idea",
+  ".runtime_pack",
   ".venv",
-  "codex_starter_pack",
   "data/chroma",
   "data/artifacts",
 ]
