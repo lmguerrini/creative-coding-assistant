@@ -27,6 +27,7 @@ data/chroma/
 !data/chroma/
 data/chroma/*
 !data/chroma/.gitkeep
+data/chroma_backups/
 data/artifacts/
 !data/artifacts/
 data/artifacts/*
