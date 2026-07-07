@@ -1005,7 +1005,7 @@ def detect_symbolic_motif_terms(query: str) -> tuple[str, ...]:
     motif_ids: list[str] = []
     for token in tokens:
         motif_ids.extend(_MOTIF_ALIASES.get(token, ()))
-    if not motif_ids and tokens.intersection(_AMBIGUOUS_SYMBOLIC_TOKENS):
+    if not motif_ids and set(tokens).intersection(_AMBIGUOUS_SYMBOLIC_TOKENS):
         motif_ids.append("conceptual_field")
     return _dedupe(motif_ids)[:12]
 
