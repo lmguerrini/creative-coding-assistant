@@ -165,6 +165,11 @@ _REASSEMBLY_TOKENS = frozenset(
     {"phoenix", "reassemble", "reassembly", "reform", "reforms", "reintegration"}
 )
 _RITUAL_TOKENS = frozenset({"mandala", "pulse", "ritual", "sacred", "solemn", "temple"})
+_ROLE_MAX_LENGTH = 340
+_COMMON_ROLE_MAX_LENGTH = 320
+_CAMERA_ROLE_MAX_LENGTH = 300
+_TEMPORAL_CUE_MAX_LENGTH = 260
+_TEMPORAL_TIMING_MAX_LENGTH = 280
 
 
 class CrossModalityRole(BaseModel):
@@ -380,14 +385,23 @@ def derive_cross_modality_composition_profile(
         audio_relevant=audio_relevant,
         camera_relevant=camera_relevant,
     )
-    visual_role = _visual_role(context, pattern)
-    motion_role = _motion_role(context)
-    audio_role = _audio_role(context, audio_relevant=audio_relevant)
-    rhythm_role = _rhythm_role(context, audio_relevant=audio_relevant)
-    camera_role = _camera_role(context, camera_relevant=camera_relevant)
-    structure_role = _structure_role(context)
-    motif_role = _motif_role(context)
-    emotion_role = _emotion_role(context)
+    visual_role = _clip_text(_visual_role(context, pattern), _COMMON_ROLE_MAX_LENGTH)
+    motion_role = _clip_text(_motion_role(context), _COMMON_ROLE_MAX_LENGTH)
+    audio_role = _clip_optional_text(
+        _audio_role(context, audio_relevant=audio_relevant),
+        _COMMON_ROLE_MAX_LENGTH,
+    )
+    rhythm_role = _clip_text(
+        _rhythm_role(context, audio_relevant=audio_relevant),
+        _COMMON_ROLE_MAX_LENGTH,
+    )
+    camera_role = _clip_optional_text(
+        _camera_role(context, camera_relevant=camera_relevant),
+        _CAMERA_ROLE_MAX_LENGTH,
+    )
+    structure_role = _clip_text(_structure_role(context), _ROLE_MAX_LENGTH)
+    motif_role = _clip_text(_motif_role(context), _COMMON_ROLE_MAX_LENGTH)
+    emotion_role = _clip_text(_emotion_role(context), _COMMON_ROLE_MAX_LENGTH)
     modality_conflicts = _modality_conflicts(
         context,
         audio_relevant=audio_relevant,
@@ -1005,7 +1019,10 @@ def _modality_hierarchy(
     hierarchy = [
         CrossModalityRole(
             modality=primary,
-            role=roles.get(primary, "Lead cross-modality coherence."),
+            role=_clip_text(
+                roles.get(primary, "Lead cross-modality coherence."),
+                _ROLE_MAX_LENGTH,
+            ),
             priority="primary",
             evidence=("Primary modality selected from composer pattern.",),
         )
@@ -1014,7 +1031,10 @@ def _modality_hierarchy(
         hierarchy.append(
             CrossModalityRole(
                 modality=modality,
-                role=roles.get(modality, "Support the primary modality."),
+                role=_clip_text(
+                    roles.get(modality, "Support the primary modality."),
+                    _ROLE_MAX_LENGTH,
+                ),
                 priority="secondary" if index < 3 else "supporting",
                 evidence=_role_evidence(modality, context),
             )
@@ -1256,11 +1276,14 @@ def _temporal_cues(
         cues.append(
             CrossModalityTemporalCue(
                 phase=phase.phase,
-                cue=phase.title,
+                cue=_clip_text(phase.title, _TEMPORAL_CUE_MAX_LENGTH),
                 modalities=tuple(dict.fromkeys(phase_modalities[:6])),
-                timing_guidance=(
-                    f"During {phase.phase}, coordinate visual state, motion "
-                    "state, and rhythm before adding extra layers."
+                timing_guidance=_clip_text(
+                    (
+                        f"During {phase.phase}, coordinate visual state, motion "
+                        "state, and rhythm before adding extra layers."
+                    ),
+                    _TEMPORAL_TIMING_MAX_LENGTH,
                 ),
                 evidence=(phase.symbolic_function,),
             )
@@ -1539,6 +1562,18 @@ def _prompt_guidance(
         "Do not auto-select runtimes, route providers, repair runtime behavior, or change preview behavior."
     )
     return tuple(guidance[:8])
+
+
+def _clip_text(value: str, limit: int) -> str:
+    if len(value) <= limit:
+        return value
+    return value[: max(0, limit - 3)].rstrip() + "..."
+
+
+def _clip_optional_text(value: str | None, limit: int) -> str | None:
+    if value is None:
+        return None
+    return _clip_text(value, limit)
 
 
 def _evidence(

@@ -316,10 +316,8 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             "- Recommended runtime families: p5.js, Tone.js",
             system_section,
         )
-        self.assertIn(
-            "- Sacred geometry concepts: golden ratio, spiral",
-            system_section,
-        )
+        self.assertIn("- Geometry concepts: golden ratio, spiral", system_section)
+        self.assertNotIn("sacred", system_section.lower())
         self.assertIn("- Symmetry:", system_section)
         self.assertIn(
             "not authoritative spiritual claims",
@@ -328,7 +326,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         self.assertIn("- Shader/style presets: glow", system_section)
         self.assertIn("- Preset runtime suitability:", system_section)
         self.assertIn(
-            "- Visual style identities: minimal, sacred geometry",
+            "- Visual style identities: minimal, geometry",
             system_section,
         )
         self.assertIn("- Style palette behavior:", system_section)

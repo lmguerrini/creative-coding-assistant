@@ -416,7 +416,7 @@ def _active_constraints(
         CreativeConstraint(
             axis="intent",
             severity="info",
-            summary=f"Preserve creative intent: {intent_summary}",
+            summary=_clip(f"Preserve creative intent: {intent_summary}", 240),
             recommendation=_intent_recommendation(creative_strategy),
             evidence=_constraint_evidence(
                 creative_intent,

@@ -121,6 +121,9 @@ from creative_coding_assistant.orchestration.symbolic_narrative import (
     SymbolicNarrativePlan,
 )
 
+_EVIDENCE_SIGNAL_MAX_LENGTH = 240
+_EVIDENCE_INTERPRETATION_MAX_LENGTH = 360
+
 
 def build_evidence_chain(
     *,
@@ -166,7 +169,7 @@ def build_evidence_chain(
     evaluation_report: EvaluationReportProfile | None,
 ) -> tuple[CreativeReasoningEvidence, ...]:
     evidence = [
-        CreativeReasoningEvidence(
+        _safe_reasoning_evidence(
             source="request",
             signal=request.query[:240],
             interpretation="The recommendation must preserve stated intent.",
@@ -175,7 +178,7 @@ def build_evidence_chain(
     if route_decision is not None:
         domains = ", ".join(item.value for item in route_decision.domains) or "none"
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="planning",
                 signal=f"Route {route_decision.route.value}; domains {domains}.",
                 interpretation="Reasoning must stay inside route and domain scope.",
@@ -183,7 +186,7 @@ def build_evidence_chain(
         )
     if creative_translation is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="translation",
                 signal=creative_translation.creative_intent,
                 interpretation="Creative translation supplies intent to protect.",
@@ -191,7 +194,7 @@ def build_evidence_chain(
         )
     if creative_intent is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="creative_intent",
                 signal=creative_intent.primary_expression,
                 interpretation=(
@@ -202,7 +205,7 @@ def build_evidence_chain(
         )
     if creative_hierarchy is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="creative_hierarchy",
                 signal=", ".join(
                     item.dimension
@@ -218,7 +221,7 @@ def build_evidence_chain(
     _append_technique_evidence(evidence, creative_techniques)
     if creative_plan is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="planning",
                 signal=_clip(creative_plan.generation_strategy, 240),
                 interpretation="The output goal constrains executable scope.",
@@ -227,7 +230,7 @@ def build_evidence_chain(
     _append_constraint_evidence(evidence, creative_constraints)
     if creative_constraint_priorities is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="constraint_prioritizer",
                 signal=", ".join(
                     item.category
@@ -244,7 +247,7 @@ def build_evidence_chain(
         )
     if runtime_capabilities is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="runtime_capability",
                 signal=", ".join(runtime_capabilities.likely_candidates),
                 interpretation=(
@@ -254,7 +257,7 @@ def build_evidence_chain(
         )
     if creative_tradeoffs is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="tradeoff_explorer",
                 signal=_tradeoff_summary(creative_tradeoffs),
                 interpretation="Trade-off evidence explains the bounded stance.",
@@ -262,7 +265,7 @@ def build_evidence_chain(
         )
     if creative_quality_prediction is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="quality_predictor",
                 signal=(
                     f"{creative_quality_prediction.predicted_quality_level} "
@@ -276,7 +279,7 @@ def build_evidence_chain(
         )
     if symbolic_narrative is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="symbolic_narrative",
                 signal=_clip(
                     (
@@ -293,7 +296,7 @@ def build_evidence_chain(
         )
     if creative_composition is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="creative_composition",
                 signal=_clip(
                     (
@@ -310,7 +313,7 @@ def build_evidence_chain(
         )
     if procedural_structure is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="procedural_structure",
                 signal=_clip(
                     (
@@ -327,7 +330,7 @@ def build_evidence_chain(
         )
     if generative_structure is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="generative_structure",
                 signal=_clip(
                     (
@@ -345,7 +348,7 @@ def build_evidence_chain(
         )
     if semantic_motif is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="semantic_motif",
                 signal=_clip(
                     (
@@ -365,7 +368,7 @@ def build_evidence_chain(
         )
     if emotional_consistency is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="emotional_consistency",
                 signal=_clip(
                     (
@@ -385,7 +388,7 @@ def build_evidence_chain(
         )
     if cross_modality is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="cross_modality",
                 signal=_clip(
                     (
@@ -404,7 +407,7 @@ def build_evidence_chain(
         )
     if audio_visual_scene is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="audio_visual_scene",
                 signal=_clip(
                     (
@@ -424,7 +427,7 @@ def build_evidence_chain(
         )
     if artifact_plan is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="artifact_plan",
                 signal=_clip(
                     (
@@ -444,7 +447,7 @@ def build_evidence_chain(
         )
     if artifact_dependency_graph is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="artifact_dependency_graph",
                 signal=_clip(
                     (
@@ -468,7 +471,7 @@ def build_evidence_chain(
         )
     if runtime_compatibility is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="runtime_compatibility",
                 signal=_clip(
                     (
@@ -491,7 +494,7 @@ def build_evidence_chain(
         )
     if artifact_capability_matrix is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="artifact_capability_matrix",
                 signal=_clip(
                     (
@@ -519,7 +522,7 @@ def build_evidence_chain(
         )
     if multi_artifact_strategy is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="multi_artifact_strategy",
                 signal=_clip(
                     (
@@ -542,7 +545,7 @@ def build_evidence_chain(
         )
     if artifact_critic is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="artifact_critic",
                 signal=_clip(
                     (
@@ -564,7 +567,7 @@ def build_evidence_chain(
         )
     if artifact_refiner is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="artifact_refiner",
                 signal=_clip(
                     (
@@ -585,7 +588,7 @@ def build_evidence_chain(
         )
     if artifact_intelligence_synthesis is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="artifact_intelligence_synthesis",
                 signal=_clip(
                     (
@@ -612,7 +615,7 @@ def build_evidence_chain(
         )
     if artifact_merge_planner is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="artifact_merge_planner",
                 signal=_clip(
                     (
@@ -639,7 +642,7 @@ def build_evidence_chain(
         )
     if artifact_export_intelligence is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="artifact_export_intelligence",
                 signal=_clip(
                     (
@@ -667,7 +670,7 @@ def build_evidence_chain(
         )
     if creative_critic is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="creative_critic",
                 signal=_clip(
                     (
@@ -690,7 +693,7 @@ def build_evidence_chain(
         )
     if self_evaluation is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="self_evaluation",
                 signal=_clip(
                     (
@@ -712,7 +715,7 @@ def build_evidence_chain(
         )
     if creative_improvement_planner is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="creative_improvement_planner",
                 signal=_clip(
                     (
@@ -733,7 +736,7 @@ def build_evidence_chain(
         )
     if reflection_loop is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="reflection_loop",
                 signal=_clip(
                     (
@@ -756,7 +759,7 @@ def build_evidence_chain(
         )
     if creative_confidence is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="creative_confidence",
                 signal=_clip(
                     (
@@ -777,7 +780,7 @@ def build_evidence_chain(
         )
     if creative_score is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="creative_score",
                 signal=_clip(
                     (
@@ -800,7 +803,7 @@ def build_evidence_chain(
         )
     if consistency_validation is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="consistency_validation",
                 signal=_clip(
                     (
@@ -822,7 +825,7 @@ def build_evidence_chain(
         )
     if evaluation_report is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="evaluation_report",
                 signal=_clip(
                     (
@@ -842,7 +845,7 @@ def build_evidence_chain(
         )
     if creative_director is not None:
         evidence.append(
-            CreativeReasoningEvidence(
+            _safe_reasoning_evidence(
                 source="director",
                 signal=creative_director.creative_brief,
                 interpretation="Director guidance frames brief and HITL posture.",
@@ -860,7 +863,7 @@ def _append_strategy_evidence(
     if profile is None:
         return
     evidence.append(
-        CreativeReasoningEvidence(
+        _safe_reasoning_evidence(
             source="creative_strategy",
             signal=f"{profile.primary_strategy} confidence {profile.confidence:.2f}.",
             interpretation=profile.rationale,
@@ -875,7 +878,7 @@ def _append_technique_evidence(
     if profile is None:
         return
     evidence.append(
-        CreativeReasoningEvidence(
+        _safe_reasoning_evidence(
             source="creative_technique",
             signal=(
                 f"{profile.primary_technique} compatibility {profile.compatibility}."
@@ -892,7 +895,7 @@ def _append_constraint_evidence(
     if profile is None:
         return
     evidence.append(
-        CreativeReasoningEvidence(
+        _safe_reasoning_evidence(
             source="constraint_solver",
             signal=(
                 f"complexity {profile.complexity_pressure}; "
@@ -901,6 +904,19 @@ def _append_constraint_evidence(
             ),
             interpretation="Constraint pressures bound the recommendation.",
         )
+    )
+
+
+def _safe_reasoning_evidence(
+    *,
+    source: str,
+    signal: str,
+    interpretation: str,
+) -> CreativeReasoningEvidence:
+    return CreativeReasoningEvidence(
+        source=source,
+        signal=_clip(str(signal), _EVIDENCE_SIGNAL_MAX_LENGTH),
+        interpretation=_clip(str(interpretation), _EVIDENCE_INTERPRETATION_MAX_LENGTH),
     )
 
 

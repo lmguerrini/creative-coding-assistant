@@ -112,6 +112,33 @@ class ProceduralStructurePlannerTests(unittest.TestCase):
             procedural.hitl_questions,
         )
 
+    def test_clips_long_retrieval_answer_structure_rationales(self) -> None:
+        stack = _stack(
+            "Answer a creative-coding runtime question with registered source "
+            "grounding. Explain which retrieved sources shaped the response, "
+            "what the source boundaries are, and how the answer should be "
+            "validated before using it in a browser sketch."
+        )
+        procedural = stack.procedural_structure
+        choices = (
+            procedural.primary_structure,
+            *procedural.secondary_structures,
+            *procedural.fallback_structure_options,
+        )
+
+        self.assertTrue(choices)
+        self.assertTrue(
+            all(len(choice.rationale) <= 320 for choice in choices),
+            [choice.rationale for choice in choices],
+        )
+        self.assertLessEqual(len(procedural.combination_strategy), 360)
+        self.assertLessEqual(len(procedural.spatial_structure_plan), 360)
+        self.assertLessEqual(len(procedural.temporal_structure_plan), 360)
+        if procedural.interaction_structure_plan is not None:
+            self.assertLessEqual(len(procedural.interaction_structure_plan), 320)
+        if procedural.audiovisual_structure_plan is not None:
+            self.assertLessEqual(len(procedural.audiovisual_structure_plan), 320)
+
     def test_integrates_with_prompt_director_and_reasoning_metadata(self) -> None:
         stack = _stack(
             "Generate a symbolic recursive spiral threshold in p5.js with "

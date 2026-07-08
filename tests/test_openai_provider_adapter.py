@@ -124,6 +124,7 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
             GenerationFinishReason.STOP,
         )
         self.assertEqual(client.last_kwargs["model"], "gpt-5-mini")
+        self.assertEqual(client.last_kwargs["max_output_tokens"], 4000)
         self.assertFalse(client.last_kwargs["stream"])
         self.assertIn("Route: explain", client.last_kwargs["instructions"])
         self.assertEqual(len(client.last_kwargs["input"]), 3)
@@ -194,6 +195,43 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
         self.assertEqual(events[2].response.output.usage.reasoning_tokens, 12)
         self.assertTrue(client.last_kwargs["stream"])
         self.assertEqual(client.last_kwargs["model"], "gpt-5-mini")
+        self.assertEqual(client.last_kwargs["max_output_tokens"], 4000)
+
+    def test_length_limited_empty_response_returns_recoverable_boundary(
+        self,
+    ) -> None:
+        stream_events = (
+            SimpleNamespace(
+                type="response.incomplete",
+                response=SimpleNamespace(
+                    id="resp_length",
+                    model="gpt-5-mini",
+                    output_text="",
+                    status="incomplete",
+                    incomplete_details=SimpleNamespace(
+                        reason="max_output_tokens",
+                    ),
+                ),
+            ),
+        )
+        client = _FakeOpenAIClient(stream_events=stream_events)
+        provider = OpenAIGenerationProvider(
+            settings=Settings(openai_model="gpt-5-mini"),
+            client=client,
+        )
+
+        events = tuple(provider.stream(_generation_input(stream=True)))
+
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0].event_type, GenerationEventType.COMPLETED)
+        self.assertEqual(
+            events[0].response.output.finish_reason,
+            GenerationFinishReason.LENGTH,
+        )
+        self.assertIn(
+            "configured output limit was reached",
+            events[0].response.output.content,
+        )
 
     def test_provider_maps_error_events(self) -> None:
         stream_events = (

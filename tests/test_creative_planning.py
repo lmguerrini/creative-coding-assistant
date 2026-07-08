@@ -66,7 +66,11 @@ class CreativePlanningTests(unittest.TestCase):
             plan.evidence,
         )
         self.assertTrue(
-            any("Sacred geometry" in item for item in plan.evidence),
+            any("Geometry guidance" in item for item in plan.evidence),
+            plan.evidence,
+        )
+        self.assertFalse(
+            any("sacred" in item.lower() for item in plan.evidence),
             plan.evidence,
         )
         self.assertTrue(

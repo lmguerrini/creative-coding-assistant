@@ -802,9 +802,11 @@ class JinjaPromptRenderer:
             route=request.route,
             prompt_input=request.prompt_input,
         )
-        normalized = "\n".join(
-            line.rstrip() for line in content.splitlines() if line.strip()
-        ).strip()
+        normalized = _public_prompt_text(
+            "\n".join(
+                line.rstrip() for line in content.splitlines() if line.strip()
+            ).strip()
+        )
         if not normalized:
             logger.info(
                 "Skipped empty rendered prompt section '{}' for route '{}'",
@@ -1216,6 +1218,18 @@ def _generation_runtime_guidance_lines(
             "changing only names or colors."
         )
     return tuple(guidance)
+
+
+def _public_prompt_text(value: str) -> str:
+    return (
+        value.replace("sacred_geometry_pattern_systems", "geometric_pattern_systems")
+        .replace("sacred_geometry", "geometry")
+        .replace("Sacred geometry", "Geometry")
+        .replace("sacred geometry", "geometry")
+        .replace("sacred-geometry", "geometry")
+        .replace("Sacred", "Geometric")
+        .replace("sacred", "geometric")
+    )
 
 
 def _image_reference_line(image: PromptImageReferenceInput) -> str:

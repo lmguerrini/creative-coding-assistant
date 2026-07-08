@@ -192,7 +192,7 @@ def creative_execution_plan_prompt_lines(
 
     lines = [
         f"Output modality: {plan.output_modality.value}.",
-        f"Generation strategy: {plan.generation_strategy}",
+        f"Generation strategy: {_public_planning_text(plan.generation_strategy)}",
         f"Candidate count: {plan.candidate_count}.",
         f"Refinement budget: {plan.refinement_budget}.",
         f"Expected complexity: {plan.expected_complexity}.",
@@ -201,14 +201,24 @@ def creative_execution_plan_prompt_lines(
         f"Runtime availability: {plan.runtime_support_summary}",
     ]
     if plan.recommended_runtime is not None:
-        lines.append(f"Recommended runtime: {plan.recommended_runtime}.")
+        lines.append(
+            f"Recommended runtime: {_public_planning_text(plan.recommended_runtime)}."
+        )
     if plan.recommended_renderer_id is not None:
-        lines.append(f"Recommended renderer: {plan.recommended_renderer_id}.")
+        lines.append(
+            f"Recommended renderer: {_public_planning_text(plan.recommended_renderer_id)}."
+        )
     if plan.recommended_shader_style is not None:
-        lines.append(f"Recommended shader/style: {plan.recommended_shader_style}.")
-    lines.extend(f"Plan step: {step}" for step in plan.plan_steps)
+        lines.append(
+            "Recommended shader/style: "
+            f"{_public_planning_text(plan.recommended_shader_style)}."
+        )
     lines.extend(
-        f"Planning constraint: {constraint}" for constraint in plan.constraints
+        f"Plan step: {_public_planning_text(step)}" for step in plan.plan_steps
+    )
+    lines.extend(
+        f"Planning constraint: {_public_planning_text(constraint)}"
+        for constraint in plan.constraints
     )
     return tuple(lines)
 
@@ -444,12 +454,16 @@ def _generation_strategy(
     runtime = support.label if support is not None else "a code-only creative surface"
     intent = _planning_intent_summary(creative_intent, creative_translation)
     strategy = (
-        f" with {creative_strategy.primary_strategy} as the high-level strategy"
+        " with "
+        f"{_public_planning_text(creative_strategy.primary_strategy)} "
+        "as the high-level strategy"
         if creative_strategy is not None
         else ""
     )
     technique = (
-        f" and {creative_techniques.primary_technique} technique guidance"
+        " and "
+        f"{_public_planning_text(creative_techniques.primary_technique)} "
+        "technique guidance"
         if creative_techniques is not None
         else ""
     )
@@ -462,8 +476,10 @@ def _generation_strategy(
         else ""
     )
     return _clip(
-        f"{action} {target} for a {modality.value} output using {runtime}; "
-        f"optimize for {intent}{strategy}{technique}{hierarchy}.",
+        _public_planning_text(
+            f"{action} {target} for a {modality.value} output using {runtime}; "
+            f"optimize for {intent}{strategy}{technique}{hierarchy}.",
+        ),
         360,
     )
 
@@ -546,7 +562,9 @@ def _plan_steps(
         )
     if creative_strategy is not None:
         steps.append(
-            f"Use {creative_strategy.primary_strategy} as high-level strategy only."
+            "Use "
+            f"{_public_planning_text(creative_strategy.primary_strategy)} "
+            "as high-level strategy only."
         )
     if creative_techniques is not None:
         steps.append(
@@ -557,14 +575,14 @@ def _plan_steps(
     if creative_translation and creative_translation.reference_fusion is not None:
         steps.append("Preserve reference fusion palette, composition, and safety cues.")
     if creative_translation and creative_translation.sacred_geometry is not None:
-        steps.append("Carry sacred geometry structure into the generated composition.")
+        steps.append("Carry geometric structure into the generated composition.")
     if creative_translation and creative_translation.audio_reactive is not None:
         steps.append("Map audio-reactive signals only where runtime support allows it.")
     if support is not None:
         steps.append(
             f"Target {support.runtime} output compatible with {support.renderer_id}."
         )
-    return tuple(steps[:6])
+    return tuple(_public_planning_text(step) for step in steps[:6])
 
 
 def _constraints(
@@ -640,7 +658,7 @@ def _evidence(
                 f"{creative_translation.reference_fusion.source_count} source(s)."
             )
         if creative_translation.sacred_geometry is not None:
-            evidence.append("Sacred geometry guidance present.")
+            evidence.append("Geometry guidance present.")
         if creative_translation.audio_reactive is not None:
             evidence.append("Audio-reactive mapping guidance present.")
     if creative_intent is not None:
@@ -650,14 +668,30 @@ def _evidence(
             f"Hierarchy confidence: {creative_hierarchy.hierarchy_confidence:.2f}."
         )
     if creative_strategy is not None:
-        evidence.append(f"Creative strategy: {creative_strategy.primary_strategy}.")
+        evidence.append(
+            f"Creative strategy: {_public_planning_text(creative_strategy.primary_strategy)}."
+        )
     if creative_techniques is not None:
-        evidence.append(f"Creative technique: {creative_techniques.primary_technique}.")
+        evidence.append(
+            f"Creative technique: {_public_planning_text(creative_techniques.primary_technique)}."
+        )
     if support is not None:
         evidence.append(f"Runtime support: {support.label}.")
     if retrieval_chunk_count:
         evidence.append(f"Retrieval context: {retrieval_chunk_count} chunk(s).")
-    return tuple(evidence[:10])
+    return tuple(_public_planning_text(item) for item in evidence[:10])
+
+
+def _public_planning_text(value: str) -> str:
+    return (
+        value.replace("sacred_geometry_pattern_systems", "geometric_pattern_systems")
+        .replace("sacred_geometry", "geometry")
+        .replace("Sacred geometry", "Geometry")
+        .replace("sacred geometry", "geometry")
+        .replace("sacred-geometry", "geometry")
+        .replace("Sacred", "Geometric")
+        .replace("sacred", "geometric")
+    )
 
 
 def _contains_audio_domain(domains: tuple[CreativeCodingDomain, ...]) -> bool:

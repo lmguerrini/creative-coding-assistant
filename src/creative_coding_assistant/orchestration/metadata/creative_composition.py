@@ -363,7 +363,7 @@ def _primary_focal_point(
     context: _CompositionContext,
 ) -> str:
     subject = _subject_label(context)
-    return f"{spec.primary_focal_point} Anchor it around {subject}."
+    return _clip_text(f"{spec.primary_focal_point} Anchor it around {subject}.", 260)
 
 
 def _secondary_focal_elements(context: _CompositionContext) -> tuple[str, ...]:
@@ -701,6 +701,13 @@ def _has_any(context: _CompositionContext, values: frozenset[str] | set[str]) ->
 
 def _normalize(value: str) -> str:
     return " ".join(value.lower().replace("-", " ").split())
+
+
+def _clip_text(value: str, limit: int) -> str:
+    normalized = " ".join(value.strip().split())
+    if len(normalized) <= limit:
+        return normalized
+    return normalized[: max(0, limit - 3)].rstrip() + "..."
 
 
 def _dedupe(values: list[str]) -> tuple[str, ...]:

@@ -129,6 +129,9 @@ _HIGH_DENSITY_FAMILIES = frozenset(
         "swarm_systems",
     }
 )
+_STRUCTURE_CHOICE_RATIONALE_MAX_LENGTH = 320
+_STRUCTURE_PLAN_MAX_LENGTH = 360
+_OPTIONAL_STRUCTURE_PLAN_MAX_LENGTH = 320
 
 
 class ProceduralStructureChoice(BaseModel):
@@ -279,11 +282,26 @@ def derive_procedural_structure_plan(
         recommended_families=tuple(item.spec.family for item in scored[:5]),
         primary_structure=_choice_from_scored(primary, context, secondary=False),
         secondary_structures=secondary,
-        combination_strategy=_combination_strategy(primary.spec, secondary, context),
-        spatial_structure_plan=_spatial_structure_plan(primary.spec, context),
-        temporal_structure_plan=_temporal_structure_plan(primary.spec, context),
-        interaction_structure_plan=_interaction_structure_plan(context, primary.spec),
-        audiovisual_structure_plan=_audiovisual_structure_plan(context, primary.spec),
+        combination_strategy=_clip_text(
+            _combination_strategy(primary.spec, secondary, context),
+            _STRUCTURE_PLAN_MAX_LENGTH,
+        ),
+        spatial_structure_plan=_clip_text(
+            _spatial_structure_plan(primary.spec, context),
+            _STRUCTURE_PLAN_MAX_LENGTH,
+        ),
+        temporal_structure_plan=_clip_text(
+            _temporal_structure_plan(primary.spec, context),
+            _STRUCTURE_PLAN_MAX_LENGTH,
+        ),
+        interaction_structure_plan=_clip_optional_text(
+            _interaction_structure_plan(context, primary.spec),
+            _OPTIONAL_STRUCTURE_PLAN_MAX_LENGTH,
+        ),
+        audiovisual_structure_plan=_clip_optional_text(
+            _audiovisual_structure_plan(context, primary.spec),
+            _OPTIONAL_STRUCTURE_PLAN_MAX_LENGTH,
+        ),
         complexity_level=_complexity_level(primary.spec, context),
         runtime_suitability_notes=_runtime_suitability_notes(
             context,
@@ -539,7 +557,7 @@ def _choice_from_scored(
     return ProceduralStructureChoice(
         family=scored.spec.family,
         label=scored.spec.label,
-        rationale=rationale,
+        rationale=_clip_text(rationale, _STRUCTURE_CHOICE_RATIONALE_MAX_LENGTH),
         evidence=scored.evidence or (f"Selected score {scored.score}.",),
     )
 
@@ -551,9 +569,10 @@ def _choice_from_spec(
     return ProceduralStructureChoice(
         family=spec.family,
         label=spec.label,
-        rationale=(
+        rationale=_clip_text(
             f"Use {spec.label.lower()} as a lower-risk procedural fallback "
-            f"that still supports {_subject_label(context)}."
+            f"that still supports {_subject_label(context)}.",
+            _STRUCTURE_CHOICE_RATIONALE_MAX_LENGTH,
         ),
         evidence=("Fallback from procedural structure planner.",),
     )
@@ -579,6 +598,18 @@ def _secondary_rationale(
         f"strengthens {_subject_label(context)} without overtaking the primary "
         "procedural spine."
     )
+
+
+def _clip_text(value: str, limit: int) -> str:
+    if len(value) <= limit:
+        return value
+    return value[: max(0, limit - 3)].rstrip() + "..."
+
+
+def _clip_optional_text(value: str | None, limit: int) -> str | None:
+    if value is None:
+        return None
+    return _clip_text(value, limit)
 
 
 def _combination_strategy(

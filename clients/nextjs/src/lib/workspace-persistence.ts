@@ -130,6 +130,17 @@ export type WorkspaceSessionRecordInput = {
 const defaultPersistenceEndpoint =
   process.env.NEXT_PUBLIC_WORKSPACE_SESSION_URL ??
   "http://localhost:8000/api/workspace/session";
+const maxPersistedMessages = 12;
+const maxPersistedArtifacts = 12;
+const maxPersistedRetrievalSources = 5;
+const maxPersistedRetrievalChunks = 3;
+const maxPersistedDebugEvents = 40;
+const maxPersistedUserMessageChars = 2_000;
+const maxPersistedAssistantMessageChars = 12_000;
+const maxPersistedArtifactContentChars = 12_000;
+const maxPersistedCodeLineChars = 2_000;
+const maxPersistedRetrievalTextChars = 1_200;
+const maxPersistedDebugDetailChars = 800;
 
 export function createWorkspacePersistenceClient(
   options: WorkspacePersistenceClientOptions = {}
@@ -203,6 +214,14 @@ export function createWorkspaceSessionRecord({
   snapshot
 }: WorkspaceSessionRecordInput): WorkspaceSessionRecord {
   const updatedAt = new Date().toISOString();
+  const messages = compactWorkspaceMessages(snapshot.messages);
+  const artifacts = compactWorkspaceArtifacts(snapshot.artifacts);
+  const compactSnapshot = compactWorkspaceSnapshot({
+    artifacts,
+    messages,
+    snapshot,
+    updatedAt
+  });
 
   return {
     schemaVersion: 4,
@@ -217,18 +236,12 @@ export function createWorkspaceSessionRecord({
     layout: normalizeWorkspaceLayoutState(layout),
     preferences: normalizeWorkspacePreferences(preferences),
     workspace: snapshot.workspace,
-    messages: snapshot.messages,
+    messages,
     workflow: snapshot.workflow,
-    artifacts: snapshot.artifacts,
+    artifacts,
     multimodal: snapshot.multimodal,
     preview: snapshot.preview,
-    snapshot: {
-      ...snapshot,
-      session: {
-        ...snapshot.session,
-        updatedAt
-      }
-    },
+    snapshot: compactSnapshot,
     updatedAt
   };
 }
@@ -457,6 +470,114 @@ function normalizeWorkspaceWorkflow(
       typeof value.currentStep === "string" ? value.currentStep : fallback.currentStep,
     steps: mergedSteps
   };
+}
+
+function compactWorkspaceSnapshot({
+  artifacts,
+  messages,
+  snapshot,
+  updatedAt
+}: {
+  artifacts: ArtifactSummary[];
+  messages: AssistantMessage[];
+  snapshot: AssistantWorkspaceSnapshot;
+  updatedAt: string;
+}): AssistantWorkspaceSnapshot {
+  return {
+    ...snapshot,
+    session: {
+      ...snapshot.session,
+      updatedAt
+    },
+    messages,
+    artifacts,
+    code: {
+      ...snapshot.code,
+      excerpt: snapshot.code.excerpt
+        .slice(0, 20)
+        .map((line) => truncatePersistedText(line, maxPersistedCodeLineChars))
+    },
+    retrieval: compactWorkspaceRetrieval(snapshot.retrieval),
+    debug: {
+      ...snapshot.debug,
+      events: snapshot.debug.events.slice(-maxPersistedDebugEvents).map((event) => ({
+        ...event,
+        detail: truncatePersistedText(event.detail, maxPersistedDebugDetailChars)
+      }))
+    }
+  };
+}
+
+function compactWorkspaceMessages(
+  messages: AssistantMessage[]
+): AssistantMessage[] {
+  return messages.slice(-maxPersistedMessages).map((message) => ({
+    ...message,
+    content: truncatePersistedText(
+      message.content,
+      message.role === "assistant"
+        ? maxPersistedAssistantMessageChars
+        : maxPersistedUserMessageChars
+    )
+  }));
+}
+
+function compactWorkspaceArtifacts(
+  artifacts: ArtifactSummary[]
+): ArtifactSummary[] {
+  return artifacts.slice(-maxPersistedArtifacts).map((artifact) => ({
+    ...artifact,
+    content:
+      typeof artifact.content === "string"
+        ? truncatePersistedText(
+            artifact.content,
+            maxPersistedArtifactContentChars
+          )
+        : artifact.content
+  }));
+}
+
+function compactWorkspaceRetrieval(
+  retrieval: AssistantWorkspaceSnapshot["retrieval"]
+): AssistantWorkspaceSnapshot["retrieval"] {
+  return {
+    ...retrieval,
+    detail: truncatePersistedText(retrieval.detail, maxPersistedRetrievalTextChars),
+    warning:
+      retrieval.warning === null
+        ? null
+        : truncatePersistedText(retrieval.warning, maxPersistedRetrievalTextChars),
+    sources: retrieval.sources
+      .slice(0, maxPersistedRetrievalSources)
+      .map((source) => ({
+        ...source,
+        detail: truncatePersistedText(
+          source.detail,
+          maxPersistedRetrievalTextChars
+        ),
+        whyUsed: truncatePersistedText(
+          source.whyUsed,
+          maxPersistedRetrievalTextChars
+        ),
+        chunks: source.chunks
+          .slice(0, maxPersistedRetrievalChunks)
+          .map((chunk) => ({
+            ...chunk,
+            snippet: truncatePersistedText(
+              chunk.snippet,
+              maxPersistedRetrievalTextChars
+            )
+          }))
+      }))
+  };
+}
+
+function truncatePersistedText(value: string, limit: number): string {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (normalized.length <= limit) {
+    return normalized;
+  }
+  return `${normalized.slice(0, limit - 14).trimEnd()}... [truncated]`;
 }
 
 function inferInsertedWorkflowStepState(

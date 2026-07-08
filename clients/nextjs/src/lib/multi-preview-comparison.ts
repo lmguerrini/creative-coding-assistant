@@ -164,7 +164,9 @@ function buildMultiPreviewCandidate({
     row,
     runtimeSessionKey: `comparison:${artifact.id}:${runtimeSource.fingerprint}`,
     runtimeSource,
-    shaderPresetLabels: translation?.shaderPresets?.presets ?? [],
+    shaderPresetLabels: formatPublicComparisonLabels(
+      translation?.shaderPresets?.presets ?? []
+    ),
     visualStyleLabels: formatPublicComparisonLabels(
       translation?.visualStyle?.styles ?? []
     )

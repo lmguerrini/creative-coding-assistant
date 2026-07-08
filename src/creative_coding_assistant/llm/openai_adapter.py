@@ -53,6 +53,7 @@ class OpenAIGenerationProvider(GenerationProvider):
             payload = _build_openai_payload(
                 request=request,
                 model=self._model,
+                max_output_tokens=self._settings.openai_max_output_tokens,
             )
             logger.info(
                 "Dispatching generation request to OpenAI with {} message(s)",
@@ -145,6 +146,8 @@ class OpenAIGenerationProvider(GenerationProvider):
     ) -> GenerationStreamEvent:
         text = _extract_output_text(response) or fallback_text
         finish_reason = _extract_finish_reason(response)
+        if not text.strip():
+            text = _fallback_empty_output_text(finish_reason)
         return GenerationStreamEvent(
             event_type=GenerationEventType.COMPLETED,
             response=GenerationResponse(
@@ -182,6 +185,7 @@ def _build_openai_payload(
     *,
     request: GenerationInput,
     model: str,
+    max_output_tokens: int | None = None,
 ) -> dict[str, Any]:
     instructions: list[str] = []
     input_messages: list[dict[str, Any]] = []
@@ -196,6 +200,8 @@ def _build_openai_payload(
         "model": model,
         "input": input_messages,
     }
+    if max_output_tokens is not None:
+        payload["max_output_tokens"] = max_output_tokens
     if instructions:
         payload["instructions"] = "\n\n".join(instructions)
     return payload
@@ -265,6 +271,25 @@ def _extract_finish_reason(response: Any) -> GenerationFinishReason:
     if reason in {"failed", "error"}:
         return GenerationFinishReason.ERROR
     return GenerationFinishReason.STOP
+
+
+def _fallback_empty_output_text(finish_reason: GenerationFinishReason) -> str:
+    if finish_reason is GenerationFinishReason.LENGTH:
+        return (
+            "The provider stopped before returning visible text because the "
+            "configured output limit was reached. Narrow the prompt, increase "
+            "CCA_OPENAI_MAX_OUTPUT_TOKENS, or use the documented demo artifact "
+            "fallback for this scenario."
+        )
+    if finish_reason is GenerationFinishReason.ERROR:
+        return (
+            "The provider completed without visible text after reporting an error. "
+            "Review provider status and retry the request."
+        )
+    return (
+        "The provider completed without visible text. Retry the request or use the "
+        "documented demo fallback for this scenario."
+    )
 
 
 def _extract_model(response: Any) -> str | None:

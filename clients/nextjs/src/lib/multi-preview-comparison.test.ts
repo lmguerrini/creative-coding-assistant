@@ -40,7 +40,7 @@ describe("multi-preview comparison model", () => {
             lightMaterialBehavior: [],
             motionBehavior: [],
             performanceConstraints: [],
-            presets: ["glow"],
+            presets: ["glow", "sacred light / ritual ambience"],
             runtimeSuitability: ["p5.js"],
             shaderStructure: []
           },
@@ -100,7 +100,7 @@ describe("multi-preview comparison model", () => {
       canRender: true,
       geometryLabels: ["mandala"],
       outputLabel: "Visual",
-      shaderPresetLabels: ["glow"],
+      shaderPresetLabels: ["glow", "geometric light / ritual ambience"],
       visualStyleLabels: ["minimal", "geometry"]
     });
     expect(model.candidates[0].route.surfaceKind).toBe("p5");

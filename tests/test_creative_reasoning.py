@@ -132,6 +132,35 @@ class CreativeReasoningEngineTests(unittest.TestCase):
         )
         self.assertNotIn("runtime auto-selection enabled", system)
 
+    def test_reasoning_clips_long_demo_prompt_evidence(self) -> None:
+        request = AssistantRequest(
+            query=(
+                "Create an audio-reactive Three.js visual system for a capstone "
+                "demo. Use concentric geometry, subtle bloom, FFT-driven motion "
+                "accents, camera movement, browser-safe runtime notes, "
+                "interaction guidance, and a clear fallback if live audio or "
+                "preview is unavailable."
+            ),
+            mode=AssistantMode.GENERATE,
+            domain=CreativeCodingDomain.THREE_JS,
+        )
+        route = _route(CreativeCodingDomain.THREE_JS)
+
+        reasoning = derive_creative_reasoning_result(
+            **_creative_context(request, route)
+        )
+
+        self.assertIn(
+            "translation",
+            {item.source for item in reasoning.evidence_chain},
+        )
+        self.assertTrue(
+            all(len(item.signal) <= 240 for item in reasoning.evidence_chain)
+        )
+        self.assertTrue(
+            all(len(item.interpretation) <= 360 for item in reasoning.evidence_chain)
+        )
+
 
 def _creative_context(
     request: AssistantRequest,

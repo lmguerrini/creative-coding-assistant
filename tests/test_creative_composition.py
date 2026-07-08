@@ -77,6 +77,16 @@ class CreativeCompositionPlannerTests(unittest.TestCase):
             composition.hitl_questions,
         )
 
+    def test_clips_long_retrieval_answer_focal_point(self) -> None:
+        stack = _stack(
+            "Answer a creative-coding runtime question with registered source "
+            "grounding. Explain which retrieved sources shaped the response, "
+            "what the source boundaries are, and how the answer should be "
+            "validated before using it in a browser sketch."
+        )
+
+        self.assertLessEqual(len(stack.creative_composition.primary_focal_point), 260)
+
     def test_integrates_with_prompt_director_and_reasoning_metadata(self) -> None:
         stack = _stack(
             "Generate a symbolic spiral threshold crossing in p5.js with "

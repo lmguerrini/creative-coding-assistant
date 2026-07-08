@@ -115,6 +115,26 @@ class CrossModalityComposerTests(unittest.TestCase):
             profile.hitl_questions,
         )
 
+    def test_clips_long_retrieval_answer_cross_modality_roles(self) -> None:
+        stack = _stack(
+            "Answer a creative-coding runtime question with registered source "
+            "grounding. Explain which retrieved sources shaped the response, "
+            "what the source boundaries are, and how the answer should be "
+            "validated before using it in a browser sketch."
+        )
+        profile = stack.cross_modality
+
+        self.assertLessEqual(len(profile.visual_role), 320)
+        self.assertLessEqual(len(profile.motion_role), 320)
+        self.assertLessEqual(len(profile.rhythm_role), 320)
+        self.assertLessEqual(len(profile.structure_role), 340)
+        self.assertLessEqual(len(profile.motif_role), 320)
+        self.assertLessEqual(len(profile.emotion_role), 320)
+        self.assertTrue(
+            all(len(item.role) <= 340 for item in profile.modality_hierarchy),
+            [item.role for item in profile.modality_hierarchy],
+        )
+
     def test_integrates_with_prompt_director_reasoning_and_serialization(self) -> None:
         stack = _stack(
             "Generate a symbolic recursive spiral threshold in p5.js with "

@@ -45,6 +45,56 @@ describe("workspace persistence client", () => {
     expect(record.updatedAt).toBeDefined();
   });
 
+  it("compacts oversized live workspace snapshots for remote persistence", () => {
+    const largeText = "live generated code and reasoning ".repeat(15_000);
+    const snapshot = {
+      ...getLocalWorkspaceSnapshot(),
+      messages: [
+        {
+          role: "user" as const,
+          time: "12:00",
+          content: largeText
+        },
+        {
+          role: "assistant" as const,
+          time: "12:01",
+          content: largeText
+        }
+      ],
+      artifacts: getLocalWorkspaceSnapshot().artifacts.map((artifact) => ({
+        ...artifact,
+        content: largeText
+      })),
+      code: {
+        ...getLocalWorkspaceSnapshot().code,
+        excerpt: [largeText, largeText]
+      },
+      debug: {
+        ...getLocalWorkspaceSnapshot().debug,
+        events: Array.from({ length: 80 }, (_, index) => ({
+          code: `event_${index}`,
+          label: `Event ${index}`,
+          detail: largeText
+        }))
+      }
+    };
+
+    const record = createWorkspaceSessionRecord({
+      activeArtifactId: "source-sketch",
+      activeInspectorTab: "Code",
+      previewArtifactId: "preview-manifest",
+      previewOpen: true,
+      snapshot
+    });
+
+    expect(JSON.stringify(record).length).toBeLessThan(256 * 1024);
+    expect(record.messages).toHaveLength(2);
+    expect(record.messages[1]?.content).toContain("[truncated]");
+    expect(record.snapshot.debug.events).toHaveLength(40);
+    expect(record.snapshot.code.excerpt[0]).toContain("[truncated]");
+    expect(record.artifacts[0]?.content).toContain("[truncated]");
+  });
+
   it("normalizes layout preferences into safe persisted values", () => {
     expect(
       normalizeWorkspaceLayoutState({

@@ -52,12 +52,14 @@ class ProviderConfigSettingsTests(unittest.TestCase):
             GenerationProviderName.OPENAI,
         )
         self.assertEqual(settings.openai_model, "gpt-5-mini")
+        self.assertEqual(settings.openai_max_output_tokens, 4000)
         self.assertFalse(settings.has_openai_api_key)
         self.assertIsNone(settings.get_openai_api_key())
 
     def test_settings_accept_environment_overrides(self) -> None:
         with _temporary_env(
             CCA_DEFAULT_GENERATION_PROVIDER="openai",
+            CCA_OPENAI_MAX_OUTPUT_TOKENS="900",
             CCA_OPENAI_MODEL="gpt-5",
             OPENAI_API_KEY="sk-test-secret",
         ):
@@ -68,6 +70,7 @@ class ProviderConfigSettingsTests(unittest.TestCase):
             GenerationProviderName.OPENAI,
         )
         self.assertEqual(settings.openai_model, "gpt-5")
+        self.assertEqual(settings.openai_max_output_tokens, 900)
         self.assertTrue(settings.has_openai_api_key)
         self.assertEqual(settings.get_openai_api_key(), "sk-test-secret")
         self.assertNotIn("sk-test-secret", repr(settings.openai_api_key))
