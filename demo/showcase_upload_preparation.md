@@ -25,7 +25,8 @@ evidence on `version-review/v8`.
   workflow orchestration, preview support, and evaluation evidence.
 - Include the data story: registered creative-coding KB sources and recorded
   evaluation sessions.
-- Include limitations: no live external DCC/MCP execution, no HoloMind or
-  HOLOiVERSE behavior, and no generic document search beyond the registered KB.
+- Include limitations: no live external DCC/MCP execution, no autonomous
+  immersive platform behavior, and no generic document search beyond the
+  registered KB.
 - Include fallback: provider, retrieval, preview, network, and timing paths are
   rehearsed through the golden dataset.

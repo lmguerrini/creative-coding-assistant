@@ -2,12 +2,13 @@
 
 V7.9 adds deterministic runtime integration validation for the real Creative
 Coding Assistant execution path after the V7.8 workflow decomposition. These
-checks are intentionally separate from passive metadata/model validation.
+checks are intentionally separate from Typed Domain Intelligence validation.
 
 ## Validation Layers
 
-Metadata/model validation proves registry completeness, contract shapes, and
-advisory model payload stability without executing the user-facing runtime.
+Typed Domain Intelligence validation proves registry completeness, contract
+shapes, and advisory payload stability without executing the user-facing
+runtime.
 
 Runtime integration validation executes the compiled LangGraph workflow through
 `AssistantService` with controlled memory, retrieval, prompt, generation, and
@@ -36,7 +37,7 @@ It covers:
 - Node execution order through memory, retrieval, context assembly, prompt
   input, planning, rendering, generation, artifact extraction, preview,
   critique, review, and finalization.
-- Runtime state transitions and final workflow metadata.
+- Runtime state transitions and final workflow records.
 - Memory and retrieval context assembly into provider-ready prompt messages.
 - Retrieval gateway failure recovery with a recoverable empty-context event.
 - WSGI NDJSON streaming over `/api/assistant/stream`.
@@ -67,7 +68,7 @@ Before V7 freeze, runtime-risk coverage must include at least one deterministic
 integration assertion for each of these surfaces:
 
 - Compiled LangGraph workflow construction and execution.
-- Node ordering and transition metadata.
+- Node ordering and transition records.
 - Success stream contract through the backend API/WSGI layer.
 - Error stream contract through the backend API/WSGI layer.
 - Workspace session create, restore, update, and missing-session paths.

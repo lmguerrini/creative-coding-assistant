@@ -18,15 +18,15 @@
       "prompt": "Create a luminous audio-reactive Three.js scene for a capstone demo: concentric geometry, subtle bloom, FFT-driven motion accents, and a clear explanation of provider choice, execution mode, estimates, fallback, and escalation boundaries.",
       "expected_behavior": "Presenter shows a Three.js creative-coding answer path and the generated Three.js artifact evidence.",
       "fallback_path": "Use the generated Three.js artifact and browser full-runtime QA result if live generation or provider access fails.",
-      "success_criteria": "Real Three.js package renders the artifact nonblank in browser QA; no unsupported DCC/MCP or HoloMind claims.",
+      "success_criteria": "Real Three.js package renders the artifact nonblank in browser QA; no unsupported DCC/MCP or autonomous execution claims.",
       "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json -> three_audio_reactive_scene",
       "reviewer_talking_point": "Three.js browser rendering passed through a temporary QA runtime; the app dependency graph was not changed."
     },
     {
       "demo_id": "p5_generative_sketch_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Create a p5.js generative morphogenesis sketch using reaction diffusion, cellular automata, L-systems, flow fields, particle systems, self-organization, and emergent form. Keep it browser-safe, explain interaction controls, and cite retrieval/source boundaries conservatively.",
-      "expected_behavior": "Presenter shows a p5.js generative visual with practical morphogenesis technique guidance.",
+      "prompt": "Create a p5.js generative morphogenesis sketch using reaction diffusion, cellular automata, L-systems, flow fields, particle systems, differential growth, diffusion-limited aggregation, branching, self-organization, and emergent form. Keep it browser-safe, explain interaction controls, and cite retrieval/source boundaries conservatively.",
+      "expected_behavior": "Presenter shows a p5.js generative visual with practical morphogenesis technique guidance and a clear visual growth story.",
       "fallback_path": "Use the p5 golden artifact and browser full-runtime QA result if live generation fails.",
       "success_criteria": "Real p5 package renders the artifact nonblank in browser QA; no metaphysical, medical, religious, or historical authority claim.",
       "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json -> p5 golden artifact",
@@ -45,7 +45,7 @@
     {
       "demo_id": "hydra_feedback_pattern_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Create a Hydra feedback-pattern demo for a browser visual performance. Use oscillator layers, modulation, feedback, output routing, visual pattern explanation, and a fallback to GLSL or static artifact evidence when the Hydra runtime is unavailable.",
+      "prompt": "Create a Hydra feedback-pattern demo for a browser visual performance. Use oscillator layers, modulation, feedback, moire-like pattern motion, output routing, visual pattern explanation, and a fallback to GLSL or static artifact evidence when the Hydra runtime is unavailable.",
       "expected_behavior": "Presenter shows a bounded Hydra-compatible pattern chain and the exact runtime support boundary.",
       "fallback_path": "Use hydra_feedback_lattice.js and browser full-runtime QA result if live generation or preview fails.",
       "success_criteria": "Hydra synth artifact renders nonblank through real local hydra-synth QA with no microphone or full editor claim.",
@@ -75,7 +75,7 @@
     {
       "demo_id": "geometry_morphogenesis_visual_system_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Design a geometry and morphogenesis visual system for the browser. Combine radial structures, recursive growth, reaction diffusion, flow fields, and particle trails. Include runtime selection, preview strategy, source boundaries, and a graceful fallback plan.",
+      "prompt": "Design a geometry and morphogenesis visual system for the browser. Combine radial structures, recursive growth, reaction diffusion, diffusion-limited aggregation, branching, flow fields, and particle trails. Include runtime selection, preview strategy, source boundaries, and a graceful fallback plan.",
       "expected_behavior": "Presenter shows generative system planning with geometry, computational growth, and practical runtime choices.",
       "fallback_path": "Use the p5.js and GLSL golden QA records plus offline prompts if live generation or preview fails.",
       "success_criteria": "Output remains implementation guidance with source boundaries and browser-runtime constraints.",
@@ -87,9 +87,9 @@
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
       "prompt": "Plan a browser-based installation or immersive scene for a gallery demo. Include concept, geometry, audience movement, runtimes, retrieval needs, preview plan, artifact package, evaluation checks, fallback route, and handoff boundaries.",
       "expected_behavior": "Presenter shows a project-bundle planning handoff with explicit local-demo and future-scope boundaries.",
-      "fallback_path": "Use the integrated Demo Mode list, offline dataset, launcher fallback, and scorecard boundaries; do not claim live DCC/MCP, autonomous delivery, or public deployment.",
-      "success_criteria": "Planner output is bounded as project planning and handoff metadata only.",
-      "validation_path": "demo/golden_demo_dataset.json and docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md",
+      "fallback_path": "Use the integrated Demo Mode list, offline dataset, launcher fallback, and evidence boundaries; do not claim live DCC/MCP, autonomous delivery, or public deployment.",
+      "success_criteria": "Planner output is bounded as project planning and handoff notes only.",
+      "validation_path": "demo/golden_demo_dataset.json and docs/V8_CAPSTONE_EVIDENCE_MATRIX.md",
       "reviewer_talking_point": "This is local browser installation planning, not cloud deployment or external tool execution."
     }
   ]

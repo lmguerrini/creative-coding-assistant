@@ -27,7 +27,7 @@ the public docs/demo tree and are ignored.
 | `docs/PROJECT_CONTEXT.md` | Public product documentation | Keep tracked | Summarizes project purpose and context. |
 | `docs/PUBLIC_DOCUMENTATION_BOUNDARY_AUDIT.md` | Public reviewer/user evidence | Keep tracked | Records this public/private boundary review. |
 | `docs/RUNTIME_VALIDATION.md` | Public product documentation | Keep tracked | Documents runtime validation posture and supported validation paths. |
-| `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md` | Public reviewer/user evidence | Keep tracked | Primary release-candidate scorecard and evidence map. |
+| `docs/V8_CAPSTONE_EVIDENCE_MATRIX.md` | Public reviewer/user evidence | Keep tracked | Primary release-candidate evidence matrix. |
 | `docs/V8_GRAND_ENGINEERING_REVIEW.md` | Public reviewer/user evidence | Keep tracked | Final Grand Review release-candidate evidence and HITL boundaries. |
 | `docs/eval.md` | Public product documentation | Keep tracked | Explains evaluation approach and reviewer-relevant commands. |
 | `docs/eval_pipeline.md` | Public product documentation | Keep tracked | Details manual eval/RAGAs pipeline and privacy boundaries. |
@@ -54,7 +54,7 @@ the public docs/demo tree and are ignored.
 | `demo/golden_artifacts/browser_render_qa.html` | Public reviewer/user evidence | Keep tracked | Offline browser QA harness for p5 shim, GLSL WebGL, and Three.js dependency-boundary checks. |
 | `demo/golden_artifacts/browser_render_qa_results.json` | Public reviewer/user evidence | Keep tracked | Exact browser/render QA result and limitations. |
 | `demo/golden_artifacts/README.md` | Public reviewer/user evidence | Keep tracked | Explains generated artifact scope and runtime boundaries. |
-| `demo/golden_artifacts/p5_sacred_geometry_sketch.js` | Public reviewer/user evidence | Keep tracked | Generated p5.js artifact for output/creative quality inspection. |
+| `demo/golden_artifacts/p5_generative_morphogenesis_sketch.js` | Public reviewer/user evidence | Keep tracked | Generated p5.js artifact for output/creative quality inspection. |
 | `demo/golden_artifacts/three_audio_reactive_scene.js` | Public reviewer/user evidence | Keep tracked | Generated Three.js artifact for output/creative quality inspection. |
 | `demo/golden_artifacts/glsl_kaleidoscope_field.frag` | Public reviewer/user evidence | Keep tracked | Generated GLSL artifact for output/creative quality inspection. |
 | `demo/golden_artifacts/hydra_feedback_lattice.js` | Public reviewer/user evidence | Keep tracked | Generated Hydra artifact for bounded hydra-synth browser QA inspection. |

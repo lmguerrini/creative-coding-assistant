@@ -9,7 +9,8 @@ showcase session.
 - Confirm no merge, push, tag, or freeze action is planned without HITL.
 - Keep `README.md`, `docs/CAPSTONE_DEMO_SHOWCASE.md`, and
   `docs/CAPSTONE_EVALUATION_ETHICS.md` open.
-- Keep `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md` open for reviewer questions.
+- Keep `docs/V8_CAPSTONE_EVIDENCE_MATRIX.md` open for reviewer evidence
+  questions.
 - Keep `demo/golden_demo_dataset.json` and `demo/demo_prompt_library.md` open.
 - Open Creative Coding Assistant locally and use integrated `Demo Mode` as the
   primary presenter surface.
@@ -35,15 +36,15 @@ showcase session.
 - Rehearse the full 10-minute demo:
   1:15 problem/purpose, 1:30 architecture, 4:15 primary golden flow,
   1:30 evaluation/ethics, 1:30 challenges/next steps.
-- Rehearse the 5-minute Q&A with the scorecard open:
-  data/sources, RAGAs, live versus passive metadata, provider outage,
+- Rehearse the 5-minute Q&A with the evidence matrix open:
+  data/sources, RAGAs, live execution versus Typed Domain Intelligence Layers, provider outage,
   retrieval outage, preview limitations, deployment target, privacy, and
   Chroma warnings.
 - Rehearse the primary flow in 7 minutes as a compressed fallback.
 - Rehearse the case-alignment summary in 90 seconds.
 - Rehearse the evaluation and ethics summary in 60 seconds.
 - Rehearse the offline fallback in 30 seconds.
-- Rehearse the top reviewer questions from the scorecard in 90 seconds.
+- Rehearse the top reviewer questions from the evidence matrix in 90 seconds.
 - Practice stating provider, retrieval, preview, network, and timing failures
   clearly without implying live success.
 

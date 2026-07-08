@@ -8,7 +8,7 @@ engineering ledger and does not start future version work.
 - LangGraph-backed creative assistant workflow.
 - Retrieval and memory context assembly.
 - OpenAI provider integration through backend adapters.
-- Artifact extraction and preview metadata generation.
+- Artifact extraction and preview record generation.
 - Critique, review, and bounded refinement surfaces.
 - Browser workstation with streaming conversation, retrieval visibility,
   preview surfaces, artifact inspection, workflow visibility, and local

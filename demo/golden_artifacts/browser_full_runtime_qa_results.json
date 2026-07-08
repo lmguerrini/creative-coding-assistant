@@ -19,7 +19,7 @@
   "performance_boundary": "Frame timing is an uncapped local draw-loop measurement captured in the browser. It is not a vsync display FPS, load, soak, or production performance benchmark.",
   "results": [
     {
-      "artifact_id": "p5_sacred_geometry_sketch",
+      "artifact_id": "p5_generative_morphogenesis_sketch",
       "runtime": "p5.js",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
       "status": "fully_validated",
@@ -131,5 +131,5 @@
       }
     ]
   },
-  "claim_boundary": "This is local browser QA evidence only. It is not a public deployment, not a display-FPS guarantee, and not evidence of DCC/MCP, HoloMind, or HOLOiVERSE execution. Hydra support is limited to the validated local hydra-synth browser artifact path."
+  "claim_boundary": "This is local browser QA evidence only. It is not a public deployment, not a display-FPS guarantee, and not evidence of DCC/MCP, autonomous immersive platform, or external execution. Hydra support is limited to the validated local hydra-synth browser artifact path."
 }

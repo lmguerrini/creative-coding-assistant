@@ -43,7 +43,7 @@ DEMO_SHOWCASE_AUTHORITY_BOUNDARY = (
     "over existing product surfaces only; it does not execute providers, run "
     "retrieval, render previews, route models, mutate prompts or artifacts, "
     "write persistent storage, call external DCC or MCP tools, implement "
-    "HoloMind or HOLOiVERSE, deploy, merge, push, tag, freeze the release, or "
+    "future autonomous or immersive execution platforms, deploy, merge, push, tag, freeze the release, or "
     "start the V8 Grand Review."
 )
 
@@ -580,7 +580,7 @@ def _case_alignments() -> tuple[CapstoneCaseAlignment, ...]:
                 "preview surfaces, and manual eval tooling."
             ),
             evidence_refs=("pyproject.toml", "docs/eval_pipeline.md", "clients/nextjs/public/preview-sandbox.html"),
-            boundary="Do not claim live DCC/MCP integrations, HoloMind, HOLOiVERSE, or unsupported preview runtimes.",
+            boundary="Do not claim live DCC/MCP integrations, autonomous immersive execution, or unsupported preview runtimes.",
         ),
     )
 
@@ -667,8 +667,9 @@ def _prompt_library(*, demo_source: ProductionDemoAssetPlan) -> tuple[DemoPrompt
             capstone_cases=("case_1_rag_knowledge_assistant", "case_5_ai_coding_assistant"),
             prompt_text=(
                 "Create a p5.js generative morphogenesis sketch using reaction diffusion, cellular automata, "
-                "L-systems, flow fields, particle systems, self-organization, and emergent form. Keep it "
-                "browser-safe, explain interaction controls, and cite retrieval/source boundaries conservatively."
+                "L-systems, flow fields, particle systems, differential growth, diffusion-limited aggregation, "
+                "branching, self-organization, and emergent form. Keep it browser-safe, explain interaction "
+                "controls, and cite retrieval/source boundaries conservatively."
             ),
             expected_demo_value="Covers p5.js and morphogenesis as a bounded browser creative-coding path.",
             fallback_notes=("Use this when the primary Three.js path needs a simpler canvas-based fallback.",),
@@ -679,7 +680,8 @@ def _prompt_library(*, demo_source: ProductionDemoAssetPlan) -> tuple[DemoPrompt
             capstone_cases=("case_1_rag_knowledge_assistant", "case_5_ai_coding_assistant"),
             prompt_text=(
                 "Design a Hydra-style feedback texture chain and a GLSL fragment-shader fallback for a luminous "
-                "kaleidoscopic scene. Explain what is actually supported in-browser, what should be treated as "
+                "kaleidoscopic scene. Include oscillator layers, modulation, feedback, moire-like pattern motion, "
+                "and output routing. Explain what is actually supported in-browser, what should be treated as "
                 "pseudocode or adaptation guidance, and how to recover if a runtime is unavailable."
             ),
             expected_demo_value="Covers Hydra-if-supported and GLSL with explicit runtime fallback boundaries.",
@@ -691,8 +693,9 @@ def _prompt_library(*, demo_source: ProductionDemoAssetPlan) -> tuple[DemoPrompt
             capstone_cases=("case_1_rag_knowledge_assistant", "case_5_ai_coding_assistant"),
             prompt_text=(
                 "Design a geometry and morphogenesis visual system for the browser. Combine radial structures, "
-                "recursive growth, reaction diffusion, flow fields, and particle trails. Include runtime selection, "
-                "preview strategy, source boundaries, and a graceful fallback plan."
+                "recursive growth, reaction diffusion, diffusion-limited aggregation, branching, flow fields, and "
+                "particle trails. Include runtime selection, preview strategy, source boundaries, and a graceful "
+                "fallback plan."
             ),
             expected_demo_value=(
                 "Covers generative structures and emergent form without unsupported authority claims."
@@ -1016,7 +1019,7 @@ def _checklist_items() -> tuple[DemoChecklistItem, ...]:
             item_id="check_no_overclaims",
             category="presentation",
             status="ready",
-            action="Avoid live DCC/MCP, HoloMind, HOLOiVERSE, autonomous agent swarm, and generic search claims.",
+            action="Avoid live DCC/MCP, autonomous execution platform, autonomous agent swarm, and generic search claims.",
             evidence_refs=("docs/CAPSTONE_DEMO_SHOWCASE.md", "README.md"),
         ),
         DemoChecklistItem(
@@ -1093,7 +1096,7 @@ def _presentation_segments() -> tuple[DemoPresentationSegment, ...]:
             phase="five_minute_qa",
             duration_seconds=120,
             purpose="Answer architecture, provider, and limitation questions.",
-            talking_points=("provider fallback", "no live DCC/MCP", "no HoloMind/HOLOiVERSE", "manual HITL"),
+            talking_points=("provider fallback", "no live DCC/MCP", "no autonomous execution platform", "manual HITL"),
         ),
         DemoPresentationSegment(
             segment_id="qa_next_steps",

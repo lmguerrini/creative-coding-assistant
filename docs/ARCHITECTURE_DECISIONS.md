@@ -3,13 +3,13 @@
 ## Backend Ownership
 
 The Python backend is the source of truth for request handling, retrieval,
-memory assembly, planning metadata, provider calls, artifact metadata, critique,
+memory assembly, planning records, provider calls, artifact records, critique,
 bounded refinement, finalization, and failure handling.
 
 ## Workflow Boundary
 
 The application uses a compact LangGraph workflow for the user-facing creative
-pipeline. Helper modules may provide metadata, validation, diagnostics, or
+pipeline. Helper modules may provide Typed Domain Intelligence records, validation, diagnostics, or
 contract surfaces, but they should not create hidden workflow execution paths
 or change provider routing without an explicit product change.
 

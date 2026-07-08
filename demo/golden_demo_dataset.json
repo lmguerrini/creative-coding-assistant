@@ -97,17 +97,17 @@
     {
       "prompt_id": "p5_generative_morphogenesis_sketch",
       "title": "p5.js generative morphogenesis sketch",
-      "prompt_text": "Create a p5.js generative morphogenesis sketch using reaction diffusion, cellular automata, L-systems, flow fields, particle systems, self-organization, and emergent form. Keep it browser-safe, explain interaction controls, and cite retrieval/source boundaries conservatively."
+      "prompt_text": "Create a p5.js generative morphogenesis sketch using reaction diffusion, cellular automata, L-systems, flow fields, particle systems, differential growth, diffusion-limited aggregation, branching, self-organization, and emergent form. Keep it browser-safe, explain interaction controls, and cite retrieval/source boundaries conservatively."
     },
     {
       "prompt_id": "hydra_feedback_texture_chain",
       "title": "Hydra and GLSL feedback texture chain",
-      "prompt_text": "Design a Hydra-style feedback texture chain and a GLSL fragment-shader fallback for a luminous kaleidoscopic scene. Explain what is actually supported in-browser, what should be treated as pseudocode or adaptation guidance, and how to recover if a runtime is unavailable."
+      "prompt_text": "Design a Hydra-style feedback texture chain and a GLSL fragment-shader fallback for a luminous kaleidoscopic scene. Include oscillator layers, modulation, feedback, moire-like pattern motion, and output routing. Explain what is actually supported in-browser, what should be treated as pseudocode or adaptation guidance, and how to recover if a runtime is unavailable."
     },
     {
       "prompt_id": "geometry_morphogenesis_visual_system",
       "title": "Geometry and morphogenesis visual system",
-      "prompt_text": "Design a geometry and morphogenesis visual system for the browser. Combine radial structures, recursive growth, reaction diffusion, flow fields, and particle trails. Include runtime selection, preview strategy, source boundaries, and a graceful fallback plan."
+      "prompt_text": "Design a geometry and morphogenesis visual system for the browser. Combine radial structures, recursive growth, reaction diffusion, diffusion-limited aggregation, branching, flow fields, and particle trails. Include runtime selection, preview strategy, source boundaries, and a graceful fallback plan."
     },
     {
       "prompt_id": "installation_immersive_scene_planning",

@@ -1,2208 +1,303 @@
 # Creative Coding Assistant
 
-Creative Coding Assistant is an AI-native creative translation workstation for
-the completed V3 platform, designed to transform conceptual, geometric,
-stylistic, and multimodal intent into professional audio, visual, and
-audiovisual creative systems.
-
-It combines a LangGraph-orchestrated Python backend with a Next.js workstation
-for the full V2.5 Creative Core, the V3.1 Creative Cognition Core, the V3.2
-Generative Design Core, the V3.3 Artifact Intelligence stack, and the V3.4
-Creative Evaluation layer. V3.5 adds the Creative Workstation surface layer:
-workstation state, session intelligence, workflow exploration, provenance,
-creative timeline, V3 inspector panels, dashboard summaries, and surface
-contracts over existing metadata. The product also includes multi-artifact
-generation, multi-preview comparison, controlled runtime preview, critique and
-scoring, parameter control, observability, validation, and export preparation.
-The stabilized V3 surface hardens workflow graph assembly, stream and payload
-boundaries, local backend mounting, shared orchestration utilities, and
-documentation alignment without expanding generation behavior or
-future-version runtime scope.
-V4.1 adds the passive Multi-Agent Core: stable agent identities, role
-definitions, contracts, memory-access boundaries, authority boundaries, and
-advisory metadata for inspection and future orchestration consumers. These
-registries do not run agents, route tasks, change prompts, select providers,
-select runtimes, trigger retries, or modify generated output.
-V4.2 adds passive Agent Orchestration contracts over that Multi-Agent Core:
-dynamic routing profiles, blackboard channel contracts, shared context views,
-dependency and scheduling metadata, coordination/debate/consensus contracts,
-lifecycle and synchronization metadata, workflow-to-agent handoff metadata, and
-an integration manifest. These registries make orchestration readiness
-inspectable while preserving the existing generation, runtime, routing, prompt,
-retry, storage, and output behavior.
-V4.3 adds passive Hybrid Agentic Workflow metadata over the stable V3 backbone
-and V4 orchestration contracts: V3 backbone mode, conditional escalation,
-specialist loops, gates, creative policy, debate, voting, confidence fusion,
-provenance, traces, budgets, result normalization, return handoff, HITL gates,
-threshold routing, ambiguity/risk/quality escalation, adaptive escalation, and
-workflow integration metadata. These registries describe future escalation
-readiness without executing agents, changing workflow order, routing providers
-or models, selecting runtimes, triggering retries, mutating prompts, or
-modifying generated output.
-V4.4 adds passive Hybrid Studio metadata for local model surfaces, cloud model
-surfaces, hybrid execution profiles, Auto Mode, Studio Mode, HITL decisions,
-provider selection, execution simulation, model/cost/quality profiles,
-local/cloud comparison, agent workspace, agent conversation views, workspace
-snapshots, session replay, execution replay, and hybrid studio integration.
-These registries describe future Studio inspection readiness without
-activating Studio runtime, executing providers, invoking agents, changing
-provider/model routing, selecting runtimes, requesting human input, writing
-replay storage, or modifying generated output.
-V4.5 adds passive Multimodal Studio metadata for live preview, multi preview,
-interactive canvas, visual workspace, runtime collaboration, artifact
-collaboration, provenance, lineage, cross-agent workspace, shared artifact
-boards, workspace history, branching timelines, creative evolution timelines,
-real-time workflow visualization, and multimodal studio integration. These
-registries describe future multimodal inspection readiness without executing
-rendering, activating Studio runtime, changing provider/model routing,
-selecting runtimes, controlling workflows, mutating artifacts, persisting
-collaboration storage, subscribing to live streams, opening networking, or
-modifying generated output.
-V4.6 adds passive Agentic Studio Hardening metadata for contracts, policies,
-workflow readiness, registry discoverability, memory/context boundaries,
-collaboration/diversity, explainability/reliability/determinism, observability,
-cost, performance, architecture consistency, final hardening, and LangGraph
-error-path coverage without executing hardening behavior.
-V5.1 adds advisory Execution Optimization metadata for graph analysis,
-workflow cost/complexity, context/exploration budget, compression, cache/reuse,
-pruning, forecasting, path optimization, strategy selection, architecture
-consistency, and runtime failure-path audit coverage. V5.2 adds advisory
-Intelligent Model Routing metadata for model/local/cloud/hybrid routing
-posture, quality/cost optimization, budget/HITL gates, runtime/execution
-policy, model recommendations, model/provider capability matrices,
-quality/cost and creative prediction, routing explainability, architecture
-consistency, and runtime failure-path audit coverage. V5.3 adds advisory
-Performance Engine metadata for scheduling, latency, async, streaming, retry
-policy, load balancing, profiling, replay, bottleneck, throughput, prediction,
-benchmarking, reasoning budget, regression, resource utilization, architecture
-consistency, and runtime failure-path audit coverage. V5.4 adds read-only
-Production Observability metadata for token, cost, quality, performance,
-telemetry, diagnostics, health, analytics, timeline, explainability,
-architecture consistency, and runtime failure-path audit coverage. V5.5 adds
-controlled Adaptive Execution Intelligence policy and simulation for
-task-aware allow/confirm/block decisions, guarded provider/model path
-selection, fallback and escalation reasoning, hybrid workflow policies,
-manual/Assisted/Auto mode semantics, and manual/HITL-only surfaces for local
-model download, provider provisioning, runtime installation, and Runtime
-Evolution review. V5.6 adds Production Release readiness metadata for final
-optimization, packaging, release-candidate posture, demo assets, deployment
-assumptions, production readiness, creative readiness, architecture freeze,
-release audit, final hardening, architecture consistency, and runtime
-failure-path audit coverage so the system can be demonstrated and reviewed
-without introducing new core architecture. These V5 layers do not mutate
-configured routing,
-silently switch providers or models, execute providers, download models,
-provision providers, install runtimes, allocate agents or resources, measure
-live performance, collect live metrics, emit telemetry or alerts, capture
-traces, execute benchmarks or replay, enforce budgets or capacity, emit HITL
-requests, control workflows, trigger retries, mutate prompts, modify generated
-output, execute deployment, or create release tags.
-
-V6.1 adds Adaptive Learning Engine metadata for learning signals, workflow
-success tracking, failure tracking, strategy/technique/runtime/routing
-learning, artifact/evaluation learning, continuous improvement signals,
-success/failure pattern discovery, learning replay metadata, learning
-confidence calibration, creative success/failure learning, learning
-governance, and runtime failure-path audit coverage. It remains advisory
-metadata only: it does not persist learning memory, execute replay, train
-models, apply feedback, update policies, observe live outcomes, classify live
-errors, route terminal failures, change provider/model routing, execute
-providers or workflows, write storage, apply Runtime Evolution, mutate
-preferences, remediate failures, or mutate generated output.
-V6.2 adds Creative Memory Engine metadata for long-term creative memory,
-user preferences, style profiles, project memory, Creative DNA,
-personalization posture, session memory evolution, artifact history,
-creative lineage, creative ontology, preference learning posture, user
-modeling, memory consolidation, retrieval intelligence, retrieval planning,
-conflict resolution, memory explainability, memory safety, creative taste,
-preference evolution, governance, and failure-path audit coverage. It remains
-advisory creative memory metadata only: it does not write creative memory
-storage, retrieve memory, learn or mutate preferences, apply personalization,
-apply Creative DNA, infer lineage or ontology relationships, enforce safety
-policies, emit HITL requests, activate automation, change provider/model
-routing, execute providers or workflows, apply Runtime Evolution, or mutate
-generated output.
-V6.3 adds Knowledge Evolution Engine metadata for automatic KB updates,
-documentation intelligence, embedding refresh, retrieval evolution, ranking
-optimization, knowledge health, quality, gap, conflict, and drift signals,
-source reliability, consolidation, lifecycle, provenance, versioning,
-snapshot, rollback, freshness, trust, governance, and failure-path audit
-coverage. It remains advisory knowledge evolution metadata only: it does not
-execute automatic KB updates, fetch documentation, refresh embeddings, execute
-retrieval, mutate retrieval configuration, mutate ranking, compute quality or
-trust scores, write KB storage, update source records, mutate provenance or
-version graphs, execute snapshots or rollbacks, enforce policies, emit HITL
-requests, activate automation, change provider/model routing, execute
-providers or workflows, apply Runtime Evolution, or mutate generated output.
-V6.4 adds Autonomous Research Engine metadata for Research Planner, Research
-Decomposer, Paper Research, Web Research, Cross-source Comparison, Knowledge
-Distillation, Automatic KB Enrichment, Research Reports, Research Memory,
-Source Validation Engine, Source Credibility Engine, Contradiction Detection,
-Research Confidence Engine, Research Gap Discovery, Research Recommendation
-Engine, Research Execution Policy, Research HITL Policies, Creative Research
-Engine, and Cross-domain Inspiration Discovery, plus core, secondary,
-governance, and failure-path audit surfaces. It remains advisory research
-metadata only: it does not browse the web, fetch external sources, download
-papers, execute research, enrich the KB, write research memory, generate
-reports, score sources or confidence, detect contradictions, discover gaps,
-emit HITL requests, activate automation, change provider/model routing,
-execute providers or workflows, apply Runtime Evolution, or mutate generated
-output.
-V6.5 adds Self Evolution Engine metadata for prompt, workflow, benchmark,
-quality, cost, optimization, architecture, strategy, agent, routing, memory,
-retrieval, self-improvement, creative, taste, reasoning, ranking,
-cost/benefit, risk, expected impact, rollback, core, secondary, governance,
-and failure-path audit surfaces. It remains an advisory orchestration and
-evolution-governance layer only: it reads V6.1 adaptive learning, V6.2
-creative memory, V6.3 knowledge evolution, and V6.4 autonomous research
-signals, ranks and explains proposals, and preserves HITL boundaries without
-applying Runtime Evolution, rewriting prompts, mutating workflows, changing
-routing, mutating memory or retrieval, writing storage, executing providers,
-generating report artifacts, or mutating generated output.
-V6.6 adds Cognitive Operating System Core metadata for the Unified Cognitive
-Graph, Unified Memory Graph, Unified Knowledge Graph, Unified Agent Registry,
-Unified Capability Registry, Cross-System Learning Layer, Cross-System
-Optimization Layer, Cognitive State Engine, Cognitive Profile Engine,
-Meta-Reasoning Layer, Meta-Planning Layer, Cognitive Governance Layer,
-Creative Cognition Layer, Creative Identity Layer, Emergent Creativity Layer,
-Cognitive Scheduler, Cognitive Planner, Cognitive Router, Cognitive
-Blackboard, Cognitive Explanation Engine, Cognitive Safety Layer, Cognitive
-HITL Layer, Unified Execution Graph, Core OS Consolidation, core surface,
-secondary surface, governance/safety, and failure-path audit surfaces. It
-remains advisory Cognitive OS metadata only: it composes V5 Decision Engine
-context with the V6.1 learning, V6.2 memory, V6.3 knowledge, V6.4 research,
-V6.5 self-evolution, and V6.6 cognitive-core sequence through explicit
-ownership, dependency, governance, explainability, safety, and HITL contracts
-without activating the OS, executing graphs, applying routing, enforcing
-policies, emitting HITL requests, applying HITL decisions, mutating prompts,
-workflows, memory, retrieval, storage, provider selection, runtime state,
-Runtime Evolution, or generated output.
-V7.1 through V7.4 add read-only runtime graph contracts, passive typed failure
-taxonomy contracts, passive registry/contract consolidation metadata, and
-E2E/CI quality gates. V7.5 hardens the browser-facing API/runtime boundary
-with versioned API/error/stream/workspace-session contracts, health/live/ready
-endpoints, production configuration validation, Chroma dependency health
-posture, telemetry-ready logging contracts, configuration migration aliases,
-and release checklist generation without changing provider/model routing,
-workflow execution, prompt rendering, retrieval ownership, workspace storage
-ownership, or generated output semantics.
-
-The product scope is a creative coding platform rather than a generic chat
-assistant. Requests can be translated from intent, symbols, geometry, style,
-shader language, motion systems, audio-reactive mappings, and visual references
-into structured creative guidance, grounded with retrieval when useful,
-expanded into multiple candidate artifacts, compared, critiqued, refined, and
-observed through live preview and runtime inspection from the same interface.
+Creative Coding Assistant is a local AI workstation for creative coders,
+technical artists, and reviewers who need to turn audiovisual intent into
+grounded browser creative-coding guidance. It combines retrieval, workflow
+orchestration, preview surfaces, generated artifact evidence, and evaluation
+fixtures so a reviewer can inspect what the system can do and where the
+boundaries are.
 
 ![Creative Coding Assistant](assets/preview_current.png)
 
-## Capstone Demo Readiness
-
-V8.8 prepares the project for the final Turing College AI Capstone demo and
-showcase. The demo story is: Creative Coding Assistant helps creative coders
-turn expressive audiovisual intent into grounded browser creative-coding
-guidance, with retrieval support, workflow orchestration, preview surfaces, and
-manual evaluation evidence.
-
-## Capstone Evaluator — Start Here
-
-For a reviewer or evaluator, use this shortest evidence path:
-
-1. Read `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md` for the current release
-   candidate scorecard, exact evidence, conservative limitations, and remaining
-   risks.
-2. Read `docs/CAPSTONE_DEMO_SHOWCASE.md` for the 10-minute demo, 5-minute Q&A,
-   fallback path, SCR framing, and SMART framing.
-3. Review `docs/CAPSTONE_EVALUATION_ETHICS.md` for evaluation metrics, RAGAs
-   boundaries, source grounding, privacy, and ethics.
-4. Start Creative Coding Assistant locally and open the integrated Demo Mode
-   from the workstation top bar. Demo Mode covers all 8 final demo flows,
-   loads curated prompts into the normal assistant composer, and shows expected
-   behavior, fallback, evidence, source boundaries, and output guidance.
-5. Keep `demo/final_demo_launcher.html` as the static fallback/reviewer
-   launcher for the same final demo suite and evidence paths.
-6. Inspect `demo/golden_artifacts/` for generated p5.js, Three.js, GLSL, and
-   Hydra artifacts plus browser QA evidence. Hydra support is limited to the
-   validated local `hydra-synth` artifact path.
-7. Inspect `demo/evaluation/` for sanitized RAGAs and redacted latest-live
-   RAGAs fixture/result evidence. Raw private live-session data under
-   `data/eval/` remains local.
-
-Minimum reviewer setup path:
-
-```bash
-.venv/bin/python --version
-.venv/bin/pytest tests/test_golden_artifacts.py tests/test_ragas_live_eval_foundation.py tests/test_demo_showcase_experience.py tests/test_retrieval_demo_pack.py
-cd clients/nextjs
-npm run typecheck
-npm run test
-npm run dev
-```
-
-Primary local demo path:
-
-1. Start the backend with `.venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000`.
-2. Start the frontend with `cd clients/nextjs && npm run dev`.
-3. Open `http://127.0.0.1:3000`, select `Demo Mode`, choose a scenario, and send the loaded prompt through the normal assistant workflow.
-
-Primary Capstone alignment:
-
-- Case 5: AI coding assistant for creative coding
-- Case 1: RAG-powered knowledge assistant
-- Case 6: advanced LLM tools through LangGraph, Chroma, preview, and
-  evaluation workflows
-
-Guarded support only:
-
-- Case 2: bounded workflow explanation and advisory metadata, not autonomous
-  agent swarms
-- Case 3: registered-source creative-coding KB search, not generic document
-  search
-
-Demo materials:
-
-- `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md` for the detailed engineering,
-  reviewer, golden demo, and production readiness scorecard
-- `docs/PUBLIC_DOCUMENTATION_BOUNDARY_AUDIT.md` for the public/private
-  documentation classification over `docs/` and `demo/`
-- `docs/CAPSTONE_DEMO_SHOWCASE.md` for the 10-minute demo and 5-minute Q&A
-- `docs/CAPSTONE_EVALUATION_ETHICS.md` for metrics, evidence, ethics, and
-  limitations
-- `demo/demo_prompt_library.md` for golden prompts
-- `demo/golden_demo_dataset.json` for rehearsal and offline fallback
-- Integrated Demo Mode in Creative Coding Assistant for the primary local
-  presenter/reviewer path
-- `demo/final_demo_launcher.html` for the static fallback reviewer launcher
-- `demo/final_demo_suite.json` for the final eight-flow demo start paths,
-  success criteria, fallbacks, and reviewer talking points
-- `demo/golden_artifacts/` for generated and QA-checked p5.js, Three.js, and
-  GLSL public artifacts plus a bounded Hydra `hydra-synth` artifact
-- `demo/evaluation/` for sanitized RAGAs, redacted latest-live RAGAs fixture
-  and result evidence, and the private raw-session decision
-- `demo/manual_demo_checklist.md` for reliability validation
-- `demo/showcase_upload_preparation.md` for showcase packaging
-
-V8.8 does not add live external DCC/MCP execution, HoloMind, HOLOiVERSE,
-autonomous workflow control, automatic provider failover, live metric
-collection, merge, push, tag, freeze, or Grand Review behavior.
-
-V8 Grand Engineering Review is a separate release-candidate validation program
-on `version-review/v8`. It validates the V8.8 demo evidence, product smoke
-paths, documentation, Capstone alignment, and final freeze readiness while
-keeping merge, push, tag, and freeze actions behind HITL approval.
-
-## Highlights
-
-- AI-native workstation UX with chat, a compact bottom preview shelf, and
-  focused inspector tabs for overview, preview, runtime, code, workflow,
-  telemetry, artifacts, and retrieval
-- Complete V2.5 Creative Core plus V3.1 Creative Cognition, V3.2 Generative
-  Design, V3.3 Artifact Intelligence, and V3.4 Creative Evaluation metadata for
-  intent decomposition, hierarchy, strategy, technique, constraints, runtime
-  reasoning, trade-offs, quality prediction, narrative, composition,
-  procedural structure, generative structure, motifs, emotional consistency,
-  cross-modality, scene design, artifact planning, compatibility, critique,
-  refinement, merge planning, export intelligence, confidence, scoring,
-  consistency validation, reports, and engine contracts
-- V3.5 Creative Workstation surfaces for shared workstation state, session
-  intelligence, workflow exploration, provenance, creative timeline, V3
-  inspector panels, dashboard cards, and metadata-only surface contracts
-- V4.1 Multi-Agent Core registries for passive agent identities, roles,
-  contracts, memory boundaries, authority boundaries, and advisory metadata
-  without active multi-agent orchestration
-- V4.2 Agent Orchestration registries for passive routing, blackboard, context
-  view, dependency, scheduling, coordination, debate, consensus, lifecycle,
-  synchronization, handoff, and integration metadata without active
-  orchestration
-- V4.3 Hybrid Agentic Workflow registries for passive V3 backbone,
-  escalation, specialist-loop, debate, voting, confidence, provenance, trace,
-  budget, normalization, handoff, threshold, quality, adaptive, and workflow
-  integration metadata without active hybrid orchestration
-- V4.4 Hybrid Studio registries for passive local/cloud model surfaces,
-  hybrid execution, Auto Mode, Studio Mode, HITL decision, provider selection,
-  execution simulator, model/cost/quality profile, comparison, workspace,
-  conversation, snapshot, session replay, execution replay, and integration
-  metadata without active Studio runtime
-- V4.5 Multimodal Studio registries for passive live preview, multi preview,
-  interactive canvas, visual workspace, collaboration, provenance, lineage,
-  history, branching, creative evolution, real-time workflow visualization,
-  and integration metadata without rendering execution or active Studio
-  runtime
-- V4.6 Agentic Studio Hardening registries for passive contract, policy,
-  workflow, registry, memory/context, collaboration/diversity, quality,
-  reliability, determinism, observability, cost, performance, architecture,
-  final hardening, and LangGraph error-path audit metadata without new runtime
-  behavior
-- V5.1 Execution Optimization helpers for advisory graph, cost, complexity,
-  context budget, exploration, compression, cache/reuse, pruning, forecasting,
-  path optimization, strategy selection, architecture consistency, and failure
-  audit metadata without changing runtime control
-- V5.2 Intelligent Model Routing helpers for advisory model routing,
-  local/cloud routing, hybrid routing, quality/cost optimization, budget/HITL
-  gates, runtime/execution policy, model recommendations, capability matrices,
-  prediction, explainability, architecture consistency, and failure audit
-  metadata without active model selection or provider execution
-- V5.3 Performance Engine helpers for advisory scheduling, latency, async,
-  streaming, retry policy, load balancing, profiling, replay, bottleneck,
-  throughput, prediction, benchmarking, reasoning budget, regression, resource
-  utilization, architecture consistency, and failure audit metadata without
-  runtime measurement, benchmark execution, resource enforcement, or workflow
-  control
-- V5.4 Production Observability helpers for read-only token, cost, quality,
-  performance, telemetry, diagnostics, health, creative analytics, confidence
-  analytics, diversity analytics, timeline, explainability, architecture
-  consistency, and failure audit metadata without live metric collection,
-  telemetry emission, trace capture, remediation, or workflow control
-- V5.5 Adaptive Execution Intelligence helpers for controlled adaptive
-  execution policy, pre-run simulation, availability-aware allow/confirm/block
-  decisions, hybrid workflow policy, fallback/escalation reasoning, advisory
-  agent/resource/cost/latency/risk surfaces, explainability, architecture
-  consistency, and failure audit metadata without provider execution,
-  provider/model routing mutation, automatic downloads, provider provisioning,
-  runtime installation, HITL emission, workflow control, or output mutation
-- V5.6 Production Release helpers for production final optimization,
-  packaging readiness, release-candidate posture, demo asset readiness,
-  deployment assumptions, production readiness review, creative readiness
-  review, architecture freeze, release audit, final hardening, architecture
-  consistency, and runtime failure-path audit coverage without new core
-  architecture, automatic installation, package builds, deployment execution,
-  provider execution, provider/model routing mutation, release tag creation,
-  release artifact creation, terminal routing mutation, or Runtime Evolution
-- V6.1 Adaptive Learning Engine helpers for advisory learning signals,
-  workflow success tracking, failure tracking, strategy, technique, runtime,
-  and routing learning, artifact/evaluation learning, continuous improvement,
-  success/failure pattern discovery, learning replay metadata, confidence
-  calibration, creative success/failure learning, learning governance, and
-  runtime failure-path audit coverage without memory persistence, replay
-  execution, model training, feedback application, policy updates, live
-  outcome observation, terminal failure routing, provider/model routing
-  mutation, workflow execution, storage writes, preference mutation,
-  automatic remediation, Runtime Evolution, or output mutation
-- V6.2 Creative Memory Engine helpers for advisory long-term memory,
-  preferences, style, project memory, Creative DNA, personalization, session
-  evolution, artifact history, lineage, ontology, preference learning, user
-  modeling, consolidation, retrieval intelligence, retrieval planning,
-  conflict resolution, explainability, safety, taste, preference evolution,
-  governance, and failure audit metadata without memory storage writes,
-  preference learning execution, personalization application, Creative DNA
-  application, lineage or ontology inference, safety enforcement, HITL
-  emission, automation, provider/model routing mutation, workflow execution,
-  Runtime Evolution, or output mutation
-- V6.3 Knowledge Evolution Engine helpers for advisory automatic KB updates,
-  documentation intelligence, embedding refresh, retrieval evolution, ranking
-  optimization, health, quality, gap, conflict, drift, source reliability,
-  consolidation, lifecycle, provenance, versioning, snapshot, rollback,
-  freshness, trust, governance, and failure audit metadata without automatic
-  KB update execution, documentation fetch execution, embedding refresh
-  execution, retrieval execution, retrieval configuration mutation, ranking
-  mutation, quality or trust score computation, source record updates, KB
-  storage writes, graph mutation, snapshot or rollback execution, policy
-  enforcement, HITL emission, automation, provider/model routing mutation,
-  workflow execution, Runtime Evolution, or output mutation
-- V6.4 Autonomous Research Engine helpers for advisory research planning,
-  decomposition, paper/web research posture, cross-source comparison,
-  distillation, KB enrichment posture, reports, memory, source validation,
-  credibility, contradiction, confidence, gap, recommendation, execution
-  policy, HITL policy, creative research, cross-domain inspiration, core,
-  secondary, governance, and failure audit metadata without web browsing,
-  external source fetches, paper downloads, research execution, KB enrichment
-  writes, research memory writes, report generation, source validation
-  execution, credibility scoring, contradiction detection execution,
-  confidence scoring, gap discovery execution, recommendation execution,
-  execution policy application, HITL emission, automation, provider/model
-  routing mutation, workflow execution, Runtime Evolution, or output mutation
-- V6.5 Self Evolution Engine helpers for advisory prompt, workflow, benchmark,
-  quality, cost, optimization, architecture, strategy, agent, routing, memory,
-  retrieval, self-improvement, creative, taste, reasoning, ranking,
-  cost/benefit, risk, expected-impact, rollback, core, secondary, governance,
-  and failure audit metadata over V6.1 through V6.4 signals without proposal
-  application, prompt rewriting, workflow mutation, routing mutation, memory
-  or retrieval mutation, storage writes, report artifact generation, provider
-  execution, Runtime Evolution, or output mutation
-- V6.6 Cognitive Operating System Core helpers for advisory unified cognitive,
-  memory, knowledge, execution, registry, learning, optimization, state,
-  profile, reasoning, planning, governance, creative cognition, identity,
-  emergence, scheduler, planner, router, blackboard, explanation, safety,
-  HITL, consolidation, core, secondary, governance, and failure audit metadata
-  over V5 Decision Engine and V6.1 through V6.5 signals without OS activation,
-  execution graph application, scheduler/planner/router application,
-  blackboard storage writes, governance or safety enforcement, HITL emission,
-  HITL decision application, provider execution, Runtime Evolution, or output
-  mutation
-- V7 runtime hardening for read-only graph contracts, typed failure contracts,
-  passive registry consolidation, E2E/CI gates, and production API/runtime
-  stabilization. V7.5 exposes stable request IDs, contract-version headers,
-  health/readiness endpoints, production configuration and dependency health
-  reports, telemetry-ready API events, structured logging configuration, and a
-  release checklist while preserving provider routing, workflow order,
-  retrieval ownership, workspace persistence ownership, and generated output
-  semantics
-- Multi-artifact generation, multi-preview comparison, dynamic parameter
-  control, and HITL candidate selection inside one continuous workstation flow
-- Controlled live runtimes for p5.js, Three.js, React Three Fiber, GLSL,
-  Hydra, Tone.js, GSAP, SVG, and Canvas outputs
-- Runtime diagnostics, provider observability, workflow timeline inspection,
-  retrieval intelligence, evaluation surfaces, and creative cost visibility
-- Multimodal image references, local session persistence, and project bundle
-  export
-
-## Capability Scope
-
-Artifact Intelligence extends the bounded planning pass with inspectable
-compatibility, critique/refinement, merge, export, and engine-contract metadata
-that feed Director guidance, Creative Reasoning synthesis, prompt rendering,
-workflow serialization, and Next.js stream hydration. These capabilities remain
-internal helpers inside the existing runtime graph rather than separate
-LangGraph runtime nodes.
-
-Creative Evaluation extends the same bounded metadata pattern into critic,
-self-evaluation, improvement, reflection, confidence, score, consistency,
-report, and evaluation engine-contract metadata. These summaries are serialized
-for inspection without changing evaluation logic, workflow ordering, routing,
-runtime selection, previews, retries, or generated output.
-
-Creative Workstation turns existing workflow, artifact, evaluation,
-provenance, and session metadata into inspectable product surfaces. Workstation
-state, session intelligence, workflow explorer, provenance engine, creative
-timeline, V3 inspector panels, dashboard layer, and workstation contracts make
-the metadata easier to review without changing generation behavior or adding
-future V4/V5/V6 systems.
-
-V4.1 Multi-Agent Core defines the agent society as product metadata: stable
-agent identities, role ordering, role contracts, memory access boundaries,
-authority boundaries, and advisory operational metadata. It is a passive
-contract layer for inspection and future orchestration design, not active
-multi-agent orchestration.
-
-V4.2 Agent Orchestration defines the orchestration layer as product metadata:
-agent routing profiles, blackboard channel boundaries, scoped shared context
-views, dependency and scheduling contracts, coordination/debate/consensus
-contracts, escalation signals, lifecycle state metadata, synchronization
-warnings, workflow handoff contracts, and an integration manifest. It preserves
-the existing runtime graph and remains passive orchestration metadata, not
-active agent execution.
-
-V4.3 Hybrid Agentic Workflow defines the hybrid workflow layer as product
-metadata: V3 backbone mode, conditional multi-agent escalation candidates,
-specialist-loop candidates, escalation gates, creative escalation policy,
-reflection escalation, debate, voting, confidence fusion, decision provenance,
-escalation trace, exploration budgets, result normalization, return handoff,
-HITL gates, confidence/cost/latency threshold routing, ambiguity/risk/quality
-escalation, adaptive escalation, and workflow integration source coverage. It
-preserves the current LangGraph runtime and remains passive hybrid workflow
-metadata, not active agent execution or autonomous escalation.
-
-V4.4 Hybrid Studio defines the Studio inspection layer as product metadata:
-local model candidates, cloud model candidates, hybrid execution profiles,
-Auto Mode postures, Studio Mode surfaces, HITL decision surfaces, provider
-selection visibility, execution simulation, model/cost/quality profiles,
-local/cloud comparisons, agent workspace views, agent conversation views,
-workspace snapshots, session replay, execution replay, and Hybrid Studio
-Integration source coverage. It preserves the current LangGraph runtime and
-remains passive hybrid studio metadata, not active Studio runtime, provider
-execution, model selection, agent invocation, replay persistence, or
-autonomous operator workflow control.
-
-V4.5 Multimodal Studio defines the multimodal inspection layer as product
-metadata: live preview profiles, multi-preview comparisons, interactive canvas
-boundaries, visual workspace context, runtime collaboration, artifact
-collaboration, artifact provenance, artifact lineage, cross-agent workspace,
-shared artifact board, workspace history, branching timeline, creative
-evolution timeline, real-time workflow visualization, and Multimodal Studio
-Integration source coverage. It preserves the current LangGraph runtime and
-remains passive multimodal studio metadata, not rendering execution, active
-Studio runtime, provider/model routing, runtime selection, workflow control,
-artifact mutation, collaboration storage persistence, networking, or
-generated-output mutation. It does not execute rendering.
-
-V4.6 Agentic Studio Hardening defines the hardening layer as product metadata:
-contract, policy, hybrid workflow, registry, memory/context, collaboration,
-diversity, explainability, reliability, determinism, telemetry, cost,
-performance, architecture consistency, final hardening, and LangGraph
-error-path audit coverage. It preserves the current LangGraph runtime and
-remains passive agentic studio hardening metadata, not runtime hardening
-execution, provider/model routing, workflow control, registry activation,
-agent invocation, retry triggering, storage mutation, or generated-output
-mutation.
-
-V5.1 Execution Optimization defines the execution optimization layer as
-advisory product metadata: execution graph analysis, workflow cost/complexity
-analysis, creative complexity analysis, context and exploration budget plans,
-context routing, prompt/retrieval/memory compression, deterministic cache
-metadata, context reuse, workflow pruning candidates, cost forecasts, path
-optimization candidates, strategy selection, architecture consistency, and
-runtime failure-path audit coverage. It preserves the current LangGraph
-runtime and remains advisory execution optimization metadata, not alternate
-graph execution, runtime selection, provider/model routing, budget
-enforcement, retry triggering, prompt mutation, storage mutation, or
-generated-output mutation.
-
-V5.2 Intelligent Model Routing defines the model-routing layer as advisory
-product metadata: model route candidates, local/cloud routing posture, hybrid
-routing posture, quality/cost optimization, cost estimation, budget policy,
-HITL budget gate posture, runtime recommendation, execution policy, model
-recommendation, model/provider capability matrices, quality/cost prediction,
-creative quality/diversity/consistency prediction, routing explainability,
-architecture consistency, and runtime failure-path audit coverage. It preserves
-the current LangGraph runtime and remains advisory model-routing metadata, not
-active model selection, provider/model switching, provider execution, HITL
-request emission, budget enforcement, workflow control, retry triggering,
-prompt mutation, storage mutation, Runtime Evolution, or generated-output
-mutation.
-
-Artifact Intelligence capabilities:
-
-- Artifact Planner
-- Artifact Dependency Graph
-- Runtime Compatibility Engine
-- Artifact Capability Matrix
-- Multi-Artifact Strategy
-- Artifact Critic
-- Artifact Refiner
-- Artifact Intelligence Synthesis
-- Artifact Merge Planner
-- Artifact Export Intelligence
-- Artifact Engine Contracts
-
-Creative Evaluation capabilities:
-
-- Creative Critic Engine
-- Self Evaluation Engine
-- Creative Improvement Planner
-- Reflection Loop Engine
-- Creative Confidence Engine
-- Creative Score Engine
-- Consistency Validation Engine
-- Evaluation Reports
-- Evaluation Engine Contracts
-
-Creative Workstation surfaces:
-
-- Workstation State
-- Session Intelligence
-- Workflow Explorer
-- Provenance Engine
-- Creative Timeline
-- V3 Inspector Panels
-- Workstation Dashboard
-- Workstation Engine Contracts
-
-Multi-Agent Core registries:
-
-- Agent Identity Registry
-- Agent Contract Registry
-- Agent Memory Contract Registry
-- Agent Role Registry
-- Agent Boundary Registry
-- Agent Metadata Registry
-
-Agent Orchestration registries:
-
-- Agent Routing Registry
-- Blackboard Memory Registry
-- Shared Context View Registry
-- Agent Dependency Graph Registry
-- Parallel Scheduling Registry
-- Agent Coordination Registry
-- Agent Debate Registry
-- Consensus Builder Registry
-- Agent Capability Alignment Registry
-- Agent Escalation Signal Registry
-- Agent Lifecycle Registry
-- Agent State Synchronization Registry
-- Workflow Agent Handoff Registry
-- Orchestration Contract Integration Registry
-
-Hybrid Agentic Workflow registries:
-
-- V3 Backbone Mode Registry
-- Conditional Multi-Agent Escalation Registry
-- Specialist Agent Loop Registry
-- Escalation Gate Registry
-- Creative Escalation Policy Registry
-- Reflection Escalation Registry
-- Hybrid Agent Debate Loop Registry
-- Hybrid Agent Voting Registry
-- Agent Confidence Fusion Registry
-- Decision Provenance Registry
-- Escalation Trace Registry
-- Creative Exploration Budget Registry
-- Result Normalization Registry
-- Return-to-Workflow Handoff Registry
-- HITL Escalation Gate Registry
-- Confidence Threshold Routing Registry
-- Cost Threshold Routing Registry
-- Latency Threshold Routing Registry
-- Ambiguity Escalation Registry
-- Risk Escalation Registry
-- Quality Escalation Registry
-- Adaptive Multi-Agent Escalation Registry
-- Hybrid Workflow Integration source coverage
-
-Hybrid Studio registries:
-
-- Local Model Registry
-- Cloud Model Registry
-- Hybrid Execution Registry
-- Auto Mode Registry
-- Studio Mode Registry
-- HITL Decision Registry
-- Provider Selection Registry
-- Execution Simulator Registry
-- Model Profile Registry
-- Cost Profile Registry
-- Quality Profile Registry
-- Local/Cloud Comparison Registry
-- Agent Workspace Registry
-- Agent Conversation View Registry
-- Workspace Snapshot Registry
-- Session Replay Registry
-- Execution Replay Registry
-- Hybrid Studio Integration Registry
-- Hybrid Studio Integration source coverage
-
-Multimodal Studio registries:
-
-- Live Preview Registry
-- Multi Preview Registry
-- Interactive Canvas Registry
-- Visual Workspace Registry
-- Runtime Collaboration Registry
-- Artifact Collaboration Registry
-- Artifact Provenance Registry
-- Artifact Lineage Registry
-- Cross-Agent Workspace Registry
-- Shared Artifact Board Registry
-- Workspace History Registry
-- Branching Timeline Registry
-- Creative Evolution Timeline Registry
-- Real-Time Workflow Visualization Registry
-- Multimodal Studio Integration Registry
-- Multimodal Studio Integration source coverage
-
-Agentic Studio Hardening registries:
-
-- Agent Contract Audit Registry
-- Escalation Policy Audit Registry
-- Hybrid Workflow Audit Registry
-- Agent Registry Audit Registry
-- Blackboard Audit Registry
-- Shared Context Audit Registry
-- Agent Collaboration Audit Registry
-- Creative Diversity Audit Registry
-- Agent Explainability Audit Registry
-- Agent Reliability Audit Registry
-- Agent Determinism Audit Registry
-- Agent Telemetry Foundation Registry
-- Agent Cost Tracking Foundation Registry
-- Agent Performance Tracking Foundation Registry
-- Architecture Consistency Pass Registry
-- Final V4 Hardening Registry
-- LangGraph Error Path Audit
-
-Execution Optimization surfaces:
-
-- Execution Graph Analysis
-- Workflow Cost Analysis
-- Workflow Complexity Analysis
-- Creative Complexity Analysis
-- Context Budget Plan
-- Exploration Budget Plan
-- Context Routing Plan
-- Prompt Compression
-- Retrieval Compression
-- Memory Summarization
-- Execution Cache Lookup
-- Context Reuse Plan
-- Workflow Pruning Plan
-- Execution Cost Forecast
-- Execution Path Optimization
-- Execution Strategy Selection
-- Execution Optimization Failure Audit
-
-Intelligent Model Routing surfaces:
-
-- Model Router
-- Local vs Cloud Routing
-- Hybrid Routing
-- Quality/Cost Optimizer
-- Cost Estimator
-- Budget Policies
-- HITL Budget Gate
-- Runtime Recommendation Engine
-- Execution Policy Engine
-- Model Recommendation Engine
-- Model Capability Matrix
-- Provider Capability Matrix
-- Quality Prediction Engine
-- Cost Prediction Engine
-- Creative Quality Predictor
-- Creative Diversity Predictor
-- Creative Consistency Predictor
-- Routing Explainability
-- Model Routing Architecture Consistency
-- Model Routing Failure Path Audit
-
-Performance Engine surfaces:
-
-- Parallel Scheduler
-- Latency Optimizer
-- Async Execution
-- Streaming Optimizer
-- Retry Policies
-- Load Balancer
-- Execution Profiling
-- Workflow Replay Engine
-- Execution Replay Engine
-- Bottleneck Detection
-- Throughput Optimizer
-- Performance Prediction
-- Performance Benchmarking
-- Reasoning Budget Optimizer
-- Performance Regression Detection
-- Resource Utilization Optimizer
-- Performance Architecture Consistency
-- Performance Failure Path Audit
-
-Production Observability surfaces:
-
-- Token Dashboard
-- Cost Dashboard
-- Quality Dashboard
-- Performance Dashboard
-- Production Telemetry
-- Workflow Diagnostics
-- Agent Diagnostics
-- Routing Diagnostics
-- Escalation Diagnostics
-- Failure Analysis
-- Error Intelligence
-- Workflow Health Monitoring
-- System Health Monitoring
-- Creative Analytics
-- Confidence Analytics
-- Creative Diversity Analytics
-- Runtime Timeline
-- Workflow Explainability Dashboard
-- Production Observability Architecture Consistency
-- Production Observability Failure Path Audit
-
-Adaptive Execution Intelligence surfaces:
-
-- Adaptive Hybrid Workflow Optimizer
-- Adaptive Escalation Optimizer
-- Agent Activation Optimizer
-- Adaptive Cost/Quality Optimizer
-- Adaptive Latency Optimizer
-- Adaptive Execution Strategy Selection
-- Adaptive Execution Policy Engine
-- Dynamic Agent Allocation
-- Dynamic Resource Allocation
-- Workflow Self-Tuning Policies
-- Execution Confidence Engine
-- Workflow Risk Engine
-- Creative Exploration Optimizer
-- Emergence Optimizer
-- Agent Diversity Optimizer
-- Reflection Budget Optimizer
-- Adaptive Policy Explainability
-- Adaptive Execution Architecture Consistency
-- Adaptive Execution Failure Path Audit
-
-Production Release surfaces:
-
-- Production Release Final Optimization
-- Production Packaging
-- Production Release Candidate
-- Production Demo Assets
-- Production Deployment
-- Production Readiness Review
-- Production Creative Readiness Review
-- Production Architecture Freeze
-- Production Release Audit
-- Production Final Hardening
-- Production Architecture Consistency
-- Production Release Failure Path Audit
-
-Adaptive Learning Engine surfaces:
-
-- Adaptive Learning Engine
-- Workflow Success Tracking
-- Failure Tracking
-- Strategy Learning
-- Technique Learning
-- Runtime Learning
-- Routing Learning
-- Artifact Learning
-- Evaluation Learning
-- Continuous Improvement Signals
-- Success Pattern Discovery
-- Failure Pattern Discovery
-- Learning Replay Engine
-- Learning Confidence Calibration
-- Creative Success Learning
-- Creative Failure Learning
-- Learning Governance
-- Adaptive Learning Failure Path Audit
-
-Creative Memory Engine surfaces:
-
-- Long-term Creative Memory
-- User Preferences
-- Style Profiles
-- Project Memory
-- Creative DNA
-- Personalization Engine
-- Session Memory Evolution
-- Artifact History
-- Creative Lineage
-- Creative Ontology
-- Preference Learning
-- User Modeling
-- Memory Consolidation
-- Memory Retrieval Intelligence
-- Memory Retrieval Planner
-- Memory Conflict Resolution
-- Memory Explainability
-- Memory Safety Policies
-- Creative Taste Model
-- Creative Preference Evolution
-- Creative Memory Core Surface
-- Creative Memory Secondary Surface
-- Creative Memory Governance
-- Creative Memory Failure Path Audit
-
-Knowledge Evolution Engine surfaces:
-
-- Automatic KB Updates
-- Documentation Intelligence
-- Embedding Refresh
-- Retrieval Evolution
-- Ranking Optimization
-- Knowledge Health Monitoring
-- Knowledge Quality Scoring
-- Knowledge Gap Detection
-- Knowledge Conflict Resolver
-- Knowledge Drift Detection
-- Source Reliability Engine
-- Knowledge Consolidation
-- Knowledge Lifecycle Management
-- Knowledge Provenance Evolution
-- Knowledge Versioning
-- Knowledge Snapshot Engine
-- Knowledge Rollback
-- Knowledge Freshness Tracking
-- Knowledge Trust Score
-- Knowledge Evolution Core Surface
-- Knowledge Evolution Secondary Surface
-- Knowledge Evolution Governance
-- Knowledge Evolution Runtime Failure Audit
-
-Autonomous Research Engine surfaces:
-
-- Research Planner
-- Research Decomposer
-- Paper Research
-- Web Research
-- Cross-source Comparison
-- Knowledge Distillation
-- Automatic KB Enrichment
-- Research Reports
-- Research Memory
-- Source Validation Engine
-- Source Credibility Engine
-- Contradiction Detection
-- Research Confidence Engine
-- Research Gap Discovery
-- Research Recommendation Engine
-- Research Execution Policy
-- Research HITL Policies
-- Creative Research Engine
-- Cross-domain Inspiration Discovery
-- Research Core Surface
-- Research Secondary Surface
-- Research Governance
-- Research Runtime Failure Audit
-
-Self Evolution Engine surfaces:
-
-- Prompt Evolution
-- Workflow Evolution
-- Benchmark Engine
-- Quality Trends
-- Cost Trends
-- Autonomous Optimization Suggestions
-- Architecture Evolution Engine
-- Workflow Mutation Engine
-- Strategy Evolution Engine
-- Agent Evolution Policies
-- Routing Evolution Policies
-- Memory Evolution Policies
-- Retrieval Evolution Policies
-- Self-Improvement Proposals
-- Creative Evolution Policies
-- Taste Evolution Engine
-- Reasoning Evolution Engine
-- Improvement Ranking Engine
-- Cost / Benefit Analysis
-- Risk Analysis
-- Expected Impact Estimator
-- Rollback Strategy Generator
-- Self Evolution Core Surface
-- Self Evolution Secondary Surface
-- Self Evolution Governance
-- Self Evolution Runtime Failure Audit
-
-Cognitive Operating System Core surfaces:
-
-- Unified Cognitive Graph
-- Unified Memory Graph
-- Unified Knowledge Graph
-- Unified Agent Registry
-- Unified Capability Registry
-- Cross-System Learning Layer
-- Cross-System Optimization Layer
-- Cognitive State Engine
-- Cognitive Profile Engine
-- Meta-Reasoning Layer
-- Meta-Planning Layer
-- Cognitive Governance Layer
-- Creative Cognition Layer
-- Creative Identity Layer
-- Emergent Creativity Layer
-- Cognitive Scheduler
-- Cognitive Planner
-- Cognitive Router
-- Cognitive Blackboard
-- Cognitive Explanation Engine
-- Cognitive Safety Layer
-- Cognitive HITL Layer
-- Unified Execution Graph
-- Core OS Consolidation
-- Cognitive OS Core Surface
-- Cognitive OS Secondary Surface
-- Cognitive OS Governance and Safety
-- Cognitive OS Runtime Failure Audit
-
-The architecture documents six complementary views:
-
-- the real runtime graph in
-  [`architecture/workflow_graph.md`](architecture/workflow_graph.md)
-- the human-readable Creative Intelligence pipeline in
-  [`architecture/creative_intelligence_graph.md`](architecture/creative_intelligence_graph.md)
-- the V3.2 Generative Design dependency graph in
-  [`architecture/generative_design_graph.md`](architecture/generative_design_graph.md)
-- the V3.3 Artifact Intelligence dependency graph in
-  [`architecture/artifact_intelligence_graph.md`](architecture/artifact_intelligence_graph.md)
-- the V3.5 Creative Workstation surface graph in
-  [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
-- the cross-cutting engine matrix, including V4.1, V4.2, V4.3, V4.4, V4.5,
-  V4.6, V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, V6.2, V6.3, V6.4, V6.5,
-  and V6.6 metadata layers, in
-  [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
-
-The runtime graph remains compact and truthful. The internal pipeline and
-dependency views remain blueprints for future V4 Agentic Studio decomposition,
-while V4.1, V4.2, V4.3, V4.4, V4.5, and V4.6 document passive roles,
-contracts, orchestration, hybrid workflow, hybrid studio, multimodal studio,
-and hardening metadata rather than claiming that a multi-agent runtime, Studio
-runtime, rendering execution path, or runtime hardening engine already exists.
-V5.1, V5.2, V5.3, V5.4, V5.5, V5.6, V6.1, V6.2, V6.3, V6.4, V6.5, and V6.6
-document advisory execution optimization, model-routing, performance,
-read-only observability, controlled adaptive execution policy/simulation,
-production-release readiness, adaptive learning, creative memory, knowledge
-evolution, autonomous research, self-evolution governance, and cognitive OS
-core metadata without claiming that provider execution, model switching, live
-telemetry emission, performance measurement, benchmark execution, resource
-enforcement, runtime workflow control, automatic downloads, deployment
-execution, release tag creation, memory storage writes, preference learning
-execution, personalization application, automatic KB update execution,
-retrieval configuration mutation, source record updates, KB storage writes,
-research execution, web browsing, paper downloads, source discovery, proposal
-application, cognitive OS activation, execution graph application, scheduler,
-planner, router, blackboard, governance, safety, or HITL runtime application,
-prompt rewriting, workflow mutation, routing mutation, memory mutation,
-retrieval mutation, HITL emission, automation, or generated-output mutation
-has been added.
-
-## Creative Workflow
-
-The workstation still centers on the V2.5 creative loop, now enriched by the
-V3.1 Creative Cognition Core, V3.2 Generative Design Core, V3.3 Artifact
-Intelligence, V3.4 Creative Evaluation metadata, and V3.5 Creative
-Workstation inspection surfaces, plus V4.1 passive Multi-Agent Core contracts
-and V4.2 passive Agent Orchestration contracts, with V4.3 passive Hybrid
-Agentic Workflow metadata, V4.4 passive Hybrid Studio metadata, and V4.5
-passive Multimodal Studio metadata available for future escalation, Studio
-inspection, and multimodal workspace inspection:
-
-`Intent -> HITL Clarification -> Creative Translation -> Reference Fusion -> Creative Planning -> Generation -> Preview -> Critique -> Creative Evaluation -> Calibrated Quality -> Multi-Pass Refinement -> Export Preparation`
-
-- HITL Clarification: the assistant can ask targeted questions to lock
-  modality, intent, symbolism, geometry, runtime, or refinement direction
-  before generation.
-- Creative Translation: the assistant derives bounded modality, conceptual,
-  geometric, mood, movement, runtime, visual style, shader, audio-reactive,
-  and refinement guidance.
-- Reference Fusion: multimodal image references and retrieved context are fused
-  into the structured creative brief when they improve grounding.
-- Creative Planning: the planning layer organizes generation strategy, runtime
-  fit, and artifact expectations before provider execution.
-- Creative Cognition Core: deterministic intent, hierarchy, strategy,
-  technique, constraints, runtime, trade-off, quality, narrative, composition,
-  Director, and Reasoning layers refine the final creative brief without
-  inflating the public runtime graph into dozens of nodes.
-- Generative Design Core: procedural structure, generative systems, semantic
-  motifs, emotional continuity, cross-modality alignment, and scene scaffolds
-  extend the stored creative brief as metadata and design guidance.
-- Artifact Intelligence: artifact planning, dependency mapping, runtime
-  compatibility, capability fit, multi-artifact strategy, artifact critique,
-  refinement guidance, synthesis, merge planning, export intelligence, and
-  engine contracts extend the stored brief as metadata. Artifact profiles can
-  inform Director, Reasoning, and prompt rendering; engine contracts remain
-  workflow/stream metadata and are not rendered into provider prompts.
-- Creative Evaluation: critic, self-evaluation, improvement, reflection,
-  confidence, score, consistency, report, and evaluation contract metadata
-  summarize quality signals without changing routing, runtime selection,
-  previews, retries, or generated output.
-- Creative Workstation: state, session intelligence, workflow explorer,
-  provenance, timeline, inspector panels, dashboard cards, and surface
-  contracts make existing metadata reviewable without changing backend
-  generation behavior.
-- Multi-Agent Core: passive agent identity, role, contract, memory-boundary,
-  authority-boundary, and advisory metadata registries describe future agent
-  responsibilities without adding active agents, task routing, prompt
-  injection, retries, or runtime changes.
-- Agent Orchestration: passive routing, blackboard, shared context, dependency,
-  scheduling, coordination, debate, consensus, escalation, lifecycle,
-  synchronization, handoff, and integration metadata describe future
-  orchestration readiness without adding active orchestration, workflow graph
-  changes, prompt injection, storage mutation, retries, or runtime changes.
-- Hybrid Studio: passive local/cloud model, hybrid execution, Auto Mode,
-  Studio Mode, HITL, provider selection, execution simulation, profile,
-  comparison, workspace, conversation, snapshot, session replay, execution
-  replay, and integration metadata describe future Studio inspection
-  readiness without activating Studio runtime, executing providers, invoking
-  agents, changing provider/model routing, selecting runtimes, requesting
-  human input, writing replay storage, or modifying generated output.
-- Multimodal Studio: passive live preview, multi preview, interactive canvas,
-  visual workspace, collaboration, provenance, lineage, workspace history,
-  branching, creative evolution, real-time workflow visualization, and
-  integration metadata describe future multimodal inspection readiness without
-  executing rendering, activating Studio runtime, changing provider/model
-  routing, selecting runtimes, controlling workflows, mutating artifacts,
-  persisting collaboration storage, opening networking, or modifying generated
-  output.
-- Agentic Studio Hardening: passive contract, policy, workflow, registry,
-  memory/context, collaboration/diversity, quality, determinism, telemetry,
-  cost, performance, architecture, final hardening, and LangGraph error-path
-  coverage describe hardening readiness without executing hardening checks,
-  changing provider/model routing, or modifying generated output.
-- Execution Optimization: advisory graph, cost, complexity, context,
-  compression, cache/reuse, pruning, forecasting, path, strategy,
-  architecture, and failure-audit metadata describe optimization posture
-  without changing LangGraph control, applying strategies, enforcing budgets,
-  triggering retries, or modifying generated output.
-- Intelligent Model Routing: advisory model routing, local/cloud and hybrid
-  posture, quality/cost optimization, budget/HITL gates, runtime/execution
-  policy, model recommendation, capability matrices, prediction, and
-  explainability metadata describe route recommendation posture without active
-  model selection, provider/model switching, provider execution, HITL request
-  emission, budget enforcement, or Runtime Evolution.
-- Performance Engine: advisory scheduling, latency, async, streaming, retry
-  policy, load balancing, profiling, replay, bottleneck, throughput,
-  prediction, benchmarking, reasoning budget, regression, resource
-  utilization, architecture, and failure-audit metadata describe performance
-  posture without runtime measurement, profiler installation, benchmark or
-  replay execution, resource allocation, capacity enforcement, workflow
-  control, provider/model routing, or Runtime Evolution.
-- Production Observability: read-only token, cost, quality, performance,
-  telemetry, diagnostic, health, creative analytics, confidence analytics,
-  diversity analytics, timeline, explainability, architecture, and
-  failure-audit metadata describe observability posture without live metric
-  collection, telemetry or alert emission, trace capture, health check
-  execution, remediation, workflow control, provider/model routing, or Runtime
-  Evolution.
-- Adaptive Learning: advisory learning, success/failure, pattern-discovery,
-  replay, confidence calibration, creative success/failure, governance, and
-  failure-audit metadata describe learning posture without memory persistence,
-  feedback application, policy mutation, live outcome observation, workflow
-  control, provider execution, preference mutation, remediation, or output
-  mutation.
-- Creative Memory: advisory memory, preference, style, project, Creative DNA,
-  personalization, session, artifact, lineage, ontology, governance, and
-  failure-audit metadata describe creative memory posture without memory
-  storage writes, preference learning execution, personalization application,
-  Creative DNA application, lineage or ontology inference, safety enforcement,
-  HITL request emission, automation activation, provider/model routing,
-  workflow control, Runtime Evolution, or output mutation.
-- Knowledge Evolution: advisory automatic KB update, documentation
-  intelligence, embedding refresh, retrieval, ranking, health, quality, gap,
-  conflict, drift, source reliability, consolidation, lifecycle, provenance,
-  versioning, snapshot, rollback, freshness, trust, governance, and
-  failure-audit metadata describe knowledge evolution posture without
-  automatic KB update execution, documentation fetch execution, embedding
-  refresh execution, retrieval execution, retrieval configuration mutation,
-  ranking mutation, quality or trust score computation, source record updates,
-  KB storage writes, provenance or version graph mutation, snapshot or
-  rollback execution, HITL request emission, automation activation,
-  provider/model routing, workflow control, Runtime Evolution, or output
-  mutation.
-- Autonomous Research: advisory research planning, decomposition, paper/web
-  research posture, cross-source comparison, distillation, KB enrichment
-  posture, reports, memory, validation, credibility, contradiction,
-  confidence, gap, recommendation, execution policy, HITL policy, creative
-  research, cross-domain inspiration, governance, and failure-audit metadata
-  describe research posture without web browsing, external source fetches,
-  paper downloads, research execution, KB enrichment writes, research memory
-  writes, source validation execution, credibility scoring, contradiction
-  detection execution, confidence scoring, gap discovery execution,
-  recommendation execution, HITL request emission, automation activation,
-  provider/model routing, workflow control, Runtime Evolution, or output
-  mutation.
-- Self Evolution: advisory self-evolution proposal, ranking, explainability,
-  cost/benefit, risk, impact, rollback, core surface, secondary report,
-  governance, and failure-audit metadata describe orchestration evolution
-  posture without proposal application, prompt rewriting, workflow mutation,
-  routing mutation, memory or retrieval mutation, report generation, storage
-  writes, governance enforcement, HITL request emission, provider execution,
-  Runtime Evolution, or output mutation.
-- Cognitive Core: advisory Cognitive Operating System metadata connects
-  learning, memory, knowledge, research, self-evolution, and cognitive-core
-  surfaces through the Unified Cognitive Graph, registries, scheduler,
-  planner, router, blackboard, explanation, safety, HITL, execution graph,
-  consolidation, governance, and failure-audit contracts without OS
-  activation, execution graph application, scheduler/planner/router
-  application, blackboard writes, governance or safety enforcement, HITL
-  request emission, HITL decision application, provider execution, Runtime
-  Evolution, or output mutation.
-- Generation: the backend resolves effective domains, assembles the prompt,
-  and streams one or more creative artifacts.
-- Preview: supported artifacts mount in controlled preview runtimes with
-  visible play, reload, collapse, fullscreen, start, stop, or mute controls
-  depending on runtime type.
-- Critique: generated artifacts receive structured quality review, ranking,
-  recommendation, and refinement guidance.
-- Geometry Consistency: conceptual, geometric, and style coherence can be checked
-  as a distinct evaluation layer.
-- Calibrated Quality: critique, consistency, runtime health, and workflow
-  review metadata are combined into a more legible decision surface.
-- Multi-Pass Refinement: selected artifacts can be refined through iterative
-  review with parameter control and explicit refinement serialization.
-- Export Preparation: the current export surface is the project bundle
-  workflow. Blueprint Export, MIDI / OSC, lineage, and live performance
-  workflows remain future roadmap items.
-
-## Implemented Capabilities
-
-### V3.1 Creative Cognition Core
-
-- Creative Intent Decomposer for atomic creative-intent dimensions
-- Creative Hierarchy Planner for ranked creative priorities
-- Creative Strategy Engine for high-level artistic strategy
-- Creative Technique Selector for bounded implementation technique guidance
-- Creative Constraint Solver for intent/runtime/safety/performance/cost/HITL
-  tensions
-- Runtime Capability Reasoner for supported runtime fit evaluation
-- Creative Trade-off Explorer for structured creative-versus-technical
-  consequences
-- Creative Constraint Prioritizer for non-negotiable, flexible, and
-  sacrificial constraint tiers
-- Creative Quality Predictor for pre-generation readiness and likely failure
-  modes
-- Concept Narrative Planner for concept arc and phase structure
-- Creative Composition Planner for focal hierarchy, density, balance, and
-  transition structure
-- Creative Reasoning Engine for final synthesis of the stored V3.1 metadata
-
-These V3.1 capabilities are internal metadata/reasoning layers. They enrich the
-existing workflow state, Director, Reasoning, and rendered prompt, but they do
-not each become a separate LangGraph node in the runtime graph.
-
-### V3.2 Generative Design Core
-
-- Procedural Structure Planner for selecting bounded structural systems and
-  layout grammars before generation
-- Generative Structure Engine for deriving inspectable generative-system
-  blueprints from upstream creative intent and composition metadata
-- Semantic Motif Engine for recurring conceptual motif systems, recurrence rules,
-  and thematic anchors
-- Emotional Consistency Engine for emotional tone continuity across palette,
-  motion, composition pressure, and atmosphere
-- Cross-Modality Composer for alignment across audio, visual, motion, shader,
-  and camera behaviors
-- Audio-Visual Scene System for phase, cue, transition, climax, and timing
-  scaffolds across complex audiovisual outputs
-
-These V3.2 capabilities are internal metadata/design-guidance layers. They
-enrich the stored workflow state, Director, Reasoning, and rendered prompt, but
-they do not become separate LangGraph runtime nodes or runtime auto-selection
-logic.
-
-### V3.3 Artifact Intelligence
-
-- Artifact Planner for artifact intent, type, family, requirements, risks, and
-  prompt guidance before generation
-- Artifact Dependency Graph for metadata nodes, dependency edges, upstream
-  requirements, downstream consumers, and dependency risks
-- Runtime Compatibility Engine for advisory runtime compatibility,
-  portability, interoperability, limitations, and implementation risks
-- Artifact Capability Matrix for target strengths, weaknesses, export fit,
-  portability fit, interoperability fit, and capability risks
-- Multi-Artifact Strategy for primary/supporting artifacts, sequencing,
-  priorities, groups, and handoff points
-- Artifact Critic for pre-generation metadata strengths, weaknesses, runtime
-  concerns, risk assessment, and HITL questions
-- Artifact Refiner for metadata-level refinement focus, recommended
-  improvements, risk reductions, and trade-off notes
-- Artifact Intelligence Synthesis for implementation readiness, risk,
-  recommended artifact path, coordination notes, and prompt guidance
-- Artifact Merge Planner for merge strategy, artifact boundaries, join points,
-  integration order, rejected merge paths, and merge risks
-- Artifact Export Intelligence for advisory export targets, formats,
-  readiness, constraints, documentation requirements, downstream handoffs, and
-  rejected export paths
-- Artifact Engine Contracts for the shared metadata contract registry across
-  all ten Artifact Intelligence engines
-
-These V3.3 capabilities are internal metadata/artifact-guidance layers. They
-enrich workflow state, prompt input metadata, Director, Reasoning, rendered
-artifact profile sections, final payload serialization, and Next.js stream
-hydration. They are metadata-only: they do not execute artifacts, modify
-artifacts, export artifacts, select runtimes, change provider routing, change
-previews, trigger retries, or implement future V4/V5/V6 systems.
-
-### V3.4 Creative Evaluation
-
-- Creative Critic Engine for metadata-only strengths, weaknesses, quality
-  scores, risk assessment, missing information, and HITL questions
-- Self Evaluation Engine for generated-response alignment, completeness,
-  ambiguity, risks, gaps, and advisory prompt guidance
-- Creative Improvement Planner for metadata-level improvement priorities,
-  opportunities, low-risk improvements, trade-offs, and future candidates
-- Reflection Loop Engine for theoretical reflection value, unresolved
-  questions, refinement candidates, stop conditions, and HITL posture
-- Creative Confidence Engine for component confidence, uncertainties,
-  reliability, execution readiness, and review need
-- Creative Score Engine for advisory scoring, score breakdown, calibration,
-  explainability, penalties, strengths, weaknesses, and evidence
-- Consistency Validation Engine for consistency status, conflicts,
-  contradiction level, unsupported conclusions, integrity, and HITL posture
-- Evaluation Reports for executive, quality, confidence, consistency,
-  improvement, score, trace, provenance, dependency, evidence, and
-  recommendation metadata
-- Evaluation Engine Contracts for the shared metadata contract registry across
-  all eight Creative Evaluation engines
-
-These V3.4 capabilities are internal metadata/evaluation layers. They enrich
-workflow state, prompt input metadata, Director and Reasoning metadata, final
-payload serialization, and Next.js stream hydration. They are metadata-only:
-they do not change evaluation logic, scoring, confidence, reflection, reports,
-prompts, routing, runtime selection, previews, retries, or future V4/V5/V6
-systems.
-
-### V3.5 Creative Workstation
-
-- Workstation State for shared session, current run, selection, panel,
-  readiness, and metadata status
-- Session Intelligence for session readiness, completion status, warnings, and
-  recommended operator actions
-- Workflow Explorer for workflow nodes, edges, active step, progress, and
-  runtime status
-- Provenance Engine for evidence, dependency, artifact, evaluation, final
-  payload, and missing-source visibility
-- Creative Timeline for ordered request, planning, retrieval, creative,
-  artifact, evaluation, and final metadata stages
-- V3 Inspector Panels for creative intelligence, generative design, artifact
-  intelligence, creative evaluation, and provenance records
-- Workstation Dashboard for quality, confidence, consistency, artifact
-  readiness, runtime fit, evaluation, workflow health, and HITL summary cards
-- Workstation Engine Contracts for the metadata-only V3.5 surface registry and
-  future V4/V5/V6 hook names
-
-These V3.5 surfaces are product inspection layers over existing workflow,
-stream, artifact, evaluation, and session metadata. They are metadata-only:
-they do not change provider routing, runtime selection, workflow ordering,
-preview execution, artifact execution, artifact modification, retries,
-autonomous decisions, or generated output.
-
-### V4.1 Multi-Agent Core
-
-- Agent Identity Registry for stable names, role families, capability classes,
-  visibility, authority scope, and version metadata
-- Agent Contract Registry for passive per-agent inputs, outputs, capabilities,
-  cost posture, latency posture, and future orchestration hooks
-- Agent Memory Contract Registry for session, artifact, evaluation,
-  provenance, and future blackboard access boundaries without storage
-- Agent Role Registry for static role ordering and role/capability grouping
-- Agent Boundary Registry for allowed inputs, allowed outputs, forbidden
-  behaviors, and role-specific boundary rationale
-- Agent Metadata Registry for advisory cacheability, parallelization,
-  observability, auditability, cost, latency, and future-readiness metadata
-
-These V4.1 registries are passive product and architecture metadata over the
-completed V3 platform. They do not create agents, route tasks, implement
-blackboard memory, materialize shared context views, render agent text into
-provider prompts, enter workflow event payloads, change LangGraph node order,
-change provider routing, select runtimes, trigger retries, execute artifacts,
-modify artifacts, or change generated output.
-
-### V4.2 Agent Orchestration
-
-- Agent Routing Registry for advisory per-agent route candidates without
-  provider/model routing or workflow routing changes
-- Blackboard Memory Registry for planned blackboard channels and permissions
-  without persistence, runtime reads, runtime writes, or storage backends
-- Shared Context View Registry for scoped per-agent context visibility without
-  materializing shared context or exposing global state
-- Agent Dependency Graph Registry for static dependency relationships without
-  scheduling traversal or executing agents
-- Parallel Scheduling Registry for future concurrency groups without parallel
-  runtime execution
-- Agent Coordination Registry for responsibility, handoff-channel, and event
-  contracts without live coordination
-- Agent Debate Registry for bounded advisory debate metadata without running
-  debates or triggering retries
-- Consensus Builder Registry for voting inputs and agreement surfaces without
-  voting or selecting outputs
-- Agent Capability Alignment Registry for V4.1 role-to-V4.2 capability mapping
-  without activating capabilities
-- Agent Escalation Signal Registry for advisory escalation thresholds without
-  automatic escalation, provider routing, or HITL triggering
-- Agent Lifecycle Registry for planned lifecycle states and transitions without
-  a lifecycle engine or workflow state mutation
-- Agent State Synchronization Registry for checkpoints, stale warnings, and
-  conflict surfaces without runtime synchronization or conflict resolution
-- Workflow Agent Handoff Registry for V3 workflow-surface to V4 agent handoff
-  metadata without changing workflow graph, prompts, or payloads
-- Orchestration Contract Integration Registry for registry discoverability
-  against V4.1 contracts without creating an active orchestration path
-
-These V4.2 registries are passive product and architecture metadata over the
-V4.1 agent society. They do not execute orchestration, invoke agents,
-synchronize runtime state, mutate blackboard or storage state, alter prompts,
-enter workflow payloads, change LangGraph node order, route providers or
-models, select runtimes, trigger retries, execute artifacts, modify artifacts,
-or change generated output.
-
-### V4.4 Hybrid Studio
-
-- Local Model Registry for candidate local model surfaces, runtime kinds,
-  readiness signals, supported payloads, and blocked runtime behaviors
-- Cloud Model Registry for candidate cloud model surfaces, provider sources,
-  readiness signals, supported payloads, and blocked runtime behaviors
-- Hybrid Execution Registry for advisory local/cloud coordination profiles
-  without executing local or cloud providers
-- Auto Mode Registry for advisory automatic-mode postures without automatic
-  provider selection, model selection, hybrid execution, or human requests
-- Studio Mode Registry for inspectable Studio mode surfaces without workflow
-  control, artifact execution, runtime control, or provider/model routing
-- HITL Decision Registry for human-review visibility without requesting human
-  input, approving escalation, interrupting workflows, or triggering retries
-- Provider Selection Registry for provider-candidate visibility without
-  selecting providers, switching models, or routing providers/models
-- Execution Simulator Registry for passive simulation metadata without
-  simulation execution, provider execution, artifact execution, or workflow
-  transition execution
-- Model Profile Registry for advisory model profile metadata without model
-  selection, provider execution, cost scoring, quality scoring, or execution
-  optimization
-- Cost Profile Registry for advisory cost posture metadata without pricing
-  lookup, cost scoring, budget enforcement, cost routing, or provider
-  execution
-- Quality Profile Registry for advisory quality posture metadata without
-  quality scoring, quality evaluation, quality escalation, refinement
-  triggering, or workflow control
-- Local/Cloud Comparison Registry for advisory comparison metadata without
-  local/cloud execution, parallel model execution, winner selection, fallback,
-  cost scoring, or quality scoring
-- Agent Workspace Registry for passive workspace visibility without agent
-  instantiation, agent invocation, multi-agent orchestration, memory writes, or
-  workspace state mutation
-- Agent Conversation View Registry for passive conversation visibility without
-  conversation persistence, agent message generation, agent invocation, memory
-  writes, or workspace state mutation
-- Workspace Snapshot Registry for snapshot-context metadata without live
-  workspace reads, snapshot capture, persistence, conversation recording,
-  memory reads, or memory writes
-- Session Replay Registry for replay-context metadata without session replay
-  execution, session recording, timeline reconstruction, replay persistence,
-  snapshot capture, or agent invocation
-- Execution Replay Registry for execution replay metadata without provider
-  execution, model selection, execution trace reconstruction, replay
-  persistence, cost scoring, quality scoring, or workflow control
-- Hybrid Studio Integration Registry for source coverage across the passive
-  V4.4 registry set without activating Studio runtime
-
-These V4.4 registries are passive product and architecture metadata over the
-V4.1-V4.3 contract layers. They do not activate Studio runtime, execute
-providers, invoke agents, control workflows, request human input, write replay
-storage, mutate storage, change provider/model routing, select runtimes,
-trigger retries, or modify generated output.
-
-### V4.5 Multimodal Studio
-
-- Live Preview Registry for passive preview target, renderer match, source
-  metadata, and runtime-status surfaces without rendering execution
-- Multi Preview Registry for passive visual, audio, audiovisual, and code
-  comparison surfaces without selecting artifacts or mutating generated output
-- Interactive Canvas Registry for passive canvas inspection, timeline scrub,
-  shader parameter, and audio-reactive controls without binding inputs or
-  mutating canvas contexts
-- Visual Workspace Registry for passive inspector, comparison, preview shelf,
-  and composition workspace context without workspace mutation or artifact
-  selection changes
-- Runtime Collaboration Registry for passive trace, stream event, console, and
-  operator-context surfaces without runtime synchronization or workflow
-  control
-- Artifact Collaboration Registry for passive artifact selection, inspection,
-  comparison, and refinement surfaces without collaborative state creation or
-  artifact mutation
-- Artifact Provenance Registry for passive evidence, payload, evaluation, and
-  missing-source provenance surfaces without provenance recording or storage
-- Artifact Lineage Registry for passive dependency, transition, timeline-stage,
-  and missing-artifact lineage surfaces without lineage inference or timeline
-  reconstruction
-- Cross-Agent Workspace Registry for passive workspace, shared context,
-  blackboard, and lineage surfaces without agent invocation or shared context
-  materialization
-- Shared Artifact Board Registry for passive selection, comparison,
-  provenance-lineage, and handoff board surfaces without board persistence or
-  artifact mutation
-- Workspace History Registry for passive session record, snapshot, artifact
-  board, and runtime-event history surfaces without recording history,
-  capturing snapshots, or replaying runtime events
-- Branching Timeline Registry for passive workflow branch, artifact variant,
-  review retry, and fallback failure surfaces without branch creation or retry
-  triggering
-- Creative Evolution Timeline Registry for passive intent, artifact iteration,
-  quality refinement, and final synthesis evolution surfaces without creative
-  evolution generation or quality-score mutation
-- Real-Time Workflow Visualization Registry for passive runtime state,
-  timeline event, metadata stage, and console health visualization surfaces
-  without stream subscription or runtime console control
-- Multimodal Studio Integration Registry for source coverage across the
-  passive V4.5 registry set without activating Studio runtime or executing
-  rendering
-
-These V4.5 registries are passive product and architecture metadata over the
-V4.4 Studio inspection layer. They do not execute rendering, activate Studio
-runtime, change provider/model routing, select runtimes, control workflows,
-request human input, trigger retries, mutate artifacts, modify generated
-output, persist collaboration storage, subscribe to live streams, open
-networking, or change LangGraph node order.
-
-### V4.6 Agentic Studio Hardening
-
-- Agent Contract Audit Registry for passive contract coverage checks without
-  changing agent contracts or invoking agents
-- Escalation Policy Audit Registry for passive policy coverage without
-  evaluating escalation or routing providers
-- Hybrid Workflow Audit Registry for passive readiness coverage without
-  executing hybrid workflow behavior
-- Agent Registry Audit Registry for passive registry discoverability coverage
-  without loading active runtime behavior
-- Blackboard Audit Registry and Shared Context Audit Registry for passive
-  memory/context boundary coverage without storage reads, writes, or shared
-  context materialization
-- Agent Collaboration Audit Registry and Creative Diversity Audit Registry for
-  passive collaboration and diversity coverage without coordination, debate,
-  consensus, agent execution, or variant generation
-- Agent Explainability Audit Registry, Agent Reliability Audit Registry, and
-  Agent Determinism Audit Registry for passive quality boundary coverage
-  without altering prompt rendering, retries, routing, or generated output
-- Agent Telemetry Foundation Registry, Agent Cost Tracking Foundation Registry,
-  and Agent Performance Tracking Foundation Registry for passive observability
-  foundations without telemetry emission, pricing lookup, cost routing, latency
-  routing, scheduling, or provider execution
-- Architecture Consistency Pass Registry and Final V4 Hardening Registry for
-  passive source coverage and closure metadata without changing architecture
-  docs at runtime or mutating the workflow graph
-- LangGraph Error Path Audit for passive documentation and regression coverage
-  of terminal failure paths without adding LangGraph nodes or recovery
-  behavior
-
-These V4.6 registries are passive product and architecture metadata over the
-V4.1-V4.5 Agentic Studio stack. They do not execute hardening checks at
-runtime, bypass failure normalization, activate passive registries, change
-provider/model routing, select runtimes, trigger retries, control workflows,
-invoke agents, mutate storage, execute artifacts, or mutate generated output.
-
-### Creative Core
-
-- Creative Translation Engine with deterministic prompt guidance
-- Geometry/Morphogenesis Prompt Layer integrated into the existing translation flow
-- Advanced Shader Presets for glow, aura, plasma, bloom-like emission,
-  refraction, glass, volumetric atmosphere, fractal fields, kaleidoscopic
-  symmetry, and luminous geometric aesthetics
-- Visual Style System with deterministic style guidance and artifact/refinement
-  persistence
-- Reference Fusion Layer for multimodal image references and grounded context
-  incorporation
-- Creative Planning Agent for generation strategy, runtime fit, and artifact
-  shaping
-- Advanced HITL Questioning Engine for targeted clarification before generation
-- Audio-Reactive Visual Engine for bounded relationships such as
-  amplitude-to-glow, bass-to-pulse, rhythm-to-rotation, and drone-to-atmosphere
-- Creative Quality Critic for structured artifact ranking, recommendation, and
-  refinement guidance
-- Geometry Consistency Evaluator for conceptual, geometric, and style-coherence
-  review
-- Calibrated Quality Scoring for combining critique, consistency, and runtime
-  review into clearer selection signals
-- Domain-aware generation across supported preview runtimes and broader
-  creative-coding knowledge domains
-- Multi-artifact generation, artifact critique, artifact comparison, and
-  selected-artifact refinement
-- Multi-Preview Comparison Workspace for HITL selection across runtime-capable
-  visual, audio, audiovisual, and code-only candidates
-- Dynamic Parameter Control Panel with preview-safe local edits and explicit
-  refinement serialization
-- Multi-Pass Creative Refinement with structured review feedback threaded back
-  into generation and refinement
-- Multimodal image references for visually grounded generation requests
-
-### Runtime And Preview
-
-- p5.js live runtime
-- Three.js live runtime
-- React Three Fiber live runtime
-- GLSL live runtime
-- Hydra runtime support bounded to the validated local `hydra-synth` browser
-  artifact path
-- Tone.js live runtime
-- GSAP live runtime
-- SVG live runtime
-- Canvas live runtime
-- Runtime console and preview runtime diagnostics with lifecycle, error, and
-  renderer telemetry surfaces
-
-### Retrieval, Evaluation, And Observability
-
-- Retrieval Inspector Advanced and Retrieval Source Explorer
-- Retrieval Quality Deep Dive and KB Source Health Dashboard
-- Provider Observability Deep Dive
-- Evaluation Session Dashboard
-- Workflow Timeline Explorer
-- LangSmith Trace Deep Dive when trace metadata is available
-- Creative Cost Intelligence Dashboard
-
-## Creative Core Layers
-
-The assistant progressively enriches user requests through bounded translation
-layers before and after generation. These layers are deterministic, additive,
-and metadata-driven rather than separate generation pipelines.
-
-Current layers include:
-
-- Creative Translation Engine for modality, intent, mood, movement, runtime,
-  and refinement guidance
-- Geometry/Morphogenesis Prompt Layer for bounded conceptual and geometric generation
-  cues
-- Advanced Shader Presets for practical visual effect guidance
-- Visual Style System for coherent aesthetic identity across artifacts and
-  refinements
-- Reference Fusion Layer for multimodal grounding and context-aware creative
-  shaping
-- Creative Planning Agent for pre-generation strategy and runtime fit
-- Audio-Reactive Visual Engine for audiovisual relationships between sound
-  features and visual behavior
-- Runtime Recommendation Layer for matching generated artifacts to supported
-  preview/runtime surfaces
-- Creative Quality Critic, Geometry Consistency Evaluator, and Calibrated
-  Quality Scoring for structured post-generation review
-- Dynamic Parameter Control Layer for artifact-specific local controls and
-  parameter-guided refinement
-- Multi-Pass Creative Refinement for iterative improvement across generation
-  and refinement cycles
-
-These layers allow the app to move beyond direct prompt-to-code generation and
-toward a structured creative translation workflow.
+## Capstone Evaluator - Start Here
+
+For the Turing College Capstone review, use this shortest path:
+
+1. Read `docs/CAPSTONE_DEMO_SHOWCASE.md` for the 10-minute demo, 5-minute Q&A,
+   and fallback route.
+2. Read `docs/CAPSTONE_EVALUATION_ETHICS.md` for evaluation, privacy, source
+   grounding, and ethical boundaries.
+3. Read `docs/V8_GRAND_ENGINEERING_REVIEW.md` for release-candidate evidence,
+   validation commands, known warnings, and remaining risks.
+4. Start the backend and frontend locally, open Creative Coding Assistant, and
+   use `Demo Mode` from the workstation top bar.
+5. Keep `demo/final_demo_launcher.html` as a static fallback if the app, live
+   provider, retrieval, or preview path is unavailable.
+
+## Project Overview
+
+Creative Coding Assistant helps users design and reason about p5.js, Three.js,
+GLSL, Hydra, audio-reactive sketches, generative systems, and installation
+planning. The product is not a generic chatbot. It is a reviewable creative
+coding workflow surface with explicit source boundaries, fallback paths, and
+local-first demo evidence.
+
+The current release-candidate work focuses on a reliable local Capstone demo:
+an integrated Demo Mode, generated golden artifacts, browser QA records,
+retrieval evidence, sanitized/redacted RAGAs evaluation, and conservative
+public claims.
+
+## Why It Exists
+
+Creative coding work often starts as ambiguous intent: motion, geometry, audio,
+visual references, atmosphere, runtime constraints, and platform tradeoffs. A
+plain assistant can produce plausible code, but reviewers still need to know:
+
+- which sources shaped the answer;
+- whether the runtime choice is realistic;
+- what was actually validated in a browser;
+- how failures are handled during a live demo;
+- which advanced planning layers are advisory rather than live execution.
+
+Creative Coding Assistant makes those boundaries visible.
+
+## Key Features
+
+Creative Coding:
+- p5.js, Three.js, GLSL, Hydra, Web Audio, and browser-runtime guidance.
+- Generated golden artifacts for p5.js, Three.js, GLSL, and Hydra.
+- Runtime-specific fallback language for unsupported or unavailable previews.
+
+Retrieval:
+- Local Chroma-backed creative-coding knowledge base.
+- Registered-source retrieval for p5.js, Three.js, Web Audio, GLSL, and demo
+  evidence.
+- Redacted and sanitized evaluation fixtures that avoid sending raw private
+  live-session data to external evaluators.
+
+Preview:
+- Workstation preview surfaces and artifact inspection.
+- Local browser QA records for generated artifacts.
+- Explicit boundaries: QA evidence is not a display-FPS benchmark, public
+  deployment, or external tool execution.
+
+Demo Mode:
+- Integrated in-app Demo Mode inside Creative Coding Assistant.
+- Eight curated Capstone scenarios.
+- Scenario selection loads prompts into the normal assistant composer.
+- Each scenario includes expected behavior, fallback, source boundary,
+  validation path, and output guidance.
+
+Creative Translation:
+- Converts abstract concepts into concrete visual systems.
+- Uses geometry, motion, color, interaction, and runtime constraints.
+- Keeps public language aesthetic and implementation-focused.
+
+Geometry And Morphogenesis:
+- Supports generative structures such as reaction diffusion, cellular
+  automata, L-systems, flow fields, particle systems, differential growth,
+  diffusion-limited aggregation, space-colonization-style branching, and
+  emergent form.
+- Jason Webb's Digital Morphogenesis material is treated as inspiration only;
+  the project does not claim those sources are indexed in the KB.
+
+Narrative And Architecture:
+- Produces bounded planning guidance for installation, immersive scenes,
+  audience movement, sequencing, and handoff.
+- Does not claim venue scanning, engineering certification, public deployment,
+  or external DCC/MCP execution.
+
+Evaluation:
+- Backend, frontend, API, and E2E validation evidence.
+- Sanitized RAGAs context precision run.
+- Redacted latest-live RAGAs run over reviewer-safe p5.js fixture rows.
+- Artifact QA manifests and browser-render records.
+
+Explainability:
+- Workflow, retrieval, source, runtime, and fallback explanations.
+- Typed Domain Intelligence Layers for planning, provenance, validation,
+  creative reasoning, and future runtime execution boundaries.
+
+Workflow:
+- LangGraph-oriented backend workflow.
+- Next.js workstation.
+- Normal assistant flow remains the primary execution path; Demo Mode only
+  curates scenario startup and evidence.
+
+API:
+- Local FastAPI development server.
+- Health, readiness, workspace-session, and assistant request surfaces.
+- Provider calls remain opt-in and environment-dependent.
 
 ## Architecture
 
-### Frontend Workstation
+Creative Coding Assistant is split into a local Python backend and a browser
+workstation:
 
-The primary interface lives in `clients/nextjs/`. The workstation shell
-provides:
+- `src/creative_coding_assistant/`: orchestration, retrieval, evaluation,
+  typed contracts, API runtime, and domain intelligence.
+- `clients/nextjs/`: product workstation, preview surfaces, Demo Mode, E2E
+  smoke tests, and browser UI.
+- `demo/`: Capstone demo suite, static fallback launcher, generated artifacts,
+  RAGAs fixtures, and manual checklist.
+- `docs/`: reviewer evidence, architecture notes, evaluation and ethics,
+  deployment target, and release-candidate engineering review.
 
-- a main creative session area for conversation and streaming output
-- a lower preview shelf that appears when previewable output is available
-- a right-side inspector with `Overview`, `Preview`, `Runtime`, `Code`,
-  `Workflow`, `Telemetry`, `Artifacts`, and `Retrieval` tabs
-- session, layout, and theme persistence across reloads
-- artifact selection, comparison, refinement, copy, download, and export actions
-- runtime console surfaces for renderer lifecycle, diagnostics, reloads, and
-  frame telemetry
-- telemetry panels for provider usage, workflow runtime, preview health,
-  retrieval quality, LangSmith metadata, and RAGAs evaluation lineage
-- workstation state, session intelligence, workflow explorer, provenance,
-  creative timeline, V3 inspector panels, and dashboard summaries over the
-  existing stream and workspace metadata
-- local operator approvals for runtime resets, destructive actions, and file
-  transfer flows
+V4-V8 are best understood as Typed Domain Intelligence Layers. They provide
+planning, explainability, provenance, validation, creative reasoning, and
+future runtime execution boundaries. They do not imply every named planning
+surface is an active runtime executor.
 
-The initial shell opens on a clean creative workspace, then hydrates code,
-multiple artifacts, comparison, refinement, preview, runtime, retrieval,
-telemetry, and workflow state through live stream events from the backend
-bridge.
+## Technology Stack
 
-### Backend Runtime
+- Python, Pydantic, FastAPI, LangGraph-style workflow orchestration.
+- Chroma for local retrieval.
+- Next.js, React, TypeScript, Vitest, and Playwright.
+- p5.js, Three.js, GLSL/WebGL, and Hydra artifact validation paths.
+- RAGAs for opt-in evaluator metrics over sanitized or redacted fixtures.
 
-The Python backend lives under `src/creative_coding_assistant/` and centers on
-an implemented LangGraph workflow exposed through
-`src/creative_coding_assistant/orchestration/workflow_graph.py`. The live V7.8
-runtime implementation is split across `orchestration/runtime/graph_builder.py`
-and `orchestration/runtime/nodes/`, including node handlers, registration, and
-transition selectors. V7.11 further splits the planning runtime into focused
-planning, Director, reasoning, state, and contract modules while preserving the
-legacy planning import facade.
+## Demo Mode
 
-Workflow node order:
+Start Creative Coding Assistant locally and select `Demo Mode` in the
+workstation top bar. The app shows eight curated scenarios:
 
-`intake -> routing -> memory -> retrieval -> context_assembly -> prompt_input -> planning -> director -> reasoning -> prompt_rendering -> generation -> artifact_extraction -> preview_preparation -> artifact_critique -> review -> refinement -> finalization -> failure`
+1. Three.js audio-reactive visual system
+2. p5.js generative morphogenesis sketch
+3. GLSL shader / post-processing visual
+4. Hydra feedback-pattern demo
+5. Retrieval-grounded creative coding answer
+6. Concept-to-visual translation
+7. Geometry / morphogenesis visual system
+8. Installation / immersive scene planning
 
-Key backend capabilities include:
+Selecting a scenario pre-fills the normal assistant composer. The presenter can
+then send the prompt through the standard workflow or use the documented
+fallback evidence if a provider, retrieval, frontend, backend, or preview path
+fails.
 
-- domain-aware routing, generation-domain resolution, and request shaping
-- curated official-source retrieval and query grounding
-- conversation memory and memory recording
-- prompt input assembly, deterministic creative planning, bounded Director
-  guidance, synthesized creative reasoning, and rendered provider prompts
-- streamed generation, lifecycle, review, retry, artifact, and preview events
-  carrying workflow and telemetry metadata
-- multi-artifact extraction metadata including source order, default selection,
-  runtime, and preview eligibility
-- structured artifact critique metadata including per-artifact scores, ranks,
-  rationales, recommended candidates, and refinement guidance
-- deterministic review checks with at most one refinement retry
-- selected-artifact refinement context threaded into request contracts, prompt
-  inputs, and rendered prompts
-- advisory execution optimization, intelligent model-routing, performance,
-  read-only observability, adaptive execution, and production-release
-  readiness metadata exposed as importable helpers without changing graph
-  control, provider/model routing, provider execution, live telemetry, budget
-  enforcement, adaptive behavior application, release operations, or generated
-  output
-- V6 advisory adaptive learning, creative memory, knowledge evolution,
-  autonomous research, self-evolution governance, and Cognitive Operating
-  System Core metadata exposed as importable helper surfaces without learning
-  memory writes, creative memory writes, KB writes, research execution,
-  proposal application, Cognitive OS activation, execution graph application,
-  governance or safety enforcement, HITL request emission, provider
-  execution, Runtime Evolution, or generated-output mutation
-- structured terminal failure handling
-- live session recording, optional LangSmith runtime metadata, and offline
-  evaluation support
+Hydra support is limited to the validated local `hydra-synth` browser artifact
+path recorded in `demo/golden_artifacts/browser_full_runtime_qa_results.json`.
 
-Architecture documentation for the current workflow graph is available in
-[`architecture/workflow_graph.md`](architecture/workflow_graph.md). The
-corresponding internal Creative Intelligence pipeline, V3.2 Generative Design
-dependency graph, V3.3 Artifact Intelligence dependency graph, V3.5
-workstation surface graph, and engine matrix are documented in
-[`architecture/creative_intelligence_graph.md`](architecture/creative_intelligence_graph.md),
-[`architecture/generative_design_graph.md`](architecture/generative_design_graph.md),
-[`architecture/artifact_intelligence_graph.md`](architecture/artifact_intelligence_graph.md),
-[`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md),
-and [`architecture/engine_matrix.md`](architecture/engine_matrix.md).
+## Quick Start
 
-### Preview, Runtime, And Safety Model
+Prerequisites:
 
-Preview handling is split between the backend graph and the frontend runtime
-surfaces. The LangGraph workflow owns artifact extraction and preview metadata
-preparation. The Next.js workstation then routes previewable outputs into
-controlled runtime adapters rather than executing arbitrary generated
-application code directly.
+- Python environment with project dependencies installed.
+- Node dependencies installed under `clients/nextjs`.
+- Optional provider credentials for live generation or RAGAs evaluator runs.
 
-Live preview/runtime support includes:
-
-- p5.js sketches through a controlled p5-compatible 2D canvas runtime
-- Three.js scenes through a controlled Three-compatible WebGL runtime
-- React Three Fiber artifacts routed through the Three-compatible preview
-  surface when they match the supported browser runtime contract
-- GLSL fragment shaders through a bounded WebGL shader runtime
-- Hydra live-coded visuals through a bounded Hydra-compatible browser runtime
-- Tone.js audio outputs through a controlled user-activated Web Audio runtime
-- GSAP motion studies through a bounded DOM motion runtime
-- SVG artifacts through a sanitized inline SVG runtime surface
-- Canvas artifacts through a bounded Canvas 2D runtime surface
-
-The workstation also exposes:
-
-- preview runtime health, FPS, frame-time, and diagnostics overlays
-- a runtime console for lifecycle events, reload requests, renderer errors, and
-  latest runtime messages
-- provider/model/tokens/latency/cost telemetry summaries
-- retrieval inspectors with source quality, freshness, and chunk context
-- provenance, timeline, V3 metadata inspector panels, and workstation dashboard
-  cards for reviewing generated artifacts and evaluation metadata
-- artifact comparison rows with quality rank, recommendation state, runtime
-  support, and preview actions
-- local operator approval flows for export/runtime/reset actions
-
-## Feature Areas
-
-### Workstation
-
-- Streaming conversation workflow designed for iterative creative sessions
-- Inspector surfaces for overview, preview metadata, runtime console, code,
-  workflow state, telemetry, artifacts, and retrieval
-- Workstation state, session intelligence, workflow explorer, provenance,
-  timeline, V3 inspector panels, and dashboard summaries for reviewing existing
-  metadata without changing generation behavior
-- Live artifact selection, comparison, refinement, and code-focused inspection
-- Compact bottom preview shelf that stays out of the chat flow until previewable
-  output exists
-- Workspace-level session restore with active tab, artifact, preview, layout,
-  and preference state
-
-### Generation, Retrieval, And Evaluation
-
-- Creative Translation prompt shaping for the effective creative-coding
-  ecosystem
-- Multi-artifact extraction with source order, default selection, runtime, and
-  preview eligibility metadata
-- Structured artifact critique for ranking, recommendation, and refinement
-  guidance
-- Retrieval over curated official documentation sources with chunk-level
-  grounding context
-- Live session recording, offline evaluation helpers, and RAGAs-oriented
-  evaluation runner
-
-### Export
-
-- Image reference attachments for PNG, JPEG, WebP, and GIF inputs
-- Frontend-side validation for attachment size/count/type
-- Project bundle export containing generated artifacts, workspace session state,
-  workflow summary, retrieval summary, preview/runtime metadata, operator
-  approval summary, multimodal image metadata, and a bundle manifest
-
-## Repository Layout
-
-```text
-.
-├── architecture/                # Runtime graph docs plus internal capability graph docs
-├── assets/                      # README assets
-├── clients/
-│   ├── nextjs/                  # Primary workstation UI
-│   │   ├── src/app/             # Next.js app entrypoints and global styles
-│   │   ├── src/components/      # Workstation shell, preview surfaces, callouts
-│   │   └── src/lib/             # Frontend runtime models, export, persistence
-│   └── streamlit/               # Earlier reference client
-├── data/                        # Local runtime data (Chroma, eval, artifacts, SQLite)
-├── docs/                        # Local ignored implementation/planning material
-├── scripts/                     # KB sync and evaluation utilities
-├── src/creative_coding_assistant/
-│   ├── api/                     # Streaming and persistence bridge apps
-│   ├── app/                     # Top-level service composition
-│   ├── artifacts/               # Artifact contracts
-│   ├── contracts/               # Assistant request and event contracts
-│   ├── domains/                 # Domain registry and metadata
-│   ├── eval/                    # Live-session evaluation support
-│   ├── llm/                     # Provider adapters
-│   ├── orchestration/           # LangGraph runtime and service flow
-│   ├── preview/                 # Preview contracts
-│   ├── rag/                     # Source registry, sync, embeddings, retrieval
-│   ├── vectorstore/             # Chroma persistence helpers
-│   └── workspace/               # Workspace session contracts and persistence
-├── tests/                       # Backend and bridge tests
-├── README.md
-└── pyproject.toml
-```
-
-## Key Reference Files
-
-- Workflow graph docs:
-  [`architecture/workflow_graph.md`](architecture/workflow_graph.md)
-- Workflow graph Mermaid source:
-  [`architecture/workflow_graph.mmd`](architecture/workflow_graph.mmd)
-- Creative Intelligence graph docs:
-  [`architecture/creative_intelligence_graph.md`](architecture/creative_intelligence_graph.md)
-- Creative Intelligence Mermaid source:
-  [`architecture/creative_intelligence_graph.mmd`](architecture/creative_intelligence_graph.mmd)
-- Generative Design graph docs:
-  [`architecture/generative_design_graph.md`](architecture/generative_design_graph.md)
-- Generative Design Mermaid source:
-  [`architecture/generative_design_graph.mmd`](architecture/generative_design_graph.mmd)
-- Artifact Intelligence graph docs:
-  [`architecture/artifact_intelligence_graph.md`](architecture/artifact_intelligence_graph.md)
-- Artifact Intelligence Mermaid source:
-  [`architecture/artifact_intelligence_graph.mmd`](architecture/artifact_intelligence_graph.mmd)
-- Workstation surface graph docs:
-  [`architecture/workstation_surface_graph.md`](architecture/workstation_surface_graph.md)
-- Workstation surface Mermaid source:
-  [`architecture/workstation_surface_graph.mmd`](architecture/workstation_surface_graph.mmd)
-- Engine matrix:
-  [`architecture/engine_matrix.md`](architecture/engine_matrix.md)
-- Next.js workstation shell:
-  [`clients/nextjs/src/components/workstation-shell.tsx`](clients/nextjs/src/components/workstation-shell.tsx)
-- Frontend workstation tests:
-  [`clients/nextjs/src/components/workstation-shell.test.tsx`](clients/nextjs/src/components/workstation-shell.test.tsx)
-- Streaming bridge:
-  [`src/creative_coding_assistant/api/streaming.py`](src/creative_coding_assistant/api/streaming.py)
-- Workspace persistence bridge:
-  [`src/creative_coding_assistant/api/workspace_sessions.py`](src/creative_coding_assistant/api/workspace_sessions.py)
-- Workflow integration tests:
-  [`tests/test_langgraph_workflow_integration.py`](tests/test_langgraph_workflow_integration.py)
-
-## Domain Coverage
-
-The request/domain registry and approved source registry cover a broad creative
-coding surface. Current live preview/runtime support includes:
-
-- p5.js
-- Three.js
-- React Three Fiber
-- GLSL
-- Hydra
-- Tone.js
-- GSAP
-- SVG
-- Canvas
-
-The broader generation and retrieval domain registry also covers code-oriented
-or documentation-grounded support for:
-
-- Processing
-- WebGPU / WGSL
-- PixiJS
-- Matter.js
-- Rapier
-- Shadertoy
-- Houdini
-- Blender
-- openFrameworks
-- OPENRNDR
-- SuperCollider
-- Sonic Pi
-- TensorFlow.js
-- ComfyUI
-- Runway
-- Unreal
-- Unity
-- additional curated creative-coding ecosystems
-
-Those broader domains are available for routing, prompt guidance, retrieval, or
-code inspection depending on available source coverage. They should not be read
-as live browser preview runtimes unless they are listed in the current live
-runtime support list above.
-
-## Product Direction
-
-Future product direction remains focused on deeper creative workstation
-ergonomics, agentic collaboration patterns, production intelligence, and
-long-horizon creative memory. Those directions are product roadmap context, not
-a claim that every listed system is already implemented or exposed in the
-current runtime.
-
-- Creative Workstation: continued operator-flow polish, inspection clarity, and
-  production-ready creative review.
-- Agentic Studio: more collaborative decomposition of creative strategy,
-  critique, and refinement when future runtime boundaries support it. V4.1
-  supplies passive role and contract metadata, and V4.2 supplies passive
-  orchestration readiness metadata, while V4.3 supplies passive hybrid
-  workflow escalation metadata and V4.4 supplies passive hybrid studio
-  metadata, for that direction. These layers are not active collaboration
-  behavior in the current runtime and V4.4 does not activate Studio runtime.
-- Execution Optimization, Model Routing, Performance, Observability, and
-  Adaptive Execution: V5.1, V5.2, V5.3, V5.4, and V5.5 provide advisory
-  optimization metadata, routing metadata, performance metadata, read-only
-  observability metadata, and controlled adaptive execution policy/simulation
-  today; future production intelligence remains live runtime policy
-  enforcement, telemetry emission, provider execution, and cost/performance
-  enforcement work.
-- Adaptive Learning: V6.1 provides advisory learning, success/failure,
-  pattern-discovery, replay, confidence calibration, creative success/failure,
-  governance, and failure-audit metadata today without memory persistence,
-  replay execution, model training, feedback application, policy mutation,
-  live outcome observation, workflow control, provider execution, storage
-  writes, preference mutation, remediation, or output mutation.
-- Creative Memory: V6.2 provides advisory creative memory, preferences, style,
-  project memory, Creative DNA, personalization posture, session evolution,
-  artifact history, lineage, ontology, preference learning posture, user
-  modeling, consolidation, retrieval intelligence, retrieval planning,
-  conflict resolution, explainability, safety, taste, preference evolution,
-  governance, and failure-audit metadata today without memory storage writes,
-  memory retrieval execution, preference learning execution, personalization
-  application, Creative DNA application, lineage or ontology inference,
-  safety policy enforcement, HITL emission, automation activation, workflow
-  control, provider execution, Runtime Evolution, or output mutation.
-- Knowledge Evolution: V6.3 provides advisory automatic KB updates,
-  documentation intelligence, embedding refresh, retrieval evolution, ranking
-  optimization, health, quality, gap, conflict, drift, source reliability,
-  consolidation, lifecycle, provenance, versioning, snapshot, rollback,
-  freshness, trust, governance, and failure-audit metadata today without
-  automatic KB update execution, documentation fetch execution, embedding
-  refresh execution, retrieval execution, retrieval configuration mutation,
-  ranking mutation, quality or trust score computation, source record updates,
-  KB storage writes, provenance or version graph mutation, snapshot or
-  rollback execution, policy enforcement, HITL emission, automation
-  activation, workflow control, provider execution, Runtime Evolution, or
-  output mutation.
-- Autonomous Research: V6.4 provides advisory research planning,
-  decomposition, paper/web research posture, cross-source comparison,
-  distillation, KB enrichment posture, reports, memory, validation,
-  credibility, contradiction, confidence, gap, recommendation, execution
-  policy, HITL policy, creative research, cross-domain inspiration,
-  governance, and failure-audit metadata today without web browsing,
-  external source fetches, paper downloads, research execution, KB enrichment
-  writes, research memory writes, source validation execution, credibility
-  scoring, contradiction detection execution, confidence scoring, gap
-  discovery execution, recommendation execution, policy enforcement, HITL
-  emission, automation activation, workflow control, provider execution,
-  Runtime Evolution, or output mutation.
-- Self Evolution: V6.5 provides advisory self-evolution orchestration over
-  V6.1 adaptive learning, V6.2 creative memory, V6.3 knowledge evolution, and
-  V6.4 autonomous research signals. It keeps prompt, workflow, benchmark,
-  quality, cost, optimization, architecture, strategy, agent, routing, memory,
-  retrieval, self-improvement, creative, taste, reasoning, ranking,
-  cost/benefit, risk, impact, rollback, core, secondary, governance, and
-  failure-audit metadata individually traceable without proposal application,
-  prompt rewriting, workflow mutation, routing mutation, memory or retrieval
-  mutation, storage writes, provider execution, Runtime Evolution, or output
-  mutation.
-- Cognitive Operating System Core: V6.6 provides advisory cognitive OS
-  coherence metadata over V5 Decision Engine and the V6.1 through V6.5
-  sequence. It keeps the Unified Cognitive Graph, Unified Memory Graph,
-  Unified Knowledge Graph, registries, cross-system learning and optimization,
-  state, profile, reasoning, planning, governance, creative cognition,
-  identity, emergence, scheduler, planner, router, blackboard, explanation,
-  safety, HITL, execution graph, consolidation, core, secondary, governance,
-  and failure-audit metadata individually traceable without OS activation,
-  execution graph application, policy enforcement, HITL emission, provider
-  execution, Runtime Evolution, or output mutation.
-- Future internal continuity core: long-horizon creative lineage, persistent feedback,
-  active creative memory, active knowledge evolution, active research, active
-  self-evolution, active cognitive OS execution, and system-level continuity
-  beyond the current V6.6
-  metadata boundary.
-
-## Setup
-
-### Python Environment
-
-Create and activate a virtual environment, then install the Python project with
-dev dependencies:
+Backend:
 
 ```bash
-python -m venv .venv
-.venv/bin/python -m pip install -e ".[dev]"
+.venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000
 ```
 
-Copy the environment template and fill in local values:
-
-```bash
-cp .env.example .env
-```
-
-Required for live generation and embeddings:
-
-```bash
-OPENAI_API_KEY=your_openai_api_key_here
-```
-
-Useful optional Python settings:
-
-```bash
-CCA_OPENAI_API_KEY=
-CCA_OPENAI_MODEL=gpt-5-mini
-CCA_OPENAI_EMBEDDING_MODEL=text-embedding-3-small
-CCA_ENVIRONMENT=local
-CCA_LOG_LEVEL=INFO
-CCA_LOG_FORMAT=text
-CCA_CHROMA_PERSIST_DIR=data/chroma
-CCA_EVAL_DATA_PATH=data/eval/live_sessions.jsonl
-CCA_WORKSPACE_SESSION_DB_PATH=data/workspace_sessions.sqlite3
-```
-
-### Next.js Workstation
-
-Install the frontend dependencies:
-
-```bash
-cd clients/nextjs
-npm install
-```
-
-Optional frontend overrides:
-
-```bash
-NEXT_PUBLIC_ASSISTANT_STREAM_URL=http://localhost:8000/api/assistant/stream
-NEXT_PUBLIC_WORKSPACE_SESSION_URL=http://localhost:8000/api/workspace/session
-```
-
-## Running The System
-
-Start the local backend bridge:
-
-```bash
-.venv/bin/python -m creative_coding_assistant.api.dev_server
-```
-
-Start the Next.js workstation:
+Frontend:
 
 ```bash
 cd clients/nextjs
 npm run dev
 ```
 
-Then open:
+Open:
 
 ```text
-http://localhost:3000
+http://127.0.0.1:3000
 ```
 
-The frontend expects these backend bridge endpoints by default:
-
-- `POST /api/assistant/stream` for assistant NDJSON streaming
-- `GET/POST /api/workspace/session` for workspace save/restore
-- `GET /api/health`, `GET /api/health/live`, and `GET /api/health/ready` for
-  liveness and readiness probes
-
-These bridges are exposed as importable WSGI applications in
-`creative_coding_assistant.api`:
-
-- `create_backend_dev_app`
-- `create_assistant_streaming_app`
-- `create_workspace_session_app`
-- `create_health_check_app`
-- `run_backend_dev_server`
-
-Frontend defaults:
-
-```text
-http://localhost:8000/api/assistant/stream
-http://localhost:8000/api/workspace/session
-http://localhost:8000/api/health
-```
-
-The backend bridge emits `X-Request-Id` plus stable contract-version headers
-for API, error, stream, workspace-session, and health responses. The local
-`creative_coding_assistant.api.dev_server` module is a development bridge; in
-`CCA_ENVIRONMENT=production` it refuses to start unless the operator passes
-the explicit production override flag.
-
-Production deployments should use Gunicorn with
-`creative_coding_assistant.api.wsgi:application`, explicit
-`CCA_CORS_ALLOWED_ORIGINS`, and the health/readiness probes documented in
-[`docs/PRODUCTION_DEPLOYMENT.md`](docs/PRODUCTION_DEPLOYMENT.md).
-
-### Streamlit Reference Client
-
-An earlier Streamlit client is still included as a lightweight reference
-interface:
+Minimum reviewer validation:
 
 ```bash
-.venv/bin/streamlit run clients/streamlit/app.py --server.headless true --server.port 8501
+.venv/bin/pytest tests/test_golden_artifacts.py tests/test_ragas_live_eval_foundation.py tests/test_demo_showcase_experience.py tests/test_retrieval_demo_pack.py
+cd clients/nextjs
+npm run typecheck
+npm run test -- src/lib/demo-mode.test.ts src/components/workstation-shell.test.tsx
+npm run test:e2e:smoke
+```
+
+Static fallback launcher:
+
+```bash
+python3 -m http.server 8126 --bind 127.0.0.1
 ```
 
 Then open:
 
 ```text
-http://localhost:8501
-```
-
-## Knowledge Base Sync
-
-The retrieval stack depends on a synced local Chroma knowledge base. Sync all
-approved sources:
-
-```bash
-.venv/bin/python scripts/sync_official_kb.py --all
-```
-
-Sync selected sources:
-
-```bash
-.venv/bin/python scripts/sync_official_kb.py \
-  --source-id three_docs \
-  --source-id r3f_canvas_api \
-  --source-id p5_examples \
-  --source-id glsl_mdn_webgl_examples \
-  --source-id processing_reference \
-  --source-id canvas2d_context_api \
-  --source-id webgpu_mdn_api \
-  --source-id wgsl_spec
+http://127.0.0.1:8126/demo/final_demo_launcher.html
 ```
 
 ## Evaluation
 
-Live sessions are recorded locally for later evaluation. The repository
-includes offline evaluation helpers today, including a retrieval-focused
-RAGAs-oriented runner. The workstation can surface RAGAs lineage and optional
-LangSmith metadata when that data is present; richer in-app RAGAs scoring
-dashboards remain planned for a later observability layer.
+Primary evidence:
 
-Evaluate the latest eligible samples:
+- `docs/V8_GRAND_ENGINEERING_REVIEW.md`
+- `docs/V8_CAPSTONE_EVIDENCE_MATRIX.md`
+- `demo/evaluation/README.md`
+- `demo/golden_artifacts/qa_manifest.json`
+- `demo/golden_artifacts/browser_full_runtime_qa_results.json`
+- `demo/final_demo_suite.json`
 
-```bash
-.venv/bin/python scripts/eval_live_sessions.py \
-  --input-path data/eval/live_sessions.jsonl \
-  --output-path data/eval/ragas_latest4_context_precision.jsonl \
-  --latest 4 \
-  --metric context_precision
+RAGAs evidence is intentionally conservative:
+
+- Sanitized fixture: synthetic/public content only.
+- Redacted latest-live fixture: preserves latest-live structure while replacing
+  private question, answer, and context text.
+- Raw private live-session rows remain local-only.
+- The redacted p5.js run includes a weak faithfulness row; it is documented as
+  a fixture/evaluator phrasing issue rather than hidden.
+
+## Ethics
+
+Creative Coding Assistant keeps public claims bounded:
+
+- No religious, medical, psychological, historical, or metaphysical authority
+  claims.
+- No public cloud deployment claim for the Capstone demo.
+- No live DCC/MCP execution claim.
+- No autonomous delivery claim.
+- No raw private evaluation export.
+- Internal planning layers are treated as engineering evidence, not objective
+  truth.
+
+## Current Product Scope
+
+Implemented and reviewable:
+
+- Local backend and Next.js workstation.
+- Integrated Demo Mode.
+- Retrieval-grounded creative-coding answers.
+- Browser-focused creative coding guidance.
+- Generated p5.js, Three.js, GLSL, and Hydra golden artifacts.
+- Local browser QA evidence for the golden artifacts.
+- Sanitized and redacted RAGAs evidence.
+- Fallback static launcher and presenter checklist.
+
+Out of scope for this Capstone release:
+
+- Public cloud deployment.
+- External DCC/MCP execution.
+- Autonomous end-to-end delivery.
+- Broad load/soak or display-FPS benchmarking.
+- Raw private live-session evaluator calls.
+- Final freeze, merge, push, or tag without HITL.
+
+## Future Roadmap
+
+The long-term product direction separates the system into three clearer
+layers:
+
+```text
+Knowledge Engine
+  -> Creative Execution Engine
+  -> Experience Engine
 ```
 
-Or use the helper:
+Knowledge Engine:
+- source ingestion, retrieval, provenance, freshness, trust, and safe
+  evaluation fixtures.
 
-```bash
-scripts/run_eval_latest.sh 4
-```
+Creative Execution Engine:
+- stronger runtime-specific generation, artifact packaging, browser preview,
+  visual QA, and model/provider routing.
 
-Privacy-approved release-candidate RAGAs fixture:
+Experience Engine:
+- richer workstation flows, installation planning, gallery/demo packaging,
+  collaboration, and production handoff.
 
-```bash
-.venv/bin/python scripts/eval_live_sessions.py \
-  --input-path demo/evaluation/sanitized_ragas_live_sessions.jsonl \
-  --output-path demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl \
-  --metric context_precision \
-  --allow-provider-calls
-```
+These are roadmap directions, not current Capstone claims.
 
-Redacted latest-live release-candidate RAGAs fixture:
+## License
 
-```bash
-.venv/bin/python scripts/eval_live_sessions.py \
-  --input-path demo/evaluation/redacted_live_session_ragas_latest4.jsonl \
-  --output-path demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl \
-  --metric context_precision \
-  --metric faithfulness \
-  --metric answer_relevancy \
-  --allow-provider-calls
-```
-
-External evaluator provider calls are approved only for sanitized or redacted
-reviewer-safe fixtures in this evidence set. Raw recorded live-session data in
-`data/eval/` remains local/private.
-
-## Validation
-
-Accepted Python release checks:
-
-```bash
-git diff --check
-.venv/bin/python -m compileall -q src tests
-.venv/bin/pytest -q
-```
-
-Run focused tests for touched surfaces, plus applicable documentation or
-alignment tests when public docs, runtime docs, or workflow contracts change.
-For changed Python files, use scoped ruff checks as the current accepted lint
-gate:
-
-```bash
-.venv/bin/python -m ruff check <changed-python-files>
-```
-
-Full-project ruff over `src clients tests scripts` is tracked as technical
-debt until the existing backlog is resolved; it is not the V5 clean release
-gate.
-
-Frontend checks for client changes:
-
-```bash
-cd clients/nextjs
-npm run typecheck
-npm run test
-npm run build
-```
+License information should be confirmed before public distribution. Keep this
+branch local until HITL approves release, freeze, tag, and publication actions.

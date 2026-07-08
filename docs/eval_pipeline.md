@@ -113,9 +113,9 @@ Redacted latest-live fixture example:
 ```
 
 The 2026-07-08 redacted latest-live run produced 4 result rows, 0 skipped
-rows, 0 metric failures, average context precision `0.7006944444251505`,
-average faithfulness `0.625`, and average answer relevancy
-`0.46063699875040387`.
+rows, 0 metric failures, average context precision `0.7006944444230672`,
+average faithfulness `0.6875`, and average answer relevancy
+`0.4419141765019863` after the public-safe wording refresh.
 
 ### Step 5: Inspect Scores and Sources
 

@@ -66,9 +66,10 @@ Use if live systems are unavailable or timing requires a shorter path.
 
 ```text
 Create a p5.js generative morphogenesis sketch using reaction diffusion,
-cellular automata, L-systems, flow fields, particle systems,
-self-organization, and emergent form. Keep it browser-safe, explain
-interaction controls, and cite retrieval/source boundaries conservatively.
+cellular automata, L-systems, flow fields, particle systems, differential
+growth, diffusion-limited aggregation, branching, self-organization, and
+emergent form. Keep it browser-safe, explain interaction controls, and cite
+retrieval/source boundaries conservatively.
 ```
 
 Use when the demo needs a simpler canvas-based fallback for p5.js and
@@ -79,8 +80,10 @@ generative systems.
 ```text
 Design a Hydra feedback texture chain for the validated local hydra-synth
 browser path and a GLSL fragment-shader fallback for a luminous kaleidoscopic
-scene. Explain that Hydra support is bounded to the committed hydra-synth
-artifact QA path and how to recover if a runtime is unavailable.
+scene. Include oscillator layers, modulation, feedback, moire-like pattern
+motion, and output routing. Explain that Hydra support is bounded to the
+committed hydra-synth artifact QA path and how to recover if a runtime is
+unavailable.
 ```
 
 Use when asked about Hydra support, shader tradeoffs, or runtime fallbacks.
@@ -100,9 +103,9 @@ Use for installation planning and portfolio story questions.
 
 ```text
 Design a geometry and morphogenesis visual system for the browser. Combine
-radial structures, recursive growth, reaction diffusion, flow fields, and
-particle trails. Include runtime selection, preview strategy, source
-boundaries, and a graceful fallback plan.
+radial structures, recursive growth, reaction diffusion, diffusion-limited
+aggregation, branching, flow fields, and particle trails. Include runtime
+selection, preview strategy, source boundaries, and a graceful fallback plan.
 ```
 
 Use when reviewers ask about generative structures, emergent form, and output

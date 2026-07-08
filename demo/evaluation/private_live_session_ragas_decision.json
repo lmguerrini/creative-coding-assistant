@@ -46,9 +46,9 @@
     "eligible": 4,
     "skipped": 0,
     "metric_failures": 0,
-    "average_context_precision": 0.7006944444251505,
-    "average_faithfulness": 0.625,
-    "average_answer_relevancy": 0.46063699875040387,
+    "average_context_precision": 0.7006944444230672,
+    "average_faithfulness": 0.6875,
+    "average_answer_relevancy": 0.4419141765019863,
     "limitation": "Derived from latest eligible live-session structure, but text is redacted/replaced with reviewer-safe p5.js content before external evaluator calls."
   },
   "hitl_approved_command": ".venv/bin/python scripts/eval_live_sessions.py --input-path data/eval/live_sessions.jsonl --output-path data/eval/ragas_latest4_private_context_precision.jsonl --latest 4 --metric context_precision --allow-provider-calls"

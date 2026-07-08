@@ -13,8 +13,8 @@ Included:
 - `browser_render_qa.html`: fallback browser QA harness for p5.js shim render,
   GLSL WebGL render, and Three.js dependency-boundary validation when packages
   are unavailable.
-- `p5_sacred_geometry_sketch.js`: p5.js browser sketch with bounded sacred
-  geometry language.
+- `p5_generative_morphogenesis_sketch.js`: p5.js browser sketch with
+  bounded geometry and growth-system language.
 - `three_audio_reactive_scene.js`: Three.js scene module with Web Audio
   analyser hooks and no required microphone capture.
 - `glsl_kaleidoscope_field.frag`: GLSL fragment shader intended for a browser

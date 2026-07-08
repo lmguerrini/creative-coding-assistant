@@ -8,7 +8,7 @@ critique, and refinement context.
 ## Product Surface
 
 - Python backend for retrieval, memory, planning, provider execution,
-  artifact extraction, preview metadata, critique, refinement, and final
+  artifact extraction, preview records, critique, refinement, and final
   response assembly.
 - Next.js workstation for chat, preview, inspection, retrieval visibility,
   workflow visibility, parameter review, and export-oriented artifact surfaces.

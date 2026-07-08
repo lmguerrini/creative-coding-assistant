@@ -1,8 +1,8 @@
 {
-  "run_id": "668f70ae5c2a4070b6cf4c87d0985cbd",
+  "run_id": "71d0b14333d849f1bbbb678eee032bbc",
   "dataset": {
-    "dataset_id": "668f70ae5c2a4070b6cf4c87d0985cbd",
-    "created_at": "2026-07-08T16:03:54.392939Z",
+    "dataset_id": "71d0b14333d849f1bbbb678eee032bbc",
+    "created_at": "2026-07-08T18:07:18.132296Z",
     "source_path": "demo/evaluation/redacted_live_session_ragas_latest4.jsonl",
     "total_samples": 4,
     "rows": [
@@ -68,14 +68,14 @@
       },
       {
         "sample_id": "redacted_live_p5_geometry_claims_a96585be",
-        "user_input": "How should the assistant turn sacred-geometry inspiration into p5.js implementation guidance without making unsupported claims?",
-        "response": "Convert the inspiration into concrete drawing rules and parameters. Use p5 primitives such as circles, lines, arcs, polygons, curves, ellipse(), circle(), beginShape(), vertex(), and endShape(). Treat sacred, symbolic, and mythopoetic language as creative framing only, not as authority, diagnosis, doctrine, or proof.",
+        "user_input": "How should the assistant turn geometry inspiration into p5.js implementation guidance without making unsupported claims?",
+        "response": "Convert the inspiration into concrete drawing rules and parameters. Use p5 primitives such as circles, lines, arcs, polygons, curves, ellipse(), circle(), beginShape(), vertex(), and endShape(). Treat conceptual and geometric language as creative framing only, not as authority, diagnosis, doctrine, or proof.",
         "retrieved_contexts": [
           "p5 sketches can build visual motifs from basic primitives such as circles, lines, arcs, polygons, and curves.",
           "ellipse() and circle() draw rounded forms on the canvas and are common building blocks for radial or concentric compositions.",
           "beginShape(), vertex(), and endShape() can define custom polygons and repeated geometry in a p5 sketch.",
           "Generative design prompts should be converted into concrete drawing rules and parameters so the implemented visual result is inspectable.",
-          "Sacred, symbolic, and mythopoetic language in the capstone demo is treated as creative framing only and must not be presented as authority, diagnosis, doctrine, or proof."
+          "Conceptual and geometric language in the capstone demo is treated as creative framing only and must not be presented as authority, diagnosis, doctrine, or proof."
         ],
         "ground_truth": null,
         "source_ids": [
@@ -150,5 +150,5 @@
   "result_rows": 4,
   "metric_failures": 0,
   "langsmith": null,
-  "evaluated_at": "2026-07-08T16:03:54.392939Z"
+  "evaluated_at": "2026-07-08T18:07:18.132296Z"
 }

@@ -9,7 +9,7 @@
   "console_warnings_or_errors": [],
   "results": [
     {
-      "artifact_id": "p5_sacred_geometry_sketch",
+      "artifact_id": "p5_generative_morphogenesis_sketch",
       "runtime": "p5.js",
       "status": "rendered_nonblank",
       "evidence": "Visible harness status reported rendered_nonblank after drawing 18 frames and running an internal canvas pixel check.",
@@ -49,5 +49,5 @@
       ]
     }
   ],
-  "claim_boundary": "This is local browser QA evidence only. It is not a public deployment, not a product preview runtime claim, and not evidence of Hydra, DCC/MCP, HoloMind, or HOLOiVERSE execution."
+  "claim_boundary": "This is local browser QA evidence only. It is not a public deployment, not a product preview runtime claim, and not evidence of Hydra, DCC/MCP, autonomous immersive platform, or external execution."
 }

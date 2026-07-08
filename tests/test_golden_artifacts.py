@@ -61,7 +61,7 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
 
     def test_javascript_artifacts_pass_node_syntax_check(self) -> None:
         for path in (
-            Path("demo/golden_artifacts/p5_sacred_geometry_sketch.js"),
+            Path("demo/golden_artifacts/p5_generative_morphogenesis_sketch.js"),
             Path("demo/golden_artifacts/three_audio_reactive_scene.js"),
             Path("demo/golden_artifacts/hydra_feedback_lattice.js"),
         ):
@@ -93,7 +93,7 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
             "demo/golden_artifacts/browser_full_runtime_qa_results.json",
         )
         self.assertEqual(
-            artifacts["p5_sacred_geometry_sketch"]["qa_status"],
+            artifacts["p5_generative_morphogenesis_sketch"]["qa_status"],
             "full_runtime_browser_render_passed",
         )
         self.assertEqual(artifacts["glsl_kaleidoscope_field"]["qa_status"], "browser_webgl_render_passed")
@@ -104,8 +104,8 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
         self.assertEqual(artifacts["hydra_feedback_lattice"]["qa_status"], "full_runtime_browser_render_passed")
         self.assertIn("hydra-synth", artifacts["hydra_feedback_lattice"]["browser_render_check"])
         self.assertIn("no microphone", artifacts["hydra_feedback_lattice"]["boundary"])
-        self.assertIn("No HoloMind implementation claim.", manifest["claim_boundaries"])
-        self.assertIn("No HOLOiVERSE implementation claim.", manifest["claim_boundaries"])
+        self.assertIn("No autonomous immersive platform implementation claim.", manifest["claim_boundaries"])
+        self.assertIn("No future experience-engine runtime claim.", manifest["claim_boundaries"])
         self.assertIn("No live external DCC/MCP execution claim.", manifest["claim_boundaries"])
 
     def test_browser_render_qa_result_records_honest_runtime_boundaries(self) -> None:
@@ -114,7 +114,7 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
         harness = Path("demo/golden_artifacts/browser_render_qa.html").read_text(encoding="utf-8")
 
         self.assertEqual(result["browser"], "Codex in-app browser")
-        self.assertEqual(by_artifact["p5_sacred_geometry_sketch"]["status"], "rendered_nonblank")
+        self.assertEqual(by_artifact["p5_generative_morphogenesis_sketch"]["status"], "rendered_nonblank")
         self.assertEqual(by_artifact["glsl_kaleidoscope_field"]["status"], "rendered_nonblank")
         self.assertEqual(
             by_artifact["three_audio_reactive_scene"]["status"],
@@ -124,7 +124,7 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
             "No Three.js render or FPS benchmark is claimed.",
             by_artifact["three_audio_reactive_scene"]["limitations"],
         )
-        self.assertIn("p5_sacred_geometry_sketch.js", harness)
+        self.assertIn("p5_generative_morphogenesis_sketch.js", harness)
         self.assertIn("glsl_kaleidoscope_field.frag", harness)
         self.assertIn("three_audio_reactive_scene.js", harness)
         self.assertNotIn("https://", harness)
@@ -140,7 +140,7 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
         self.assertEqual(result["temporary_dependencies"]["three"], "0.185.1")
         self.assertEqual(result["temporary_dependencies"]["hydra-synth"], "1.4.0")
         self.assertEqual(
-            by_artifact["p5_sacred_geometry_sketch"]["classification"],
+            by_artifact["p5_generative_morphogenesis_sketch"]["classification"],
             "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
         )
         self.assertEqual(
@@ -152,7 +152,7 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
             by_artifact["hydra_feedback_lattice"]["classification"],
             "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
         )
-        self.assertTrue(by_artifact["p5_sacred_geometry_sketch"]["pixel_check"]["nonblank"])
+        self.assertTrue(by_artifact["p5_generative_morphogenesis_sketch"]["pixel_check"]["nonblank"])
         self.assertTrue(by_artifact["three_audio_reactive_scene"]["pixel_check"]["nonblank"])
         self.assertTrue(by_artifact["glsl_kaleidoscope_field"]["pixel_check"]["nonblank"])
         self.assertTrue(by_artifact["hydra_feedback_lattice"]["pixel_check"]["nonblank"])

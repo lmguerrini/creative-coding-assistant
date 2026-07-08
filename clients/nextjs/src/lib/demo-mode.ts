@@ -29,7 +29,7 @@ export const demoModeScenarios = [
     evidence: [
       "demo/golden_artifacts/browser_full_runtime_qa_results.json",
       "demo/golden_artifacts/qa_manifest.json",
-      "docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md"
+      "docs/V8_CAPSTONE_EVIDENCE_MATRIX.md"
     ],
     sourceBoundary:
       "Uses registered creative-coding/runtime guidance and local browser QA evidence; does not claim cloud deployment or external DCC execution.",
@@ -41,9 +41,9 @@ export const demoModeScenarios = [
     category: "2D generative sketch",
     runtime: "p5.js",
     prompt:
-      "Create a p5.js generative morphogenesis sketch using reaction diffusion, cellular automata, L-systems, flow fields, particle systems, self-organization, and emergent form. Keep it browser-safe, explain interaction controls, and cite retrieval/source boundaries conservatively.",
+      "Create a p5.js generative morphogenesis sketch using reaction diffusion, cellular automata, L-systems, flow fields, particle systems, differential growth, diffusion-limited aggregation, branching, self-organization, and emergent form. Keep it browser-safe, explain interaction controls, and cite retrieval/source boundaries conservatively.",
     expectedBehavior:
-      "The assistant should translate morphogenesis techniques into practical p5.js structure, visual controls, and reviewable implementation notes.",
+      "The assistant should translate morphogenesis techniques into practical p5.js structure, visual controls, a clear visual growth story, and reviewable implementation notes.",
     fallback:
       "Use the committed p5.js golden artifact QA record and the offline demo dataset if live generation is unavailable.",
     outputGuidance:
@@ -54,7 +54,7 @@ export const demoModeScenarios = [
       "docs/CAPSTONE_EVALUATION_ETHICS.md"
     ],
     sourceBoundary:
-      "Generic morphogenesis techniques are represented in code/catalog metadata; no Jason Webb or morphogenesis-resources source coverage is claimed.",
+      "Generic morphogenesis techniques are represented in code/catalog signals; no Jason Webb or morphogenesis-resources source coverage is claimed.",
     validationPath: "p5.js golden artifact rendered nonblank in local browser QA."
   },
   {
@@ -85,7 +85,7 @@ export const demoModeScenarios = [
     category: "Live-code visual pattern",
     runtime: "Hydra",
     prompt:
-      "Create a Hydra feedback-pattern demo for a browser visual performance. Use oscillator layers, modulation, feedback, output routing, visual pattern explanation, and a fallback to GLSL or static artifact evidence when the Hydra runtime is unavailable.",
+      "Create a Hydra feedback-pattern demo for a browser visual performance. Use oscillator layers, modulation, feedback, moire-like pattern motion, output routing, visual pattern explanation, and a fallback to GLSL or static artifact evidence when the Hydra runtime is unavailable.",
     expectedBehavior:
       "The assistant should describe a bounded Hydra-compatible chain and clearly explain that support is limited to the validated local hydra-synth artifact path.",
     fallback:
@@ -139,11 +139,11 @@ export const demoModeScenarios = [
     evidence: [
       "demo/demo_prompt_library.md",
       "docs/CAPSTONE_EVALUATION_ETHICS.md",
-      "docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md"
+      "docs/V8_CAPSTONE_EVIDENCE_MATRIX.md"
     ],
     sourceBoundary:
-      "Uses internal creative translation metadata as review evidence; it is not treated as objective truth.",
-    validationPath: "Creative translation surfaces are covered by existing frontend tests and scorecard evidence."
+      "Uses internal creative translation signals as review evidence; it is not treated as objective truth.",
+    validationPath: "Creative translation surfaces are covered by existing frontend tests and evidence documentation."
   },
   {
     id: "geometry-morphogenesis-visual-system",
@@ -151,7 +151,7 @@ export const demoModeScenarios = [
     category: "Generative systems",
     runtime: "p5.js / GLSL",
     prompt:
-      "Design a geometry and morphogenesis visual system for the browser. Combine radial structures, recursive growth, reaction diffusion, flow fields, and particle trails. Include runtime selection, preview strategy, source boundaries, and a graceful fallback plan.",
+      "Design a geometry and morphogenesis visual system for the browser. Combine radial structures, recursive growth, reaction diffusion, diffusion-limited aggregation, branching, flow fields, and particle trails. Include runtime selection, preview strategy, source boundaries, and a graceful fallback plan.",
     expectedBehavior:
       "The assistant should describe a cohesive generative system, choose a practical browser runtime, and keep claims bounded to implementation guidance.",
     fallback:
@@ -177,7 +177,7 @@ export const demoModeScenarios = [
     expectedBehavior:
       "The assistant should create a bounded project plan with demo sequence, preview strategy, evidence path, and implementation handoff notes.",
     fallback:
-      "Use the integrated Demo Mode scenario list, external launcher fallback, scorecard, and offline dataset if any live service fails.",
+      "Use the integrated Demo Mode scenario list, external launcher fallback, evidence docs, and offline dataset if any live service fails.",
     outputGuidance:
       "Keep the planning answer practical: browser runtimes, reviewer walkthrough, validation evidence, and explicit limits.",
     evidence: [

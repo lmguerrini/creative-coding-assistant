@@ -42,8 +42,8 @@ Validation:
   Capstone presenter can choose curated scenarios, load prompts into the normal
   assistant composer, and keep expected behavior, fallback, evidence, source
   boundaries, and output guidance in the workstation.
-- Preserved unsupported-runtime boundaries for HoloMind, HOLOiVERSE, live
-  external DCC/MCP execution, autonomous delivery, certification, and
+- Preserved unsupported-runtime boundaries for live external DCC/MCP
+  execution, autonomous delivery, certification, public cloud deployment, and
   metaphysical or medical truth claims.
 
 ## Validation Evidence
@@ -78,6 +78,12 @@ Product smoke:
   metadata for a 107-token bounded request.
 - Quality dashboard generation passed and reported complete roadmap coverage for
   23 quality gates.
+- Internal advisory review surfaces ran as engineering reviewers, not
+  automatic graders: production readiness status `guarded` with 6 records,
+  13 guarded findings, and 0 blocking findings; creative readiness status
+  `guarded` with 6 records, 3 guarded findings, and 0 blocking findings; demo
+  showcase plan returned 8 flows, 5 fallbacks, and 8 presentation segments;
+  retrieval demo pack returned 7 scenarios.
 
 Evaluation:
 
@@ -98,9 +104,9 @@ Evaluation:
   samples, 4 eligible samples, 0 skipped samples, metrics `context_precision`,
   `faithfulness`, and `answer_relevancy`, provider calls explicitly allowed for
   redacted reviewer-safe fixture content, and 0 metric failures.
-- Exact redacted latest-live RAGAs averages: context precision
-  `0.7006944444251505`, faithfulness `0.625`, and answer relevancy
-  `0.46063699875040387`. Per-row scores are recorded in
+- Exact redacted latest-live RAGAs averages after the public-safe wording
+  refresh: context precision `0.7006944444230672`, faithfulness `0.6875`, and
+  answer relevancy `0.4419141765019863`. Per-row scores are recorded in
   `demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl`.
 - Raw private live-session dry-run over `data/eval/live_sessions.jsonl`
   selected 4 latest eligible samples from 60 total samples and skipped 56. Raw
@@ -112,7 +118,7 @@ Evaluation:
 - Digital Morphogenesis audit: targeted repository scan found no explicit
   Jason Webb, `Digital Morphogenesis`, or `morphogenesis-resources` source
   coverage in the KB/demo registry. Generic morphogenesis techniques are
-  represented through local knowledge/catalog and orchestration metadata
+  represented through local knowledge/catalog and orchestration records
   (reaction diffusion, cellular automata, L-systems, flow fields, particle
   systems, self-organization, generative structures, and emergent form), so
   Demo Mode uses generic morphogenesis prompts without claiming Jason
@@ -122,7 +128,7 @@ Evaluation:
   precision 0.8604; `ragas_latest4_context_precision_after_glsl_fix.jsonl`
   scored 4 rows with average context precision 0.5986.
 - Generated golden artifacts were added and QA checked:
-  `demo/golden_artifacts/p5_sacred_geometry_sketch.js` and
+  `demo/golden_artifacts/p5_generative_morphogenesis_sketch.js` and
   `demo/golden_artifacts/three_audio_reactive_scene.js` pass `node --check`;
   `demo/golden_artifacts/glsl_kaleidoscope_field.frag` passes static fragment
   shader structure checks; `demo/golden_artifacts/hydra_feedback_lattice.js`
@@ -182,17 +188,15 @@ Live showcase upload and final public claims approval still need HITL.
 
 ## Readiness Assessment
 
-Detailed engineering scorecard:
-`docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md`.
+Detailed engineering evidence matrix:
+`docs/V8_CAPSTONE_EVIDENCE_MATRIX.md`.
 
-The Grand Review no longer uses a single overall score. Production readiness is
-one category in the detailed scorecard and is now 99/100 after redacted
-provider-backed RAGAs, Hydra browser runtime QA, generated artifact QA, final
-browser/render QA, integrated Demo Mode, static launcher validation, local demo
-target review, public/private docs audit, README evaluator path, and timed-demo
-evidence update. The higher-level release-candidate judgment is based on
-category evidence, remaining risks, and HITL boundaries. The advisory aggregate
-across the 13 requested Capstone Excellence categories is 98.7/100.
+The Grand Review now publishes evidence and residual risks. The
+release-candidate judgment is based on category evidence, remaining risks, and
+HITL boundaries: redacted provider-backed RAGAs, Hydra browser runtime QA,
+generated artifact QA, final browser/render QA, integrated Demo Mode, static
+launcher validation, local demo target review, public/private docs audit,
+README evaluator path, and timed-demo evidence.
 
 AI review readiness: ready for final reviewer evaluation with bounded claims.
 
@@ -230,8 +234,8 @@ Remaining risks:
   packages for p5/Three/Hydra and WebGL for GLSL. Frame timing is uncapped
   local draw-loop timing, not display FPS, load, soak, or production
   performance benchmarking.
-- External DCC/MCP execution, HoloMind, and HOLOiVERSE remain unsupported
-  future-scope items.
+- External DCC/MCP execution, autonomous delivery, and future experience-engine
+  execution remain unsupported future-scope items.
 - Chroma/Pydantic deprecation warnings are non-blocking dependency warnings with
   a documented upgrade-validation path.
 - Final freeze, merge, push, tag, and showcase upload require explicit HITL.

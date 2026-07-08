@@ -11,8 +11,9 @@ or generated output semantics.
 - `orchestration.runtime`: live runtime adapters and direct execution surfaces,
   including service composition, routing, workflow state, prompt rendering,
   retrieval, memory adapters, event models, and cache helpers.
-- `orchestration.metadata`: passive registries, profiles, descriptors, creative
-  metadata, cognitive metadata, and studio/workspace metadata models.
+- `orchestration.metadata`: internal package name for Typed Domain
+  Intelligence Layer registries, profiles, descriptors, creative reasoning
+  records, cognitive records, and studio/workspace records.
 - `orchestration.governance`: passive policy, HITL, safety, budget, evolution,
   and governance posture models.
 - `orchestration.audit`: passive audit, architecture consistency, release
@@ -38,10 +39,10 @@ for stable API consumption.
 ## Runtime Boundary
 
 Only modules in `orchestration.runtime` are allowed to own live orchestration
-behavior. Passive packages can derive, describe, validate, or recommend, but
-must not mutate runtime graph execution, provider/model routing, persistence,
-streaming contracts, or generated output behavior as part of import or metadata
-construction.
+behavior. Typed Domain Intelligence packages can derive, describe, validate, or
+recommend, but must not mutate runtime graph execution, provider/model routing,
+persistence, streaming contracts, or generated output behavior during import or
+record construction.
 
 ## Validation Expectations
 

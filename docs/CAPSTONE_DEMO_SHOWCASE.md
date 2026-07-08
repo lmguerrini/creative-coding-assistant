@@ -18,7 +18,7 @@ debugging constraints, and evaluation tradeoffs.
 Solution: Creative Coding Assistant combines a LangGraph-orchestrated backend,
 registered creative-coding knowledge sources, Chroma-backed retrieval, a
 workstation interface, preview surfaces, artifact planning, critique/refinement
-metadata, and local evaluation workflows.
+signals, and local evaluation workflows.
 
 ## Capstone Case Alignment
 
@@ -27,7 +27,7 @@ metadata, and local evaluation workflows.
 | Case 5: AI coding assistant | Primary | Creative intent is translated into code-oriented browser runtime guidance. | Do not claim autonomous production delivery. |
 | Case 1: RAG knowledge assistant | Primary | Retrieval grounds runtime, shader, and audiovisual guidance in registered sources. | Do not claim complete coverage of all external docs. |
 | Case 6: Advanced LLM tools | Primary | LangGraph, Chroma, preview surfaces, and evaluation workflows are part of the architecture. | Do not claim live external DCC/MCP execution. |
-| Case 2: Agent automation | Guarded support | Bounded workflow stages and advisory routing/evaluation metadata are explainable. | Do not claim autonomous agent swarms or unattended workflow control. |
+| Case 2: Agent automation | Guarded support | Bounded workflow stages and Typed Creative Reasoning Layers are explainable. | Do not claim autonomous agent swarms or unattended workflow control. |
 | Case 3: Smart document search | Guarded support | Source-grounded search exists for the registered creative-coding KB. | Do not claim generic document search outside indexed/registered sources. |
 
 ## Golden Demo Flow
@@ -50,7 +50,7 @@ Primary path:
 | Problem and purpose | 1:15 | Explain the creative-coding translation problem and target user. |
 | Solution architecture | 1:30 | LangGraph backend, Chroma KB, workstation, preview, evaluation. |
 | Primary golden flow | 4:15 | Prompt, retrieval, planning, artifact direction, preview, refinement. |
-| Evaluation and ethics | 1:30 | RAGAs workflow, readiness metrics, source grounding, limitations. |
+| Evaluation and ethics | 1:30 | RAGAs workflow, source grounding, limitations, and evidence boundaries. |
 | Challenges and next steps | 1:30 | Demo reliability, fallback mode, Grand Review, post-capstone hardening. |
 
 ## 5-Minute Q&A Prep
@@ -69,9 +69,10 @@ Likely questions:
   Provider availability, retrieval freshness, preview reliability, and careful
   public claim boundaries.
 - Is it agent automation?
-  Only bounded workflow explanation and advisory metadata should be claimed.
-- Does it run Blender, Houdini, TouchDesigner, Unity, Unreal, MCP tools,
-  HoloMind, or HOLOiVERSE?
+  Only bounded workflow explanation and Typed Creative Reasoning Layers should
+  be claimed.
+- Does it run Blender, Houdini, TouchDesigner, Unity, Unreal, MCP tools, or
+  autonomous immersive platforms?
   No.
 
 ## SCR Presentation Support
@@ -111,7 +112,7 @@ live provider, retrieval, or preview result.
 - Complete V8 Grand Engineering Review validation.
 - Apply scoped fixes for claim, reliability, or demo-readiness issues.
 - Run final demo rehearsal and focused validation.
-- Use `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md` as the reviewer evidence map.
+- Use `docs/V8_CAPSTONE_EVIDENCE_MATRIX.md` as the reviewer evidence map.
 - Use `demo/evaluation/` for sanitized/redacted RAGAs evidence and
   `demo/golden_artifacts/` for generated p5.js, Three.js, GLSL, and Hydra
   artifact QA.

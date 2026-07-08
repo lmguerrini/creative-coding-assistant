@@ -1,23 +1,23 @@
 {
-  "run_id": "41b0167df2a043c48e0d03d8ca95b17a",
+  "run_id": "61cdcce6fb364d4a90b327989c2c4f86",
   "dataset": {
-    "dataset_id": "41b0167df2a043c48e0d03d8ca95b17a",
-    "created_at": "2026-07-08T16:14:08.868840Z",
+    "dataset_id": "61cdcce6fb364d4a90b327989c2c4f86",
+    "created_at": "2026-07-08T18:06:52.368705Z",
     "source_path": "demo/evaluation/sanitized_ragas_live_sessions.jsonl",
     "total_samples": 4,
     "rows": [
       {
         "sample_id": "sanitized_ragas_p5_setup_draw",
-        "user_input": "How should a p5.js sketch structure setup(), draw(), and interaction state for a reviewer-safe animated sacred geometry demo?",
-        "response": "Use setup() for one-time canvas and state initialization, then use draw() for the repeated animation loop. Keep interaction state explicit in simple variables, use frameCount or elapsed time for motion, and describe the sacred-geometry language as an aesthetic reference rather than an authority claim.",
+        "user_input": "How should a p5.js sketch structure setup(), draw(), and interaction state for a reviewer-safe animated geometry demo?",
+        "response": "Use setup() for one-time canvas and state initialization, then use draw() for the repeated animation loop. Keep interaction state explicit in simple variables, use frameCount or elapsed time for motion, and describe the geometry language as an aesthetic reference rather than an authority claim.",
         "retrieved_contexts": [
           "The setup() function is used for initialization and runs once when the p5 sketch starts. The draw() function is called repeatedly and is the usual place for animation updates and rendering.",
-          "Sacred geometry prompts should be framed as visual composition and symbolic design guidance. They must not claim religious, historical, medical, psychological, or metaphysical authority."
+          "Geometry and concept prompts should be framed as visual composition and design guidance. They must not claim religious, historical, medical, psychological, or metaphysical authority."
         ],
         "ground_truth": null,
         "source_ids": [
           "p5_reference_setup_draw",
-          "cca_sacred_geometry_boundary"
+          "cca_geometry_boundary"
         ],
         "domains": [
           "p5_js"
@@ -90,15 +90,15 @@
       {
         "sample_id": "sanitized_ragas_hydra_boundary",
         "user_input": "How should the capstone demo discuss Hydra support now that a bounded local hydra-synth artifact path has passed browser QA?",
-        "response": "Describe Hydra support as limited to the validated local hydra-synth browser artifact path. Say that p5.js, Three.js, GLSL, and Hydra artifacts were generated and QA reviewed, while microphone, Hydra editor, DCC/MCP, HoloMind, HOLOiVERSE, and public deployment claims remain out of scope.",
+        "response": "Describe Hydra support as limited to the validated local hydra-synth browser artifact path. Say that p5.js, Three.js, GLSL, and Hydra artifacts were generated and QA reviewed, while microphone, Hydra editor, DCC/MCP, autonomous immersive platforms, and public deployment claims remain out of scope.",
         "retrieved_contexts": [
-          "The demo pack includes local browser QA artifacts and provider-backed RAGAs result rows for public or redacted fixtures. It makes no live DCC, HoloMind, HOLOiVERSE, autonomous workflow, merge, push, tag, or freeze claims.",
+          "The demo pack includes local browser QA artifacts and provider-backed RAGAs result rows for public or redacted fixtures. It makes no live DCC, autonomous immersive platform, autonomous workflow, merge, push, tag, or freeze claims.",
           "Hydra support is limited to the committed hydra-synth browser artifact QA path. The artifact renders through a temporary hydra-synth package with audio detection disabled and no microphone permission request."
         ],
         "ground_truth": null,
         "source_ids": [
           "cca_demo_pack_boundaries",
-          "cca_capstone_scorecard_hydra_boundary"
+          "cca_capstone_evidence_hydra_boundary"
         ],
         "domains": [
           "hydra"
@@ -131,5 +131,5 @@
   "result_rows": 4,
   "metric_failures": 0,
   "langsmith": null,
-  "evaluated_at": "2026-07-08T16:14:08.868840Z"
+  "evaluated_at": "2026-07-08T18:06:52.368705Z"
 }

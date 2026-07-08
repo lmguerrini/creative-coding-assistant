@@ -38,11 +38,19 @@ The final redacted latest-live RAGAs command was:
   --allow-provider-calls
 ```
 
-Final redacted latest-live results: 4 rows, 4 eligible, 0 skipped, 0 metric
-failures. Averages were context precision `0.7006944444251505`,
-faithfulness `0.625`, and answer relevancy `0.46063699875040387`.
+Final redacted latest-live results after the public-safe wording refresh:
+4 rows, 4 eligible, 0 skipped, 0 metric failures. Averages were context
+precision `0.7006944444230672`, faithfulness `0.6875`, and answer relevancy
+`0.4419141765019863`.
 Limitations: this is a redacted p5.js-only latest-live subset, not raw private
 session scoring and not a broad RAG benchmark.
+
+Weak-row note: `redacted_live_p5_demo_fallback_73f56121` still scored
+faithfulness `0.0`. Its retrieved contexts include relevant fallback evidence,
+but the top-ranked contexts mix p5 setup/canvas guidance with demo fallback
+guidance, and the answer compresses multiple fallback actions into one short
+statement. Treat this as a retrieval-ranking plus evaluator/answer-compression
+limitation, not as hidden passing evidence.
 
 `private_live_session_ragas_decision.json` records the concrete private-data
 decision for `data/eval/live_sessions.jsonl`: latest dry-run selection found

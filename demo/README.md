@@ -47,7 +47,7 @@ project output narrative.
 ## Boundaries
 
 - No live DCC/MCP execution is claimed.
-- No HoloMind or HOLOiVERSE behavior is claimed.
+- No autonomous immersive platform behavior is claimed.
 - No autonomous agent swarm or unattended workflow control is claimed.
 - Case 2 and Case 3 are guarded support claims only.
 - Merge, push, tag, and freeze remain HITL-blocked.

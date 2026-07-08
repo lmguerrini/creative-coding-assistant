@@ -1,5 +1,5 @@
-// Public V8 golden artifact: p5.js sacred geometry sketch.
-// Boundary: aesthetic/symbolic composition only, not authority or truth claim.
+// Public V8 golden artifact: p5.js generative morphogenesis sketch.
+// Boundary: aesthetic geometry and growth systems only, not authority or truth claim.
 
 let rotationPhase = 0;
 let ringCount = 7;
