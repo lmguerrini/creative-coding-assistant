@@ -49,11 +49,45 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
         manifest = json.loads(Path("demo/golden_artifacts/qa_manifest.json").read_text(encoding="utf-8"))
         artifacts = {artifact["artifact_id"]: artifact for artifact in manifest["artifacts"]}
 
+        self.assertEqual(
+            manifest["browser_render_qa_result"],
+            "demo/golden_artifacts/browser_render_qa_results.json",
+        )
+        self.assertEqual(artifacts["p5_sacred_geometry_sketch"]["qa_status"], "browser_harness_render_passed")
+        self.assertEqual(artifacts["glsl_kaleidoscope_field"]["qa_status"], "browser_webgl_render_passed")
+        self.assertEqual(
+            artifacts["three_audio_reactive_scene"]["browser_render_check"],
+            (
+                "static_only_dependency_unavailable; module export loaded and "
+                "createAudioReactiveScene fails gracefully when THREE is missing"
+            ),
+        )
         self.assertEqual(artifacts["hydra"]["qa_status"], "not_generated")
         self.assertIn("guidance-only", artifacts["hydra"]["boundary"])
         self.assertIn("No HoloMind implementation claim.", manifest["claim_boundaries"])
         self.assertIn("No HOLOiVERSE implementation claim.", manifest["claim_boundaries"])
         self.assertIn("No live external DCC/MCP execution claim.", manifest["claim_boundaries"])
+
+    def test_browser_render_qa_result_records_honest_runtime_boundaries(self) -> None:
+        result = json.loads(Path("demo/golden_artifacts/browser_render_qa_results.json").read_text(encoding="utf-8"))
+        by_artifact = {entry["artifact_id"]: entry for entry in result["results"]}
+        harness = Path("demo/golden_artifacts/browser_render_qa.html").read_text(encoding="utf-8")
+
+        self.assertEqual(result["browser"], "Codex in-app browser")
+        self.assertEqual(by_artifact["p5_sacred_geometry_sketch"]["status"], "rendered_nonblank")
+        self.assertEqual(by_artifact["glsl_kaleidoscope_field"]["status"], "rendered_nonblank")
+        self.assertEqual(
+            by_artifact["three_audio_reactive_scene"]["status"],
+            "static_only_dependency_unavailable",
+        )
+        self.assertIn(
+            "No Three.js render or FPS benchmark is claimed.",
+            by_artifact["three_audio_reactive_scene"]["limitations"],
+        )
+        self.assertIn("p5_sacred_geometry_sketch.js", harness)
+        self.assertIn("glsl_kaleidoscope_field.frag", harness)
+        self.assertIn("three_audio_reactive_scene.js", harness)
+        self.assertNotIn("https://", harness)
 
 
 if __name__ == "__main__":

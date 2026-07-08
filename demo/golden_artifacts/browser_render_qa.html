@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>V8 Golden Artifact Browser QA</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        background: #0b1118;
+        color: #e8eef7;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px;
+      }
+
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .note {
+        margin: 0 0 20px;
+        color: #aebbd0;
+        line-height: 1.5;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+      }
+
+      section {
+        border: 1px solid #283545;
+        border-radius: 8px;
+        padding: 14px;
+        background: #111923;
+      }
+
+      h2 {
+        margin: 0 0 10px;
+        font-size: 16px;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        aspect-ratio: 1;
+        border: 1px solid #263343;
+        background: #05080c;
+      }
+
+      pre {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        min-height: 110px;
+        margin: 12px 0 0;
+        padding: 10px;
+        border-radius: 6px;
+        background: #071019;
+        color: #d2e4ff;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>V8 Golden Artifact Browser QA</h1>
+      <p class="note">
+        Offline browser harness for release-candidate evidence. p5.js is run
+        through a minimal p5-compatible canvas shim because the full p5 package
+        is not installed locally. GLSL is compiled and rendered through WebGL.
+        Three.js is rendered only when a local Three package is available;
+        otherwise the module export and graceful dependency boundary are checked.
+      </p>
+      <div class="grid">
+        <section>
+          <h2>p5.js Shim Render</h2>
+          <div id="p5-mount"></div>
+          <pre id="p5-status">pending</pre>
+        </section>
+        <section>
+          <h2>GLSL WebGL Render</h2>
+          <canvas id="glsl-canvas" width="512" height="512"></canvas>
+          <pre id="glsl-status">pending</pre>
+        </section>
+        <section>
+          <h2>Three.js Module Boundary</h2>
+          <canvas id="three-canvas" width="512" height="512"></canvas>
+          <pre id="three-status">pending</pre>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      window.__goldenArtifactBrowserQA = {
+        p5: { status: "pending" },
+        glsl: { status: "pending" },
+        three: { status: "pending" },
+      };
+
+      function setStatus(id, payload) {
+        document.getElementById(id).textContent = JSON.stringify(payload, null, 2);
+      }
+
+      function nonBlank2d(canvas) {
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        let lit = 0;
+        for (let i = 0; i < data.length; i += 16) {
+          if (data[i] + data[i + 1] + data[i + 2] > 24) {
+            lit += 1;
+          }
+        }
+        return lit > 100;
+      }
+
+      function hsbToRgb(h, s, b, a = 1) {
+        const hue = (((h % 360) + 360) % 360) / 60;
+        const sat = Math.max(0, Math.min(1, s / 100));
+        const val = Math.max(0, Math.min(1, b / 100));
+        const c = val * sat;
+        const x = c * (1 - Math.abs((hue % 2) - 1));
+        const m = val - c;
+        let r = 0;
+        let g = 0;
+        let blue = 0;
+        if (hue < 1) {
+          r = c; g = x;
+        } else if (hue < 2) {
+          r = x; g = c;
+        } else if (hue < 3) {
+          g = c; blue = x;
+        } else if (hue < 4) {
+          g = x; blue = c;
+        } else if (hue < 5) {
+          r = x; blue = c;
+        } else {
+          r = c; blue = x;
+        }
+        return `rgba(${Math.round((r + m) * 255)}, ${Math.round((g + m) * 255)}, ${Math.round((blue + m) * 255)}, ${a})`;
+      }
+
+      var width = 0;
+      var height = 0;
+      var frameCount = 0;
+      var TWO_PI = Math.PI * 2;
+      var HSB = "HSB";
+      var RADIANS = "RADIANS";
+      var CLOSE = "close";
+      var min = Math.min;
+      var sin = Math.sin;
+      var cos = Math.cos;
+      var p5Canvas = null;
+      var p5Context = null;
+
+      function createCanvas(w, h) {
+        width = w;
+        height = h;
+        p5Canvas = document.createElement("canvas");
+        p5Canvas.width = w;
+        p5Canvas.height = h;
+        document.getElementById("p5-mount").appendChild(p5Canvas);
+        p5Context = p5Canvas.getContext("2d");
+        return p5Canvas;
+      }
+
+      function colorMode() {}
+      function angleMode() {}
+      function noFill() {
+        p5Context.fillStyle = "transparent";
+      }
+      function strokeWeight(value) {
+        p5Context.lineWidth = value;
+      }
+      function stroke(h, s, b, a) {
+        p5Context.strokeStyle = hsbToRgb(h, s, b, a);
+      }
+      function background(h, s, b, a) {
+        p5Context.setTransform(1, 0, 0, 1, 0, 0);
+        p5Context.fillStyle = hsbToRgb(h, s, b, a);
+        p5Context.fillRect(0, 0, width, height);
+      }
+      function translate(x, y) {
+        p5Context.translate(x, y);
+      }
+      function circle(x, y, diameter) {
+        p5Context.beginPath();
+        p5Context.arc(x, y, Math.max(0, diameter / 2), 0, TWO_PI);
+        p5Context.stroke();
+      }
+      function line(x1, y1, x2, y2) {
+        p5Context.beginPath();
+        p5Context.moveTo(x1, y1);
+        p5Context.lineTo(x2, y2);
+        p5Context.stroke();
+      }
+      function beginShape() {
+        p5Context.beginPath();
+        window.__shapeStarted = false;
+      }
+      function vertex(x, y) {
+        if (!window.__shapeStarted) {
+          p5Context.moveTo(x, y);
+          window.__shapeStarted = true;
+        } else {
+          p5Context.lineTo(x, y);
+        }
+      }
+      function endShape(closeMode) {
+        if (closeMode === CLOSE) {
+          p5Context.closePath();
+        }
+        p5Context.stroke();
+      }
+      function radians(value) {
+        return (value * Math.PI) / 180;
+      }
+    </script>
+    <script src="./p5_sacred_geometry_sketch.js"></script>
+    <script>
+      async function runP5Qa() {
+        try {
+          setup();
+          for (let i = 0; i < 18; i += 1) {
+            frameCount += 1;
+            draw();
+          }
+          window.__goldenArtifactBrowserQA.p5 = {
+            status: nonBlank2d(p5Canvas) ? "rendered_nonblank" : "rendered_blank",
+            harness: "minimal_p5_compatible_canvas_shim",
+            full_p5_runtime: false,
+            canvas: { width: p5Canvas.width, height: p5Canvas.height },
+          };
+        } catch (error) {
+          window.__goldenArtifactBrowserQA.p5 = {
+            status: "failed",
+            error: String(error && error.message ? error.message : error),
+          };
+        }
+        setStatus("p5-status", window.__goldenArtifactBrowserQA.p5);
+      }
+
+      function compileShader(gl, type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          throw new Error(gl.getShaderInfoLog(shader));
+        }
+        return shader;
+      }
+
+      function nonBlankWebgl(gl, widthValue, heightValue) {
+        const pixels = new Uint8Array(widthValue * heightValue * 4);
+        gl.readPixels(0, 0, widthValue, heightValue, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        let lit = 0;
+        for (let i = 0; i < pixels.length; i += 32) {
+          if (pixels[i] + pixels[i + 1] + pixels[i + 2] > 24) {
+            lit += 1;
+          }
+        }
+        return lit > 100;
+      }
+
+      async function runGlslQa() {
+        const canvas = document.getElementById("glsl-canvas");
+        const gl = canvas.getContext("webgl", { preserveDrawingBuffer: true });
+        try {
+          if (!gl) {
+            throw new Error("WebGL context unavailable");
+          }
+          const fragmentSource = await fetch("./glsl_kaleidoscope_field.frag").then((response) => response.text());
+          const vertexSource = `
+            attribute vec2 a_position;
+            void main() {
+              gl_Position = vec4(a_position, 0.0, 1.0);
+            }
+          `;
+          const vertexShader = compileShader(gl, gl.VERTEX_SHADER, vertexSource);
+          const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
+          const program = gl.createProgram();
+          gl.attachShader(program, vertexShader);
+          gl.attachShader(program, fragmentShader);
+          gl.linkProgram(program);
+          if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+            throw new Error(gl.getProgramInfoLog(program));
+          }
+          gl.useProgram(program);
+          const buffer = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+          const position = gl.getAttribLocation(program, "a_position");
+          gl.enableVertexAttribArray(position);
+          gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+          gl.uniform2f(gl.getUniformLocation(program, "u_resolution"), canvas.width, canvas.height);
+          gl.uniform1f(gl.getUniformLocation(program, "u_time"), 1.25);
+          gl.viewport(0, 0, canvas.width, canvas.height);
+          gl.drawArrays(gl.TRIANGLES, 0, 3);
+          window.__goldenArtifactBrowserQA.glsl = {
+            status: nonBlankWebgl(gl, canvas.width, canvas.height) ? "rendered_nonblank" : "rendered_blank",
+            harness: "webgl_fragment_shader_compile_link_draw",
+            canvas: { width: canvas.width, height: canvas.height },
+          };
+        } catch (error) {
+          window.__goldenArtifactBrowserQA.glsl = {
+            status: "failed",
+            error: String(error && error.message ? error.message : error),
+          };
+        }
+        setStatus("glsl-status", window.__goldenArtifactBrowserQA.glsl);
+      }
+
+      async function runThreeQa() {
+        try {
+          const artifact = await import("./three_audio_reactive_scene.js");
+          const exportAvailable = typeof artifact.createAudioReactiveScene === "function";
+          let localThreeAvailable = false;
+          try {
+            const dependencyCheck = await fetch("../../clients/nextjs/node_modules/three/build/three.module.js", { method: "HEAD" });
+            localThreeAvailable = dependencyCheck.ok;
+          } catch {
+            localThreeAvailable = false;
+          }
+          if (!localThreeAvailable) {
+            let gracefulError = null;
+            try {
+              artifact.createAudioReactiveScene({ THREE: null, canvas: document.getElementById("three-canvas") });
+            } catch (error) {
+              gracefulError = String(error && error.message ? error.message : error);
+            }
+            window.__goldenArtifactBrowserQA.three = {
+              status: "static_only_dependency_unavailable",
+              module_export_available: exportAvailable,
+              local_three_runtime_available: false,
+              graceful_error: gracefulError,
+            };
+          } else {
+            const THREE = await import("../../clients/nextjs/node_modules/three/build/three.module.js");
+            const scene = artifact.createAudioReactiveScene({
+              THREE,
+              canvas: document.getElementById("three-canvas"),
+            });
+            scene.resize(512, 512);
+            scene.frame(1200);
+            window.__goldenArtifactBrowserQA.three = {
+              status: "rendered_with_local_three",
+              module_export_available: exportAvailable,
+              local_three_runtime_available: true,
+              canvas: { width: 512, height: 512 },
+            };
+          }
+        } catch (error) {
+          window.__goldenArtifactBrowserQA.three = {
+            status: "failed",
+            error: String(error && error.message ? error.message : error),
+          };
+        }
+        setStatus("three-status", window.__goldenArtifactBrowserQA.three);
+      }
+
+      Promise.all([runP5Qa(), runGlslQa(), runThreeQa()]).then(() => {
+        window.__goldenArtifactBrowserQA.complete = true;
+      });
+    </script>
+  </body>
+</html>

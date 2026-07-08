@@ -110,6 +110,13 @@ Evaluation:
   `demo/golden_artifacts/glsl_kaleidoscope_field.frag` passes static fragment
   shader structure checks. Hydra was intentionally not generated because a live
   Hydra execution path has not been installed, wired, and tested.
+- Final browser/render QA loaded
+  `demo/golden_artifacts/browser_render_qa.html` through the Codex in-app
+  browser via local `127.0.0.1` static server. The p5 artifact rendered
+  nonblank through a minimal p5-compatible canvas shim; GLSL compiled, linked,
+  drew, and pixel-checked nonblank through WebGL; Three.js loaded as a module
+  and failed gracefully with `THREE is required.` because no local Three package
+  is installed. No Three.js render or FPS benchmark is claimed.
 
 Security:
 
@@ -155,12 +162,12 @@ Detailed engineering scorecard:
 `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md`.
 
 The Grand Review no longer uses a single overall score. Production readiness is
-one category in the detailed scorecard and is now 96/100 after the sanitized
-RAGAs run, generated artifact QA, public/private docs audit, README evaluator
-path, and timed-demo evidence update. The higher-level release-candidate
-judgment is based on category evidence, remaining risks, and HITL boundaries.
-The advisory aggregate across the 13 requested Capstone Excellence categories
-is 97.3/100.
+one category in the detailed scorecard and is now 97/100 after the sanitized
+RAGAs run, generated artifact QA, final browser/render QA, local deployment
+target review, public/private docs audit, README evaluator path, and timed-demo
+evidence update. The higher-level release-candidate judgment is based on
+category evidence, remaining risks, and HITL boundaries. The advisory aggregate
+across the 13 requested Capstone Excellence categories is 97.6/100.
 
 AI review readiness: ready for final reviewer evaluation with bounded claims.
 
@@ -194,7 +201,9 @@ Remaining risks:
   sends recorded eval content to an external provider. The sanitized fixture
   run is complete and exact scores are documented.
 - Generated-output artifact QA is now available for p5.js, Three.js, and GLSL,
-  but it is static QA rather than full browser render/FPS validation.
+  with browser/render evidence for p5 shim and GLSL WebGL. Three.js remains
+  static-only in this checkout because the local Three runtime package is not
+  installed. No FPS benchmark was run.
 - External DCC/MCP execution, HoloMind, and HOLOiVERSE remain unsupported
   future-scope items.
 - Chroma/Pydantic deprecation warnings are non-blocking dependency warnings with

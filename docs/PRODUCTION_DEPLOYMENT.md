@@ -9,12 +9,67 @@ development behavior.
 Use the existing WSGI development bridge for local Next.js smoke work:
 
 ```bash
-python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000
+.venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000
 ```
 
 The development bridge keeps permissive local CORS defaults and refuses to run
 when `CCA_ENVIRONMENT=production` unless an operator passes the explicit
 `--allow-production-dev-server` override.
+
+## V8 Capstone Demo Target
+
+The realistic V8 Capstone target is a local workstation demo, not a public
+deployment. The presenter runs the backend API on `127.0.0.1:8000` and the
+Next.js workstation on the local Next dev server. Public deployment, public
+showcase upload, merge, push, tag, and final freeze remain HITL-gated.
+
+Local demo startup path:
+
+```bash
+.venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000
+```
+
+In a second terminal:
+
+```bash
+cd clients/nextjs
+npm run dev
+```
+
+Before the demo, verify:
+
+```bash
+curl http://127.0.0.1:8000/api/health
+curl http://127.0.0.1:8000/api/health/ready
+```
+
+Golden artifact browser QA, when needed:
+
+```bash
+.venv/bin/python -m http.server 8124 --bind 127.0.0.1
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8124/demo/golden_artifacts/browser_render_qa.html
+```
+
+Demo fallback path:
+
+- Frontend failure: use `demo/golden_demo_dataset.json`,
+  `demo/demo_prompt_library.md`, `assets/preview_current.png`, and the docs as
+  an offline walkthrough.
+- Backend failure: show the architecture and API evidence from
+  `docs/V8_GRAND_ENGINEERING_REVIEW.md`; do not imply a live API response.
+- Provider failure: switch to prepared prompts and the provider-smoke evidence;
+  do not imply a new provider call happened.
+- Retrieval failure: use the retrieval demo pack evidence and sanitized RAGAs
+  result; private live-session RAGAs remains HITL/privacy-gated.
+- Preview/artifact failure: show `demo/golden_artifacts/qa_manifest.json` and
+  `demo/golden_artifacts/browser_render_qa_results.json`; be explicit that
+  p5.js rendered through a local shim, GLSL rendered through WebGL, and Three.js
+  remained static-only because no local Three package was installed.
 
 ## Production Backend
 

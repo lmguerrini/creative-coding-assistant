@@ -1,0 +1,53 @@
+{
+  "schema_version": "v8.browser_render_qa_result.v1",
+  "checked_at": "2026-07-08T15:00:35Z",
+  "branch": "version-review/v8",
+  "harness": "demo/golden_artifacts/browser_render_qa.html",
+  "local_url": "http://127.0.0.1:8124/demo/golden_artifacts/browser_render_qa.html",
+  "server_command": ".venv/bin/python -m http.server 8124 --bind 127.0.0.1",
+  "browser": "Codex in-app browser",
+  "console_warnings_or_errors": [],
+  "results": [
+    {
+      "artifact_id": "p5_sacred_geometry_sketch",
+      "runtime": "p5.js",
+      "status": "rendered_nonblank",
+      "evidence": "Visible harness status reported rendered_nonblank after drawing 18 frames and running an internal canvas pixel check.",
+      "canvas": {
+        "width": 720,
+        "height": 720
+      },
+      "limitations": [
+        "Full p5.js package is not installed locally.",
+        "The render used the harness' minimal p5-compatible canvas shim, not a full p5.js runtime.",
+        "No FPS or long-duration animation benchmark was run."
+      ]
+    },
+    {
+      "artifact_id": "glsl_kaleidoscope_field",
+      "runtime": "GLSL",
+      "status": "rendered_nonblank",
+      "evidence": "Visible harness status reported rendered_nonblank after WebGL compile, link, draw, and internal pixel check.",
+      "canvas": {
+        "width": 512,
+        "height": 512
+      },
+      "limitations": [
+        "The shader was validated in a generic WebGL harness, not a product preview surface.",
+        "No FPS or extended animation benchmark was run."
+      ]
+    },
+    {
+      "artifact_id": "three_audio_reactive_scene",
+      "runtime": "Three.js",
+      "status": "static_only_dependency_unavailable",
+      "evidence": "Visible harness status reported module_export_available=true, local_three_runtime_available=false, and graceful_error='THREE is required.'",
+      "limitations": [
+        "No local Three.js package is installed in this checkout.",
+        "The browser pass validated module loading and graceful dependency failure only.",
+        "No Three.js render or FPS benchmark is claimed."
+      ]
+    }
+  ],
+  "claim_boundary": "This is local browser QA evidence only. It is not a public deployment, not a product preview runtime claim, and not evidence of Hydra, DCC/MCP, HoloMind, or HOLOiVERSE execution."
+}

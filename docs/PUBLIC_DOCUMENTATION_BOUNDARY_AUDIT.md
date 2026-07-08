@@ -43,6 +43,8 @@ the public docs/demo tree and are ignored.
 | `demo/evaluation/sanitized_ragas_live_sessions.jsonl` | Public reviewer/user evidence | Keep tracked | Synthetic, schema-valid, privacy-approved RAGAs input fixture. |
 | `demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl` | Public reviewer/user evidence | Keep tracked | Exact sanitized RAGAs metric result rows. |
 | `demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl.manifest.json` | Public reviewer/user evidence | Keep tracked | Exact sanitized RAGAs run manifest and metric summary. |
+| `demo/golden_artifacts/browser_render_qa.html` | Public reviewer/user evidence | Keep tracked | Offline browser QA harness for p5 shim, GLSL WebGL, and Three.js dependency-boundary checks. |
+| `demo/golden_artifacts/browser_render_qa_results.json` | Public reviewer/user evidence | Keep tracked | Exact browser/render QA result and limitations. |
 | `demo/golden_artifacts/README.md` | Public reviewer/user evidence | Keep tracked | Explains generated artifact scope and Hydra boundary. |
 | `demo/golden_artifacts/p5_sacred_geometry_sketch.js` | Public reviewer/user evidence | Keep tracked | Generated p5.js artifact for output/creative quality inspection. |
 | `demo/golden_artifacts/three_audio_reactive_scene.js` | Public reviewer/user evidence | Keep tracked | Generated Three.js artifact for output/creative quality inspection. |
