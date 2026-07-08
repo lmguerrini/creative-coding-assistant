@@ -2,14 +2,15 @@
   "schema_version": "v8.final_demo_suite.v1",
   "date": "2026-07-08",
   "branch": "version-review/v8",
-  "ui_start_to_finish_status": "one_click_local_launcher_available; open demo/final_demo_launcher.html from the local static QA server",
+  "ui_start_to_finish_status": "integrated_in_app_demo_mode_available; external local launcher retained as fallback/reviewer evidence",
   "demo_start_path": {
     "backend": ".venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000",
     "frontend": "cd clients/nextjs && npm run dev",
-    "launcher": "serve /private/tmp/v8_runtime_qa after npm install p5 three hydra-synth and open /demo/final_demo_launcher.html",
+    "in_app_demo_mode": "open http://127.0.0.1:3000 and use the Demo Mode button inside Creative Coding Assistant",
+    "launcher_fallback": "serve /private/tmp/v8_runtime_qa after npm install p5 three hydra-synth and open /demo/final_demo_launcher.html",
     "artifact_qa": "serve /private/tmp/v8_runtime_qa after npm install p5 three hydra-synth and open /demo/golden_artifacts/browser_full_runtime_qa.html"
   },
-  "global_fallback": "Use demo/final_demo_launcher.html, demo/golden_demo_dataset.json, demo/demo_prompt_library.md, assets/preview_current.png, redacted/sanitized RAGAs evidence, and golden artifact QA without implying unavailable live components succeeded.",
+  "global_fallback": "Use the integrated Demo Mode prompt list, demo/final_demo_launcher.html, demo/golden_demo_dataset.json, demo/demo_prompt_library.md, assets/preview_current.png, redacted/sanitized RAGAs evidence, and golden artifact QA without implying unavailable live components succeeded.",
   "demos": [
     {
       "demo_id": "primary_three_creative_coding_demo",
@@ -24,11 +25,11 @@
     {
       "demo_id": "p5_generative_sketch_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Create a p5.js sketch that turns golden-ratio circles and recursive polygons into a calm morphogenetic field. Include source-grounded runtime constraints, interaction notes, and a clear line between sacred-geometry inspiration and implemented browser code guidance.",
-      "expected_behavior": "Presenter shows a p5.js generative visual with explicit symbolic-claim boundaries.",
-      "fallback_path": "Use p5_sacred_geometry_sketch.js and browser full-runtime QA result if live generation fails.",
+      "prompt": "Create a p5.js generative morphogenesis sketch using reaction diffusion, cellular automata, L-systems, flow fields, particle systems, self-organization, and emergent form. Keep it browser-safe, explain interaction controls, and cite retrieval/source boundaries conservatively.",
+      "expected_behavior": "Presenter shows a p5.js generative visual with practical morphogenesis technique guidance.",
+      "fallback_path": "Use the p5 golden artifact and browser full-runtime QA result if live generation fails.",
       "success_criteria": "Real p5 package renders the artifact nonblank in browser QA; no metaphysical, medical, religious, or historical authority claim.",
-      "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json -> p5_sacred_geometry_sketch",
+      "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json -> p5 golden artifact",
       "reviewer_talking_point": "The p5 artifact now uses real p5 runtime validation, not shim-only evidence."
     },
     {
@@ -37,9 +38,19 @@
       "prompt": "How do I build a glow-heavy kaleidoscopic browser visual with shaders or post-processing passes? Give source-grounded runtime tradeoffs, failure risks, and fallback implementation options.",
       "expected_behavior": "Presenter shows shader/post-processing guidance and the generated GLSL artifact.",
       "fallback_path": "Use glsl_kaleidoscope_field.frag and WebGL QA evidence if live preview is unavailable.",
-      "success_criteria": "GLSL compiles, links, draws, and pixel-checks nonblank in local WebGL; Hydra synth artifact also renders nonblank through real hydra-synth QA.",
-      "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json -> glsl_kaleidoscope_field and hydra_feedback_lattice",
-      "reviewer_talking_point": "GLSL compiles directly in WebGL, and Hydra is now bounded to a real local hydra-synth browser artifact path."
+      "success_criteria": "GLSL compiles, links, draws, and pixel-checks nonblank in local WebGL.",
+      "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json -> glsl_kaleidoscope_field",
+      "reviewer_talking_point": "GLSL compiles directly in WebGL; display-FPS benchmarking is not claimed."
+    },
+    {
+      "demo_id": "hydra_feedback_pattern_demo",
+      "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
+      "prompt": "Create a Hydra feedback-pattern demo for a browser visual performance. Use oscillator layers, modulation, feedback, output routing, visual pattern explanation, and a fallback to GLSL or static artifact evidence when the Hydra runtime is unavailable.",
+      "expected_behavior": "Presenter shows a bounded Hydra-compatible pattern chain and the exact runtime support boundary.",
+      "fallback_path": "Use hydra_feedback_lattice.js and browser full-runtime QA result if live generation or preview fails.",
+      "success_criteria": "Hydra synth artifact renders nonblank through real local hydra-synth QA with no microphone or full editor claim.",
+      "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json -> hydra_feedback_lattice",
+      "reviewer_talking_point": "Hydra is bounded to a validated local hydra-synth browser artifact path."
     },
     {
       "demo_id": "retrieval_rag_grounded_answer_demo",
@@ -52,44 +63,34 @@
       "reviewer_talking_point": "Raw private live-session text stays local, while the redacted latest-live fixture now has provider-backed RAGAs metrics."
     },
     {
-      "demo_id": "symbolic_geometry_visual_guidance_demo",
+      "demo_id": "concept_to_visual_translation_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Turn a concentric mandala motif into a practical browser visual system with motion, rhythm, runtime choices, source-grounded constraints, and a clear boundary between symbolic inspiration and operational creative-coding guidance.",
-      "expected_behavior": "Presenter shows symbolic intent translated into operational visual structure.",
-      "fallback_path": "Use the p5 artifact, symbolic prompt, and claim-safety explanation.",
-      "success_criteria": "Symbolic language remains aesthetic/operational; p5 artifact renders nonblank through real p5 QA.",
+      "prompt": "Translate the concept of threshold, recursion, and return into a practical browser visual system. Use geometry, motion, color, runtime choice, interaction, and implementation constraints without making spiritual, therapeutic, or authority claims.",
+      "expected_behavior": "Presenter shows abstract concept language translated into operational visual structure.",
+      "fallback_path": "Use the p5 artifact, prompt library, and claim-safety explanation.",
+      "success_criteria": "Concept language remains aesthetic/operational; p5 artifact renders nonblank through real p5 QA.",
       "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json and demo/demo_prompt_library.md",
-      "reviewer_talking_point": "The demo converts symbolic language into browser implementation guidance without authority claims."
+      "reviewer_talking_point": "The demo converts concept language into browser implementation guidance without authority claims."
     },
     {
-      "demo_id": "architecture_installation_planning_demo",
+      "demo_id": "geometry_morphogenesis_visual_system_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Translate a basilica axis, mandala grid, and gallery circulation constraint into a browser-based installation concept. Include geometry, audience movement, preview strategy, and boundaries: no LIDAR, photogrammetry, engineering certification, or historical authority claims.",
-      "expected_behavior": "Presenter shows installation planning, geometry, audience movement, and boundary language.",
-      "fallback_path": "Use demo prompt library and offline walkthrough; no engineering certification or reconstruction claim.",
-      "success_criteria": "Planning output is reviewable and bounded; no real-world reconstruction or certification claim.",
-      "validation_path": "demo/demo_prompt_library.md and docs/CAPSTONE_DEMO_SHOWCASE.md",
-      "reviewer_talking_point": "This is planning guidance, not built-environment authority or a DCC execution claim."
+      "prompt": "Design a geometry and morphogenesis visual system for the browser. Combine radial structures, recursive growth, reaction diffusion, flow fields, and particle trails. Include runtime selection, preview strategy, source boundaries, and a graceful fallback plan.",
+      "expected_behavior": "Presenter shows generative system planning with geometry, computational growth, and practical runtime choices.",
+      "fallback_path": "Use the p5.js and GLSL golden QA records plus offline prompts if live generation or preview fails.",
+      "success_criteria": "Output remains implementation guidance with source boundaries and browser-runtime constraints.",
+      "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json and demo/demo_prompt_library.md",
+      "reviewer_talking_point": "This flow demonstrates rule-based visual systems and emergent form without unsupported authority claims."
     },
     {
-      "demo_id": "mythopoetic_immersive_scene_demo",
+      "demo_id": "installation_immersive_scene_planning_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Build a mythopoetic narrative arc for an audiovisual sketch: threshold, transformation, return, visual motifs, audio rhythm, and audience explanation. Keep it as creative storytelling guidance, not religious, psychological, medical, or metaphysical truth.",
-      "expected_behavior": "Presenter shows narrative-to-immersive-scene guidance with ethics framing.",
-      "fallback_path": "Use prompt library, ethics doc, and generated visual artifacts to illustrate the scene path.",
-      "success_criteria": "Narrative remains creative storytelling guidance and avoids therapy, doctrine, or metaphysical truth claims.",
-      "validation_path": "demo/demo_prompt_library.md and docs/CAPSTONE_EVALUATION_ETHICS.md",
-      "reviewer_talking_point": "This flow demonstrates creative direction and safety framing rather than claiming objective symbolic truth."
-    },
-    {
-      "demo_id": "hologenesis_planner_project_bundle_demo",
-      "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Plan a HoloGenesis-style creative project bundle for a browser installation: concept, runtimes, retrieval needs, preview plan, artifact package, evaluation checks, fallback route, and handoff boundaries. Do not claim HoloMind, HOLOiVERSE, external DCC execution, or autonomous delivery.",
-      "expected_behavior": "Presenter shows a project-bundle planning handoff with explicit future-scope boundaries.",
-      "fallback_path": "Use the offline dataset and scorecard boundaries; do not claim HoloMind, HOLOiVERSE, live DCC/MCP, or autonomous delivery.",
+      "prompt": "Plan a browser-based installation or immersive scene for a gallery demo. Include concept, geometry, audience movement, runtimes, retrieval needs, preview plan, artifact package, evaluation checks, fallback route, and handoff boundaries.",
+      "expected_behavior": "Presenter shows a project-bundle planning handoff with explicit local-demo and future-scope boundaries.",
+      "fallback_path": "Use the integrated Demo Mode list, offline dataset, launcher fallback, and scorecard boundaries; do not claim live DCC/MCP, autonomous delivery, or public deployment.",
       "success_criteria": "Planner output is bounded as project planning and handoff metadata only.",
       "validation_path": "demo/golden_demo_dataset.json and docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md",
-      "reviewer_talking_point": "HoloGenesis is a bounded planner/demo prompt, not an implemented HoloMind or HOLOiVERSE runtime."
+      "reviewer_talking_point": "This is local browser installation planning, not cloud deployment or external tool execution."
     }
   ]
 }

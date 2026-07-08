@@ -180,6 +180,11 @@ import {
   type HitlApprovalRequest
 } from "@/lib/hitl-runtime";
 import {
+  demoModeScenarios,
+  getDefaultDemoModeScenario,
+  type DemoModeScenario
+} from "@/lib/demo-mode";
+import {
   buildCreativeTimelineModel,
   type CreativeTimelineModel
 } from "@/lib/creative-timeline";
@@ -396,6 +401,10 @@ export function WorkstationShell({
     buildConversationEntries(initialSnapshot.messages, createConversationEntryId)
   );
   const [composerValue, setComposerValue] = useState("");
+  const [isDemoModeOpen, setIsDemoModeOpen] = useState(false);
+  const [activeDemoScenarioId, setActiveDemoScenarioId] = useState(
+    () => getDefaultDemoModeScenario().id
+  );
   const [imageAttachments, setImageAttachments] = useState(() =>
     normalizeImageAttachments(initialSnapshot.multimodal.imageAttachments)
   );
@@ -736,6 +745,12 @@ export function WorkstationShell({
     snapshot.artifacts.find((artifact) => artifact.id === activeArtifactId) ??
     snapshot.artifacts[0] ??
     emptyWorkspaceArtifact;
+  const activeDemoScenario = useMemo(
+    () =>
+      demoModeScenarios.find((scenario) => scenario.id === activeDemoScenarioId) ??
+      getDefaultDemoModeScenario(),
+    [activeDemoScenarioId]
+  );
   const persistedMessages = useMemo(
     () => toPersistedConversation(conversationEntries),
     [conversationEntries]
@@ -1969,6 +1984,22 @@ export function WorkstationShell({
     });
   }
 
+  function handleDemoModeToggle() {
+    setIsDemoModeOpen((currentValue) => !currentValue);
+    setOpenUtilityPanel(null);
+  }
+
+  function handleDemoScenarioLoad(scenario: DemoModeScenario) {
+    setActiveDemoScenarioId(scenario.id);
+    setIsDemoModeOpen(true);
+    setComposerValue(scenario.prompt);
+    setOpenUtilityPanel(null);
+
+    window.requestAnimationFrame(() => {
+      composerTextareaRef.current?.focus();
+    });
+  }
+
   async function handleComposerSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -2584,6 +2615,19 @@ export function WorkstationShell({
           aria-label="Workspace actions"
         >
           <button
+            aria-controls="demo-mode-panel"
+            aria-expanded={isDemoModeOpen}
+            aria-label="Demo Mode"
+            aria-pressed={isDemoModeOpen}
+            className="toolbarToggle"
+            onClick={handleDemoModeToggle}
+            title={isDemoModeOpen ? "Close Demo Mode" : "Open Demo Mode"}
+            type="button"
+          >
+            <Play size={16} />
+            <span>Demo Mode</span>
+          </button>
+          <button
             aria-label="Focus mode"
             aria-pressed={isFocusMode}
             className="toolbarToggle"
@@ -2789,6 +2833,14 @@ export function WorkstationShell({
                     </div>
                   )}
                 </article>
+              ) : null}
+              {isDemoModeOpen ? (
+                <DemoModePanel
+                  activeScenario={activeDemoScenario}
+                  isPromptLoaded={composerValue === activeDemoScenario.prompt}
+                  scenarios={demoModeScenarios}
+                  onLoadScenario={handleDemoScenarioLoad}
+                />
               ) : null}
             </div>
 
@@ -3212,6 +3264,120 @@ function EmptyWorkspaceState({
         </section>
       </div>
     </article>
+  );
+}
+
+function DemoModePanel({
+  activeScenario,
+  isPromptLoaded,
+  onLoadScenario,
+  scenarios
+}: {
+  activeScenario: DemoModeScenario;
+  isPromptLoaded: boolean;
+  onLoadScenario: (scenario: DemoModeScenario) => void;
+  scenarios: readonly DemoModeScenario[];
+}) {
+  return (
+    <section
+      aria-label="Demo Mode"
+      className="demoModePanel"
+      id="demo-mode-panel"
+    >
+      <header className="demoModeHeader">
+        <div>
+          <span className="eyebrow">Demo Mode</span>
+          <strong>Capstone scenarios</strong>
+          <p>
+            Curated creative-coding flows with prompts, fallback paths, source
+            boundaries, and validation evidence.
+          </p>
+        </div>
+        <span className="demoModeCount">{scenarios.length} flows</span>
+      </header>
+
+      <div className="demoModeBody">
+        <div
+          aria-label="Demo Mode scenarios"
+          className="demoScenarioList"
+          role="list"
+        >
+          {scenarios.map((scenario) => {
+            const isActive = scenario.id === activeScenario.id;
+
+            return (
+              <button
+                aria-pressed={isActive}
+                className="demoScenarioButton"
+                data-active={isActive ? "true" : "false"}
+                key={scenario.id}
+                onClick={() => onLoadScenario(scenario)}
+                type="button"
+              >
+                <span>{scenario.runtime}</span>
+                <strong>{scenario.title}</strong>
+                <small>{scenario.category}</small>
+                {isActive ? <ChevronDown size={14} aria-hidden="true" /> : null}
+              </button>
+            );
+          })}
+        </div>
+
+        <article
+          aria-label="Selected demo scenario"
+          className="demoScenarioDetail"
+        >
+          <header>
+            <div>
+              <span>{activeScenario.runtime}</span>
+              <strong>{activeScenario.title}</strong>
+            </div>
+            <button
+              className="demoModeLoadButton"
+              onClick={() => onLoadScenario(activeScenario)}
+              type="button"
+            >
+              <Play size={15} aria-hidden="true" />
+              <span>{isPromptLoaded ? "Prompt loaded" : "Load prompt"}</span>
+            </button>
+          </header>
+
+          <p className="demoPromptPreview">{activeScenario.prompt}</p>
+
+          <dl className="demoScenarioMeta">
+            <div>
+              <dt>Expected behavior</dt>
+              <dd>{activeScenario.expectedBehavior}</dd>
+            </div>
+            <div>
+              <dt>Fallback</dt>
+              <dd>{activeScenario.fallback}</dd>
+            </div>
+            <div>
+              <dt>Output guidance</dt>
+              <dd>{activeScenario.outputGuidance}</dd>
+            </div>
+            <div>
+              <dt>Source boundary</dt>
+              <dd>{activeScenario.sourceBoundary}</dd>
+            </div>
+            <div>
+              <dt>Validation</dt>
+              <dd>{activeScenario.validationPath}</dd>
+            </div>
+          </dl>
+
+          <div className="demoScenarioEvidence">
+            <span>Evidence</span>
+            <div>
+              {activeScenario.evidence.map((item) => (
+                <code key={item}>{item}</code>
+              ))}
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
   );
 }
 

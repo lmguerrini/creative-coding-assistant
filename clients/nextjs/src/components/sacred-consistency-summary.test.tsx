@@ -7,16 +7,16 @@ import type {
 import { SacredConsistencySummary } from "./sacred-consistency-summary";
 
 describe("SacredConsistencySummary", () => {
-  it("renders bounded sacred consistency observations when metadata exists", () => {
+  it("renders bounded geometry consistency observations when metadata exists", () => {
     render(<SacredConsistencySummary evaluation={alignedEvaluation()} />);
 
     const evaluator = screen.getByRole("region", {
-      name: "Sacred consistency evaluator"
+      name: "Geometry consistency evaluator"
     });
     expect(within(evaluator).getByText("86%")).toBeVisible();
     expect(
       within(evaluator).getByRole("list", {
-        name: "Sacred consistency dimensions"
+        name: "Geometry consistency dimensions"
       })
     ).toBeVisible();
     expect(within(evaluator).getByText("Guidance alignment")).toBeVisible();
@@ -49,14 +49,14 @@ describe("SacredConsistencySummary", () => {
     );
 
     const evaluator = screen.getByRole("region", {
-      name: "Sacred consistency evaluator"
+      name: "Geometry consistency evaluator"
     });
     expect(within(evaluator).getByText("58%")).toBeVisible();
     expect(within(evaluator).getByText("unsupported")).toBeVisible();
     expect(within(evaluator).getByText("Refinement opportunities")).toBeVisible();
     expect(
       within(evaluator).getByText(
-        "Replace symbolic authority claims with bounded visual design language."
+        "Replace conceptual authority claims with bounded visual design language."
       )
     ).toBeVisible();
   });
@@ -66,7 +66,7 @@ describe("SacredConsistencySummary", () => {
 
     expect(container).toBeEmptyDOMElement();
     expect(
-      screen.queryByRole("region", { name: "Sacred consistency evaluator" })
+      screen.queryByRole("region", { name: "Geometry consistency evaluator" })
     ).not.toBeInTheDocument();
   });
 });

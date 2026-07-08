@@ -178,9 +178,10 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
         self.assertEqual(len(suite["demos"]), 8)
         self.assertEqual(
             suite["ui_start_to_finish_status"],
-            "one_click_local_launcher_available; open demo/final_demo_launcher.html from the local static QA server",
+            "integrated_in_app_demo_mode_available; external local launcher retained as fallback/reviewer evidence",
         )
-        self.assertIn("launcher", suite["demo_start_path"])
+        self.assertIn("in_app_demo_mode", suite["demo_start_path"])
+        self.assertIn("launcher_fallback", suite["demo_start_path"])
         required_keys = {
             "prompt",
             "expected_behavior",

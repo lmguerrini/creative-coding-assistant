@@ -204,7 +204,7 @@ const panelDefinitions: PanelDefinition[] = [
       ]),
       metadataDefinition(
         "symbolic_narrative",
-        "Symbolic Narrative",
+        "Concept Narrative",
         "symbolic_narrative",
         ["symbolicArc", "experientialGoal", "narrativeArchetype"]
       ),

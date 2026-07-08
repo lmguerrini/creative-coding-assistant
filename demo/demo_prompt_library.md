@@ -22,15 +22,15 @@ if provider, retrieval, or preview access fails.
 
 ## Secondary Prompts
 
-**Symbol to operational browser visual**
+**Concept-to-visual browser system**
 
 ```text
-Turn a concentric mandala motif into a practical browser visual system with
-motion, rhythm, runtime choices, source-grounded constraints, and a clear
-boundary between symbolic inspiration and operational creative-coding guidance.
+Translate the concept of threshold, recursion, and return into a practical
+browser visual system with geometry, motion, color, runtime choice,
+interaction, implementation constraints, and clear authority boundaries.
 ```
 
-Use when explaining safe symbolic translation and no cultural-authority claims.
+Use when explaining safe concept-to-visual translation and no authority claims.
 
 **Debug silent browser audio**
 
@@ -62,17 +62,17 @@ and next steps.
 
 Use if live systems are unavailable or timing requires a shorter path.
 
-**p5.js sacred geometry sketch**
+**p5.js generative morphogenesis sketch**
 
 ```text
-Create a p5.js sketch that turns golden-ratio circles and recursive polygons
-into a calm morphogenetic field. Include source-grounded runtime constraints,
-interaction notes, and a clear line between sacred-geometry inspiration and
-implemented browser code guidance.
+Create a p5.js generative morphogenesis sketch using reaction diffusion,
+cellular automata, L-systems, flow fields, particle systems,
+self-organization, and emergent form. Keep it browser-safe, explain
+interaction controls, and cite retrieval/source boundaries conservatively.
 ```
 
-Use when the demo needs a simpler canvas-based fallback for p5.js and Sacred
-Geometry.
+Use when the demo needs a simpler canvas-based fallback for p5.js and
+generative systems.
 
 **Hydra and GLSL feedback texture chain**
 
@@ -85,36 +85,36 @@ artifact QA path and how to recover if a runtime is unavailable.
 
 Use when asked about Hydra support, shader tradeoffs, or runtime fallbacks.
 
-**Sacred architecture installation brief**
+**Installation and immersive scene plan**
 
 ```text
-Translate a basilica axis, mandala grid, and gallery circulation constraint
-into a browser-based installation concept. Include geometry, audience movement,
-preview strategy, and boundaries: no LIDAR, photogrammetry, engineering
-certification, or historical authority claims.
+Plan a browser-based installation or immersive scene for a gallery demo.
+Include concept, geometry, audience movement, runtimes, retrieval needs,
+preview plan, artifact package, evaluation checks, fallback route, and handoff
+boundaries.
 ```
 
-Use for Sacred Architecture, installation planning, and portfolio story
-questions.
+Use for installation planning and portfolio story questions.
 
-**Mythopoetic narrative arc**
+**Geometry and morphogenesis visual system**
 
 ```text
-Build a mythopoetic narrative arc for an audiovisual sketch: threshold,
-transformation, return, visual motifs, audio rhythm, and audience explanation.
-Keep it as creative storytelling guidance, not religious, psychological,
-medical, or metaphysical truth.
+Design a geometry and morphogenesis visual system for the browser. Combine
+radial structures, recursive growth, reaction diffusion, flow fields, and
+particle trails. Include runtime selection, preview strategy, source
+boundaries, and a graceful fallback plan.
 ```
 
-Use when reviewers ask how the project explains artistic meaning safely.
+Use when reviewers ask about generative structures, emergent form, and output
+quality.
 
-**HoloGenesis planner bundle**
+**Project handoff and reviewer evidence plan**
 
 ```text
-Plan a HoloGenesis-style creative project bundle for a browser installation:
+Plan a Creative Coding Assistant project handoff for a browser installation:
 concept, runtimes, retrieval needs, preview plan, artifact package, evaluation
-checks, fallback route, and handoff boundaries. Do not claim HoloMind,
-HOLOiVERSE, external DCC execution, or autonomous delivery.
+checks, fallback route, and handoff boundaries. Do not claim live DCC/MCP
+execution, autonomous delivery, or public deployment.
 ```
 
 Use for senior-reviewer questions about system direction and next steps.

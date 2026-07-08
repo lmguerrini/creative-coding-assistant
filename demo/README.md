@@ -8,13 +8,25 @@ rows for public/redacted fixtures.
 
 ## Demo Mode
 
-Use demo mode as a manual operating posture:
+Use the integrated Demo Mode inside Creative Coding Assistant as the primary
+Capstone presenter path:
+
+1. Start the backend:
+   `.venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000`
+2. Start the frontend: `cd clients/nextjs && npm run dev`
+3. Open `http://127.0.0.1:3000`.
+4. Select `Demo Mode` in the workstation top bar.
+5. Choose one of the 8 curated scenarios. The app loads the scenario prompt
+   into the normal assistant composer and shows expected behavior, fallback,
+   evidence, source boundaries, and output guidance.
+
+Use the static demo pack as fallback/reviewer evidence:
 
 1. Start from `docs/CAPSTONE_DEMO_SHOWCASE.md`.
 2. Keep `demo/demo_prompt_library.md` open.
 3. Use `demo/golden_demo_dataset.json` for rehearsal and offline fallback.
 4. Open `demo/final_demo_launcher.html` from the local static QA server for the
-   one-click final demo launcher.
+   static final demo launcher if the frontend is unavailable.
 5. Keep `demo/final_demo_suite.json` open for exact flow starts, success
    criteria, fallbacks, and reviewer talking points.
 6. Keep `demo/golden_artifacts/` ready as generated p5.js, Three.js, GLSL, and

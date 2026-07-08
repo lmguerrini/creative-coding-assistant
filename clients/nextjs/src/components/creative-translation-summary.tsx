@@ -29,7 +29,7 @@ export function CreativeTranslationSummaryCard({
 
   const groups = [
     {
-      label: "Symbols",
+      label: "Concepts",
       values: translation.symbolicReferences
     },
     {
@@ -69,13 +69,13 @@ export function CreativeTranslationSummaryCard({
           <strong>{formatModality(translation.outputModality)}</strong>
         </div>
       </header>
-      <p>{translation.creativeIntent}</p>
+      <p>{formatPublicCreativeText(translation.creativeIntent)}</p>
       {groups.length > 0 ? (
         <dl className="creativeTranslationGroups">
           {groups.map((group) => (
             <div key={group.label}>
               <dt>{group.label}</dt>
-              <dd>{group.values.join(" / ")}</dd>
+              <dd>{formatPublicCreativeList(group.values).join(" / ")}</dd>
             </div>
           ))}
         </dl>
@@ -91,25 +91,35 @@ export function CreativeTranslationSummaryCard({
               {formatSourceCount(translation.referenceFusion.sourceCount)}
             </strong>
           </header>
-          <p>{translation.referenceFusion.summary}</p>
+          <p>{formatPublicCreativeText(translation.referenceFusion.summary)}</p>
           <dl>
             {translation.referenceFusion.paletteDirection.length > 0 ? (
               <div>
                 <dt>Palette</dt>
-                <dd>{translation.referenceFusion.paletteDirection.join(" / ")}</dd>
+                <dd>
+                  {formatPublicCreativeList(
+                    translation.referenceFusion.paletteDirection
+                  ).join(" / ")}
+                </dd>
               </div>
             ) : null}
             {translation.referenceFusion.composition.length > 0 ? (
               <div>
                 <dt>Compose</dt>
-                <dd>{translation.referenceFusion.composition.join(" / ")}</dd>
+                <dd>
+                  {formatPublicCreativeList(
+                    translation.referenceFusion.composition
+                  ).join(" / ")}
+                </dd>
               </div>
             ) : null}
             {translation.referenceFusion.textureMaterialCues.length > 0 ? (
               <div>
                 <dt>Material</dt>
                 <dd>
-                  {translation.referenceFusion.textureMaterialCues.join(" / ")}
+                  {formatPublicCreativeList(
+                    translation.referenceFusion.textureMaterialCues
+                  ).join(" / ")}
                 </dd>
               </div>
             ) : null}
@@ -117,7 +127,9 @@ export function CreativeTranslationSummaryCard({
               <div>
                 <dt>Motion</dt>
                 <dd>
-                  {translation.referenceFusion.motionImplications.join(" / ")}
+                  {formatPublicCreativeList(
+                    translation.referenceFusion.motionImplications
+                  ).join(" / ")}
                 </dd>
               </div>
             ) : null}
@@ -125,31 +137,43 @@ export function CreativeTranslationSummaryCard({
               <div>
                 <dt>Runtime</dt>
                 <dd>
-                  {translation.referenceFusion.runtimeStyleImplications[0]}
+                  {formatPublicCreativeText(
+                    translation.referenceFusion.runtimeStyleImplications[0]
+                  )}
                 </dd>
               </div>
             ) : null}
           </dl>
           {translation.referenceFusion.safetyConstraints.length > 0 ? (
-            <small>{translation.referenceFusion.safetyConstraints[0]}</small>
+            <small>
+              {formatPublicCreativeText(
+                translation.referenceFusion.safetyConstraints[0]
+              )}
+            </small>
           ) : null}
         </section>
       ) : null}
       {translation.sacredGeometry ? (
         <section
-          aria-label="Sacred geometry guidance"
+          aria-label="Geometry guidance"
           className="sacredGeometrySummary"
         >
           <header>
-            <span>Sacred geometry</span>
-            <strong>{translation.sacredGeometry.concepts.join(" / ")}</strong>
+            <span>Geometry</span>
+            <strong>
+              {formatPublicCreativeList(translation.sacredGeometry.concepts).join(
+                " / "
+              )}
+            </strong>
           </header>
           <dl>
             {translation.sacredGeometry.symmetryType.length > 0 ? (
               <div>
                 <dt>Symmetry</dt>
                 <dd>
-                  {translation.sacredGeometry.symmetryType.join(" ")}
+                  {formatPublicCreativeList(
+                    translation.sacredGeometry.symmetryType
+                  ).join(" ")}
                 </dd>
               </div>
             ) : null}
@@ -157,7 +181,9 @@ export function CreativeTranslationSummaryCard({
               <div>
                 <dt>Movement</dt>
                 <dd>
-                  {translation.sacredGeometry.movementBehavior.join(" ")}
+                  {formatPublicCreativeList(
+                    translation.sacredGeometry.movementBehavior
+                  ).join(" ")}
                 </dd>
               </div>
             ) : null}
@@ -165,9 +191,9 @@ export function CreativeTranslationSummaryCard({
               <div>
                 <dt>Runtime</dt>
                 <dd>
-                  {translation.sacredGeometry.runtimeRecommendations.join(
-                    " / "
-                  )}
+                  {formatPublicCreativeList(
+                    translation.sacredGeometry.runtimeRecommendations
+                  ).join(" / ")}
                 </dd>
               </div>
             ) : null}
@@ -175,7 +201,9 @@ export function CreativeTranslationSummaryCard({
               <div>
                 <dt>Audio</dt>
                 <dd>
-                  {translation.sacredGeometry.audioImplications.join(" ")}
+                  {formatPublicCreativeList(
+                    translation.sacredGeometry.audioImplications
+                  ).join(" ")}
                 </dd>
               </div>
             ) : null}
@@ -189,28 +217,40 @@ export function CreativeTranslationSummaryCard({
         >
           <header>
             <span>Shader presets</span>
-            <strong>{translation.shaderPresets.presets.join(" / ")}</strong>
+            <strong>
+              {formatPublicCreativeList(translation.shaderPresets.presets).join(
+                " / "
+              )}
+            </strong>
           </header>
           <dl>
             {translation.shaderPresets.lightMaterialBehavior.length > 0 ? (
               <div>
                 <dt>Material</dt>
                 <dd>
-                  {translation.shaderPresets.lightMaterialBehavior.join(" ")}
+                  {formatPublicCreativeList(
+                    translation.shaderPresets.lightMaterialBehavior
+                  ).join(" ")}
                 </dd>
               </div>
             ) : null}
             {translation.shaderPresets.motionBehavior.length > 0 ? (
               <div>
                 <dt>Motion</dt>
-                <dd>{translation.shaderPresets.motionBehavior.join(" ")}</dd>
+                <dd>
+                  {formatPublicCreativeList(
+                    translation.shaderPresets.motionBehavior
+                  ).join(" ")}
+                </dd>
               </div>
             ) : null}
             {translation.shaderPresets.runtimeSuitability.length > 0 ? (
               <div>
                 <dt>Runtime</dt>
                 <dd>
-                  {translation.shaderPresets.runtimeSuitability.join(" ")}
+                  {formatPublicCreativeList(
+                    translation.shaderPresets.runtimeSuitability
+                  ).join(" ")}
                 </dd>
               </div>
             ) : null}
@@ -218,7 +258,9 @@ export function CreativeTranslationSummaryCard({
               <div>
                 <dt>Budget</dt>
                 <dd>
-                  {translation.shaderPresets.performanceConstraints[0]}
+                  {formatPublicCreativeText(
+                    translation.shaderPresets.performanceConstraints[0]
+                  )}
                 </dd>
               </div>
             ) : null}
@@ -232,31 +274,51 @@ export function CreativeTranslationSummaryCard({
         >
           <header>
             <span>Visual style</span>
-            <strong>{translation.visualStyle.styles.join(" / ")}</strong>
+            <strong>
+              {formatPublicCreativeList(translation.visualStyle.styles).join(
+                " / "
+              )}
+            </strong>
           </header>
           <dl>
             {translation.visualStyle.paletteBehavior.length > 0 ? (
               <div>
                 <dt>Palette</dt>
-                <dd>{translation.visualStyle.paletteBehavior[0]}</dd>
+                <dd>
+                  {formatPublicCreativeText(
+                    translation.visualStyle.paletteBehavior[0]
+                  )}
+                </dd>
               </div>
             ) : null}
             {translation.visualStyle.compositionTendencies.length > 0 ? (
               <div>
                 <dt>Compose</dt>
-                <dd>{translation.visualStyle.compositionTendencies[0]}</dd>
+                <dd>
+                  {formatPublicCreativeText(
+                    translation.visualStyle.compositionTendencies[0]
+                  )}
+                </dd>
               </div>
             ) : null}
             {translation.visualStyle.motionTendencies.length > 0 ? (
               <div>
                 <dt>Motion</dt>
-                <dd>{translation.visualStyle.motionTendencies[0]}</dd>
+                <dd>
+                  {formatPublicCreativeText(
+                    translation.visualStyle.motionTendencies[0]
+                  )}
+                </dd>
               </div>
             ) : null}
             {translation.visualStyle.runtimeSuitability.length > 0 ? (
               <div>
                 <dt>Runtime</dt>
-                <dd>{translation.visualStyle.runtimeSuitability.join(" ")}</dd>
+                <dd>
+                  {formatPublicCreativeList(
+                    translation.visualStyle.runtimeSuitability
+                  ).join(" ")}
+                </dd>
               </div>
             ) : null}
           </dl>
@@ -265,7 +327,7 @@ export function CreativeTranslationSummaryCard({
       {translation.refinementTargets.length > 0 ? (
         <p className="creativeTranslationTargets">
           <strong>Refine</strong>
-          {translation.refinementTargets.join(" · ")}
+          {formatPublicCreativeList(translation.refinementTargets).join(" · ")}
         </p>
       ) : null}
     </section>
@@ -285,6 +347,18 @@ function formatModality(
     default:
       return "Modality open";
   }
+}
+
+function formatPublicCreativeList(values: readonly string[]) {
+  return values.map(formatPublicCreativeText);
+}
+
+function formatPublicCreativeText(value: string) {
+  return value
+    .replace(/\bsacred geometry\b/gi, "geometry")
+    .replace(/\bsacred\b/gi, "geometric")
+    .replace(/\bsymbolic references?\b/gi, "concept references")
+    .replace(/\bsymbolic\b/gi, "conceptual");
 }
 
 function formatSourceCount(sourceCount: number) {

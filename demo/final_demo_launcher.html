@@ -153,9 +153,9 @@
         <div>
           <h1>V8 Capstone Demo Launcher</h1>
           <p class="meta">
-            Local reviewer launcher for the final eight-flow demo suite. Serve
-            from the repository or temp QA root; no public cloud deployment is
-            required.
+            Static fallback launcher for the final eight-flow demo suite. The
+            primary presenter path is integrated Demo Mode inside Creative
+            Coding Assistant; no public cloud deployment is required.
           </p>
           <div class="actions" aria-label="Primary demo links">
             <a class="button" href="./final_demo_suite.json">Demo suite JSON</a>
@@ -168,7 +168,8 @@
           <h2>Local Demo Target</h2>
           <p>Backend: <code>.venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000</code></p>
           <p>Frontend: <code>cd clients/nextjs &amp;&amp; npm run dev</code></p>
-          <p>Launcher: serve this folder locally and open <code>/demo/final_demo_launcher.html</code>.</p>
+          <p>Primary: open <code>http://127.0.0.1:3000</code> and select <code>Demo Mode</code>.</p>
+          <p>Fallback: serve this folder locally and open <code>/demo/final_demo_launcher.html</code>.</p>
         </aside>
       </section>
 
@@ -209,11 +210,11 @@
         "Primary Three.js creative coding demo",
         "p5.js generative sketch demo",
         "GLSL shader/post-processing demo",
+        "Hydra feedback-pattern demo",
         "Retrieval/RAG grounded answer demo",
-        "Symbolic geometry visual guidance demo",
-        "Architecture installation planning demo",
-        "Mythopoetic immersive scene demo",
-        "HoloGenesis planner project bundle demo",
+        "Concept-to-visual translation demo",
+        "Geometry and morphogenesis visual system demo",
+        "Installation and immersive scene planning demo",
       ];
 
       function renderFlows(flows) {

@@ -1,9 +1,8 @@
 # Runtime Validation
 
-V7.9 adds deterministic runtime integration validation for the real
-HoloGenesis / Creative Coding Assistant execution path after the V7.8 workflow
-decomposition. These checks are intentionally separate from passive
-metadata/model validation.
+V7.9 adds deterministic runtime integration validation for the real Creative
+Coding Assistant execution path after the V7.8 workflow decomposition. These
+checks are intentionally separate from passive metadata/model validation.
 
 ## Validation Layers
 

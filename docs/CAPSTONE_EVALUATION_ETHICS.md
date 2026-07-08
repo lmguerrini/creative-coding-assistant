@@ -60,8 +60,8 @@ Creative ownership:
 The tool supports ideation and implementation guidance. It should not claim
 authorship of a user's artistic identity or cultural authority.
 
-Symbolic and sacred language:
-Symbolic, geometric, ritual, and mythopoetic concepts must be framed as
+Conceptual and geometric language:
+Conceptual, geometric, pattern, and narrative concepts must be framed as
 creative inspiration and operational design guidance, not religious,
 historical, medical, psychological, or metaphysical truth.
 

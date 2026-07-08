@@ -7,8 +7,9 @@ freeze.
 
 ## Purpose, Problem, Solution
 
-Purpose: help creative coders turn symbolic, visual, geometric, audio-reactive,
-and runtime-oriented intent into grounded browser creative-coding guidance.
+Purpose: help creative coders turn conceptual, visual, geometric,
+audio-reactive, and runtime-oriented intent into grounded browser
+creative-coding guidance.
 
 Problem: artists and creative technologists often know the experience they want
 but must translate it across runtimes, APIs, shader patterns, audio analysis,
@@ -34,7 +35,8 @@ metadata, and local evaluation workflows.
 Primary path:
 
 1. State the user problem and the project purpose.
-2. Run or narrate the primary prompt from `demo/demo_prompt_library.md`.
+2. Open Creative Coding Assistant, select integrated Demo Mode, choose a
+   curated scenario, and run or narrate the loaded prompt.
 3. Show retrieval grounding or explain the registered retrieval scenario.
 4. Show creative planning, runtime guidance, and artifact direction.
 5. Show the internal preview or `assets/preview_current.png`.
@@ -95,8 +97,8 @@ boundaries, and rehearsed fallback paths.
 
 ## Demo Fallback Mode
 
-Fallback mode uses `demo/golden_demo_dataset.json`, prepared prompts, and
-preview screenshots. It should be introduced honestly:
+Fallback mode uses integrated Demo Mode prompts, `demo/golden_demo_dataset.json`,
+prepared prompts, and preview screenshots. It should be introduced honestly:
 
 ```text
 The live dependency is unavailable, so I am switching to the prepared fallback

@@ -40,10 +40,10 @@
       "fallback_trigger": "network_unavailable"
     },
     {
-      "flow_id": "p5_sacred_geometry_flow",
-      "title": "p5.js and Sacred Geometry fallback flow",
+      "flow_id": "p5_generative_morphogenesis_flow",
+      "title": "p5.js generative morphogenesis fallback flow",
       "duration_seconds": 120,
-      "primary_prompt_id": "p5_sacred_geometry_sketch",
+      "primary_prompt_id": "p5_generative_morphogenesis_sketch",
       "fallback_trigger": "preview_unavailable"
     },
     {
@@ -54,17 +54,17 @@
       "fallback_trigger": "preview_unavailable"
     },
     {
-      "flow_id": "architecture_myth_flow",
-      "title": "Sacred architecture and mythopoetic narrative flow",
+      "flow_id": "geometry_morphogenesis_flow",
+      "title": "Geometry and morphogenesis visual-system flow",
       "duration_seconds": 150,
-      "primary_prompt_id": "sacred_architecture_installation_brief",
+      "primary_prompt_id": "geometry_morphogenesis_visual_system",
       "fallback_trigger": "time_overrun"
     },
     {
-      "flow_id": "hologenesis_planner_flow",
-      "title": "HoloGenesis planner handoff flow",
+      "flow_id": "installation_immersive_scene_planning_flow",
+      "title": "Installation and immersive scene planning flow",
       "duration_seconds": 180,
-      "primary_prompt_id": "hologenesis_planner_bundle",
+      "primary_prompt_id": "installation_immersive_scene_planning",
       "fallback_trigger": "provider_failure"
     }
   ],
@@ -75,9 +75,9 @@
       "prompt_text": "Create a luminous audio-reactive Three.js scene for a capstone demo: concentric geometry, subtle bloom, FFT-driven motion accents, and a clear explanation of provider choice, execution mode, estimates, fallback, and escalation boundaries."
     },
     {
-      "prompt_id": "symbol_to_art_operational_translation",
-      "title": "Symbol to operational browser visual",
-      "prompt_text": "Turn a concentric mandala motif into a practical browser visual system with motion, rhythm, runtime choices, source-grounded constraints, and a clear boundary between symbolic inspiration and operational creative-coding guidance."
+      "prompt_id": "concept_to_visual_translation",
+      "title": "Concept-to-visual browser system",
+      "prompt_text": "Translate the concept of threshold, recursion, and return into a practical browser visual system with geometry, motion, color, runtime choice, interaction, implementation constraints, and clear authority boundaries."
     },
     {
       "prompt_id": "creative_debugging_silent_audio",
@@ -95,9 +95,9 @@
       "prompt_text": "Walk through the prepared Creative Coding Assistant demo offline: problem, solution, data, evaluation, ethical considerations, fallback plan, challenges, and next steps."
     },
     {
-      "prompt_id": "p5_sacred_geometry_sketch",
-      "title": "p5.js sacred geometry sketch",
-      "prompt_text": "Create a p5.js sketch that turns golden-ratio circles and recursive polygons into a calm morphogenetic field. Include source-grounded runtime constraints, interaction notes, and a clear line between sacred-geometry inspiration and implemented browser code guidance."
+      "prompt_id": "p5_generative_morphogenesis_sketch",
+      "title": "p5.js generative morphogenesis sketch",
+      "prompt_text": "Create a p5.js generative morphogenesis sketch using reaction diffusion, cellular automata, L-systems, flow fields, particle systems, self-organization, and emergent form. Keep it browser-safe, explain interaction controls, and cite retrieval/source boundaries conservatively."
     },
     {
       "prompt_id": "hydra_feedback_texture_chain",
@@ -105,19 +105,14 @@
       "prompt_text": "Design a Hydra-style feedback texture chain and a GLSL fragment-shader fallback for a luminous kaleidoscopic scene. Explain what is actually supported in-browser, what should be treated as pseudocode or adaptation guidance, and how to recover if a runtime is unavailable."
     },
     {
-      "prompt_id": "sacred_architecture_installation_brief",
-      "title": "Sacred architecture installation brief",
-      "prompt_text": "Translate a basilica axis, mandala grid, and gallery circulation constraint into a browser-based installation concept. Include geometry, audience movement, preview strategy, and boundaries: no LIDAR, photogrammetry, engineering certification, or historical authority claims."
+      "prompt_id": "geometry_morphogenesis_visual_system",
+      "title": "Geometry and morphogenesis visual system",
+      "prompt_text": "Design a geometry and morphogenesis visual system for the browser. Combine radial structures, recursive growth, reaction diffusion, flow fields, and particle trails. Include runtime selection, preview strategy, source boundaries, and a graceful fallback plan."
     },
     {
-      "prompt_id": "mythopoetic_narrative_arc",
-      "title": "Mythopoetic narrative arc",
-      "prompt_text": "Build a mythopoetic narrative arc for an audiovisual sketch: threshold, transformation, return, visual motifs, audio rhythm, and audience explanation. Keep it as creative storytelling guidance, not religious, psychological, medical, or metaphysical truth."
-    },
-    {
-      "prompt_id": "hologenesis_planner_bundle",
-      "title": "HoloGenesis planner bundle",
-      "prompt_text": "Plan a HoloGenesis-style creative project bundle for a browser installation: concept, runtimes, retrieval needs, preview plan, artifact package, evaluation checks, fallback route, and handoff boundaries. Do not claim HoloMind, HOLOiVERSE, external DCC execution, or autonomous delivery."
+      "prompt_id": "installation_immersive_scene_planning",
+      "title": "Installation and immersive scene planning",
+      "prompt_text": "Plan a browser-based installation or immersive scene for a gallery demo. Include concept, geometry, audience movement, runtimes, retrieval needs, preview plan, artifact package, evaluation checks, fallback route, and handoff boundaries."
     }
   ],
   "fallback_triggers": [
@@ -149,6 +144,6 @@
     "Provider calls can fail or be slow; use the offline prompt and preview dataset if needed.",
     "Sanitized and redacted latest-live RAGAs evaluations have been run for release-candidate evidence; raw private recorded-session rows remain local-only.",
     "Internal preview fallback uses prepared screenshots when live preview is unavailable.",
-    "External DCC/MCP execution, HoloMind, HOLOiVERSE, merge, push, tag, and freeze are out of scope without HITL. Grand Review uses this dataset as release-candidate evidence."
+    "External DCC/MCP execution, autonomous delivery, public deployment, merge, push, tag, and freeze are out of scope without HITL. Grand Review uses this dataset as release-candidate evidence."
   ]
 }

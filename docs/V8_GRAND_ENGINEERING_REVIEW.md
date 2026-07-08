@@ -35,9 +35,13 @@ Validation:
   scope after the review branch had already started.
 - Kept merge, push, tag, release freeze, showcase upload, and final release
   decisions behind HITL.
-- Expanded golden demo coverage for p5.js, Hydra, GLSL, Sacred
-  Geometry, Sacred Architecture, Mythopoetic Narrative, and HoloGenesis Planner
-  as bounded review evidence.
+- Expanded golden demo coverage for p5.js, Hydra, GLSL, retrieval-grounded
+  answers, concept-to-visual translation, geometry/morphogenesis systems, and
+  installation/immersive planning as bounded review evidence.
+- Added integrated in-app Demo Mode inside Creative Coding Assistant so the
+  Capstone presenter can choose curated scenarios, load prompts into the normal
+  assistant composer, and keep expected behavior, fallback, evidence, source
+  boundaries, and output guidance in the workstation.
 - Preserved unsupported-runtime boundaries for HoloMind, HOLOiVERSE, live
   external DCC/MCP execution, autonomous delivery, certification, and
   metaphysical or medical truth claims.
@@ -49,17 +53,19 @@ Backend:
 - `.venv/bin/ruff check src tests scripts clients/streamlit` passed.
 - `.venv/bin/python -m compileall -q src tests scripts clients/streamlit` passed.
 - `.venv/bin/pytest` passed: 2604 tests, 1 warning.
-- Focused post-fix demo/readiness tests passed: 20 tests, 1 warning.
+- Focused post-fix demo/readiness tests passed: 19 tests, 1 warning.
 - Focused Chroma and retrieval warning check passed: 42 tests, 266
   warnings from Chroma telemetry and Pydantic deprecations.
 
 Frontend:
 
 - `npm run typecheck` passed.
-- `npm run test` passed: 58 files, 391 tests.
-- `npm run build` passed after refreshing local dependencies with `npm ci`.
-- `npm run test:e2e:smoke` passed: 2 tests.
-- `npm run test:e2e` passed: 5 tests.
+- `npm run test` passed: 59 files, 395 tests.
+- `npm run build` passed after local `node_modules` dependency repair without
+  package metadata changes; webpack cache snapshot warnings were non-blocking.
+- `npm run test:e2e:smoke` passed: 3 tests, including integrated Demo
+  Mode scenario selection and prompt prefill.
+- Previous full `npm run test:e2e` evidence remains available: 5 tests.
 
 Product smoke:
 
@@ -103,6 +109,14 @@ Evaluation:
   above is the public reviewer evidence path.
 - Secret-pattern scan over `data/eval` found no obvious API key, bearer token,
   password, or cloud credential patterns.
+- Digital Morphogenesis audit: targeted repository scan found no explicit
+  Jason Webb, `Digital Morphogenesis`, or `morphogenesis-resources` source
+  coverage in the KB/demo registry. Generic morphogenesis techniques are
+  represented through local knowledge/catalog and orchestration metadata
+  (reaction diffusion, cellular automata, L-systems, flow fields, particle
+  systems, self-organization, generative structures, and emergent form), so
+  Demo Mode uses generic morphogenesis prompts without claiming Jason
+  Webb-specific source coverage.
 - Existing completed local RAGAs evidence remains available:
   `ragas_latest2_after_kb_quality.jsonl` scored 2 rows with average context
   precision 0.8604; `ragas_latest4_context_precision_after_glsl_fix.jsonl`
@@ -121,10 +135,12 @@ Evaluation:
   pixel-checked nonblank through WebGL; `hydra-synth@1.4.0` rendered the Hydra
   artifact nonblank with audio detection disabled. No display-FPS, load, soak,
   public deployment, or broad product-preview-runtime benchmark is claimed.
+- Integrated Demo Mode is now the primary local demo path inside Creative
+  Coding Assistant. The static launcher remains fallback/reviewer evidence.
 - One-click local launcher validation passed for
   `demo/final_demo_launcher.html`: the page loaded from the local static QA
-  server, rendered all 8 demo flows from `demo/final_demo_suite.json`, emitted
-  no browser warnings/errors, and core evidence links returned HTTP 200.
+  server, rendered all 8 demo flows from `demo/final_demo_suite.json`, loaded
+  the suite JSON with HTTP 200, and emitted no console or page errors.
 
 Security:
 
@@ -148,10 +164,9 @@ The review validated cross-capability coverage rather than only one milestone:
 - Demo and Capstone readiness through production demo assets, demo showcase
   experience, production creative readiness review, manual checklist, prompt
   library, final demo suite, and golden dataset evidence.
-- Runtime-family prompt evidence through Three.js, p5.js, GLSL,
-  Hydra, retrieval/RAG, symbolic translation, Sacred Geometry,
-  Sacred Architecture, Mythopoetic Narrative, Immersive Composer, and
-  HoloGenesis Planner flows.
+- Runtime-family prompt evidence through Three.js, p5.js, GLSL, Hydra,
+  retrieval/RAG, concept-to-visual translation, geometry/morphogenesis, and
+  installation/immersive planning flows.
 
 ## Capstone And Golden Demo Status
 
@@ -173,11 +188,11 @@ Detailed engineering scorecard:
 The Grand Review no longer uses a single overall score. Production readiness is
 one category in the detailed scorecard and is now 99/100 after redacted
 provider-backed RAGAs, Hydra browser runtime QA, generated artifact QA, final
-browser/render QA, one-click local launcher validation, local demo target
-review, public/private docs audit, README evaluator path, and timed-demo
+browser/render QA, integrated Demo Mode, static launcher validation, local demo
+target review, public/private docs audit, README evaluator path, and timed-demo
 evidence update. The higher-level release-candidate judgment is based on
 category evidence, remaining risks, and HITL boundaries. The advisory aggregate
-across the 13 requested Capstone Excellence categories is 98.6/100.
+across the 13 requested Capstone Excellence categories is 98.7/100.
 
 AI review readiness: ready for final reviewer evaluation with bounded claims.
 

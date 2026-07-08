@@ -603,15 +603,15 @@ def _prompt_library(*, demo_source: ProductionDemoAssetPlan) -> tuple[DemoPrompt
             ),
         ),
         DemoPromptRecord(
-            prompt_id="symbol_to_art_operational_translation",
-            title="Symbol to operational browser visual",
+            prompt_id="concept_to_visual_translation",
+            title="Concept-to-visual browser system",
             capstone_cases=("case_1_rag_knowledge_assistant", "case_5_ai_coding_assistant"),
             prompt_text=(
-                "Turn a concentric mandala motif into a practical browser visual system with motion, rhythm, "
-                "runtime choices, source-grounded constraints, and a clear boundary between symbolic inspiration "
-                "and operational creative-coding guidance."
+                "Translate the concept of threshold, recursion, and return into a practical browser visual system "
+                "with geometry, motion, color, runtime choice, interaction, implementation constraints, and clear "
+                "authority boundaries."
             ),
-            expected_demo_value="Shows guarded symbolic translation without cultural or metaphysical authority claims.",
+            expected_demo_value="Shows guarded concept-to-visual translation without authority claims.",
             fallback_notes=("Use the retrieval demo scenario with the same id.", "Keep the explanation practical."),
         ),
         DemoPromptRecord(
@@ -662,15 +662,15 @@ def _prompt_library(*, demo_source: ProductionDemoAssetPlan) -> tuple[DemoPrompt
             ),
         ),
         DemoPromptRecord(
-            prompt_id="p5_sacred_geometry_sketch",
-            title="p5.js sacred geometry sketch",
+            prompt_id="p5_generative_morphogenesis_sketch",
+            title="p5.js generative morphogenesis sketch",
             capstone_cases=("case_1_rag_knowledge_assistant", "case_5_ai_coding_assistant"),
             prompt_text=(
-                "Create a p5.js sketch that turns golden-ratio circles and recursive polygons into a calm "
-                "morphogenetic field. Include source-grounded runtime constraints, interaction notes, and "
-                "a clear line between sacred-geometry inspiration and implemented browser code guidance."
+                "Create a p5.js generative morphogenesis sketch using reaction diffusion, cellular automata, "
+                "L-systems, flow fields, particle systems, self-organization, and emergent form. Keep it "
+                "browser-safe, explain interaction controls, and cite retrieval/source boundaries conservatively."
             ),
-            expected_demo_value="Covers p5.js and Sacred Geometry as a bounded browser creative-coding path.",
+            expected_demo_value="Covers p5.js and morphogenesis as a bounded browser creative-coding path.",
             fallback_notes=("Use this when the primary Three.js path needs a simpler canvas-based fallback.",),
         ),
         DemoPromptRecord(
@@ -686,45 +686,33 @@ def _prompt_library(*, demo_source: ProductionDemoAssetPlan) -> tuple[DemoPrompt
             fallback_notes=("Use only as bounded runtime guidance if Hydra execution is not available.",),
         ),
         DemoPromptRecord(
-            prompt_id="sacred_architecture_installation_brief",
-            title="Sacred architecture installation brief",
+            prompt_id="geometry_morphogenesis_visual_system",
+            title="Geometry and morphogenesis visual system",
             capstone_cases=("case_1_rag_knowledge_assistant", "case_5_ai_coding_assistant"),
             prompt_text=(
-                "Translate a basilica axis, mandala grid, and gallery circulation constraint into a browser-based "
-                "installation concept. Include geometry, audience movement, preview strategy, and boundaries: "
-                "no LIDAR, photogrammetry, engineering certification, or historical authority claims."
+                "Design a geometry and morphogenesis visual system for the browser. Combine radial structures, "
+                "recursive growth, reaction diffusion, flow fields, and particle trails. Include runtime selection, "
+                "preview strategy, source boundaries, and a graceful fallback plan."
             ),
             expected_demo_value=(
-                "Covers Sacred Architecture as creative installation planning without reconstruction overclaims."
+                "Covers generative structures and emergent form without unsupported authority claims."
             ),
-            fallback_notes=("Use for architecture Q&A or portfolio/storytelling review.",),
+            fallback_notes=("Use for generative-systems Q&A or output-quality review.",),
         ),
         DemoPromptRecord(
-            prompt_id="mythopoetic_narrative_arc",
-            title="Mythopoetic narrative arc",
-            capstone_cases=("case_2_bounded_agent_automation", "case_5_ai_coding_assistant"),
-            prompt_text=(
-                "Build a mythopoetic narrative arc for an audiovisual sketch: threshold, transformation, return, "
-                "visual motifs, audio rhythm, and audience explanation. Keep it as creative storytelling guidance, "
-                "not religious, psychological, medical, or metaphysical truth."
-            ),
-            expected_demo_value="Covers Mythopoetic Narrative with explicit ethics and claim boundaries.",
-            fallback_notes=("Use when reviewers ask how the project explains artistic meaning.",),
-        ),
-        DemoPromptRecord(
-            prompt_id="hologenesis_planner_bundle",
-            title="HoloGenesis planner bundle",
+            prompt_id="installation_immersive_scene_planning",
+            title="Installation and immersive scene planning",
             capstone_cases=(
                 "case_2_bounded_agent_automation",
                 "case_5_ai_coding_assistant",
                 "case_6_advanced_llm_tools",
             ),
             prompt_text=(
-                "Plan a HoloGenesis-style creative project bundle for a browser installation: concept, runtimes, "
-                "retrieval needs, preview plan, artifact package, evaluation checks, fallback route, and handoff "
-                "boundaries. Do not claim HoloMind, HOLOiVERSE, external DCC execution, or autonomous delivery."
+                "Plan a browser-based installation or immersive scene for a gallery demo. Include concept, "
+                "geometry, audience movement, runtimes, retrieval needs, preview plan, artifact package, "
+                "evaluation checks, fallback route, and handoff boundaries."
             ),
-            expected_demo_value="Covers HoloGenesis Planner as bounded planning metadata and handoff guidance.",
+            expected_demo_value="Covers bounded planning metadata and handoff guidance.",
             fallback_notes=("Use for senior-reviewer questions about system direction and next steps.",),
         ),
     )
@@ -798,14 +786,14 @@ def _golden_demo_flows(*, prompts: tuple[DemoPromptRecord, ...]) -> tuple[Golden
             fallback_trigger="network_unavailable",
         ),
         GoldenDemoFlow(
-            flow_id="p5_sacred_geometry_flow",
-            title="p5.js and Sacred Geometry fallback flow",
+            flow_id="p5_generative_morphogenesis_flow",
+            title="p5.js generative morphogenesis fallback flow",
             duration_seconds=120,
-            primary_prompt_id="p5_sacred_geometry_sketch",
+            primary_prompt_id="p5_generative_morphogenesis_sketch",
             capstone_cases=("case_1_rag_knowledge_assistant", "case_5_ai_coding_assistant"),
             operator_steps=(
                 "Switch to a canvas-first p5.js prompt.",
-                "Show how geometric inspiration becomes practical code guidance.",
+                "Show how morphogenesis techniques become practical code guidance.",
                 "State that preview/demo assets are fallback evidence, not live generated proof.",
             ),
             evidence_refs=("demo/demo_prompt_library.md", "demo/golden_demo_dataset.json"),
@@ -826,33 +814,33 @@ def _golden_demo_flows(*, prompts: tuple[DemoPromptRecord, ...]) -> tuple[Golden
             fallback_trigger="preview_unavailable",
         ),
         GoldenDemoFlow(
-            flow_id="architecture_myth_flow",
-            title="Sacred architecture and mythopoetic narrative flow",
+            flow_id="geometry_morphogenesis_flow",
+            title="Geometry and morphogenesis visual-system flow",
             duration_seconds=150,
-            primary_prompt_id="sacred_architecture_installation_brief",
+            primary_prompt_id="geometry_morphogenesis_visual_system",
             capstone_cases=("case_1_rag_knowledge_assistant", "case_5_ai_coding_assistant"),
             operator_steps=(
-                "Use the architecture prompt to frame spatial planning.",
-                "Pair it with the mythopoetic prompt for audience explanation.",
-                "Name reconstruction, certification, and cultural-authority boundaries.",
+                "Use the geometry/morphogenesis prompt to frame rule-based form.",
+                "Show reaction diffusion, flow fields, and particle trails as implementation choices.",
+                "Name source, runtime, and performance boundaries.",
             ),
             evidence_refs=("demo/demo_prompt_library.md", "docs/CAPSTONE_EVALUATION_ETHICS.md"),
             fallback_trigger="time_overrun",
         ),
         GoldenDemoFlow(
-            flow_id="hologenesis_planner_flow",
-            title="HoloGenesis planner handoff flow",
+            flow_id="installation_immersive_scene_planning_flow",
+            title="Installation and immersive scene planning flow",
             duration_seconds=180,
-            primary_prompt_id="hologenesis_planner_bundle",
+            primary_prompt_id="installation_immersive_scene_planning",
             capstone_cases=(
                 "case_2_bounded_agent_automation",
                 "case_5_ai_coding_assistant",
                 "case_6_advanced_llm_tools",
             ),
             operator_steps=(
-                "Present HoloGenesis as bounded planner metadata.",
                 "Show concept, runtime, retrieval, preview, artifact, evaluation, and fallback handoff points.",
-                "Repeat no HoloMind, HOLOiVERSE, external DCC execution, or autonomous delivery claims.",
+                "Repeat no external DCC/MCP execution, autonomous delivery, public deployment, or freeze claims.",
+                "Use the integrated Demo Mode path as the primary presenter frame.",
             ),
             evidence_refs=("README.md", "demo/golden_demo_dataset.json"),
             fallback_trigger="provider_failure",

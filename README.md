@@ -1,9 +1,9 @@
 # Creative Coding Assistant
 
 Creative Coding Assistant is an AI-native creative translation workstation for
-the completed V3 platform, designed to transform symbolic, conceptual,
-geometric, stylistic, and multimodal intent into professional audio, visual,
-and audiovisual creative systems.
+the completed V3 platform, designed to transform conceptual, geometric,
+stylistic, and multimodal intent into professional audio, visual, and
+audiovisual creative systems.
 
 It combines a LangGraph-orchestrated Python backend with a Next.js workstation
 for the full V2.5 Creative Core, the V3.1 Creative Cognition Core, the V3.2
@@ -215,12 +215,16 @@ For a reviewer or evaluator, use this shortest evidence path:
    fallback path, SCR framing, and SMART framing.
 3. Review `docs/CAPSTONE_EVALUATION_ETHICS.md` for evaluation metrics, RAGAs
    boundaries, source grounding, privacy, and ethics.
-4. Inspect `demo/final_demo_launcher.html` for the one-click local launcher
-   covering all 8 final demo flows and their evidence paths.
-5. Inspect `demo/golden_artifacts/` for generated p5.js, Three.js, GLSL, and
+4. Start Creative Coding Assistant locally and open the integrated Demo Mode
+   from the workstation top bar. Demo Mode covers all 8 final demo flows,
+   loads curated prompts into the normal assistant composer, and shows expected
+   behavior, fallback, evidence, source boundaries, and output guidance.
+5. Keep `demo/final_demo_launcher.html` as the static fallback/reviewer
+   launcher for the same final demo suite and evidence paths.
+6. Inspect `demo/golden_artifacts/` for generated p5.js, Three.js, GLSL, and
    Hydra artifacts plus browser QA evidence. Hydra support is limited to the
    validated local `hydra-synth` artifact path.
-6. Inspect `demo/evaluation/` for sanitized RAGAs and redacted latest-live
+7. Inspect `demo/evaluation/` for sanitized RAGAs and redacted latest-live
    RAGAs fixture/result evidence. Raw private live-session data under
    `data/eval/` remains local.
 
@@ -232,7 +236,14 @@ Minimum reviewer setup path:
 cd clients/nextjs
 npm run typecheck
 npm run test
+npm run dev
 ```
+
+Primary local demo path:
+
+1. Start the backend with `.venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000`.
+2. Start the frontend with `cd clients/nextjs && npm run dev`.
+3. Open `http://127.0.0.1:3000`, select `Demo Mode`, choose a scenario, and send the loaded prompt through the normal assistant workflow.
 
 Primary Capstone alignment:
 
@@ -259,7 +270,9 @@ Demo materials:
   limitations
 - `demo/demo_prompt_library.md` for golden prompts
 - `demo/golden_demo_dataset.json` for rehearsal and offline fallback
-- `demo/final_demo_launcher.html` for the one-click local reviewer launcher
+- Integrated Demo Mode in Creative Coding Assistant for the primary local
+  presenter/reviewer path
+- `demo/final_demo_launcher.html` for the static fallback reviewer launcher
 - `demo/final_demo_suite.json` for the final eight-flow demo start paths,
   success criteria, fallbacks, and reviewer talking points
 - `demo/golden_artifacts/` for generated and QA-checked p5.js, Three.js, and
@@ -1028,7 +1041,7 @@ inspection, and multimodal workspace inspection:
 - HITL Clarification: the assistant can ask targeted questions to lock
   modality, intent, symbolism, geometry, runtime, or refinement direction
   before generation.
-- Creative Translation: the assistant derives bounded modality, symbolic,
+- Creative Translation: the assistant derives bounded modality, conceptual,
   geometric, mood, movement, runtime, visual style, shader, audio-reactive,
   and refinement guidance.
 - Reference Fusion: multimodal image references and retrieved context are fused
@@ -1170,7 +1183,7 @@ inspection, and multimodal workspace inspection:
   depending on runtime type.
 - Critique: generated artifacts receive structured quality review, ranking,
   recommendation, and refinement guidance.
-- Sacred Consistency: symbolic, geometric, and style coherence can be checked
+- Geometry Consistency: conceptual, geometric, and style coherence can be checked
   as a distinct evaluation layer.
 - Calibrated Quality: critique, consistency, runtime health, and workflow
   review metadata are combined into a more legible decision surface.
@@ -1197,7 +1210,7 @@ inspection, and multimodal workspace inspection:
   sacrificial constraint tiers
 - Creative Quality Predictor for pre-generation readiness and likely failure
   modes
-- Symbolic Narrative Planner for symbolic arc and phase structure
+- Concept Narrative Planner for concept arc and phase structure
 - Creative Composition Planner for focal hierarchy, density, balance, and
   transition structure
 - Creative Reasoning Engine for final synthesis of the stored V3.1 metadata
@@ -1212,7 +1225,7 @@ not each become a separate LangGraph node in the runtime graph.
   layout grammars before generation
 - Generative Structure Engine for deriving inspectable generative-system
   blueprints from upstream creative intent and composition metadata
-- Semantic Motif Engine for recurring symbolic motif systems, recurrence rules,
+- Semantic Motif Engine for recurring conceptual motif systems, recurrence rules,
   and thematic anchors
 - Emotional Consistency Engine for emotional tone continuity across palette,
   motion, composition pressure, and atmosphere
@@ -1518,10 +1531,10 @@ invoke agents, mutate storage, execute artifacts, or mutate generated output.
 ### Creative Core
 
 - Creative Translation Engine with deterministic prompt guidance
-- Sacred Geometry Prompt Layer integrated into the existing translation flow
+- Geometry/Morphogenesis Prompt Layer integrated into the existing translation flow
 - Advanced Shader Presets for glow, aura, plasma, bloom-like emission,
   refraction, glass, volumetric atmosphere, fractal fields, kaleidoscopic
-  symmetry, and sacred light aesthetics
+  symmetry, and luminous geometric aesthetics
 - Visual Style System with deterministic style guidance and artifact/refinement
   persistence
 - Reference Fusion Layer for multimodal image references and grounded context
@@ -1533,7 +1546,7 @@ invoke agents, mutate storage, execute artifacts, or mutate generated output.
   amplitude-to-glow, bass-to-pulse, rhythm-to-rotation, and drone-to-atmosphere
 - Creative Quality Critic for structured artifact ranking, recommendation, and
   refinement guidance
-- Sacred Consistency Evaluator for symbolic, geometric, and style-coherence
+- Geometry Consistency Evaluator for conceptual, geometric, and style-coherence
   review
 - Calibrated Quality Scoring for combining critique, consistency, and runtime
   review into clearer selection signals
@@ -1584,7 +1597,7 @@ Current layers include:
 
 - Creative Translation Engine for modality, intent, mood, movement, runtime,
   and refinement guidance
-- Sacred Geometry Prompt Layer for bounded symbolic and geometric generation
+- Geometry/Morphogenesis Prompt Layer for bounded conceptual and geometric generation
   cues
 - Advanced Shader Presets for practical visual effect guidance
 - Visual Style System for coherent aesthetic identity across artifacts and
@@ -1596,7 +1609,7 @@ Current layers include:
   features and visual behavior
 - Runtime Recommendation Layer for matching generated artifacts to supported
   preview/runtime surfaces
-- Creative Quality Critic, Sacred Consistency Evaluator, and Calibrated
+- Creative Quality Critic, Geometry Consistency Evaluator, and Calibrated
   Quality Scoring for structured post-generation review
 - Dynamic Parameter Control Layer for artifact-specific local controls and
   parameter-guided refinement
@@ -1958,7 +1971,7 @@ current runtime.
   and failure-audit metadata individually traceable without OS activation,
   execution graph application, policy enforcement, HITL emission, provider
   execution, Runtime Evolution, or output mutation.
-- HoloGenesis Core OS: long-horizon creative lineage, persistent feedback,
+- Future internal continuity core: long-horizon creative lineage, persistent feedback,
   active creative memory, active knowledge evolution, active research, active
   self-evolution, active cognitive OS execution, and system-level continuity
   beyond the current V6.6

@@ -154,7 +154,9 @@ function buildMultiPreviewCandidate({
     artifact,
     audioSafetyLabel: resolveAudioSafetyLabel(outputKind),
     canRender,
-    geometryLabels: translation?.sacredGeometry?.concepts ?? [],
+    geometryLabels: formatPublicComparisonLabels(
+      translation?.sacredGeometry?.concepts ?? []
+    ),
     outputKind,
     outputLabel: formatOutputLabel(outputKind),
     preview: resolvedPreview,
@@ -163,8 +165,19 @@ function buildMultiPreviewCandidate({
     runtimeSessionKey: `comparison:${artifact.id}:${runtimeSource.fingerprint}`,
     runtimeSource,
     shaderPresetLabels: translation?.shaderPresets?.presets ?? [],
-    visualStyleLabels: translation?.visualStyle?.styles ?? []
+    visualStyleLabels: formatPublicComparisonLabels(
+      translation?.visualStyle?.styles ?? []
+    )
   };
+}
+
+function formatPublicComparisonLabels(values: readonly string[]) {
+  return values.map((value) =>
+    value
+      .replace(/\bsacred geometry\b/gi, "geometry")
+      .replace(/\bsacred\b/gi, "geometric")
+      .replace(/\bsymbolic\b/gi, "conceptual")
+  );
 }
 
 function buildCandidatePreview({

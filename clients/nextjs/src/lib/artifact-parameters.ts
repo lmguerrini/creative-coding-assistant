@@ -493,7 +493,7 @@ function appendStructuredMetadataParameters(
       label: "Symmetry",
       type: "enum",
       description:
-        "Requested geometric symmetry mode derived from sacred geometry guidance.",
+        "Requested geometric symmetry mode derived from geometry guidance.",
       defaultValue: inferSymmetry(metadataText),
       effect: "refinement_guidance",
       source: "sacred_geometry",

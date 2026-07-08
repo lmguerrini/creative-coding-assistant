@@ -1289,7 +1289,7 @@ function readSacredConsistencyEvaluation(
     ),
     summary:
       readString(record.summary) ??
-      "Deterministic sacred-consistency evaluation completed."
+      "Deterministic geometry-consistency evaluation completed."
   };
 }
 

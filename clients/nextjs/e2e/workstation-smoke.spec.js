@@ -40,4 +40,29 @@ test.describe("V7.4 workstation E2E smoke", () => {
     await expectWorkspacePersistence(page);
     consoleGate.assertClean();
   });
+
+  test("opens integrated Demo Mode and preloads a curated scenario", async ({
+    page
+  }) => {
+    const consoleGate = installConsoleGate(page);
+    await installApiMocks(page, "success");
+    await expectLoadedWorkstation(page);
+
+    await page.getByRole("button", { name: "Demo Mode" }).click();
+    const demoMode = page.getByRole("region", { name: "Demo Mode" });
+    await expect(demoMode).toBeVisible();
+    await expect(demoMode).toContainText("Capstone scenarios");
+
+    await demoMode
+      .getByRole("button", { name: /p5\.js Generative Morphogenesis Sketch/ })
+      .click();
+
+    await expect(demoMode).toContainText("Prompt loaded");
+    await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue(
+      /reaction diffusion/
+    );
+    await expect(demoMode).not.toContainText(/HoloGenesis/i);
+    await expect(demoMode).not.toContainText(/\bsacred\b/i);
+    consoleGate.assertClean();
+  });
 });

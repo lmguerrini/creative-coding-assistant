@@ -455,7 +455,7 @@ function formatParameterSource(
     case "reference_fusion":
       return "Reference fusion";
     case "sacred_geometry":
-      return "Sacred geometry";
+      return "Geometry";
     case "shader_preset":
       return "Shader preset";
     case "visual_style":

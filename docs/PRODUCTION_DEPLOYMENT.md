@@ -43,6 +43,17 @@ curl http://127.0.0.1:8000/api/health
 curl http://127.0.0.1:8000/api/health/ready
 ```
 
+Then open the primary in-app demo target:
+
+```text
+http://127.0.0.1:3000
+```
+
+Use the `Demo Mode` button inside Creative Coding Assistant to select one of
+the 8 curated scenarios. The selected scenario loads its prompt into the normal
+assistant composer and shows expected behavior, fallback, evidence, source
+boundaries, and output guidance inside the workstation.
+
 Golden artifact browser QA, when needed:
 
 ```bash
@@ -53,7 +64,7 @@ test -e demo || ln -s /path/to/creative_coding_assistant/demo demo
 /path/to/creative_coding_assistant/.venv/bin/python -m http.server 8126 --bind 127.0.0.1
 ```
 
-Then open the one-click local launcher:
+The static local launcher remains a fallback/reviewer evidence path:
 
 ```text
 http://127.0.0.1:8126/demo/final_demo_launcher.html

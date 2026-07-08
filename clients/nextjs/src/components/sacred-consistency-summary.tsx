@@ -23,12 +23,12 @@ export function SacredConsistencySummary({
 
   return (
     <section
-      aria-label="Sacred consistency evaluator"
+      aria-label="Geometry consistency evaluator"
       className="sacredConsistency"
     >
       <header>
         <div>
-          <span>Sacred consistency evaluator</span>
+          <span>Geometry consistency evaluator</span>
           <strong>Bounded motif analysis</strong>
         </div>
         <span className="sacredConsistencyScore">
@@ -36,10 +36,12 @@ export function SacredConsistencySummary({
         </span>
       </header>
 
-      <p className="sacredConsistencySummary">{evaluation.summary}</p>
+      <p className="sacredConsistencySummary">
+        {formatPublicMotifText(evaluation.summary)}
+      </p>
 
       <div
-        aria-label="Sacred consistency dimensions"
+        aria-label="Geometry consistency dimensions"
         className="sacredConsistencyDimensions"
         role="list"
       >
@@ -57,7 +59,7 @@ export function SacredConsistencySummary({
           <strong>Strengths</strong>
           <ul>
             {evaluation.strengths.map((strength) => (
-              <li key={strength}>{strength}</li>
+              <li key={strength}>{formatPublicMotifText(strength)}</li>
             ))}
           </ul>
         </div>
@@ -68,7 +70,7 @@ export function SacredConsistencySummary({
           <strong>Refinement opportunities</strong>
           <ul>
             {evaluation.refinementOpportunities.map((opportunity) => (
-              <li key={opportunity}>{opportunity}</li>
+              <li key={opportunity}>{formatPublicMotifText(opportunity)}</li>
             ))}
           </ul>
         </div>
@@ -94,7 +96,7 @@ function SacredConsistencyDimension({
         <strong>{label}</strong>
         <span>{formatScore(observation.score)}</span>
       </div>
-      <p>{observation.observation}</p>
+      <p>{formatPublicMotifText(observation.observation)}</p>
       <small>{observation.level}</small>
     </article>
   );
@@ -102,4 +104,13 @@ function SacredConsistencyDimension({
 
 function formatScore(score: number) {
   return `${Math.round(Math.min(Math.max(score, 0), 1) * 100)}%`;
+}
+
+function formatPublicMotifText(value: string) {
+  return value
+    .replace(/\bsacred consistency\b/gi, "geometry consistency")
+    .replace(/\bsacred geometry\b/gi, "geometry")
+    .replace(/\bsacred\b/gi, "geometric")
+    .replace(/\bsymbolic\/geometric\b/gi, "conceptual/geometric")
+    .replace(/\bsymbolic\b/gi, "conceptual");
 }

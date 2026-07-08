@@ -11,7 +11,10 @@ showcase session.
   `docs/CAPSTONE_EVALUATION_ETHICS.md` open.
 - Keep `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md` open for reviewer questions.
 - Keep `demo/golden_demo_dataset.json` and `demo/demo_prompt_library.md` open.
-- Open `demo/final_demo_launcher.html` from the local static QA server.
+- Open Creative Coding Assistant locally and use integrated `Demo Mode` as the
+  primary presenter surface.
+- Keep `demo/final_demo_launcher.html` ready from the local static QA server as
+  the fallback/reviewer evidence launcher.
 - Keep `demo/final_demo_suite.json` open for exact demo starts, success
   criteria, fallback paths, and talking points.
 - Keep `demo/evaluation/` open for sanitized and redacted latest-live RAGAs
@@ -27,6 +30,8 @@ showcase session.
   `.venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000`.
 - Start the local workstation:
   `cd clients/nextjs` then `npm run dev`.
+- Open `http://127.0.0.1:3000`, select `Demo Mode`, and verify selecting a
+  scenario loads the prompt into the normal assistant composer.
 - Rehearse the full 10-minute demo:
   1:15 problem/purpose, 1:30 architecture, 4:15 primary golden flow,
   1:30 evaluation/ethics, 1:30 challenges/next steps.
@@ -47,7 +52,8 @@ showcase session.
 If provider access fails:
 
 1. Say the provider path is unavailable in the current environment.
-2. Switch to the primary prompt in `demo/golden_demo_dataset.json`.
+2. Keep the selected Demo Mode prompt visible, or switch to the matching prompt
+   in `demo/golden_demo_dataset.json`.
 3. Show the prepared preview screenshot.
 4. Continue with architecture, evaluation, ethics, and limitations.
 
@@ -64,7 +70,8 @@ If retrieval is unavailable:
 If preview is unavailable:
 
 1. Use `assets/preview_current.png`.
-2. Explain that V8.8 did not change preview runtime behavior.
+2. Explain the preview/runtime boundary without implying a live preview
+   succeeded.
 3. Show `demo/golden_artifacts/browser_full_runtime_qa_results.json` as browser QA
    evidence:
    p5, Three.js, and Hydra rendered nonblank through real temporary QA runtime
@@ -85,9 +92,10 @@ If preview is unavailable:
   No. It is render/failure-boundary QA with uncapped draw-loop frame timing, not
   display FPS, load, soak, or deployment validation.
 - What should happen if a live dependency fails?
-  Switch to the prepared offline dataset, prompt library, screenshots, sanitized
-  RAGAs evidence, the local launcher, golden artifact QA, and architecture walkthrough without
-  implying live success.
+  Keep the integrated Demo Mode path as the presenter frame, then switch to the
+  prepared offline dataset, prompt library, screenshots, sanitized RAGAs
+  evidence, static launcher fallback, golden artifact QA, and architecture
+  walkthrough without implying live success.
 
 ## HITL Gate
 

@@ -47,8 +47,8 @@ the public docs/demo tree and are ignored.
 | `demo/evaluation/redacted_live_session_ragas_latest4.jsonl` | Public reviewer/user evidence | Keep tracked | Redacted latest-live RAGAs fixture derived from live-session structure without exposing private row text. |
 | `demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl` | Public reviewer/user evidence | Keep tracked | Exact redacted latest-live RAGAs metric result rows. |
 | `demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl.manifest.json` | Public reviewer/user evidence | Keep tracked | Exact redacted latest-live RAGAs run manifest and evaluator configuration. |
-| `demo/final_demo_launcher.html` | Public reviewer/user evidence | Keep tracked | One-click local launcher for the eight-flow demo and evidence links. |
-| `demo/final_demo_suite.json` | Public reviewer/user evidence | Keep tracked | Eight-flow final demo suite with prompt, expected behavior, fallback, success criteria, validation path, and talking point. |
+| `demo/final_demo_launcher.html` | Public reviewer/user evidence | Keep tracked | Static fallback launcher for the eight-flow demo and evidence links; primary presenter path is integrated Demo Mode in the app. |
+| `demo/final_demo_suite.json` | Public reviewer/user evidence | Keep tracked | Eight-flow final demo suite with integrated Demo Mode start path, prompt, expected behavior, fallback, success criteria, validation path, and talking point. |
 | `demo/golden_artifacts/browser_full_runtime_qa.html` | Public reviewer/user evidence | Keep tracked | Full-runtime browser QA harness for temporary p5/Three/Hydra packages and GLSL WebGL checks. |
 | `demo/golden_artifacts/browser_full_runtime_qa_results.json` | Public reviewer/user evidence | Keep tracked | Exact full-runtime browser QA result, classifications, frame timing, and accepted boundaries. |
 | `demo/golden_artifacts/browser_render_qa.html` | Public reviewer/user evidence | Keep tracked | Offline browser QA harness for p5 shim, GLSL WebGL, and Three.js dependency-boundary checks. |
@@ -59,8 +59,8 @@ the public docs/demo tree and are ignored.
 | `demo/golden_artifacts/glsl_kaleidoscope_field.frag` | Public reviewer/user evidence | Keep tracked | Generated GLSL artifact for output/creative quality inspection. |
 | `demo/golden_artifacts/hydra_feedback_lattice.js` | Public reviewer/user evidence | Keep tracked | Generated Hydra artifact for bounded hydra-synth browser QA inspection. |
 | `demo/golden_artifacts/qa_manifest.json` | Public reviewer/user evidence | Keep tracked | Static and browser QA evidence plus runtime boundaries. |
-| `demo/golden_demo_dataset.json` | Public reviewer/user evidence | Keep tracked | Rehearsal and offline fallback dataset. |
-| `demo/manual_demo_checklist.md` | Public reviewer/user evidence | Keep tracked | Manual timed-demo reliability checklist. |
+| `demo/golden_demo_dataset.json` | Public reviewer/user evidence | Keep tracked | Rehearsal and offline fallback dataset aligned to the integrated Demo Mode scenario names. |
+| `demo/manual_demo_checklist.md` | Public reviewer/user evidence | Keep tracked | Manual timed-demo reliability checklist for integrated Demo Mode plus static fallback. |
 | `demo/showcase_upload_preparation.md` | Public reviewer/user evidence | Keep tracked | Showcase packaging and final public-claims review checklist. |
 
 ## Private/Obsolete Result

@@ -101,7 +101,7 @@ describe("multi-preview comparison model", () => {
       geometryLabels: ["mandala"],
       outputLabel: "Visual",
       shaderPresetLabels: ["glow"],
-      visualStyleLabels: ["minimal", "sacred geometry"]
+      visualStyleLabels: ["minimal", "geometry"]
     });
     expect(model.candidates[0].route.surfaceKind).toBe("p5");
     expect(model.candidates[0].runtimeSource.source).toContain("draw()");

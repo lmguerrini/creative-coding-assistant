@@ -986,6 +986,40 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("button", { name: "Settings" })).toBeVisible();
   });
 
+  it("opens integrated Demo Mode and loads a scenario into the normal composer", () => {
+    renderShell(getInitialWorkspaceSnapshot());
+
+    expect(screen.queryByRole("region", { name: "Demo Mode" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Demo Mode" }));
+
+    const demoMode = screen.getByRole("region", { name: "Demo Mode" });
+    expect(demoMode).toBeVisible();
+    expect(within(demoMode).getByText("Capstone scenarios")).toBeVisible();
+    expect(
+      within(demoMode).getByRole("button", {
+        name: /p5\.js Generative Morphogenesis Sketch/
+      })
+    ).toBeVisible();
+
+    fireEvent.click(
+      within(demoMode).getByRole("button", {
+        name: /p5\.js Generative Morphogenesis Sketch/
+      })
+    );
+
+    expect(
+      within(demoMode).getByRole("button", { name: /Prompt loaded/ })
+    ).toBeVisible();
+    const composer = screen.getByRole("textbox", {
+      name: "Assistant prompt"
+    }) as HTMLTextAreaElement;
+    expect(composer.value).toContain("reaction diffusion");
+    expect(composer.value).toContain("p5.js generative morphogenesis sketch");
+    expect(demoMode).not.toHaveTextContent(/HoloGenesis/i);
+    expect(demoMode).not.toHaveTextContent(/\bsacred\b/i);
+  });
+
   it("renders a polished first-run workspace without demo or infrastructure noise", () => {
     renderShell(getInitialWorkspaceSnapshot());
 
@@ -3060,7 +3094,7 @@ describe("WorkstationShell", () => {
     ).toHaveTextContent("Legacy score");
     expect(
       within(qualitySummary).getByRole("region", {
-        name: "Sacred consistency evaluator"
+        name: "Geometry consistency evaluator"
       })
     ).toHaveTextContent("Claim safety");
     expect(
@@ -3706,7 +3740,7 @@ describe("WorkstationShell", () => {
     expect(within(shaderCandidate).getByText("Visual / GLSL")).toBeVisible();
     expect(within(shaderCandidate).getByText("#1")).toBeVisible();
     expect(within(shaderCandidate).getByText("94%")).toBeVisible();
-    expect(within(shaderCandidate).getByText("minimal / sacred geometry")).toBeVisible();
+    expect(within(shaderCandidate).getByText("minimal / geometry")).toBeVisible();
     expect(within(shaderCandidate).getByText("glow")).toBeVisible();
     expect(within(shaderCandidate).getByText("mandala")).toBeVisible();
     expect(
@@ -4217,7 +4251,7 @@ describe("WorkstationShell", () => {
     expect(translation).toHaveAttribute("data-state", "available");
     expect(within(translation).getByText("Audiovisual")).toBeVisible();
     expect(within(translation).getByText("mandala")).toBeVisible();
-    expect(within(translation).getByText("sacred geometry")).toBeVisible();
+    expect(within(translation).getByText("geometry")).toBeVisible();
     expect(within(translation).getByText("rhythm")).toBeVisible();
     expect(within(translation).getByText("p5.js / Tone.js")).toBeVisible();
     expect(within(translation).getByText(/Preserve atmosphere/)).toBeVisible();
@@ -4232,15 +4266,15 @@ describe("WorkstationShell", () => {
     expect(
       within(referenceFusion).getByText("warm palette bias / neon accent contrast")
     ).toBeVisible();
-    const sacredGeometry = within(translation).getByRole("region", {
-      name: "Sacred geometry guidance"
+    const geometry = within(translation).getByRole("region", {
+      name: "Geometry guidance"
     });
-    expect(sacredGeometry).toBeVisible();
+    expect(geometry).toBeVisible();
     expect(
-      within(sacredGeometry).getByText("mandala / radial symmetry")
+      within(geometry).getByText("mandala / radial symmetry")
     ).toBeVisible();
     expect(
-      within(sacredGeometry).getByText("p5.js / GLSL / Tone.js")
+      within(geometry).getByText("p5.js / GLSL / Tone.js")
     ).toBeVisible();
     const shaderPresets = within(translation).getByRole("region", {
       name: "Shader preset guidance"
@@ -4259,7 +4293,7 @@ describe("WorkstationShell", () => {
     });
     expect(visualStyle).toBeVisible();
     expect(
-      within(visualStyle).getByText("minimal / sacred geometry")
+      within(visualStyle).getByText("minimal / geometry")
     ).toBeVisible();
     expect(
       within(visualStyle).getByText(
@@ -4287,7 +4321,7 @@ describe("WorkstationShell", () => {
     expect(translation).toHaveAttribute("data-state", "legacy");
     expect(
       within(translation).queryByRole("region", {
-        name: "Sacred geometry guidance"
+        name: "Geometry guidance"
       })
     ).not.toBeInTheDocument();
     expect(

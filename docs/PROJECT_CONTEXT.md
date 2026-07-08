@@ -1,9 +1,9 @@
 # Project Context
 
-Creative Coding Assistant is a creative coding workstation that turns symbolic,
-geometric, stylistic, audiovisual, and multimodal intent into structured
-creative guidance, generated artifacts, previewable outputs, critique, and
-refinement context.
+Creative Coding Assistant is a creative coding workstation that turns
+conceptual, geometric, stylistic, audiovisual, and multimodal intent into
+structured creative guidance, generated artifacts, previewable outputs,
+critique, and refinement context.
 
 ## Product Surface
 
