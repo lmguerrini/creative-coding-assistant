@@ -577,8 +577,9 @@ function snapshotWithEmptyRetrieval(): AssistantWorkspaceSnapshot {
       ...snapshot.retrieval,
       state: "empty",
       status: "No matches",
-      headline: "No retrieved context",
-      detail: "No retrieval chunks were returned for this request.",
+      headline: "No retrieved context for this run.",
+      detail:
+        "No retrieved context for this run. No matching retrieval chunks were returned for this request.",
       query: "Find TouchDesigner references for this projection loop.",
       requestedDomains: ["touchdesigner"],
       warning: "No retrieved chunks for TouchDesigner.",
@@ -1015,17 +1016,30 @@ describe("WorkstationShell", () => {
     expect(
       within(demoMode).getByRole("button", { name: /Prompt loaded/ })
     ).toBeVisible();
+    expect(
+      within(demoMode).queryByText("33.9s optimized live smoke")
+    ).not.toBeInTheDocument();
+    expect(
+      within(demoMode).queryByText("39,645 total / 2,839 output tokens")
+    ).not.toBeInTheDocument();
+    expect(within(demoMode).getByText("Generative growth system")).toBeVisible();
+    expect(
+      within(demoMode).queryByText("Source boundary")
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
+      "User"
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Display mode" }));
+    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
+      "Developer"
+    );
     expect(within(demoMode).getByText("33.9s optimized live smoke")).toBeVisible();
     expect(
       within(demoMode).getByText("39,645 total / 2,839 output tokens")
     ).toBeVisible();
-    expect(within(demoMode).getByText("Generative growth system")).toBeVisible();
     expect(
       within(demoMode).getByRole("button", { name: /Source grounding/ })
     ).toBeVisible();
-    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
-      "User"
-    );
     const composer = screen.getByRole("textbox", {
       name: "Assistant prompt"
     }) as HTMLTextAreaElement;
@@ -5751,9 +5765,51 @@ describe("WorkstationShell", () => {
 
     expect(await screen.findByText("Workspace restored.")).toBeVisible();
     expect(screen.getByText("Restored projection session")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
+      "User"
+    );
+    await waitFor(() =>
+      expect(screen.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
+        "data-state",
+        "collapsed"
+      )
+    );
+    expect(screen.queryByRole("tab", { name: "Workflow" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Telemetry" })).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(persistenceClient.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          layout: expect.objectContaining({
+            inspectorCollapsed: true
+          }),
+          preferences: expect.objectContaining({
+            showDebugPanels: false
+          })
+        })
+      )
+    );
+    expect(await screen.findByText("Session saved")).toBeVisible();
+    vi.mocked(persistenceClient.save).mockClear();
+
+    fireEvent.click(screen.getByRole("button", { name: "Expand inspector" }));
+
+    expect(screen.getByRole("tab", { name: "Preview" })).toBeVisible();
+    expect(screen.getByRole("tab", { name: "Code" })).toBeVisible();
     expect(screen.getByRole("tab", { name: "Artifacts" })).toHaveAttribute(
       "aria-selected",
       "true"
+    );
+    expect(screen.getByRole("tab", { name: "Retrieval" })).toBeVisible();
+    expect(screen.queryByRole("tab", { name: "Workflow" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Telemetry" })).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(persistenceClient.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          layout: expect.objectContaining({
+            inspectorCollapsed: false
+          })
+        })
+      )
     );
     expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
       "projection-notes.md"
@@ -5770,8 +5826,6 @@ describe("WorkstationShell", () => {
       "260"
     );
     expect(document.documentElement).toHaveAttribute("data-cca-theme", "codex");
-    expect(screen.getByText("Session restored")).toBeVisible();
-    expect(persistenceClient.save).not.toHaveBeenCalled();
   });
 
   it("saves workspace state changes after persistence is ready", async () => {

@@ -290,8 +290,8 @@ function buildCompletedRuntimeModel(
           "chunk"
         )} across ${countLabel(sources.length, "source")}.`
       : request.query
-        ? `No retrieval chunks were returned for “${request.query}”.`
-        : "No retrieval chunks were returned for this request.";
+        ? `No retrieved context for this run. No matching chunks were returned for “${request.query}”`
+        : "No retrieved context for this run. No matching retrieval chunks were returned for this request.";
 
   return {
     request,
@@ -379,7 +379,7 @@ function buildRuntimeSummary({
         ? usedChunkCount === chunkCount
           ? "Every returned chunk was included in the generation context."
           : `${usedChunkCount} of ${chunkCount} returned chunks were included in the generation context.`
-        : "No retrieval chunks were available for generation context.",
+        : "No retrieved context for this run.",
     warning,
     updatedAt: emittedAt ?? latestUpdatedAt(sources),
     error
@@ -834,7 +834,7 @@ function buildSummaryHeadline(
     case "pending":
       return query ? `Searching for “${truncateText(query, 44)}”` : "Searching knowledge base";
     case "empty":
-      return "No retrieved context";
+      return "No retrieved context for this run.";
     case "error":
       return "Retrieval failed";
     case "unavailable":

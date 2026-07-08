@@ -372,6 +372,9 @@ describe("retrieval runtime", () => {
     expect(runtime.summary).toMatchObject({
       state: "empty",
       status: "No matches",
+      headline: "No retrieved context for this run.",
+      detail:
+        "No retrieved context for this run. No matching chunks were returned for “Find TouchDesigner references for this projection loop.”",
       warning: "No retrieved chunks for TouchDesigner."
     });
     expect(runtime.sources).toEqual([]);

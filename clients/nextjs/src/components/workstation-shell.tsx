@@ -307,11 +307,12 @@ const localWorkflowIntervalMs = 850;
 const artifactFeedbackDurationMs = 1400;
 const defaultWorkspacePersistenceClient = createWorkspacePersistenceClient();
 const userModeInspectorTabs = new Set<InspectorTabName>([
-  "Overview",
   "Preview",
   "Code",
-  "Artifacts"
+  "Artifacts",
+  "Retrieval"
 ]);
+const userModeDefaultInspectorTab: InspectorTabName = "Preview";
 const persistenceStateLabels = {
   loading: "Restoring session",
   ready: "Local session ready",
@@ -503,9 +504,21 @@ export function WorkstationShell({
       !workspacePreferences.showDebugPanels &&
       !userModeInspectorTabs.has(activeTab)
     ) {
-      setActiveTab("Overview");
+      setActiveTab(userModeDefaultInspectorTab);
     }
   }, [activeTab, workspacePreferences.showDebugPanels]);
+
+  useEffect(() => {
+    if (workspacePreferences.showDebugPanels) {
+      updateLayout({ inspectorCollapsed: false });
+      return;
+    }
+
+    setActiveTab((currentTab) =>
+      userModeInspectorTabs.has(currentTab) ? currentTab : userModeDefaultInspectorTab
+    );
+    updateLayout({ inspectorCollapsed: true });
+  }, [workspacePreferences.showDebugPanels]);
 
   useEffect(() => {
     const chatLog = chatLogRef.current;
@@ -1253,6 +1266,12 @@ export function WorkstationShell({
     );
   }
 
+  function handleDisplayModeToggle() {
+    updateWorkspacePreferences({
+      showDebugPanels: !workspacePreferences.showDebugPanels
+    });
+  }
+
   function handleDensityToggle() {
     updateLayout({
       density: layoutState.density === "compact" ? "cozy" : "compact"
@@ -1980,7 +1999,8 @@ export function WorkstationShell({
 
     setIsDemoModeOpen(nextOpen);
     if (nextOpen) {
-      setActiveTab("Overview");
+      setActiveTab(userModeDefaultInspectorTab);
+      updateLayout({ inspectorCollapsed: true });
       updateWorkspacePreferences({ showDebugPanels: false });
     }
     setOpenUtilityPanel(null);
@@ -1989,7 +2009,8 @@ export function WorkstationShell({
   function handleDemoScenarioLoad(scenario: DemoModeScenario) {
     setActiveDemoScenarioId(scenario.id);
     setIsDemoModeOpen(true);
-    setActiveTab("Overview");
+    setActiveTab(userModeDefaultInspectorTab);
+    updateLayout({ inspectorCollapsed: true });
     setComposerValue(scenario.prompt);
     updateWorkspacePreferences({ showDebugPanels: false });
     setOpenUtilityPanel(null);
@@ -2632,11 +2653,7 @@ export function WorkstationShell({
             aria-label="Display mode"
             aria-pressed={workspacePreferences.showDebugPanels}
             className="toolbarToggle"
-            onClick={() =>
-              updateWorkspacePreferences({
-                showDebugPanels: !workspacePreferences.showDebugPanels
-              })
-            }
+            onClick={handleDisplayModeToggle}
             title={
               workspacePreferences.showDebugPanels
                 ? "Switch to User Mode"
@@ -3311,20 +3328,27 @@ function DemoModePanel({
   scenarios: readonly DemoModeScenario[];
   showDebugPanels: boolean;
 }) {
-  const scenarioFacts = [
-    ["Capability", activeScenario.recommendedForDemo],
-    ["Technology", activeScenario.runtime],
-    ["Generation", activeScenario.estimatedGenerationTime],
-    ["Presenter time", activeScenario.presentationTime],
-    ["Tokens", activeScenario.estimatedTokenUsage],
-    ["Workflow", activeScenario.workflowType],
-    ["Provider", activeScenario.providerRequirement],
-    ["Retrieval", activeScenario.retrievalRequirement],
-    ["Preview", activeScenario.previewAvailability],
-    ["Fallback", activeScenario.fallbackAvailability],
-    ["Expected output", activeScenario.expectedOutput],
-    ["Complexity", activeScenario.complexity]
-  ] as const;
+  const scenarioFacts = showDebugPanels
+    ? ([
+        ["Capability", activeScenario.recommendedForDemo],
+        ["Technology", activeScenario.runtime],
+        ["Generation", activeScenario.estimatedGenerationTime],
+        ["Presenter time", activeScenario.presentationTime],
+        ["Tokens", activeScenario.estimatedTokenUsage],
+        ["Workflow", activeScenario.workflowType],
+        ["Provider", activeScenario.providerRequirement],
+        ["Retrieval", activeScenario.retrievalRequirement],
+        ["Preview", activeScenario.previewAvailability],
+        ["Fallback", activeScenario.fallbackAvailability],
+        ["Expected output", activeScenario.expectedOutput],
+        ["Complexity", activeScenario.complexity]
+      ] as const)
+    : ([
+        ["Capability", activeScenario.recommendedForDemo],
+        ["Runtime", activeScenario.runtime],
+        ["Output", activeScenario.expectedOutput],
+        ["Fallback", activeScenario.fallbackAvailability]
+      ] as const);
 
   return (
     <section
@@ -3337,8 +3361,8 @@ function DemoModePanel({
           <span className="eyebrow">Demo Mode</span>
           <strong>Capstone scenarios</strong>
           <p>
-            Curated creative-coding flows with prompts, fallback paths, source
-            boundaries, and validation evidence.
+            Curated creative-coding flows with ready prompts, expected output,
+            and fallback paths.
           </p>
         </div>
         <span className="demoModeCount">{scenarios.length} flows</span>
@@ -3360,7 +3384,7 @@ function DemoModePanel({
           >
             <span>{item.role}</span>
             <strong>{item.title}</strong>
-            <small>{item.rationale}</small>
+            {showDebugPanels ? <small>{item.rationale}</small> : null}
           </button>
         ))}
       </div>
@@ -3437,26 +3461,31 @@ function DemoModePanel({
               <dt>Output guidance</dt>
               <dd>{activeScenario.outputGuidance}</dd>
             </div>
-            <div>
-              <dt>Source boundary</dt>
-              <dd>{activeScenario.sourceBoundary}</dd>
-            </div>
-            <div>
-              <dt>Validation</dt>
-              <dd>{activeScenario.validationPath}</dd>
-            </div>
           </dl>
 
-          <div className="demoScenarioEvidence">
-            <span>Evidence</span>
-            <div>
-              {activeScenario.evidence.map((item) => (
-                <code key={item}>
-                  {showDebugPanels ? item : formatDemoEvidenceLabel(item)}
-                </code>
-              ))}
-            </div>
-          </div>
+          {showDebugPanels ? (
+            <>
+              <dl className="demoScenarioMeta demoScenarioMeta--developer">
+                <div>
+                  <dt>Source boundary</dt>
+                  <dd>{activeScenario.sourceBoundary}</dd>
+                </div>
+                <div>
+                  <dt>Validation</dt>
+                  <dd>{activeScenario.validationPath}</dd>
+                </div>
+              </dl>
+
+              <div className="demoScenarioEvidence">
+                <span>Evidence</span>
+                <div>
+                  {activeScenario.evidence.map((item) => (
+                    <code key={item}>{item}</code>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : null}
         </article>
       </div>
     </section>
@@ -3828,7 +3857,12 @@ function InspectorPanel({
   }
 
   if (activeTab === "Retrieval") {
-    return <RetrievalInspector runtime={retrievalRuntime} />;
+    return (
+      <RetrievalInspector
+        runtime={retrievalRuntime}
+        showDebugPanels={showDebugPanels}
+      />
+    );
   }
 
   return (
@@ -6577,33 +6611,6 @@ function formatRuntimeCode(value: string) {
   return value
     .replace(/_/g, " ")
     .replace(/\b\w/g, (character) => character.toUpperCase());
-}
-
-function formatDemoEvidenceLabel(value: string) {
-  const normalizedValue = value.toLowerCase();
-  const knownLabels: Array<[string, string]> = [
-    ["browser_full_runtime_qa", "Browser render QA"],
-    ["qa_manifest", "Artifact QA manifest"],
-    ["golden_demo_dataset", "Offline demo dataset"],
-    ["capstone_evaluation_ethics", "Evaluation and ethics"],
-    ["v8_capstone_evidence_matrix", "Evidence matrix"],
-    ["v8_grand_engineering_review", "Grand Review evidence"],
-    ["hydra_feedback_lattice", "Hydra artifact"],
-    ["redacted_live_session_ragas", "Redacted RAGAs results"],
-    ["sanitized_ragas", "Sanitized RAGAs results"],
-    ["eval_pipeline", "Evaluation pipeline"],
-    ["demo_prompt_library", "Prompt library"],
-    ["final_demo_suite", "Demo suite metadata"],
-    ["final_demo_launcher", "Static fallback launcher"]
-  ];
-  const match = knownLabels.find(([needle]) => normalizedValue.includes(needle));
-
-  if (match) {
-    return match[1];
-  }
-
-  const fileName = value.split("/").pop() ?? value;
-  return formatRuntimeCode(fileName.replace(/\.[^.]+$/, ""));
 }
 
 function readPayloadText(
