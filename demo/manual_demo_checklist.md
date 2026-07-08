@@ -11,6 +11,8 @@ showcase session.
   `docs/CAPSTONE_EVALUATION_ETHICS.md` open.
 - Keep `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md` open for reviewer questions.
 - Keep `demo/golden_demo_dataset.json` and `demo/demo_prompt_library.md` open.
+- Keep `demo/final_demo_suite.json` open for exact demo starts, success
+  criteria, fallback paths, and talking points.
 - Keep `demo/evaluation/` open for sanitized RAGAs input/results.
 - Keep `demo/golden_artifacts/` open for generated p5.js, Three.js, and GLSL
   artifact QA evidence.
@@ -62,11 +64,10 @@ If preview is unavailable:
 
 1. Use `assets/preview_current.png`.
 2. Explain that V8.8 did not change preview runtime behavior.
-3. Show `demo/golden_artifacts/browser_render_qa_results.json` as browser QA
+3. Show `demo/golden_artifacts/browser_full_runtime_qa_results.json` as browser QA
    evidence:
-   p5 rendered nonblank through a local shim, GLSL rendered nonblank through
-   WebGL, and Three.js remained static-only because no local Three package was
-   installed.
+   p5 and Three.js rendered nonblank through real temporary QA runtime packages,
+   and GLSL rendered nonblank through WebGL.
 4. Continue with code/artifact planning and critique/refinement explanation.
 
 ## Reviewer Answer Cards
@@ -75,12 +76,12 @@ If preview is unavailable:
   A local Capstone workstation demo: backend on `127.0.0.1:8000`, Next.js dev
   server locally, no public deployment without HITL.
 - What actually rendered in browser QA?
-  p5.js artifact rendered nonblank through a minimal p5-compatible harness,
-  GLSL rendered nonblank through WebGL, and Three.js loaded as a module but did
-  not render because no local Three package is installed.
+  p5.js rendered nonblank with `p5@2.3.0`, Three.js rendered nonblank with
+  `three@0.185.1`, and GLSL rendered nonblank through WebGL. The p5/Three
+  packages were temporary QA dependencies, not app dependency changes.
 - Is this a full performance benchmark?
-  No. It is render/failure-boundary QA, not FPS, load, soak, or deployment
-  validation.
+  No. It is render/failure-boundary QA with uncapped draw-loop frame timing, not
+  display FPS, load, soak, or deployment validation.
 - What should happen if a live dependency fails?
   Switch to the prepared offline dataset, prompt library, screenshots, sanitized
   RAGAs evidence, golden artifact QA, and architecture walkthrough without

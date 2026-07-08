@@ -51,16 +51,16 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
 
         self.assertEqual(
             manifest["browser_render_qa_result"],
-            "demo/golden_artifacts/browser_render_qa_results.json",
+            "demo/golden_artifacts/browser_full_runtime_qa_results.json",
         )
-        self.assertEqual(artifacts["p5_sacred_geometry_sketch"]["qa_status"], "browser_harness_render_passed")
+        self.assertEqual(
+            artifacts["p5_sacred_geometry_sketch"]["qa_status"],
+            "full_runtime_browser_render_passed",
+        )
         self.assertEqual(artifacts["glsl_kaleidoscope_field"]["qa_status"], "browser_webgl_render_passed")
         self.assertEqual(
-            artifacts["three_audio_reactive_scene"]["browser_render_check"],
-            (
-                "static_only_dependency_unavailable; module export loaded and "
-                "createAudioReactiveScene fails gracefully when THREE is missing"
-            ),
+            artifacts["three_audio_reactive_scene"]["qa_status"],
+            "full_runtime_browser_render_passed",
         )
         self.assertEqual(artifacts["hydra"]["qa_status"], "not_generated")
         self.assertIn("guidance-only", artifacts["hydra"]["boundary"])
@@ -88,6 +88,61 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
         self.assertIn("glsl_kaleidoscope_field.frag", harness)
         self.assertIn("three_audio_reactive_scene.js", harness)
         self.assertNotIn("https://", harness)
+
+    def test_browser_full_runtime_qa_result_records_real_runtime_boundaries(self) -> None:
+        result = json.loads(
+            Path("demo/golden_artifacts/browser_full_runtime_qa_results.json").read_text(encoding="utf-8")
+        )
+        by_artifact = {entry["artifact_id"]: entry for entry in result["results"]}
+        harness = Path("demo/golden_artifacts/browser_full_runtime_qa.html").read_text(encoding="utf-8")
+
+        self.assertEqual(result["temporary_dependencies"]["p5"], "2.3.0")
+        self.assertEqual(result["temporary_dependencies"]["three"], "0.185.1")
+        self.assertEqual(
+            by_artifact["p5_sacred_geometry_sketch"]["classification"],
+            "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
+        )
+        self.assertEqual(
+            by_artifact["three_audio_reactive_scene"]["classification"],
+            "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
+        )
+        self.assertEqual(by_artifact["glsl_kaleidoscope_field"]["classification"], "FULLY VALIDATED")
+        self.assertTrue(by_artifact["p5_sacred_geometry_sketch"]["pixel_check"]["nonblank"])
+        self.assertTrue(by_artifact["three_audio_reactive_scene"]["pixel_check"]["nonblank"])
+        self.assertTrue(by_artifact["glsl_kaleidoscope_field"]["pixel_check"]["nonblank"])
+        self.assertIn("/node_modules/p5/lib/p5.min.js", harness)
+        self.assertIn("/node_modules/three/build/three.module.js", harness)
+        self.assertIn("performance_boundary", result)
+
+    def test_final_demo_suite_has_eight_startable_flows_with_boundaries(self) -> None:
+        suite = json.loads(Path("demo/final_demo_suite.json").read_text(encoding="utf-8"))
+
+        self.assertEqual(suite["schema_version"], "v8.final_demo_suite.v1")
+        self.assertEqual(len(suite["demos"]), 8)
+        self.assertEqual(
+            suite["ui_start_to_finish_status"],
+            "manual_presenter_started; no one-click in-app demo launcher is implemented",
+        )
+        required_keys = {
+            "prompt",
+            "expected_behavior",
+            "fallback_path",
+            "success_criteria",
+            "validation_path",
+            "reviewer_talking_point",
+            "classification",
+        }
+        for demo in suite["demos"]:
+            self.assertTrue(required_keys.issubset(demo), demo)
+            self.assertIn(
+                demo["classification"],
+                {
+                    "FULLY VALIDATED",
+                    "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
+                    "BLOCKED BY HITL PRIVACY APPROVAL",
+                    "UNSUPPORTED / DO NOT CLAIM",
+                },
+            )
 
 
 if __name__ == "__main__":

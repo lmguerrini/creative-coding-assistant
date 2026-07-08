@@ -1,0 +1,94 @@
+{
+  "schema_version": "v8.browser_full_runtime_qa_result.v1",
+  "checked_at": "2026-07-08T15:21:19Z",
+  "branch": "version-review/v8",
+  "harness": "demo/golden_artifacts/browser_full_runtime_qa.html",
+  "local_url": "http://127.0.0.1:8126/demo/golden_artifacts/browser_full_runtime_qa.html",
+  "server_root": "/private/tmp/v8_runtime_qa",
+  "server_command": "/Users/k/Desktop/CC/the_turing_college/extra_projects/creative_coding_assistant/.venv/bin/python -m http.server 8126 --bind 127.0.0.1",
+  "dependency_install_command": "npm install p5 three",
+  "dependency_workspace": "/private/tmp/v8_runtime_qa",
+  "temporary_dependencies": {
+    "p5": "2.3.0",
+    "three": "0.185.1"
+  },
+  "npm_audit_summary": "20 packages installed, 0 vulnerabilities reported by npm install audit summary.",
+  "browser": "Codex in-app browser",
+  "console_warnings_or_errors": [],
+  "performance_boundary": "Frame timing is an uncapped local draw-loop measurement captured in the browser. It is not a vsync display FPS, load, soak, or production performance benchmark.",
+  "results": [
+    {
+      "artifact_id": "p5_sacred_geometry_sketch",
+      "runtime": "p5.js",
+      "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
+      "status": "fully_validated",
+      "evidence": "Real p5 package loaded from temporary QA node_modules. The artifact rendered nonblank and passed an internal canvas pixel check after 120 manual draw calls.",
+      "canvas": {
+        "width": 1440,
+        "height": 1440
+      },
+      "pixel_check": {
+        "litSamples": 129600,
+        "nonblank": true
+      },
+      "performance": {
+        "frames": 120,
+        "elapsed_ms": 57.4,
+        "average_frame_ms": 0.478,
+        "approximate_uncapped_draws_per_second": 2090.6
+      },
+      "accepted_boundary": "The real p5 runtime was installed in a temporary QA workspace, not added to the app dependency graph."
+    },
+    {
+      "artifact_id": "three_audio_reactive_scene",
+      "runtime": "Three.js",
+      "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
+      "status": "fully_validated",
+      "evidence": "Real Three.js package loaded from temporary QA node_modules. The artifact created a scene, rendered nonblank, and passed a WebGL pixel check after 180 frame calls.",
+      "canvas": {
+        "width": 512,
+        "height": 512
+      },
+      "pixel_check": {
+        "litSamples": 65536,
+        "nonblank": true
+      },
+      "performance": {
+        "frames": 180,
+        "elapsed_ms": 202.4,
+        "average_frame_ms": 1.124,
+        "approximate_uncapped_draws_per_second": 889.3
+      },
+      "accepted_boundary": "The real Three.js runtime was installed in a temporary QA workspace, not added to the app dependency graph."
+    },
+    {
+      "artifact_id": "glsl_kaleidoscope_field",
+      "runtime": "GLSL/WebGL",
+      "classification": "FULLY VALIDATED",
+      "status": "fully_validated",
+      "evidence": "The shader compiled, linked, drew, and passed a WebGL nonblank pixel check after 180 draw calls.",
+      "canvas": {
+        "width": 512,
+        "height": 512
+      },
+      "pixel_check": {
+        "litSamples": 16198,
+        "nonblank": true
+      },
+      "performance": {
+        "frames": 180,
+        "elapsed_ms": 0.1,
+        "average_frame_ms": 0.001,
+        "approximate_uncapped_draws_per_second": 1799999.8
+      },
+      "accepted_boundary": "Validated in a generic local WebGL harness, not as a production-hosted preview surface."
+    }
+  ],
+  "unsupported_runtime_status": {
+    "hydra": {
+      "classification": "UNSUPPORTED / DO NOT CLAIM",
+      "reason": "No live Hydra runtime is installed, wired, or QA-tested for V8."
+    }
+  },
+  "claim_boundary": "This is local browser QA evidence only. It is not a public deployment, not a product preview runtime claim, not a display-FPS guarantee, and not evidence of Hydra, DCC/MCP, HoloMind, or HOLOiVERSE execution."
+}

@@ -46,13 +46,17 @@ curl http://127.0.0.1:8000/api/health/ready
 Golden artifact browser QA, when needed:
 
 ```bash
-.venv/bin/python -m http.server 8124 --bind 127.0.0.1
+mkdir -p /private/tmp/v8_runtime_qa
+cd /private/tmp/v8_runtime_qa
+npm install p5 three
+test -e demo || ln -s /path/to/creative_coding_assistant/demo demo
+/path/to/creative_coding_assistant/.venv/bin/python -m http.server 8126 --bind 127.0.0.1
 ```
 
 Then open:
 
 ```text
-http://127.0.0.1:8124/demo/golden_artifacts/browser_render_qa.html
+http://127.0.0.1:8126/demo/golden_artifacts/browser_full_runtime_qa.html
 ```
 
 Demo fallback path:
@@ -67,9 +71,10 @@ Demo fallback path:
 - Retrieval failure: use the retrieval demo pack evidence and sanitized RAGAs
   result; private live-session RAGAs remains HITL/privacy-gated.
 - Preview/artifact failure: show `demo/golden_artifacts/qa_manifest.json` and
-  `demo/golden_artifacts/browser_render_qa_results.json`; be explicit that
-  p5.js rendered through a local shim, GLSL rendered through WebGL, and Three.js
-  remained static-only because no local Three package was installed.
+  `demo/golden_artifacts/browser_full_runtime_qa_results.json`; be explicit
+  that p5.js and Three.js rendered through real temporary QA runtime packages,
+  GLSL rendered through WebGL, and the frame timing is uncapped local draw-loop
+  timing rather than display FPS.
 
 ## Production Backend
 

@@ -23,3 +23,10 @@ The canonical command for the privacy-approved RAGAs run is:
 Only the sanitized fixture is approved for provider-backed evaluator calls in
 this release-candidate pass. Recorded local live-session data remains private
 and requires separate HITL/privacy approval before external scoring.
+
+`private_live_session_ragas_decision.json` records the concrete private-data
+decision for `data/eval/live_sessions.jsonl`: latest dry-run selection found
+60 total samples, 4 eligible samples, and 56 skipped samples, but external
+provider scoring remains blocked because the rows contain recorded local
+questions, answers, and retrieved contexts. The file includes the exact command
+to run only after HITL privacy approval.

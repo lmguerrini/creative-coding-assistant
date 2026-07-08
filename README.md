@@ -257,9 +257,12 @@ Demo materials:
   limitations
 - `demo/demo_prompt_library.md` for golden prompts
 - `demo/golden_demo_dataset.json` for rehearsal and offline fallback
+- `demo/final_demo_suite.json` for the final eight-flow demo start paths,
+  success criteria, fallbacks, and reviewer talking points
 - `demo/golden_artifacts/` for generated and QA-checked p5.js, Three.js, and
   GLSL public artifacts
-- `demo/evaluation/` for sanitized RAGAs fixture/result evidence
+- `demo/evaluation/` for sanitized RAGAs fixture/result evidence and the
+  private live-session HITL decision
 - `demo/manual_demo_checklist.md` for reliability validation
 - `demo/showcase_upload_preparation.md` for showcase packaging
 

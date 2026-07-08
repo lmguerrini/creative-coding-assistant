@@ -110,13 +110,19 @@ Evaluation:
   `demo/golden_artifacts/glsl_kaleidoscope_field.frag` passes static fragment
   shader structure checks. Hydra was intentionally not generated because a live
   Hydra execution path has not been installed, wired, and tested.
-- Final browser/render QA loaded
-  `demo/golden_artifacts/browser_render_qa.html` through the Codex in-app
-  browser via local `127.0.0.1` static server. The p5 artifact rendered
-  nonblank through a minimal p5-compatible canvas shim; GLSL compiled, linked,
-  drew, and pixel-checked nonblank through WebGL; Three.js loaded as a module
-  and failed gracefully with `THREE is required.` because no local Three package
-  is installed. No Three.js render or FPS benchmark is claimed.
+- Final full-runtime browser/render QA loaded
+  `demo/golden_artifacts/browser_full_runtime_qa.html` through the Codex
+  in-app browser via local `127.0.0.1` static server rooted at the temporary QA
+  workspace. `p5@2.3.0` rendered the p5 artifact nonblank; `three@0.185.1`
+  rendered the Three.js artifact nonblank; GLSL compiled, linked, drew, and
+  pixel-checked nonblank through WebGL. No display-FPS, load, soak, public
+  deployment, or product-preview-runtime benchmark is claimed.
+- Private live-session RAGAs dry-run over `data/eval/live_sessions.jsonl`
+  selected 4 latest eligible samples from 60 total samples and skipped 56. The
+  file still contains recorded local questions, answers, and retrieved contexts,
+  so external evaluator calls remain `BLOCKED BY HITL PRIVACY APPROVAL`. The
+  exact HITL-approved command is recorded in
+  `demo/evaluation/private_live_session_ragas_decision.json`.
 
 Security:
 
@@ -139,7 +145,7 @@ The review validated cross-capability coverage rather than only one milestone:
   creative journey E2E coverage.
 - Demo and Capstone readiness through production demo assets, demo showcase
   experience, production creative readiness review, manual checklist, prompt
-  library, and golden dataset evidence.
+  library, final demo suite, and golden dataset evidence.
 - Runtime-family prompt evidence through Three.js, p5.js, GLSL,
   Hydra-if-supported, retrieval/RAG, symbolic translation, Sacred Geometry,
   Sacred Architecture, Mythopoetic Narrative, Immersive Composer, and
@@ -153,8 +159,9 @@ fallbacks, and future work are documented without overstating live execution.
 
 Golden demo coverage is release-candidate ready as a bounded rehearsal and
 evidence set. The public artifact set now includes generated p5.js, Three.js,
-and GLSL examples with static QA. Live showcase upload and final public claims
-approval still need HITL.
+and GLSL examples with full-runtime browser QA evidence for p5/Three through
+temporary QA dependencies and direct WebGL evidence for GLSL. Live showcase
+upload and final public claims approval still need HITL.
 
 ## Readiness Assessment
 
@@ -162,12 +169,12 @@ Detailed engineering scorecard:
 `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md`.
 
 The Grand Review no longer uses a single overall score. Production readiness is
-one category in the detailed scorecard and is now 97/100 after the sanitized
+one category in the detailed scorecard and is now 98/100 after the sanitized
 RAGAs run, generated artifact QA, final browser/render QA, local deployment
 target review, public/private docs audit, README evaluator path, and timed-demo
 evidence update. The higher-level release-candidate judgment is based on
 category evidence, remaining risks, and HITL boundaries. The advisory aggregate
-across the 13 requested Capstone Excellence categories is 97.6/100.
+across the 13 requested Capstone Excellence categories is 98.0/100.
 
 AI review readiness: ready for final reviewer evaluation with bounded claims.
 
@@ -201,9 +208,9 @@ Remaining risks:
   sends recorded eval content to an external provider. The sanitized fixture
   run is complete and exact scores are documented.
 - Generated-output artifact QA is now available for p5.js, Three.js, and GLSL,
-  with browser/render evidence for p5 shim and GLSL WebGL. Three.js remains
-  static-only in this checkout because the local Three runtime package is not
-  installed. No FPS benchmark was run.
+  with full-runtime browser/render evidence through temporary QA packages for
+  p5/Three and WebGL for GLSL. Frame timing is uncapped local draw-loop timing,
+  not display FPS, load, soak, or production performance benchmarking.
 - External DCC/MCP execution, HoloMind, and HOLOiVERSE remain unsupported
   future-scope items.
 - Chroma/Pydantic deprecation warnings are non-blocking dependency warnings with

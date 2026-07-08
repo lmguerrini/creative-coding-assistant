@@ -1,0 +1,43 @@
+{
+  "schema_version": "v8.private_live_session_ragas_decision.v1",
+  "date": "2026-07-08",
+  "branch": "version-review/v8",
+  "classification": "BLOCKED BY HITL PRIVACY APPROVAL",
+  "private_input_path": "data/eval/live_sessions.jsonl",
+  "dry_run_command": ".venv/bin/python scripts/eval_live_sessions.py --input-path data/eval/live_sessions.jsonl --output-path /private/tmp/v8_private_live_session_ragas_dry_run.jsonl --latest 4 --metric context_precision --dry-run",
+  "dry_run_summary": {
+    "total_samples": 60,
+    "eligible_samples": 4,
+    "skipped_samples": 56,
+    "metrics": [
+      "context_precision"
+    ],
+    "provider_calls_allowed": false,
+    "result_rows": 0,
+    "metric_failures": 0,
+    "eligible_sample_ids": [
+      "32ab1977b2d149658c811fac9652bfc5",
+      "4c9aa5e5b366487d9eb6608b1e9668ba",
+      "a96585be83694c67885c65557ed057f3",
+      "73f561212b2846e0b52ad63445527580"
+    ]
+  },
+  "privacy_scan_summary": {
+    "lines": 60,
+    "absolute_user_paths": 0,
+    "api_key_shapes": 0,
+    "emails": 0,
+    "localhost_urls": 1
+  },
+  "decision": "The file contains recorded local live-session questions, answers, and retrieved contexts. Even without obvious secret patterns, it is private user/session content and must not be sent to an external evaluator without HITL privacy approval.",
+  "safe_public_alternative": {
+    "input": "demo/evaluation/sanitized_ragas_live_sessions.jsonl",
+    "result": "demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl",
+    "rows": 4,
+    "eligible": 4,
+    "skipped": 0,
+    "metric_failures": 0,
+    "average_context_precision": 0.999999999925
+  },
+  "hitl_approved_command": ".venv/bin/python scripts/eval_live_sessions.py --input-path data/eval/live_sessions.jsonl --output-path data/eval/ragas_latest4_private_context_precision.jsonl --latest 4 --metric context_precision --allow-provider-calls"
+}

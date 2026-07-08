@@ -28,10 +28,11 @@ integrated, demonstrated, and no meaningful HITL or external dependency remains.
 - Golden runtime artifacts were generated and QA checked for p5.js, Three.js,
   and GLSL. Hydra was intentionally not generated because no live V8 Hydra
   execution path is installed, wired, and tested.
-- Final browser/render QA added: p5.js rendered nonblank through a local
-  p5-compatible canvas shim; GLSL compiled, linked, drew, and pixel-checked
-  nonblank through WebGL; Three.js remained static-only because no local Three
-  package is installed, with graceful `THREE is required.` failure captured.
+- Final full-runtime browser/render QA added: `p5@2.3.0` rendered the p5
+  artifact nonblank; `three@0.185.1` rendered the Three.js artifact nonblank;
+  GLSL compiled, linked, drew, and pixel-checked nonblank through WebGL.
+- Performance/frame timing evidence added for p5, Three.js, and GLSL as
+  uncapped local draw-loop timing, not display FPS or load/soak benchmarking.
 - Realistic Capstone deployment target documented as local workstation demo:
   backend on `127.0.0.1:8000`, local Next.js dev server, no public deployment
   without HITL.
@@ -49,8 +50,8 @@ release-candidate pass. Scores remain conservative: a category does not reach
 100 while HITL, external deployment, full render/FPS validation, broad live
 benchmarks, or dependency-upgrade validation remains open.
 
-Advisory aggregate across these 13 requested categories: 97.6/100. Production
-Readiness category score: 97/100.
+Advisory aggregate across these 13 requested categories: 98.0/100. Production
+Readiness category score: 98/100.
 
 | Category | Previous score | Fixes performed | Final score | Remaining risk | Exact evidence |
 |---|---:|---|---:|---|---|
@@ -58,15 +59,15 @@ Readiness category score: 97/100.
 | Code Quality | 96 | Added schema/static QA tests for sanitized eval and artifacts. | 97 | Third-party Chroma warnings remain. | `tests/test_golden_artifacts.py`; focused pytest pass; deprecation section below. |
 | Testing | 97 | Added durable tests for fixture schema, JS syntax checks, GLSL structure, and claim boundaries. | 98 | Live provider/RAGAs tests are opt-in, not CI default. | `tests/test_golden_artifacts.py`; RAGAs result manifest; focused validation commands. |
 | Documentation | 97 | Added evaluator start path, minimum setup path, docs/demo classification, updated scorecard/eval/demo docs. | 99 | Docs are extensive and still need presenter curation. | README; `docs/PUBLIC_DOCUMENTATION_BOUNDARY_AUDIT.md`; updated capstone docs. |
-| Demo Reliability | 96 | Validated timed-demo model and updated checklist for 10-minute demo, 5-minute Q&A, and fallback path. | 98 | Final human spoken rehearsal remains outside CI. | Demo plan: 600 demo seconds, 300 Q&A seconds, 5 fallback triggers; `demo/manual_demo_checklist.md`. |
+| Demo Reliability | 96 | Validated timed-demo model, final eight-flow demo suite, local startup path, Q&A answers, and fallback path. | 99 | Final human spoken rehearsal remains outside CI. | Demo plan: 600 demo seconds, 300 Q&A seconds, 5 fallback triggers; `demo/final_demo_suite.json`; `demo/manual_demo_checklist.md`. |
 | Capstone Alignment | 97 | Added reviewer start path, sanitized RAGAs, artifact QA, docs boundary audit. | 99 | Official reviewer rubric interpretation can vary. | README start path; `docs/CAPSTONE_DEMO_SHOWCASE.md`; `docs/CAPSTONE_EVALUATION_ETHICS.md`. |
 | Presentation Readiness | 96 | Added concise evaluator path, final presenter checklist, deployment target, browser QA talking points, Q&A answers, and fallback sequence. | 99 | Delivery quality depends on presenter rehearsal. | README; `demo/manual_demo_checklist.md`; timed-demo audit; deployment target doc. |
-| Product Robustness | 94 | Added generated artifact QA, successful sanitized RAGAs external run, browser/render QA, and local deployment fallback review. | 97 | No broad chaos/load test, public deployment, or full Three.js runtime render in this checkout. | Golden artifact QA manifest; browser render QA result; provider smoke; API/frontend/backend evidence. |
+| Product Robustness | 94 | Added generated artifact QA, successful sanitized RAGAs external run, full-runtime browser/render QA, and local deployment fallback review. | 98 | No broad chaos/load test, public deployment, or app dependency/runtime install change. | Golden artifact QA manifest; full-runtime browser render QA result; provider smoke; API/frontend/backend evidence. |
 | RAG/Retrieval Quality | 94 | Ran privacy-approved sanitized RAGAs and preserved private-data HITL boundary. | 98 | Sanitized fixture is narrow; private live-session scoring still gated. | RAGAs values: 0.9999999999, 0.9999999999, 0.99999999995, 0.99999999995; retrieval smoke 7/7. |
-| Output Quality | 91 | Generated p5.js, Three.js, and GLSL artifacts, then added browser/render QA for p5 shim and GLSL WebGL. | 97 | Three.js remains static-only without a local Three package; no FPS benchmark was run. | `demo/golden_artifacts/browser_render_qa_results.json`; `node --check`; GLSL WebGL render; QA manifest. |
-| Creative Quality | 93 | Added curated luminous mandala, audio-reactive Three.js, and kaleidoscope shader artifacts with boundaries. | 96 | Creative quality is still partly subjective and not automatically scored from rendered media. | Golden artifacts; creative readiness/critic surfaces; prompt library. |
+| Output Quality | 91 | Generated p5.js, Three.js, and GLSL artifacts, then added full-runtime browser/render QA and frame timing. | 98 | p5/Three runtime packages were temporary QA dependencies; no display-FPS benchmark was run. | `demo/golden_artifacts/browser_full_runtime_qa_results.json`; `node --check`; GLSL WebGL render; QA manifest. |
+| Creative Quality | 93 | Added curated luminous mandala, audio-reactive Three.js, kaleidoscope shader artifacts, and eight-flow demo suite. | 97 | Creative quality remains partly subjective and not automatically scored from rendered media for every flow. | Golden artifacts; final demo suite; creative readiness/critic surfaces; prompt library. |
 | Security/Privacy | 95 | Used sanitized fixture for external RAGAs and documented public/private boundary. | 97 | Secret scan should rerun immediately before final public release; private RAGAs still needs HITL. | Sanitized fixture README; docs boundary audit; previous secret scan and clean dependency audit. |
-| Production Readiness | 94 | Closed remaining RC evidence gaps that were low-risk/local: sanitized RAGAs, artifact QA, browser/render QA, docs audit, README path, local deployment target, fallback path. | 97 | Final freeze, public deployment, Chroma upgrade, full Three.js runtime render, and FPS/load benchmarks remain outside this pass. | Grand Review doc; scorecard; validation results; deployment target doc; deprecation upgrade path. |
+| Production Readiness | 94 | Closed remaining RC evidence gaps that were low-risk/local: sanitized RAGAs, artifact QA, full-runtime browser/render QA, demo suite, docs audit, README path, local deployment target, fallback path. | 98 | Final freeze, public deployment, Chroma upgrade, display-FPS/load benchmark, and private-session RAGAs HITL remain outside this pass. | Grand Review doc; scorecard; validation results; deployment target doc; deprecation upgrade path. |
 
 ## Baseline Engineering Scorecard
 
@@ -88,7 +89,7 @@ mandatory score update for the requested 13 categories is the table above.
 | Output Quality | 91 | Demo prompt library, golden dataset, creative readiness, preview fallback, provider smoke. | Before the RC excellence pass, persisted generated artifacts were absent. | Scorecard states that the baseline benchmark was flow/prompt evidence before static artifacts were added. | Reviewer may ask for rendered/browser QA beyond static code artifacts. | Use the completed p5.js, Three.js, and GLSL artifact QA as public evidence; add render/FPS QA before a perfect-score claim. |
 | Creative Quality | 93 | Creative readiness review, creative analytics, prompt library, symbolic/sacred/mythopoetic coverage. | Creative analytics are guarded metadata, not automatic output evaluation. | Added detailed golden benchmark and critic simulation. | Creative impact depends on final presenter delivery and output examples. | Add curated before/after artifact examples with critique notes. |
 | Explainability | 96 | Workflow explainability dashboard, prompt guidance, SCR/SMART, Q&A prep, case boundaries. | Passive explainability metadata could be mistaken for live decision control. | Docs preserve passive versus active boundaries. | Reviewer may test whether explanations match runtime behavior. | Include one traced prompt-to-output walkthrough in the demo packet. |
-| Performance | 90 | Quality dashboard budgets, Playwright timings, local test performance. | No broad load/soak benchmark or real browser FPS benchmark in this pass. | Existing performance caveats remain explicit. | Heavy visual outputs may exceed browser budgets. | Add a bounded browser preview FPS/performance smoke for generated p5/Three/GLSL artifacts. |
+| Performance | 90 | Quality dashboard budgets, Playwright timings, local test performance, full-runtime artifact draw-loop timing. | No broad load/soak benchmark or display-FPS benchmark in this pass. | Added p5/Three/GLSL uncapped local draw-loop timing. | Heavy visual outputs may exceed browser budgets. | Add a true display-FPS and longer-duration browser preview benchmark before public launch. |
 | Security | 96 | Secret scan found fixtures/placeholders only; clean server dependency `pip-audit` had no known vulnerabilities. | Local `.env` exists and must stay private. | Docs state ignored local runtime/env artifacts. | New generated artifacts could accidentally include secrets if not reviewed. | Run secret scan immediately before final freeze and before any public showcase upload. |
 | Privacy | 94 | RAGAs live scoring blocked as external-provider privacy boundary; dry-run used instead. | Highest eval confidence needs HITL-approved external scoring or sanitized fixture. | Privacy boundary documented as a strength, not a failure. | Reviewers may want fresh RAGAs numbers. | Create sanitized eval records or obtain HITL approval for external evaluator calls. |
 | Documentation | 97 | README, capstone demo, ethics, Grand Review, scorecard, demo docs. | Docs are extensive and can overwhelm. | Added scorecard as concise reviewer map. | Reviewer may miss key evidence if not guided. | Add a one-page presentation handout linking the canonical docs. |
@@ -145,9 +146,9 @@ execution, DCC/MCP execution, HoloMind, or HOLOiVERSE.
 
 | Scenario | Correctness | Robustness | Creative quality | Explainability | Demo quality | Fallback | Reliability | Benchmark score | Notes |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| p5.js | 98 | 97 | 97 | 97 | 97 | 96 | 97 | 97 | Generated p5 artifact passes `node --check` and renders nonblank through the local p5-compatible browser harness; full p5 package is not installed. |
-| Three.js | 96 | 95 | 96 | 96 | 96 | 95 | 95 | 96 | Generated Three.js module passes `node --check`; audio path requires user gesture and caller-provided runtime. |
-| GLSL | 97 | 96 | 96 | 96 | 96 | 95 | 96 | 96 | Generated fragment shader passes static structure checks and renders nonblank through local WebGL harness; product preview integration is still separate. |
+| p5.js | 99 | 98 | 97 | 98 | 98 | 97 | 98 | 98 | Generated p5 artifact passes `node --check` and renders nonblank through real `p5@2.3.0` temporary QA runtime; app dependency graph is unchanged. |
+| Three.js | 98 | 97 | 97 | 97 | 98 | 96 | 98 | 97 | Generated Three.js module passes `node --check` and renders nonblank through real `three@0.185.1` temporary QA runtime; audio input remains optional/fallback. |
+| GLSL | 98 | 97 | 96 | 97 | 97 | 96 | 97 | 97 | Generated fragment shader passes static structure checks and renders nonblank through local WebGL compile/link/draw/pixel check; product preview integration is still separate. |
 | Hydra-if-supported | 85 | 84 | 90 | 92 | 88 | 95 | 85 | 88 | Intentionally not generated; correctly bounded as guidance/fallback, not guaranteed live execution. |
 | Retrieval/RAG | 98 | 96 | 90 | 97 | 96 | 94 | 96 | 96 | Sanitized RAGAs passed with avg context precision 0.999999999925; private-session RAGAs remains gated. |
 | Symbolic Translation | 95 | 94 | 96 | 97 | 95 | 96 | 94 | 95 | Strong claim safety and operational translation boundary. |
@@ -239,8 +240,8 @@ AI Reviewer:
 - Excellent: RAG architecture, prompt/runtime guidance, LangGraph workflow,
   provider smoke, retrieval smoke, sanitized RAGAs workflow, ethics/privacy
   boundaries.
-- Weak: private live-session RAGAs not run externally and generated outputs are
-  statically QA checked rather than visually/FPS benchmarked.
+- Weak: private live-session RAGAs not run externally and generated output
+  timing is draw-loop timing rather than display-FPS benchmarking.
 - Likely questions: how RAG quality is measured, why evaluator data was not sent
   externally, how prompt engineering is demonstrated.
 - Improvement that increases score: HITL-approved private-session RAGAs if
